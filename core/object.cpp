@@ -401,7 +401,7 @@ ObjPtr Object::operator/=(Object value) {
     LOG_RUNTIME("Operator '/' fail for '%s' and '%s'", toString().c_str(), value.toString().c_str());
 }
 
-ObjPtr Object::op_div_ceil_(Object value) {
+ObjPtr Object::op_div_ceil_(Object & value) {
     if(is_tensor() && value.is_tensor()) {
         ObjType type = m_var_type_current;
         testResultIntegralType(ObjType::Float, false);

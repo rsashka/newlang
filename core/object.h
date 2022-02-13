@@ -30,7 +30,7 @@ namespace newlang {
 
 ObjType DictionarySummaryType(const Object *obj);
 std::vector<int64_t> TensorShapeFromDict(const Object *obj);
-torch::Tensor ConvertToTensor(const Object *obj, at::ScalarType type = at::ScalarType::Undefined, bool reshape=true);
+torch::Tensor ConvertToTensor(const Object *obj, at::ScalarType type = at::ScalarType::Undefined, bool reshape = true);
 
 at::TensorOptions ConvertToTensorOptions(const Object *obj);
 at::DimnameList ConvertToDimnameList(const Object *obj);
@@ -542,7 +542,32 @@ john.__module__ =  __main__
         result->op_div_ceil_(value);
         return result;
     }
-    
+
+    inline ObjPtr op_concat(ObjPtr obj) {
+        ASSERT(obj);
+        return op_concat(*obj);
+    }
+
+    inline ObjPtr op_concat(Object &value) {
+        ObjPtr result = Clone();
+        result->op_concat_(value);
+        return result;
+    }
+
+    inline ObjPtr op_concat_(Object &obj) {
+        if (!is_string_type()) {
+            m_str = GetValueAsString();
+            m_var_type_current = ObjType::StrChar;
+        }
+        ASSERT(m_var_type_current == ObjType::StrWide || m_var_type_current == ObjType::StrChar);
+        if (m_var_type_current == ObjType::StrChar) {
+            m_str.append(obj.GetValueAsString());
+        } else if (m_var_type_current == ObjType::StrWide) {
+            m_wstr.append(obj.GetValueAsStringWide());
+        }
+        return shared();
+    }
+
     inline ObjPtr operator%(ObjPtr obj) {
         ASSERT(obj);
         return operator%(*obj);
@@ -772,7 +797,7 @@ john.__module__ =  __main__
         return op_div_ceil_(*obj);
     }
 
-    ObjPtr op_div_ceil_(Object obj);
+    ObjPtr op_div_ceil_(Object &obj);
 
     inline ObjPtr operator%=(ObjPtr obj) {
         ASSERT(obj);
@@ -898,6 +923,10 @@ john.__module__ =  __main__
     std::string toString(bool deep = true) const;
 
     std::string GetValueAsString() const;
+
+    inline std::wstring GetValueAsStringWide() const {
+        return utf8_decode(GetValueAsString());
+    }
 
     inline int64_t GetValueAsInteger() const {
         TEST_INIT_();
@@ -1054,7 +1083,7 @@ john.__module__ =  __main__
 
     static ObjPtr CreateTensor(ObjPtr data, ObjType type) {
         torch::Tensor var = ConvertToTensor(data.get(), toTorchType(type), false);
-//        ConvertToTensor(data->index_get({0}).get(), type, false);
+        //        ConvertToTensor(data->index_get({0}).get(), type, false);
         return CreateTensor(var);
     }
 

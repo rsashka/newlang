@@ -1178,17 +1178,17 @@ str_op: string
         {
             $$ = $1;
         }
-    | string '+' string
+/*    | string CONCAT string
         {
             $$ = $2;
-            $$->SetTermID(TermID::OPERATOR);
+            $$->SetTermID(TermID::CONCAT);
             $$->Append($1, Term::LEFT); 
             $$->Append($3, Term::RIGHT); 
-        }
-    | string '+' INTEGER
+        } */
+    | rval CONCAT rval
         {
             $$ = $2;
-            $$->SetTermID(TermID::OPERATOR);
+            $$->SetTermID(TermID::CONCAT);
             $$->Append($1, Term::LEFT); 
             $$->Append($3, Term::RIGHT); 
         }

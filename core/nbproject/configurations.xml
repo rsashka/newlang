@@ -526,6 +526,7 @@
           <useLinkerLibraries>false</useLinkerLibraries>
         </ccTool>
         <linkerTool>
+          <output>${CND_DISTDIR}/${CND_CONF}/${CND_PLATFORM}/newlang_test</output>
           <linkerAddLib>
             <pElem>../contrib/libtorch/lib</pElem>
           </linkerAddLib>

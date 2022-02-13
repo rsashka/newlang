@@ -537,8 +537,10 @@ ObjPtr Context::eval_DICT(Context *ctx, const TermPtr &term, Object &args) {
 }
 
 ObjPtr Context::eval_CONCAT(Context *ctx, const TermPtr &term, Object &args) {
-    LOG_RUNTIME("Not implemented!");
-    return nullptr;
+    ASSERT(term);
+    ASSERT(term->Left());
+    ASSERT(term->Right());
+    return Eval(ctx, term->Left(), args)->op_concat(Eval(ctx, term->Right(), args));
 }
 
 ObjPtr Context::eval_SOURCE(Context *ctx, const TermPtr &term, Object &args) {

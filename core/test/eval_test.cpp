@@ -485,8 +485,8 @@ TEST_F(OpEvalTest, Ops) {
 
     ASSERT_STREQ("", Test("\"\""));
     ASSERT_STREQ(" ", Test("\" \""));
-    ASSERT_STREQ("строка", Test("\"\"+\"строка\" "));
-    ASSERT_STREQ("строка 222", Test("\"строка \" + \"222\" "));
+    ASSERT_STREQ("строка", Test("\"\"++\"строка\" "));
+    ASSERT_STREQ("строка 222", Test("\"строка \" ++ \"222\" "));
     ASSERT_STREQ("строка строка строка ", Test("\"строка \" * 3 "));
 
 
