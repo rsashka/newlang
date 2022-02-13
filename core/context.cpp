@@ -897,10 +897,12 @@ ObjPtr Context::CallByName(const char * name, Object & args, bool is_ref) {
             obj = sess->Clone();
             obj->m_class_base = sess;
         }
-        obj = obj->ConvertToArgs(args, true, this);
         if(args.size()) {
-            //            obj = 
-            obj = obj->Call(this, args);
+            if(obj->is_string_type()) {
+                obj->SetValue_(obj->format(obj->GetValueAsString(), args));
+            } else {
+                obj = obj->Call(this, args);
+            }
         }
         return obj;
     }
