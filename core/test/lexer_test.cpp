@@ -223,13 +223,13 @@ TEST_F(Lexer, AssignEq) {
 
     ASSERT_EQ(3, Parse("token:=\"ssssssss\""));
     EXPECT_EQ(1, Count(TermID::TERM));
-    EXPECT_EQ(1, Count(TermID::CREATE));
+    EXPECT_EQ(1, Count(TermID::CREATE_OR_ASSIGN));
     EXPECT_EQ(1, Count(TermID::STRWIDE));
 
     EXPECT_STREQ("token", tokens[0]->getText().c_str()) << tokens[0]->getText();
     EXPECT_STREQ("ssssssss", tokens[2]->getText().c_str()) << tokens[2]->getText();
 
-    ASSERT_EQ(3, Parse("    token   \t  :=   'ssssssss'       "));
+    ASSERT_EQ(3, Parse("    token   \t  ::=   'ssssssss'       "));
     EXPECT_EQ(1, Count(TermID::TERM));
     EXPECT_EQ(1, Count(TermID::CREATE));
     EXPECT_EQ(1, Count(TermID::STRCHAR));
@@ -277,7 +277,7 @@ TEST_F(Lexer, CodeSource) {
 
 TEST_F(Lexer, Assign) {
     ASSERT_EQ(5, Parse(":= :- &&= ||= ^^="));
-    EXPECT_EQ(1, Count(TermID::CREATE));
+    EXPECT_EQ(1, Count(TermID::CREATE_OR_ASSIGN));
     EXPECT_EQ(1, Count(TermID::TRANSPARENT));
     EXPECT_EQ(3, Count(TermID::SIMPLE));
 }

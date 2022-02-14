@@ -307,7 +307,7 @@ number  {number1}|{number2}
 "->"        YY_TOKEN(FOLLOW);
 
 "::="       YY_TOKEN(CREATE);
-":="        YY_TOKEN(CREATE);
+":="        YY_TOKEN(CREATE_OR_ASSIGN);
 "[]="       YY_TOKEN(APPEND);
 
 "::-"       YY_TOKEN(TRANSPARENT);

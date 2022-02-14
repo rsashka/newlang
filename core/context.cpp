@@ -332,7 +332,7 @@ ObjPtr Context::eval_NAMESPACE(Context *ctx, const TermPtr &term, Object &args) 
  */
 
 
-ObjPtr Context::ExpandAssign(Context *ctx, TermPtr lvar, TermPtr rval, Object &args) {
+ObjPtr Context::ExpandAssign(Context *ctx, TermPtr lvar, TermPtr rval, Object &args, CreateMode mode) {
     LOG_RUNTIME("Not implemented!");
     return nullptr;
 }
@@ -342,18 +342,18 @@ ObjPtr Context::ExpandCreate(Context *ctx, TermPtr lvar, TermPtr rval, Object &a
     return nullptr;
 }
 
-ObjPtr Context::eval_ASSIGN(Context *ctx, const TermPtr &term, Object &local_vars) {
+ObjPtr Context::CREATE_OR_ASSIGN(Context *ctx, const TermPtr & term, Object &local_vars, CreateMode mode) {
     // Присвоить значение можно как одному термину, так и сразу нескольким при раскрытии словаря:
     // var1, var2, _ = ... func(); // Первый и второй элементы словаря записывается в var1 и var2, а остальные элементы возвращаемого словаря игнорируются (если они есть)
     // var1, var2 = ... func(); // Если функция вернула словрь с двумя элементами, то их значения записываются в var1 и var2. 
     //   Если в словаре было больше двух элементов, то первый записывается в var1, а оставшиеся в var2. !!!!!!!!!!!!!
     // var1, ..., var2 = ... func(); // Первый элемент словаря записывается в var1, а последний в var2.
 
-    ASSERT(term && term->getTermID() == TermID::ASSIGN);
+    ASSERT(term && (term->getTermID() == TermID::ASSIGN || term->getTermID() == TermID::CREATE || term->getTermID() == TermID::CREATE_OR_ASSIGN));
     ASSERT(term->Left());
 
     auto found = ctx->select(term->Left()->m_text);
-    if(!term->Right()) {
+    if(!term->Right() && mode == CreateMode::ASSIGN_ONLY) {
         if(!found.complete()) {
             ctx->erase(found);
             return Object::Yes();
@@ -362,34 +362,8 @@ ObjPtr Context::eval_ASSIGN(Context *ctx, const TermPtr &term, Object &local_var
     }
 
     if(term->Left()->Right() || term->Right()->getTermID() == TermID::ELLIPSIS) {
-        return ExpandAssign(ctx, term->Left(), term->Right(), local_vars);
+        return ExpandAssign(ctx, term->Left(), term->Right(), local_vars, mode);
     }
-    ObjPtr rval = Eval(ctx, term->Right(), local_vars);
-    if(!rval) {
-        NL_PARSER(term->Right(), "Object is missing or expression is not evaluated!");
-    }
-
-    if(found.complete()) {
-        NL_PARSER(term->Left(), "Object '%s' not found!", term->Left()->m_text.c_str());
-    }
-    ObjPtr lval = found.data().second.lock();
-    lval->SetValue_(rval);
-    return lval;
-}
-
-ObjPtr Context::eval_CREATE(Context *ctx, const TermPtr &term, Object &local_vars) {
-    // Создать можно один или сразу несколько терминов за раз
-    // var1, var2, var3 := value;
-    // var1, var2, var3 := ... value; // Раскрыть словарь?
-
-    ASSERT(ctx);
-    ASSERT(term && term->getTermID() == TermID::CREATE);
-    ASSERT(term->Left() && term->Right());
-
-    if(term->Left()->Right() || term->Right()->getTermID() == TermID::ELLIPSIS) {
-        return ExpandCreate(ctx, term->Left(), term->Right(), local_vars);
-    }
-
     ObjPtr rval = Eval(ctx, term->Right(), local_vars);
     if(!rval) {
         NL_PARSER(term->Right(), "Object is missing or expression is not evaluated!");
@@ -399,14 +373,71 @@ ObjPtr Context::eval_CREATE(Context *ctx, const TermPtr &term, Object &local_var
         return ctx->CreateTypeName(term->Left(), rval);
     }
 
-    ObjPtr lval = CreateLVal(ctx, term->Left(), local_vars);
+    ObjPtr lval = nullptr;
+    if(found.complete()) {
+        if(mode == CreateMode::ASSIGN_ONLY) {
+            NL_PARSER(term->Left(), "Object '%s' not found!", term->Left()->m_text.c_str());
+        }
+    } else {
+        lval = found.data().second.lock();
+    }
+
+    if(lval && mode == CreateMode::CREATE_ONLY) {
+        NL_PARSER(term->Left(), "Object '%s' already exist!", term->Left()->m_text.c_str());
+    }
+
     if(!lval) {
-        NL_PARSER(term->Left(), "Fail create lvalue object!");
+        lval = CreateLVal(ctx, term->Left(), local_vars);
+        if(!lval) {
+            NL_PARSER(term->Left(), "Fail create lvalue object!");
+        }
+        ctx->RegisterObject(lval);
     }
 
     lval->SetValue_(rval);
+    return lval;
+}
 
-    return ctx->RegisterObject(lval);
+ObjPtr Context::eval_ASSIGN(Context *ctx, const TermPtr &term, Object &local_vars) {
+    return CREATE_OR_ASSIGN(ctx, term, local_vars, CreateMode::ASSIGN_ONLY);
+}
+
+ObjPtr Context::eval_CREATE(Context *ctx, const TermPtr &term, Object &local_vars) {
+    return CREATE_OR_ASSIGN(ctx, term, local_vars, CreateMode::CREATE_ONLY);
+}
+//// Создать можно один или сразу несколько терминов за раз
+//    // var1, var2, var3 := value;
+//    // var1, var2, var3 := ... value; // Раскрыть словарь?
+//
+//    ASSERT(ctx);
+//    ASSERT(term && term->getTermID() == TermID::CREATE);
+//    ASSERT(term->Left() && term->Right());
+//
+//    if(term->Left()->Right() || term->Right()->getTermID() == TermID::ELLIPSIS) {
+//        return ExpandCreate(ctx, term->Left(), term->Right(), local_vars);
+//    }
+//
+//    ObjPtr rval = Eval(ctx, term->Right(), local_vars);
+//    if(!rval) {
+//        NL_PARSER(term->Right(), "Object is missing or expression is not evaluated!");
+//    }
+//
+//    if(isType(term->Left()->m_text)) {
+//        return ctx->CreateTypeName(term->Left(), rval);
+//    }
+//
+//    ObjPtr lval = CreateLVal(ctx, term->Left(), local_vars);
+//    if(!lval) {
+//        NL_PARSER(term->Left(), "Fail create lvalue object!");
+//    }
+//
+//    lval->SetValue_(rval);
+//
+//    return ctx->RegisterObject(lval);
+//}
+
+ObjPtr Context::eval_CREATE_OR_ASSIGN(Context *ctx, const TermPtr &term, Object &args) {
+    return CREATE_OR_ASSIGN(ctx, term, args, CreateMode::CREATE_OR_ASSIGN);
 }
 
 ObjPtr Context::eval_APPEND(Context *ctx, const TermPtr &term, Object &args) {
@@ -1124,7 +1155,7 @@ ObjPtr Context::CreateLVal(Context *ctx, TermPtr term, Object &args) {
     ASSERT(!term->m_text.empty());
 
     if(!ctx->select(term->m_text).complete()) {
-        // Объект должне отсутствовать
+        // Объект должен отсутствовать
         NL_PARSER(term, "Object '%s' already exists!", term->m_text.c_str());
     }
 

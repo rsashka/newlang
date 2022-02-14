@@ -34,6 +34,7 @@ namespace newlang {
         _(NAMESPACE) \
         _(ASSIGN) \
         _(CREATE) \
+        _(CREATE_OR_ASSIGN) \
         _(APPEND) \
         \
         _(FUNCTION) \
@@ -373,6 +374,7 @@ public:
 
             case TermID::ASSIGN:
             case TermID::CREATE:
+            case TermID::CREATE_OR_ASSIGN:
                 //            case TermID::APPEND:
                 if (m_id == TermID::ASSIGN) {
                     result += m_text;

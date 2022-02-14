@@ -175,8 +175,9 @@ void ParserException(const char *msg, std::string &buffer, int row, int col);
   _(ViewWide,43) \
   _(String,  49) \
   \
-  _(BigNum,     96) \
-  _(Fraction,    97) \
+  _(BigNum,     95) \
+  _(Currency,   96) \
+  _(Fraction,   97) \
   _(Pointer,     98) \
   _(NativeFunc,     99) \
   _(FUNCTION,       100) \

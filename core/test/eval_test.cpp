@@ -28,7 +28,7 @@ TEST(Eval, Assign) {
     ObjPtr list = ctx.Eval("$");
     ASSERT_STREQ("$=(,)", list->toString().c_str());
 
-    ObjPtr var1 = ctx.Eval("var1 := 123");
+    ObjPtr var1 = ctx.Eval("var1 ::= 123");
     ASSERT_TRUE(var1);
     ASSERT_TRUE(var1->is_arithmetic_type());
     ASSERT_TRUE(var1->is_integer());
@@ -40,7 +40,7 @@ TEST(Eval, Assign) {
     list = ctx.Eval("$");
     ASSERT_STREQ("$=('var1',)", list->toString().c_str());
 
-    ASSERT_THROW(ctx.Eval("var1 := 123"), std::exception);
+    ASSERT_THROW(ctx.Eval("var1 ::= 123"), std::exception);
 
     ASSERT_TRUE(ctx.Eval("var1 = 100:Char"));
     ASSERT_EQ(var1->m_var_type_current, ObjType::Char);

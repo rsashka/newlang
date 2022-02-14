@@ -110,6 +110,13 @@ public:
     static ObjPtr eval_UNKNOWN(Context *ctx, const TermPtr & term, Object &args);
     static ObjPtr func_NOT_SUPPORT(Context *ctx, const TermPtr & term, Object &args);
 
+    enum class CreateMode {
+        CREATE_ONLY,
+        CREATE_OR_ASSIGN,
+        ASSIGN_ONLY,
+    };
+    static ObjPtr CREATE_OR_ASSIGN(Context *ctx, const TermPtr & term, Object &args, CreateMode mode);
+
 #define DEFINE_CASE(name) \
     static ObjPtr eval_ ## name(Context *ctx, const TermPtr &term, Object &args);
 
@@ -157,7 +164,7 @@ public:
     }
     static ObjPtr Eval(Context *ctx, TermPtr term, Object &args);
 
-    static ObjPtr ExpandAssign(Context *ctx, TermPtr lvar, TermPtr rval, Object &args);
+    static ObjPtr ExpandAssign(Context *ctx, TermPtr lvar, TermPtr rval, Object &args, CreateMode mode);
     static ObjPtr ExpandCreate(Context *ctx, TermPtr lvar, TermPtr rval, Object &args);
 
     Context(RuntimePtr global);

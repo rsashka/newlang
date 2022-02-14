@@ -215,7 +215,7 @@ public:
         auto result = cli.parse({argc, argv});
         if (!result) {
             m_mode = Mode::ERROR;
-            m_output = result.errorMessage();
+            m_output = result.message();
             return false;
         }
 

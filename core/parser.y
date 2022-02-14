@@ -78,7 +78,8 @@
 %token			TERM            "Term"
 %token			SYMBOL          "Symbol"
 
-%token			CREATE		":="
+%token			CREATE		"::="
+%token			CREATE_OR_ASSIGN ":="
 
 %token			APPEND		"[]"
 %token			FOLLOW		"->"
@@ -801,7 +802,11 @@ assign:  '='  /* ASSIGN */
                 $$ = $1;
                 $$->SetTermID(TermID::ASSIGN);
             }
-        | CREATE /* := */
+        | CREATE_OR_ASSIGN /* := */
+            {
+                $$ = $1;
+            }
+        | CREATE /* ::= */
             {
                 $$ = $1;
             }
@@ -814,10 +819,6 @@ assign_val: assign
             {
                 $$=$1;
             }
-/*        | append
-            {
-                $$=$1;
-            }*/
 
 assign_local:  lval  assign   /* REMOVE  value */
             {
