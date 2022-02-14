@@ -89,6 +89,7 @@ TEST(Eval, Assign) {
     ASSERT_STREQ("$=('var_str', 'var_num',)", list->toString().c_str());
 
 
+    var_long = 987654321;
     ObjPtr var_export = ctx.Eval("var_export := @import(\"var_long:Long\")");
     ASSERT_TRUE(var_export);
     ASSERT_TRUE(var_export->is_tensor()) << var_export;
@@ -189,15 +190,15 @@ TEST(Eval, Assign) {
     ASSERT_EQ(0, tensor->index_get({2})->GetValueAsInteger());
     ASSERT_EQ(0, tensor->index_get({3})->GetValueAsInteger());
 
-    ASSERT_STREQ("[1, 1, 0, 0]:Bool", tensor->GetValueAsString().c_str());
+    ASSERT_STREQ("[1, 1, 0, 0,]:Bool", tensor->GetValueAsString().c_str());
 
     ObjPtr tensor2 = ctx.Eval("[222,333,3333,]");
     ASSERT_TRUE(tensor2);
-    ASSERT_STREQ("[222, 333, 3333]:Short", tensor2->GetValueAsString().c_str());
+    ASSERT_STREQ("[222, 333, 3333,]:Short", tensor2->GetValueAsString().c_str());
 
     ObjPtr tensorf = ctx.Eval("[1.2, 0.22, 0.69,]");
     ASSERT_TRUE(tensorf);
-    ASSERT_STREQ("[1.2, 0.22, 0.69]:Double", tensorf->GetValueAsString().c_str());
+    ASSERT_STREQ("[1.2, 0.22, 0.69,]:Double", tensorf->GetValueAsString().c_str());
 
     ObjPtr tensor_all = ctx.Eval("[[1, 1, 0, 0,], [10, 10, 0.1, 0.2,], ]");
     ASSERT_TRUE(tensor_all);
@@ -217,7 +218,7 @@ TEST(Eval, Assign) {
     ASSERT_STREQ("0.1", tensor_all->index_get({1, 2})->GetValueAsString().c_str());
     ASSERT_STREQ("0.2", tensor_all->index_get({1, 3})->GetValueAsString().c_str());
 
-    ASSERT_STREQ("[[1, 1, 0, 0], [10, 10, 0.1, 0.2]]:Double", tensor_all->GetValueAsString().c_str());
+    ASSERT_STREQ("[[1, 1, 0, 0,], [10, 10, 0.1, 0.2,],]:Double", tensor_all->GetValueAsString().c_str());
 
 }
 

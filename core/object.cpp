@@ -660,7 +660,7 @@ void TensorToString_(const torch::Tensor &tensor, c10::IntArrayRef shape, std::v
             }
             TensorToString_(tensor, shape, ind, pos + 1, str);
         }
-        str << "]";
+        str << ",]";
     } else {
         str << "[";
         bool comma = false;
@@ -678,7 +678,7 @@ void TensorToString_(const torch::Tensor &tensor, c10::IntArrayRef shape, std::v
                 str << tensor.index(ind).item<int64_t>();
             }
         }
-        str << "]";
+        str << ",]";
     }
 }
 
