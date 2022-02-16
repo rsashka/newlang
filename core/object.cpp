@@ -46,7 +46,7 @@ int64_t Object::size(int64_t dim) const {
     return Variable::size();
 }
 
-const Variable<ObjPtr>::PairType & Object::at(size_t index) const {
+const Variable<ObjPtr>::PairType & Object::at(int64_t index) const {
     //    if(m_var_type == Type::STRBYTE) {
     //        if(index < m_string.size()) {
     //            m_str_pair = pair(CreateString(std::string(1, m_string[index])));
@@ -65,7 +65,7 @@ const Variable<ObjPtr>::PairType & Object::at(size_t index) const {
     return Variable::at(index);
 }
 
-Variable<ObjPtr>::PairType & Object::at(size_t index) {
+Variable<ObjPtr>::PairType & Object::at(int64_t index) {
     if(m_var_type_current == ObjType::StrChar) {
         if(index < m_str.size()) {
             m_str_pair = pair(CreateString(std::string(1, m_str[index])));

@@ -389,8 +389,8 @@ john.__module__ =  __main__
 //        return Variable<ObjPtr>::at(name.begin()).second;
     }
 
-    Variable<ObjPtr>::PairType & at(const size_t index) override;
-    const Variable<ObjPtr>::PairType & at(const size_t index) const override;
+    Variable<ObjPtr>::PairType & at(const int64_t index) override;
+    const Variable<ObjPtr>::PairType & at(const int64_t index) const override;
 
     ObjPtr & at(ObjPtr find) {
         if (!find->is_string_type()) {
