@@ -6,7 +6,6 @@
 
 using namespace newlang;
 
-
 TermPtr CompileInfo::isFunction(TermPtr term) {
     ASSERT(term);
     if(term) {
@@ -62,7 +61,6 @@ TermPtr CompileInfo::findObject(std::string name) {
     }
     return nullptr;
 }
-
 
 bool CompileInfo::isLocalAccess(TermPtr term) {
     ASSERT(term);
@@ -161,52 +159,53 @@ std::string NewLang::MakeCommentLine(std::string comment) {
 }
 
 std::string NewLang::WriteSimpleBody_(CompileInfo &ci, TermPtr &func) {
-    auto indent = ci.NewIndent();
-    WriteFunctionOp *func_op;
-    if(func->getTermID() != TermID::SIMPLE) {
-        LOG_RUNTIME("Term is not a simple pure function %s(%d) %s", newlang::toString(func->getTermID()), (int) func->getTermID(), func->toString().c_str());
-    }
-
-    if(func->getText().compare("&&=") == 0) {
-        func_op = &WriteSimpleBodyAND_;
-    } else if(func->getText().compare("||=") == 0) {
-        func_op = &WriteSimpleBodyOR_;
-    } else if(func->getText().compare("^^=") == 0) {
-        func_op = &WriteSimpleBodyXOR_;
-    } else {
-        LOG_RUNTIME("Unknown function type %s(%d) %s", newlang::toString(func->getTermID()), (int) func->getTermID(), func->toString().c_str());
-    }
-
-    std::string temp;
-    std::string result = (*func_op)(ci, func, FunctionStep::PREPARE);
-
-    if(func->Right()->getTermID() == TermID::BLOCK) {
-        for (auto &elem : func->Right()->BlockCode()) {
-
-            // В комментарий добавляется исходный код, в котором могут быть текстовые строки с управляющими символами
-            result += "\n" + ci.GetIndent() + MakeCommentLine(elem->toString());
-
-            temp = (*func_op)(ci, elem, FunctionStep::OPERATION);
-            //                ReplaceFuncArgs(func, temp);
-            result += temp;
-
-        }
-    } else {
-
-        TermPtr term = func->Right();
-
-        // В комментарий добавляется исходный код, в котором могут быть текстовые строки с управляющими символами
-        result += "\n" + ci.GetIndent() + MakeCommentLine(term->toString());
-
-        temp = (*func_op)(ci, term, FunctionStep::OPERATION);
-
-        //            ReplaceFuncArgs(func, temp);
-        result += temp;
-    }
-
-    result += (*func_op)(ci, func, FunctionStep::COMPLETE);
-
-    return result;
+    ASSERT(!"Not implemented");
+    //    auto indent = ci.NewIndent();
+    //    WriteFunctionOp *func_op;
+    //    if(func->getTermID() != TermID::SIMPLE) {
+    //        LOG_RUNTIME("Term is not a simple pure function %s(%d) %s", newlang::toString(func->getTermID()), (int) func->getTermID(), func->toString().c_str());
+    //    }
+    //
+    //    if(func->getText().compare("&&=") == 0) {
+    //        func_op = &WriteSimpleBodyAND_;
+    //    } else if(func->getText().compare("||=") == 0) {
+    //        func_op = &WriteSimpleBodyOR_;
+    //    } else if(func->getText().compare("^^=") == 0) {
+    //        func_op = &WriteSimpleBodyXOR_;
+    //    } else {
+    //        LOG_RUNTIME("Unknown function type %s(%d) %s", newlang::toString(func->getTermID()), (int) func->getTermID(), func->toString().c_str());
+    //    }
+    //
+    //    std::string temp;
+    //    std::string result = (*func_op)(ci, func, FunctionStep::PREPARE);
+    //
+    //    if(func->Right()->getTermID() == TermID::BLOCK) {
+    //        for (auto &elem : func->Right()->BlockCode()) {
+    //
+    //            // В комментарий добавляется исходный код, в котором могут быть текстовые строки с управляющими символами
+    //            result += "\n" + ci.GetIndent() + MakeCommentLine(elem->toString());
+    //
+    //            temp = (*func_op)(ci, elem, FunctionStep::OPERATION);
+    //            //                ReplaceFuncArgs(func, temp);
+    //            result += temp;
+    //
+    //        }
+    //    } else {
+    //
+    //        TermPtr term = func->Right();
+    //
+    //        // В комментарий добавляется исходный код, в котором могут быть текстовые строки с управляющими символами
+    //        result += "\n" + ci.GetIndent() + MakeCommentLine(term->toString());
+    //
+    //        temp = (*func_op)(ci, term, FunctionStep::OPERATION);
+    //
+    //        //            ReplaceFuncArgs(func, temp);
+    //        result += temp;
+    //    }
+    //
+    //    result += (*func_op)(ci, func, FunctionStep::COMPLETE);
+    //
+    //    return result;
 }
 
 bool newlang::Tranliterate(const wchar_t c, std::wstring &str) {
@@ -400,82 +399,83 @@ std::string newlang::MangleName(const char * name) {
 }
 
 bool NewLang::MakeFunctionCpp(CompileInfo &ci, std::string func_name, TermPtr &func_define, std::ostream &out) {
-    if(!func_define->IsFunction()) {
-        LOG_RUNTIME("No function name");
-    }
-    if(!func_define->Right()) {
-        LOG_RUNTIME("No function body");
-    }
-
-    std::string text = func_define->toString();
-    text = std::regex_replace(text, std::regex("\""), "\\\"");
-    text = std::regex_replace(text, std::regex("\n"), "\\n");
-    text = std::regex_replace(text, std::regex("\t"), "\\t");
-    text = std::regex_replace(text, std::regex("\r"), "\\r");
-    text = std::regex_replace(text, std::regex("\b"), "\\b");
-    text = std::regex_replace(text, std::regex("\f"), "\\f");
-    out << "const char * " << MangleName(func_define->Left()->GetFullName().c_str()) << "_text";
-    out << "=\"" << text << "\";\n";
-
-    out << "const ObjPtr " << MangleName(func_define->Left()->GetFullName().c_str()) << "_arguments";
-    out << "=Object::CreateDict(Object::ArgNull(\"self\")";
-    if(func_define->Left()->size()) {
-        for (size_t i = 0; i < func_define->Left()->size(); i++) {
-            out << ", ";
-            std::string var_name;
-            if(func_define->Left()->name(i).empty()) {
-                var_name = func_define->Left()->at(i).second->GetFullName();
-                out << "Object::ArgNull(";
-
-            } else {
-                out << "Object::Arg(";
-                var_name = func_define->Left()->name(i);
-                std::string impl;
-                GetImpl(ci, func_define->Left()->at(i).second, impl);
-                out << impl;
-                out << ", ";
-            }
-            out << "\"" << var_name << "\")";
-        }
-    }
-    out << ");";
-    out << " // Default function args \n";
-
-
-    WriteFunctionName_(func_define, out);
-    out << " {\n";
-
-
-    // Аргументы функции с локальным доступом по имени или индексу
-    if(func_define->Left()->size()) {
-        for (size_t i = 0; i < func_define->Left()->size(); i++) {
-            std::string var_name;
-            if(func_define->Left()->name(i).empty()) {
-                var_name = func_define->Left()->at(i).second->GetFullName();
-            } else {
-                var_name = func_define->Left()->name(i);
-            }
-            ci.arguments.insert(std::pair<std::string, TermPtr>(var_name, func_define->Left()));
-        }
-    }
-
-    std::string body;
-    if(func_define->GetTokenID() == TermID::SIMPLE) {
-        body = WriteSimpleBody_(ci, func_define);
-    } else {
-        body = MakeFunctionBodyCpp(ci, func_define->Right());
-    }
-
-    out << body;
-
-    // Проверка типа возвращаемого значения из функции
-    NL_TYPECHECK(func_define->Left(), func_define->Left()->m_type_name, ci.last_type);
-
-    out << "}\n";
-
-    ci.arguments.clear();
-
-    return true;
+    LOG_RUNTIME("MakeFunctionCpp Not implemeneted!");
+//    if(!func_define->IsFunction()) {
+//        LOG_RUNTIME("No function name");
+//    }
+//    if(!func_define->Right()) {
+//        LOG_RUNTIME("No function body");
+//    }
+//
+//    std::string text = func_define->toString();
+//    text = std::regex_replace(text, std::regex("\""), "\\\"");
+//    text = std::regex_replace(text, std::regex("\n"), "\\n");
+//    text = std::regex_replace(text, std::regex("\t"), "\\t");
+//    text = std::regex_replace(text, std::regex("\r"), "\\r");
+//    text = std::regex_replace(text, std::regex("\b"), "\\b");
+//    text = std::regex_replace(text, std::regex("\f"), "\\f");
+//    out << "const char * " << MangleName(func_define->Left()->GetFullName().c_str()) << "_text";
+//    out << "=\"" << text << "\";\n";
+//
+//    out << "const ObjPtr " << MangleName(func_define->Left()->GetFullName().c_str()) << "_arguments";
+//    out << "=Object::CreateDict(Object::ArgNull(\"self\")";
+//    if(func_define->Left()->size()) {
+//        for (size_t i = 0; i < func_define->Left()->size(); i++) {
+//            out << ", ";
+//            std::string var_name;
+//            if(func_define->Left()->name(i).empty()) {
+//                var_name = func_define->Left()->at(i).second->GetFullName();
+//                out << "Object::ArgNull(";
+//
+//            } else {
+//                out << "Object::Arg(";
+//                var_name = func_define->Left()->name(i);
+//                std::string impl;
+//                GetImpl(ci, func_define->Left()->at(i).second, impl);
+//                out << impl;
+//                out << ", ";
+//            }
+//            out << "\"" << var_name << "\")";
+//        }
+//    }
+//    out << ");";
+//    out << " // Default function args \n";
+//
+//
+//    WriteFunctionName_(func_define, out);
+//    out << " {\n";
+//
+//
+//    // Аргументы функции с локальным доступом по имени или индексу
+//    if(func_define->Left()->size()) {
+//        for (size_t i = 0; i < func_define->Left()->size(); i++) {
+//            std::string var_name;
+//            if(func_define->Left()->name(i).empty()) {
+//                var_name = func_define->Left()->at(i).second->GetFullName();
+//            } else {
+//                var_name = func_define->Left()->name(i);
+//            }
+//            ci.arguments.insert(std::pair<std::string, TermPtr>(var_name, func_define->Left()));
+//        }
+//    }
+//
+//    std::string body;
+//    if(func_define->GetTokenID() == TermID::SIMPLE) {
+//        body = WriteSimpleBody_(ci, func_define);
+//    } else {
+//        body = MakeFunctionBodyCpp(ci, func_define->Right());
+//    }
+//
+//    out << body;
+//
+//    // Проверка типа возвращаемого значения из функции
+//    NL_TYPECHECK(func_define->Left(), func_define->Left()->m_type_name, ci.last_type);
+//
+//    out << "}\n";
+//
+//    ci.arguments.clear();
+//
+//    return true;
 
 }
 
@@ -491,25 +491,25 @@ void NewLang::MakeCppFileFunctions(CompileInfo &ci, TermPtr ast, std::ostream &o
 }
 
 void NewLang::MakeCppFileConstants(CompileInfo &ci, TermPtr ast, std::ostream &out) {
-//    if(ast->getTermID() == TermID::BLOCK) {
-//        for (TermPtr &elem : ast->BlockCode()) {
-//            MakeCppFileConstants(ci, elem, out);
-//        }
-//    } else if(ast->getTermID() == TermID::CREATE && isConst(ast->Left()->m_text.c_str())) {
-//        ASSERT(ast->Left());
-//        ASSERT(ast->Right());
-//
-//        //        out << "#line " << ast->GetLine() << "\n";
-//        std::string impl_name = MakeLocalName(ast->Left()->GetFullName().c_str());
-//        ci.consts.insert(std::pair<std::string, TermPtr>(MakeName(ast->Left()->GetFullName()), ast->Left()));
-//        NL_TYPECHECK(ast->Left(), ast->Right()->m_type_name, ast->Left()->m_type_name);
-//
-//        out << ci.GetIndent() << "static const ObjPtr " << impl_name;
-//        std::string impl;
-//        GetImpl(ci, ast->Right(), impl);
-//        out << "=" << impl << "->MakeConst(); ";
-//        out << "// " << ast->toString() << "\n";
-//    }
+    //    if(ast->getTermID() == TermID::BLOCK) {
+    //        for (TermPtr &elem : ast->BlockCode()) {
+    //            MakeCppFileConstants(ci, elem, out);
+    //        }
+    //    } else if(ast->getTermID() == TermID::CREATE && isConst(ast->Left()->m_text.c_str())) {
+    //        ASSERT(ast->Left());
+    //        ASSERT(ast->Right());
+    //
+    //        //        out << "#line " << ast->GetLine() << "\n";
+    //        std::string impl_name = MakeLocalName(ast->Left()->GetFullName().c_str());
+    //        ci.consts.insert(std::pair<std::string, TermPtr>(MakeName(ast->Left()->GetFullName()), ast->Left()));
+    //        NL_TYPECHECK(ast->Left(), ast->Right()->m_type_name, ast->Left()->m_type_name);
+    //
+    //        out << ci.GetIndent() << "static const ObjPtr " << impl_name;
+    //        std::string impl;
+    //        GetImpl(ci, ast->Right(), impl);
+    //        out << "=" << impl << "->MakeConst(); ";
+    //        out << "// " << ast->toString() << "\n";
+    //    }
 }
 
 std::string NewLang::MakeFunctionBodyCpp(CompileInfo &ci, TermPtr ast) {
@@ -530,57 +530,57 @@ std::string NewLang::MakeFunctionBodyCpp(CompileInfo &ci, TermPtr ast) {
 
 std::string NewLang::MakeSequenceOpsCpp(CompileInfo &ci, TermPtr ast, bool top_level) {
 
-//    auto indent = ci.NewIndent();
-//    std::ostringstream ostr;
+    //    auto indent = ci.NewIndent();
+    //    std::ostringstream ostr;
     std::string result;
-//    std::string temp;
-//
-//    std::string last_item;
-//    TermPtr last_term = ast;
-//    if(ast->getTermID() == TermID::BLOCK) {
-//
-//        for (size_t i = 0; i < ast->BlockCode().size(); i++) {
-//            TermPtr elem = ast->BlockCode()[i];
-//            if(top_level && i == ast->BlockCode().size() - 1) {
-//                last_item = MakeSequenceOpsCpp(ci, elem, false);
-//                result += last_item;
-//                last_term = elem;
-//            } else {
-//                result += MakeSequenceOpsCpp(ci, elem, false);
-//            }
-//        }
-//    } else if(!(ast->IsFunction() || (ast->getTermID() == TermID::CREATE && isConst(ast->Left()->m_text.c_str())))) {
-//
-//        //                out << "#line " << ast->GetLine() << "\n";
-//        result += ci.GetIndent() + MakeCommentLine(ast->toString());
-//        last_item = GetImpl(ci, ast, temp);
-//        //        result += ci.GetIndent() + temp;
-//        //        result += ";\n";
-//        //        result += ci.GetIndent();
-//        //        last_item = GetImpl(ci, ast, result);
-//        //        result += "; " + MakeCommentLine(ast->toString());
-//    }
-//
-//    if(top_level) {
-//        if(!last_item.empty()) {
-//            //            NL_TYPECHECK(last_term, ci.last_type, ast->m_type);
-//            //            if(!canCast(ci.last_type, last_term->m_type)) {
-//            //                Parser::RaiseException("Incompatible data type '%s' to '%s'", *ast->m_source, last_term->m_line, last_term->m_col);
-//            //            }
-//
-//            //                        NL_CHECK(canCast(ci.last_type, ast->m_type), "Incompatible data type '%s' to '%s'",
-//            //                    ci.last_type.empty() ? newlang::toString(ObjType::None) : ci.last_type.c_str(),
-//            //                    ast->m_type.c_str());
-//            result += ci.GetIndent() + "return " + last_item + ";\n";
-//        } else {
-//            //            NL_TYPECHECK(last_term, "", ast->m_type);
-//            //            NL_CHECK(canCast("", ast->m_type), "Incompatible data type '%s' to '%s'", newlang::toString(ObjType::None), ast->m_type.c_str());
-//            result += ci.GetIndent() + "return Object::CreateNone(); // default return\n";
-//        }
-//    } else {
-//        result += ci.GetIndent() + temp;
-//        result += ";\n";
-//    }
+    //    std::string temp;
+    //
+    //    std::string last_item;
+    //    TermPtr last_term = ast;
+    //    if(ast->getTermID() == TermID::BLOCK) {
+    //
+    //        for (size_t i = 0; i < ast->BlockCode().size(); i++) {
+    //            TermPtr elem = ast->BlockCode()[i];
+    //            if(top_level && i == ast->BlockCode().size() - 1) {
+    //                last_item = MakeSequenceOpsCpp(ci, elem, false);
+    //                result += last_item;
+    //                last_term = elem;
+    //            } else {
+    //                result += MakeSequenceOpsCpp(ci, elem, false);
+    //            }
+    //        }
+    //    } else if(!(ast->IsFunction() || (ast->getTermID() == TermID::CREATE && isConst(ast->Left()->m_text.c_str())))) {
+    //
+    //        //                out << "#line " << ast->GetLine() << "\n";
+    //        result += ci.GetIndent() + MakeCommentLine(ast->toString());
+    //        last_item = GetImpl(ci, ast, temp);
+    //        //        result += ci.GetIndent() + temp;
+    //        //        result += ";\n";
+    //        //        result += ci.GetIndent();
+    //        //        last_item = GetImpl(ci, ast, result);
+    //        //        result += "; " + MakeCommentLine(ast->toString());
+    //    }
+    //
+    //    if(top_level) {
+    //        if(!last_item.empty()) {
+    //            //            NL_TYPECHECK(last_term, ci.last_type, ast->m_type);
+    //            //            if(!canCast(ci.last_type, last_term->m_type)) {
+    //            //                Parser::RaiseException("Incompatible data type '%s' to '%s'", *ast->m_source, last_term->m_line, last_term->m_col);
+    //            //            }
+    //
+    //            //                        NL_CHECK(canCast(ci.last_type, ast->m_type), "Incompatible data type '%s' to '%s'",
+    //            //                    ci.last_type.empty() ? newlang::toString(ObjType::None) : ci.last_type.c_str(),
+    //            //                    ast->m_type.c_str());
+    //            result += ci.GetIndent() + "return " + last_item + ";\n";
+    //        } else {
+    //            //            NL_TYPECHECK(last_term, "", ast->m_type);
+    //            //            NL_CHECK(canCast("", ast->m_type), "Incompatible data type '%s' to '%s'", newlang::toString(ObjType::None), ast->m_type.c_str());
+    //            result += ci.GetIndent() + "return Object::CreateNone(); // default return\n";
+    //        }
+    //    } else {
+    //        result += ci.GetIndent() + temp;
+    //        result += ";\n";
+    //    }
     return result;
 }
 
@@ -1248,63 +1248,64 @@ ObjPtr NewLang::GetIndexField(Context *ctx, ObjPtr obj, TermPtr term, bool creat
 //}
 
 bool RunTime::LoadModule(const char *name_str, bool init, Context *ctx, const char *module_name) {
-    std::string name(module_name ? module_name : name_str);
-    try {
-        m_modules.insert(std::pair<std::string, Module *>(name, new Module(name_str)));
-        void * handle = m_modules[name]->GetHandle();
-
-        const size_t * func_list_count = static_cast<const size_t *> (dlsym(handle, NEWLANG_PREFIX "_func_list_count"));
-        const char ** func_list = static_cast<const char **> (dlsym(handle, NEWLANG_PREFIX "_func_list"));
-        m_modules[name]->m_source = static_cast<const char **> (dlsym(handle, NEWLANG_PREFIX "_module_source"));
-        m_modules[name]->m_main = reinterpret_cast<FunctionType*> (dlsym(handle, NEWLANG_PREFIX "_main_module_func"));
-
-        //@todo INIT MODULE
-
-        ObjPtr func;
-        if(func_list_count && func_list) {
-            TermPtr proto;
-            Parser parser(proto);
-            for (size_t i = 0; i < (*func_list_count); i++) {
-                LOG_DEBUG("Load '%s' form module '%s'.", func_list[i], name_str);
-
-                std::string arg_name = NEWLANG_PREFIX "_";
-                arg_name += func_list[i];
-                arg_name += "_text";
-
-                const char ** func_proto = static_cast<const char **> (dlsym(handle, arg_name.c_str()));
-                parser.Parse(*func_proto);
-                ObjType type;
-                switch(proto->getTermID()) {
-                    case TermID::SIMPLE:
-                    case TermID::TRANSPARENT:
-                        type = ObjType::TRANSPARENT;
-                        break;
-                    case TermID::FUNCTION:
-                        type = ObjType::FUNCTION;
-                        break;
-                    default:
-                        LOG_RUNTIME("Function type '%s' unknown '%s'", newlang::toString(proto->getTermID()), proto->toString().c_str());
-                }
-                func = Object::CreateFunc(ctx, proto->Left(), type, func_list[i]);
-                func->m_func_ptr = reinterpret_cast<void *> (dlsym(handle, MangleName(func_list[i]).c_str()));
-                func->m_func_source = proto;
-
-                //@todo call init module                
-                if(!(func->m_func_ptr && ctx->RegisterObject(func))) {
-                    LOG_ERROR("Fail load '%s' form module '%s'.", func_list[i], name_str);
-                } else {
-                    m_modules[name]->Funcs()[func_list[i]] = func;
-                }
-            }
-
-            return true;
-        }
-        LOG_WARNING("In module '%s' functions not found!", name_str);
-        return true;
-    } catch (std::runtime_error &e) {
-
-        LOG_ERROR("%s", e.what());
-    }
+    ASSERT(!"Not impelmented");
+//    std::string name(module_name ? module_name : name_str);
+//    try {
+//        m_modules.insert(std::pair<std::string, Module *>(name, new Module(name_str)));
+//        void * handle = m_modules[name]->GetHandle();
+//
+//        const size_t * func_list_count = static_cast<const size_t *> (dlsym(handle, NEWLANG_PREFIX "_func_list_count"));
+//        const char ** func_list = static_cast<const char **> (dlsym(handle, NEWLANG_PREFIX "_func_list"));
+//        m_modules[name]->m_source = static_cast<const char **> (dlsym(handle, NEWLANG_PREFIX "_module_source"));
+//        m_modules[name]->m_main = reinterpret_cast<FunctionType*> (dlsym(handle, NEWLANG_PREFIX "_main_module_func"));
+//
+//        //@todo INIT MODULE
+//
+//        ObjPtr func;
+//        if(func_list_count && func_list) {
+//            TermPtr proto;
+//            Parser parser(proto);
+//            for (size_t i = 0; i < (*func_list_count); i++) {
+//                LOG_DEBUG("Load '%s' form module '%s'.", func_list[i], name_str);
+//
+//                std::string arg_name = NEWLANG_PREFIX "_";
+//                arg_name += func_list[i];
+//                arg_name += "_text";
+//
+//                const char ** func_proto = static_cast<const char **> (dlsym(handle, arg_name.c_str()));
+//                parser.Parse(*func_proto);
+//                ObjType type;
+//                switch(proto->getTermID()) {
+//                    case TermID::SIMPLE:
+//                    case TermID::TRANSPARENT:
+//                        type = ObjType::TRANSPARENT;
+//                        break;
+//                    case TermID::FUNCTION:
+//                        type = ObjType::FUNCTION;
+//                        break;
+//                    default:
+//                        LOG_RUNTIME("Function type '%s' unknown '%s'", newlang::toString(proto->getTermID()), proto->toString().c_str());
+//                }
+//                func = Object::CreateFunc(ctx, proto->Left(), type, func_list[i]);
+//                func->m_func_ptr = reinterpret_cast<void *> (dlsym(handle, MangleName(func_list[i]).c_str()));
+//                func->m_func_source = proto;
+//
+//                //@todo call init module                
+//                if(!(func->m_func_ptr && ctx->RegisterObject(func))) {
+//                    LOG_ERROR("Fail load '%s' form module '%s'.", func_list[i], name_str);
+//                } else {
+//                    m_modules[name]->Funcs()[func_list[i]] = func;
+//                }
+//            }
+//
+//            return true;
+//        }
+//        LOG_WARNING("In module '%s' functions not found!", name_str);
+//        return true;
+//    } catch (std::runtime_error &e) {
+//
+//        LOG_ERROR("%s", e.what());
+//    }
     return false;
 }
 
@@ -1629,19 +1630,19 @@ std::string NewLang::GetImpl(CompileInfo &ci, TermPtr term, std::string &output)
             output += result;
             return result;
 
-//        case TermID::CREMENT:
-//            temp.clear();
-//            if(term->m_left && !term->m_right) {
-//                GetImpl(ci, term->m_left, temp);
-//                result = "(*" + temp + ")" + term->m_text;
-//            } else if(term->m_right && !term->m_left) {
-//                GetImpl(ci, term->m_right, temp);
-//                result = term->m_text + "(*" + temp + ")";
-//            } else {
-//                LOG_RUNTIME("Double CREMENT logic not support!");
-//            }
-//            output += result;
-//            return result;
+            //        case TermID::CREMENT:
+            //            temp.clear();
+            //            if(term->m_left && !term->m_right) {
+            //                GetImpl(ci, term->m_left, temp);
+            //                result = "(*" + temp + ")" + term->m_text;
+            //            } else if(term->m_right && !term->m_left) {
+            //                GetImpl(ci, term->m_right, temp);
+            //                result = term->m_text + "(*" + temp + ")";
+            //            } else {
+            //                LOG_RUNTIME("Double CREMENT logic not support!");
+            //            }
+            //            output += result;
+            //            return result;
 
         case TermID::ASSIGN:
             GetImpl(ci, term->Left(), result);

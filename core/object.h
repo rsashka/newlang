@@ -30,7 +30,7 @@ namespace newlang {
 
 ObjType DictionarySummaryType(const Object *obj);
 std::vector<int64_t> TensorShapeFromDict(const Object *obj);
-torch::Tensor ConvertToTensor(const Object *obj, at::ScalarType type = at::ScalarType::Undefined, bool reshape=true);
+torch::Tensor ConvertToTensor(Object *obj, at::ScalarType type = at::ScalarType::Undefined, bool reshape = true);
 
 at::TensorOptions ConvertToTensorOptions(const Object *obj);
 at::DimnameList ConvertToDimnameList(const Object *obj);
@@ -170,9 +170,9 @@ public:
     [[nodiscard]]
     inline ObjType getTypeAsLimit() {
         if (is_arithmetic_type()) {
-            if (isIntegralType(m_var_type_current, true)) {
+            if (isIntegralType(m_var_type_current, true) && is_scalar()) {
                 return typeFromLimit(GetValueAsInteger());
-            } else if (isFloatingType(m_var_type_current)) {
+            } else if (isFloatingType(m_var_type_current) && is_scalar()) {
                 return typeFromLimit(GetValueAsNumber());
             }
         }
@@ -331,6 +331,11 @@ john.__module__ =  __main__
     }
 
     [[nodiscard]]
+    inline bool is_floating() const {
+        return isFloatingType(m_var_type_current);
+    }
+
+    [[nodiscard]]
     inline bool is_indexing() const {
         return is_tensor() || is_string_type() || is_dictionary_type() || is_class();
     }
@@ -374,18 +379,24 @@ john.__module__ =  __main__
     }
 
 
-    Variable<ObjPtr>::PairType & at(const size_t index) override;
-    const Variable<ObjPtr>::PairType & at(const size_t index) const override;
+    inline ObjPtr at(const std::string_view name) {
+        return Variable<ObjPtr>::at(name.begin()).second;
+    }
+
+    inline ObjPtr at(const std::string_view name) const {
+        Object * const obj = (Object * const) this;
+        return obj->Variable<ObjPtr>::at(name.begin()).second;
+//        return Variable<ObjPtr>::at(name.begin()).second;
+    }
+
+    Variable<ObjPtr>::PairType & at(const int64_t index) override;
+    const Variable<ObjPtr>::PairType & at(const int64_t index) const override;
 
     ObjPtr & at(ObjPtr find) {
         if (!find->is_string_type()) {
             LOG_CALLSTACK(std::runtime_error, "Value must be a string type %d", (int) find->getType());
         }
         return Variable<ObjPtr>::at(find->GetValueAsString()).second;
-    }
-
-    inline ObjPtr at(const std::string_view name) {
-        return Variable<ObjPtr>::at(name.begin()).second;
     }
 
     bool exist(ObjPtr &find, bool strong);
@@ -542,7 +553,32 @@ john.__module__ =  __main__
         result->op_div_ceil_(value);
         return result;
     }
-    
+
+    inline ObjPtr op_concat(ObjPtr obj) {
+        ASSERT(obj);
+        return op_concat(*obj);
+    }
+
+    inline ObjPtr op_concat(Object &value) {
+        ObjPtr result = Clone();
+        result->op_concat_(value);
+        return result;
+    }
+
+    inline ObjPtr op_concat_(Object &obj) {
+        if (!is_string_type()) {
+            m_str = GetValueAsString();
+            m_var_type_current = ObjType::StrChar;
+        }
+        ASSERT(m_var_type_current == ObjType::StrWide || m_var_type_current == ObjType::StrChar);
+        if (m_var_type_current == ObjType::StrChar) {
+            m_str.append(obj.GetValueAsString());
+        } else if (m_var_type_current == ObjType::StrWide) {
+            m_wstr.append(obj.GetValueAsStringWide());
+        }
+        return shared();
+    }
+
     inline ObjPtr operator%(ObjPtr obj) {
         ASSERT(obj);
         return operator%(*obj);
@@ -772,7 +808,7 @@ john.__module__ =  __main__
         return op_div_ceil_(*obj);
     }
 
-    ObjPtr op_div_ceil_(Object obj);
+    ObjPtr op_div_ceil_(Object &obj);
 
     inline ObjPtr operator%=(ObjPtr obj) {
         ASSERT(obj);
@@ -899,6 +935,10 @@ john.__module__ =  __main__
 
     std::string GetValueAsString() const;
 
+    inline std::wstring GetValueAsStringWide() const {
+        return utf8_decode(GetValueAsString());
+    }
+
     inline int64_t GetValueAsInteger() const {
         TEST_INIT_();
         switch (m_var_type_current) {
@@ -967,6 +1007,19 @@ john.__module__ =  __main__
             }
             return true;
         }
+    }
+
+    at::Scalar toTorchScalar() {
+        at::Scalar result;
+        if (is_integer() || is_bool_type()) {
+            result = at::Scalar(GetValueAsInteger());
+        } else if (is_floating()) {
+            result = at::Scalar(GetValueAsNumber());
+        } else {
+            LOG_RUNTIME("Not support Torch ScalarType '%s'", newlang::toString(m_var_type_current));
+        }
+        return result;
+
     }
 
     static ObjPtr CreateType(ObjType type, const char *var_name = nullptr, ObjType fixed = ObjType::None) {
@@ -1054,11 +1107,11 @@ john.__module__ =  __main__
 
     static ObjPtr CreateTensor(ObjPtr data, ObjType type) {
         torch::Tensor var = ConvertToTensor(data.get(), toTorchType(type), false);
-//        ConvertToTensor(data->index_get({0}).get(), type, false);
+        //        ConvertToTensor(data->index_get({0}).get(), type, false);
         return CreateTensor(var);
     }
 
-    inline torch::Tensor toTensor() const {
+    inline torch::Tensor toTensor() {
         return ConvertToTensor(this);
     }
 
@@ -1157,7 +1210,7 @@ john.__module__ =  __main__
         return GetValueAsBoolean();
     }
 
-    inline operator at::Tensor() const {
+    inline operator at::Tensor() {
         return ConvertToTensor(this);
     }
 

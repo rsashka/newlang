@@ -175,8 +175,9 @@ void ParserException(const char *msg, std::string &buffer, int row, int col);
   _(ViewWide,43) \
   _(String,  49) \
   \
-  _(BigNum,     96) \
-  _(Fraction,    97) \
+  _(BigNum,     95) \
+  _(Currency,   96) \
+  _(Fraction,   97) \
   _(Pointer,     98) \
   _(NativeFunc,     99) \
   _(FUNCTION,       100) \
@@ -187,6 +188,9 @@ void ParserException(const char *msg, std::string &buffer, int row, int col);
   _(Ellipsis,       107) \
   _(EVAL_FUNCTION,  109) \
   _(EVAL_TRANSP,    110) \
+  _(EVAL_AND,    111) \
+  _(EVAL_OR,    112) \
+  _(EVAL_XOR,    113) \
   _(Error,          255)
 
 // BigNum - Длинные целые числа произвольного размера  100:Big
@@ -333,7 +337,8 @@ inline bool isObjectType(ObjType t) {
 }
 
 inline bool isFunction(ObjType t) {
-    return t == ObjType::TRANSPARENT || t == ObjType::FUNCTION || t == ObjType::NativeFunc || t == ObjType::EVAL_FUNCTION || t == ObjType::EVAL_TRANSP;
+    return t == ObjType::TRANSPARENT || t == ObjType::FUNCTION || t == ObjType::NativeFunc || t == ObjType::EVAL_FUNCTION 
+            || t == ObjType::EVAL_TRANSP || t == ObjType::EVAL_AND || t == ObjType::EVAL_OR || t == ObjType::EVAL_XOR;
 }
 
 inline bool isSimpleType(ObjType t) {

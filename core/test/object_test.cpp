@@ -752,6 +752,19 @@ TEST(Types, Convert) {
     ASSERT_EQ(ObjType::Long, newlang_Integer(nullptr, Object::Arg(byte))->m_var_type_current) << toString(byte->m_var_type_current);
     ASSERT_EQ(ObjType::Float, newlang_Number(nullptr, Object::Arg(byte))->m_var_type_current) << toString(byte->m_var_type_current);
 
+    ObjPtr cc = Object::CreateValue(99, ObjType::Char);
+    ASSERT_EQ(ObjType::Char, cc->m_var_type_current) << toString(cc->m_var_type_current);
+
+    ASSERT_EQ(ObjType::StrChar, newlang_StrChar(nullptr, Object::Arg(cc))->m_var_type_current) << toString(cc->m_var_type_current);
+    ASSERT_EQ(ObjType::StrWide, newlang_StrWide(nullptr, Object::Arg(cc))->m_var_type_current) << toString(cc->m_var_type_current);
+
+
+    ObjPtr ten = ctx.Eval("[99,100,101,102,]");
+    ASSERT_EQ(ObjType::Char, ten->m_var_type_current) << toString(ten->m_var_type_current);
+
+    ASSERT_EQ(ObjType::StrChar, newlang_StrChar(nullptr, Object::Arg(ten))->m_var_type_current) << toString(ten->m_var_type_current);
+    ASSERT_EQ(ObjType::StrWide, newlang_StrWide(nullptr, Object::Arg(ten))->m_var_type_current) << toString(ten->m_var_type_current);
+
     //    ASSERT_EQ(ObjType::Byte, newlang_Byte_(nullptr, Object::Arg(byte))->m_var_type) << toString(byte->m_var_type);
     //    ASSERT_EQ(ObjType::Byte, byte->m_var_type) << toString(byte->m_var_type);
 

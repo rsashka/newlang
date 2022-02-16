@@ -132,25 +132,37 @@ public:
         return std::pair<std::string, Type>(name, value);
     }
 
-    inline Type & insert(size_t index, Type value, const std::string &name = "") {
-        if (index >= m_data.size()) {
-            LOG_CALLSTACK(std::out_of_range, "Index '%lu' not exists!", static_cast<unsigned long> (index));
+    inline Type & insert(int64_t index, Type value, const std::string &name = "") {
+        if (index < 0 || index >= m_data.size()) {
+            LOG_CALLSTACK(std::out_of_range, "Index '%ld' not exists!", index);
         }
         return m_data.insert(m_data.begin() + index, std::pair<std::string, Type>(name, value))->second;
     }
 
-    virtual PairType & at(const size_t index) {
-        if (index < m_data.size()) {
-            return m_data.at(index);
+    virtual PairType & at(const int64_t index) {
+        if (index >= 0) {
+            if (index < m_data.size()) {
+                return m_data.at(index);
+            }
+        } else {
+            if (-index < m_data.size()) {
+                return m_data.at(m_data.size() + index);
+            }
         }
-        LOG_CALLSTACK(std::out_of_range, "Index '%lu' not exists!", static_cast<unsigned long> (index));
+        LOG_CALLSTACK(std::out_of_range, "Index '%ld' not exists!", index);
     }
 
-    virtual const PairType & at(const size_t index) const {
-        if (index < m_data.size()) {
-            return m_data.at(index);
+    virtual const PairType & at(const int64_t index) const {
+        if (index >= 0) {
+            if (index < m_data.size()) {
+                return m_data.at(index);
+            }
+        } else {
+            if (-index < m_data.size()) {
+                return m_data.at(m_data.size() + index);
+            }
         }
-        LOG_CALLSTACK(std::out_of_range, "Index '%lu' not exists!", static_cast<unsigned long> (index));
+        LOG_CALLSTACK(std::out_of_range, "Index '%ld' not exists!", index);
     }
 
     template <typename N>
@@ -166,6 +178,20 @@ public:
         }
         LOG_CALLSTACK(std::out_of_range, "Property '%s' not found!", name.c_str());
     }
+
+    //    template <typename N>
+    //    typename std::enable_if<std::is_same<char, std::remove_cv<N>>::value, Type &>::type
+    //    inline at(N * name) const {
+    //        return at(std::string(name));
+    //    }
+    //
+    //    virtual PairType & at(const std::string name) const {
+    //        iterator found = select(name);
+    //        if (found != m_data.end()) {
+    //            return found.data();
+    //        }
+    //        LOG_CALLSTACK(std::out_of_range, "Property '%s' not found!", name.c_str());
+    //    }
 
     //    virtual const PairType & at(const std::string name) {
     //        iterator found = select(name);

@@ -500,7 +500,7 @@ TEST(NLC, EvalHelloWorld) {
 ////    ASSERT_EQ(2, count);
 ////    ASSERT_EQ(2, brothers->size());
 ////
-////    ASSERT_STREQ("[[&Jake, &Tim,], [&Tim, &Jake,],]", brothers->toString().c_str());
+////    ASSERT_STREQ("[ [&Jake, &Tim,], [&Tim, &Jake,],]", brothers->toString().c_str());
 ////
 ////    std::ofstream out("brother.temp.sh");
 ////    out << "#!./dist/Debug/GNU-Linux/nlc --exec\n";
@@ -554,7 +554,7 @@ TEST(NLC, EvalHelloWorld) {
 ////    NLC run;
 ////    ObjPtr result = RunTime::Instance()->ExecModule("brother.temp.sh", "brother.sh.temp.nlm", false, &ctx2);
 ////    ASSERT_TRUE(result);
-////    EXPECT_STREQ("[[&Jake, &Tim,], [&Tim, &Jake,],]", result->GetValueAsString().c_str());
+////    EXPECT_STREQ("[ [&Jake, &Tim,], [&Tim, &Jake,],]", result->GetValueAsString().c_str());
 ////    //        std::remove("brother.sh.temp.nlm");
 ////}
 //

@@ -71,6 +71,9 @@ FUNC_DIRECT(newlang_print, print_);
 FUNC_DIRECT(newlang_eval, eval);
 FUNC_DIRECT(newlang_exec, exec);
 
+FUNC_DIRECT(newlang_srand, srand);
+FUNC_TRANSPARENT(newlang_rand, rand);
+
 #define DEFINE_ENUM(name, cast) FUNC_CONVERT(name);
 
     NL_BUILTIN_CAST_TYPE(DEFINE_ENUM)

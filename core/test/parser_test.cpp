@@ -129,7 +129,7 @@ TEST_F(ParserTest, Tensor3) {
 
     ASSERT_TRUE(Parse("term[1, 3] := 0;"));
 
-    ASSERT_TRUE(Parse("term[1, 3] := [[1,2,3,],];"));
+    ASSERT_TRUE(Parse("term[1, 3] := [ [1,2,3,],];"));
 
     //    ASSERT_EQ(TermID::TERM, ast->getTermID()) << EnumStr(ast->getTermID());
     //    ASSERT_STREQ("term", ast->m_text.c_str());
@@ -147,6 +147,53 @@ TEST_F(ParserTest, Tensor3) {
     //    ASSERT_STREQ("1", (*ast->Right())[0]->getText().c_str());
     //    ASSERT_STREQ("1..2", (*ast->Right())[1]->toString().c_str());
     //    ASSERT_STREQ("3", (*ast->Right())[2]->getText().c_str());
+}
+
+TEST_F(ParserTest, Tensor4) {
+    ASSERT_TRUE(Parse("[[ 1 ]]"));
+    ASSERT_STREQ("[[ 1 ]]", ast->toString().c_str());
+
+    ASSERT_TRUE(Parse("[[ [1,2,] ]]"));
+    ASSERT_STREQ("[[ [1, 2,] ]]", ast->toString().c_str());
+
+    ASSERT_TRUE(Parse("[[ (1,2) ]]"));
+    ASSERT_STREQ("[[ (1, 2) ]]", ast->toString().c_str());
+
+    ASSERT_TRUE(Parse("[[ (name='name',2):Class ]]"));
+    ASSERT_STREQ("[[ (name='name', 2):Class ]]", ast->toString().c_str());
+
+    ASSERT_TRUE(Parse("[[(1,2,3,4,)]]"));
+    ASSERT_STREQ("[[ (1, 2, 3, 4,) ]]", ast->toString().c_str());
+
+    ASSERT_TRUE(Parse("[[ \"str\" ]]"));
+    ASSERT_STREQ("[[ \"str\" ]]", ast->toString().c_str());
+
+    ASSERT_TRUE(Parse("[[ (1,2) ]]:Int"));
+    ASSERT_STREQ("[[ (1, 2) ]]:Int", ast->toString().c_str());
+
+    ASSERT_TRUE(Parse("[[ 'str' ]]:Int"));
+    ASSERT_STREQ("[[ 'str' ]]:Int", ast->toString().c_str());
+
+    ASSERT_TRUE(Parse("[[ \"str\" ]]:Int[3]"));
+    ASSERT_STREQ("[[ \"str\" ]]:Int[3]", ast->toString().c_str());
+
+    ASSERT_TRUE(Parse("[[(1,2,3,4)]]:Int[2,2]"));
+    ASSERT_STREQ("[[ (1, 2, 3, 4) ]]:Int[2,2]", ast->toString().c_str());
+
+    ASSERT_TRUE(Parse("[[ 0 ... ]]"));
+    ASSERT_STREQ("[[ 0 ... ]]", ast->toString().c_str());
+
+    ASSERT_TRUE(Parse("[[ 0 ... ]]:Int"));
+    ASSERT_STREQ("[[ 0 ... ]]:Int", ast->toString().c_str());
+
+    ASSERT_TRUE(Parse("[[ rand() ... ]]:Int[2,2]"));
+    ASSERT_STREQ("[[ rand() ... ]]:Int[2,2]", ast->toString().c_str());
+
+    ASSERT_TRUE(Parse("[[ 0..100 ]]"));
+    ASSERT_STREQ("[[ 0..100 ]]", ast->toString().c_str());
+
+    ASSERT_TRUE(Parse("[[ 0..100..0.1 ]]: Double"));
+    ASSERT_STREQ("[[ 0..100..0.1 ]]:Double", ast->toString().c_str());
 }
 
 /*
@@ -268,7 +315,7 @@ TEST_F(ParserTest, ScalarType) {
     ASSERT_STREQ("10_000:Long", ast->toString().c_str());
     ASSERT_STREQ("Long", ast->m_type_name.c_str());
 
-//    ASSERT_THROW(Parse("10__000"), parser_exception);
+    //    ASSERT_THROW(Parse("10__000"), parser_exception);
 
     ASSERT_TRUE(Parse("100_000:Int"));
     ASSERT_STREQ("100_000:Int", ast->toString().c_str());
@@ -295,7 +342,7 @@ TEST_F(ParserTest, ScalarType) {
 }
 
 TEST_F(ParserTest, TensorType) {
-    ASSERT_TRUE(Parse("term:Char[1,2] := [[1,2,],[3,4,],];"));
+    ASSERT_TRUE(Parse("term:Char[1,2] := [ [1,2,],[3,4,],];"));
     ASSERT_STREQ("term:Char[1,2] := [[1, 2,], [3, 4,],];", ast->toString().c_str());
 
     ASSERT_TRUE(Parse("term[..., 3] := 0;"));
@@ -469,7 +516,7 @@ TEST_F(ParserTest, ArgsType) {
 
 TEST_F(ParserTest, TermCall) {
     ASSERT_TRUE(Parse("var2 := min(200, var, 400);"));
-    ASSERT_EQ(TermID::CREATE, ast->getTermID()) << newlang::toString(ast->getTermID());
+    ASSERT_EQ(TermID::CREATE_OR_ASSIGN, ast->getTermID()) << newlang::toString(ast->getTermID());
     ASSERT_STREQ(":=", ast->m_text.c_str());
 
 
@@ -488,7 +535,7 @@ TEST_F(ParserTest, TermCall) {
 }
 
 TEST_F(ParserTest, TermCollection) {
-    ASSERT_TRUE(Parse("term([,], [arg1,arg2,])"));
+    ASSERT_TRUE(Parse("term([2,], [arg1,arg2,])"));
     ASSERT_EQ(TermID::CALL, ast->getTermID()) << newlang::toString(ast->getTermID());
     ASSERT_STREQ("term", ast->m_text.c_str());
     ASSERT_EQ(2, ast->size());
@@ -701,7 +748,7 @@ TEST_F(ParserTest, AssignSimple) {
 
 TEST_F(ParserTest, AssignSimple2) {
     ASSERT_TRUE(Parse("\t term   :=   term2()  ;  \n"));
-    ASSERT_EQ(TermID::CREATE, ast->getTermID()) << newlang::toString(ast->getTermID());
+    ASSERT_EQ(TermID::CREATE_OR_ASSIGN, ast->getTermID()) << newlang::toString(ast->getTermID());
     ASSERT_TRUE(ast->Left());
     ASSERT_TRUE(ast->Right());
     ASSERT_STREQ("term", ast->Left()->m_text.c_str());
@@ -743,7 +790,7 @@ TEST_F(ParserTest, AssignFullName3) {
 
 TEST_F(ParserTest, FiledAssign) {
     ASSERT_TRUE(Parse("$1.val :=  123;"));
-    ASSERT_EQ(TermID::CREATE, ast->getTermID()) << newlang::toString(ast->getTermID());
+    ASSERT_EQ(TermID::CREATE_OR_ASSIGN, ast->getTermID()) << newlang::toString(ast->getTermID());
     ASSERT_TRUE(ast->Left());
     ASSERT_TRUE(ast->Right());
 
@@ -760,7 +807,7 @@ TEST_F(ParserTest, FiledAssign) {
 
 TEST_F(ParserTest, FiledAssign2) {
     ASSERT_TRUE(Parse("term.field1.field2 :=  123;"));
-    ASSERT_EQ(TermID::CREATE, ast->getTermID()) << newlang::toString(ast->getTermID());
+    ASSERT_EQ(TermID::CREATE_OR_ASSIGN, ast->getTermID()) << newlang::toString(ast->getTermID());
     ASSERT_TRUE(ast->Left());
     ASSERT_TRUE(ast->Right());
 
@@ -823,24 +870,24 @@ TEST_F(ParserTest, DISABLED_ArrayAssign2) {
 
 TEST_F(ParserTest, FieldArray) {
     ASSERT_TRUE(Parse("term.val[1].field :=  value[-1..@count()..5].field;"));
-    ASSERT_EQ(TermID::CREATE, ast->getTermID()) << newlang::toString(ast->getTermID());
+    ASSERT_EQ(TermID::CREATE_OR_ASSIGN, ast->getTermID()) << newlang::toString(ast->getTermID());
     ASSERT_STREQ("term.val[1].field := value[-1..@count()..5].field;", ast->toString().c_str());
 }
 
 TEST_F(ParserTest, AssignSimple3) {
     ASSERT_TRUE(Parse("\t term   :=   term2(   )  ;  \n"));
-    ASSERT_EQ(TermID::CREATE, ast->getTermID()) << newlang::toString(ast->getTermID());
+    ASSERT_EQ(TermID::CREATE_OR_ASSIGN, ast->getTermID()) << newlang::toString(ast->getTermID());
     ASSERT_TRUE(ast->Left());
     ASSERT_TRUE(ast->Right());
     ASSERT_STREQ("term := term2();", ast->toString().c_str());
 }
 
 TEST_F(ParserTest, AssignSimpleArg) {
-    ASSERT_TRUE(Parse("\t term    :=    term2( arg  ) ;   \n"));
+    ASSERT_TRUE(Parse("\t term    ::=    term2( arg  ) ;   \n"));
     ASSERT_EQ(TermID::CREATE, ast->getTermID()) << newlang::toString(ast->getTermID());
     ASSERT_TRUE(ast->Left());
     ASSERT_TRUE(ast->Right());
-    ASSERT_STREQ("term := term2(arg);", ast->toString().c_str());
+    ASSERT_STREQ("term ::= term2(arg);", ast->toString().c_str());
 }
 
 TEST_F(ParserTest, AssignSimpleNamedArg) {
@@ -909,17 +956,12 @@ TEST_F(ParserTest, AssignArray) {
     ASSERT_STREQ("term := [123,];", ast->toString().c_str());
 }
 
-TEST_F(ParserTest, AssignArrayEmpty) {
-    ASSERT_TRUE(Parse("term := [,]"));
-    ASSERT_STREQ("term := [,];", ast->toString().c_str());
-}
-
 TEST_F(ParserTest, ArgsArray1) {
-    ASSERT_TRUE(Parse("term([,])"));
+    ASSERT_TRUE(Parse("term([1,])"));
     ASSERT_EQ(TermID::CALL, ast->getTermID()) << newlang::toString(ast->getTermID());
     ASSERT_STREQ("term", ast->m_text.c_str());
     ASSERT_EQ(1, ast->size());
-    ASSERT_STREQ("[,]", (*ast)[0]->toString().c_str());
+    ASSERT_STREQ("[1,]", (*ast)[0]->toString().c_str());
 }
 
 TEST_F(ParserTest, LogicEq) {
@@ -1164,9 +1206,9 @@ TEST_F(ParserTest, Func2) {
 }
 
 TEST_F(ParserTest, Func3) {
-    ASSERT_TRUE(Parse("$res:Char := func_arg(100, 100);"));
+    ASSERT_TRUE(Parse("$res:Char ::= func_arg(100, 100);"));
     ASSERT_EQ(TermID::CREATE, ast->getTermID()) << newlang::toString(ast->getTermID());
-    ASSERT_STREQ("$res:Char := func_arg(100, 100);", ast->toString().c_str());
+    ASSERT_STREQ("$res:Char ::= func_arg(100, 100);", ast->toString().c_str());
 }
 
 TEST_F(ParserTest, Func4) {
@@ -1277,37 +1319,37 @@ TEST_F(ParserTest, Types) {
 
 TEST_F(ParserTest, Enum1) {
     ASSERT_TRUE(Parse("enum  :=   (elem1:Int=11,    elem2,   elem3:Long=333)"));
-    //    ASSERT_EQ(TermID::CREATE, ast->getTermID()) << newlang::toString(ast->getTermID());
+    //    ASSERT_EQ(TermID::CREATE_OR_ASSIGN, ast->getTermID()) << newlang::toString(ast->getTermID());
     //    ASSERT_STREQ("enum := (elem1=11, elem2, elem3=333,);", ast->toString().c_str());
 }
 
 TEST_F(ParserTest, Enum2) {
     ASSERT_TRUE(Parse("enum2  :=   (elem1:Int=11,    elem2,   elem3=333):Type"));
-    //    ASSERT_EQ(TermID::CREATE, ast->getTermID()) << newlang::toString(ast->getTermID());
+    //    ASSERT_EQ(TermID::CREATE_OR_ASSIGN, ast->getTermID()) << newlang::toString(ast->getTermID());
     //    ASSERT_STREQ("enum := (elem1=11, elem2, elem3=333,);", ast->toString().c_str());
 }
 
 TEST_F(ParserTest, Enum3) {
     ASSERT_TRUE(Parse("enum3  :=   (elem1,    elem2,   elem3):Type"));
-    //    ASSERT_EQ(TermID::CREATE, ast->getTermID()) << newlang::toString(ast->getTermID());
+    //    ASSERT_EQ(TermID::CREATE_OR_ASSIGN, ast->getTermID()) << newlang::toString(ast->getTermID());
     //    ASSERT_STREQ("enum := (elem1=11, elem2, elem3=333,);", ast->toString().c_str());
 }
 
 TEST_F(ParserTest, Const1) {
     ASSERT_TRUE(Parse("enum  :=   (  elem1=11,    elem2,   elem3=333,)"));
-    ASSERT_EQ(TermID::CREATE, ast->getTermID()) << newlang::toString(ast->getTermID());
+    ASSERT_EQ(TermID::CREATE_OR_ASSIGN, ast->getTermID()) << newlang::toString(ast->getTermID());
     ASSERT_STREQ("enum := (elem1=11, elem2, elem3=333,);", ast->toString().c_str());
 }
 
 TEST_F(ParserTest, Const2) {
-    ASSERT_TRUE(Parse("const  :=   \"CONST\""));
+    ASSERT_TRUE(Parse("const  ::=   \"CONST\""));
     ASSERT_EQ(TermID::CREATE, ast->getTermID()) << newlang::toString(ast->getTermID());
-    ASSERT_STREQ("const := \"CONST\";", ast->toString().c_str());
+    ASSERT_STREQ("const ::= \"CONST\";", ast->toString().c_str());
 }
 
 TEST_F(ParserTest, Const3) {
     ASSERT_TRUE(Parse("const  :=   123;"));
-    ASSERT_EQ(TermID::CREATE, ast->getTermID()) << newlang::toString(ast->getTermID());
+    ASSERT_EQ(TermID::CREATE_OR_ASSIGN, ast->getTermID()) << newlang::toString(ast->getTermID());
     ASSERT_STREQ("const := 123;", ast->toString().c_str());
 }
 
@@ -1349,6 +1391,11 @@ TEST_F(ParserTest, Repeat6) {
 TEST_F(ParserTest, Repeat7) {
     ASSERT_TRUE(Parse("[test[0].@field != $test??] <-> if_1;"));
     ASSERT_STREQ("[test[0].@field!=$test??]<->{if_1;}", ast->toString().c_str());
+}
+
+TEST_F(ParserTest, Range) {
+    ASSERT_TRUE(Parse("0.1..0.9..0.1"));
+    ASSERT_STREQ("0.1..0.9..0.1", ast->toString().c_str());
 }
 
 TEST_F(ParserTest, Range1) {

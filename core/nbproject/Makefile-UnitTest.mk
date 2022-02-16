@@ -76,13 +76,13 @@ LDLIBSOPTIONS=-L../contrib/libtorch/lib -Wl,-rpath,'../contrib/libtorch/lib' -lp
 
 # Build Targets
 .build-conf: ${BUILD_SUBPROJECTS}
-	"${MAKE}"  -f nbproject/Makefile-${CND_CONF}.mk ${CND_DISTDIR}/${CND_CONF}/${CND_PLATFORM}/core
+	"${MAKE}"  -f nbproject/Makefile-${CND_CONF}.mk ${CND_DISTDIR}/${CND_CONF}/${CND_PLATFORM}/newlang_test
 
-${CND_DISTDIR}/${CND_CONF}/${CND_PLATFORM}/core: ../contrib/libffi/output/lib/libffi.a
+${CND_DISTDIR}/${CND_CONF}/${CND_PLATFORM}/newlang_test: ../contrib/libffi/output/lib/libffi.a
 
-${CND_DISTDIR}/${CND_CONF}/${CND_PLATFORM}/core: ${OBJECTFILES}
+${CND_DISTDIR}/${CND_CONF}/${CND_PLATFORM}/newlang_test: ${OBJECTFILES}
 	${MKDIR} -p ${CND_DISTDIR}/${CND_CONF}/${CND_PLATFORM}
-	${LINK.cc} -o ${CND_DISTDIR}/${CND_CONF}/${CND_PLATFORM}/core ${OBJECTFILES} ${LDLIBSOPTIONS} -Wl,--export-dynamic
+	${LINK.cc} -o ${CND_DISTDIR}/${CND_CONF}/${CND_PLATFORM}/newlang_test ${OBJECTFILES} ${LDLIBSOPTIONS} -Wl,--export-dynamic
 
 ${OBJECTDIR}/_ext/1e501df/gtest-all.o: ../contrib/googletest/googletest/src/gtest-all.cc
 	${MKDIR} -p ${OBJECTDIR}/_ext/1e501df

@@ -71,6 +71,7 @@
       <itemPath>Makefile</itemPath>
     </logicalFolder>
     <itemPath>../README.md</itemPath>
+    <itemPath>../Syntax.md</itemPath>
     <itemPath>lexer.l</itemPath>
     <itemPath>parser.y</itemPath>
   </logicalFolder>
@@ -122,6 +123,7 @@
           <linkerDynSerch>
             <pElem>../contrib/libtorch/lib</pElem>
           </linkerDynSerch>
+          <linkerDepDynSerchKind>3</linkerDepDynSerchKind>
           <linkerLibItems>
             <linkerLibStdlibItem>PosixThreads</linkerLibStdlibItem>
             <linkerLibStdlibItem>DynamicLinking</linkerLibStdlibItem>
@@ -134,6 +136,8 @@
         </linkerTool>
       </compileType>
       <item path="../README.md" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../Syntax.md" ex="false" tool="3" flavor2="0">
       </item>
       <item path="../contrib/googletest/googletest/src/gtest-all.cc"
             ex="true"
@@ -374,6 +378,8 @@
       </compileType>
       <item path="../README.md" ex="false" tool="3" flavor2="0">
       </item>
+      <item path="../Syntax.md" ex="false" tool="3" flavor2="0">
+      </item>
       <item path="../contrib/googletest/googletest/src/gtest-all.cc"
             ex="false"
             tool="1"
@@ -521,6 +527,7 @@
           <useLinkerLibraries>false</useLinkerLibraries>
         </ccTool>
         <linkerTool>
+          <output>${CND_DISTDIR}/${CND_CONF}/${CND_PLATFORM}/newlang_test</output>
           <linkerAddLib>
             <pElem>../contrib/libtorch/lib</pElem>
           </linkerAddLib>
@@ -540,6 +547,8 @@
         </linkerTool>
       </compileType>
       <item path="../README.md" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../Syntax.md" ex="false" tool="3" flavor2="0">
       </item>
       <item path="../contrib/googletest/googletest/src/gtest-all.cc"
             ex="false"
@@ -832,6 +841,8 @@
       </compileType>
       <item path="../README.md" ex="false" tool="3" flavor2="0">
       </item>
+      <item path="../Syntax.md" ex="false" tool="3" flavor2="0">
+      </item>
       <item path="../contrib/googletest/googletest/src/gtest-all.cc"
             ex="false"
             tool="1"
@@ -1034,6 +1045,8 @@
         </linkerTool>
       </compileType>
       <item path="../README.md" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../Syntax.md" ex="false" tool="3" flavor2="0">
       </item>
       <item path="../contrib/googletest/googletest/src/gtest-all.cc"
             ex="false"
@@ -1260,6 +1273,8 @@
       </compileType>
       <item path="../README.md" ex="false" tool="3" flavor2="0">
       </item>
+      <item path="../Syntax.md" ex="false" tool="3" flavor2="0">
+      </item>
       <item path="../contrib/googletest/googletest/src/gtest-all.cc"
             ex="false"
             tool="1"
@@ -1480,6 +1495,8 @@
         </linkerTool>
       </compileType>
       <item path="../README.md" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../Syntax.md" ex="false" tool="3" flavor2="0">
       </item>
       <item path="../contrib/googletest/googletest/src/gtest-all.cc"
             ex="false"

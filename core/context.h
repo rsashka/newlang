@@ -110,6 +110,13 @@ public:
     static ObjPtr eval_UNKNOWN(Context *ctx, const TermPtr & term, Object &args);
     static ObjPtr func_NOT_SUPPORT(Context *ctx, const TermPtr & term, Object &args);
 
+    enum class CreateMode {
+        CREATE_ONLY,
+        CREATE_OR_ASSIGN,
+        ASSIGN_ONLY,
+    };
+    static ObjPtr CREATE_OR_ASSIGN(Context *ctx, const TermPtr & term, Object &args, CreateMode mode);
+
 #define DEFINE_CASE(name) \
     static ObjPtr eval_ ## name(Context *ctx, const TermPtr &term, Object &args);
 
@@ -157,7 +164,7 @@ public:
     }
     static ObjPtr Eval(Context *ctx, TermPtr term, Object &args);
 
-    static ObjPtr ExpandAssign(Context *ctx, TermPtr lvar, TermPtr rval, Object &args);
+    static ObjPtr ExpandAssign(Context *ctx, TermPtr lvar, TermPtr rval, Object &args, CreateMode mode);
     static ObjPtr ExpandCreate(Context *ctx, TermPtr lvar, TermPtr rval, Object &args);
 
     Context(RuntimePtr global);
@@ -186,6 +193,10 @@ public:
     static ObjPtr CreateRVal(Context *ctx, TermPtr term, Object &args);
     static ObjPtr CreateRVal(Context *ctx, const char *source, Object &args);
 
+    static std::vector<Index> MakeIndex(Context *ctx, TermPtr term, Object & local_vars);
+
+    void ItemTensorEval_(torch::Tensor &tensor, c10::IntArrayRef shape, std::vector<Index> &ind, const int64_t pos, ObjPtr & obj, ObjPtr &args);
+    void ItemTensorEval(torch::Tensor &tensor, ObjPtr obj, ObjPtr args);
 
     void ReadBuiltInProto(ProtoType & proto);
 
@@ -280,6 +291,9 @@ public:
 
     static ObjPtr EvalBlock(Context *ctx, const TermPtr &block, Object &local_vars);
 
+    static ObjPtr EvalBlockAND(Context *ctx, const TermPtr &block, Object &local_vars);
+    static ObjPtr EvalBlockOR(Context *ctx, const TermPtr &block, Object &local_vars);
+    static ObjPtr EvalBlockXOR(Context *ctx, const TermPtr &block, Object &local_vars);
 
     ObjPtr CreateNative(const char *proto, const char *module = nullptr, bool lazzy = false, const char *mangle_name = nullptr, ffi_abi abi = FFI_DEFAULT_ABI);
     ObjPtr CreateNative(TermPtr proto, const char *module = nullptr, bool lazzy = false, const char *mangle_name = nullptr, ffi_abi abi = FFI_DEFAULT_ABI);
