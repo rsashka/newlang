@@ -309,19 +309,21 @@ number  {number1}|{number2}
 "::="       YY_TOKEN(CREATE);
 ":="        YY_TOKEN(CREATE_OR_ASSIGN);
 "[]="       YY_TOKEN(APPEND);
+"[["        YY_TOKEN(TENSOR_BEGIN);
+"]]"        YY_TOKEN(TENSOR_END);
 
 "::-"       YY_TOKEN(TRANSPARENT);
 ":-"        YY_TOKEN(TRANSPARENT);
-"&&="       YY_TOKEN(SIMPLE);
-"||="       YY_TOKEN(SIMPLE);
-"^^="       YY_TOKEN(SIMPLE);
+"&&="       YY_TOKEN(SIMPLE_AND);
+"||="       YY_TOKEN(SIMPLE_OR);
+"^^="       YY_TOKEN(SIMPLE_XOR);
 
 "//"        YY_TOKEN(OPERATOR);
-"**"        YY_TOKEN(OPERATOR);
+"**"        YY_TOKEN(POWER);
 "+="        YY_TOKEN(OPERATOR);
 "-="        YY_TOKEN(OPERATOR);
 "*="        YY_TOKEN(OPERATOR);
-"**="       YY_TOKEN(OPERATOR);
+"**="       YY_TOKEN(POWER);
 "/="        YY_TOKEN(OPERATOR);
 "//="       YY_TOKEN(OPERATOR);
 "%="        YY_TOKEN(OPERATOR);

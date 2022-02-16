@@ -177,8 +177,8 @@ TEST(Eval, Assign) {
     ASSERT_EQ(2, dict2->size());
     ASSERT_STREQ("((10, 2, 3, 4, (1, 2,),), (10, 2, 3, 4,),)", dict2->toString().c_str());
 
-    
-    
+
+
     ObjPtr tensor = ctx.Eval("[1,1,0,0,]");
     ASSERT_TRUE(tensor);
     ASSERT_EQ(ObjType::Bool, tensor->m_var_type_current) << toString(tensor->m_var_type_current);
@@ -200,7 +200,7 @@ TEST(Eval, Assign) {
     ASSERT_TRUE(tensorf);
     ASSERT_STREQ("[1.2, 0.22, 0.69,]:Double", tensorf->GetValueAsString().c_str());
 
-    ObjPtr tensor_all = ctx.Eval("[[1, 1, 0, 0,], [10, 10, 0.1, 0.2,], ]");
+    ObjPtr tensor_all = ctx.Eval("[ [1, 1, 0, 0,], [10, 10, 0.1, 0.2,], ]");
     ASSERT_TRUE(tensor_all);
     ASSERT_EQ(ObjType::Double, tensor_all->m_var_type_current) << toString(tensor_all->m_var_type_current);
     ASSERT_EQ(ObjType::None, tensor_all->m_var_type_fixed) << toString(tensor_all->m_var_type_fixed);
@@ -218,8 +218,111 @@ TEST(Eval, Assign) {
     ASSERT_STREQ("0.1", tensor_all->index_get({1, 2})->GetValueAsString().c_str());
     ASSERT_STREQ("0.2", tensor_all->index_get({1, 3})->GetValueAsString().c_str());
 
-    ASSERT_STREQ("[[1, 1, 0, 0,], [10, 10, 0.1, 0.2,],]:Double", tensor_all->GetValueAsString().c_str());
+    ASSERT_STREQ("[\n  [1, 1, 0, 0,], [10, 10, 0.1, 0.2,],\n]:Double", tensor_all->GetValueAsString().c_str());
 
+}
+
+TEST(Eval, Tensor) {
+
+    Context ctx(RunTime::Init());
+
+    ObjPtr tensor = ctx.Eval("[[ 1 ]]");
+    ASSERT_TRUE(tensor);
+    ASSERT_STREQ("[1,]:Bool", tensor->GetValueAsString().c_str());
+
+    tensor = ctx.Eval("[[ [1,2,] ]]");
+    ASSERT_TRUE(tensor);
+    ASSERT_STREQ("[1, 2,]:Char", tensor->GetValueAsString().c_str());
+
+    tensor = ctx.Eval("[[ 1 ]]:Int");
+    ASSERT_TRUE(tensor);
+    ASSERT_STREQ("[1,]:Int", tensor->GetValueAsString().c_str());
+
+    ObjPtr tt = ctx.Eval("[[(1,2,3)]]");
+    ASSERT_TRUE(tt);
+    ASSERT_STREQ("[1, 2, 3,]:Char", tt->GetValueAsString().c_str());
+
+    tt = ctx.Eval("[[(1,2,3)]]:Int");
+    ASSERT_TRUE(tt);
+    ASSERT_STREQ("[1, 2, 3,]:Int", tt->GetValueAsString().c_str());
+
+    tt = ctx.Eval("[[(1,2,3,4,5,6)]]:Int[2,3]");
+    ASSERT_TRUE(tt);
+    ASSERT_STREQ("[\n  [1, 2, 3,], [4, 5, 6,],\n]:Int", tt->GetValueAsString().c_str());
+
+    ObjPtr str = ctx.Eval("[['first second']]");
+    ASSERT_TRUE(str);
+    ASSERT_STREQ("[102, 105, 114, 115, 116, 32, 115, 101, 99, 111, 110, 100,]:Char", str->GetValueAsString().c_str());
+
+    tt = ctx.Eval("[[(first='first', space=32, second='second')]]");
+    ASSERT_TRUE(tt);
+    ASSERT_STREQ("[102, 105, 114, 115, 116, 32, 115, 101, 99, 111, 110, 100,]:Char", tt->GetValueAsString().c_str());
+
+    ASSERT_TRUE(str->op_equal(tt));
+
+    tt = ctx.Eval("[[\"Тензор Int  \"]]:Int[6,2]");
+    ASSERT_TRUE(tt);
+    ASSERT_STREQ("[\n  [1058, 1077,], [1085, 1079,], [1086, 1088,], [32, 73,], [110, 116,], [32, 32,],\n]:Int", tt->GetValueAsString().c_str());
+
+
+    tt = ctx.Eval("[[99]]");
+    ASSERT_TRUE(tt);
+    ASSERT_STREQ("[99,]:Char", tt->GetValueAsString().c_str());
+
+    tt = ctx.Eval("[[ 0 ... ]]: Double[10,2]");
+    ASSERT_TRUE(tt);
+    ASSERT_STREQ("[\n  [0, 0,], [0, 0,], [0, 0,], [0, 0,], [0, 0,], [0, 0,], [0, 0,], [0, 0,], [0, 0,], [0, 0,],\n]:Double", tt->GetValueAsString().c_str());
+
+    tt = ctx.Eval("[[ rand() ... ]]: Int[3,2]");
+    ASSERT_TRUE(tt);
+    ASSERT_TRUE(50 < tt->GetValueAsString().size()) << tt->GetValueAsString();
+
+    tt = ctx.Eval("[[ 0..10 ]]: Int[5,2]");
+    ASSERT_TRUE(tt);
+    ASSERT_STREQ("[\n  [0, 1,], [2, 3,], [4, 5,], [6, 7,], [8, 9,],\n]:Int", tt->GetValueAsString().c_str());
+
+    tt = ctx.Eval("[[ 0..10 ]]: Double[5,2]");
+    ASSERT_TRUE(tt);
+    ASSERT_STREQ("[\n  [0, 1,], [2, 3,], [4, 5,], [6, 7,], [8, 9,],\n]:Double", tt->GetValueAsString().c_str());
+
+    tt = ctx.Eval("0..1..0.1");
+    ASSERT_TRUE(tt);
+    ASSERT_STREQ("0..1..0.1", tt->toString().c_str());
+    
+    tt = ctx.Eval("[[ 0..0.99..0.1 ]]");
+    ASSERT_TRUE(tt);
+    ASSERT_STREQ("[0, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9,]:Double", tt->GetValueAsString().c_str());
+}
+
+TEST(Eval, FuncSimple) {
+
+    Context ctx(RunTime::Init());
+
+    ObjPtr test_and = ctx.Eval("test_and(arg1, arg2) &&= $arg1 == $arg2, $arg1");
+    ASSERT_TRUE(test_and);
+
+    //    EXPECT_FALSE((*test_and)(ctx, Object::Arg(123, "arg1"), Object::Arg(555, "arg2"))->GetValueAsBoolean());
+    //    EXPECT_TRUE((*test_and)(ctx, Object::Arg(123, "arg1"), Object::Arg(123, "arg2"))->GetValueAsBoolean());
+    //    EXPECT_TRUE((*test_and)(ctx, Object::Arg(555, "arg1"), Object::Arg(555, "arg2"))->GetValueAsBoolean());
+    //    EXPECT_FALSE((*test_and)(ctx, Object::Arg(0, "arg1"), Object::Arg(0, "arg2"))->GetValueAsBoolean());
+
+    ObjPtr test_or = ctx.Eval("test_or(arg1, arg2) ||= $arg1 == 555, $arg1");
+    ASSERT_TRUE(test_or);
+
+
+    //    EXPECT_TRUE(test_or->Call(ctx, Object::Arg(123, "arg1"), Object::Arg(555, "arg2"))->GetValueAsBoolean());
+    //    EXPECT_TRUE(test_or->Call(ctx, Object::Arg(555, "arg1"), Object::Arg(555, "arg2"))->GetValueAsBoolean());
+    //    EXPECT_TRUE(test_or->Call(ctx, Object::Arg(123, "arg1"), Object::Arg(123, "arg2"))->GetValueAsBoolean());
+    //    EXPECT_TRUE(test_or->Call(ctx, Object::Arg(555, "arg1"), Object::Arg(0, "arg2"))->GetValueAsBoolean());
+    //    EXPECT_FALSE(test_or->Call(ctx, Object::Arg(0, "arg1"), Object::Arg(0, "arg2"))->GetValueAsBoolean());
+
+    ObjPtr test_xor = ctx.Eval("test_xor(arg1, arg2) ^^= $arg1 == $arg2, $arg1");
+    ASSERT_TRUE(test_xor);
+
+    //    EXPECT_TRUE(test_xor->Call(ctx, Object::Arg(123, "arg1"), Object::Arg(555, "arg2"))->GetValueAsBoolean());
+    //    EXPECT_FALSE(test_xor->Call(ctx, Object::Arg(555, "arg1"), Object::Arg(555, "arg2"))->GetValueAsBoolean());
+    //    EXPECT_FALSE(test_xor->Call(ctx, Object::Arg(123, "arg1"), Object::Arg(123, "arg2"))->GetValueAsBoolean());
+    //    EXPECT_TRUE(test_xor->Call(ctx, Object::Arg(0, "arg1"), Object::Arg(0, "arg2"))->GetValueAsBoolean());
 }
 
 TEST(Eval, Types) {
@@ -488,7 +591,7 @@ TEST_F(OpEvalTest, Ops) {
     ASSERT_STREQ(" ", Test("\" \""));
     ASSERT_STREQ("строка", Test("\"\"++\"строка\" "));
     ASSERT_STREQ("строка 222", Test("\"строка \" ++ \"222\" "));
-    ASSERT_STREQ("строка строка строка ", Test("\"строка \" * 3 "));
+    ASSERT_STREQ("строка строка строка ", Test("\"строка \" ** 3 "));
 
 
     ASSERT_STREQ("100", Test("var1:=100"));

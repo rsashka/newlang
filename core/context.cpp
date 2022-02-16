@@ -48,6 +48,9 @@ Context::Context(RuntimePtr global) {
         Context::m_funcs["eval"] = CreateBuiltin("eval(string:String)", (void *) &eval, ObjType::FUNCTION);
         Context::m_funcs["exec"] = CreateBuiltin("exec(filename:String)", (void *) &exec, ObjType::FUNCTION);
 
+        Context::m_funcs["srand"] = CreateBuiltin("srand(seed:Int)", (void *) &srand, ObjType::FUNCTION);
+        Context::m_funcs["rand"] = CreateBuiltin("rand():Int", (void *) &rand, ObjType::TRANSPARENT);
+
         //        Context::m_builtin_funcs["loadonce"] = CreateBuiltin("loadonce(name:String, init:Bool=@true, filename:String=_):Bool", (void *) &loadonce, ObjType::FUNCTION);
         //        Context::m_builtin_funcs["load"] = CreateBuiltin("load(name:String, init:Bool=@true, filename:String=_):Bool", (void *) &load, ObjType::FUNCTION);
         //        Context::m_builtin_funcs["unload"] = CreateBuiltin("unload(name:String):Bool", (void *) &unload, ObjType::FUNCTION);
@@ -55,8 +58,8 @@ Context::Context(RuntimePtr global) {
 
 #define REGISTER_TYPES(name, cast) \
     ASSERT(Context::m_funcs.find(#name) == Context::m_funcs.end()); \
-    Context::m_funcs[#name] = CreateBuiltin(#name "(var, shape=_): " #cast, (void *)& newlang:: name, ObjType::TRANSPARENT); \
-    Context::m_funcs[#name "_"] = CreateBuiltin(#name "_(&var, shape=_): " #cast, (void *)& newlang:: name##_, ObjType::FUNCTION);
+    Context::m_funcs[#name] = CreateBuiltin(#name "(var): " #cast, (void *)& newlang:: name, ObjType::TRANSPARENT); \
+    Context::m_funcs[#name "_"] = CreateBuiltin(#name "_(&var): " #cast, (void *)& newlang:: name##_, ObjType::FUNCTION);
 
         NL_BUILTIN_CAST_TYPE(REGISTER_TYPES)
 
@@ -302,27 +305,27 @@ ObjPtr Context::func_NOT_SUPPORT(Context *ctx, const TermPtr &term, Object &args
 }
 
 ObjPtr Context::eval_TEMPLATE(Context *ctx, const TermPtr &term, Object &args) {
-    LOG_RUNTIME("Not implemented!");
+    LOG_RUNTIME("TEMPLATE Not implemented!");
     return nullptr;
 }
 
 ObjPtr Context::eval_COMMENT(Context *ctx, const TermPtr &term, Object &args) {
-    LOG_RUNTIME("Not implemented!");
+    LOG_RUNTIME("COMMENT Not implemented!");
     return nullptr;
 }
 
 ObjPtr Context::eval_TYPENAME(Context *ctx, const TermPtr &term, Object &args) {
-    LOG_RUNTIME("Not implemented!");
+    LOG_RUNTIME("TYPENAME Not implemented!");
     return nullptr;
 }
 
 ObjPtr Context::eval_SYMBOL(Context *ctx, const TermPtr &term, Object &args) {
-    LOG_RUNTIME("Not implemented!");
+    LOG_RUNTIME("SYMBOL Not implemented!");
     return nullptr;
 }
 
 ObjPtr Context::eval_NAMESPACE(Context *ctx, const TermPtr &term, Object &args) {
-    LOG_RUNTIME("Not implemented!");
+    LOG_RUNTIME("NAMESPACE Not implemented!");
     return nullptr;
 }
 
@@ -333,12 +336,12 @@ ObjPtr Context::eval_NAMESPACE(Context *ctx, const TermPtr &term, Object &args) 
 
 
 ObjPtr Context::ExpandAssign(Context *ctx, TermPtr lvar, TermPtr rval, Object &args, CreateMode mode) {
-    LOG_RUNTIME("Not implemented!");
+    LOG_RUNTIME("ExpandAssign Not implemented!");
     return nullptr;
 }
 
 ObjPtr Context::ExpandCreate(Context *ctx, TermPtr lvar, TermPtr rval, Object &args) {
-    LOG_RUNTIME("Not implemented!");
+    LOG_RUNTIME("ExpandCreate Not implemented!");
     return nullptr;
 }
 
@@ -441,12 +444,13 @@ ObjPtr Context::eval_CREATE_OR_ASSIGN(Context *ctx, const TermPtr &term, Object 
 }
 
 ObjPtr Context::eval_APPEND(Context *ctx, const TermPtr &term, Object &args) {
-    LOG_RUNTIME("Not implemented!");
+    LOG_RUNTIME("APPEND Not implemented!");
     return nullptr;
 }
 
 ObjPtr Context::eval_FUNCTION(Context *ctx, const TermPtr &term, Object &args) {
-    ASSERT(term && (term->getTermID() == TermID::FUNCTION || term->getTermID() == TermID::TRANSPARENT || term->getTermID() == TermID::SIMPLE));
+    ASSERT(term && (term->getTermID() == TermID::FUNCTION || term->getTermID() == TermID::TRANSPARENT
+            || term->getTermID() == TermID::SIMPLE_AND || term->getTermID() == TermID::SIMPLE_OR || term->getTermID() == TermID::SIMPLE_XOR));
     ASSERT(term->Left());
     ASSERT(ctx);
 
@@ -472,6 +476,12 @@ ObjPtr Context::eval_FUNCTION(Context *ctx, const TermPtr &term, Object &args) {
             lval->m_var_type_current = ObjType::EVAL_FUNCTION;
         } else if(term->getTermID() == TermID::TRANSPARENT) {
             lval->m_var_type_current = ObjType::EVAL_TRANSP;
+        } else if(term->getTermID() == TermID::SIMPLE_AND) {
+            lval->m_var_type_current = ObjType::EVAL_AND;
+        } else if(term->getTermID() == TermID::SIMPLE_OR) {
+            lval->m_var_type_current = ObjType::EVAL_OR;
+        } else if(term->getTermID() == TermID::SIMPLE_XOR) {
+            lval->m_var_type_current = ObjType::EVAL_XOR;
         } else {
             LOG_RUNTIME("Create function '%s' not implemented!", term->toString().c_str());
         }
@@ -483,19 +493,24 @@ ObjPtr Context::eval_FUNCTION(Context *ctx, const TermPtr &term, Object &args) {
     return ctx->RegisterObject(lval);
 }
 
-ObjPtr Context::eval_SIMPLE(Context *ctx, const TermPtr &term, Object &args) {
-    LOG_RUNTIME("Not implemented!");
-    return nullptr;
+ObjPtr Context::eval_SIMPLE_AND(Context *ctx, const TermPtr &term, Object &args) {
+    return eval_FUNCTION(ctx, term, args);
+}
+
+ObjPtr Context::eval_SIMPLE_OR(Context *ctx, const TermPtr &term, Object &args) {
+    return eval_FUNCTION(ctx, term, args);
+}
+
+ObjPtr Context::eval_SIMPLE_XOR(Context *ctx, const TermPtr &term, Object &args) {
+    return eval_FUNCTION(ctx, term, args);
 }
 
 ObjPtr Context::eval_LAMBDA(Context *ctx, const TermPtr &term, Object &args) {
-    LOG_RUNTIME("Not implemented!");
-    return nullptr;
+    return eval_FUNCTION(ctx, term, args);
 }
 
 ObjPtr Context::eval_TRANSPARENT(Context *ctx, const TermPtr &term, Object &args) {
-    LOG_RUNTIME("Not implemented!");
-    return nullptr;
+    return eval_FUNCTION(ctx, term, args);
 }
 
 /*
@@ -503,27 +518,26 @@ ObjPtr Context::eval_TRANSPARENT(Context *ctx, const TermPtr &term, Object &args
  * 
  */
 ObjPtr Context::eval_ITERATOR(Context *ctx, const TermPtr &term, Object &args) {
-    LOG_RUNTIME("Not implemented!");
+    LOG_RUNTIME("ITERATOR Not implemented!");
     return nullptr;
 }
 
 ObjPtr Context::eval_FOLLOW(Context *ctx, const TermPtr &term, Object &args) {
-    LOG_RUNTIME("Not implemented!");
+    LOG_RUNTIME("FOLLOW Not implemented!");
     return nullptr;
 }
 
 ObjPtr Context::eval_REPEAT(Context *ctx, const TermPtr &term, Object &args) {
-    LOG_RUNTIME("Not implemented!");
+    LOG_RUNTIME("REPEAT Not implemented!");
     return nullptr;
 }
 
 ObjPtr Context::eval_RANGE(Context *ctx, const TermPtr &term, Object &args) {
-    LOG_RUNTIME("Not implemented!");
-    return nullptr;
+    return CreateRVal(ctx, term, args);
 }
 
 ObjPtr Context::eval_ELLIPSIS(Context *ctx, const TermPtr &term, Object &args) {
-    LOG_RUNTIME("Not implemented!");
+    LOG_RUNTIME("ELLIPSIS Not implemented!");
     return nullptr;
 }
 
@@ -540,22 +554,22 @@ ObjPtr Context::eval_ARGCOUNT(Context *ctx, const TermPtr &term, Object &args) {
 }
 
 ObjPtr Context::eval_EXIT(Context *ctx, const TermPtr &term, Object &args) {
-    LOG_RUNTIME("Not implemented!");
+    LOG_RUNTIME("EXIT Not implemented!");
     return nullptr;
 }
 
 ObjPtr Context::eval_EXCEPTION(Context *ctx, const TermPtr &term, Object &args) {
-    LOG_RUNTIME("Not implemented!");
+    LOG_RUNTIME("EXCEPTION Not implemented!");
     return nullptr;
 }
 
 ObjPtr Context::eval_INDEX(Context *ctx, const TermPtr &term, Object &args) {
-    LOG_RUNTIME("Not implemented!");
+    LOG_RUNTIME("INDEX Not implemented!");
     return nullptr;
 }
 
 ObjPtr Context::eval_FIELD(Context *ctx, const TermPtr &term, Object &args) {
-    LOG_RUNTIME("Not implemented!");
+    LOG_RUNTIME("FIELD Not implemented!");
     return nullptr;
 }
 
@@ -576,6 +590,20 @@ ObjPtr Context::eval_CONCAT(Context *ctx, const TermPtr &term, Object &args) {
 
 ObjPtr Context::eval_SOURCE(Context *ctx, const TermPtr &term, Object &args) {
     NL_PARSER(term, "Inclusion on the implementation language is not supported in interpreter mode!");
+    return nullptr;
+}
+
+ObjPtr Context::eval_POWER(Context* ctx, const TermPtr& term, Object& args) {
+    ASSERT(false);
+    return nullptr;
+}
+
+ObjPtr Context::eval_TENSOR_BEGIN(Context* ctx, const TermPtr& term, Object& args) {
+    return CreateRVal(ctx, term, args);
+}
+
+ObjPtr Context::eval_TENSOR_END(Context* ctx, const TermPtr& term, Object& args) {
+    ASSERT(false);
     return nullptr;
 }
 
@@ -659,42 +687,42 @@ ObjPtr Context::op_AND(Context *ctx, const TermPtr &term, Object &args) {
 }
 
 ObjPtr Context::op_OR(Context *ctx, const TermPtr &term, Object &args) {
-    LOG_RUNTIME("Not implemented!");
+    LOG_RUNTIME("OR Not implemented!");
     return nullptr;
 }
 
 ObjPtr Context::op_XOR(Context *ctx, const TermPtr &term, Object &args) {
-    LOG_RUNTIME("Not implemented!");
+    LOG_RUNTIME("XOR Not implemented!");
     return nullptr;
 }
 
 ObjPtr Context::op_BIT_AND(Context *ctx, const TermPtr &term, Object &args) {
-    LOG_RUNTIME("Not implemented!");
+    LOG_RUNTIME("BIT_AND Not implemented!");
     return nullptr;
 }
 
 ObjPtr Context::op_BIT_OR(Context *ctx, const TermPtr &term, Object &args) {
-    LOG_RUNTIME("Not implemented!");
+    LOG_RUNTIME("BIT_OR Not implemented!");
     return nullptr;
 }
 
 ObjPtr Context::op_BIT_XOR(Context *ctx, const TermPtr &term, Object &args) {
-    LOG_RUNTIME("Not implemented!");
+    LOG_RUNTIME("BIT_XOR Not implemented!");
     return nullptr;
 }
 
 ObjPtr Context::op_BIT_AND_(Context *ctx, const TermPtr &term, Object &args) {
-    LOG_RUNTIME("Not implemented!");
+    LOG_RUNTIME("BIT_AND_ Not implemented!");
     return nullptr;
 }
 
 ObjPtr Context::op_BIT_OR_(Context *ctx, const TermPtr &term, Object &args) {
-    LOG_RUNTIME("Not implemented!");
+    LOG_RUNTIME("BIT_OR_ Not implemented!");
     return nullptr;
 }
 
 ObjPtr Context::op_BIT_XOR_(Context *ctx, const TermPtr &term, Object &args) {
-    LOG_RUNTIME("Not implemented!");
+    LOG_RUNTIME("BIT_XOR_ Not implemented!");
     return nullptr;
 }
 
@@ -808,53 +836,38 @@ ObjPtr Context::op_POW_(Context *ctx, const TermPtr &term, Object &args) {
     return Eval(ctx, term->Left(), args)->op_pow_(Eval(ctx, term->Right(), args));
 }
 
-/*
- * 
- * 
-
-ObjPtr Context::op_INC_(Context *ctx, const TermPtr &term, Object &args) {
-    LOG_RUNTIME("Not implemented!");
-    return nullptr;
-}
-
-ObjPtr Context::op_DEC_(Context *ctx, const TermPtr &term, Object &args) {
-    LOG_RUNTIME("Not implemented!");
-    return nullptr;
-}
- */
-
 ObjPtr Context::op_CONCAT(Context *ctx, const TermPtr &term, Object &args) {
-    LOG_RUNTIME("Not implemented!");
+    LOG_RUNTIME("CONCAT Not implemented!");
     return nullptr;
 }
 
 ObjPtr Context::op_TYPE_EQ(Context *ctx, const TermPtr &term, Object &args) {
-    LOG_RUNTIME("Not implemented!");
+    LOG_RUNTIME("TYPE_EQ Not implemented!");
     return nullptr;
 }
 
 ObjPtr Context::op_TYPE_EQ2(Context *ctx, const TermPtr &term, Object &args) {
-    LOG_RUNTIME("Not implemented!");
+    LOG_RUNTIME("TYPE_EQ2 Not implemented!");
     return nullptr;
 }
 
 ObjPtr Context::op_TYPE_EQ3(Context *ctx, const TermPtr &term, Object &args) {
-    LOG_RUNTIME("Not implemented!");
+    LOG_RUNTIME("TYPE_EQ3 Not implemented!");
     return nullptr;
 }
 
 ObjPtr Context::op_TYPE_NE(Context *ctx, const TermPtr &term, Object &args) {
-    LOG_RUNTIME("Not implemented!");
+    LOG_RUNTIME("TYPE_NE Not implemented!");
     return nullptr;
 }
 
 ObjPtr Context::op_TYPE_NE2(Context *ctx, const TermPtr &term, Object &args) {
-    LOG_RUNTIME("Not implemented!");
+    LOG_RUNTIME("TYPE_NE2 Not implemented!");
     return nullptr;
 }
 
 ObjPtr Context::op_TYPE_NE3(Context *ctx, const TermPtr &term, Object &args) {
-    LOG_RUNTIME("Not implemented!");
+    LOG_RUNTIME("TYPE_NE3 Not implemented!");
     return nullptr;
 }
 
@@ -862,37 +875,37 @@ ObjPtr Context::op_TYPE_NE3(Context *ctx, const TermPtr &term, Object &args) {
  * 
  */
 ObjPtr Context::op_RSHIFT(Context *ctx, const TermPtr &term, Object &args) {
-    LOG_RUNTIME("Not implemented!");
+    LOG_RUNTIME("RSHIFT Not implemented!");
     return nullptr;
 }
 
 ObjPtr Context::op_LSHIFT(Context *ctx, const TermPtr &term, Object &args) {
-    LOG_RUNTIME("Not implemented!");
+    LOG_RUNTIME("LSHIFT Not implemented!");
     return nullptr;
 }
 
 ObjPtr Context::op_RSHIFT_(Context *ctx, const TermPtr &term, Object &args) {
-    LOG_RUNTIME("Not implemented!");
+    LOG_RUNTIME("RSHIFT_ Not implemented!");
     return nullptr;
 }
 
 ObjPtr Context::op_LSHIFT_(Context *ctx, const TermPtr &term, Object &args) {
-    LOG_RUNTIME("Not implemented!");
+    LOG_RUNTIME("LSHIFT_ Not implemented!");
     return nullptr;
 }
 
 ObjPtr Context::op_RRSHIFT(Context *ctx, const TermPtr &term, Object &args) {
-    LOG_RUNTIME("Not implemented!");
+    LOG_RUNTIME("RRSHIFT Not implemented!");
     return nullptr;
 }
 
 ObjPtr Context::op_RRSHIFT_(Context *ctx, const TermPtr &term, Object &args) {
-    LOG_RUNTIME("Not implemented!");
+    LOG_RUNTIME("RRSHIFT_ Not implemented!");
     return nullptr;
 }
 
 ObjPtr Context::op_SPACESHIP(Context *ctx, const TermPtr &term, Object &args) {
-    LOG_RUNTIME("Not implemented!");
+    LOG_RUNTIME("SPACESHIP Not implemented!");
     return nullptr;
 }
 
@@ -1206,12 +1219,114 @@ ObjPtr Context::CreateRVal(Context *ctx, const char *source, Object & local_vars
     return CreateRVal(ctx, ast, local_vars);
 }
 
+void Context::ItemTensorEval_(torch::Tensor &tensor, c10::IntArrayRef shape, std::vector<Index> &ind, const int64_t pos, ObjPtr & obj, ObjPtr & args) {
+    ASSERT(pos < ind.size());
+    if(pos + 1 < ind.size()) {
+        for (ind[pos] = 0; ind[pos].integer() < shape[pos]; ind[pos] = ind[pos].integer() + 1) {
+            ItemTensorEval_(tensor, shape, ind, pos + 1, obj, args);
+        }
+    } else {
+
+        at::Scalar value;
+        ObjType type = fromTorchType(tensor.scalar_type());
+
+        for (ind[pos] = 0; ind[pos].integer() < shape[pos]; ind[pos] = ind[pos].integer() + 1) {
+
+            switch(type) {
+                case ObjType::Char:
+                case ObjType::Short:
+                case ObjType::Int:
+                case ObjType::Long:
+                    value = at::Scalar(obj->Call(this)->GetValueAsInteger()); // args
+                    tensor.index_put_(ind, value);
+                    break;
+                case ObjType::Float:
+                case ObjType::Double:
+                    value = at::Scalar(obj->Call(this)->GetValueAsNumber()); // args
+                    tensor.index_put_(ind, value);
+                    break;
+                default:
+                    ASSERT(!"Not implemented!");
+            }
+        }
+    }
+}
+
+void Context::ItemTensorEval(torch::Tensor &self, ObjPtr obj, ObjPtr args) {
+    if(self.dim() == 0) {
+
+        signed char *ptr_char = nullptr;
+        short *ptr_short = nullptr;
+        int *ptr_int = nullptr;
+        long *ptr_long = nullptr;
+        float *ptr_float = nullptr;
+        double *ptr_double = nullptr;
+
+        switch(fromTorchType(self.scalar_type())) {
+            case ObjType::Char:
+                ptr_char = self.data_ptr<signed char>();
+                ASSERT(ptr_char);
+                *ptr_char = obj->Call(this)->GetValueAsInteger(); //, args)->GetValueAsInteger();
+                return;
+            case ObjType::Short:
+                ptr_short = self.data_ptr<short>();
+                ASSERT(ptr_short);
+                *ptr_short = obj->Call(this)->GetValueAsInteger(); // args
+                return;
+            case ObjType::Int:
+                ptr_int = self.data_ptr<int>();
+                ASSERT(ptr_int);
+                *ptr_int = obj->Call(this)->GetValueAsInteger(); // args
+                return;
+            case ObjType::Long:
+                ptr_long = self.data_ptr<long>();
+                ASSERT(ptr_long);
+                *ptr_long = obj->Call(this)->GetValueAsInteger(); // args
+                return;
+            case ObjType::Float:
+                ptr_float = self.data_ptr<float>();
+                ASSERT(ptr_float);
+                *ptr_float = obj->Call(this)->GetValueAsNumber(); // args
+                return;
+            case ObjType::Double:
+                ptr_double = self.data_ptr<double>();
+                ASSERT(ptr_double);
+                *ptr_double = obj->Call(this)->GetValueAsNumber(); // args
+                return;
+        }
+
+        ASSERT(!"Not implemented!");
+
+    } else {
+        c10::IntArrayRef shape = self.sizes(); // Кол-во эментов в каждом измерении
+        std::vector<Index> ind(shape.size(), 0); // Счетчик обхода всех эелемнтов тензора
+        ItemTensorEval_(self, shape, ind, 0, obj, args);
+    }
+}
+
+std::vector<int64_t> GetTensorShape(Context *ctx, TermPtr type, Object & local_vars) {
+    std::vector<int64_t> result(type->size());
+    for (int i = 0; i < type->size(); i++) {
+        ObjPtr temp = ctx->CreateRVal(ctx, type->at(i).second, local_vars);
+        if(temp->is_integer() || temp->is_bool_type()) {
+            result[i] = temp->GetValueAsInteger();
+        } else {
+            NL_PARSER(type->at(i).second, "Measurement dimension can be an integer only!");
+        }
+        if(result[i] <= 0) {
+            NL_PARSER(type->at(i).second, "Dimension size can be greater than zero!");
+        }
+    }
+    return result;
+}
+
 ObjPtr Context::CreateRVal(Context *ctx, TermPtr term, Object & local_vars) {
 
     ASSERT(term);
 
     ObjPtr result = nullptr;
     ObjPtr temp = nullptr;
+    ObjPtr args = nullptr;
     TermPtr field = nullptr;
     std::string full_name;
 
@@ -1224,6 +1339,7 @@ ObjPtr Context::CreateRVal(Context *ctx, TermPtr term, Object & local_vars) {
     ObjType type;
     bool has_error;
     std::vector<int64_t> sizes;
+    at::Scalar torch_scalar;
     switch(term->getTermID()) {
         case TermID::INTEGER:
             val_int = parseInteger(term->getText().c_str());
@@ -1342,6 +1458,104 @@ ObjPtr Context::CreateRVal(Context *ctx, TermPtr term, Object & local_vars) {
         case TermID::CALL:
             return ctx->CallByName(term, local_vars);
 
+
+        case TermID::TENSOR_BEGIN:
+            ASSERT(term->Left());
+
+            if(term->Right()) {
+                ASSERT(term->Right()->GetTokenID() == TermID::ELLIPSIS);
+                ASSERT(term->GetType());
+
+
+                if(term->Left()->IsScalar() || term->Left()->getTermID() == TermID::TERM) {
+                    temp = CreateRVal(ctx, term->Left(), local_vars);
+                } else if(term->Left()->getTermID() == TermID::CALL) {
+
+                    term->Left()->m_id = TermID::TERM;
+                    temp = ctx->GetObject(term->Left()->getText().c_str());
+                    term->Left()->m_id = TermID::CALL;
+
+                    if(!temp) {
+                        NL_PARSER(term->Left(), "Term '%s' not found!", term->Left()->toString().c_str());
+                    }
+
+                } else {
+                    NL_PARSER(term->Left(), "Tensor value '%s' not implemented!", term->Left()->toString().c_str());
+                }
+
+                ASSERT(temp);
+
+                type = typeFromString(term->GetType()->m_text, ctx);
+                sizes = GetTensorShape(ctx, term->GetType(), local_vars);
+
+                if(temp->is_arithmetic_type() || temp->is_bool_type()) {
+                    torch_scalar = temp->toTorchScalar();
+                    result->m_value = torch::full(sizes, torch_scalar, toTorchType(type));
+                } else if(temp->is_function()) {
+                    result->m_value = torch::empty(sizes, toTorchType(type));
+
+                    //                    args = Object::CreateNone();
+                    ASSERT(temp->size() == 0);
+
+                    ctx->ItemTensorEval(result->m_value, temp, args);
+
+                } else {
+                    NL_PARSER(term->GetType(), "Tensor type '%s' not implemented!", term->GetType()->toString().c_str());
+                }
+                result->m_var_type_current = fromTorchType(result->m_value.scalar_type());
+                result->m_var_type_fixed = result->m_var_type_current;
+                result->m_var_is_init = true;
+                return result;
+
+            } else {
+
+                temp = CreateRVal(ctx, term->Left(), local_vars);
+                ASSERT(temp);
+
+                if(term->GetType()) {
+                    type = typeFromString(term->GetType()->m_text, ctx);
+                    result->m_value = ConvertToTensor(temp.get(), toTorchType(type));
+
+                    if(term->GetType()->size()) {
+                        sizes = GetTensorShape(ctx, term->GetType(), local_vars);
+                        //                        sizes.resize(term->GetType()->size());
+                        //                        for (int i = 0; i < term->GetType()->size(); i++) {
+                        //                            temp = CreateRVal(ctx, term->GetType()->at(i).second, local_vars);
+                        //                            if(temp->is_integer()) {
+                        //                                sizes[i] = temp->GetValueAsInteger();
+                        //                            } else {
+                        //                                NL_PARSER(term->GetType()->at(i).second, "Measurement dimension can be an integer only!");
+                        //                            }
+                        //                            if(!sizes[i]) {
+                        //                                NL_PARSER(term->GetType()->at(i).second, "Dimension size can be greater than zero!");
+                        //                            }
+                        //                        }
+                        result->m_value = result->m_value.reshape(sizes);
+                    }
+
+                } else {
+                    result->m_value = ConvertToTensor(temp.get(), at::ScalarType::Undefined, false);
+                }
+                result->m_var_type_current = fromTorchType(result->m_value.scalar_type());
+                result->m_var_is_init = true;
+
+                return result;
+            }
+
+            ASSERT(!"temp->is_function()");
+
+            //            if(temp->is_function()) {
+            //                if(!term->Right()){
+            //                    return ctx->CallByName(term, local_vars);
+            //                }
+            //                
+            //            } else if(temp->is_string_type()) {
+            //                result->m_value = ConvertToTensor(temp.get(), at::ScalarType::Undefined, false);
+            //                result->m_var_type_current = fromTorchType(result->m_value.scalar_type());
+            //                if(term->GetType()) {
+            //
+            //                }
+            //            }            
         case TermID::CLASS:
             if(!term->m_class_name.empty()) {
                 // Создается перечисление, если тип у имени класса один из арифметических типов
@@ -1376,6 +1590,7 @@ ObjPtr Context::CreateRVal(Context *ctx, TermPtr term, Object & local_vars) {
                 return result;
             }
 
+
         case TermID::TENSOR:
         case TermID::DICT:
             result->m_var_type_current = ObjType::Dict;
@@ -1386,7 +1601,7 @@ ObjPtr Context::CreateRVal(Context *ctx, TermPtr term, Object & local_vars) {
                     result->push_back(CreateRVal(ctx, (*term)[i], local_vars), term->name(i).c_str());
                 }
             }
-            if(term->getTermID() == TermID::TENSOR) {
+            if(term->getTermID() == TermID::TENSOR || term->getTermID() == TermID::TENSOR_BEGIN) {
                 type = getSummaryTensorType(result, typeFromString(term->m_type_name, ctx));
 
                 //                std::vector<int64_t> sizes = getTensorSizes(result.get());
@@ -1427,6 +1642,24 @@ ObjPtr Context::CreateRVal(Context *ctx, TermPtr term, Object & local_vars) {
             LOG_RUNTIME("Argument '%s' not exist!", term->toString().c_str());
 
 
+        case TermID::RANGE:
+
+            for (size_t i = 0; i < term->size(); i++) {
+                ASSERT(!term->name(i).empty());
+                result->push_back(CreateRVal(ctx, (*term)[i], local_vars), term->name(i).c_str());
+            }
+
+            if(result->size() == 2) {
+                result->push_back(Object::CreateValue(1), "step");
+            }
+
+            result->m_var_type_current = ObjType::Range;
+            result->m_var_type_fixed = ObjType::Range;
+            result->m_var_is_init = true;
+
+            return result;
+
+
             //        case TermID::FUNCTION:
             //        case TermID::TRANSPARENT:
             //            ASSERT(ctx);
@@ -1441,6 +1674,8 @@ ObjPtr Context::CreateRVal(Context *ctx, TermPtr term, Object & local_vars) {
             //            result->m_var_is_init = true;
             //            ctx->RegisterObject();
             //            return result;
+
+
 
     }
     LOG_RUNTIME("Fail create type %s from '%s'", newlang::toString(term->getTermID()), term->toString().c_str());

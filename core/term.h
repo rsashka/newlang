@@ -36,9 +36,12 @@ namespace newlang {
         _(CREATE) \
         _(CREATE_OR_ASSIGN) \
         _(APPEND) \
+        _(POWER) \
         \
         _(FUNCTION) \
-        _(SIMPLE) \
+        _(SIMPLE_AND) \
+        _(SIMPLE_OR) \
+        _(SIMPLE_XOR) \
         _(LAMBDA) \
         _(TRANSPARENT) \
         _(ITERATOR) \
@@ -55,6 +58,9 @@ namespace newlang {
         \
         _(INDEX) \
         _(FIELD) \
+        \
+        _(TENSOR_BEGIN) \
+        _(TENSOR_END) \
         \
         _(TENSOR) \
         _(CLASS) \
@@ -163,7 +169,7 @@ public:
     }
 
     inline bool IsFunction() {
-        return m_id == TermID::FUNCTION || m_id == TermID::SIMPLE || m_id == TermID::TRANSPARENT;
+        return m_id == TermID::FUNCTION || m_id == TermID::TRANSPARENT || m_id == TermID::SIMPLE_AND || m_id == TermID::SIMPLE_OR || m_id == TermID::SIMPLE_XOR;
     }
 
     inline bool IsVariable() {
@@ -288,7 +294,7 @@ public:
                 while (!nested && temp->Right()) {
                     ASSERT(this != temp->Right().get());
                     if (temp->Right()->Left()) {
-                        if(this == temp->Right()->Left().get()){
+                        if (this == temp->Right()->Left().get()) {
                             break;
                         }
                         ASSERT(this != temp->Right()->Left().get());
@@ -296,19 +302,19 @@ public:
                     result += temp->Right()->toString();
                     temp = temp->Right();
                 }
-                
-//                temp = shared_from_this();
-//                while (!nested && temp->m_field) {
-//                    ASSERT(this != temp->m_field.get());
-//                    if (temp->m_field->Left()) {
-//                        if(this == temp->m_field->Left().get()){
-//                            break;
-//                        }
-//                        ASSERT(this != temp->m_field->Left().get());
-//                    }
-//                    result += temp->m_field->toString();
-//                    temp = temp->m_field;
-//                }
+
+                //                temp = shared_from_this();
+                //                while (!nested && temp->m_field) {
+                //                    ASSERT(this != temp->m_field.get());
+                //                    if (temp->m_field->Left()) {
+                //                        if(this == temp->m_field->Left().get()){
+                //                            break;
+                //                        }
+                //                        ASSERT(this != temp->m_field->Left().get());
+                //                    }
+                //                    result += temp->m_field->toString();
+                //                    temp = temp->m_field;
+                //                }
 
                 result.insert(0, m_text);
                 result.insert(0, m_namespace);
@@ -335,14 +341,14 @@ public:
                     result += ":" + GetType()->asTypeString();
                 }
                 return result;
-//            case TermID::STRVAR:// name:="string"
-//                if (!result.empty()) {
-//                    result += "=";
-//                }
-//                result += "`";
-//                result.append(m_text);
-//                result.append("`");
-//                return result;
+                //            case TermID::STRVAR:// name:="string"
+                //                if (!result.empty()) {
+                //                    result += "=";
+                //                }
+                //                result += "`";
+                //                result.append(m_text);
+                //                result.append("`");
+                //                return result;
             case TermID::STRCHAR:// name:="string"
             case TermID::STRWIDE:// name:="string"
                 if (!result.empty()) {
@@ -428,7 +434,9 @@ public:
                 result += "};";
                 return result;
 
-            case TermID::SIMPLE:
+            case TermID::SIMPLE_AND:
+            case TermID::SIMPLE_OR:
+            case TermID::SIMPLE_XOR:
                 result += " " + m_text + " ";
                 result.insert(0, m_namespace);
                 if (m_right->GetTokenID() == TermID::BLOCK) {
@@ -487,6 +495,19 @@ public:
                 }
                 return result;
 
+            case TermID::TENSOR_BEGIN:
+                result = "[[ ";
+                result += Left()->toString();
+                if (Right()) {
+                    result += " ";
+                    result += Right()->toString();
+                }
+                result += " ]]";
+                if (GetType()) {
+                    result += ":" + GetType()->asTypeString();
+                }
+                return result;
+
             case TermID::DICT:
                 result += "(";
                 dump_items_(result);
@@ -498,7 +519,7 @@ public:
                 dump_items_(result);
                 result += ")";
                 if (!m_class_name.empty()) {
-                    result += ":" + m_class_name + "???????"; //asTypeString()
+                    result += ":" + m_class_name; //asTypeString()
                 }
                 return result;
             case TermID::SOURCE: // name:={{function code}}
@@ -624,16 +645,16 @@ public:
                 return m_text;
             case TermID::CONCAT:
                 LOG_RUNTIME("Not implemented!");
-/*                if (m_left && !m_right) {
-                    result = m_left->toString();
-                    result += m_text;
-                } else if (m_right && !m_left) {
-                    result = m_text;
-                    result += m_right->toString();
-                } else {
-                    LOG_RUNTIME("Double CREMENT logic not support!");
-                }
-                return result;*/
+                /*                if (m_left && !m_right) {
+                                    result = m_left->toString();
+                                    result += m_text;
+                                } else if (m_right && !m_left) {
+                                    result = m_text;
+                                    result += m_right->toString();
+                                } else {
+                                    LOG_RUNTIME("Double CREMENT logic not support!");
+                                }
+                                return result;*/
         }
         LOG_RUNTIME("Fail toString() type %s, text:'%s'", newlang::toString(m_id), m_text.c_str());
     }
@@ -754,8 +775,8 @@ public:
                 push_back(next, next->getName());
             }
             prev = next;
-            next = next->m_seq;//Right();
-            prev->m_seq.reset();//right.reset();
+            next = next->m_seq; //Right();
+            prev->m_seq.reset(); //right.reset();
         }
         return true;
     }
@@ -764,7 +785,7 @@ public:
         TermPtr next = shared_from_this();
 
         while (true) {
-            if(next->m_seq){
+            if (next->m_seq) {
                 next = next->m_seq;
             } else {
                 next->m_seq = item;
@@ -773,7 +794,7 @@ public:
         }
         return item;
     }
-    
+
     inline bool InsertText(const std::string & s) {
         m_text.insert(0, s);
         return true;

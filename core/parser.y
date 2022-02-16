@@ -80,6 +80,9 @@
 
 %token			CREATE		"::="
 %token			CREATE_OR_ASSIGN ":="
+%token			TENSOR_BEGIN
+%token			TENSOR_END
+%token			POWER		"**"
 
 %token			APPEND		"[]"
 %token			FOLLOW		"->"
@@ -106,7 +109,9 @@
 %token			ITERATOR
 
 %token			TRANSPARENT
-%token			SIMPLE
+%token			SIMPLE_AND
+%token			SIMPLE_OR
+%token			SIMPLE_XOR
 %token			LAMBDA
 %token			OPERATOR
 
@@ -422,23 +427,13 @@ eval:  term
             {
                 $$ = $1;  
             }
-/*        | CREMENT  term
-            {
-                $$ = $1;
-                $$->Append($term, Term::RIGHT);
-            }
-        | term  CREMENT
-            {
-                $$ = $2;
-                $$->Append($term, Term::LEFT);
-            } */
         | TERM   '!'
             {
                 $$ = $2;
                 $$->SetTermID(TermID::ITERATOR);
                 $$->Last()->Append($1, Term::LEFT); 
             }
-       
+
         
 iter_call:  '?'
             {
@@ -654,13 +649,7 @@ named_arg:  TERM  '='
                 }
            
            
-array: '['   ','   ']'
-            {
-                $$ = $1;
-                $$->m_text.clear();
-                $$->SetTermID(TermID::TENSOR);
-            }
-        | '['  args  ','  ']'
+array: '['  args  ','  ']'
             {
                 $$ = $1;
                 $$->m_text.clear();
@@ -911,18 +900,18 @@ assign_local:  lval  assign   /* REMOVE  value */
                 $$->Append($1, Term::LEFT); 
                 $$->Append($3, Term::RIGHT); 
             }*/
-        | lval  assign_val  collection
+        | lval  assign_val  collection_all
             {
                 $$ = $2;  
                 $$->Append($1, Term::LEFT); 
                 $$->Append($3, Term::RIGHT); 
             }
-        | lval  assign_val  class
+/*        | lval  assign_val  class
             {
                 $$ = $2;  
                 $$->Append($1, Term::LEFT); 
                 $$->Append($3, Term::RIGHT); 
-            }
+            }*/
 /*        | lval  assign_val  class_name
             {
                 $$ = $2;  
@@ -1063,7 +1052,20 @@ simple_seq:  simple_item
 //                    $$->push_back($3);
                 }
 
-simple_func: func_name  SIMPLE  simple_seq
+simple: SIMPLE_AND
+        {
+            $$ = $1;
+        }
+    | SIMPLE_OR
+        {
+            $$ = $1;
+        }
+    | SIMPLE_XOR
+        {
+            $$ = $1;
+        }
+            
+simple_func: func_name  simple  simple_seq
         {
             $$ = $2;  
             $$->Append($1, Term::LEFT); 
@@ -1193,7 +1195,7 @@ str_op: string
             $$->Append($1, Term::LEFT); 
             $$->Append($3, Term::RIGHT); 
         }
-    | string '*' INTEGER
+    | string  POWER  INTEGER
         {
             $$ = $2;
             $$->SetTermID(TermID::OPERATOR);
@@ -1213,8 +1215,58 @@ rval:  str_op
         {
             $$ = $1;
         }
+    |  collection_all
+        {
+            $$ = $1;
+        }
+    | TENSOR_BEGIN   rval  TENSOR_END
+        {
+            $$ = $1;
+            $$->Append($2, Term::LEFT); 
+        }
+    | TENSOR_BEGIN   rval  TENSOR_END  type
+        {
+            $$ = $1;
+            $$->SetType($4);
+            $$->Append($2, Term::LEFT); 
+        }
+    | TENSOR_BEGIN   rval  ELLIPSIS TENSOR_END
+        {
+            $$ = $1;
+            $$->Append($2, Term::LEFT); 
+            $$->Append($3, Term::RIGHT); 
+        }
+    | TENSOR_BEGIN   rval  ELLIPSIS TENSOR_END  type
+        {
+            $$ = $1;
+            $$->SetType($type);
+            $$->Append($2, Term::LEFT); 
+            $$->Append($3, Term::RIGHT); 
+        }
+    | TENSOR_BEGIN   range  TENSOR_END
+        {
+            $$ = $1;
+            $$->Append($2, Term::LEFT); 
+        }
+    | TENSOR_BEGIN   range  TENSOR_END  type
+        {
+            $$ = $1;
+            $$->SetType($type);
+            $$->Append($2, Term::LEFT); 
+        }
+
     
-logical: rval OPERATOR rval
+    
+operator: OPERATOR
+            {
+                $$ = $1;
+            }
+        | POWER
+            {
+                $$ = $1;
+            }
+        
+logical: rval operator rval
         {
             $$ = $2;
             $$->Append($1, Term::LEFT); 
@@ -1234,7 +1286,7 @@ logical: rval OPERATOR rval
             $$->Append($1, Term::LEFT); 
             $$->Append($3, Term::RIGHT); 
         }
-    | rval  OPERATOR  collection_all
+/*    | rval  operator  collection_all
         {
             $$ = $2;
             $$->SetTermID(TermID::OPERATOR);
@@ -1248,7 +1300,7 @@ logical: rval OPERATOR rval
             $$->Append($1, Term::LEFT); 
             $$->Append($3, Term::RIGHT); 
         }
-
+*/
 
 source: SOURCE
             {
@@ -1284,6 +1336,10 @@ expression: source
                 $$=$1;
             }
         |  arg   end
+            {
+                $$=$1;
+            }
+        | range  end
             {
                 $$=$1;
             }
@@ -1377,15 +1433,15 @@ range_val:  eval
 range: range_val  RANGE  range_val
         {
             $$ = $2;
-            $$->push_back($1, "");
-            $$->push_back($3, "");
+            $$->push_back($1, "start");
+            $$->push_back($3, "stop");
         }
     | range_val  RANGE  range_val  RANGE  range_val
         {
             $$ = $2;
-            $$->push_back($1, "");
-            $$->push_back($3, "");
-            $$->push_back($5, "");
+            $$->push_back($1, "start");
+            $$->push_back($3, "stop");
+            $$->push_back($5, "step");
         }
         
 rep_item:  eval

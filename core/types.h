@@ -188,6 +188,9 @@ void ParserException(const char *msg, std::string &buffer, int row, int col);
   _(Ellipsis,       107) \
   _(EVAL_FUNCTION,  109) \
   _(EVAL_TRANSP,    110) \
+  _(EVAL_AND,    111) \
+  _(EVAL_OR,    112) \
+  _(EVAL_XOR,    113) \
   _(Error,          255)
 
 // BigNum - Длинные целые числа произвольного размера  100:Big

@@ -167,6 +167,20 @@ public:
         LOG_CALLSTACK(std::out_of_range, "Property '%s' not found!", name.c_str());
     }
 
+//    template <typename N>
+//    typename std::enable_if<std::is_same<char, std::remove_cv<N>>::value, Type &>::type
+//    inline at(N * name) const {
+//        return at(std::string(name));
+//    }
+//
+//    virtual PairType & at(const std::string name) const {
+//        iterator found = select(name);
+//        if (found != m_data.end()) {
+//            return found.data();
+//        }
+//        LOG_CALLSTACK(std::out_of_range, "Property '%s' not found!", name.c_str());
+//    }
+    
     //    virtual const PairType & at(const std::string name) {
     //        iterator found = select(name);
     //        if (found != m_data.end()) {

@@ -30,7 +30,7 @@ namespace newlang {
 
 ObjType DictionarySummaryType(const Object *obj);
 std::vector<int64_t> TensorShapeFromDict(const Object *obj);
-torch::Tensor ConvertToTensor(const Object *obj, at::ScalarType type = at::ScalarType::Undefined, bool reshape = true);
+torch::Tensor ConvertToTensor(Object *obj, at::ScalarType type = at::ScalarType::Undefined, bool reshape = true);
 
 at::TensorOptions ConvertToTensorOptions(const Object *obj);
 at::DimnameList ConvertToDimnameList(const Object *obj);
@@ -170,9 +170,9 @@ public:
     [[nodiscard]]
     inline ObjType getTypeAsLimit() {
         if (is_arithmetic_type()) {
-            if (isIntegralType(m_var_type_current, true)) {
+            if (isIntegralType(m_var_type_current, true) && is_scalar()) {
                 return typeFromLimit(GetValueAsInteger());
-            } else if (isFloatingType(m_var_type_current)) {
+            } else if (isFloatingType(m_var_type_current) && is_scalar()) {
                 return typeFromLimit(GetValueAsNumber());
             }
         }
@@ -331,6 +331,11 @@ john.__module__ =  __main__
     }
 
     [[nodiscard]]
+    inline bool is_floating() const {
+        return isFloatingType(m_var_type_current);
+    }
+
+    [[nodiscard]]
     inline bool is_indexing() const {
         return is_tensor() || is_string_type() || is_dictionary_type() || is_class();
     }
@@ -374,6 +379,16 @@ john.__module__ =  __main__
     }
 
 
+    inline ObjPtr at(const std::string_view name) {
+        return Variable<ObjPtr>::at(name.begin()).second;
+    }
+
+    inline ObjPtr at(const std::string_view name) const {
+        Object * const obj = (Object * const) this;
+        return obj->Variable<ObjPtr>::at(name.begin()).second;
+//        return Variable<ObjPtr>::at(name.begin()).second;
+    }
+
     Variable<ObjPtr>::PairType & at(const size_t index) override;
     const Variable<ObjPtr>::PairType & at(const size_t index) const override;
 
@@ -382,10 +397,6 @@ john.__module__ =  __main__
             LOG_CALLSTACK(std::runtime_error, "Value must be a string type %d", (int) find->getType());
         }
         return Variable<ObjPtr>::at(find->GetValueAsString()).second;
-    }
-
-    inline ObjPtr at(const std::string_view name) {
-        return Variable<ObjPtr>::at(name.begin()).second;
     }
 
     bool exist(ObjPtr &find, bool strong);
@@ -998,6 +1009,19 @@ john.__module__ =  __main__
         }
     }
 
+    at::Scalar toTorchScalar() {
+        at::Scalar result;
+        if (is_integer() || is_bool_type()) {
+            result = at::Scalar(GetValueAsInteger());
+        } else if (is_floating()) {
+            result = at::Scalar(GetValueAsNumber());
+        } else {
+            LOG_RUNTIME("Not support Torch ScalarType '%s'", newlang::toString(m_var_type_current));
+        }
+        return result;
+
+    }
+
     static ObjPtr CreateType(ObjType type, const char *var_name = nullptr, ObjType fixed = ObjType::None) {
         TermPtr term = nullptr;
         return std::make_shared<Object>(type, var_name, term, fixed);
@@ -1087,7 +1111,7 @@ john.__module__ =  __main__
         return CreateTensor(var);
     }
 
-    inline torch::Tensor toTensor() const {
+    inline torch::Tensor toTensor() {
         return ConvertToTensor(this);
     }
 
@@ -1186,7 +1210,7 @@ john.__module__ =  __main__
         return GetValueAsBoolean();
     }
 
-    inline operator at::Tensor() const {
+    inline operator at::Tensor() {
         return ConvertToTensor(this);
     }
 

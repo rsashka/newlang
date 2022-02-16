@@ -575,12 +575,21 @@ std::string Object::toString(bool deep) const {
                 //            case ObjType::Bool:// name:=@true
                 //                result += GetValueAsString();
                 //                return result;
+            case ObjType::Range: // name:=(1,second="two",3,<EMPTY>,5)
+                result = at("start")->GetValueAsString();
+                result += "..";
+                result += at("stop")->GetValueAsString();
+                result += "..";
+                result += at("step")->GetValueAsString();
+                return result;
+
             case ObjType::Dict: // name:=(1,second="two",3,<EMPTY>,5)
                 result += "(";
                 dump_dict_(result);
                 result += ",";
                 result += ")";
                 return result;
+
             case ObjType::Pointer:
                 ss << m_func_ptr;
                 result += ss.str();
@@ -648,9 +657,15 @@ std::string Object::toString(bool deep) const {
 }
 
 void TensorToString_(const torch::Tensor &tensor, c10::IntArrayRef shape, std::vector<Index> &ind, const int64_t pos, std::stringstream &str) {
+    std::string intend;
     ASSERT(pos < ind.size());
+    str << "[";
+    if(shape.size() > 1 && pos + 1 < ind.size()) {
+        str << "\n";
+        intend = std::string((pos + 1) * 2, ' ');
+        str << intend;
+    }
     if(pos + 1 < ind.size()) {
-        str << "[";
         bool comma = false;
         for (ind[pos] = 0; ind[pos].integer() < shape[pos]; ind[pos] = ind[pos].integer() + 1) {
             if(comma) {
@@ -660,9 +675,7 @@ void TensorToString_(const torch::Tensor &tensor, c10::IntArrayRef shape, std::v
             }
             TensorToString_(tensor, shape, ind, pos + 1, str);
         }
-        str << ",]";
     } else {
-        str << "[";
         bool comma = false;
         for (ind[pos] = 0; ind[pos].integer() < shape[pos]; ind[pos] = ind[pos].integer() + 1) {
             if(comma) {
@@ -678,8 +691,12 @@ void TensorToString_(const torch::Tensor &tensor, c10::IntArrayRef shape, std::v
                 str << tensor.index(ind).item<int64_t>();
             }
         }
-        str << ",]";
     }
+    str << ",";
+    if(!intend.empty()) {
+        str << "\n";
+    }
+    str << "]";
 }
 
 std::string newlang::TensorToString(const torch::Tensor &tensor) {
@@ -699,58 +716,12 @@ std::string newlang::TensorToString(const torch::Tensor &tensor) {
         return result;
     }
 
-    //x = torch.FloatTensor(3, 4)
-    //print(x)
-    //################## OUTPUT ##################
-    //tensor([[1.7288e+25, 4.5717e-41, 1.7288e+25, 4.5717e-41],
-    //        [0.0000e+00, 0.0000e+00, 0.0000e+00, 0.0000e+00],
-    //        [0.0000e+00, 2.7523e+23, 1.8788e+31, 1.7220e+22]])
-
-    //self.impl_->storage().storage_impl_->numel()   # num of elements
-    //p  ((float *)self.impl_->storage().storage_impl_->data())[0] 
-
-    //    auto foo_a = foo.accessor<float, 2>();
-    //    float trace = 0;
-    //
-    //    for (int i = 0; i < foo_a.size(0); i++) {
-    //        // use the accessor foo_a to get tensor data.
-    //        trace += foo_a[i][i];
-    //    }
-
     c10::IntArrayRef shape = tensor.sizes(); // Кол-во эментов в каждом измерении
     std::vector<Index> ind(shape.size(), 0); // Счетчик обхода всех эелемнтов тензора
-    //    size_t inc_position = 0; // Индекс для инкремента позиции элемента тензора
-    // За каждый шаг цикла выводим текущий индекс (счет с нуля) и инкерементируем позицию до максимального индекса
-    // Если индекс максимальный для текущей позиции, то обнуляем все индексы до текущей позиции и инкрементируем следующий разряд
-    // Выход из цикла, когда номер старшего разряда будет больше чем количество измерений тензора
-    //    int64_t i = 0;
     TensorToString_(tensor, shape, ind, 0, ss);
-    //    while(inc_position < count.size()) {
-    //        for (i = 0; i < count[0]; i++) {
-    //
-    //            if(tensor.is_floating_point()) {
-    //                ss << tensor.index({i}).item<double>();
-    //            } else if(tensor.is_complex()) {
-    //                ASSERT(!"Not implemented!");
-    //            } else {
-    //                ss << tensor.index({i}).item<int64_t>();
-    //            }
-    //            ss << ", ";
-    //        }
-    //        inc_position++;
-    //    }
     ss << ":";
     result = ss.str();
     result += newlang::toString(fromTorchType(tensor.scalar_type()));
-
-
-    //    tensor[].select()
-    //    if(tensor.is_floating_point()) {
-    //
-    //    } else if(tensor.is_complex()) {
-    //        ASSERT(!"Not implemented!");
-    //    } else {
-    //    }
 
     return result;
 }
@@ -832,6 +803,9 @@ std::string Object::GetValueAsString() const {
             }
             return result;
 
+        case ObjType::Range:
+            result += toString();
+            return result;
     }
     LOG_CALLSTACK(std::runtime_error, "Data type '%s' %d incompatible to string!", newlang::toString(m_var_type_current), (int) m_var_type_current);
 }
@@ -1100,6 +1074,22 @@ bool Object::op_equal(Object & value) {
         // Арифметические типы данных сравниваются как тензоры
         torch::Dtype summary_type = toTorchType(static_cast<ObjType> (std::max(static_cast<uint8_t> (m_var_type_current), static_cast<uint8_t> (value.m_var_type_current))));
         try {
+            if(m_value.dim() == 0 || value.m_value.dim() == 0) {
+                if(m_value.dim() == 0 && value.m_value.dim() == 0) {
+
+                    ObjType type = fromTorchType(summary_type);
+
+                    if(isIntegralType(type, true)) {
+                        return GetValueAsInteger() == value.GetValueAsInteger();
+                    } else if(isFloatingType(type)) {
+                        return GetValueAsNumber() == value.GetValueAsNumber();
+                    } else {
+                        LOG_RUNTIME("Fail compare type '%s'!", newlang::toString(type));
+                    }
+                }
+                return false;
+            }
+
             return m_value.toType(summary_type).equal(value.toTensor().toType(summary_type));
         } catch (std::exception e) {
             LOG_RUNTIME("Fail compare"); //, e.what());
@@ -1398,35 +1388,46 @@ ObjPtr Object::toType_(ObjType target) {
         } else if(isString(target)) {
             if(target == ObjType::StrChar) {
                 // В байтовую строку конвертируются только байтовый скаляр или одномерный байтовый тензор
-                ASSERT(m_value.dtype().toScalarType() == at::ScalarType::Byte || m_value.dtype().toScalarType() == at::ScalarType::Char);
+                if(!(m_value.dtype().toScalarType() == at::ScalarType::Byte || m_value.dtype().toScalarType() == at::ScalarType::Char)) {
+                    LOG_RUNTIME("Convert to byte string can 1-byte tensor only!");
+                }
+
                 if(m_value.dim() == 0) {
                     m_str.resize(1);
-                    m_str[0] = m_value.item<uint8_t>();
-                } else {
+                    m_str[0] = m_value.item().toInt();
+                } else if(m_value.dim() == 1) {
                     m_str.clear();
-                    auto ptr = m_value.accessor<uint8_t, 1>();
-                    m_str.append((char *) ptr.data(), ptr.size(0));
+                    for (int i = 0; i < m_value.size(0); i++) {
+                        m_str += m_value.index({i}).item().toChar();
+                    }
+                } else {
+                    LOG_RUNTIME("Convert to string single dimension tensor only!");
                 }
                 m_var_type_current = target;
                 return shared_from_this();
             } else { // ObjType::StrWide
                 ASSERT(target == ObjType::StrWide);
-                // В символьную строку конвертируется любой целочисленный скаляр или одномерный тензор
-                ASSERT(at::isIntegralType(m_value.dtype().toScalarType(), false));
-                STATIC_ASSERT(sizeof (wchar_t) == sizeof (int32_t));
-                torch::Tensor temp_tensor = m_value.toType(torch::Dtype::Int);
 
-                std::wstring temp;
-                if(temp_tensor.dim() == 0) {
-                    m_wstr.resize(1);
-                    m_wstr[0] = temp_tensor.item<int64_t>();
-                } else {
-                    m_wstr.resize(temp_tensor.size(0));
-                    for (int i = 0; i < m_wstr.size(); i++) {
-                        m_wstr[i] = temp_tensor[i].item<int32_t>();
-                    }
+                // В символьную строку конвертируется любой целочисленный скаляр или одномерный тензор
+                if(!(m_value.dtype().toScalarType() == at::ScalarType::Byte || m_value.dtype().toScalarType() == at::ScalarType::Char ||
+                        m_value.dtype().toScalarType() == at::ScalarType::Short || m_value.dtype().toScalarType() == at::ScalarType::Int)) {
+                    LOG_RUNTIME("Convert to wide string can 1..4 byte tensor only!");
                 }
-                //                m_wstr = temp;
+
+                STATIC_ASSERT(sizeof (wchar_t) == sizeof (int32_t));
+
+                if(m_value.dim() == 0) {
+                    m_wstr.resize(1);
+                    m_wstr[0] = m_value.item().toInt();
+                } else if(m_value.dim() == 1) {
+                    m_wstr.clear();
+                    for (int i = 0; i < m_value.size(0); i++) {
+                        m_wstr += m_value.index({i}).item().toInt();
+                    }
+                } else {
+                    LOG_RUNTIME("Convert to string single dimension tensor only!");
+                }
+
                 m_var_type_current = target;
                 return shared_from_this();
             }
@@ -1518,14 +1519,20 @@ std::vector<int64_t> newlang::TensorShapeFromDict(const Object *obj) {
     return shape;
 }
 
-torch::Tensor newlang::ConvertToTensor(const Object * data, at::ScalarType type, bool reshape) {
+torch::Tensor newlang::ConvertToTensor(Object * data, at::ScalarType type, bool reshape) {
     ASSERT(data);
 
     if(data->is_tensor()) {
         // Прообразование один в один
         if(type == at::ScalarType::Undefined) {
+            if(data->is_scalar()) {
+                return data->m_value.reshape({1});
+            }
             return data->m_value.clone();
         } else {
+            if(data->is_scalar()) {
+                return data->m_value.reshape({1}).toType(type);
+            }
             return data->m_value.clone().toType(type);
         }
     } else if(data->m_var_type_current == ObjType::StrChar) {
@@ -1543,8 +1550,34 @@ torch::Tensor newlang::ConvertToTensor(const Object * data, at::ScalarType type,
             (int) data->m_wstr.size()
         }, type).clone();
     } else if(data->is_range()) {
-        // Из диапазона в другой тип данных
-        LOG_RUNTIME("Not implemented!!!");
+
+        ASSERT(data->at("start"));
+        ASSERT(data->at("stop"));
+        ASSERT(data->at("step"));
+        ASSERT(data->at("start")->is_arithmetic_type() || data->at("start")->is_bool_type());
+        ASSERT(data->at("stop")->is_arithmetic_type() || data->at("stop")->is_bool_type());
+        ASSERT(data->at("step")->is_arithmetic_type() || data->at("step")->is_bool_type());
+
+        ObjPtr dict = Object::CreateDict();
+        if(data->at("start")->is_floating() || data->at("stop")->is_floating() || data->at("step")->is_floating()) {
+            double value = data->at("start")->GetValueAsNumber();
+            double stop = data->at("stop")->GetValueAsNumber();
+            double step = data->at("step")->GetValueAsNumber();
+            for (; value < stop; value += step) {
+                dict->push_back(Object::CreateValue(value));
+            }
+            type = toTorchType(ObjType::Double);
+        } else {
+            int64_t value = data->at("start")->GetValueAsInteger();
+            int64_t stop = data->at("stop")->GetValueAsInteger();
+            int64_t step = data->at("step")->GetValueAsInteger();
+            for (; value < stop; value += step) {
+                dict->push_back(Object::CreateValue(value));
+            }
+        }
+        return ConvertToTensor(dict.get(), type, reshape);
+
+
     } else if(data->is_dictionary_type()) {
         if(type == at::ScalarType::Undefined) {
             type = at::ScalarType::Char;

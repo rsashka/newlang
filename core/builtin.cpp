@@ -50,16 +50,16 @@ namespace newlang {
         return in[1]->Clone(nullptr);
     }
 
-//    NEWLANG_FUNCTION(print_) {
-//        ObjPtr out = Object::CreateString("");
-//        for (size_t i = 1; i < in.size(); i++) {
-//            if(in.at(i).second) {
-//                out->m_string += in.at(i).second->GetValueAsString();
-//            }
-//        }
-//        printf("%s", out->m_string.c_str());
-//        return out;
-//    }
+    //    NEWLANG_FUNCTION(print_) {
+    //        ObjPtr out = Object::CreateString("");
+    //        for (size_t i = 1; i < in.size(); i++) {
+    //            if(in.at(i).second) {
+    //                out->m_string += in.at(i).second->GetValueAsString();
+    //            }
+    //        }
+    //        printf("%s", out->m_string.c_str());
+    //        return out;
+    //    }
 
     NEWLANG_FUNCTION(import) {
         if(!ctx) {
@@ -83,13 +83,22 @@ namespace newlang {
         return ctx->Exec(in.at(1).second->GetValueAsString().c_str());
     }
 
-//    NEWLANG_FUNCTION(load) {
-//        if(!ctx) {
-//            LOG_RUNTIME("No access to context!");
-//        }
-//        return ctx->m_runtime->LoadModule(in.at(1).second->GetValueAsString().c_str(),
-//                in["module"]->GetValueAsString().c_str(), in["lazzy"]->GetValueAsBoolean());
-//    }
+    NEWLANG_FUNCTION(srand) {
+        std::srand(in.at(1).second->GetValueAsInteger());
+        return Object::CreateNone();
+    }
+
+    NEWLANG_TRANSPARENT(rand) {
+        return Object::CreateValue(std::rand());
+    }
+
+    //    NEWLANG_FUNCTION(load) {
+    //        if(!ctx) {
+    //            LOG_RUNTIME("No access to context!");
+    //        }
+    //        return ctx->m_runtime->LoadModule(in.at(1).second->GetValueAsString().c_str(),
+    //                in["module"]->GetValueAsString().c_str(), in["lazzy"]->GetValueAsBoolean());
+    //    }
 
 
 
@@ -100,16 +109,16 @@ namespace newlang {
 
 #define DEFINE_ENUM(name, cast) \
 newlang::ObjPtr name(const newlang::Context *ctx, const newlang::Object &in) {\
-    if(in.size() < 2 || !in.at(1).second) {\
+    if(in.size() < 1 || !in.at(1).second) {\
         LOG_CALLSTACK(std::invalid_argument, "Bad argument count parameter!");\
     }\
-    return in.at(1).second->Convert(ObjType:: cast, in.size()>2 ? in.at(2).second : nullptr);\
+    return in.at(1).second->Convert(ObjType:: cast);\
 }\
 newlang::ObjPtr name##_(newlang::Context *ctx, newlang::Object &in) {\
-    if(in.size() < 2 || !in.at(1).second) {\
+    if(in.size() < 1 || !in.at(1).second) {\
         LOG_CALLSTACK(std::invalid_argument, "Bad argument count parameter!");\
     }\
-    return in.at(1).second->Convert_(ObjType:: cast, in.size()>2 ? in.at(2).second : nullptr);\
+    return in.at(1).second->Convert_(ObjType:: cast);\
 }
 
     NL_BUILTIN_CAST_TYPE(DEFINE_ENUM)
