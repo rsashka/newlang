@@ -1320,6 +1320,84 @@ std::vector<int64_t> GetTensorShape(Context *ctx, TermPtr type, Object & local_v
     return result;
 }
 
+std::vector<Index> Context::MakeIndex(Context *ctx, TermPtr term, Object & local_vars) {
+
+    // `at::indexing::TensorIndex` is used for converting C++ tensor indices such as
+    // `{None, "...", Ellipsis, 0, true, Slice(1, None, 2), torch::tensor({1, 2})}`
+    // into its equivalent `std::vector<TensorIndex>`, so that further tensor indexing
+    // operations can be performed using the supplied indices.
+    //
+    // There is one-to-one correspondence between Python and C++ tensor index types:
+    // Python                  | C++
+    // -----------------------------------------------------
+    // `None`                  | `at::indexing::None`
+    // `Ellipsis`              | `at::indexing::Ellipsis`
+    // `...`                   | `"..."`
+    // `123`                   | `123`
+    // `True` / `False`        | `true` / `false`
+    // `:`                     | `Slice()` / `Slice(None, None)`
+    // `::`                    | `Slice()` / `Slice(None, None, None)`
+    // `1:`                    | `Slice(1, None)`
+    // `1::`                   | `Slice(1, None, None)`
+    // `:3`                    | `Slice(None, 3)`
+    // `:3:`                   | `Slice(None, 3, None)`
+    // `::2`                   | `Slice(None, None, 2)`
+    // `1:3`                   | `Slice(1, 3)`
+    // `1::2`                  | `Slice(1, None, 2)`
+    // `:3:2`                  | `Slice(None, 3, 2)`
+    // `1:3:2`                 | `Slice(1, 3, 2)`
+    // `torch.tensor([1, 2])`) | `torch::tensor({1, 2})`
+
+    std::vector<Index> result;
+
+    if(!term->size()) {
+        NL_PARSER(term, "Index not found!");
+    }
+    for (int i = 0; i < term->size(); i++) {
+        if(!term->name(i).empty() || (term->at(i).second && term->at(i).second->IsString())) {
+            NL_PARSER(term, "Named index not support '%d'!", i);
+        }
+        if(!term->at(i).second) {
+            NL_PARSER(term, "Empty index '%d'!", i);
+        }
+
+        if(term->at(i).second->getTermID() == TermID::ELLIPSIS) {
+            result.push_back(Index("..."));
+        } else {
+
+            ObjPtr temp = ctx->CreateRVal(ctx, term->at(i).second, local_vars);
+
+            if(temp->is_none_type()) {
+
+                result.push_back(Index(at::indexing::None));
+
+            } else if(temp->is_integer() || temp->is_bool_type()) {
+
+                if(temp->is_scalar()) {
+                    result.push_back(Index(temp->GetValueAsInteger()));
+                } else if(temp->m_value.dim() == 1) {
+                    result.push_back(Index(temp->m_value));
+                } else {
+                    NL_PARSER(term->at(i).second, "Extra dimensions index not support '%d'!", i);
+                }
+
+            } else if(temp->is_range()) {
+
+                int64_t start = temp->at("start")->GetValueAsInteger();
+                int64_t stop = temp->at("stop")->GetValueAsInteger();
+                int64_t step = temp->at("step")->GetValueAsInteger();
+
+                result.push_back(Index(at::indexing::Slice(start, stop, step)));
+
+            } else {
+                NL_PARSER(term->at(i).second, "Fail tensor index '%d'!", i);
+            }
+
+        }
+    }
+    return result;
+}
+
 ObjPtr Context::CreateRVal(Context *ctx, TermPtr term, Object & local_vars) {
 
     ASSERT(term);
@@ -1446,11 +1524,20 @@ ObjPtr Context::CreateRVal(Context *ctx, TermPtr term, Object & local_vars) {
             result->m_var_is_init = true;
 
             field = term->m_right;
-            while(field) {
-                ASSERT(field->getTermID() == TermID::FIELD);
-                result = result->at(field->getText());
-                field = field->m_right;
-                ASSERT(!field); // Нужно выполнять, а не просто получать значение поля
+            if(field->getTermID() == TermID::FIELD) {
+                while(field) {
+                    result = result->at(field->getText());
+                    field = field->m_right;
+                    ASSERT(!field); // Нужно выполнять, а не просто получать значение поля
+                }
+            } else if(field->getTermID() == TermID::INDEX) {
+                while(field) {
+                    result = result->index_get(MakeIndex(ctx, field, local_vars));
+                    field = field->m_right;
+                    ASSERT(!field); // Нужно выполнять, а не просто получать значение поля
+                }
+            } else {
+                LOG_RUNTIME("Not implemented! %s", field->toString().c_str());
             }
 
             return result;

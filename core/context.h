@@ -193,6 +193,8 @@ public:
     static ObjPtr CreateRVal(Context *ctx, TermPtr term, Object &args);
     static ObjPtr CreateRVal(Context *ctx, const char *source, Object &args);
 
+    static std::vector<Index> MakeIndex(Context *ctx, TermPtr term, Object & local_vars);
+
     void ItemTensorEval_(torch::Tensor &tensor, c10::IntArrayRef shape, std::vector<Index> &ind, const int64_t pos, ObjPtr & obj, ObjPtr &args);
     void ItemTensorEval(torch::Tensor &tensor, ObjPtr obj, ObjPtr args);
 

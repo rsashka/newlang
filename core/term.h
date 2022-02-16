@@ -189,6 +189,15 @@ public:
         return false;
     }
 
+    inline bool IsString() {
+        switch (m_id) {
+            case TermID::STRWIDE:
+            case TermID::STRCHAR:
+                return true;
+        }
+        return false;
+    }
+
     inline bool IsLiteral() {
         switch (m_id) {
             case TermID::INTEGER:

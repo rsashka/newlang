@@ -123,6 +123,7 @@
           <linkerDynSerch>
             <pElem>../contrib/libtorch/lib</pElem>
           </linkerDynSerch>
+          <linkerDepDynSerchKind>3</linkerDepDynSerchKind>
           <linkerLibItems>
             <linkerLibStdlibItem>PosixThreads</linkerLibStdlibItem>
             <linkerLibStdlibItem>DynamicLinking</linkerLibStdlibItem>
