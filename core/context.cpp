@@ -926,6 +926,62 @@ ObjPtr Context::EvalBlock(Context *ctx, const TermPtr &block, Object &local_vars
     return result;
 }
 
+ObjPtr Context::EvalBlockAND(Context *ctx, const TermPtr &block, Object &local_vars) {
+    ObjPtr result = nullptr;
+    if(block->GetTokenID() == TermID::BLOCK) {
+        for (size_t i = 0; i < block->m_block.size(); i++) {
+            result = Eval(ctx, block->m_block[i], local_vars);
+            if(!result || !result->GetValueAsBoolean()) {
+                return Object::No();
+            }
+        }
+    } else {
+        result = Eval(ctx, block, local_vars);
+    }
+    if(!result || !result->GetValueAsBoolean()) {
+        return Object::No();
+    }
+    return Object::Yes();
+}
+
+ObjPtr Context::EvalBlockOR(Context *ctx, const TermPtr &block, Object &local_vars) {
+    ObjPtr result = nullptr;
+    if(block->GetTokenID() == TermID::BLOCK) {
+        for (size_t i = 0; i < block->m_block.size(); i++) {
+            result = Eval(ctx, block->m_block[i], local_vars);
+            if(result && result->GetValueAsBoolean()) {
+                return Object::Yes();
+            }
+        }
+    } else {
+        result = Eval(ctx, block, local_vars);
+    }
+    if(result && result->GetValueAsBoolean()) {
+        return Object::Yes();
+    }
+    return Object::No();
+}
+
+ObjPtr Context::EvalBlockXOR(Context *ctx, const TermPtr &block, Object &local_vars) {
+    ObjPtr result;
+    size_t xor_counter = 0;
+    if(block->GetTokenID() == TermID::BLOCK) {
+        for (size_t i = 0; i < block->m_block.size(); i++) {
+            result = Eval(ctx, block->m_block[i], local_vars);
+            if(result && result->GetValueAsBoolean()) {
+                xor_counter++;
+            }
+        }
+    } else {
+        result = Eval(ctx, block, local_vars);
+        if(result && result->GetValueAsBoolean()) {
+            xor_counter++;
+        }
+    }
+    // Результат равен 0, если нет операндов, равных 1, либо их чётное количество.
+    return (xor_counter & 1) ? Object::Yes() : Object::No();
+}
+
 ObjPtr Context::CallByName(const TermPtr &term, Object &local_vars) {
     Object args(this, term, true, local_vars);
     return CallByName(term->m_text.c_str(), args, term->isRef());
@@ -983,6 +1039,12 @@ ObjPtr Context::CallByName(const char * name, Object & args, bool is_ref) {
             return func->CallNative(this, *arg_in);
         } else if(func->m_var_type_current == ObjType::EVAL_FUNCTION || func->m_var_type_current == ObjType::EVAL_TRANSP) {
             return Context::EvalBlock(this, func->m_func_source, *arg_in);
+        } else if(func->m_var_type_current == ObjType::EVAL_AND) {
+            return Context::EvalBlockAND(this, func->m_func_source, *arg_in);
+        } else if(func->m_var_type_current == ObjType::EVAL_OR) {
+            return Context::EvalBlockOR(this, func->m_func_source, *arg_in);
+        } else if(func->m_var_type_current == ObjType::EVAL_XOR) {
+            return Context::EvalBlockXOR(this, func->m_func_source, *arg_in);
         }
         LOG_RUNTIME("Call by name not implemted '%s'!", func->toString().c_str());
 
@@ -1524,19 +1586,19 @@ ObjPtr Context::CreateRVal(Context *ctx, TermPtr term, Object & local_vars) {
             result->m_var_is_init = true;
 
             field = term->m_right;
-            if(field->getTermID() == TermID::FIELD) {
+            if(field && field->getTermID() == TermID::FIELD) {
                 while(field) {
                     result = result->at(field->getText());
                     field = field->m_right;
                     ASSERT(!field); // Нужно выполнять, а не просто получать значение поля
                 }
-            } else if(field->getTermID() == TermID::INDEX) {
+            } else if(field && field->getTermID() == TermID::INDEX) {
                 while(field) {
                     result = result->index_get(MakeIndex(ctx, field, local_vars));
                     field = field->m_right;
                     ASSERT(!field); // Нужно выполнять, а не просто получать значение поля
                 }
-            } else {
+            } else if(field) {
                 LOG_RUNTIME("Not implemented! %s", field->toString().c_str());
             }
 

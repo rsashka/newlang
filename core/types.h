@@ -337,7 +337,8 @@ inline bool isObjectType(ObjType t) {
 }
 
 inline bool isFunction(ObjType t) {
-    return t == ObjType::TRANSPARENT || t == ObjType::FUNCTION || t == ObjType::NativeFunc || t == ObjType::EVAL_FUNCTION || t == ObjType::EVAL_TRANSP;
+    return t == ObjType::TRANSPARENT || t == ObjType::FUNCTION || t == ObjType::NativeFunc || t == ObjType::EVAL_FUNCTION 
+            || t == ObjType::EVAL_TRANSP || t == ObjType::EVAL_AND || t == ObjType::EVAL_OR || t == ObjType::EVAL_XOR;
 }
 
 inline bool isSimpleType(ObjType t) {

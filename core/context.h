@@ -291,6 +291,9 @@ public:
 
     static ObjPtr EvalBlock(Context *ctx, const TermPtr &block, Object &local_vars);
 
+    static ObjPtr EvalBlockAND(Context *ctx, const TermPtr &block, Object &local_vars);
+    static ObjPtr EvalBlockOR(Context *ctx, const TermPtr &block, Object &local_vars);
+    static ObjPtr EvalBlockXOR(Context *ctx, const TermPtr &block, Object &local_vars);
 
     ObjPtr CreateNative(const char *proto, const char *module = nullptr, bool lazzy = false, const char *mangle_name = nullptr, ffi_abi abi = FFI_DEFAULT_ABI);
     ObjPtr CreateNative(TermPtr proto, const char *module = nullptr, bool lazzy = false, const char *mangle_name = nullptr, ffi_abi abi = FFI_DEFAULT_ABI);

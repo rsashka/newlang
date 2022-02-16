@@ -614,6 +614,9 @@ std::string Object::toString(bool deep) const {
 
             case ObjType::EVAL_FUNCTION: // name=>{function code}
             case ObjType::EVAL_TRANSP:
+            case ObjType::EVAL_AND:
+            case ObjType::EVAL_OR:
+            case ObjType::EVAL_XOR:
                 ASSERT(m_func_proto);
                 result += m_func_proto->m_text;
                 result += "(";
@@ -626,9 +629,16 @@ std::string Object::toString(bool deep) const {
 
                 if(m_var_type_current == ObjType::EVAL_FUNCTION) {
                     result += ":=";
-                } else {
-                    ASSERT(m_var_type_current == ObjType::EVAL_TRANSP);
+                } else if(m_var_type_current == ObjType::EVAL_TRANSP) {
                     result += ":-";
+                } else if(m_var_type_current == ObjType::EVAL_AND) {
+                    result += "&&=";
+                } else if(m_var_type_current == ObjType::EVAL_OR) {
+                    result += "||=";
+                } else if(m_var_type_current == ObjType::EVAL_XOR) {
+                    result += "^^=";
+                } else {
+                    LOG_RUNTIME("Fail function type");
                 }
 
                 result += "{";
@@ -777,6 +787,9 @@ std::string Object::GetValueAsString() const {
         case ObjType::TRANSPARENT:
         case ObjType::EVAL_FUNCTION:
         case ObjType::EVAL_TRANSP:
+        case ObjType::EVAL_AND:
+        case ObjType::EVAL_OR:
+        case ObjType::EVAL_XOR:
             return m_var_name + "={}";
 
         case ObjType::Class:
