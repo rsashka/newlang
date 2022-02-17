@@ -164,7 +164,7 @@
       <item path="builtin.cpp" ex="false" tool="1" flavor2="9">
         <ccTool>
           <architecture>0</architecture>
-          <additionalDep>pch.h.gch</additionalDep>
+          <additionalDep>parser.h parser.yy.h pch.h.gch location.hh</additionalDep>
         </ccTool>
       </item>
       <item path="builtin.h" ex="false" tool="3" flavor2="0">
@@ -174,7 +174,7 @@
       </item>
       <item path="context.cpp" ex="false" tool="1" flavor2="9">
         <ccTool>
-          <additionalDep>parser.h parser.yy.h pch.h.gch</additionalDep>
+          <additionalDep>parser.h parser.yy.h pch.h.gch location.hh</additionalDep>
         </ccTool>
       </item>
       <item path="context.h" ex="false" tool="3" flavor2="0">
@@ -186,7 +186,7 @@
       </item>
       <item path="lexer.cpp" ex="false" tool="1" flavor2="9">
         <ccTool>
-          <additionalDep>location.hh</additionalDep>
+          <additionalDep>parser.h parser.yy.h pch.h.gch location.hh</additionalDep>
         </ccTool>
       </item>
       <item path="lexer.h" ex="false" tool="3" flavor2="0">
@@ -196,7 +196,7 @@
       </item>
       <item path="lexer.l" ex="false" tool="3" flavor2="0">
         <customTool>
-          <customToolCommandline>flex  --outfile=lexer.yy.cpp --header-file=lexer.yy.h --noline  lexer.l</customToolCommandline>
+          <customToolCommandline>./compile_syntax.sh</customToolCommandline>
           <customToolDescription></customToolDescription>
           <customToolOutputs>lexer.yy.cpp lexer.yy.h</customToolOutputs>
           <customToolAdditionalDep>parser.y parser.yy.h parser.yy.cpp location.hh term.h</customToolAdditionalDep>
@@ -216,7 +216,7 @@
       </item>
       <item path="newlang.cpp" ex="false" tool="1" flavor2="9">
         <ccTool>
-          <additionalDep>pch.h.gch</additionalDep>
+          <additionalDep>parser.h parser.yy.h pch.h.gch location.hh</additionalDep>
         </ccTool>
       </item>
       <item path="newlang.h" ex="false" tool="3" flavor2="0">
@@ -226,7 +226,7 @@
       </item>
       <item path="nlc.cpp" ex="false" tool="1" flavor2="9">
         <ccTool>
-          <additionalDep>pch.h.gch</additionalDep>
+          <additionalDep>parser.h parser.yy.h pch.h.gch location.hh</additionalDep>
         </ccTool>
       </item>
       <item path="nlc.h" ex="false" tool="3" flavor2="0">
@@ -235,7 +235,7 @@
       </item>
       <item path="object.cpp" ex="false" tool="1" flavor2="9">
         <ccTool>
-          <additionalDep>pch.h.gch</additionalDep>
+          <additionalDep>parser.h parser.yy.h pch.h.gch location.hh</additionalDep>
         </ccTool>
       </item>
       <item path="object.h" ex="false" tool="3" flavor2="0">
@@ -255,7 +255,7 @@
       </item>
       <item path="parser.y" ex="false" tool="3" flavor2="0">
         <customTool>
-          <customToolCommandline>bison --output-file=parser.yy.cpp --defines=parser.yy.h --warnings=all parser.y</customToolCommandline>
+          <customToolCommandline>./compile_syntax.sh</customToolCommandline>
           <customToolDescription>************* Bison compile ************* </customToolDescription>
           <customToolOutputs>parser.yy.h parser.yy.cpp location.hh</customToolOutputs>
         </customTool>
@@ -280,7 +280,7 @@
       </item>
       <item path="term.cpp" ex="false" tool="1" flavor2="9">
         <ccTool>
-          <additionalDep>pch.h.gch</additionalDep>
+          <additionalDep>parser.h parser.yy.h pch.h.gch location.hh</additionalDep>
         </ccTool>
       </item>
       <item path="term.h" ex="false" tool="3" flavor2="0">
@@ -527,7 +527,7 @@
           <useLinkerLibraries>false</useLinkerLibraries>
         </ccTool>
         <linkerTool>
-          <output>${CND_DISTDIR}/${CND_CONF}/${CND_PLATFORM}/newlang_test</output>
+          <output>newlang_test</output>
           <linkerAddLib>
             <pElem>../contrib/libtorch/lib</pElem>
           </linkerAddLib>
@@ -575,7 +575,7 @@
       <item path="builtin.cpp" ex="false" tool="1" flavor2="0">
         <ccTool>
           <architecture>0</architecture>
-          <additionalDep>pch.h.gch</additionalDep>
+          <additionalDep>parser.h parser.yy.h pch.h.gch location.hh</additionalDep>
         </ccTool>
       </item>
       <item path="builtin.h" ex="false" tool="3" flavor2="0">
@@ -585,7 +585,7 @@
       </item>
       <item path="context.cpp" ex="false" tool="1" flavor2="0">
         <ccTool>
-          <additionalDep>parser.h parser.yy.h pch.h.gch</additionalDep>
+          <additionalDep>parser.h parser.yy.h pch.h.gch location.hh</additionalDep>
         </ccTool>
       </item>
       <item path="context.h" ex="false" tool="3" flavor2="0">
@@ -607,7 +607,7 @@
       </item>
       <item path="lexer.l" ex="false" tool="3" flavor2="0">
         <customTool>
-          <customToolCommandline>flex  --outfile=lexer.yy.cpp --header-file=lexer.yy.h --noline  lexer.l</customToolCommandline>
+          <customToolCommandline>./compile_syntax.sh</customToolCommandline>
           <customToolDescription></customToolDescription>
           <customToolOutputs>lexer.yy.cpp lexer.yy.h</customToolOutputs>
           <customToolAdditionalDep>parser.y parser.yy.h parser.yy.cpp location.hh term.h</customToolAdditionalDep>
@@ -627,7 +627,7 @@
       </item>
       <item path="newlang.cpp" ex="false" tool="1" flavor2="0">
         <ccTool>
-          <additionalDep>pch.h.gch</additionalDep>
+          <additionalDep>parser.h parser.yy.h pch.h.gch location.hh</additionalDep>
         </ccTool>
       </item>
       <item path="newlang.h" ex="false" tool="3" flavor2="0">
@@ -637,7 +637,7 @@
       </item>
       <item path="nlc.cpp" ex="false" tool="1" flavor2="0">
         <ccTool>
-          <additionalDep>pch.h.gch</additionalDep>
+          <additionalDep>parser.h parser.yy.h pch.h.gch location.hh</additionalDep>
         </ccTool>
       </item>
       <item path="nlc.h" ex="false" tool="3" flavor2="0">
@@ -646,7 +646,7 @@
       </item>
       <item path="object.cpp" ex="false" tool="1" flavor2="0">
         <ccTool>
-          <additionalDep>pch.h.gch</additionalDep>
+          <additionalDep>parser.h parser.yy.h pch.h.gch location.hh</additionalDep>
         </ccTool>
       </item>
       <item path="object.h" ex="false" tool="3" flavor2="0">
@@ -656,7 +656,7 @@
       </item>
       <item path="parser.cpp" ex="false" tool="1" flavor2="0">
         <ccTool>
-          <additionalDep>pch.h.gch</additionalDep>
+          <additionalDep>parser.h parser.yy.h pch.h.gch location.hh</additionalDep>
         </ccTool>
       </item>
       <item path="parser.h" ex="false" tool="3" flavor2="0">
@@ -666,7 +666,7 @@
       </item>
       <item path="parser.y" ex="false" tool="3" flavor2="0">
         <customTool>
-          <customToolCommandline>bison --output-file=parser.yy.cpp --defines=parser.yy.h --warnings=all parser.y</customToolCommandline>
+          <customToolCommandline>./compile_syntax.sh</customToolCommandline>
           <customToolDescription>************* Bison compile ************* </customToolDescription>
           <customToolOutputs>parser.yy.h parser.yy.cpp location.hh</customToolOutputs>
         </customTool>
@@ -691,7 +691,7 @@
       </item>
       <item path="term.cpp" ex="false" tool="1" flavor2="0">
         <ccTool>
-          <additionalDep>pch.h.gch</additionalDep>
+          <additionalDep>parser.h parser.yy.h pch.h.gch location.hh</additionalDep>
         </ccTool>
       </item>
       <item path="term.h" ex="false" tool="3" flavor2="0">

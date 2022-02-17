@@ -86,7 +86,7 @@ ${OBJECTDIR}/_ext/e16507f5/logger.o: ../contrib/logger/logger.cpp
 	${RM} "$@.d"
 	$(COMPILE.cc) -g -DDEBUG -DLOG_LEVEL_NORMAL=LOG_LEVEL_DEBUG -DPDC_WIDE -I.. -I../contrib/googletest/googletest -I../contrib/googletest/googletest/include -I../contrib/Lyra/include -I../contrib/libtorch/include/torch/csrc/api/include -I../contrib/libtorch/include -I../contrib/tensorboard_logger/include -std=c++14 -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/_ext/e16507f5/logger.o ../contrib/logger/logger.cpp
 
-${OBJECTDIR}/builtin.o: builtin.cpp pch.h.gch
+${OBJECTDIR}/builtin.o: builtin.cpp parser.h parser.yy.h pch.h.gch location.hh
 	${MKDIR} -p ${OBJECTDIR}
 	${RM} "$@.d"
 	$(COMPILE.cc) -g -DDEBUG -DLOG_LEVEL_NORMAL=LOG_LEVEL_DEBUG -DPDC_WIDE -I.. -I../contrib/googletest/googletest -I../contrib/googletest/googletest/include -I../contrib/Lyra/include -I../contrib/libtorch/include/torch/csrc/api/include -I../contrib/libtorch/include -I../contrib/tensorboard_logger/include -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/builtin.o builtin.cpp
@@ -95,7 +95,7 @@ ${OBJECTDIR}/builtin.o: builtin.cpp pch.h.gch
 	@echo Выполнение шага пользовательского сборки
 	
 
-${OBJECTDIR}/context.o: context.cpp parser.h parser.yy.h pch.h.gch
+${OBJECTDIR}/context.o: context.cpp parser.h parser.yy.h pch.h.gch location.hh
 	${MKDIR} -p ${OBJECTDIR}
 	${RM} "$@.d"
 	$(COMPILE.cc) -g -DDEBUG -DLOG_LEVEL_NORMAL=LOG_LEVEL_DEBUG -DPDC_WIDE -I.. -I../contrib/googletest/googletest -I../contrib/googletest/googletest/include -I../contrib/Lyra/include -I../contrib/libtorch/include/torch/csrc/api/include -I../contrib/libtorch/include -I../contrib/tensorboard_logger/include -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/context.o context.cpp
@@ -104,7 +104,7 @@ ${OBJECTDIR}/context.o: context.cpp parser.h parser.yy.h pch.h.gch
 	@echo Выполнение шага пользовательского сборки
 	
 
-${OBJECTDIR}/lexer.o: lexer.cpp location.hh
+${OBJECTDIR}/lexer.o: lexer.cpp parser.h parser.yy.h pch.h.gch location.hh
 	${MKDIR} -p ${OBJECTDIR}
 	${RM} "$@.d"
 	$(COMPILE.cc) -g -DDEBUG -DLOG_LEVEL_NORMAL=LOG_LEVEL_DEBUG -DPDC_WIDE -I.. -I../contrib/googletest/googletest -I../contrib/googletest/googletest/include -I../contrib/Lyra/include -I../contrib/libtorch/include/torch/csrc/api/include -I../contrib/libtorch/include -I../contrib/tensorboard_logger/include -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/lexer.o lexer.cpp
@@ -116,7 +116,7 @@ ${OBJECTDIR}/lexer.o: lexer.cpp location.hh
 .NO_PARALLEL:lexer.yy.cpp lexer.yy.h
 lexer.yy.cpp lexer.yy.h: lexer.l parser.y parser.yy.h parser.yy.cpp location.hh term.h
 	@echo 
-	flex  --outfile=lexer.yy.cpp --header-file=lexer.yy.h --noline  lexer.l
+	./compile_syntax.sh
 
 ${OBJECTDIR}/lexer.yy.o: lexer.yy.cpp parser.y parser.yy.h parser.yy.cpp location.hh
 	${MKDIR} -p ${OBJECTDIR}
@@ -127,7 +127,7 @@ ${OBJECTDIR}/lexer.yy.o: lexer.yy.cpp parser.y parser.yy.h parser.yy.cpp locatio
 	@echo Выполнение шага пользовательского сборки
 	
 
-${OBJECTDIR}/newlang.o: newlang.cpp pch.h.gch
+${OBJECTDIR}/newlang.o: newlang.cpp parser.h parser.yy.h pch.h.gch location.hh
 	${MKDIR} -p ${OBJECTDIR}
 	${RM} "$@.d"
 	$(COMPILE.cc) -g -DDEBUG -DLOG_LEVEL_NORMAL=LOG_LEVEL_DEBUG -DPDC_WIDE -I.. -I../contrib/googletest/googletest -I../contrib/googletest/googletest/include -I../contrib/Lyra/include -I../contrib/libtorch/include/torch/csrc/api/include -I../contrib/libtorch/include -I../contrib/tensorboard_logger/include -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/newlang.o newlang.cpp
@@ -136,12 +136,12 @@ ${OBJECTDIR}/newlang.o: newlang.cpp pch.h.gch
 	@echo Выполнение шага пользовательского сборки
 	
 
-${OBJECTDIR}/nlc.o: nlc.cpp pch.h.gch
+${OBJECTDIR}/nlc.o: nlc.cpp parser.h parser.yy.h pch.h.gch location.hh
 	${MKDIR} -p ${OBJECTDIR}
 	${RM} "$@.d"
 	$(COMPILE.cc) -g -DDEBUG -DLOG_LEVEL_NORMAL=LOG_LEVEL_DEBUG -DPDC_WIDE -I.. -I../contrib/googletest/googletest -I../contrib/googletest/googletest/include -I../contrib/Lyra/include -I../contrib/libtorch/include/torch/csrc/api/include -I../contrib/libtorch/include -I../contrib/tensorboard_logger/include -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/nlc.o nlc.cpp
 
-${OBJECTDIR}/object.o: object.cpp pch.h.gch
+${OBJECTDIR}/object.o: object.cpp parser.h parser.yy.h pch.h.gch location.hh
 	${MKDIR} -p ${OBJECTDIR}
 	${RM} "$@.d"
 	$(COMPILE.cc) -g -DDEBUG -DLOG_LEVEL_NORMAL=LOG_LEVEL_DEBUG -DPDC_WIDE -I.. -I../contrib/googletest/googletest -I../contrib/googletest/googletest/include -I../contrib/Lyra/include -I../contrib/libtorch/include/torch/csrc/api/include -I../contrib/libtorch/include -I../contrib/tensorboard_logger/include -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/object.o object.cpp
@@ -162,7 +162,7 @@ ${OBJECTDIR}/parser.o: parser.cpp pch.h.gch
 .NO_PARALLEL:parser.yy.h parser.yy.cpp location.hh
 parser.yy.h parser.yy.cpp location.hh: parser.y
 	@echo ************* Bison compile ************* 
-	bison --output-file=parser.yy.cpp --defines=parser.yy.h --warnings=all parser.y
+	./compile_syntax.sh
 
 ${OBJECTDIR}/parser.yy.o: parser.yy.cpp parser.y
 	${MKDIR} -p ${OBJECTDIR}
@@ -177,7 +177,7 @@ pch.h.gch: pch.h
 	@echo Выполнение шага пользовательского сборки
 	g++ -o pch.h.gch -c pch.h -g -I.. -I../contrib/libtorch/include/torch/csrc/api/include -I../contrib/libtorch/include --no-gnu-unique -Wno-trigraphs -Winvalid-pch -Werror=return-type -g -DDEBUG -DLOG_LEVEL_NORMAL=LOG_LEVEL_DEBUG -DPDC_WIDE  -I../contrib/googletest/googletest -I../contrib/googletest/googletest/include -I../contrib/Lyra/include -I../contrib/libtorch/include/torch/csrc/api/include -I../contrib/libtorch/include -I.. -I../contrib/tensorboard_logger/include -I/usr/lib/llvm-13/include -std=c++17
 
-${OBJECTDIR}/term.o: term.cpp pch.h.gch
+${OBJECTDIR}/term.o: term.cpp parser.h parser.yy.h pch.h.gch location.hh
 	${MKDIR} -p ${OBJECTDIR}
 	${RM} "$@.d"
 	$(COMPILE.cc) -g -DDEBUG -DLOG_LEVEL_NORMAL=LOG_LEVEL_DEBUG -DPDC_WIDE -I.. -I../contrib/googletest/googletest -I../contrib/googletest/googletest/include -I../contrib/Lyra/include -I../contrib/libtorch/include/torch/csrc/api/include -I../contrib/libtorch/include -I../contrib/tensorboard_logger/include -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/term.o term.cpp
