@@ -24,9 +24,9 @@ CND_PACKAGE_NAME_Release=core.tar
 CND_PACKAGE_PATH_Release=dist/Release/GNU-Linux/package/core.tar
 # UnitTest configuration
 CND_PLATFORM_UnitTest=GNU-Linux
-CND_ARTIFACT_DIR_UnitTest=dist/UnitTest/GNU-Linux
+CND_ARTIFACT_DIR_UnitTest=
 CND_ARTIFACT_NAME_UnitTest=newlang_test
-CND_ARTIFACT_PATH_UnitTest=dist/UnitTest/GNU-Linux/newlang_test
+CND_ARTIFACT_PATH_UnitTest=newlang_test
 CND_PACKAGE_DIR_UnitTest=dist/UnitTest/GNU-Linux/package
 CND_PACKAGE_NAME_UnitTest=core.tar
 CND_PACKAGE_PATH_UnitTest=dist/UnitTest/GNU-Linux/package/core.tar
