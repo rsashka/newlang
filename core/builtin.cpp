@@ -50,17 +50,6 @@ namespace newlang {
         return in[1]->Clone(nullptr);
     }
 
-    //    NEWLANG_FUNCTION(print_) {
-    //        ObjPtr out = Object::CreateString("");
-    //        for (size_t i = 1; i < in.size(); i++) {
-    //            if(in.at(i).second) {
-    //                out->m_string += in.at(i).second->GetValueAsString();
-    //            }
-    //        }
-    //        printf("%s", out->m_string.c_str());
-    //        return out;
-    //    }
-
     NEWLANG_FUNCTION(import) {
         if(!ctx) {
             LOG_RUNTIME("No access to context!");
@@ -82,23 +71,6 @@ namespace newlang {
         }
         return ctx->Exec(in.at(1).second->GetValueAsString().c_str());
     }
-
-    NEWLANG_FUNCTION(srand) {
-        std::srand(in.at(1).second->GetValueAsInteger());
-        return Object::CreateNone();
-    }
-
-    NEWLANG_TRANSPARENT(rand) {
-        return Object::CreateValue(std::rand());
-    }
-
-    //    NEWLANG_FUNCTION(load) {
-    //        if(!ctx) {
-    //            LOG_RUNTIME("No access to context!");
-    //        }
-    //        return ctx->m_runtime->LoadModule(in.at(1).second->GetValueAsString().c_str(),
-    //                in["module"]->GetValueAsString().c_str(), in["lazzy"]->GetValueAsBoolean());
-    //    }
 
 
 

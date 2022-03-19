@@ -273,6 +273,8 @@ TEST(Eval, Tensor) {
     ASSERT_TRUE(tt);
     ASSERT_STREQ("[\n  [0, 0,], [0, 0,], [0, 0,], [0, 0,], [0, 0,], [0, 0,], [0, 0,], [0, 0,], [0, 0,], [0, 0,],\n]:Double", tt->GetValueAsString().c_str());
 
+    ObjPtr rand = ctx.Eval("rand := @import('rand():Int')");
+
     tt = ctx.Eval("[[ rand() ... ]]: Int[3,2]");
     ASSERT_TRUE(tt);
     ASSERT_TRUE(50 < tt->GetValueAsString().size()) << tt->GetValueAsString();
@@ -288,10 +290,33 @@ TEST(Eval, Tensor) {
     tt = ctx.Eval("0..1..0.1");
     ASSERT_TRUE(tt);
     ASSERT_STREQ("0..1..0.1", tt->toString().c_str());
-    
+
     tt = ctx.Eval("[[ 0..0.99..0.1 ]]");
     ASSERT_TRUE(tt);
     ASSERT_STREQ("[0, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9,]:Double", tt->GetValueAsString().c_str());
+}
+
+TEST(Eval, Exception) {
+
+    Context ctx(RunTime::Init());
+
+    ObjPtr rand = ctx.Eval("rand := @import('rand():Int')");
+    // --
+    // -- "Ошибка" --
+    // -- ;# "Ошибка" --
+
+    ObjPtr tt = ctx.Eval("[[ rand() ... ]]: Int[3,2]");
+    ASSERT_TRUE(tt);
+    ASSERT_TRUE(50 < tt->GetValueAsString().size()) << tt->GetValueAsString();
+    
+    
+    ASSERT_THROW(
+            ,
+            parser_exception);
+    ASSERT_NO_THROW(
+            
+            );
+
 }
 
 TEST(Eval, FuncSimple) {

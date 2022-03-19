@@ -19,12 +19,10 @@
       <itemPath>builtin.cpp</itemPath>
       <itemPath>context.cpp</itemPath>
       <itemPath>lexer.cpp</itemPath>
-      <itemPath>lexer.yy.cpp</itemPath>
       <itemPath>newlang.cpp</itemPath>
       <itemPath>nlc.cpp</itemPath>
       <itemPath>object.cpp</itemPath>
       <itemPath>parser.cpp</itemPath>
-      <itemPath>parser.yy.cpp</itemPath>
       <itemPath>term.cpp</itemPath>
       <itemPath>variable.cpp</itemPath>
     </logicalFolder>
@@ -36,13 +34,10 @@
       <itemPath>context.h</itemPath>
       <itemPath>fraction.h</itemPath>
       <itemPath>lexer.h</itemPath>
-      <itemPath>lexer.yy.h</itemPath>
-      <itemPath>location.hh</itemPath>
       <itemPath>newlang.h</itemPath>
       <itemPath>nlc.h</itemPath>
       <itemPath>object.h</itemPath>
       <itemPath>parser.h</itemPath>
-      <itemPath>parser.yy.h</itemPath>
       <itemPath>pch.h</itemPath>
       <itemPath>term.h</itemPath>
       <itemPath>types.h</itemPath>
@@ -55,8 +50,13 @@
                    projectFiles="true">
       <itemPath>../contrib/googletest/googletest/src/gtest-all.cc</itemPath>
       <itemPath>../contrib/googletest/googletest/src/gtest_main.cc</itemPath>
+      <itemPath>lexer.yy.cpp</itemPath>
+      <itemPath>lexer.yy.h</itemPath>
+      <itemPath>location.hh</itemPath>
       <itemPath>../contrib/logger/logger.cpp</itemPath>
       <itemPath>../contrib/logger/logger.h</itemPath>
+      <itemPath>parser.yy.cpp</itemPath>
+      <itemPath>parser.yy.h</itemPath>
       <itemPath>pch.h.gch</itemPath>
     </logicalFolder>
     <logicalFolder name="TestFiles"
@@ -68,6 +68,7 @@
                    displayName="Важные файлы"
                    projectFiles="false"
                    kind="IMPORTANT_FILES_FOLDER">
+      <itemPath>/home/rsashka/SOURCE/PUBLIC/NewLang/newlang/LICENSE</itemPath>
       <itemPath>Makefile</itemPath>
     </logicalFolder>
     <itemPath>../README.md</itemPath>
@@ -75,6 +76,9 @@
     <itemPath>lexer.l</itemPath>
     <itemPath>parser.y</itemPath>
   </logicalFolder>
+  <sourceRootList>
+    <Elem>/home/rsashka/SOURCE/PUBLIC/NewLang/newlang/core/test</Elem>
+  </sourceRootList>
   <projectmakefile>Makefile</projectmakefile>
   <confs>
     <conf name="Debug" type="1">
@@ -516,6 +520,7 @@
             <pElem>../contrib/libtorch/include/torch/csrc/api/include</pElem>
             <pElem>../contrib/libtorch/include</pElem>
             <pElem>../contrib/tensorboard_logger/include</pElem>
+            <pElem>/usr/lib/llvm-13/include</pElem>
           </incDir>
           <commandLine>-std=c++17 --no-gnu-unique -Wno-trigraphs -Winvalid-pch -Werror=return-type</commandLine>
           <preprocessorList>
@@ -542,6 +547,7 @@
             <linkerLibLibItem>torch_cpu</linkerLibLibItem>
             <linkerLibLibItem>torch</linkerLibLibItem>
             <linkerLibLibItem>crypto</linkerLibLibItem>
+            <linkerLibLibItem>LLVM-13</linkerLibLibItem>
           </linkerLibItems>
           <commandLine>-Wl,--export-dynamic</commandLine>
         </linkerTool>

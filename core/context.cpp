@@ -48,13 +48,6 @@ Context::Context(RuntimePtr global) {
         Context::m_funcs["eval"] = CreateBuiltin("eval(string:String)", (void *) &eval, ObjType::FUNCTION);
         Context::m_funcs["exec"] = CreateBuiltin("exec(filename:String)", (void *) &exec, ObjType::FUNCTION);
 
-        Context::m_funcs["srand"] = CreateBuiltin("srand(seed:Int)", (void *) &srand, ObjType::FUNCTION);
-        Context::m_funcs["rand"] = CreateBuiltin("rand():Int", (void *) &rand, ObjType::TRANSPARENT);
-
-        //        Context::m_builtin_funcs["loadonce"] = CreateBuiltin("loadonce(name:String, init:Bool=@true, filename:String=_):Bool", (void *) &loadonce, ObjType::FUNCTION);
-        //        Context::m_builtin_funcs["load"] = CreateBuiltin("load(name:String, init:Bool=@true, filename:String=_):Bool", (void *) &load, ObjType::FUNCTION);
-        //        Context::m_builtin_funcs["unload"] = CreateBuiltin("unload(name:String):Bool", (void *) &unload, ObjType::FUNCTION);
-        //        Context::m_builtin_funcs["isloaded"] = CreateBuiltin("isloaded(name:String):Bool", (void *) &isloaded, ObjType::FUNCTION);
 
 #define REGISTER_TYPES(name, cast) \
     ASSERT(Context::m_funcs.find(#name) == Context::m_funcs.end()); \
@@ -131,7 +124,14 @@ inline ObjType newlang::typeFromString(const std::string type, Context *ctx, boo
         return ctx->BaseTypeFromString(type, has_error);
     }
 
-#define DEFINE_CASE(name, cast) else if(type.compare(#name)==0) { return ObjType:: cast; }
+    std::string search;
+    if(isType(type)){
+        search = type.substr(1);
+    } else {
+        search = type;
+    }
+
+#define DEFINE_CASE(name, cast) else if(search.compare(#name)==0) { return ObjType:: cast; }
 
     if(type.compare("") == 0) {
         return ObjType::None;
@@ -139,7 +139,7 @@ inline ObjType newlang::typeFromString(const std::string type, Context *ctx, boo
         return ObjType::None;
     }
     NL_BUILTIN_CAST_TYPE(DEFINE_CASE)
-
+            
 #undef DEFINE_CASE
 
     if(has_error) {
@@ -237,6 +237,52 @@ ObjPtr Context::eval_UNKNOWN(Context *ctx, const TermPtr &term, Object &args) {
 ObjPtr Context::eval_BLOCK(Context *ctx, const TermPtr &term, Object &args) {
     ASSERT(term && term->getTermID() == TermID::BLOCK);
     return EvalBlock(ctx, term, args);
+}
+
+ObjPtr Context::eval_BLOCK_TRY(Context *ctx, const TermPtr &term, Object &args) {
+    ASSERT(term && term->getTermID() == TermID::BLOCK_TRY);
+    return EvalBlockTry(ctx, term, args);
+}
+
+ObjPtr Context::eval_CALL_TRY(Context *ctx, const TermPtr &term, Object &args) {
+    LOG_RUNTIME("eval_CALL_TRY: %s", term->toString().c_str());
+    return nullptr;
+}
+
+ObjPtr Context::eval_CALL_BLOCK(Context *ctx, const TermPtr &term, Object &args) {
+    LOG_RUNTIME("eval_CALL_BLOCK: %s", term->toString().c_str());
+    return nullptr;
+}
+
+
+ObjPtr Context::eval_ITERATOR_QQ(Context* ctx, const TermPtr& term, Object& args) {
+    LOG_RUNTIME("eval_ITERATOR_QQ: %s", term->toString().c_str());
+    return nullptr;
+}
+
+ObjPtr Context::eval_MACRO(Context* ctx, const TermPtr& term, Object& args) {
+    LOG_RUNTIME("eval_MACRO: %s", term->toString().c_str());
+    return nullptr;
+}
+
+ObjPtr Context::eval_MACRO_BODY(Context* ctx, const TermPtr& term, Object& args) {
+    LOG_RUNTIME("eval_MACRO_BODY: %s", term->toString().c_str());
+    return nullptr;
+}
+
+ObjPtr Context::eval_PARENT(Context* ctx, const TermPtr& term, Object& args) {
+    LOG_RUNTIME("eval_PARENT: %s", term->toString().c_str());
+    return nullptr;
+}
+
+ObjPtr Context::eval_NEWLANG(Context* ctx, const TermPtr& term, Object& args) {
+    LOG_RUNTIME("eval_NEWLANG: %s", term->toString().c_str());
+    return nullptr;
+}
+
+ObjPtr Context::eval_TYPE(Context* ctx, const TermPtr& term, Object& args) {
+    LOG_RUNTIME("eval_TYPE: %s", term->toString().c_str());
+    return nullptr;
 }
 
 inline ObjPtr Context::eval_INTEGER(Context *ctx, const TermPtr &term, Object &args) {
@@ -408,36 +454,6 @@ ObjPtr Context::eval_ASSIGN(Context *ctx, const TermPtr &term, Object &local_var
 ObjPtr Context::eval_CREATE(Context *ctx, const TermPtr &term, Object &local_vars) {
     return CREATE_OR_ASSIGN(ctx, term, local_vars, CreateMode::CREATE_ONLY);
 }
-//// Создать можно один или сразу несколько терминов за раз
-//    // var1, var2, var3 := value;
-//    // var1, var2, var3 := ... value; // Раскрыть словарь?
-//
-//    ASSERT(ctx);
-//    ASSERT(term && term->getTermID() == TermID::CREATE);
-//    ASSERT(term->Left() && term->Right());
-//
-//    if(term->Left()->Right() || term->Right()->getTermID() == TermID::ELLIPSIS) {
-//        return ExpandCreate(ctx, term->Left(), term->Right(), local_vars);
-//    }
-//
-//    ObjPtr rval = Eval(ctx, term->Right(), local_vars);
-//    if(!rval) {
-//        NL_PARSER(term->Right(), "Object is missing or expression is not evaluated!");
-//    }
-//
-//    if(isType(term->Left()->m_text)) {
-//        return ctx->CreateTypeName(term->Left(), rval);
-//    }
-//
-//    ObjPtr lval = CreateLVal(ctx, term->Left(), local_vars);
-//    if(!lval) {
-//        NL_PARSER(term->Left(), "Fail create lvalue object!");
-//    }
-//
-//    lval->SetValue_(rval);
-//
-//    return ctx->RegisterObject(lval);
-//}
 
 ObjPtr Context::eval_CREATE_OR_ASSIGN(Context *ctx, const TermPtr &term, Object &args) {
     return CREATE_OR_ASSIGN(ctx, term, args, CreateMode::CREATE_OR_ASSIGN);
@@ -527,8 +543,8 @@ ObjPtr Context::eval_FOLLOW(Context *ctx, const TermPtr &term, Object &args) {
     return nullptr;
 }
 
-ObjPtr Context::eval_REPEAT(Context *ctx, const TermPtr &term, Object &args) {
-    LOG_RUNTIME("REPEAT Not implemented!");
+ObjPtr Context::eval_MATCHING(Context* ctx, const TermPtr& term, Object& args) {
+    LOG_RUNTIME("MATCHING Not implemented!");
     return nullptr;
 }
 
@@ -545,11 +561,7 @@ ObjPtr Context::eval_ARGUMENT(Context *ctx, const TermPtr &term, Object &args) {
     return CreateRVal(ctx, term, args);
 }
 
-ObjPtr Context::eval_ARGSSTR(Context *ctx, const TermPtr &term, Object &args) {
-    return CreateRVal(ctx, term, args);
-}
-
-ObjPtr Context::eval_ARGCOUNT(Context *ctx, const TermPtr &term, Object &args) {
+ObjPtr Context::eval_ARGS(Context *ctx, const TermPtr &term, Object &args) {
     return CreateRVal(ctx, term, args);
 }
 
@@ -558,7 +570,12 @@ ObjPtr Context::eval_EXIT(Context *ctx, const TermPtr &term, Object &args) {
     return nullptr;
 }
 
-ObjPtr Context::eval_EXCEPTION(Context *ctx, const TermPtr &term, Object &args) {
+ObjPtr Context::eval_WHILE(Context *ctx, const TermPtr &term, Object &args) {
+    LOG_RUNTIME("EXCEPTION Not implemented!");
+    return nullptr;
+}
+
+ObjPtr Context::eval_UNTIL(Context *ctx, const TermPtr &term, Object &args) {
     LOG_RUNTIME("EXCEPTION Not implemented!");
     return nullptr;
 }
@@ -922,6 +939,24 @@ ObjPtr Context::EvalBlock(Context *ctx, const TermPtr &block, Object &local_vars
         }
     } else {
         result = Eval(ctx, block, local_vars);
+    }
+    return result;
+}
+
+ObjPtr Context::EvalBlockTry(Context *ctx, const TermPtr &block, Object &local_vars) {
+    ObjPtr result = Object::CreateNone();
+    try {
+        result = EvalBlock(ctx, block, local_vars);
+
+        //newlang_exception;
+        //
+        //parser_exception;
+        //
+        //abort_exception;
+
+    } catch (std::exception &error) {
+        result = Object::CreateType(ObjType::Error, nullptr, ObjType::Error);
+        result->m_str = error.what();
     }
     return result;
 }

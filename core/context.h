@@ -107,7 +107,6 @@ class Context : public Variable< std::weak_ptr<Object> > {
 public:
 
     static ObjPtr eval_END(Context *ctx, const TermPtr & term, Object &args);
-    static ObjPtr eval_UNKNOWN(Context *ctx, const TermPtr & term, Object &args);
     static ObjPtr func_NOT_SUPPORT(Context *ctx, const TermPtr & term, Object &args);
 
     enum class CreateMode {
@@ -290,6 +289,7 @@ public:
     ObjPtr CallByName(const char * name, Object &args, bool is_ref = false);
 
     static ObjPtr EvalBlock(Context *ctx, const TermPtr &block, Object &local_vars);
+    static ObjPtr EvalBlockTry(Context *ctx, const TermPtr &block, Object &local_vars);
 
     static ObjPtr EvalBlockAND(Context *ctx, const TermPtr &block, Object &local_vars);
     static ObjPtr EvalBlockOR(Context *ctx, const TermPtr &block, Object &local_vars);

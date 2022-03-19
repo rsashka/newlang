@@ -1614,19 +1614,19 @@ std::string NewLang::GetImpl(CompileInfo &ci, TermPtr term, std::string &output)
             }
             return "";
 
-        case TermID::EXCEPTION:
-            if(term->m_right) {
-                GetImpl(ci, term->m_right, temp);
-                output += "throw newlang_exception(" + temp + ")";
+//        case TermID::EXCEPTION:
+//            if(term->m_right) {
+//                GetImpl(ci, term->m_right, temp);
+//                output += "throw newlang_exception(" + temp + ")";
+//
+//            } else {
+//                output += "throw newlang_exception(Object::CreateNone())";
+//            }
+//            return "";
 
-            } else {
-                output += "throw newlang_exception(Object::CreateNone())";
-            }
-            return "";
 
-
-        case TermID::ARGSSTR:
-            result = "in->toString()";
+        case TermID::ARGS:
+            result = "in";
             output += result;
             return result;
 
@@ -1689,7 +1689,7 @@ std::string NewLang::GetImpl(CompileInfo &ci, TermPtr term, std::string &output)
             }
             return "";
 
-        case TermID::REPEAT:
+        case TermID::WHILE:
             result += ci.GetIndent(-1) + "while(";
 
             temp.clear();

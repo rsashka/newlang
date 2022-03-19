@@ -51,6 +51,7 @@ typedef newlang::parser::token_type token_type;
 #define YY_USER_ACTION  yylloc->columns(yyleng);
 
 #define YY_TOKEN(tok) *yylval = Term::Create(TermID:: tok, yytext, yyleng, yylloc, source_string);  return token:: tok
+#define YY_TOKEN_ONLY(tok) *yylval = Term::Create(TermID::UNKNOWN, yytext, yyleng, yylloc, source_string);  return token:: tok
 
 %}
 
@@ -65,11 +66,19 @@ ualpha  {alpha}|{U2}{U1}|{U3}{U1}{U1}|{U4}{U1}{U1}{U1}
 
 digit   [0-9]
 integer {digit}([_]?{digit}+)*
-currency `-?{digit}(`?{digit}+)*
-term    [$@%\\]?({ualpha}|{digit}|[_])*
-number1 (-?{digit}+\.([eE]-?)?)?-?{digit}+
-number2 -?{digit}+\.{digit}+([eE]-?{digit}+)?
-number  {number1}|{number2}
+currency -?`{digit}(`?{digit}+)*
+name    ({ualpha}|[_])({ualpha}|{digit}|[_])*
+macro   \\({ualpha}|[_])?({name})?
+term    [$@%~]({ualpha}|[_])?({name})?
+/* 
+type    :{name}  Не использовать термин тип в лексере, чтобы была возможность записывать типы с пробелами 
+между двоеточием и имененем "term: type" или "term : type", что более привычно при чтении, чем "term :type"
+Не использовать деструктов ~ в лексере, чтобы в парсере можно было проверять его место расположение (в функции или классе)
+number1 -?{digit}+\.{digit}+([eE]-?{digit}+)?
+number2 (-?{digit}+\.([eE]-?)?)?-?{digit}+
+number  ({number1}|{number2})
+*/
+number  [-+]?{integer}[.]{integer}([eE][-+]?[0-9]+)?
 
 %x state_STRWIDE
 %x state_STRCHAR
@@ -79,6 +88,7 @@ number  {number1}|{number2}
 %x state_TEMPLATE2
 %x state_COMMENT
 %x state_SOURCE
+%x state_MACRO
 
 
 %% /*** Regular Expressions Part ***/
@@ -135,6 +145,31 @@ number  {number1}|{number2}
                     return token::SOURCE;
                 }
 } /* End of state_SOURCE state */
+
+
+"\\\\"         {
+                BEGIN(state_MACRO);
+                buffer.clear();
+}
+
+<state_MACRO>{
+
+\n              {
+                    buffer.append(yytext, yyleng);
+                    yylloc->lines(yyleng); 
+                    yylloc->step();
+                }
+
+[^\\^\n]*       buffer.append(yytext, yyleng);
+"\\\\"[^\\^\n]* buffer.append(yytext, yyleng);
+
+"\\\\\\"        {
+                    BEGIN(INITIAL);
+                    *yylval = Term::Create(TermID::MACRO_BODY, buffer.c_str(), buffer.size(), yylloc, source_string);
+                    return token::MACRO_BODY;
+                }
+} /* End of state_MARCO state */
+
 
 "'''"       {
                 BEGIN(state_TEMPLATE1);
@@ -294,17 +329,26 @@ number  {number1}|{number2}
 {currency}      YY_TOKEN(CURRENCY);
 {number}        YY_TOKEN(NUMBER);
 
-"@@"        YY_TOKEN(CLASS);
-"@$"        YY_TOKEN(CLASS);
 "::"        YY_TOKEN(NAMESPACE);
-"$*"        YY_TOKEN(ARGSSTR);
+"$*"        YY_TOKEN(ARGS);
+"$$"        YY_TOKEN(PARENT);
+"@@"        YY_TOKEN(NEWLANG);
 
 "$"[0-9]+   YY_TOKEN(ARGUMENT);
 {term}      YY_TOKEN(TERM);
+{name}      YY_TOKEN(TERM);
+{macro}     YY_TOKEN(MACRO);
 ".."        YY_TOKEN(RANGE);
 "..."       YY_TOKEN(ELLIPSIS);
-"<->"       YY_TOKEN(REPEAT);
+"->>"       YY_TOKEN(WHILE);
+"-->>"      YY_TOKEN(WHILE);
+"<<-"       YY_TOKEN(UNTIL);
+"<<--"      YY_TOKEN(UNTIL);
 "->"        YY_TOKEN(FOLLOW);
+"-->"       YY_TOKEN(FOLLOW);
+"~>"        YY_TOKEN(MATCHING);
+"==>"       YY_TOKEN(MATCHING);
+"===>"      YY_TOKEN(MATCHING);
 
 "::="       YY_TOKEN(CREATE);
 ":="        YY_TOKEN(CREATE_OR_ASSIGN);
@@ -312,37 +356,38 @@ number  {number1}|{number2}
 "[["        YY_TOKEN(TENSOR_BEGIN);
 "]]"        YY_TOKEN(TENSOR_END);
 
+"){"        YY_TOKEN_ONLY(MIDDLE_CALL_BLOCK);
+"){{"       YY_TOKEN_ONLY(MIDDLE_CALL_TRY);
+"{{"        YY_TOKEN_ONLY(TRY_BEGIN);
+"}}"        YY_TOKEN_ONLY(TRY_END);
+
 "::-"       YY_TOKEN(TRANSPARENT);
 ":-"        YY_TOKEN(TRANSPARENT);
 "&&="       YY_TOKEN(SIMPLE_AND);
 "||="       YY_TOKEN(SIMPLE_OR);
 "^^="       YY_TOKEN(SIMPLE_XOR);
 
-"//"        YY_TOKEN(OPERATOR);
-"**"        YY_TOKEN(POWER);
-"+="        YY_TOKEN(OPERATOR);
-"-="        YY_TOKEN(OPERATOR);
-"*="        YY_TOKEN(OPERATOR);
+"//"        YY_TOKEN_ONLY(OPERATOR_DIV);
+"+="        YY_TOKEN(CREATE_OR_ASSIGN);
+"-="        YY_TOKEN(CREATE_OR_ASSIGN);
+"*="        YY_TOKEN(CREATE_OR_ASSIGN);
 "**="       YY_TOKEN(POWER);
-"/="        YY_TOKEN(OPERATOR);
-"//="       YY_TOKEN(OPERATOR);
-"%="        YY_TOKEN(OPERATOR);
-"~="        YY_TOKEN(OPERATOR);
+"/="        YY_TOKEN(CREATE_OR_ASSIGN);
+"//="       YY_TOKEN(CREATE_OR_ASSIGN);
+"%="        YY_TOKEN(CREATE_OR_ASSIGN);
+"~="        YY_TOKEN(CREATE_OR_ASSIGN);
 
+"**"        YY_TOKEN(POWER);
 "++"        YY_TOKEN(CONCAT);
 "--"        YY_TOKEN(EXIT);
 
-">>"        YY_TOKEN(OPERATOR);
-">>>"       YY_TOKEN(OPERATOR);
-"<<"        YY_TOKEN(OPERATOR);
-"<<="       YY_TOKEN(OPERATOR);
-">>="       YY_TOKEN(OPERATOR);
-">>>="      YY_TOKEN(OPERATOR);
-"<=>"       YY_TOKEN(OPERATOR);
-
-"|="        YY_TOKEN(OPERATOR);
-"&="        YY_TOKEN(OPERATOR);
-"^="        YY_TOKEN(OPERATOR);
+".>."        YY_TOKEN(OPERATOR);
+".<."        YY_TOKEN(OPERATOR);
+".>>."       YY_TOKEN(OPERATOR);
+".&."        YY_TOKEN(OPERATOR);
+".|."        YY_TOKEN(OPERATOR);
+".^."        YY_TOKEN(OPERATOR);
+".~."        YY_TOKEN(OPERATOR);
 
 "!~~~"       YY_TOKEN(OPERATOR);
 "~~~"       YY_TOKEN(OPERATOR);
@@ -361,7 +406,7 @@ number  {number1}|{number2}
 "||"        YY_TOKEN(LAMBDA);
 "^^"        YY_TOKEN(LAMBDA);
 
-"??"        YY_TOKEN(ITERATOR);
+"??"        YY_TOKEN(ITERATOR_QQ);
 "!!"        YY_TOKEN(ITERATOR);
 
 
@@ -376,6 +421,9 @@ number  {number1}|{number2}
 }
 
 . {
+
+    /* Нужно для работы парсера */
+
     *yylval = Term::Create(TermID::SYMBOL, yytext, yyleng, yylloc, source_string);
     return static_cast<token_type>(*yytext);
 }

@@ -15,7 +15,11 @@ namespace newlang {
 
 #define NL_TERMS(_) \
         _(BLOCK) \
+        _(BLOCK_TRY) \
+        _(CALL_BLOCK) \
+        _(CALL_TRY) \
         _(TERM) \
+        _(TYPE) \
         _(CALL) \
         _(INTEGER) \
         _(NUMBER) \
@@ -30,8 +34,13 @@ namespace newlang {
         \
         _(NONE) \
         _(TYPENAME) \
+        _(UNKNOWN) \
         _(SYMBOL) \
         _(NAMESPACE) \
+        _(PARENT) \
+        _(MACRO) \
+        _(MACRO_BODY) \
+        _(NEWLANG) \
         _(ASSIGN) \
         _(CREATE) \
         _(CREATE_OR_ASSIGN) \
@@ -45,16 +54,17 @@ namespace newlang {
         _(LAMBDA) \
         _(TRANSPARENT) \
         _(ITERATOR) \
+        _(ITERATOR_QQ)\
         _(FOLLOW) \
-        _(REPEAT) \
+        _(MATCHING) \
+        _(WHILE) \
+        _(UNTIL) \
         \
         _(RANGE) \
         _(ELLIPSIS) \
         _(ARGUMENT) \
-        _(ARGSSTR) \
-        _(ARGCOUNT) \
+        _(ARGS) \
         _(EXIT) \
-        _(EXCEPTION) \
         \
         _(INDEX) \
         _(FIELD) \
@@ -213,8 +223,7 @@ public:
     inline bool IsCalculated() {
         switch (m_id) {
             case TermID::ARGUMENT:
-            case TermID::ARGSSTR:
-            case TermID::ARGCOUNT:
+            case TermID::ARGS:
             case TermID::CALL:
             case TermID::TERM:
             case TermID::CREATE:
@@ -228,6 +237,17 @@ public:
             default:
                 return IsLiteral() || IsVariable() || IsFunction();
         }
+    }
+
+    inline bool IsBlock() {
+        switch (m_id) {
+            case TermID::BLOCK:
+            case TermID::BLOCK_TRY:
+            case TermID::CALL_BLOCK:
+            case TermID::CALL_TRY:
+                return true;
+        }
+        return false;
     }
 
     bool is_variable_args() {
@@ -264,9 +284,8 @@ public:
                 result += "<END>";
                 return result;
 
+            case TermID::ARGS:
             case TermID::ARGUMENT:
-            case TermID::ARGSSTR:
-            case TermID::ARGCOUNT:
                 return m_text;
 
                 //            case TermID::JUMP:
@@ -277,7 +296,6 @@ public:
                 //                return result;
 
             case TermID::EXIT:
-            case TermID::EXCEPTION:
                 result = m_text;
                 if (Right()) {
                     result += " ";
@@ -300,6 +318,9 @@ public:
                 //                result(m_is_ref ? "&" : "");
                 result = "";
                 temp = shared_from_this();
+                if (temp->Left()) {
+                    result = temp->Left()->toString();
+                }
                 while (!nested && temp->Right()) {
                     ASSERT(this != temp->Right().get());
                     if (temp->Right()->Left()) {
@@ -312,19 +333,6 @@ public:
                     temp = temp->Right();
                 }
 
-                //                temp = shared_from_this();
-                //                while (!nested && temp->m_field) {
-                //                    ASSERT(this != temp->m_field.get());
-                //                    if (temp->m_field->Left()) {
-                //                        if(this == temp->m_field->Left().get()){
-                //                            break;
-                //                        }
-                //                        ASSERT(this != temp->m_field->Left().get());
-                //                    }
-                //                    result += temp->m_field->toString();
-                //                    temp = temp->m_field;
-                //                }
-
                 result.insert(0, m_text);
                 result.insert(0, m_namespace);
 
@@ -333,8 +341,7 @@ public:
                 }
                 if (!m_name.empty()) {
                     if (GetType()) {
-                        //                        result += ":" + GetType()->asTypeString();
-                        result = m_name + ":" + GetType()->asTypeString() + "=" + result;
+                        result = m_name + GetType()->asTypeString() + "=" + result;
                     } else {
                         result = m_name + "=" + result;
                     }
@@ -347,7 +354,7 @@ public:
                     result += "()";
                 }
                 if (m_name.empty() && GetType()) {
-                    result += ":" + GetType()->asTypeString();
+                    result += GetType()->asTypeString();
                 }
                 return result;
                 //            case TermID::STRVAR:// name:="string"
@@ -376,14 +383,14 @@ public:
             case TermID::NUMBER: // name:=123.0
                 test = result.empty();
                 if (GetType() && !m_name.empty()) {
-                    result += ":" + GetType()->asTypeString();
+                    result += GetType()->asTypeString();
                 }
                 if (!test) {
                     result += "=";
                 }
                 result += m_text;
                 if (GetType() && m_name.empty()) {
-                    result += ":" + GetType()->asTypeString();
+                    result += GetType()->asTypeString();
                 }
                 return result;
 
@@ -500,20 +507,16 @@ public:
                 result += ",";
                 result += "]";
                 if (GetType()) {
-                    result += ":" + GetType()->asTypeString();
+                    result += GetType()->asTypeString();
                 }
                 return result;
 
             case TermID::TENSOR_BEGIN:
                 result = "[[ ";
-                result += Left()->toString();
-                if (Right()) {
-                    result += " ";
-                    result += Right()->toString();
-                }
+                dump_items_(result);
                 result += " ]]";
                 if (GetType()) {
-                    result += ":" + GetType()->asTypeString();
+                    result += GetType()->asTypeString();
                 }
                 return result;
 
@@ -522,13 +525,16 @@ public:
                 dump_items_(result);
                 result += ",";
                 result += ")";
+                if (!m_class_name.empty()) {
+                    result += m_class_name; //asTypeString()
+                }
                 return result;
             case TermID::CLASS:
                 result += "(";
                 dump_items_(result);
                 result += ")";
                 if (!m_class_name.empty()) {
-                    result += ":" + m_class_name; //asTypeString()
+                    result += m_class_name; //asTypeString()
                 }
                 return result;
             case TermID::SOURCE: // name:={{function code}}
@@ -540,33 +546,20 @@ public:
                 }
                 return result;
 
-            case TermID::REPEAT: // [cond] <->  repeat;
-                //  "(@test1)->{then1}($test2)->{then2}(@test3+$test3)->{then3};"
-
-                if (Left()->getTermID() == TermID::ITERATOR) {
-                    result.clear();
-                    BlockType block = Left()->m_follow;
-                    for (size_t i = 0; i < block.size(); i++) {
-                        if (!result.empty()) {
-                            result += "; ";
-                        }
-                        result += block[i]->toString(true);
-                    }
-                    result = "[" + result + "]";
-                    result += Left()->toString();
-                } else if (Left()->getTermID() == TermID::OPERATOR) {
-                    result = Left()->toString();
-                    result = "[" + result + "]";
-                } else {
-                    result = Left()->toString();
-                }
-                result += "<->{";
+            case TermID::WHILE: // [cond] <->  repeat;
+                result = "[" + result + "]";
+                result += m_text;
                 ASSERT(m_right);
                 result += m_right->toString();
-                if (m_right->GetTokenID() != TermID::BLOCK) {
-                    result += ";";
-                }
-                result += "}";
+                result += ";";
+                return result;
+
+            case TermID::UNTIL:
+                result = result;
+                result += m_text + "[";
+                ASSERT(m_right);
+                result += m_right->toString();
+                result += "];";
                 return result;
 
             case TermID::FOLLOW: // (cond) -> seq;
@@ -581,14 +574,14 @@ public:
                     result += m_right->toString();
                     result += "}";
                     if (m_right->m_right) {
-                        result += "->{";
+                        result += "->";
                         result += m_right->m_right->toString();
-                        if (m_right->m_right->getTermID() != TermID::BLOCK) {
-                            result += ";";
-                        }
-                        result += "};";
-                    } else {
-                        result += ";";
+                        //                        if (m_right->m_right->getTermID() != TermID::BLOCK) {
+                        //                            result += ";";
+                        //                        }
+                        //                        result += "};";
+                        //                    } else {
+                        //                        result += ";";
                     }
                 } else {
                     result.clear();
@@ -604,33 +597,45 @@ public:
                             result += " ";
                         }
                         if (m_follow[i]->m_right) {
-                            result += "->{";
+                            result += "->";
                             result += m_follow[i]->m_right->toString();
                             if (m_follow[i]->m_right->getTermID() != TermID::BLOCK) {
                                 result += ";";
                             }
-                            result += "}";
+                            //                            result += "}";
                         } else {
                             if (nested || (!nested && m_follow[i]->m_left)) {
-                                result += "->{";
+                                result += "->";
                             }
                             result += m_follow[i]->toString(true);
                             if (m_follow[i]->getTermID() != TermID::BLOCK) {
                                 result += ";";
                             }
                             if (nested || (!nested && m_follow[i]->m_left)) {
-                                result += "}";
+                                //                                result += "}";
                             }
                         }
                     }
-                    if (!nested) {
-                        result += ";";
-                    }
+//                    if (!nested) {
+//                        result += ";";
+//                    }
                 }
 
                 return result;
             case TermID::BLOCK:
+            case TermID::BLOCK_TRY:
+            case TermID::CALL_BLOCK:
+            case TermID::CALL_TRY:
                 result.clear();
+                if (m_id == TermID::CALL_BLOCK || m_id == TermID::CALL_TRY) {
+                    result += "(";
+                    dump_items_(result);
+                    result += ")";
+                }
+                result = "{";
+                if (m_id == TermID::BLOCK_TRY) {
+                    result += "{";
+                }
                 for (size_t i = 0; i < m_block.size(); i++) {
                     if (i) {
                         result += " ";
@@ -639,6 +644,10 @@ public:
                     if (m_block[i]->GetTokenID() != TermID::SOURCE) {
                         result += ";";
                     }
+                }
+                result += "}";
+                if (m_id == TermID::BLOCK_TRY) {
+                    result += "}";
                 }
                 return result;
 
@@ -651,6 +660,9 @@ public:
 
             case TermID::SYMBOL:
             case TermID::ELLIPSIS:
+            case TermID::FRACTION:
+            case TermID::COMPLEX:
+            case TermID::CURRENCY:
                 return m_text;
             case TermID::CONCAT:
                 LOG_RUNTIME("Not implemented!");
@@ -773,16 +785,33 @@ public:
         return true;
     }
 
+    inline bool SetDims(TermPtr args) {
+        TermPtr next = args;
+        TermPtr prev;
+
+        m_dims.clear();
+
+        args->SetSource(m_source);
+        while (next) {
+            if (next->getTermID() != TermID::END) {
+                m_dims.push_back(next);
+            }
+            prev = next;
+            next = next->m_seq; //Right();
+            prev->m_seq.reset(); //right.reset();
+        }
+        return true;
+    }
+
     inline bool SetArgs(TermPtr args) {
         TermPtr next = args;
         TermPtr prev;
 
-        args->SetSource(m_source);
-
-        while (next) {
-            if (next->getTermID() != TermID::END) {
-                push_back(next, next->getName());
-            }
+        if (args) {
+            args->SetSource(m_source);
+        }
+        while (next && next->getTermID() != TermID::END) {
+            push_back(next, next->getName());
             prev = next;
             next = next->m_seq; //Right();
             prev->m_seq.reset(); //right.reset();
@@ -934,14 +963,32 @@ public:
         return m_block;
     }
 
-    inline void BlockCodeAppend(TermPtr & term) {
+    inline void BlockCodeAppend(TermPtr & term, TermID id = TermID::BLOCK) {
         term->m_source = m_source;
-        if (m_id != TermID::BLOCK) {
+        if (!IsBlock()) {
             TermPtr copy = Term::Create(this);
-            m_id = TermID::BLOCK;
+            m_id = id;
             m_block.push_back(copy);
+        } else {
+            m_block.push_back(term);
         }
-        m_block.push_back(term);
+    }
+    
+//    inline void BlockCodeAppend(TermPtr & term) {
+//        term->m_source = m_source;
+//        if (m_id != TermID::BLOCK) {
+//            TermPtr copy = Term::Create(this);
+//            m_id = TermID::BLOCK;
+//            m_block.push_back(copy);
+//        }
+//        m_block.push_back(term);
+//    }
+
+    inline void ConvertToBlock(TermID id) {
+        if (!IsBlock()) {
+            auto ddd = shared_from_this();
+            BlockCodeAppend(ddd, id);
+        }
     }
 
     void InsertFollow(TermPtr & term) {
@@ -963,19 +1010,24 @@ public:
 
     std::string asTypeString() const {
         std::string result = m_text;
-        if (size() || m_id == TermID::DICT) {
+        if (m_is_ref) {
+            result.insert(1, "&");
+        }
+        if (size()) {
+            result += "(";
+            dump_items_(result);
+            result += ")";
+        }
+        if (m_dims.size()) {
             result += "[";
-
             bool first = true;
-            for (auto elem : * this) {
-                if (first) {
-                    first = false;
-                } else {
-                    result.append(",");
+            for (size_t i = 0; i < m_dims.size(); i++) {
+                if (!first) {
+                    result += ",";
                 }
-                result.append(elem.second->toString(true));
+                result += m_dims[i]->toString(true);
+                first = false;
             }
-
             result += "]";
         }
         return result;
@@ -1054,6 +1106,7 @@ public:
     std::string m_text;
     std::string m_class_name;
     std::string m_namespace;
+    std::vector<TermPtr> m_dims;
 
     BlockType m_block;
     BlockType m_follow;
