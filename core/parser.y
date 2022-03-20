@@ -391,7 +391,6 @@ star_arg = [STAR] STAR ID
 %token			SIMPLE_AND
 %token			SIMPLE_OR
 %token			SIMPLE_XOR
-%token			LAMBDA
 %token			OPERATOR
 
 
@@ -545,11 +544,11 @@ range_val:  rval_name
         {
             $$ = $1;
         }
-    |  '-'  digits
+/*    |  '-'  digits
         {
             $$ = $2;
             $$->m_text.insert(0,"-");
-        }
+        } */
             
         
 range: range_val  RANGE  range_val
@@ -683,7 +682,7 @@ lval:  assign_name
                 $2->SetArgs($args);
                 $$->Last()->Append($2);
             }
-        |  assign_name  '.'  TERM
+        |  lval  '.'  TERM
             {
                 $$ = $1; 
                 $3->SetTermID(TermID::FIELD);
@@ -1016,6 +1015,7 @@ simple_seq:  condition
                 {
                     $$ = $1;
                     // Несколько команд подряд
+                    $$->ConvertToBlock(TermID::BLOCK);
                     $$->BlockCodeAppend($3); 
                 }
 
@@ -1034,7 +1034,7 @@ simple: SIMPLE_AND
         }
 
 /* Допустимые <имена> функций. Они тоже могут возвращать ссылки на объекты, но тип взвращаемого значения стоит после аргументов */    
-simple_func:  assign_name  simple  simple_seq
+simple_func:  lval  simple  simple_seq
         {
             $$ = $2;  
             $$->Append($1, Term::LEFT); 
@@ -1085,12 +1085,17 @@ block:  '{'  '}'
                 $$->SetType($type_class);
             }
 
-block_call:  '('  MIDDLE_CALL_BLOCK  sequence  '}'
+block_call:  '('  MIDDLE_CALL_BLOCK  sequence  '}' 
             {
                 $$ = $sequence; 
                 $$->ConvertToBlock(TermID::CALL_BLOCK);
             }
-        | '('  args  MIDDLE_CALL_BLOCK  sequence  '}'
+        | '('  MIDDLE_CALL_BLOCK  sequence  separator '}' 
+            {
+                $$ = $sequence; 
+                $$->ConvertToBlock(TermID::CALL_BLOCK);
+            }
+        |  '('  args  MIDDLE_CALL_BLOCK  sequence  '}'
             {
                 $$ = $sequence; 
                 $$->SetArgs($args);
@@ -1103,6 +1108,11 @@ block_call:  '('  MIDDLE_CALL_BLOCK  sequence  '}'
                 $$->ConvertToBlock(TermID::CALL_BLOCK);
             }
         | '('  MIDDLE_CALL_TRY  sequence  TRY_END
+            {
+                $$ = $sequence; 
+                $$->ConvertToBlock(TermID::CALL_TRY);
+            }
+        | '('  MIDDLE_CALL_TRY  sequence  separator  TRY_END
             {
                 $$ = $sequence; 
                 $$->ConvertToBlock(TermID::CALL_TRY);
@@ -1199,14 +1209,14 @@ arithmetic:  addition
                 { 
                     $$ = $2; 
                 }
-/*            |  digits   digits
+            |  digits   digits
                 {
                     //@todo location
                     $$ = Term::Create(TermID::OPERATOR, $2->m_text.c_str(), 1, nullptr);
                     $$->Append($1, Term::LEFT); 
                     $2->m_text = $2->m_text.substr(1);
                     $$->Append($2, Term::RIGHT); 
-                } */
+                }
 
 
 op_factor: '*'
@@ -1335,10 +1345,16 @@ exit:  EXIT
             $$ = $1;
         }
 
-exit:  EXIT  rval_var
+    |  EXIT  rval_var
         {
             $$ = $1;
             $$->Append($2, Term::RIGHT); 
+        }
+    |  EXIT  rval_var  EXIT
+        {
+            $$ = $1;
+            $$->Append($2, Term::RIGHT); 
+            $$->SetTermID(TermID::ERROR);
         }
 
       
@@ -1502,6 +1518,10 @@ sequence:  seq_item
             {
                 $$ = $1;  
             }
+        | block_call
+            {
+                $$ = $1;  
+            }
         | sequence  separator  block_call 
             {
                 $$ = $1;  
@@ -1520,27 +1540,31 @@ sequence:  seq_item
         
 separator: ';' | separator  ';'        
         
-execution:  block_call
-            {
-                $$ = $1;  
-            }
-        | execution  separator  block_call
-            {
-                $$ = $1; 
-                $$->ConvertToBlock(TermID::BLOCK);
-                $$->BlockCodeAppend($3); 
-            }
+//execution:  block_call
+//            {
+//                $$ = $1;  
+//            }
+//        | execution  separator  block_call
+//            {
+//                $$ = $1; 
+//                $$->ConvertToBlock(TermID::BLOCK);
+//                $$->BlockCodeAppend($3); 
+//            }
 
 ast:    END
         | separator
+        | sequence
+            {
+               driver.AstAddTerm($1);
+            }
         | sequence separator
             {
                driver.AstAddTerm($1);
             }
-        | execution separator
-            {
-               driver.AstAddTerm($1);
-            }
+//        | execution separator
+//            {
+//               driver.AstAddTerm($1);
+//            }
 
 start	:   ast
 

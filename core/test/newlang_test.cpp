@@ -667,14 +667,14 @@ TEST(NewLang, Tensor) {
 
 
 
-    ObjPtr dict = Context::CreateRVal(nullptr, "((1,),(10,20,30,),)");
+    ObjPtr dict = Context::CreateRVal(nullptr, "[[ 1, [10,20,30,] ]]");
 
     ASSERT_TRUE(dict);
     ASSERT_EQ(2, dict->size());
-    ASSERT_EQ(1, (*dict)[0]->size());
+    ASSERT_EQ(0, (*dict)[0]->size());
     ASSERT_EQ(3, (*dict)[1]->size());
 
-    ASSERT_EQ(1, (*(*dict)[0])[0]->GetValueAsInteger());
+    ASSERT_EQ(1, (*dict)[0]->GetValueAsInteger());
 
     ASSERT_EQ(10, (*(*dict)[1])[0]->GetValueAsInteger());
     ASSERT_EQ(20, (*(*dict)[1])[1]->GetValueAsInteger());
@@ -689,7 +689,7 @@ TEST(NewLang, Tensor) {
     ASSERT_EQ(t_dict->index_get({3})->GetValueAsInteger(), 30);
 
 
-    ObjPtr diag = Context::CreateRVal(nullptr, "((1),(2,22),(3, 33, 333.0),)");
+    ObjPtr diag = Context::CreateRVal(nullptr, "[[ [ [1,], [2,22,], [3, 33, 333.0,] ] ]]");
 
     ObjPtr t_diag = Object::CreateTensor(diag, ObjType::Float);
 

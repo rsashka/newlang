@@ -47,6 +47,14 @@ typedef std::shared_ptr<RunTime> RuntimePtr;
 typedef ObjPtr FunctionType(Context *ctx, Object &in);
 typedef ObjPtr TransparentType(const Context *ctx, const Object &in);
 
+class Interruption : public std::exception {
+public:
+    Interruption();
+    Interruption(ObjPtr obj);
+
+    ObjPtr m_obj;
+};
+
 class newlang_exception : public std::runtime_error {
 public:
 

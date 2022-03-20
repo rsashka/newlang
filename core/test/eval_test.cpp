@@ -308,13 +308,13 @@ TEST(Eval, Exception) {
     ObjPtr tt = ctx.Eval("[[ rand() ... ]]: Int[3,2]");
     ASSERT_TRUE(tt);
     ASSERT_TRUE(50 < tt->GetValueAsString().size()) << tt->GetValueAsString();
-    
-    
+
+
     ASSERT_THROW(
             ,
             parser_exception);
     ASSERT_NO_THROW(
-            
+
             );
 
 }
@@ -561,7 +561,8 @@ protected:
     OpEvalTest() : m_ctx(RunTime::Init()) {
     }
 
-    const char * Test(const char *eval, Object &vars) {
+    const char * Test(std::string eval, Object &vars) {
+        eval += ";";
         m_result = m_ctx.Eval(eval, vars);
         if(m_result) {
             m_string = m_result->GetValueAsString();

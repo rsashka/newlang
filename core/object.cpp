@@ -30,6 +30,17 @@ newlang_exception::newlang_exception(ObjPtr obj) : m_obj(obj), std::runtime_erro
     }
 }
 
+Interruption::Interruption() {
+    m_obj = Object::CreateNone();
+}
+Interruption::Interruption(ObjPtr obj) : m_obj(obj) {
+//    if(m_obj) {
+//        LOG_ERROR("NewLang exception %s!", m_obj->toString().c_str());
+//    } else {
+//        LOG_ERROR("'%s'", what());
+//    }
+}
+
 int64_t Object::size(int64_t dim) const {
     if(is_tensor()) {
         return m_value.size(dim);

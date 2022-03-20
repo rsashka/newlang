@@ -51,7 +51,6 @@ namespace newlang {
         _(SIMPLE_AND) \
         _(SIMPLE_OR) \
         _(SIMPLE_XOR) \
-        _(LAMBDA) \
         _(TRANSPARENT) \
         _(ITERATOR) \
         _(ITERATOR_QQ)\
@@ -65,6 +64,7 @@ namespace newlang {
         _(ARGUMENT) \
         _(ARGS) \
         _(EXIT) \
+        _(ERROR) \
         \
         _(INDEX) \
         _(FIELD) \
@@ -439,7 +439,7 @@ public:
 
                 result += " " + m_text + " ";
                 result.insert(0, m_namespace);
-                result += "{";
+//                result += "{";
                 result += m_right->toString(true);
                 if (m_right->GetTokenID() != TermID::SOURCE && !result.empty() && result[result.size() - 1] != ';') {
                     result += ";";
@@ -447,7 +447,7 @@ public:
                 for (size_t i = 0; i < m_right->size(); i++) {
                     result += m_right->at(i).second->toString();
                 }
-                result += "};";
+//                result += "};";
                 return result;
 
             case TermID::SIMPLE_AND:
@@ -468,29 +468,29 @@ public:
                 }
                 return result;
 
-            case TermID::LAMBDA:
-                if (!result.empty()) {
-                    result += "=";
-                }
-                result += "(";
-                dump_items_(result);
-                result += ")";
-                result += m_text;
-                result += "{";
-                if (m_right) {
-                    if (m_right->GetTokenID() == TermID::BLOCK) {
-                        for (size_t i = 0; i < m_right->m_block.size(); i++) {
-                            if (i) {
-                                result += ", ";
-                            }
-                            result += m_right->m_block[i]->toString();
-                        }
-                    } else {
-                        result += m_right->toString();
-                    }
-                }
-                result += "}";
-                return result;
+//            case TermID::LAMBDA:
+//                if (!result.empty()) {
+//                    result += "=";
+//                }
+//                result += "(";
+//                dump_items_(result);
+//                result += ")";
+//                result += m_text;
+//                result += "{";
+//                if (m_right) {
+//                    if (m_right->GetTokenID() == TermID::BLOCK) {
+//                        for (size_t i = 0; i < m_right->m_block.size(); i++) {
+//                            if (i) {
+//                                result += ", ";
+//                            }
+//                            result += m_right->m_block[i]->toString();
+//                        }
+//                    } else {
+//                        result += m_right->toString();
+//                    }
+//                }
+//                result += "}";
+//                return result;
 
             case TermID::ITERATOR:
                 result += m_text;
@@ -587,7 +587,7 @@ public:
                     result.clear();
                     for (size_t i = 0; i < m_follow.size(); i++) {
                         if (!result.empty()) {
-                            result += "\n ";
+                            result += ",\n ";
                         }
                         if (m_follow[i]->m_left) {
                             result += "[";
@@ -741,11 +741,11 @@ public:
                 elem->SetSource(m_source);
             }
         }
-        for (auto &elem : m_follow) {
-            if (elem.get() != this) {
-                elem->SetSource(m_source);
-            }
-        }
+//        for (auto &elem : m_follow) {
+//            if (elem.get() != this) {
+//                elem->SetSource(m_source);
+//            }
+//        }
 
         TermPtr next = shared_from_this()->Right();
         while (next) {

@@ -432,7 +432,21 @@ public:
         ASSERT(type->getTermID() == TermID::TERM);
         ASSERT(type->size() == 0);
 
-        std::string type_name = (isType(type->m_text) ? type->m_text.substr(1) : type->m_text);
+        return CreateTypeName(type->m_text, base);
+    }
+
+    ObjPtr CreateTypeName(std::string type_name, std::string base_name) {
+        auto base = m_types.find((isType(base_name) ? base_name.substr(1) : base_name));
+        if (base == m_types.end()) {
+            LOG_RUNTIME("Base type name '%s' not found!", base_name.c_str());
+        }
+        return CreateTypeName(type_name, base->second);
+    }
+
+    ObjPtr CreateTypeName(std::string type_name, ObjPtr base) {
+        if (isType(type_name)) {
+            type_name = type_name.substr(1);
+        }
         if (m_types.find(type_name) != m_types.end()) {
             LOG_RUNTIME("Type name '%s' already exists!", type_name.c_str());
         }

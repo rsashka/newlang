@@ -69,16 +69,19 @@ integer {digit}([_]?{digit}+)*
 currency -?`{digit}(`?{digit}+)*
 name    ({ualpha}|[_])({ualpha}|{digit}|[_])*
 macro   \\({ualpha}|[_])?({name})?
-term    [$@%~]({ualpha}|[_])?({name})?
+
 /* 
 type    :{name}  Не использовать термин тип в лексере, чтобы была возможность записывать типы с пробелами 
 между двоеточием и имененем "term: type" или "term : type", что более привычно при чтении, чем "term :type"
 Не использовать деструктов ~ в лексере, чтобы в парсере можно было проверять его место расположение (в функции или классе)
+*/
 number1 -?{digit}+\.{digit}+([eE]-?{digit}+)?
 number2 (-?{digit}+\.([eE]-?)?)?-?{digit}+
 number  ({number1}|{number2})
-*/
-number  [-+]?{integer}[.]{integer}([eE][-+]?[0-9]+)?
+
+/* number  [-+]?{integer}[.]{integer}([eE][-+]?[0-9]+)? */
+
+term    [$@%~]({ualpha}|[_])?({name})?
 
 %x state_STRWIDE
 %x state_STRCHAR
@@ -356,8 +359,8 @@ number  [-+]?{integer}[.]{integer}([eE][-+]?[0-9]+)?
 "[["        YY_TOKEN(TENSOR_BEGIN);
 "]]"        YY_TOKEN(TENSOR_END);
 
-"){"        YY_TOKEN_ONLY(MIDDLE_CALL_BLOCK);
 "){{"       YY_TOKEN_ONLY(MIDDLE_CALL_TRY);
+"){"        YY_TOKEN_ONLY(MIDDLE_CALL_BLOCK);
 "{{"        YY_TOKEN_ONLY(TRY_BEGIN);
 "}}"        YY_TOKEN_ONLY(TRY_END);
 
@@ -402,9 +405,6 @@ number  [-+]?{integer}[.]{integer}([eE][-+]?[0-9]+)?
 "<"         YY_TOKEN(OPERATOR);
 ">="        YY_TOKEN(OPERATOR);
 ">"         YY_TOKEN(OPERATOR);
-"&&"        YY_TOKEN(LAMBDA);
-"||"        YY_TOKEN(LAMBDA);
-"^^"        YY_TOKEN(LAMBDA);
 
 "??"        YY_TOKEN(ITERATOR_QQ);
 "!!"        YY_TOKEN(ITERATOR);

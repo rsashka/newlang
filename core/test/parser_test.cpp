@@ -928,7 +928,7 @@ TEST_F(ParserTest, DISABLED_ArrayAssign2) {
     ASSERT_STREQ("term[1][1, 2, 3]=123;", ast->toString().c_str());
 }
 
-TEST_F(ParserTest, FieldArray) {
+TEST_F(ParserTest, DISABLED_FieldArray) {
     ASSERT_TRUE(Parse("term.val[1].field :=  value[-1..@count()..5].field;"));
     ASSERT_EQ(TermID::CREATE_OR_ASSIGN, ast->getTermID()) << newlang::toString(ast->getTermID());
     ASSERT_STREQ("term.val[1].field := value[-1..@count()..5].field;", ast->toString().c_str());
@@ -1053,7 +1053,7 @@ TEST_F(ParserTest, FunctionSimple2) {
 }
 
 TEST_F(ParserTest, FunctionSimple3) {
-    ASSERT_TRUE(Parse("func(arg)  :=  {%{  %} %{ %} %{  %} $99:=0;};"));
+    ASSERT_TRUE(Parse("func(arg)  :=  {%{  %} %{ %} %{  %}; $99:=0;};"));
     ASSERT_EQ(TermID::CREATE_OR_ASSIGN, ast->getTermID()) << newlang::toString(ast->getTermID());
     ASSERT_STREQ("func(arg) := {%{  %}%{ %}%{  %} $99 := 0;};", ast->toString().c_str());
 }
@@ -1071,8 +1071,8 @@ TEST_F(ParserTest, FunctionSimple5) {
 }
 
 TEST_F(ParserTest, FunctionTrans0) {
-    ASSERT_TRUE(Parse("func(arg1, arg2=123) &&= $arg1 == $arg2, $11 := $arg1;"));
-    ASSERT_STREQ("func(arg1, arg2=123) &&= $arg1==$arg2, $11 := $arg1;", ast->toString().c_str());
+    ASSERT_TRUE(Parse("func(arg1, arg2=123) &&= $arg1 == $arg2, $11 == $arg1;"));
+    ASSERT_STREQ("func(arg1, arg2=123) &&= $arg1==$arg2, $11==$arg1", ast->toString().c_str());
 }
 
 TEST_F(ParserTest, FunctionTrans1) {
@@ -1082,7 +1082,7 @@ TEST_F(ParserTest, FunctionTrans1) {
 
 TEST_F(ParserTest, FunctionTrans2) {
     ASSERT_TRUE(Parse("func(arg1, arg2 = 5) :- %{ return $arg1; %};"));
-    ASSERT_STREQ("func(arg1, arg2=5) :- {%{ return $arg1; %}};", ast->toString().c_str());
+    ASSERT_STREQ("func(arg1, arg2=5) :- %{ return $arg1; %}", ast->toString().c_str());
 }
 
 TEST_F(ParserTest, FunctionTrans3) {
@@ -1091,16 +1091,15 @@ TEST_F(ParserTest, FunctionTrans3) {
 }
 
 TEST_F(ParserTest, FunctionTrans4) {
-    ASSERT_TRUE(Parse("func(arg1, arg2 = 5) :- { [$arg1 < $arg2] -> %{ return $arg1; %}; };"));
-    ASSERT_STREQ("func(arg1, arg2=5) :- {[$arg1<$arg2]->{%{ return $arg1; %};};};", ast->toString().c_str());
+    ASSERT_TRUE(Parse("func(arg1, arg2 = 5) :- { [$arg1 < $arg2] -> {%{ return $arg1; %}}; };"));
+    ASSERT_STREQ("func(arg1, arg2=5) :- {[$arg1<$arg2]->{%{ return $arg1; %}};};", ast->toString().c_str());
 }
 
 TEST_F(ParserTest, FunctionTrans5) {
-    ASSERT_TRUE(Parse("func(arg1, arg2 = 5) :- { [$arg1 < $arg2] -> %{ return $arg1; %} -> %{ return $arg2; %}; };"));
-    ASSERT_STREQ("func(arg1, arg2=5) :- {[$arg1<$arg2]->{%{ return $arg1; %};}\n  ->{%{ return $arg2; %};};};", ast->toString().c_str());
+    ASSERT_TRUE(Parse("func(arg1, arg2 = 5) :- { [$arg1 < $arg2] -> {%{ return $arg1; %}}, [_] -> {%{ return $arg2; %}}; };"));
+    ASSERT_STREQ("func(arg1, arg2=5) :- {[$arg1<$arg2]->{%{ return $arg1; %}},\n [_]->{%{ return $arg2; %}};};", ast->toString().c_str());
 }
 
-;
 
 TEST_F(ParserTest, FunctionRussian1) {
     ASSERT_TRUE(Parse("мин(arg) := {$00:=0;};"));
@@ -1181,7 +1180,7 @@ TEST_F(ParserTest, FunctionEmpty) {
 
 TEST_F(ParserTest, FunctionEmpty2) {
     ASSERT_TRUE(Parse("мин(...) :- {};"));
-    ASSERT_STREQ("мин(...) :- {;};", ast->toString().c_str());
+    ASSERT_STREQ("мин(...) :- {};", ast->toString().c_str());
 }
 
 TEST_F(ParserTest, FunctionArgsFail) {
@@ -1435,10 +1434,10 @@ TEST_F(ParserTest, Sequence) {
     ASSERT_NO_THROW(Parse("(){val;};"));
     ASSERT_NO_THROW(Parse("(){val;val;};"));
 
-    ASSERT_NO_THROW(Parse("( ){val;;};{};"));
-    ASSERT_NO_THROW(Parse("( ){val;;;};{};;"));
-    ASSERT_NO_THROW(Parse("(){val;;;;val;(){};};;;;"));
-    ASSERT_NO_THROW(Parse("(){val;;;;val;;;(123, 333){};(  ){} };;;;"));
+    ASSERT_NO_THROW(Parse("( ){val;;}; (){{fff;}};"));
+    ASSERT_NO_THROW(Parse("( ){val;;;};  (){{fff;}};;"));
+    ASSERT_NO_THROW(Parse("(){val;;;;val;(){(){fff;};};};;;;"));
+    ASSERT_NO_THROW(Parse("(){{val;;;;val;;;(123, 333){(){{fff;}}};(  ){fff;} }};;;;"));
 
     ASSERT_NO_THROW(Parse("(){val();};"));
     ASSERT_NO_THROW(Parse("(){val();val();};"));
@@ -1558,13 +1557,13 @@ TEST_F(ParserTest, Repeat5) {
 }
 
 TEST_F(ParserTest, Repeat6) {
-    ASSERT_TRUE(Parse("[t1=test!] -->> {if_1;if_2;then3;};"));
-    ASSERT_STREQ("[t1=test!]-->>{if_1; if_2; then3;}", ast->toString().c_str());
+    ASSERT_TRUE(Parse("[test!] -->> {if_1;if_2;then3;};"));
+    ASSERT_STREQ("[test!]-->>{if_1; if_2; then3;};", ast->toString().c_str());
 }
 
 TEST_F(ParserTest, Repeat7) {
     ASSERT_TRUE(Parse("[test[0].@field != $test()!!] -->> if_1;"));
-    ASSERT_STREQ("[test[0].@field!=$test()!!]-->>{if_1;}", ast->toString().c_str());
+    ASSERT_STREQ("[test[0].@field!=$test()!!]-->>if_1;", ast->toString().c_str());
 }
 
 TEST_F(ParserTest, Range) {
@@ -1573,16 +1572,16 @@ TEST_F(ParserTest, Range) {
 }
 
 TEST_F(ParserTest, Range1) {
-    ASSERT_TRUE(Parse("[i=1..10] -->> call();"));
-    ASSERT_STREQ("[i=1..10]-->>{call();}", ast->toString().c_str());
+    ASSERT_TRUE(Parse("[i!] -->> call();"));
+    ASSERT_STREQ("[i!]-->>call();", ast->toString().c_str());
 
-    ASSERT_TRUE(Parse("call() <<-- [i=1..10];"));
-    ASSERT_STREQ("{call();}<<--[i=1..10]", ast->toString().c_str());
+    ASSERT_TRUE(Parse("call() <<-- [i!];"));
+    ASSERT_STREQ("call()<<--[i!];", ast->toString().c_str());
 }
 
 TEST_F(ParserTest, Range2) {
-    ASSERT_TRUE(Parse("[i=1..10] -->> @error(\"Error\");"));
-    ASSERT_STREQ("[i=1..10]-->>{@error(\"Error\");}", ast->toString().c_str());
+    ASSERT_TRUE(Parse("[i()] -->> @error(\"Error\");"));
+    ASSERT_STREQ("[i()]-->>@error(\"Error\");", ast->toString().c_str());
 }
 
 TEST_F(ParserTest, DISABLED_Follow0) {
@@ -1643,7 +1642,7 @@ TEST_F(ParserTest, Follow6) {
 }
 
 TEST_F(ParserTest, Follow7) {
-    ASSERT_TRUE(Parse("[test.field[0].field2 > iter!!] -> if_1;"));
+    ASSERT_TRUE(Parse("[test.field[0] > iter!!] -> if_1;"));
     //    ASSERT_STREQ("(test.field[0].field2>iter!!)->{if_1;};", ast->toString().c_str());
 }
 
@@ -1758,7 +1757,7 @@ TEST_F(ParserTest, HelloWorld) {
 TEST_F(ParserTest, Convert) {
     std::vector<const char *> list = {
         "brother(human!, human!)?;",
-        "func(arg1, arg2 = 5) :- { ($arg1 < $2) -> %{ return $arg1; %} -> %{ return *$1 * *$2; %}; };",
+        "func(arg1, arg2 = 5) :- { ($arg1 < $2) -> {%{ return $arg1; %}}, [_] -> {%{ return *$1 * *$2; %}}; };",
         "func_sum(arg1, arg2) :- {$arg1 + $arg2;};",
     };
     TermPtr expr;
