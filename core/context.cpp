@@ -1662,21 +1662,41 @@ ObjPtr Context::CreateRVal(Context *ctx, TermPtr term, Object & local_vars) {
 
         case TermID::TENSOR_BEGIN:
             for (int i = 0; i < term->size(); i++) {
-                ASSERT(term[i]);
 
-                if(term[i]->GetTokenID() == TermID::ELLIPSIS) {
-                    if(!term->GetType()) {
-                        NL_PARSER(term, "Tensor type must be defined for use ellipsis!");
+                ASSERT((*term)[i]);
+                temp = CreateRVal(ctx, (*term)[i], local_vars);
+                ASSERT(temp);
+
+                if(term->GetType()) { // Если указан конкретный тип данных
+                    type = typeFromString(term->GetType()->m_text, ctx);
+                    result->m_value = ConvertToTensor(temp.get(), toTorchType(type));
+
+                    if(term->GetType()->size()) {
+                        sizes = GetTensorShape(ctx, term->GetType(), local_vars);
+                        result->m_value = result->m_value.reshape(sizes);
                     }
+
+                } else {
+                    result->m_value = ConvertToTensor(temp.get(), at::ScalarType::Undefined, false);
+                }
+                result->m_var_type_current = fromTorchType(result->m_value.scalar_type());
+                result->m_var_is_init = true;
+                
+
+                if(term[i]->GetTokenID() == TermID::RANGE) {
+                    ASSERT(!"Not implemented!");
+                } else if(term[i]->IsScalar() || term[i]->getTermID() == TermID::TERM) {
+                    temp = CreateRVal(ctx, (*term)[i], local_vars);
+                    
+                } else if(term[i]->GetTokenID() == TermID::ELLIPSIS) {
+                    //                    if(!term->GetType()) {
+                    //                        NL_PARSER(term, "Tensor type must be defined for use ellipsis!");
+                    //                    }
                     if(i && i + 1 != term->size()) {
-                        NL_PARSER(term, "Ellipsis supported as last parameter only!");
+                        NL_PARSER(term, "Ellipsis supported as last argument only!");
                     }
-
                 }
             }
-
-            ASSERT(term->size() == 1 || term->size() == 2);
-            ASSERT((*term)[0]);
 
             if(term->size() == 2) {
                 ASSERT((*term)[1]->GetTokenID() == TermID::ELLIPSIS);

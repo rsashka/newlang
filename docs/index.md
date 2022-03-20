@@ -132,7 +132,7 @@
     [34, 53, 65, 66,]:Char
 
 
-## [Полное описание синтаксиса](https://github.com/rsashka/newlang/blob/master/Syntax.md)
+## [Полное описание синтаксиса](https://newlang.net/syntax.html)
 
 
 ### Сборка REPL из исходников (пока только под Linux)

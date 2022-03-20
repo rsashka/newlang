@@ -1,6 +1,12 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <configurationDescriptor version="100">
   <logicalFolder name="root" displayName="root" projectFiles="true" kind="ROOT">
+    <logicalFolder name="f1" displayName="docs" projectFiles="true" kind="ROOT">
+      <itemPath>../docs/CNAME</itemPath>
+      <itemPath>../docs/_config.yml</itemPath>
+      <itemPath>../docs/index.md</itemPath>
+      <itemPath>../docs/syntax.md</itemPath>
+    </logicalFolder>
     <logicalFolder name="SourceFiles"
                    displayName="Исходные файлы"
                    projectFiles="true">
@@ -72,7 +78,6 @@
       <itemPath>Makefile</itemPath>
     </logicalFolder>
     <itemPath>../README.md</itemPath>
-    <itemPath>../Syntax.md</itemPath>
     <itemPath>lexer.l</itemPath>
     <itemPath>parser.y</itemPath>
   </logicalFolder>
@@ -141,8 +146,6 @@
       </compileType>
       <item path="../README.md" ex="false" tool="3" flavor2="0">
       </item>
-      <item path="../Syntax.md" ex="false" tool="3" flavor2="0">
-      </item>
       <item path="../contrib/googletest/googletest/src/gtest-all.cc"
             ex="true"
             tool="1"
@@ -162,6 +165,14 @@
       <item path="../contrib/logger/logger.cpp" ex="false" tool="1" flavor2="11">
       </item>
       <item path="../contrib/logger/logger.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../docs/CNAME" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../docs/_config.yml" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../docs/index.md" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../docs/syntax.md" ex="false" tool="3" flavor2="0">
       </item>
       <item path="autocomplete.h" ex="false" tool="3" flavor2="0">
       </item>
@@ -382,8 +393,6 @@
       </compileType>
       <item path="../README.md" ex="false" tool="3" flavor2="0">
       </item>
-      <item path="../Syntax.md" ex="false" tool="3" flavor2="0">
-      </item>
       <item path="../contrib/googletest/googletest/src/gtest-all.cc"
             ex="false"
             tool="1"
@@ -397,6 +406,14 @@
       <item path="../contrib/logger/logger.cpp" ex="false" tool="1" flavor2="0">
       </item>
       <item path="../contrib/logger/logger.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../docs/CNAME" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../docs/_config.yml" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../docs/index.md" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../docs/syntax.md" ex="false" tool="3" flavor2="0">
       </item>
       <item path="autocomplete.h" ex="false" tool="3" flavor2="0">
       </item>
@@ -554,8 +571,6 @@
       </compileType>
       <item path="../README.md" ex="false" tool="3" flavor2="0">
       </item>
-      <item path="../Syntax.md" ex="false" tool="3" flavor2="0">
-      </item>
       <item path="../contrib/googletest/googletest/src/gtest-all.cc"
             ex="false"
             tool="1"
@@ -575,6 +590,14 @@
       <item path="../contrib/logger/logger.cpp" ex="false" tool="1" flavor2="11">
       </item>
       <item path="../contrib/logger/logger.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../docs/CNAME" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../docs/_config.yml" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../docs/index.md" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../docs/syntax.md" ex="false" tool="3" flavor2="0">
       </item>
       <item path="autocomplete.h" ex="false" tool="3" flavor2="0">
       </item>
@@ -847,8 +870,6 @@
       </compileType>
       <item path="../README.md" ex="false" tool="3" flavor2="0">
       </item>
-      <item path="../Syntax.md" ex="false" tool="3" flavor2="0">
-      </item>
       <item path="../contrib/googletest/googletest/src/gtest-all.cc"
             ex="false"
             tool="1"
@@ -868,6 +889,14 @@
       <item path="../contrib/logger/logger.cpp" ex="false" tool="1" flavor2="0">
       </item>
       <item path="../contrib/logger/logger.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../docs/CNAME" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../docs/_config.yml" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../docs/index.md" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../docs/syntax.md" ex="false" tool="3" flavor2="0">
       </item>
       <item path="autocomplete.h" ex="false" tool="3" flavor2="0">
       </item>
@@ -1052,8 +1081,6 @@
       </compileType>
       <item path="../README.md" ex="false" tool="3" flavor2="0">
       </item>
-      <item path="../Syntax.md" ex="false" tool="3" flavor2="0">
-      </item>
       <item path="../contrib/googletest/googletest/src/gtest-all.cc"
             ex="false"
             tool="1"
@@ -1067,6 +1094,14 @@
       <item path="../contrib/logger/logger.cpp" ex="false" tool="1" flavor2="9">
       </item>
       <item path="../contrib/logger/logger.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../docs/CNAME" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../docs/_config.yml" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../docs/index.md" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../docs/syntax.md" ex="false" tool="3" flavor2="0">
       </item>
       <item path="autocomplete.h" ex="false" tool="3" flavor2="0">
       </item>
@@ -1279,8 +1314,6 @@
       </compileType>
       <item path="../README.md" ex="false" tool="3" flavor2="0">
       </item>
-      <item path="../Syntax.md" ex="false" tool="3" flavor2="0">
-      </item>
       <item path="../contrib/googletest/googletest/src/gtest-all.cc"
             ex="false"
             tool="1"
@@ -1294,6 +1327,14 @@
       <item path="../contrib/logger/logger.cpp" ex="false" tool="1" flavor2="11">
       </item>
       <item path="../contrib/logger/logger.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../docs/CNAME" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../docs/_config.yml" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../docs/index.md" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../docs/syntax.md" ex="false" tool="3" flavor2="0">
       </item>
       <item path="autocomplete.h" ex="false" tool="3" flavor2="0">
       </item>
@@ -1502,8 +1543,6 @@
       </compileType>
       <item path="../README.md" ex="false" tool="3" flavor2="0">
       </item>
-      <item path="../Syntax.md" ex="false" tool="3" flavor2="0">
-      </item>
       <item path="../contrib/googletest/googletest/src/gtest-all.cc"
             ex="false"
             tool="1"
@@ -1517,6 +1556,14 @@
       <item path="../contrib/logger/logger.cpp" ex="false" tool="1" flavor2="11">
       </item>
       <item path="../contrib/logger/logger.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../docs/CNAME" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../docs/_config.yml" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../docs/index.md" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../docs/syntax.md" ex="false" tool="3" flavor2="0">
       </item>
       <item path="autocomplete.h" ex="false" tool="3" flavor2="0">
       </item>
