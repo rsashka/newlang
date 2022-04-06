@@ -79,23 +79,23 @@ namespace newlang {
 
 
 
-#define DEFINE_ENUM(name, cast) \
-newlang::ObjPtr name(const newlang::Context *ctx, const newlang::Object &in) {\
-    if(in.size() < 1 || !in.at(1).second) {\
-        LOG_CALLSTACK(std::invalid_argument, "Bad argument count parameter!");\
-    }\
-    return in.at(1).second->Convert(ObjType:: cast);\
-}\
-newlang::ObjPtr name##_(newlang::Context *ctx, newlang::Object &in) {\
-    if(in.size() < 1 || !in.at(1).second) {\
-        LOG_CALLSTACK(std::invalid_argument, "Bad argument count parameter!");\
-    }\
-    return in.at(1).second->Convert_(ObjType:: cast);\
-}
-
-    NL_BUILTIN_CAST_TYPE(DEFINE_ENUM)
-
-#undef DEFINE_ENUM
+//#define DEFINE_ENUM(name, cast) \
+//newlang::ObjPtr name(const newlang::Context *ctx, const newlang::Object &in) {\
+//    if(in.size() < 1 || !in.at(1).second) {\
+//        LOG_CALLSTACK(std::invalid_argument, "Bad argument count parameter!");\
+//    }\
+//    return in.at(1).second->Convert(ObjType:: cast);\
+//}\
+//newlang::ObjPtr name##_(newlang::Context *ctx, newlang::Object &in) {\
+//    if(in.size() < 1 || !in.at(1).second) {\
+//        LOG_CALLSTACK(std::invalid_argument, "Bad argument count parameter!");\
+//    }\
+//    return in.at(1).second->Convert_(ObjType:: cast);\
+//}
+//
+//    NL_BUILTIN_CAST_TYPE(DEFINE_ENUM)
+//
+//#undef DEFINE_ENUM
 
 }
 

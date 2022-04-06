@@ -654,135 +654,6 @@ TEST(Types, FromLimit) {
 
 }
 
-TEST(Types, Convert) {
-
-    /*
-     * - Встроеные функции преобразования простых типов данных
-     * - Передача аргументов функци по ссылкам
-     */
-
-    RuntimePtr opts = RunTime::Init();
-    Context ctx(opts);
-
-
-    EXPECT_TRUE(dlsym(nullptr, "_ZN7newlang4CharEPKNS_7ContextERKNS_6ObjectE"));
-    EXPECT_TRUE(dlsym(nullptr, "_ZN7newlang6Short_EPNS_7ContextERNS_6ObjectE"));
-
-    EXPECT_TRUE(opts->GetProcAddress(MangaledFunc("Char").c_str()));
-    EXPECT_TRUE(opts->GetProcAddress(MangaledFunc("Char_").c_str()));
-
-    ASSERT_TRUE(opts->GetProcAddress(MangaledFunc("Bool").c_str()));
-    ASSERT_TRUE(opts->GetProcAddress(MangaledFunc("Bool_").c_str()));
-
-    ASSERT_TRUE(opts->GetProcAddress(MangaledFunc("Char").c_str()));
-    ASSERT_TRUE(opts->GetProcAddress(MangaledFunc("Char_").c_str()));
-
-    ASSERT_TRUE(opts->GetProcAddress(MangaledFunc("Short").c_str()));
-    ASSERT_TRUE(opts->GetProcAddress(MangaledFunc("Short_").c_str()));
-
-    ASSERT_TRUE(opts->GetProcAddress(MangaledFunc("Int").c_str()));
-    ASSERT_TRUE(opts->GetProcAddress(MangaledFunc("Int_").c_str()));
-
-    ASSERT_TRUE(opts->GetProcAddress(MangaledFunc("Long").c_str()));
-    ASSERT_TRUE(opts->GetProcAddress(MangaledFunc("Long_").c_str()));
-
-    //    ASSERT_TRUE(opts->GetProcAddress(MangaledFunc("Half").c_str()));
-    //    ASSERT_TRUE(opts->GetProcAddress(MangaledFunc("Half_").c_str()));
-
-    ASSERT_TRUE(opts->GetProcAddress(MangaledFunc("Float").c_str()));
-    ASSERT_TRUE(opts->GetProcAddress(MangaledFunc("Float_").c_str()));
-
-    ASSERT_TRUE(opts->GetProcAddress(MangaledFunc("Double").c_str()));
-    ASSERT_TRUE(opts->GetProcAddress(MangaledFunc("Double_").c_str()));
-
-    ASSERT_TRUE(opts->GetProcAddress(MangaledFunc("ComplexFloat").c_str()));
-    ASSERT_TRUE(opts->GetProcAddress(MangaledFunc("ComplexFloat_").c_str()));
-
-    ASSERT_TRUE(opts->GetProcAddress(MangaledFunc("ComplexDouble").c_str()));
-    ASSERT_TRUE(opts->GetProcAddress(MangaledFunc("ComplexDouble_").c_str()));
-
-    //    ASSERT_TRUE(opts->GetProcAddress(MangaledFunc("BFloat16").c_str()));
-    //    ASSERT_TRUE(opts->GetProcAddress(MangaledFunc("BFloat16_").c_str()));
-
-    ASSERT_TRUE(opts->GetProcAddress(MangaledFunc("StrChar").c_str()));
-    ASSERT_TRUE(opts->GetProcAddress(MangaledFunc("StrChar_").c_str()));
-
-    ASSERT_TRUE(opts->GetProcAddress(MangaledFunc("StrWide").c_str()));
-    ASSERT_TRUE(opts->GetProcAddress(MangaledFunc("StrWide_").c_str()));
-
-    ASSERT_TRUE(opts->GetProcAddress(MangaledFunc("Dict").c_str()));
-    ASSERT_TRUE(opts->GetProcAddress(MangaledFunc("Dict_").c_str()));
-
-    ASSERT_TRUE(opts->GetProcAddress(MangaledFunc("Class").c_str()));
-    ASSERT_TRUE(opts->GetProcAddress(MangaledFunc("Class_").c_str()));
-
-    ASSERT_TRUE(opts->GetProcAddress(MangaledFunc("None").c_str()));
-    ASSERT_TRUE(opts->GetProcAddress(MangaledFunc("None_").c_str()));
-
-    ASSERT_TRUE(opts->GetProcAddress(MangaledFunc("Integer").c_str()));
-    ASSERT_TRUE(opts->GetProcAddress(MangaledFunc("Integer_").c_str()));
-
-    ASSERT_TRUE(opts->GetProcAddress(MangaledFunc("Number").c_str()));
-    ASSERT_TRUE(opts->GetProcAddress(MangaledFunc("Number_").c_str()));
-
-    ASSERT_TRUE(opts->GetProcAddress(MangaledFunc("Complex").c_str()));
-    ASSERT_TRUE(opts->GetProcAddress(MangaledFunc("Complex_").c_str()));
-
-    ASSERT_TRUE(opts->GetProcAddress(MangaledFunc("String").c_str()));
-    ASSERT_TRUE(opts->GetProcAddress(MangaledFunc("String_").c_str()));
-
-
-    ObjPtr byte = Object::CreateValue(1, ObjType::Bool);
-    ASSERT_EQ(ObjType::Bool, byte->m_var_type_current) << toString(byte->m_var_type_current);
-
-    ASSERT_TRUE(ctx.CallByName("Char", Object::Arg(byte)));
-    ASSERT_EQ(ObjType::Char, ctx.CallByName("Char", Object::Arg(byte))->m_var_type_current) << toString(byte->m_var_type_current);
-    ASSERT_EQ(ObjType::Bool, byte->m_var_type_current) << toString(byte->m_var_type_current);
-
-    ASSERT_EQ(ObjType::Char, newlang_Char(nullptr, Object::Arg(byte))->m_var_type_current) << toString(byte->m_var_type_current);
-    //    ASSERT_STREQ("1", newlang_Char(nullptr, Object::Arg(byte))->toString().c_str());
-
-    ASSERT_EQ(ObjType::Short, newlang_Short(nullptr, Object::Arg(byte))->m_var_type_current) << toString(byte->m_var_type_current);
-    ASSERT_EQ(ObjType::Int, newlang_Int(nullptr, Object::Arg(byte))->m_var_type_current) << toString(byte->m_var_type_current);
-    ASSERT_EQ(ObjType::Long, newlang_Long(nullptr, Object::Arg(byte))->m_var_type_current) << toString(byte->m_var_type_current);
-    //    ASSERT_EQ(ObjType::Half, newlang_Half(nullptr, Object::Arg(byte))->m_var_type) << toString(byte->m_var_type);
-    ASSERT_EQ(ObjType::Float, newlang_Float(nullptr, Object::Arg(byte))->m_var_type_current) << toString(byte->m_var_type_current);
-    ASSERT_EQ(ObjType::Double, newlang_Double(nullptr, Object::Arg(byte))->m_var_type_current) << toString(byte->m_var_type_current);
-
-    ASSERT_EQ(ObjType::Long, newlang_Integer(nullptr, Object::Arg(byte))->m_var_type_current) << toString(byte->m_var_type_current);
-    ASSERT_EQ(ObjType::Float, newlang_Number(nullptr, Object::Arg(byte))->m_var_type_current) << toString(byte->m_var_type_current);
-
-    ObjPtr cc = Object::CreateValue(99, ObjType::Char);
-    ASSERT_EQ(ObjType::Char, cc->m_var_type_current) << toString(cc->m_var_type_current);
-
-    ASSERT_EQ(ObjType::StrChar, newlang_StrChar(nullptr, Object::Arg(cc))->m_var_type_current) << toString(cc->m_var_type_current);
-    ASSERT_EQ(ObjType::StrWide, newlang_StrWide(nullptr, Object::Arg(cc))->m_var_type_current) << toString(cc->m_var_type_current);
-
-
-    ObjPtr ten = ctx.Eval("[99,100,101,102,]");
-    ASSERT_EQ(ObjType::Char, ten->m_var_type_current) << toString(ten->m_var_type_current);
-
-    ASSERT_EQ(ObjType::StrChar, newlang_StrChar(nullptr, Object::Arg(ten))->m_var_type_current) << toString(ten->m_var_type_current);
-    ASSERT_EQ(ObjType::StrWide, newlang_StrWide(nullptr, Object::Arg(ten))->m_var_type_current) << toString(ten->m_var_type_current);
-
-    //    ASSERT_EQ(ObjType::Byte, newlang_Byte_(nullptr, Object::Arg(byte))->m_var_type) << toString(byte->m_var_type);
-    //    ASSERT_EQ(ObjType::Byte, byte->m_var_type) << toString(byte->m_var_type);
-
-
-    //    ASSERT_EQ(ObjType::Byte, ctx.CallByName("Byte_", Object::Arg(byte))->m_var_type) << toString(byte->m_var_type);
-    //    ASSERT_EQ(ObjType::Byte, byte->m_var_type) << toString(byte->m_var_type);
-
-    // @todo Для работы функций mutable функций требуется передача по ссылкам !!!!!!!!!!!!1
-
-    //    ASSERT_EQ(ObjType::Char, ctx.CallByName("Char_", Object::Arg(byte))->m_var_type) << toString(byte->m_var_type);
-    //    ASSERT_EQ(ObjType::Char, byte->m_var_type) << toString(byte->m_var_type);
-    //
-    //    ASSERT_EQ(ObjType::Double, ctx.CallByName("Double_", Object::Arg(byte))->m_var_type) << toString(byte->m_var_type);
-    //    ASSERT_EQ(ObjType::Double, byte->m_var_type) << toString(byte->m_var_type);
-
-    //    Object::CreateFromType();
-
-}
 
 /*
  * - создание и инициализация тензоров
@@ -808,6 +679,48 @@ TEST(ObjTest, Tensor) {
     ASSERT_EQ(2, t1->m_value.dim());
     ASSERT_EQ(2, t1->m_value.size(0));
     ASSERT_EQ(3, t1->m_value.size(1));
+}
+
+TEST(Types, Convert) {
+
+    /*
+     * - Встроеные функции преобразования простых типов данных
+     * - Передача аргументов функци по ссылкам
+     */
+
+    RuntimePtr opts = RunTime::Init();
+    Context ctx(opts);
+
+
+    //    EXPECT_TRUE(dlsym(nullptr, "_ZN7newlang4CharEPKNS_7ContextERKNS_6ObjectE"));
+    //    EXPECT_TRUE(dlsym(nullptr, "_ZN7newlang6Short_EPNS_7ContextERNS_6ObjectE"));
+
+
+
+    ObjPtr value = Object::CreateNone();
+    ObjPtr range1 = Object::CreateRange(0, 0.99, 0.1);
+
+    ASSERT_TRUE(range1);
+    ASSERT_EQ(range1->getType(), ObjType::Range);
+    
+    ASSERT_NO_THROW(ConvertRangeToDict(range1.get(), *value.get()));
+    ASSERT_TRUE(value);
+
+    ASSERT_EQ(value->getType(), ObjType::Dict);
+    ASSERT_EQ(10, value->size());
+
+
+    //void ConvertRangeToDict(Object *from, Object &to);
+    //
+    //void ConvertStringToTensor(const std::string &from, torch::Tensor &to);
+    //void ConvertStringToTensor(const std::wstring &from, torch::Tensor &to);
+    //
+    //void ConvertTensorToString(const torch::Tensor &from, std::string &to, std::vector<int64_t> *index = nullptr);
+    //void ConvertTensorToString(const torch::Tensor &from, std::wstring &to, std::vector<int64_t> *index = nullptr);
+    //
+    //void ConvertDictToTensor(const Object &from, torch::Tensor &to);
+    //void ConvertTensorToDict(const torch::Tensor &from, Object &to, std::vector<int64_t> *index = nullptr);
+
 }
 
 #endif // UNITTEST

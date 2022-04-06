@@ -346,7 +346,7 @@ inline bool isObjectType(ObjType t) {
 }
 
 inline bool isFunction(ObjType t) {
-    return t == ObjType::TRANSPARENT || t == ObjType::FUNCTION || t == ObjType::NativeFunc || t == ObjType::EVAL_FUNCTION 
+    return t == ObjType::TRANSPARENT || t == ObjType::FUNCTION || t == ObjType::NativeFunc || t == ObjType::EVAL_FUNCTION
             || t == ObjType::EVAL_TRANSP || t == ObjType::EVAL_AND || t == ObjType::EVAL_OR || t == ObjType::EVAL_XOR;
 }
 
@@ -799,6 +799,24 @@ inline std::string IndexToString(const std::vector<Index> &index) {
 
     return ss.str();
 }
+
+/*
+ * Range -> Dict
+ * String -> Tensor
+ * Tensor -> String
+ * Dict -> Tensor
+ * Tensor -> Dict 
+ */
+void ConvertRangeToDict(Object *from, Object &to);
+
+void ConvertStringToTensor(const std::string &from, torch::Tensor &to);
+void ConvertStringToTensor(const std::wstring &from, torch::Tensor &to);
+
+void ConvertTensorToString(const torch::Tensor &from, std::string &to, std::vector<Index> *index = nullptr);
+void ConvertTensorToString(const torch::Tensor &from, std::wstring &to, std::vector<Index> *index = nullptr);
+
+void ConvertDictToTensor(const Object &from, torch::Tensor &to);
+void ConvertTensorToDict(const torch::Tensor &from, Object &to, std::vector<Index> *index = nullptr);
 
 } // namespace newlang
 

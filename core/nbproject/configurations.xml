@@ -1,11 +1,14 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <configurationDescriptor version="100">
   <logicalFolder name="root" displayName="root" projectFiles="true" kind="ROOT">
-    <logicalFolder name="f1" displayName="docs" projectFiles="true" kind="ROOT">
+    <logicalFolder name="f1" displayName="docs" projectFiles="true">
       <itemPath>../docs/CNAME</itemPath>
       <itemPath>../docs/_config.yml</itemPath>
+      <itemPath>../docs/algs.md</itemPath>
       <itemPath>../docs/index.md</itemPath>
+      <itemPath>../docs/ops.md</itemPath>
       <itemPath>../docs/syntax.md</itemPath>
+      <itemPath>../docs/types.md</itemPath>
     </logicalFolder>
     <logicalFolder name="SourceFiles"
                    displayName="Исходные файлы"
@@ -170,9 +173,15 @@
       </item>
       <item path="../docs/_config.yml" ex="false" tool="3" flavor2="0">
       </item>
+      <item path="../docs/algs.md" ex="false" tool="3" flavor2="0">
+      </item>
       <item path="../docs/index.md" ex="false" tool="3" flavor2="0">
       </item>
+      <item path="../docs/ops.md" ex="false" tool="3" flavor2="0">
+      </item>
       <item path="../docs/syntax.md" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../docs/types.md" ex="false" tool="3" flavor2="0">
       </item>
       <item path="autocomplete.h" ex="false" tool="3" flavor2="0">
       </item>
@@ -411,9 +420,15 @@
       </item>
       <item path="../docs/_config.yml" ex="false" tool="3" flavor2="0">
       </item>
+      <item path="../docs/algs.md" ex="false" tool="3" flavor2="0">
+      </item>
       <item path="../docs/index.md" ex="false" tool="3" flavor2="0">
       </item>
+      <item path="../docs/ops.md" ex="false" tool="3" flavor2="0">
+      </item>
       <item path="../docs/syntax.md" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../docs/types.md" ex="false" tool="3" flavor2="0">
       </item>
       <item path="autocomplete.h" ex="false" tool="3" flavor2="0">
       </item>
@@ -595,9 +610,15 @@
       </item>
       <item path="../docs/_config.yml" ex="false" tool="3" flavor2="0">
       </item>
+      <item path="../docs/algs.md" ex="false" tool="3" flavor2="0">
+      </item>
       <item path="../docs/index.md" ex="false" tool="3" flavor2="0">
       </item>
+      <item path="../docs/ops.md" ex="false" tool="3" flavor2="0">
+      </item>
       <item path="../docs/syntax.md" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../docs/types.md" ex="false" tool="3" flavor2="0">
       </item>
       <item path="autocomplete.h" ex="false" tool="3" flavor2="0">
       </item>
@@ -894,9 +915,15 @@
       </item>
       <item path="../docs/_config.yml" ex="false" tool="3" flavor2="0">
       </item>
+      <item path="../docs/algs.md" ex="false" tool="3" flavor2="0">
+      </item>
       <item path="../docs/index.md" ex="false" tool="3" flavor2="0">
       </item>
+      <item path="../docs/ops.md" ex="false" tool="3" flavor2="0">
+      </item>
       <item path="../docs/syntax.md" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../docs/types.md" ex="false" tool="3" flavor2="0">
       </item>
       <item path="autocomplete.h" ex="false" tool="3" flavor2="0">
       </item>
@@ -1099,9 +1126,15 @@
       </item>
       <item path="../docs/_config.yml" ex="false" tool="3" flavor2="0">
       </item>
+      <item path="../docs/algs.md" ex="false" tool="3" flavor2="0">
+      </item>
       <item path="../docs/index.md" ex="false" tool="3" flavor2="0">
       </item>
+      <item path="../docs/ops.md" ex="false" tool="3" flavor2="0">
+      </item>
       <item path="../docs/syntax.md" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../docs/types.md" ex="false" tool="3" flavor2="0">
       </item>
       <item path="autocomplete.h" ex="false" tool="3" flavor2="0">
       </item>
@@ -1332,9 +1365,15 @@
       </item>
       <item path="../docs/_config.yml" ex="false" tool="3" flavor2="0">
       </item>
+      <item path="../docs/algs.md" ex="false" tool="3" flavor2="0">
+      </item>
       <item path="../docs/index.md" ex="false" tool="3" flavor2="0">
       </item>
+      <item path="../docs/ops.md" ex="false" tool="3" flavor2="0">
+      </item>
       <item path="../docs/syntax.md" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../docs/types.md" ex="false" tool="3" flavor2="0">
       </item>
       <item path="autocomplete.h" ex="false" tool="3" flavor2="0">
       </item>
@@ -1561,9 +1600,15 @@
       </item>
       <item path="../docs/_config.yml" ex="false" tool="3" flavor2="0">
       </item>
+      <item path="../docs/algs.md" ex="false" tool="3" flavor2="0">
+      </item>
       <item path="../docs/index.md" ex="false" tool="3" flavor2="0">
       </item>
+      <item path="../docs/ops.md" ex="false" tool="3" flavor2="0">
+      </item>
       <item path="../docs/syntax.md" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../docs/types.md" ex="false" tool="3" flavor2="0">
       </item>
       <item path="autocomplete.h" ex="false" tool="3" flavor2="0">
       </item>

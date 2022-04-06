@@ -36,6 +36,16 @@ at::TensorOptions ConvertToTensorOptions(const Object *obj);
 at::DimnameList ConvertToDimnameList(const Object *obj);
 bool ParsePrintfFormat(Object args, size_t start = 1);
 
+enum class ConcatMode : uint8_t {
+    Error = 0,
+    Append = 1,
+    Discard = 2,
+};
+/* 
+ * Для строк, словарей и классов (преобразование в одно измерение), тензоров (преобразование согласно ConcatMode)
+ */
+void ConcatData(Object *recv, Object &src, ConcatMode mode = ConcatMode::Error);
+
 inline std::string utf8_encode(const std::wstring_view source) {
     try {
         return std::wstring_convert < std::codecvt_utf8<wchar_t>>().to_bytes(source.cbegin(), source.cend());
@@ -331,6 +341,11 @@ john.__module__ =  __main__
     }
 
     [[nodiscard]]
+    inline bool is_complex() const {
+        return isComplexType(m_var_type_current);
+    }
+
+    [[nodiscard]]
     inline bool is_floating() const {
         return isFloatingType(m_var_type_current);
     }
@@ -378,7 +393,6 @@ john.__module__ =  __main__
         return Variable<ObjPtr>::empty();
     }
 
-
     inline ObjPtr at(const std::string_view name) {
         return Variable<ObjPtr>::at(name.begin()).second;
     }
@@ -386,7 +400,7 @@ john.__module__ =  __main__
     inline ObjPtr at(const std::string_view name) const {
         Object * const obj = (Object * const) this;
         return obj->Variable<ObjPtr>::at(name.begin()).second;
-//        return Variable<ObjPtr>::at(name.begin()).second;
+        //        return Variable<ObjPtr>::at(name.begin()).second;
     }
 
     Variable<ObjPtr>::PairType & at(const int64_t index) override;
@@ -554,28 +568,19 @@ john.__module__ =  __main__
         return result;
     }
 
-    inline ObjPtr op_concat(ObjPtr obj) {
+    inline ObjPtr op_concat(ObjPtr obj, ConcatMode mode = ConcatMode::Error) {
         ASSERT(obj);
-        return op_concat(*obj);
+        return op_concat(*obj, mode);
     }
 
-    inline ObjPtr op_concat(Object &value) {
+    inline ObjPtr op_concat(Object &value, ConcatMode mode = ConcatMode::Error) {
         ObjPtr result = Clone();
-        result->op_concat_(value);
+        result->op_concat_(value, mode);
         return result;
     }
 
-    inline ObjPtr op_concat_(Object &obj) {
-        if (!is_string_type()) {
-            m_str = GetValueAsString();
-            m_var_type_current = ObjType::StrChar;
-        }
-        ASSERT(m_var_type_current == ObjType::StrWide || m_var_type_current == ObjType::StrChar);
-        if (m_var_type_current == ObjType::StrChar) {
-            m_str.append(obj.GetValueAsString());
-        } else if (m_var_type_current == ObjType::StrWide) {
-            m_wstr.append(obj.GetValueAsStringWide());
-        }
+    inline ObjPtr op_concat_(Object &obj, ConcatMode mode = ConcatMode::Error) {
+        ConcatData(this, obj, mode);
         return shared();
     }
 
@@ -1406,6 +1411,7 @@ john.__module__ =  __main__
         return result;
     }
     ObjPtr toType_(ObjType type);
+    ObjPtr toType_(TermPtr type);
 
     ObjPtr toShape(ObjPtr dims) const {
         ObjPtr result = Clone();

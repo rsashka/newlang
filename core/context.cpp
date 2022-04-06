@@ -49,14 +49,14 @@ Context::Context(RuntimePtr global) {
         Context::m_funcs["exec"] = CreateBuiltin("exec(filename:String)", (void *) &exec, ObjType::FUNCTION);
 
 
-#define REGISTER_TYPES(name, cast) \
-    ASSERT(Context::m_funcs.find(#name) == Context::m_funcs.end()); \
-    Context::m_funcs[#name] = CreateBuiltin(#name "(var): " #cast, (void *)& newlang:: name, ObjType::TRANSPARENT); \
-    Context::m_funcs[#name "_"] = CreateBuiltin(#name "_(&var): " #cast, (void *)& newlang:: name##_, ObjType::FUNCTION);
-
-        NL_BUILTIN_CAST_TYPE(REGISTER_TYPES)
-
-#undef REGISTER_TYPES
+//#define REGISTER_TYPES(name, cast) \
+//    ASSERT(Context::m_funcs.find(#name) == Context::m_funcs.end()); \
+//    Context::m_funcs[#name] = CreateBuiltin(#name "(var): " #cast, (void *)& newlang:: name, ObjType::TRANSPARENT); \
+//    Context::m_funcs[#name "_"] = CreateBuiltin(#name "_(&var): " #cast, (void *)& newlang:: name##_, ObjType::FUNCTION);
+//
+//        NL_BUILTIN_CAST_TYPE(REGISTER_TYPES)
+//
+//#undef REGISTER_TYPES
     }
 
     if(Context::m_types.empty()) {
@@ -1519,6 +1519,7 @@ ObjPtr Context::CreateRVal(Context *ctx, TermPtr term, Object & local_vars) {
     ObjPtr result = nullptr;
     ObjPtr temp = nullptr;
     ObjPtr args = nullptr;
+    ObjPtr value = nullptr;
     TermPtr field = nullptr;
     std::string full_name;
 
@@ -1527,6 +1528,7 @@ ObjPtr Context::CreateRVal(Context *ctx, TermPtr term, Object & local_vars) {
 
     char *ptr;
     int64_t val_int;
+    int64_t count;
     double val_dbl;
     ObjType type;
     bool has_error;
@@ -1661,114 +1663,198 @@ ObjPtr Context::CreateRVal(Context *ctx, TermPtr term, Object & local_vars) {
 
 
         case TermID::TENSOR_BEGIN:
+
+            // Сколько элементов должно быть в тензоре
+            count = -1;
+            if(term->GetType()) {
+                for (int i = 0; i < term->GetType()->m_dims.size(); i++) {
+                    temp = CreateRVal(ctx, term->GetType()->m_dims[i], local_vars);
+                    if(!temp->is_scalar() || !temp->is_integer()) {
+                        NL_PARSER(term->GetType()->m_dims[i], "Dim size supported as integer scalar only!");
+                    }
+                    if(temp->GetValueAsInteger() <= 0) {
+                        NL_PARSER(term->GetType()->m_dims[i], "Dim size failed!");
+                    }
+                    if(count == -1) {
+                        count = temp->GetValueAsInteger();
+                    } else {
+                        count *= temp->GetValueAsInteger();
+                    }
+                }
+            }
+
+            result->m_var_type_current = ObjType::Dict;
+
+            //  Наполнить элементами
             for (int i = 0; i < term->size(); i++) {
 
                 ASSERT((*term)[i]);
+
+                if((*term)[i]->getTermID() == TermID::ELLIPSIS) {
+
+                    /* 123, ... ->  123, 123, 123, 123, 123, 123 ...
+                     * [1,2,3,], ... -> [1,2,3,], [1,2,3,], ...
+                     * ... [1,2,3,] ->  [1,2,3,], [1,2,3,], ...
+                     * rand(), ... ->  0.123, 0.123, 0.123, ...  дублирует последний элемент
+                     * ... rand()  ->  0.123, 0.987, 0.567, ...  раскрывает словарь или выполняет последний элемент
+                     * ... ... dict ->  name1=val1, name2=val2, name3=val3 ... ????????????????????
+                     */
+                    ASSERT(!(*term)[i]->Left());
+                    ASSERT(!(*term)[i]->Right());
+
+                    if(!temp) {
+                        NL_PARSER((*term)[i], "No previous value!");
+                    }
+                    if(count < 0) {
+                        NL_PARSER(term, "Tensor type and dimension not set!");
+                    }
+
+                    // Продублировать последенее значение до конца размерности
+                    while(count) {
+                        result->push_back(temp->Clone());
+                        count -= 1;
+                    }
+
+                    result->m_var_is_init = true;
+                    return result->toType_(term->GetType());
+                }
+
                 temp = CreateRVal(ctx, (*term)[i], local_vars);
                 ASSERT(temp);
 
-                if(term->GetType()) { // Если указан конкретный тип данных
-                    type = typeFromString(term->GetType()->m_text, ctx);
-                    result->m_value = ConvertToTensor(temp.get(), toTorchType(type));
 
-                    if(term->GetType()->size()) {
-                        sizes = GetTensorShape(ctx, term->GetType(), local_vars);
-                        result->m_value = result->m_value.reshape(sizes);
+                if(temp->is_scalar()) {
+
+                    result->push_back(temp->Clone());
+                    count -= 1;
+
+                } else if(temp->is_range()) {
+
+                    value = (*temp)["start"]->Clone();
+                    while((*value) < (*temp)["stop"]) {
+                        result->push_back(value->Clone());
+                        count -= 1;
+                        (*value) += (*temp)["step"];
                     }
-
-                } else {
-                    result->m_value = ConvertToTensor(temp.get(), at::ScalarType::Undefined, false);
-                }
-                result->m_var_type_current = fromTorchType(result->m_value.scalar_type());
-                result->m_var_is_init = true;
-                
-
-                if(term[i]->GetTokenID() == TermID::RANGE) {
-                    ASSERT(!"Not implemented!");
-                } else if(term[i]->IsScalar() || term[i]->getTermID() == TermID::TERM) {
-                    temp = CreateRVal(ctx, (*term)[i], local_vars);
                     
-                } else if(term[i]->GetTokenID() == TermID::ELLIPSIS) {
-                    //                    if(!term->GetType()) {
-                    //                        NL_PARSER(term, "Tensor type must be defined for use ellipsis!");
-                    //                    }
-                    if(i && i + 1 != term->size()) {
-                        NL_PARSER(term, "Ellipsis supported as last argument only!");
-                    }
+                } else if((*term)[i]->GetTokenID() == TermID::TENSOR) {
+
+                    temp = CreateRVal(ctx, (*term)[i], local_vars);
+                    result->op_concat_(*temp.get());
+                  
+
+                } else {
+                    LOG_RUNTIME("Not implemented %s!", (*term)[i]->toString().c_str());
+
                 }
             }
 
-            if(term->size() == 2) {
-                ASSERT((*term)[1]->GetTokenID() == TermID::ELLIPSIS);
+            result->m_var_is_init = true;
+            return result->toType_(term->GetType());
 
 
-                if((*term)[0]->IsScalar() || (*term)[0]->getTermID() == TermID::TERM) {
-                    temp = CreateRVal(ctx, (*term)[0], local_vars);
-                } else if((*term)[0]->getTermID() == TermID::CALL) {
-
-                    //                    if(term[0]->size()){
-                    //                        NL_PARSER(term[0], "Args '%s' not implemented!", term[0]->toString().c_str());
-                    //                    }
-
-                    (*term)[0]->m_id = TermID::TERM;
-                    temp = ctx->GetObject((*term)[0]->getText().c_str());
-                    (*term)[0]->m_id = TermID::CALL;
-
-                    if(!temp) {
-                        NL_PARSER((*term)[0], "Term '%s' not found!", (*term)[0]->toString().c_str());
-                    }
-
-                } else {
-                    NL_PARSER((*term)[0], "Tensor value '%s' not implemented!", (*term)[0]->toString().c_str());
-                }
-
-                ASSERT(temp);
-
-                type = typeFromString(term->GetType()->m_text, ctx);
-                sizes = GetTensorShape(ctx, term->GetType(), local_vars);
-
-                if(temp->is_arithmetic_type() || temp->is_bool_type()) {
-                    torch_scalar = temp->toTorchScalar();
-                    result->m_value = torch::full(sizes, torch_scalar, toTorchType(type));
-                } else if(temp->is_function()) {
-                    result->m_value = torch::empty(sizes, toTorchType(type));
-
-                    ASSERT(temp->size() == 0); //?????????????????????????????
-
-                    ctx->ItemTensorEval(result->m_value, temp, args);
-
-                } else {
-                    NL_PARSER(term->GetType(), "Tensor type '%s' not implemented!", term->GetType()->toString().c_str());
-                }
-                result->m_var_type_current = fromTorchType(result->m_value.scalar_type());
-                result->m_var_type_fixed = result->m_var_type_current;
-                result->m_var_is_init = true;
-                return result;
-
-            } else {
-
-                temp = CreateRVal(ctx, (*term)[0], local_vars);
-                ASSERT(temp);
-
-                if(term->GetType()) {
-                    type = typeFromString(term->GetType()->m_text, ctx);
-                    result->m_value = ConvertToTensor(temp.get(), toTorchType(type));
-
-                    if(term->GetType()->size()) {
-                        sizes = GetTensorShape(ctx, term->GetType(), local_vars);
-                        result->m_value = result->m_value.reshape(sizes);
-                    }
-
-                } else {
-                    result->m_value = ConvertToTensor(temp.get(), at::ScalarType::Undefined, false);
-                }
-                result->m_var_type_current = fromTorchType(result->m_value.scalar_type());
-                result->m_var_is_init = true;
-
-                return result;
-            }
-
-            ASSERT(!"temp->is_function()");
+            //                if(term->GetType()) { // Если указан конкретный тип данных
+            //                    type = typeFromString(term->GetType()->m_text, ctx);
+            //                    result->m_value = ConvertToTensor(temp.get(), toTorchType(type));
+            //
+            //                    if(term->GetType()->size()) {
+            //                        sizes = GetTensorShape(ctx, term->GetType(), local_vars);
+            //                        result->m_value = result->m_value.reshape(sizes);
+            //                    }
+            //
+            //                } else {
+            //                    result->m_value = ConvertToTensor(temp.get(), at::ScalarType::Undefined, false);
+            //                }
+            //                result->m_var_type_current = fromTorchType(result->m_value.scalar_type());
+            //                result->m_var_is_init = true;
+            //
+            //
+            //                if(term[i]->GetTokenID() == TermID::RANGE) {
+            //                    ASSERT(!"Not implemented!");
+            //                } else if(term[i]->IsScalar() || term[i]->getTermID() == TermID::TERM) {
+            //                    temp = CreateRVal(ctx, (*term)[i], local_vars);
+            //
+            //                } else if(term[i]->GetTokenID() == TermID::ELLIPSIS) {
+            //                    //                    if(!term->GetType()) {
+            //                    //                        NL_PARSER(term, "Tensor type must be defined for use ellipsis!");
+            //                    //                    }
+            //                    if(i && i + 1 != term->size()) {
+            //                        NL_PARSER(term, "Ellipsis supported as last argument only!");
+            //                    }
+            //                }
+            //            }
+            //
+            //            if(term->size() == 2) {
+            //                ASSERT((*term)[1]->GetTokenID() == TermID::ELLIPSIS);
+            //
+            //
+            //                if((*term)[0]->IsScalar() || (*term)[0]->getTermID() == TermID::TERM) {
+            //                    temp = CreateRVal(ctx, (*term)[0], local_vars);
+            //                } else if((*term)[0]->getTermID() == TermID::CALL) {
+            //
+            //                    //                    if(term[0]->size()){
+            //                    //                        NL_PARSER(term[0], "Args '%s' not implemented!", term[0]->toString().c_str());
+            //                    //                    }
+            //
+            //                    (*term)[0]->m_id = TermID::TERM;
+            //                    temp = ctx->GetObject((*term)[0]->getText().c_str());
+            //                    (*term)[0]->m_id = TermID::CALL;
+            //
+            //                    if(!temp) {
+            //                        NL_PARSER((*term)[0], "Term '%s' not found!", (*term)[0]->toString().c_str());
+            //                    }
+            //
+            //                } else {
+            //                    NL_PARSER((*term)[0], "Tensor value '%s' not implemented!", (*term)[0]->toString().c_str());
+            //                }
+            //
+            //                ASSERT(temp);
+            //
+            //                type = typeFromString(term->GetType()->m_text, ctx);
+            //                sizes = GetTensorShape(ctx, term->GetType(), local_vars);
+            //
+            //                if(temp->is_arithmetic_type() || temp->is_bool_type()) {
+            //                    torch_scalar = temp->toTorchScalar();
+            //                    result->m_value = torch::full(sizes, torch_scalar, toTorchType(type));
+            //                } else if(temp->is_function()) {
+            //                    result->m_value = torch::empty(sizes, toTorchType(type));
+            //
+            //                    ASSERT(temp->size() == 0); //?????????????????????????????
+            //
+            //                    ctx->ItemTensorEval(result->m_value, temp, args);
+            //
+            //                } else {
+            //                    NL_PARSER(term->GetType(), "Tensor type '%s' not implemented!", term->GetType()->toString().c_str());
+            //                }
+            //                result->m_var_type_current = fromTorchType(result->m_value.scalar_type());
+            //                result->m_var_type_fixed = result->m_var_type_current;
+            //                result->m_var_is_init = true;
+            //                return result;
+            //
+            //            } else {
+            //
+            //                temp = CreateRVal(ctx, (*term)[0], local_vars);
+            //                ASSERT(temp);
+            //
+            //                if(term->GetType()) {
+            //                    type = typeFromString(term->GetType()->m_text, ctx);
+            //                    result->m_value = ConvertToTensor(temp.get(), toTorchType(type));
+            //
+            //                    if(term->GetType()->size()) {
+            //                        sizes = GetTensorShape(ctx, term->GetType(), local_vars);
+            //                        result->m_value = result->m_value.reshape(sizes);
+            //                    }
+            //
+            //                } else {
+            //                    result->m_value = ConvertToTensor(temp.get(), at::ScalarType::Undefined, false);
+            //                }
+            //                result->m_var_type_current = fromTorchType(result->m_value.scalar_type());
+            //                result->m_var_is_init = true;
+            //
+            //                return result;
+            //            }
+            //
+            //            ASSERT(!"temp->is_function()");
 
             //            if(temp->is_function()) {
             //                if(!term->Right()){

@@ -371,10 +371,11 @@ term    [$@%~]({ualpha}|[_])?({name})?
 "^^="       YY_TOKEN(SIMPLE_XOR);
 
 "//"        YY_TOKEN_ONLY(OPERATOR_DIV);
+"++="       YY_TOKEN(CREATE_OR_ASSIGN);
 "+="        YY_TOKEN(CREATE_OR_ASSIGN);
 "-="        YY_TOKEN(CREATE_OR_ASSIGN);
 "*="        YY_TOKEN(CREATE_OR_ASSIGN);
-"**="       YY_TOKEN(POWER);
+"**="       YY_TOKEN(CREATE_OR_ASSIGN);
 "/="        YY_TOKEN(CREATE_OR_ASSIGN);
 "//="       YY_TOKEN(CREATE_OR_ASSIGN);
 "%="        YY_TOKEN(CREATE_OR_ASSIGN);
