@@ -62,8 +62,8 @@ OBJECTFILES= \
 CFLAGS=
 
 # CC Compiler Flags
-CCFLAGS=-std=c++17 --no-gnu-unique -Wno-trigraphs -Winvalid-pch -Werror=return-type
-CXXFLAGS=-std=c++17 --no-gnu-unique -Wno-trigraphs -Winvalid-pch -Werror=return-type
+CCFLAGS=-std=c++17 --no-gnu-unique -Wno-trigraphs -Winvalid-pch -Werror=return-type -Wmaybe-uninitialized -Wuninitialized -Wformat -Wmaybe-uninitialized
+CXXFLAGS=-std=c++17 --no-gnu-unique -Wno-trigraphs -Winvalid-pch -Werror=return-type -Wmaybe-uninitialized -Wuninitialized -Wformat -Wmaybe-uninitialized
 
 # Fortran Compiler Flags
 FFLAGS=
@@ -187,7 +187,7 @@ ${OBJECTDIR}/parser.yy.o: parser.yy.cpp parser.y
 
 pch.h.gch: pch.h
 	@echo Выполнение шага пользовательского сборки
-	g++ -o pch.h.gch -c pch.h -g -I.. -I../contrib/libtorch/include/torch/csrc/api/include -I../contrib/libtorch/include --no-gnu-unique -Wno-trigraphs -Winvalid-pch -Werror=return-type -g -DDEBUG -DLOG_LEVEL_NORMAL=LOG_LEVEL_DEBUG -DPDC_WIDE -DUNITTEST -I../contrib/googletest/googletest -I../contrib/googletest/googletest/include -I../contrib/Lyra/include -I../contrib/libtorch/include/torch/csrc/api/include -I../contrib/libtorch/include -I.. -I../contrib/tensorboard_logger/include -I/usr/lib/llvm-13/include -std=c++17
+	g++ -o pch.h.gch -c pch.h -g -I.. -I../contrib/libtorch/include/torch/csrc/api/include -I../contrib/libtorch/include --no-gnu-unique -Wno-trigraphs -Winvalid-pch -Werror=return-type -Wmaybe-uninitialized -Wuninitialized -Wformat -Wmaybe-uninitialized -g -DDEBUG -DLOG_LEVEL_NORMAL=LOG_LEVEL_DEBUG -DPDC_WIDE -DUNITTEST -I../contrib/googletest/googletest -I../contrib/googletest/googletest/include -I../contrib/Lyra/include -I../contrib/libtorch/include/torch/csrc/api/include -I../contrib/libtorch/include -I.. -I../contrib/tensorboard_logger/include -I/usr/lib/llvm-13/include -std=c++17
 
 ${OBJECTDIR}/term.o: term.cpp parser.h parser.yy.h pch.h.gch location.hh
 	${MKDIR} -p ${OBJECTDIR}

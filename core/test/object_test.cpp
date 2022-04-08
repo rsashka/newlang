@@ -654,7 +654,6 @@ TEST(Types, FromLimit) {
 
 }
 
-
 /*
  * - создание и инициализация тензоров
  * - использование диапазонов при инициализации значений у словарей и тензоров
@@ -702,24 +701,159 @@ TEST(Types, Convert) {
 
     ASSERT_TRUE(range1);
     ASSERT_EQ(range1->getType(), ObjType::Range);
-    
+
     ASSERT_NO_THROW(ConvertRangeToDict(range1.get(), *value.get()));
     ASSERT_TRUE(value);
 
     ASSERT_EQ(value->getType(), ObjType::Dict);
     ASSERT_EQ(10, value->size());
 
+    ASSERT_DOUBLE_EQ(0, (*value)[0]->GetValueAsNumber());
+    ASSERT_DOUBLE_EQ(0.1, (*value)[1]->GetValueAsNumber());
+    ASSERT_DOUBLE_EQ(0.2, (*value)[2]->GetValueAsNumber());
+    ASSERT_DOUBLE_EQ(0.3, (*value)[3]->GetValueAsNumber());
+    ASSERT_DOUBLE_EQ(0.4, (*value)[4]->GetValueAsNumber());
+    ASSERT_DOUBLE_EQ(0.5, (*value)[5]->GetValueAsNumber());
+    ASSERT_DOUBLE_EQ(0.6, (*value)[6]->GetValueAsNumber());
+    ASSERT_DOUBLE_EQ(0.7, (*value)[7]->GetValueAsNumber());
+    ASSERT_DOUBLE_EQ(0.8, (*value)[8]->GetValueAsNumber());
+    ASSERT_DOUBLE_EQ(0.9, (*value)[9]->GetValueAsNumber());
 
-    //void ConvertRangeToDict(Object *from, Object &to);
-    //
-    //void ConvertStringToTensor(const std::string &from, torch::Tensor &to);
-    //void ConvertStringToTensor(const std::wstring &from, torch::Tensor &to);
-    //
-    //void ConvertTensorToString(const torch::Tensor &from, std::string &to, std::vector<int64_t> *index = nullptr);
-    //void ConvertTensorToString(const torch::Tensor &from, std::wstring &to, std::vector<int64_t> *index = nullptr);
-    //
-    //void ConvertDictToTensor(const Object &from, torch::Tensor &to);
-    //void ConvertTensorToDict(const torch::Tensor &from, Object &to, std::vector<int64_t> *index = nullptr);
+
+    ObjPtr range2 = Object::CreateRange(0, -5);
+
+    ASSERT_TRUE(range2);
+    ASSERT_EQ(range2->getType(), ObjType::Range);
+    ASSERT_EQ(0, (*range2)["start"]->GetValueAsInteger());
+    ASSERT_EQ(-5, (*range2)["stop"]->GetValueAsInteger());
+    ASSERT_EQ(-1, (*range2)["step"]->GetValueAsInteger());
+
+    ASSERT_NO_THROW(ConvertRangeToDict(range2.get(), *value.get()));
+    ASSERT_TRUE(value);
+
+    ASSERT_EQ(value->getType(), ObjType::Dict);
+    ASSERT_EQ(15, value->size());
+
+    ASSERT_EQ(0, (*value)[10]->GetValueAsInteger());
+    ASSERT_EQ(-1, (*value)[11]->GetValueAsInteger());
+    ASSERT_EQ(-2, (*value)[12]->GetValueAsInteger());
+    ASSERT_EQ(-3, (*value)[13]->GetValueAsInteger());
+    ASSERT_EQ(-4, (*value)[14]->GetValueAsInteger());
+
+    torch::Tensor tensor1 = torch::empty({0});
+    ASSERT_NO_THROW(ConvertStringToTensor("test", tensor1));
+
+    ASSERT_EQ(1, tensor1.dim());
+    ASSERT_EQ(4, tensor1.size(0));
+    ASSERT_EQ('t', tensor1.index({0}).item<int>());
+    ASSERT_EQ('e', tensor1.index({1}).item<int>());
+    ASSERT_EQ('s', tensor1.index({2}).item<int>());
+    ASSERT_EQ('t', tensor1.index({3}).item<int>());
+
+    torch::Tensor tensor2 = torch::empty({0});
+    ASSERT_NO_THROW(ConvertStringToTensor(L"TESTЁ", tensor2));
+    ASSERT_EQ(1, tensor2.dim());
+    ASSERT_EQ(5, tensor2.size(0));
+    ASSERT_EQ(L'T', tensor2.index({0}).item<int>());
+    ASSERT_EQ(L'E', tensor2.index({1}).item<int>());
+    ASSERT_EQ(L'S', tensor2.index({2}).item<int>());
+    ASSERT_EQ(L'T', tensor2.index({3}).item<int>());
+    ASSERT_EQ(L'Ё', tensor2.index({4}).item<int>());
+
+    torch::Tensor tensor_utf = torch::empty({0});
+    ASSERT_NO_THROW(ConvertStringToTensor(L"Русё", tensor_utf));
+    ASSERT_EQ(1, tensor_utf.dim());
+    ASSERT_EQ(4, tensor_utf.size(0));
+    ASSERT_EQ(L'Р', tensor_utf.index({0}).item<int>());
+    ASSERT_EQ(L'у', tensor_utf.index({1}).item<int>());
+    ASSERT_EQ(L'с', tensor_utf.index({2}).item<int>());
+    ASSERT_EQ(L'ё', tensor_utf.index({3}).item<int>());
+
+
+    std::string str1;
+    ASSERT_NO_THROW(ConvertTensorToString(torch::range(1, 4, 1), str1));
+    ASSERT_STREQ("\x1\x2\x3\x4", str1.c_str());
+
+    std::wstring str2;
+    ASSERT_NO_THROW(ConvertTensorToString(torch::range(0x1001, 0x4008, 0x1002), str2));
+    ASSERT_EQ(4, str2.size());
+    ASSERT_EQ(L'\x10\x01', str2[0]);
+    ASSERT_EQ(L'\x20\x03', str2[1]);
+    ASSERT_EQ(L'\x30\x05', str2[2]);
+    ASSERT_EQ(L'\x40\x07', str2[3]);
+
+    //    ASSERT_EQ(0x1001, str2[0]);
+    //    ASSERT_EQ(0x2003, str2[1]);
+    //    ASSERT_EQ(0x3005, str2[2]);
+    //    ASSERT_EQ(0x4007, str2[3]);
+
+    std::string str3;
+    int array[8] = {1, 2, 3, 4, 5, 6, 7, 8};
+    torch::Tensor tensor4 = torch::from_blob(array,{2, 4}, at::kInt);
+
+    ASSERT_EQ(2, tensor4.dim());
+    ASSERT_EQ(2, tensor4.size(0));
+    ASSERT_EQ(4, tensor4.size(1));
+    ASSERT_NO_THROW(ConvertTensorToString(tensor4, str1));
+    ASSERT_STREQ("\x1\x2\x3\x4\x5\x6\x7\x8", str1.c_str());
+
+
+    ObjPtr dict1 = Object::CreateNone();
+    ASSERT_NO_THROW(ConvertTensorToDict(tensor1, *dict1.get()));
+    ASSERT_EQ(4, dict1->size());
+    ASSERT_EQ('t', (*dict1)[0]->GetValueAsInteger());
+    ASSERT_EQ('e', (*dict1)[1]->GetValueAsInteger());
+    ASSERT_EQ('s', (*dict1)[2]->GetValueAsInteger());
+    ASSERT_EQ('t', (*dict1)[3]->GetValueAsInteger());
+
+    ASSERT_NO_THROW(ConvertTensorToDict(tensor4, *dict1.get()));
+    ASSERT_EQ(12, dict1->size());
+    ASSERT_EQ('t', (*dict1)[0]->GetValueAsInteger());
+    ASSERT_EQ('e', (*dict1)[1]->GetValueAsInteger());
+    ASSERT_EQ('s', (*dict1)[2]->GetValueAsInteger());
+    ASSERT_EQ('t', (*dict1)[3]->GetValueAsInteger());
+    ASSERT_EQ(1, (*dict1)[4]->GetValueAsInteger());
+    ASSERT_EQ(2, (*dict1)[5]->GetValueAsInteger());
+    ASSERT_EQ(3, (*dict1)[6]->GetValueAsInteger());
+    ASSERT_EQ(4, (*dict1)[7]->GetValueAsInteger());
+    ASSERT_EQ(5, (*dict1)[8]->GetValueAsInteger());
+    ASSERT_EQ(6, (*dict1)[9]->GetValueAsInteger());
+    ASSERT_EQ(7, (*dict1)[10]->GetValueAsInteger());
+    ASSERT_EQ(8, (*dict1)[11]->GetValueAsInteger());
+
+    ASSERT_NO_THROW(ConvertTensorToDict(tensor2, *dict1.get()));
+    ASSERT_EQ(17, dict1->size());
+
+    ASSERT_EQ(L'T', (*dict1)[12]->GetValueAsInteger());
+    ASSERT_EQ(L'E', (*dict1)[13]->GetValueAsInteger());
+    ASSERT_EQ(L'S', (*dict1)[14]->GetValueAsInteger());
+    ASSERT_EQ(L'T', (*dict1)[15]->GetValueAsInteger());
+    ASSERT_EQ(L'Ё', (*dict1)[16]->GetValueAsInteger());
+
+    torch::Tensor result = torch::empty({0});
+    ASSERT_NO_THROW(ConvertDictToTensor(*dict1.get(), result));
+    ASSERT_EQ(1, result.dim());
+    ASSERT_EQ(17, result.size(0));
+
+
+    ASSERT_EQ('t', result.index({0}).item<int>()) << TensorToString(result) << "\n";
+    ASSERT_EQ('e', result.index({1}).item<int>());
+    ASSERT_EQ('s', result[2].item<int>());
+    ASSERT_EQ('t', result[3].item<int>());
+    ASSERT_EQ(1, result[4].item<int>());
+    ASSERT_EQ(2, result[5].item<int>());
+    ASSERT_EQ(3, result[6].item<int>());
+    ASSERT_EQ(4, result[7].item<int>());
+    ASSERT_EQ(5, result[8].item<int>());
+    ASSERT_EQ(6, result[9].item<int>());
+    ASSERT_EQ(7, result[10].item<int>());
+    ASSERT_EQ(8, result[11].item<int>());
+
+    ASSERT_EQ(L'T', result[12].item<int>());
+    ASSERT_EQ(L'E', result[13].item<int>());
+    ASSERT_EQ(L'S', result[14].item<int>());
+    ASSERT_EQ(L'T', result[15].item<int>());
+    ASSERT_EQ(L'Ё', result[16].item<int>());
 
 }
 

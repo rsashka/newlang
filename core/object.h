@@ -629,40 +629,40 @@ john.__module__ =  __main__
     //        LOG_RUNTIME("Operator '>>>' not implementd!");
     //    }
 
-    inline ObjPtr operator<(ObjPtr obj) {
+    inline bool operator<(ObjPtr obj) {
         ASSERT(obj);
         return operator<(*obj);
     }
 
-    inline ObjPtr operator<(Object obj) {
-        return Object::CreateBool(op_compare(obj) < 0);
+    inline bool operator<(Object obj) {
+        return op_compare(obj) < 0;
     }
 
-    inline ObjPtr operator<=(ObjPtr obj) {
+    inline bool operator<=(ObjPtr obj) {
         ASSERT(obj);
         return operator<=(*obj);
     }
 
-    inline ObjPtr operator<=(Object obj) {
-        return Object::CreateBool(op_compare(obj) <= 0);
+    inline bool operator<=(Object obj) {
+        return op_compare(obj) <= 0;
     }
 
-    inline ObjPtr operator>(ObjPtr obj) {
+    inline bool operator>(ObjPtr obj) {
         ASSERT(obj);
         return operator>(*obj);
     }
 
-    inline ObjPtr operator>(Object obj) {
-        return Object::CreateBool(op_compare(obj) > 0);
+    inline bool operator>(Object obj) {
+        return op_compare(obj) > 0;
     }
 
-    inline ObjPtr operator>=(ObjPtr obj) {
+    inline bool operator>=(ObjPtr obj) {
         ASSERT(obj);
         return operator>=(*obj);
     }
 
-    inline ObjPtr operator>=(Object obj) {
-        return Object::CreateBool(op_compare(obj) >= 0);
+    inline bool operator>=(Object obj) {
+        return op_compare(obj) >= 0;
     }
     int op_compare(Object & value);
 
@@ -1046,6 +1046,20 @@ john.__module__ =  __main__
         return obj;
     }
 
+    template <typename T1, typename T2>
+    static ObjPtr CreateRange(T1 start, T2 stop) {
+        ObjPtr obj = CreateType(ObjType::Range);
+        obj->push_back(CreateValue(start), "start");
+        obj->push_back(CreateValue(stop), "stop");
+        if (start < stop) {
+            obj->push_back(CreateValue(1), "step");
+        } else {
+            obj->push_back(CreateValue(-1), "step");
+        }
+        obj->m_var_is_init = true;
+        return obj;
+    }
+
     inline static ObjPtr CreateLambda() {
         return CreateType(ObjType::FUNCTION);
     }
@@ -1292,7 +1306,7 @@ john.__module__ =  __main__
         return result;
     }
 
-    static ObjPtr CreateString(std::string str) {
+    static ObjPtr CreateString(const std::string str) {
         ObjPtr result = CreateType(ObjType::StrChar);
         result->m_str = str;
         result->m_var_type_fixed = ObjType::String;
@@ -1300,7 +1314,7 @@ john.__module__ =  __main__
         return result;
     }
 
-    static ObjPtr CreateString(std::wstring str) {
+    static ObjPtr CreateString(const std::wstring str) {
         ObjPtr result = CreateType(ObjType::StrWide);
         result->m_wstr = str;
         result->m_var_type_fixed = ObjType::String;

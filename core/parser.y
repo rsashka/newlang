@@ -556,7 +556,6 @@ range: range_val  RANGE  range_val
             $$ = $2;
             $$->push_back($1, "start");
             $$->push_back($3, "stop");
-            $$->push_back(Term::Create(TermID::INTEGER,"1"), "step");
         }
     | range_val  RANGE  range_val  RANGE  range_val
         {

@@ -554,7 +554,7 @@
             <pElem>../contrib/tensorboard_logger/include</pElem>
             <pElem>/usr/lib/llvm-13/include</pElem>
           </incDir>
-          <commandLine>-std=c++17 --no-gnu-unique -Wno-trigraphs -Winvalid-pch -Werror=return-type</commandLine>
+          <commandLine>-std=c++17 --no-gnu-unique -Wno-trigraphs -Winvalid-pch -Werror=return-type -Wmaybe-uninitialized -Wuninitialized -Wformat -Wmaybe-uninitialized</commandLine>
           <preprocessorList>
             <Elem>DEBUG</Elem>
             <Elem>LOG_LEVEL_NORMAL=LOG_LEVEL_DEBUG</Elem>
@@ -733,7 +733,7 @@
       </item>
       <item path="pch.h" ex="false" tool="3" flavor2="0">
         <customTool>
-          <customToolCommandline>g++ -o pch.h.gch -c pch.h -g -I.. -I../contrib/libtorch/include/torch/csrc/api/include -I../contrib/libtorch/include --no-gnu-unique -Wno-trigraphs -Winvalid-pch -Werror=return-type -g -DDEBUG -DLOG_LEVEL_NORMAL=LOG_LEVEL_DEBUG -DPDC_WIDE -DUNITTEST -I../contrib/googletest/googletest -I../contrib/googletest/googletest/include -I../contrib/Lyra/include -I../contrib/libtorch/include/torch/csrc/api/include -I../contrib/libtorch/include -I.. -I../contrib/tensorboard_logger/include -I/usr/lib/llvm-13/include -std=c++17</customToolCommandline>
+          <customToolCommandline>g++ -o pch.h.gch -c pch.h -g -I.. -I../contrib/libtorch/include/torch/csrc/api/include -I../contrib/libtorch/include --no-gnu-unique -Wno-trigraphs -Winvalid-pch -Werror=return-type -Wmaybe-uninitialized -Wuninitialized -Wformat -Wmaybe-uninitialized -g -DDEBUG -DLOG_LEVEL_NORMAL=LOG_LEVEL_DEBUG -DPDC_WIDE -DUNITTEST -I../contrib/googletest/googletest -I../contrib/googletest/googletest/include -I../contrib/Lyra/include -I../contrib/libtorch/include/torch/csrc/api/include -I../contrib/libtorch/include -I.. -I../contrib/tensorboard_logger/include -I/usr/lib/llvm-13/include -std=c++17</customToolCommandline>
           <customToolOutputs>pch.h.gch</customToolOutputs>
         </customTool>
       </item>

@@ -815,8 +815,9 @@ void ConvertStringToTensor(const std::wstring &from, torch::Tensor &to);
 void ConvertTensorToString(const torch::Tensor &from, std::string &to, std::vector<Index> *index = nullptr);
 void ConvertTensorToString(const torch::Tensor &from, std::wstring &to, std::vector<Index> *index = nullptr);
 
-void ConvertDictToTensor(const Object &from, torch::Tensor &to);
+void ConvertDictToTensor(Object &from, torch::Tensor &to);
 void ConvertTensorToDict(const torch::Tensor &from, Object &to, std::vector<Index> *index = nullptr);
+void ConvertValueToTensor(Object *from, torch::Tensor &to);
 
 } // namespace newlang
 

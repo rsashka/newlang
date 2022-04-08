@@ -2103,19 +2103,25 @@ void newlang::ConvertRangeToDict(Object *from, Object &to) {
     ASSERT(from->at("stop"));
     ASSERT(from->at("step"));
 
-    to.m_var_type_current = ObjType::Dict;
+    ASSERT(to.m_var_type_current == ObjType::Dict || to.m_var_type_current == ObjType::None);
 
-    //    std::cout << "START: " << from->at("start")->toString() << "\n";
-    //    std::cout << "STOP:  " << from->at("stop")->toString() << "\n";
-    //    std::cout << "STEP:  " << from->at("step")->toString() << "\n";
+    if(!to.is_dictionary_type()) {
+        to.m_var_type_current = ObjType::Dict;
+    }
 
     ObjPtr value = (*from)["start"]->Clone();
-    while((*value) < (*from)["stop"]) {
-        to.push_back(value->Clone());
-        (*value) += (*from)["step"];
-
-        std::cout << value->toString() << "\n";
-        break;
+    if((*value) < (*from)["stop"]) {
+        ASSERT((*from)["step"]->GetValueAsNumber() > 0);
+        while((*value) < (*from)["stop"]) {
+            to.push_back(value->Clone());
+            (*value) += (*from)["step"];
+        }
+    } else {
+        ASSERT((*from)["step"]->GetValueAsNumber() < 0);
+        while((*value) > (*from)["stop"]) {
+            to.push_back(value->Clone());
+            (*value) += (*from)["step"];
+        }
     }
 
     to.m_var_is_init = true;
@@ -2143,24 +2149,23 @@ void ConvertTensorToStringTemplate(const torch::Tensor &from, T &to, std::vector
 
     }
 
-    std::vector<Index> dims;
+    std::vector<Index> dims({0});
     if(index == nullptr) {
         to.clear();
         index = &dims;
     }
 
     int64_t pos = index->size();
-    if(pos + 1 == from.dim()) {
-        index->push_back(0);
-        for (int i = 0; i < from.size(pos); i++) {
+    if(pos == from.dim()) {
+        for (int i = 0; i < from.size(pos - 1); i++) {
+            (*index)[pos - 1] = i;
             to += from.index(*index).toType(at::ScalarType::Char).item<int>();
-            (*index)[index->size() - 1] = i;
         }
     } else {
         index->push_back(0);
-        for (int64_t i = 0; i < from.size(pos); i++) {
+        for (int64_t i = 0; i < from.size(pos - 1); i++) {
+            (*index)[pos - 1] = i;
             ConvertTensorToString(from, to, index);
-            (*index)[pos] = i;
         }
     }
 }
@@ -2173,9 +2178,76 @@ void newlang::ConvertTensorToString(const torch::Tensor &from, std::wstring &to,
     ConvertTensorToStringTemplate<std::wstring>(from, to, index);
 }
 
-void newlang::ConvertDictToTensor(const Object &from, torch::Tensor & to) {
+void newlang::ConvertTensorToDict(const torch::Tensor &from, Object &to, std::vector<Index> *index) {
+
+    to.m_var_is_init = false;
+    ASSERT(to.m_var_type_current == ObjType::Dict || to.m_var_type_current == ObjType::None);
+    if(!to.is_dictionary_type()) {
+        to.m_var_type_current = ObjType::Dict;
+    }
+
+    if(from.dim() == 0) {
+        ASSERT(index == nullptr);
+        to.push_back(Object::CreateTensor(from));
+        return;
+    }
+
+    std::vector<Index> dims({0});
+    if(index == nullptr) {
+        index = &dims;
+    }
+
+    int64_t pos = index->size();
+    if(pos == from.dim()) {
+        for (int i = 0; i < from.size(pos - 1); i++) {
+            (*index)[pos - 1] = i;
+            to.push_back(Object::CreateTensor(from.index(*index)));
+        }
+    } else {
+        index->push_back(0);
+        for (int64_t i = 0; i < from.size(pos - 1); i++) {
+            (*index)[pos - 1] = i;
+            ConvertTensorToDict(from, to, index);
+        }
+    }
+
+    to.m_var_is_init = true;
+}
+
+void newlang::ConvertDictToTensor(Object &from, torch::Tensor & to) {
+
+    torch::Tensor temp;
+    for (size_t i = 0; i < from.size(); i++) {
+        ConvertValueToTensor(from.at(i).second.get(), temp);
+
+        if(temp.dim() == 0) {
+            temp = temp.reshape({1});
+        }
+
+        if(to.dim() != 1 || to.size(0) == 0) {
+            to = temp.clone();
+        } else {
+            to = torch::cat({to, temp});
+        }
+    }
 
 }
 
-void newlang::ConvertTensorToDict(const torch::Tensor &from, Object &to, std::vector<Index> *index) {
+void newlang::ConvertValueToTensor(Object *from, torch::Tensor &to) {
+    ASSERT(from);
+    if(from->is_tensor()) {
+        to = from->m_value.clone();
+    } else if(from->is_range()) {
+        ObjPtr temp = Object::CreateNone();
+        ConvertRangeToDict(from, *temp.get());
+        ConvertDictToTensor(*temp.get(), to);
+    } else if(from->getType() == ObjType::StrChar) {
+        ConvertStringToTensor(from->m_str, to);
+    } else if(from->getType() == ObjType::StrWide) {
+        ConvertStringToTensor(from->m_wstr, to);
+    } else if(from->is_dictionary_type()) {
+        ConvertDictToTensor(*from, to);
+    } else {
+        LOG_RUNTIME("Fail convert object type %s to tensor (%s)!", newlang::toString(from->getType()), from->toString().c_str());
+    }
 }
