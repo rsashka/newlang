@@ -6,6 +6,7 @@ contrib/*
 **/CMakeCache.txt
 **/*.cmake
 **/newlang-unit-tests
+**/nlc
 **/DartConfiguration.tcl
 Makefile
 
