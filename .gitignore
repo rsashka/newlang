@@ -1,6 +1,13 @@
 TEMP
 **/*.pt
 contrib/*
+**/.obsidian
+**/CMakeFiles
+**/CMakeCache.txt
+**/*.cmake
+**/newlang-unit-tests
+**/DartConfiguration.tcl
+Makefile
 
 # Binaries
 *.7z

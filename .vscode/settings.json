@@ -1,0 +1,11 @@
+{
+    /*********
+ * CMake *
+ *********/
+  // When you save the contents of cmake.sourceDirectory or CMakeLists.txt, the CMake project directory is not automatically configured
+  "cmake.configureOnEdit": false,
+  // Automatically configure the CMake project directory when it is opened
+  "cmake.configureOnOpen": true,
+  // After successful configuration, compile will be_ Copy commands.json to this location
+  "cmake.copyCompileCommands": "",
+}

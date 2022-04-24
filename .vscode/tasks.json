@@ -1,0 +1,54 @@
+{
+    // See https://go.microsoft.com/fwlink/?LinkId=733558
+    // for the documentation about the tasks.json format
+    "version": "2.0.0",
+    "tasks": [
+        {
+            "label": "Build Debug",
+            "type": "shell",
+            "command": "cmake",
+            "args": [            
+                "--build",            
+               "${workspaceFolder}",
+            // "${workspaceFolder}/build"        
+            ],
+            "problemMatcher": [],
+            "group": {
+                "kind": "build",
+                "isDefault": false
+            }
+        },    
+        {
+            "label": "Run cmake",
+            "type": "shell",
+            "command": "cmake",
+            "args": [            
+                "${workspaceFolder}",            
+                //"--build",            
+               // "${workspaceFolder}/build"        
+            ],
+            "problemMatcher": [],
+            "group": {
+                "kind": "build",
+                "isDefault": false
+            }
+        },
+        {
+            "label": "Run UnitTest",
+            "type": "shell",
+            "command": "${workspaceFolder}/newlang-unit-tests",
+            "args": [            
+                "--gtest_shuffle",            
+                "--gtest_filter=Types.Convert:Eval.Tensor:Eval.Assign:ParserTest.Tensor1",            
+               // "${workspaceFolder}/build"        
+            ],
+            "problemMatcher": [],
+            // "group": {
+            //     "kind": "build",
+            //     "isDefault": false
+            // }
+        },
+        // 
+
+    ]
+}
