@@ -76,7 +76,7 @@ namespace newlang {
         if(!ctx) {
             LOG_RUNTIME("No access to context!");
         }
-        return ctx->Exec(in.at(1).second->GetValueAsString().c_str());
+        return ctx->ExecFile(in.at(1).second->GetValueAsString().c_str());
     }
 
 
