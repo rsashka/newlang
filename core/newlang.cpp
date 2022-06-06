@@ -369,7 +369,7 @@ std::string newlang::MangaledFunc(const std::string name) {
     std::string result("_ZN7newlang");
     result += std::to_string(name.size());
     result += name;
-    result += isMutable(name) ? "EPNS_7ContextERNS_6ObjectE" : "EPKNS_7ContextERKNS_6ObjectE";
+    result += isMutableName(name) ? "EPNS_7ContextERNS_6ObjectE" : "EPKNS_7ContextERKNS_6ObjectE";
     return result;
 }
 

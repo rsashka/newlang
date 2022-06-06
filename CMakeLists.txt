@@ -1,8 +1,19 @@
-cmake_minimum_required(VERSION 3.16.0)
+cmake_minimum_required(VERSION 3.16.0 FATAL_ERROR)
 project(NewLang VERSION 0.1.0 LANGUAGES CXX)
 
 get_directory_property(IS_SUBPROJECT PARENT_DIRECTORY)
 
+# option(BUILD_TEST "Build test" OFF)
+# if (BUILD_TEST)
+#     add_executable(tensorboard_logger_test tests/test_tensorboard_logger.cc)
+#     target_include_directories(tensorboard_logger_test
+#     PRIVATE
+#         $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>
+#     )
+#     target_link_libraries(tensorboard_logger_test tensorboard_logger)
+# endif()
+
+# cmake -DBUILD_TEST=O
 
 
 option(MYLIB_TESTING "Включить модульное тестирование" ON)
@@ -28,25 +39,39 @@ add_compile_options(
 set(THREADS_PREFER_PTHREAD_FLAG ON)
 find_package(Threads REQUIRED)
 
-#file(GLOB protos "contrib/tensorboard_logger/proto/*.proto")
 
-#protobuf_generate_cpp(PROTO_SRCS PROTO_HDRS ${protos})
-
-
+add_custom_command(
+    OUTPUT
+        # ${ATXT}
+        ${CMAKE_CURRENT_SOURCE_DIR}/core/parser.yy.h
+        ${CMAKE_CURRENT_SOURCE_DIR}/core/parser.yy.cpp
+        ${CMAKE_CURRENT_SOURCE_DIR}/core/lexer.yy.h
+        ${CMAKE_CURRENT_SOURCE_DIR}/core/lexer.yy.cpp
+        ${CMAKE_CURRENT_SOURCE_DIR}/core/location.hh
+    COMMAND ./compile_syntax.sh
+    WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/core
+    COMMENT "Compile syntax from files parser.y and lexer.l"
+    DEPENDS
+        ${CMAKE_CURRENT_SOURCE_DIR}/core/compile_syntax.sh
+        ${CMAKE_CURRENT_SOURCE_DIR}/core/parser.y
+        ${CMAKE_CURRENT_SOURCE_DIR}/core/lexer.l
+    VERBATIM)
+ 
 
 file(GLOB CORE_SRC
-    core/builtin.cpp
-    core/context.cpp
-    core/lexer.cpp
-    core/lexer.yy.cpp
-    core/newlang.cpp
-    core/object.cpp
-    core/parser.cpp
-    core/parser.yy.cpp
-    core/term.cpp
-    core/variable.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/core/builtin.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/core/context.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/core/lexer.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/core/lexer.yy.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/core/newlang.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/core/object.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/core/parser.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/core/parser.yy.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/core/term.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/core/variable.cpp
     
-    contrib/logger/logger.cpp
+
+    ${CMAKE_CURRENT_SOURCE_DIR}/contrib/logger/logger.cpp
 
     # core/builtin.cpp
     # core/context.cpp
@@ -67,9 +92,9 @@ file(GLOB CORE_SRC
 
 
 file(GLOB TEST_SRC
-    core/test/*.cpp)
+    ${CMAKE_CURRENT_SOURCE_DIR}/core/test/*.cpp)
 file(GLOB NLC_SRC
-    core/nlc.cpp)
+    ${CMAKE_CURRENT_SOURCE_DIR}/core/nlc.cpp)
 
 link_directories(contrib/libtorch/lib)
 link_directories(contrib/libffi/output/lib)
@@ -152,6 +177,7 @@ else()
     target_sources(newlang-unit-tests PRIVATE core/test/)
 endif()
 
+enable_testing()
 
 
 # Для установки целей необходимо первым аргументом описанной функции передать ключевое слово TARGETS, за которым должен следовать список устанавливаемых целей, а затем ключевое слово DESTINATION с расположением каталога, в который установятся указанные цели. Данный пример демонстрирует типичную установку целей:

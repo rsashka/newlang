@@ -1,11 +1,42 @@
 {
-    /*********
+  /*********
  * CMake *
  *********/
   // When you save the contents of cmake.sourceDirectory or CMakeLists.txt, the CMake project directory is not automatically configured
-  "cmake.configureOnEdit": false,
+  "cmake.configureOnEdit": true,
   // Automatically configure the CMake project directory when it is opened
   "cmake.configureOnOpen": true,
   // After successful configuration, compile will be_ Copy commands.json to this location
   "cmake.copyCompileCommands": "",
+  "cmake.debugConfig": {
+    "type": "lldb",
+    "request": "launch",
+    "program": "${command:cmake.launchTargetPath}",
+    "args": [],
+    "cwd": "${workspaceFolder}"
+  },
+  // Настройка стандартных масок для исключения файлов и папок.
+  "files.exclude": {
+    "**/.git": true,
+    "**/.svn": true,
+    "**/.hg": true,
+    "**/.DS_Store": true,
+
+    "**/.cache": true,
+    "**/*temp.*": true,
+    "CMakeCache.txt": true,
+    "cmake_install.cmake": true,
+        
+    "**/nbproject": true,
+    "**/.dep.inc": true,
+    "**/dist": true,
+    "**/build": true,
+  },
+  "cSpell.words": [
+    "STREQ",
+    "ffile",
+    "frename",
+    "fremove",
+  ],
+  
 }

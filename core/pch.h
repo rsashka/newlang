@@ -23,6 +23,7 @@
 #include <functional>
 #include <regex>
 #include <variant>
+#include <filesystem>
 
 #include <sstream>
 #include <iostream>

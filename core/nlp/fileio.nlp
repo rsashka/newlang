@@ -58,7 +58,7 @@
 #extern size_t fwrite_unlocked (const void *__restrict __ptr, size_t __size,
 #			       size_t __n, FILE *__restrict __stream);
 #
-SEEK ::= (SET=0, CUR=1, END=2):Int;
+SEEK ::= :Enum(SET=0, CUR=1, END=2);
 @fseek(stream:File, offset:Long, whence:Int):Int ::= import("fseek(stream:File, offset:Long, whence:Int):Int");;
 
 

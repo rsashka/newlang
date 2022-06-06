@@ -44,7 +44,7 @@ enum class ConcatMode : uint8_t {
 /* 
  * Для строк, словарей и классов (преобразование в одно измерение), тензоров (преобразование согласно ConcatMode)
  */
-void ConcatData(Object *recv, Object &src, ConcatMode mode = ConcatMode::Error);
+int64_t ConcatData(Object *dest, Object &src, ConcatMode mode = ConcatMode::Error);
 
 inline std::string utf8_encode(const std::wstring_view source) {
     try {
@@ -90,6 +90,7 @@ public:
         m_check_args = false;
         m_ref_count = 0;
         m_func_ptr = nullptr;
+        m_type = nullptr;
         m_value = torch::empty({0});
         m_is_reference = false;
         m_func_abi = FFI_DEFAULT_ABI;
@@ -98,22 +99,21 @@ public:
 
     template < typename T >
     Object(T data, typename std::enable_if<!std::is_reference<T>::value>::type* = 0) {
-        m_var_type_current = ObjType::Dict;
-        m_var_type_fixed = ObjType::Dict;
+        m_var_type_current = ObjType::Dictionary;
+        m_var_type_fixed = ObjType::Dictionary;
+        m_type = nullptr;
         push_front(Arg(data));
     }
 
     template < typename T >
     Object(T &data, typename std::enable_if<std::is_reference<T>::value>::type* = 0) {
-        m_var_type_current = ObjType::Dict;
-        m_var_type_fixed = ObjType::Dict;
+        m_var_type_current = ObjType::Dictionary;
+        m_var_type_fixed = ObjType::Dictionary;
+        m_type = nullptr;
         push_front(Arg(data));
     }
 
-    Object(Context *ctx, const TermPtr term, bool as_value, Object &local_vars);
-
-    //    Object(const TermPtr term, bool as_value) : Object(static_cast<Context *> (nullptr), term, as_value) {
-    //    }
+    Object(Context *ctx, const TermPtr term, bool as_value, Object *local_vars);
 
     template <typename A, typename... T>
     inline Object(A arg, T... rest) : Object(rest...) {
@@ -153,7 +153,7 @@ public:
     typename std::enable_if<!std::is_same<PairType, T>::value && !std::is_pointer<T>::value && !std::is_same<std::string, T>::value, PairType>::type
     __attribute__ ((warn_unused_result))
     static inline Arg(T value, const std::string name = "") {
-        return Variable<ObjPtr>::pair(CreateValue(value), name);
+        return Variable<ObjPtr>::pair(CreateValue(value, ObjType::None), name);
     }
 
     inline ObjPtr shared() {
@@ -166,6 +166,11 @@ public:
 
     ObjPtr MakeConst() {
         m_is_const = true;
+        return shared();
+    }
+
+    ObjPtr MakeMutable() {
+        m_is_const = false;
         return shared();
     }
 
@@ -305,6 +310,17 @@ john.__module__ =  __main__
         return isDictionary(m_var_type_current);
     }
 
+    //Plain data — это неизменяемые структуры без ссылок на другие объекты.
+    [[nodiscard]]
+    inline bool is_plain_type() const {
+        //        for (int i = 0; i < size(); i++) {
+        //            Object elem = array[i];
+        //
+        //        }
+        //
+        return is_arithmetic_type() || is_string_type();
+    }
+
     [[nodiscard]]
     inline bool is_other_type() const {
         return !(is_none_type() || is_bool_type() | is_arithmetic_type() || is_string_type() || is_dictionary_type());
@@ -384,11 +400,11 @@ john.__module__ =  __main__
         if (is_none_type()) {
             return true;
         } else if (m_var_type_current == ObjType::StrChar) {
-            return m_str.empty();
+            return !m_var_is_init || m_str.empty();
         } else if (m_var_type_current == ObjType::StrWide) {
-            return m_wstr.empty();
+            return !m_var_is_init || m_wstr.empty();
         } else if (is_tensor()) {
-            return false;
+            return !m_var_is_init;
         }
         return Variable<ObjPtr>::empty();
     }
@@ -428,29 +444,29 @@ john.__module__ =  __main__
      */
     ObjPtr operator()(Context *ctx) {
         Object args;
-        return Call(ctx, args);
+        return Call(ctx, &args);
     }
 
     template <typename... T>
     typename std::enable_if<is_all<Object::PairType, T ...>::value, ObjPtr>::type
     inline operator()(Context *ctx, T ... args) {
         Object list = Object(args...);
-        return Call(ctx, list);
+        return Call(ctx, &list);
     }
 
     inline ObjPtr Call(Context *ctx) {
         Object args;
-        return Call(ctx, args);
+        return Call(ctx, &args);
     }
 
     template <typename... T>
     typename std::enable_if<is_all<Object::PairType, T ...>::value, ObjPtr>::type
     inline Call(Context *ctx, T ... args) {
         Object list = Object(args...);
-        return Call(ctx, list);
+        return Call(ctx, &list);
     }
 
-    ObjPtr Call(Context *ctx, Object args);
+    ObjPtr Call(Context *ctx, Object *args);
 
 
 
@@ -582,6 +598,10 @@ john.__module__ =  __main__
     inline ObjPtr op_concat_(Object &obj, ConcatMode mode = ConcatMode::Error) {
         ConcatData(this, obj, mode);
         return shared();
+    }
+
+    inline ObjPtr op_concat_(ObjPtr obj, ConcatMode mode = ConcatMode::Error) {
+        return op_concat_(*obj, mode);
     }
 
     inline ObjPtr operator%(ObjPtr obj) {
@@ -1003,7 +1023,7 @@ john.__module__ =  __main__
                 case ObjType::None:
                     return false;
 
-                case ObjType::Dict:
+                case ObjType::Dictionary:
                     return size();
                 case ObjType::Class:
                     return size() || (m_class_base && m_class_base->GetValueAsBoolean());
@@ -1039,9 +1059,9 @@ john.__module__ =  __main__
     template <typename T1, typename T2, typename T3>
     static ObjPtr CreateRange(T1 start, T2 stop, T3 step) {
         ObjPtr obj = CreateType(ObjType::Range);
-        obj->push_back(CreateValue(start), "start");
-        obj->push_back(CreateValue(stop), "stop");
-        obj->push_back(CreateValue(step), "step");
+        obj->push_back(CreateValue(start, ObjType::None), "start");
+        obj->push_back(CreateValue(stop, ObjType::None), "stop");
+        obj->push_back(CreateValue(step, ObjType::None), "step");
         obj->m_var_is_init = true;
         return obj;
     }
@@ -1049,12 +1069,12 @@ john.__module__ =  __main__
     template <typename T1, typename T2>
     static ObjPtr CreateRange(T1 start, T2 stop) {
         ObjPtr obj = CreateType(ObjType::Range);
-        obj->push_back(CreateValue(start), "start");
-        obj->push_back(CreateValue(stop), "stop");
+        obj->push_back(CreateValue(start, ObjType::None), "start");
+        obj->push_back(CreateValue(stop, ObjType::None), "stop");
         if (start < stop) {
-            obj->push_back(CreateValue(1), "step");
+            obj->push_back(CreateValue(1, ObjType::None), "step");
         } else {
-            obj->push_back(CreateValue(-1), "step");
+            obj->push_back(CreateValue(-1, ObjType::None), "step");
         }
         obj->m_var_is_init = true;
         return obj;
@@ -1278,7 +1298,7 @@ john.__module__ =  __main__
 
     template <typename T>
     typename std::enable_if<std::is_integral<T>::value, ObjPtr>::type
-    static CreateValue(T value, ObjType type = ObjType::None) {
+    static CreateValue(T value, ObjType type) {
         ObjPtr result = CreateType(type);
         result->m_var_type_fixed = type;
         result->m_var_type_current = typeFromLimit((int64_t) value);
@@ -1293,7 +1313,7 @@ john.__module__ =  __main__
 
     template <typename T>
     typename std::enable_if<std::is_floating_point<T>::value, ObjPtr>::type
-    static CreateValue(T value, ObjType type = ObjType::None) {
+    static CreateValue(T value, ObjType type) {
         ObjPtr result = CreateType(type);
         result->m_var_type_fixed = type;
         result->m_var_type_current = typeFromLimit((double) value);
@@ -1339,14 +1359,14 @@ john.__module__ =  __main__
     }
 
     inline static ObjPtr CreateDict() {
-        return Object::CreateType(ObjType::Dict);
+        return Object::CreateType(ObjType::Dictionary);
     }
 
     template <typename... T>
     typename std::enable_if<is_all<PairType, T ...>::value, ObjPtr>::type
     static CreateDict(T ... args) {
         std::array < PairType, sizeof...(args) > list = {args...};
-        ObjPtr result = Object::CreateType(ObjType::Dict);
+        ObjPtr result = Object::CreateType(ObjType::Dictionary);
         for (auto &elem : list) {
             result->push_back(elem);
         }
@@ -1419,13 +1439,14 @@ john.__module__ =  __main__
         //        Clear();
     }
 
-    ObjPtr toType(ObjType target) const {
+    ObjPtr toType(ObjType target, Dimension *dims = nullptr) const {
         ObjPtr result = Clone();
-        result->toType_(target);
+        result->toType_(target, dims);
         return result;
     }
-    ObjPtr toType_(ObjType type);
-    ObjPtr toType_(TermPtr type);
+    ObjPtr toType_(ObjType type, Dimension *dims = nullptr);
+    ObjPtr toType_(Context *ctx, TermPtr type, Object *local_vars);
+    ObjPtr toType_(Object *type);
 
     ObjPtr toShape(ObjPtr dims) const {
         ObjPtr result = Clone();
@@ -1611,7 +1632,7 @@ john.__module__ =  __main__
 
             return;
         } else if ((is_none_type() || m_var_type_current == ObjType::Pointer) && value->m_var_type_current == ObjType::Pointer) {
-#warning Check tree type !!!
+            //@todo Check tree type !!!
 
             std::string old_name = m_var_name;
             value->CloneDataTo(*this);
@@ -1621,7 +1642,7 @@ john.__module__ =  __main__
 
             return;
         } else if ((is_none_type() || m_var_type_current == ObjType::FUNCTION) && value->is_function()) {
-#warning Check function type args !!!
+            //@todo Check function type args !!!
 
             std::string old_name = m_var_name;
             value->CloneDataTo(*this);
@@ -1630,11 +1651,28 @@ john.__module__ =  __main__
             m_var_is_init = true;
 
             return;
+        } else if ((is_none_type() || m_var_type_current == ObjType::FUNCTION || m_var_type_current == ObjType::EVAL_FUNCTION) && (value->m_var_type_current == ObjType::BLOCK || value->m_var_type_current == ObjType::BLOCK_TRY)) {
+            //@todo Check function type args !!!
+
+            //            std::string old_name = m_var_name;
+            //            TermPtr save_proto = m_func_proto;
+            //            TermPtr save_block = m_block_source;
+            //            ObjType save_type = m_var_type_current;
+            //            value->CloneDataTo(*this);
+            //            value->ClonePropTo(*this);
+            //            m_var_name.swap(old_name);
+            //            m_var_is_init = true;
+            //            *const_cast<TermPtr *> (&m_func_proto) = save_proto;
+            m_block_source = value->m_block_source;
+            //            m_var_type_current = save_type;
+
+            return;
         }
+
         LOG_RUNTIME("Set value type '%s' not implemented!", newlang::toString(m_var_type_current));
     }
 
-    static std::string format(std::string format, Object args);
+    static std::string format(std::string format, Object *args);
 
     void clear_() override {
 
@@ -1652,7 +1690,7 @@ john.__module__ =  __main__
         //        m_string.clear();
         m_class_base.reset();
         m_var_is_init = false;
-#warning CLEAR TENSOR !!!!!!
+        m_value.reset();
         //        m_var = std::monostate();
         //        m_value.reset(); //????????????????
         //        m_items.clear();
@@ -1664,6 +1702,7 @@ john.__module__ =  __main__
 
 
     static ObjPtr CreateFunc(Context *ctx, TermPtr proto, ObjType type, const std::string var_name = "");
+    static ObjPtr CreateFunc(std::string proto, FunctionType *func_addr, ObjType type = ObjType::FUNCTION);
 
     ObjPtr ConvertToArgs(Object &args, bool check_valid, Context *ctx) const {
         ObjPtr result = Clone();
@@ -1711,13 +1750,14 @@ public:
 
     std::string m_var_name; ///< Имя переменной, в которой хранится объект
 
+    ObjPtr m_type;
     ObjPtr m_class_base; ///< Имя базового класса
     std::string m_class_name; ///< Имя класса объекта
 
     std::string m_namespace;
     std::string m_str;
     std::wstring m_wstr;
-    std::pair<std::string, Variable<ObjPtr>::Type> m_str_pair; //< Для доступа к отдельным символам строк
+    mutable std::pair<std::string, Variable<ObjPtr>::Type> m_str_pair; //< Для доступа к отдельным символам строк
 
     const TermPtr m_func_proto;
     std::string m_func_mangle_name;
@@ -1726,7 +1766,7 @@ public:
     ffi_abi m_func_abi;
     torch::Tensor m_value;
 
-    TermPtr m_func_source;
+    TermPtr m_block_source;
     bool m_check_args; //< Проверять аргументы на корректность (для всех видов функций) @ref MakeArgs
 
     //    Context *m_ctx;
@@ -1737,17 +1777,6 @@ public:
     bool m_is_reference; //< Признак ссылки на объект (mutable)
     size_t m_ref_count;
 
-    //    struct CloneVar {
-    //        Object *obj;
-    //
-    //        void operator()(std::monostate &var) {obj->m_var = var;}
-    //        void operator()(torch::Tensor &var) {obj->m_var = var;}
-    //        void operator()(FuncInfo &var) {obj->m_var = var;}
-    //        void operator()(std::string & var) {obj->m_var = var;}
-    //        void operator()(std::wstring &var) {obj->m_var = var;}
-    //        void operator()(std::string_view &var) {obj->m_var = var;}
-    //        void operator()(std::wstring_view &var) {obj->m_var = var;}
-    //    };
 
 };
 

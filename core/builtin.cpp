@@ -36,6 +36,13 @@ namespace newlang {
         return out;
     }
 
+    NEWLANG_FUNCTION(clone) {
+        if(in.size() != 2) {
+            LOG_CALLSTACK(std::invalid_argument, "Bad argument count parameter!");
+        }
+        return in[1]->Clone(nullptr);
+    }
+
     NEWLANG_FUNCTION(const_) {
         if(in.size() != 2) {
             LOG_CALLSTACK(std::invalid_argument, "Bad argument count parameter!");
@@ -43,11 +50,11 @@ namespace newlang {
         return in[1]->MakeConst();
     }
 
-    NEWLANG_FUNCTION(clone_) {
+    NEWLANG_FUNCTION(mutable_) {
         if(in.size() != 2) {
             LOG_CALLSTACK(std::invalid_argument, "Bad argument count parameter!");
         }
-        return in[1]->Clone(nullptr);
+        return in[1]->MakeMutable();
     }
 
     NEWLANG_FUNCTION(import) {
@@ -79,23 +86,25 @@ namespace newlang {
 
 
 
-//#define DEFINE_ENUM(name, cast) \
-//newlang::ObjPtr name(const newlang::Context *ctx, const newlang::Object &in) {\
-//    if(in.size() < 1 || !in.at(1).second) {\
-//        LOG_CALLSTACK(std::invalid_argument, "Bad argument count parameter!");\
-//    }\
-//    return in.at(1).second->Convert(ObjType:: cast);\
-//}\
+#define DEFINE_ENUM(name) \
+newlang::ObjPtr name(const newlang::Context *ctx, const newlang::Object &in) {\
+    if(in.size() < 1 || !in.at(1).second) {\
+        LOG_CALLSTACK(std::invalid_argument, "Bad argument count parameter!");\
+    }\
+    return nullptr; /*in.at(1).second->Convert(ObjType:: cast);*/\
+}
+//    \
 //newlang::ObjPtr name##_(newlang::Context *ctx, newlang::Object &in) {\
 //    if(in.size() < 1 || !in.at(1).second) {\
 //        LOG_CALLSTACK(std::invalid_argument, "Bad argument count parameter!");\
 //    }\
-//    return in.at(1).second->Convert_(ObjType:: cast);\
+//    return nullptr; /*in.at(1).second->Convert_(ObjType:: cast);*/\
 //}
-//
-//    NL_BUILTIN_CAST_TYPE(DEFINE_ENUM)
-//
-//#undef DEFINE_ENUM
+
+    NL_BUILTIN_CAST_TYPE(DEFINE_ENUM)
+
+#undef DEFINE_ENUM
+
 
 }
 

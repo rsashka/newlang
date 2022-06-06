@@ -161,9 +161,9 @@ public:
         for (int i = 0; i < argc; i++) {
             std::vector<std::string> split = SplitString(argv[i], "=");
             if (split.size() > 1) {
-                m_args->push_back(Object::Arg(split[0], &argv[i][split[0].size() + 1]));
+                m_args->push_back(Object::CreateString(split[0]), &argv[i][split[0].size() + 1]);
             } else {
-                m_args->push_back(Object::Arg(argv[i]));
+                m_args->push_back(Object::CreateString(argv[i]));
             }
         }
 
@@ -325,7 +325,7 @@ public:
                     LOG_RUNTIME("Eval expression empty!");
                 }
 
-                ObjPtr result = Context::Eval(&m_ctx, term, *m_args);
+                ObjPtr result = Context::Eval(&m_ctx, term, m_args.get());
 
                 if (result && m_local_vars.find(result.get()) == m_local_vars.end()) {
                     m_local_vars[result.get()] = result;
@@ -600,7 +600,7 @@ public:
                         LOG_RUNTIME("Eval expression empty!");
                     }
 
-                    ObjPtr res = Context::Eval(&m_ctx, term, *m_args);
+                    ObjPtr res = Context::Eval(&m_ctx, term, m_args.get());
 
                     if (res) {
                         

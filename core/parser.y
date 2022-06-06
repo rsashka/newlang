@@ -371,9 +371,6 @@ star_arg = [STAR] STAR ID
 %token			UNTIL		"<<--"
 
 %token			ARGUMENT		
-%token			CONCAT
-%token			POWER		"**"
-
 
 
 %token			RANGE           ".."
@@ -435,6 +432,11 @@ type_dim: INTEGER
         {
             $$ = $1;
         }
+    |  ELLIPSIS
+        {
+            // Произвольное количество элементов
+            $$ = $1; 
+        }
 /*    | TERM  '='  INTEGER
         { // torch поддерживает именованные диапазоны, но пока незнаю, нужны ли они?
             $$ = $3;
@@ -486,17 +488,19 @@ type_name:  type_class
 type:  type_name
             {
                 $$ = $1;
+                $$->SetTermID(TermID::TYPE);
             }
         | type_name   call
             {
                 $$ = $1;
                 $$->SetArgs($2);
+                $$->SetTermID(TermID::TYPE_CALL);
             }
         | ':'  strtype 
             {
-                // Если тип еще не определён и/или его ненужно проверяь во время компиляции, то имя типа можно взять в кавычки.
+                // Если тип еще не определён и/или его ненужно проверять во время компиляции, то имя типа можно взять в кавычки.
                 $$ = $2;
-                $$->SetTermID(TermID::TYPE);
+                $$->SetTermID(TermID::TYPENAME);
                 $$->m_text.insert(0, ":");
             }
 
@@ -688,6 +692,13 @@ lval:  assign_name
                 $3->SetTermID(TermID::FIELD);
                 $$->Last()->Append($3);
             }
+        |  lval  '.'  TERM  call
+            {
+                $$ = $1; 
+                $3->SetTermID(TermID::FIELD);
+                $3->SetArgs($call);
+                $$->Last()->Append($3);
+            }
         |  type
             {   
                 $$ = $1; 
@@ -813,7 +824,15 @@ iter_all:  '!'
 arg: name  '='
         {  // Именованный аргумент
             $$ = $2;
-            $1->m_text.swap($1->m_name);
+            $$->m_name.swap($1->m_text);
+            $$->SetTermID(TermID::EMPTY);
+        }
+    | name  type  '='
+        { // Именованный аргумент
+            $$ = $3;
+            $$->SetType($type);
+            $$->m_name.swap($1->m_text);
+            $$->SetTermID(TermID::EMPTY);
         }
     | name  '='  rval
         { // Именованный аргумент
@@ -877,15 +896,23 @@ array: '['  args  ','  ']'
                 $$ = $1;
                 $$->m_text.clear();
                 $$->SetTermID(TermID::TENSOR);
-                $$->SetArgs($2);
+                $$->SetArgs($args);
             }
         | '['  args  ','  ']'  type
             {
                 $$ = $1;
                 $$->m_text.clear();
                 $$->SetTermID(TermID::TENSOR);
-                $$->SetArgs($2);
-                $$->SetType($5);
+                $$->SetArgs($args);
+                $$->SetType($type);
+            }
+        | '['  ','  ']'  type
+            {
+                // Не инициализированый тензор должен быть с конкретным типом 
+                $$ = $1;
+                $$->m_text.clear();
+                $$->SetTermID(TermID::TENSOR);
+                $$->SetType($type);
             }
 
             
@@ -909,7 +936,41 @@ tensor:   TENSOR_BEGIN   TENSOR_END
                     $$->SetArgs($2);
                     $$->SetType($type);
                 }
+//            | TENSOR_BEGIN  args  TENSOR_END  '['  type_dims   ']'
+//                {
+//                    $$ = $1;
+//                    $$->SetArgs($2);
+//                    // Изменение размерности тензора без конвертирования типа данных
+//                    $4->m_text.clear();
+//                    $4->SetDims($type_dims);
+//                    $$->SetType($4);
+//                }
 
+
+dictionary: '('  ','  ')'
+            {
+                $$ = $1;
+                $$->m_text.clear();
+                $$->SetTermID(TermID::DICT);
+            }
+        | '('  args  ','  ')'
+            {
+                $$ = $1;
+                $$->m_text.clear();
+                $$->SetTermID(TermID::DICT);
+                $$->SetArgs($2);
+            }
+
+
+class:  dictionary
+            {
+                $$ = $1;
+            }
+        | dictionary   type
+            {
+                $$ = $1;
+                $$->SetType($2);
+            }
             
            
 collection: array 
@@ -917,6 +978,10 @@ collection: array
                 $$ = $1;
             }
         | tensor
+            {
+                $$ = $1;
+            }
+        | class
             {
                 $$ = $1;
             }
@@ -1174,14 +1239,6 @@ eval:   lval
             }*/
 
 operator: OPERATOR
-            {
-                $$ = $1;
-            }
-        | CONCAT
-            {
-                $$ = $1;
-            }
-        | POWER
             {
                 $$ = $1;
             }

@@ -79,46 +79,46 @@ TEST(ObjTest, Dict) {
 
     Context ctx(RunTime::Init());
 
-    Object var(ObjType::Dict);
+    Object var(ObjType::Dictionary);
     ASSERT_TRUE(var.empty());
     EXPECT_THROW(
             var[0],
             std::out_of_range
             );
     ASSERT_EQ(0, var.size());
-    ObjPtr var2 = ctx.Eval("()");
+    ObjPtr var2 = ctx.Eval("(,)");
 
     var.push_back(Object::CreateString("Test1"));
     ASSERT_EQ(1, var.size());
     var.push_back(Object::CreateString("Test3"));
     ASSERT_EQ(2, var.size());
-    var.insert(1, Object::CreateValue(2), "2");
-    var.insert(0, Object::CreateValue(0), "0");
+    var.insert(1, Object::CreateValue(2, ObjType::None), "2");
+    var.insert(0, Object::CreateValue(0, ObjType::None), "0");
     ASSERT_EQ(4, var.size());
 
-    ASSERT_TRUE(var[0]->op_accurate(Object::CreateValue(0)));
+    ASSERT_TRUE(var[0]->op_accurate(Object::CreateValue(0, ObjType::None)));
     ASSERT_TRUE(var[1]->op_accurate(Object::CreateString("Test1")));
-    ASSERT_TRUE(var[2]->op_accurate(Object::CreateValue(2)));
+    ASSERT_TRUE(var[2]->op_accurate(Object::CreateValue(2, ObjType::None)));
     ASSERT_TRUE(var[3]->op_accurate(Object::CreateString(L"Test3")));
 
-    var2 = ctx.Eval("(0, \"Test1\", 2, 'Test3')");
+    var2 = ctx.Eval("(0, \"Test1\", 2, 'Test3',)");
 
-    ASSERT_TRUE((*var2)[0]->op_accurate(Object::CreateValue(0)));
+    ASSERT_TRUE((*var2)[0]->op_accurate(Object::CreateValue(0, ObjType::None)));
     ASSERT_TRUE((*var2)[1]->op_accurate(Object::CreateString("Test1")));
-    ASSERT_TRUE((*var2)[2]->op_accurate(Object::CreateValue(2)));
+    ASSERT_TRUE((*var2)[2]->op_accurate(Object::CreateValue(2, ObjType::None)));
     ASSERT_TRUE((*var2)[3]->op_accurate(Object::CreateString(L"Test3")));
 
     ObjPtr var3 = ctx.Eval("(0, \"Test1\", 2, 'Test3',)");
 
-    ASSERT_TRUE((*var3)[0]->op_accurate(Object::CreateValue(0)));
+    ASSERT_TRUE((*var3)[0]->op_accurate(Object::CreateValue(0, ObjType::None)));
     ASSERT_TRUE((*var3)[1]->op_accurate(Object::CreateString("Test1")));
-    ASSERT_TRUE((*var3)[2]->op_accurate(Object::CreateValue(2)));
+    ASSERT_TRUE((*var3)[2]->op_accurate(Object::CreateValue(2, ObjType::None)));
     ASSERT_TRUE((*var3)[3]->op_accurate(Object::CreateString(L"Test3")));
 }
 
 TEST(ObjTest, AsMap) {
 
-    ObjPtr map = Object::CreateType(ObjType::Dict);
+    ObjPtr map = Object::CreateType(ObjType::Dictionary);
     ASSERT_TRUE(map->empty());
     EXPECT_THROW(
             (*map)["test1"],
@@ -127,12 +127,12 @@ TEST(ObjTest, AsMap) {
     ASSERT_EQ(0, map->size());
     ObjPtr temp = Object::CreateString("Test");
     map->push_back(temp, "test1");
-    map->push_back(Object::CreateValue(100), "test2");
+    map->push_back(Object::CreateValue(100, ObjType::None), "test2");
     ASSERT_EQ(2, map->size());
     ASSERT_STREQ((*map)["test1"]->toString().c_str(), temp->toString().c_str()) << temp->toString().c_str();
 
     ASSERT_TRUE((*map)["test2"]);
-    ObjPtr temp100 = Object::CreateValue(100);
+    ObjPtr temp100 = Object::CreateValue(100, ObjType::None);
     ASSERT_TRUE(map->exist(temp100, true));
 
     ObjPtr test2 = (*map)["test2"];
@@ -143,8 +143,8 @@ TEST(ObjTest, AsMap) {
 
 TEST(ObjTest, Eq) {
 
-    ObjPtr var_int = Object::CreateValue(100);
-    ObjPtr var_num = Object::CreateValue(100.0);
+    ObjPtr var_int = Object::CreateValue(100, ObjType::None);
+    ObjPtr var_num = Object::CreateValue(100.0, ObjType::None);
     ObjPtr var_str = Object::CreateString(L"STRING");
     ObjPtr var_bool = Object::CreateBool(true);
     ObjPtr var_empty = Object::CreateNone();
@@ -158,22 +158,22 @@ TEST(ObjTest, Eq) {
     ASSERT_FALSE(var_int->empty()) << (int) var_int->getType();
 
 
-    ASSERT_TRUE(var_int->op_accurate(Object::CreateValue(100)));
-    ASSERT_FALSE(var_int->op_accurate(Object::CreateValue(111)));
+    ASSERT_TRUE(var_int->op_accurate(Object::CreateValue(100, ObjType::None)));
+    ASSERT_FALSE(var_int->op_accurate(Object::CreateValue(111, ObjType::None)));
 
-    ASSERT_TRUE(var_num->op_equal(Object::CreateValue(100.0)));
-    ASSERT_FALSE(var_num->op_equal(Object::CreateValue(100.0001)));
-    ASSERT_TRUE(var_num->op_accurate(Object::CreateValue(100.0)));
-    ASSERT_FALSE(var_num->op_accurate(Object::CreateValue(100.0001)));
+    ASSERT_TRUE(var_num->op_equal(Object::CreateValue(100.0, ObjType::None)));
+    ASSERT_FALSE(var_num->op_equal(Object::CreateValue(100.0001, ObjType::None)));
+    ASSERT_TRUE(var_num->op_accurate(Object::CreateValue(100.0, ObjType::None)));
+    ASSERT_FALSE(var_num->op_accurate(Object::CreateValue(100.0001, ObjType::None)));
 
-    ASSERT_TRUE(var_int->op_equal(Object::CreateValue(100.0)));
-    ASSERT_TRUE(var_int->op_accurate(Object::CreateValue(100.0)));
-    ASSERT_FALSE(var_int->op_equal(Object::CreateValue(100.1)));
-    ASSERT_FALSE(var_int->op_accurate(Object::CreateValue(100.1)));
+    ASSERT_TRUE(var_int->op_equal(Object::CreateValue(100.0, ObjType::None)));
+    ASSERT_TRUE(var_int->op_accurate(Object::CreateValue(100.0, ObjType::None)));
+    ASSERT_FALSE(var_int->op_equal(Object::CreateValue(100.1, ObjType::None)));
+    ASSERT_FALSE(var_int->op_accurate(Object::CreateValue(100.1, ObjType::None)));
 
 
-    ObjPtr var_int2 = Object::CreateValue(101);
-    ObjPtr var_num2 = Object::CreateValue(100.1);
+    ObjPtr var_int2 = Object::CreateValue(101, ObjType::None);
+    ObjPtr var_num2 = Object::CreateValue(100.1, ObjType::None);
 
 
     ASSERT_TRUE(var_int->op_accurate(var_int));
@@ -207,7 +207,7 @@ TEST(ObjTest, Eq) {
 
 TEST(ObjTest, Exist) {
 
-    Object var_array(ObjType::Dict);
+    Object var_array(ObjType::Dictionary);
 
     var_array.push_back(Object::CreateString("item1"));
     var_array.push_back(Object::CreateString("item2"));
@@ -220,7 +220,7 @@ TEST(ObjTest, Exist) {
     ASSERT_FALSE(var_array.exist(item, true));
 
 
-    Object var_map(ObjType::Dict);
+    Object var_map(ObjType::Dictionary);
 
     var_map.push_back(Object::CreateString("MAP_VALUE1"), "map1");
     var_map.push_back(Object::CreateString("MAP_VALUE2"), "map2");
@@ -233,8 +233,8 @@ TEST(ObjTest, Exist) {
 
 TEST(ObjTest, Intersec) {
 
-    Object var_array(ObjType::Dict);
-    Object var_array2(ObjType::Dict);
+    Object var_array(ObjType::Dictionary);
+    Object var_array2(ObjType::Dictionary);
 
     var_array.push_back(Object::CreateString("item1"));
     var_array.push_back(Object::CreateString("item2"));
@@ -295,8 +295,8 @@ TEST(ObjTest, Print) {
 
     Context ctx(RunTime::Init());
 
-    ObjPtr var_int = Object::CreateValue(100);
-    ObjPtr var_num = Object::CreateValue(100.123);
+    ObjPtr var_int = Object::CreateValue(100, ObjType::None);
+    ObjPtr var_num = Object::CreateValue(100.123, ObjType::None);
     ObjPtr var_str = Object::CreateString(L"STRCHAR");
     ObjPtr var_strbyte = Object::CreateString("STRBYTE");
     ObjPtr var_bool = Object::CreateBool(true);
@@ -309,7 +309,7 @@ TEST(ObjTest, Print) {
     ASSERT_STREQ("1", var_bool->toString().c_str()) << var_bool;
     ASSERT_STREQ("_", var_empty->toString().c_str()) << var_empty;
 
-    ObjPtr var_dict = Object::CreateType(ObjType::Dict);
+    ObjPtr var_dict = Object::CreateType(ObjType::Dictionary);
 
     ASSERT_STREQ("(,)", var_dict->toString().c_str()) << var_dict;
 
@@ -481,12 +481,12 @@ TEST(Args, All) {
 
     ASSERT_TRUE(p.Parse("test()"));
     Object local;
-    Object proto1(&ctx, ast, false, local); // Функция с принимаемыми аргументами (нет аргументов)
+    Object proto1(&ctx, ast, false, &local); // Функция с принимаемыми аргументами (нет аргументов)
     ASSERT_EQ(0, proto1.size());
     //    ASSERT_FALSE(proto1.m_is_ellipsis);
 
 
-    Object arg_999(Object::CreateValue(999));
+    Object arg_999(Object::CreateValue(999, ObjType::None));
     EXPECT_EQ(ObjType::Short, arg_999[0]->getType()) << torch::toString(toTorchType(arg_999[0]->getType()));
 
     Object arg_empty_named(Object::Arg());
@@ -512,7 +512,7 @@ TEST(Args, All) {
 
 
     ASSERT_TRUE(p.Parse("test(arg1)"));
-    const Object proto2(&ctx, ast, false, local);
+    const Object proto2(&ctx, ast, false, &local);
     ASSERT_EQ(1, proto2.size());
     //    ASSERT_FALSE(proto2.m_is_ellipsis);
     ASSERT_STREQ("arg1", proto2.name(0).c_str());
@@ -535,7 +535,7 @@ TEST(Args, All) {
 
     // Нормальный вызов
     ASSERT_TRUE(p.Parse("test(empty=_, ...) := {}"));
-    const Object proto3(&ctx, ast->Left(), false, local);
+    const Object proto3(&ctx, ast->Left(), false, &local);
     ASSERT_EQ(2, proto3.size());
     //    ASSERT_TRUE(proto3.m_is_ellipsis);
     ASSERT_STREQ("empty", proto3.name(0).c_str());
@@ -551,7 +551,7 @@ TEST(Args, All) {
     ASSERT_STREQ("empty", proto3_arg->name(0).c_str());
 
     // Дополнительный аргумент
-    Object arg_extra(Object::CreateValue(999), Object::Arg(123, "named"));
+    Object arg_extra(Object::CreateValue(999, ObjType::None), Object::Arg(123, "named"));
 
     ASSERT_EQ(2, arg_extra.size());
     EXPECT_EQ(ObjType::Short, arg_extra[0]->getType()) << torch::toString(toTorchType(arg_extra[0]->getType()));
@@ -568,7 +568,7 @@ TEST(Args, All) {
 
     // Аргумент по умолчанию
     ASSERT_TRUE(p.Parse("test(num=123) := {}"));
-    Object proto123(&ctx, ast->Left(), false, local);
+    Object proto123(&ctx, ast->Left(), false, &local);
     ASSERT_EQ(1, proto123.size());
     //    ASSERT_FALSE(proto123.m_is_ellipsis);
     ASSERT_STREQ("num", proto123.name(0).c_str());
@@ -578,7 +578,7 @@ TEST(Args, All) {
 
     // Изменен порядок
     ASSERT_TRUE(p.Parse("test(arg1, str=\"string\") := {}"));
-    Object proto_str(&ctx, ast->Left(), false, local);
+    Object proto_str(&ctx, ast->Left(), false, &local);
     ASSERT_EQ(2, proto_str.size());
     //    ASSERT_FALSE(proto_str.m_is_ellipsis);
     ASSERT_STREQ("arg1", proto_str.at(0).first.c_str());
@@ -596,7 +596,7 @@ TEST(Args, All) {
 
 
     ASSERT_TRUE(p.Parse("test(arg1, ...) := {}"));
-    Object proto_any(&ctx, ast->Left(), false, local);
+    Object proto_any(&ctx, ast->Left(), false, &local);
     //    ASSERT_TRUE(proto_any.m_is_ellipsis);
     ASSERT_EQ(2, proto_any.size());
     ASSERT_STREQ("arg1", proto_any.at(0).first.c_str());
@@ -613,7 +613,7 @@ TEST(Args, All) {
 
     //
     ASSERT_TRUE(p.Parse("min(arg, ...) := {}"));
-    Object min_proto(&ctx, ast->Left(), false, local);
+    Object min_proto(&ctx, ast->Left(), false, &local);
     Object min_args(Object::Arg(200), Object::Arg(100), Object::Arg(300)); // min(200,100,300)
     ObjPtr min_arg = min_proto.ConvertToArgs(min_args, true, nullptr);
 
@@ -623,7 +623,7 @@ TEST(Args, All) {
     ASSERT_STREQ("300", (*min_arg)[2]->toString().c_str());
 
     ASSERT_TRUE(p.Parse("min(200, 100, 300)"));
-    Object args_term(&ctx, ast, true, local);
+    Object args_term(&ctx, ast, true, &local);
     ASSERT_STREQ("200", args_term[0]->toString().c_str());
     ASSERT_STREQ("100", args_term[1]->toString().c_str());
     ASSERT_STREQ("300", args_term[2]->toString().c_str());
@@ -678,183 +678,6 @@ TEST(ObjTest, Tensor) {
     ASSERT_EQ(2, t1->m_value.dim());
     ASSERT_EQ(2, t1->m_value.size(0));
     ASSERT_EQ(3, t1->m_value.size(1));
-}
-
-TEST(Types, Convert) {
-
-    /*
-     * - Встроеные функции преобразования простых типов данных
-     * - Передача аргументов функци по ссылкам
-     */
-
-    RuntimePtr opts = RunTime::Init();
-    Context ctx(opts);
-
-
-    //    EXPECT_TRUE(dlsym(nullptr, "_ZN7newlang4CharEPKNS_7ContextERKNS_6ObjectE"));
-    //    EXPECT_TRUE(dlsym(nullptr, "_ZN7newlang6Short_EPNS_7ContextERNS_6ObjectE"));
-
-
-
-    ObjPtr value = Object::CreateNone();
-    ObjPtr range1 = Object::CreateRange(0, 0.99, 0.1);
-
-    ASSERT_TRUE(range1);
-    ASSERT_EQ(range1->getType(), ObjType::Range);
-
-    ASSERT_NO_THROW(ConvertRangeToDict(range1.get(), *value.get()));
-    ASSERT_TRUE(value);
-
-    ASSERT_EQ(value->getType(), ObjType::Dict);
-    ASSERT_EQ(10, value->size());
-
-    ASSERT_DOUBLE_EQ(0, (*value)[0]->GetValueAsNumber());
-    ASSERT_DOUBLE_EQ(0.1, (*value)[1]->GetValueAsNumber());
-    ASSERT_DOUBLE_EQ(0.2, (*value)[2]->GetValueAsNumber());
-    ASSERT_DOUBLE_EQ(0.3, (*value)[3]->GetValueAsNumber());
-    ASSERT_DOUBLE_EQ(0.4, (*value)[4]->GetValueAsNumber());
-    ASSERT_DOUBLE_EQ(0.5, (*value)[5]->GetValueAsNumber());
-    ASSERT_DOUBLE_EQ(0.6, (*value)[6]->GetValueAsNumber());
-    ASSERT_DOUBLE_EQ(0.7, (*value)[7]->GetValueAsNumber());
-    ASSERT_DOUBLE_EQ(0.8, (*value)[8]->GetValueAsNumber());
-    ASSERT_DOUBLE_EQ(0.9, (*value)[9]->GetValueAsNumber());
-
-
-    ObjPtr range2 = Object::CreateRange(0, -5);
-
-    ASSERT_TRUE(range2);
-    ASSERT_EQ(range2->getType(), ObjType::Range);
-    ASSERT_EQ(0, (*range2)["start"]->GetValueAsInteger());
-    ASSERT_EQ(-5, (*range2)["stop"]->GetValueAsInteger());
-    ASSERT_EQ(-1, (*range2)["step"]->GetValueAsInteger());
-
-    ASSERT_NO_THROW(ConvertRangeToDict(range2.get(), *value.get()));
-    ASSERT_TRUE(value);
-
-    ASSERT_EQ(value->getType(), ObjType::Dict);
-    ASSERT_EQ(15, value->size());
-
-    ASSERT_EQ(0, (*value)[10]->GetValueAsInteger());
-    ASSERT_EQ(-1, (*value)[11]->GetValueAsInteger());
-    ASSERT_EQ(-2, (*value)[12]->GetValueAsInteger());
-    ASSERT_EQ(-3, (*value)[13]->GetValueAsInteger());
-    ASSERT_EQ(-4, (*value)[14]->GetValueAsInteger());
-
-    torch::Tensor tensor1 = torch::empty({0});
-    ASSERT_NO_THROW(ConvertStringToTensor("test", tensor1));
-
-    ASSERT_EQ(1, tensor1.dim());
-    ASSERT_EQ(4, tensor1.size(0));
-    ASSERT_EQ('t', tensor1.index({0}).item<int>());
-    ASSERT_EQ('e', tensor1.index({1}).item<int>());
-    ASSERT_EQ('s', tensor1.index({2}).item<int>());
-    ASSERT_EQ('t', tensor1.index({3}).item<int>());
-
-    torch::Tensor tensor2 = torch::empty({0});
-    ASSERT_NO_THROW(ConvertStringToTensor(L"TESTЁ", tensor2));
-    ASSERT_EQ(1, tensor2.dim());
-    ASSERT_EQ(5, tensor2.size(0));
-    ASSERT_EQ(L'T', tensor2.index({0}).item<int>());
-    ASSERT_EQ(L'E', tensor2.index({1}).item<int>());
-    ASSERT_EQ(L'S', tensor2.index({2}).item<int>());
-    ASSERT_EQ(L'T', tensor2.index({3}).item<int>());
-    ASSERT_EQ(L'Ё', tensor2.index({4}).item<int>());
-
-    torch::Tensor tensor_utf = torch::empty({0});
-    ASSERT_NO_THROW(ConvertStringToTensor(L"Русё", tensor_utf));
-    ASSERT_EQ(1, tensor_utf.dim());
-    ASSERT_EQ(4, tensor_utf.size(0));
-    ASSERT_EQ(L'Р', tensor_utf.index({0}).item<int>());
-    ASSERT_EQ(L'у', tensor_utf.index({1}).item<int>());
-    ASSERT_EQ(L'с', tensor_utf.index({2}).item<int>());
-    ASSERT_EQ(L'ё', tensor_utf.index({3}).item<int>());
-
-
-    std::string str1;
-    ASSERT_NO_THROW(ConvertTensorToString(torch::range(1, 4, 1), str1));
-    ASSERT_STREQ("\x1\x2\x3\x4", str1.c_str());
-
-    std::wstring str2;
-    ASSERT_NO_THROW(ConvertTensorToString(torch::range(0x1001, 0x4008, 0x1002), str2));
-    ASSERT_EQ(4, str2.size());
-    ASSERT_EQ(L'\x10\x01', str2[0]);
-    ASSERT_EQ(L'\x20\x03', str2[1]);
-    ASSERT_EQ(L'\x30\x05', str2[2]);
-    ASSERT_EQ(L'\x40\x07', str2[3]);
-
-    //    ASSERT_EQ(0x1001, str2[0]);
-    //    ASSERT_EQ(0x2003, str2[1]);
-    //    ASSERT_EQ(0x3005, str2[2]);
-    //    ASSERT_EQ(0x4007, str2[3]);
-
-    std::string str3;
-    int array[8] = {1, 2, 3, 4, 5, 6, 7, 8};
-    torch::Tensor tensor4 = torch::from_blob(array,{2, 4}, at::kInt);
-
-    ASSERT_EQ(2, tensor4.dim());
-    ASSERT_EQ(2, tensor4.size(0));
-    ASSERT_EQ(4, tensor4.size(1));
-    ASSERT_NO_THROW(ConvertTensorToString(tensor4, str1));
-    ASSERT_STREQ("\x1\x2\x3\x4\x5\x6\x7\x8", str1.c_str());
-
-
-    ObjPtr dict1 = Object::CreateNone();
-    ASSERT_NO_THROW(ConvertTensorToDict(tensor1, *dict1.get()));
-    ASSERT_EQ(4, dict1->size());
-    ASSERT_EQ('t', (*dict1)[0]->GetValueAsInteger());
-    ASSERT_EQ('e', (*dict1)[1]->GetValueAsInteger());
-    ASSERT_EQ('s', (*dict1)[2]->GetValueAsInteger());
-    ASSERT_EQ('t', (*dict1)[3]->GetValueAsInteger());
-
-    ASSERT_NO_THROW(ConvertTensorToDict(tensor4, *dict1.get()));
-    ASSERT_EQ(12, dict1->size());
-    ASSERT_EQ('t', (*dict1)[0]->GetValueAsInteger());
-    ASSERT_EQ('e', (*dict1)[1]->GetValueAsInteger());
-    ASSERT_EQ('s', (*dict1)[2]->GetValueAsInteger());
-    ASSERT_EQ('t', (*dict1)[3]->GetValueAsInteger());
-    ASSERT_EQ(1, (*dict1)[4]->GetValueAsInteger());
-    ASSERT_EQ(2, (*dict1)[5]->GetValueAsInteger());
-    ASSERT_EQ(3, (*dict1)[6]->GetValueAsInteger());
-    ASSERT_EQ(4, (*dict1)[7]->GetValueAsInteger());
-    ASSERT_EQ(5, (*dict1)[8]->GetValueAsInteger());
-    ASSERT_EQ(6, (*dict1)[9]->GetValueAsInteger());
-    ASSERT_EQ(7, (*dict1)[10]->GetValueAsInteger());
-    ASSERT_EQ(8, (*dict1)[11]->GetValueAsInteger());
-
-    ASSERT_NO_THROW(ConvertTensorToDict(tensor2, *dict1.get()));
-    ASSERT_EQ(17, dict1->size());
-
-    ASSERT_EQ(L'T', (*dict1)[12]->GetValueAsInteger());
-    ASSERT_EQ(L'E', (*dict1)[13]->GetValueAsInteger());
-    ASSERT_EQ(L'S', (*dict1)[14]->GetValueAsInteger());
-    ASSERT_EQ(L'T', (*dict1)[15]->GetValueAsInteger());
-    ASSERT_EQ(L'Ё', (*dict1)[16]->GetValueAsInteger());
-
-    torch::Tensor result = torch::empty({0});
-    ASSERT_NO_THROW(ConvertDictToTensor(*dict1.get(), result));
-    ASSERT_EQ(1, result.dim());
-    ASSERT_EQ(17, result.size(0));
-
-
-    ASSERT_EQ('t', result.index({0}).item<int>()) << TensorToString(result) << "\n";
-    ASSERT_EQ('e', result.index({1}).item<int>());
-    ASSERT_EQ('s', result[2].item<int>());
-    ASSERT_EQ('t', result[3].item<int>());
-    ASSERT_EQ(1, result[4].item<int>());
-    ASSERT_EQ(2, result[5].item<int>());
-    ASSERT_EQ(3, result[6].item<int>());
-    ASSERT_EQ(4, result[7].item<int>());
-    ASSERT_EQ(5, result[8].item<int>());
-    ASSERT_EQ(6, result[9].item<int>());
-    ASSERT_EQ(7, result[10].item<int>());
-    ASSERT_EQ(8, result[11].item<int>());
-
-    ASSERT_EQ(L'T', result[12].item<int>());
-    ASSERT_EQ(L'E', result[13].item<int>());
-    ASSERT_EQ(L'S', result[14].item<int>());
-    ASSERT_EQ(L'T', result[15].item<int>());
-    ASSERT_EQ(L'Ё', result[16].item<int>());
-
 }
 
 #endif // UNITTEST

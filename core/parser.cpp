@@ -48,7 +48,7 @@ TermPtr Parser::Parse(const std::string_view str) {
         return m_ast;
     }
 
-    // Исходники требуются для вывода информацииоб ошибках во время анализа типов
+    // Исходники требуются для вывода информации ошибках во время анализа типов
     m_ast->SetSource(m_ast->m_source);
     lexer = nullptr;
     return m_ast;

@@ -12,30 +12,59 @@
         //     "cwd": "${workspaceRoot}",
         //     "valuesFormatting": "parseText"
         // },
+        // "configurations": [
+        // {
+        //     "name": "clang++ - Build and debug active file",
+        //     "type": "cppdbg",
+        //     "request": "launch",
+        //     "program": "${fileDirname}/${fileBasenameNoExtension}",
+        //     "args": [],
+        //     "stopAtEntry": false,
+        //     "cwd": "${workspaceFolder}",
+        //     "environment": [],
+        //     "externalConsole": false,
+        //     "MIMode": "lldb",
+        //     "setupCommands": [
+        //         {
+        //             "description": "Enable pretty-printing for gdb",
+        //             "text": "-enable-pretty-printing",
+        //             "ignoreFailures": true
+        //         }
+        //     ],
+        //     "preLaunchTask": "C/C++: clang++ build active file",
+        //     "miDebuggerPath": "/usr/bin/lldb-mi"
+        // },
         {
             "type": "lldb",
             "request": "launch",
             "name": "Debug",
             "program": "${workspaceFolder}/newlang-unit-tests",
             "args": [
-                "--gtest_shuffle",            
-                "--gtest_filter=Types.Convert:Eval.Tensor:Eval.Assign:ParserTest.Tensor1", 
+                "--gtest_shuffle",
+                "--gtest_filter=Types.Convert:Eval.Tensor:Eval.Assign:ParserTest.Tensor1",
             ],
             "cwd": "${workspaceFolder}/core",
-            // "stopAtEntry": true,
-            "environment": [    
+            "stopAtEntry": false,
+            "environment": [
                 // {"name":"LD_LIBRARY_PATH","value": "$LD_LIBRARY_PATH;${workspaceFolder}/contrib/libtorch/lib"},
             ],
+            "externalConsole": true,
+            "preLaunchTask": "Build Debug",
+            // "linux": {
+            //     "MIMode": "lldb",
+            //     "stopAtEntry": false,
+            //     "stopAtConnect": false,
+            // },
             // "symbolSearchPath": "${workspaceFolder}/contrib/libtorch/lib",
             // "additionalSOLibSearchPath":"${workspaceFolder}/contrib/libtorch/lib",
-            "logging": {
-                "moduleLoad": false,
-                "trace": true
-            },
-              "sourceFileMap": {
-                "${workspaceFolder}/core": "${workspaceFolder}/core",
-                "/build/gcc-4.8-fNUjSI/gcc-4.8-4.8.4/build/i686-linux-gnu/libstdc++-v3/include": "/usr/include/c++/4.8"
-            },
+            // "logging": {
+            //     "moduleLoad": false,
+            //     "trace": true
+            // },
+            // "sourceFileMap": {
+            //     "${workspaceFolder}/core": "${workspaceFolder}/core",
+            //     "/build/gcc-4.8-fNUjSI/gcc-4.8-4.8.4/build/i686-linux-gnu/libstdc++-v3/include": "/usr/include/c++/4.8"
+            // },
             "setupCommands": [
                 {
                     "description": "Enable pretty-printing for gdb",

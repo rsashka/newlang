@@ -7,7 +7,6 @@
 
 namespace newlang {
 
-
 typedef at::indexing::TensorIndex Index;
 typedef at::IntArrayRef Dimension;
 
@@ -27,28 +26,28 @@ typedef std::shared_ptr<RunTime> RuntimePtr;
  * Типы функций для вызова:
  * FunctionType - обычные функции, передача аргументов с помощью словаря
  * TransparentType - чистые функции, передача аргументов с помощью словаря
- * 
- * 
+ *
+ *
  * Прямого вызова - функции класса с передачей аргументов как в прототипе
  * Нативные - системные функции, передача аргументов с помощью словаря, которые конвертируются в нативные данные
- * 
- * Для функций прямого вызова требуется во время компиляции знать тип каждого аргумента, чтобы правильно 
+ *
+ * Для функций прямого вызова требуется во время компиляции знать тип каждого аргумента, чтобы правильно
  * конвертировать в нужный тип данных из ObjPtr.
- * 
+ *
  * Tensor type1();
  * Tensor type1(Tensor);
  * Tensor type1(Tensor, Tensor);
  * Tensor type1(Tensor, int64_t);
  * Tensor type1(int64_t, int64_t);
- * 
+ *
  * Tensor type1(int64_t, Tensor);
- * 
+ *
  */
 typedef ObjPtr FunctionType(Context *ctx, Object &in);
 typedef ObjPtr TransparentType(const Context *ctx, const Object &in);
 
 class Interruption : public std::exception {
-public:
+  public:
     Interruption();
     Interruption(ObjPtr obj);
 
@@ -56,76 +55,69 @@ public:
 };
 
 class newlang_exception : public std::runtime_error {
-public:
-
+  public:
     newlang_exception(ObjPtr obj);
 
     ObjPtr m_obj;
 };
 
 class parser_exception : public std::runtime_error {
-public:
-
-    parser_exception(std::string msg) : std::runtime_error(msg) {
-
-    }
-
+  public:
+    parser_exception(std::string msg) : std::runtime_error(msg) {}
 };
 
 class abort_exception : public std::runtime_error {
-public:
-
-    abort_exception(std::string msg) : std::runtime_error(msg) {
-
-    }
+  public:
+    abort_exception(std::string msg) : std::runtime_error(msg) {}
 };
 
 void NewLangSignalHandler(int signal);
 
-
 #ifdef __GNUC__
 std::string ParserMessage(std::string &buffer, int row, int col, const char *format, ...)
-__attribute__ ((format(printf, 4, 5)));
+    __attribute__((format(printf, 4, 5)));
 #else
 
 #endif
 
-
 void ParserException(const char *msg, std::string &buffer, int row, int col);
 
-
-#define NL_PARSER(term, format, ...)    \
-    do {                                \
-        std::string empty;              \
-        std::string message = ParserMessage(term->m_source ? *term->m_source : empty, term->m_line, term->m_col, format, ##__VA_ARGS__); \
-        LOG_EXCEPT_LEVEL(parser_exception, LOG_LEVEL_INFO, "", "%s", message.c_str());   \
+#define NL_PARSER(term, format, ...)                                                                                   \
+    do {                                                                                                               \
+        std::string empty;                                                                                             \
+        std::string message =                                                                                          \
+            ParserMessage(term->m_source ? *term->m_source : empty, term->m_line, term->m_col, format, ##__VA_ARGS__); \
+        LOG_EXCEPT_LEVEL(parser_exception, LOG_LEVEL_INFO, "", "%s", message.c_str());                                 \
     } while (0)
 
-#define NL_EVAL(term, format, ...)    \
-    do {                                \
-        std::string empty;              \
-        std::string message = ParserMessage(term->m_source ? *term->m_source : empty, term->m_line, term->m_col, format, ##__VA_ARGS__); \
-        LOG_EXCEPT_LEVEL(abort_exception, LOG_LEVEL_INFO, "", "%s", message.c_str());   \
+#define NL_EVAL(term, format, ...)                                                                                     \
+    do {                                                                                                               \
+        std::string empty;                                                                                             \
+        std::string message =                                                                                          \
+            ParserMessage(term->m_source ? *term->m_source : empty, term->m_line, term->m_col, format, ##__VA_ARGS__); \
+        LOG_EXCEPT_LEVEL(abort_exception, LOG_LEVEL_INFO, "", "%s", message.c_str());                                  \
     } while (0)
 
-#define NL_CHECK(cond, format, ...)         \
-  do {                              \
-    if(!(cond)) {                   \
-        LOG_EXCEPT_LEVEL(parser_exception, LOG_LEVEL_INFO, "", format, ##__VA_ARGS__);   \
-    }                               \
-  } while(0)
+#define NL_CHECK(cond, format, ...)                                                                                    \
+    do {                                                                                                               \
+        if (!(cond)) {                                                                                                 \
+            LOG_EXCEPT_LEVEL(parser_exception, LOG_LEVEL_INFO, "", format, ##__VA_ARGS__);                             \
+        }                                                                                                              \
+    } while (0)
 
-#define NL_TYPECHECK(term, from, to) \
-  do {                              \
-    if(!canCast(from, to)) {        \
-        std::string message = "Incompatible data type '";   \
-        message += newlang::toString(typeFromString(from)); \
-        message += "' and '";                               \
-        message += newlang::toString(typeFromString(to));   \
-        message += "' (" __FILE__ ":" TO_STR(__LINE__) ")";   \
-        LOG_EXCEPT_LEVEL(parser_exception, LOG_LEVEL_INFO, "", "%s", ParserMessage(*term->m_source, term->m_line, term->m_col, "%s", message.c_str()).c_str());\
-    }                               \
-  } while(0)
+#define NL_TYPECHECK(term, from, to)                                                                                   \
+    do {                                                                                                               \
+        if (!canCast(from, to)) {                                                                                      \
+            std::string message = "Incompatible data type '";                                                          \
+            message += newlang::toString(typeFromString(from));                                                        \
+            message += "' and '";                                                                                      \
+            message += newlang::toString(typeFromString(to));                                                          \
+            message += "' (" __FILE__ ":" TO_STR(__LINE__) ")";                                                        \
+            LOG_EXCEPT_LEVEL(                                                                                          \
+                parser_exception, LOG_LEVEL_INFO, "", "%s",                                                            \
+                ParserMessage(*term->m_source, term->m_line, term->m_col, "%s", message.c_str()).c_str());             \
+        }                                                                                                              \
+    } while (0)
 
 //// Типы объектов (пустой, скаляр, тензор (массив), строка, словарь, функция, класс, диапазон, ошибка
 //// пустой тип - не инициализаированный тип, совместимый с любых другим значением
@@ -155,70 +147,79 @@ void ParserException(const char *msg, std::string &buffer, int row, int col);
 - Другие ?????? (Range, ellipsis, определение типа)
 */
 
- 
+#define NL_TYPES(_)                                                                                                    \
+    _(None, 0)                                                                                                         \
+                                                                                                                       \
+    _(Bool, 1)                                                                                                         \
+    _(Char, 2)                                                                                                         \
+    _(Short, 3)                                                                                                        \
+    _(Int, 4)                                                                                                          \
+    _(Long, 5)                                                                                                         \
+    _(Integer, 9)                                                                                                      \
+                                                                                                                       \
+    _(Float, 10)                                                                                                       \
+    _(Double, 11)                                                                                                      \
+    _(Number, 19)                                                                                                      \
+                                                                                                                       \
+    _(ComplexFloat, 20)                                                                                                \
+    _(ComplexDouble, 21)                                                                                               \
+    _(Complex, 29)                                                                                                     \
+                                                                                                                       \
+    _(Tensor, 39)                                                                                                      \
+                                                                                                                       \
+    _(StrChar, 40)                                                                                                     \
+    _(StrWide, 41)                                                                                                     \
+    _(ViewChar, 42)                                                                                                    \
+    _(ViewWide, 43)                                                                                                    \
+    _(String, 49)                                                                                                      \
+                                                                                                                       \
+    _(BigNum, 95)                                                                                                      \
+    _(Currency, 96)                                                                                                    \
+    _(Fraction, 97)                                                                                                    \
+    _(Pointer, 98)                                                                                                     \
+    _(NativeFunc, 99)                                                                                                  \
+    _(FUNCTION, 100)                                                                                                   \
+    _(TRANSPARENT, 102)                                                                                                \
+    _(Range, 104)                                                                                                      \
+    _(Dictionary, 105)                                                                                                       \
+    _(Class, 106)                                                                                                      \
+    _(Ellipsis, 107)                                                                                                   \
+    _(BLOCK, 108)                                                                                                      \
+    _(BLOCK_TRY, 109)                                                                                                  \
+    _(EVAL_FUNCTION, 110)                                                                                              \
+    _(EVAL_TRANSP, 111)                                                                                                \
+    _(EVAL_AND, 112)                                                                                                   \
+    _(EVAL_OR, 113)                                                                                                    \
+    _(EVAL_XOR, 114) \
+    \
+    _(Type, 200)\
+    _(Error, 255)
 
-#define NL_TYPES(_) \
-  _(None,   0) \
-  \
-  _(Bool,   1) \
-  _(Char,   2) \
-  _(Short,  3) \
-  _(Int,    4) \
-  _(Long,  5) \
-  _(Integer,  9) \
-  \
-  _(Float,  10) \
-  _(Double, 11) \
-  _(Number,   19) \
-  \
-  _(ComplexFloat,  20) \
-  _(ComplexDouble, 21) \
-  _(Complex,  29) \
-  \
-  _(Tensor,  39) \
-  \
-  _(StrChar, 40) \
-  _(StrWide, 41) \
-  _(ViewChar,42) \
-  _(ViewWide,43) \
-  _(String,  49) \
-  \
-  _(BigNum,     95) \
-  _(Currency,   96) \
-  _(Fraction,   97) \
-  _(Pointer,     98) \
-  _(NativeFunc,     99) \
-  _(FUNCTION,       100) \
-  _(TRANSPARENT,    102) \
-  _(Range,          104) \
-  _(Dict,           105) \
-  _(Class,          106) \
-  _(Ellipsis,       107) \
-  _(EVAL_FUNCTION,  109) \
-  _(EVAL_TRANSP,    110) \
-  _(EVAL_AND,    111) \
-  _(EVAL_OR,    112) \
-  _(EVAL_XOR,    113) \
-  _(Error,          255)
+//    _(Enum, 120)                                                                                                      \
+//    _(Union, 121)                                                                                                      \
+//    _(Struct, 122)                                                                                                      \
+//\
 
 // BigNum - Длинные целые числа произвольного размера  100:Big
 // Currency - Fraction со знаменателем `10000 -1`000.00   `-1000  100:Curr
 // Fraction - произвольная дробь с длинными числами    100\1    100:Frac
 // Frac_tion \1 -> Curr_ency `1.0000 -> Big_Num 100`100`000.  100'100'000.
 
-//Форматирующий символ дроби (fraction slash, U+2044) позволяет создавать произвольные дроби следующим образом: 
-// последовательность цифр числителя + форматирующий символ дроби + последовательность цифр знаменателя 
+//Форматирующий символ дроби (fraction slash, U+2044) позволяет создавать произвольные дроби следующим образом:
+// последовательность цифр числителя + форматирующий символ дроби + последовательность цифр знаменателя
 // — при выводе на экран или на печать это должно преобразовываться в правильно сформированную дробь.
-// Например, 22⁄371 должна показываться как 22/371 или как 22 371 {\displaystyle {\frac {22}{371}}} {\displaystyle {\frac {22}{371}}} 
-// (может использоваться как «косая», так и «вертикальная» форма представления дроби)[1].
+// Например, 22⁄371 должна показываться как 22/371 или как 22 371 {\displaystyle {\frac {22}{371}}} {\displaystyle
+// {\frac {22}{371}}} (может использоваться как «косая», так и «вертикальная» форма представления дроби)[1].
 //
-//Для правильного отображения смешанных дробей (наподобие 3 6 7 {\displaystyle 3{\frac {6}{7}}} {\displaystyle 3{\frac {6}{7}}}) 
+//Для правильного отображения смешанных дробей (наподобие 3 6 7 {\displaystyle 3{\frac {6}{7}}} {\displaystyle 3{\frac
+//{6}{7}}})
 // целую часть нужно отделять от числителя дробной части подходящим пробелом (например, пробелом нулевой ширины U+200B).
 //
-//Кроме того, существует символ ⅟ (fraction numerator one, U+215F), позволяющий формировать дроби с числителем, равным 1. 
+//Кроме того, существует символ ⅟ (fraction numerator one, U+215F), позволяющий формировать дроби с числителем,
+//равным 1.
 //  "/-5 " - квадратный корень из 5,  "3/-5" - корень третьей степени ????
 // "1/_5" - Одна пятая ??
-//https://github.com/python/cpython/blob/main/Lib/fractions.py
+// https://github.com/python/cpython/blob/main/Lib/fractions.py
 //
 //_RATIONAL_FORMAT = re.compile(r"""
 //    \A\s*                                 # optional whitespace at the start,
@@ -234,12 +235,11 @@ void ParserException(const char *msg, std::string &buffer, int row, int col);
 //    \s*\Z                                 # and optional whitespace to finish
 //""", re.VERBOSE | re.IGNORECASE)
 
-
 /*
  * Типы данных различаются:
- * Пусто: 
+ * Пусто:
  * - Тип данные Any и значение None (toType(None))
- * - Значение None "_" (подчерк) может быть у другних типов. т.е. 
+ * - Значение None "_" (подчерк) может быть у другних типов. т.е.
  *    у (не инициализированных) переменных, при попытке чтения значения которых возникает ошибка. (clear_())
  * Числа:
  * - общий тип (булевый, целое, с плавающей точкой, комплексное)
@@ -263,74 +263,76 @@ void ParserException(const char *msg, std::string &buffer, int row, int col);
  * - Диапазон
  * - Многоточие
  * - Адрес (указатель)
- * 
- * Нативные строки, массивы и функции можно регистрировать в стандартных типах данных, т.к. интерфейс работы с ними реализуется объектом.
- * Все остальные типы данных требуют реализации специфических методом, которые нельзя определить заранее сразу для всех,
- * но можно реализовывать кастомные классы с данными, специфическими для конкретных объектов С++.
- * 
- * 
- * 
- * 
+ *
+ * Нативные строки, массивы и функции можно регистрировать в стандартных типах данных, т.к. интерфейс работы с ними
+ * реализуется объектом. Все остальные типы данных требуют реализации специфических методом, которые нельзя определить
+ * заранее сразу для всех, но можно реализовывать кастомные классы с данными, специфическими для конкретных объектов
+ * С++.
+ *
+ *
+ *
+ *
  * Автоматическое приведение типов в выражениях происходит по следующим правилам.
  * - Если тип указан явно, то он не может быть изменен
  * - Определяется общий тип (Bool, Integer, Number, Complex).
  * - Если тип литерала явно не указан, то выбирается минимальный байтовый размер для общего типа.
  * - В выражениях тензор-скаляр, тензором должен быть самый левый элемент выражения.
  * - Итоговым типом поседовательности выражений является тип первого вычисленного элемента.
- * - В операторах присвоения вычисление типа происходит дважды, сперва для правой части выражения, а потом для оператора присовения.
+ * - В операторах присвоения вычисление типа происходит дважды, сперва для правой части выражения, а потом для оператора
+ * присовения.
  * - Тип меньшего размера может автоматически приводится к типу большему размеру или к более сложному типу
  *    bool -> char -> short -> int -> long -> float -> double -> complexfloat -> complexdouble
- *    var := 1.0 + 2; // float  
- *    var := 1 + 1000; // Short т.к. первый тип изменяемый 
+ *    var := 1.0 + 2; // float
+ *    var := 1 + 1000; // Short т.к. первый тип изменяемый
  *    var := 1:Char + 1000; // Ошибка в выражении т.к. первый тип не изменяемый  Short -x-> Char
  *    var:Char := 1 + 1000; // Ошибка в присвоении т.к. тип не изменяемый  Short -x-> Char
- *    var := 1000 + 2; // Short  
+ *    var := 1000 + 2; // Short
  *    var := 1000 + 2.0; // Ошибка float -> short, но может быть var := 1000.0 + 2;
- *    var := 1:Bool + 2; // Ошибка byte -> bool, но может быть var := 2 + 1:Bool; 
- * 
+ *    var := 1:Bool + 2; // Ошибка byte -> bool, но может быть var := 2 + 1:Bool;
+ *
  * - Итоговым типом поседовательности выражений является тип первого вычисленого элемента.
  *      var := 1.0 + 2; // float  var := 1000 + 2; // Short  var := 1000 + 2.0;
- * - 
+ * -
  * АПриведение ра
  * Совместимость типов данныъ между собой определяется по следующему принципу.
- * Если данные 
- * 
+ * Если данные
+ *
  */
 
-
-#define NL_BUILTIN_CAST_TYPE(_) \
-  _(None,   None) \
-  _(Char,   Char) \
-  _(Short,  Short) \
-  _(Int,    Int) \
-  _(Long,   Long) \
-  _(Float,  Float) \
-  _(Double, Double) \
-  _(ComplexFloat,   ComplexFloat) \
-  _(ComplexDouble,  ComplexDouble) \
-  _(Bool,       Bool) \
-  _(StrChar,    StrChar) \
-  _(StrWide,    StrWide) \
-  _(Dict,       Dict) \
-  _(Class,      Class) \
-  \
-  _(Integer,    Long) \
-  _(Number,     Float) \
-  _(Complex,    ComplexFloat) \
-  _(String,     StrChar) \
-  _(Format,     StrChar) \
-  _(Pointer,    Pointer)
+#define NL_BUILTIN_CAST_TYPE(_)                                                                                        \
+    _(None)                                                                                                      \
+    _(Char)                                                                                                      \
+    _(Short)                                                                                                    \
+    _(Int)                                                                                                        \
+    _(Long)                                                                                                      \
+    _(Float)                                                                                                    \
+    _(Double)                                                                                                  \
+    _(ComplexFloat)                                                                                      \
+    _(ComplexDouble)                                                                                    \
+    _(Bool)                                                                                                      \
+    _(StrChar)                                                                                                \
+    _(StrWide)                                                                                                \
+    _(Dictionary)                                                                                          \
+    _(Class)                                                                                                    \
+                                                                                                                       \
+    _(Integer)                                                                                                \
+    _(Number)                                                                                                  \
+    _(Complex)                                                                                                \
+    _(Tensor)                                                                                                  \
+    \
+    _(String)                                                                                                 \
+    _(Pointer)
 
 enum class ObjType : uint8_t {
-#define DEFINE_ENUM(name, value) name = static_cast<uint8_t> (value),
+#define DEFINE_ENUM(name, value) name = static_cast<uint8_t>(value),
     NL_TYPES(DEFINE_ENUM)
 #undef DEFINE_ENUM
 };
 
-inline const char* toString(ObjType type) {
-#define DEFINE_CASE(name, _) \
-  case ObjType::name:     \
-    return #name;
+inline const char *toString(ObjType type) {
+#define DEFINE_CASE(name, _)                                                                                           \
+    case ObjType::name:                                                                                                \
+        return #name;
 
     switch (type) {
             NL_TYPES(DEFINE_CASE)
@@ -342,12 +344,18 @@ inline const char* toString(ObjType type) {
 }
 
 inline bool isObjectType(ObjType t) {
-    return t == ObjType::Dict || t == ObjType::Class;
+    return t == ObjType::Dictionary || t == ObjType::Class;
+}
+
+inline bool isBaseType(ObjType t) {
+    return t == ObjType::Bool || t == ObjType::Char || t == ObjType::Short || t == ObjType::Int
+            || t == ObjType::Long || t == ObjType::Float || t == ObjType::Double;
 }
 
 inline bool isFunction(ObjType t) {
-    return t == ObjType::TRANSPARENT || t == ObjType::FUNCTION || t == ObjType::NativeFunc || t == ObjType::EVAL_FUNCTION
-            || t == ObjType::EVAL_TRANSP || t == ObjType::EVAL_AND || t == ObjType::EVAL_OR || t == ObjType::EVAL_XOR;
+    return t == ObjType::TRANSPARENT || t == ObjType::FUNCTION || t == ObjType::NativeFunc ||
+            t == ObjType::EVAL_FUNCTION || t == ObjType::EVAL_TRANSP || t == ObjType::EVAL_AND ||
+            t == ObjType::EVAL_OR || t == ObjType::EVAL_XOR;
 }
 
 inline bool isSimpleType(ObjType t) {
@@ -355,7 +363,9 @@ inline bool isSimpleType(ObjType t) {
 }
 
 inline bool isIntegralType(ObjType t, bool includeBool) {
-    return static_cast<uint8_t> (t) >= static_cast<uint8_t> (ObjType::Char) && static_cast<uint8_t> (t) <= static_cast<uint8_t> (ObjType::Integer) || (includeBool && t == ObjType::Bool);
+    return static_cast<uint8_t> (t) >= static_cast<uint8_t> (ObjType::Char) &&
+            static_cast<uint8_t> (t) <= static_cast<uint8_t> (ObjType::Integer) ||
+            (includeBool && t == ObjType::Bool);
 }
 
 inline bool isFloatingType(ObjType t) {
@@ -376,15 +386,21 @@ inline bool isBooleanType(ObjType t) {
 
 inline bool isArithmeticType(ObjType t) {
     // Арифметический тип данных - НЕ объект, НЕ строка или функция и НЕ логический тип
-    return static_cast<uint8_t> (t) >= static_cast<uint8_t> (ObjType::Char) && static_cast<uint8_t> (t) <= static_cast<uint8_t> (ObjType::Tensor);
+    return static_cast<uint8_t> (t) >= static_cast<uint8_t> (ObjType::Char) &&
+            static_cast<uint8_t> (t) <= static_cast<uint8_t> (ObjType::Tensor);
 }
 
 inline bool isString(ObjType t) {
-    return t == ObjType::StrChar || t == ObjType::StrWide || t == ObjType::ViewWide || t == ObjType::ViewWide || t == ObjType::String;
+    return t == ObjType::StrChar || t == ObjType::StrWide || t == ObjType::ViewWide || t == ObjType::ViewWide ||
+            t == ObjType::String;
+}
+
+inline bool isPlainDataType(ObjType t) {
+    return isArithmeticType(t) || isString(t);
 }
 
 inline bool isDictionary(ObjType t) {
-    return t == ObjType::Dict || t == ObjType::Class;
+    return t == ObjType::Dictionary || t == ObjType::Class;
 }
 
 inline bool isClass(ObjType t) {
@@ -468,7 +484,8 @@ inline ObjType typeFromLimit(int64_t value, ObjType type_default = ObjType::Long
         return ObjType::Long;
     } else if (value < std::numeric_limits<int16_t>::min() || value > std::numeric_limits<int16_t>::max()) {
         return ObjType::Int;
-    } else if (value < std::numeric_limits<int8_t>::min() || value > std::numeric_limits<int8_t>::max()) { //-127 < ... > 128
+    } else if (value < std::numeric_limits<int8_t>::min() ||
+            value > std::numeric_limits<int8_t>::max()) { //-127 < ... > 128
         return ObjType::Short;
     } else {
         return ObjType::Char;
@@ -504,11 +521,12 @@ inline bool canCastLimit(const ObjType from, const ObjType to) {
         //   т.е. Int_tensor += Bool_tensor или ComplexFloat_tensor *= Short_tensor.
 
         //        return at::canCast(toTorchType(from), toTorchType(to))
-        //                && (from <= to || from == ObjType::Bool || from <= ObjType::Char || (isFloatingType(from) && isFloatingType(to)));
+        //                && (from <= to || from == ObjType::Bool || from <= ObjType::Char || (isFloatingType(from) &&
+        //                isFloatingType(to)));
         return (from <= to || (isFloatingType(from) && isFloatingType(to)));
 
-    } else if (isString(from) && isString(to) && isObjectType(to)) {
-        // Строковые типы конвертируются только В объект, т.к. нативные типы не изменяются 
+    } else if (isString(from) && isString(to)) {// && isObjectType(to)) {
+        // Строковые типы конвертируются только В объект, т.к. нативные типы не изменяются
         return true;
     } else if (isDictionary(from) && isDictionary(to)) {
         return true;
@@ -615,31 +633,31 @@ inline void setTensorValue(torch::Tensor &self, torch::Tensor &set) {
                 }
                 return;
             } else if (ObjType::Short == type) {
-                auto acc_short = self.accessor<short, 1 > ();
+                auto acc_short = self.accessor<short, 1>();
                 for (int i = 0; i < acc_short.size(0); i++) {
                     acc_short[i] = set.item().toShort();
                 }
                 return;
             } else if (ObjType::Int == type) {
-                auto acc_int = self.accessor<int, 1 > ();
+                auto acc_int = self.accessor<int, 1>();
                 for (int i = 0; i < acc_int.size(0); i++) {
                     acc_int[i] = set.item().toInt();
                 }
                 return;
             } else if (ObjType::Long == type) {
-                auto acc_long = self.accessor<long, 1 > ();
+                auto acc_long = self.accessor<long, 1>();
                 for (int i = 0; i < acc_long.size(0); i++) {
                     acc_long[i] = set.item().toLong();
                 }
                 return;
             } else if (ObjType::Float == type) {
-                auto acc_float = self.accessor<float, 1 > ();
+                auto acc_float = self.accessor<float, 1>();
                 for (int i = 0; i < acc_float.size(0); i++) {
                     acc_float[i] = set.item().toFloat();
                 }
                 return;
             } else if (ObjType::Double == type) {
-                auto acc_double = self.accessor<double, 1 > ();
+                auto acc_double = self.accessor<double, 1>();
                 for (int i = 0; i < acc_double.size(0); i++) {
                     acc_double[i] = set.item().toDouble();
                 }
@@ -656,7 +674,7 @@ inline void setTensorValue(torch::Tensor &self, torch::Tensor &set) {
                 }
                 return;
             } else if (ObjType::Short == type) {
-                auto acc_short = self.accessor<short, 2 > ();
+                auto acc_short = self.accessor<short, 2>();
                 for (int i = 0; i < acc_short.size(0); i++) {
                     for (int j = 0; j < acc_short.size(1); j++) {
                         acc_short[i][j] = set.item().toShort();
@@ -664,7 +682,7 @@ inline void setTensorValue(torch::Tensor &self, torch::Tensor &set) {
                 }
                 return;
             } else if (ObjType::Int == type) {
-                auto acc_int = self.accessor<int, 2 > ();
+                auto acc_int = self.accessor<int, 2>();
                 for (int i = 0; i < acc_int.size(0); i++) {
                     for (int j = 0; j < acc_int.size(1); j++) {
                         acc_int[i][j] = set.item().toInt();
@@ -672,7 +690,7 @@ inline void setTensorValue(torch::Tensor &self, torch::Tensor &set) {
                 }
                 return;
             } else if (ObjType::Long == type) {
-                auto acc_long = self.accessor<long, 2 > ();
+                auto acc_long = self.accessor<long, 2>();
                 for (int i = 0; i < acc_long.size(0); i++) {
                     for (int j = 0; j < acc_long.size(1); j++) {
                         acc_long[i][j] = set.item().toLong();
@@ -680,7 +698,7 @@ inline void setTensorValue(torch::Tensor &self, torch::Tensor &set) {
                 }
                 return;
             } else if (ObjType::Float == type) {
-                auto acc_float = self.accessor<float, 2 > ();
+                auto acc_float = self.accessor<float, 2>();
                 for (int i = 0; i < acc_float.size(0); i++) {
                     for (int j = 0; j < acc_float.size(1); j++) {
                         acc_float[i][j] = set.item().toFloat();
@@ -688,7 +706,7 @@ inline void setTensorValue(torch::Tensor &self, torch::Tensor &set) {
                 }
                 return;
             } else if (ObjType::Double == type) {
-                auto acc_double = self.accessor<double, 2 > ();
+                auto acc_double = self.accessor<double, 2>();
                 for (int i = 0; i < acc_double.size(0); i++) {
                     for (int j = 0; j < acc_double.size(1); j++) {
                         acc_double[i][j] = set.item().toDouble();
@@ -702,7 +720,7 @@ inline void setTensorValue(torch::Tensor &self, torch::Tensor &set) {
     LOG_RUNTIME("Fail set data tensor type '%s'!", at::toString(self.scalar_type()));
 }
 
-inline int64_t parseInteger(const char * str) {
+inline int64_t parseInteger(const char *str) {
     char *ptr;
     std::string temp = str;
     for (size_t k = temp.find('_'); k != temp.npos; k = temp.find('_', k)) {
@@ -715,7 +733,7 @@ inline int64_t parseInteger(const char * str) {
     return result;
 }
 
-inline double parseDouble(const char * str) {
+inline double parseDouble(const char *str) {
     char *ptr;
     std::string temp = str;
     for (size_t k = temp.find('_'); k != temp.npos; k = temp.find('_', k)) {
@@ -728,14 +746,14 @@ inline double parseDouble(const char * str) {
     return result;
 }
 
-inline std::complex<double> parseComplex(const char * str) {
+inline std::complex<double> parseComplex(const char *str) {
     LOG_RUNTIME("Not implemented!");
 }
 
 /*
- * 
- * 
- * 
+ *
+ *
+ *
  */
 inline bool isGlobal(const std::string_view name) {
     return !name.empty() && name[0] == '@';
@@ -750,36 +768,30 @@ inline bool isType(const std::string_view name) {
 }
 
 inline bool isLocalAny(const char *name) {
-    return name && !(name[0] == '$' || name[0] == '@' || name[0] == '%');
+    return name && !(name[0] == '$' || name[0] == '@' || name[0] == ':' || name[0] == '%');
 }
 
-inline bool isMutable(const std::string name) {
+inline bool isMutableName(const std::string name) {
     // Метод, который изменяет объект, должен заканчиваеться на ОДИН подчерк
     return name.size() > 1 && name[name.size() - 1] == '_' && name[name.size() - 2] != '_';
 }
 
-inline bool isInternal(const char *name) {
-    if (!name) {
+inline bool isInternalName(const std::string name) {
+    if (name.empty()) {
         return false;
     }
-    std::string str(name);
-    return str.size() >= 4 && str.find("__") == 0 && str.rfind("__") == str.size() - 2;
+    return name.size() >= 4 && name.find("__") == 0 && name.rfind("__") == name.size() - 2;
 }
 
-inline bool isPrivate(const char *name) {
-    if (!name) {
+inline bool isPrivateName(const std::string name) {
+    if (name.empty()) {
         return false;
     }
-    std::string str(name);
-    return str.size() >= 3 && str.find("__") == 0 && str.rfind("__") != str.size() - 2;
+    return name.size() >= 3 && name.find("__") == 0;
 }
 
-inline bool isHiden(const char *name) {
-    if (!name) {
-        return false;
-    }
-    std::string str(name);
-    return !isPrivate(name) && str.find("_") == 0;
+inline bool isHidenName(const std::string name) {
+    return !isPrivateName(name) && name.find("_") == 0;
 }
 
 inline std::string DimToString(const Dimension dim) {
@@ -805,19 +817,19 @@ inline std::string IndexToString(const std::vector<Index> &index) {
  * String -> Tensor
  * Tensor -> String
  * Dict -> Tensor
- * Tensor -> Dict 
+ * Tensor -> Dict
  */
 void ConvertRangeToDict(Object *from, Object &to);
 
-void ConvertStringToTensor(const std::string &from, torch::Tensor &to);
-void ConvertStringToTensor(const std::wstring &from, torch::Tensor &to);
+void ConvertStringToTensor(const std::string &from, torch::Tensor &to, ObjType type = ObjType::None, Dimension *dims = nullptr);
+void ConvertStringToTensor(const std::wstring &from, torch::Tensor &to, ObjType type = ObjType::None, Dimension *dims = nullptr);
 
 void ConvertTensorToString(const torch::Tensor &from, std::string &to, std::vector<Index> *index = nullptr);
 void ConvertTensorToString(const torch::Tensor &from, std::wstring &to, std::vector<Index> *index = nullptr);
 
-void ConvertDictToTensor(Object &from, torch::Tensor &to);
+void ConvertDictToTensor(Object &from, torch::Tensor &to, ObjType type = ObjType::Tensor, Dimension *dims = nullptr);
 void ConvertTensorToDict(const torch::Tensor &from, Object &to, std::vector<Index> *index = nullptr);
-void ConvertValueToTensor(Object *from, torch::Tensor &to);
+void ConvertValueToTensor(Object *from, torch::Tensor &to, ObjType type = ObjType::None, Dimension *dims = nullptr);
 
 } // namespace newlang
 

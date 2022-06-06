@@ -132,7 +132,11 @@ TEST(NLC, EvalHelloWorld) {
     cmd += "hello(str='') := { printf := @import('printf(format:Format, ...):Int'); printf('%s', $str); $str;};\n";
     cmd += "hello('Привет, мир!\\n');";
 
-    std::ofstream out("hello.temp.sh");
+    std::filesystem::create_directories("temp");
+    ASSERT_TRUE(std::filesystem::is_directory("temp"));
+
+
+    std::ofstream out("temp/hello.temp.sh");
     out << cmd;
     out.close();
 
@@ -142,29 +146,33 @@ TEST(NLC, EvalHelloWorld) {
     ASSERT_STREQ("Привет, мир!\n", result->GetValueAsString().c_str());
 }
 
-
 ///*
 // * #!./dist/Debug/GNU-Linux/nlc --exec
-// * print(str="") $= { %{ printf("%s", static_cast<char *>($str)); return $str; %} };
+// * print(str="") $= { %{ printf("%s", static_cast<char *>($str)); return $str;
+// %} };
 // * @print("Привет, мир!\n");
 // */
-//TEST(NLC, ExecHelloWorld) {
+// TEST(NLC, ExecHelloWorld) {
 //
-//    std::ofstream out("hello.temp.sh");
+//
+//    std::filesystem::create_directories("temp");
+//    ASSERT_TRUE(std::filesystem::is_directory("temp"));
+//
+//    std::ofstream out("temp/hello.temp.sh");
 //    out << "#!./dist/Debug/GNU-Linux/nlc --exec\n";
-//    out << "hello(str=\"\") := { %{ printf(\"%s\", static_cast<char *>(*$1)); return $str; %} };\n";
-//    out << "hello(\"Привет, мир!\\n\");";
-//    out.close();
+//    out << "hello(str=\"\") := { %{ printf(\"%s\", static_cast<char *>(*$1));
+//    return $str; %} };\n"; out << "hello(\"Привет, мир!\\n\");"; out.close();
 //
 //    NLC run;
-//    ObjPtr result = RunTime::Init()->ExecModule("hello.temp.sh", "hello.temp.sh.nlm", false, &run.m_ctx);
-//    ASSERT_TRUE(result);
+//    ObjPtr result = RunTime::Init()->ExecModule("temp/hello.temp.sh",
+//    "temp/hello.temp.sh.nlm", false, &run.m_ctx); ASSERT_TRUE(result);
 //    ASSERT_STREQ("Привет, мир!\n", result->GetValueAsString().c_str());
 //}
 //
 ///*
 // * #!./dist/Debug/GNU-Linux/nlc --exec
-// * human @= @term(sex=, parent=[,]); // human $= @term(sex=, parent=[,]); $[].human := human; @[] := human;
+// * human @= @term(sex=, parent=[,]); // human $= @term(sex=, parent=[,]);
+// $[].human := human; @[] := human;
 // * Tom @= @human(sex=male);
 // * Tom1 @= @human(sex=male):Tom;
 // * Tom2 @= @human(sex=male):Tom;
@@ -172,40 +180,46 @@ TEST(NLC, EvalHelloWorld) {
 // * Janna @= @human(sex=female);
 // * Jake @= @human(sex=male, [Tom, Janna,]);
 // * Tim @= @human(sex=male, parent=[Tom,]);
-// * 
-// * human::brother(test) &&= $0!=$test, $0.sex==male, @intersec($0.parent, $test.parent);
-// * 
+// *
+// * human::brother(test) &&= $0!=$test, $0.sex==male, @intersec($0.parent,
+// $test.parent);
+// *
 // * Tim.brother(Jake);
 // * Tim.brother(human!)?;
 // * brother(human!)?;
-// * 
-// * 
+// *
+// *
 // * male := "male";
 // * male2 := male; // Ссылка пока не изменяется. При изменении - копия
 // * male3 := &male; // Ссылка
 // * male4 := male(); //??????????????????????????
-// * 
+// *
 // * Tim := human(sex=male); // Ссылка пока не изменяется. При изменении - копия
 // * Tom := human(sex=&male); // Ссылка
-// * 
-// * male := "new"; // male="new"?    male2="male"?    male3 := "new";   Tim.sex="male"?   Tom.sex="male"?
-// * male2 := "var"; // male2="var"?   male="male"?    Tim.sex="male"?   Tom.sex="male"?
-// * male3 := "ref"; // male3="ref"?   male="ref"?     Tim.sex="male"?   Tom.sex="ref"?
-// * 
+// *
+// * male := "new"; // male="new"?    male2="male"?    male3 := "new";
+// Tim.sex="male"?   Tom.sex="male"?
+// * male2 := "var"; // male2="var"?   male="male"?    Tim.sex="male"?
+// Tom.sex="male"?
+// * male3 := "ref"; // male3="ref"?   male="ref"?     Tim.sex="male"?
+// Tom.sex="ref"?
+// *
 // * :sex := (male, female,);
-// * :human := (sex:sex=_, parent:human=_):(); // human $= @term(sex=, parent=[,]); $[].human := human; @[] := human;
+// * :human := (sex:sex=_, parent:human=_):(); // human $= @term(sex=,
+// parent=[,]); $[].human := human; @[] := human;
 // * Tom := human(sex=male);
 // * Janna := human(sex=sex.female);
 // * Jake := human(sex=male, [Tom, Janna,]);
 // * Tim := human(sex=male, parent=(Tom,));
-// * 
-// * :human::brother(test) &&= $0!=$test, $0.sex==male, @intersec($0.parent, $test.parent);
-// * 
+// *
+// * :human::brother(test) &&= $0!=$test, $0.sex==male, @intersec($0.parent,
+// $test.parent);
+// *
 // * Tim.brother(Jake);
 // * Tim.brother(human!)?;
 // * brother(human!)?;
 //
-// * 
+// *
 // */
 //
 ////ObjPtr test_brother(Context *ctx, Object &in) {
@@ -228,7 +242,7 @@ TEST(NLC, EvalHelloWorld) {
 ////    return *(*in[1])["parent"] * (*in[2])["parent"];
 ////}
 //
-//ObjPtr test_brother(Context *ctx, Object &in) {
+// ObjPtr test_brother(Context *ctx, Object &in) {
 //    if(in.size() != 3) {
 //        return Object::No();
 //    }
@@ -238,13 +252,15 @@ TEST(NLC, EvalHelloWorld) {
 //        return Object::No();
 //    }
 //
-//    if(static_cast<bool> ((*(*in[1])["пол"] == Object::CreateString("male"))->GetValueAsBoolean())) {
+//    if(static_cast<bool> ((*(*in[1])["пол"] ==
+//    Object::CreateString("male"))->GetValueAsBoolean())) {
 //        ;
 //    } else {
 //        return newlang::Object::No();
 //    }
 //
-//    if(static_cast<bool> ((*(*in[1])["parent"]* *(*in[2])["parent"])->GetValueAsBoolean())) {
+//    if(static_cast<bool> ((*(*in[1])["parent"]*
+//    *(*in[2])["parent"])->GetValueAsBoolean())) {
 //        ;
 //    } else {
 //        return newlang::Object::No();
@@ -262,8 +278,9 @@ TEST(NLC, EvalHelloWorld) {
 ////    ASSERT_STREQ("temp=temp()", test2->toString().c_str());
 ////
 ////    ASSERT_STREQ(test2->m_var_name.c_str(), test->m_var_name.c_str());
-////    ObjPtr test3 = (*test)(Object::Arg(100, "100"), Object::Arg(L"string", "str"));
-////    ASSERT_STREQ("temp=temp(100=100, str=\"string\")", test3->toString().c_str());
+////    ObjPtr test3 = (*test)(Object::Arg(100, "100"), Object::Arg(L"string",
+///"str")); /    ASSERT_STREQ("temp=temp(100=100, str=\"string\")",
+/// test3->toString().c_str());
 ////
 ////    ASSERT_STREQ(test3->m_var_name.c_str(), test->m_var_name.c_str());
 ////    test3->m_var_name = "test3";
@@ -273,21 +290,20 @@ TEST(NLC, EvalHelloWorld) {
 ////    ASSERT_EQ(100, (*test3)[0]->GetValueAsInteger());
 ////    ASSERT_TRUE((*test3)["str"]);
 ////    ASSERT_STREQ("string", (*test3)["str"]->GetValueAsString().c_str());
-////    ASSERT_STREQ("test3=temp(100=100, str=\"string\")", test3->toString().c_str());
+////    ASSERT_STREQ("test3=temp(100=100, str=\"string\")",
+/// test3->toString().c_str());
 ////
-////    ObjPtr test4 = (*test3)(Object::Arg(999, "100"), Object::Arg("string2", "str2"));
-////    ASSERT_STREQ(test4->m_var_name.c_str(), test3->m_var_name.c_str());
-////    test4->m_var_name = "test4";
-////    ASSERT_EQ(3, test4->size());
-////    ASSERT_TRUE((*test4)[0]);
-////    ASSERT_STREQ("100", test4->name(0).c_str());
-////    ASSERT_TRUE((*test4)[0]);
-////    ASSERT_EQ(999, (*test4)[0]->GetValueAsInteger());
-////    ASSERT_TRUE((*test4)["str"]);
-////    ASSERT_STREQ("string", (*test4)["str"]->GetValueAsString().c_str());
-////    ASSERT_TRUE((*test4)["str2"]);
-////    ASSERT_STREQ("string2", (*test4)["str2"]->GetValueAsString().c_str());
-////    ASSERT_STREQ("test4=test3(100=999, str=\"string\", str2='string2')", test4->toString().c_str());
+////    ObjPtr test4 = (*test3)(Object::Arg(999, "100"), Object::Arg("string2",
+///"str2")); /    ASSERT_STREQ(test4->m_var_name.c_str(),
+/// test3->m_var_name.c_str()); /    test4->m_var_name = "test4"; / ASSERT_EQ(3,
+/// test4->size()); /    ASSERT_TRUE((*test4)[0]); /    ASSERT_STREQ("100",
+/// test4->name(0).c_str()); /    ASSERT_TRUE((*test4)[0]); /    ASSERT_EQ(999,
+///(*test4)[0]->GetValueAsInteger()); /    ASSERT_TRUE((*test4)["str"]); /
+/// ASSERT_STREQ("string", (*test4)["str"]->GetValueAsString().c_str()); /
+/// ASSERT_TRUE((*test4)["str2"]); /    ASSERT_STREQ("string2",
+///(*test4)["str2"]->GetValueAsString().c_str()); /
+/// ASSERT_STREQ("test4=test3(100=999, str=\"string\", str2='string2')",
+/// test4->toString().c_str());
 ////
 ////    ObjPtr newlang_m = Object::CreateString(L"male");
 ////    ASSERT_EQ(1, ctx.size());
@@ -303,12 +319,13 @@ TEST(NLC, EvalHelloWorld) {
 ////
 ////    newlang_zh->MakeConst();
 ////
-////    utils::Logger::LogLevelType save = utils::Logger::Instance()->GetLogLevel();
-////    utils::Logger::Instance()->SetLogLevel(LOG_LEVEL_INFO);
+////    utils::Logger::LogLevelType save =
+/// utils::Logger::Instance()->GetLogLevel(); /
+/// utils::Logger::Instance()->SetLogLevel(LOG_LEVEL_INFO);
 ////
-////    ObjPtr human = Object::CreateDict(Object::Arg(Object::CreateNone(), "пол"), Object::Arg(Object::CreateDict(), "parent"));
-////    human->m_var_type = ObjType::Class;
-////    human->m_var_name = "human";
+////    ObjPtr human = Object::CreateDict(Object::Arg(Object::CreateNone(),
+///"пол"), Object::Arg(Object::CreateDict(), "parent")); /    human->m_var_type
+///= ObjType::Class; /    human->m_var_name = "human";
 ////
 ////    ASSERT_TRUE(human->op_class_test("human"));
 ////
@@ -325,39 +342,44 @@ TEST(NLC, EvalHelloWorld) {
 ////    ASSERT_EQ(2, ctx.m_info.global->size());
 ////    //    ASSERT_EQ(3, Tom.use_count()); // USER TERM + GLOBAL TERM
 ////
-////    ASSERT_STREQ("Tom=human(пол=\"male\", parent=[,])", Tom->toString().c_str());
-////    ASSERT_STREQ("Tom=human(пол=\"male\", parent=[,])", Tom->toString().c_str());
-////    ObjPtr Janna = (*human)(Object::Arg(newlang_zh, "пол"));
-////    ASSERT_STREQ("human=human(пол=\"female\", parent=[,])", Janna->toString().c_str());
-////    ASSERT_STREQ("Tom=human(пол=\"male\", parent=[,])", Tom->toString().c_str());
-////    ASSERT_STREQ("human=human(пол=\"female\", parent=[,])", Janna->toString().c_str());
+////    ASSERT_STREQ("Tom=human(пол=\"male\", parent=[,])",
+/// Tom->toString().c_str()); /    ASSERT_STREQ("Tom=human(пол=\"male\",
+/// parent=[,])", Tom->toString().c_str()); /    ObjPtr Janna =
+///(*human)(Object::Arg(newlang_zh, "пол")); /
+/// ASSERT_STREQ("human=human(пол=\"female\", parent=[,])",
+/// Janna->toString().c_str()); /    ASSERT_STREQ("Tom=human(пол=\"male\",
+/// parent=[,])", Tom->toString().c_str()); /
+/// ASSERT_STREQ("human=human(пол=\"female\", parent=[,])",
+/// Janna->toString().c_str());
 ////
 ////    ctx.CreateGlobalTerm(Janna, "Janna");
 ////    ASSERT_TRUE(Janna->op_class_test("human"));
 ////
 ////    ASSERT_EQ(3, ctx.m_info.global->size());
-////    ASSERT_STREQ("Tom=human(пол=\"male\", parent=[,])", Tom->toString().c_str());
-////    ASSERT_STREQ("Janna=human(пол=\"female\", parent=[,])", Janna->toString().c_str());
+////    ASSERT_STREQ("Tom=human(пол=\"male\", parent=[,])",
+/// Tom->toString().c_str()); /    ASSERT_STREQ("Janna=human(пол=\"female\",
+/// parent=[,])", Janna->toString().c_str());
 ////
 ////    //    ASSERT_EQ(3, Tom.use_count());
 ////
 ////    ObjPtr array = Object::CreateDict(Object::Arg(Tom));
-////    ASSERT_STREQ("[Tom=human(пол=\"male\", parent=[,]),]", array->toString().c_str());
-////    Tom->RefInc();
-////    ASSERT_STREQ("[&Tom,]", array->toString().c_str());
-////    ObjPtr array2 = Object::CreateDict(Object::Arg(Tom), Object::Arg(Janna));
-////    Tom->RefInc();
+////    ASSERT_STREQ("[Tom=human(пол=\"male\", parent=[,]),]",
+/// array->toString().c_str()); /    Tom->RefInc(); /    ASSERT_STREQ("[&Tom,]",
+/// array->toString().c_str()); /    ObjPtr array2 =
+/// Object::CreateDict(Object::Arg(Tom), Object::Arg(Janna)); / Tom->RefInc();
 ////    Janna->RefInc();
 ////    ASSERT_STREQ("[&Tom, &Janna,]", array2->toString().c_str());
 ////
-////    ObjPtr Jake = (*human)(Object::Arg(newlang_m, "пол"), Object::Arg(Object::CreateDict(Object::Arg(Tom)), "parent"));
-////    ctx.CreateGlobalTerm(Jake, "Jake");
-////    ASSERT_EQ(4, ctx.m_info.global->size());
-////    ASSERT_STREQ("Jake=human(пол=\"male\", parent=[&Tom,])", Jake->toString().c_str());
-////    ObjPtr Tim = (*human)(Object::Arg(newlang_m, "пол"), Object::Arg(Object::CreateDict(Object::Arg(Tom), Object::Arg(Janna)), "parent"));
-////    ctx.CreateGlobalTerm(Tim, "Tim");
-////    ASSERT_EQ(5, ctx.m_info.global->size());
-////    ASSERT_STREQ("Tim=human(пол=\"male\", parent=[&Tom, &Janna,])", Tim->toString().c_str());
+////    ObjPtr Jake = (*human)(Object::Arg(newlang_m, "пол"),
+/// Object::Arg(Object::CreateDict(Object::Arg(Tom)), "parent")); /
+/// ctx.CreateGlobalTerm(Jake, "Jake"); /    ASSERT_EQ(4,
+/// ctx.m_info.global->size()); /    ASSERT_STREQ("Jake=human(пол=\"male\",
+/// parent=[&Tom,])", Jake->toString().c_str()); /    ObjPtr Tim =
+///(*human)(Object::Arg(newlang_m, "пол"),
+/// Object::Arg(Object::CreateDict(Object::Arg(Tom), Object::Arg(Janna)),
+///"parent")); /    ctx.CreateGlobalTerm(Tim, "Tim"); /    ASSERT_EQ(5,
+/// ctx.m_info.global->size()); /    ASSERT_STREQ("Tim=human(пол=\"male\",
+/// parent=[&Tom, &Janna,])", Tim->toString().c_str());
 ////
 ////    utils::Logger::Instance()->SetLogLevel(save);
 ////
@@ -373,28 +395,36 @@ TEST(NLC, EvalHelloWorld) {
 ////    ASSERT_FALSE(Janna->op_eq(Tim, false));
 ////    ASSERT_TRUE(Tim->op_eq(Tim, false));
 ////
-////    ASSERT_TRUE((*Jake)["parent"]->op_bit_and((*Jake)["parent"], false)->GetValueAsBoolean());
-////    ASSERT_TRUE((*Jake)["parent"]->op_bit_and((*Tim)["parent"], false)->GetValueAsBoolean());
-////    ASSERT_FALSE((*Jake)["parent"]->op_bit_and((*Tom)["parent"], false)->GetValueAsBoolean());
+////    ASSERT_TRUE((*Jake)["parent"]->op_bit_and((*Jake)["parent"],
+/// false)->GetValueAsBoolean()); /
+/// ASSERT_TRUE((*Jake)["parent"]->op_bit_and((*Tim)["parent"],
+/// false)->GetValueAsBoolean()); /
+/// ASSERT_FALSE((*Jake)["parent"]->op_bit_and((*Tom)["parent"],
+/// false)->GetValueAsBoolean());
 ////
-////    ASSERT_TRUE((*Jake)["parent"]->op_bit_and((*Jake)["parent"], true)->GetValueAsBoolean());
-////    ASSERT_TRUE((*Jake)["parent"]->op_bit_and((*Tim)["parent"], true)->GetValueAsBoolean());
-////    ASSERT_FALSE((*Jake)["parent"]->op_bit_and((*Tom)["parent"], true)->GetValueAsBoolean());
+////    ASSERT_TRUE((*Jake)["parent"]->op_bit_and((*Jake)["parent"],
+/// true)->GetValueAsBoolean()); /
+/// ASSERT_TRUE((*Jake)["parent"]->op_bit_and((*Tim)["parent"],
+/// true)->GetValueAsBoolean()); /
+/// ASSERT_FALSE((*Jake)["parent"]->op_bit_and((*Tom)["parent"],
+/// true)->GetValueAsBoolean());
 ////
 ////    auto cursor_all = ctx.m_info.global->select();
 ////    ASSERT_FALSE(cursor_all.complete());
 ////    ASSERT_EQ(5, cursor_all.reset());
 ////
 ////    Object args("human");
-////    ASSERT_TRUE(NewLang::CompareFunc_(Object::pair(human, "human"), args, nullptr));
-////    ASSERT_TRUE(NewLang::CompareFunc_(Object::pair(human), args, nullptr));
-////    ASSERT_TRUE(NewLang::CompareFunc_(Object::pair(Tim), args, nullptr));
-////    ASSERT_TRUE(NewLang::CompareFunc_(Object::pair(Tom), args, nullptr));
-////    ASSERT_FALSE(NewLang::CompareFunc_(Object::pair(test2), args, nullptr));
-////    ASSERT_FALSE(NewLang::CompareFunc_(Object::pair(test3), args, nullptr));
+////    ASSERT_TRUE(NewLang::CompareFunc_(Object::pair(human, "human"), args,
+/// nullptr)); /    ASSERT_TRUE(NewLang::CompareFunc_(Object::pair(human), args,
+/// nullptr)); /    ASSERT_TRUE(NewLang::CompareFunc_(Object::pair(Tim), args,
+/// nullptr)); /    ASSERT_TRUE(NewLang::CompareFunc_(Object::pair(Tom), args,
+/// nullptr)); /    ASSERT_FALSE(NewLang::CompareFunc_(Object::pair(test2),
+/// args, nullptr)); / ASSERT_FALSE(NewLang::CompareFunc_(Object::pair(test3),
+/// args, nullptr));
 ////
 ////    Object args_empty;
-////    ASSERT_FALSE(NewLang::CompareFunc_(Object::pair(human, "human"), args_empty, nullptr));
+////    ASSERT_FALSE(NewLang::CompareFunc_(Object::pair(human, "human"),
+/// args_empty, nullptr));
 ////
 ////    auto cursor = ctx.m_info.global->select("human");
 ////    ASSERT_FALSE(cursor.complete());
@@ -404,18 +434,16 @@ TEST(NLC, EvalHelloWorld) {
 ////    ASSERT_STREQ("human=(пол=, parent=[,])", (*cursor)->toString().c_str());
 ////    cursor++;
 ////    ASSERT_FALSE(cursor.complete());
-////    ASSERT_STREQ("&Tom=human(пол=\"male\", parent=[,])", (*cursor)->toString().c_str());
-////    cursor++;
-////    ASSERT_FALSE(cursor.complete());
-////    ASSERT_STREQ("&Janna=human(пол=\"female\", parent=[,])", (*cursor)->toString().c_str());
-////    cursor++;
-////    ASSERT_FALSE(cursor.complete());
-////    ASSERT_STREQ("Jake=human(пол=\"male\", parent=[&Tom,])", (*cursor)->toString().c_str());
-////    cursor++;
-////    ASSERT_FALSE(cursor.complete());
-////    ASSERT_STREQ("Tim=human(пол=\"male\", parent=[&Tom, &Janna,])", (*cursor)->toString().c_str());
-////    cursor++;
-////    ASSERT_TRUE(cursor.complete());
+////    ASSERT_STREQ("&Tom=human(пол=\"male\", parent=[,])",
+///(*cursor)->toString().c_str()); /    cursor++; /
+/// ASSERT_FALSE(cursor.complete()); /
+/// ASSERT_STREQ("&Janna=human(пол=\"female\", parent=[,])",
+/// (*cursor)->toString().c_str()); /    cursor++; /
+/// ASSERT_FALSE(cursor.complete()); /    ASSERT_STREQ("Jake=human(пол=\"male\",
+/// parent=[&Tom,])", (*cursor)->toString().c_str()); /    cursor++; /
+/// ASSERT_FALSE(cursor.complete()); /    ASSERT_STREQ("Tim=human(пол=\"male\",
+/// parent=[&Tom, &Janna,])", (*cursor)->toString().c_str()); /    cursor++; /
+/// ASSERT_TRUE(cursor.complete());
 ////
 ////
 ////    //    for (auto &elem : Tim) {
@@ -424,16 +452,15 @@ TEST(NLC, EvalHelloWorld) {
 ////    auto citer = ctx.begin();
 ////    for (auto &elem : ctx) {
 ////        //        std::cout << elem.second->toString() << "\n";
-////        ASSERT_STREQ(citer->second->toString().c_str(), elem.second->toString().c_str());
-////        citer++;
-////    }
-////    ASSERT_TRUE(citer == ctx.end());
+////        ASSERT_STREQ(citer->second->toString().c_str(),
+/// elem.second->toString().c_str()); /        citer++; /    } /
+/// ASSERT_TRUE(citer == ctx.end());
 ////
 ////    //    int index = 0;
 ////    //    std::cout << "Global:\n";
 ////    //    for (auto &elem : *ctx.m_info.global) {
-////    //        std::cout << elem.second->toString() << " - " << index++ << "\n";
-////    //    }
+////    //        std::cout << elem.second->toString() << " - " << index++ <<
+///"\n"; /    //    }
 ////
 ////    //    for (auto &elem : *ctx.m_info.global) {
 ////    //        std::cout << elem.second->toString() << "\n";
@@ -445,19 +472,20 @@ TEST(NLC, EvalHelloWorld) {
 ////    TermPtr ast;
 ////    Parser parser(ast);
 ////    parser.Parse("brother(arg1, arg2)");
-////    ObjPtr filter_brother = Object::CreateFunc(nullptr, ast, ObjType::TRANSPARENT);
-////    filter_brother->m_function = (void *)&test_brother;
-////    Object filt_args(Object::Arg(filter_brother));
+////    ObjPtr filter_brother = Object::CreateFunc(nullptr, ast,
+/// ObjType::TRANSPARENT); /    filter_brother->m_function = (void
+///*)&test_brother; /    Object filt_args(Object::Arg(filter_brother));
 ////
 ////
 ////    ASSERT_TRUE(Tim->op_class_test("human"));
 ////    ASSERT_TRUE(Jake->op_class_test("human"));
 ////
-////    Object test_args_yes = *Object::CreateDict(Object::Arg(Tim), Object::Arg(Jake));
+////    Object test_args_yes = *Object::CreateDict(Object::Arg(Tim),
+/// Object::Arg(Jake));
 ////
 ////    ASSERT_EQ(2, test_args_yes.size());
-////    ObjPtr test_args_default = filter_brother->ConvertToArgs(test_args_yes, true);
-////    ASSERT_EQ(2, test_args_yes.size());
+////    ObjPtr test_args_default = filter_brother->ConvertToArgs(test_args_yes,
+/// true); /    ASSERT_EQ(2, test_args_yes.size());
 ////
 ////    ASSERT_NO_THROW(test_args_yes.CheckArgsValid());
 ////
@@ -476,33 +504,35 @@ TEST(NLC, EvalHelloWorld) {
 ////    while(!terms.complete()) {
 ////        while(!humans.complete()) {
 ////
-////            Object args_iter = *Object::CreateDict(Object::Arg(*terms), Object::Arg(*humans));
-////            ObjPtr args_func = filter_brother->ConvertToArgs(args_iter, true);
-////            ASSERT_NO_THROW(args_func->CheckArgsValid());
-////            args_func->push_front(nullptr); // Нулевой аргумент
+////            Object args_iter = *Object::CreateDict(Object::Arg(*terms),
+/// Object::Arg(*humans)); /            ObjPtr args_func =
+/// filter_brother->ConvertToArgs(args_iter, true); /
+/// ASSERT_NO_THROW(args_func->CheckArgsValid()); /
+/// args_func->push_front(nullptr); // Нулевой аргумент
 ////
 ////
 ////            ObjPtr result = test_brother(nullptr, *args_func);
 ////            if(result->GetValueAsBoolean()) {
 ////                count++;
 ////                ASSERT_STREQ("@true", result->toString().c_str());
-////                //                ASSERT_STREQ("[&Tom,]", result->toString().c_str());
-////                (*terms)->RefInc();
-////                (*humans)->RefInc();
-////                brothers->push_back(Object::CreateDict(Object::Arg(*terms), Object::Arg(*humans)));
-////            }
-////            humans++;
-////        }
-////        humans.reset();
-////        terms++;
-////    }
+////                //                ASSERT_STREQ("[&Tom,]",
+/// result->toString().c_str()); /                (*terms)->RefInc(); /
+///(*humans)->RefInc(); /
+/// brothers->push_back(Object::CreateDict(Object::Arg(*terms),
+/// Object::Arg(*humans))); /            } /            humans++; /        } /
+/// humans.reset(); /        terms++; /    }
 ////
 ////    ASSERT_EQ(2, count);
 ////    ASSERT_EQ(2, brothers->size());
 ////
-////    ASSERT_STREQ("[ [&Jake, &Tim,], [&Tim, &Jake,],]", brothers->toString().c_str());
+////    ASSERT_STREQ("[ [&Jake, &Tim,], [&Tim, &Jake,],]",
+/// brothers->toString().c_str());
 ////
-////    std::ofstream out("brother.temp.sh");
+/// //
+//    std::filesystem::create_directories("temp");
+//    ASSERT_TRUE(std::filesystem::is_directory("temp"));
+//
+////    std::ofstream out("temp/brother.temp.sh");
 ////    out << "#!./dist/Debug/GNU-Linux/nlc --exec\n";
 ////    out << "\n";
 ////    //    out << "var := 100;\n";
@@ -517,23 +547,20 @@ TEST(NLC, EvalHelloWorld) {
 ////    out << "Jake := @human(#м, [&Tom, &Janna,]);\n";
 ////    out << "Tim:=@human(пол=м, parent=[&Tom,]);\n";
 ////    out << "\n";
-////    out << "brother(test1, test2) &&= $test1!=$test2, $test1.пол==#м, $test1.parent * $test2.parent;\n";
-////    out << "\n";
-////    //    out << "Tim.brother(Jake);\n";
-////    //    out << "Tim.brother(human!)?;\n";
-////    out << "brother(human!, human!)?;\n";
+////    out << "brother(test1, test2) &&= $test1!=$test2, $test1.пол==#м,
+///$test1.parent * $test2.parent;\n"; /    out << "\n"; /    //    out <<
+///"Tim.brother(Jake);\n"; /    //    out << "Tim.brother(human!)?;\n"; /    out
+///<< "brother(human!, human!)?;\n";
 ////
-////    //    out << "brother(h1, h2) &&= $h1 != $h2, $h1.sex==male, @intersec($h1.parent, $h2.parent);\n";
-////    //    out << "brother(h1=human!, h2=human!)? -> @print("${h1.name} brother ${h2.name}\n");\n";
-////    //    out << "[h1=human!, h2=human!]? -> 
-////    //               brother(h1, h2) -> 
-////    //                    @print("${h1.name} brother ${h2.name}\n");\n";
-////    //    var? - массив func( var! )? [test=var!!, func( var! )]?
-////    //    func()?
-////    // Итератор для функции вызывается пока не будет получен последний элемент (нужное количество элементов)
-////    // Итератор для объекта получает его свойства (первые, если задано количество)
-////    // @debug()
-////    // @print()
+////    //    out << "brother(h1, h2) &&= $h1 != $h2, $h1.sex==male,
+///@intersec($h1.parent, $h2.parent);\n"; /    //    out << "brother(h1=human!,
+/// h2=human!)? -> @print("${h1.name} brother ${h2.name}\n");\n"; /    //    out
+///<< "[h1=human!, h2=human!]? -> /    //               brother(h1, h2) -> / //
+///@print("${h1.name} brother ${h2.name}\n");\n"; /    //    var? - массив func(
+/// var! )? [test=var!!, func( var! )]? /    //    func()? /    // Итератор для
+///функции вызывается пока не будет получен последний элемент (нужное количество
+///элементов) /    // Итератор для объекта получает его свойства (первые, если
+///задано количество) /    // @debug() /    // @print()
 ////
 ////    // @print("${h1.name} brother ${h2.name}\n");\n";
 ////    out.close();
@@ -541,24 +568,32 @@ TEST(NLC, EvalHelloWorld) {
 ////
 ////    RuntimePtr opts = NewLang::Init();
 ////    Context ctx2(opts);
-////    //    
-////    //    ASSERT_TRUE(opts->CompileModule("brother.temp.sh", "brother.temp.sh.nlm"));
-////    //    ASSERT_TRUE(opts->LoadModule("brother.temp.sh.nlm"));
+/// //
+//    std::filesystem::create_directories("temp");
+//    ASSERT_TRUE(std::filesystem::is_directory("temp"));
+//
 ////    //
-////    //    EXPECT_STREQ("default arg", opts->Eval(&ctx, "native()")->GetValueAsString().c_str());
-////    //    EXPECT_STREQ("default arg", opts->Eval(&ctx, "@native()")->GetValueAsString().c_str());
-////    //    EXPECT_STREQ("default arg", opts->Eval(&ctx, "@native()")->GetValueAsString().c_str());
-////    //    EXPECT_STREQ("", opts->Eval(&ctx, "@native(\"\")")->GetValueAsString().c_str());
-////    //    EXPECT_STREQ("Hello, world!\n", opts->Eval(&ctx, "@native(\"Hello, world!\\n\")")->GetValueAsString().c_str());
+////    //    ASSERT_TRUE(opts->CompileModule("temp/brother.temp.sh",
+///"temp/brother.temp.sh.nlm")); /    //
+/// ASSERT_TRUE(opts->LoadModule("temp/brother.temp.sh.nlm")); /    // /    //
+/// EXPECT_STREQ("default arg", opts->Eval(&ctx,
+///"native()")->GetValueAsString().c_str()); /    //    EXPECT_STREQ("default
+/// arg", opts->Eval(&ctx, "@native()")->GetValueAsString().c_str()); /    //
+/// EXPECT_STREQ("default arg", opts->Eval(&ctx,
+///"@native()")->GetValueAsString().c_str()); /    //    EXPECT_STREQ("",
+/// opts->Eval(&ctx, "@native(\"\")")->GetValueAsString().c_str()); /    //
+/// EXPECT_STREQ("Hello, world!\n", opts->Eval(&ctx, "@native(\"Hello,
+/// world!\\n\")")->GetValueAsString().c_str());
 ////
 ////    NLC run;
-////    ObjPtr result = RunTime::Instance()->ExecModule("brother.temp.sh", "brother.sh.temp.nlm", false, &ctx2);
-////    ASSERT_TRUE(result);
-////    EXPECT_STREQ("[ [&Jake, &Tim,], [&Tim, &Jake,],]", result->GetValueAsString().c_str());
-////    //        std::remove("brother.sh.temp.nlm");
+////    ObjPtr result = RunTime::Instance()->ExecModule("temp/brother.temp.sh",
+///"temp/brother.sh.temp.nlm", false, &ctx2); /    ASSERT_TRUE(result); /
+/// EXPECT_STREQ("[ [&Jake, &Tim,], [&Tim, &Jake,],]",
+/// result->GetValueAsString().c_str()); /    //
+/// std::remove("temp/brother.sh.temp.nlm");
 ////}
 //
-//TEST(NLC, Iterator) {
+// TEST(NLC, Iterator) {
 //
 //    enum sex_ {
 //        male,
@@ -600,7 +635,8 @@ TEST(NLC, EvalHelloWorld) {
 //            return false;
 //        };
 //
-//        return a && b && a != b && a->sex == male && b->sex == male && (intersec(a->parent, b->parent));
+//        return a && b && a != b && a->sex == male && b->sex == male &&
+//        (intersec(a->parent, b->parent));
 //    };
 //
 //    for (auto a : humans) {
@@ -613,121 +649,147 @@ TEST(NLC, EvalHelloWorld) {
 //    }
 //}
 //
-//TEST(NLC, SaveGlobal) {
+// TEST(NLC, SaveGlobal) {
 //
 //    //    RuntimePtr opts = NewLang::Init();
 //    //    Context ctx(opts);
 //    //
 //    //    ASSERT_EQ(3, ctx.Current()->global->m_global_terms.size());
 //    //    ASSERT_EQ(1, ctx.Current()->session.size());
-//    //    EXPECT_STREQ("LOCAL", opts->Eval(&ctx, "local $= \"LOCAL\"")->GetValueAsString().c_str());
+//    //    EXPECT_STREQ("LOCAL", opts->Eval(&ctx, "local $=
+//    \"LOCAL\"")->GetValueAsString().c_str());
 //    //    ASSERT_EQ(3, ctx.Current()->global->m_global_terms.size());
 //    //    ASSERT_EQ(2, ctx.Current()->session.size());
-//    //    EXPECT_STREQ("Session", opts->Eval(&ctx, "session $= \"Session\"")->GetValueAsString().c_str());
+//    //    EXPECT_STREQ("Session", opts->Eval(&ctx, "session $=
+//    \"Session\"")->GetValueAsString().c_str());
 //    //    ASSERT_EQ(3, ctx.Current()->global->m_global_terms.size());
 //    //    ASSERT_EQ(3, ctx.Current()->session.size());
-//    //    EXPECT_STREQ("1", opts->Eval(&ctx, "global1 @= 1")->GetValueAsString().c_str());
+//    //    EXPECT_STREQ("1", opts->Eval(&ctx, "global1 @=
+//    1")->GetValueAsString().c_str());
 //    //    ASSERT_EQ(4, ctx.Current()->global->m_global_terms.size());
 //    //    ASSERT_EQ(3, ctx.Current()->session.size());
-//    //    EXPECT_STREQ("2", opts->Eval(&ctx, "global2 @= 2")->GetValueAsString().c_str());
+//    //    EXPECT_STREQ("2", opts->Eval(&ctx, "global2 @=
+//    2")->GetValueAsString().c_str());
 //    //    ASSERT_EQ(5, ctx.Current()->global->m_global_terms.size());
 //    //    ASSERT_EQ(3, ctx.Current()->session.size());
-//    //    EXPECT_STREQ("G", opts->Eval(&ctx, "global3 @= \"G\"")->GetValueAsString().c_str());
+//    //    EXPECT_STREQ("G", opts->Eval(&ctx, "global3 @=
+//    \"G\"")->GetValueAsString().c_str());
 //    //    ASSERT_EQ(6, ctx.Current()->global->m_global_terms.size());
 //    //    ASSERT_EQ(3, ctx.Current()->session.size());
 //    //
-//    //    const char *funcs = "hello(str=\"\") := { %{ printf(\"%s\", static_cast<char *>(*$1)); return $str; %} };"
+//    //    const char *funcs = "hello(str=\"\") := { %{ printf(\"%s\",
+//    static_cast<char *>(*$1)); return $str; %} };"
 //    //            "test_and(arg1, arg2) &&= $arg1 == $arg2, $arg1;"
 //    //            "test_or(arg1, arg2) ||= $arg1 == 555, $arg1;"
 //    //            "test_xor(arg1, arg2) ^^= $arg1 == $arg2, $arg1;"
-//    //            "native(str=\"default arg\") $= {%{  printf(\"%s\", static_cast<char *>(*$str)); return $str; %}};"
+//    //            "native(str=\"default arg\") $= {%{  printf(\"%s\",
+//    static_cast<char *>(*$str)); return $str; %}};"
 //    //            "func_sum(arg1, arg2) :- {$arg1 + $arg2;};\n"
 //    //            "func_call(arg1, arg2) :- {func_sum($arg1, $arg2);};";
 //    //
 //    //    ASSERT_EQ(0, ctx.Current()->global->m_global_funcs.size());
-//    //   
+//    //
 //    //    ASSERT_TRUE(opts->Eval(&ctx, funcs, true));
-//    //    
+//    //
 //    //    ASSERT_EQ(7, ctx.Current()->global->m_global_funcs.size());
 //    //
 //    //
-//    //    ASSERT_TRUE(opts->SaveContext("ctx.temp.ctx"));
+// //
+//    std::filesystem::create_directories("temp");
+//    ASSERT_TRUE(std::filesystem::is_directory("temp"));
+//
+//    //    ASSERT_TRUE(opts->SaveContext("temp/ctx.temp.ctx"));
 //
 //    //    std::ofstream out("hello.sh");
 //    //    out << "#!./dist/Debug/GNU-Linux/nlc --exec\n";
-//    //    out << "print(str=\"\") := { %{ $$=$str; printf(\"%s\", static_cast<char *>($str)); %} };\n";
+//    //    out << "print(str=\"\") := { %{ $$=$str; printf(\"%s\",
+//    static_cast<char *>($str)); %} };\n";
 //    //    out << cp1251_to_utf8("@print(\"Привет, мир!\\n\");\n");
 //    //    out.close();
 //    //
 //    //    NLC run;
-//    //    ASSERT_STREQ(cp1251_to_utf8("Привет, мир!\n").c_str(), NewLang::ExecModule("hello.sh", "hello.sh.temp.nlm", run.m_ctx).c_str()) << cp1251_to_utf8("Привет, мир!\n");
+//    //    ASSERT_STREQ(cp1251_to_utf8("Привет, мир!\n").c_str(),
+//    NewLang::ExecModule("hello.sh", "temp/hello.sh.temp.nlm",
+//    run.m_ctx).c_str())
+//    << cp1251_to_utf8("Привет, мир!\n");
 //}
 //
-//TEST(NLC, UnloadModules) {
+// TEST(NLC, UnloadModules) {
 //    RuntimePtr opts = NewLang::Init();
 //    Context ctx(opts);
 //
-//    std::ofstream out("native.temp.nlp");
+// //
+//    std::filesystem::create_directories("temp");
+//    ASSERT_TRUE(std::filesystem::is_directory("temp"));
+//
+//    std::ofstream out("temp/native.temp.nlp");
 //    out << "#!/bin/nlc\n";
-//    out << "native(str=\"first\") := { %{ printf(\"%s\", static_cast<char *>(*$str)); return $str; %} };\n";
-//    out << "@native(\"Привет, мир!\\n\");\n";
-//    out.close();
+//    out << "native(str=\"first\") := { %{ printf(\"%s\", static_cast<char
+//    *>(*$str)); return $str; %} };\n"; out << "@native(\"Привет,
+//    мир!\\n\");\n"; out.close();
 //
-//    ASSERT_TRUE(opts->CompileModule("native.temp.nlp", "native.temp.nlm"));
-//    ASSERT_TRUE(RunTime::Instance()->LoadModule("native.temp.nlm"));
+//    ASSERT_TRUE(opts->CompileModule("temp/native.temp.nlp", "temp/native.temp.nlm"));
+//    ASSERT_TRUE(RunTime::Instance()->LoadModule("temp/native.temp.nlm"));
 //
-////    EXPECT_STREQ("first", opts->Eval(&ctx, "native()")->GetValueAsString().c_str());
-////    EXPECT_STREQ("first", opts->Eval(&ctx, "@native()")->GetValueAsString().c_str());
-////    EXPECT_STREQ("first", opts->Eval(&ctx, "native()")->GetValueAsString().c_str());
-////    EXPECT_STREQ("", opts->Eval(&ctx, "@native(\"\")")->GetValueAsString().c_str());
-////    EXPECT_STREQ("Hello, world!\n", opts->Eval(&ctx, "@native(\"Hello, world!\\n\")")->GetValueAsString().c_str());
+////    EXPECT_STREQ("first", opts->Eval(&ctx,
+///"native()")->GetValueAsString().c_str()); /    EXPECT_STREQ("first",
+///opts->Eval(&ctx, "@native()")->GetValueAsString().c_str()); /
+///EXPECT_STREQ("first", opts->Eval(&ctx,
+///"native()")->GetValueAsString().c_str()); /    EXPECT_STREQ("",
+///opts->Eval(&ctx, "@native(\"\")")->GetValueAsString().c_str()); /
+///EXPECT_STREQ("Hello, world!\n", opts->Eval(&ctx, "@native(\"Hello,
+///world!\\n\")")->GetValueAsString().c_str());
 //
 //
 //
-//    std::ofstream out2("native.temp.nlp");
+//    std::ofstream out2("temp/native.temp.nlp");
 //    out2 << "#!/bin/nlc\n";
-//    out2 << "native(str=\"second\") := { %{ printf(\"%s\", static_cast<char *>(*$str)); return $str; %} };\n";
-//    out2 << "//@native(\"Привет, мир!\\n\");\n";
-//    out2.close();
+//    out2 << "native(str=\"second\") := { %{ printf(\"%s\", static_cast<char
+//    *>(*$str)); return $str; %} };\n"; out2 << "//@native(\"Привет,
+//    мир!\\n\");\n"; out2.close();
 //
-//    NLC compile2("/bin/nlc --compile=native.temp.nlp");
+//    NLC compile2("/bin/nlc --compile=temp/native.temp.nlp");
 //    ASSERT_STREQ("native.temp.nlp", compile2.m_ifile.c_str());
 //    ASSERT_EQ(0, compile2.Run());
 //
 //
-//    // Модуль уже другой (с другим значением по умолчанию), но при dlopen в памяти остается загруженым еще первый модуль
-//    NLC exec("/bin/nlc --load=native.temp.nlm native()");
-//    ASSERT_EQ(1, exec.m_modules.size());
+//    // Модуль уже другой (с другим значением по умолчанию), но при dlopen в
+//    памяти остается загруженым еще первый модуль NLC exec("/bin/nlc
+//    --load=temp/native.temp.nlm native()"); ASSERT_EQ(1, exec.m_modules.size());
 //    ASSERT_STREQ("native()", exec.m_eval.c_str());
-//    ASSERT_STREQ("native.temp.nlm", exec.m_modules[0].c_str());
+//    ASSERT_STREQ("temp/native.temp.nlm", exec.m_modules[0].c_str());
 //    ASSERT_EQ(0, exec.Run());
-//    ASSERT_STREQ("first", exec.m_output.c_str()); // Значение по умолчанию функции из ПЕРВОГО МОДУЛЯ !
-//    exec.m_ctx.Free(); // Нужно выгружать контекст для осовобождения модуля (загруженного SO)
+//    ASSERT_STREQ("first", exec.m_output.c_str()); // Значение по умолчанию
+//    функции из ПЕРВОГО МОДУЛЯ ! exec.m_ctx.Free(); // Нужно выгружать контекст
+//    для осовобождения модуля (загруженного SO)
 //
 //
 //    // Компилировать в GCC нужно с ключем --no-gnu-unique !!!!!!!!!!!!!!!!!!
 //
 //    // Выгрузили старый моудль
 //    ASSERT_EQ(1, RunTime::Instance()->m_modules.size());
-//    Module::FuncMap &temp = RunTime::Instance()->m_modules["native.temp.nlm"]->Funcs();
+//    Module::FuncMap &temp =
+//    RunTime::Instance()->m_modules["temp/native.temp.nlm"]->Funcs();
 //    ASSERT_FALSE(temp.empty());
-//    ASSERT_TRUE(RunTime::Instance()->UnLoadModule("native.temp.nlm"));
+//    ASSERT_TRUE(RunTime::Instance()->UnLoadModule("temp/native.temp.nlm"));
 //    ASSERT_TRUE(RunTime::Instance()->m_modules.empty());
 //
 //
 ////    RuntimePtr opts2 = NewLang::Init();
 ////    Context ctx2(opts2);
-////    ASSERT_TRUE(opts2->LoadModule("native.temp.nlm"));
+////    ASSERT_TRUE(opts2->LoadModule("temp/native.temp.nlm"));
 ////
-////    EXPECT_STREQ("second", opts2->Eval(&ctx2, "native()")->GetValueAsString().c_str());
-////    EXPECT_STREQ("second", opts2->Eval(&ctx2, "@native()")->GetValueAsString().c_str());
-////    EXPECT_STREQ("second", opts2->Eval(&ctx2, "native()")->GetValueAsString().c_str());
-////    EXPECT_STREQ("", opts2->Eval(&ctx2, "@native(\"\")")->GetValueAsString().c_str());
+////    EXPECT_STREQ("second", opts2->Eval(&ctx2,
+///"native()")->GetValueAsString().c_str()); /    EXPECT_STREQ("second",
+///opts2->Eval(&ctx2, "@native()")->GetValueAsString().c_str()); /
+///EXPECT_STREQ("second", opts2->Eval(&ctx2,
+///"native()")->GetValueAsString().c_str()); /    EXPECT_STREQ("",
+///opts2->Eval(&ctx2, "@native(\"\")")->GetValueAsString().c_str());
 ////
 ////
-////    NLC exec1("/bin/nlc --load=native.temp.nlm native(\"print_test\")");
+////    NLC exec1("/bin/nlc --load=temp/native.temp.nlm native(\"print_test\")");
 ////    ASSERT_EQ(1, exec1.m_modules.size());
-////    ASSERT_STREQ("native.temp.nlm", exec1.m_modules[0].c_str());
+////    ASSERT_STREQ("temp/native.temp.nlm", exec1.m_modules[0].c_str());
 ////    ASSERT_EQ(0, exec1.Run());
 ////    ASSERT_STREQ("print_test", exec1.m_output.c_str());
 //}

@@ -1,5 +1,6 @@
 /*** Flex Declarations and Options ***/
 
+
 /* enable c++ scanner class generation */
 %option c++
 
@@ -75,8 +76,8 @@ type    :{name}  Не использовать термин тип в лексе
 между двоеточием и имененем "term: type" или "term : type", что более привычно при чтении, чем "term :type"
 Не использовать деструктов ~ в лексере, чтобы в парсере можно было проверять его место расположение (в функции или классе)
 */
-number1 -?{digit}+\.{digit}+([eE]-?{digit}+)?
-number2 (-?{digit}+\.([eE]-?)?)?-?{digit}+
+number1 -?{digit}+\.{digit}+([eE][-+]?{digit}+)?
+number2 (-?{digit}+\.([eE][-+]?)?)?-?{digit}+
 number  ({number1}|{number2})
 
 /* number  [-+]?{integer}[.]{integer}([eE][-+]?[0-9]+)? */
@@ -371,18 +372,16 @@ term    [$@%~]({ualpha}|[_])?({name})?
 "^^="       YY_TOKEN(SIMPLE_XOR);
 
 "//"        YY_TOKEN_ONLY(OPERATOR_DIV);
-"++="       YY_TOKEN(CREATE_OR_ASSIGN);
-"+="        YY_TOKEN(CREATE_OR_ASSIGN);
-"-="        YY_TOKEN(CREATE_OR_ASSIGN);
-"*="        YY_TOKEN(CREATE_OR_ASSIGN);
-"**="       YY_TOKEN(CREATE_OR_ASSIGN);
-"/="        YY_TOKEN(CREATE_OR_ASSIGN);
-"//="       YY_TOKEN(CREATE_OR_ASSIGN);
-"%="        YY_TOKEN(CREATE_OR_ASSIGN);
-"~="        YY_TOKEN(CREATE_OR_ASSIGN);
+"++="       YY_TOKEN(OPERATOR);
+"+="        YY_TOKEN(OPERATOR);
+"-="        YY_TOKEN(OPERATOR);
+"*="        YY_TOKEN(OPERATOR);
+"**="       YY_TOKEN(OPERATOR);
+"/="        YY_TOKEN(OPERATOR);
+"//="       YY_TOKEN(OPERATOR);
+"%="        YY_TOKEN(OPERATOR);
+"~="        YY_TOKEN(OPERATOR);
 
-"**"        YY_TOKEN(POWER);
-"++"        YY_TOKEN(CONCAT);
 "--"        YY_TOKEN(EXIT);
 
 ".>."        YY_TOKEN(OPERATOR);
@@ -393,6 +392,8 @@ term    [$@%~]({ualpha}|[_])?({name})?
 ".^."        YY_TOKEN(OPERATOR);
 ".~."        YY_TOKEN(OPERATOR);
 
+"**"        YY_TOKEN(OPERATOR);
+"++"        YY_TOKEN(OPERATOR);
 "!~~~"       YY_TOKEN(OPERATOR);
 "~~~"       YY_TOKEN(OPERATOR);
 "!~~"       YY_TOKEN(OPERATOR);

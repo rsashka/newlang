@@ -160,7 +160,7 @@ TEST_F(Lexer, Integer) {
     EXPECT_STREQ("123456", tokens[0]->getText().c_str());
 
     ASSERT_EQ(3, Parse("123456++123"));
-    EXPECT_EQ(1, Count(TermID::CONCAT));
+    EXPECT_EQ(1, Count(TermID::OPERATOR));
     EXPECT_EQ(2, Count(TermID::INTEGER));
 
     EXPECT_STREQ("123456", tokens[0]->getText().c_str()) << tokens[0]->getText();

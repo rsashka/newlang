@@ -6,6 +6,7 @@
       <itemPath>../docs/_config.yml</itemPath>
       <itemPath>../docs/algs.md</itemPath>
       <itemPath>../docs/index.md</itemPath>
+      <itemPath>../docs/op_convert.md</itemPath>
       <itemPath>../docs/ops.md</itemPath>
       <itemPath>../docs/syntax.md</itemPath>
       <itemPath>../docs/types.md</itemPath>
@@ -176,6 +177,8 @@
       <item path="../docs/algs.md" ex="false" tool="3" flavor2="0">
       </item>
       <item path="../docs/index.md" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../docs/op_convert.md" ex="false" tool="3" flavor2="0">
       </item>
       <item path="../docs/ops.md" ex="false" tool="3" flavor2="0">
       </item>
@@ -424,6 +427,8 @@
       </item>
       <item path="../docs/index.md" ex="false" tool="3" flavor2="0">
       </item>
+      <item path="../docs/op_convert.md" ex="false" tool="3" flavor2="0">
+      </item>
       <item path="../docs/ops.md" ex="false" tool="3" flavor2="0">
       </item>
       <item path="../docs/syntax.md" ex="false" tool="3" flavor2="0">
@@ -613,6 +618,8 @@
       <item path="../docs/algs.md" ex="false" tool="3" flavor2="0">
       </item>
       <item path="../docs/index.md" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../docs/op_convert.md" ex="false" tool="3" flavor2="0">
       </item>
       <item path="../docs/ops.md" ex="false" tool="3" flavor2="0">
       </item>
@@ -919,6 +926,8 @@
       </item>
       <item path="../docs/index.md" ex="false" tool="3" flavor2="0">
       </item>
+      <item path="../docs/op_convert.md" ex="false" tool="3" flavor2="0">
+      </item>
       <item path="../docs/ops.md" ex="false" tool="3" flavor2="0">
       </item>
       <item path="../docs/syntax.md" ex="false" tool="3" flavor2="0">
@@ -1129,6 +1138,8 @@
       <item path="../docs/algs.md" ex="false" tool="3" flavor2="0">
       </item>
       <item path="../docs/index.md" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../docs/op_convert.md" ex="false" tool="3" flavor2="0">
       </item>
       <item path="../docs/ops.md" ex="false" tool="3" flavor2="0">
       </item>
@@ -1369,6 +1380,8 @@
       </item>
       <item path="../docs/index.md" ex="false" tool="3" flavor2="0">
       </item>
+      <item path="../docs/op_convert.md" ex="false" tool="3" flavor2="0">
+      </item>
       <item path="../docs/ops.md" ex="false" tool="3" flavor2="0">
       </item>
       <item path="../docs/syntax.md" ex="false" tool="3" flavor2="0">
@@ -1603,6 +1616,8 @@
       <item path="../docs/algs.md" ex="false" tool="3" flavor2="0">
       </item>
       <item path="../docs/index.md" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../docs/op_convert.md" ex="false" tool="3" flavor2="0">
       </item>
       <item path="../docs/ops.md" ex="false" tool="3" flavor2="0">
       </item>

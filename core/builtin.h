@@ -34,7 +34,7 @@
         return FUNC(ctx, list); \
     }
 
-    
+
 #define FUNC_CONVERT(NAME) \
     newlang::ObjPtr NAME(const newlang::Context *ctx, const newlang::Object &in);\
     newlang::ObjPtr NAME##_(newlang::Context *ctx, newlang::Object &in);\
@@ -65,24 +65,28 @@ FUNC_TRANSPARENT(newlang_min, min);
 FUNC_TRANSPARENT(newlang_max, max);
 FUNC_TRANSPARENT(newlang_maks, max);
 
+FUNC_TRANSPARENT(newlang_clone, clone);
+FUNC_TRANSPARENT(newlang_const_, const_);
+FUNC_TRANSPARENT(newlang_mutable_, mutable_);
+
 FUNC_DIRECT(newlang_import, import);
 FUNC_DIRECT(newlang_print, print_);
 
 FUNC_DIRECT(newlang_eval, eval);
 FUNC_DIRECT(newlang_exec, exec);
 
-//#define DEFINE_ENUM(name, cast) FUNC_CONVERT(name);
-//
-//    NL_BUILTIN_CAST_TYPE(DEFINE_ENUM)
-//   
-//#undef DEFINE_ENUM
-            
-            
+#define DEFINE_ENUM(name) FUNC_CONVERT(name);
+
+NL_BUILTIN_CAST_TYPE(DEFINE_ENUM)
+
+#undef DEFINE_ENUM
+
+
 /*
  * 
  * 
- */    
-    
+ */
+
 class BuiltInTorchDirect {
 public:
 
@@ -104,7 +108,7 @@ private:
     std::set<std::string> m_tensor_funcs;
     std::set<std::string> m_tensor_scalar;
 };
-            
+
 }
 
 #endif //INCLUDED_NEWLANG_BUILTIN_

@@ -106,32 +106,32 @@ typedef std::map<std::string, const TermPtr> ProtoType;
 class Context : public Variable< std::weak_ptr<Object> > {
 public:
 
-    static ObjPtr eval_END(Context *ctx, const TermPtr & term, Object &args);
-    static ObjPtr func_NOT_SUPPORT(Context *ctx, const TermPtr & term, Object &args);
+    static ObjPtr eval_END(Context *ctx, const TermPtr & term, Object *args);
+    static ObjPtr func_NOT_SUPPORT(Context *ctx, const TermPtr & term, Object *args);
 
     enum class CreateMode {
         CREATE_ONLY,
         CREATE_OR_ASSIGN,
         ASSIGN_ONLY,
     };
-    static ObjPtr CREATE_OR_ASSIGN(Context *ctx, const TermPtr & term, Object &args, CreateMode mode);
+    static ObjPtr CREATE_OR_ASSIGN(Context *ctx, const TermPtr & term, Object *args, CreateMode mode);
 
 #define DEFINE_CASE(name) \
-    static ObjPtr eval_ ## name(Context *ctx, const TermPtr &term, Object &args);
+    static ObjPtr eval_ ## name(Context *ctx, const TermPtr &term, Object *args);
 
     NL_TERMS(DEFINE_CASE);
 
 #undef DEFINE_CASE
 
 #define PROTO_OP(_, func) \
-    static ObjPtr op_ ## func(Context *ctx, const TermPtr &term, Object &args);
+    static ObjPtr op_ ## func(Context *ctx, const TermPtr &term, Object *args);
 
     NL_OPS(PROTO_OP);
 
 #undef PROTO_OP
 
 
-    typedef ObjPtr(*EvalFunction)(Context *ctx, const TermPtr & term, Object &args);
+    typedef ObjPtr(*EvalFunction)(Context *ctx, const TermPtr & term, Object *args);
 
     static std::map<std::string, Context::EvalFunction> m_ops;
     static std::map<std::string, Context::EvalFunction> m_builtin_calls;
@@ -142,7 +142,7 @@ public:
 
     inline ObjPtr Eval(const std::string_view str) {
         Object args;
-        return Eval(this, Parser::ParseString(str), args);
+        return Eval(this, Parser::ParseString(str), &args);
     }
 
     inline ObjPtr Exec(const std::string &filename) {
@@ -153,18 +153,18 @@ public:
         return Eval(source);
     }
 
-    inline ObjPtr Eval(const std::string_view str, Object & args) {
+    inline ObjPtr Eval(const std::string_view str, Object *args) {
         return Eval(this, Parser::ParseString(str), args);
     }
 
     inline static ObjPtr Eval(Context *ctx, TermPtr term) {
         Object args;
-        return Eval(ctx, term, args);
+        return Eval(ctx, term, &args);
     }
-    static ObjPtr Eval(Context *ctx, TermPtr term, Object &args);
+    static ObjPtr Eval(Context *ctx, TermPtr term, Object *args);
 
-    static ObjPtr ExpandAssign(Context *ctx, TermPtr lvar, TermPtr rval, Object &args, CreateMode mode);
-    static ObjPtr ExpandCreate(Context *ctx, TermPtr lvar, TermPtr rval, Object &args);
+    static ObjPtr ExpandAssign(Context *ctx, TermPtr lvar, TermPtr rval, Object *args, CreateMode mode);
+    static ObjPtr ExpandCreate(Context *ctx, TermPtr lvar, TermPtr rval, Object *args);
 
     Context(RuntimePtr global);
 
@@ -175,24 +175,24 @@ public:
 
     inline static ObjPtr CreateLVal(Context *ctx, TermPtr type) {
         Object args;
-        return CreateLVal(ctx, type, args);
+        return CreateLVal(ctx, type, &args);
     }
 
     inline static ObjPtr CreateRVal(Context *ctx, TermPtr term) {
         Object args;
-        return CreateRVal(ctx, term, args);
+        return CreateRVal(ctx, term, &args);
     }
 
     inline static ObjPtr CreateRVal(Context *ctx, const char *source) {
         Object args;
-        return CreateRVal(ctx, source, args);
+        return CreateRVal(ctx, source, &args);
     }
 
-    static ObjPtr CreateLVal(Context *ctx, TermPtr type, Object &args);
-    static ObjPtr CreateRVal(Context *ctx, TermPtr term, Object &args);
-    static ObjPtr CreateRVal(Context *ctx, const char *source, Object &args);
+    static ObjPtr CreateLVal(Context *ctx, TermPtr type, Object *args);
+    static ObjPtr CreateRVal(Context *ctx, TermPtr term, Object *args);
+    static ObjPtr CreateRVal(Context *ctx, const char *source, Object *args);
 
-    static std::vector<Index> MakeIndex(Context *ctx, TermPtr term, Object & local_vars);
+    static std::vector<Index> MakeIndex(Context *ctx, TermPtr term, Object *local_vars);
 
     void ItemTensorEval_(torch::Tensor &tensor, c10::IntArrayRef shape, std::vector<Index> &ind, const int64_t pos, ObjPtr & obj, ObjPtr &args);
     void ItemTensorEval(torch::Tensor &tensor, ObjPtr obj, ObjPtr args);
@@ -241,9 +241,6 @@ public:
     virtual ~Context() {
     }
 
-#warning CONST !!!!!!!!!!!!!!!!!!!
-    const ObjPtr GetConst(const char *name);
-
     ObjPtr GetTerm(const char *name, bool is_ref);
     ObjPtr FindTerm(const char *name);
     ObjPtr FindSessionTerm(const char *name, bool current_only = false);
@@ -260,7 +257,7 @@ public:
 
             return *found;
         }
-        return nullptr;
+        return GetObject(name);
     }
 
     void RegisterInContext(ObjPtr &args) {
@@ -273,27 +270,27 @@ public:
         }
     }
 
-    ObjPtr CallByName(const char * name) {
-        Object args;
-        return CallByName(name, args, false);
-    }
+    //    ObjPtr CallByName(const char * name) {
+    //        Object args;
+    //        return CallByName(name, args, false);
+    //    }
+    //
+    //    template <typename... T>
+    //    typename std::enable_if<is_all<Object::PairType, T ...>::value, ObjPtr>::type
+    //    CallByName(const char * name, T ... list) {
+    //        Object args(list...);
+    //        return CallByName(name, args, false);
+    //    }
+    //
+    //    ObjPtr CallByName(const TermPtr & term_args, Object &local_vars);
+    //    ObjPtr CallByName(const char * name, Object &args, bool is_ref = false);
 
-    template <typename... T>
-    typename std::enable_if<is_all<Object::PairType, T ...>::value, ObjPtr>::type
-    CallByName(const char * name, T ... list) {
-        Object args(list...);
-        return CallByName(name, args, false);
-    }
+    static ObjPtr EvalBlock(Context *ctx, const TermPtr &block, Object *local_vars);
+    static ObjPtr EvalBlockTry(Context *ctx, const TermPtr &block, Object *local_vars);
 
-    ObjPtr CallByName(const TermPtr & term_args, Object &local_vars);
-    ObjPtr CallByName(const char * name, Object &args, bool is_ref = false);
-
-    static ObjPtr EvalBlock(Context *ctx, const TermPtr &block, Object &local_vars);
-    static ObjPtr EvalBlockTry(Context *ctx, const TermPtr &block, Object &local_vars);
-
-    static ObjPtr EvalBlockAND(Context *ctx, const TermPtr &block, Object &local_vars);
-    static ObjPtr EvalBlockOR(Context *ctx, const TermPtr &block, Object &local_vars);
-    static ObjPtr EvalBlockXOR(Context *ctx, const TermPtr &block, Object &local_vars);
+    static ObjPtr EvalBlockAND(Context *ctx, const TermPtr &block, Object *local_vars);
+    static ObjPtr EvalBlockOR(Context *ctx, const TermPtr &block, Object *local_vars);
+    static ObjPtr EvalBlockXOR(Context *ctx, const TermPtr &block, Object *local_vars);
 
     ObjPtr CreateNative(const char *proto, const char *module = nullptr, bool lazzy = false, const char *mangle_name = nullptr, ffi_abi abi = FFI_DEFAULT_ABI);
     ObjPtr CreateNative(TermPtr proto, const char *module = nullptr, bool lazzy = false, const char *mangle_name = nullptr, ffi_abi abi = FFI_DEFAULT_ABI);
@@ -411,25 +408,60 @@ public:
 
     }
 
+    inline ObjPtr ConvertType(const ObjType type, const Dimension *dims, ObjPtr obj, const ObjPtr obj2 = nullptr) {
+        ObjPtr result = obj->Clone();
+        ConvertType_(type, dims, result, obj2);
+        return result;
+    }
+    void ConvertType_(const ObjType type, const Dimension *dims, ObjPtr obj, const ObjPtr obj2 = nullptr);
+
+    ObjPtr CreateConvertTypeFunc(const char *prototype, void *func, ObjType type) {
+        ASSERT(prototype);
+        ASSERT(func);
+
+        std::string func_dump(prototype);
+        func_dump += " := {};";
+
+        TermPtr proto = Parser::ParseString(func_dump);
+        ObjPtr obj =
+                Object::CreateFunc(this, proto->Left(), type,
+                proto->Left()->getName().empty() ? proto->Left()->getText() : proto->Left()->getName());
+        obj->m_func_ptr = func;
+
+        return obj;
+    }
+
+    ObjPtr Comprehensions(Context *ctx, TermPtr term, Object *local_vars);
+    ObjPtr Comprehensions(Context *ctx, Object *type, Object *args);
+
     ObjType BaseTypeFromString(const std::string & type, bool *has_error = nullptr) {
-        if (type.empty()) {
-            return ObjType::None;
-        }
-        auto result = m_types.find(isType(type) ? type.substr(1) : type);
-        if (result == m_types.end()) {
+        ObjPtr obj_type = GetTypeFromString(type);
+
+        if (obj_type == nullptr) {
             if (has_error) {
                 *has_error = true;
                 return ObjType::None;
             }
             LOG_RUNTIME("Type name '%s' not found!", type.c_str());
         }
-        return result->second->m_var_type_fixed;
+        return obj_type->m_var_type_fixed;
+    }
+
+    ObjPtr GetTypeFromString(const std::string & type) {
+        if (type.empty()) {
+            return Object::CreateNone();
+        }
+        auto result = m_types.find(isType(type) ? type.substr(1) : type);
+        if (result == m_types.end()) {
+            return nullptr;
+            //            LOG_RUNTIME("Type name '%s' not found!", type.c_str());
+        }
+        return result->second;
     }
 
     ObjPtr CreateTypeName(TermPtr type, ObjPtr base) {
         ASSERT(base);
         ASSERT(type);
-        ASSERT(type->getTermID() == TermID::TERM);
         ASSERT(type->size() == 0);
 
         return CreateTypeName(type->m_text, base);
@@ -455,6 +487,173 @@ public:
         m_types[type_name] = result;
         return result;
     }
+
+    static ObjPtr CreateClass(std::string name, Object &args) {
+        ObjPtr result = Object::CreateClass(name);
+        for (int i = 0; i < args.size(); i++) {
+            if (args.name(i).empty()) {
+                LOG_RUNTIME("Field pos %d has no name!", i);
+            }
+            result->push_back(args[i], args.name(i));
+        }
+        return result;
+    }
+
+    static ObjPtr CreateSimpleType(ObjType type) {
+
+#define REGISTER_TYPES(name)                                                                                     \
+    ASSERT(Context::m_types.find(#name) == Context::m_types.end());                                                    \
+    Context::m_types[#name] = CreateSimpleType(ObjType::name);
+
+        NL_BUILTIN_CAST_TYPE(REGISTER_TYPES)
+
+#undef REGISTER_TYPES
+        
+        
+        ObjPtr result = Object::CreateFunc("Type(...)", &CreateSimpleTypeFunc, ObjType::TRANSPARENT);
+        result->m_var_type_current = ObjType::Type;
+        result->m_var_type_fixed = type;
+        return result;
+    }    
+   
+    static ObjPtr CreateSimpleTypeFunc(Context *ctx, Object & args) {
+        ObjPtr result = Object::CreateDict(); //Type(ObjType::Dictionary, nullptr, ObjType::Enum);
+//        result->m_var_type_fixed = ObjType::Dictionary;
+//        result->m_class_name = ":Enum";
+
+        int64_t val_int = 0;
+        ObjPtr enum_value;
+        std::string enum_name;
+
+        for (int i = 1; i < args.size(); i++) {
+            if (args.name(i).empty()) {
+                if (args[i] && args[i]->is_string_type()) {
+                    enum_name = args[i]->GetValueAsString();
+                } else {
+                    LOG_RUNTIME("Field pos %d has no name!", i);
+                }
+            } else {
+                enum_name = args.name(i);
+
+                if (args[i] && (args[i]->is_integer() || args[i]->is_bool_type())) {
+                    val_int = args[i]->GetValueAsInteger();
+                } else if (!args[i] || !args[i]->is_none_type()) {
+                    LOG_RUNTIME("Field value '%s' %d must integer type!", args.name(i).c_str(), i);
+                }
+            }
+
+            if (!result->select(enum_name).complete()) {
+                LOG_RUNTIME("Field value '%s' at index %d already exists!", enum_name.c_str(), i);
+            }
+
+
+            enum_value = Object::CreateValue(val_int, ObjType::None); // , type
+            enum_value->m_var_type_fixed = enum_value->m_var_type_current;
+            enum_value->m_is_const = true;
+            result->push_back(enum_value, enum_name);
+            val_int += 1;
+        }
+
+        result->m_is_const = true;
+
+        return result;
+    }
+
+    
+    /*
+     * :Enum(One=0, Two=_, "Three", Ten=10);
+     */
+
+    static ObjPtr CreateEnum(Context *ctx, Object & args) {
+        ObjPtr result = Object::CreateDict(); //Type(ObjType::Dictionary, nullptr, ObjType::Enum);
+        result->m_var_type_fixed = ObjType::Dictionary;
+        result->m_class_name = ":Enum";
+
+        int64_t val_int = 0;
+        ObjPtr enum_value;
+        std::string enum_name;
+
+        for (int i = 1; i < args.size(); i++) {
+            if (args.name(i).empty()) {
+                if (args[i] && args[i]->is_string_type()) {
+                    enum_name = args[i]->GetValueAsString();
+                } else {
+                    LOG_RUNTIME("Field pos %d has no name!", i);
+                }
+            } else {
+                enum_name = args.name(i);
+
+                if (args[i] && (args[i]->is_integer() || args[i]->is_bool_type())) {
+                    val_int = args[i]->GetValueAsInteger();
+                } else if (!args[i] || !args[i]->is_none_type()) {
+                    LOG_RUNTIME("Field value '%s' %d must integer type!", args.name(i).c_str(), i);
+                }
+            }
+
+            if (!result->select(enum_name).complete()) {
+                LOG_RUNTIME("Field value '%s' at index %d already exists!", enum_name.c_str(), i);
+            }
+
+
+            enum_value = Object::CreateValue(val_int, ObjType::None); // , type
+            enum_value->m_var_type_fixed = enum_value->m_var_type_current;
+            enum_value->m_is_const = true;
+            result->push_back(enum_value, enum_name);
+            val_int += 1;
+        }
+
+        result->m_is_const = true;
+
+        //@todo Реализовать указание типов для элементов перечисления !!!
+
+        // Check BuildInType
+        //    bool has_error = false;
+        //    ObjType type = ObjType::None; //typeFromString(term->m_class_name, nullptr, &has_error);
+        //    //        if (has_error) {
+        //    //            NL_PARSER(term, "Typename '%s' not base type!", term->m_class_name.c_str());
+        //    //        }
+        //    //        if (!isIntegralType(type, true)) {
+        //    //            NL_PARSER(term, "Enum must be intergal type, not '%s'!", term->m_class_name.c_str());
+        //    //        }
+        //    int64_t val_int = 0;
+        //    ObjPtr temp;
+        //    for (size_t i = 0; i < args.size(); i++) {
+        //        if (args.name(i).empty()) {
+        //            NL_PARSER(term, "The enum element must have a name!");
+        //        }
+        //
+        //        if (args[i]) {
+        //            temp = args[i]->Clone();
+        //            val_int = temp->GetValueAsInteger();
+        //            type = temp->getType();
+        //            NL_TYPECHECK(term, newlang::toString(typeFromLimit(val_int)),
+        //                    term->m_class_name); // Соответстствует ли тип значению?
+        //        } else {
+        //            temp = Object::CreateValue(val_int, type);
+        //        }
+        //        temp->m_var_type_fixed = type;
+        //        result->push_back(temp, args.name(i).c_str());
+        //        val_int += 1;
+        //    }
+        return result;
+
+
+    }
+
+    //    static ObjPtr Create Struct(Object & args) {
+    //        CheckClass(args);
+    //        for (int i = 0; i < args.size(); i++) {
+    //            ObjPtr item = args[i];
+    //
+    //            if (!item) {
+    //                LOG_RUNTIME("An empty field pos %d in a structure is not allowed!", i);
+    //            }
+    //
+    //            if (!isPlainDataType(item->m_var_type_fixed)) {
+    //                LOG_RUNTIME("Field data type '%s'(%d) is not plain!", args.name(i).c_str(), i);
+    //            }
+    //        }
+    //    }
 
     SCOPE(protected) :
     size_t GetCount();

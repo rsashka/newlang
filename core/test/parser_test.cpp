@@ -45,13 +45,21 @@ TEST_F(ParserTest, LiteralNumber) {
     ASSERT_EQ(TermID::NUMBER, ast->getTermID()) << newlang::toString(ast->getTermID());
     ASSERT_STREQ("100.222", ast->m_text.c_str());
 
-    ASSERT_TRUE(Parse("0.1e+10;"));
-    ASSERT_EQ(TermID::NUMBER, ast->getTermID()) << newlang::toString(ast->getTermID());
-    ASSERT_STREQ("0.1e+10", ast->m_text.c_str());
-
     ASSERT_TRUE(Parse("1.2E-20;"));
     ASSERT_EQ(TermID::NUMBER, ast->getTermID()) << newlang::toString(ast->getTermID());
     ASSERT_STREQ("1.2E-20", ast->m_text.c_str());
+
+    ASSERT_TRUE(Parse("1.2E+20;"));
+    ASSERT_EQ(TermID::NUMBER, ast->getTermID()) << newlang::toString(ast->getTermID());
+    ASSERT_STREQ("1.2E+20", ast->m_text.c_str());
+
+    ASSERT_TRUE(Parse("0.e-10;"));
+    ASSERT_EQ(TermID::NUMBER, ast->getTermID()) << newlang::toString(ast->getTermID());
+    ASSERT_STREQ("0.e-10", ast->m_text.c_str());
+
+    ASSERT_TRUE(Parse("0.e+10;"));
+    ASSERT_EQ(TermID::NUMBER, ast->getTermID()) << newlang::toString(ast->getTermID());
+    ASSERT_STREQ("0.e+10", ast->m_text.c_str());
 }
 
 TEST_F(ParserTest, LiteralString) {
@@ -137,6 +145,10 @@ TEST_F(ParserTest, TermName) {
 }
 
 TEST_F(ParserTest, Tensor1) {
+    ASSERT_TRUE(Parse("[,]:Char"));
+    ASSERT_EQ(TermID::TENSOR, ast->getTermID()) << newlang::toString(ast->getTermID());
+    ASSERT_STREQ("[,]:Char", ast->toString().c_str());
+
     ASSERT_TRUE(Parse("term[1];"));
     ASSERT_EQ(TermID::TERM, ast->getTermID()) << newlang::toString(ast->getTermID());
     ASSERT_STREQ("term", ast->m_text.c_str());
@@ -256,7 +268,7 @@ TEST_F(ParserTest, Tensor4) {
  * - Установка типов у литералов
  * - Проверка соответствия типов литералов и их значений
  * 
- * - Встроеные функции преобразования простых типов данных
+ * - Встроенные функции преобразования простых типов данных
  * - Передача аргументов функций по ссылкам
  * - Проверка типов аргументов при вызове функций
  * - Проверка типов возвращаемых значений у функций
@@ -428,6 +440,23 @@ TEST_F(ParserTest, TensorType) {
     //    ASSERT_STREQ("3", (*ast->Right())[2]->getText().c_str());
 }
 
+TEST_F(ParserTest, DictType) {
+    ASSERT_TRUE(Parse("(1,2,)"));
+    ASSERT_STREQ("(1, 2,)", ast->toString().c_str());
+
+    ASSERT_TRUE(Parse("(1, arg=2,)"));
+    ASSERT_STREQ("(1, arg=2,)", ast->toString().c_str());
+
+    ASSERT_TRUE(Parse("(1, arg=2, '',)"));
+    ASSERT_STREQ("(1, arg=2, '',)", ast->toString().c_str());
+
+    ASSERT_TRUE(Parse("(arg1=22, arg2=, arg3=,):Enum"));
+    ASSERT_STREQ("(arg1=22, arg2=, arg3=,):Enum", ast->toString().c_str());
+
+    ASSERT_TRUE(Parse("(1, arg=2, '',):Class(value)"));
+    ASSERT_STREQ("(1, arg=2, '',):Class(value)", ast->toString().c_str());
+}
+
 TEST_F(ParserTest, TermNoArg) {
     ASSERT_TRUE(Parse("term();"));
     ASSERT_EQ(TermID::CALL, ast->getTermID()) << newlang::toString(ast->getTermID());
@@ -474,7 +503,7 @@ TEST_F(ParserTest, FuncNoArg) {
     ASSERT_STREQ("@term", ast->m_text.c_str());
 }
 
-TEST_F(ParserTest, TermNoArgSpase) {
+TEST_F(ParserTest, TermNoArgSpace) {
     ASSERT_TRUE(Parse("term(  );"));
     ASSERT_EQ(TermID::CALL, ast->getTermID()) << newlang::toString(ast->getTermID());
     ASSERT_STREQ("term", ast->m_text.c_str());
@@ -580,18 +609,18 @@ TEST_F(ParserTest, TermCall) {
     ASSERT_STREQ(":=", ast->m_text.c_str());
 
 
-    TermPtr rigth = ast->Right();
-    ASSERT_TRUE(rigth);
-    ASSERT_EQ(3, rigth->size());
-    ASSERT_STREQ("200", (*rigth)[0]->getText().c_str());
-    ASSERT_FALSE((*rigth)[0]->m_left);
-    ASSERT_FALSE((*rigth)[0]->m_right);
-    ASSERT_STREQ("var", (*rigth)[1]->getText().c_str());
-    ASSERT_FALSE((*rigth)[1]->m_left);
-    ASSERT_FALSE((*rigth)[1]->m_right);
-    ASSERT_STREQ("400", (*rigth)[2]->getText().c_str());
-    ASSERT_FALSE((*rigth)[2]->m_left);
-    ASSERT_FALSE((*rigth)[2]->m_right);
+    TermPtr right = ast->Right();
+    ASSERT_TRUE(right);
+    ASSERT_EQ(3, right->size());
+    ASSERT_STREQ("200", (*right)[0]->getText().c_str());
+    ASSERT_FALSE((*right)[0]->m_left);
+    ASSERT_FALSE((*right)[0]->m_right);
+    ASSERT_STREQ("var", (*right)[1]->getText().c_str());
+    ASSERT_FALSE((*right)[1]->m_left);
+    ASSERT_FALSE((*right)[1]->m_right);
+    ASSERT_STREQ("400", (*right)[2]->getText().c_str());
+    ASSERT_FALSE((*right)[2]->m_left);
+    ASSERT_FALSE((*right)[2]->m_right);
 }
 
 TEST_F(ParserTest, TermCollection) {
@@ -825,7 +854,7 @@ TEST_F(ParserTest, AssignFullName) {
 
 TEST_F(ParserTest, AssignClass0) {
     ASSERT_TRUE(Parse("term := :Class();"));
-    ASSERT_STREQ("term := :Class;", ast->toString().c_str());
+    ASSERT_STREQ("term := :Class();", ast->toString().c_str());
 }
 
 TEST_F(ParserTest, AssignClass1) {
@@ -1641,7 +1670,7 @@ TEST_F(ParserTest, Follow6) {
     //    ASSERT_STREQ("(@test1)->{then1;},\n ($test2)->{then2;},\n (@test3+$test3)->{then3;},\n _ ->{else; else();};", ast->toString().c_str());
 }
 
-TEST_F(ParserTest, Follow7) {
+TEST_F(ParserTest, DISABLED_Follow7) {
     ASSERT_TRUE(Parse("[test.field[0] > iter!!] -> if_1;"));
     //    ASSERT_STREQ("(test.field[0].field2>iter!!)->{if_1;};", ast->toString().c_str());
 }
@@ -1754,7 +1783,7 @@ TEST_F(ParserTest, HelloWorld) {
     //    ASSERT_STREQ("!!!!!!!!!!!!!!", ast->toString().c_str());
 }
 
-TEST_F(ParserTest, Convert) {
+TEST_F(ParserTest, DISABLED_Convert) {
     std::vector<const char *> list = {
         "brother(human!, human!)?;",
         "func(arg1, arg2 = 5) :- { ($arg1 < $2) -> {%{ return $arg1; %}}, [_] -> {%{ return *$1 * *$2; %}}; };",
