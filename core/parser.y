@@ -356,8 +356,6 @@ star_arg = [STAR] STAR ID
 %token			CREATE_OR_ASSIGN ":="
 %token			APPEND		"[]="
 
-%token			TENSOR_BEGIN
-%token			TENSOR_END
 %token			TRY_BEGIN
 %token			TRY_END
 %token			BLOCK_TRY
@@ -916,37 +914,6 @@ array: '['  args  ','  ']'
             }
 
             
-tensor:   TENSOR_BEGIN   TENSOR_END
-                {
-                    $$ = $1;
-                }
-            | TENSOR_BEGIN  TENSOR_END  type
-                {
-                    $$ = $1;
-                    $$->SetType($type);
-                }
-            |  TENSOR_BEGIN   args  TENSOR_END
-                {
-                    $$ = $1;
-                    $$->SetArgs($2);
-                }
-            | TENSOR_BEGIN  args  TENSOR_END  type
-                {
-                    $$ = $1;
-                    $$->SetArgs($2);
-                    $$->SetType($type);
-                }
-//            | TENSOR_BEGIN  args  TENSOR_END  '['  type_dims   ']'
-//                {
-//                    $$ = $1;
-//                    $$->SetArgs($2);
-//                    // Изменение размерности тензора без конвертирования типа данных
-//                    $4->m_text.clear();
-//                    $4->SetDims($type_dims);
-//                    $$->SetType($4);
-//                }
-
-
 dictionary: '('  ','  ')'
             {
                 $$ = $1;
@@ -974,10 +941,6 @@ class:  dictionary
             
            
 collection: array 
-            {
-                $$ = $1;
-            }
-        | tensor
             {
                 $$ = $1;
             }

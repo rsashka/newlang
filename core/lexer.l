@@ -357,8 +357,6 @@ term    [$@%~]({ualpha}|[_])?({name})?
 "::="       YY_TOKEN(CREATE);
 ":="        YY_TOKEN(CREATE_OR_ASSIGN);
 "[]="       YY_TOKEN(APPEND);
-"[["        YY_TOKEN(TENSOR_BEGIN);
-"]]"        YY_TOKEN(TENSOR_END);
 
 "){{"       YY_TOKEN_ONLY(MIDDLE_CALL_TRY);
 "){"        YY_TOKEN_ONLY(MIDDLE_CALL_BLOCK);

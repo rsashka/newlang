@@ -91,7 +91,7 @@ public:
         m_ref_count = 0;
         m_func_ptr = nullptr;
         m_type = nullptr;
-        m_value = torch::empty({0});
+        m_value = torch::empty({0}, isSimpleType(type) ? toTorchType(type) : at::ScalarType::Undefined);
         m_is_reference = false;
         m_func_abi = FFI_DEFAULT_ABI;
         m_var_type_fixed = fixed;

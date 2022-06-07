@@ -433,6 +433,7 @@ inline torch::Dtype toTorchType(ObjType t) {
         case ObjType::Integer:
             return at::ScalarType::Long;
         case ObjType::Float:
+        case ObjType::Tensor:
             return at::ScalarType::Float;
         case ObjType::Double:
         case ObjType::Number:

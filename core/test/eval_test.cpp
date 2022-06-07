@@ -220,7 +220,7 @@ TEST(Eval, Tensor) {
 
     Context ctx(RunTime::Init());
 
-    ObjPtr tensor = ctx.Eval("[[ 1 ]]:Tensor"); //: Tensor
+    ObjPtr tensor = ctx.Eval(":Tensor(1)"); //: Tensor
     ASSERT_TRUE(tensor);
     ASSERT_EQ(ObjType::None, tensor->m_var_type_fixed) << toString(tensor->m_var_type_fixed);
     ASSERT_EQ(ObjType::Bool, tensor->getType()) << toString(tensor->m_var_type_current);
@@ -232,27 +232,27 @@ TEST(Eval, Tensor) {
     ASSERT_TRUE(tensor);
     ASSERT_STREQ("(1, 2, 3,)", tensor->GetValueAsString().c_str()) << tensor->GetValueAsString().c_str();
 
-    tensor = ctx.Eval("[[ [1,2,3,] ]]:Dictionary");
+    tensor = ctx.Eval(":Dictionary( [1,2,3,] )");
     ASSERT_TRUE(tensor);
     ASSERT_STREQ("(1, 2, 3,)", tensor->GetValueAsString().c_str()) << tensor->GetValueAsString().c_str();
 
-    tensor = ctx.Eval("[[ [1,2,3,] ]]:Tensor");
+    tensor = ctx.Eval(":Tensor([1,2,3,])");
     ASSERT_TRUE(tensor);
     ASSERT_STREQ("[1, 2, 3,]:Char", tensor->GetValueAsString().c_str()) << tensor->GetValueAsString().c_str();
 
-    tensor = ctx.Eval("[[ 1 ]]:Int");
+    tensor = ctx.Eval(":Int([1,])");
     ASSERT_TRUE(tensor);
     ASSERT_STREQ("[1,]:Int", tensor->GetValueAsString().c_str()) << tensor->GetValueAsString().c_str();
 
-    ObjPtr tt = ctx.Eval("[[(1,2,3,)]]: Tensor[3]");
+    ObjPtr tt = ctx.Eval(":Tensor[3]( (1,2,3,) )");
     ASSERT_TRUE(tt);
     ASSERT_STREQ("[1, 2, 3,]:Char", tt->GetValueAsString().c_str()) << tensor->GetValueAsString().c_str();
 
-    tt = ctx.Eval("[[(1,2,3,)]]:Int");
+    tt = ctx.Eval(":Int((1,2,3,))");
     ASSERT_TRUE(tt);
     ASSERT_STREQ("[1, 2, 3,]:Int", tt->GetValueAsString().c_str()) << tensor->GetValueAsString().c_str();
 
-    tt = ctx.Eval("[[(1,2,3,4,5,6,)]]:Int[2,3]");
+    tt = ctx.Eval(":Int[2,3]((1,2,3,4,5,6,))");
     ASSERT_TRUE(tt);
 
     ASSERT_EQ(2, tt->m_value.dim());
@@ -261,31 +261,31 @@ TEST(Eval, Tensor) {
 
     ASSERT_STREQ("[\n  [1, 2, 3,], [4, 5, 6,],\n]:Int", tt->GetValueAsString().c_str());
 
-    ObjPtr str = ctx.Eval("[['first second']]");
+    ObjPtr str = ctx.Eval(":StrChar('first second')");
     ASSERT_TRUE(str);
     ASSERT_STREQ("(102, 105, 114, 115, 116, 32, 115, 101, 99, 111, 110, 100,)", str->GetValueAsString().c_str());
 
-    str = ctx.Eval("[['first second']]:Tensor");
+    str = ctx.Eval(":Tensor('first second')");
     ASSERT_TRUE(str);
     ASSERT_STREQ("[102, 105, 114, 115, 116, 32, 115, 101, 99, 111, 110, 100,]:Char", str->GetValueAsString().c_str());
 
-    tt = ctx.Eval("[[(first='first', space=32, second='second',)]]:Tensor");
+    tt = ctx.Eval(":Tensor((first='first', space=32, second='second',))");
     ASSERT_TRUE(tt);
     ASSERT_STREQ("[102, 105, 114, 115, 116, 32, 115, 101, 99, 111, 110, 100,]:Char", tt->GetValueAsString().c_str());
 
     ASSERT_TRUE(str->op_equal(tt));
 
-    tt = ctx.Eval("[[\"Тензор Int  \"]]:Int[6,2]");
+    tt = ctx.Eval(":Int[6,2](\"Тензор Int  \")");
     ASSERT_TRUE(tt);
     ASSERT_STREQ("[\n  [1058, 1077,], [1085, 1079,], [1086, 1088,], [32, 73,], "
             "[110, 116,], [32, 32,],\n]:Int",
             tt->GetValueAsString().c_str());
 
-    tt = ctx.Eval("[[99]]:Tensor");
+    tt = ctx.Eval(":Tensor(99)");
     ASSERT_TRUE(tt);
     ASSERT_STREQ("[99,]:Char", tt->GetValueAsString().c_str());
 
-    tt = ctx.Eval("[[ 0, ... ]]: Double[10,2]");
+    tt = ctx.Eval(":Double[10,2](0, ... )");
     ASSERT_TRUE(tt);
     ASSERT_STREQ("[\n  [0, 0,], [0, 0,], [0, 0,], [0, 0,], [0, 0,], [0, 0,], [0, "
             "0,], [0, 0,], [0, 0,], [0, 0,],\n]:Double",
@@ -293,15 +293,15 @@ TEST(Eval, Tensor) {
 
     ObjPtr rand = ctx.Eval("rand := @import('rand():Int')");
 
-    tt = ctx.Eval("[[ rand(), ... ]]: Int[3,2]");
+    tt = ctx.Eval(":Int[3,2]( rand(), ... )");
     ASSERT_TRUE(tt);
     ASSERT_TRUE(50 < tt->GetValueAsString().size()) << tt->GetValueAsString();
 
-    tt = ctx.Eval("[[ 0..10 ]]: Int[5,2]");
+    tt = ctx.Eval(":Int[5,2]( 0..10 )");
     ASSERT_TRUE(tt);
     ASSERT_STREQ("[\n  [0, 1,], [2, 3,], [4, 5,], [6, 7,], [8, 9,],\n]:Int", tt->GetValueAsString().c_str());
 
-    tt = ctx.Eval("[[ 0..10 ]]: Double[5,2]");
+    tt = ctx.Eval(":Double[5,2]( 0..10 )");
     ASSERT_TRUE(tt);
     ASSERT_STREQ("[\n  [0, 1,], [2, 3,], [4, 5,], [6, 7,], [8, 9,],\n]:Double", tt->GetValueAsString().c_str());
 
@@ -309,11 +309,11 @@ TEST(Eval, Tensor) {
     ASSERT_TRUE(tt);
     ASSERT_STREQ("0..1..0.1", tt->toString().c_str());
 
-    tt = ctx.Eval("[[ 0..0.99..0.1 ]]");
+    tt = ctx.Eval(":Dictionary( 0..0.99..0.1 )");
     ASSERT_TRUE(tt);
     ASSERT_STREQ("(0, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9,)", tt->GetValueAsString().c_str());
 
-    tt = ctx.Eval("[[ 0..0.99..0.1 ]]:Tensor");
+    tt = ctx.Eval(":Tensor( 0..0.99..0.1 )");
     ASSERT_TRUE(tt);
     ASSERT_STREQ("[0, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9,]:Double", tt->GetValueAsString().c_str());
 }
@@ -586,11 +586,11 @@ TEST(Eval, Fileio) {
     ASSERT_TRUE(file_res);
 
     //@todo try and catch segfault
-//    ASSERT_ANY_THROW(
-//            // Double free
-//            file_res = ctx.Eval("fclose(file)"););
-//            
-//    Context::Reset();
+    //    ASSERT_ANY_THROW(
+    //            // Double free
+    //            file_res = ctx.Eval("fclose(file)"););
+    //            
+    //    Context::Reset();
 }
 
 TEST(Eval, Funcs) {
@@ -617,7 +617,15 @@ TEST(Eval, Funcs) {
  * scalar_int := 100:Int(); ?????? # Тип скаляра во время компиляции
  * :type_int := :Int; # Синоним типа Int во время компиляции (тип не может быть изменен)
  * :type_int := :Int(); # Копия типа Int во время выполнения (тип может быть изменен после Mutable)
- * scalar_int := :Int(100); # Преобразование типа во время выполнения
+ * 
+ * scalar_int := :Int(0); # Преобразование типа во время выполнения с автоматической размерностью (скаляр)
+ * scalar_int := :Int[0](0); # Преобразование типа во время выполнения с указанием размерности (скаляр)
+ * scalar_int := :Int[0]([0,]); # Преобразование типа во время выполнения с указанием размерности (скаляр)
+ * 
+ * tensor_int := :Int([0,]); # Преобразование типа во время выполнения с автоматической размерностью (тензор)
+ * tensor_int := :Int[1](0); # Преобразование типа во время выполнения с указанием размерности (тензор)
+ * tensor_int := :Int[...](0); # Преобразование типа во время выполнения с произвольной размернотью (тензор)
+ * 
  * 
  * :синоним := :Int; # Неизменяемый ?????
  * :копия := :Int(); # Изменяемый ?????
@@ -656,6 +664,7 @@ TEST(Eval, Convert) {
     ASSERT_EQ(ObjType::Type, type_dim->getType()) << toString(type_dim->m_var_type_current);
     ASSERT_EQ(ObjType::Int, type_dim->m_var_type_fixed) << toString(type_dim->m_var_type_fixed);
 
+    ASSERT_TRUE(type_dim->m_type);
     ASSERT_EQ(1, type_dim->m_type->size());
     ASSERT_EQ(0, (*type_dim->m_type)[0]->GetValueAsInteger());
 
@@ -664,6 +673,7 @@ TEST(Eval, Convert) {
     ASSERT_EQ(ObjType::Type, type_ell->getType());
     ASSERT_EQ(ObjType::Int, type_ell->m_var_type_fixed);
 
+    ASSERT_TRUE(type_ell->m_type);
     ASSERT_EQ(2, type_ell->m_type->size());
     ASSERT_EQ(10, (*type_ell->m_type)[0]->GetValueAsInteger());
     ASSERT_EQ(ObjType::Ellipsis, (*type_ell->m_type)[1]->getType());
@@ -672,19 +682,92 @@ TEST(Eval, Convert) {
 
     ObjPtr obj_0 = ctx.Eval("0");
     ASSERT_TRUE(obj_0);
+    ASSERT_EQ(at::ScalarType::Bool, obj_0->m_value.scalar_type());
     ASSERT_EQ(ObjType::Bool, obj_0->getType());
     ASSERT_EQ(ObjType::None, obj_0->m_var_type_fixed);
+    ASSERT_STREQ("0", obj_0->GetValueAsString().c_str());
 
     ObjPtr obj_1 = ctx.Eval("1");
     ASSERT_TRUE(obj_1);
+    ASSERT_EQ(at::ScalarType::Bool, obj_1->m_value.scalar_type());
     ASSERT_EQ(ObjType::Bool, obj_1->getType());
     ASSERT_EQ(ObjType::None, obj_1->m_var_type_fixed);
+    ASSERT_STREQ("1", obj_1->GetValueAsString().c_str());
+
+    ObjPtr obj_2 = ctx.Eval("2");
+    ASSERT_TRUE(obj_2);
+    ASSERT_EQ(at::ScalarType::Char, obj_2->m_value.scalar_type());
+    ASSERT_EQ(ObjType::Char, obj_2->getType());
+    ASSERT_EQ(ObjType::None, obj_2->m_var_type_fixed);
+    ASSERT_STREQ("2", obj_2->GetValueAsString().c_str());
 
     ObjPtr obj_int = ctx.Eval(":Int(0)");
     ASSERT_TRUE(obj_int);
+    ASSERT_TRUE(obj_int->is_tensor());
+    ASSERT_TRUE(obj_int->is_scalar());
+    ASSERT_EQ(at::ScalarType::Int, obj_int->m_value.scalar_type());
     ASSERT_EQ(ObjType::Int, obj_int->getType()) << toString(obj_int->m_var_type_current);
     ASSERT_EQ(ObjType::Int, obj_int->m_var_type_fixed) << toString(obj_int->m_var_type_fixed);
 
+    ASSERT_TRUE(obj_int->m_var_is_init);
+    ASSERT_STREQ("0", obj_int->GetValueAsString().c_str());
+    ASSERT_EQ(0, obj_int->GetValueAsInteger());
+
+
+    ObjPtr scalar = ctx.Eval(":Int[0](0)");
+    ASSERT_TRUE(scalar);
+    ASSERT_TRUE(scalar->is_tensor());
+    ASSERT_TRUE(scalar->is_scalar());
+    ASSERT_EQ(at::ScalarType::Int, scalar->m_value.scalar_type());
+    ASSERT_EQ(ObjType::Int, scalar->getType()) << toString(scalar->m_var_type_current);
+    ASSERT_EQ(ObjType::Int, scalar->m_var_type_fixed) << toString(scalar->m_var_type_fixed);
+
+    ASSERT_TRUE(scalar->m_var_is_init);
+    ASSERT_STREQ("0", scalar->GetValueAsString().c_str());
+    ASSERT_EQ(0, scalar->GetValueAsInteger());
+
+
+    ObjPtr ten = ctx.Eval("[0,]");
+    ASSERT_TRUE(ten);
+    ASSERT_TRUE(ten->is_tensor());
+    ASSERT_FALSE(ten->is_scalar());
+
+    ASSERT_TRUE(ten->m_var_is_init);
+    ASSERT_STREQ("[0,]:Bool", ten->GetValueAsString().c_str());
+    ASSERT_EQ(0, ten->GetValueAsInteger());
+
+
+
+    ObjPtr obj_ten = ctx.Eval(":Int([0,])");
+    ASSERT_TRUE(obj_ten);
+    ASSERT_TRUE(obj_ten->is_tensor());
+    ASSERT_FALSE(obj_ten->is_scalar());
+    ASSERT_EQ(at::ScalarType::Int, obj_ten->m_value.scalar_type());
+    ASSERT_EQ(ObjType::Int, obj_ten->getType()) << toString(obj_ten->m_var_type_current);
+    ASSERT_EQ(ObjType::Int, obj_ten->m_var_type_fixed) << toString(obj_ten->m_var_type_fixed);
+
+    ASSERT_TRUE(obj_ten->m_var_is_init);
+    ASSERT_STREQ("[0,]:Int", obj_ten->GetValueAsString().c_str());
+    ASSERT_EQ(0, obj_ten->GetValueAsInteger());
+
+
+    ObjPtr obj_auto = ctx.Eval(":Int(0, 1, 2, 3)");
+    ASSERT_TRUE(obj_auto);
+    ASSERT_EQ(at::ScalarType::Int, obj_auto->m_value.scalar_type());
+    ASSERT_EQ(ObjType::Int, obj_auto->getType()) << toString(obj_auto->m_var_type_current);
+    ASSERT_EQ(ObjType::Int, obj_auto->m_var_type_fixed) << toString(obj_auto->m_var_type_fixed);
+
+    ASSERT_TRUE(obj_auto->m_var_is_init);
+    ASSERT_STREQ("[0, 1, 2, 3,]:Int", obj_auto->GetValueAsString().c_str());
+
+
+    ObjPtr obj_float = ctx.Eval(":Float[2,2](3, 4, 1, 2)");
+    ASSERT_TRUE(obj_float);
+    ASSERT_EQ(ObjType::Float, obj_float->getType()) << toString(obj_float->m_var_type_current);
+    ASSERT_EQ(ObjType::Float, obj_float->m_var_type_fixed) << toString(obj_float->m_var_type_fixed);
+
+    ASSERT_TRUE(obj_float->m_var_is_init);
+    ASSERT_STREQ("[\n  [3, 4,], [1, 2,],\n]:Float", obj_float->GetValueAsString().c_str());
 
 
     //    EXPECT_TRUE(dlsym(nullptr, "_ZN7newlang4CharEPKNS_7ContextERKNS_6ObjectE"));
@@ -923,7 +1006,7 @@ protected:
     const char *Test(std::string eval, Object &vars) {
         eval += ";";
         m_result = m_ctx.Eval(eval, &vars);
-        if (m_result) {
+        if(m_result) {
             m_string = m_result->GetValueAsString();
             return m_string.c_str();
         }
