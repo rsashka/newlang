@@ -9,35 +9,35 @@
 #include <core/context.h>
 
 #define FUNC_DIRECT(NAME, FUNC) \
-    newlang::ObjPtr FUNC(newlang::Context *ctx, newlang::Object &in);\
+    newlang::ObjPtr FUNC(newlang::Context *ctx, newlang::Obj &in);\
     inline newlang::ObjPtr NAME(newlang::Context *ctx, newlang::ObjPtr in){\
         ASSERT(in);\
         return FUNC(ctx, *in);\
     }\
     template <typename... T> \
-    typename std::enable_if<newlang::is_all<newlang::Object::PairType, T ...>::value, newlang::ObjPtr>::type \
+    typename std::enable_if<newlang::is_all<newlang::Obj::PairType, T ...>::value, newlang::ObjPtr>::type \
     NAME(newlang::Context *ctx, T ... args) { \
-        newlang::Object list = newlang::Object(newlang::Object::ArgNull(), args...); \
+        newlang::Obj list = newlang::Obj(newlang::Obj::ArgNull(), args...); \
         return FUNC(ctx, list); \
     }
 
 #define FUNC_TRANSPARENT(NAME, FUNC) \
-    newlang::ObjPtr FUNC(const newlang::Context *ctx, const newlang::Object &in);\
+    newlang::ObjPtr FUNC(const newlang::Context *ctx, const newlang::Obj &in);\
     inline newlang::ObjPtr NAME(const newlang::Context *ctx, const newlang::ObjPtr in){\
         ASSERT(in);\
         return FUNC(ctx, *in);\
     }\
     template <typename... T> \
-    typename std::enable_if<newlang::is_all<newlang::Object::PairType, T ...>::value, newlang::ObjPtr>::type \
+    typename std::enable_if<newlang::is_all<newlang::Obj::PairType, T ...>::value, newlang::ObjPtr>::type \
     newlang_##NAME(newlang::Context *ctx, T ... args) { \
-        newlang::Object list = newlang::Object(newlang::Object::ArgNull(), args...); \
+        newlang::Obj list = newlang::Obj(newlang::Obj::ArgNull(), args...); \
         return FUNC(ctx, list); \
     }
 
 
 #define FUNC_CONVERT(NAME) \
-    newlang::ObjPtr NAME(const newlang::Context *ctx, const newlang::Object &in);\
-    newlang::ObjPtr NAME##_(newlang::Context *ctx, newlang::Object &in);\
+    newlang::ObjPtr NAME(const newlang::Context *ctx, const newlang::Obj &in);\
+    newlang::ObjPtr NAME##_(newlang::Context *ctx, newlang::Obj &in);\
     inline newlang::ObjPtr newlang_##NAME(const newlang::Context *ctx, const newlang::ObjPtr in){\
         ASSERT(in);\
         return NAME(ctx, *in);\
@@ -47,15 +47,15 @@
         return NAME##_(ctx, *in);\
     }\
     template <typename... T> \
-    typename std::enable_if<newlang::is_all<newlang::Object::PairType, T ...>::value, newlang::ObjPtr>::type \
+    typename std::enable_if<newlang::is_all<newlang::Obj::PairType, T ...>::value, newlang::ObjPtr>::type \
     newlang_##NAME(const newlang::Context *ctx, T ... args) { \
-        const newlang::Object list = newlang::Object(newlang::Object::ArgNull(), args...); \
+        const newlang::Obj list = newlang::Obj(newlang::Obj::ArgNull(), args...); \
         return NAME(ctx, list); \
     }\
     template <typename... T> \
-    typename std::enable_if<newlang::is_all<newlang::Object::PairType, T ...>::value, newlang::ObjPtr>::type \
+    typename std::enable_if<newlang::is_all<newlang::Obj::PairType, T ...>::value, newlang::ObjPtr>::type \
     newlang_##NAME##_(newlang::Context *ctx, T ... args) { \
-        newlang::Object list = newlang::Object(newlang::Object::ArgNull(), args...); \
+        newlang::Obj list = newlang::Obj(newlang::Obj::ArgNull(), args...); \
         return NAME##_(ctx, list); \
     }
 

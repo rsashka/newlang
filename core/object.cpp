@@ -11,7 +11,7 @@
 
 using namespace newlang;
 
-std::ostream &operator<<(std::ostream &out, newlang::Object &var) {
+std::ostream &operator<<(std::ostream &out, newlang::Obj &var) {
     out << var.toString().c_str();
     return out;
 }
@@ -34,7 +34,7 @@ newlang_exception::newlang_exception(ObjPtr obj) : m_obj(obj), std::runtime_erro
 }
 
 Interruption::Interruption() {
-    m_obj = Object::CreateNone();
+    m_obj = Obj::CreateNone();
 }
 
 Interruption::Interruption(ObjPtr obj) : m_obj(obj) {
@@ -45,8 +45,14 @@ Interruption::Interruption(ObjPtr obj) : m_obj(obj) {
     //    }
 }
 
-int64_t Object::size(int64_t dim) const {
+int64_t Obj::size(int64_t dim) const {
     if(is_tensor()) {
+        if(is_scalar()) {
+            if(dim != 0) {
+                LOG_RUNTIME("Scalar has zero dimension!");
+            }
+            return 0;
+        }
         return m_value.size(dim);
     }
     ASSERT(dim == 0);
@@ -61,7 +67,62 @@ int64_t Object::size(int64_t dim) const {
     return Variable::size();
 }
 
-const Variable<ObjPtr>::PairType &Object::at(int64_t index) const {
+int64_t Obj::resize(int64_t size, ObjPtr fill, const std::string name) {
+
+    if(is_string_type()) {
+
+        if(size >= 0) {
+            // Размер положительный, просто изменить число элементов добавив или удалив последние
+            if(m_var_type_current == ObjType::StrChar) {
+                m_str.resize(size, ' ');
+                return m_str.size();
+            } else if(m_var_type_current == ObjType::StrWide) {
+                m_wstr.resize(size, L' ');
+                return m_wstr.size();
+            }
+        } else {
+            // Если размер отрицательный - добавить или удалить вначале
+            size = -size;
+            if(m_data.size() > size) {
+                if(m_var_type_current == ObjType::StrChar) {
+                    m_str.erase(0, size);
+                    return m_str.size();
+
+                } else if(m_var_type_current == ObjType::StrWide) {
+                    m_str.erase(0, size);
+                    return m_wstr.size();
+                }
+            } else if(m_data.size() < size) {
+                if(m_var_type_current == ObjType::StrChar) {
+                    m_str.insert(0, size, ' ');
+                    return m_str.size();
+
+                } else if(m_var_type_current == ObjType::StrWide) {
+                    m_wstr.insert(0, size, L' ');
+                    return m_wstr.size();
+
+                }
+            }
+        }
+
+    } else if(is_dictionary_type()) {
+        return Variable::resize(size, fill ? fill : Obj::CreateNone(), name);
+    }
+    LOG_RUNTIME("NOT IMPLEMENTED!");
+    //        
+    //        if(is_scalar()) {
+    //            if(dim != 0) {
+    //                LOG_RUNTIME("Scalar has zero dimension!");
+    //            }
+    //            return 0;
+    //        }
+    //        return m_value.size(dim);
+
+    //    return m_data.size();
+
+}
+
+const Variable<ObjPtr>::PairType &Obj::at(int64_t index) const {
     if(m_var_type_current == ObjType::StrChar) {
         if(index < m_str.size()) {
             m_str_pair = pair(CreateString(std::string(1, m_str[index])));
@@ -84,7 +145,7 @@ const Variable<ObjPtr>::PairType &Object::at(int64_t index) const {
         //        long> (index), m_string.c_str());
     } else if(is_tensor()) {
         torch::Tensor t = m_value.index({(int) index});
-        m_str_pair = pair(Object::CreateTensor(t));
+        m_str_pair = pair(Obj::CreateTensor(t));
         return m_str_pair;
     }
     //    if(m_var_type == Type::STRBYTE) {
@@ -107,7 +168,7 @@ const Variable<ObjPtr>::PairType &Object::at(int64_t index) const {
     return Variable::at(index);
 }
 
-Variable<ObjPtr>::PairType &Object::at(int64_t index) {
+Variable<ObjPtr>::PairType &Obj::at(int64_t index) {
     if(m_var_type_current == ObjType::StrChar) {
         if(index < m_str.size()) {
             m_str_pair = pair(CreateString(std::string(1, m_str[index])));
@@ -130,13 +191,13 @@ Variable<ObjPtr>::PairType &Object::at(int64_t index) {
         //        long> (index), m_string.c_str());
     } else if(is_tensor()) {
         torch::Tensor t = m_value.index({(int) index});
-        m_str_pair = pair(Object::CreateTensor(t));
+        m_str_pair = pair(Obj::CreateTensor(t));
         return m_str_pair;
     }
     return Variable::at(index);
 }
 
-const ObjPtr Object::index_get(const std::vector<Index> &index) const {
+const ObjPtr Obj::index_get(const std::vector<Index> &index) const {
     if(m_var_type_current == ObjType::StrChar) {
         if(index.size() != 1 || !index[0].is_integer()) {
             LOG_RUNTIME("The index must be an integer value '%s'!", IndexToString(index).c_str());
@@ -162,7 +223,7 @@ const ObjPtr Object::index_get(const std::vector<Index> &index) const {
         //        IndexToString(index).c_str(), m_string.c_str());
     } else if(is_tensor()) {
         torch::Tensor t = m_value.index(index);
-        return Object::CreateTensor(t);
+        return Obj::CreateTensor(t);
     }
     //    if(!index.is_integer()) {
     //        LOG_CALLSTACK(std::out_of_range, "Bad index '%s' in object '%s'!", IndexToString(index).c_str(),
@@ -174,7 +235,7 @@ const ObjPtr Object::index_get(const std::vector<Index> &index) const {
     return Variable::at(index[0].integer()).second;
 }
 
-ObjPtr Object::index_set_(const std::vector<Index> &index, const ObjPtr value) {
+ObjPtr Obj::index_set_(const std::vector<Index> &index, const ObjPtr value) {
     if(m_var_type_current == ObjType::StrChar) {
         if(index.size() != 1 || !index[0].is_integer()) {
             LOG_RUNTIME("The index must be an integer value '%s'!", IndexToString(index).c_str());
@@ -226,7 +287,7 @@ ObjPtr Object::index_set_(const std::vector<Index> &index, const ObjPtr value) {
     LOG_RUNTIME("Don`t set index '%s' in object '%s'!", IndexToString(index).c_str(), toString().c_str());
 }
 
-ObjPtr Object::op_set_index(size_t index, std::string value) {
+ObjPtr Obj::op_set_index(size_t index, std::string value) {
     if(m_var_type_current == ObjType::StrChar) {
         if(index < m_str.size()) {
             m_str.erase(index, 1);
@@ -260,7 +321,7 @@ ObjPtr Object::op_set_index(size_t index, std::string value) {
     return Variable::operator[](index);
 }
 
-bool Object::exist(ObjPtr &find, bool strong) {
+bool Obj::exist(ObjPtr &find, bool strong) {
     for (auto &elem : * this) {
         if(strong && find->op_accurate(elem.second)) {
             return true;
@@ -307,7 +368,7 @@ ObjType newlang::getSummaryTensorType(ObjPtr &obj, ObjType start) {
 //    return {2, 4};
 //}
 
-ObjPtr Object::operator+=(Object value) {
+ObjPtr Obj::operator+=(Obj value) {
     if(is_tensor()) {
         if(value.is_tensor()) {
             testResultIntegralType(value.m_var_type_current, true);
@@ -359,7 +420,7 @@ ObjPtr Object::operator+=(Object value) {
     LOG_RUNTIME("Operator '+' fail for '%s' and '%s'", toString().c_str(), value.toString().c_str());
 }
 
-ObjPtr Object::operator-=(Object value) {
+ObjPtr Obj::operator-=(Obj value) {
     if(m_var_type_current == ObjType::None) {
         m_var_type_current = value.m_var_type_current;
     } else if(is_tensor() && value.is_tensor()) {
@@ -386,7 +447,7 @@ ObjPtr Object::operator-=(Object value) {
     LOG_RUNTIME("Operator '-' fail for '%s' and '%s'", toString().c_str(), value.toString().c_str());
 }
 
-ObjPtr Object::operator*=(Object value) {
+ObjPtr Obj::operator*=(Obj value) {
     if(m_var_type_current == ObjType::None) {
         m_var_type_current = value.m_var_type_current;
     } else if(is_tensor() && value.is_tensor()) {
@@ -438,7 +499,7 @@ ObjPtr Object::operator*=(Object value) {
     LOG_RUNTIME("Operator '*' fail for '%s' and '%s'", toString().c_str(), value.toString().c_str());
 }
 
-ObjPtr Object::operator/=(Object value) {
+ObjPtr Obj::operator/=(Obj value) {
     if(is_tensor() && value.is_tensor()) {
         testResultIntegralType(ObjType::Double, false);
         m_value.div_(value.m_value);
@@ -447,7 +508,7 @@ ObjPtr Object::operator/=(Object value) {
     LOG_RUNTIME("Operator '/' fail for '%s' and '%s'", toString().c_str(), value.toString().c_str());
 }
 
-ObjPtr Object::op_div_ceil_(Object &value) {
+ObjPtr Obj::op_div_ceil_(Obj &value) {
     if(is_tensor() && value.is_tensor()) {
         ObjType type = m_var_type_current;
         testResultIntegralType(ObjType::Float, false);
@@ -458,7 +519,7 @@ ObjPtr Object::op_div_ceil_(Object &value) {
     LOG_RUNTIME("Operator '//' fail for '%s' and '%s'", toString().c_str(), value.toString().c_str());
 }
 
-ObjPtr Object::operator%=(Object value) {
+ObjPtr Obj::operator%=(Obj value) {
     if(is_tensor() && value.is_tensor()) {
         testResultIntegralType(value.m_var_type_current, false);
         m_value.fmod_(value.m_value);
@@ -467,7 +528,7 @@ ObjPtr Object::operator%=(Object value) {
     LOG_RUNTIME("Operator '%%' fail for '%s' and '%s'", toString().c_str(), value.toString().c_str());
 }
 
-size_t Object::ItemValueCount(ObjPtr &find, bool strong) {
+size_t Obj::ItemValueCount(ObjPtr &find, bool strong) {
     size_t result = 0;
     for (auto &elem : * this) {
         if(strong && find->op_accurate(elem.second)) {
@@ -479,7 +540,7 @@ size_t Object::ItemValueCount(ObjPtr &find, bool strong) {
     return result;
 }
 
-void Object::CloneDataTo(Object &clone) const {
+void Obj::CloneDataTo(Obj &clone) const {
 
     NL_CHECK(!isLocalType(m_var_type_current), "Local object not clonable!");
 
@@ -488,7 +549,7 @@ void Object::CloneDataTo(Object &clone) const {
         clone.m_var_type_fixed = m_var_type_fixed;
         clone.m_var_is_init = m_var_is_init;
         clone.m_var_type_name = m_var_type_name;
-        
+
         if(m_type) {
             clone.m_type = m_type->Clone();
         }
@@ -511,7 +572,7 @@ void Object::CloneDataTo(Object &clone) const {
     }
 }
 
-void Object::ClonePropTo(Object &clone) const {
+void Obj::ClonePropTo(Obj &clone) const {
 
     NL_CHECK(!isLocalType(m_var_type_current), "Local object not clonable!");
 
@@ -532,7 +593,7 @@ void Object::ClonePropTo(Object &clone) const {
     }
 }
 
-void Object::SetTermProp(Term &term) {
+void Obj::SetTermProp(Term &term) {
     m_namespace = term.m_namespace;
 }
 
@@ -545,7 +606,7 @@ void newlang::calcTensorDims(ObjPtr &obj, std::vector<int64_t> &dims) {
     }
 }
 
-ObjPtr Object::GetIndex(ObjPtr obj, TermPtr index_arg) {
+ObjPtr Obj::GetIndex(ObjPtr obj, TermPtr index_arg) {
     ASSERT(index_arg->size() == 1);
     TermPtr index = index_arg->at(0).second;
     ASSERT(index);
@@ -555,7 +616,7 @@ ObjPtr Object::GetIndex(ObjPtr obj, TermPtr index_arg) {
     return GetIndex(obj, std::stoi(index->m_text.c_str()));
 }
 
-std::string Object::toString(bool deep) const {
+std::string Obj::toString(bool deep) const {
     std::string result(m_is_reference ? "&" : "");
     result += m_var_name;
     if(!result.empty() && m_var_type_current == ObjType::Class && !deep && m_is_reference) {
@@ -822,7 +883,7 @@ std::string newlang::TensorToString(const torch::Tensor &tensor) {
     return result;
 }
 
-std::string Object::GetValueAsString() const {
+std::string Obj::GetValueAsString() const {
     std::string result;
     std::string temp;
     size_t dot, last;
@@ -834,6 +895,7 @@ std::string Object::GetValueAsString() const {
         case ObjType::None:
             return result;
 
+        case ObjType::Tensor:
         case ObjType::Bool:
         case ObjType::Char:
         case ObjType::Short:
@@ -892,22 +954,22 @@ std::string Object::GetValueAsString() const {
             result += toString();
             return result;
     }
-    LOG_CALLSTACK(std::runtime_error, "Data type '%s' %d incompatible to string!", newlang::toString(m_var_type_current),
-            (int) m_var_type_current);
+    LOG_CALLSTACK(std::runtime_error, "Data type '%s' %d incompatible to string!",
+            newlang::toString(m_var_type_current), (int) m_var_type_current);
 }
 
-ObjPtr Object::CreateLambda(const char *text) {
+ObjPtr Obj::CreateLambda(const char *text) {
     TermPtr ast;
     Parser p(ast);
     p.Parse(text);
     return CreateLambda(ast);
 }
 
-ObjPtr Object::CreateLambda(TermPtr term) {
+ObjPtr Obj::CreateLambda(TermPtr term) {
     return nullptr;
 }
 
-ObjPtr Object::CreateFunc(std::string prototype, FunctionType *func_addr, ObjType type) {
+ObjPtr Obj::CreateFunc(std::string prototype, FunctionType *func_addr, ObjType type) {
     ASSERT(func_addr);
     ASSERT(type == ObjType::FUNCTION || type == ObjType::TRANSPARENT);
 
@@ -915,7 +977,7 @@ ObjPtr Object::CreateFunc(std::string prototype, FunctionType *func_addr, ObjTyp
     TermPtr proto = Parser::ParseString(std::string(prototype + ":={}"));
     proto = proto->Left();
 
-    ObjPtr result = Object::CreateType(type, proto->m_text.c_str(), type);
+    ObjPtr result = Obj::CreateType(type, proto->m_text.c_str(), type);
 
     * const_cast<TermPtr *> (&result->m_func_proto) = proto;
     result->m_func_ptr = (void *) func_addr;
@@ -923,11 +985,11 @@ ObjPtr Object::CreateFunc(std::string prototype, FunctionType *func_addr, ObjTyp
     return result;
 }
 
-ObjPtr Object::CreateFunc(Context *ctx, TermPtr proto, ObjType type, const std::string var_name) {
+ObjPtr Obj::CreateFunc(Context *ctx, TermPtr proto, ObjType type, const std::string var_name) {
     ASSERT(type == ObjType::FUNCTION || type == ObjType::TRANSPARENT);
-    ObjPtr result = std::make_shared<Object>(type, var_name.c_str(), proto);
-    Object local;
-    Object args(ctx, proto, false, &local);
+    ObjPtr result = std::make_shared<Obj>(type, var_name.c_str(), proto);
+    Obj local;
+    Obj args(ctx, proto, false, &local);
     args.ClonePropTo(*result);
     *const_cast<TermPtr *> (&result->m_func_proto) = proto;
     if(!result->CheckArgs()) {
@@ -936,7 +998,7 @@ ObjPtr Object::CreateFunc(Context *ctx, TermPtr proto, ObjType type, const std::
     return result;
 }
 
-Object::Object(Context *ctx, const TermPtr term, bool as_value, Object *local_vars) {
+Obj::Obj(Context *ctx, const TermPtr term, bool as_value, Obj *local_vars) {
 
     if(!term) {
         NL_CHECK(term, "Fail term!");
@@ -966,7 +1028,7 @@ Object::Object(Context *ctx, const TermPtr term, bool as_value, Object *local_va
     }
 }
 
-bool Object::CheckArgs() const {
+bool Obj::CheckArgs() const {
     bool has_error = false;
     bool named = false;
     for (size_t start = 0; start < size(); start++) {
@@ -994,18 +1056,18 @@ bool Object::CheckArgs() const {
     return !has_error;
 }
 
-ObjPtr Object::Call(Context *ctx, Object *args) {
+ObjPtr Obj::Call(Context *ctx, Obj *args) {
     if(is_string_type()) {
         ObjPtr result = Clone();
         result->m_str = format(result->m_str, args);
         return result;
     } else if(is_function() || m_var_type_current == ObjType::Type) {
-        Object local;
+        Obj local;
         ObjPtr param;
         if(m_func_proto) {
-            param = std::make_shared<Object>(ctx, m_func_proto, false, &local);
+            param = std::make_shared<Obj>(ctx, m_func_proto, false, &local);
         } else {
-            param = Object::CreateDict();
+            param = Obj::CreateDict();
         }
         param->ConvertToArgs_(*args, true, ctx);
         param->push_front(pair(shared(), "$0")); // Self
@@ -1068,7 +1130,7 @@ ObjPtr Object::Call(Context *ctx, Object *args) {
 
 // Обновить параметры для вызова функции или элементы у словаря при создании копии
 
-void Object::ConvertToArgs_(Object &in, bool check_valid, Context *ctx) {
+void Obj::ConvertToArgs_(Obj &in, bool check_valid, Context *ctx) {
     bool named = false;
     bool is_ellipsis = false;
     if(check_valid && size()) {
@@ -1093,7 +1155,7 @@ void Object::ConvertToArgs_(Object &in, bool check_valid, Context *ctx) {
                             newlang::toString(in[i]->getType()), newlang::toString(at(i).second->getType()));
                 }
                 if(!at(i).second) {
-                    at(i).second = Object::CreateNone();
+                    at(i).second = Obj::CreateNone();
                 }
                 if(m_func_proto && i < m_func_proto->size()) {
                     at(i).second->m_is_reference = (*m_func_proto)[i]->isRef();
@@ -1119,7 +1181,7 @@ void Object::ConvertToArgs_(Object &in, bool check_valid, Context *ctx) {
                 }
                 //@todo  Проверка ограничений размер данных при указаном типе
                 if(!*find) {
-                    *find = Object::CreateNone();
+                    *find = Obj::CreateNone();
                 }
                 (*find)->op_assign(in[i]);
             } else {
@@ -1144,7 +1206,7 @@ done:
     }
 }
 
-void Object::CheckArgsValid() const {
+void Obj::CheckArgsValid() const {
     bool named = false;
     for (size_t i = 0; i < Variable::size(); i++) {
         //        if(!at(i).second) {
@@ -1163,7 +1225,7 @@ void Object::CheckArgsValid() const {
  *
  *
  */
-int Object::op_compare(Object &value) {
+int Obj::op_compare(Obj &value) {
     if(this == &value) {
         return 0;
     }
@@ -1210,7 +1272,7 @@ int Object::op_compare(Object &value) {
 // */
 //
 
-bool Object::op_equal(Object &value) {
+bool Obj::op_equal(Obj &value) {
     if(this == &value) {
         return true;
     } else if(is_tensor()) {
@@ -1267,7 +1329,7 @@ bool Object::op_equal(Object &value) {
 // is_dictionary_type();
 // is_other_type();
 
-bool Object::op_accurate(Object &value) {
+bool Obj::op_accurate(Obj &value) {
     if(this == &value || (is_none_type() && value.is_none_type())) {
         return true;
     } else if((is_bool_type() && value.is_bool_type()) || (is_arithmetic_type() && value.is_arithmetic_type()) ||
@@ -1278,7 +1340,7 @@ bool Object::op_accurate(Object &value) {
     return false;
 }
 
-ObjPtr Object::op_bit_and_set(Object &obj, bool strong) {
+ObjPtr Obj::op_bit_and_set(Obj &obj, bool strong) {
     if(m_var_type_current == ObjType::Long) {
         if(m_var_type_current == obj.m_var_type_current) {
             m_value.bitwise_and_(obj.m_value);
@@ -1315,7 +1377,7 @@ ObjPtr Object::op_bit_and_set(Object &obj, bool strong) {
     LOG_RUNTIME("Incompatible types %d and %d for '&' operator!", (int) m_var_type_current, (int) obj.m_var_type_current);
 }
 
-bool Object::op_class_test(ObjPtr obj) {
+bool Obj::op_class_test(ObjPtr obj) {
     if(obj->is_string_type()) {
         return op_class_test(obj->GetValueAsString().c_str());
     } else if(obj->getType() == ObjType::Class || obj->getType() == ObjType::Dictionary || !obj->m_class_name.empty()) {
@@ -1325,7 +1387,7 @@ bool Object::op_class_test(ObjPtr obj) {
     LOG_RUNTIME("Class test fail for type %d of object '%s' ", (int) obj->getType(), obj->toString().c_str());
 }
 
-bool Object::op_class_test(const char *name) {
+bool Obj::op_class_test(const char *name) {
     if(!name || !*name) {
         return !m_class_base && m_class_name.empty();
     }
@@ -1342,7 +1404,7 @@ bool Object::op_class_test(const char *name) {
     return false;
 }
 
-bool Object::op_duck_test_prop(Object *base, Object *value, bool strong) {
+bool Obj::op_duck_test_prop(Obj *base, Obj *value, bool strong) {
     if(!value) {
         return !strong; // Пустой объект равен любому при нечетком сравнении
     }
@@ -1376,7 +1438,7 @@ bool Object::op_duck_test_prop(Object *base, Object *value, bool strong) {
     return true;
 }
 
-ObjPtr Object::op_pow_(Object &obj) {
+ObjPtr Obj::op_pow_(Obj &obj) {
     if(obj.is_arithmetic_type()) {
         if(is_tensor()) {
             m_value.pow_(obj.toTensor());
@@ -1400,7 +1462,7 @@ ObjPtr Object::op_pow_(Object &obj) {
     LOG_RUNTIME("Unsupported power operator for '%s' and '%s'!", toString().c_str(), obj.toString().c_str());
 }
 
-bool Object::op_duck_test(Object *value, bool strong) {
+bool Obj::op_duck_test(Obj *value, bool strong) {
 
     if(!value || value->m_var_type_current == ObjType::None) {
         // Пустой объект совместим с любым объектом,
@@ -1433,7 +1495,7 @@ bool Object::op_duck_test(Object *value, bool strong) {
     return m_var_type_current == value->m_var_type_current;
 }
 
-std::string Object::format(std::string format, Object *args) {
+std::string Obj::format(std::string format, Obj *args) {
     if(args && !args->empty()) {
         std::string name;
         std::string place;
@@ -1473,7 +1535,7 @@ std::string Object::format(std::string format, Object *args) {
     return format;
 }
 
-ObjPtr Object::toShape_(ObjPtr dims) {
+ObjPtr Obj::toShape_(ObjPtr dims) {
     std::vector<int64_t> array = dims->toIntVector(true);
     if(is_tensor()) {
         m_value.resize_(array);
@@ -1504,7 +1566,7 @@ ObjPtr Object::toShape_(ObjPtr dims) {
             m_data.resize(array[0]); // Уменьшить размер
         } else {
             while(size() < array[0]) {
-                push_back(Object::CreateNone());
+                push_back(Obj::CreateNone());
             }
         }
     } else {
@@ -1514,7 +1576,7 @@ ObjPtr Object::toShape_(ObjPtr dims) {
     return shared();
 }
 
-ObjPtr Object::toType_(Context *ctx, TermPtr type, Object *local_vars) {
+ObjPtr Obj::toType_(Context *ctx, TermPtr type, Obj *local_vars) {
     if(type) {
         std::vector<int64_t> dims;
         for (size_t i = 0; i < type->m_dims.size(); i++) {
@@ -1534,7 +1596,7 @@ ObjPtr Object::toType_(Context *ctx, TermPtr type, Object *local_vars) {
     return shared();
 }
 
-ObjPtr Object::toType_(Object *type) {
+ObjPtr Obj::toType_(Obj *type) {
     ASSERT(type);
     if(type->m_var_type_current != ObjType::Type) {
         LOG_RUNTIME("Fail type object '%s'!", type->toString().c_str());
@@ -1553,7 +1615,7 @@ ObjPtr Object::toType_(Object *type) {
     return toType_(type->m_var_type_fixed, &ref);
 }
 
-ObjPtr Object::toType_(ObjType target, Dimension *dims) {
+ObjPtr Obj::toType_(ObjType target, Dimension *dims) {
     if(dims) {
         NL_CHECK(isTensor(target), "Dimension set only for tensors!");
     }
@@ -1651,7 +1713,11 @@ ObjPtr Object::toType_(ObjType target, Dimension *dims) {
                 STATIC_ASSERT(sizeof (wchar_t) == sizeof (int32_t));
                 std_data = torch::from_blob((void *) m_wstr.data(),{(int) m_wstr.size()}, torch::Dtype::Int);
             }
-            m_value = std_data.toType(toTorchType(target));
+            if(isGenericType(target) && !isContainsType(target, fromTorchType(std_data.scalar_type()))) {
+                m_value = std_data.toType(toTorchType(target));
+            } else {
+                m_value = std_data.clone();
+            }
 
             if(dims) {
                 m_value = m_value.reshape(*dims);
@@ -1709,21 +1775,33 @@ ObjPtr Object::toType_(ObjType target, Dimension *dims) {
         }
     } else if(m_var_type_current == ObjType::Range) {
         // Из диапазона в другой тип данных
-        if(isDictionary(target)) {
+        if(isDictionary(target) || isTensor(target)) {
             // В словарь
-            LOG_RUNTIME("Not implemented!!!");
-            //        } else if(is_tensor()isTensor(target)) {
-            // В тензор
 
-            LOG_RUNTIME("Not implemented!!!");
+            ObjPtr temp = Obj::CreateDict();
+
+            ConvertRangeToDict(this, *temp.get());
+
+            Variable::clear_();
+
+            if(isTensor(target)) {
+                // В тензор
+                ConvertDictToTensor(*temp.get(), m_value, target);
+                m_var_type_current = target;
+
+            } else {
+                m_var_type_current = ObjType::Dictionary;
+                temp->ClonePropTo(*this);
+            }
+            return shared_from_this();
         }
     }
     // Остальные варианты предобразований выполнить нельзя
-    LOG_RUNTIME("Can`t convert type '%s'(%d) to type '%s'(%d)!", newlang::toString(m_var_type_current), (int) m_var_type_current,
-            newlang::toString(target), (int) target);
+    LOG_RUNTIME("Can`t convert type '%s'(%d) to type '%s'(%d)!",
+            newlang::toString(m_var_type_current), (int) m_var_type_current, newlang::toString(target), (int) target);
 }
 
-int64_t newlang::ConcatData(Object *dest, Object &src, ConcatMode mode) {
+int64_t newlang::ConcatData(Obj *dest, Obj &src, ConcatMode mode) {
     int64_t size = 0;
     ASSERT(dest);
 
@@ -1735,6 +1813,7 @@ int64_t newlang::ConcatData(Object *dest, Object &src, ConcatMode mode) {
         dest->clear_();
         temp->CloneDataTo(*dest);
         temp->ClonePropTo(*dest);
+        dest->m_var_is_init = true;
 
     } else if(dest->is_string_type()) {
 
@@ -1797,7 +1876,7 @@ int64_t newlang::ConcatData(Object *dest, Object &src, ConcatMode mode) {
 //     return shape;
 // }
 
-void ShapeFromDict(const Object *obj, std::vector<int64_t> &shape) {
+void ShapeFromDict(const Obj *obj, std::vector<int64_t> &shape) {
     if(obj && (obj->is_dictionary_type() || (obj->is_tensor() && !obj->is_scalar()))) {
         if(!obj->size()) {
             LOG_RUNTIME("Cannot tensor shape from empty dictionary!");
@@ -1809,13 +1888,13 @@ void ShapeFromDict(const Object *obj, std::vector<int64_t> &shape) {
     }
 }
 
-std::vector<int64_t> newlang::TensorShapeFromDict(const Object *obj) {
+std::vector<int64_t> newlang::TensorShapeFromDict(const Obj *obj) {
     std::vector<int64_t> shape;
     ShapeFromDict(obj, shape);
     return shape;
 }
 
-torch::Tensor newlang::ConvertToTensor(Object *data, at::ScalarType type, bool reshape) {
+torch::Tensor newlang::ConvertToTensor(Obj *data, at::ScalarType type, bool reshape) {
     ASSERT(data);
 
     if(data->is_tensor()) {
@@ -1854,13 +1933,13 @@ torch::Tensor newlang::ConvertToTensor(Object *data, at::ScalarType type, bool r
         ASSERT(data->at("stop")->is_arithmetic_type() || data->at("stop")->is_bool_type());
         ASSERT(data->at("step")->is_arithmetic_type() || data->at("step")->is_bool_type());
 
-        ObjPtr dict = Object::CreateDict();
+        ObjPtr dict = Obj::CreateDict();
         if(data->at("start")->is_floating() || data->at("stop")->is_floating() || data->at("step")->is_floating()) {
             double value = data->at("start")->GetValueAsNumber();
             double stop = data->at("stop")->GetValueAsNumber();
             double step = data->at("step")->GetValueAsNumber();
             for (; value < stop; value += step) {
-                dict->push_back(Object::CreateValue(value, ObjType::None));
+                dict->push_back(Obj::CreateValue(value, ObjType::None));
             }
             type = toTorchType(ObjType::Double);
         } else {
@@ -1868,7 +1947,7 @@ torch::Tensor newlang::ConvertToTensor(Object *data, at::ScalarType type, bool r
             int64_t stop = data->at("stop")->GetValueAsInteger();
             int64_t step = data->at("step")->GetValueAsInteger();
             for (; value < stop; value += step) {
-                dict->push_back(Object::CreateValue(value, ObjType::None));
+                dict->push_back(Obj::CreateValue(value, ObjType::None));
             }
         }
         return ConvertToTensor(dict.get(), type, reshape);
@@ -1926,7 +2005,7 @@ torch::Tensor newlang::ConvertToTensor(Object *data, at::ScalarType type, bool r
 //     LOG_RUNTIME("Not implemented!");
 // }
 
-at::TensorOptions newlang::ConvertToTensorOptions(const Object *obj) {
+at::TensorOptions newlang::ConvertToTensorOptions(const Obj *obj) {
     if(!obj || obj->is_none_type()) {
 
         return at::TensorOptions();
@@ -1934,7 +2013,7 @@ at::TensorOptions newlang::ConvertToTensorOptions(const Object *obj) {
     LOG_RUNTIME("Not implemented!");
 }
 
-at::DimnameList newlang::ConvertToDimnameList(const Object *obj) {
+at::DimnameList newlang::ConvertToDimnameList(const Obj *obj) {
     if(!obj || obj->is_none_type()) {
 
         return {};
@@ -1942,7 +2021,7 @@ at::DimnameList newlang::ConvertToDimnameList(const Object *obj) {
     LOG_RUNTIME("Not implemented!");
 }
 
-ObjPtr Object::CallNative(Context *ctx, Object args) {
+ObjPtr Obj::CallNative(Context *ctx, Obj args) {
 
     ffi_cif m_cif;
     std::vector<ffi_type *> m_args_type;
@@ -2152,26 +2231,26 @@ ObjPtr Object::CallNative(Context *ctx, Object args) {
 
         if(m_result_type == &ffi_type_uint8) {
             // Возвращаемый тип может быть как Byte, так и Bool
-            return Object::CreateValue(static_cast<uint8_t> (res_value.integer), typeFromString(m_func_proto->m_type_name));
+            return Obj::CreateValue(static_cast<uint8_t> (res_value.integer), typeFromString(m_func_proto->m_type_name));
         } else if(m_result_type == &ffi_type_sint8) {
-            return Object::CreateValue(static_cast<int8_t> (res_value.integer), ObjType::Char);
+            return Obj::CreateValue(static_cast<int8_t> (res_value.integer), ObjType::Char);
         } else if(m_result_type == &ffi_type_sint16) {
-            return Object::CreateValue(static_cast<int16_t> (res_value.integer), ObjType::Short);
+            return Obj::CreateValue(static_cast<int16_t> (res_value.integer), ObjType::Short);
         } else if(m_result_type == &ffi_type_sint32) {
-            return Object::CreateValue(static_cast<int32_t> (res_value.integer), ObjType::Int);
+            return Obj::CreateValue(static_cast<int32_t> (res_value.integer), ObjType::Int);
         } else if(m_result_type == &ffi_type_sint64) {
-            return Object::CreateValue(res_value.integer, ObjType::Long);
+            return Obj::CreateValue(res_value.integer, ObjType::Long);
         } else if(m_result_type == &ffi_type_float) {
-            return Object::CreateValue(res_value.number, ObjType::Float);
+            return Obj::CreateValue(res_value.number, ObjType::Float);
         } else if(m_result_type == &ffi_type_double) {
-            return Object::CreateValue(res_value.number, ObjType::Double);
+            return Obj::CreateValue(res_value.number, ObjType::Double);
         } else if(m_result_type == &ffi_type_pointer) {
             if(type == ObjType::StrChar) {
-                return Object::CreateString(reinterpret_cast<const char *> (res_value.ptr));
+                return Obj::CreateString(reinterpret_cast<const char *> (res_value.ptr));
             } else if(type == ObjType::StrWide) {
-                return Object::CreateString(reinterpret_cast<const wchar_t *> (res_value.ptr));
+                return Obj::CreateString(reinterpret_cast<const wchar_t *> (res_value.ptr));
             } else if(type == ObjType::Pointer) {
-                ObjPtr result = Object::CreateType(type, nullptr, type);
+                ObjPtr result = Obj::CreateType(type, nullptr, type);
                 result->m_func_ptr = (void *) res_value.ptr;
                 result->m_var_is_init = true;
                 return result;
@@ -2183,10 +2262,10 @@ ObjPtr Object::CallNative(Context *ctx, Object args) {
 
     LOG_RUNTIME("Fail native call '%s'!", toString().c_str());
 
-    return Object::CreateNone();
+    return Obj::CreateNone();
 }
 
-bool newlang::ParsePrintfFormat(Object args, size_t start) {
+bool newlang::ParsePrintfFormat(Obj args, size_t start) {
 
     if(args.size() <= start || !args[start]) {
         LOG_WARNING("Missing format string!");
@@ -2289,7 +2368,7 @@ bool newlang::ParsePrintfFormat(Object args, size_t start) {
     return result;
 }
 
-void newlang::ConvertRangeToDict(Object *from, Object &to) {
+void newlang::ConvertRangeToDict(Obj *from, Obj &to) {
 
     to.m_var_is_init = false;
 
@@ -2382,7 +2461,7 @@ void newlang::ConvertTensorToString(const torch::Tensor &from, std::wstring &to,
     ConvertTensorToStringTemplate<std::wstring>(from, to, index);
 }
 
-void newlang::ConvertTensorToDict(const torch::Tensor &from, Object &to, std::vector<Index> *index) {
+void newlang::ConvertTensorToDict(const torch::Tensor &from, Obj &to, std::vector<Index> *index) {
 
     to.m_var_is_init = false;
     ASSERT(to.m_var_type_current == ObjType::Dictionary || to.m_var_type_current == ObjType::None);
@@ -2392,7 +2471,7 @@ void newlang::ConvertTensorToDict(const torch::Tensor &from, Object &to, std::ve
 
     if(from.dim() == 0) {
         ASSERT(index == nullptr);
-        to.push_back(Object::CreateTensor(from));
+        to.push_back(Obj::CreateTensor(from));
         return;
     }
 
@@ -2405,7 +2484,7 @@ void newlang::ConvertTensorToDict(const torch::Tensor &from, Object &to, std::ve
     if(pos == from.dim()) {
         for (int i = 0; i < from.size(pos - 1); i++) {
             (*index)[pos - 1] = i;
-            to.push_back(Object::CreateTensor(from.index(*index)));
+            to.push_back(Obj::CreateTensor(from.index(*index)));
         }
     } else {
         index->push_back(0);
@@ -2418,7 +2497,7 @@ void newlang::ConvertTensorToDict(const torch::Tensor &from, Object &to, std::ve
     to.m_var_is_init = true;
 }
 
-void newlang::ConvertDictToTensor(Object &from, torch::Tensor &to, ObjType type, Dimension *dims) {
+void newlang::ConvertDictToTensor(Obj &from, torch::Tensor &to, ObjType type, Dimension *dims) {
 
     torch::Tensor temp;
     for (size_t i = 0; i < from.size(); i++) {
@@ -2439,7 +2518,7 @@ void newlang::ConvertDictToTensor(Object &from, torch::Tensor &to, ObjType type,
     }
 }
 
-void newlang::ConvertValueToTensor(Object *from, torch::Tensor &to, ObjType type, Dimension *dims) {
+void newlang::ConvertValueToTensor(Obj *from, torch::Tensor &to, ObjType type, Dimension *dims) {
     ASSERT(from);
     if(from->is_tensor()) {
         to = from->m_value.clone();
@@ -2451,7 +2530,7 @@ void newlang::ConvertValueToTensor(Object *from, torch::Tensor &to, ObjType type
             to = to.reshape(*dims);
         }
     } else if(from->is_range()) {
-        ObjPtr temp = Object::CreateNone();
+        ObjPtr temp = Obj::CreateNone();
         ConvertRangeToDict(from, *temp.get());
         ConvertDictToTensor(*temp.get(), to, type, dims);
     } else if(from->getType() == ObjType::StrChar) {

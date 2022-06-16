@@ -1062,14 +1062,14 @@ ObjPtr NewLang::GetIndexField(Context *ctx, ObjPtr obj, TermPtr term, bool creat
         return obj;
     } else if(term->Right()->getTermID() == TermID::FIELD && !term->Right()->Right() && create_field) {
         // Если последнее в списке поле создается
-        return obj->push_back(Object::CreateNone(), term->Right()->getText().c_str());
+        return obj->push_back(Obj::CreateNone(), term->Right()->getText().c_str());
     }
     ObjPtr result;
     if(term->Right()->getTermID() == TermID::FIELD) {
         result = (*obj)[term->Right()->m_text.c_str()];
         return GetIndexField(ctx, result, term->Right());
     } else if(term->Right()->getTermID() == TermID::INDEX) {
-        result = Object::GetIndex(obj, term->Right());
+        result = Obj::GetIndex(obj, term->Right());
         return GetIndexField(ctx, result, term->Right());
     }
     LOG_RUNTIME("Fail type %s of object '%s'!", newlang::toString(term->Right()->getTermID()), term->Right()->toString().c_str());
@@ -1406,7 +1406,7 @@ bool CheckClearFunction(TermPtr term) {
 
 ObjPtr RunTime::ExecModule(const char *module, const char *output, bool cached, Context * ctx) {
     std::string source = ReadFile(module);
-    Object args;
+    Obj args;
     if(cached && access(output, F_OK) != -1 && LoadModule(output, true)) {
         if(m_modules[output]->m_source && *(m_modules[output]->m_source) && source.compare(*(m_modules[output]->m_source)) == 0) {
             LOG_DEBUG("Load cached module '%s'", output);
@@ -1503,26 +1503,6 @@ std::string NewLang::GetImpl(CompileInfo &ci, TermPtr term, std::string &output)
                 temp += ")";
             }
             result = "Object::CreateDict(" + temp + ")";
-            output += result;
-            return result;
-
-        case TermID::CLASS:
-            temp = "";
-            for (size_t i = 0; i < term->size(); i++) {
-                if(!temp.empty()) {
-                    temp += ", ";
-                }
-                temp2.clear();
-                GetImpl(ci, (*term)[i], temp2);
-                temp += "Object::Arg(" + temp2;
-                if(term->name(i).empty()) {
-                    LOG_RUNTIME("Property name must be specified (index %d)!", (int) i + 1);
-                } else {
-                    temp += ", \"" + term->name(i) + "\"";
-                }
-                temp += ")";
-            }
-            result = "Object::CreateClass(\"" + term->m_class_name + "\", " + temp + ")";
             output += result;
             return result;
 

@@ -28,13 +28,13 @@ namespace newlang {
  * новые аргументы по мимо тех, которые уже определены в прототипе функции.
  */
 
-ObjType DictionarySummaryType(const Object *obj);
-std::vector<int64_t> TensorShapeFromDict(const Object *obj);
-torch::Tensor ConvertToTensor(Object *obj, at::ScalarType type = at::ScalarType::Undefined, bool reshape = true);
+ObjType DictionarySummaryType(const Obj *obj);
+std::vector<int64_t> TensorShapeFromDict(const Obj *obj);
+torch::Tensor ConvertToTensor(Obj *obj, at::ScalarType type = at::ScalarType::Undefined, bool reshape = true);
 
-at::TensorOptions ConvertToTensorOptions(const Object *obj);
-at::DimnameList ConvertToDimnameList(const Object *obj);
-bool ParsePrintfFormat(Object args, size_t start = 1);
+at::TensorOptions ConvertToTensorOptions(const Obj *obj);
+at::DimnameList ConvertToDimnameList(const Obj *obj);
+bool ParsePrintfFormat(Obj args, size_t start = 1);
 
 enum class ConcatMode : uint8_t {
     Error = 0,
@@ -44,7 +44,7 @@ enum class ConcatMode : uint8_t {
 /* 
  * Для строк, словарей и классов (преобразование в одно измерение), тензоров (преобразование согласно ConcatMode)
  */
-int64_t ConcatData(Object *dest, Object &src, ConcatMode mode = ConcatMode::Error);
+int64_t ConcatData(Obj *dest, Obj &src, ConcatMode mode = ConcatMode::Error);
 
 inline std::string utf8_encode(const std::wstring_view source) {
     try {
@@ -63,18 +63,18 @@ inline std::wstring utf8_decode(const std::string_view source) {
 }
 
 ObjType getSummaryTensorType(ObjPtr & obj, ObjType start);
-std::vector<int64_t> getTensorSizes(Object *obj);
+std::vector<int64_t> getTensorSizes(Obj *obj);
 void calcTensorDims(ObjPtr & obj, std::vector<int64_t> &dims);
 void testTensorDims(ObjPtr & obj, at::IntArrayRef dims, int64_t pos);
 
 template<class... Ts> struct overloaded : Ts... {
     using Ts::operator()...;
-    class Object *obj;
+    class Obj *obj;
 };
 // explicit deduction guide (not needed as of C++20)
 template<class... Ts> overloaded(Ts...) -> overloaded<Ts...>;
 
-class Object : public Variable<ObjPtr>, public std::enable_shared_from_this<Object> {
+class Obj : public Variable<ObjPtr>, public std::enable_shared_from_this<Obj> {
 public:
 
     //    constexpr static const char * BUILDIN_TYPE = "__var_type__";
@@ -83,7 +83,7 @@ public:
     //    constexpr static const char * BUILDIN_CLASS = "__class_name__";
     //    constexpr static const char * BUILDIN_NAMESPACE = "__namespace__";
 
-    Object(ObjType type = ObjType::None, const char *var_name = nullptr, TermPtr func_proto = nullptr, ObjType fixed = ObjType::None) :
+    Obj(ObjType type = ObjType::None, const char *var_name = nullptr, TermPtr func_proto = nullptr, ObjType fixed = ObjType::None) :
     m_var_type_current(type), m_var_name(var_name ? var_name : ""), m_func_proto(func_proto) {
         //        m_ctx = nullptr;
         m_is_const = false;
@@ -98,7 +98,7 @@ public:
     }
 
     template < typename T >
-    Object(T data, typename std::enable_if<!std::is_reference<T>::value>::type* = 0) {
+    Obj(T data, typename std::enable_if<!std::is_reference<T>::value>::type* = 0) {
         m_var_type_current = ObjType::Dictionary;
         m_var_type_fixed = ObjType::Dictionary;
         m_type = nullptr;
@@ -106,17 +106,17 @@ public:
     }
 
     template < typename T >
-    Object(T &data, typename std::enable_if<std::is_reference<T>::value>::type* = 0) {
+    Obj(T &data, typename std::enable_if<std::is_reference<T>::value>::type* = 0) {
         m_var_type_current = ObjType::Dictionary;
         m_var_type_fixed = ObjType::Dictionary;
         m_type = nullptr;
         push_front(Arg(data));
     }
 
-    Object(Context *ctx, const TermPtr term, bool as_value, Object *local_vars);
+    Obj(Context *ctx, const TermPtr term, bool as_value, Obj *local_vars);
 
     template <typename A, typename... T>
-    inline Object(A arg, T... rest) : Object(rest...) {
+    inline Obj(A arg, T... rest) : Obj(rest...) {
         push_front(Arg(arg));
     }
 
@@ -395,6 +395,7 @@ john.__module__ =  __main__
         return size(0);
     }
     int64_t size(int64_t ind) const;
+    int64_t resize(int64_t size, ObjPtr fill, const std::string = "");
 
     bool empty() const override {
         if (is_none_type()) {
@@ -414,7 +415,7 @@ john.__module__ =  __main__
     }
 
     inline ObjPtr at(const std::string_view name) const {
-        Object * const obj = (Object * const) this;
+        Obj * const obj = (Obj * const) this;
         return obj->Variable<ObjPtr>::at(name.begin()).second;
         //        return Variable<ObjPtr>::at(name.begin()).second;
     }
@@ -443,30 +444,30 @@ john.__module__ =  __main__
      * @return 
      */
     ObjPtr operator()(Context *ctx) {
-        Object args;
+        Obj args;
         return Call(ctx, &args);
     }
 
     template <typename... T>
-    typename std::enable_if<is_all<Object::PairType, T ...>::value, ObjPtr>::type
+    typename std::enable_if<is_all<Obj::PairType, T ...>::value, ObjPtr>::type
     inline operator()(Context *ctx, T ... args) {
-        Object list = Object(args...);
+        Obj list = Obj(args...);
         return Call(ctx, &list);
     }
 
     inline ObjPtr Call(Context *ctx) {
-        Object args;
+        Obj args;
         return Call(ctx, &args);
     }
 
     template <typename... T>
-    typename std::enable_if<is_all<Object::PairType, T ...>::value, ObjPtr>::type
+    typename std::enable_if<is_all<Obj::PairType, T ...>::value, ObjPtr>::type
     inline Call(Context *ctx, T ... args) {
-        Object list = Object(args...);
+        Obj list = Obj(args...);
         return Call(ctx, &list);
     }
 
-    ObjPtr Call(Context *ctx, Object *args);
+    ObjPtr Call(Context *ctx, Obj *args);
 
 
 
@@ -529,7 +530,7 @@ john.__module__ =  __main__
 
     ObjPtr operator++(int) {
         ObjPtr old = Clone();
-        Object::operator++();
+        Obj::operator++();
         return old;
     }
 
@@ -547,7 +548,7 @@ john.__module__ =  __main__
 
     ObjPtr operator--(int) {
         ObjPtr old = Clone();
-        Object::operator--();
+        Obj::operator--();
         return old;
     }
 
@@ -556,7 +557,7 @@ john.__module__ =  __main__
         return operator*(*obj);
     }
 
-    inline ObjPtr operator*(Object value) {
+    inline ObjPtr operator*(Obj value) {
         ObjPtr result = Clone();
         *result *= value;
         return result;
@@ -567,7 +568,7 @@ john.__module__ =  __main__
         return operator/(*obj);
     }
 
-    inline ObjPtr operator/(Object value) {
+    inline ObjPtr operator/(Obj value) {
         ObjPtr result = Clone();
         *result /= value;
         return result;
@@ -578,7 +579,7 @@ john.__module__ =  __main__
         return op_div_ceil(*obj);
     }
 
-    inline ObjPtr op_div_ceil(Object value) {
+    inline ObjPtr op_div_ceil(Obj value) {
         ObjPtr result = Clone();
         result->op_div_ceil_(value);
         return result;
@@ -589,13 +590,13 @@ john.__module__ =  __main__
         return op_concat(*obj, mode);
     }
 
-    inline ObjPtr op_concat(Object &value, ConcatMode mode = ConcatMode::Error) {
+    inline ObjPtr op_concat(Obj &value, ConcatMode mode = ConcatMode::Error) {
         ObjPtr result = Clone();
         result->op_concat_(value, mode);
         return result;
     }
 
-    inline ObjPtr op_concat_(Object &obj, ConcatMode mode = ConcatMode::Error) {
+    inline ObjPtr op_concat_(Obj &obj, ConcatMode mode = ConcatMode::Error) {
         ConcatData(this, obj, mode);
         return shared();
     }
@@ -609,7 +610,7 @@ john.__module__ =  __main__
         return operator%(*obj);
     }
 
-    inline ObjPtr operator%(Object value) {
+    inline ObjPtr operator%(Obj value) {
         ObjPtr result = Clone();
         *result %= value;
         return result;
@@ -620,7 +621,7 @@ john.__module__ =  __main__
         return operator+(*obj);
     }
 
-    inline ObjPtr operator+(Object value) {
+    inline ObjPtr operator+(Obj value) {
         ObjPtr result = Clone();
         *result += value;
         return result;
@@ -631,7 +632,7 @@ john.__module__ =  __main__
         return operator-(*obj);
     }
 
-    inline ObjPtr operator-(Object value) {
+    inline ObjPtr operator-(Obj value) {
         ObjPtr result = Clone();
         *result -= value;
         return result;
@@ -654,7 +655,7 @@ john.__module__ =  __main__
         return operator<(*obj);
     }
 
-    inline bool operator<(Object obj) {
+    inline bool operator<(Obj obj) {
         return op_compare(obj) < 0;
     }
 
@@ -663,7 +664,7 @@ john.__module__ =  __main__
         return operator<=(*obj);
     }
 
-    inline bool operator<=(Object obj) {
+    inline bool operator<=(Obj obj) {
         return op_compare(obj) <= 0;
     }
 
@@ -672,7 +673,7 @@ john.__module__ =  __main__
         return operator>(*obj);
     }
 
-    inline bool operator>(Object obj) {
+    inline bool operator>(Obj obj) {
         return op_compare(obj) > 0;
     }
 
@@ -681,10 +682,10 @@ john.__module__ =  __main__
         return operator>=(*obj);
     }
 
-    inline bool operator>=(Object obj) {
+    inline bool operator>=(Obj obj) {
         return op_compare(obj) >= 0;
     }
-    int op_compare(Object & value);
+    int op_compare(Obj & value);
 
     /*
      *  instanceof (проверка класса объекта) test_obj ~~ obj  объекты совместимы по свойствим и их типам (утиная типизация)
@@ -706,8 +707,8 @@ john.__module__ =  __main__
         ASSERT(obj);
         return op_duck_test(obj.get(), strong);
     }
-    bool op_duck_test(Object *value, bool strong);
-    static bool op_duck_test_prop(Object *base, Object *value, bool strong);
+    bool op_duck_test(Obj *value, bool strong);
+    static bool op_duck_test_prop(Obj *base, Obj *value, bool strong);
 
     inline bool op_equal(ObjPtr value) {
         ASSERT(value);
@@ -722,24 +723,24 @@ john.__module__ =  __main__
         return operator==(*obj);
     }
 
-    inline ObjPtr operator==(Object obj) {
-        return op_equal(obj) ? Object::Yes() : Object::No();
+    inline ObjPtr operator==(Obj obj) {
+        return op_equal(obj) ? Obj::Yes() : Obj::No();
     }
-    bool op_equal(Object & value);
+    bool op_equal(Obj & value);
 
     inline bool op_accurate(ObjPtr obj) {
         ASSERT(obj);
         return op_accurate(*obj);
     }
-    bool op_accurate(Object & value);
+    bool op_accurate(Obj & value);
 
     inline ObjPtr operator!=(ObjPtr obj) {
         ASSERT(obj);
         return operator!=(*obj);
     }
 
-    inline ObjPtr operator!=(Object obj) {
-        return op_equal(obj) ? Object::No() : Object::Yes();
+    inline ObjPtr operator!=(Obj obj) {
+        return op_equal(obj) ? Obj::No() : Obj::Yes();
     }
 
     inline ObjPtr op_bit_and(ObjPtr obj, bool strong) {
@@ -747,7 +748,7 @@ john.__module__ =  __main__
         return op_bit_and(*obj, strong);
     }
 
-    inline ObjPtr op_bit_and(Object &obj, bool strong) {
+    inline ObjPtr op_bit_and(Obj &obj, bool strong) {
         ObjPtr result = Clone();
         result->op_bit_and_set(obj, strong);
         return result;
@@ -758,7 +759,7 @@ john.__module__ =  __main__
         return op_pow(*obj);
     }
 
-    inline ObjPtr op_pow(Object &obj) const {
+    inline ObjPtr op_pow(Obj &obj) const {
         ObjPtr result = Clone();
         result->op_pow_(obj);
         return result;
@@ -769,7 +770,7 @@ john.__module__ =  __main__
         return op_pow_(*obj);
     }
 
-    ObjPtr op_pow_(Object &obj);
+    ObjPtr op_pow_(Obj &obj);
 
     //    ObjPtr operator^(ObjPtr obj) {
     //        LOG_RUNTIME("Operator '^' not implementd!");
@@ -795,13 +796,13 @@ john.__module__ =  __main__
         return shared();
     }
 
-    ObjPtr op_assign(Object & obj) {
+    ObjPtr op_assign(Obj & obj) {
         obj.CloneDataTo(*this);
         obj.ClonePropTo(*this);
         return shared();
     }
 
-    inline bool operator=(Object & obj) {
+    inline bool operator=(Obj & obj) {
         obj.CloneDataTo(*this);
         return true;
     }
@@ -819,50 +820,50 @@ john.__module__ =  __main__
         return operator*=(*obj);
     }
 
-    ObjPtr operator*=(Object obj);
+    ObjPtr operator*=(Obj obj);
 
     inline ObjPtr operator/=(ObjPtr obj) {
         ASSERT(obj);
         return operator/=(*obj);
     }
 
-    ObjPtr operator/=(Object obj);
+    ObjPtr operator/=(Obj obj);
 
     inline ObjPtr op_div_ceil_(ObjPtr obj) {
         ASSERT(obj);
         return op_div_ceil_(*obj);
     }
 
-    ObjPtr op_div_ceil_(Object &obj);
+    ObjPtr op_div_ceil_(Obj &obj);
 
     inline ObjPtr operator%=(ObjPtr obj) {
         ASSERT(obj);
         return operator%=(*obj);
     }
 
-    ObjPtr operator%=(Object obj);
+    ObjPtr operator%=(Obj obj);
 
     inline ObjPtr operator+=(ObjPtr obj) {
         ASSERT(obj);
         return operator+=(*obj);
     }
-    ObjPtr operator+=(Object obj);
+    ObjPtr operator+=(Obj obj);
 
     inline ObjPtr operator-=(ObjPtr obj) {
         ASSERT(obj);
         return operator-=(*obj);
     }
-    ObjPtr operator-=(Object obj);
+    ObjPtr operator-=(Obj obj);
 
 
-    ObjPtr op_bit_and_set(Object &obj, bool strong);
+    ObjPtr op_bit_and_set(Obj &obj, bool strong);
 
     inline ObjPtr operator^=(ObjPtr obj) {
         ASSERT(obj);
         return operator^=(*obj);
     }
 
-    ObjPtr operator^=(Object obj) {
+    ObjPtr operator^=(Obj obj) {
         LOG_RUNTIME("Operator '^=' not implementd!");
     }
 
@@ -871,7 +872,7 @@ john.__module__ =  __main__
         return operator|=(*obj);
     }
 
-    ObjPtr operator|=(Object obj) {
+    ObjPtr operator|=(Obj obj) {
         LOG_RUNTIME("Operator '|=' not implementd!");
     }
 
@@ -880,7 +881,7 @@ john.__module__ =  __main__
         return op_lshift_set(*obj);
     }
 
-    ObjPtr op_lshift_set(Object obj) {
+    ObjPtr op_lshift_set(Obj obj) {
         LOG_RUNTIME("Operator '<<=' not implementd!");
     }
 
@@ -889,7 +890,7 @@ john.__module__ =  __main__
         return op_rshift_set(*obj);
     }
 
-    ObjPtr op_rshift_set(Object obj) {
+    ObjPtr op_rshift_set(Obj obj) {
         LOG_RUNTIME("Operator '>>=' not implementd!");
     }
 
@@ -898,7 +899,7 @@ john.__module__ =  __main__
         return op_rrshift_set(*obj);
     }
 
-    ObjPtr op_rrshift_set(Object obj) {
+    ObjPtr op_rrshift_set(Obj obj) {
         LOG_RUNTIME("Operator '>>>=' not implementd!");
     }
 
@@ -1049,7 +1050,7 @@ john.__module__ =  __main__
 
     static ObjPtr CreateType(ObjType type, const char *var_name = nullptr, ObjType fixed = ObjType::None) {
         TermPtr term = nullptr;
-        return std::make_shared<Object>(type, var_name, term, fixed);
+        return std::make_shared<Obj>(type, var_name, term, fixed);
     }
 
     static ObjPtr CreateNone() {
@@ -1343,7 +1344,7 @@ john.__module__ =  __main__
     }
 
     inline static ObjPtr Yes() {
-        ObjPtr result = std::make_shared<Object>(ObjType::Bool);
+        ObjPtr result = std::make_shared<Obj>(ObjType::Bool);
         bool value = true;
         result->m_value = torch::scalar_tensor(value);
         result->m_var_is_init = true;
@@ -1351,7 +1352,7 @@ john.__module__ =  __main__
     }
 
     inline static ObjPtr No() {
-        ObjPtr result = std::make_shared<Object>(ObjType::Bool);
+        ObjPtr result = std::make_shared<Obj>(ObjType::Bool);
         bool value = false;
         result->m_value = torch::scalar_tensor(value);
         result->m_var_is_init = true;
@@ -1359,14 +1360,14 @@ john.__module__ =  __main__
     }
 
     inline static ObjPtr CreateDict() {
-        return Object::CreateType(ObjType::Dictionary);
+        return Obj::CreateType(ObjType::Dictionary);
     }
 
     template <typename... T>
     typename std::enable_if<is_all<PairType, T ...>::value, ObjPtr>::type
     static CreateDict(T ... args) {
         std::array < PairType, sizeof...(args) > list = {args...};
-        ObjPtr result = Object::CreateType(ObjType::Dictionary);
+        ObjPtr result = Obj::CreateType(ObjType::Dictionary);
         for (auto &elem : list) {
             result->push_back(elem);
         }
@@ -1375,7 +1376,7 @@ john.__module__ =  __main__
     }
 
     inline static ObjPtr CreateClass(std::string name) {
-        ObjPtr result = Object::CreateType(ObjType::Class);
+        ObjPtr result = Obj::CreateType(ObjType::Class);
         result->m_class_name = name;
         result->m_var_is_init = true;
         return result;
@@ -1385,7 +1386,7 @@ john.__module__ =  __main__
     typename std::enable_if<is_all<PairType, T ...>::value, ObjPtr>::type
     static CreateClass(std::string name, T ... args) {
         std::array < PairType, sizeof...(args) > list = {args...};
-        ObjPtr result = Object::CreateType(ObjType::Class);
+        ObjPtr result = Obj::CreateType(ObjType::Class);
         result->m_class_name = name;
         for (auto &elem : list) {
             result->push_back(elem);
@@ -1398,7 +1399,7 @@ john.__module__ =  __main__
 
         ASSERT(base);
 
-        ObjPtr result = Object::CreateNone();
+        ObjPtr result = Obj::CreateNone();
         base->CloneDataTo(*result);
         result->m_class_base = base;
         result->m_var_name = name;
@@ -1407,10 +1408,10 @@ john.__module__ =  __main__
     }
 
 
-    ObjPtr CallNative(Context *ctx, Object args);
+    ObjPtr CallNative(Context *ctx, Obj args);
 
     ObjPtr Clone(const char *new_name = nullptr) const {
-        ObjPtr clone = Object::CreateNone();
+        ObjPtr clone = Obj::CreateNone();
         CloneDataTo(*clone);
         ClonePropTo(*clone);
         if (new_name) {
@@ -1421,21 +1422,30 @@ john.__module__ =  __main__
         return clone;
     }
 
+    inline void CloneTo(Obj & clone) {
+        if (&clone == this) {
+            // Не клонировать сам в себя
+            return;
+        }
+        CloneDataTo(clone);
+        ClonePropTo(clone);
+    }
+
     inline void CloneTo(ObjPtr & clone) {
         if (clone.get() == this) {
             // Не клонировать сам в себя
             return;
         }
         clone.reset();
-        clone = Object::CreateNone();
+        clone = Obj::CreateNone();
         CloneDataTo(*clone);
         ClonePropTo(*clone);
     }
 
-    void CloneDataTo(Object & clone) const;
-    void ClonePropTo(Object & clone) const;
+    void CloneDataTo(Obj & clone) const;
+    void ClonePropTo(Obj & clone) const;
 
-    virtual ~Object() {
+    virtual ~Obj() {
         //        Clear();
     }
 
@@ -1445,8 +1455,8 @@ john.__module__ =  __main__
         return result;
     }
     ObjPtr toType_(ObjType type, Dimension *dims = nullptr);
-    ObjPtr toType_(Context *ctx, TermPtr type, Object *local_vars);
-    ObjPtr toType_(Object *type);
+    ObjPtr toType_(Context *ctx, TermPtr type, Obj *local_vars);
+    ObjPtr toType_(Obj *type);
 
     ObjPtr toShape(ObjPtr dims) const {
         ObjPtr result = Clone();
@@ -1672,7 +1682,7 @@ john.__module__ =  __main__
         LOG_RUNTIME("Set value type '%s' not implemented!", newlang::toString(m_var_type_current));
     }
 
-    static std::string format(std::string format, Object *args);
+    static std::string format(std::string format, Obj *args);
 
     void clear_() override {
 
@@ -1704,7 +1714,7 @@ john.__module__ =  __main__
     static ObjPtr CreateFunc(Context *ctx, TermPtr proto, ObjType type, const std::string var_name = "");
     static ObjPtr CreateFunc(std::string proto, FunctionType *func_addr, ObjType type = ObjType::FUNCTION);
 
-    ObjPtr ConvertToArgs(Object &args, bool check_valid, Context *ctx) const {
+    ObjPtr ConvertToArgs(Obj &args, bool check_valid, Context *ctx) const {
         ObjPtr result = Clone();
         result->ConvertToArgs_(args, check_valid, ctx);
 
@@ -1721,7 +1731,7 @@ john.__module__ =  __main__
 
 protected:
 
-    void ConvertToArgs_(Object &args, bool check_valid, Context *ctx = nullptr); // Обновить параметры для вызова функции или элементы у словаря при создании копии
+    void ConvertToArgs_(Obj &args, bool check_valid, Context *ctx = nullptr); // Обновить параметры для вызова функции или элементы у словаря при создании копии
 
 public:
 
@@ -1782,7 +1792,7 @@ public:
 
 } // namespace newlang
 
-std::ostream & operator<<(std::ostream &out, newlang::Object & var);
+std::ostream & operator<<(std::ostream &out, newlang::Obj & var);
 std::ostream & operator<<(std::ostream &out, newlang::ObjPtr var);
 
 

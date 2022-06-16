@@ -103,35 +103,35 @@ typedef std::map<std::string, const TermPtr> ProtoType;
         _("export", NOT_SUPPORT)\
         _("local", NOT_SUPPORT)
 
-class Context : public Variable< std::weak_ptr<Object> > {
+class Context : public Variable< std::weak_ptr<Obj> > {
 public:
 
-    static ObjPtr eval_END(Context *ctx, const TermPtr & term, Object *args);
-    static ObjPtr func_NOT_SUPPORT(Context *ctx, const TermPtr & term, Object *args);
+    static ObjPtr eval_END(Context *ctx, const TermPtr & term, Obj *args);
+    static ObjPtr func_NOT_SUPPORT(Context *ctx, const TermPtr & term, Obj *args);
 
     enum class CreateMode {
         CREATE_ONLY,
         CREATE_OR_ASSIGN,
         ASSIGN_ONLY,
     };
-    static ObjPtr CREATE_OR_ASSIGN(Context *ctx, const TermPtr & term, Object *args, CreateMode mode);
+    static ObjPtr CREATE_OR_ASSIGN(Context *ctx, const TermPtr & term, Obj *args, CreateMode mode);
 
 #define DEFINE_CASE(name) \
-    static ObjPtr eval_ ## name(Context *ctx, const TermPtr &term, Object *args);
+    static ObjPtr eval_ ## name(Context *ctx, const TermPtr &term, Obj *args);
 
     NL_TERMS(DEFINE_CASE);
 
 #undef DEFINE_CASE
 
 #define PROTO_OP(_, func) \
-    static ObjPtr op_ ## func(Context *ctx, const TermPtr &term, Object *args);
+    static ObjPtr op_ ## func(Context *ctx, const TermPtr &term, Obj *args);
 
     NL_OPS(PROTO_OP);
 
 #undef PROTO_OP
 
 
-    typedef ObjPtr(*EvalFunction)(Context *ctx, const TermPtr & term, Object *args);
+    typedef ObjPtr(*EvalFunction)(Context *ctx, const TermPtr & term, Obj *args);
 
     static std::map<std::string, Context::EvalFunction> m_ops;
     static std::map<std::string, Context::EvalFunction> m_builtin_calls;
@@ -144,7 +144,7 @@ public:
     }
 
     inline ObjPtr Eval(const std::string_view str) {
-        Object args;
+        Obj args;
         return Eval(this, Parser::ParseString(str), &args);
     }
 
@@ -166,18 +166,18 @@ public:
         return Eval(this, exec);
     }
 
-    inline ObjPtr Eval(const std::string_view str, Object *args) {
+    inline ObjPtr Eval(const std::string_view str, Obj *args) {
         return Eval(this, Parser::ParseString(str), args);
     }
 
     inline static ObjPtr Eval(Context *ctx, TermPtr term) {
-        Object args;
+        Obj args;
         return Eval(ctx, term, &args);
     }
-    static ObjPtr Eval(Context *ctx, TermPtr term, Object *args);
+    static ObjPtr Eval(Context *ctx, TermPtr term, Obj *args);
 
-    static ObjPtr ExpandAssign(Context *ctx, TermPtr lvar, TermPtr rval, Object *args, CreateMode mode);
-    static ObjPtr ExpandCreate(Context *ctx, TermPtr lvar, TermPtr rval, Object *args);
+    static ObjPtr ExpandAssign(Context *ctx, TermPtr lvar, TermPtr rval, Obj *args, CreateMode mode);
+    static ObjPtr ExpandCreate(Context *ctx, TermPtr lvar, TermPtr rval, Obj *args);
 
     Context(RuntimePtr global);
 
@@ -187,25 +187,25 @@ public:
     static std::map<std::string, FuncItem> m_funcs; // Системный и встроенные функции 
 
     inline static ObjPtr CreateLVal(Context *ctx, TermPtr type) {
-        Object args;
+        Obj args;
         return CreateLVal(ctx, type, &args);
     }
 
     inline static ObjPtr CreateRVal(Context *ctx, TermPtr term) {
-        Object args;
+        Obj args;
         return CreateRVal(ctx, term, &args);
     }
 
     inline static ObjPtr CreateRVal(Context *ctx, const char *source) {
-        Object args;
+        Obj args;
         return CreateRVal(ctx, source, &args);
     }
 
-    static ObjPtr CreateLVal(Context *ctx, TermPtr type, Object *args);
-    static ObjPtr CreateRVal(Context *ctx, TermPtr term, Object *args);
-    static ObjPtr CreateRVal(Context *ctx, const char *source, Object *args);
+    static ObjPtr CreateLVal(Context *ctx, TermPtr type, Obj *args);
+    static ObjPtr CreateRVal(Context *ctx, TermPtr term, Obj *args);
+    static ObjPtr CreateRVal(Context *ctx, const char *source, Obj *args);
 
-    static std::vector<Index> MakeIndex(Context *ctx, TermPtr term, Object *local_vars);
+    static std::vector<Index> MakeIndex(Context *ctx, TermPtr term, Obj *local_vars);
 
     void ItemTensorEval_(torch::Tensor &tensor, c10::IntArrayRef shape, std::vector<Index> &ind, const int64_t pos, ObjPtr & obj, ObjPtr &args);
     void ItemTensorEval(torch::Tensor &tensor, ObjPtr obj, ObjPtr args);
@@ -223,12 +223,12 @@ public:
         auto found = select(name);
         if (!found.complete()) {
             erase(found);
-            return Object::Yes();
+            return Obj::Yes();
         }
-        return Object::No();
+        return Obj::No();
     }
 
-    ObjPtr GetObject(const char *name) {
+    ObjPtr GetObject(const std::string name) {
         std::string str(name);
         if (str.size() && (str[0] == '$' || str[0] == '@')) {
             str = str.substr(1);
@@ -255,7 +255,7 @@ public:
     }
 
     ObjPtr GetTerm(const char *name, bool is_ref);
-    ObjPtr FindTerm(const char *name);
+    ObjPtr FindTerm(const std::string name);
     ObjPtr FindSessionTerm(const char *name, bool current_only = false);
 
 
@@ -264,7 +264,7 @@ public:
 
     ObjPtr FindGlobalTerm(TermPtr term);
 
-    ObjPtr FindGlobalTerm(const char *name) {
+    ObjPtr FindGlobalTerm(const std::string name) {
         auto found = m_global_terms.select(MakeName(name));
         if (!found.complete()) {
 
@@ -277,29 +277,29 @@ public:
         RegisterInContext(*args);
     }
 
-    void RegisterInContext(Object &args) {
+    void RegisterInContext(Obj &args) {
         for (int i = static_cast<int> (args.size()) - 1; args.size() && i >= 0; i--) {
             push_front(args.at(i).second, args.at(i).first);
         }
     }
 
-    void UnRegisterInContext(Object &args) {
+    void UnRegisterInContext(Obj &args) {
         for (int i = static_cast<int> (args.size()) - 1; args.size() && i >= 0; i--) {
             pop_front();
         }
     }
 
 
-    static ObjPtr CallBlock(Context *ctx, const TermPtr &block, Object *local_vars);
-    static ObjPtr CallBlockTry(Context *ctx, const TermPtr &block, Object *local_vars);
+    static ObjPtr CallBlock(Context *ctx, const TermPtr &block, Obj *local_vars);
+    static ObjPtr CallBlockTry(Context *ctx, const TermPtr &block, Obj *local_vars);
 
-    static ObjPtr EvalBlockAND(Context *ctx, const TermPtr &block, Object *local_vars);
-    static ObjPtr EvalBlockOR(Context *ctx, const TermPtr &block, Object *local_vars);
-    static ObjPtr EvalBlockXOR(Context *ctx, const TermPtr &block, Object *local_vars);
+    static ObjPtr EvalBlockAND(Context *ctx, const TermPtr &block, Obj *local_vars);
+    static ObjPtr EvalBlockOR(Context *ctx, const TermPtr &block, Obj *local_vars);
+    static ObjPtr EvalBlockXOR(Context *ctx, const TermPtr &block, Obj *local_vars);
 
     ObjPtr CreateNative(const char *proto, const char *module = nullptr, bool lazzy = false, const char *mangle_name = nullptr, ffi_abi abi = FFI_DEFAULT_ABI);
     ObjPtr CreateNative(TermPtr proto, const char *module = nullptr, bool lazzy = false, const char *mangle_name = nullptr, ffi_abi abi = FFI_DEFAULT_ABI);
-    ObjPtr CreateNative(Object args);
+    ObjPtr CreateNative(Obj args);
 
     static bool pred_compare(const std::string_view find, const std::string_view str) {
         size_t pos = 0;
@@ -429,15 +429,15 @@ public:
 
         TermPtr proto = Parser::ParseString(func_dump);
         ObjPtr obj =
-                Object::CreateFunc(this, proto->Left(), type,
+                Obj::CreateFunc(this, proto->Left(), type,
                 proto->Left()->getName().empty() ? proto->Left()->getText() : proto->Left()->getName());
         obj->m_func_ptr = func;
 
         return obj;
     }
 
-    ObjPtr Comprehensions(Context *ctx, TermPtr term, Object *local_vars);
-    ObjPtr Comprehensions(Context *ctx, Object *type, Object *args);
+    ObjPtr Comprehensions(Context *ctx, TermPtr term, Obj *local_vars);
+    ObjPtr Comprehensions(Context *ctx, Obj *type, Obj *args);
 
     ObjType BaseTypeFromString(const std::string & type, bool *has_error = nullptr) {
         ObjPtr obj_type = GetTypeFromString(type);
@@ -454,7 +454,7 @@ public:
 
     ObjPtr GetTypeFromString(const std::string & type) {
         if (type.empty()) {
-            return Object::CreateNone();
+            return Obj::CreateNone();
         }
         auto result = m_types.find(isType(type) ? type.substr(1) : type);
         if (result == m_types.end()) {
@@ -493,8 +493,8 @@ public:
         return result;
     }
 
-    static ObjPtr CreateClass(std::string name, Object &args) {
-        ObjPtr result = Object::CreateClass(name);
+    static ObjPtr CreateClass(std::string name, Obj &args) {
+        ObjPtr result = Obj::CreateClass(name);
         for (int i = 0; i < args.size(); i++) {
             if (args.name(i).empty()) {
                 LOG_RUNTIME("Field pos %d has no name!", i);
@@ -506,7 +506,7 @@ public:
 
     static ObjPtr CreateSimpleType(ObjType type) {
 
-        ObjPtr result = Object::CreateFunc("Type(...)", &CreateSimpleTypeFunc, ObjType::TRANSPARENT);
+        ObjPtr result = Obj::CreateFunc("Type(...)", &CreateSimpleTypeFunc, ObjType::TRANSPARENT);
         result->m_var_type_current = ObjType::Type;
         result->m_var_type_fixed = type;
         return result;
@@ -530,7 +530,7 @@ public:
      * tensor_int := :Int[1](0); # Преобразование типа во время выполнения с указанием размерности (тензор)
      * tensor_int := :Int[...](0); # Преобразование типа во время выполнения с произвольной размернотью (тензор)
      */
-    static ObjPtr CreateSimpleTypeFunc(Context *ctx, Object & args) {
+    static ObjPtr CreateSimpleTypeFunc(Context *ctx, Obj & args) {
 
         if (args.empty() || !args[0]) {
             LOG_RUNTIME("Self simple type not defined!");
@@ -545,56 +545,106 @@ public:
         }
 
         // Переданы значения для приведения типов
-        result->m_var_type_current = result->m_var_type_fixed;
+        //        result->m_var_type_current = result->m_var_type_fixed;
         // Но само значение пока не установлено
         result->m_var_is_init = false;
 
         std::vector<int64_t> dims;
 
-        // в m_value пока нет значения и is_tensor() использовать нельзя
-        if (isSimpleType(result->getType())) {
-            if (result->m_type && result->m_type->size() == 1
-                    && (*result->m_type)[0]->toIndex().is_boolean() // 0 и 1 - логические значения
-                    && (*result->m_type)[0]->GetValueAsInteger() == 0) {
-
-                if (result->m_value.dim() > 1 || result->m_value.size(0) > 1) {
-                    LOG_RUNTIME("Fail convert non single value tenzor to scalar!");
-                } else if (result->m_value.dim() == 1 && result->m_value.size(0) == 1) {
-                    dims.push_back(0);
-
-                    // Тип скаляра
-                    result->m_value = torch::scalar_tensor(0, toTorchType(result->getType()));
+        if (result->m_type) {
+            // Размерность указана
+            for (size_t i = 0; i < result->m_type->size(); i++) {
+                Index ind = (*result->m_type)[i]->toIndex();
+                if (ind.is_integer()) {
+                    dims.push_back(ind.integer());
+                } else if (ind.is_boolean()) {
+                    dims.push_back(ind.boolean());
+                } else {
+                    LOG_RUNTIME("Non fixed dimension not implemented!");
                 }
-
-            } else {
-                if (args.at(0).second->m_type) {
-
-                    // Размерность тензора указана
-                    for (size_t i = 0; i < args.at(0).second->m_type->size(); i++) {
-                        Index ind = (*args.at(0).second->m_type)[i]->toIndex();
-                        if (ind.is_integer()) {
-                            dims.push_back(ind.integer());
-                        } else {
-                            LOG_RUNTIME("Non fixed dimension not implemented!");
-                        }
-                    }
-
-                }
-
-                result->m_value = torch::empty(dims, toTorchType(result->getType()));
             }
         }
 
-        if (args.size() == 2 && dims.empty()) {
-            ObjPtr convert = args[1]->toType(result->m_var_type_current);
-            convert->m_var_type_fixed = result->m_var_type_current;
-            convert.swap(result);
-        } else {
-            for (int i = 1; i < args.size(); i++) {
-                result->op_concat_(args[i], ConcatMode::Append);
+
+        if (args.size() == 2) {
+            // Передано единственное значение (нулевой аргумент - сам объект, т.е. :Тип(Значение) )
+
+            ObjPtr convert;
+
+            // Если обобщенный тип данных, а сами данные принадлежат обощенному типу
+            if (isGenericType(result->m_var_type_fixed) && isContainsType(result->m_var_type_fixed, args[1]->getType())) {
+                convert = args[1]->Clone();
+            } else {
+                convert = args[1]->toType(result->m_var_type_fixed);
             }
-            if (!dims.empty()) {
+            convert->m_var_type_fixed = result->m_var_type_fixed;
+            convert.swap(result);
+
+        } else {
+
+            // Для списка значений сперва формируется словарь, а после он конвертируется в нужный тип данных
+
+            result->m_var_type_current = ObjType::Dictionary;
+
+            ObjPtr prev = nullptr;
+            for (int i = 1; i < args.size(); i++) {
+
+                if (args[i]->getType() == ObjType::Ellipsis) {
+                    if (!prev) {
+                        LOG_RUNTIME("There is no previous item to repeat!");
+                    }
+                    if (i + 1 != args.size()) {
+                        LOG_RUNTIME("Ellipsis is not the last element!");
+                    }
+                    if (dims.empty()) {
+                        LOG_RUNTIME("Object has no dimensions!");
+                    }
+                    int64_t full_size = 1;
+                    for (int i = 0; i < dims.size(); i++) {
+                        full_size *= dims[i];
+                    }
+                    if (full_size <= 0) {
+                        LOG_RUNTIME("Items count error for all dimensions!");
+                    }
+
+                    for (int64_t i = result->size(); i < full_size; i++) {
+                        result->op_concat_(prev, ConcatMode::Append);
+                    }
+
+                    break;
+
+                } else {
+                    prev = args[i];
+                }
+
+                result->op_concat_(prev, ConcatMode::Append);
+            }
+
+            if (args[0]->m_var_type_fixed != ObjType::Dictionary) {
+                result = result->toType(args[0]->m_var_type_fixed);
+                result->m_var_type_fixed = result->m_var_type_current;
+            }
+        }
+
+
+        if (!dims.empty()) {
+
+            if (isString(result->getType()) || isDictionary(result->getType())) {
+                if (dims.size() != 1) {
+                    LOG_RUNTIME("Fail size for type '%s'!", newlang::toString(result->getType()));
+                }
+                result->resize(dims[0], nullptr);
+            } else if (isTensor(result->getType())) {
+                if (dims.size() == 1 && dims[0] == 0) {
+                    // Скаляр
+                    if (result->size() != 0) {
+                        LOG_RUNTIME("Only one value is required for a scalar!");
+                    }
+                    dims.clear();
+                }
                 result->m_value = result->m_value.reshape(dims);
+            } else {
+                LOG_RUNTIME("Fail esing dimensions for type '%s'!", newlang::toString(result->getType()));
             }
         }
 
@@ -605,8 +655,8 @@ public:
      * :Enum(One=0, Two=_, "Three", Ten=10);
      */
 
-    static ObjPtr CreateEnum(Context *ctx, Object & args) {
-        ObjPtr result = Object::CreateDict(); //Type(ObjType::Dictionary, nullptr, ObjType::Enum);
+    static ObjPtr CreateEnum(Context *ctx, Obj & args) {
+        ObjPtr result = Obj::CreateDict(); //Type(ObjType::Dictionary, nullptr, ObjType::Enum);
         result->m_var_type_fixed = ObjType::Dictionary;
         result->m_class_name = ":Enum";
 
@@ -636,7 +686,7 @@ public:
             }
 
 
-            enum_value = Object::CreateValue(val_int, ObjType::None); // , type
+            enum_value = Obj::CreateValue(val_int, ObjType::None); // , type
             enum_value->m_var_type_fixed = enum_value->m_var_type_current;
             enum_value->m_is_const = true;
             result->push_back(enum_value, enum_name);

@@ -11,15 +11,15 @@ typedef at::indexing::TensorIndex Index;
 typedef at::IntArrayRef Dimension;
 
 class Term;
-class Object;
+class Obj;
 class Context;
 class NewLang;
 class RunTime;
 class CompileInfo;
 
 typedef std::shared_ptr<Term> TermPtr;
-typedef std::shared_ptr<Object> ObjPtr;
-typedef std::shared_ptr<const Object> ObjPtrConst;
+typedef std::shared_ptr<Obj> ObjPtr;
+typedef std::shared_ptr<const Obj> ObjPtrConst;
 typedef std::shared_ptr<RunTime> RuntimePtr;
 
 /*
@@ -43,8 +43,8 @@ typedef std::shared_ptr<RunTime> RuntimePtr;
  * Tensor type1(int64_t, Tensor);
  *
  */
-typedef ObjPtr FunctionType(Context *ctx, Object &in);
-typedef ObjPtr TransparentType(const Context *ctx, const Object &in);
+typedef ObjPtr FunctionType(Context *ctx, Obj &in);
+typedef ObjPtr TransparentType(const Context *ctx, const Obj &in);
 
 class Interruption : public std::exception {
   public:
@@ -192,6 +192,12 @@ void ParserException(const char *msg, std::string &buffer, int row, int col);
     _(EVAL_OR, 113)                                                                                                    \
     _(EVAL_XOR, 114) \
     \
+    _(Eval, 118)                                                                                                      \
+    _(Function, 119)                                                                                                      \
+    _(Other, 120)                                                                                                      \
+    _(Plain, 121)                                                                                                      \
+    _(Object, 122)                                                                                                      \
+    _(Any, 123)                                                                                                      \
     _(Type, 200)\
     _(Error, 255)
 
@@ -319,6 +325,12 @@ void ParserException(const char *msg, std::string &buffer, int row, int col);
     _(Number)                                                                                                  \
     _(Complex)                                                                                                \
     _(Tensor)                                                                                                  \
+    _(Object)                                                                                                  \
+    _(Any)                                                                                                  \
+    _(Eval)                                                                                                      \
+    _(Function)                                                                                                      \
+    _(Other)                                                                                                      \
+    _(Plain)                                                                                                      \
     \
     _(String)                                                                                                 \
     _(Pointer)
@@ -343,6 +355,27 @@ inline const char *toString(ObjType type) {
 #undef DEFINE_CASE
 }
 
+// Обобщенные типы данных
+
+inline bool isGenericType(ObjType t) {
+    switch (t) {
+        case ObjType::Tensor: // Любое число включая логический тип
+        case ObjType::Integer: // Любое ЦЕЛОЕ число включая логический тип
+        case ObjType::Number: // Любое число с ПЛАВАЮЩЕЙ ТОЧКОЙ
+        case ObjType::Complex: // Любое КОМПЛЕКСНОЕ число
+        case ObjType::String: // Строка любого типа
+        case ObjType::Object: // Любой объект (Class или Dictionary)
+        case ObjType::Any: // Любой тип кроме None
+        case ObjType::Plain: // Любой тип для машинного представления (Flat Raw ?)
+        case ObjType::Other: // Специальные типы (многоточие, диапазон)
+        case ObjType::Function: // Любая функция
+        case ObjType::Eval: // Код для выполнения ?????
+            return true;
+        default:
+            return false;
+    }
+}
+
 inline bool isObjectType(ObjType t) {
     return t == ObjType::Dictionary || t == ObjType::Class;
 }
@@ -356,6 +389,10 @@ inline bool isFunction(ObjType t) {
     return t == ObjType::TRANSPARENT || t == ObjType::FUNCTION || t == ObjType::NativeFunc ||
             t == ObjType::EVAL_FUNCTION || t == ObjType::EVAL_TRANSP || t == ObjType::EVAL_AND ||
             t == ObjType::EVAL_OR || t == ObjType::EVAL_XOR;
+}
+
+inline bool isEval(ObjType t) {
+    return t == ObjType::BLOCK || t == ObjType::BLOCK_TRY;
 }
 
 inline bool isSimpleType(ObjType t) {
@@ -813,6 +850,43 @@ inline std::string IndexToString(const std::vector<Index> &index) {
     return ss.str();
 }
 
+inline bool isContainsType(ObjType generic, ObjType type) {
+    if (!isGenericType(generic)) {
+//        if(typeisArithmeticType(generic)){
+//        }
+        return generic == type && type != ObjType::None;
+    }
+    switch (generic) {
+        case ObjType::Tensor: // Любое число включая логический тип
+            return isTensor(type);
+        case ObjType::Integer: // Любое ЦЕЛОЕ число включая логический тип
+            return isIntegralType(type, true);
+        case ObjType::Number: // Любое число с ПЛАВАЮЩЕЙ ТОЧКОЙ
+            return isFloatingType(type);
+        case ObjType::Complex: // Любое КОМПЛЕКСНОЕ число
+            return isComplexType(type);
+        case ObjType::String: // Строка любого типа
+            return isString(type);
+        case ObjType::Object: // Любой объект (Class или Dictionary)
+            return type == ObjType::Dictionary || type == ObjType::Class;
+        case ObjType::Plain: // Любой тип для машинного представления
+            return isPlainDataType(type);
+        case ObjType::Other: // Специальные типы (многоточие, диапазон)
+            return type == ObjType::Ellipsis || type == ObjType::Range;
+        case ObjType::Function: // Любая функция
+            return isFunction(type);
+        case ObjType::Eval: // Код для выполнения ?????
+            return isEval(type);
+        case ObjType::Any: // Любой тип кроме None
+            return type != ObjType::None;
+
+        case ObjType::None:
+        default:
+            return false;
+    }
+}
+
+
 /*
  * Range -> Dict
  * String -> Tensor
@@ -820,7 +894,7 @@ inline std::string IndexToString(const std::vector<Index> &index) {
  * Dict -> Tensor
  * Tensor -> Dict
  */
-void ConvertRangeToDict(Object *from, Object &to);
+void ConvertRangeToDict(Obj *from, Obj &to);
 
 void ConvertStringToTensor(const std::string &from, torch::Tensor &to, ObjType type = ObjType::None, Dimension *dims = nullptr);
 void ConvertStringToTensor(const std::wstring &from, torch::Tensor &to, ObjType type = ObjType::None, Dimension *dims = nullptr);
@@ -828,9 +902,9 @@ void ConvertStringToTensor(const std::wstring &from, torch::Tensor &to, ObjType 
 void ConvertTensorToString(const torch::Tensor &from, std::string &to, std::vector<Index> *index = nullptr);
 void ConvertTensorToString(const torch::Tensor &from, std::wstring &to, std::vector<Index> *index = nullptr);
 
-void ConvertDictToTensor(Object &from, torch::Tensor &to, ObjType type = ObjType::Tensor, Dimension *dims = nullptr);
-void ConvertTensorToDict(const torch::Tensor &from, Object &to, std::vector<Index> *index = nullptr);
-void ConvertValueToTensor(Object *from, torch::Tensor &to, ObjType type = ObjType::None, Dimension *dims = nullptr);
+void ConvertDictToTensor(Obj &from, torch::Tensor &to, ObjType type = ObjType::Tensor, Dimension *dims = nullptr);
+void ConvertTensorToDict(const torch::Tensor &from, Obj &to, std::vector<Index> *index = nullptr);
+void ConvertValueToTensor(Obj *from, torch::Tensor &to, ObjType type = ObjType::None, Dimension *dims = nullptr);
 
 } // namespace newlang
 

@@ -18,13 +18,13 @@ using namespace std;
 using namespace newlang;
 
 TEST(ObjTest, Empty) {
-    Object var;
+    Obj var;
     ASSERT_TRUE(var.empty());
     ASSERT_EQ(ObjType::None, var.getType());
 }
 
 TEST(ObjTest, Value) {
-    Object var;
+    Obj var;
 
     var.SetValue_(0);
     ASSERT_EQ(ObjType::Bool, var.getType());
@@ -61,16 +61,16 @@ TEST(ObjTest, Value) {
 }
 
 TEST(ObjTest, String) {
-    Object var;
+    Obj var;
 
     var.SetValue_(std::string("test"));
     ASSERT_EQ(ObjType::StrChar, var.getType()) << toString(var.getType());
 
-    Object str1;
+    Obj str1;
     str1.SetValue_(L"Test str");
     ASSERT_EQ(ObjType::StrWide, str1.getType()) << toString(str1.getType());
 
-    Object str2;
+    Obj str2;
     str2.SetValue_(std::string("test2"));
     ASSERT_EQ(ObjType::StrChar, str2.getType()) << toString(str2.getType());
 }
@@ -79,7 +79,7 @@ TEST(ObjTest, Dict) {
 
     Context ctx(RunTime::Init());
 
-    Object var(ObjType::Dictionary);
+    Obj var(ObjType::Dictionary);
     ASSERT_TRUE(var.empty());
     EXPECT_THROW(
             var[0],
@@ -88,51 +88,51 @@ TEST(ObjTest, Dict) {
     ASSERT_EQ(0, var.size());
     ObjPtr var2 = ctx.Eval("(,)");
 
-    var.push_back(Object::CreateString("Test1"));
+    var.push_back(Obj::CreateString("Test1"));
     ASSERT_EQ(1, var.size());
-    var.push_back(Object::CreateString("Test3"));
+    var.push_back(Obj::CreateString("Test3"));
     ASSERT_EQ(2, var.size());
-    var.insert(1, Object::CreateValue(2, ObjType::None), "2");
-    var.insert(0, Object::CreateValue(0, ObjType::None), "0");
+    var.insert(1, Obj::CreateValue(2, ObjType::None), "2");
+    var.insert(0, Obj::CreateValue(0, ObjType::None), "0");
     ASSERT_EQ(4, var.size());
 
-    ASSERT_TRUE(var[0]->op_accurate(Object::CreateValue(0, ObjType::None)));
-    ASSERT_TRUE(var[1]->op_accurate(Object::CreateString("Test1")));
-    ASSERT_TRUE(var[2]->op_accurate(Object::CreateValue(2, ObjType::None)));
-    ASSERT_TRUE(var[3]->op_accurate(Object::CreateString(L"Test3")));
+    ASSERT_TRUE(var[0]->op_accurate(Obj::CreateValue(0, ObjType::None)));
+    ASSERT_TRUE(var[1]->op_accurate(Obj::CreateString("Test1")));
+    ASSERT_TRUE(var[2]->op_accurate(Obj::CreateValue(2, ObjType::None)));
+    ASSERT_TRUE(var[3]->op_accurate(Obj::CreateString(L"Test3")));
 
     var2 = ctx.Eval("(0, \"Test1\", 2, 'Test3',)");
 
-    ASSERT_TRUE((*var2)[0]->op_accurate(Object::CreateValue(0, ObjType::None)));
-    ASSERT_TRUE((*var2)[1]->op_accurate(Object::CreateString("Test1")));
-    ASSERT_TRUE((*var2)[2]->op_accurate(Object::CreateValue(2, ObjType::None)));
-    ASSERT_TRUE((*var2)[3]->op_accurate(Object::CreateString(L"Test3")));
+    ASSERT_TRUE((*var2)[0]->op_accurate(Obj::CreateValue(0, ObjType::None)));
+    ASSERT_TRUE((*var2)[1]->op_accurate(Obj::CreateString("Test1")));
+    ASSERT_TRUE((*var2)[2]->op_accurate(Obj::CreateValue(2, ObjType::None)));
+    ASSERT_TRUE((*var2)[3]->op_accurate(Obj::CreateString(L"Test3")));
 
     ObjPtr var3 = ctx.Eval("(0, \"Test1\", 2, 'Test3',)");
 
-    ASSERT_TRUE((*var3)[0]->op_accurate(Object::CreateValue(0, ObjType::None)));
-    ASSERT_TRUE((*var3)[1]->op_accurate(Object::CreateString("Test1")));
-    ASSERT_TRUE((*var3)[2]->op_accurate(Object::CreateValue(2, ObjType::None)));
-    ASSERT_TRUE((*var3)[3]->op_accurate(Object::CreateString(L"Test3")));
+    ASSERT_TRUE((*var3)[0]->op_accurate(Obj::CreateValue(0, ObjType::None)));
+    ASSERT_TRUE((*var3)[1]->op_accurate(Obj::CreateString("Test1")));
+    ASSERT_TRUE((*var3)[2]->op_accurate(Obj::CreateValue(2, ObjType::None)));
+    ASSERT_TRUE((*var3)[3]->op_accurate(Obj::CreateString(L"Test3")));
 }
 
 TEST(ObjTest, AsMap) {
 
-    ObjPtr map = Object::CreateType(ObjType::Dictionary);
+    ObjPtr map = Obj::CreateType(ObjType::Dictionary);
     ASSERT_TRUE(map->empty());
     EXPECT_THROW(
             (*map)["test1"],
             std::out_of_range
             );
     ASSERT_EQ(0, map->size());
-    ObjPtr temp = Object::CreateString("Test");
+    ObjPtr temp = Obj::CreateString("Test");
     map->push_back(temp, "test1");
-    map->push_back(Object::CreateValue(100, ObjType::None), "test2");
+    map->push_back(Obj::CreateValue(100, ObjType::None), "test2");
     ASSERT_EQ(2, map->size());
     ASSERT_STREQ((*map)["test1"]->toString().c_str(), temp->toString().c_str()) << temp->toString().c_str();
 
     ASSERT_TRUE((*map)["test2"]);
-    ObjPtr temp100 = Object::CreateValue(100, ObjType::None);
+    ObjPtr temp100 = Obj::CreateValue(100, ObjType::None);
     ASSERT_TRUE(map->exist(temp100, true));
 
     ObjPtr test2 = (*map)["test2"];
@@ -143,11 +143,11 @@ TEST(ObjTest, AsMap) {
 
 TEST(ObjTest, Eq) {
 
-    ObjPtr var_int = Object::CreateValue(100, ObjType::None);
-    ObjPtr var_num = Object::CreateValue(100.0, ObjType::None);
-    ObjPtr var_str = Object::CreateString(L"STRING");
-    ObjPtr var_bool = Object::CreateBool(true);
-    ObjPtr var_empty = Object::CreateNone();
+    ObjPtr var_int = Obj::CreateValue(100, ObjType::None);
+    ObjPtr var_num = Obj::CreateValue(100.0, ObjType::None);
+    ObjPtr var_str = Obj::CreateString(L"STRING");
+    ObjPtr var_bool = Obj::CreateBool(true);
+    ObjPtr var_empty = Obj::CreateNone();
 
     ASSERT_EQ(var_int->m_var_type_current, ObjType::Char) << (int) var_int->getType();
     ASSERT_EQ(var_num->m_var_type_current, ObjType::Double) << (int) var_num->getType();
@@ -158,22 +158,22 @@ TEST(ObjTest, Eq) {
     ASSERT_FALSE(var_int->empty()) << (int) var_int->getType();
 
 
-    ASSERT_TRUE(var_int->op_accurate(Object::CreateValue(100, ObjType::None)));
-    ASSERT_FALSE(var_int->op_accurate(Object::CreateValue(111, ObjType::None)));
+    ASSERT_TRUE(var_int->op_accurate(Obj::CreateValue(100, ObjType::None)));
+    ASSERT_FALSE(var_int->op_accurate(Obj::CreateValue(111, ObjType::None)));
 
-    ASSERT_TRUE(var_num->op_equal(Object::CreateValue(100.0, ObjType::None)));
-    ASSERT_FALSE(var_num->op_equal(Object::CreateValue(100.0001, ObjType::None)));
-    ASSERT_TRUE(var_num->op_accurate(Object::CreateValue(100.0, ObjType::None)));
-    ASSERT_FALSE(var_num->op_accurate(Object::CreateValue(100.0001, ObjType::None)));
+    ASSERT_TRUE(var_num->op_equal(Obj::CreateValue(100.0, ObjType::None)));
+    ASSERT_FALSE(var_num->op_equal(Obj::CreateValue(100.0001, ObjType::None)));
+    ASSERT_TRUE(var_num->op_accurate(Obj::CreateValue(100.0, ObjType::None)));
+    ASSERT_FALSE(var_num->op_accurate(Obj::CreateValue(100.0001, ObjType::None)));
 
-    ASSERT_TRUE(var_int->op_equal(Object::CreateValue(100.0, ObjType::None)));
-    ASSERT_TRUE(var_int->op_accurate(Object::CreateValue(100.0, ObjType::None)));
-    ASSERT_FALSE(var_int->op_equal(Object::CreateValue(100.1, ObjType::None)));
-    ASSERT_FALSE(var_int->op_accurate(Object::CreateValue(100.1, ObjType::None)));
+    ASSERT_TRUE(var_int->op_equal(Obj::CreateValue(100.0, ObjType::None)));
+    ASSERT_TRUE(var_int->op_accurate(Obj::CreateValue(100.0, ObjType::None)));
+    ASSERT_FALSE(var_int->op_equal(Obj::CreateValue(100.1, ObjType::None)));
+    ASSERT_FALSE(var_int->op_accurate(Obj::CreateValue(100.1, ObjType::None)));
 
 
-    ObjPtr var_int2 = Object::CreateValue(101, ObjType::None);
-    ObjPtr var_num2 = Object::CreateValue(100.1, ObjType::None);
+    ObjPtr var_int2 = Obj::CreateValue(101, ObjType::None);
+    ObjPtr var_num2 = Obj::CreateValue(100.1, ObjType::None);
 
 
     ASSERT_TRUE(var_int->op_accurate(var_int));
@@ -187,19 +187,19 @@ TEST(ObjTest, Eq) {
     ASSERT_FALSE(var_int->op_equal(var_num2));
     ASSERT_FALSE(var_num2->op_equal(var_int));
 
-    ObjPtr var_bool2 = Object::CreateBool(false);
+    ObjPtr var_bool2 = Obj::CreateBool(false);
 
     ASSERT_TRUE(var_bool->op_accurate(var_bool));
     ASSERT_FALSE(var_bool->op_accurate(var_bool2));
 
-    ObjPtr var_str2 = Object::CreateString("STRING2");
+    ObjPtr var_str2 = Obj::CreateString("STRING2");
 
     ASSERT_TRUE(var_str->op_accurate(var_str));
-    ASSERT_TRUE(var_str->op_accurate(Object::CreateString("STRING")));
+    ASSERT_TRUE(var_str->op_accurate(Obj::CreateString("STRING")));
     ASSERT_FALSE(var_str->op_accurate(var_str2));
 
 
-    ObjPtr var_empty2 = Object::CreateNone();
+    ObjPtr var_empty2 = Obj::CreateNone();
 
     ASSERT_TRUE(var_empty->op_accurate(var_empty));
     ASSERT_TRUE(var_empty->op_accurate(var_empty2));
@@ -207,12 +207,12 @@ TEST(ObjTest, Eq) {
 
 TEST(ObjTest, Exist) {
 
-    Object var_array(ObjType::Dictionary);
+    Obj var_array(ObjType::Dictionary);
 
-    var_array.push_back(Object::CreateString("item1"));
-    var_array.push_back(Object::CreateString("item2"));
+    var_array.push_back(Obj::CreateString("item1"));
+    var_array.push_back(Obj::CreateString("item2"));
 
-    ObjPtr item = Object::CreateString("item1");
+    ObjPtr item = Obj::CreateString("item1");
     ASSERT_TRUE(var_array.exist(item, true));
     item->SetValue_("item2");
     ASSERT_TRUE(var_array.exist(item, true));
@@ -220,10 +220,10 @@ TEST(ObjTest, Exist) {
     ASSERT_FALSE(var_array.exist(item, true));
 
 
-    Object var_map(ObjType::Dictionary);
+    Obj var_map(ObjType::Dictionary);
 
-    var_map.push_back(Object::CreateString("MAP_VALUE1"), "map1");
-    var_map.push_back(Object::CreateString("MAP_VALUE2"), "map2");
+    var_map.push_back(Obj::CreateString("MAP_VALUE1"), "map1");
+    var_map.push_back(Obj::CreateString("MAP_VALUE2"), "map2");
 
     ASSERT_TRUE(var_map[std::string("map1")]);
     ASSERT_TRUE(var_map["map2"]);
@@ -233,26 +233,26 @@ TEST(ObjTest, Exist) {
 
 TEST(ObjTest, Intersec) {
 
-    Object var_array(ObjType::Dictionary);
-    Object var_array2(ObjType::Dictionary);
+    Obj var_array(ObjType::Dictionary);
+    Obj var_array2(ObjType::Dictionary);
 
-    var_array.push_back(Object::CreateString("item1"));
-    var_array.push_back(Object::CreateString("item2"));
+    var_array.push_back(Obj::CreateString("item1"));
+    var_array.push_back(Obj::CreateString("item2"));
 
     ObjPtr result = var_array.op_bit_and(var_array2, true);
     ASSERT_TRUE(result->empty());
 
-    var_array2.push_back(Object::CreateString("item3"));
+    var_array2.push_back(Obj::CreateString("item3"));
 
     result = var_array.op_bit_and(var_array2, true);
     ASSERT_TRUE(result->empty());
 
-    var_array2.push_back(Object::CreateString("item1"));
+    var_array2.push_back(Obj::CreateString("item1"));
     result = var_array.op_bit_and(var_array2, true);
     ASSERT_FALSE(result->empty());
     ASSERT_EQ(1, result->size());
 
-    var_array2.push_back(Object::CreateString("item2"));
+    var_array2.push_back(Obj::CreateString("item2"));
     result = var_array.op_bit_and(var_array2, true);
     ASSERT_FALSE(result->empty());
     ASSERT_EQ(2, result->size());
@@ -295,12 +295,12 @@ TEST(ObjTest, Print) {
 
     Context ctx(RunTime::Init());
 
-    ObjPtr var_int = Object::CreateValue(100, ObjType::None);
-    ObjPtr var_num = Object::CreateValue(100.123, ObjType::None);
-    ObjPtr var_str = Object::CreateString(L"STRCHAR");
-    ObjPtr var_strbyte = Object::CreateString("STRBYTE");
-    ObjPtr var_bool = Object::CreateBool(true);
-    ObjPtr var_empty = Object::CreateNone();
+    ObjPtr var_int = Obj::CreateValue(100, ObjType::None);
+    ObjPtr var_num = Obj::CreateValue(100.123, ObjType::None);
+    ObjPtr var_str = Obj::CreateString(L"STRCHAR");
+    ObjPtr var_strbyte = Obj::CreateString("STRBYTE");
+    ObjPtr var_bool = Obj::CreateBool(true);
+    ObjPtr var_empty = Obj::CreateNone();
 
     ASSERT_STREQ("100", var_int->toString().c_str()) << var_int;
     ASSERT_STREQ("100.123", var_num->toString().c_str()) << var_num;
@@ -309,38 +309,38 @@ TEST(ObjTest, Print) {
     ASSERT_STREQ("1", var_bool->toString().c_str()) << var_bool;
     ASSERT_STREQ("_", var_empty->toString().c_str()) << var_empty;
 
-    ObjPtr var_dict = Object::CreateType(ObjType::Dictionary);
+    ObjPtr var_dict = Obj::CreateType(ObjType::Dictionary);
 
     ASSERT_STREQ("(,)", var_dict->toString().c_str()) << var_dict;
 
     var_dict->m_var_name = "dict";
     ASSERT_STREQ("dict=(,)", var_dict->toString().c_str()) << var_dict;
 
-    var_dict->push_back(Object::CreateString(L"item1"));
+    var_dict->push_back(Obj::CreateString(L"item1"));
     ASSERT_STREQ("dict=(\"item1\",)", var_dict->toString().c_str()) << var_dict;
     var_dict->push_back(var_int);
     var_dict->push_back((*var_bool)(nullptr));
     ASSERT_STREQ("dict=(\"item1\", 100, 1,)", var_dict->toString().c_str()) << var_dict;
 
 
-    ObjPtr var_array = Object::CreateDict(); //CreateTensor({1});
+    ObjPtr var_array = Obj::CreateDict(); //CreateTensor({1});
 
     ASSERT_STREQ("(,)", var_array->toString().c_str()) << var_array;
 
     var_array->m_var_name = "array";
     ASSERT_STREQ("array=(,)", var_array->toString().c_str()) << var_array;
 
-    var_array->push_back(Object::CreateString("item1"));
+    var_array->push_back(Obj::CreateString("item1"));
     ASSERT_STREQ("array=('item1',)", var_array->toString().c_str()) << var_array;
     var_array->push_back((*var_int.get())(nullptr));
     var_array->push_back((*var_bool.get())(nullptr));
     ASSERT_STREQ("array=('item1', 100, 1,)", var_array->toString().c_str()) << var_array;
 
 
-    ObjPtr obj_empty = Object::CreateType(ObjType::Class, "name");
+    ObjPtr obj_empty = Obj::CreateType(ObjType::Class, "name");
     ASSERT_STREQ("name=()", obj_empty->toString().c_str()) << obj_empty;
 
-    ObjPtr var_obj = Object::CreateFrom("obj", obj_empty);
+    ObjPtr var_obj = Obj::CreateFrom("obj", obj_empty);
     ASSERT_STREQ("obj=name()", var_obj->toString().c_str()) << var_obj;
 
     var_int->m_var_name = "int";
@@ -480,22 +480,22 @@ TEST(Args, All) {
     Parser p(ast);
 
     ASSERT_TRUE(p.Parse("test()"));
-    Object local;
-    Object proto1(&ctx, ast, false, &local); // Функция с принимаемыми аргументами (нет аргументов)
+    Obj local;
+    Obj proto1(&ctx, ast, false, &local); // Функция с принимаемыми аргументами (нет аргументов)
     ASSERT_EQ(0, proto1.size());
     //    ASSERT_FALSE(proto1.m_is_ellipsis);
 
 
-    Object arg_999(Object::CreateValue(999, ObjType::None));
+    Obj arg_999(Obj::CreateValue(999, ObjType::None));
     EXPECT_EQ(ObjType::Short, arg_999[0]->getType()) << torch::toString(toTorchType(arg_999[0]->getType()));
 
-    Object arg_empty_named(Object::Arg());
+    Obj arg_empty_named(Obj::Arg());
     ASSERT_EQ(ObjType::None, arg_empty_named[0]->getType());
 
-    Object arg_123_named(Object::Arg(123, "named"));
+    Obj arg_123_named(Obj::Arg(123, "named"));
     EXPECT_EQ(ObjType::Char, arg_123_named[0]->getType()) << torch::toString(toTorchType(arg_123_named[0]->getType()));
 
-    ObjPtr arg_999_123_named = Object::CreateDict();
+    ObjPtr arg_999_123_named = Obj::CreateDict();
     ASSERT_EQ(0, arg_999_123_named->size());
     *arg_999_123_named += arg_empty_named;
     ASSERT_EQ(1, arg_999_123_named->size());
@@ -512,7 +512,7 @@ TEST(Args, All) {
 
 
     ASSERT_TRUE(p.Parse("test(arg1)"));
-    const Object proto2(&ctx, ast, false, &local);
+    const Obj proto2(&ctx, ast, false, &local);
     ASSERT_EQ(1, proto2.size());
     //    ASSERT_FALSE(proto2.m_is_ellipsis);
     ASSERT_STREQ("arg1", proto2.name(0).c_str());
@@ -535,7 +535,7 @@ TEST(Args, All) {
 
     // Нормальный вызов
     ASSERT_TRUE(p.Parse("test(empty=_, ...) := {}"));
-    const Object proto3(&ctx, ast->Left(), false, &local);
+    const Obj proto3(&ctx, ast->Left(), false, &local);
     ASSERT_EQ(2, proto3.size());
     //    ASSERT_TRUE(proto3.m_is_ellipsis);
     ASSERT_STREQ("empty", proto3.name(0).c_str());
@@ -551,7 +551,7 @@ TEST(Args, All) {
     ASSERT_STREQ("empty", proto3_arg->name(0).c_str());
 
     // Дополнительный аргумент
-    Object arg_extra(Object::CreateValue(999, ObjType::None), Object::Arg(123, "named"));
+    Obj arg_extra(Obj::CreateValue(999, ObjType::None), Obj::Arg(123, "named"));
 
     ASSERT_EQ(2, arg_extra.size());
     EXPECT_EQ(ObjType::Short, arg_extra[0]->getType()) << torch::toString(toTorchType(arg_extra[0]->getType()));
@@ -568,7 +568,7 @@ TEST(Args, All) {
 
     // Аргумент по умолчанию
     ASSERT_TRUE(p.Parse("test(num=123) := {}"));
-    Object proto123(&ctx, ast->Left(), false, &local);
+    Obj proto123(&ctx, ast->Left(), false, &local);
     ASSERT_EQ(1, proto123.size());
     //    ASSERT_FALSE(proto123.m_is_ellipsis);
     ASSERT_STREQ("num", proto123.name(0).c_str());
@@ -578,13 +578,13 @@ TEST(Args, All) {
 
     // Изменен порядок
     ASSERT_TRUE(p.Parse("test(arg1, str=\"string\") := {}"));
-    Object proto_str(&ctx, ast->Left(), false, &local);
+    Obj proto_str(&ctx, ast->Left(), false, &local);
     ASSERT_EQ(2, proto_str.size());
     //    ASSERT_FALSE(proto_str.m_is_ellipsis);
     ASSERT_STREQ("arg1", proto_str.at(0).first.c_str());
     ASSERT_EQ(nullptr, proto_str[0]);
 
-    Object arg_str(Object::Arg(L"СТРОКА", "str"), Object::Arg(555, "arg1"));
+    Obj arg_str(Obj::Arg(L"СТРОКА", "str"), Obj::Arg(555, "arg1"));
 
     ObjPtr proto_str_arg = proto_str.ConvertToArgs(arg_str, true, nullptr);
     ASSERT_STREQ("arg1", proto_str_arg->at(0).first.c_str());
@@ -596,7 +596,7 @@ TEST(Args, All) {
 
 
     ASSERT_TRUE(p.Parse("test(arg1, ...) := {}"));
-    Object proto_any(&ctx, ast->Left(), false, &local);
+    Obj proto_any(&ctx, ast->Left(), false, &local);
     //    ASSERT_TRUE(proto_any.m_is_ellipsis);
     ASSERT_EQ(2, proto_any.size());
     ASSERT_STREQ("arg1", proto_any.at(0).first.c_str());
@@ -613,8 +613,8 @@ TEST(Args, All) {
 
     //
     ASSERT_TRUE(p.Parse("min(arg, ...) := {}"));
-    Object min_proto(&ctx, ast->Left(), false, &local);
-    Object min_args(Object::Arg(200), Object::Arg(100), Object::Arg(300)); // min(200,100,300)
+    Obj min_proto(&ctx, ast->Left(), false, &local);
+    Obj min_args(Obj::Arg(200), Obj::Arg(100), Obj::Arg(300)); // min(200,100,300)
     ObjPtr min_arg = min_proto.ConvertToArgs(min_args, true, nullptr);
 
     ASSERT_EQ(3, min_arg->size());
@@ -623,7 +623,7 @@ TEST(Args, All) {
     ASSERT_STREQ("300", (*min_arg)[2]->toString().c_str());
 
     ASSERT_TRUE(p.Parse("min(200, 100, 300)"));
-    Object args_term(&ctx, ast, true, &local);
+    Obj args_term(&ctx, ast, true, &local);
     ASSERT_STREQ("200", args_term[0]->toString().c_str());
     ASSERT_STREQ("100", args_term[1]->toString().c_str());
     ASSERT_STREQ("300", args_term[2]->toString().c_str());

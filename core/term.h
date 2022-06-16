@@ -62,6 +62,7 @@ namespace newlang {
         \
         _(RANGE) \
         _(ELLIPSIS) \
+        _(FILLING) \
         _(ARGUMENT) \
         _(ARGS) \
         _(EXIT) \
@@ -70,11 +71,7 @@ namespace newlang {
         _(INDEX) \
         _(FIELD) \
         \
-        _(TENSOR_BEGIN) \
-        _(TENSOR_END) \
-        \
         _(TENSOR) \
-        _(CLASS) \
         _(DICT) \
         _(OPERATOR) \
         _(SOURCE)
@@ -230,7 +227,6 @@ public:
             case TermID::RANGE:
             case TermID::TENSOR:
             case TermID::DICT:
-            case TermID::CLASS:
             case TermID::OPERATOR:
                 return true;
             default:
@@ -510,15 +506,6 @@ public:
                 }
                 return result;
 
-            case TermID::TENSOR_BEGIN:
-                result = "[[ ";
-                dump_items_(result);
-                result += " ]]";
-                if (GetType()) {
-                    result += GetType()->asTypeString();
-                }
-                return result;
-
             case TermID::DICT:
                 result += "(";
                 dump_items_(result);
@@ -527,19 +514,8 @@ public:
                 if (GetType()) {
                     result += GetType()->asTypeString();
                 }
-                //                if (!m_class_name.empty()) {
-                //                    result += m_class_name; //asTypeString()
-                //                }
                 return result;
-            case TermID::CLASS:
-                result += "(";
-                dump_items_(result);
-                result += ")";
-                if (!m_class_name.empty()) {
-                    result += m_class_name; //asTypeString()
-                }
-                return result;
-
+                
             case TermID::TYPE:
             case TermID::TYPE_CALL:
                 result += m_text;
@@ -682,12 +658,39 @@ public:
                 }
                 return result;
 
-            case TermID::SYMBOL:
             case TermID::ELLIPSIS:
+                if (m_left) {
+                    result = m_left->toString();
+                    result += " ";
+                }
+                result += m_text;
+                if (m_right) {
+                    result += m_right->toString();
+                }
+                return result;
+                
+            case TermID::FILLING:
+                result += "...";
+                if (m_right) {
+                    result += m_right->toString();
+                }
+                result += "...";
+                return result;
+
+            case TermID::SYMBOL:
             case TermID::FRACTION:
             case TermID::COMPLEX:
             case TermID::CURRENCY:
                 return m_text;
+
+                //            case TermID::FILLING:
+                //            case TermID::ELLIPSIS:
+                //                result += m_text;
+                //                if (m_right) {
+                //                    result += m_right->toString();
+                //                }
+                //                return result;
+
 
             case TermID::EMPTY:
                 return result + "=";
@@ -1094,8 +1097,6 @@ public:
                 m_type_name = newlang::toString(ObjType::StrChar);
             } else if (m_id == TermID::STRWIDE) {
                 m_type_name = newlang::toString(ObjType::StrWide);
-            } else if (m_id == TermID::CLASS) {
-                m_type_name = newlang::toString(ObjType::Class);
             } else if (m_id == TermID::DICT) {
                 m_type_name = newlang::toString(ObjType::Dictionary);
             }

@@ -5,8 +5,8 @@
 
 using namespace newlang;
 
-#define NEWLANG_FUNCTION(NAME)  newlang::ObjPtr NAME(newlang::Context *ctx, newlang::Object &in) 
-#define NEWLANG_TRANSPARENT(NAME)  newlang::ObjPtr NAME(const newlang::Context *ctx, const newlang::Object &in) 
+#define NEWLANG_FUNCTION(NAME)  newlang::ObjPtr NAME(newlang::Context *ctx, newlang::Obj &in) 
+#define NEWLANG_TRANSPARENT(NAME)  newlang::ObjPtr NAME(const newlang::Context *ctx, const newlang::Obj &in) 
 
 namespace newlang {
 
@@ -87,14 +87,14 @@ namespace newlang {
 
 
 #define DEFINE_ENUM(name) \
-newlang::ObjPtr name(const newlang::Context *ctx, const newlang::Object &in) {\
+newlang::ObjPtr name(const newlang::Context *ctx, const newlang::Obj &in) {\
     if(in.size() < 1 || !in.at(1).second) {\
         LOG_CALLSTACK(std::invalid_argument, "Bad argument count parameter!");\
     }\
     return nullptr; /*in.at(1).second->Convert(ObjType:: cast);*/\
 }
 //    \
-//newlang::ObjPtr name##_(newlang::Context *ctx, newlang::Object &in) {\
+//newlang::ObjPtr name##_(newlang::Context *ctx, newlang::Obj &in) {\
 //    if(in.size() < 1 || !in.at(1).second) {\
 //        LOG_CALLSTACK(std::invalid_argument, "Bad argument count parameter!");\
 //    }\

@@ -866,6 +866,13 @@ arg: name  '='
             $$->Append($1, Term::LEFT); 
             $$->Append($rval, Term::RIGHT); 
         }
+    |  ELLIPSIS  rval  ELLIPSIS
+       {            
+            // Заполнить данные значением
+            $$ = $1;
+            $$->SetTermID(TermID::FILLING);
+            $$->Append($rval, Term::RIGHT); 
+        }
 
 args: arg
             {

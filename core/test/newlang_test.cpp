@@ -652,7 +652,7 @@ TEST(NewLang, DISABLED_Function) {
 
 TEST(NewLang, String) {
 
-    ObjPtr str_byte = Object::CreateString("byte");
+    ObjPtr str_byte = Obj::CreateString("byte");
     ASSERT_STREQ("byte", str_byte->GetValueAsString().c_str());
     ASSERT_EQ(4, str_byte->size());
     ASSERT_EQ(4, str_byte->m_str.size());
@@ -668,7 +668,7 @@ TEST(NewLang, String) {
     str_byte->op_set_index(3, "E");
     ASSERT_STREQ("BYTE", str_byte->GetValueAsString().c_str());
 
-    ObjPtr str_char = Object::CreateString(L"строка");
+    ObjPtr str_char = Obj::CreateString(L"строка");
     ASSERT_EQ(6, str_char->size());
     ASSERT_EQ(6, str_char->m_wstr.size());
 
@@ -687,29 +687,29 @@ TEST(NewLang, String) {
     ASSERT_STREQ("СТРОка", str_char->GetValueAsString().c_str());
 
 
-    ObjPtr format = Object::CreateString("$1 $2 ${name}");
+    ObjPtr format = Obj::CreateString("$1 $2 ${name}");
     ObjPtr str1 = (*format)(nullptr);
     ASSERT_STREQ("$1 $2 ${name}", str1->GetValueAsString().c_str());
 
-    ObjPtr str2 = (*format)(nullptr, Object::Arg(100));
+    ObjPtr str2 = (*format)(nullptr, Obj::Arg(100));
     ASSERT_STREQ("100 $2 ${name}", str2->GetValueAsString().c_str());
 
-    ObjPtr str3 = (*format)(nullptr, Object::Arg(-1), Object::Arg("222"));
+    ObjPtr str3 = (*format)(nullptr, Obj::Arg(-1), Obj::Arg("222"));
     ASSERT_STREQ("-1 222 ${name}", str3->GetValueAsString().c_str());
 
-    ObjPtr str4 = (*format)(nullptr, Object::Arg("value", "name"));
+    ObjPtr str4 = (*format)(nullptr, Obj::Arg("value", "name"));
     ASSERT_STREQ("value $2 value", str4->GetValueAsString().c_str());
 
-    format = Object::CreateString("$nameno ${имя1} $name $имя");
-    ObjPtr str5 = (*format)(nullptr, Object::Arg("value", "name"), Object::Arg("УТФ8-УТФ8", "имя"), Object::Arg("УТФ8", "имя1"));
+    format = Obj::CreateString("$nameno ${имя1} $name $имя");
+    ObjPtr str5 = (*format)(nullptr, Obj::Arg("value", "name"), Obj::Arg("УТФ8-УТФ8", "имя"), Obj::Arg("УТФ8", "имя1"));
     ASSERT_STREQ("valueno УТФ8 value УТФ8-УТФ8", str5->GetValueAsString().c_str());
 }
 
 TEST(NewLang, Tensor) {
 
     // Байтовые строки
-    ObjPtr str = Object::CreateString("test");
-    ObjPtr t_str = Object::CreateTensor(str->toTensor());
+    ObjPtr str = Obj::CreateString("test");
+    ObjPtr t_str = Obj::CreateTensor(str->toTensor());
     ASSERT_EQ(t_str->m_var_type_current, ObjType::Char) << toString(t_str->m_var_type_current);
     ASSERT_EQ(4, t_str->size());
     EXPECT_STREQ(t_str->toType(ObjType::StrWide)->GetValueAsString().c_str(), "test");
@@ -719,14 +719,14 @@ TEST(NewLang, Tensor) {
     ASSERT_EQ(t_str->index_get({2})->GetValueAsInteger(), 's');
     ASSERT_EQ(t_str->index_get({3})->GetValueAsInteger(), 't');
 
-    t_str->index_set_({1}, Object::CreateString("E"));
-    t_str->index_set_({2}, Object::CreateString("S"));
+    t_str->index_set_({1}, Obj::CreateString("E"));
+    t_str->index_set_({2}, Obj::CreateString("S"));
 
     EXPECT_STREQ(t_str->toType(ObjType::StrWide)->GetValueAsString().c_str(), "tESt");
 
     // Символьные сторки
-    ObjPtr wstr = Object::CreateString(L"ТЕСТ");
-    ObjPtr t_wstr = Object::CreateTensor(wstr->toTensor());
+    ObjPtr wstr = Obj::CreateString(L"ТЕСТ");
+    ObjPtr t_wstr = Obj::CreateTensor(wstr->toTensor());
     ASSERT_EQ(t_wstr->m_var_type_current, ObjType::Int);
     ASSERT_EQ(4, t_wstr->size());
     EXPECT_STREQ(t_wstr->toType(ObjType::StrWide)->GetValueAsString().c_str(), "ТЕСТ");
@@ -736,8 +736,8 @@ TEST(NewLang, Tensor) {
     ASSERT_EQ(t_wstr->index_get({2})->GetValueAsInteger(), L'С');
     ASSERT_EQ(t_wstr->index_get({3})->GetValueAsInteger(), L'Т');
 
-    t_wstr->index_set_({1}, Object::CreateString(L"е"));
-    t_wstr->index_set_({2}, Object::CreateString(L"с"));
+    t_wstr->index_set_({1}, Obj::CreateString(L"е"));
+    t_wstr->index_set_({2}, Obj::CreateString(L"с"));
 
     EXPECT_STREQ(t_wstr->toType(ObjType::StrWide)->GetValueAsString().c_str(), "ТесТ");
 
@@ -852,7 +852,7 @@ TEST(NewLang, DISABLED_FuncsTypes) {
     ASSERT_TRUE(ctx.m_runtime->LoadModule("call_types.temp.nlm", false, &ctx));
 
     // Переполнение байтовой переменной $res во время выполнения последнего оператора "+="
-    Object args;
+    Obj args;
     ASSERT_TRUE(ctx.m_runtime->m_modules["temp/call_types.temp.nlm"]);
     ASSERT_NO_THROW(
         ctx.m_runtime->m_modules["temp/call_types.temp.nlm"]->Main(&ctx, args));

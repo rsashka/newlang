@@ -68,12 +68,12 @@ public:
         m_handle = nullptr;
     }
 
-    ObjPtr Main(Context *ctx, Object &args) {
+    ObjPtr Main(Context *ctx, Obj &args) {
         if (m_main) {
             return (*m_main)(ctx, args);
         }
         LOG_DEBUG("Main function in module '%s' not found!", m_name.c_str());
-        return Object::CreateNone();
+        return Obj::CreateNone();
     }
 
     inline FuncMap& Funcs() {
@@ -191,7 +191,7 @@ public:
     ObjPtr Run(const char *source, void *context);
 
     ObjPtr RunFile(const char *filename) {
-        return Object::CreateNone();
+        return Obj::CreateNone();
     }
 
     void Free();
@@ -243,7 +243,7 @@ public:
     //    static ObjPtr Eval(Context *ctx, TermPtr calc, bool make_function = false);
     static ObjPtr GetIndexField(Context *ctx, ObjPtr obj, TermPtr term, bool create_field = false);
 
-    static bool ExecFunc(FunctionType * func, Object *def_arg, Context *ctx, Object &in, ObjPtr & out);
+    static bool ExecFunc(FunctionType * func, Obj *def_arg, Context *ctx, Obj &in, ObjPtr & out);
 
     static bool StringTemplate(std::string &format, Context * ctx);
 

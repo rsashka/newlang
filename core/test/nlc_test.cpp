@@ -256,16 +256,16 @@ TEST(NLC, EvalHelloWorld) {
 //    Object::CreateString("male"))->GetValueAsBoolean())) {
 //        ;
 //    } else {
-//        return newlang::Object::No();
+//        return newlang::Obj::No();
 //    }
 //
 //    if(static_cast<bool> ((*(*in[1])["parent"]*
 //    *(*in[2])["parent"])->GetValueAsBoolean())) {
 //        ;
 //    } else {
-//        return newlang::Object::No();
+//        return newlang::Obj::No();
 //    }
-//    return newlang::Object::Yes();
+//    return newlang::Obj::Yes();
 //}
 //
 ////TEST(NLC, Brother) {

@@ -96,7 +96,7 @@ TEST(Eval, Assign) {
     ASSERT_STREQ("var_export=987654321", var_export->toString().c_str());
     var_long = 123132132;
     ASSERT_STREQ("var_export=123132132", var_export->toString().c_str());
-    var_export->SetValue_(Object::CreateValue(59875, ObjType::None));
+    var_export->SetValue_(Obj::CreateValue(59875, ObjType::None));
     ASSERT_EQ(59875, var_long);
 
     list = ctx.Eval("$");
@@ -108,20 +108,20 @@ TEST(Eval, Assign) {
     ASSERT_EQ(func_export->getType(), ObjType::NativeFunc);
     ASSERT_STREQ("func_export=func_export(arg1:Long, arg2:Char=100):Long{}", func_export->toString().c_str());
 
-    ObjPtr result = func_export->Call(nullptr, Object::Arg(200), Object::Arg(10));
+    ObjPtr result = func_export->Call(nullptr, Obj::Arg(200), Obj::Arg(10));
     ASSERT_TRUE(result);
     ASSERT_EQ(210, result->GetValueAsInteger());
 
-    result = func_export->Call(nullptr, Object::Arg(10), Object::Arg(10));
+    result = func_export->Call(nullptr, Obj::Arg(10), Obj::Arg(10));
     ASSERT_TRUE(result);
     ASSERT_EQ(20, result->GetValueAsInteger());
 
-    result = func_export->Call(nullptr, Object::Arg(10));
+    result = func_export->Call(nullptr, Obj::Arg(10));
     ASSERT_TRUE(result);
     ASSERT_EQ(110, result->GetValueAsInteger());
 
     // Переполнение второго аргумента
-    ASSERT_THROW(func_export->Call(nullptr, Object::Arg(1000), Object::Arg(1000)), std::exception);
+    ASSERT_THROW(func_export->Call(nullptr, Obj::Arg(1000), Obj::Arg(1000)), std::exception);
 
     list = ctx.Eval("$");
     ASSERT_STREQ("$=('var_str', 'var_num', 'var_export', 'func_export',)", list->toString().c_str());
@@ -139,7 +139,7 @@ TEST(Eval, Assign) {
     ASSERT_EQ(func_eval->getType(), ObjType::EVAL_FUNCTION) << toString(func_eval->getType());
     ASSERT_STREQ("func_eval=func_eval(arg1, arg2):={$;}", func_eval->toString().c_str());
 
-    ObjPtr result_eval = func_eval->Call(&ctx, Object::Arg(200), Object::Arg(10));
+    ObjPtr result_eval = func_eval->Call(&ctx, Obj::Arg(200), Obj::Arg(10));
     ASSERT_TRUE(result_eval);
     ASSERT_STREQ("$=('$0', 'arg1', 'arg2', 'var_str', 'var_export', 'func_eval',)", result_eval->toString().c_str());
 
@@ -220,13 +220,13 @@ TEST(Eval, Tensor) {
 
     Context ctx(RunTime::Init());
 
-    ObjPtr tensor = ctx.Eval(":Tensor(1)"); //: Tensor
+    ObjPtr tensor = ctx.Eval(":Tensor(1)");
     ASSERT_TRUE(tensor);
-    ASSERT_EQ(ObjType::None, tensor->m_var_type_fixed) << toString(tensor->m_var_type_fixed);
+    ASSERT_EQ(ObjType::Tensor, tensor->m_var_type_fixed) << toString(tensor->m_var_type_fixed);
     ASSERT_EQ(ObjType::Bool, tensor->getType()) << toString(tensor->m_var_type_current);
-    ASSERT_EQ(1, tensor->size());
+    ASSERT_EQ(0, tensor->size());
 
-    ASSERT_STREQ("[1,]:Bool", tensor->GetValueAsString().c_str()) << tensor->GetValueAsString().c_str();
+    ASSERT_STREQ("1", tensor->GetValueAsString().c_str()) << tensor->GetValueAsString().c_str();
 
     tensor = ctx.Eval("(1,2,3,)");
     ASSERT_TRUE(tensor);
@@ -255,13 +255,13 @@ TEST(Eval, Tensor) {
     tt = ctx.Eval(":Int[2,3]((1,2,3,4,5,6,))");
     ASSERT_TRUE(tt);
 
-    ASSERT_EQ(2, tt->m_value.dim());
-    ASSERT_EQ(2, tt->m_value.size(0));
-    ASSERT_EQ(3, tt->m_value.size(1));
+    EXPECT_EQ(2, tt->m_value.dim());
+    EXPECT_EQ(2, tt->m_value.size(0));
+    EXPECT_EQ(3, tt->m_value.size(1));
 
     ASSERT_STREQ("[\n  [1, 2, 3,], [4, 5, 6,],\n]:Int", tt->GetValueAsString().c_str());
 
-    ObjPtr str = ctx.Eval(":StrChar('first second')");
+    ObjPtr str = ctx.Eval(":Dictionary('first second')");
     ASSERT_TRUE(str);
     ASSERT_STREQ("(102, 105, 114, 115, 116, 32, 115, 101, 99, 111, 110, 100,)", str->GetValueAsString().c_str());
 
@@ -283,7 +283,7 @@ TEST(Eval, Tensor) {
 
     tt = ctx.Eval(":Tensor(99)");
     ASSERT_TRUE(tt);
-    ASSERT_STREQ("[99,]:Char", tt->GetValueAsString().c_str());
+    ASSERT_STREQ("99", tt->GetValueAsString().c_str());
 
     tt = ctx.Eval(":Double[10,2](0, ... )");
     ASSERT_TRUE(tt);
@@ -293,9 +293,13 @@ TEST(Eval, Tensor) {
 
     ObjPtr rand = ctx.Eval("rand := @import('rand():Int')");
 
-    tt = ctx.Eval(":Int[3,2]( rand(), ... )");
+    // Может быть раскрытие словаря, который возвращает вызов функции
+    // и может быть многократный вызов одной и той функции
+    // :Int[3,2]( ... rand() ... )
+    tt = ctx.Eval(":Int[3,2]( ... rand() ... )");
     ASSERT_TRUE(tt);
-    ASSERT_TRUE(50 < tt->GetValueAsString().size()) << tt->GetValueAsString();
+    std::string rand_str = tt->GetValueAsString();
+    ASSERT_TRUE(50 < tt->GetValueAsString().size()) << rand_str;
 
     tt = ctx.Eval(":Int[5,2]( 0..10 )");
     ASSERT_TRUE(tt);
@@ -385,7 +389,7 @@ TEST(Eval, Types) {
     Context::Reset();
     Context ctx(RunTime::Init());
 
-    ASSERT_EQ(36, ctx.m_types.size());
+    ASSERT_EQ(42, ctx.m_types.size());
 
     std::vector<std::wstring> types = ctx.SelectPredict(":");
     ASSERT_EQ(2, types.size());
@@ -457,17 +461,17 @@ TEST(Eval, Types) {
             "import('fputs(s:StrChar, stream:File):Int')");
     ASSERT_TRUE(fputs);
 
-    ObjPtr F = fopen->Call(&ctx, Object::Arg("temp/ffile.temp"), Object::Arg("w+"));
+    ObjPtr F = fopen->Call(&ctx, Obj::Arg("temp/ffile.temp"), Obj::Arg("w+"));
     ASSERT_TRUE(F);
-    ASSERT_TRUE(fputs->Call(&ctx, Object::Arg("test fopen()\ntest fputs()\n"), Object::Arg(F)));
+    ASSERT_TRUE(fputs->Call(&ctx, Obj::Arg("test fopen()\ntest fputs()\n"), Obj::Arg(F)));
 
     auto t = std::time(nullptr);
     auto tm = *std::localtime(&t);
     std::ostringstream oss;
     oss << std::put_time(&tm, "%d-%m-%Y %H-%M-%S");
-    ASSERT_TRUE(fprintf->Call(&ctx, Object::Arg(F), Object::Arg("%s"), Object::Arg(oss.str())));
+    ASSERT_TRUE(fprintf->Call(&ctx, Obj::Arg(F), Obj::Arg("%s"), Obj::Arg(oss.str())));
 
-    ASSERT_TRUE(fclose->Call(&ctx, Object::Arg(F)));
+    ASSERT_TRUE(fclose->Call(&ctx, Obj::Arg(F)));
 
     ObjPtr F2 = ctx.Eval("F2 ::= fopen2('temp/ffile_eval.temp','w+')");
     ASSERT_TRUE(F2);
@@ -1003,7 +1007,7 @@ protected:
     OpEvalTest() : m_ctx(RunTime::Init()) {
     }
 
-    const char *Test(std::string eval, Object &vars) {
+    const char *Test(std::string eval, Obj &vars) {
         eval += ";";
         m_result = m_ctx.Eval(eval, &vars);
         if(m_result) {
@@ -1017,7 +1021,7 @@ protected:
     }
 
     const char *Test(const char *eval) {
-        Object vars;
+        Obj vars;
 
         return Test(eval, vars);
     }
@@ -1067,7 +1071,7 @@ TEST_F(OpEvalTest, Ops) {
     ASSERT_STREQ("$=('var1',)", Test("$"));
     ASSERT_STREQ("100", Test("var1"));
 
-    Object vars(Object::Arg(var1, "var1"));
+    Obj vars(Obj::Arg(var1, "var1"));
 
     ASSERT_THROW(Test("$var1"), std::out_of_range);
     ASSERT_NO_THROW(Test("$var1", vars));
@@ -1081,7 +1085,7 @@ TEST_F(OpEvalTest, Ops) {
 
     ASSERT_THROW(Test("$var2"), std::out_of_range);
     ASSERT_THROW(Test("$var2", vars), std::out_of_range);
-    vars.push_back(Object::Arg(var2, "var2"));
+    vars.push_back(Obj::Arg(var2, "var2"));
 
     ASSERT_NO_THROW(Test("$var2", vars));
     ASSERT_STREQ("20", Test("$var2", vars));
