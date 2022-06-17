@@ -282,6 +282,10 @@ TEST_F(Lexer, CodeSource) {
     ASSERT_EQ(1, Parse("%{ % %}"));
     ASSERT_EQ(1, Count(TermID::SOURCE));
     ASSERT_STREQ(" % ", tokens[0]->getText().c_str()) << tokens[0]->getText().c_str();
+
+    ASSERT_EQ(1, Parse("%{ % }%"));
+    ASSERT_EQ(1, Count(TermID::SOURCE));
+    ASSERT_STREQ(" % ", tokens[0]->getText().c_str()) << tokens[0]->getText().c_str();
 }
 
 TEST_F(Lexer, Assign) {

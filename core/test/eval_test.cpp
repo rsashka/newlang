@@ -322,25 +322,6 @@ TEST(Eval, Tensor) {
     ASSERT_STREQ("[0, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9,]:Double", tt->GetValueAsString().c_str());
 }
 
-TEST(Eval, DISABLED_Exception) {
-
-    Context ctx(RunTime::Init());
-
-    ObjPtr rand = ctx.Eval("rand := @import('rand():Int')");
-    // --
-    // -- "Ошибка" --
-    // -- ;# "Ошибка" --
-
-    ObjPtr tt = ctx.Eval("[[ rand(), ... ]]: Int[3,2]");
-    ASSERT_TRUE(tt);
-    ASSERT_TRUE(50 < tt->GetValueAsString().size()) << tt->GetValueAsString();
-
-    ASSERT_THROW(, parser_exception);
-    ASSERT_NO_THROW(
-
-            );
-}
-
 TEST(Eval, FuncSimple) {
 
     Context ctx(RunTime::Init());
