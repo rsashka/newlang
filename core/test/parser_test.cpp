@@ -392,15 +392,15 @@ TEST_F(ParserTest, ScalarType) {
     ASSERT_STREQ("-0.0:Double", ast->toString().c_str());
     ASSERT_STREQ(":Double", ast->m_type_name.c_str());
 
-    ASSERT_THROW(Parse("2:Bool;"), parser_exception);
-    ASSERT_THROW(Parse("-1:Bool;"), parser_exception);
+    ASSERT_THROW(Parse("2:Bool;"), Interruption);
+    ASSERT_THROW(Parse("-1:Bool;"), Interruption);
     //        ASSERT_THROW(Parse("-1:Char"), parser_exception);
-    ASSERT_THROW(Parse("300:Char;"), parser_exception);
-    ASSERT_THROW(Parse("100000:Short;"), parser_exception);
-    ASSERT_THROW(Parse("0.0:Bool;"), parser_exception);
-    ASSERT_THROW(Parse("0.0:Char;"), parser_exception);
-    ASSERT_THROW(Parse("0.0:Int;"), parser_exception);
-    ASSERT_THROW(Parse("0.0:Long;"), parser_exception);
+    ASSERT_THROW(Parse("300:Char;"), Interruption);
+    ASSERT_THROW(Parse("100000:Short;"), Interruption);
+    ASSERT_THROW(Parse("0.0:Bool;"), Interruption);
+    ASSERT_THROW(Parse("0.0:Char;"), Interruption);
+    ASSERT_THROW(Parse("0.0:Int;"), Interruption);
+    ASSERT_THROW(Parse("0.0:Long;"), Interruption);
 }
 
 TEST_F(ParserTest, TensorType) {
@@ -640,10 +640,10 @@ TEST_F(ParserTest, ArgMixedFail) {
     //            Parse("term(arg2=arg3, arg1);"), std::runtime_error
     //            );
     EXPECT_THROW(
-            Parse("term(arg1,arg2=arg3,,);"), std::runtime_error
+            Parse("term(arg1,arg2=arg3,,);"), Interruption
             );
     EXPECT_THROW(
-            Parse("term(,);"), std::runtime_error
+            Parse("term(,);"), Interruption
             );
 
 }
@@ -698,7 +698,7 @@ TEST_F(ParserTest, Iterator) {
     //    ASSERT_FALSE(Parse("term2(arg=value)?(iter_arg=100)?"));
     //    ASSERT_FALSE(Parse("term2(arg=value)??"));
     EXPECT_THROW(
-            Parse("term2(arg=value)!;?"), std::runtime_error
+            Parse("term2(arg=value)!;?"), Interruption
             );
 
 
@@ -1212,12 +1212,12 @@ TEST_F(ParserTest, FunctionEmpty2) {
 }
 
 TEST_F(ParserTest, FunctionArgsFail) {
-    ASSERT_THROW(Parse("мин(... ...) := {$0:=0;};"), parser_exception);
+    ASSERT_THROW(Parse("мин(... ...) := {$0:=0;};"), Interruption);
 //    ASSERT_THROW(Parse("мин(..., arg) := {$0:=0;};"), parser_exception);
-    ASSERT_THROW(Parse("мин(arg ...) := {$0:=0;};"), parser_exception);
-    ASSERT_THROW(Parse("мин(arg=1 ..., arg) := {$0:=0;};"), parser_exception);
-    ASSERT_THROW(Parse("мин(arg=1, arg ...) := {$0:=0;};"), parser_exception);
-    ASSERT_THROW(Parse("мин(arg=1 ...) := {$0:=0;};"), parser_exception);
+    ASSERT_THROW(Parse("мин(arg ...) := {$0:=0;};"), Interruption);
+    ASSERT_THROW(Parse("мин(arg=1 ..., arg) := {$0:=0;};"), Interruption);
+    ASSERT_THROW(Parse("мин(arg=1, arg ...) := {$0:=0;};"), Interruption);
+    ASSERT_THROW(Parse("мин(arg=1 ...) := {$0:=0;};"), Interruption);
 }
 
 TEST_F(ParserTest, ArrayAdd7) {

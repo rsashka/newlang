@@ -350,7 +350,7 @@ public:
                 //                LOG_INFO("%s", m_output.c_str());
             }
 
-        } catch (parser_exception &err) {
+        } catch (Interruption &err) {
             // Вывод информации об ошибке синтаксиса при парсинге без информации о точке вызова макроса LOG_INFO
             utils::Logger::LogLevelType save_level = utils::Logger::Instance()->GetLogLevel();
             utils::Logger::Instance()->SetLogLevel(LOG_LEVEL_INFO);

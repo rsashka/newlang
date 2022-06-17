@@ -1092,10 +1092,11 @@ block:  '{'  '}'
                 $$ = $2; 
                 $$->ConvertToBlock(TermID::BLOCK);
             }
-        | TRY_BEGIN  TRY_END
+        | TRY_BEGIN  TRY_END  type_class
             {
                 $$ = $1; 
                 $$->ConvertToBlock(TermID::BLOCK_TRY);
+                $$->SetType($type_class);
             }
         | TRY_BEGIN  sequence  TRY_END
             {

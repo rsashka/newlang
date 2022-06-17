@@ -45,7 +45,7 @@ std::map<std::string, Context::FuncItem> Context::m_funcs;
 Context::Context(RuntimePtr global) {
     m_runtime = global;
 
-    if(Context::m_funcs.empty()) {
+    if (Context::m_funcs.empty()) {
         Context::m_funcs["min"] = CreateBuiltin("min(arg, ...)", (void *) &min, ObjType::TRANSPARENT);
         Context::m_funcs["мин"] = Context::m_funcs["min"];
 
@@ -68,7 +68,7 @@ Context::Context(RuntimePtr global) {
 
     }
 
-    if(Context::m_types.empty()) {
+    if (Context::m_types.empty()) {
 #define REGISTER_TYPES(name)                                                                                     \
     ASSERT(Context::m_types.find(#name) == Context::m_types.end());                                                    \
     Context::m_types[#name] = CreateSimpleType(ObjType::name);
@@ -85,23 +85,35 @@ Context::Context(RuntimePtr global) {
 
         VERIFY(CreateTypeName(":Interruption", ":Class"));
 
-        VERIFY(CreateTypeName(":Break", ":Interruption"));
-        VERIFY(CreateTypeName(":Error", ":Interruption"));
+        // func() := {--100--}; # Никогда не вернет результат, т.к. не перехватывает прерывания
+        // func() := {{--100--}}; # Перехватывает прерывание и возвращает объект  Interruption или производного класса
+        // func() := {{--100--}}:Integer; # Перехватывает Interruption только с данными Integer и возвращает данные, а не объект прерывания
+        // func():Integer := {{--100--}}; # Аналогична предыдущей записи как и func():Integer := {{--100--}}:Integer; 
 
-        VERIFY(CreateTypeName(":Parser", ":Error"));
-        VERIFY(CreateTypeName(":RunTime", ":Error"));
-        VERIFY(CreateTypeName(":Signal", ":Error"));
 
-        VERIFY(CreateTypeName(":SIGABRT", ":Signal"));
-        VERIFY(CreateTypeName(":SIGCHLD", ":Signal"));
-        VERIFY(CreateTypeName(":SIGINT", ":Signal"));
-        VERIFY(CreateTypeName(":SIGQUIT", ":Signal"));
-        VERIFY(CreateTypeName(":SIGUSR1", ":Signal"));
-        VERIFY(CreateTypeName(":SIGUSR2", ":Signal"));
-        VERIFY(CreateTypeName(":SIGTSTP", ":Signal"));
+        // Вызывается прерывание Interruption с числом в виде данных
+        // Interruption ловится только двойным блоком
+
+        //        VERIFY(CreateTypeName(":Interruption", ":Type")); // Interruption - любое прерывание выполнения кода (реализуется исключением)
+        //  Если в прерывании указаны данные, то создается Interruption с этими данными и предназначается для возвращаемого значения
+        // -- "Строка" --; -- 1000 --; -- $var --; --_--; # вернуть None, тоже что и --;
+        //        VERIFY(CreateTypeName(":Break", ":Interruption")); // -- :Break --; # Вернуть тип
+        VERIFY(CreateTypeName(Interruption::Error, Interruption::ClassName)); // -- :Error("Описание ошибки") --; # Вернуть тип с данными
+
+        VERIFY(CreateTypeName(Interruption::Parser, Interruption::Error));
+        VERIFY(CreateTypeName(Interruption::RunTime, Interruption::Error));
+        VERIFY(CreateTypeName(Interruption::Signal, Interruption::Error));
+
+        VERIFY(CreateTypeName(":SIGABRT", Interruption::Signal));
+        VERIFY(CreateTypeName(":SIGCHLD", Interruption::Signal));
+        VERIFY(CreateTypeName(":SIGINT", Interruption::Signal));
+        VERIFY(CreateTypeName(":SIGQUIT", Interruption::Signal));
+        VERIFY(CreateTypeName(":SIGUSR1", Interruption::Signal));
+        VERIFY(CreateTypeName(":SIGUSR2", Interruption::Signal));
+        VERIFY(CreateTypeName(":SIGTSTP", Interruption::Signal));
     }
 
-    if(Context::m_builtin_calls.empty()) {
+    if (Context::m_builtin_calls.empty()) {
 #define REGISTER_FUNC(name, func)                                                                                      \
     ASSERT(Context::m_builtin_calls.find(name) == Context::m_builtin_calls.end());                                     \
     Context::m_builtin_calls[name] = &Context::func_##func;
@@ -111,7 +123,7 @@ Context::Context(RuntimePtr global) {
 #undef REGISTER_FUNC
     }
 
-    if(Context::m_ops.empty()) {
+    if (Context::m_ops.empty()) {
 #define REGISTER_OP(op, func)                                                                                          \
     ASSERT(Context::m_ops.find(op) == Context::m_ops.end());                                                           \
     Context::m_ops[op] = &Context::op_##func;
@@ -153,12 +165,12 @@ ObjPtr Context::CreateBuiltin(const char *prototype, void *func, ObjType type) {
 
 inline ObjType newlang::typeFromString(const std::string type, Context *ctx, bool *has_error) {
 
-    if(ctx) {
+    if (ctx) {
         return ctx->BaseTypeFromString(type, has_error);
     }
 
     std::string search;
-    if(isType(type)) {
+    if (isType(type)) {
         search = type.substr(1);
     } else {
         search = type;
@@ -169,16 +181,16 @@ inline ObjType newlang::typeFromString(const std::string type, Context *ctx, boo
         return ObjType:: name;                                                                                          \
     }
 
-    if(type.compare("") == 0) {
+    if (type.compare("") == 0) {
         return ObjType::None;
-    } else if(type.compare("_") == 0) {
+    } else if (type.compare("_") == 0) {
         return ObjType::None;
     }
     NL_BUILTIN_CAST_TYPE(DEFINE_CASE)
 
 #undef DEFINE_CASE
 
-    if(has_error) {
+    if (has_error) {
         *has_error = true;
 
         return ObjType::None;
@@ -187,7 +199,7 @@ inline ObjType newlang::typeFromString(const std::string type, Context *ctx, boo
 }
 
 ObjPtr Context::RegisterObject(ObjPtr var) {
-    if(!var || var->getName().empty()) {
+    if (!var || var->getName().empty()) {
         LOG_RUNTIME("Empty object name %s", var ? var->toString().c_str() : "");
     }
     ASSERT(var->m_namespace.empty());
@@ -197,11 +209,11 @@ ObjPtr Context::RegisterObject(ObjPtr var) {
     //    }
     //    full_name += var->getName();
 
-    if(isGlobal(var->getName())) {
+    if (isGlobal(var->getName())) {
         var->getName() = var->getName().substr(1);
         m_global_terms.push_back(var, var->getName());
     }
-    if(isLocal(var->getName())) {
+    if (isLocal(var->getName())) {
         var->getName() = var->getName().substr(1);
     }
     push_back(var, var->getName());
@@ -216,8 +228,7 @@ ObjPtr Context::RegisterObject(ObjPtr var) {
 }
 
 void newlang::NewLangSignalHandler(int signal) {
-
-    throw abort_exception("Signal SIGABRT received");
+    throw Interruption("Signal SIGABRT received", Interruption::Abort);
 }
 
 //#include "StdCapture.h"
@@ -231,7 +242,7 @@ ObjPtr Context::Eval(Context *ctx, TermPtr term, Obj *args) {
     auto previous_handler = signal(SIGABRT, &NewLangSignalHandler);
     try {
 
-        switch(term->m_id) {
+        switch (term->m_id) {
             case TermID::END:
                 return eval_END(ctx, term, args);
 
@@ -246,11 +257,11 @@ ObjPtr Context::Eval(Context *ctx, TermPtr term, Obj *args) {
             default:
                 return eval_UNKNOWN(ctx, term, args);
         }
-    } catch (abort_exception &err) {
+    } catch (Interruption &err) {
 
         signal(SIGABRT, previous_handler);
         //        Capture.EndCapture();
-        NL_EVAL(term, "Exception eval '%s' (%s)", term->toString().c_str(), err.what());
+        NL_PARSER(term, "Exception eval '%s' (%s)", term->toString().c_str(), err.what());
     }
 }
 
@@ -468,48 +479,48 @@ ObjPtr Context::CREATE_OR_ASSIGN(Context *ctx, const TermPtr &term, Obj *local_v
     ASSERT(term->Left());
 
     auto found = ctx->select(term->Left()->m_text);
-    if(!term->Right() && mode == CreateMode::ASSIGN_ONLY) {
-        if(!found.complete()) {
+    if (!term->Right() && mode == CreateMode::ASSIGN_ONLY) {
+        if (!found.complete()) {
             ctx->erase(found);
             return Obj::Yes();
         }
         return Obj::No();
     }
 
-    if(term->Left()->Right() || term->Right()->getTermID() == TermID::ELLIPSIS) {
+    if (term->Left()->Right() || term->Right()->getTermID() == TermID::ELLIPSIS) {
         return ExpandAssign(ctx, term->Left(), term->Right(), local_vars, mode);
     }
     ObjPtr rval = Eval(ctx, term->Right(), local_vars);
-    if(!rval) {
+    if (!rval) {
         NL_PARSER(term->Right(), "Object is missing or expression is not evaluated!");
     }
 
-    if(isType(term->Left()->m_text)) {
+    if (isType(term->Left()->m_text)) {
         return ctx->CreateTypeName(term->Left(), rval);
     }
 
     ObjPtr lval = nullptr;
-    if(found.complete()) {
-        if(mode == CreateMode::ASSIGN_ONLY) {
+    if (found.complete()) {
+        if (mode == CreateMode::ASSIGN_ONLY) {
             NL_PARSER(term->Left(), "Object '%s' not found!", term->Left()->m_text.c_str());
         }
     } else {
         lval = found.data().second.lock();
     }
 
-    if(lval && mode == CreateMode::CREATE_ONLY) {
+    if (lval && mode == CreateMode::CREATE_ONLY) {
         NL_PARSER(term->Left(), "Object '%s' already exist!", term->Left()->m_text.c_str());
     }
 
-    if(!lval) {
+    if (!lval) {
         lval = CreateLVal(ctx, term->Left(), local_vars);
-        if(!lval) {
+        if (!lval) {
             NL_PARSER(term->Left(), "Fail create lvalue object!");
         }
         ctx->RegisterObject(lval);
     }
 
-    if(lval->m_var_type_current == ObjType::FUNCTION && (rval->m_var_type_current == ObjType::BLOCK || rval->m_var_type_current == ObjType::BLOCK_TRY)) {
+    if (lval->m_var_type_current == ObjType::FUNCTION && (rval->m_var_type_current == ObjType::BLOCK || rval->m_var_type_current == ObjType::BLOCK_TRY)) {
         lval->m_var_type_current = ObjType::EVAL_FUNCTION;
     }
 
@@ -542,8 +553,8 @@ ObjPtr Context::eval_FUNCTION(Context *ctx, const TermPtr &term, Obj *args) {
     ASSERT(ctx);
 
     auto found = ctx->select(term->Left()->m_text);
-    if(!term->Right()) {
-        if(!found.complete()) {
+    if (!term->Right()) {
+        if (!found.complete()) {
             ctx->erase(found);
             return Obj::Yes();
         }
@@ -551,22 +562,22 @@ ObjPtr Context::eval_FUNCTION(Context *ctx, const TermPtr &term, Obj *args) {
     }
 
     ObjPtr lval = CreateLVal(ctx, term->Left(), args);
-    if(!lval) {
+    if (!lval) {
         NL_PARSER(term->Left(), "Fail create lvalue object!");
     }
 
-    if(term->Right()->getTermID() == TermID::CALL) {
+    if (term->Right()->getTermID() == TermID::CALL) {
         lval->SetValue_(CreateRVal(ctx, term->Right()));
     } else {
-        if(term->getTermID() == TermID::FUNCTION) {
+        if (term->getTermID() == TermID::FUNCTION) {
             lval->m_var_type_current = ObjType::EVAL_FUNCTION;
-        } else if(term->getTermID() == TermID::TRANSPARENT) {
+        } else if (term->getTermID() == TermID::TRANSPARENT) {
             lval->m_var_type_current = ObjType::EVAL_TRANSP;
-        } else if(term->getTermID() == TermID::SIMPLE_AND) {
+        } else if (term->getTermID() == TermID::SIMPLE_AND) {
             lval->m_var_type_current = ObjType::EVAL_AND;
-        } else if(term->getTermID() == TermID::SIMPLE_OR) {
+        } else if (term->getTermID() == TermID::SIMPLE_OR) {
             lval->m_var_type_current = ObjType::EVAL_OR;
-        } else if(term->getTermID() == TermID::SIMPLE_XOR) {
+        } else if (term->getTermID() == TermID::SIMPLE_XOR) {
             lval->m_var_type_current = ObjType::EVAL_XOR;
         } else {
 
@@ -702,7 +713,7 @@ ObjPtr Context::eval_SOURCE(Context *ctx, const TermPtr &term, Obj *args) {
  */
 
 ObjPtr Context::eval_OPERATOR(Context *ctx, const TermPtr &term, Obj *args) {
-    if(Context::m_ops.find(term->m_text) == Context::m_ops.end()) {
+    if (Context::m_ops.find(term->m_text) == Context::m_ops.end()) {
 
         LOG_RUNTIME("Eval op '%s' not exist!", term->m_text.c_str());
     }
@@ -838,7 +849,7 @@ ObjPtr Context::op_BIT_XOR_(Context *ctx, const TermPtr &term, Obj *args) {
 ObjPtr Context::op_PLUS(Context *ctx, const TermPtr &term, Obj *args) {
     ASSERT(term);
     ASSERT(term->Right());
-    if(term->Left()) {
+    if (term->Left()) {
 
         return Eval(ctx, term->Left(), args)->operator+(Eval(ctx, term->Right(), args));
     }
@@ -848,7 +859,7 @@ ObjPtr Context::op_PLUS(Context *ctx, const TermPtr &term, Obj *args) {
 ObjPtr Context::op_MINUS(Context *ctx, const TermPtr &term, Obj *args) {
     ASSERT(term);
     ASSERT(term->Right());
-    if(term->Left()) {
+    if (term->Left()) {
 
         return Eval(ctx, term->Left(), args)->operator-(Eval(ctx, term->Right(), args));
     }
@@ -1052,7 +1063,7 @@ ObjPtr Context::op_SPACESHIP(Context *ctx, const TermPtr &term, Obj *args) {
 ObjPtr Context::CallBlock(Context *ctx, const TermPtr &block, Obj *local_vars) {
     ObjPtr result = Obj::CreateNone();
     ASSERT(block);
-    if(!block->m_block.empty()) {
+    if (!block->m_block.empty()) {
         for (size_t i = 0; i < block->m_block.size(); i++) {
             result = Eval(ctx, block->m_block[i], local_vars);
         }
@@ -1082,17 +1093,17 @@ ObjPtr Context::CallBlockTry(Context *ctx, const TermPtr &block, Obj *local_vars
 
 ObjPtr Context::EvalBlockAND(Context *ctx, const TermPtr &block, Obj *local_vars) {
     ObjPtr result = nullptr;
-    if(block->GetTokenID() == TermID::BLOCK) {
+    if (block->GetTokenID() == TermID::BLOCK) {
         for (size_t i = 0; i < block->m_block.size(); i++) {
             result = Eval(ctx, block->m_block[i], local_vars);
-            if(!result || !result->GetValueAsBoolean()) {
+            if (!result || !result->GetValueAsBoolean()) {
                 return Obj::No();
             }
         }
     } else {
         result = Eval(ctx, block, local_vars);
     }
-    if(!result || !result->GetValueAsBoolean()) {
+    if (!result || !result->GetValueAsBoolean()) {
 
         return Obj::No();
     }
@@ -1101,17 +1112,17 @@ ObjPtr Context::EvalBlockAND(Context *ctx, const TermPtr &block, Obj *local_vars
 
 ObjPtr Context::EvalBlockOR(Context *ctx, const TermPtr &block, Obj *local_vars) {
     ObjPtr result = nullptr;
-    if(block->GetTokenID() == TermID::BLOCK) {
+    if (block->GetTokenID() == TermID::BLOCK) {
         for (size_t i = 0; i < block->m_block.size(); i++) {
             result = Eval(ctx, block->m_block[i], local_vars);
-            if(result && result->GetValueAsBoolean()) {
+            if (result && result->GetValueAsBoolean()) {
                 return Obj::Yes();
             }
         }
     } else {
         result = Eval(ctx, block, local_vars);
     }
-    if(result && result->GetValueAsBoolean()) {
+    if (result && result->GetValueAsBoolean()) {
 
         return Obj::Yes();
     }
@@ -1121,16 +1132,16 @@ ObjPtr Context::EvalBlockOR(Context *ctx, const TermPtr &block, Obj *local_vars)
 ObjPtr Context::EvalBlockXOR(Context *ctx, const TermPtr &block, Obj *local_vars) {
     ObjPtr result;
     size_t xor_counter = 0;
-    if(block->GetTokenID() == TermID::BLOCK) {
+    if (block->GetTokenID() == TermID::BLOCK) {
         for (size_t i = 0; i < block->m_block.size(); i++) {
             result = Eval(ctx, block->m_block[i], local_vars);
-            if(result && result->GetValueAsBoolean()) {
+            if (result && result->GetValueAsBoolean()) {
                 xor_counter++;
             }
         }
     } else {
         result = Eval(ctx, block, local_vars);
-        if(result && result->GetValueAsBoolean()) {
+        if (result && result->GetValueAsBoolean()) {
 
             xor_counter++;
         }
@@ -1165,13 +1176,13 @@ ObjPtr Context::CreateNative(TermPtr proto, const char *module, bool lazzy, cons
 
     ObjPtr result;
     ObjType type;
-    if(proto->GetTokenID() == TermID::TERM) {
-        if(proto->m_type_name.empty()) {
+    if (proto->GetTokenID() == TermID::TERM) {
+        if (proto->m_type_name.empty()) {
             LOG_RUNTIME("Cannot create native variable without specifying the type!");
         }
 
         type = typeFromString(proto->m_type_name, this);
-        switch(type) {
+        switch (type) {
             case ObjType::Bool:
                 //            case ObjType::Byte:
             case ObjType::Char:
@@ -1185,7 +1196,7 @@ ObjPtr Context::CreateNative(TermPtr proto, const char *module, bool lazzy, cons
             default:
                 LOG_RUNTIME("Creating a variable with type '%s' is not supported!", proto->m_type_name.c_str());
         }
-    } else if(proto->GetTokenID() == TermID::CALL) {
+    } else if (proto->GetTokenID() == TermID::CALL) {
         type = ObjType::NativeFunc;
     }
 
@@ -1195,20 +1206,20 @@ ObjPtr Context::CreateNative(TermPtr proto, const char *module, bool lazzy, cons
     *const_cast<TermPtr *> (&result->m_func_proto) = proto;
     result->m_func_abi = abi;
 
-    if(mangle_name) {
+    if (mangle_name) {
         result->m_func_mangle_name = mangle_name;
     }
-    if(module) {
+    if (module) {
         result->m_module_name = module;
     }
-    if(lazzy) {
+    if (lazzy) {
         result->m_func_ptr = nullptr;
     } else {
         result->m_func_ptr = m_runtime->GetProcAddress(
                 result->m_func_mangle_name.empty() ? proto->m_text.c_str() : result->m_func_mangle_name.c_str(), module);
-        if(result->is_function() || type == ObjType::Pointer) {
+        if (result->is_function() || type == ObjType::Pointer) {
             NL_CHECK(result->m_func_ptr, "Error getting address '%s' from '%s'!", proto->toString().c_str(), module);
-        } else if(result->m_func_ptr && result->is_tensor()) {
+        } else if (result->m_func_ptr && result->is_tensor()) {
             result->m_value = torch::from_blob(result->m_func_ptr, {
             }, toTorchType(type));
         } else {
@@ -1220,11 +1231,11 @@ ObjPtr Context::CreateNative(TermPtr proto, const char *module, bool lazzy, cons
 }
 
 void *RunTime::GetProcAddress(const char *name, const char *module) {
-    if(module && module[0]) {
-        if(m_modules.find(module) == m_modules.end()) {
+    if (module && module[0]) {
+        if (m_modules.find(module) == m_modules.end()) {
             LoadModule(module, false, nullptr);
         }
-        if(m_modules.find(module) == m_modules.end()) {
+        if (m_modules.find(module) == m_modules.end()) {
             LOG_WARNING("Fail load module '%s'!", module);
 
             return nullptr;
@@ -1236,9 +1247,9 @@ void *RunTime::GetProcAddress(const char *name, const char *module) {
 
 ObjPtr Context::FindSessionTerm(const char *name, bool current_only) {
     auto found = select(MakeName(name));
-    while(!found.complete()) {
+    while (!found.complete()) {
         ObjPtr obj = found.data().second.lock();
-        if(obj) {
+        if (obj) {
 
             return obj;
         }
@@ -1261,15 +1272,15 @@ ObjPtr Context::FindSessionTerm(const char *name, bool current_only) {
  */
 ObjPtr Context::FindTerm(const std::string name) {
     ObjPtr result = FindSessionTerm(name.c_str());
-    if(!result && isType(name)) {
+    if (!result && isType(name)) {
         return GetTypeFromString(name);
     }
 
-    if(!result) {
+    if (!result) {
         return GetObject(name.c_str());
     }
 
-    if(result || isLocalAny(name.c_str()) || isLocal(name)) {
+    if (result || isLocalAny(name.c_str()) || isLocal(name)) {
 
         return result;
     }
@@ -1284,7 +1295,7 @@ ObjPtr Context::GetTerm(const char *name, bool is_ref) {
 std::string newlang::GetFileExt(const char *str) {
     std::string filename(str);
     std::string::size_type idx = filename.rfind('.');
-    if(idx != std::string::npos) {
+    if (idx != std::string::npos) {
 
         return filename.substr(idx);
     }
@@ -1294,7 +1305,7 @@ std::string newlang::GetFileExt(const char *str) {
 std::string newlang::AddDefaultFileExt(const char *str, const char *ext_default) {
     std::string filename(str);
     std::string file_ext = GetFileExt(str);
-    if(file_ext.empty() && !filename.empty() && filename.compare(".") != 0) {
+    if (file_ext.empty() && !filename.empty() && filename.compare(".") != 0) {
 
         filename.append(ext_default);
     }
@@ -1304,11 +1315,11 @@ std::string newlang::AddDefaultFileExt(const char *str, const char *ext_default)
 std::string newlang::ReplaceFileExt(const char *str, const char *ext_old, const char *ext_new) {
     std::string filename(str);
     std::string file_ext = GetFileExt(str);
-    if(file_ext.compare(ext_old) == 0) {
+    if (file_ext.compare(ext_old) == 0) {
         filename = filename.substr(0, filename.length() - file_ext.length());
     }
     file_ext = GetFileExt(filename.c_str());
-    if(file_ext.compare(".") != 0 && file_ext.compare(ext_new) != 0 && !filename.empty() &&
+    if (file_ext.compare(".") != 0 && file_ext.compare(ext_new) != 0 && !filename.empty() &&
             filename.compare(".") != 0) {
 
         filename.append(ext_new);
@@ -1331,7 +1342,7 @@ ObjPtr Context::CreateLVal(Context *ctx, TermPtr term, Obj *args) {
     ASSERT(term);
     ASSERT(!term->m_text.empty());
 
-    if(!ctx->select(term->m_text).complete()) {
+    if (!ctx->select(term->m_text).complete()) {
         // Объект должен отсутствовать
         NL_PARSER(term, "Object '%s' already exists!", term->m_text.c_str());
     }
@@ -1343,25 +1354,25 @@ ObjPtr Context::CreateLVal(Context *ctx, TermPtr term, Obj *args) {
     *const_cast<TermPtr *> (&result->m_func_proto) = term;
 
     TermPtr type = term->GetType();
-    if(term->IsFunction() || term->getTermID() == TermID::CALL) {
+    if (term->IsFunction() || term->getTermID() == TermID::CALL) {
 
         result->m_var_type_current = ObjType::FUNCTION;
         result->m_var_type_fixed = result->m_var_type_current;
         *const_cast<TermPtr *> (&result->m_func_proto) = term;
         result->m_var_is_init = false;
-    } else if(type) {
+    } else if (type) {
         result->m_var_type_current = typeFromString(type->getText().c_str(), ctx);
         result->m_var_type_fixed = result->m_var_type_current;
-        if(result->is_tensor()) {
+        if (result->is_tensor()) {
             std::vector<int64_t> dims;
-            if(type->m_dims.size()) {
+            if (type->m_dims.size()) {
                 for (size_t i = 0; i < type->m_dims.size(); i++) {
                     NL_CHECK(type->m_dims[i]->getName().empty(), "Dimension named not supported!");
                     ObjPtr temp = CreateRVal(ctx, type->m_dims[i]);
-                    if(!temp) {
+                    if (!temp) {
                         NL_PARSER(type, "Term not found!");
                     }
-                    if(!temp->is_integer()) {
+                    if (!temp->is_integer()) {
 
                         NL_PARSER(type, "Term type not integer!");
                     }
@@ -1387,7 +1398,7 @@ ObjPtr Context::CreateRVal(Context *ctx, const char *source, Obj *local_vars) {
 void Context::ItemTensorEval_(torch::Tensor &tensor, c10::IntArrayRef shape, std::vector<Index> &ind, const int64_t pos,
         ObjPtr &obj, ObjPtr &args) {
     ASSERT(pos < ind.size());
-    if(pos + 1 < ind.size()) {
+    if (pos + 1 < ind.size()) {
         for (ind[pos] = 0; ind[pos].integer() < shape[pos]; ind[pos] = ind[pos].integer() + 1) {
             ItemTensorEval_(tensor, shape, ind, pos + 1, obj, args);
         }
@@ -1398,7 +1409,7 @@ void Context::ItemTensorEval_(torch::Tensor &tensor, c10::IntArrayRef shape, std
 
         for (ind[pos] = 0; ind[pos].integer() < shape[pos]; ind[pos] = ind[pos].integer() + 1) {
 
-            switch(type) {
+            switch (type) {
                 case ObjType::Char:
                 case ObjType::Short:
                 case ObjType::Int:
@@ -1420,7 +1431,7 @@ void Context::ItemTensorEval_(torch::Tensor &tensor, c10::IntArrayRef shape, std
 }
 
 void Context::ItemTensorEval(torch::Tensor &self, ObjPtr obj, ObjPtr args) {
-    if(self.dim() == 0) {
+    if (self.dim() == 0) {
 
         signed char *ptr_char = nullptr;
         short *ptr_short = nullptr;
@@ -1429,7 +1440,7 @@ void Context::ItemTensorEval(torch::Tensor &self, ObjPtr obj, ObjPtr args) {
         float *ptr_float = nullptr;
         double *ptr_double = nullptr;
 
-        switch(fromTorchType(self.scalar_type())) {
+        switch (fromTorchType(self.scalar_type())) {
             case ObjType::Char:
                 ptr_char = self.data_ptr<signed char>();
                 ASSERT(ptr_char);
@@ -1476,12 +1487,12 @@ std::vector<int64_t> GetTensorShape(Context *ctx, TermPtr type, Obj *local_vars)
     std::vector<int64_t> result(type->size());
     for (int i = 0; i < type->size(); i++) {
         ObjPtr temp = ctx->CreateRVal(ctx, type->at(i).second, local_vars);
-        if(temp->is_integer() || temp->is_bool_type()) {
+        if (temp->is_integer() || temp->is_bool_type()) {
             result[i] = temp->GetValueAsInteger();
         } else {
             NL_PARSER(type->at(i).second, "Measurement dimension can be an integer only!");
         }
-        if(result[i] <= 0) {
+        if (result[i] <= 0) {
 
             NL_PARSER(type->at(i).second, "Dimension size can be greater than zero!");
         }
@@ -1520,36 +1531,36 @@ std::vector<Index> Context::MakeIndex(Context *ctx, TermPtr term, Obj *local_var
 
     std::vector<Index> result;
 
-    if(!term->size()) {
+    if (!term->size()) {
         NL_PARSER(term, "Index not found!");
     }
     for (int i = 0; i < term->size(); i++) {
-        if(!term->name(i).empty() || (term->at(i).second && term->at(i).second->IsString())) {
+        if (!term->name(i).empty() || (term->at(i).second && term->at(i).second->IsString())) {
             NL_PARSER(term, "Named index not support '%d'!", i);
         }
-        if(!term->at(i).second) {
+        if (!term->at(i).second) {
             NL_PARSER(term, "Empty index '%d'!", i);
         }
 
-        if(term->at(i).second->getTermID() == TermID::ELLIPSIS) {
+        if (term->at(i).second->getTermID() == TermID::ELLIPSIS) {
             result.push_back(Index("..."));
         } else {
 
             ObjPtr temp = ctx->CreateRVal(ctx, term->at(i).second, local_vars);
 
-            if(temp->is_none_type()) {
+            if (temp->is_none_type()) {
 
                 result.push_back(Index(at::indexing::None));
-            } else if(temp->is_integer() || temp->is_bool_type()) {
+            } else if (temp->is_integer() || temp->is_bool_type()) {
 
-                if(temp->is_scalar()) {
+                if (temp->is_scalar()) {
                     result.push_back(Index(temp->GetValueAsInteger()));
-                } else if(temp->m_value.dim() == 1) {
+                } else if (temp->m_value.dim() == 1) {
                     result.push_back(Index(temp->m_value));
                 } else {
                     NL_PARSER(term->at(i).second, "Extra dimensions index not support '%d'!", i);
                 }
-            } else if(temp->is_range()) {
+            } else if (temp->is_range()) {
 
                 int64_t start = temp->at("start")->GetValueAsInteger();
                 int64_t stop = temp->at("stop")->GetValueAsInteger();
@@ -1567,7 +1578,7 @@ std::vector<Index> Context::MakeIndex(Context *ctx, TermPtr term, Obj *local_var
 
 ObjPtr Context::CreateRVal(Context *ctx, TermPtr term, Obj *local_vars) {
 
-    if(!term) {
+    if (!term) {
         ASSERT(term);
     }
     ASSERT(local_vars);
@@ -1590,13 +1601,13 @@ ObjPtr Context::CreateRVal(Context *ctx, TermPtr term, Obj *local_vars) {
     bool has_error;
     std::vector<int64_t> sizes;
     at::Scalar torch_scalar;
-    switch(term->getTermID()) {
+    switch (term->getTermID()) {
         case TermID::INTEGER:
             val_int = parseInteger(term->getText().c_str());
             NL_TYPECHECK(term, newlang::toString(typeFromLimit(val_int)),
                     term->m_type_name); // Соответстствует ли тип значению?
             result->m_var_type_current = typeFromLimit(val_int);
-            if(term->GetType()) {
+            if (term->GetType()) {
                 result->m_var_type_fixed = typeFromString(term->m_type_name, ctx);
                 result->m_var_type_current = result->m_var_type_fixed;
             }
@@ -1608,7 +1619,7 @@ ObjPtr Context::CreateRVal(Context *ctx, TermPtr term, Obj *local_vars) {
             NL_TYPECHECK(term, newlang::toString(typeFromLimit(val_dbl)),
                     term->m_type_name); // Соответстствует ли тип значению?
             result->m_var_type_current = typeFromLimit(val_dbl);
-            if(term->GetType()) {
+            if (term->GetType()) {
                 result->m_var_type_fixed = typeFromString(term->m_type_name, ctx);
                 result->m_var_type_current = result->m_var_type_fixed;
             }
@@ -1653,7 +1664,7 @@ ObjPtr Context::CreateRVal(Context *ctx, TermPtr term, Obj *local_vars) {
             //            if(term->GetFullName().empty()) {
             //                return Object::CreateNone();
             //            }
-            if(term->GetType()) {
+            if (term->GetType()) {
 
                 result->m_var_type_current = typeFromString(term->GetType()->m_text, ctx);
                 result->m_var_type_fixed = result->m_var_type_current;
@@ -1662,22 +1673,22 @@ ObjPtr Context::CreateRVal(Context *ctx, TermPtr term, Obj *local_vars) {
                 // Check BuildInType
                 has_error = false;
                 typeFromString(term->GetType()->m_text, nullptr, &has_error);
-                if(has_error) {
+                if (has_error) {
                     result->m_var_type_name = term->GetType()->m_text;
                 }
 
                 return result;
             }
-            if(term->m_text.compare("_") == 0) {
+            if (term->m_text.compare("_") == 0) {
                 result->m_var_type_current = ObjType::None;
                 result->m_var_is_init = false;
                 return result;
-            } else if(term->m_text.compare("$") == 0) {
+            } else if (term->m_text.compare("$") == 0) {
                 result->m_var_type_current = ObjType::Dictionary;
                 result->m_var_name = "$";
                 size_t pos = 0;
-                while(ctx && pos < ctx->size()) {
-                    if(ctx->at(pos).second.lock()) {
+                while (ctx && pos < ctx->size()) {
+                    if (ctx->at(pos).second.lock()) {
                         result->push_back(Obj::CreateString(ctx->at(pos).first));
                         //                        result->push_back(Object::Arg(ctx->at(pos).first));
                         pos++;
@@ -1687,11 +1698,11 @@ ObjPtr Context::CreateRVal(Context *ctx, TermPtr term, Obj *local_vars) {
                 }
                 result->m_var_is_init = true;
                 return result;
-            } else if(term->m_text.compare("@") == 0) {
-            } else if(term->m_text.compare("%") == 0) {
+            } else if (term->m_text.compare("@") == 0) {
+            } else if (term->m_text.compare("%") == 0) {
             }
 
-            if(isLocal(term->m_text.c_str())) {
+            if (isLocal(term->m_text.c_str())) {
                 full_name = MakeName(term->m_text);
                 return local_vars->at(full_name);
             } else {
@@ -1699,33 +1710,33 @@ ObjPtr Context::CreateRVal(Context *ctx, TermPtr term, Obj *local_vars) {
 
                 // Типы данных обрабатываются тут, а не в вызовах функций (TermID::CALL)
 
-                if(term->size()) {
+                if (term->size()) {
                     Obj args(ctx, term, true, local_vars);
                     result = result->Call(ctx, &args);
                     //                    11111111111111111111111
                 }
 
             }
-            if(!result) {
+            if (!result) {
                 // Делать ислкючение или возвращать объект "ошибка" ?????
                 LOG_RUNTIME("Term '%s' not found!", term->GetFullName().c_str());
             }
             result->m_var_is_init = true;
 
             field = term->m_right;
-            if(field && field->getTermID() == TermID::FIELD) {
-                while(field) {
+            if (field && field->getTermID() == TermID::FIELD) {
+                while (field) {
                     result = result->at(field->getText());
                     field = field->m_right;
                     ASSERT(!field); // Нужно выполнять, а не просто получать значение поля
                 }
-            } else if(field && field->getTermID() == TermID::INDEX) {
-                while(field) {
+            } else if (field && field->getTermID() == TermID::INDEX) {
+                while (field) {
                     result = result->index_get(MakeIndex(ctx, field, local_vars));
                     field = field->m_right;
                     ASSERT(!field); // Нужно выполнять, а не просто получать значение поля
                 }
-            } else if(field) {
+            } else if (field) {
                 LOG_RUNTIME("Not implemented! %s", field->toString().c_str());
             }
 
@@ -1740,16 +1751,16 @@ ObjPtr Context::CreateRVal(Context *ctx, TermPtr term, Obj *local_vars) {
             ASSERT(result->m_var_type_fixed == typeFromString(term->GetFullName(), ctx, nullptr));
 
             // Размерность, если указана
-            result->m_type = Obj::CreateType(result->m_var_type_current, nullptr, result->m_var_type_current);
+            result->m_dimensions = Obj::CreateType(result->m_var_type_current, nullptr, result->m_var_type_current);
             for (size_t i = 0; i < term->m_dims.size(); i++) {
-                result->m_type->push_back(CreateRVal(ctx, term->m_dims[i], local_vars));
+                result->m_dimensions->push_back(CreateRVal(ctx, term->m_dims[i], local_vars));
             }
 
             args = Obj::CreateDict();
             for (size_t i = 0; i < term->size(); i++) {
 
 
-                if((*term)[i]->GetTokenID() == TermID::FILLING) {
+                if ((*term)[i]->GetTokenID() == TermID::FILLING) {
 
                     // Заполнение значений вызовом функции
                     // :Type(1, 2, 3, ... rand() ... );
@@ -1761,34 +1772,34 @@ ObjPtr Context::CreateRVal(Context *ctx, TermPtr term, Obj *local_vars) {
 
                     ObjPtr expr = ctx->FindTerm((*term)[i]->Right()->GetFullName());
 
-                    if((*term)[i]->Right()->getTermID() != TermID::CALL) {
+                    if ((*term)[i]->Right()->getTermID() != TermID::CALL) {
                         LOG_RUNTIME("Operator filling supported function call only!");
                     }
 
-                    if(i + 1 != term->size()) {
+                    if (i + 1 != term->size()) {
                         LOG_RUNTIME("Function filling is supported for the last argument only!");
                     }
 
-                    if(!result->m_type || !result->m_type->size()) {
+                    if (!result->m_dimensions || !result->m_dimensions->size()) {
                         LOG_RUNTIME("Object has no dimensions!");
                     }
 
                     int64_t full_size = 1;
-                    for (int dim_index = 0; dim_index < result->m_type->size(); dim_index++) {
+                    for (int dim_index = 0; dim_index < result->m_dimensions->size(); dim_index++) {
 
-                        if(!(*result->m_type)[dim_index]->is_integer()) {
+                        if (!(*result->m_dimensions)[dim_index]->is_integer()) {
                             LOG_RUNTIME("Dimension index for function filling support integer value only!");
                         }
 
-                        full_size *= (*result->m_type)[dim_index]->GetValueAsInteger();
+                        full_size *= (*result->m_dimensions)[dim_index]->GetValueAsInteger();
                     }
 
-                    if(full_size <= 0) {
+                    if (full_size <= 0) {
                         LOG_RUNTIME("Items count error for all dimensions!");
                     }
 
 
-                    if(expr->size()) {
+                    if (expr->size()) {
                         LOG_RUNTIME("Argument in function for filling not implemented!");
                     }
 
@@ -1798,24 +1809,24 @@ ObjPtr Context::CreateRVal(Context *ctx, TermPtr term, Obj *local_vars) {
 
                     break;
 
-                } else if((*term)[i]->GetTokenID() == TermID::ELLIPSIS) {
+                } else if ((*term)[i]->GetTokenID() == TermID::ELLIPSIS) {
 
-                    if(!term->name(i).empty()) {
+                    if (!term->name(i).empty()) {
                         LOG_RUNTIME("Named ellipsys not implemented!");
                     }
 
-                    if((*term)[i]->Right()) {
+                    if ((*term)[i]->Right()) {
 
                         bool named = ((*term)[i]->Left() && (*term)[i]->Left()->getTermID() == TermID::ELLIPSIS);
                         ObjPtr exp = CreateRVal(ctx, (*term)[i]->Right());
 
-                        if(!exp->is_dictionary_type()) {
+                        if (!exp->is_dictionary_type()) {
                             LOG_RUNTIME("Expansion operator applies to dictionary only!");
                         }
 
 
                         for (int index = 0; index < exp->size(); index++) {
-                            if(named) {
+                            if (named) {
                                 args->push_back((*exp)[index], exp->name(index).empty() ? "" : exp->name(index));
                             } else {
                                 args->push_back((*exp)[index]);
@@ -1826,7 +1837,7 @@ ObjPtr Context::CreateRVal(Context *ctx, TermPtr term, Obj *local_vars) {
                     }
                 }
 
-                if(term->name(i).empty()) {
+                if (term->name(i).empty()) {
                     args->push_back(CreateRVal(ctx, (*term)[i], local_vars));
                 } else {
                     args->push_back(CreateRVal(ctx, (*term)[i], local_vars), term->name(i).c_str());
@@ -1845,13 +1856,13 @@ ObjPtr Context::CreateRVal(Context *ctx, TermPtr term, Obj *local_vars) {
 
             temp = ctx->GetTerm(term->GetFullName().c_str(), term->isRef());
             //            temp = CreateRVal(ctx, term, local_vars);
-            if(!temp) {
+            if (!temp) {
                 ASSERT(temp);
             }
 
             args = Obj::CreateDict();
             for (size_t i = 0; i < term->size(); i++) {
-                if(term->name(i).empty()) {
+                if (term->name(i).empty()) {
                     args->push_back(CreateRVal(ctx, (*term)[i], local_vars));
                 } else {
                     args->push_back(CreateRVal(ctx, (*term)[i], local_vars), term->name(i).c_str());
@@ -1867,13 +1878,13 @@ ObjPtr Context::CreateRVal(Context *ctx, TermPtr term, Obj *local_vars) {
         case TermID::DICT:
             result->m_var_type_current = ObjType::Dictionary;
             for (size_t i = 0; i < term->size(); i++) {
-                if(term->name(i).empty()) {
+                if (term->name(i).empty()) {
                     result->push_back(CreateRVal(ctx, (*term)[i], local_vars));
                 } else {
                     result->push_back(CreateRVal(ctx, (*term)[i], local_vars), term->name(i).c_str());
                 }
             }
-            if(term->getTermID() == TermID::TENSOR) {
+            if (term->getTermID() == TermID::TENSOR) {
                 type = getSummaryTensorType(result, typeFromString(term->m_type_name, ctx));
 
                 result->m_value = ConvertToTensor(result.get(), toTorchType(type));
@@ -1887,7 +1898,7 @@ ObjPtr Context::CreateRVal(Context *ctx, TermPtr term, Obj *local_vars) {
         case TermID::ARGUMENT:
 
             val_int = IndexArg(term);
-            if(val_int < local_vars->size()) {
+            if (val_int < local_vars->size()) {
                 return local_vars->at(val_int).second;
             }
             LOG_RUNTIME("Argument '%s' not exist!", term->toString().c_str());
@@ -1905,7 +1916,7 @@ ObjPtr Context::CreateRVal(Context *ctx, TermPtr term, Obj *local_vars) {
                 result->push_back(CreateRVal(ctx, (*term)[i], local_vars), term->name(i).c_str());
             }
 
-            if(result->size() == 2) {
+            if (result->size() == 2) {
                 result->push_back(Obj::CreateValue(1, ObjType::None), "step");
             }
 
@@ -1941,23 +1952,23 @@ ObjPtr Context::Comprehensions(Context *ctx, Obj *type, Obj * args) {
     ASSERT(args);
 
     ObjPtr result;
-    if(args->empty()) {
+    if (args->empty()) {
         result = Obj::CreateType(type->m_var_type_fixed, nullptr, type->m_var_type_fixed);
         return result;
     }
 
     result = Obj::CreateDict();
     int64_t count = -1; // Сколько элементов должно быть в тензоре
-    if(type->m_type->size()) { // Указан ли размер создаваемого тензора?
-        for (int64_t i = 0; i < type->m_type->size(); i++) {
-            if((*type->m_type)[i]->GetValueAsInteger() <= 0) {
-                LOG_RUNTIME("Dimensio size %ld at index %ld failed!", (*type->m_type)[i]->GetValueAsInteger(), i);
+    if (type->m_dimensions->size()) { // Указан ли размер создаваемого тензора?
+        for (int64_t i = 0; i < type->m_dimensions->size(); i++) {
+            if ((*type->m_dimensions)[i]->GetValueAsInteger() <= 0) {
+                LOG_RUNTIME("Dimensio size %ld at index %ld failed!", (*type->m_dimensions)[i]->GetValueAsInteger(), i);
             }
             // Общее количество элементов во всех измерениях для тензора
-            if(count == -1) {
-                count = (*type->m_type)[i]->GetValueAsInteger();
+            if (count == -1) {
+                count = (*type->m_dimensions)[i]->GetValueAsInteger();
             } else {
-                count *= (*type->m_type)[i]->GetValueAsInteger();
+                count *= (*type->m_dimensions)[i]->GetValueAsInteger();
             }
         }
     }
@@ -1980,13 +1991,13 @@ ObjPtr Context::Comprehensions(Context *ctx, Obj *type, Obj * args) {
 
         bool call_by_item = false;
 
-        if((*args)[i]->getType() == ObjType::Ellipsis) {
+        if ((*args)[i]->getType() == ObjType::Ellipsis) {
 
-            if(i + 1 != args->size()) {
+            if (i + 1 != args->size()) {
                 LOG_RUNTIME("Ellipsis at index %d support as final element only!", i);
             }
 
-            if(count < 0) {
+            if (count < 0) {
                 LOG_RUNTIME("Tensor dimension not set for ellipsis data!");
             }
 
@@ -2024,13 +2035,13 @@ ObjPtr Context::Comprehensions(Context *ctx, Obj *type, Obj * args) {
             //                ASSERT(!(*term)[i]->Right());
 
             // Продублировать последенее значение до конца размерности
-            if(!prev_value) {
+            if (!prev_value) {
                 LOG_RUNTIME("No previous value for ellipsis index %d!", i);
             }
             //            }
 
-            while(count > 0) {
-                if(call_by_item) {
+            while (count > 0) {
+                if (call_by_item) {
                     ASSERT(func);
                     prev_value = func->Call(this, ctx->at(0).second.lock().get());
                 }
@@ -2045,12 +2056,12 @@ ObjPtr Context::Comprehensions(Context *ctx, Obj *type, Obj * args) {
         prev_value = (*args)[i];
         ASSERT(prev_value);
 
-        if(prev_value->is_range()) {
+        if (prev_value->is_range()) {
 
             ObjPtr temp = Obj::CreateDict();
             ConvertRangeToDict(prev_value.get(), *temp.get());
 
-            if(count >= 0 && temp->size() > count) {
+            if (count >= 0 && temp->size() > count) {
                 LOG_RUNTIME("Wrong range size to fill at pos %d!", i);
             }
             prev_value.swap(temp);
@@ -2070,18 +2081,18 @@ ObjPtr Context::Comprehensions(Context *ctx, TermPtr term, Obj * local_vars) {
     int64_t count = -1; // Сколько элементов должно быть в тензоре
 
     ObjPtr temp = nullptr;
-    if(term->GetType()) { // Указант ли тип создаваемого объекта
+    if (term->GetType()) { // Указант ли тип создаваемого объекта
         for (int i = 0; i < term->GetType()->m_dims.size(); i++) {
             temp = CreateRVal(ctx, term->GetType()->m_dims[i], local_vars);
             // Размеры тензора указываются целыми числами больше нуля
-            if(!temp->is_scalar() || !temp->is_integer()) {
+            if (!temp->is_scalar() || !temp->is_integer()) {
                 NL_PARSER(term->GetType()->m_dims[i], "Dim size supported as integer scalar only!");
             }
-            if(temp->GetValueAsInteger() <= 0) {
+            if (temp->GetValueAsInteger() <= 0) {
                 NL_PARSER(term->GetType()->m_dims[i], "Dim size failed!");
             }
             // Общее количество элементов во всех измерениях для тензора
-            if(count == -1) {
+            if (count == -1) {
                 count = temp->GetValueAsInteger();
             } else {
                 count *= temp->GetValueAsInteger();
@@ -2107,25 +2118,25 @@ ObjPtr Context::Comprehensions(Context *ctx, TermPtr term, Obj * local_vars) {
 
         bool call_by_item = false;
 
-        if((*term)[i]->getTermID() == TermID::ELLIPSIS) {
+        if ((*term)[i]->getTermID() == TermID::ELLIPSIS) {
 
-            if(i + 1 != term->size()) {
+            if (i + 1 != term->size()) {
                 NL_PARSER((*term)[i], "Ellipsis support as final element only!");
             }
 
-            if(count < 0) {
+            if (count < 0) {
                 NL_PARSER(term, "Tensor type and dimension not set!");
             }
 
             ObjPtr func = nullptr;
 
-            if((*term)[i]->Left() && (*term)[i]->Right()) {
+            if ((*term)[i]->Left() && (*term)[i]->Right()) {
 
                 ASSERT((*term)[i]->Left()->getTermID() == TermID::ELLIPSIS);
 
                 // Раскрыть словарь c именами элементов
                 prev_value = Comprehensions(ctx, (*term)[i], local_vars);
-                if(!prev_value->is_dictionary_type()) {
+                if (!prev_value->is_dictionary_type()) {
                     LOG_RUNTIME("Expand value not dictionary type %s!", (*term)[i]->toString().c_str());
                 }
                 for (int i = 0; i < prev_value->size(); i++) {
@@ -2133,7 +2144,7 @@ ObjPtr Context::Comprehensions(Context *ctx, TermPtr term, Obj * local_vars) {
                     count -= 1;
                 }
 
-            } else if((*term)[i]->Right()) {
+            } else if ((*term)[i]->Right()) {
 
                 // Функция выполняется для каждого элемента
                 ASSERT(!(*term)[i]->Left());
@@ -2142,7 +2153,7 @@ ObjPtr Context::Comprehensions(Context *ctx, TermPtr term, Obj * local_vars) {
                 ASSERT(prev_value);
 
                 call_by_item = prev_value->is_function();
-                if(call_by_item) {
+                if (call_by_item) {
                     func = prev_value;
                 }
             } else {
@@ -2151,13 +2162,13 @@ ObjPtr Context::Comprehensions(Context *ctx, TermPtr term, Obj * local_vars) {
                 ASSERT(!(*term)[i]->Right());
 
                 // Продублировать последенее значение до конца размерности
-                if(!prev_value) {
+                if (!prev_value) {
                     NL_PARSER((*term)[i], "No previous value!");
                 }
             }
 
-            while(count > 0) {
-                if(call_by_item) {
+            while (count > 0) {
+                if (call_by_item) {
                     ASSERT(func);
                     prev_value = func->Call(this, local_vars);
                 }
@@ -2166,7 +2177,7 @@ ObjPtr Context::Comprehensions(Context *ctx, TermPtr term, Obj * local_vars) {
             }
 
             result->m_var_is_init = true;
-            if(term->GetType()) {
+            if (term->GetType()) {
                 return result->toType_(ctx, term->GetType(), local_vars);
             } else {
                 return result;
@@ -2176,12 +2187,12 @@ ObjPtr Context::Comprehensions(Context *ctx, TermPtr term, Obj * local_vars) {
         prev_value = CreateRVal(this, (*term)[i], local_vars);
         ASSERT(prev_value);
 
-        if(prev_value->is_range()) {
+        if (prev_value->is_range()) {
 
             ObjPtr temp = Obj::CreateDict();
             ConvertRangeToDict(prev_value.get(), *temp.get());
 
-            if(count >= 0 && temp->size() > count) {
+            if (count >= 0 && temp->size() > count) {
                 NL_PARSER((*term)[i], "Wrong range size to fill!");
             }
             prev_value.swap(temp);

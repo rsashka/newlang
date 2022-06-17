@@ -13,8 +13,8 @@
 #include <core/newlang.h>
 
 
-//TEST(Alg, Exception) {
-//
+TEST(Alg, Exception) {
+
 //    Context ctx(RunTime::Init());
 //
 //    ObjPtr rand = ctx.Eval("rand := @import('rand():Int')");
@@ -30,7 +30,7 @@
 //    ASSERT_NO_THROW(
 //
 //            );
-//}
+}
 
 
 // TEST(NewLang, FunctionFollow) {

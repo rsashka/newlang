@@ -40,7 +40,7 @@ TEST(Eval, Assign) {
     list = ctx.Eval("$");
     ASSERT_STREQ("$=('var1',)", list->toString().c_str());
 
-    ASSERT_THROW(ctx.Eval("var1 ::= 123"), std::exception);
+    ASSERT_THROW(ctx.Eval("var1 ::= 123"), Interruption);
 
     ASSERT_TRUE(ctx.Eval("var1 = 100:Char"));
     ASSERT_EQ(var1->m_var_type_current, ObjType::Char);
@@ -121,7 +121,7 @@ TEST(Eval, Assign) {
     ASSERT_EQ(110, result->GetValueAsInteger());
 
     // Переполнение второго аргумента
-    ASSERT_THROW(func_export->Call(nullptr, Obj::Arg(1000), Obj::Arg(1000)), std::exception);
+    ASSERT_THROW(func_export->Call(nullptr, Obj::Arg(1000), Obj::Arg(1000)), Interruption);
 
     list = ctx.Eval("$");
     ASSERT_STREQ("$=('var_str', 'var_num', 'var_export', 'func_export',)", list->toString().c_str());
@@ -370,7 +370,7 @@ TEST(Eval, Types) {
     Context::Reset();
     Context ctx(RunTime::Init());
 
-    ASSERT_EQ(42, ctx.m_types.size());
+    ASSERT_EQ(41, ctx.m_types.size());
 
     std::vector<std::wstring> types = ctx.SelectPredict(":");
     ASSERT_EQ(2, types.size());
@@ -656,19 +656,19 @@ TEST(Eval, Convert) {
     ASSERT_EQ(ObjType::Type, type_dim->getType()) << toString(type_dim->m_var_type_current);
     ASSERT_EQ(ObjType::Int, type_dim->m_var_type_fixed) << toString(type_dim->m_var_type_fixed);
 
-    ASSERT_TRUE(type_dim->m_type);
-    ASSERT_EQ(1, type_dim->m_type->size());
-    ASSERT_EQ(0, (*type_dim->m_type)[0]->GetValueAsInteger());
+    ASSERT_TRUE(type_dim->m_dimensions);
+    ASSERT_EQ(1, type_dim->m_dimensions->size());
+    ASSERT_EQ(0, (*type_dim->m_dimensions)[0]->GetValueAsInteger());
 
     ObjPtr type_ell = ctx.Eval(":Int[10, ...]");
     ASSERT_TRUE(type_ell);
     ASSERT_EQ(ObjType::Type, type_ell->getType());
     ASSERT_EQ(ObjType::Int, type_ell->m_var_type_fixed);
 
-    ASSERT_TRUE(type_ell->m_type);
-    ASSERT_EQ(2, type_ell->m_type->size());
-    ASSERT_EQ(10, (*type_ell->m_type)[0]->GetValueAsInteger());
-    ASSERT_EQ(ObjType::Ellipsis, (*type_ell->m_type)[1]->getType());
+    ASSERT_TRUE(type_ell->m_dimensions);
+    ASSERT_EQ(2, type_ell->m_dimensions->size());
+    ASSERT_EQ(10, (*type_ell->m_dimensions)[0]->GetValueAsInteger());
+    ASSERT_EQ(ObjType::Ellipsis, (*type_ell->m_dimensions)[1]->getType());
 
 
 

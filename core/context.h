@@ -551,10 +551,10 @@ public:
 
         std::vector<int64_t> dims;
 
-        if (result->m_type) {
+        if (result->m_dimensions) {
             // Размерность указана
-            for (size_t i = 0; i < result->m_type->size(); i++) {
-                Index ind = (*result->m_type)[i]->toIndex();
+            for (size_t i = 0; i < result->m_dimensions->size(); i++) {
+                Index ind = (*result->m_dimensions)[i]->toIndex();
                 if (ind.is_integer()) {
                     dims.push_back(ind.integer());
                 } else if (ind.is_boolean()) {

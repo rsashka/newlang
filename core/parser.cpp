@@ -8,7 +8,7 @@
 using namespace newlang;
 
 Parser::Parser(TermPtr &ast) : m_ast(ast) {
-    if(!m_ast) {
+    if (!m_ast) {
         m_ast = Term::Create(TermID::END, "");
     }
 }
@@ -27,7 +27,7 @@ bool Parser::parse_stream(std::istream& in, const std::string_view sname) {
 
 bool Parser::parse_file(const std::string_view filename) {
     std::ifstream in(filename.begin());
-    if(!in.good()) return false;
+    if (!in.good()) return false;
     return parse_stream(in, filename.begin());
 }
 
@@ -44,7 +44,7 @@ TermPtr Parser::Parse(const std::string_view str) {
     lexer = &scanner;
 
     parser parser(*this);
-    if(parser.parse() != 0) {
+    if (parser.parse() != 0) {
         return m_ast;
     }
 
@@ -55,7 +55,7 @@ TermPtr Parser::Parse(const std::string_view str) {
 }
 
 TermPtr Parser::ParseString(const std::string_view str) {
-    TermPtr ast =  Term::Create(TermID::END, "");
+    TermPtr ast = Term::Create(TermID::END, "");
     Parser p(ast);
     return p.Parse(str);
 }
@@ -77,7 +77,7 @@ void Parser::AstAddTerm(TermPtr &term) {
     ASSERT(m_ast);
     ASSERT(m_ast->m_source);
     term->m_source = m_ast->m_source;
-    if(m_ast->m_id != TermID::END) {
+    if (m_ast->m_id != TermID::END) {
         m_ast->BlockCodeAppend(term);
     } else {
         m_ast = term;
@@ -95,7 +95,7 @@ std::string newlang::ParserMessage(std::string &buffer, int row, int col, const 
 
     std::string message(va_buffer);
 
-    if(row) { // Если переданы координаты ошибки
+    if (row) { // Если переданы координаты ошибки
         message += " at line ";
         message += std::to_string(row);
         message += " col ";
@@ -106,9 +106,9 @@ std::string newlang::ParserMessage(std::string &buffer, int row, int col, const 
 
     // Ищем нужную строку
     size_t pos = 0;
-    if(buffer.find("\n") != std::string::npos) {
+    if (buffer.find("\n") != std::string::npos) {
         int count = 1;
-        while(count < row) {
+        while (count < row) {
             pos = buffer.find("\n", pos + 1);
             count++;
         }
@@ -117,7 +117,7 @@ std::string newlang::ParserMessage(std::string &buffer, int row, int col, const 
     std::string tmp = buffer.substr((pos ? pos + 1 : pos), buffer.find("\n", pos + 1));
     tmp = tmp.substr(0, tmp.find("\n", col));
 
-    if(row) { // Если переданы координаты ошибки, показываем место
+    if (row) { // Если переданы координаты ошибки, показываем место
 
         // Лексер обрабатывает строки в байтах, а вывод в UTF8
         // поэтому позиция ошибки лексера може не совпадать для многобайтных символов
@@ -136,5 +136,5 @@ std::string newlang::ParserMessage(std::string &buffer, int row, int col, const 
 }
 
 void newlang::ParserException(const char *msg, std::string &buffer, int row, int col) {
-    throw parser_exception(ParserMessage(buffer, row, col, "%s", msg));
+    throw Interruption(ParserMessage(buffer, row, col, "%s", msg), Interruption::Parser);
 }
