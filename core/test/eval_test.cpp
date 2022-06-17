@@ -461,8 +461,12 @@ TEST(Eval, Types) {
             "import('fputs(s:StrChar, stream:File):Int')");
     ASSERT_TRUE(fputs);
 
+    std::filesystem::create_directories("temp");
+    ASSERT_TRUE(std::filesystem::is_directory("temp"));
+    
     ObjPtr F = fopen->Call(&ctx, Obj::Arg("temp/ffile.temp"), Obj::Arg("w+"));
     ASSERT_TRUE(F);
+    ASSERT_TRUE(F->GetValueAsInteger());
     ASSERT_TRUE(fputs->Call(&ctx, Obj::Arg("test fopen()\ntest fputs()\n"), Obj::Arg(F)));
 
     auto t = std::time(nullptr);
@@ -582,6 +586,9 @@ TEST(Eval, Fileio) {
     ASSERT_TRUE(ctx.FindTerm("fputs"));
     ASSERT_TRUE(ctx.FindTerm("fclose"));
 
+    std::filesystem::create_directories("temp");
+    ASSERT_TRUE(std::filesystem::is_directory("temp"));
+    
     ObjPtr file = ctx.Eval("file ::= fopen('temp/ffile_eval2.temp','w+')");
     ASSERT_TRUE(file);
     ObjPtr file_res = ctx.Eval("fputs('test 222 from eval !!!!!!!!!!!!!!!!!!!!\\n', file)");

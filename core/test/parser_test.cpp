@@ -1653,32 +1653,30 @@ TEST_F(ParserTest, DISABLED_Follow7) {
 TEST_F(ParserTest, Exit) {
     ASSERT_TRUE(Parse("--;"));
     ASSERT_TRUE(Parse("--;;"));
-    ASSERT_TRUE(Parse("--_;"));
-    ASSERT_TRUE(Parse("--_;;"));
-    ASSERT_TRUE(Parse("--'';"));
-    ASSERT_TRUE(Parse("--'';;"));
-    ASSERT_TRUE(Parse("--eval;"));
-    ASSERT_TRUE(Parse("--eval;;"));
-    ASSERT_TRUE(Parse("--eval();"));
-    ASSERT_TRUE(Parse("--eval();;"));
-    ASSERT_TRUE(Parse("--0;"));
-    ASSERT_TRUE(Parse("--0;;"));
-    ASSERT_TRUE(Parse("--0.1;"));
-    ASSERT_TRUE(Parse("--0.1;;"));
-    ASSERT_TRUE(Parse("--[0,];"));
-    ASSERT_TRUE(Parse("--(0,);;"));
-    ASSERT_TRUE(Parse("--:Class(var);"));
-    ASSERT_TRUE(Parse("--:Class[0](1);"));
-    ASSERT_TRUE(Parse("--call();"));
-    ASSERT_TRUE(Parse("--call();;"));
-    ASSERT_TRUE(Parse("--call(arg);"));
-    ASSERT_TRUE(Parse("--call(arg);;"));
-    ASSERT_TRUE(Parse("--:class;"));
-    ASSERT_TRUE(Parse("--:class;;"));
-    ASSERT_TRUE(Parse("--:class();"));
-    ASSERT_TRUE(Parse("--:class();;"));
-    ASSERT_TRUE(Parse("--:class(arg);"));
-    ASSERT_TRUE(Parse("--:class(arg);;"));
+    ASSERT_TRUE(Parse("--_--;"));
+    ASSERT_TRUE(Parse("--_--;;"));
+    ASSERT_TRUE(Parse("--  eval --;"));
+    ASSERT_TRUE(Parse("--eval--;;"));
+    ASSERT_TRUE(Parse("--eval()--;"));
+    ASSERT_TRUE(Parse("--  eval() --;;"));
+    ASSERT_TRUE(Parse("--0--;"));
+    ASSERT_TRUE(Parse("--0--;;"));
+    ASSERT_TRUE(Parse("--  0.1 --;"));
+    ASSERT_TRUE(Parse("--  0.1    --;;"));
+    ASSERT_TRUE(Parse("--[0,]--;"));
+    ASSERT_TRUE(Parse("--(0,)--;;"));
+    ASSERT_TRUE(Parse("--:Class(var)--;"));
+    ASSERT_TRUE(Parse("--:Class[0](1)--;"));
+    ASSERT_TRUE(Parse("--call()--;"));
+    ASSERT_TRUE(Parse("--call()--;;"));
+    ASSERT_TRUE(Parse("--call(arg)--;"));
+    ASSERT_TRUE(Parse("--call(arg)--;;"));
+    ASSERT_TRUE(Parse("--:class--;"));
+    ASSERT_TRUE(Parse("--:class--;;"));
+    ASSERT_TRUE(Parse("--:class()--;"));
+    ASSERT_TRUE(Parse("--:class()--;;"));
+    ASSERT_TRUE(Parse("--:class(arg)--;"));
+    ASSERT_TRUE(Parse("--:class(arg)--;;"));
 }
 
 

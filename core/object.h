@@ -973,10 +973,15 @@ john.__module__ =  __main__
             case ObjType::Short:
             case ObjType::Int:
             case ObjType::Long:
+            case ObjType::Integer:
                 return m_value.toType(at::ScalarType::Long).item<int64_t>();
+
+            case ObjType::Pointer:
+                return reinterpret_cast<int64_t>(m_func_ptr);
 
             case ObjType::Float:
             case ObjType::Double:
+            case ObjType::Number:
                 return m_value.item<double>();
 
             case ObjType::StrWide:
