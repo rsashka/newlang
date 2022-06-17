@@ -148,6 +148,11 @@ term    [$@%~]({ualpha}|[_])?({name})?
                     *yylval = Term::Create(TermID::SOURCE, buffer.c_str(), buffer.size(), yylloc, source_string);
                     return token::SOURCE;
                 }
+"}%"            {
+                    BEGIN(INITIAL);
+                    *yylval = Term::Create(TermID::SOURCE, buffer.c_str(), buffer.size(), yylloc, source_string);
+                    return token::SOURCE;
+                }
 } /* End of state_SOURCE state */
 
 

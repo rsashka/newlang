@@ -1333,11 +1333,11 @@ condition: source
             {
                 $$ = $1;
             }
-        | exit
+/*        | exit
             {
                 $$=$1;
             }
-/*        | range
+        | range
             {
                 $$ = $1;  
             }
@@ -1365,26 +1365,6 @@ logical:  arithmetic
         
         
 
-
-       
-exit:  EXIT
-        {
-            $$ = $1;
-        }
-
-    |  EXIT  rval_var
-        {
-            $$ = $1;
-            $$->Append($2, Term::RIGHT); 
-        }
-    |  EXIT  rval_var  EXIT
-        {
-            $$ = $1;
-            $$->Append($2, Term::RIGHT); 
-            $$->SetTermID(TermID::ERROR);
-        }
-
-      
 
 follow:  if_then_body
 
@@ -1505,15 +1485,25 @@ match:  '['  match_cond ']'  MATCHING  match_body
                 $$->Append($3, Term::RIGHT); */
             }
 
+exit:  EXIT
+        {
+            $$ = $1;
+        }
+    |  EXIT  rval_var  EXIT
+        {
+            $$ = $1;
+            $$->Append($2, Term::RIGHT); 
+        }
+        
 /*  expression - одна операция или результат <ОДНОГО выражения без завершающей точки с запятой !!!!!> */
 seq_item: condition
             {
                 $$=$1;
             } 
-/*        | condition  end
+        | exit
             {
                 $$=$1;
-            } */
+            }
         | simple_func
             {
                 $$=$1;

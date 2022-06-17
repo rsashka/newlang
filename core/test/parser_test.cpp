@@ -824,6 +824,11 @@ TEST_F(ParserTest, CodeSimple) {
     ASSERT_STREQ("code+code", ast->m_text.c_str());
 }
 
+TEST_F(ParserTest, CodeSimple2) {
+    ASSERT_TRUE(Parse("%{code+code}%;"));
+    ASSERT_STREQ("code+code", ast->m_text.c_str());
+}
+
 TEST_F(ParserTest, AssignSimple) {
     ASSERT_TRUE(Parse("term := term2;"));
     ASSERT_STREQ("term := term2;", ast->toString().c_str());
