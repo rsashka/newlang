@@ -378,7 +378,7 @@ namespace newlang {
         inline bool is_return() const {
             return m_var_type_current == ObjType::Return || m_var_type_fixed == ObjType::Return;
         }
-
+        
         [[nodiscard]]
         ObjType SummaryArithmeticType(ObjType type);
 
@@ -403,7 +403,7 @@ namespace newlang {
             } else if (m_var_type_current == ObjType::StrWide) {
                 return !m_var_is_init || m_wstr.empty();
             } else if (is_tensor()) {
-                return !m_var_is_init;
+                return !m_var_is_init || at::_is_zerotensor(m_value);
             }
             return Variable<ObjPtr>::empty();
         }
@@ -1017,7 +1017,8 @@ namespace newlang {
             if (is_scalar()) {
                 return m_value.toType(at::ScalarType::Bool).item<double>();
             } else if (isSimpleType(m_var_type_current)) {
-                return GetValueAsInteger();
+                // Error: Boolean value of Tensor with more than one value is ambiguous
+                return !at::_is_zerotensor(m_value);
             } else {
                 switch (m_var_type_current) {
                     case ObjType::StrWide:
@@ -1084,7 +1085,6 @@ namespace newlang {
             return obj;
         }
 
-
         static ObjType GetType(torch::Tensor & val) {
             switch (val.dtype().toScalarType()) {
                 case at::ScalarType::Bool:
@@ -1150,7 +1150,6 @@ namespace newlang {
             NL_CHECK(is_tensor(), "Fail type as Tensor");
             return m_value;
         }
-
 
         at::indexing::Slice toSlice() {
             NL_CHECK(is_range(), "Convert to slice supported for range only!");

@@ -610,7 +610,12 @@ namespace newlang {
                 } else if (isTensor(result->getType())) {
                     if (dims.size() == 1 && dims[0] == 0) {
                         // Скаляр
-                        if (result->size() != 0) {
+                        if (args.size() == 2 && args[0]->m_var_type_fixed == ObjType::Bool) {
+
+                            result->m_value = torch::scalar_tensor(result->empty() ? 0 : 1, at::ScalarType::Bool);
+                            return result;
+
+                        } else if (result->size() != 0) {
                             LOG_RUNTIME("Only one value is required for a scalar!");
                         }
                         dims.clear();
@@ -620,7 +625,6 @@ namespace newlang {
                     LOG_RUNTIME("Fail esing dimensions for type '%s'!", newlang::toString(result->getType()));
                 }
             }
-
             return result;
         }
 
@@ -732,7 +736,7 @@ namespace newlang {
             TYPE_STRICT,
         };
         static bool MatchCompare(Obj &match, ObjPtr &value, MatchMode mode);
-        static bool MatchEstimate(Obj &match, const TermPtr &match_item, MatchMode mode, Context *ctx, Obj *args);
+        static bool MatchEstimate(Obj &match, const TermPtr &match_item, MatchMode mode, Context *ctx, Obj * args);
 
         SCOPE(protected) :
         size_t GetCount();

@@ -207,6 +207,47 @@ TEST(Alg, Foreach) {
 
     ASSERT_TRUE(counter);
     ASSERT_TRUE(counter->is_none_type());
+
+
+    dict->push_back(Obj::Arg(10));
+    dict->push_back(Obj::Arg(20));
+    dict->push_back(Obj::Arg(30));
+    dict->push_back(Obj::Arg(40));
+    dict->push_back(Obj::Arg(50));
+    ASSERT_EQ(5, dict->size());
+    
+    temp = ctx.ExecStr(":Bool(dict)");
+    ASSERT_TRUE(temp);
+    ASSERT_TRUE(temp->is_bool_type());
+    ASSERT_FALSE(temp->is_scalar());
+    ASSERT_TRUE(temp->GetValueAsBoolean());
+    ASSERT_EQ(5, temp->size());
+    
+    temp = ctx.ExecStr(":Bool[0](dict)");
+    ASSERT_TRUE(temp);
+    ASSERT_TRUE(temp->is_bool_type());
+    ASSERT_TRUE(temp->is_scalar());
+    ASSERT_TRUE(temp->GetValueAsBoolean());
+    ASSERT_EQ(0, temp->size());
+
+    //    temp = ctx.ExecStr(":Bool(!dict)");
+//    ASSERT_TRUE(temp);
+//    ASSERT_TRUE(temp->is_bool_type());
+//    ASSERT_FALSE(temp->GetValueAsBoolean());
+
+    ObjPtr summa = ctx.ExecStr("summa := 0");
+
+    temp = ctx.ExecStr("counter = 0; [dict] ->> {counter, dict := ... dict; summa += counter}");
+    ASSERT_TRUE(temp);
+    ASSERT_TRUE(temp->is_integer());
+    ASSERT_EQ(150, temp->GetValueAsInteger());
+    
+    ASSERT_TRUE(dict->is_dictionary_type());
+    ASSERT_EQ(0, dict->size());
+
+    ASSERT_EQ(150, summa->GetValueAsInteger());
+    ASSERT_EQ(50, counter->GetValueAsInteger());
+
 }
 
 
