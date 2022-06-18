@@ -82,7 +82,7 @@ int64_t Obj::size(int64_t dim) const {
     return Variable::size();
 }
 
-int64_t Obj::resize(int64_t size, ObjPtr fill, const std::string name) {
+int64_t Obj::resize_(int64_t size, ObjPtr fill, const std::string name) {
 
     if (is_string_type()) {
 

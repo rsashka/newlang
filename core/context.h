@@ -606,7 +606,7 @@ namespace newlang {
                     if (dims.size() != 1) {
                         LOG_RUNTIME("Fail size for type '%s'!", newlang::toString(result->getType()));
                     }
-                    result->resize(dims[0], nullptr);
+                    result->resize_(dims[0], nullptr);
                 } else if (isTensor(result->getType())) {
                     if (dims.size() == 1 && dims[0] == 0) {
                         // Скаляр

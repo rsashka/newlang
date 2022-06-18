@@ -393,7 +393,7 @@ namespace newlang {
             return size(0);
         }
         int64_t size(int64_t ind) const;
-        int64_t resize(int64_t size, ObjPtr fill, const std::string = "");
+        int64_t resize_(int64_t size, ObjPtr fill, const std::string = "");
 
         bool empty() const override {
             if (is_none_type()) {
@@ -1609,6 +1609,7 @@ namespace newlang {
 
             } else if (is_none_type() || isObjectType(m_var_type_current)) {
                 std::string old_name = m_var_name;
+                clear_();
                 value->CloneDataTo(*this);
                 value->ClonePropTo(*this);
                 m_var_name.swap(old_name);

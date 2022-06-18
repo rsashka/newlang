@@ -457,7 +457,7 @@ ObjPtr Context::CREATE_OR_ASSIGN(Context *ctx, const TermPtr &term, Obj *local_v
         if (elem->getTermID() == TermID::ELLIPSIS) {
 
             //@todo добавить поддержку многоточия с левой стороный оператора присвоения
-            NL_PARSER(elem, "Ellipsis on the left side not implemented!");
+            NL_PARSER(elem, "Ellipsis on the left side in assignment not implemented!");
 
             if (is_ellipsis) {
                 NL_PARSER(elem, "Multiple ellipsis on the left side of the assignment!");
@@ -523,21 +523,37 @@ ObjPtr Context::CREATE_OR_ASSIGN(Context *ctx, const TermPtr &term, Obj *local_v
         NL_PARSER(term->Right(), "Object is missing or expression is not evaluated!");
     }
 
+    ASSERT(list_obj.size() == list_term.size());
+
     if (term->Right()->getTermID() == TermID::ELLIPSIS) {
         if (rval->is_dictionary_type() || rval->is_tensor()) {
             if (rval->is_scalar()) {
                 LOG_RUNTIME("Fail expand scalar!");
             }
+            for (int i = 0; i < list_obj.size() - 1; i++) {
+                if (list_term[i]->getTermID() != TermID::NONE) {
+                    if (i < rval->size()) {
+                        list_obj[i]->SetValue_((*rval)[i]->Clone());
+                    } else {
+                        list_obj[i]->SetValue_(Obj::CreateNone());
+                    }
+                }
+            }
+            if (list_obj.size() - 1 < rval->size()) {
+                // Удалить первые элементы
+                rval->resize_(-(rval->size() - (list_obj.size() - 1)), nullptr);
+            } else {
+                rval->resize_(0, nullptr);
+            }
+            list_obj[list_obj.size() - 1]->SetValue_(rval->Clone());
+            
+            result = list_obj[list_obj.size() - 1];
+
         } else {
             LOG_RUNTIME("Fail expand type '%s'!", toString(rval->getType()));
         }
-            LOG_RUNTIME("Fail expand type '%s'!", toString(rval->getType()));
-//        for (auto &elem : list_obj) {
-//            elem->SetValue_(rval);
-//            result = rval;
-//        }
     } else {
-        ASSERT(list_obj.size() == list_term.size());
+        // Присвоеить единственное значение всем элементам с левой стороны оператора присовения
 
         for (int i = 0; i < list_obj.size(); i++) {
             if (isType(list_term[i]->m_text)) {

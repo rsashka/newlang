@@ -127,43 +127,86 @@ TEST(Alg, Foreach) {
 
     Context ctx(RunTime::Init());
 
-    ObjPtr dict = ctx.ExecStr("@dict := (1,2,3,)");
+    ObjPtr test = Obj::CreateDict();
+
+    test->push_back(Obj::Arg(10));
+    test->push_back(Obj::Arg(11));
+    test->push_back(Obj::Arg(12));
+    test->push_back(Obj::Arg(13));
+    ASSERT_EQ(4, test->size());
+    ASSERT_EQ(10, (*test)[0]->GetValueAsInteger());
+    ASSERT_EQ(13, (*test)[3]->GetValueAsInteger());
+
+    ASSERT_EQ(test->resize_(4, nullptr), test->size());
+    ASSERT_EQ(4, test->size());
+    ASSERT_EQ(10, (*test)[0]->GetValueAsInteger());
+    ASSERT_EQ(13, (*test)[3]->GetValueAsInteger());
+
+    test->resize_(-3, nullptr);
+    ASSERT_EQ(3, test->size());
+    ASSERT_EQ(11, (*test)[0]->GetValueAsInteger());
+    ASSERT_EQ(13, (*test)[2]->GetValueAsInteger());
+
+    test->resize_(-1, nullptr);
+    ASSERT_EQ(1, test->size());
+    ASSERT_EQ(13, (*test)[0]->GetValueAsInteger());
+
+    test->resize_(0, nullptr);
+    ASSERT_EQ(0, test->size());
+
+
+    ObjPtr counter = ctx.ExecStr("counter := 100");
+    ASSERT_EQ(100, counter->GetValueAsInteger());
+
+    ObjPtr dict = ctx.ExecStr("dict := (1,2,3,)");
     ASSERT_TRUE(dict);
     ASSERT_TRUE(dict->is_dictionary_type());
     ASSERT_EQ(3, dict->size());
     ASSERT_EQ(1, (*dict)[0]->GetValueAsInteger());
     ASSERT_EQ(3, (*dict)[2]->GetValueAsInteger());
-    
-//    ObjPtr counter = ctx.ExecStr("counter, dict := ... dict");
-//    ASSERT_TRUE(counter);
-//    ASSERT_EQ(1, counter->GetValueAsInteger());
-//
-//    ASSERT_TRUE(dict->is_dictionary_type());
-//    ASSERT_EQ(2, dict->size());
-//    ASSERT_EQ(2, (*dict)[0]->GetValueAsInteger());
-//    ASSERT_EQ(3, (*dict)[1]->GetValueAsInteger());
-//    
-//    counter = ctx.ExecStr("counter, dict := ... dict");
-//    ASSERT_TRUE(counter);
-//    ASSERT_EQ(2, counter->GetValueAsInteger());
-//
-//    ASSERT_TRUE(dict->is_dictionary_type());
-//    ASSERT_EQ(1, dict->size());
-//    ASSERT_EQ(3, (*dict)[0]->GetValueAsInteger());
-//
-//    counter = ctx.ExecStr("counter, dict := ... dict");
-//    ASSERT_TRUE(counter);
-//    ASSERT_EQ(3, counter->GetValueAsInteger());
-//
-//    ASSERT_TRUE(dict->is_dictionary_type());
-//    ASSERT_EQ(0, dict->size());
-//    
-//    counter = ctx.ExecStr("counter, dict := ... dict");
-//    ASSERT_TRUE(counter);
-//    ASSERT_TRUE(counter->is_none_type());
-//
-//    ASSERT_TRUE(dict->is_dictionary_type());
-//    ASSERT_EQ(0, dict->size());
+
+    ObjPtr temp = ctx.ExecStr("counter, dict := ... dict");
+    ASSERT_TRUE(temp);
+    ASSERT_TRUE(temp->is_dictionary_type());
+    ASSERT_EQ(2, temp->size());
+
+    ASSERT_EQ(1, counter->GetValueAsInteger());
+
+    ASSERT_TRUE(dict->is_dictionary_type());
+    ASSERT_EQ(2, dict->size());
+    ASSERT_EQ(2, (*dict)[0]->GetValueAsInteger());
+    ASSERT_EQ(3, (*dict)[1]->GetValueAsInteger());
+
+    temp = ctx.ExecStr("counter, dict := ... dict");
+    ASSERT_TRUE(temp);
+    ASSERT_TRUE(temp->is_dictionary_type());
+    ASSERT_EQ(1, temp->size());
+
+    ASSERT_EQ(2, counter->GetValueAsInteger());
+
+    ASSERT_TRUE(dict->is_dictionary_type());
+    ASSERT_EQ(1, dict->size());
+    ASSERT_EQ(3, (*dict)[0]->GetValueAsInteger());
+
+    temp = ctx.ExecStr("counter, dict := ... dict");
+    ASSERT_TRUE(temp);
+    ASSERT_TRUE(temp->is_dictionary_type());
+    ASSERT_EQ(0, temp->size());
+
+    ASSERT_TRUE(counter);
+    ASSERT_EQ(3, counter->GetValueAsInteger());
+
+    ASSERT_TRUE(dict->is_dictionary_type());
+    ASSERT_EQ(0, dict->size());
+
+    temp = ctx.ExecStr("counter, dict := ... dict");
+    ASSERT_TRUE(temp);
+    ASSERT_TRUE(temp->is_dictionary_type());
+    ASSERT_TRUE(dict->is_dictionary_type());
+    ASSERT_EQ(0, dict->size());
+
+    ASSERT_TRUE(counter);
+    ASSERT_TRUE(counter->is_none_type());
 }
 
 
