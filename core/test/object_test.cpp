@@ -86,7 +86,7 @@ TEST(ObjTest, Dict) {
             std::out_of_range
             );
     ASSERT_EQ(0, var.size());
-    ObjPtr var2 = ctx.Eval("(,)");
+    ObjPtr var2 = ctx.ExecStr("(,)");
 
     var.push_back(Obj::CreateString("Test1"));
     ASSERT_EQ(1, var.size());
@@ -101,14 +101,14 @@ TEST(ObjTest, Dict) {
     ASSERT_TRUE(var[2]->op_accurate(Obj::CreateValue(2, ObjType::None)));
     ASSERT_TRUE(var[3]->op_accurate(Obj::CreateString(L"Test3")));
 
-    var2 = ctx.Eval("(0, \"Test1\", 2, 'Test3',)");
+    var2 = ctx.ExecStr("(0, \"Test1\", 2, 'Test3',)");
 
     ASSERT_TRUE((*var2)[0]->op_accurate(Obj::CreateValue(0, ObjType::None)));
     ASSERT_TRUE((*var2)[1]->op_accurate(Obj::CreateString("Test1")));
     ASSERT_TRUE((*var2)[2]->op_accurate(Obj::CreateValue(2, ObjType::None)));
     ASSERT_TRUE((*var2)[3]->op_accurate(Obj::CreateString(L"Test3")));
 
-    ObjPtr var3 = ctx.Eval("(0, \"Test1\", 2, 'Test3',)");
+    ObjPtr var3 = ctx.ExecStr("(0, \"Test1\", 2, 'Test3',)");
 
     ASSERT_TRUE((*var3)[0]->op_accurate(Obj::CreateValue(0, ObjType::None)));
     ASSERT_TRUE((*var3)[1]->op_accurate(Obj::CreateString("Test1")));
@@ -358,7 +358,7 @@ TEST(ObjTest, CreateFromInteger) {
     ASSERT_EQ(ObjType::Char, var->getType()) << toString(var->getType());
     ASSERT_EQ(123, var->GetValueAsInteger());
 
-    ObjPtr var2 = ctx.Eval("123");
+    ObjPtr var2 = ctx.ExecStr("123");
     ASSERT_TRUE(var2);
     ASSERT_EQ(ObjType::Char, var2->getType()) << toString(var2->getType());
     ASSERT_EQ(123, var2->GetValueAsInteger());
@@ -368,7 +368,7 @@ TEST(ObjTest, CreateFromInteger) {
     ASSERT_EQ(ObjType::Char, var->getType()) << toString(var->getType());
     ASSERT_EQ(-123, var->GetValueAsInteger());
 
-    var2 = ctx.Eval("-123");
+    var2 = ctx.ExecStr("-123");
     ASSERT_TRUE(var2);
     ASSERT_EQ(ObjType::Char, var2->getType()) << toString(var2->getType());
     ASSERT_EQ(-123, var2->GetValueAsInteger());
@@ -395,7 +395,7 @@ TEST(ObjTest, CreateFromInteger) {
 //    ASSERT_EQ(ObjType::Decimal, var->getType()) << toString(var->getType());
 //    ASSERT_EQ(123, var->GetValueAsInteger());
 //
-//    ObjPtr var2 = ctx.Eval("-123.56789:Decimal");
+//    ObjPtr var2 = ctx.ExecStr("-123.56789:Decimal");
 //    ASSERT_TRUE(var2);
 //    ASSERT_EQ(ObjType::Decimal, var2->getType()) << toString(var2->getType());
 //    ASSERT_EQ(-123.56789, var2->GetValueAsNumber());
@@ -405,7 +405,7 @@ TEST(ObjTest, CreateFromInteger) {
 //    ASSERT_EQ(ObjType::Decimal, var->getType()) << toString(var->getType());
 //    ASSERT_EQ(-123, var->GetValueAsInteger());
 //
-//    var2 = ctx.Eval("-123:Decimal");
+//    var2 = ctx.ExecStr("-123:Decimal");
 //    ASSERT_TRUE(var2);
 //    ASSERT_EQ(ObjType::Decimal, var2->getType()) << toString(var2->getType());
 //    ASSERT_EQ(-123, var2->GetValueAsInteger());
@@ -421,7 +421,7 @@ TEST(ObjTest, CreateFromNumber) {
     ASSERT_EQ(ObjType::Double, var->getType());
     ASSERT_DOUBLE_EQ(123.123, var->GetValueAsNumber());
 
-    ObjPtr var2 = ctx.Eval("123.123");
+    ObjPtr var2 = ctx.ExecStr("123.123");
     ASSERT_TRUE(var2);
     ASSERT_EQ(ObjType::Double, var2->getType());
     ASSERT_DOUBLE_EQ(123.123, var2->GetValueAsNumber());
@@ -431,7 +431,7 @@ TEST(ObjTest, CreateFromNumber) {
     ASSERT_EQ(ObjType::Double, var->getType());
     ASSERT_DOUBLE_EQ(-123.123, var->GetValueAsNumber());
 
-    var2 = ctx.Eval("-123.123");
+    var2 = ctx.ExecStr("-123.123");
     ASSERT_TRUE(var2);
     ASSERT_EQ(ObjType::Double, var2->getType());
     ASSERT_DOUBLE_EQ(-123.123, var2->GetValueAsNumber());
@@ -458,7 +458,7 @@ TEST(ObjTest, CreateFromString) {
     ASSERT_EQ(ObjType::StrWide, var->getType());
     ASSERT_STREQ("123.123", var->GetValueAsString().c_str());
 
-    ObjPtr var2 = ctx.Eval("\"123.123\"");
+    ObjPtr var2 = ctx.ExecStr("\"123.123\"");
     ASSERT_TRUE(var2);
     ASSERT_EQ(ObjType::StrWide, var2->getType());
     ASSERT_STREQ("123.123", var2->GetValueAsString().c_str());
@@ -468,7 +468,7 @@ TEST(ObjTest, CreateFromString) {
     ASSERT_EQ(ObjType::StrChar, var->getType());
     ASSERT_STREQ("строка", var->GetValueAsString().c_str());
 
-    var2 = ctx.Eval("'строка'");
+    var2 = ctx.ExecStr("'строка'");
     ASSERT_TRUE(var2);
     ASSERT_EQ(ObjType::StrChar, var2->getType());
     ASSERT_STREQ("строка", var2->GetValueAsString().c_str());

@@ -356,6 +356,8 @@ term    [$@%~]({ualpha}|[_])?({name})?
 "->"        YY_TOKEN(FOLLOW);
 "-->"       YY_TOKEN(FOLLOW);
 "~>"        YY_TOKEN(MATCHING);
+"~~>"       YY_TOKEN(MATCHING);
+"~~~>"      YY_TOKEN(MATCHING);
 "==>"       YY_TOKEN(MATCHING);
 "===>"      YY_TOKEN(MATCHING);
 

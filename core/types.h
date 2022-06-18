@@ -49,21 +49,20 @@ typedef ObjPtr TransparentType(const Context *ctx, const Obj &in);
 class Interruption : public std::exception {
   public:
      
-      inline static const char * ClassName = ":Interruption";
       inline static const char * Return = ":Return";
-      inline static const char * Parser = ":Parser";
       inline static const char * Error = ":Error";
+      inline static const char * Parser = ":Parser";
       inline static const char * RunTime = ":RunTime";
       inline static const char * Signal = ":Signal";
       inline static const char * Abort = ":Abort";
 
-    Interruption();
-    Interruption(ObjPtr obj, const std::string type_name=Return);
+//    Interruption();
+    Interruption(const ObjPtr obj, const std::string type_name=Return);
     Interruption(const std::string message, const std::string error_name=Parser);
 
     virtual const char *what() const noexcept override;
 
-    ObjPtr m_obj;
+    const ObjPtr m_obj;
     char m_buffer_message[100];
     
 };
@@ -86,14 +85,6 @@ void ParserException(const char *msg, std::string &buffer, int row, int col);
             ParserMessage(term->m_source ? *term->m_source : empty, term->m_line, term->m_col, format, ##__VA_ARGS__); \
         LOG_EXCEPT_LEVEL(Interruption, LOG_LEVEL_INFO, "", "%s", message.c_str());                                 \
     } while (0)
-
-//#define NL_EVAL(term, format, ...)                                                                                     \
-//    do {                                                                                                               \
-//        std::string empty;                                                                                             \
-//        std::string message =                                                                                          \
-//            ParserMessage(term->m_source ? *term->m_source : empty, term->m_line, term->m_col, format, ##__VA_ARGS__); \
-//        LOG_EXCEPT_LEVEL(abort_exception, LOG_LEVEL_INFO, "", "%s", message.c_str());                                  \
-//    } while (0)
 
 #define NL_CHECK(cond, format, ...)                                                                                    \
     do {                                                                                                               \
@@ -196,6 +187,7 @@ void ParserException(const char *msg, std::string &buffer, int row, int col);
     _(Object, 122)                                                                                                      \
     _(Any, 123)                                                                                                      \
     _(Type, 200)\
+    _(Return, 250)\
     _(Error, 255)
 
 //    _(Enum, 120)                                                                                                      \
@@ -313,15 +305,17 @@ void ParserException(const char *msg, std::string &buffer, int row, int col);
     _(ComplexFloat)                                                                                      \
     _(ComplexDouble)                                                                                    \
     _(Bool)                                                                                                      \
-    _(StrChar)                                                                                                \
-    _(StrWide)                                                                                                \
-    _(Dictionary)                                                                                          \
-    _(Class)                                                                                                    \
-                                                                                                                       \
+                                                                                                  \
     _(Integer)                                                                                                \
     _(Number)                                                                                                  \
     _(Complex)                                                                                                \
     _(Tensor)                                                                                                  \
+    \
+    _(StrChar)                                                                                                \
+    _(StrWide)                                                                                                \
+    _(Dictionary)                                                                                          \
+    _(Class)                                                                                                    \
+    \
     _(Object)                                                                                                  \
     _(Any)                                                                                                  \
     _(Eval)                                                                                                      \
@@ -372,7 +366,7 @@ void ParserException(const char *msg, std::string &buffer, int row, int col);
                 return false;
         }
     }
-
+    
     inline bool isObjectType(ObjType t) {
         return t == ObjType::Dictionary || t == ObjType::Class;
     }
@@ -448,7 +442,11 @@ void ParserException(const char *msg, std::string &buffer, int row, int col);
     inline bool isRange(ObjType t) {
         return t == ObjType::Range;
     }
-
+    
+    inline bool isTypeName(ObjType t) {
+        return t == ObjType::Type;
+    }
+    
     inline bool isLocalType(ObjType t) {
         return false;
     }
@@ -893,15 +891,15 @@ void ParserException(const char *msg, std::string &buffer, int row, int col);
      */
     void ConvertRangeToDict(Obj *from, Obj &to);
 
-    void ConvertStringToTensor(const std::string &from, torch::Tensor &to, ObjType type = ObjType::None, Dimension *dims = nullptr);
-    void ConvertStringToTensor(const std::wstring &from, torch::Tensor &to, ObjType type = ObjType::None, Dimension *dims = nullptr);
+    void ConvertStringToTensor(const std::string &from, torch::Tensor &to, ObjType type = ObjType::None);
+    void ConvertStringToTensor(const std::wstring &from, torch::Tensor &to, ObjType type = ObjType::None);
 
     void ConvertTensorToString(const torch::Tensor &from, std::string &to, std::vector<Index> *index = nullptr);
     void ConvertTensorToString(const torch::Tensor &from, std::wstring &to, std::vector<Index> *index = nullptr);
 
-    void ConvertDictToTensor(Obj &from, torch::Tensor &to, ObjType type = ObjType::Tensor, Dimension *dims = nullptr);
+    void ConvertDictToTensor(Obj &from, torch::Tensor &to, ObjType type = ObjType::Tensor);
     void ConvertTensorToDict(const torch::Tensor &from, Obj &to, std::vector<Index> *index = nullptr);
-    void ConvertValueToTensor(Obj *from, torch::Tensor &to, ObjType type = ObjType::None, Dimension *dims = nullptr);
+    void ConvertValueToTensor(Obj *from, torch::Tensor &to, ObjType type = ObjType::None);
 
 } // namespace newlang
 

@@ -447,8 +447,8 @@ TEST_F(ParserTest, DictType) {
     ASSERT_TRUE(Parse("(arg1=22, arg2=, arg3=,):Enum"));
     ASSERT_STREQ("(arg1=22, arg2=, arg3=,):Enum", ast->toString().c_str());
 
-    ASSERT_TRUE(Parse("(1, arg=2, '',):Class(value)"));
-    ASSERT_STREQ("(1, arg=2, '',):Class(value)", ast->toString().c_str());
+    ASSERT_TRUE(Parse("(1, arg=2, '',):Class"));
+    ASSERT_STREQ("(1, arg=2, '',):Class", ast->toString().c_str());
 }
 
 TEST_F(ParserTest, TermNoArg) {
@@ -1664,6 +1664,9 @@ TEST_F(ParserTest, Exit) {
     ASSERT_TRUE(Parse("--  0.1 --;"));
     ASSERT_TRUE(Parse("--  0.1    --;;"));
     ASSERT_TRUE(Parse("--[0,]--;"));
+    ASSERT_TRUE(Parse("--(0,)--;;"));
+    ASSERT_TRUE(Parse("--(0,1,2,3,):Class--;;"));
+    ASSERT_TRUE(Parse("--(0,2,3,) :Class --;;"));
     ASSERT_TRUE(Parse("--(0,)--;;"));
     ASSERT_TRUE(Parse("--:Class(var)--;"));
     ASSERT_TRUE(Parse("--:Class[0](1)--;"));

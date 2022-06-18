@@ -268,23 +268,6 @@ namespace newlang {
             return false;
         }
 
-        /*
-     Типы данных для операции сравнения:
-    - None
-    - Арифметический тип (все числовые типы за исключением типа bool)
-    - Логический (тип bool)
-    - Строки
-    - Словари (dict - любые данные без наследования)
-
-
-    - Объекты (class - именованные данные с наследованием)
-
-    - Функции (методы)
-
-    - Ошибка ??????
-    - Другие ?????? (Range, ellipsis, определение типа)
-         */
-
         [[nodiscard]]
         inline bool is_none_type() const {
             return m_var_type_current == ObjType::None;
@@ -379,6 +362,21 @@ namespace newlang {
         [[nodiscard]]
         inline bool is_range() const {
             return isRange(m_var_type_current);
+        }
+
+        [[nodiscard]]
+        inline bool is_type_name() const {
+            return isTypeName(m_var_type_current);
+        }
+
+        [[nodiscard]]
+        inline bool is_error() const {
+            return m_var_type_current == ObjType::Error || m_var_type_fixed == ObjType::Error;
+        }
+
+        [[nodiscard]]
+        inline bool is_return() const {
+            return m_var_type_current == ObjType::Return || m_var_type_fixed == ObjType::Return;
         }
 
         [[nodiscard]]
@@ -1086,18 +1084,6 @@ namespace newlang {
             return obj;
         }
 
-        //    inline static ObjPtr CreateLambda() {
-        //        return CreateType(ObjType::FUNCTION);
-        //    }
-        //
-        //    static ObjPtr CreateLambda(const char *text);
-        //    static ObjPtr CreateLambda(TermPtr term);
-
-        //    static ObjPtr CreateError(const char * desc, const char *name = nullptr) {
-        //        ObjPtr result = CreateType(ObjType::Error, name);
-        //        result->m_string = desc;
-        //        return result;
-        //    }
 
         static ObjType GetType(torch::Tensor & val) {
             switch (val.dtype().toScalarType()) {
@@ -1165,18 +1151,6 @@ namespace newlang {
             return m_value;
         }
 
-        //    inline std::string & asString_() {
-        //        NL_CHECK(is_string_type(), "Fail type as String");
-        //        return m_string;
-        //    }
-
-        //    inline ObjPtr index(Index ind) const {
-        //        if (!is_tensor() && ind.is_integer()) {
-        //            return at(ind.integer()).second;
-        //        }
-        //        NL_CHECK(is_tensor(), "Fail type as Tensor");
-        //        return Object::CreateTensor(m_value.index(ind));
-        //    }
 
         at::indexing::Slice toSlice() {
             NL_CHECK(is_range(), "Convert to slice supported for range only!");
@@ -1286,20 +1260,6 @@ namespace newlang {
         //  ПЕРЕКРЫВАЕТ ДРУГИЕ МЕТОДЫ  !!!!!!!!!!!!!! at::TensorOptions()
         //    inline operator std::string () const {
         //        return GetValueAsString();
-        //    }
-
-        //    static ObjPtr CreateTensor(const Dimension dims, ObjType type, ObjPtr fill = nullptr) {
-        //        torch::Tensor tensor = torch::empty(dims, toTorchType(type));
-        //        if (fill) {
-        //            if (fill->is_scalar()) {
-        //                tensor = fill->m_value;
-        //            } else if (fill->is_function()) {
-        //                ASSERT("Not implemeted!");
-        //            } else {
-        //                LOG_RUNTIME("Unsupport fill tensor type %d %s!", (int) fill->m_var_type, fill->toString().c_str());
-        //            }
-        //        }
-        //        return CreateTensor(tensor);
         //    }
 
         template <typename T>
@@ -1464,14 +1424,14 @@ namespace newlang {
             //        Clear();
         }
 
-        ObjPtr toType(ObjType target, Dimension *dims = nullptr) const {
+        ObjPtr toType(ObjType target) const {
             ObjPtr result = Clone();
-            result->toType_(target, dims);
+            result->toType_(target);
             return result;
         }
-        ObjPtr toType_(ObjType type, Dimension *dims = nullptr);
-        ObjPtr toType_(Context *ctx, TermPtr type, Obj *local_vars);
+
         ObjPtr toType_(Obj *type);
+        void toType_(ObjType type);
 
         ObjPtr toShape(ObjPtr dims) const {
             ObjPtr result = Clone();
@@ -1490,7 +1450,8 @@ namespace newlang {
             if (shape) {
                 toShape_(shape);
             }
-            return toType_(type);
+            toType_(type);
+            return shared();
         }
 
         const ObjPtr index_get(const std::vector<Index> & index) const;
@@ -1512,9 +1473,7 @@ namespace newlang {
         SetValue_(bool value) {
 
             TEST_CONST_();
-            //        if (m_var_type_defined) {
-            //            NL_CHECK(m_var_type);
-            //        }
+
             ASSERT(m_var_type_current != ObjType::Class);
             clear_();
             m_value = torch::scalar_tensor(value, torch::Dtype::Bool);

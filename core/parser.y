@@ -940,10 +940,12 @@ class:  dictionary
             {
                 $$ = $1;
             }
-        | dictionary   type
+        | dictionary   type_class
             {
                 $$ = $1;
-                $$->SetType($2);
+                $$->m_text = $type_class->m_text;
+                $$->m_class_name = $type_class->m_text;
+//                $$->SetType($2);
             }
             
            
@@ -991,6 +993,11 @@ assign_expr:  block
                 {
                     $$ = $1;  
                 }
+            | ELLIPSIS  rval
+                {
+                    $$ = $1;  
+                    $$->Append($rval, Term::RIGHT); 
+                }
 
 
 assign_item:  lval
@@ -1006,11 +1013,11 @@ assign_seq: assign_item
                 {
                     $$ = $1;
                 }
-/*            |  assign_seq  ','  assign_item
+            |  assign_seq  ','  assign_item
                 {
                     $$ = $1;
                     $$->AppendSeq($3);
-                } */
+                }
 /*
 lval = rval;
 lval, lval, lval = rval;
@@ -1192,23 +1199,6 @@ block_call:  '('  MIDDLE_CALL_BLOCK  sequence  '}'
  * Алгоритмы используют eval или блок кода (у matching)
  */
 
-/* lvalue объекты с вызовом как у функций 
-eval:   lval
-            {
-                $$ = $1; 
-            }
-        | lval  '('  ')'
-            {
-                $$ = $1; 
-                $$->SetTermID(TermID::CALL);
-            }
-        | lval '('  args_all  ')'
-            {
-                $$ = $1; 
-                $$->SetTermID(TermID::CALL);
-                $$->SetArgs($args_all);
-            }*/
-
 operator: OPERATOR
             {
                 $$ = $1;
@@ -1366,29 +1356,8 @@ logical:  arithmetic
         
         
 
-
-follow:  if_then_body
-
-
-if_then_body: if_then
-            {
-                $$ = $1; 
-                $$->AppendFollow($1);
-            }
-        | follow  ','  if_then
-            {
-                $$ = $1; 
-                $$->AppendFollow($3);
-/*                $2->Append($3, Term::RIGHT); 
-                $$->AppendFollow($1);
-                $$->AppendFollow($2); */
-            }
         
-match_cond: /*rval
-            {
-                $$ = $1;
-            }
-        |  */'[' condition ']' 
+match_cond: '['   condition   ']' 
             {
                 $$ = $condition;
             }
@@ -1399,39 +1368,30 @@ if_then:  match_cond  FOLLOW  body
                 $$->Append($1, Term::LEFT); 
                 $$->Append($3, Term::RIGHT); 
             }
-/*        |  '[' match_cond ']'  FOLLOW  body
-            {
-                $$=$4;
-                $$->Append($2, Term::LEFT); 
-                $$->Append($5, Term::RIGHT); 
-            } */
 
+follow: if_then
+            {
+                $$ = $1; 
+                $$->AppendFollow($1);
+            }
+        | follow  ','  if_then
+            {
+                $$ = $1; 
+                $$->AppendFollow($3);
+            }
         
-  
    
 /* term -->> {};
  * (op) -->> {};
  * {} <<-- term;
  * {} <<-- (op);
  */        
-repeat:  /*rval_name  WHILE  body
-            {
-                $$=$2;
-                $$->Append($1, Term::LEFT); 
-                $$->Append($3, Term::RIGHT); 
-            }
-        | */ match_cond  WHILE  body
+repeat: match_cond  WHILE  body
             {
                 $$=$2;
                 $$->Append($match_cond, Term::LEFT); 
                 $$->Append($body, Term::RIGHT); 
             }
-/*        |  body  UNTIL  rval_name
-            {
-                $$=$2;
-                $$->Append($1, Term::LEFT); 
-                $$->Append($3, Term::RIGHT); 
-            } */
         |  body  UNTIL  match_cond
             {
                 $$=$2;
@@ -1446,7 +1406,7 @@ matches:  rval_name
         |  matches  ','  rval_var
             {
                 $$ = $1;
-                $$->AppendSeq($3);
+                $$->AppendFollow($3);
             }        
         
 match_item: '[' matches  ']' FOLLOW  body
@@ -1463,7 +1423,8 @@ match_items:  match_item
         | match_items  ';'  match_item
             {
                 $$ = $1; 
-                $$->AppendFollow($3);
+                $$->ConvertToBlock(TermID::BLOCK);
+                $$->BlockCodeAppend($match_item); 
             }
         
 match_body:  '{'  match_items  '}'
@@ -1473,24 +1434,26 @@ match_body:  '{'  match_items  '}'
 
 
 
-match:  '['  match_cond ']'  MATCHING  match_body
+match:  match_cond   MATCHING  match_body
             {
                 $$=$2;
-/*                $$->Append($1, Term::LEFT); 
-                $$->Append($3, Term::RIGHT); */
+                $$->Append($1, Term::LEFT); 
+                $$->Append($3, Term::RIGHT);
             }
         |  block  MATCHING  match_body
             {
                 $$=$2;
-/*                $$->Append($1, Term::LEFT); 
-                $$->Append($3, Term::RIGHT); */
+                $$->Append($1, Term::LEFT); 
+                $$->Append($3, Term::RIGHT);
             }
 
+        
+        
 exit:  EXIT
         {
             $$ = $1;
         }
-    |  EXIT  rval_var  EXIT
+    |  EXIT   rval   EXIT
         {
             $$ = $1;
             $$->Append($2, Term::RIGHT); 
@@ -1558,16 +1521,6 @@ sequence:  seq_item
         
 separator: ';' | separator  ';'        
         
-//execution:  block_call
-//            {
-//                $$ = $1;  
-//            }
-//        | execution  separator  block_call
-//            {
-//                $$ = $1; 
-//                $$->ConvertToBlock(TermID::BLOCK);
-//                $$->BlockCodeAppend($3); 
-//            }
 
 ast:    END
         | separator
@@ -1579,10 +1532,6 @@ ast:    END
             {
                driver.AstAddTerm($1);
             }
-//        | execution separator
-//            {
-//               driver.AstAddTerm($1);
-//            }
 
 start	:   ast
 

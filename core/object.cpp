@@ -33,8 +33,8 @@ std::ostream &operator<<(std::ostream &out, newlang::ObjPtr var) {
 //    }
 //}
 
-Interruption::Interruption() : Interruption(Obj::CreateNone(), Interruption::Return) {
-}
+//Interruption::Interruption() : Interruption(Obj::CreateNone(), Interruption::Return) {
+//}
 
 Interruption::Interruption(const std::string error_message, const std::string type_name) : Interruption(Obj::CreateString(error_message), type_name) {
 }
@@ -440,6 +440,12 @@ ObjPtr Obj::operator-=(Obj value) {
         m_var_type_current = value.m_var_type_current;
     } else if (is_tensor() && value.is_tensor()) {
         testResultIntegralType(value.m_var_type_current, true);
+        if (is_bool_type()) {
+            toType_(ObjType::Char);
+        }
+        if (value.is_bool_type()) {
+            value.toType_(ObjType::Char);
+        }
         m_value.sub_(value.m_value);
         return shared();
     }
@@ -1550,7 +1556,9 @@ ObjPtr Obj::toShape_(ObjPtr dims) {
         LOG_RUNTIME("More than one dimension is not supported!");
     } else if (array.size() == 0) {
         // Ноль измерений не у тензора только у None
-        return toType_(ObjType::None);
+        toType_(ObjType::None);
+        return shared();
+        
     } else if (size() == array[0]) {
         // Требуемый размер
         return shared();
@@ -1580,25 +1588,25 @@ ObjPtr Obj::toShape_(ObjPtr dims) {
     return shared();
 }
 
-ObjPtr Obj::toType_(Context *ctx, TermPtr type, Obj *local_vars) {
-    if (type) {
-        std::vector<int64_t> dims;
-        for (size_t i = 0; i < type->m_dims.size(); i++) {
-            NL_CHECK(type->m_dims[i]->getName().empty(), "Dimension named not supported!");
-            ObjPtr temp = Context::CreateRVal(ctx, type->m_dims[i], local_vars);
-            if (!temp) {
-                NL_PARSER(type, "Term not found!");
-            }
-            if (!temp->is_integer()) {
-                NL_PARSER(type, "Term type not integer!");
-            }
-            dims.push_back(temp->GetValueAsInteger());
-        }
-        auto d = c10::ArrayRef(dims);
-        return toType_(typeFromString(type->m_text), dims.size() ? &d : nullptr);
-    }
-    return shared();
-}
+//ObjPtr Obj::toType_(Context *ctx, TermPtr type, Obj *local_vars) {
+//    if (type) {
+//        std::vector<int64_t> dims;
+//        for (size_t i = 0; i < type->m_dims.size(); i++) {
+//            NL_CHECK(type->m_dims[i]->getName().empty(), "Dimension named not supported!");
+//            ObjPtr temp = Context::CreateRVal(ctx, type->m_dims[i], local_vars);
+//            if (!temp) {
+//                NL_PARSER(type, "Term not found!");
+//            }
+//            if (!temp->is_integer()) {
+//                NL_PARSER(type, "Term type not integer!");
+//            }
+//            dims.push_back(temp->GetValueAsInteger());
+//        }
+//        auto d = c10::ArrayRef(dims);
+//        return toType_(typeFromString(type->m_text), dims.size() ? &d : nullptr);
+//    }
+//    return shared();
+//}
 
 ObjPtr Obj::toType_(Obj *type) {
     ASSERT(type);
@@ -1606,46 +1614,48 @@ ObjPtr Obj::toType_(Obj *type) {
         LOG_RUNTIME("Fail type object '%s'!", type->toString().c_str());
     }
 
-    std::vector<int64_t> dims;
-    if (type->m_dimensions) { // Указан ли размер создаваемого тензора?
-        for (int64_t i = 0; i < type->m_dimensions->size(); i++) {
-            if ((*type->m_dimensions)[i]->GetValueAsInteger() <= 0) {
-                LOG_RUNTIME("Dimensio size %ld at index %ld failed!", (*type->m_dimensions)[i]->GetValueAsInteger(), i);
-            }
-            dims.push_back((*type->m_dimensions)[i]->GetValueAsInteger());
-        }
-    }
-    at::IntArrayRef ref(dims);
-    return toType_(type->m_var_type_fixed, &ref);
+//    std::vector<int64_t> dims;
+//    if (type->m_dimensions) { // Указан ли размер создаваемого тензора?
+//        for (int64_t i = 0; i < type->m_dimensions->size(); i++) {
+//            if ((*type->m_dimensions)[i]->GetValueAsInteger() <= 0) {
+//                LOG_RUNTIME("Dimensio size %ld at index %ld failed!", (*type->m_dimensions)[i]->GetValueAsInteger(), i);
+//            }
+//            dims.push_back((*type->m_dimensions)[i]->GetValueAsInteger());
+//        }
+//    }
+//    at::IntArrayRef ref(dims);
+    toType_(type->m_var_type_fixed); //, &ref
+    return shared();
 }
 
-ObjPtr Obj::toType_(ObjType target, Dimension *dims) {
-    if (dims) {
-        NL_CHECK(isTensor(target), "Dimension set only for tensors!");
-    }
+void Obj::toType_(ObjType target) {
+    //    if (dims) {
+    //        NL_CHECK(isTensor(target), "Dimension set only for tensors!");
+    //    }
     if (m_var_type_current == target) {
-        if (isTensor(target) && dims) {
-            m_value = m_value.reshape(*dims);
-        }
+//        if (isTensor(target) && dims) {
+//            m_value = m_value.reshape(*dims);
+//        }
         // Конвертировать не нужно
-        return shared();
+            return;// shared();
 
     } else if (is_none_type() || target == ObjType::None) {
         // Любой тип при конвертации в пустой, просто очистить данные
         clear_();
         m_var_type_current = target;
-        return shared();
+            return;// shared();
 
     } else if (is_tensor()) {
         // Из тензора конвертировать в другой тип
         if (isTensor(target)) {
             m_value = m_value.toType(toTorchType(target));
             m_var_type_current = target;
-            if (dims) {
-                m_value = m_value.reshape(*dims);
-            }
+//            if (dims) {
+//                m_value = m_value.reshape(*dims);
+//            }
             Variable::clear_();
-            return shared();
+            return;// shared();
+
         } else if (isString(target)) {
             if (target == ObjType::StrChar) {
                 // В байтовую строку конвертируются только байтовый скаляр или одномерный байтовый тензор
@@ -1665,7 +1675,9 @@ ObjPtr Obj::toType_(ObjType target, Dimension *dims) {
                     LOG_RUNTIME("Convert to string single dimension tensor only!");
                 }
                 m_var_type_current = target;
-                return shared();
+                return; // shared();
+
+
             } else { // ObjType::StrWide
                 ASSERT(target == ObjType::StrWide);
 
@@ -1690,20 +1702,20 @@ ObjPtr Obj::toType_(ObjType target, Dimension *dims) {
                 }
 
                 m_var_type_current = target;
-                return shared();
+                return; // shared();
             }
         } else if (isDictionary(target)) {
             m_var_type_current = target;
             ConvertTensorToDict(m_value, *this);
             m_value.reset();
-            return shared();
+            return; // shared();
         }
     } else if (is_string_type()) {
         // Из строки в другой тип данных
         if (isString(target)) {
             // Строки хранятся в байтовом представлении и их ненужно конвертировать
             m_var_type_current = target;
-            return shared();
+            return; // shared();
         } else if (isTensor(target)) {
             // Сконвертировать строку в тензор
             torch::Tensor std_data;
@@ -1723,14 +1735,14 @@ ObjPtr Obj::toType_(ObjType target, Dimension *dims) {
                 m_value = std_data.clone();
             }
 
-            if (dims) {
-                m_value = m_value.reshape(*dims);
-            }
+            //            if (dims) {
+            //                m_value = m_value.reshape(*dims);
+            //            }
 
             m_str.clear();
             m_wstr.clear();
             m_var_type_current = target;
-            return shared();
+            return; // shared();
 
         } else if (isDictionary(target)) {
 
@@ -1741,7 +1753,7 @@ ObjPtr Obj::toType_(ObjType target, Dimension *dims) {
             ConvertTensorToDict(temp, *this);
             m_str.clear();
             m_wstr.clear();
-            return shared();
+            return; // shared();
 
             // Строка в словарь, тоже допустимо, причем можно сделать даже именованные эелементы, если потребуется
             //            LOG_RUNTIME("Not implemented!!!");
@@ -1754,13 +1766,13 @@ ObjPtr Obj::toType_(ObjType target, Dimension *dims) {
         } else if (isDictionary(target)) {
             // Словрь в словарь - ничего не делаем
             m_var_type_current = target;
-            return shared();
+            return; // shared_from_this();
         } else if (isTensor(target)) {
 
-            ConvertDictToTensor(*this, m_value, target, dims);
+            ConvertDictToTensor(*this, m_value, target);
 
             m_var_type_current = fromTorchType(m_value.scalar_type());
-            return shared();
+            return; // shared();
 
             // ConvertDictToTensor(Object & from, torch::Tensor & to, )
             //            ConvertToTensor(const Object * data)
@@ -1775,7 +1787,7 @@ ObjPtr Obj::toType_(ObjType target, Dimension *dims) {
             //            m_value = torch::zeros(dims, toTorchType(summary_type));
             //
             //            m_var_type = target;
-            //            return shared_from_this();
+            return; // shared();
         }
     } else if (m_var_type_current == ObjType::Range) {
         // Из диапазона в другой тип данных
@@ -1797,7 +1809,7 @@ ObjPtr Obj::toType_(ObjType target, Dimension *dims) {
                 m_var_type_current = ObjType::Dictionary;
                 temp->ClonePropTo(*this);
             }
-            return shared_from_this();
+            return; // shared();
         }
     }
     // Остальные варианты предобразований выполнить нельзя
@@ -2406,25 +2418,25 @@ void newlang::ConvertRangeToDict(Obj *from, Obj &to) {
     to.m_var_is_init = true;
 }
 
-void newlang::ConvertStringToTensor(const std::string &from, torch::Tensor &to, ObjType type, Dimension *dims) {
+void newlang::ConvertStringToTensor(const std::string &from, torch::Tensor &to, ObjType type) {
     ASSERT(!from.empty());
     ASSERT(type == ObjType::None || type == ObjType::Char || type == ObjType::Tensor);
-    if (dims) {
-        to = torch::from_blob((void *) from.data(), *dims, at::ScalarType::Int).clone();
-    } else {
+//    if (dims) {
+//        to = torch::from_blob((void *) from.data(), *dims, at::ScalarType::Int).clone();
+//    } else {
         to = torch::from_blob((void *) from.data(),{(int64_t) from.size()}, at::ScalarType::Char).clone();
-    }
+//    }
 }
 
-void newlang::ConvertStringToTensor(const std::wstring &from, torch::Tensor &to, ObjType type, Dimension *dims) {
+void newlang::ConvertStringToTensor(const std::wstring &from, torch::Tensor &to, ObjType type) {
     ASSERT(!from.empty());
     ASSERT(type == ObjType::None || type == ObjType::Int || type == ObjType::Tensor);
     STATIC_ASSERT(sizeof (wchar_t) == sizeof (int));
-    if (dims) {
-        to = torch::from_blob((void *) from.data(), *dims, at::ScalarType::Int).clone();
-    } else {
+//    if (dims) {
+//        to = torch::from_blob((void *) from.data(), *dims, at::ScalarType::Int).clone();
+//    } else {
         to = torch::from_blob((void *) from.data(),{(int64_t) from.size()}, at::ScalarType::Int).clone();
-    }
+//    }
 }
 
 template <typename T> void ConvertTensorToStringTemplate(const torch::Tensor &from, T &to, std::vector<Index> *index) {
@@ -2501,11 +2513,11 @@ void newlang::ConvertTensorToDict(const torch::Tensor &from, Obj &to, std::vecto
     to.m_var_is_init = true;
 }
 
-void newlang::ConvertDictToTensor(Obj &from, torch::Tensor &to, ObjType type, Dimension *dims) {
+void newlang::ConvertDictToTensor(Obj &from, torch::Tensor &to, ObjType type) {
 
     torch::Tensor temp;
     for (size_t i = 0; i < from.size(); i++) {
-        ConvertValueToTensor(from.at(i).second.get(), temp, type, nullptr);
+        ConvertValueToTensor(from.at(i).second.get(), temp, type);
 
         if (temp.dim() == 0) {
             temp = temp.reshape({1});
@@ -2517,12 +2529,12 @@ void newlang::ConvertDictToTensor(Obj &from, torch::Tensor &to, ObjType type, Di
             to = torch::cat({to, temp});
         }
     }
-    if (dims) {
-        to = to.reshape(*dims);
-    }
+//    if (dims) {
+//        to = to.reshape(*dims);
+//    }
 }
 
-void newlang::ConvertValueToTensor(Obj *from, torch::Tensor &to, ObjType type, Dimension *dims) {
+void newlang::ConvertValueToTensor(Obj *from, torch::Tensor &to, ObjType type) {
     ASSERT(from);
     if (from->is_tensor()) {
         to = from->m_value.clone();
@@ -2530,19 +2542,19 @@ void newlang::ConvertValueToTensor(Obj *from, torch::Tensor &to, ObjType type, D
             return;
         }
         to = to.toType(toTorchType(type));
-        if (dims) {
-            to = to.reshape(*dims);
-        }
+//        if (dims) {
+//            to = to.reshape(*dims);
+//        }
     } else if (from->is_range()) {
         ObjPtr temp = Obj::CreateNone();
         ConvertRangeToDict(from, *temp.get());
-        ConvertDictToTensor(*temp.get(), to, type, dims);
+        ConvertDictToTensor(*temp.get(), to, type);
     } else if (from->getType() == ObjType::StrChar) {
-        ConvertStringToTensor(from->m_str, to, type, dims);
+        ConvertStringToTensor(from->m_str, to, type);
     } else if (from->getType() == ObjType::StrWide) {
-        ConvertStringToTensor(from->m_wstr, to, type, dims);
+        ConvertStringToTensor(from->m_wstr, to, type);
     } else if (from->is_dictionary_type()) {
-        ConvertDictToTensor(*from, to, type, dims);
+        ConvertDictToTensor(*from, to, type);
     } else {
         LOG_RUNTIME("Fail convert object type %s to tensor (%s)!", newlang::toString(from->getType()), from->toString().c_str());
     }

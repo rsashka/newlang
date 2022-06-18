@@ -283,13 +283,6 @@ public:
             case TermID::ARGUMENT:
                 return m_text;
 
-                //            case TermID::JUMP:
-                //                result = m_text;
-                //                if (!m_name.empty()) {
-                //                    result += m_name;
-                //                }
-                //                return result;
-
             case TermID::EXIT:
                 result = m_text;
                 if (Right()) {
@@ -352,14 +345,7 @@ public:
                     result += GetType()->asTypeString();
                 }
                 return result;
-                //            case TermID::STRVAR:// name:="string"
-                //                if (!result.empty()) {
-                //                    result += "=";
-                //                }
-                //                result += "`";
-                //                result.append(m_text);
-                //                result.append("`");
-                //                return result;
+
             case TermID::STRCHAR:// name:="string"
             case TermID::STRWIDE:// name:="string"
                 if (!result.empty()) {
@@ -463,30 +449,6 @@ public:
                 }
                 return result;
 
-                //            case TermID::LAMBDA:
-                //                if (!result.empty()) {
-                //                    result += "=";
-                //                }
-                //                result += "(";
-                //                dump_items_(result);
-                //                result += ")";
-                //                result += m_text;
-                //                result += "{";
-                //                if (m_right) {
-                //                    if (m_right->GetTokenID() == TermID::BLOCK) {
-                //                        for (size_t i = 0; i < m_right->m_block.size(); i++) {
-                //                            if (i) {
-                //                                result += ", ";
-                //                            }
-                //                            result += m_right->m_block[i]->toString();
-                //                        }
-                //                    } else {
-                //                        result += m_right->toString();
-                //                    }
-                //                }
-                //                result += "}";
-                //                return result;
-
             case TermID::ITERATOR:
                 result += m_text;
                 if (size()) {
@@ -511,6 +473,9 @@ public:
                 dump_items_(result);
                 result += ",";
                 result += ")";
+                if (!m_class_name.empty()) {
+                    result += m_class_name;
+                }
                 if (GetType()) {
                     result += GetType()->asTypeString();
                 }
@@ -683,27 +648,9 @@ public:
             case TermID::CURRENCY:
                 return m_text;
 
-                //            case TermID::FILLING:
-                //            case TermID::ELLIPSIS:
-                //                result += m_text;
-                //                if (m_right) {
-                //                    result += m_right->toString();
-                //                }
-                //                return result;
-
-
             case TermID::EMPTY:
                 return result + "=";
-                /*                if (m_left && !m_right) {
-                                    result = m_left->toString();
-                                    result += m_text;
-                                } else if (m_right && !m_left) {
-                                    result = m_text;
-                                    result += m_right->toString();
-                                } else {
-                                    LOG_RUNTIME("Double CREMENT logic not support!");
-                                }
-                                return result;*/
+
         }
         LOG_RUNTIME("Fail toString() type %s, text:'%s'", newlang::toString(m_id), m_text.c_str());
     }
@@ -769,11 +716,6 @@ public:
                 elem->SetSource(m_source);
             }
         }
-        //        for (auto &elem : m_follow) {
-        //            if (elem.get() != this) {
-        //                elem->SetSource(m_source);
-        //            }
-        //        }
 
         TermPtr next = shared_from_this()->Right();
         while (next) {
@@ -825,8 +767,8 @@ public:
                 m_dims.push_back(next);
             }
             prev = next;
-            next = next->m_seq; //Right();
-            prev->m_seq.reset(); //right.reset();
+            next = next->m_seq;
+            prev->m_seq.reset();
         }
         return true;
     }
@@ -841,8 +783,8 @@ public:
         while (next && next->getTermID() != TermID::END) {
             push_back(next, next->getName());
             prev = next;
-            next = next->m_seq; //Right();
-            prev->m_seq.reset(); //right.reset();
+            next = next->m_seq;
+            prev->m_seq.reset();
         }
         return true;
     }
@@ -1002,16 +944,6 @@ public:
         }
     }
 
-    //    inline void BlockCodeAppend(TermPtr & term) {
-    //        term->m_source = m_source;
-    //        if (m_id != TermID::BLOCK) {
-    //            TermPtr copy = Term::Create(this);
-    //            m_id = TermID::BLOCK;
-    //            m_block.push_back(copy);
-    //        }
-    //        m_block.push_back(term);
-    //    }
-
     inline void ConvertToBlock(TermID id) {
         if (!IsBlock()) {
             auto ddd = shared_from_this();
@@ -1105,11 +1037,6 @@ public:
 
     inline TermPtr GetType() {
         return m_type;
-        //        if (m_type) {
-        //            //            ParserException("Type undefined!", *m_source, m_line, m_col);
-        //            return m_type->m_text;
-        //        }
-        //        return "";
     }
 
     //    SCOPE(protected) :

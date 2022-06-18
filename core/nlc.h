@@ -325,7 +325,7 @@ public:
                     LOG_RUNTIME("Eval expression empty!");
                 }
 
-                ObjPtr result = Context::Eval(&m_ctx, term, m_args.get());
+                ObjPtr result = Context::ExecStr(&m_ctx, term, m_args.get());
 
                 if (result && m_local_vars.find(result.get()) == m_local_vars.end()) {
                     m_local_vars[result.get()] = result;
@@ -600,7 +600,7 @@ public:
                         LOG_RUNTIME("Eval expression empty!");
                     }
 
-                    ObjPtr res = Context::Eval(&m_ctx, term, m_args.get());
+                    ObjPtr res = Context::ExecStr(&m_ctx, term, m_args.get());
 
                     if (res) {
                         
