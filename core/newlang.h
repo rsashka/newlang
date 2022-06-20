@@ -280,10 +280,10 @@ public:
             case FunctionStep::PREPARE:
                 return "";
             case FunctionStep::COMPLETE:
-                return ci.GetIndent() + "return " NEWLANG_NS "::Object::Yes();\n";
+                return ci.GetIndent() + "return " NEWLANG_NS "::Obj::Yes();\n";
 
             case FunctionStep::OPERATION:
-                return WriteFunctionCheckOp_(ci, op, "", "return " NEWLANG_NS "::Object::No()");
+                return WriteFunctionCheckOp_(ci, op, "", "return " NEWLANG_NS "::Obj::No()");
         }
         LOG_RUNTIME("Unknown function step %d", (int) step);
     }
@@ -294,10 +294,10 @@ public:
             case FunctionStep::PREPARE:
                 return "";
             case FunctionStep::COMPLETE:
-                return ci.GetIndent() + "return " NEWLANG_NS "::Object::No();\n";
+                return ci.GetIndent() + "return " NEWLANG_NS "::Obj::No();\n";
 
             case FunctionStep::OPERATION:
-                return WriteFunctionCheckOp_(ci, op, "return " NEWLANG_NS "::Object::Yes()", "");
+                return WriteFunctionCheckOp_(ci, op, "return " NEWLANG_NS "::Obj::Yes()", "");
         }
         LOG_RUNTIME("Unknown function step %d", (int) step);
     }
@@ -309,7 +309,7 @@ public:
                 return ci.GetIndent() + "size_t xor_counter = 0;\n";
             case FunctionStep::COMPLETE:
                 // Результат равен 0, если нет операндов, равных 1, либо их чётное количество.
-                return ci.GetIndent() + "return (xor_counter & 1) ? " NEWLANG_NS "::Object::Yes() : " NEWLANG_NS "::Object::No();\n";
+                return ci.GetIndent() + "return (xor_counter & 1) ? " NEWLANG_NS "::Obj::Yes() : " NEWLANG_NS "::Obj::No();\n";
 
             case FunctionStep::OPERATION:
                 return WriteFunctionCheckOp_(ci, op, "xor_counter++", "");

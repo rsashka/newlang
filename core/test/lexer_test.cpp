@@ -289,7 +289,7 @@ TEST_F(Lexer, CodeSource) {
 }
 
 TEST_F(Lexer, Assign) {
-    ASSERT_EQ(5, Parse(":= :- &&= ||= ^^="));
+    ASSERT_EQ(5, Parse(":= :- :&&= :||= :^^="));
     EXPECT_EQ(1, Count(TermID::CREATE_OR_ASSIGN));
     EXPECT_EQ(1, Count(TermID::TRANSPARENT));
     EXPECT_EQ(1, Count(TermID::SIMPLE_AND));

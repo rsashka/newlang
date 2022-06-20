@@ -181,7 +181,7 @@ TEST(NLC, EvalHelloWorld) {
 // * Jake @= @human(sex=male, [Tom, Janna,]);
 // * Tim @= @human(sex=male, parent=[Tom,]);
 // *
-// * human::brother(test) &&= $0!=$test, $0.sex==male, @intersec($0.parent,
+// * human::brother(test) :&&= $0!=$test, $0.sex==male, @intersec($0.parent,
 // $test.parent);
 // *
 // * Tim.brother(Jake);
@@ -212,7 +212,7 @@ TEST(NLC, EvalHelloWorld) {
 // * Jake := human(sex=male, [Tom, Janna,]);
 // * Tim := human(sex=male, parent=(Tom,));
 // *
-// * :human::brother(test) &&= $0!=$test, $0.sex==male, @intersec($0.parent,
+// * :human::brother(test) :&&= $0!=$test, $0.sex==male, @intersec($0.parent,
 // $test.parent);
 // *
 // * Tim.brother(Jake);
@@ -224,36 +224,36 @@ TEST(NLC, EvalHelloWorld) {
 //
 ////ObjPtr test_brother(Context *ctx, Object &in) {
 ////    if(in.size() != 3) {
-////        return Object::No();
+////        return Obj::No();
 ////    }
 ////    if(!in[1]->op_class_test("human") || !in[2]->op_class_test("human")) {
-////        return Object::No();
+////        return Obj::No();
 ////    }
 ////    if(in[1]->op_eq(in[2], true)) {
-////        return Object::No();
+////        return Obj::No();
 ////    }
-////    ObjPtr sex = Object::CreateDict(Object::Arg("male", "пол"));
+////    ObjPtr sex = Obj::CreateDict(Obj::Arg("male", "пол"));
 ////    if(!in[1]->op_duck_test(sex, true)) {
-////        return Object::No();
+////        return Obj::No();
 ////    }
 ////    if(!in[2]->op_duck_test(sex, true)) {
-////        return Object::No();
+////        return Obj::No();
 ////    }
 ////    return *(*in[1])["parent"] * (*in[2])["parent"];
 ////}
 //
 // ObjPtr test_brother(Context *ctx, Object &in) {
 //    if(in.size() != 3) {
-//        return Object::No();
+//        return Obj::No();
 //    }
 //    if(static_cast<bool> ((*in[1] != *in[2])->GetValueAsBoolean())) {
 //        ;
 //    } else {
-//        return Object::No();
+//        return Obj::No();
 //    }
 //
 //    if(static_cast<bool> ((*(*in[1])["пол"] ==
-//    Object::CreateString("male"))->GetValueAsBoolean())) {
+//    Obj::CreateString("male"))->GetValueAsBoolean())) {
 //        ;
 //    } else {
 //        return newlang::Obj::No();
@@ -271,14 +271,14 @@ TEST(NLC, EvalHelloWorld) {
 ////TEST(NLC, Brother) {
 ////    Context ctx(NewLang::Init());
 ////
-////    ObjPtr test = Object::CreateType(ObjType::Class, "temp");
+////    ObjPtr test = Obj::CreateType(ObjType::Class, "temp");
 ////    ASSERT_STREQ("temp=()", test->toString().c_str());
 ////
 ////    ObjPtr test2 = (*test)();
 ////    ASSERT_STREQ("temp=temp()", test2->toString().c_str());
 ////
 ////    ASSERT_STREQ(test2->m_var_name.c_str(), test->m_var_name.c_str());
-////    ObjPtr test3 = (*test)(Object::Arg(100, "100"), Object::Arg(L"string",
+////    ObjPtr test3 = (*test)(Obj::Arg(100, "100"), Obj::Arg(L"string",
 ///"str")); /    ASSERT_STREQ("temp=temp(100=100, str=\"string\")",
 /// test3->toString().c_str());
 ////
@@ -293,7 +293,7 @@ TEST(NLC, EvalHelloWorld) {
 ////    ASSERT_STREQ("test3=temp(100=100, str=\"string\")",
 /// test3->toString().c_str());
 ////
-////    ObjPtr test4 = (*test3)(Object::Arg(999, "100"), Object::Arg("string2",
+////    ObjPtr test4 = (*test3)(Obj::Arg(999, "100"), Obj::Arg("string2",
 ///"str2")); /    ASSERT_STREQ(test4->m_var_name.c_str(),
 /// test3->m_var_name.c_str()); /    test4->m_var_name = "test4"; / ASSERT_EQ(3,
 /// test4->size()); /    ASSERT_TRUE((*test4)[0]); /    ASSERT_STREQ("100",
@@ -305,12 +305,12 @@ TEST(NLC, EvalHelloWorld) {
 /// ASSERT_STREQ("test4=test3(100=999, str=\"string\", str2='string2')",
 /// test4->toString().c_str());
 ////
-////    ObjPtr newlang_m = Object::CreateString(L"male");
+////    ObjPtr newlang_m = Obj::CreateString(L"male");
 ////    ASSERT_EQ(1, ctx.size());
 ////    ctx.CreateSessionTerm(newlang_m, "м");
 ////    ASSERT_EQ(2, ctx.size());
 ////    newlang_m->MakeConst();
-////    ObjPtr newlang_zh = Object::CreateString(L"female");
+////    ObjPtr newlang_zh = Obj::CreateString(L"female");
 ////
 ////    //    ASSERT_EQ(1, newlang_zh.use_count());
 ////    ctx.CreateSessionTerm(newlang_zh, "ж");
@@ -323,8 +323,8 @@ TEST(NLC, EvalHelloWorld) {
 /// utils::Logger::Instance()->GetLogLevel(); /
 /// utils::Logger::Instance()->SetLogLevel(LOG_LEVEL_INFO);
 ////
-////    ObjPtr human = Object::CreateDict(Object::Arg(Object::CreateNone(),
-///"пол"), Object::Arg(Object::CreateDict(), "parent")); /    human->m_var_type
+////    ObjPtr human = Obj::CreateDict(Obj::Arg(Obj::CreateNone(),
+///"пол"), Obj::Arg(Obj::CreateDict(), "parent")); /    human->m_var_type
 ///= ObjType::Class; /    human->m_var_name = "human";
 ////
 ////    ASSERT_TRUE(human->op_class_test("human"));
@@ -334,7 +334,7 @@ TEST(NLC, EvalHelloWorld) {
 ////    ctx.CreateGlobalTerm(human, "human");
 ////    ASSERT_EQ(1, ctx.m_info.global->size());
 ////    ASSERT_STREQ("human=(пол=, parent=[,])", human->toString().c_str());
-////    ObjPtr Tom = (*human)(Object::Arg(newlang_m, "пол"));
+////    ObjPtr Tom = (*human)(Obj::Arg(newlang_m, "пол"));
 ////    ASSERT_TRUE(Tom->op_class_test("human"));
 ////
 ////    //    ASSERT_EQ(1, Tom.use_count());
@@ -345,7 +345,7 @@ TEST(NLC, EvalHelloWorld) {
 ////    ASSERT_STREQ("Tom=human(пол=\"male\", parent=[,])",
 /// Tom->toString().c_str()); /    ASSERT_STREQ("Tom=human(пол=\"male\",
 /// parent=[,])", Tom->toString().c_str()); /    ObjPtr Janna =
-///(*human)(Object::Arg(newlang_zh, "пол")); /
+///(*human)(Obj::Arg(newlang_zh, "пол")); /
 /// ASSERT_STREQ("human=human(пол=\"female\", parent=[,])",
 /// Janna->toString().c_str()); /    ASSERT_STREQ("Tom=human(пол=\"male\",
 /// parent=[,])", Tom->toString().c_str()); /
@@ -362,21 +362,21 @@ TEST(NLC, EvalHelloWorld) {
 ////
 ////    //    ASSERT_EQ(3, Tom.use_count());
 ////
-////    ObjPtr array = Object::CreateDict(Object::Arg(Tom));
+////    ObjPtr array = Obj::CreateDict(Obj::Arg(Tom));
 ////    ASSERT_STREQ("[Tom=human(пол=\"male\", parent=[,]),]",
 /// array->toString().c_str()); /    Tom->RefInc(); /    ASSERT_STREQ("[&Tom,]",
 /// array->toString().c_str()); /    ObjPtr array2 =
-/// Object::CreateDict(Object::Arg(Tom), Object::Arg(Janna)); / Tom->RefInc();
+/// Obj::CreateDict(Obj::Arg(Tom), Obj::Arg(Janna)); / Tom->RefInc();
 ////    Janna->RefInc();
 ////    ASSERT_STREQ("[&Tom, &Janna,]", array2->toString().c_str());
 ////
-////    ObjPtr Jake = (*human)(Object::Arg(newlang_m, "пол"),
-/// Object::Arg(Object::CreateDict(Object::Arg(Tom)), "parent")); /
+////    ObjPtr Jake = (*human)(Obj::Arg(newlang_m, "пол"),
+/// Obj::Arg(Obj::CreateDict(Obj::Arg(Tom)), "parent")); /
 /// ctx.CreateGlobalTerm(Jake, "Jake"); /    ASSERT_EQ(4,
 /// ctx.m_info.global->size()); /    ASSERT_STREQ("Jake=human(пол=\"male\",
 /// parent=[&Tom,])", Jake->toString().c_str()); /    ObjPtr Tim =
-///(*human)(Object::Arg(newlang_m, "пол"),
-/// Object::Arg(Object::CreateDict(Object::Arg(Tom), Object::Arg(Janna)),
+///(*human)(Obj::Arg(newlang_m, "пол"),
+/// Obj::Arg(Obj::CreateDict(Obj::Arg(Tom), Obj::Arg(Janna)),
 ///"parent")); /    ctx.CreateGlobalTerm(Tim, "Tim"); /    ASSERT_EQ(5,
 /// ctx.m_info.global->size()); /    ASSERT_STREQ("Tim=human(пол=\"male\",
 /// parent=[&Tom, &Janna,])", Tim->toString().c_str());
@@ -414,16 +414,16 @@ TEST(NLC, EvalHelloWorld) {
 ////    ASSERT_EQ(5, cursor_all.reset());
 ////
 ////    Object args("human");
-////    ASSERT_TRUE(NewLang::CompareFunc_(Object::pair(human, "human"), args,
-/// nullptr)); /    ASSERT_TRUE(NewLang::CompareFunc_(Object::pair(human), args,
-/// nullptr)); /    ASSERT_TRUE(NewLang::CompareFunc_(Object::pair(Tim), args,
-/// nullptr)); /    ASSERT_TRUE(NewLang::CompareFunc_(Object::pair(Tom), args,
-/// nullptr)); /    ASSERT_FALSE(NewLang::CompareFunc_(Object::pair(test2),
-/// args, nullptr)); / ASSERT_FALSE(NewLang::CompareFunc_(Object::pair(test3),
+////    ASSERT_TRUE(NewLang::CompareFunc_(Obj::pair(human, "human"), args,
+/// nullptr)); /    ASSERT_TRUE(NewLang::CompareFunc_(Obj::pair(human), args,
+/// nullptr)); /    ASSERT_TRUE(NewLang::CompareFunc_(Obj::pair(Tim), args,
+/// nullptr)); /    ASSERT_TRUE(NewLang::CompareFunc_(Obj::pair(Tom), args,
+/// nullptr)); /    ASSERT_FALSE(NewLang::CompareFunc_(Obj::pair(test2),
+/// args, nullptr)); / ASSERT_FALSE(NewLang::CompareFunc_(Obj::pair(test3),
 /// args, nullptr));
 ////
 ////    Object args_empty;
-////    ASSERT_FALSE(NewLang::CompareFunc_(Object::pair(human, "human"),
+////    ASSERT_FALSE(NewLang::CompareFunc_(Obj::pair(human, "human"),
 /// args_empty, nullptr));
 ////
 ////    auto cursor = ctx.m_info.global->select("human");
@@ -472,16 +472,16 @@ TEST(NLC, EvalHelloWorld) {
 ////    TermPtr ast;
 ////    Parser parser(ast);
 ////    parser.Parse("brother(arg1, arg2)");
-////    ObjPtr filter_brother = Object::CreateFunc(nullptr, ast,
+////    ObjPtr filter_brother = Obj::CreateFunc(nullptr, ast,
 /// ObjType::TRANSPARENT); /    filter_brother->m_function = (void
-///*)&test_brother; /    Object filt_args(Object::Arg(filter_brother));
+///*)&test_brother; /    Object filt_args(Obj::Arg(filter_brother));
 ////
 ////
 ////    ASSERT_TRUE(Tim->op_class_test("human"));
 ////    ASSERT_TRUE(Jake->op_class_test("human"));
 ////
-////    Object test_args_yes = *Object::CreateDict(Object::Arg(Tim),
-/// Object::Arg(Jake));
+////    Object test_args_yes = *Obj::CreateDict(Obj::Arg(Tim),
+/// Obj::Arg(Jake));
 ////
 ////    ASSERT_EQ(2, test_args_yes.size());
 ////    ObjPtr test_args_default = filter_brother->ConvertToArgs(test_args_yes,
@@ -496,7 +496,7 @@ TEST(NLC, EvalHelloWorld) {
 ////    ASSERT_TRUE(test_res->GetValueAsBoolean());
 ////
 ////
-////    ObjPtr brothers = Object::CreateDict();
+////    ObjPtr brothers = Obj::CreateDict();
 ////
 ////    auto terms = ctx.m_info.global->select();
 ////    auto humans = ctx.m_info.global->select("human");
@@ -504,8 +504,8 @@ TEST(NLC, EvalHelloWorld) {
 ////    while(!terms.complete()) {
 ////        while(!humans.complete()) {
 ////
-////            Object args_iter = *Object::CreateDict(Object::Arg(*terms),
-/// Object::Arg(*humans)); /            ObjPtr args_func =
+////            Object args_iter = *Obj::CreateDict(Obj::Arg(*terms),
+/// Obj::Arg(*humans)); /            ObjPtr args_func =
 /// filter_brother->ConvertToArgs(args_iter, true); /
 /// ASSERT_NO_THROW(args_func->CheckArgsValid()); /
 /// args_func->push_front(nullptr); // Нулевой аргумент
@@ -518,8 +518,8 @@ TEST(NLC, EvalHelloWorld) {
 ////                //                ASSERT_STREQ("[&Tom,]",
 /// result->toString().c_str()); /                (*terms)->RefInc(); /
 ///(*humans)->RefInc(); /
-/// brothers->push_back(Object::CreateDict(Object::Arg(*terms),
-/// Object::Arg(*humans))); /            } /            humans++; /        } /
+/// brothers->push_back(Obj::CreateDict(Obj::Arg(*terms),
+/// Obj::Arg(*humans))); /            } /            humans++; /        } /
 /// humans.reset(); /        terms++; /    }
 ////
 ////    ASSERT_EQ(2, count);
@@ -547,12 +547,12 @@ TEST(NLC, EvalHelloWorld) {
 ////    out << "Jake := @human(#м, [&Tom, &Janna,]);\n";
 ////    out << "Tim:=@human(пол=м, parent=[&Tom,]);\n";
 ////    out << "\n";
-////    out << "brother(test1, test2) &&= $test1!=$test2, $test1.пол==#м,
+////    out << "brother(test1, test2) :&&= $test1!=$test2, $test1.пол==#м,
 ///$test1.parent * $test2.parent;\n"; /    out << "\n"; /    //    out <<
 ///"Tim.brother(Jake);\n"; /    //    out << "Tim.brother(human!)?;\n"; /    out
 ///<< "brother(human!, human!)?;\n";
 ////
-////    //    out << "brother(h1, h2) &&= $h1 != $h2, $h1.sex==male,
+////    //    out << "brother(h1, h2) :&&= $h1 != $h2, $h1.sex==male,
 ///@intersec($h1.parent, $h2.parent);\n"; /    //    out << "brother(h1=human!,
 /// h2=human!)? -> @print("${h1.name} brother ${h2.name}\n");\n"; /    //    out
 ///<< "[h1=human!, h2=human!]? -> /    //               brother(h1, h2) -> / //
@@ -679,9 +679,9 @@ TEST(NLC, EvalHelloWorld) {
 //    //
 //    //    const char *funcs = "hello(str=\"\") := { %{ printf(\"%s\",
 //    static_cast<char *>(*$1)); return $str; %} };"
-//    //            "test_and(arg1, arg2) &&= $arg1 == $arg2, $arg1;"
-//    //            "test_or(arg1, arg2) ||= $arg1 == 555, $arg1;"
-//    //            "test_xor(arg1, arg2) ^^= $arg1 == $arg2, $arg1;"
+//    //            "test_and(arg1, arg2) :&&= $arg1 == $arg2, $arg1;"
+//    //            "test_or(arg1, arg2) :||= $arg1 == 555, $arg1;"
+//    //            "test_xor(arg1, arg2) :^^= $arg1 == $arg2, $arg1;"
 //    //            "native(str=\"default arg\") $= {%{  printf(\"%s\",
 //    static_cast<char *>(*$str)); return $str; %}};"
 //    //            "func_sum(arg1, arg2) :- {$arg1 + $arg2;};\n"

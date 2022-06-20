@@ -701,6 +701,11 @@ lval:  assign_name
             {   
                 $$ = $1; 
             }
+        |  type  type
+            {   
+                $$ = $1; 
+                $$->SetType($2);
+            }
         |  name  type
             {   
                 $$ = $1; 
@@ -1203,6 +1208,11 @@ operator: OPERATOR
             {
                 $$ = $1;
             }
+        | '~'
+            {
+                $$ = $1;
+                $$->SetTermID(TermID::OPERATOR);
+            }
 
 
 arithmetic:  addition
@@ -1345,14 +1355,6 @@ logical:  arithmetic
                 $$->Append($1, Term::LEFT); 
                 $$->Append($3, Term::RIGHT); 
             }
-        | arithmetic  '~'  arithmetic
-            {
-                $$ = $2;
-                $$->SetTermID(TermID::OPERATOR);
-                $$->Append($1, Term::LEFT); 
-                $$->Append($3, Term::RIGHT); 
-            }
-
         
         
 

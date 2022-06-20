@@ -22,29 +22,8 @@ typedef std::shared_ptr<Obj> ObjPtr;
 typedef std::shared_ptr<const Obj> ObjPtrConst;
 typedef std::shared_ptr<RunTime> RuntimePtr;
 
-/*
- * Типы функций для вызова:
- * FunctionType - обычные функции, передача аргументов с помощью словаря
- * TransparentType - чистые функции, передача аргументов с помощью словаря
- *
- *
- * Прямого вызова - функции класса с передачей аргументов как в прототипе
- * Нативные - системные функции, передача аргументов с помощью словаря, которые конвертируются в нативные данные
- *
- * Для функций прямого вызова требуется во время компиляции знать тип каждого аргумента, чтобы правильно
- * конвертировать в нужный тип данных из ObjPtr.
- *
- * Tensor type1();
- * Tensor type1(Tensor);
- * Tensor type1(Tensor, Tensor);
- * Tensor type1(Tensor, int64_t);
- * Tensor type1(int64_t, int64_t);
- *
- * Tensor type1(int64_t, Tensor);
- *
- */
 typedef ObjPtr FunctionType(Context *ctx, Obj &in);
-typedef ObjPtr TransparentType(const Context *ctx, const Obj &in);
+typedef ObjPtr TransparentType(const Context *ctx, Obj &in);
 
 class Interruption : public std::exception {
   public:
@@ -56,14 +35,13 @@ class Interruption : public std::exception {
       inline static const char * Signal = ":Signal";
       inline static const char * Abort = ":Abort";
 
-//    Interruption();
     Interruption(const ObjPtr obj, const std::string type_name=Return);
     Interruption(const std::string message, const std::string error_name=Parser);
 
     virtual const char *what() const noexcept override;
 
     const ObjPtr m_obj;
-    char m_buffer_message[100];
+    char m_buffer_message[1000];
     
 };
 
@@ -118,213 +96,174 @@ void ParserException(const char *msg, std::string &buffer, int row, int col);
 //// диапазон - счетчик/срез для указания неизменяемой последовательности чисел для индексов или счетчиков
 //// ошибка - информация о состоянии ошибки приложения
 
-/*
- Типы данных для операции сравнения:
-- None
-- Тензоры (все числовые типы за исключением типа bool)
-- Логический (тензоры с типом bool)
-- Строки
-- Словари (dict - любые данные без наследования)
 
-
-- Объекты (class - именованные данные с наследованием)
-
-- Функции (методы)
-
-- Ошибка ??????
-- Другие ?????? (Range, ellipsis, определение типа)
-*/
-
-#define NL_TYPES(_)                                                                                                    \
-    _(None, 0)                                                                                                         \
-                                                                                                                       \
-    _(Bool, 1)                                                                                                         \
-    _(Char, 2)                                                                                                         \
-    _(Short, 3)                                                                                                        \
-    _(Int, 4)                                                                                                          \
-    _(Long, 5)                                                                                                         \
-    _(Integer, 9)                                                                                                      \
-                                                                                                                       \
-    _(Float, 10)                                                                                                       \
-    _(Double, 11)                                                                                                      \
-    _(Number, 19)                                                                                                      \
-                                                                                                                       \
-    _(ComplexFloat, 20)                                                                                                \
-    _(ComplexDouble, 21)                                                                                               \
-    _(Complex, 29)                                                                                                     \
-                                                                                                                       \
-    _(Tensor, 39)                                                                                                      \
-                                                                                                                       \
-    _(StrChar, 40)                                                                                                     \
-    _(StrWide, 41)                                                                                                     \
-    _(ViewChar, 42)                                                                                                    \
-    _(ViewWide, 43)                                                                                                    \
-    _(String, 49)                                                                                                      \
-                                                                                                                       \
-    _(BigNum, 95)                                                                                                      \
-    _(Currency, 96)                                                                                                    \
-    _(Fraction, 97)                                                                                                    \
-    _(Pointer, 98)                                                                                                     \
-    _(NativeFunc, 99)                                                                                                  \
-    _(FUNCTION, 100)                                                                                                   \
-    _(TRANSPARENT, 102)                                                                                                \
-    _(Range, 104)                                                                                                      \
-    _(Dictionary, 105)                                                                                                       \
-    _(Class, 106)                                                                                                      \
-    _(Ellipsis, 107)                                                                                                   \
-    _(BLOCK, 108)                                                                                                      \
-    _(BLOCK_TRY, 109)                                                                                                  \
-    _(EVAL_FUNCTION, 110)                                                                                              \
-    _(EVAL_TRANSP, 111)                                                                                                \
-    _(EVAL_AND, 112)                                                                                                   \
-    _(EVAL_OR, 113)                                                                                                    \
-    _(EVAL_XOR, 114) \
+#define NL_TYPES(_)         \
+    _(None, 0)              \
     \
-    _(Eval, 118)                                                                                                      \
-    _(Function, 119)                                                                                                      \
-    _(Other, 120)                                                                                                      \
-    _(Plain, 121)                                                                                                      \
-    _(Object, 122)                                                                                                      \
-    _(Any, 123)                                                                                                      \
-    _(Type, 200)\
-    _(Return, 250)\
-    _(Error, 255)
-
-//    _(Enum, 120)                                                                                                      \
-//    _(Union, 121)                                                                                                      \
-//    _(Struct, 122)                                                                                                      \
-//\
-
-// BigNum - Длинные целые числа произвольного размера  100:Big
-// Currency - Fraction со знаменателем `10000 -1`000.00   `-1000  100:Curr
-// Fraction - произвольная дробь с длинными числами    100\1    100:Frac
-// Frac_tion \1 -> Curr_ency `1.0000 -> Big_Num 100`100`000.  100'100'000.
-
-//Форматирующий символ дроби (fraction slash, U+2044) позволяет создавать произвольные дроби следующим образом:
-// последовательность цифр числителя + форматирующий символ дроби + последовательность цифр знаменателя
-// — при выводе на экран или на печать это должно преобразовываться в правильно сформированную дробь.
-// Например, 22⁄371 должна показываться как 22/371 или как 22 371 {\displaystyle {\frac {22}{371}}} {\displaystyle
-// {\frac {22}{371}}} (может использоваться как «косая», так и «вертикальная» форма представления дроби)[1].
-//
-//Для правильного отображения смешанных дробей (наподобие 3 6 7 {\displaystyle 3{\frac {6}{7}}} {\displaystyle 3{\frac
-//{6}{7}}})
-// целую часть нужно отделять от числителя дробной части подходящим пробелом (например, пробелом нулевой ширины U+200B).
-//
-//Кроме того, существует символ ⅟ (fraction numerator one, U+215F), позволяющий формировать дроби с числителем,
-//равным 1.
-//  "/-5 " - квадратный корень из 5,  "3/-5" - корень третьей степени ????
-// "1/_5" - Одна пятая ??
-// https://github.com/python/cpython/blob/main/Lib/fractions.py
-//
-//_RATIONAL_FORMAT = re.compile(r"""
-//    \A\s*                                 # optional whitespace at the start,
-//    (?P<sign>[-+]?)                       # an optional sign, then
-//    (?=\d|\.\d)                           # lookahead for digit or .digit
-//    (?P<num>\d*|\d+(_\d+)*)               # numerator (possibly empty)
-//    (?:                                   # followed by
-//       (?:/(?P<denom>\d+(_\d+)*))?        # an optional denominator
-//    |                                     # or
-//       (?:\.(?P<decimal>d*|\d+(_\d+)*))?  # an optional fractional part
-//       (?:E(?P<exp>[-+]?\d+(_\d+)*))?     # and optional exponent
-//    )
-//    \s*\Z                                 # and optional whitespace to finish
-//""", re.VERBOSE | re.IGNORECASE)
-
-/*
- * Типы данных различаются:
- * Пусто:
- * - Тип данные Any и значение None (toType(None))
- * - Значение None "_" (подчерк) может быть у другних типов. т.е.
- *    у (не инициализированных) переменных, при попытке чтения значения которых возникает ошибка. (clear_())
- * Числа:
- * - общий тип (булевый, целое, с плавающей точкой, комплексное)
- * - размером представления в памяти (1,2,4,8,16 и т.д. байт)
- * - может быть изменяемым / не изменяемым (если тип указан явно)
- * - местом хранения (тензор/ссылка на последовательность байт)
- * Строки:
- * - Обычные (UTF8), тип данных Char
- * - Широкие (WIDE), тип данных wchar_t
- * - Нативные обычные ViewChar
- * - Нативные широкие ViewWide
- * Функции:
- * - Обычные
- * - Чистые (в том числе простые)
- * - Нативные (ссылка на функцию с определенными параметрами, типом вызова и возвращаемым значением)
- * Словари:
- * - Словарь (одноуровненывый список с доступом по индексу и возможным именем элемента)
- * - Класс (обязательное имя у каждого элемента и хранение информации о родителях)
- * Специальные:
- * - Ошибка
- * - Диапазон
- * - Многоточие
- * - Адрес (указатель)
- *
- * Нативные строки, массивы и функции можно регистрировать в стандартных типах данных, т.к. интерфейс работы с ними
- * реализуется объектом. Все остальные типы данных требуют реализации специфических методом, которые нельзя определить
- * заранее сразу для всех, но можно реализовывать кастомные классы с данными, специфическими для конкретных объектов
- * С++.
- *
- *
- *
- *
- * Автоматическое приведение типов в выражениях происходит по следующим правилам.
- * - Если тип указан явно, то он не может быть изменен
- * - Определяется общий тип (Bool, Integer, Number, Complex).
- * - Если тип литерала явно не указан, то выбирается минимальный байтовый размер для общего типа.
- * - В выражениях тензор-скаляр, тензором должен быть самый левый элемент выражения.
- * - Итоговым типом поседовательности выражений является тип первого вычисленного элемента.
- * - В операторах присвоения вычисление типа происходит дважды, сперва для правой части выражения, а потом для оператора
- * присовения.
- * - Тип меньшего размера может автоматически приводится к типу большему размеру или к более сложному типу
- *    bool -> char -> short -> int -> long -> float -> double -> complexfloat -> complexdouble
- *    var := 1.0 + 2; // float
- *    var := 1 + 1000; // Short т.к. первый тип изменяемый
- *    var := 1:Char + 1000; // Ошибка в выражении т.к. первый тип не изменяемый  Short -x-> Char
- *    var:Char := 1 + 1000; // Ошибка в присвоении т.к. тип не изменяемый  Short -x-> Char
- *    var := 1000 + 2; // Short
- *    var := 1000 + 2.0; // Ошибка float -> short, но может быть var := 1000.0 + 2;
- *    var := 1:Bool + 2; // Ошибка byte -> bool, но может быть var := 2 + 1:Bool;
- *
- * - Итоговым типом поседовательности выражений является тип первого вычисленого элемента.
- *      var := 1.0 + 2; // float  var := 1000 + 2; // Short  var := 1000 + 2.0;
- * -
- * АПриведение ра
- * Совместимость типов данныъ между собой определяется по следующему принципу.
- * Если данные
- *
- */
-
-#define NL_BUILTIN_CAST_TYPE(_)                                                                                        \
-    _(None)                                                                                                      \
-    _(Char)                                                                                                      \
-    _(Short)                                                                                                    \
-    _(Int)                                                                                                        \
-    _(Long)                                                                                                      \
-    _(Float)                                                                                                    \
-    _(Double)                                                                                                  \
-    _(ComplexFloat)                                                                                      \
-    _(ComplexDouble)                                                                                    \
-    _(Bool)                                                                                                      \
-                                                                                                  \
-    _(Integer)                                                                                                \
-    _(Number)                                                                                                  \
-    _(Complex)                                                                                                \
-    _(Tensor)                                                                                                  \
+    _(Bool, 1)              \
+    _(Char, 2)              \
+    _(Short, 3)             \
+    _(Int, 4)               \
+    _(Long, 5)              \
+    _(Integer, 15)           \
     \
-    _(StrChar)                                                                                                \
-    _(StrWide)                                                                                                \
-    _(Dictionary)                                                                                          \
-    _(Class)                                                                                                    \
+    _(Float, 16)            \
+    _(Double, 17)           \
+    _(Number, 24)           \
     \
-    _(Object)                                                                                                  \
-    _(Any)                                                                                                  \
-    _(Eval)                                                                                                      \
-    _(Function)                                                                                                      \
-    _(Other)                                                                                                      \
-    _(Plain)                                                                                                      \
+    _(ComplexFloat, 25)     \
+    _(ComplexDouble, 26)    \
+    _(Complex, 31)          \
+                            \
+    _(Tensor, 32)           \
+                            \
+    _(BigNum, 33)           \
+    _(Currency, 34)         \
+    _(Fraction, 35)         \
     \
-    _(String)                                                                                                 \
-    _(Pointer)
+    _(Arithmetic, 47)       \
+    \
+    _(StrChar, 48)          \
+    _(StrWide, 49)          \
+    _(Format, 50)           \
+    _(ViewChar, 51)         \
+    _(ViewWide, 52)         \
+    _(String, 55)           \
+    \
+    _(Pointer, 64)          \
+    _(NativeFunc, 65)       \
+    _(FUNCTION, 100)        \
+    _(PureFunc, 101)        \
+    _(TRANSPARENT, 102)     \
+    \
+    _(Range, 104)           \
+    _(Dictionary, 105)      \
+    _(Class, 106)           \
+    _(Ellipsis, 107)        \
+    _(BLOCK, 108)           \
+    _(BLOCK_TRY, 109)       \
+    _(EVAL_FUNCTION, 110)   \
+    _(SimplePureFunc, 111)  \
+    _(SimplePureAND, 112)   \
+    _(SimplePureOR, 113)    \
+    _(SimplePureXOR, 114)   \
+    \
+    _(Eval, 118)            \
+    _(Function, 119)        \
+    _(Other, 120)           \
+    _(Plain, 121)           \
+    _(Struct, 201)          \
+    _(Union, 202)           \
+    _(Enum, 203)            \
+    _(Object, 122)          \
+    _(Any, 123)             \
+    _(Type, 200)            \
+    _(Return, 230)          \
+    _(Break, 231)           \
+    _(Continue, 232)        \
+    _(Error, 240)           \
+    _(ErrorParser, 241)     \
+    _(ErrorRunTime, 242)    \
+    _(ErrorSignal, 243)
+
+    // BigNum - Длинные целые числа произвольного размера  100:Big
+    // Currency - Fraction со знаменателем `10000 -1`000.00   `-1000  100:Curr
+    // Fraction - произвольная дробь с длинными числами    100\1    100:Frac
+    // Frac_tion \1 -> Curr_ency `1.0000 -> Big_Num 100`100`000.  100'100'000.
+
+    //Форматирующий символ дроби (fraction slash, U+2044) позволяет создавать произвольные дроби следующим образом:
+    // последовательность цифр числителя + форматирующий символ дроби + последовательность цифр знаменателя
+    // — при выводе на экран или на печать это должно преобразовываться в правильно сформированную дробь.
+    // Например, 22⁄371 должна показываться как 22/371 или как 22 371 {\displaystyle {\frac {22}{371}}} {\displaystyle
+    // {\frac {22}{371}}} (может использоваться как «косая», так и «вертикальная» форма представления дроби)[1].
+    //
+    //Для правильного отображения смешанных дробей (наподобие 3 6 7 {\displaystyle 3{\frac {6}{7}}} {\displaystyle 3{\frac
+    //{6}{7}}})
+    // целую часть нужно отделять от числителя дробной части подходящим пробелом (например, пробелом нулевой ширины U+200B).
+    //
+    //Кроме того, существует символ ⅟ (fraction numerator one, U+215F), позволяющий формировать дроби с числителем,
+    //равным 1.
+    //  "/-5 " - квадратный корень из 5,  "3/-5" - корень третьей степени ????
+    // "1/_5" - Одна пятая ??
+    // https://github.com/python/cpython/blob/main/Lib/fractions.py
+    //
+    //_RATIONAL_FORMAT = re.compile(r"""
+    //    \A\s*                                 # optional whitespace at the start,
+    //    (?P<sign>[-+]?)                       # an optional sign, then
+    //    (?=\d|\.\d)                           # lookahead for digit or .digit
+    //    (?P<num>\d*|\d+(_\d+)*)               # numerator (possibly empty)
+    //    (?:                                   # followed by
+    //       (?:/(?P<denom>\d+(_\d+)*))?        # an optional denominator
+    //    |                                     # or
+    //       (?:\.(?P<decimal>d*|\d+(_\d+)*))?  # an optional fractional part
+    //       (?:E(?P<exp>[-+]?\d+(_\d+)*))?     # and optional exponent
+    //    )
+    //    \s*\Z                                 # and optional whitespace to finish
+    //""", re.VERBOSE | re.IGNORECASE)
+
+    /*
+     * Типы данных различаются:
+     * Пусто:
+     * - Тип данные Any и значение None (toType(None))
+     * - Значение None "_" (подчерк) может быть у другних типов. т.е.
+     *    у (не инициализированных) переменных, при попытке чтения значения которых возникает ошибка. (clear_())
+     * Числа:
+     * - общий тип (булевый, целое, с плавающей точкой, комплексное)
+     * - размером представления в памяти (1,2,4,8,16 и т.д. байт)
+     * - может быть изменяемым / не изменяемым (если тип указан явно)
+     * - местом хранения (тензор/ссылка на последовательность байт)
+     * Строки:
+     * - Обычные (UTF8), тип данных Char
+     * - Широкие (WIDE), тип данных wchar_t
+     * - Нативные обычные ViewChar
+     * - Нативные широкие ViewWide
+     * Функции:
+     * - Обычные
+     * - Чистые (в том числе простые)
+     * - Нативные (ссылка на функцию с определенными параметрами, типом вызова и возвращаемым значением)
+     * Словари:
+     * - Словарь (одноуровненывый список с доступом по индексу и возможным именем элемента)
+     * - Класс (обязательное имя у каждого элемента и хранение информации о родителях)
+     * Специальные:
+     * - Ошибка
+     * - Диапазон
+     * - Многоточие
+     * - Адрес (указатель)
+     *
+     * Нативные строки, массивы и функции можно регистрировать в стандартных типах данных, т.к. интерфейс работы с ними
+     * реализуется объектом. Все остальные типы данных требуют реализации специфических методом, которые нельзя определить
+     * заранее сразу для всех, но можно реализовывать кастомные классы с данными, специфическими для конкретных объектов
+     * С++.
+     *
+     *
+     *
+     *
+     * Автоматическое приведение типов в выражениях происходит по следующим правилам.
+     * - Если тип указан явно, то он не может быть изменен
+     * - Определяется общий тип (Bool, Integer, Number, Complex).
+     * - Если тип литерала явно не указан, то выбирается минимальный байтовый размер для общего типа.
+     * - В выражениях тензор-скаляр, тензором должен быть самый левый элемент выражения.
+     * - Итоговым типом поседовательности выражений является тип первого вычисленного элемента.
+     * - В операторах присвоения вычисление типа происходит дважды, сперва для правой части выражения, а потом для оператора
+     * присовения.
+     * - Тип меньшего размера может автоматически приводится к типу большему размеру или к более сложному типу
+     *    bool -> char -> short -> int -> long -> float -> double -> complexfloat -> complexdouble
+     *    var := 1.0 + 2; // float
+     *    var := 1 + 1000; // Short т.к. первый тип изменяемый
+     *    var := 1:Char + 1000; // Ошибка в выражении т.к. первый тип не изменяемый  Short -x-> Char
+     *    var:Char := 1 + 1000; // Ошибка в присвоении т.к. тип не изменяемый  Short -x-> Char
+     *    var := 1000 + 2; // Short
+     *    var := 1000 + 2.0; // Ошибка float -> short, но может быть var := 1000.0 + 2;
+     *    var := 1:Bool + 2; // Ошибка byte -> bool, но может быть var := 2 + 1:Bool;
+     *
+     * - Итоговым типом поседовательности выражений является тип первого вычисленого элемента.
+     *      var := 1.0 + 2; // float  var := 1000 + 2; // Short  var := 1000 + 2.0;
+     * -
+     * АПриведение ра
+     * Совместимость типов данныъ между собой определяется по следующему принципу.
+     * Если данные
+     *
+     */
 
     enum class ObjType : uint8_t {
 #define DEFINE_ENUM(name, value) name = static_cast<uint8_t>(value),
@@ -332,41 +271,43 @@ void ParserException(const char *msg, std::string &buffer, int row, int col);
 #undef DEFINE_ENUM
     };
 
+#define MAKE_TYPE_NAME(type_name)  type_name
+
     inline const char *toString(ObjType type) {
 #define DEFINE_CASE(name, _)                                                                                           \
     case ObjType::name:                                                                                                \
-        return #name;
+        return MAKE_TYPE_NAME(":"#name);
 
         switch (type) {
                 NL_TYPES(DEFINE_CASE)
             default:
-                LOG_ERROR("UNKNOWN TYPE %d", static_cast<int> (type));
-                return "UNKNOWN TYPE";
+                LOG_RUNTIME("UNKNOWN type code %d", static_cast<int> (type));
         }
 #undef DEFINE_CASE
+#undef MAKE_TYPE_NAME
     }
 
     // Обобщенные типы данных
 
     inline bool isGenericType(ObjType t) {
         switch (t) {
-            case ObjType::Tensor: // Любое число включая логический тип
             case ObjType::Integer: // Любое ЦЕЛОЕ число включая логический тип
             case ObjType::Number: // Любое число с ПЛАВАЮЩЕЙ ТОЧКОЙ
             case ObjType::Complex: // Любое КОМПЛЕКСНОЕ число
+            case ObjType::Tensor: // Любое число в виде тензора (включая логический тип)
+            case ObjType::Arithmetic: // Все числа, включая длинные, дроби и денежный формат
             case ObjType::String: // Строка любого типа
             case ObjType::Object: // Любой объект (Class или Dictionary)
             case ObjType::Any: // Любой тип кроме None
             case ObjType::Plain: // Любой тип для машинного представления (Flat Raw ?)
             case ObjType::Other: // Специальные типы (многоточие, диапазон)
-            case ObjType::Function: // Любая функция
             case ObjType::Eval: // Код для выполнения ?????
                 return true;
             default:
                 return false;
         }
     }
-    
+
     inline bool isObjectType(ObjType t) {
         return t == ObjType::Dictionary || t == ObjType::Class;
     }
@@ -378,8 +319,8 @@ void ParserException(const char *msg, std::string &buffer, int row, int col);
 
     inline bool isFunction(ObjType t) {
         return t == ObjType::TRANSPARENT || t == ObjType::FUNCTION || t == ObjType::NativeFunc ||
-                t == ObjType::EVAL_FUNCTION || t == ObjType::EVAL_TRANSP || t == ObjType::EVAL_AND ||
-                t == ObjType::EVAL_OR || t == ObjType::EVAL_XOR;
+                t == ObjType::EVAL_FUNCTION || t == ObjType::PureFunc || t == ObjType::SimplePureAND ||
+                t == ObjType::SimplePureOR || t == ObjType::SimplePureXOR;
     }
 
     inline bool isEval(ObjType t) {
@@ -413,18 +354,18 @@ void ParserException(const char *msg, std::string &buffer, int row, int col);
     }
 
     inline bool isArithmeticType(ObjType t) {
-        // Арифметический тип данных - НЕ объект, НЕ строка или функция и НЕ логический тип
-        return static_cast<uint8_t> (t) >= static_cast<uint8_t> (ObjType::Char) &&
-                static_cast<uint8_t> (t) <= static_cast<uint8_t> (ObjType::Tensor);
+        // Арифметический тип данных - все числа, включая логический тип
+        return static_cast<uint8_t> (t) >= static_cast<uint8_t> (ObjType::Bool) &&
+                static_cast<uint8_t> (t) <= static_cast<uint8_t> (ObjType::Arithmetic);
     }
 
     inline bool isString(ObjType t) {
-        return t == ObjType::StrChar || t == ObjType::StrWide || t == ObjType::ViewWide || t == ObjType::ViewWide ||
-                t == ObjType::String;
+        return t == ObjType::StrChar || t == ObjType::StrWide || t == ObjType::ViewWide || t == ObjType::ViewWide
+                || t == ObjType::String || t == ObjType::Format;
     }
 
     inline bool isPlainDataType(ObjType t) {
-        return isArithmeticType(t) || isString(t);
+        return isTensor(t) || isString(t) || t == ObjType::Struct || t == ObjType::Enum || t == ObjType::Union;
     }
 
     inline bool isDictionary(ObjType t) {
@@ -442,11 +383,11 @@ void ParserException(const char *msg, std::string &buffer, int row, int col);
     inline bool isRange(ObjType t) {
         return t == ObjType::Range;
     }
-    
+
     inline bool isTypeName(ObjType t) {
         return t == ObjType::Type;
     }
-    
+
     inline bool isLocalType(ObjType t) {
         return false;
     }
@@ -847,8 +788,9 @@ void ParserException(const char *msg, std::string &buffer, int row, int col);
 
     inline bool isContainsType(ObjType generic, ObjType type) {
         if (!isGenericType(generic)) {
-            //        if(typeisArithmeticType(generic)){
-            //        }
+            if ((isTensor(generic) || isBooleanType(generic)) && (isTensor(type) || isBooleanType(type))) {
+                return static_cast<uint8_t> (type) <= static_cast<uint8_t> (generic);
+            }
             return generic == type && type != ObjType::None;
         }
         switch (generic) {
@@ -857,9 +799,11 @@ void ParserException(const char *msg, std::string &buffer, int row, int col);
             case ObjType::Integer: // Любое ЦЕЛОЕ число включая логический тип
                 return isIntegralType(type, true);
             case ObjType::Number: // Любое число с ПЛАВАЮЩЕЙ ТОЧКОЙ
-                return isFloatingType(type);
+                return isFloatingType(type) || isIntegralType(type, true);
             case ObjType::Complex: // Любое КОМПЛЕКСНОЕ число
-                return isComplexType(type);
+                return isComplexType(type) || isFloatingType(type) || isIntegralType(type, true);
+            case ObjType::Arithmetic: // Любое число
+                return isComplexType(type) || isFloatingType(type) || isIntegralType(type, true) || type == ObjType::BigNum || type == ObjType::Fraction || type == ObjType::Currency;
             case ObjType::String: // Строка любого типа
                 return isString(type);
             case ObjType::Object: // Любой объект (Class или Dictionary)

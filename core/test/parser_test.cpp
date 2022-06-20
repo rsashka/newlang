@@ -24,7 +24,7 @@ protected:
     int Count(TermID token_id) {
         int result = 0;
         for (size_t c = 0; c < ast->size(); c++) {
-            if((*ast)[c]->m_id == token_id) {
+            if ((*ast)[c]->m_id == token_id) {
                 result++;
             }
         }
@@ -241,13 +241,13 @@ TEST_F(ParserTest, Tensor4) {
 
     ASSERT_TRUE(Parse(":Int( ... ...  dict )"));
     ASSERT_STREQ(":Int(... ...dict)", ast->toString().c_str());
-    
+
     ASSERT_TRUE(Parse(":Int( ... dict )"));
     ASSERT_STREQ(":Int(...dict)", ast->toString().c_str());
 
     ASSERT_TRUE(Parse(":Int[2,2](   ...   rand()  ...   )"));
     ASSERT_STREQ(":Int[2,2](...rand()...)", ast->toString().c_str());
-    
+
     ASSERT_TRUE(Parse(":type[10]( 1,     2,  ...    rand()   ... )"));
     ASSERT_STREQ(":type[10](1, 2, ...rand()...)", ast->toString().c_str());
 
@@ -276,39 +276,39 @@ TEST_F(ParserTest, ScalarType) {
 
     ASSERT_TRUE(Parse("0;"));
     ASSERT_STREQ("0", ast->toString().c_str());
-    ASSERT_STREQ("Bool", ast->m_type_name.c_str());
+    ASSERT_STREQ(":Bool", ast->m_type_name.c_str());
 
     ASSERT_TRUE(Parse("1;"));
     ASSERT_STREQ("1", ast->toString().c_str());
-    ASSERT_STREQ("Bool", ast->m_type_name.c_str());
+    ASSERT_STREQ(":Bool", ast->m_type_name.c_str());
 
     ASSERT_TRUE(Parse("2;"));
     ASSERT_STREQ("2", ast->toString().c_str());
-    ASSERT_STREQ("Char", ast->m_type_name.c_str());
+    ASSERT_STREQ(":Char", ast->m_type_name.c_str());
 
     ASSERT_TRUE(Parse("2_2;"));
     ASSERT_STREQ("2_2", ast->toString().c_str());
-    ASSERT_STREQ("Char", ast->m_type_name.c_str());
+    ASSERT_STREQ(":Char", ast->m_type_name.c_str());
 
     ASSERT_TRUE(Parse("-1;"));
     ASSERT_STREQ("-1", ast->toString().c_str());
-    ASSERT_STREQ("Char", ast->m_type_name.c_str());
+    ASSERT_STREQ(":Char", ast->m_type_name.c_str());
 
     ASSERT_TRUE(Parse("256;"));
     ASSERT_STREQ("256", ast->toString().c_str());
-    ASSERT_STREQ("Short", ast->m_type_name.c_str());
+    ASSERT_STREQ(":Short", ast->m_type_name.c_str());
 
     ASSERT_TRUE(Parse("10_000;"));
     ASSERT_STREQ("10_000", ast->toString().c_str());
-    ASSERT_STREQ("Short", ast->m_type_name.c_str());
+    ASSERT_STREQ(":Short", ast->m_type_name.c_str());
 
     ASSERT_TRUE(Parse("100_000;"));
     ASSERT_STREQ("100_000", ast->toString().c_str());
-    ASSERT_STREQ("Int", ast->m_type_name.c_str());
+    ASSERT_STREQ(":Int", ast->m_type_name.c_str());
 
     ASSERT_TRUE(Parse("0.0;"));
     ASSERT_STREQ("0.0", ast->toString().c_str());
-    ASSERT_STREQ("Float", ast->m_type_name.c_str());
+    ASSERT_STREQ(":Float", ast->m_type_name.c_str());
 
 
 
@@ -1034,7 +1034,7 @@ TEST_F(ParserTest, AssignDict) {
 
     ASSERT_TRUE(Parse("term := (  123 , )"));
     ASSERT_STREQ("term := (123,);", ast->toString().c_str());
-    
+
     ASSERT_TRUE(Parse("term := (  name  = 123 ,  )"));
     ASSERT_STREQ("term := (name=123,);", ast->toString().c_str());
 }
@@ -1060,6 +1060,24 @@ TEST_F(ParserTest, LogicEq) {
 TEST_F(ParserTest, LogicNe) {
     ASSERT_TRUE(Parse("var := 1!=2;"));
     ASSERT_STREQ("var := 1!=2;", ast->toString().c_str());
+}
+
+TEST_F(ParserTest, InstanceName) {
+    ASSERT_TRUE(Parse("var ~ Class"));
+    ASSERT_TRUE(Parse("var ~ :Class"));
+    ASSERT_TRUE(Parse("var ~ 'name'"));
+    ASSERT_TRUE(Parse("var ~ $var"));
+    ASSERT_TRUE(Parse("1  ~  $var"));
+    ASSERT_TRUE(Parse("'строка'  ~  'тип'"));
+    ASSERT_TRUE(Parse("1..20 ~ var_name"));
+
+    ASSERT_TRUE(Parse("var ~~ Class"));
+    ASSERT_TRUE(Parse("var ~~ :Class"));
+    ASSERT_TRUE(Parse("var ~~ 'name'"));
+    ASSERT_TRUE(Parse("var ~~ $var"));
+    ASSERT_TRUE(Parse("1  ~~  $var"));
+    ASSERT_TRUE(Parse("'строка'  ~~  'тип'"));
+    ASSERT_TRUE(Parse("1..20 ~~ var_name"));
 }
 
 TEST_F(ParserTest, FunctionSimple) {
@@ -1099,13 +1117,13 @@ TEST_F(ParserTest, FunctionSimple5) {
 }
 
 TEST_F(ParserTest, FunctionTrans0) {
-    ASSERT_TRUE(Parse("func(arg1, arg2=123) &&= $arg1 == $arg2, $11 == $arg1;"));
-    ASSERT_STREQ("func(arg1, arg2=123) &&= $arg1==$arg2, $11==$arg1", ast->toString().c_str());
+    ASSERT_TRUE(Parse("func(arg1, arg2=123) :&&= $arg1 == $arg2, $11 == $arg1;"));
+    ASSERT_STREQ("func(arg1, arg2=123) :&&= $arg1==$arg2, $11==$arg1", ast->toString().c_str());
 }
 
 TEST_F(ParserTest, FunctionTrans1) {
-    ASSERT_TRUE(Parse("human::eq(test=human) &&= $0==$test;"));
-    ASSERT_STREQ("human::eq(test=human) &&= $0==$test;", ast->toString().c_str());
+    ASSERT_TRUE(Parse("human::eq(test=human) :&&= $0==$test;"));
+    ASSERT_STREQ("human::eq(test=human) :&&= $0==$test;", ast->toString().c_str());
 }
 
 TEST_F(ParserTest, FunctionTrans2) {
@@ -1127,7 +1145,6 @@ TEST_F(ParserTest, FunctionTrans5) {
     ASSERT_TRUE(Parse("func(arg1, arg2 = 5) :- { [$arg1 < $arg2] -> {%{ return $arg1; %}}, [_] -> {%{ return $arg2; %}}; };"));
     ASSERT_STREQ("func(arg1, arg2=5) :- {[$arg1<$arg2]->{%{ return $arg1; %}},\n [_]->{%{ return $arg2; %}};};", ast->toString().c_str());
 }
-
 
 TEST_F(ParserTest, FunctionRussian1) {
     ASSERT_TRUE(Parse("мин(arg) := {$00:=0;};"));
@@ -1213,7 +1230,7 @@ TEST_F(ParserTest, FunctionEmpty2) {
 
 TEST_F(ParserTest, FunctionArgsFail) {
     ASSERT_THROW(Parse("мин(... ...) := {$0:=0;};"), Interruption);
-//    ASSERT_THROW(Parse("мин(..., arg) := {$0:=0;};"), parser_exception);
+    //    ASSERT_THROW(Parse("мин(..., arg) := {$0:=0;};"), parser_exception);
     ASSERT_THROW(Parse("мин(arg ...) := {$0:=0;};"), Interruption);
     ASSERT_THROW(Parse("мин(arg=1 ..., arg) := {$0:=0;};"), Interruption);
     ASSERT_THROW(Parse("мин(arg=1, arg ...) := {$0:=0;};"), Interruption);
@@ -1681,7 +1698,6 @@ TEST_F(ParserTest, Exit) {
     ASSERT_TRUE(Parse("--:class(arg)--;"));
     ASSERT_TRUE(Parse("--:class(arg)--;;"));
 }
-
 
 TEST_F(ParserTest, HelloWorld) {
     ASSERT_TRUE(Parse("hello(str=\"\") := { printf(format:Format, ...):Int := @import('printf'); printf('%s', $1); $str;};"));

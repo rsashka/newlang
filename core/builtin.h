@@ -35,30 +35,6 @@
     }
 
 
-#define FUNC_CONVERT(NAME) \
-    newlang::ObjPtr NAME(const newlang::Context *ctx, const newlang::Obj &in);\
-    newlang::ObjPtr NAME##_(newlang::Context *ctx, newlang::Obj &in);\
-    inline newlang::ObjPtr newlang_##NAME(const newlang::Context *ctx, const newlang::ObjPtr in){\
-        ASSERT(in);\
-        return NAME(ctx, *in);\
-    }\
-    inline newlang::ObjPtr newlang_##NAME##_(newlang::Context *ctx, newlang::ObjPtr in){\
-        ASSERT(in);\
-        return NAME##_(ctx, *in);\
-    }\
-    template <typename... T> \
-    typename std::enable_if<newlang::is_all<newlang::Obj::PairType, T ...>::value, newlang::ObjPtr>::type \
-    newlang_##NAME(const newlang::Context *ctx, T ... args) { \
-        const newlang::Obj list = newlang::Obj(newlang::Obj::ArgNull(), args...); \
-        return NAME(ctx, list); \
-    }\
-    template <typename... T> \
-    typename std::enable_if<newlang::is_all<newlang::Obj::PairType, T ...>::value, newlang::ObjPtr>::type \
-    newlang_##NAME##_(newlang::Context *ctx, T ... args) { \
-        newlang::Obj list = newlang::Obj(newlang::Obj::ArgNull(), args...); \
-        return NAME##_(ctx, list); \
-    }
-
 namespace newlang {
 
 FUNC_TRANSPARENT(newlang_min, min);
@@ -74,13 +50,6 @@ FUNC_DIRECT(newlang_print, print_);
 
 FUNC_DIRECT(newlang_eval, eval);
 FUNC_DIRECT(newlang_exec, exec);
-
-#define DEFINE_ENUM(name) FUNC_CONVERT(name);
-
-NL_BUILTIN_CAST_TYPE(DEFINE_ENUM)
-
-#undef DEFINE_ENUM
-
 
 /*
  * 

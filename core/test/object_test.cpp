@@ -340,12 +340,12 @@ TEST(ObjTest, Print) {
     ObjPtr obj_empty = Obj::CreateType(ObjType::Class, "name");
     ASSERT_STREQ("name=()", obj_empty->toString().c_str()) << obj_empty;
 
-    ObjPtr var_obj = Obj::CreateFrom("obj", obj_empty);
-    ASSERT_STREQ("obj=name()", var_obj->toString().c_str()) << var_obj;
-
-    var_int->m_var_name = "int";
-    var_obj->push_back((*var_int.get())(nullptr));
-    ASSERT_STREQ("obj=name(int=100)", var_obj->toString().c_str()) << var_obj;
+//    ObjPtr var_obj = Obj::CreateFrom("obj", obj_empty);
+//    ASSERT_STREQ("obj=name()", var_obj->toString().c_str()) << var_obj;
+//
+//    var_int->m_var_name = "int";
+//    var_obj->push_back((*var_int.get())(nullptr));
+//    ASSERT_STREQ("obj=name(int=100)", var_obj->toString().c_str()) << var_obj;
 
 }
 
@@ -385,32 +385,6 @@ TEST(ObjTest, CreateFromInteger) {
             var = Context::CreateRVal(&ctx, Term::Create(TermID::INTEGER, "123lkdfjsha")),
             std::runtime_error);
 }
-
-//TEST(ObjTest, CreateFromDecimal) {
-//
-//    Context ctx(RunTime::Init());
-//
-//    ObjPtr var = Context::CreateRVal(&ctx, Parser::ParseString("123:Decimal"));
-//    ASSERT_TRUE(var);
-//    ASSERT_EQ(ObjType::Decimal, var->getType()) << toString(var->getType());
-//    ASSERT_EQ(123, var->GetValueAsInteger());
-//
-//    ObjPtr var2 = ctx.ExecStr("-123.56789:Decimal");
-//    ASSERT_TRUE(var2);
-//    ASSERT_EQ(ObjType::Decimal, var2->getType()) << toString(var2->getType());
-//    ASSERT_EQ(-123.56789, var2->GetValueAsNumber());
-//
-//    var = Context::CreateRVal(&ctx, Parser::ParseString("-123:Decimal"));
-//    ASSERT_TRUE(var);
-//    ASSERT_EQ(ObjType::Decimal, var->getType()) << toString(var->getType());
-//    ASSERT_EQ(-123, var->GetValueAsInteger());
-//
-//    var2 = ctx.ExecStr("-123:Decimal");
-//    ASSERT_TRUE(var2);
-//    ASSERT_EQ(ObjType::Decimal, var2->getType()) << toString(var2->getType());
-//    ASSERT_EQ(-123, var2->GetValueAsInteger());
-//
-//}
 
 TEST(ObjTest, CreateFromNumber) {
 
@@ -631,7 +605,7 @@ TEST(Args, All) {
 
 TEST(Types, FromLimit) {
 
-    std::map<int64_t, ObjType> IntTypes = {
+    std::multimap<int64_t, ObjType> IntTypes = {
         {0, ObjType::Bool},
         {1, ObjType::Bool},
         {2, ObjType::Char},

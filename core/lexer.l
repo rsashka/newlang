@@ -75,6 +75,8 @@ macro   \\({ualpha}|[_])?({name})?
 type    :{name}  Не использовать термин тип в лексере, чтобы была возможность записывать типы с пробелами 
 между двоеточием и имененем "term: type" или "term : type", что более привычно при чтении, чем "term :type"
 Не использовать деструктов ~ в лексере, чтобы в парсере можно было проверять его место расположение (в функции или классе)
+Дестрокутор калсса - имя класса, котрое начинается на два подчерка
+Class __Class ????
 */
 number1 -?{digit}+\.{digit}+([eE][-+]?{digit}+)?
 number2 (-?{digit}+\.([eE][-+]?)?)?-?{digit}+
@@ -82,7 +84,7 @@ number  ({number1}|{number2})
 
 /* number  [-+]?{integer}[.]{integer}([eE][-+]?[0-9]+)? */
 
-term    [$@%~]({ualpha}|[_])?({name})?
+term    [$@%]({ualpha}|[_])?({name})?
 
 %x state_STRWIDE
 %x state_STRCHAR
@@ -372,9 +374,12 @@ term    [$@%~]({ualpha}|[_])?({name})?
 
 "::-"       YY_TOKEN(TRANSPARENT);
 ":-"        YY_TOKEN(TRANSPARENT);
-"&&="       YY_TOKEN(SIMPLE_AND);
-"||="       YY_TOKEN(SIMPLE_OR);
-"^^="       YY_TOKEN(SIMPLE_XOR);
+"::&&="     YY_TOKEN(SIMPLE_AND);
+":&&="      YY_TOKEN(SIMPLE_AND);
+"::||="     YY_TOKEN(SIMPLE_OR);
+":||="      YY_TOKEN(SIMPLE_OR);
+"::^^="     YY_TOKEN(SIMPLE_XOR);
+":^^="      YY_TOKEN(SIMPLE_XOR);
 
 "//"        YY_TOKEN_ONLY(OPERATOR_DIV);
 "++="       YY_TOKEN(OPERATOR);
@@ -399,7 +404,7 @@ term    [$@%~]({ualpha}|[_])?({name})?
 
 "**"        YY_TOKEN(OPERATOR);
 "++"        YY_TOKEN(OPERATOR);
-"!~~~"       YY_TOKEN(OPERATOR);
+"!~~~"      YY_TOKEN(OPERATOR);
 "~~~"       YY_TOKEN(OPERATOR);
 "!~~"       YY_TOKEN(OPERATOR);
 "~~"        YY_TOKEN(OPERATOR);

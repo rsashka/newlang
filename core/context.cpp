@@ -59,51 +59,134 @@ Context::Context(RuntimePtr global) {
         Context::m_funcs["exec"] = CreateBuiltin("exec(filename:String)", (void *) &exec, ObjType::FUNCTION);
 
 
-#define REGISTER_TYPES(name) \
-    ASSERT(Context::m_funcs.find(#name) == Context::m_funcs.end()); \
-    Context::m_funcs[#name] = CreateBuiltin(#name "(...): " #name, (void *)& newlang:: name, ObjType::TRANSPARENT);
-        //    Context::m_funcs[#name "_"] = CreateBuiltin(#name "_(...): " #name, (void *)& newlang:: name##_, ObjType::FUNCTION);
-        NL_BUILTIN_CAST_TYPE(REGISTER_TYPES)
-#undef REGISTER_TYPES
+        //#define REGISTER_TYPES(name) \
+//    ASSERT(Context::m_funcs.find(":"#name) == Context::m_funcs.end()); \
+//    Context::m_funcs[":"#name] = CreateBuiltin(":"#name "(...):" #name, (void *)& newlang:: name, ObjType::TRANSPARENT);
+        //        //    Context::m_funcs[#name "_"] = CreateBuiltin(#name "_(...):" #name, (void *)& newlang:: name##_, ObjType::FUNCTION);
+        //        NL_BUILTIN_CAST_TYPE(REGISTER_TYPES)
+        //#undef REGISTER_TYPES
 
     }
 
     if (Context::m_types.empty()) {
-#define REGISTER_TYPES(name)                                                                                     \
-    ASSERT(Context::m_types.find(#name) == Context::m_types.end());                                                    \
-    Context::m_types[#name] = CreateSimpleType(ObjType::name);
 
-        NL_BUILTIN_CAST_TYPE(REGISTER_TYPES)
+        VERIFY(RegisterTypeHierarchy(ObjType::None,{}));
+        VERIFY(RegisterTypeHierarchy(ObjType::Any,{}));
 
-#undef REGISTER_TYPES
+        VERIFY(RegisterTypeHierarchy(ObjType::Arithmetic,{":Any"}));
+        VERIFY(RegisterTypeHierarchy(ObjType::Tensor,{":Arithmetic"}));
 
-        VERIFY(CreateTypeName(":Format", ":String"));
+        VERIFY(RegisterTypeHierarchy(ObjType::Integer,{":Tensor"}));
+        VERIFY(RegisterTypeHierarchy(ObjType::Bool,{":Integer"}));
+        VERIFY(RegisterTypeHierarchy(ObjType::Char,{":Integer"}));
+        VERIFY(RegisterTypeHierarchy(ObjType::Short,{":Integer"}));
+        VERIFY(RegisterTypeHierarchy(ObjType::Int,{":Integer"}));
+        VERIFY(RegisterTypeHierarchy(ObjType::Long,{":Integer"}));
 
-        // Переопределить
-        Context::m_types.erase(toString(ObjType::Dictionary));
-        Context::m_types.erase(toString(ObjType::Class));
+        VERIFY(RegisterTypeHierarchy(ObjType::Number,{":Tensor"}));
+        VERIFY(RegisterTypeHierarchy(ObjType::Float,{":Number"}));
+        VERIFY(RegisterTypeHierarchy(ObjType::Double,{":Number"}));
 
-        VERIFY(CreateTypeName(":Dictionary", Obj::CreateFunc("Dictionary(...)", &ConstructorDictionary, ObjType::TRANSPARENT)));
-        VERIFY(CreateTypeName(":Class", Obj::CreateFunc("Class(...)", &ConstructorClass, ObjType::TRANSPARENT)));
-        VERIFY(CreateTypeName(":Enum", Obj::CreateFunc("Enum(...)", &ConstructorEnum, ObjType::TRANSPARENT)));
-        VERIFY(CreateTypeName(":Struct", Obj::CreateFunc("Struct(...)", &ConstructorStruct, ObjType::TRANSPARENT)));
-        VERIFY(CreateTypeName(":Union", Obj::CreateFunc("Union(...)", &ConstructorUnion, ObjType::TRANSPARENT)));
+        VERIFY(RegisterTypeHierarchy(ObjType::Complex,{":Tensor"}));
+        VERIFY(RegisterTypeHierarchy(ObjType::ComplexFloat,{":Complex"}));
+        VERIFY(RegisterTypeHierarchy(ObjType::ComplexDouble,{":Complex"}));
+
+        VERIFY(RegisterTypeHierarchy(ObjType::BigNum,{":Arithmetic"}));
+        VERIFY(RegisterTypeHierarchy(ObjType::Fraction,{":Arithmetic"}));
+        VERIFY(RegisterTypeHierarchy(ObjType::Currency,{":Arithmetic"}));
+
+        VERIFY(RegisterTypeHierarchy(ObjType::String,{":Any"}));
+        VERIFY(RegisterTypeHierarchy(ObjType::StrChar,{":String"}));
+        VERIFY(RegisterTypeHierarchy(ObjType::StrWide,{":String"}));
+        VERIFY(RegisterTypeHierarchy(ObjType::Format,{":String"}));
+
+        VERIFY(RegisterTypeHierarchy(ObjType::Dictionary,{":Any"}));
+        VERIFY(RegisterTypeHierarchy(ObjType::Class,{":Dictionary"}));
+
+        VERIFY(RegisterTypeHierarchy(ObjType::Pointer,{":Any"})); // Указатели на машиннозависимую реализауию объектов
+
+        VERIFY(RegisterTypeHierarchy(ObjType::Plain,{":Pointer"})); // Могут быть представленые в одном блоке памяти
+        VERIFY(RegisterTypeHierarchy(ObjType::Enum,{":Plain", ":Integer"}));
+        VERIFY(RegisterTypeHierarchy(ObjType::Union,{":Plain", ":Dictionary"}));
+        VERIFY(RegisterTypeHierarchy(ObjType::Struct,{":Plain", ":Class"}));
 
 
-        VERIFY(CreateTypeName(Interruption::Return, toString(ObjType::Dictionary)));
-        VERIFY(CreateTypeName(Interruption::Error, Interruption::Return));
+        VERIFY(RegisterTypeHierarchy(ObjType::Eval,{":Any"})); // Может быть выполнен
+        VERIFY(RegisterTypeHierarchy(ObjType::Function,{":Eval"}));
+        VERIFY(RegisterTypeHierarchy(ObjType::NativeFunc,{":Function", ":Pointer"}));
 
-        VERIFY(CreateTypeName(Interruption::Parser, Interruption::Error));
-        VERIFY(CreateTypeName(Interruption::RunTime, Interruption::Error));
-        VERIFY(CreateTypeName(Interruption::Signal, Interruption::Error));
+        VERIFY(RegisterTypeHierarchy(ObjType::Other,{":Any"}));
+        VERIFY(RegisterTypeHierarchy(ObjType::Range,{":Other"}));
+        VERIFY(RegisterTypeHierarchy(ObjType::Ellipsis,{":Other"}));
 
-        VERIFY(CreateTypeName(":SIGABRT", Interruption::Signal));
-        VERIFY(CreateTypeName(":SIGCHLD", Interruption::Signal));
-        VERIFY(CreateTypeName(":SIGINT", Interruption::Signal));
-        VERIFY(CreateTypeName(":SIGQUIT", Interruption::Signal));
-        VERIFY(CreateTypeName(":SIGUSR1", Interruption::Signal));
-        VERIFY(CreateTypeName(":SIGUSR2", Interruption::Signal));
-        VERIFY(CreateTypeName(":SIGTSTP", Interruption::Signal));
+        VERIFY(RegisterTypeHierarchy(ObjType::BLOCK,{":Eval"}));
+        VERIFY(RegisterTypeHierarchy(ObjType::BLOCK_TRY,{":Eval"}));
+
+        VERIFY(RegisterTypeHierarchy(ObjType::PureFunc,{":Function"}));
+        VERIFY(RegisterTypeHierarchy(ObjType::SimplePureFunc,{":PureFunc"}));
+        VERIFY(RegisterTypeHierarchy(ObjType::SimplePureOR,{":SimplePureFunc"}));
+        VERIFY(RegisterTypeHierarchy(ObjType::SimplePureXOR,{":SimplePureFunc"}));
+        VERIFY(RegisterTypeHierarchy(ObjType::SimplePureAND,{":SimplePureFunc"}));
+
+        VERIFY(RegisterTypeHierarchy(ObjType::Type,{":Any"}));
+        VERIFY(RegisterTypeHierarchy(ObjType::Return,{":Any"}));
+
+        VERIFY(RegisterTypeHierarchy(ObjType::Error,{":Return"}));
+        VERIFY(RegisterTypeHierarchy(ObjType::Break,{":Return"})); // Синонимы прерывания последовательности выполнения для совместимости
+        VERIFY(RegisterTypeHierarchy(ObjType::Continue,{":Return"})); // со стндартными алгоритмическими приемами (синтаксический сахар)
+
+
+        VERIFY(RegisterTypeHierarchy(ObjType::ErrorParser,{":Error"}));
+        VERIFY(RegisterTypeHierarchy(ObjType::ErrorRunTime,{":Error"}));
+        VERIFY(RegisterTypeHierarchy(ObjType::ErrorSignal,{":Error"}));
+
+        //        VERIFY(CreateTypeName(Interruption::Parser, Interruption::Error));
+        //        VERIFY(CreateTypeName(Interruption::RunTime, Interruption::Error));
+        //        VERIFY(CreateTypeName(Interruption::Signal, Interruption::Error));
+        //
+        //        VERIFY(CreateTypeName(":SIGABRT", Interruption::Signal));
+        //        VERIFY(CreateTypeName(":SIGCHLD", Interruption::Signal));
+        //        VERIFY(CreateTypeName(":SIGINT", Interruption::Signal));
+        //        VERIFY(CreateTypeName(":SIGQUIT", Interruption::Signal));
+        //        VERIFY(CreateTypeName(":SIGUSR1", Interruption::Signal));
+        //        VERIFY(CreateTypeName(":SIGUSR2", Interruption::Signal));
+        //        VERIFY(CreateTypeName(":SIGTSTP", Interruption::Signal));
+
+        //#define REGISTER_TYPES(name)                                                                                     \
+//    ASSERT(Context::m_types.find(":"#name) == Context::m_types.end());                                                    \
+//    Context::m_types[":"#name] = CreateSimpleType(ObjType::name);
+        //
+        //        NL_BUILTIN_CAST_TYPE(REGISTER_TYPES)
+        //
+        //#undef REGISTER_TYPES
+        //
+        //        VERIFY(CreateTypeName(":Format", ":String"));
+        //
+        //        // Переопределить
+        //        Context::m_types.erase(toString(ObjType::Dictionary));
+        //        Context::m_types.erase(toString(ObjType::Class));
+        //
+        //        VERIFY(CreateTypeName(":Dictionary", Obj::CreateFunc("Dictionary(...)", &ConstructorDictionary, ObjType::TRANSPARENT)));
+        //        VERIFY(CreateTypeName(":Class", Obj::CreateFunc("Class(...)", &ConstructorClass, ObjType::TRANSPARENT)));
+        //        VERIFY(CreateTypeName(":Enum", Obj::CreateFunc("Enum(...)", &ConstructorEnum, ObjType::TRANSPARENT)));
+        //        VERIFY(CreateTypeName(":Struct", Obj::CreateFunc("Struct(...)", &ConstructorStruct, ObjType::TRANSPARENT)));
+        //        VERIFY(CreateTypeName(":Union", Obj::CreateFunc("Union(...)", &ConstructorUnion, ObjType::TRANSPARENT)));
+        //
+        //
+        //        VERIFY(CreateTypeName(Interruption::Return, toString(ObjType::Dictionary)));
+        //        VERIFY(CreateTypeName(Interruption::Error, Interruption::Return));
+        //
+        //        VERIFY(CreateTypeName(Interruption::Parser, Interruption::Error));
+        //        VERIFY(CreateTypeName(Interruption::RunTime, Interruption::Error));
+        //        VERIFY(CreateTypeName(Interruption::Signal, Interruption::Error));
+        //
+        //        VERIFY(CreateTypeName(":SIGABRT", Interruption::Signal));
+        //        VERIFY(CreateTypeName(":SIGCHLD", Interruption::Signal));
+        //        VERIFY(CreateTypeName(":SIGINT", Interruption::Signal));
+        //        VERIFY(CreateTypeName(":SIGQUIT", Interruption::Signal));
+        //        VERIFY(CreateTypeName(":SIGUSR1", Interruption::Signal));
+        //        VERIFY(CreateTypeName(":SIGUSR2", Interruption::Signal));
+        //        VERIFY(CreateTypeName(":SIGTSTP", Interruption::Signal));
     }
 
     if (Context::m_builtin_calls.empty()) {
@@ -149,25 +232,17 @@ inline ObjType newlang::typeFromString(const std::string type, Context *ctx, boo
         return ctx->BaseTypeFromString(type, has_error);
     }
 
-    std::string search;
-    if (isType(type)) {
-        search = type.substr(1);
-    } else {
-        search = type;
+#define DEFINE_CASE(name, _)                    \
+    else if (type.compare(":"#name) == 0) {     \
+        return ObjType:: name;                  \
     }
 
-#define DEFINE_CASE(name)                                                                                        \
-    else if (search.compare(#name) == 0) {                                                                             \
-        return ObjType:: name;                                                                                          \
-    }
-
-    if (type.compare("") == 0) {
+    if (type.empty()) {
         return ObjType::None;
     } else if (type.compare("_") == 0) {
         return ObjType::None;
     }
-    NL_BUILTIN_CAST_TYPE(DEFINE_CASE)
-
+    NL_TYPES(DEFINE_CASE)
 #undef DEFINE_CASE
 
     if (has_error) {
@@ -546,7 +621,7 @@ ObjPtr Context::CREATE_OR_ASSIGN(Context *ctx, const TermPtr &term, Obj *local_v
                 rval->resize_(0, nullptr);
             }
             list_obj[list_obj.size() - 1]->SetValue_(rval->Clone());
-            
+
             result = list_obj[list_obj.size() - 1];
 
         } else {
@@ -620,13 +695,13 @@ ObjPtr Context::eval_FUNCTION(Context *ctx, const TermPtr &term, Obj * args) {
         if (term->getTermID() == TermID::FUNCTION) {
             lval->m_var_type_current = ObjType::EVAL_FUNCTION;
         } else if (term->getTermID() == TermID::TRANSPARENT) {
-            lval->m_var_type_current = ObjType::EVAL_TRANSP;
+            lval->m_var_type_current = ObjType::SimplePureFunc;
         } else if (term->getTermID() == TermID::SIMPLE_AND) {
-            lval->m_var_type_current = ObjType::EVAL_AND;
+            lval->m_var_type_current = ObjType::SimplePureAND;
         } else if (term->getTermID() == TermID::SIMPLE_OR) {
-            lval->m_var_type_current = ObjType::EVAL_OR;
+            lval->m_var_type_current = ObjType::SimplePureOR;
         } else if (term->getTermID() == TermID::SIMPLE_XOR) {
-            lval->m_var_type_current = ObjType::EVAL_XOR;
+            lval->m_var_type_current = ObjType::SimplePureXOR;
         } else {
 
             LOG_RUNTIME("Create function '%s' not implemented!", term->toString().c_str());
@@ -773,14 +848,14 @@ ObjPtr Context::eval_FOLLOW(Context *ctx, const TermPtr &term, Obj * args) {
     return Obj::CreateNone();
 }
 
-bool Context::MatchCompare(Obj &match, ObjPtr &value, MatchMode mode) {
+bool Context::MatchCompare(Obj &match, ObjPtr &value, MatchMode mode, Context *ctx) {
     switch (mode) {
         case MatchMode::EQUAL:
             return match.op_equal(value);
         case MatchMode::STRICT:
             return match.op_accurate(value);
         case MatchMode::TYPE_NAME:
-            return match.op_class_test(value);
+            return match.op_class_test(value, ctx);
         case MatchMode::TYPE_EQUAL:
             return match.op_duck_test(value, false);
 
@@ -794,7 +869,7 @@ bool Context::MatchEstimate(Obj &match, const TermPtr &match_item, MatchMode mod
 
     ObjPtr cond = CreateRVal(ctx, match_item, args);
 
-    if (cond->is_none_type() || MatchCompare(match, cond, mode)) {
+    if (cond->is_none_type() || MatchCompare(match, cond, mode, ctx)) {
         return true;
     } else {
         for (int i = 0; i < match_item->m_follow.size(); i++) {
@@ -802,7 +877,7 @@ bool Context::MatchEstimate(Obj &match, const TermPtr &match_item, MatchMode mod
             ASSERT(match_item->m_follow[i]);
             cond = CreateRVal(ctx, match_item->m_follow[i], args);
 
-            if (cond->is_none_type() || MatchCompare(match, cond, mode)) {
+            if (cond->is_none_type() || MatchCompare(match, cond, mode, ctx)) {
 
                 return true;
             }
@@ -1156,39 +1231,56 @@ ObjPtr Context::op_CONCAT(Context *ctx, const TermPtr &term, Obj * args) {
 }
 
 ObjPtr Context::op_TYPE_EQ(Context *ctx, const TermPtr &term, Obj * args) {
-    LOG_RUNTIME("TYPE_EQ Not implemented!");
+    ASSERT(term);
+    ASSERT(term->Left());
+    ASSERT(term->Right());
 
-    return nullptr;
+    if (isType(term->Right()->GetFullName())) {
+        return Obj::CreateBool(ExecStr(ctx, term->Left(), args)->op_class_test(term->Right()->GetFullName().c_str(), ctx));
+    }
+    return Obj::CreateBool(ExecStr(ctx, term->Left(), args)->op_class_test(ExecStr(ctx, term->Right(), args), ctx));
 }
 
 ObjPtr Context::op_TYPE_EQ2(Context *ctx, const TermPtr &term, Obj * args) {
-    LOG_RUNTIME("TYPE_EQ2 Not implemented!");
+    ASSERT(term);
+    ASSERT(term->Left());
+    ASSERT(term->Right());
 
-    return nullptr;
+    return Obj::CreateBool(ExecStr(ctx, term->Left(), args)->op_duck_test(ExecStr(ctx, term->Right(), args), false));
 }
 
 ObjPtr Context::op_TYPE_EQ3(Context *ctx, const TermPtr &term, Obj * args) {
-    LOG_RUNTIME("TYPE_EQ3 Not implemented!");
+    ASSERT(term);
+    ASSERT(term->Left());
+    ASSERT(term->Right());
 
-    return nullptr;
+    return Obj::CreateBool(ExecStr(ctx, term->Left(), args)->op_duck_test(ExecStr(ctx, term->Right(), args), true));
 }
 
 ObjPtr Context::op_TYPE_NE(Context *ctx, const TermPtr &term, Obj * args) {
-    LOG_RUNTIME("TYPE_NE Not implemented!");
-
-    return nullptr;
+    ASSERT(term);
+    ASSERT(term->Left());
+    ASSERT(term->Right());
+    if (isType(term->Right()->GetFullName())) {
+        return Obj::CreateBool(!ExecStr(ctx, term->Left(), args)->op_class_test(term->Right()->GetFullName().c_str(), ctx));
+    }
+    return Obj::CreateBool(!ExecStr(ctx, term->Left(), args)->op_class_test(ExecStr(ctx, term->Right(), args), ctx));
 }
 
 ObjPtr Context::op_TYPE_NE2(Context *ctx, const TermPtr &term, Obj * args) {
-    LOG_RUNTIME("TYPE_NE2 Not implemented!");
+    ASSERT(term);
+    ASSERT(term->Left());
+    ASSERT(term->Right());
 
-    return nullptr;
+    return Obj::CreateBool(!ExecStr(ctx, term->Left(), args)->op_duck_test(ExecStr(ctx, term->Right(), args), false));
 }
 
 ObjPtr Context::op_TYPE_NE3(Context *ctx, const TermPtr &term, Obj * args) {
-    LOG_RUNTIME("TYPE_NE3 Not implemented!");
+    ASSERT(term);
+    ASSERT(term->Left());
+    ASSERT(term->Right());
 
-    return nullptr;
+    return Obj::CreateBool(!ExecStr(ctx, term->Left(), args)->op_duck_test(ExecStr(ctx, term->Right(), args), true));
 }
 
 /*
@@ -1826,7 +1918,7 @@ ObjPtr Context::CreateRVal(Context *ctx, TermPtr term, Obj * local_vars) {
             /*        case TermID::FIELD:
                         if(module && module->HasFunc(term->GetFullName().c_str())) {
                             // Если поле является функцией и она загружена
-                            result = Object::CreateType(Object::Type::FUNCTION,
+                            result = Obj::CreateType(Obj::Type::FUNCTION,
                term->GetFullName().c_str()); result->m_module = module;
                             result->m_is_const = term->m_is_const;
                             result->m_is_ref = term->m_is_ref;
@@ -1846,9 +1938,6 @@ ObjPtr Context::CreateRVal(Context *ctx, TermPtr term, Obj * local_vars) {
             return result;
 
         case TermID::TERM:
-            //            if(term->GetFullName().empty()) {
-            //                return Object::CreateNone();
-            //            }
             if (term->GetType()) {
 
                 result->m_var_type_current = typeFromString(term->GetType()->m_text, ctx);
@@ -1874,7 +1963,7 @@ ObjPtr Context::CreateRVal(Context *ctx, TermPtr term, Obj * local_vars) {
                 while (ctx && pos < ctx->size()) {
                     if (ctx->at(pos).second.lock()) {
                         result->push_back(Obj::CreateString(ctx->at(pos).first));
-                        //                        result->push_back(Object::Arg(ctx->at(pos).first));
+                        //                        result->push_back(Obj::Arg(ctx->at(pos).first));
                         pos++;
                     } else {
                         ctx->erase(pos);
@@ -1931,8 +2020,14 @@ ObjPtr Context::CreateRVal(Context *ctx, TermPtr term, Obj * local_vars) {
 
             result = ctx->GetTerm(term->GetFullName().c_str(), term->isRef());
 
-            //            result->m_var_type_current = ObjType::Type;
-            ASSERT(result->m_var_type_fixed == typeFromString(term->GetFullName(), ctx, nullptr));
+
+            has_error = false;
+            type = typeFromString(term->GetFullName(), ctx, &has_error);
+            if (has_error) {
+                LOG_RUNTIME("Type name '%s' undefined!", term->GetFullName().c_str());
+            }
+            ASSERT(result);
+            ASSERT(result->m_var_type_fixed == type);
 
             // Размерность, если указана
             result->m_dimensions = Obj::CreateType(result->m_var_type_current, nullptr, result->m_var_type_current);
@@ -2030,6 +2125,7 @@ ObjPtr Context::CreateRVal(Context *ctx, TermPtr term, Obj * local_vars) {
             }
 
             result = result->Call(ctx, args.get());
+            ASSERT(result);
 
             return result;
 
@@ -2071,15 +2167,22 @@ ObjPtr Context::CreateRVal(Context *ctx, TermPtr term, Obj * local_vars) {
                     result->push_back(CreateRVal(ctx, (*term)[i], local_vars), term->name(i).c_str());
                 }
             }
+            result->m_var_is_init = true;
             if (term->getTermID() == TermID::TENSOR) {
-                type = getSummaryTensorType(result, typeFromString(term->m_type_name, ctx));
 
-                result->m_value = ConvertToTensor(result.get(), toTorchType(type));
+                result->m_var_type_fixed = typeFromString(term->m_type_name, ctx);
+                type = getSummaryTensorType(result, result->m_var_type_fixed);
+
+                if (type != ObjType::None) {
+                    result->m_value = ConvertToTensor(result.get(), toTorchType(type));
+                } else {
+                    result->m_var_is_init = false;
+                }
                 result->Variable::clear_();
                 result->m_var_type_current = type;
-
+            } else {
+                result->m_class_name = term->m_class_name;
             }
-            result->m_var_is_init = true;
             return result;
 
         case TermID::ARGUMENT:
@@ -2124,102 +2227,4 @@ ObjPtr Context::CreateRVal(Context *ctx, TermPtr term, Obj * local_vars) {
     LOG_RUNTIME("Fail create type %s from '%s'", newlang::toString(term->getTermID()), term->toString().c_str());
 
     return nullptr;
-}
-
-ObjPtr Context::Comprehensions(Context *ctx, Obj *type, Obj * args) {
-
-    ASSERT(type->m_var_type_current == ObjType::Type);
-    ASSERT(args);
-
-    ObjPtr result;
-    if (args->empty()) {
-        result = Obj::CreateType(type->m_var_type_fixed, nullptr, type->m_var_type_fixed);
-        return result;
-    }
-
-    result = Obj::CreateDict();
-    int64_t count = -1; // Сколько элементов должно быть в тензоре
-    if (type->m_dimensions->size()) { // Указан ли размер создаваемого тензора?
-        for (int64_t i = 0; i < type->m_dimensions->size(); i++) {
-            if ((*type->m_dimensions)[i]->GetValueAsInteger() <= 0) {
-                LOG_RUNTIME("Dimensio size %ld at index %ld failed!", (*type->m_dimensions)[i]->GetValueAsInteger(), i);
-            }
-            // Общее количество элементов во всех измерениях для тензора
-            if (count == -1) {
-                count = (*type->m_dimensions)[i]->GetValueAsInteger();
-            } else {
-                count *= (*type->m_dimensions)[i]->GetValueAsInteger();
-            }
-        }
-    }
-
-    ObjPtr prev_value = nullptr;
-    //  Наполнить элементами
-    for (int i = 0; i < args->size(); i++) {
-
-        ASSERT((*args)[i]);
-        /* 123, ... ->  123, 123, 123, 123, 123, 123 ...
-         * [1,2,3,], ... -> [1,2,3,], [1,2,3,], ...
-         * ... [1,2,3,] ->  [1,2,3,],
-         * rand(), ... ->  0.123, 0.123, 0.123, ...  дублирует последний
-         элемент
-         * ... rand()  ->  0.123, 0.987, 0.567, ...  раскрывает словарь или
-         выполняет последний элемент
-         * ... ... dict ->  name1=val1, name2=val2, name3=val3 ...
-         ????????????????????
-         */
-
-        bool call_by_item = false;
-
-        if ((*args)[i]->getType() == ObjType::Ellipsis) {
-
-            if (i + 1 != args->size()) {
-                LOG_RUNTIME("Ellipsis at index %d support as final element only!", i);
-            }
-
-            if (count < 0) {
-                LOG_RUNTIME("Tensor dimension not set for ellipsis data!");
-            }
-
-            ObjPtr func = nullptr;
-
-            // Продублировать последенее значение до конца размерности
-            if (!prev_value) {
-                LOG_RUNTIME("No previous value for ellipsis index %d!", i);
-            }
-            //            }
-
-            while (count > 0) {
-                if (call_by_item) {
-                    ASSERT(func);
-                    prev_value = func->Call(this, ctx->at(0).second.lock().get());
-                }
-                result->push_back(prev_value->Clone());
-                count -= 1;
-            }
-
-            result->m_var_is_init = true;
-            return result->toType_(type);
-        }
-
-        prev_value = (*args)[i];
-        ASSERT(prev_value);
-
-        if (prev_value->is_range()) {
-
-            ObjPtr temp = Obj::CreateDict();
-            ConvertRangeToDict(prev_value.get(), *temp.get());
-
-            if (count >= 0 && temp->size() > count) {
-                LOG_RUNTIME("Wrong range size to fill at pos %d!", i);
-            }
-            prev_value.swap(temp);
-        }
-
-        count -= ConcatData(result.get(), *prev_value.get(), ConcatMode::Append);
-    }
-
-    result->m_var_is_init = true;
-
-    return result->toType_(type);
 }

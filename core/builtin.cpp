@@ -84,54 +84,12 @@ namespace newlang {
 #undef NEWLANG_FUNCTION
 #undef NEWLANG_TRANSPARENT
 
-
-
-#define DEFINE_ENUM(name) \
-newlang::ObjPtr name(const newlang::Context *ctx, const newlang::Obj &in) {\
-    if(in.size() < 1 || !in.at(1).second) {\
-        LOG_CALLSTACK(std::invalid_argument, "Bad argument count parameter!");\
-    }\
-    return nullptr; /*in.at(1).second->Convert(ObjType:: cast);*/\
-}
-//    \
-//newlang::ObjPtr name##_(newlang::Context *ctx, newlang::Obj &in) {\
-//    if(in.size() < 1 || !in.at(1).second) {\
-//        LOG_CALLSTACK(std::invalid_argument, "Bad argument count parameter!");\
-//    }\
-//    return nullptr; /*in.at(1).second->Convert_(ObjType:: cast);*/\
-//}
-
-    NL_BUILTIN_CAST_TYPE(DEFINE_ENUM)
-
-#undef DEFINE_ENUM
-
-
 }
 
-//void Context::CreateBuiltin() {
-//    //    VERIFY(ctx->RegisterLibFunction(nullptr, "term(...)", &term_, Object::TRANSPARENT));
-//
-//    VERIFY(RegisterLibFunction(nullptr, "min(arg, ...)", (void *) &min, ObjType::TRANSPARENT));
-//    VERIFY(RegisterLibFunction(nullptr, "max(arg, ...)", (void *) &max, ObjType::TRANSPARENT));
-//    VERIFY(RegisterLibFunction(nullptr, "мин(arg, ...)", (void *) &min, ObjType::TRANSPARENT));
-//    VERIFY(RegisterLibFunction(nullptr, "макс(arg, ...)", (void *) &max, ObjType::TRANSPARENT));
-//
-//    //    VERIFY(ctx->RegisterLibFunction(nullptr, "range(start, stop, step=1)", &range, Object::Type::TRANSPARENT));
-//    //    VERIFY(ctx->RegisterLibFunction(nullptr, "dict(...)", &dictionary, Object::Type::TRANSPARENT));
-//    //    VERIFY(ctx->RegisterLibFunction(nullptr, "dictionary(...)", &dictionary, Object::Type::TRANSPARENT));
-//
-//    VERIFY(RegisterLibFunction(nullptr, "const(arg1)", (void *) &const_, ObjType::FUNCTION));
-//    //    VERIFY(ctx->RegisterLibFunction(nullptr, "clone(arg1)", &clone_, Object::Type::TRANSPARENT));
-//    VERIFY(RegisterLibFunction(nullptr, "print(...)", (void *) &print_, ObjType::FUNCTION));
-//
-//#define DEFINE_ENUM(name, cast) \
-//    VERIFY(RegisterLibFunction(nullptr, #name "(var, shape=_): " #cast, (void *)& newlang:: name, ObjType::TRANSPARENT)); \
-//    VERIFY(RegisterLibFunction(nullptr, #name "_(&var, shape=_): " #cast, (void *)& newlang:: name##_, ObjType::FUNCTION));
-//
-//    NL_BUILTIN_CAST_TYPE(DEFINE_ENUM)
-//
-//#undef DEFINE_ENUM
-//}
+
+
+
+
 
 bool BuiltInTorchDirect::CheckDirect(CompileInfo &ci, TermPtr &term, std::string &output) {
 

@@ -21,7 +21,7 @@ extern "C" int64_t func_export(int64_t arg_long, uint8_t arg_byte) {
     return arg_long + arg_byte;
 }
 
-TEST(ExecStr, Assign) {
+TEST(Eval, Assign) {
 
     Context ctx(RunTime::Init());
 
@@ -121,7 +121,7 @@ TEST(ExecStr, Assign) {
     ASSERT_EQ(110, result->GetValueAsInteger());
 
     // Переполнение второго аргумента
-    ASSERT_THROW(func_export->Call(nullptr, Obj::Arg(1000), Obj::Arg(1000)), Interruption);
+    ASSERT_ANY_THROW(func_export->Call(nullptr, Obj::Arg(1000), Obj::Arg(1000)));
 
     list = ctx.ExecStr("$");
     ASSERT_STREQ("$=('var_str', 'var_num', 'var_export', 'func_export',)", list->toString().c_str());
@@ -216,7 +216,7 @@ TEST(ExecStr, Assign) {
     ASSERT_STREQ("[\n  [1, 1, 0, 0,], [10, 10, 0.1, 0.2,],\n]:Double", tensor_all->GetValueAsString().c_str());
 }
 
-TEST(ExecStr, Tensor) {
+TEST(Eval, Tensor) {
 
     Context ctx(RunTime::Init());
 
@@ -305,64 +305,64 @@ TEST(ExecStr, Tensor) {
     ASSERT_TRUE(tt);
     ASSERT_STREQ("0..1..0.1", tt->toString().c_str());
 
-//    tt = ctx.ExecStr(":Dictionary( 0..0.99..0.1 )");
-//    ASSERT_TRUE(tt);
-//    ASSERT_STREQ("(0, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9,)", tt->GetValueAsString().c_str());
+    //    tt = ctx.ExecStr(":Dictionary( 0..0.99..0.1 )");
+    //    ASSERT_TRUE(tt);
+    //    ASSERT_STREQ("(0, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9,)", tt->GetValueAsString().c_str());
 
     tt = ctx.ExecStr(":Tensor( 0..0.99..0.1 )");
     ASSERT_TRUE(tt);
     ASSERT_STREQ("[0, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9,]:Double", tt->GetValueAsString().c_str());
 }
 
-TEST(ExecStr, FuncSimple) {
+TEST(Eval, FuncSimple) {
 
     Context ctx(RunTime::Init());
 
-    ObjPtr test_and = ctx.ExecStr("test_and(arg1, arg2) &&= $arg1 == $arg2, $arg1");
+    ObjPtr test_and = ctx.ExecStr("test_and(arg1, arg2) :&&= $arg1 == $arg2, $arg1");
     ASSERT_TRUE(test_and);
 
-    //    EXPECT_FALSE((*test_and)(ctx, Object::Arg(123, "arg1"),
-    //    Object::Arg(555, "arg2"))->GetValueAsBoolean());
-    //    EXPECT_TRUE((*test_and)(ctx, Object::Arg(123, "arg1"),
-    //    Object::Arg(123, "arg2"))->GetValueAsBoolean());
-    //    EXPECT_TRUE((*test_and)(ctx, Object::Arg(555, "arg1"),
-    //    Object::Arg(555, "arg2"))->GetValueAsBoolean());
-    //    EXPECT_FALSE((*test_and)(ctx, Object::Arg(0, "arg1"), Object::Arg(0,
+    //    EXPECT_FALSE((*test_and)(ctx, Obj::Arg(123, "arg1"),
+    //    Obj::Arg(555, "arg2"))->GetValueAsBoolean());
+    //    EXPECT_TRUE((*test_and)(ctx, Obj::Arg(123, "arg1"),
+    //    Obj::Arg(123, "arg2"))->GetValueAsBoolean());
+    //    EXPECT_TRUE((*test_and)(ctx, Obj::Arg(555, "arg1"),
+    //    Obj::Arg(555, "arg2"))->GetValueAsBoolean());
+    //    EXPECT_FALSE((*test_and)(ctx, Obj::Arg(0, "arg1"), Obj::Arg(0,
     //    "arg2"))->GetValueAsBoolean());
 
-    ObjPtr test_or = ctx.ExecStr("test_or(arg1, arg2) ||= $arg1 == 555, $arg1");
+    ObjPtr test_or = ctx.ExecStr("test_or(arg1, arg2) :||= $arg1 == 555, $arg1");
     ASSERT_TRUE(test_or);
 
-    //    EXPECT_TRUE(test_or->Call(ctx, Object::Arg(123, "arg1"),
-    //    Object::Arg(555, "arg2"))->GetValueAsBoolean());
-    //    EXPECT_TRUE(test_or->Call(ctx, Object::Arg(555, "arg1"),
-    //    Object::Arg(555, "arg2"))->GetValueAsBoolean());
-    //    EXPECT_TRUE(test_or->Call(ctx, Object::Arg(123, "arg1"),
-    //    Object::Arg(123, "arg2"))->GetValueAsBoolean());
-    //    EXPECT_TRUE(test_or->Call(ctx, Object::Arg(555, "arg1"),
-    //    Object::Arg(0, "arg2"))->GetValueAsBoolean());
-    //    EXPECT_FALSE(test_or->Call(ctx, Object::Arg(0, "arg1"), Object::Arg(0,
+    //    EXPECT_TRUE(test_or->Call(ctx, Obj::Arg(123, "arg1"),
+    //    Obj::Arg(555, "arg2"))->GetValueAsBoolean());
+    //    EXPECT_TRUE(test_or->Call(ctx, Obj::Arg(555, "arg1"),
+    //    Obj::Arg(555, "arg2"))->GetValueAsBoolean());
+    //    EXPECT_TRUE(test_or->Call(ctx, Obj::Arg(123, "arg1"),
+    //    Obj::Arg(123, "arg2"))->GetValueAsBoolean());
+    //    EXPECT_TRUE(test_or->Call(ctx, Obj::Arg(555, "arg1"),
+    //    Obj::Arg(0, "arg2"))->GetValueAsBoolean());
+    //    EXPECT_FALSE(test_or->Call(ctx, Obj::Arg(0, "arg1"), Obj::Arg(0,
     //    "arg2"))->GetValueAsBoolean());
 
-    ObjPtr test_xor = ctx.ExecStr("test_xor(arg1, arg2) ^^= $arg1 == $arg2, $arg1");
+    ObjPtr test_xor = ctx.ExecStr("test_xor(arg1, arg2) :^^= $arg1 == $arg2, $arg1");
     ASSERT_TRUE(test_xor);
 
-    //    EXPECT_TRUE(test_xor->Call(ctx, Object::Arg(123, "arg1"),
-    //    Object::Arg(555, "arg2"))->GetValueAsBoolean());
-    //    EXPECT_FALSE(test_xor->Call(ctx, Object::Arg(555, "arg1"),
-    //    Object::Arg(555, "arg2"))->GetValueAsBoolean());
-    //    EXPECT_FALSE(test_xor->Call(ctx, Object::Arg(123, "arg1"),
-    //    Object::Arg(123, "arg2"))->GetValueAsBoolean());
-    //    EXPECT_TRUE(test_xor->Call(ctx, Object::Arg(0, "arg1"), Object::Arg(0,
+    //    EXPECT_TRUE(test_xor->Call(ctx, Obj::Arg(123, "arg1"),
+    //    Obj::Arg(555, "arg2"))->GetValueAsBoolean());
+    //    EXPECT_FALSE(test_xor->Call(ctx, Obj::Arg(555, "arg1"),
+    //    Obj::Arg(555, "arg2"))->GetValueAsBoolean());
+    //    EXPECT_FALSE(test_xor->Call(ctx, Obj::Arg(123, "arg1"),
+    //    Obj::Arg(123, "arg2"))->GetValueAsBoolean());
+    //    EXPECT_TRUE(test_xor->Call(ctx, Obj::Arg(0, "arg1"), Obj::Arg(0,
     //    "arg2"))->GetValueAsBoolean());
 }
 
-TEST(ExecStr, Types) {
+TEST(Eval, Types) {
 
     Context::Reset();
     Context ctx(RunTime::Init());
 
-//    ASSERT_EQ(41, ctx.m_types.size());
+    //    ASSERT_EQ(41, ctx.m_types.size());
 
     std::vector<std::wstring> types = ctx.SelectPredict(":");
     ASSERT_EQ(2, types.size());
@@ -436,7 +436,7 @@ TEST(ExecStr, Types) {
 
     std::filesystem::create_directories("temp");
     ASSERT_TRUE(std::filesystem::is_directory("temp"));
-    
+
     ObjPtr F = fopen->Call(&ctx, Obj::Arg("temp/ffile.temp"), Obj::Arg("w+"));
     ASSERT_TRUE(F);
     ASSERT_TRUE(F->GetValueAsInteger());
@@ -548,7 +548,7 @@ TEST(ExecStr, Types) {
     //		      size_t __n, FILE *__restrict __s);
 }
 
-TEST(ExecStr, Fileio) {
+TEST(Eval, Fileio) {
 
     Context::Reset();
     Context ctx(RunTime::Init());
@@ -561,7 +561,7 @@ TEST(ExecStr, Fileio) {
 
     std::filesystem::create_directories("temp");
     ASSERT_TRUE(std::filesystem::is_directory("temp"));
-    
+
     ObjPtr file = ctx.ExecStr("file ::= fopen('temp/ffile_eval2.temp','w+')");
     ASSERT_TRUE(file);
     ObjPtr file_res = ctx.ExecStr("fputs('test 222 from eval !!!!!!!!!!!!!!!!!!!!\\n', file)");
@@ -626,7 +626,7 @@ TEST(ExecStr, Funcs) {
  * :Int[1,2](100, 200); # Преобразовать аргументы в тензор указанной размерности и заданного типа
  * 
  */
-TEST(ExecStr, Convert) {
+TEST(Eval, Convert) {
 
     /*
      * - Встроеные функции преобразования простых типов данных
@@ -780,45 +780,45 @@ TEST(ExecStr, Convert) {
     //    ASSERT_TRUE(opts->GetProcAddress(MangaledFunc("String").c_str()));
     //
     //
-    //    ObjPtr byte = Object::CreateValue(1, ObjType::Bool);
+    //    ObjPtr byte = Obj::CreateValue(1, ObjType::Bool);
     //    ASSERT_EQ(ObjType::Bool, byte->m_var_type_current) << toString(byte->m_var_type_current);
     //
-    //    ASSERT_TRUE(ctx.CallByName("Char", Object::Arg(byte)));
-    //    ASSERT_EQ(ObjType::Char, ctx.CallByName("Char", Object::Arg(byte))->m_var_type_current) << toString(byte->m_var_type_current);
+    //    ASSERT_TRUE(ctx.CallByName("Char", Obj::Arg(byte)));
+    //    ASSERT_EQ(ObjType::Char, ctx.CallByName("Char", Obj::Arg(byte))->m_var_type_current) << toString(byte->m_var_type_current);
     //    ASSERT_EQ(ObjType::Bool, byte->m_var_type_current) << toString(byte->m_var_type_current);
     //
-    //    ASSERT_EQ(ObjType::Char, newlang_Char(nullptr, Object::Arg(byte))->m_var_type_current) << toString(byte->m_var_type_current);
-    //    //    ASSERT_STREQ("1", newlang_Char(nullptr, Object::Arg(byte))->toString().c_str());
+    //    ASSERT_EQ(ObjType::Char, newlang_Char(nullptr, Obj::Arg(byte))->m_var_type_current) << toString(byte->m_var_type_current);
+    //    //    ASSERT_STREQ("1", newlang_Char(nullptr, Obj::Arg(byte))->toString().c_str());
     //
-    //    ASSERT_EQ(ObjType::Short, newlang_Short(nullptr, Object::Arg(byte))->m_var_type_current) << toString(byte->m_var_type_current);
-    //    ASSERT_EQ(ObjType::Int, newlang_Int(nullptr, Object::Arg(byte))->m_var_type_current) << toString(byte->m_var_type_current);
-    //    ASSERT_EQ(ObjType::Long, newlang_Long(nullptr, Object::Arg(byte))->m_var_type_current) << toString(byte->m_var_type_current);
-    //    //    ASSERT_EQ(ObjType::Half, newlang_Half(nullptr, Object::Arg(byte))->m_var_type) << toString(byte->m_var_type);
-    //    ASSERT_EQ(ObjType::Float, newlang_Float(nullptr, Object::Arg(byte))->m_var_type_current) << toString(byte->m_var_type_current);
-    //    ASSERT_EQ(ObjType::Double, newlang_Double(nullptr, Object::Arg(byte))->m_var_type_current) << toString(byte->m_var_type_current);
+    //    ASSERT_EQ(ObjType::Short, newlang_Short(nullptr, Obj::Arg(byte))->m_var_type_current) << toString(byte->m_var_type_current);
+    //    ASSERT_EQ(ObjType::Int, newlang_Int(nullptr, Obj::Arg(byte))->m_var_type_current) << toString(byte->m_var_type_current);
+    //    ASSERT_EQ(ObjType::Long, newlang_Long(nullptr, Obj::Arg(byte))->m_var_type_current) << toString(byte->m_var_type_current);
+    //    //    ASSERT_EQ(ObjType::Half, newlang_Half(nullptr, Obj::Arg(byte))->m_var_type) << toString(byte->m_var_type);
+    //    ASSERT_EQ(ObjType::Float, newlang_Float(nullptr, Obj::Arg(byte))->m_var_type_current) << toString(byte->m_var_type_current);
+    //    ASSERT_EQ(ObjType::Double, newlang_Double(nullptr, Obj::Arg(byte))->m_var_type_current) << toString(byte->m_var_type_current);
     //
-    //    ASSERT_EQ(ObjType::Long, newlang_Integer(nullptr, Object::Arg(byte))->m_var_type_current) << toString(byte->m_var_type_current);
-    //    ASSERT_EQ(ObjType::Float, newlang_Number(nullptr, Object::Arg(byte))->m_var_type_current) << toString(byte->m_var_type_current);
+    //    ASSERT_EQ(ObjType::Long, newlang_Integer(nullptr, Obj::Arg(byte))->m_var_type_current) << toString(byte->m_var_type_current);
+    //    ASSERT_EQ(ObjType::Float, newlang_Number(nullptr, Obj::Arg(byte))->m_var_type_current) << toString(byte->m_var_type_current);
     //
-    //    //    ASSERT_EQ(ObjType::Byte, newlang_Byte_(nullptr, Object::Arg(byte))->m_var_type) << toString(byte->m_var_type);
+    //    //    ASSERT_EQ(ObjType::Byte, newlang_Byte_(nullptr, Obj::Arg(byte))->m_var_type) << toString(byte->m_var_type);
     //    //    ASSERT_EQ(ObjType::Byte, byte->m_var_type) << toString(byte->m_var_type);
     //
     //
-    //    //    ASSERT_EQ(ObjType::Byte, ctx.CallByName("Byte_", Object::Arg(byte))->m_var_type) << toString(byte->m_var_type);
+    //    //    ASSERT_EQ(ObjType::Byte, ctx.CallByName("Byte_", Obj::Arg(byte))->m_var_type) << toString(byte->m_var_type);
     //    //    ASSERT_EQ(ObjType::Byte, byte->m_var_type) << toString(byte->m_var_type);
     //
     //    // @todo Для работы функций mutable функций требуется передача по ссылкам !!!!!!!!!!!!1
     //
-    //    //    ASSERT_EQ(ObjType::Char, ctx.CallByName("Char_", Object::Arg(byte))->m_var_type) << toString(byte->m_var_type);
+    //    //    ASSERT_EQ(ObjType::Char, ctx.CallByName("Char_", Obj::Arg(byte))->m_var_type) << toString(byte->m_var_type);
     //    //    ASSERT_EQ(ObjType::Char, byte->m_var_type) << toString(byte->m_var_type);
     //    //
-    //    //    ASSERT_EQ(ObjType::Double, ctx.CallByName("Double_", Object::Arg(byte))->m_var_type) << toString(byte->m_var_type);
+    //    //    ASSERT_EQ(ObjType::Double, ctx.CallByName("Double_", Obj::Arg(byte))->m_var_type) << toString(byte->m_var_type);
     //    //    ASSERT_EQ(ObjType::Double, byte->m_var_type) << toString(byte->m_var_type);
     //
-    //    //    Object::CreateFromType();
+    //    //    Obj::CreateFromType();
     //
-    //    ObjPtr value = Object::CreateNone();
-    //    ObjPtr range1 = Object::CreateRange(0, 0.99, 0.1);
+    //    ObjPtr value = Obj::CreateNone();
+    //    ObjPtr range1 = Obj::CreateRange(0, 0.99, 0.1);
     //
     //    ASSERT_TRUE(range1);
     //    ASSERT_EQ(range1->getType(), ObjType::Range);
@@ -841,7 +841,7 @@ TEST(ExecStr, Convert) {
     //    ASSERT_DOUBLE_EQ(0.9, (*value)[9]->GetValueAsNumber());
     //
     //
-    //    ObjPtr range2 = Object::CreateRange(0, -5);
+    //    ObjPtr range2 = Obj::CreateRange(0, -5);
     //
     //    ASSERT_TRUE(range2);
     //    ASSERT_EQ(range2->getType(), ObjType::Range);
@@ -919,7 +919,7 @@ TEST(ExecStr, Convert) {
     //    ASSERT_STREQ("\x1\x2\x3\x4\x5\x6\x7\x8", str1.c_str());
     //
     //
-    //    ObjPtr dict1 = Object::CreateNone();
+    //    ObjPtr dict1 = Obj::CreateNone();
     //    ASSERT_NO_THROW(ConvertTensorToDict(tensor1, *dict1.get()));
     //    ASSERT_EQ(4, dict1->size());
     //    ASSERT_EQ('t', (*dict1)[0]->GetValueAsInteger());
@@ -978,19 +978,19 @@ TEST(ExecStr, Convert) {
 
 }
 
-class OpExecStrTest : public ::testing::Test {
+class OpEvalTest : public ::testing::Test {
 protected:
     Context m_ctx;
     ObjPtr m_result;
     std::string m_string;
 
-    OpExecStrTest() : m_ctx(RunTime::Init()) {
+    OpEvalTest() : m_ctx(RunTime::Init()) {
     }
 
     const char *Test(std::string eval, Obj &vars) {
         eval += ";";
         m_result = m_ctx.ExecStr(eval, &vars);
-        if(m_result) {
+        if (m_result) {
             m_string = m_result->GetValueAsString();
             return m_string.c_str();
         }
@@ -1007,7 +1007,7 @@ protected:
     }
 };
 
-TEST_F(OpExecStrTest, Ops) {
+TEST_F(OpEvalTest, Ops) {
     ASSERT_STREQ("10", Test("10"));
     ASSERT_STREQ("32", Test("10+22"));
     ASSERT_STREQ("5.1", Test("1.1+4"));
@@ -1084,6 +1084,273 @@ TEST_F(OpExecStrTest, Ops) {
     ASSERT_STREQ("$=('var2',)", Test("$"));
     var2.reset();
     ASSERT_STREQ("$=(,)", Test("$"));
+}
+
+TEST(EvalOp, InstanceName) {
+
+    /*
+     * Проверка имени типа «~» — немного похож на оператор instanceof в Java. Левым оператором должен быть проверяемый объект, 
+     * а правым оператором — тип, строка литерал или объект строкового типа в котором содержится символьное назначение типа. 
+     * Результатом операции будет истина, если правый операнд содержит название типа проверяемого объекта или 
+     * он присутствует в иерархии наследования у правого операнда.
+     * 
+     * var ~ :class; 
+     * var ~ "class";
+     * name := "TypeName"; # Строка с именем типа
+     * var ~ name; 
+     * 
+     * Утиная типизация «~~» — приблизительный аналог функции isinstance() в Python, который для простых 
+     * типов сравнивает совместимость типа левого операнда по отношению к правому, а для словарей и классов 
+     * в левом операнде проверяется наличие всех имен полей, присутствующих у правого операнда. т. е.
+     * 
+     * (field1=«value», field2=2, field3=«33»,) ~~ (); # Истина (т. е. левый операнд словарь)
+     * (field1=«value», field2=2, field3=«33»,) ~~ (field1=_); # Тоже истина (т. к. поле field1 присутствует у левого операнда)
+     * 
+     * Строгая утиная типизация «~~~» — для простых типов сравнивается идентичности типов без учета совместимости, 
+     * а для составных типов происходит строгое сравнение всех свойств. 
+     * Для данной операции, пустой тип совместим только с другим пустим типом!
+     */
+
+    RuntimePtr opts = RunTime::Init();
+    Context ctx(opts);
+
+    /*
+     * Реализация системы типов сделана следующим образом:
+     * Каждый объект содержит одно из перечисления ObjType + символьное наименование класса
+     * 
+     *      
+     */
+
+    ObjPtr obj_bool = Obj::CreateBool(true);
+    ObjPtr obj_char = Obj::CreateValue(20); // ObjType::Char
+    ObjPtr obj_short = Obj::CreateValue(300); // ObjType::Short
+    ObjPtr obj_int = Obj::CreateValue(100000); // ObjType::Int
+    ObjPtr obj_long = Obj::CreateValue(999999999999); // ObjType::Long
+    ObjPtr str_char = Obj::CreateString("Байтовая строка");
+    ObjPtr str_wide = Obj::CreateString(L"Широкая строка");
+
+    ObjPtr obj_none = Obj::CreateNone();
+    ObjPtr obj_dict = Obj::CreateDict();
+    ObjPtr obj_range = Obj::CreateRange(0, 20, 2);
+    ObjPtr obj_class1 = Obj::CreateClass(":Class1");
+    ObjPtr obj_class2 = Obj::CreateClass(":Class2");
+    obj_class2->m_class_parents.push_back(obj_class1);
+
+    ASSERT_TRUE(obj_bool->op_class_test(":Bool", &ctx));
+    ASSERT_TRUE(obj_char->op_class_test(":Char", &ctx));
+    ASSERT_TRUE(obj_char->op_class_test(":Short", &ctx));
+    ASSERT_TRUE(obj_bool->op_class_test(":Int", &ctx));
+    ASSERT_TRUE(obj_bool->op_class_test(":Long", &ctx));
+    ASSERT_TRUE(obj_bool->op_class_test(":Tensor", &ctx));
+    ASSERT_TRUE(obj_bool->op_class_test(":Arithmetic", &ctx));
+    ASSERT_TRUE(obj_bool->op_class_test(":Any", &ctx));
+    ASSERT_FALSE(obj_bool->op_class_test(":None", &ctx));
+
+    ASSERT_FALSE(obj_char->op_class_test(":Bool", &ctx));
+    ASSERT_TRUE(obj_char->op_class_test(":Char", &ctx));
+    ASSERT_TRUE(obj_char->op_class_test(":Short", &ctx));
+    ASSERT_TRUE(obj_char->op_class_test(":Int", &ctx));
+    ASSERT_TRUE(obj_char->op_class_test(":Long", &ctx));
+    ASSERT_TRUE(obj_char->op_class_test(":Tensor", &ctx));
+    ASSERT_TRUE(obj_char->op_class_test(":Arithmetic", &ctx));
+    ASSERT_TRUE(obj_char->op_class_test(":Any", &ctx));
+    ASSERT_FALSE(obj_char->op_class_test(":None", &ctx));
+
+    ASSERT_FALSE(obj_short->op_class_test(":Bool", &ctx));
+    ASSERT_FALSE(obj_short->op_class_test(":Char", &ctx));
+    ASSERT_TRUE(obj_short->op_class_test(":Short", &ctx));
+    ASSERT_TRUE(obj_short->op_class_test(":Int", &ctx));
+    ASSERT_TRUE(obj_short->op_class_test(":Long", &ctx));
+    ASSERT_TRUE(obj_short->op_class_test(":Tensor", &ctx));
+    ASSERT_TRUE(obj_short->op_class_test(":Arithmetic", &ctx));
+    ASSERT_TRUE(obj_short->op_class_test(":Any", &ctx));
+    ASSERT_FALSE(obj_short->op_class_test(":None", &ctx));
+
+    ASSERT_FALSE(obj_int->op_class_test(":Bool", &ctx));
+    ASSERT_FALSE(obj_int->op_class_test(":Char", &ctx));
+    ASSERT_FALSE(obj_int->op_class_test(":Short", &ctx));
+    ASSERT_TRUE(obj_int->op_class_test(":Int", &ctx));
+    ASSERT_TRUE(obj_int->op_class_test(":Long", &ctx));
+    ASSERT_TRUE(obj_int->op_class_test(":Tensor", &ctx));
+    ASSERT_TRUE(obj_int->op_class_test(":Arithmetic", &ctx));
+    ASSERT_TRUE(obj_int->op_class_test(":Any", &ctx));
+    ASSERT_FALSE(obj_int->op_class_test(":None", &ctx));
+
+
+    ASSERT_FALSE(obj_long->op_class_test(":Bool", &ctx));
+    ASSERT_FALSE(obj_long->op_class_test(":Char", &ctx));
+    ASSERT_FALSE(obj_long->op_class_test(":Short", &ctx));
+    ASSERT_EQ(obj_long->m_var_type_current, ObjType::Long);
+    ASSERT_FALSE(obj_long->op_class_test(":Int", &ctx));
+    ASSERT_TRUE(obj_long->op_class_test(":Long", &ctx));
+    ASSERT_TRUE(obj_long->op_class_test(":Tensor", &ctx));
+    ASSERT_TRUE(obj_long->op_class_test(":Arithmetic", &ctx));
+    ASSERT_TRUE(obj_long->op_class_test(":Any", &ctx));
+    ASSERT_FALSE(obj_long->op_class_test(":None", &ctx));
+
+    ASSERT_FALSE(obj_bool->op_class_test(":Class", &ctx));
+    ASSERT_FALSE(obj_short->op_class_test(":Class", &ctx));
+    ASSERT_FALSE(obj_int->op_class_test(":Class", &ctx));
+    ASSERT_FALSE(obj_long->op_class_test(":Class", &ctx));
+    ASSERT_FALSE(str_char->op_class_test(":Class", &ctx));
+    ASSERT_FALSE(str_wide->op_class_test(":Class", &ctx));
+    ASSERT_FALSE(obj_range->op_class_test(":Class", &ctx));
+    ASSERT_FALSE(obj_dict->op_class_test(":Class", &ctx));
+    ASSERT_FALSE(obj_none->op_class_test(":Class", &ctx));
+
+    ASSERT_TRUE(str_char->op_class_test(":String", &ctx));
+    ASSERT_TRUE(str_wide->op_class_test(":String", &ctx));
+    ASSERT_FALSE(obj_range->op_class_test(":String", &ctx));
+    ASSERT_FALSE(obj_dict->op_class_test(":String", &ctx));
+    ASSERT_FALSE(obj_none->op_class_test(":String", &ctx));
+
+    ASSERT_TRUE(str_char->op_class_test(":StrChar", &ctx));
+    ASSERT_FALSE(str_wide->op_class_test(":StrChar", &ctx));
+    ASSERT_TRUE(obj_range->op_class_test(":Other", &ctx));
+    ASSERT_FALSE(obj_dict->op_class_test(":Other", &ctx));
+    ASSERT_FALSE(obj_none->op_class_test(":Other", &ctx));
+
+    ASSERT_FALSE(str_char->op_class_test(":StrWide", &ctx));
+    ASSERT_TRUE(str_wide->op_class_test(":StrWide", &ctx));
+    ASSERT_TRUE(obj_range->op_class_test(":Range", &ctx));
+    ASSERT_FALSE(obj_dict->op_class_test(":Range", &ctx));
+    ASSERT_FALSE(obj_none->op_class_test(":Range", &ctx));
+
+
+    ASSERT_TRUE(obj_class1->op_class_test(":Class", &ctx));
+    ASSERT_TRUE(obj_class1->op_class_test(":Class1", &ctx));
+    ASSERT_FALSE(obj_class1->op_class_test(":Class2", &ctx));
+    ASSERT_TRUE(obj_class2->op_class_test(":Class", &ctx));
+    ASSERT_TRUE(obj_class2->op_class_test(":Class1", &ctx));
+    ASSERT_TRUE(obj_class2->op_class_test(":Class2", &ctx));
+
+
+
+    // [,]:Bool ~ :Int
+    ObjPtr obj_empty_bool = ctx.ExecStr("[,]:Bool");
+    ASSERT_TRUE(obj_empty_bool->op_class_test(":Bool", &ctx));
+    ASSERT_TRUE(obj_empty_bool->op_class_test(":Char", &ctx));
+    ASSERT_TRUE(obj_empty_bool->op_class_test(":Short", &ctx));
+    ASSERT_TRUE(obj_empty_bool->op_class_test(":Int", &ctx));
+    ASSERT_TRUE(obj_empty_bool->op_class_test(":Long", &ctx));
+    ASSERT_TRUE(obj_empty_bool->op_class_test(":Tensor", &ctx));
+    ASSERT_TRUE(obj_empty_bool->op_class_test(":Arithmetic", &ctx));
+    ASSERT_TRUE(obj_empty_bool->op_class_test(":Any", &ctx));
+    ASSERT_FALSE(obj_empty_bool->op_class_test(":Range", &ctx));
+    ASSERT_FALSE(obj_empty_bool->op_class_test(":StrChar", &ctx));
+    ASSERT_FALSE(obj_empty_bool->op_class_test(":String", &ctx));
+    ASSERT_FALSE(obj_empty_bool->op_class_test(":None", &ctx));
+
+
+    // [,]:Int ~ :Bool
+    ObjPtr obj_empty_int = ctx.ExecStr("[,]:Int");
+    ASSERT_FALSE(obj_empty_int->op_class_test(":Bool", &ctx));
+    ASSERT_FALSE(obj_empty_int->op_class_test(":Char", &ctx));
+    ASSERT_FALSE(obj_empty_int->op_class_test(":Short", &ctx));
+    ASSERT_TRUE(obj_empty_int->op_class_test(":Int", &ctx));
+    ASSERT_TRUE(obj_empty_int->op_class_test(":Long", &ctx));
+    ASSERT_TRUE(obj_empty_int->op_class_test(":Tensor", &ctx));
+    ASSERT_TRUE(obj_empty_int->op_class_test(":Arithmetic", &ctx));
+    ASSERT_TRUE(obj_empty_int->op_class_test(":Any", &ctx));
+    ASSERT_FALSE(obj_empty_int->op_class_test(":Range", &ctx));
+    ASSERT_FALSE(obj_empty_int->op_class_test(":StrChar", &ctx));
+    ASSERT_FALSE(obj_empty_int->op_class_test(":String", &ctx));
+    ASSERT_FALSE(obj_empty_int->op_class_test(":None", &ctx));
+
+
+    // (,):Class ~ :Class
+    ObjPtr obj_class = ctx.ExecStr("(,):Class");
+    ASSERT_FALSE(obj_class->op_class_test(":Bool", &ctx));
+    ASSERT_FALSE(obj_class->op_class_test(":Char", &ctx));
+    ASSERT_FALSE(obj_class->op_class_test(":Tensor", &ctx));
+    ASSERT_FALSE(obj_class->op_class_test(":Arithmetic", &ctx));
+    ASSERT_TRUE(obj_class->op_class_test(":Any", &ctx));
+    ASSERT_FALSE(obj_class->op_class_test(":Range", &ctx));
+    ASSERT_FALSE(obj_class->op_class_test(":StrChar", &ctx));
+    ASSERT_FALSE(obj_class->op_class_test(":String", &ctx));
+    ASSERT_FALSE(obj_class->op_class_test(":None", &ctx));
+
+    ASSERT_TRUE(obj_class->op_class_test(":Class", &ctx));
+    ASSERT_FALSE(obj_class->op_class_test(":ClassOther", &ctx));
+
+    ObjPtr obj_class3 = ctx.ExecStr("(,):Class2");
+    obj_class3->m_class_parents.push_back(obj_class);
+    ASSERT_FALSE(obj_class3->op_class_test(":Bool", &ctx));
+    ASSERT_FALSE(obj_class3->op_class_test(":Char", &ctx));
+    ASSERT_FALSE(obj_class3->op_class_test(":Tensor", &ctx));
+    ASSERT_FALSE(obj_class3->op_class_test(":Arithmetic", &ctx));
+    ASSERT_TRUE(obj_class3->op_class_test(":Any", &ctx));
+    ASSERT_FALSE(obj_class3->op_class_test(":Range", &ctx));
+    ASSERT_FALSE(obj_class3->op_class_test(":StrChar", &ctx));
+    ASSERT_FALSE(obj_class3->op_class_test(":String", &ctx));
+    ASSERT_FALSE(obj_class3->op_class_test(":None", &ctx));
+
+    ASSERT_TRUE(obj_class3->op_class_test(":Class2", &ctx));
+    ASSERT_FALSE(obj_class3->op_class_test(":ClassOther", &ctx));
+
+
+
+
+    ObjPtr res = ctx.ExecStr(":Int ~ :Int");
+    ASSERT_TRUE(res);
+    ASSERT_TRUE(res->is_bool_type());
+    ASSERT_TRUE(res->GetValueAsBoolean());
+
+    res = ctx.ExecStr("1 ~ :Bool");
+    ASSERT_TRUE(res);
+    ASSERT_TRUE(res->is_bool_type());
+    ASSERT_TRUE(res->GetValueAsBoolean());
+
+    ASSERT_NO_THROW(ctx.ExecStr("1.0 ~ :FAIL_TYPE"));
+
+    std::map<const char *, bool> test_name = {
+        {"0 ~ :Int", true},
+        {"1 ~ :Int", true},
+        {"1 ~ :Bool", true},
+        {"1 ~ :Integer", true},
+        {"1 ~ :Number", true},
+        {"1 ~ :Double", true},
+        {"10 ~ :Bool", false},
+        {"10 !~ :Bool", true},
+        {"1 ~ :Float", true},
+        {"1.0 ~ :Double", true},
+        {"1.0 ~ :Integer", false},
+        {"1.0 ~ :FAIL_TYPE", false},
+
+        {"'' ~ :StrChar", true},
+        {"\"\" ~ :StrWide", true},
+        {"'' ~ :String", true},
+        {"\"\" ~ :String", true},
+        {"\"\" ~ :Int", false},
+        {"\"\" ~ :None", false},
+
+        {":Int ~ :Int", true},
+        {":Int ~ :Bool", false},
+
+        {"[,]:Int ~ :Bool", false},
+        {"[,]:Bool ~ :Int", true},
+
+        {"(,):Class ~ :Class", true},
+        {"(,):ClassNameNotFound ~ :Class", false},
+        {"(,):ClassNameNotFound !~ :Class", true},
+        {"(,):ClassNameNotFound ~ :ClassNameNotFound", true},
+        {"(,):ClassNameNotFound !~ :ClassNameNotFound", false},
+    };
+
+    for (auto &elem : test_name) {
+        res.reset();
+        ASSERT_NO_THROW(res = ctx.ExecStr(elem.first)) << elem.first;
+        EXPECT_TRUE(res) << elem.first;
+        if (res) {
+            EXPECT_TRUE(res->is_bool_type()) << elem.first;
+            if (elem.second) {
+                EXPECT_TRUE(res->GetValueAsBoolean()) << elem.first;
+            } else {
+                EXPECT_FALSE(res->GetValueAsBoolean()) << elem.first;
+            }
+        }
+    }
+
 }
 
 #endif // UNITTEST

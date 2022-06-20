@@ -45,9 +45,9 @@ TEST(NewLang, MangleName) {
 //     Parser parser(context);
 //
 //     ASSERT_TRUE(parser.Parse(
-//             "test_and(arg1, arg2) &&= $arg1 == $arg2, $arg1;\n"
-//             "test_or(arg1, arg2) ||= $arg1 == 555, $arg1;\n"
-//             "test_xor(arg1, arg2) ^^= $arg1 == $arg2, $arg1;\n"
+//             "test_and(arg1, arg2) :&&= $arg1 == $arg2, $arg1;\n"
+//             "test_or(arg1, arg2) :||= $arg1 == 555, $arg1;\n"
+//             "test_xor(arg1, arg2) :^^= $arg1 == $arg2, $arg1;\n"
 //             "test_filed(arg1, arg2):_ := {$arg1.all();
 //             $arg1.mul_($arg2);_;}\n"
 //             ));
@@ -104,30 +104,30 @@ TEST(NewLang, MangleName) {
 //    ASSERT_TRUE(test_xor);
 //
 //
-//    EXPECT_FALSE(test_and->Call(Object::Arg(123, "arg1"), Object::Arg(555,
+//    EXPECT_FALSE(test_and->Call(Obj::Arg(123, "arg1"), Obj::Arg(555,
 //    "arg2"))->GetValueAsBoolean());
-//    EXPECT_TRUE(test_and->Call(Object::Arg(123, "arg1"), Object::Arg(123,
+//    EXPECT_TRUE(test_and->Call(Obj::Arg(123, "arg1"), Obj::Arg(123,
 //    "arg2"))->GetValueAsBoolean());
-//    EXPECT_TRUE(test_and->Call(Object::Arg(555, "arg1"), Object::Arg(555,
-//    "arg2"))->GetValueAsBoolean()); EXPECT_FALSE(test_and->Call(Object::Arg(0,
-//    "arg1"), Object::Arg(0, "arg2"))->GetValueAsBoolean());
+//    EXPECT_TRUE(test_and->Call(Obj::Arg(555, "arg1"), Obj::Arg(555,
+//    "arg2"))->GetValueAsBoolean()); EXPECT_FALSE(test_and->Call(Obj::Arg(0,
+//    "arg1"), Obj::Arg(0, "arg2"))->GetValueAsBoolean());
 //
-//    EXPECT_TRUE(test_or->Call(Object::Arg(123, "arg1"), Object::Arg(555,
-//    "arg2"))->GetValueAsBoolean()); EXPECT_TRUE(test_or->Call(Object::Arg(555,
-//    "arg1"), Object::Arg(555, "arg2"))->GetValueAsBoolean());
-//    EXPECT_TRUE(test_or->Call(Object::Arg(123, "arg1"), Object::Arg(123,
-//    "arg2"))->GetValueAsBoolean()); EXPECT_TRUE(test_or->Call(Object::Arg(555,
-//    "arg1"), Object::Arg(0, "arg2"))->GetValueAsBoolean());
-//    EXPECT_FALSE(test_or->Call(Object::Arg(0, "arg1"), Object::Arg(0,
+//    EXPECT_TRUE(test_or->Call(Obj::Arg(123, "arg1"), Obj::Arg(555,
+//    "arg2"))->GetValueAsBoolean()); EXPECT_TRUE(test_or->Call(Obj::Arg(555,
+//    "arg1"), Obj::Arg(555, "arg2"))->GetValueAsBoolean());
+//    EXPECT_TRUE(test_or->Call(Obj::Arg(123, "arg1"), Obj::Arg(123,
+//    "arg2"))->GetValueAsBoolean()); EXPECT_TRUE(test_or->Call(Obj::Arg(555,
+//    "arg1"), Obj::Arg(0, "arg2"))->GetValueAsBoolean());
+//    EXPECT_FALSE(test_or->Call(Obj::Arg(0, "arg1"), Obj::Arg(0,
 //    "arg2"))->GetValueAsBoolean());
 //
-//    EXPECT_TRUE(test_xor->Call(Object::Arg(123, "arg1"), Object::Arg(555,
+//    EXPECT_TRUE(test_xor->Call(Obj::Arg(123, "arg1"), Obj::Arg(555,
 //    "arg2"))->GetValueAsBoolean());
-//    EXPECT_FALSE(test_xor->Call(Object::Arg(555, "arg1"), Object::Arg(555,
+//    EXPECT_FALSE(test_xor->Call(Obj::Arg(555, "arg1"), Obj::Arg(555,
 //    "arg2"))->GetValueAsBoolean());
-//    EXPECT_FALSE(test_xor->Call(Object::Arg(123, "arg1"), Object::Arg(123,
-//    "arg2"))->GetValueAsBoolean()); EXPECT_TRUE(test_xor->Call(Object::Arg(0,
-//    "arg1"), Object::Arg(0, "arg2"))->GetValueAsBoolean());
+//    EXPECT_FALSE(test_xor->Call(Obj::Arg(123, "arg1"), Obj::Arg(123,
+//    "arg2"))->GetValueAsBoolean()); EXPECT_TRUE(test_xor->Call(Obj::Arg(0,
+//    "arg1"), Obj::Arg(0, "arg2"))->GetValueAsBoolean());
 //}
 
 #define ASSERT_STRSTART(base, val) ASSERT_TRUE(str_cmp_strart(base, val))<<"  \""<<base<<"\"\n  \""<<val<<"\""
@@ -137,7 +137,7 @@ bool str_cmp_strart(const char *base_str, const char *cmp_str) {
     std::string base(base_str);
     std::string cmp(cmp_str);
     for (size_t i = 0; i < base.size() && i < cmp.size(); i++) {
-        if(base[i] != cmp[i]) {
+        if (base[i] != cmp[i]) {
             return false;
         }
     }
@@ -191,7 +191,7 @@ bool str_cmp_strart(const char *base_str, const char *cmp_str) {
 //        @human(м, [  &Tom2, &Janna2, ] )"},
 //        {"Tim2=human(пол=\"муж.\", parent=[&Tom2,])", "Tim2$=@human(пол=м,
 //        parent=[&Tom2,])"},
-//        //        {"brother={}", "brother(test1, test2) &&= $test1!=$test2,
+//        //        {"brother={}", "brother(test1, test2) :&&= $test1!=$test2,
 //        $test1.sex==м, intersec($test1.parent, $test2.parent)"},
 //    };
 //    // Возвращаются в виде элементов массива
@@ -215,12 +215,12 @@ bool str_cmp_strart(const char *base_str, const char *cmp_str) {
 //    ASSERT_STREQ("300", opts->Eval(&ctx,
 //    "100+200")->GetValueAsString().c_str());
 //    // Вызов встроенной функции
-//    Args min_args(Object::CreateValue(200), Object::CreateValue(100),
-//    Object::CreateValue(300)); // min(200,100,300) ASSERT_STREQ("100",
+//    Args min_args(Obj::CreateValue(200), Obj::CreateValue(100),
+//    Obj::CreateValue(300)); // min(200,100,300) ASSERT_STREQ("100",
 //    Context::CallByName(&ctx, "min", min_args)->GetValueAsString().c_str());
 //
-//    ObjPtr min_ret = newlang_min(&ctx, Args::Arg(Object::CreateValue(200)),
-//    Args::Arg(Object::CreateValue(100)), Args::Arg(Object::CreateValue(300)));
+//    ObjPtr min_ret = newlang_min(&ctx, Args::Arg(Obj::CreateValue(200)),
+//    Args::Arg(Obj::CreateValue(100)), Args::Arg(Obj::CreateValue(300)));
 //    ASSERT_TRUE(min_ret);
 //    ASSERT_STREQ("100", min_ret->GetValueAsString().c_str());
 //
@@ -233,7 +233,7 @@ bool str_cmp_strart(const char *base_str, const char *cmp_str) {
 //            std::runtime_error);
 //
 //    ASSERT_EQ(0, opts->m_user_terms.size());
-//    ASSERT_TRUE(ctx.CreateGlobalTerm(Object::CreateValue(111), "name1"));
+//    ASSERT_TRUE(ctx.CreateGlobalTerm(Obj::CreateValue(111), "name1"));
 //    ASSERT_EQ(1, opts->m_user_terms.size());
 //    ASSERT_TRUE(opts->Eval(&ctx, "name2 $= 222; name3 $=
 //    333")->GetValueAsString().c_str());
@@ -247,22 +247,22 @@ bool str_cmp_strart(const char *base_str, const char *cmp_str) {
 //    "name3")->GetValueAsString().c_str());
 //
 //
-//    Object::Ptr field = Object::CreateNone();
-//    field->ItemAdd(Object::CreateValue("FIELD1"), "field1");
-//    field->ItemAdd(Object::CreateValue("FIELD2"), "field2");
+//    Obj::Ptr field = Obj::CreateNone();
+//    field->ItemAdd(Obj::CreateValue("FIELD1"), "field1");
+//    field->ItemAdd(Obj::CreateValue("FIELD2"), "field2");
 //    ASSERT_THROW(
-//            Object::GetField(field, "not found"),
+//            Obj::GetField(field, "not found"),
 //            std::runtime_error);
 //
-//    ASSERT_STREQ("FIELD1", Object::GetField(field,
+//    ASSERT_STREQ("FIELD1", Obj::GetField(field,
 //    "field1")->GetValueAsString().c_str());
 //
-//    Object::Ptr obj = Object::CreateDict(Args::Arg("f", field),
+//    Obj::Ptr obj = Obj::CreateDict(Args::Arg("f", field),
 //    Args::Arg("f2", field));
 //
-//    ASSERT_STREQ("FIELD1", Object::GetField(Object::GetField(obj, "f"),
+//    ASSERT_STREQ("FIELD1", Obj::GetField(Obj::GetField(obj, "f"),
 //    "field1")->GetValueAsString().c_str()); ASSERT_STREQ("FIELD2",
-//    Object::GetField(Object::GetField(obj, "f2"),
+//    Obj::GetField(Obj::GetField(obj, "f2"),
 //    "field2")->GetValueAsString().c_str());
 //
 //    ASSERT_STREQ("(val=456,)", opts->Eval(&ctx, "field $=
@@ -293,7 +293,7 @@ bool str_cmp_strart(const char *base_str, const char *cmp_str) {
 //    "ref$=[&Tom,]")->GetValueAsString().c_str()); ASSERT_STREQ("Tim=test(пол=,
 //    parent=[&Tom,])", opts->Eval(&ctx, "Tim $=
 //    @test(parent=[&Tom,])")->GetValueAsString().c_str());
-//    ASSERT_STREQ("brother={}", opts->Eval(&ctx, "brother(test1, test2) &&=
+//    ASSERT_STREQ("brother={}", opts->Eval(&ctx, "brother(test1, test2) :&&=
 //    $test1!=$test2, $test1.sex==м, intersec($test1.parent,
 //    $test2.parent)")->GetValueAsString().c_str());
 //
@@ -494,10 +494,10 @@ TEST(NewLang, DISABLED_Function) {
     std::ostringstream sstr;
     ASSERT_TRUE(NewLang::MakeCppFile(funcs, sstr)); // << sstr.str();
 
-    
+
     std::filesystem::create_directories("temp");
     ASSERT_TRUE(std::filesystem::is_directory("temp"));
-    
+
     std::ofstream file("temp/function_test.temp.cpp");
     file << sstr.str();
     file.close();
@@ -597,39 +597,39 @@ TEST(NewLang, Tensor) {
 
 
 
-//    ObjPtr dict = Context::CreateRVal(nullptr, "(1, [10,20,30,],)");
-//
-//    ASSERT_TRUE(dict);
-//    ASSERT_EQ(2, dict->size());
-//    ASSERT_EQ(0, (*dict)[0]->size());
-//    ASSERT_EQ(3, (*dict)[1]->size());
-//
-//    ASSERT_EQ(1, (*dict)[0]->GetValueAsInteger());
-//
-//    ASSERT_EQ(10, (*(*dict)[1])[0]->GetValueAsInteger());
-//    ASSERT_EQ(20, (*(*dict)[1])[1]->GetValueAsInteger());
-//    ASSERT_EQ(30, (*(*dict)[1])[2]->GetValueAsInteger());
-//
-//    ObjPtr t_dict = Object::CreateTensor(dict, ObjType::Int);
-//
-//    ASSERT_EQ(4, t_dict->size());
-//    ASSERT_EQ(t_dict->index_get({0})->GetValueAsInteger(), 1);
-//    ASSERT_EQ(t_dict->index_get({1})->GetValueAsInteger(), 10);
-//    ASSERT_EQ(t_dict->index_get({2})->GetValueAsInteger(), 20);
-//    ASSERT_EQ(t_dict->index_get({3})->GetValueAsInteger(), 30);
-//
-//
-//    ObjPtr diag = Context::CreateRVal(nullptr, "[[ [ [1,], [2,22,], [3, 33, 333.0,] ] ]]");
-//
-//    ObjPtr t_diag = Object::CreateTensor(diag, ObjType::Float);
-//
-//    ASSERT_EQ(6, t_diag->size());
-//    ASSERT_EQ(t_diag->index_get({0})->GetValueAsNumber(), 1);
-//    ASSERT_EQ(t_diag->index_get({1})->GetValueAsNumber(), 2);
-//    ASSERT_EQ(t_diag->index_get({2})->GetValueAsNumber(), 22);
-//    ASSERT_EQ(t_diag->index_get({3})->GetValueAsNumber(), 3);
-//    ASSERT_EQ(t_diag->index_get({4})->GetValueAsNumber(), 33);
-//    ASSERT_EQ(t_diag->index_get({5})->GetValueAsNumber(), 333);
+    //    ObjPtr dict = Context::CreateRVal(nullptr, "(1, [10,20,30,],)");
+    //
+    //    ASSERT_TRUE(dict);
+    //    ASSERT_EQ(2, dict->size());
+    //    ASSERT_EQ(0, (*dict)[0]->size());
+    //    ASSERT_EQ(3, (*dict)[1]->size());
+    //
+    //    ASSERT_EQ(1, (*dict)[0]->GetValueAsInteger());
+    //
+    //    ASSERT_EQ(10, (*(*dict)[1])[0]->GetValueAsInteger());
+    //    ASSERT_EQ(20, (*(*dict)[1])[1]->GetValueAsInteger());
+    //    ASSERT_EQ(30, (*(*dict)[1])[2]->GetValueAsInteger());
+    //
+    //    ObjPtr t_dict = Obj::CreateTensor(dict, ObjType::Int);
+    //
+    //    ASSERT_EQ(4, t_dict->size());
+    //    ASSERT_EQ(t_dict->index_get({0})->GetValueAsInteger(), 1);
+    //    ASSERT_EQ(t_dict->index_get({1})->GetValueAsInteger(), 10);
+    //    ASSERT_EQ(t_dict->index_get({2})->GetValueAsInteger(), 20);
+    //    ASSERT_EQ(t_dict->index_get({3})->GetValueAsInteger(), 30);
+    //
+    //
+    //    ObjPtr diag = Context::CreateRVal(nullptr, "[[ [ [1,], [2,22,], [3, 33, 333.0,] ] ]]");
+    //
+    //    ObjPtr t_diag = Obj::CreateTensor(diag, ObjType::Float);
+    //
+    //    ASSERT_EQ(6, t_diag->size());
+    //    ASSERT_EQ(t_diag->index_get({0})->GetValueAsNumber(), 1);
+    //    ASSERT_EQ(t_diag->index_get({1})->GetValueAsNumber(), 2);
+    //    ASSERT_EQ(t_diag->index_get({2})->GetValueAsNumber(), 22);
+    //    ASSERT_EQ(t_diag->index_get({3})->GetValueAsNumber(), 3);
+    //    ASSERT_EQ(t_diag->index_get({4})->GetValueAsNumber(), 33);
+    //    ASSERT_EQ(t_diag->index_get({5})->GetValueAsNumber(), 333);
 
 }
 
@@ -686,10 +686,10 @@ TEST(NewLang, DISABLED_FuncsTypes) {
     sstr.str("");
     ASSERT_NO_THROW(NewLang::MakeCppFile(func, sstr, nullptr, &ctx)) << sstr.str();
 
-    
+
     std::filesystem::create_directories("temp");
     ASSERT_TRUE(std::filesystem::is_directory("temp"));
-    
+
 
     std::ofstream file("temp/call_types.temp.cpp");
     file << sstr.str();
@@ -698,9 +698,9 @@ TEST(NewLang, DISABLED_FuncsTypes) {
     std::string out;
     int exit_code;
     ASSERT_TRUE(NewLang::GccMakeModule("temp/call_types.temp.cpp",
-                                       "temp/call_types.temp.nlm", nullptr,
-                                       &out, &exit_code))
-        << exit_code << " " << out;
+            "temp/call_types.temp.nlm", nullptr,
+            &out, &exit_code))
+            << exit_code << " " << out;
 
     ASSERT_TRUE(ctx.m_runtime->LoadModule("call_types.temp.nlm", false, &ctx));
 
@@ -708,7 +708,7 @@ TEST(NewLang, DISABLED_FuncsTypes) {
     Obj args;
     ASSERT_TRUE(ctx.m_runtime->m_modules["temp/call_types.temp.nlm"]);
     ASSERT_NO_THROW(
-        ctx.m_runtime->m_modules["temp/call_types.temp.nlm"]->Main(&ctx, args));
+            ctx.m_runtime->m_modules["temp/call_types.temp.nlm"]->Main(&ctx, args));
     //@todo Контроль переполнения при операциях для типизированных переменных
     //????????????????
     //@todo Такой же как и для остальных операций
@@ -720,135 +720,4 @@ TEST(NewLang, DISABLED_FuncsTypes) {
 #undef FUNC_RES
 
 }
-
-TEST(NewLang, FuncsNative) {
-
-    /*
-     * Создание типизированных объектов из терминов
-     * проверка типов при вызове нативных функций
-     * вызов нативных функций
-     * проверка типов строки формата
-     */
-
-//    std::vector <std::pair < std::string, std::string>> list;
-//
-//#define DEFINE_TYPES(name, cast) list.push_back(std::make_pair<std::string,std::string>(#name, #cast));
-//    NL_BUILTIN_CAST_TYPE(DEFINE_TYPES)
-//#undef DEFINE_TYPES
-//
-//    ASSERT_TRUE(list.size());
-//
-//    ObjType type_cast;
-//    std::string type_str;
-//
-//    // По идее эта проверка не требуется, т.к. при компиляции идет проверка на наличие эелемнта в перечислении типов
-//    for (size_t i = 0; i < list.size(); i++) {
-//        ASSERT_TRUE(!list[i].first.empty());
-//        ASSERT_TRUE(!list[i].second.empty());
-//        for (size_t j = i + 1; j < list.size(); j++) {
-//            ASSERT_STRNE(list[i].first.c_str(), list[j].first.c_str());
-//        }
-//
-//        ASSERT_NO_THROW(type_cast = typeFromString(list[i].second));
-//        type_str = toString(type_cast);
-//        ASSERT_STREQ(list[i].second.c_str(), type_str.c_str());
-//    }
-
-//    // Доступ к локальным переменным
-//    const bool local_bool = true;
-//    ObjPtr loc_bool = Object::CreateLocal(local_bool);
-//    ASSERT_TRUE(loc_bool);
-//    ASSERT_TRUE(loc_bool->m_is_const);
-//    ASSERT_FALSE(loc_bool->m_is_reference);
-//    ASSERT_EQ(ObjType::LocalBool, loc_bool->m_var_type);
-//    ASSERT_TRUE(loc_bool->GetValueAsBoolean());
-//
-//    uint8_t local_byte = 10;
-//    ObjPtr loc_byte = Object::CreateLocal(local_byte);
-//    ASSERT_TRUE(loc_byte);
-//    ASSERT_FALSE(loc_byte->m_is_const);
-//    ASSERT_FALSE(loc_byte->m_is_reference);
-//    ASSERT_EQ(ObjType::LocalByte, loc_byte->m_var_type);
-//    ASSERT_EQ(10, loc_byte->GetValueAsInteger());
-//    local_byte = 111;
-//    ASSERT_EQ(111, loc_byte->GetValueAsInteger());
-//    loc_byte->SetValue_(Object::CreateValue(99));
-//    ASSERT_EQ(99, local_byte);
-//
-//
-//    double local_double = 99.99;
-//    ObjPtr loc_double = Object::CreateLocal(local_double);
-//    ASSERT_TRUE(loc_double);
-//    ASSERT_FALSE(loc_double->m_is_const);
-//    ASSERT_FALSE(loc_double->m_is_reference);
-//    ASSERT_EQ(ObjType::LocalDouble, loc_double->m_var_type);
-//    ASSERT_EQ(99, loc_double->GetValueAsInteger());
-//    ASSERT_EQ(99.99, loc_double->GetValueAsNumber());
-//
-//    local_double = 33;
-//    ASSERT_EQ(33, loc_double->GetValueAsNumber());
-//    loc_double->SetValue_(Object::CreateValue(10.33));
-//    ASSERT_EQ(10.33, local_double);
-//
-//    std::string local_str = "String";
-//    ObjPtr loc_string = Object::CreateLocal(local_str);
-//
-//    ASSERT_TRUE(loc_string);
-//    ASSERT_FALSE(loc_string->m_is_const);
-//    ASSERT_FALSE(loc_string->m_is_reference);
-//    ASSERT_EQ(ObjType::LocalStdString, loc_string->m_var_type);
-//    ASSERT_STREQ("String", loc_string->GetValueAsString().c_str());
-//
-//    local_str = "Строка";
-//    ASSERT_STREQ("Строка", loc_string->GetValueAsString().c_str());
-//    loc_string->SetValue_(Object::CreateString(L"Широкая строка"));
-//    ASSERT_STREQ("Широкая строка", local_str.c_str());
-//
-//
-//    // Парсинг строки формата
-//
-//    ASSERT_EQ(1, parse_printf_format("%d", 0, nullptr));
-//    int types[10];
-//    ASSERT_EQ(3, parse_printf_format("%lu  %.2f   %100s", 10, types));
-//    ASSERT_EQ(types[0] & ~PA_FLAG_MASK, PA_INT);
-//    ASSERT_EQ(types[1] & ~PA_FLAG_MASK, PA_DOUBLE);
-//    ASSERT_EQ(types[2] & ~PA_FLAG_MASK, PA_STRING);
-//    ASSERT_EQ(types[0] & PA_FLAG_MASK, PA_FLAG_LONG);
-//    ASSERT_EQ(types[1] & PA_FLAG_MASK, 0);
-//    ASSERT_EQ(types[2] & PA_FLAG_MASK, 0);
-//
-//    RuntimePtr rt = RunTime::Init();
-//    Context ctx(rt);
-//
-//    // Нативные функции
-//
-//    ASSERT_TRUE(rt->GetProcAddress("puts", nullptr));
-//    ASSERT_TRUE(rt->GetProcAddress("atof", nullptr));
-//    ASSERT_TRUE(rt->GetProcAddress("printf", nullptr));
-//
-//    ObjPtr puts_ = ctx.CreateNative("puts(str:StrChar):Int");
-//    ObjPtr atof_ = ctx.CreateNative("atof(str:StrChar):Double");
-//    ObjPtr printf_ = ctx.CreateNative("printf(format:Format, ...):Int");
-//
-//    ASSERT_TRUE(puts_);
-//    ASSERT_TRUE(atof_);
-//    ASSERT_TRUE(printf_);
-//
-//    ASSERT_TRUE(puts_->Call("Call Native Func!!!")->GetValueAsInteger() > 0);
-//    ASSERT_EQ(100.99, atof("100.99"));
-//    ASSERT_EQ(100.99, atof_->Call("100.99")->GetValueAsNumber());
-//    ASSERT_EQ(-123456.789, atof("-123456.789"));
-//    ASSERT_EQ(-123456.789, atof_->Call("-123456.789")->GetValueAsNumber());
-//
-//    Object args(Object::Arg("%s %f %d %s\n"), Object::Arg("%s %f %d %s"), Object::Arg(99.99), Object::Arg(100), Object::Arg("СТРОКА"));
-//    ASSERT_EQ(39, printf_->Call(args)->GetValueAsInteger());
-//
-//    ASSERT_TRUE(ParsePrintfFormat(args, 0));
-//    ASSERT_FALSE(ParsePrintfFormat(args, 1));
-//    ASSERT_FALSE(ParsePrintfFormat(args, 2));
-//    ASSERT_FALSE(ParsePrintfFormat(args, 3));
-//    ASSERT_TRUE(ParsePrintfFormat(args, 4)); // В строке формата "СТРОКА" нет данных для вывода поэтому нет и ошибки формата
-
-}
-
 #endif // UNITTEST

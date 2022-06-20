@@ -247,27 +247,6 @@ namespace newlang {
             return m_is_const;
         }
 
-        inline ObjPtr getBase() const {
-            return m_class_base;
-        }
-
-        inline bool TestBase(const char * base, bool full = false) {
-            std::string str(base);
-            return TestBase(str, full);
-        }
-
-        bool TestBase(std::string base, bool full = false) {
-            if (m_class_base) {
-                if (m_class_base->getName().compare(base) == 0) {
-                    return true;
-                }
-                if (full) {
-                    return m_class_base->TestBase(base, full);
-                }
-            }
-            return false;
-        }
-
         [[nodiscard]]
         inline bool is_none_type() const {
             return m_var_type_current == ObjType::None;
@@ -296,12 +275,7 @@ namespace newlang {
         //Plain data — это неизменяемые структуры без ссылок на другие объекты.
         [[nodiscard]]
         inline bool is_plain_type() const {
-            //        for (int i = 0; i < size(); i++) {
-            //            Object elem = array[i];
-            //
-            //        }
-            //
-            return is_arithmetic_type() || is_string_type();
+            return isPlainDataType(m_var_type_current);
         }
 
         [[nodiscard]]
@@ -378,7 +352,7 @@ namespace newlang {
         inline bool is_return() const {
             return m_var_type_current == ObjType::Return || m_var_type_fixed == ObjType::Return;
         }
-        
+
         [[nodiscard]]
         ObjType SummaryArithmeticType(ObjType type);
 
@@ -698,8 +672,8 @@ namespace newlang {
          * или сравнение должно зависить от того, есть ли в образце вложенные словари (классы) ??????????????
          */
 
-        bool op_class_test(ObjPtr obj);
-        bool op_class_test(const char * name);
+        bool op_class_test(ObjPtr obj, Context *ctx);
+        bool op_class_test(const char * name, Context *ctx);
 
         inline bool op_duck_test(ObjPtr obj, bool strong) {
             ASSERT(obj);
@@ -1029,9 +1003,17 @@ namespace newlang {
                         return false;
 
                     case ObjType::Dictionary:
-                        return size();
                     case ObjType::Class:
-                        return size() || (m_class_base && m_class_base->GetValueAsBoolean());
+                        if (size()) {
+                            return true;
+                        }
+                        for (auto &elem : m_class_parents) {
+                            if (elem->GetValueAsBoolean()) {
+                                return true;
+                            }
+                        }
+                        return false;
+
                     default:
                         LOG_RUNTIME("Type cast to bool %s", toString().c_str());
                 }
@@ -1056,6 +1038,19 @@ namespace newlang {
             TermPtr term = nullptr;
             return std::make_shared<Obj>(type, var_name, term, fixed);
         }
+
+
+        // чистая функция
+        static ObjPtr BaseTypeConstructor(const Context *ctx, Obj &in);
+        static ObjPtr ConstructorSimpleType_(const Context *ctx, Obj & args);
+        static ObjPtr ConstructorDictionary_(const Context *ctx, Obj & args);
+        static ObjPtr ConstructorClass_(const Context *ctx, Obj & args);
+        static ObjPtr ConstructorStruct_(const Context *ctx, Obj & args);
+        static ObjPtr ConstructorUnion_(const Context *ctx, Obj & args);
+        static ObjPtr ConstructorEnum_(const Context *ctx, Obj & args);
+
+
+        static ObjPtr CreateBaseType(ObjType type);
 
         static ObjPtr CreateNone() {
             return CreateType(ObjType::None);
@@ -1263,13 +1258,13 @@ namespace newlang {
 
         template <typename T>
         typename std::enable_if<std::is_integral<T>::value, ObjPtr>::type
-        static CreateValue(T value, ObjType type) {
-            ObjPtr result = CreateType(type);
-            result->m_var_type_fixed = type;
+        static CreateValue(T value, ObjType fix_type = ObjType::None) {
+            ObjPtr result = CreateType(fix_type);
+            result->m_var_type_fixed = fix_type;
             result->m_var_type_current = typeFromLimit((int64_t) value);
-            if (type != ObjType::None) {
-                NL_CHECK(canCast(result->m_var_type_current, type),
-                        "Fail cast type from '%s' to '%s'!", newlang::toString(result->m_var_type_current), newlang::toString(type));
+            if (fix_type != ObjType::None) {
+                NL_CHECK(canCast(result->m_var_type_current, fix_type),
+                        "Fail cast type from '%s' to '%s'!", newlang::toString(result->m_var_type_current), newlang::toString(fix_type));
             }
             result->m_value = torch::scalar_tensor(value, toTorchType(result->m_var_type_current));
             result->m_var_is_init = true;
@@ -1278,13 +1273,13 @@ namespace newlang {
 
         template <typename T>
         typename std::enable_if<std::is_floating_point<T>::value, ObjPtr>::type
-        static CreateValue(T value, ObjType type) {
-            ObjPtr result = CreateType(type);
-            result->m_var_type_fixed = type;
+        static CreateValue(T value, ObjType fix_type = ObjType::None) {
+            ObjPtr result = CreateType(fix_type);
+            result->m_var_type_fixed = fix_type;
             result->m_var_type_current = typeFromLimit((double) value);
-            if (type != ObjType::None) {
-                NL_CHECK(canCast(result->m_var_type_current, type),
-                        "Fail cast type from '%s' to '%s'!", newlang::toString(result->m_var_type_current), newlang::toString(type));
+            if (fix_type != ObjType::None) {
+                NL_CHECK(canCast(result->m_var_type_current, fix_type),
+                        "Fail cast type from '%s' to '%s'!", newlang::toString(result->m_var_type_current), newlang::toString(fix_type));
             }
             result->m_value = torch::scalar_tensor(value, toTorchType(result->m_var_type_current));
             result->m_var_is_init = true;
@@ -1369,17 +1364,17 @@ namespace newlang {
             return result;
         }
 
-        static ObjPtr CreateFrom(const char *name, ObjPtr base) {
-
-            ASSERT(base);
-
-            ObjPtr result = Obj::CreateNone();
-            base->CloneDataTo(*result);
-            result->m_class_base = base;
-            result->m_var_name = name;
-            result->m_var_is_init = true;
-            return result;
-        }
+        //        static ObjPtr CreateFrom(const char *name, ObjPtr base) {
+        //
+        //            ASSERT(base);
+        //
+        //            ObjPtr result = Obj::CreateNone();
+        //            base->CloneDataTo(*result);
+        //            result->m_class_base = base;
+        //            result->m_var_name = name;
+        //            result->m_var_is_init = true;
+        //            return result;
+        //        }
 
 
         ObjPtr CallNative(Context *ctx, Obj args);
@@ -1672,7 +1667,7 @@ namespace newlang {
 
             //        m_var_name.clear();
             //        m_string.clear();
-            m_class_base.reset();
+            m_class_parents.clear();
             m_var_is_init = false;
             m_value.reset();
             //        m_var = std::monostate();
@@ -1735,8 +1730,9 @@ namespace newlang {
         std::string m_var_name; ///< Имя переменной, в которой хранится объект
 
         ObjPtr m_dimensions; ///< Размерности для ObjType::Type
-        ObjPtr m_class_base; ///< Имя базового класса
-        std::string m_class_name; ///< Имя класса объекта
+        //        ObjPtr m_class_base; ///< Имя базового класса
+        std::string m_class_name; ///< Имя класса объекта (у базовых типов отсуствует)
+        std::vector<ObjPtr> m_class_parents; ///< Родительские классы (типы)
 
         std::string m_namespace;
         std::string m_str;
