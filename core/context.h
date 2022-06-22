@@ -330,8 +330,8 @@ namespace newlang {
                 start.remove_prefix(1);
                 find_local = true;
             } else if (isType(start)) {
-//                prefix = start[0];
-//                start.remove_prefix(1);
+                //                prefix = start[0];
+                //                start.remove_prefix(1);
                 find_types = true;
             } else {
                 find_local = true;
@@ -438,9 +438,9 @@ namespace newlang {
             ObjPtr result = Obj::CreateBaseType(type);
             ASSERT(result->m_var_type_fixed == type);
             ASSERT(result->m_var_type_current == ObjType::Type);
-            ASSERT(result->m_class_name.compare(type_name) == 0);
+            ASSERT(!type_name.empty() && result->m_class_name.compare(type_name) == 0);
             ASSERT(result->m_class_parents.empty());
-
+            
             for (auto &parent : parents) {
                 auto iter = m_types.find(parent);
                 if (iter == m_types.end()) {
@@ -449,7 +449,7 @@ namespace newlang {
                 }
                 for (auto &elem : result->m_class_parents) {
                     ASSERT(elem);
-                    if (elem->m_var_type_name.compare(parent) == 0) {
+                    if (!elem->m_class_name.empty() && elem->m_class_name.compare(parent) == 0) {
                         LOG_DEBUG("The type '%s' already exists in the parents of '%s'!", parent.c_str(), type_name.c_str());
                         return false;
                     }
@@ -462,7 +462,7 @@ namespace newlang {
         }
 
         ObjType BaseTypeFromString(const std::string & type, bool *has_error = nullptr) {
-            ObjPtr obj_type = GetTypeFromString(type);
+            ObjPtr obj_type = GetTypeFromString(type, has_error);
 
             if (obj_type == nullptr) {
                 if (has_error) {
@@ -474,44 +474,19 @@ namespace newlang {
             return obj_type->m_var_type_fixed;
         }
 
-        ObjPtr GetTypeFromString(const std::string & type) {
+        ObjPtr GetTypeFromString(const std::string & type, bool *has_error = nullptr) {
             if (type.empty()) {
                 return Obj::CreateNone();
             }
             auto result = m_types.find(type);
             if (result == m_types.end()) {
-                return nullptr;
-                //            LOG_RUNTIME("Type name '%s' not found!", type.c_str());
+                if (has_error) {
+                    *has_error = true;
+                    return nullptr;
+                }
+                LOG_RUNTIME("Type name '%s' not found!", type.c_str());
             }
             return result->second;
-        }
-
-        ObjPtr CreateTypeName(TermPtr type, ObjPtr base) {
-            ASSERT(base);
-            ASSERT(type);
-            ASSERT(type->size() == 0);
-
-            return CreateTypeName(type->m_text, base);
-        }
-
-        ObjPtr CreateTypeName(std::string type_name, std::string base_name) {
-            auto base = m_types.find(base_name);
-            if (base == m_types.end()) {
-                LOG_RUNTIME("Base type name '%s' not found!", base_name.c_str());
-            }
-            return CreateTypeName(type_name, base->second);
-        }
-
-        ObjPtr CreateTypeName(std::string type_name, ObjPtr base) {
-            if (m_types.find(type_name) != m_types.end()) {
-                LOG_RUNTIME("Type name '%s' already exists!", type_name.c_str());
-            }
-            ObjPtr result = base->Clone();
-            result->m_var_type_name = type_name;
-            result->m_class_parents.push_back(base);
-            result->m_class_name = type_name;
-            m_types[type_name] = result;
-            return result;
         }
 
         enum class MatchMode {

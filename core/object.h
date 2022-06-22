@@ -190,6 +190,8 @@ namespace newlang {
                 } else if (isFloatingType(m_var_type_current) && is_scalar()) {
                     return typeFromLimit(GetValueAsNumber());
                 }
+            } else if (is_type_name()) {
+                return m_var_type_fixed;
             }
             return m_var_type_current;
         }
@@ -948,9 +950,6 @@ namespace newlang {
                 case ObjType::Integer:
                     return m_value.toType(at::ScalarType::Long).item<int64_t>();
 
-                case ObjType::Pointer:
-                    return reinterpret_cast<int64_t> (m_func_ptr);
-
                 case ObjType::Float:
                 case ObjType::Double:
                 case ObjType::Number:
@@ -961,7 +960,10 @@ namespace newlang {
                 case ObjType::StrChar:
                     return std::stoll(m_str);
                 default:
-                    LOG_CALLSTACK(std::runtime_error, "Data type incompatible %s", toString().c_str());
+                    if (m_var_type_current == ObjType::Pointer || m_var_type_fixed == ObjType::Pointer) {
+                        return reinterpret_cast<int64_t> (m_func_ptr);
+                    }
+                    LOG_RUNTIME("Data type incompatible %s", toString().c_str());
             }
             return 0;
         }
@@ -1046,9 +1048,11 @@ namespace newlang {
         static ObjPtr ConstructorDictionary_(const Context *ctx, Obj & args);
         static ObjPtr ConstructorClass_(const Context *ctx, Obj & args);
         static ObjPtr ConstructorStruct_(const Context *ctx, Obj & args);
-        static ObjPtr ConstructorUnion_(const Context *ctx, Obj & args);
         static ObjPtr ConstructorEnum_(const Context *ctx, Obj & args);
 
+        static ObjPtr ConstructorError_(const Context *ctx, Obj & args);
+        static ObjPtr ConstructorReturn_(const Context *ctx, Obj & args);
+        static ObjPtr ConstructorInterraption_(const Context *ctx, Obj & args, ObjType type);
 
         static ObjPtr CreateBaseType(ObjType type);
 
@@ -1227,10 +1231,6 @@ namespace newlang {
             return ConvertToTensor(this);
         }
 
-        //    inline operator at::IntArrayRef() const {
-        //        return ConvertToIntArrayRef(this);
-        //    }
-
         inline operator at::TensorOptions() const {
             return ConvertToTensorOptions(this);
         }
@@ -1341,16 +1341,6 @@ namespace newlang {
             return result;
         }
 
-        inline static ObjPtr CreateTypeName(const std::string name, ObjPtr data = nullptr, std::string arg = "") {
-            ObjPtr result = Obj::CreateType(ObjType::Type, nullptr, ObjType::Type);
-            result->m_class_name = name;
-            result->m_var_is_init = true;
-            if (data) {
-                result->push_back(data, arg);
-            }
-            return result;
-        }
-
         template <typename... T>
         typename std::enable_if<is_all<PairType, T ...>::value, ObjPtr>::type
         static CreateClass(std::string name, T ... args) {
@@ -1363,18 +1353,6 @@ namespace newlang {
             result->m_var_is_init = true;
             return result;
         }
-
-        //        static ObjPtr CreateFrom(const char *name, ObjPtr base) {
-        //
-        //            ASSERT(base);
-        //
-        //            ObjPtr result = Obj::CreateNone();
-        //            base->CloneDataTo(*result);
-        //            result->m_class_base = base;
-        //            result->m_var_name = name;
-        //            result->m_var_is_init = true;
-        //            return result;
-        //        }
 
 
         ObjPtr CallNative(Context *ctx, Obj args);
@@ -1710,7 +1688,7 @@ namespace newlang {
 
         ObjType m_var_type_current; ///< Текущий тип значения объекта
         ObjType m_var_type_fixed; ///< Максимальный размер для арифметических типов, который задается разработчиком
-        std::string m_var_type_name;
+        //        std::string m_var_type_name;
         //    bool m_var_type_defined; ///< Определен ли конкретный тип переменной или он может быть изменен?
         // @todo Нужно ли поддерживать не инициализированные типизированные переменные ???????????????? 
         // None:Byte, _:Char нужно контролировать тип значения, но тип None является и типом и значением одновремнно, 

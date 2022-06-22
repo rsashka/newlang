@@ -25,7 +25,7 @@ typedef std::shared_ptr<RunTime> RuntimePtr;
 typedef ObjPtr FunctionType(Context *ctx, Obj &in);
 typedef ObjPtr TransparentType(const Context *ctx, Obj &in);
 
-class Interruption : public std::exception {
+class Interrupt : public std::exception {
   public:
      
       inline static const char * Return = ":Return";
@@ -35,10 +35,12 @@ class Interruption : public std::exception {
       inline static const char * Signal = ":Signal";
       inline static const char * Abort = ":Abort";
 
-    Interruption(const ObjPtr obj, const std::string type_name=Return);
-    Interruption(const std::string message, const std::string error_name=Parser);
+    Interrupt(const ObjPtr obj);
+    Interrupt(const std::string message, const std::string error_name=Error);
 
     virtual const char *what() const noexcept override;
+    
+    static ObjPtr CreateErrorMessage(const std::string message, const std::string error_name);
 
     const ObjPtr m_obj;
     char m_buffer_message[1000];
@@ -61,13 +63,13 @@ void ParserException(const char *msg, std::string &buffer, int row, int col);
         std::string empty;                                                                                             \
         std::string message =                                                                                          \
             ParserMessage(term->m_source ? *term->m_source : empty, term->m_line, term->m_col, format, ##__VA_ARGS__); \
-        LOG_EXCEPT_LEVEL(Interruption, LOG_LEVEL_INFO, "", "%s", message.c_str());                                 \
+        LOG_EXCEPT_LEVEL(Interrupt, LOG_LEVEL_INFO, "", "%s", message.c_str());                                 \
     } while (0)
 
 #define NL_CHECK(cond, format, ...)                                                                                    \
     do {                                                                                                               \
         if (!(cond)) {                                                                                                 \
-            LOG_EXCEPT_LEVEL(Interruption, LOG_LEVEL_INFO, "", format, ##__VA_ARGS__);                             \
+            LOG_EXCEPT_LEVEL(Interrupt, LOG_LEVEL_INFO, "", format, ##__VA_ARGS__);                             \
         }                                                                                                              \
     } while (0)
 
@@ -80,7 +82,7 @@ void ParserException(const char *msg, std::string &buffer, int row, int col);
             message += newlang::toString(typeFromString(to));                                                          \
             message += "' (" __FILE__ ":" TO_STR(__LINE__) ")";                                                        \
             LOG_EXCEPT_LEVEL(                                                                                          \
-                Interruption, LOG_LEVEL_INFO, "", "%s",                                                            \
+                Interrupt, LOG_LEVEL_INFO, "", "%s",                                                            \
                 ParserMessage(*term->m_source, term->m_line, term->m_col, "%s", message.c_str()).c_str());             \
         }                                                                                                              \
     } while (0)

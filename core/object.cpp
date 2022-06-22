@@ -25,14 +25,29 @@ std::ostream &operator<<(std::ostream &out, newlang::ObjPtr var) {
     return out;
 }
 
-Interruption::Interruption(const std::string error_message, const std::string type_name) : Interruption(Obj::CreateString(error_message), type_name) {
+ObjPtr Interrupt::CreateErrorMessage(const std::string message, const std::string error_name) {
+    bool has_error = false;
+    ObjType type = typeFromString(error_name, nullptr, &has_error);
+
+    if (has_error) {
+        LOG_RUNTIME("Type name interrupt '%s' is not a base type!", error_name.c_str());
+    }
+
+    ObjPtr result = Obj::CreateType(type);
+    //    result->m_class_name = name;
+    result->m_var_is_init = true;
+    result->push_back(Obj::Arg(Obj::CreateString(message)));
+    return result;
 }
 
-Interruption::Interruption(ObjPtr obj, const std::string type_name) : m_obj(Obj::CreateTypeName(type_name, obj)) {
-    snprintf(m_buffer_message, sizeof (m_buffer_message), "Interruption '%s'%s%s!", type_name.c_str(), m_obj ? " of value: '" : "", m_obj ? m_obj->toString().c_str() : "'");
+Interrupt::Interrupt(const std::string error_message, const std::string type_name) : Interrupt(CreateErrorMessage(error_message, type_name)) {
 }
 
-const char* Interruption::what() const noexcept {
+Interrupt::Interrupt(ObjPtr obj) : m_obj(obj) {
+    snprintf(m_buffer_message, sizeof (m_buffer_message), "Interrupt%s%s%s!", m_obj ? " data: '" : "", m_obj ? m_obj->toString().c_str() : "", m_obj ? "'" : "");
+}
+
+const char* Interrupt::what() const noexcept {
     return &m_buffer_message[0];
 }
 
@@ -437,7 +452,7 @@ void Obj::CloneDataTo(Obj &clone) const {
         clone.m_var_type_current = m_var_type_current;
         clone.m_var_type_fixed = m_var_type_fixed;
         clone.m_var_is_init = m_var_is_init;
-        clone.m_var_type_name = m_var_type_name;
+        //        clone.m_var_type_name = m_var_type_name;
 
         if (m_dimensions) {
             clone.m_dimensions = m_dimensions->Clone();
@@ -546,10 +561,6 @@ std::string Obj::toString(bool deep) const {
                 result = "_";
                 return result;
 
-            case ObjType::Error:
-                result.append(m_str);
-                return result;
-
             case ObjType::StrChar:
                 result += "'";
                 result += m_str;
@@ -568,6 +579,24 @@ std::string Obj::toString(bool deep) const {
                 result += at("stop")->GetValueAsString();
                 result += "..";
                 result += at("step")->GetValueAsString();
+                return result;
+
+            case ObjType::Struct:
+            case ObjType::Union:
+            case ObjType::Enum:
+
+            case ObjType::Return:
+            case ObjType::Error:
+            case ObjType::Continue:
+            case ObjType::Break:
+                if (m_class_name.empty()) {
+                    result += newlang::toString(m_var_type_current);
+                } else {
+                    result += m_class_name;
+                }
+                result += "(";
+                dump_dict_(result);
+                result += ")";
                 return result;
 
             case ObjType::Dictionary: // name:=(1,second="two",3,<EMPTY>,5)
@@ -815,10 +844,10 @@ std::string Obj::GetValueAsString() const {
         case ObjType::Pointer:
             ss << m_func_ptr;
             result += ss.str();
-            if (m_var_type_name.empty()) {
+            if (m_class_name.empty()) {
                 result += ":Pointer";
             } else {
-                result += m_var_type_name;
+                result += m_class_name;
             }
             return result;
 
@@ -826,8 +855,7 @@ std::string Obj::GetValueAsString() const {
             result += toString();
             return result;
     }
-    LOG_CALLSTACK(std::runtime_error, "Data type '%s' %d incompatible to string!",
-            newlang::toString(m_var_type_current), (int) m_var_type_current);
+    LOG_RUNTIME("Data type '%s' %d incompatible to string!", newlang::toString(m_var_type_current), (int) m_var_type_current);
 }
 
 ObjPtr Obj::CreateFunc(std::string prototype, FunctionType *func_addr, ObjType type) {
@@ -1008,9 +1036,16 @@ void Obj::ConvertToArgs_(Obj &in, bool check_valid, Context *ctx) {
                 }
                 if (m_func_proto && i < m_func_proto->size()) {
                     at(i).second->m_is_reference = (*m_func_proto)[i]->isRef();
-                    if (!canCast(in[i]->getTypeAsLimit(), typeFromString((*m_func_proto)[i]->m_type_name, ctx))) {
+                    ObjType base_type = ObjType::None;
+                    if (ctx) {
+                        base_type = typeFromString((*m_func_proto)[i]->m_type_name, ctx);
+                    } else {
+                        base_type = ctx->BaseTypeFromString((*m_func_proto)[i]->m_type_name);
+                    }
+                    ObjType limit_type = in[i]->getTypeAsLimit();
+                    if (!canCast(limit_type, base_type)) {
                         LOG_RUNTIME("Fail cast value '%s' to type '%s'",
-                                in[i]->GetValueAsString().c_str(), (*m_func_proto)[i]->m_type_name.c_str());
+                                in[i]->toString().c_str(), (*m_func_proto)[i]->m_type_name.c_str());
                     }
                 }
                 at(i).second->op_assign(in[i]);
@@ -1406,10 +1441,6 @@ ObjPtr Obj::toShape_(ObjPtr dims) {
         m_str.resize(array[0]);
     } else if (m_var_type_current == ObjType::StrWide) {
         m_wstr.resize(array[0]);
-        //        std::wstring_convert < std::codecvt_utf8<wchar_t>, wchar_t> converter;
-        //        std::wstring temp = converter.from_bytes(m_string);
-        //        temp.resize(array[0]);
-        //        m_string = converter.to_bytes(temp);
     } else if (is_dictionary_type()) {
 
         if (size() > array[0]) {
@@ -1438,28 +1469,22 @@ ObjPtr Obj::toType_(Obj *type) {
 
 void Obj::toType_(ObjType target) {
     if (m_var_type_current == target) {
-        //        if (isTensor(target) && dims) {
-        //            m_value = m_value.reshape(*dims);
-        //        }
         // Конвертировать не нужно
-        return; // shared();
+        return;
 
     } else if (is_none_type() || target == ObjType::None) {
         // Любой тип при конвертации в пустой, просто очистить данные
         clear_();
         m_var_type_current = target;
-        return; // shared();
+        return;
 
     } else if (is_tensor()) {
         // Из тензора конвертировать в другой тип
         if (isTensor(target)) {
             m_value = m_value.toType(toTorchType(target));
             m_var_type_current = target;
-            //            if (dims) {
-            //                m_value = m_value.reshape(*dims);
-            //            }
             Variable::clear_();
-            return; // shared();
+            return;
 
         } else if (isString(target)) {
             if (target == ObjType::StrChar) {
@@ -1480,7 +1505,7 @@ void Obj::toType_(ObjType target) {
                     LOG_RUNTIME("Convert to string single dimension tensor only!");
                 }
                 m_var_type_current = target;
-                return; // shared();
+                return;
 
 
             } else { // ObjType::StrWide
@@ -1507,20 +1532,20 @@ void Obj::toType_(ObjType target) {
                 }
 
                 m_var_type_current = target;
-                return; // shared();
+                return;
             }
         } else if (isDictionary(target)) {
             m_var_type_current = target;
             ConvertTensorToDict(m_value, *this);
             m_value.reset();
-            return; // shared();
+            return;
         }
     } else if (is_string_type()) {
         // Из строки в другой тип данных
         if (isString(target)) {
             // Строки хранятся в байтовом представлении и их ненужно конвертировать
             m_var_type_current = target;
-            return; // shared();
+            return;
         } else if (isTensor(target)) {
             // Сконвертировать строку в тензор
             torch::Tensor std_data;
@@ -1540,14 +1565,10 @@ void Obj::toType_(ObjType target) {
                 m_value = std_data.clone();
             }
 
-            //            if (dims) {
-            //                m_value = m_value.reshape(*dims);
-            //            }
-
             m_str.clear();
             m_wstr.clear();
             m_var_type_current = target;
-            return; // shared();
+            return;
 
         } else if (isDictionary(target)) {
 
@@ -1558,11 +1579,9 @@ void Obj::toType_(ObjType target) {
             ConvertTensorToDict(temp, *this);
             m_str.clear();
             m_wstr.clear();
-            return; // shared();
-
-            // Строка в словарь, тоже допустимо, причем можно сделать даже именованные эелементы, если потребуется
-            //            LOG_RUNTIME("Not implemented!!!");
+            return;
         }
+        
     } else if (is_dictionary_type()) {
         // Из словаря в другой тип данных
         if (isString(target)) {
@@ -1571,15 +1590,14 @@ void Obj::toType_(ObjType target) {
         } else if (isDictionary(target)) {
             // Словрь в словарь - ничего не делаем
             m_var_type_current = target;
-            return; // shared_from_this();
+            return;
         } else if (isTensor(target)) {
 
             ConvertDictToTensor(*this, m_value, target);
 
             m_var_type_current = fromTorchType(m_value.scalar_type());
-            return; // shared();
+            return;
 
-            return; // shared();
         }
     } else if (m_var_type_current == ObjType::Range) {
         // Из диапазона в другой тип данных
@@ -1601,7 +1619,7 @@ void Obj::toType_(ObjType target) {
                 m_var_type_current = ObjType::Dictionary;
                 temp->ClonePropTo(*this);
             }
-            return; // shared();
+            return;
         }
     }
     // Остальные варианты предобразований выполнить нельзя
@@ -1777,10 +1795,6 @@ torch::Tensor newlang::ConvertToTensor(Obj *data, at::ScalarType type, bool resh
         // Пустое значение или пустой словарь не конвертируются
         LOG_RUNTIME("Not implemented!");
 
-        //    } else if(data->is_ellipsis()) {
-        //        // Раскрытие словаря
-        //        LOG_RUNTIME("Not implemented!");
-
     } else if (data->is_function()) {
         // Как преобразовать функцию? И нужно ли это делать?
 
@@ -1789,13 +1803,6 @@ torch::Tensor newlang::ConvertToTensor(Obj *data, at::ScalarType type, bool resh
     // Остальные варианты преобразований выполнить нельзя (Error + служебные)
     LOG_RUNTIME("Can`t convert type %d to tensor!", (int) data->m_var_type_current);
 }
-
-// at::IntArrayRef newlang::ConvertToIntArrayRef(const Object *obj) {
-//     if(!obj || obj->is_none()) {
-//         return {};
-//     }
-//     LOG_RUNTIME("Not implemented!");
-// }
 
 at::TensorOptions newlang::ConvertToTensorOptions(const Obj *obj) {
     if (!obj || obj->is_none_type()) {
@@ -1855,7 +1862,7 @@ ObjPtr Obj::CallNative(Context *ctx, Obj args) {
 
         size_t pind = i - 1; // Индекс прототипа на единицу меньше из-за пустого нулевого аргумента
 
-        ObjType type = args[i]->m_var_type_current; // static_cast<ObjType>(static_cast<uint8_t>(args[i]->m_var_type) & );
+        ObjType type = args[i]->getTypeAsLimit();
         switch (type) {
             case ObjType::Bool:
                 if (pind < check_count) {
@@ -1973,43 +1980,43 @@ ObjPtr Obj::CallNative(Context *ctx, Obj args) {
     NL_CHECK(!m_func_proto->m_type_name.empty(), "Undefined return type '%s'", m_func_proto->toString().c_str());
 
     VALUE res_value;
-    ffi_type *m_result_type;
+    ffi_type *result_ffi_type = nullptr;
 
-    ObjType type = typeFromString(m_func_proto->m_type_name, ctx);
+    ObjType type = ctx->BaseTypeFromString(m_func_proto->m_type_name);
 
     switch (type) {
         case ObjType::Bool:
-            m_result_type = &ffi_type_uint8;
+            result_ffi_type = &ffi_type_uint8;
             break;
 
         case ObjType::Char:
-            m_result_type = &ffi_type_sint8;
+            result_ffi_type = &ffi_type_sint8;
             break;
 
         case ObjType::Short:
-            m_result_type = &ffi_type_sint16;
+            result_ffi_type = &ffi_type_sint16;
             break;
 
         case ObjType::Int:
-            m_result_type = &ffi_type_sint32;
+            result_ffi_type = &ffi_type_sint32;
             break;
 
         case ObjType::Long:
-            m_result_type = &ffi_type_sint64;
+            result_ffi_type = &ffi_type_sint64;
             break;
 
         case ObjType::Float:
-            m_result_type = &ffi_type_float;
+            result_ffi_type = &ffi_type_float;
             break;
 
         case ObjType::Double:
-            m_result_type = &ffi_type_double;
+            result_ffi_type = &ffi_type_double;
             break;
 
         case ObjType::Pointer:
         case ObjType::StrChar:
         case ObjType::StrWide:
-            m_result_type = &ffi_type_pointer;
+            result_ffi_type = &ffi_type_pointer;
             break;
 
         default:
@@ -2017,35 +2024,37 @@ ObjPtr Obj::CallNative(Context *ctx, Obj args) {
     }
 
     ASSERT(m_func_abi == FFI_DEFAULT_ABI); // Нужны другие типы вызовов ???
-    if (ffi_prep_cif(&m_cif, m_func_abi, m_args_type.size(), m_result_type, m_args_type.data()) == FFI_OK) {
+    if (ffi_prep_cif(&m_cif, m_func_abi, m_args_type.size(), result_ffi_type, m_args_type.data()) == FFI_OK) {
 
         ffi_call(&m_cif, FFI_FN(m_func_ptr), &res_value, m_args_ptr.data());
 
-        if (m_result_type == &ffi_type_uint8) {
+        if (result_ffi_type == &ffi_type_uint8) {
             // Возвращаемый тип может быть как Byte, так и Bool
             return Obj::CreateValue(static_cast<uint8_t> (res_value.integer), typeFromString(m_func_proto->m_type_name));
-        } else if (m_result_type == &ffi_type_sint8) {
+        } else if (result_ffi_type == &ffi_type_sint8) {
             return Obj::CreateValue(static_cast<int8_t> (res_value.integer), ObjType::Char);
-        } else if (m_result_type == &ffi_type_sint16) {
+        } else if (result_ffi_type == &ffi_type_sint16) {
             return Obj::CreateValue(static_cast<int16_t> (res_value.integer), ObjType::Short);
-        } else if (m_result_type == &ffi_type_sint32) {
+        } else if (result_ffi_type == &ffi_type_sint32) {
             return Obj::CreateValue(static_cast<int32_t> (res_value.integer), ObjType::Int);
-        } else if (m_result_type == &ffi_type_sint64) {
+        } else if (result_ffi_type == &ffi_type_sint64) {
             return Obj::CreateValue(res_value.integer, ObjType::Long);
-        } else if (m_result_type == &ffi_type_float) {
+        } else if (result_ffi_type == &ffi_type_float) {
             return Obj::CreateValue(res_value.number, ObjType::Float);
-        } else if (m_result_type == &ffi_type_double) {
+        } else if (result_ffi_type == &ffi_type_double) {
             return Obj::CreateValue(res_value.number, ObjType::Double);
-        } else if (m_result_type == &ffi_type_pointer) {
+        } else if (result_ffi_type == &ffi_type_pointer) {
             if (type == ObjType::StrChar) {
                 return Obj::CreateString(reinterpret_cast<const char *> (res_value.ptr));
             } else if (type == ObjType::StrWide) {
                 return Obj::CreateString(reinterpret_cast<const wchar_t *> (res_value.ptr));
             } else if (type == ObjType::Pointer) {
-                ObjPtr result = Obj::CreateType(type, nullptr, type);
+                ObjPtr result = ctx->GetTypeFromString(m_func_proto->m_type_name);
                 result->m_func_ptr = (void *) res_value.ptr;
                 result->m_var_is_init = true;
                 return result;
+            } else {
+                LOG_RUNTIME("Error result type '%s' or not implemented!", m_func_proto->m_type_name.c_str());
             }
         } else {
             LOG_RUNTIME("Native return type '%s' not implemented!", m_func_proto->m_type_name.c_str());
@@ -2197,22 +2206,14 @@ void newlang::ConvertRangeToDict(Obj *from, Obj &to) {
 void newlang::ConvertStringToTensor(const std::string &from, torch::Tensor &to, ObjType type) {
     ASSERT(!from.empty());
     ASSERT(type == ObjType::None || type == ObjType::Char || type == ObjType::Tensor);
-    //    if (dims) {
-    //        to = torch::from_blob((void *) from.data(), *dims, at::ScalarType::Int).clone();
-    //    } else {
     to = torch::from_blob((void *) from.data(),{(int64_t) from.size()}, at::ScalarType::Char).clone();
-    //    }
 }
 
 void newlang::ConvertStringToTensor(const std::wstring &from, torch::Tensor &to, ObjType type) {
     ASSERT(!from.empty());
     ASSERT(type == ObjType::None || type == ObjType::Int || type == ObjType::Tensor);
     STATIC_ASSERT(sizeof (wchar_t) == sizeof (int));
-    //    if (dims) {
-    //        to = torch::from_blob((void *) from.data(), *dims, at::ScalarType::Int).clone();
-    //    } else {
     to = torch::from_blob((void *) from.data(),{(int64_t) from.size()}, at::ScalarType::Int).clone();
-    //    }
 }
 
 template <typename T> void ConvertTensorToStringTemplate(const torch::Tensor &from, T &to, std::vector<Index> *index) {
@@ -2382,28 +2383,39 @@ ObjPtr Obj::BaseTypeConstructor(const Context *ctx, Obj &args) {
     }
     ASSERT(args[0]->getType() == ObjType::Type);
 
-    ObjPtr result = args[0]->Clone();
-    if (args.size() == 1) {
-        // Копия существующего типа с возможностью редактирования
-        result->m_is_const = false;
-        return result;
-    }
-
+    ObjPtr result = nullptr;
     if (isArithmeticType(args[0]->m_var_type_fixed)) {
-        return ConstructorSimpleType_(ctx, args);
+        result = ConstructorSimpleType_(ctx, args);
     } else if (args[0]->m_var_type_fixed == ObjType::Dictionary) {
-        return ConstructorDictionary_(ctx, args);
+        result = ConstructorDictionary_(ctx, args);
     } else if (args[0]->m_var_type_fixed == ObjType::Class) {
-        return ConstructorClass_(ctx, args);
-    } else if (args[0]->m_var_type_fixed == ObjType::Struct) {
-        return ConstructorStruct_(ctx, args);
+        result = ConstructorClass_(ctx, args);
+    } else if (args[0]->m_var_type_fixed == ObjType::Struct || args[0]->m_var_type_fixed == ObjType::Union) {
+        result = ConstructorStruct_(ctx, args);
     } else if (args[0]->m_var_type_fixed == ObjType::Enum) {
-        return ConstructorEnum_(ctx, args);
-    } else if (args[0]->m_var_type_fixed == ObjType::Union) {
-        return ConstructorUnion_(ctx, args);
+        result = ConstructorEnum_(ctx, args);
+    } else if (args[0]->m_var_type_fixed == ObjType::Return) {
+        result = ConstructorReturn_(ctx, args);
+    } else if (args[0]->m_var_type_fixed == ObjType::Break || args[0]->m_var_type_fixed == ObjType::Continue) {
+        result = ConstructorInterraption_(ctx, args, args[0]->m_var_type_fixed);
+    } else if (args[0]->m_var_type_fixed == ObjType::Error || args[0]->m_var_type_fixed == ObjType::ErrorParser
+            || args[0]->m_var_type_fixed == ObjType::ErrorRunTime || args[0]->m_var_type_fixed == ObjType::ErrorSignal) {
+        result = ConstructorError_(ctx, args);
+    } else {
+
+        result = args[0]->Clone();
+        if (result) {
+            result->m_is_const = false;
+        }
     }
 
-    LOG_RUNTIME("Create type '%s' not implemented!", newlang::toString(args[0]->m_var_type_fixed));
+    if (!result) {
+        LOG_RUNTIME("Create type '%s' error or not implemented!", newlang::toString(args[0]->m_var_type_fixed));
+    }
+
+    result->m_class_name = args[0]->m_class_name;
+
+    return result;
 }
 
 ObjPtr Obj::ConstructorSimpleType_(const Context *ctx, Obj & args) {
@@ -2414,7 +2426,11 @@ ObjPtr Obj::ConstructorSimpleType_(const Context *ctx, Obj & args) {
     // Переданы значения для приведения типов
     // Но само значение пока не установлено
     ObjPtr result = args[0]->Clone();
-    result->m_var_is_init = false;
+    if (args.size() == 1) {
+        // Копия существующего типа с возможностью редактирования
+        result->m_is_const = false;
+        return result;
+    }
 
     std::vector<int64_t> dims;
 
@@ -2555,8 +2571,7 @@ ObjPtr Obj::ConstructorClass_(const Context *ctx, Obj & args) {
 
 ObjPtr Obj::ConstructorStruct_(const Context *ctx, Obj & args) {
     ObjPtr result = ConstructorClass_(ctx, args);
-    result->m_var_type_fixed = ObjType::Dictionary;
-    result->m_class_name = ":Struct";
+    result->m_var_type_fixed = ObjType::Struct;
 
     if (!result->size()) {
         LOG_RUNTIME("Empty Struct not allowed!");
@@ -2573,20 +2588,13 @@ ObjPtr Obj::ConstructorStruct_(const Context *ctx, Obj & args) {
     return result;
 }
 
-ObjPtr Obj::ConstructorUnion_(const Context *ctx, Obj & args) {
-    ObjPtr result = ConstructorStruct_(ctx, args);
-    result->m_class_name = ":Union";
-    return result;
-}
-
 /*
  * :Enum(One=0, Two=_, "Three", Ten=10);
  */
 
 ObjPtr Obj::ConstructorEnum_(const Context *ctx, Obj & args) {
-    ObjPtr result = Obj::CreateDict(); //Type(ObjType::Dictionary, nullptr, ObjType::Enum);
-    result->m_var_type_fixed = ObjType::Dictionary;
-    result->m_class_name = ":Enum";
+    ObjPtr result = Obj::CreateDict();
+    result->m_var_type_fixed = ObjType::Enum;
 
     int64_t val_int = 0;
     ObjPtr enum_value;
@@ -2625,3 +2633,37 @@ ObjPtr Obj::ConstructorEnum_(const Context *ctx, Obj & args) {
 
     return result;
 }
+
+ObjPtr Obj::ConstructorError_(const Context *ctx, Obj & args) {
+    ObjPtr result = ConstructorDictionary_(ctx, args);
+    result->m_var_type_current = ObjType::Error;
+    result->m_var_type_fixed = ObjType::Error;
+    if (!result->size()) {
+        LOG_RUNTIME("Argument for type ':Error' required!");
+    }
+    return result;
+}
+
+ObjPtr Obj::ConstructorReturn_(const Context *ctx, Obj & args) {
+    ObjPtr result = ConstructorDictionary_(ctx, args);
+    result->m_var_type_current = ObjType::Return;
+    result->m_var_type_fixed = ObjType::Return;
+    if (result->size() == 0) {
+        result->push_back(Obj::Arg(Obj::CreateNone()));
+    }
+    if (result->size() != 1) {
+        LOG_RUNTIME("Multiple argument for type ':Return'!");
+    }
+    return result;
+}
+
+ObjPtr Obj::ConstructorInterraption_(const Context* ctx, Obj& args, ObjType type) {
+    ObjPtr result = ConstructorDictionary_(ctx, args);
+    result->m_var_type_current = type;
+    result->m_var_type_fixed = type;
+    if (result->size()) {
+        LOG_RUNTIME("Argument for type %s not allowed!", newlang::toString(type));
+    }
+    return result;
+}
+

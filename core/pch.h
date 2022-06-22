@@ -49,5 +49,10 @@
 #include <contrib/libffi/output/include/ffi.h>
 #include <core/warning_pop.h>
 
+#include <core/types.h>
+
+#undef LOG_RUNTIME
+#define LOG_RUNTIME(...)  LOG_EXCEPT(newlang::Interrupt, ##__VA_ARGS__)
+
 #endif // NEWLANG_PCH_H_
 

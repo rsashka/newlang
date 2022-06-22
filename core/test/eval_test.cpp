@@ -40,7 +40,7 @@ TEST(Eval, Assign) {
     list = ctx.ExecStr("$");
     ASSERT_STREQ("$=('var1',)", list->toString().c_str());
 
-    ASSERT_THROW(ctx.ExecStr("var1 ::= 123"), Interruption);
+    ASSERT_THROW(ctx.ExecStr("var1 ::= 123"), Interrupt);
 
     ASSERT_TRUE(ctx.ExecStr("var1 = 100:Char"));
     ASSERT_EQ(var1->m_var_type_current, ObjType::Char);

@@ -8,9 +8,7 @@
 using namespace newlang;
 
 Parser::Parser(TermPtr &ast) : m_ast(ast) {
-    if (!m_ast) {
-        m_ast = Term::Create(TermID::END, "");
-    }
+    m_ast = Term::Create(TermID::END, "");
 }
 
 bool Parser::parse_stream(std::istream& in, const std::string_view sname) {
@@ -77,10 +75,13 @@ void Parser::AstAddTerm(TermPtr &term) {
     ASSERT(m_ast);
     ASSERT(m_ast->m_source);
     term->m_source = m_ast->m_source;
-    if (m_ast->m_id != TermID::END) {
-        m_ast->BlockCodeAppend(term);
-    } else {
+    if (m_ast->m_id == TermID::END) {
         m_ast = term;
+        m_ast->ConvertSequenceToBlock(TermID::BLOCK, false);
+    } else if (!m_ast->IsBlock()) {
+        m_ast->ConvertSequenceToBlock(TermID::BLOCK, true);
+    } else {
+        m_ast->m_block.push_back(term);
     }
 }
 
@@ -136,5 +137,5 @@ std::string newlang::ParserMessage(std::string &buffer, int row, int col, const 
 }
 
 void newlang::ParserException(const char *msg, std::string &buffer, int row, int col) {
-    throw Interruption(ParserMessage(buffer, row, col, "%s", msg), Interruption::Parser);
+    throw Interrupt(ParserMessage(buffer, row, col, "%s", msg), Interrupt::Parser);
 }

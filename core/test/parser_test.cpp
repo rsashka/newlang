@@ -392,15 +392,15 @@ TEST_F(ParserTest, ScalarType) {
     ASSERT_STREQ("-0.0:Double", ast->toString().c_str());
     ASSERT_STREQ(":Double", ast->m_type_name.c_str());
 
-    ASSERT_THROW(Parse("2:Bool;"), Interruption);
-    ASSERT_THROW(Parse("-1:Bool;"), Interruption);
+    ASSERT_THROW(Parse("2:Bool;"), Interrupt);
+    ASSERT_THROW(Parse("-1:Bool;"), Interrupt);
     //        ASSERT_THROW(Parse("-1:Char"), parser_exception);
-    ASSERT_THROW(Parse("300:Char;"), Interruption);
-    ASSERT_THROW(Parse("100000:Short;"), Interruption);
-    ASSERT_THROW(Parse("0.0:Bool;"), Interruption);
-    ASSERT_THROW(Parse("0.0:Char;"), Interruption);
-    ASSERT_THROW(Parse("0.0:Int;"), Interruption);
-    ASSERT_THROW(Parse("0.0:Long;"), Interruption);
+    ASSERT_THROW(Parse("300:Char;"), Interrupt);
+    ASSERT_THROW(Parse("100000:Short;"), Interrupt);
+    ASSERT_THROW(Parse("0.0:Bool;"), Interrupt);
+    ASSERT_THROW(Parse("0.0:Char;"), Interrupt);
+    ASSERT_THROW(Parse("0.0:Int;"), Interrupt);
+    ASSERT_THROW(Parse("0.0:Long;"), Interrupt);
 }
 
 TEST_F(ParserTest, TensorType) {
@@ -640,10 +640,10 @@ TEST_F(ParserTest, ArgMixedFail) {
     //            Parse("term(arg2=arg3, arg1);"), std::runtime_error
     //            );
     EXPECT_THROW(
-            Parse("term(arg1,arg2=arg3,,);"), Interruption
+            Parse("term(arg1,arg2=arg3,,);"), Interrupt
             );
     EXPECT_THROW(
-            Parse("term(,);"), Interruption
+            Parse("term(,);"), Interrupt
             );
 
 }
@@ -698,7 +698,7 @@ TEST_F(ParserTest, Iterator) {
     //    ASSERT_FALSE(Parse("term2(arg=value)?(iter_arg=100)?"));
     //    ASSERT_FALSE(Parse("term2(arg=value)??"));
     EXPECT_THROW(
-            Parse("term2(arg=value)!;?"), Interruption
+            Parse("term2(arg=value)!;?"), Interrupt
             );
 
 
@@ -1229,12 +1229,12 @@ TEST_F(ParserTest, FunctionEmpty2) {
 }
 
 TEST_F(ParserTest, FunctionArgsFail) {
-    ASSERT_THROW(Parse("мин(... ...) := {$0:=0;};"), Interruption);
+    ASSERT_THROW(Parse("мин(... ...) := {$0:=0;};"), Interrupt);
     //    ASSERT_THROW(Parse("мин(..., arg) := {$0:=0;};"), parser_exception);
-    ASSERT_THROW(Parse("мин(arg ...) := {$0:=0;};"), Interruption);
-    ASSERT_THROW(Parse("мин(arg=1 ..., arg) := {$0:=0;};"), Interruption);
-    ASSERT_THROW(Parse("мин(arg=1, arg ...) := {$0:=0;};"), Interruption);
-    ASSERT_THROW(Parse("мин(arg=1 ...) := {$0:=0;};"), Interruption);
+    ASSERT_THROW(Parse("мин(arg ...) := {$0:=0;};"), Interrupt);
+    ASSERT_THROW(Parse("мин(arg=1 ..., arg) := {$0:=0;};"), Interrupt);
+    ASSERT_THROW(Parse("мин(arg=1, arg ...) := {$0:=0;};"), Interrupt);
+    ASSERT_THROW(Parse("мин(arg=1 ...) := {$0:=0;};"), Interrupt);
 }
 
 TEST_F(ParserTest, ArrayAdd7) {
@@ -1320,12 +1320,15 @@ TEST_F(ParserTest, Func4) {
 }
 
 TEST_F(ParserTest, Comment) {
+    ASSERT_TRUE(Parse("#!line1"));
     ASSERT_TRUE(Parse("#!line1\n"));
+    ASSERT_TRUE(Parse("#!line1\n#!line2"));
+    ASSERT_TRUE(Parse("#!line1\n#!line2\n\n#!line4"));
     //ASSERT_EQ(TermID::COMMENT, ast->getTermID()) << EnumStr(ast->getTermID());
 }
 
 TEST_F(ParserTest, Comment2) {
-    ASSERT_TRUE(Parse("#!line2\n#line1\n \n\n/* \n \n */ \n"));
+    ASSERT_TRUE(Parse("#!line1\n#line2\n \n\n/* \n \n */ \n"));
     //    ASSERT_EQ(TermID::BLOCK, ast->getTermID()) << EnumStr(ast->getTermID());
     //    ASSERT_EQ(3, ast->m_block.size());
     //    ASSERT_EQ(TermID::COMMENT, ast->m_block[0]->getTermID()) << EnumStr(ast->getTermID());
@@ -1468,6 +1471,19 @@ TEST_F(ParserTest, Sequence) {
     ASSERT_NO_THROW(Parse("(){val();;;};;;"));
     ASSERT_NO_THROW(Parse("(){val();;;val();;;};;;"));
     ASSERT_NO_THROW(Parse("(){val();;;val();;;};;;"));
+}
+
+TEST_F(ParserTest, BlockTry) {
+    ASSERT_TRUE(Parse("(){{1; 2;}}; 3;"));
+    ASSERT_EQ(2, ast->m_block.size());
+    ASSERT_EQ(TermID::BLOCK, ast->getTermID()) << newlang::toString(ast->getTermID());
+    ASSERT_EQ(TermID::CALL_TRY, ast->m_block[0]->getTermID()) << newlang::toString(ast->getTermID());
+    ASSERT_EQ(TermID::INTEGER, ast->m_block[1]->getTermID()) << newlang::toString(ast->getTermID());
+
+    ASSERT_TRUE(Parse("(){{1; 2; 3; --4--; 5; 6;}};"));
+    ASSERT_EQ(1, ast->m_block.size());
+    ASSERT_EQ(TermID::BLOCK, ast->getTermID()) << newlang::toString(ast->getTermID());
+    ASSERT_EQ(TermID::CALL_TRY, ast->m_block[0]->getTermID()) << newlang::toString(ast->getTermID());
 }
 
 TEST_F(ParserTest, Repeat) {

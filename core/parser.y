@@ -377,6 +377,7 @@ star_arg = [STAR] STAR ID
 %token			ASSIGN_MATH     "Arithmetic assign value"
 
 %token			END         0	"end of file"
+%token			COMMENT
 
 %token                  SOURCE
 %token			ITERATOR        "!!"
@@ -425,6 +426,19 @@ star_arg = [STAR] STAR ID
 %% /*** Grammar Rules ***/
 
 
+/*
+comment: COMMENT
+            {
+                $$ = $1;  
+            }
+        | comment  COMMENT
+            {
+                $$ = $1;  
+                $$->AppendSequenceTerm($2);
+            }
+*/
+
+
 /* Фиксированная размерность тензоров для использования в типах данных */
 type_dim: INTEGER
         {
@@ -448,7 +462,7 @@ type_dims: type_dim
     | type_dims  ','  type_dim
         {
             $$ = $1;
-            $$->AppendSeq($3);
+            $$->AppendCommaTerm($3);
         }
 
 type_class:  ':'  TERM
@@ -886,7 +900,7 @@ args: arg
         | args  ','  arg
             {
                 $$ = $1;
-                $$->AppendSeq($3);
+                $$->AppendCommaTerm($3);
             }
         
         
@@ -1021,7 +1035,7 @@ assign_seq: assign_item
             |  assign_seq  ','  assign_item
                 {
                     $$ = $1;
-                    $$->AppendSeq($3);
+                    $$->AppendCommaTerm($3);
                 }
 /*
 lval = rval;
@@ -1061,9 +1075,8 @@ simple_seq:  condition
             | simple_seq ',' condition
                 {
                     $$ = $1;
-                    // Несколько команд подряд
-                    $$->ConvertToBlock(TermID::BLOCK);
-                    $$->BlockCodeAppend($3); 
+                    // Несколько условий подряд
+                    $$->AppendSequenceTerm($3);
                 }
 
             
@@ -1085,6 +1098,8 @@ simple_func:  lval  simple  simple_seq
         {
             $$ = $2;  
             $$->Append($1, Term::LEFT); 
+            
+            $3->ConvertSequenceToBlock(TermID::BLOCK, false);
             $$->Append($3, Term::RIGHT);
         }
          
@@ -1097,99 +1112,111 @@ block:  '{'  '}'
         | '{'  sequence  '}'
             {
                 $$ = $2; 
-                $$->ConvertToBlock(TermID::BLOCK);
+                $$->ConvertSequenceToBlock(TermID::BLOCK);
             }
         | '{'  sequence  separator  '}'
             {
                 $$ = $2; 
-                $$->ConvertToBlock(TermID::BLOCK);
+                $$->ConvertSequenceToBlock(TermID::BLOCK);
             }
         | TRY_BEGIN  TRY_END  type_class
             {
                 $$ = $1; 
-                $$->ConvertToBlock(TermID::BLOCK_TRY);
+                $$->ConvertSequenceToBlock(TermID::BLOCK_TRY);
                 $$->SetType($type_class);
             }
         | TRY_BEGIN  sequence  TRY_END
             {
                 $$ = $2; 
-                $$->ConvertToBlock(TermID::BLOCK_TRY);
+                $$->ConvertSequenceToBlock(TermID::BLOCK_TRY);
             }
         | TRY_BEGIN  sequence  separator  TRY_END
             {
                 $$ = $2; 
-                $$->ConvertToBlock(TermID::BLOCK_TRY);
+                $$->ConvertSequenceToBlock(TermID::BLOCK_TRY);
             }
         | TRY_BEGIN  sequence  TRY_END  type_class
             {
                 $$ = $2; 
-                $$->ConvertToBlock(TermID::BLOCK_TRY);
+                $$->ConvertSequenceToBlock(TermID::BLOCK_TRY);
                 $$->SetType($type_class);
             }
         | TRY_BEGIN  sequence  separator  TRY_END  type_class
             {
                 $$ = $2; 
-                $$->ConvertToBlock(TermID::BLOCK_TRY);
+                $$->ConvertSequenceToBlock(TermID::BLOCK_TRY);
                 $$->SetType($type_class);
             }
 
 block_call:  '('  MIDDLE_CALL_BLOCK  sequence  '}' 
             {
                 $$ = $sequence; 
-                $$->ConvertToBlock(TermID::CALL_BLOCK);
+                $$->ConvertSequenceToBlock(TermID::CALL_BLOCK);
             }
         | '('  MIDDLE_CALL_BLOCK  sequence  separator '}' 
             {
                 $$ = $sequence; 
-                $$->ConvertToBlock(TermID::CALL_BLOCK);
+                $$->ConvertSequenceToBlock(TermID::CALL_BLOCK);
             }
         |  '('  args  MIDDLE_CALL_BLOCK  sequence  '}'
             {
                 $$ = $sequence; 
                 $$->SetArgs($args);
-                $$->ConvertToBlock(TermID::CALL_BLOCK);
+                $$->ConvertSequenceToBlock(TermID::CALL_BLOCK);
             }
         | '('  args  MIDDLE_CALL_BLOCK  sequence  separator  '}'
             {
                 $$ = $sequence; 
                 $$->SetArgs($args);
-                $$->ConvertToBlock(TermID::CALL_BLOCK);
+                $$->ConvertSequenceToBlock(TermID::CALL_BLOCK);
             }
         | '('  MIDDLE_CALL_TRY  sequence  TRY_END
             {
                 $$ = $sequence; 
-                $$->ConvertToBlock(TermID::CALL_TRY);
+                $$->ConvertSequenceToBlock(TermID::CALL_TRY);
+            }
+        | '('  MIDDLE_CALL_TRY  sequence  TRY_END  type_class
+            {
+                $$ = $sequence; 
+                $$->ConvertSequenceToBlock(TermID::CALL_TRY);
+                $$->m_class_name = $type_class->m_text;
             }
         | '('  MIDDLE_CALL_TRY  sequence  separator  TRY_END
             {
                 $$ = $sequence; 
-                $$->ConvertToBlock(TermID::CALL_TRY);
+                $$->ConvertSequenceToBlock(TermID::CALL_TRY);
+            }
+        | '('  MIDDLE_CALL_TRY  sequence  separator  TRY_END  type_class
+            {
+                $$ = $sequence; 
+                $$->ConvertSequenceToBlock(TermID::CALL_TRY);
+                $$->m_class_name = $type_class->m_text;
             }
         | '('  args  MIDDLE_CALL_TRY  sequence  TRY_END
             {
                 $$ = $sequence; 
                 $$->SetArgs($args);
-                $$->ConvertToBlock(TermID::CALL_TRY);
-            }
-        | '('  args  MIDDLE_CALL_TRY  sequence  separator  TRY_END
-            {
-                $$ = $sequence; 
-                $$->SetArgs($args);
-                $$->ConvertToBlock(TermID::CALL_TRY);
+                $$->ConvertSequenceToBlock(TermID::CALL_TRY);
             }
         | '('  args  MIDDLE_CALL_TRY  sequence  TRY_END  type_class
             {
                 $$ = $sequence; 
                 $$->SetArgs($args);
-                $$->ConvertToBlock(TermID::CALL_TRY);
-                $$->SetType($type_class);
+                $$->ConvertSequenceToBlock(TermID::CALL_TRY);
+                $$->m_class_name = $type_class->m_text;
+            }
+        | '('  args  MIDDLE_CALL_TRY  sequence  separator  TRY_END
+            {
+                $$ = $sequence; 
+                $$->SetArgs($args);
+                $$->ConvertSequenceToBlock(TermID::CALL_TRY);
             }
         | '('  args  MIDDLE_CALL_TRY  sequence  separator  TRY_END  type_class
             {
                 $$ = $sequence; 
                 $$->SetArgs($args);
-                $$->ConvertToBlock(TermID::CALL_TRY);
-                $$->SetType($type_class);
+                $$->ConvertSequenceToBlock(TermID::CALL_TRY);
+                $$->m_class_name = $type_class->m_text;
             }
 
         
@@ -1424,14 +1451,14 @@ match_items:  match_item
             }
         | match_items  ';'  match_item
             {
-                $$ = $1; 
-                $$->ConvertToBlock(TermID::BLOCK);
-                $$->BlockCodeAppend($match_item); 
+                $$ = $1;
+                $$->AppendSequenceTerm($match_item);
             }
         
 match_body:  '{'  match_items  '}'
             {
                 $$ = $2;
+                $$->ConvertSequenceToBlock(TermID::BLOCK);
             }
 
 
@@ -1509,18 +1536,16 @@ sequence:  seq_item
             {
                 $$ = $1;  
                 // Несколько команд подряд
-                $$->ConvertToBlock(TermID::BLOCK);
-                $$->BlockCodeAppend($block_call); 
+                $$->AppendSequenceTerm($block_call);
             }
         | sequence  separator  seq_item
             {
                 $$ = $1;  
                 // Несколько команд подряд
-                $$->ConvertToBlock(TermID::BLOCK);
-                $$->BlockCodeAppend($seq_item); 
+                $$->AppendSequenceTerm($seq_item);
             }
 
-        
+
 separator: ';' | separator  ';'        
         
 
@@ -1534,6 +1559,10 @@ ast:    END
             {
                driver.AstAddTerm($1);
             }
+/*        | comment
+            {
+               driver.AstAddTerm($1);
+            } */
 
 start	:   ast
 

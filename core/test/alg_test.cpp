@@ -215,14 +215,14 @@ TEST(Alg, Foreach) {
     dict->push_back(Obj::Arg(40));
     dict->push_back(Obj::Arg(50));
     ASSERT_EQ(5, dict->size());
-    
+
     temp = ctx.ExecStr(":Bool(dict)");
     ASSERT_TRUE(temp);
     ASSERT_TRUE(temp->is_bool_type());
     ASSERT_FALSE(temp->is_scalar());
     ASSERT_TRUE(temp->GetValueAsBoolean());
     ASSERT_EQ(5, temp->size());
-    
+
     temp = ctx.ExecStr(":Bool[0](dict)");
     ASSERT_TRUE(temp);
     ASSERT_TRUE(temp->is_bool_type());
@@ -231,9 +231,9 @@ TEST(Alg, Foreach) {
     ASSERT_EQ(0, temp->size());
 
     //    temp = ctx.ExecStr(":Bool(!dict)");
-//    ASSERT_TRUE(temp);
-//    ASSERT_TRUE(temp->is_bool_type());
-//    ASSERT_FALSE(temp->GetValueAsBoolean());
+    //    ASSERT_TRUE(temp);
+    //    ASSERT_TRUE(temp->is_bool_type());
+    //    ASSERT_FALSE(temp->GetValueAsBoolean());
 
     ObjPtr summa = ctx.ExecStr("summa := 0");
 
@@ -241,7 +241,7 @@ TEST(Alg, Foreach) {
     ASSERT_TRUE(temp);
     ASSERT_TRUE(temp->is_integer());
     ASSERT_EQ(150, temp->GetValueAsInteger());
-    
+
     ASSERT_TRUE(dict->is_dictionary_type());
     ASSERT_EQ(0, dict->size());
 
@@ -250,81 +250,80 @@ TEST(Alg, Foreach) {
 
 }
 
-
 TEST(Alg, Return) {
-/* Проблема прерывания последовательности выполнения команд.
- * 
- * Последовательность команд может прервываться из-за возврата значения (любого типа)
- * и из-за возникновения ошибки (которая тоже может содержать значение любого типа ???)
- * Нужно иметь возможность разделять возврат и ошибку, но ни одно из возможных значений не может быть признаком возврата или ошибки, 
- * т.к. может возвращаться нормальным способом.
- * Механизм прерывания выполнения для возврата и обработки ошибок одинаковый, но нужно уметь их различаться.
- * И различать ух нужно как на уровне синтаксиса, так и в коде реализации (без лишних заморочек).
- * Вводить специальные имена классов <НЕЛЬЗЯ> !!!!
- * Конструкция прерывания выполнения одна для возврата и ошибки, поэтому различаться они могут только возвращаемым значением!!!!
- * А раз возвращаемое значение может быть любым, то ошибка и возврат визуальано должны различаться префиксами.
- * Префиксы переменных $ и @ сами по себе могут быть результатом возврата.
- * Можно было бы использовать префикс #, но он уже используется как признак однострочного комментария.
- * : - склоняюсь к указанию типа, но тип тоже может быть использовать как возвращаемое значение!!!!
-  * Может быть % - признак константы и обработки времени компиляции? Ведь в этом есть определнная логика, т.к. 
- * логика обработки возвратов и ошибок может закладываться еще во время компиляции.
- * Но в этом случае требуется дополнить синтаксив перехвата возврата для конкретизации захватываемого значения.
- * Сейчас для этого используется указани <типа> возвращаемого значения, а если использовать дополнительный символ,
- * тогда потребуется обоснование его связи с типом возвращаемого значения или переделывать сам возврат (перехват).
- * --; --_--; --%Error--; --%Break1--; --%Error%--; --%Error("Описание ошибки")--; --%Error("Описание ошибки")--; 
- * 
- * Если разделать возвращаемые значения и признак ошибки по признако возвращения <ТИПА>, тогда вернуть тип обычным способм будет уже нельзя, 
- * так как это будет воспринимать как ошибка!!! Хотя в этом случае можно поместить тип в переменную и потом возвращать саму переменную.
- * или еще варинат - вернуть тип в обертке типа возврата, т.е. :Return(:Type), а это будет ужен не ошибкой, т.к. тип указан явно.
- * Тогда в этом случае, возможность не указывать тип :Return будет являться синтаксическим сахаром для упрощения записи.
- * А вот в макросах лучше указать в явном виде т.е. \return(value) \\ --:Return($value)-- \\\
- * 
- * 
- * \Break \\ --:Break-- \\\   \Break(label) \\ --:Break($label)-- \\\
- * 
- * :Break := :Return;
- * {{
- * 
- * }}:Break
- * dict := (10,20,30,40,50,60,70,80,);
- * :Break := :Return;
- * [dict] ->> {{
- *      item, dict := ... dict; 
- *      summa += item;
- *      [summa > 100] -> --:Break--;
- *      summa += item;
- * }}:Break;
- * 
- * :Continue := :Return;
- * dict := (10,20,30,40,50,60,70,80,);
- * [dict] ->> {
- *      {{
- *          item, dict := ... dict; 
- *          summa += item;
- *          [summa > 100] -> --:Continue--;
- *          summa += item;
- *      }}:Continue;
- * }
- * 
- * result := (){{
- *      100 / 0;
- * }};
- * [result] ~> {
- *      [:Return] --> print( "Значение: $1"(result[0]) ); # Как получить возвращенное значение?
- *      [:Error] --> print( "Ошибка: $1"( result[0] ) ); ??????????????????  "Ошибка "++result  
- * }
- * Сделать :Break и :Continue встроенными классами с проверкой на отсуствуие передаваемых аргументов.
- * Для втроенного типа :Result первый аргумент по умолчанию None, а для встроенного класса :Error сделать проверку 
- * на наличие обязательного строкового аргумента на первом месте (или строка по умолчанию "Ошибка") ??
- * Остальные типизированные возвраты могут быть любыми на усмотрение разработчика
- * 
- * 
- * {+      Подобное расширение синтаксиса ненравится !!!!!!!!!!!!!!!!!!!!!!!!!!
- * --+"Ошибка"+--   --+:Fatal("Ошибка"+--
- * +}
- *  
- */
-    
+    /* Проблема прерывания последовательности выполнения команд.
+     * 
+     * Последовательность команд может прервываться из-за возврата значения (любого типа)
+     * и из-за возникновения ошибки (которая тоже может содержать значение любого типа ???)
+     * Нужно иметь возможность разделять возврат и ошибку, но ни одно из возможных значений не может быть признаком возврата или ошибки, 
+     * т.к. может возвращаться нормальным способом.
+     * Механизм прерывания выполнения для возврата и обработки ошибок одинаковый, но нужно уметь их различаться.
+     * И различать ух нужно как на уровне синтаксиса, так и в коде реализации (без лишних заморочек).
+     * Вводить специальные имена классов <НЕЛЬЗЯ> !!!!
+     * Конструкция прерывания выполнения одна для возврата и ошибки, поэтому различаться они могут только возвращаемым значением!!!!
+     * А раз возвращаемое значение может быть любым, то ошибка и возврат визуальано должны различаться префиксами.
+     * Префиксы переменных $ и @ сами по себе могут быть результатом возврата.
+     * Можно было бы использовать префикс #, но он уже используется как признак однострочного комментария.
+     * : - склоняюсь к указанию типа, но тип тоже может быть использовать как возвращаемое значение!!!!
+     * Может быть % - признак константы и обработки времени компиляции? Ведь в этом есть определнная логика, т.к. 
+     * логика обработки возвратов и ошибок может закладываться еще во время компиляции.
+     * Но в этом случае требуется дополнить синтаксив перехвата возврата для конкретизации захватываемого значения.
+     * Сейчас для этого используется указани <типа> возвращаемого значения, а если использовать дополнительный символ,
+     * тогда потребуется обоснование его связи с типом возвращаемого значения или переделывать сам возврат (перехват).
+     * --; --_--; --%Error--; --%Break1--; --%Error%--; --%Error("Описание ошибки")--; --%Error("Описание ошибки")--; 
+     * 
+     * Если разделать возвращаемые значения и признак ошибки по признако возвращения <ТИПА>, тогда вернуть тип обычным способм будет уже нельзя, 
+     * так как это будет воспринимать как ошибка!!! Хотя в этом случае можно поместить тип в переменную и потом возвращать саму переменную.
+     * или еще варинат - вернуть тип в обертке типа возврата, т.е. :Return(:Type), а это будет ужен не ошибкой, т.к. тип указан явно.
+     * Тогда в этом случае, возможность не указывать тип :Return будет являться синтаксическим сахаром для упрощения записи.
+     * А вот в макросах лучше указать в явном виде т.е. \return(value) \\ --:Return($value)-- \\\
+     * 
+     * 
+     * \Break \\ --:Break-- \\\   \Break(label) \\ --:Break($label)-- \\\
+     * 
+     * :Break := :Return;
+     * {{
+     * 
+     * }}:Break
+     * dict := (10,20,30,40,50,60,70,80,);
+     * :Break := :Return;
+     * [dict] ->> {{
+     *      item, dict := ... dict; 
+     *      summa += item;
+     *      [summa > 100] -> --:Break--;
+     *      summa += item;
+     * }}:Break;
+     * 
+     * :Continue := :Return;
+     * dict := (10,20,30,40,50,60,70,80,);
+     * [dict] ->> {
+     *      {{
+     *          item, dict := ... dict; 
+     *          summa += item;
+     *          [summa > 100] -> --:Continue--;
+     *          summa += item;
+     *      }}:Continue;
+     * }
+     * 
+     * result := (){{
+     *      100 / 0;
+     * }};
+     * [result] ~> {
+     *      [:Return] --> print( "Значение: $1"(result[0]) ); # Как получить возвращенное значение?
+     *      [:Error] --> print( "Ошибка: $1"( result[0] ) ); ??????????????????  "Ошибка "++result  
+     * }
+     * Сделать :Break и :Continue встроенными классами с проверкой на отсуствуие передаваемых аргументов.
+     * Для втроенного типа :Result первый аргумент по умолчанию None, а для встроенного класса :Error сделать проверку 
+     * на наличие обязательного строкового аргумента на первом месте (или строка по умолчанию "Ошибка") ??
+     * Остальные типизированные возвраты могут быть любыми на усмотрение разработчика
+     * 
+     * 
+     * {+      Подобное расширение синтаксиса ненравится !!!!!!!!!!!!!!!!!!!!!!!!!!
+     * --+"Ошибка"+--   --+:Fatal("Ошибка"+--
+     * +}
+     *  
+     */
+
     // :Tensor(1,2,3) - Создание экземпляра данных заданного типа
     // Орператор создания объекта    --("Тест ошибки"):Error--;  ("Тест ошибки"):Error();
     // --
@@ -361,16 +360,17 @@ TEST(Alg, Return) {
 
     try {
         result = ctx.ExecStr("--");
-    } catch (Interruption &except) {
-        ASSERT_STREQ(":Return", except.m_obj->m_class_name.c_str());
+    } catch (Interrupt &except) {
+        ASSERT_EQ(ObjType::Return, except.m_obj->getType());
         ASSERT_EQ(1, except.m_obj->size());
+        ASSERT_TRUE((*except.m_obj)[0]->is_none_type());
     }
     ASSERT_FALSE(result);
 
     try {
         result = ctx.ExecStr("--100--");
-    } catch (Interruption &except) {
-        ASSERT_STREQ(":Return", except.m_obj->m_class_name.c_str());
+    } catch (Interrupt &except) {
+        ASSERT_EQ(ObjType::Return, except.m_obj->getType());
         ASSERT_EQ(1, except.m_obj->size());
         ASSERT_STREQ("100", (*except.m_obj)[0]->toString().c_str());
     }
@@ -378,8 +378,8 @@ TEST(Alg, Return) {
 
     try {
         result = ctx.ExecStr("--'Тест'--");
-    } catch (Interruption &except) {
-        ASSERT_STREQ(":Return", except.m_obj->m_class_name.c_str());
+    } catch (Interrupt &except) {
+        ASSERT_EQ(ObjType::Return, except.m_obj->getType());
         ASSERT_EQ(1, except.m_obj->size());
         ASSERT_STREQ("'Тест'", (*except.m_obj)[0]->toString().c_str());
     }
@@ -387,33 +387,133 @@ TEST(Alg, Return) {
 
     try {
         result = ctx.ExecStr("--:Int--");
-    } catch (Interruption &except) {
+    } catch (Interrupt &except) {
         ASSERT_STREQ(":Int", except.m_obj->m_class_name.c_str());
-        ASSERT_EQ(1, except.m_obj->size());
-        ASSERT_STREQ(":Type(Type=:Int)", (*except.m_obj)[0]->toString().c_str());
+        ASSERT_EQ(0, except.m_obj->size());
+        ASSERT_STREQ(":Int", except.m_obj->toString().c_str());
     }
     ASSERT_FALSE(result);
 
     try {
-//        result = ctx.Eval("--(,):Error--");
         result = ctx.ExecStr("--:Error()--");
-    } catch (Interruption &except) {
-        ASSERT_STREQ(":Error", except.m_obj->m_class_name.c_str());
+    } catch (Interrupt &except) {
+        ASSERT_EQ(ObjType::Error, except.m_obj->getType());
         ASSERT_EQ(1, except.m_obj->size());
-        ASSERT_STREQ("Error()", (*except.m_obj)[0]->toString().c_str());
+        ASSERT_TRUE(except.m_obj->toString().size() > 20);
     }
     ASSERT_FALSE(result);
 
 
     try {
         result = ctx.ExecStr("--:Error('ТЕКСТ')--");
-    } catch (Interruption &except) {
-        ASSERT_STREQ(":Error", except.m_obj->m_class_name.c_str());
+    } catch (Interrupt &except) {
+        ASSERT_EQ(ObjType::Error, except.m_obj->getType());
         ASSERT_EQ(1, except.m_obj->size());
-        ASSERT_STREQ("Error('ТЕКСТ')", (*except.m_obj)[0]->toString().c_str());
+        ASSERT_STREQ(":Error('ТЕКСТ')", except.m_obj->toString().c_str());
+        ASSERT_STREQ("'ТЕКСТ'", (*except.m_obj)[0]->toString().c_str());
     }
     ASSERT_FALSE(result);
 
+
+    //    result.reset();
+    //    ASSERT_NO_THROW(result = ctx.ExecStr("(){count := 1; count += 1; count += 1; count += 1; count += 1;};"););
+    //    ASSERT_TRUE(result);
+    //    ASSERT_TRUE(result->is_integer());
+    //    ASSERT_EQ(5, result->GetValueAsInteger());
+    //
+    //    result.reset();
+    //    ASSERT_NO_THROW(result = ctx.ExecStr("(){count := 1; count += 1; count += 1; count += 1; count += 1;}; 99"););
+    //    ASSERT_TRUE(result);
+    //    ASSERT_TRUE(result->is_integer());
+    //    ASSERT_EQ(99, result->GetValueAsInteger());
+    //
+    //    result.reset();
+    //    ASSERT_ANY_THROW(result = ctx.ExecStr("(){count := 1; count += 1; count += 1; --55--; count += 1; count += 1;}; 5555"););
+    //    ASSERT_FALSE(result);
+    //
+    //    result.reset();
+    //    ASSERT_NO_THROW(result = ctx.ExecStr("(){{count := 1; count += 1; count += 1; --77--; count += 1; count += 1;}}"););
+    //    ASSERT_TRUE(result);
+    //    ASSERT_TRUE(result->is_integer());
+    //    ASSERT_EQ(77, result->GetValueAsInteger());
+    //
+    //    result.reset();
+    //    ASSERT_NO_THROW(result = ctx.ExecStr("(){{count := 1; count += 1; count += 1; --77--; count += 1; count += 1;}}; 7777"););
+    //    ASSERT_TRUE(result);
+    //    ASSERT_TRUE(result->is_integer());
+    //    ASSERT_EQ(7777, result->GetValueAsInteger());
+    //
+    //    result.reset();
+    //    ASSERT_ANY_THROW(result = ctx.ExecStr("(){ (){count := 1; count += 1; count += 1; --:Error(88)--; count += 1; count += 1};  8888; }"););
+    //    ASSERT_FALSE(result);
+    //
+    //    result.reset();
+    //    ASSERT_NO_THROW(result = ctx.ExecStr("(){ (){{count := 1; count += 1; count += 1; --:Error(99)--; count += 1; count += 1}}; 888}"););
+    //    ASSERT_TRUE(result);
+    //    ASSERT_TRUE(result->is_integer());
+    //    ASSERT_EQ(888, result->GetValueAsInteger());
+    //
+    //    result.reset();
+    //    ASSERT_NO_THROW(result = ctx.ExecStr("(){ (){{count := 1; count += 1; count += 1; --:Error(99)--; count += 1; count += 1}}; }"););
+    //    ASSERT_TRUE(result);
+    //    ASSERT_EQ(1, result->size());
+    //    ASSERT_EQ(99, (*result)[0]->GetValueAsInteger());
+    //
+    //    result.reset();
+    //    ASSERT_NO_THROW(result = ctx.ExecStr("(){ (){{count := 1; count += 1; count += 1; --:Error(33)--; count += 1; count += 1}};  }"););
+    //    ASSERT_TRUE(result);
+    //    ASSERT_EQ(1, result->size());
+    //    ASSERT_EQ(33, (*result)[0]->GetValueAsInteger());
+    //
+    //    result.reset();
+    //    ASSERT_NO_THROW(result = ctx.ExecStr("(){ (){{count := 1; count += 1; count += 1; --:Error(44)--; count += 1; count += 1}};  9999; }"););
+    //    ASSERT_TRUE(result);
+    //    ASSERT_EQ(9999, result->GetValueAsInteger());
+    //    
+    //    result.reset();
+    //    // Не должен перехватытвать другой класс объекта
+    //    ASSERT_ANY_THROW(result = ctx.ExecStr("(){ (){{count := 1; count += 1; count += 1; --:Error(55)--; count += 1; count += 1}}:ErrorRunTime;  }"););
+    //    ASSERT_FALSE(result);
+
+    
+    ObjPtr test_err = ctx.GetTypeFromString(":Error");
+    ASSERT_TRUE(test_err->op_class_test(":Error",&ctx));
+    ASSERT_FALSE(test_err->op_class_test(":ErrorRunTime",&ctx));
+
+    ObjPtr test_rt = ctx.GetTypeFromString(":ErrorRunTime");
+    ASSERT_TRUE(test_rt->op_class_test(":ErrorRunTime",&ctx));
+    ASSERT_TRUE(test_rt->op_class_test(":Error",&ctx));
+    
+    result.reset();
+    // Не должен перехватытвать другой класс объекта, но его перехватывает внешний блок
+    ASSERT_NO_THROW(result = ctx.ExecStr("(){{ (){{count := 1; count += 1; count += 1; --:Error(66)--; count += 1; count += 1}}:ErrorRunTime;  777; }}"););
+    ASSERT_TRUE(result);
+    ASSERT_TRUE(result->is_error());
+    ASSERT_STREQ(":Error(66)", result->toString().c_str());
+
+    
+    result.reset();
+    // Должен перехватытвать прерывание и вернуть его как обычный объект без исключения из внешнего блока
+    ASSERT_NO_THROW(result = ctx.ExecStr("(){ (){{count := 1; count += 1; count += 1; --:ErrorRunTime(77)--; count += 1; count += 1}}:ErrorRunTime }"););
+    ASSERT_TRUE(result);
+    ASSERT_EQ(1, result->size());
+    ASSERT_EQ(77, (*result)[0]->GetValueAsInteger());
+
+    result.reset();
+    ASSERT_NO_THROW(result = ctx.ExecStr("(){ (){{count := 1; count += 1; count += 1; --:ErrorRunTime(88)--; count += 1; count += 1}}:ErrorRunTime;  9999; }"););
+    ASSERT_TRUE(result);
+    ASSERT_EQ(9999, result->GetValueAsInteger());
+
+    result.reset();
+    ASSERT_NO_THROW(result = ctx.ExecStr("(){ (){{count := 1; count += 1; count += 1; --:ErrorRunTime(77)--; count += 1; count += 1}}:Error }"););
+    ASSERT_TRUE(result);
+    ASSERT_EQ(1, result->size());
+    ASSERT_EQ(77, (*result)[0]->GetValueAsInteger());
+
+    result.reset();
+    ASSERT_NO_THROW(result = ctx.ExecStr("(){ (){{count := 1; count += 1; count += 1; --:ErrorRunTime(88)--; count += 1; count += 1}}:Error;  9999; }"););
+    ASSERT_TRUE(result);
+    ASSERT_EQ(9999, result->GetValueAsInteger());
 }
 
 
