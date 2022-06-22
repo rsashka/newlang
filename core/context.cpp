@@ -387,7 +387,6 @@ inline ObjPtr Context::eval_STRCHAR(Context *ctx, const TermPtr &term, Obj *args
     return CreateRVal(ctx, term, args);
 }
 
-
 inline ObjPtr Context::eval_TENSOR(Context *ctx, const TermPtr &term, Obj *args) {
 
     return CreateRVal(ctx, term, args);
@@ -509,9 +508,6 @@ ObjPtr Context::CREATE_OR_ASSIGN(Context *ctx, const TermPtr &term, Obj *local_v
                     result = CreateLVal(ctx, elem, local_vars);
                     if (!result) {
                         NL_PARSER(term->Left(), "Fail create lvalue object!");
-                    }
-                    if (!isType(elem->m_text)) {
-                        ctx->RegisterObject(result);
                     }
                 }
             }
@@ -1293,6 +1289,7 @@ ObjPtr Context::CallBlock(Context *ctx, const TermPtr &block, Obj * local_vars) 
     if (!block->m_block.empty()) {
         for (size_t i = 0; i < block->m_block.size(); i++) {
             result = ExecStr(ctx, block->m_block[i], local_vars);
+            LOG_DEBUG("%d: %s", (int) i, result->toString().c_str());
         }
     } else {
 
@@ -1631,7 +1628,9 @@ ObjPtr Context::CreateLVal(Context *ctx, TermPtr term, Obj * args) {
             result->m_var_is_init = false;
         }
     }
-
+    if (!isType(term->m_text)) {
+        ctx->RegisterObject(result);
+    }
     return result;
 }
 

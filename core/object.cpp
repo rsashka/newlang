@@ -29,14 +29,15 @@ ObjPtr Interrupt::CreateErrorMessage(const std::string message, const std::strin
     bool has_error = false;
     ObjType type = typeFromString(error_name, nullptr, &has_error);
 
+    std::string str(message);
     if (has_error) {
-        LOG_RUNTIME("Type name interrupt '%s' is not a base type!", error_name.c_str());
+        str += " Extra error: Type name interrupt '" + error_name + "' is not a base type!";
     }
 
     ObjPtr result = Obj::CreateType(type);
     //    result->m_class_name = name;
     result->m_var_is_init = true;
-    result->push_back(Obj::Arg(Obj::CreateString(message)));
+    result->push_back(Obj::Arg(Obj::CreateString(str)));
     return result;
 }
 
@@ -1581,7 +1582,7 @@ void Obj::toType_(ObjType target) {
             m_wstr.clear();
             return;
         }
-        
+
     } else if (is_dictionary_type()) {
         // Из словаря в другой тип данных
         if (isString(target)) {

@@ -363,10 +363,10 @@ star_arg = [STAR] STAR ID
 %token			MIDDLE_CALL_BLOCK
 
 
-%token			FOLLOW		"->"
-%token			MATCHING	"=>"
-%token			WHILE		"-->>"
-%token			UNTIL		"<<--"
+%token			FOLLOW
+%token			MATCHING
+%token			WHILE
+%token			UNTIL
 
 %token			ARGUMENT		
 

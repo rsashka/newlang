@@ -415,75 +415,75 @@ TEST(Alg, Return) {
     ASSERT_FALSE(result);
 
 
-    //    result.reset();
-    //    ASSERT_NO_THROW(result = ctx.ExecStr("(){count := 1; count += 1; count += 1; count += 1; count += 1;};"););
-    //    ASSERT_TRUE(result);
-    //    ASSERT_TRUE(result->is_integer());
-    //    ASSERT_EQ(5, result->GetValueAsInteger());
-    //
-    //    result.reset();
-    //    ASSERT_NO_THROW(result = ctx.ExecStr("(){count := 1; count += 1; count += 1; count += 1; count += 1;}; 99"););
-    //    ASSERT_TRUE(result);
-    //    ASSERT_TRUE(result->is_integer());
-    //    ASSERT_EQ(99, result->GetValueAsInteger());
-    //
-    //    result.reset();
-    //    ASSERT_ANY_THROW(result = ctx.ExecStr("(){count := 1; count += 1; count += 1; --55--; count += 1; count += 1;}; 5555"););
-    //    ASSERT_FALSE(result);
-    //
-    //    result.reset();
-    //    ASSERT_NO_THROW(result = ctx.ExecStr("(){{count := 1; count += 1; count += 1; --77--; count += 1; count += 1;}}"););
-    //    ASSERT_TRUE(result);
-    //    ASSERT_TRUE(result->is_integer());
-    //    ASSERT_EQ(77, result->GetValueAsInteger());
-    //
-    //    result.reset();
-    //    ASSERT_NO_THROW(result = ctx.ExecStr("(){{count := 1; count += 1; count += 1; --77--; count += 1; count += 1;}}; 7777"););
-    //    ASSERT_TRUE(result);
-    //    ASSERT_TRUE(result->is_integer());
-    //    ASSERT_EQ(7777, result->GetValueAsInteger());
-    //
-    //    result.reset();
-    //    ASSERT_ANY_THROW(result = ctx.ExecStr("(){ (){count := 1; count += 1; count += 1; --:Error(88)--; count += 1; count += 1};  8888; }"););
-    //    ASSERT_FALSE(result);
-    //
-    //    result.reset();
-    //    ASSERT_NO_THROW(result = ctx.ExecStr("(){ (){{count := 1; count += 1; count += 1; --:Error(99)--; count += 1; count += 1}}; 888}"););
-    //    ASSERT_TRUE(result);
-    //    ASSERT_TRUE(result->is_integer());
-    //    ASSERT_EQ(888, result->GetValueAsInteger());
-    //
-    //    result.reset();
-    //    ASSERT_NO_THROW(result = ctx.ExecStr("(){ (){{count := 1; count += 1; count += 1; --:Error(99)--; count += 1; count += 1}}; }"););
-    //    ASSERT_TRUE(result);
-    //    ASSERT_EQ(1, result->size());
-    //    ASSERT_EQ(99, (*result)[0]->GetValueAsInteger());
-    //
-    //    result.reset();
-    //    ASSERT_NO_THROW(result = ctx.ExecStr("(){ (){{count := 1; count += 1; count += 1; --:Error(33)--; count += 1; count += 1}};  }"););
-    //    ASSERT_TRUE(result);
-    //    ASSERT_EQ(1, result->size());
-    //    ASSERT_EQ(33, (*result)[0]->GetValueAsInteger());
-    //
-    //    result.reset();
-    //    ASSERT_NO_THROW(result = ctx.ExecStr("(){ (){{count := 1; count += 1; count += 1; --:Error(44)--; count += 1; count += 1}};  9999; }"););
-    //    ASSERT_TRUE(result);
-    //    ASSERT_EQ(9999, result->GetValueAsInteger());
-    //    
-    //    result.reset();
-    //    // Не должен перехватытвать другой класс объекта
-    //    ASSERT_ANY_THROW(result = ctx.ExecStr("(){ (){{count := 1; count += 1; count += 1; --:Error(55)--; count += 1; count += 1}}:ErrorRunTime;  }"););
-    //    ASSERT_FALSE(result);
+    result.reset();
+    ASSERT_NO_THROW(result = ctx.ExecStr("(){count := 1; count += 1; count += 1; count += 1; count += 1;};"););
+    ASSERT_TRUE(result);
+    ASSERT_TRUE(result->is_integer());
+    ASSERT_EQ(5, result->GetValueAsInteger());
 
-    
+    result.reset();
+    ASSERT_NO_THROW(result = ctx.ExecStr("(){count := 1; count += 1; count += 1; count += 1; count += 1;}; 99"););
+    ASSERT_TRUE(result);
+    ASSERT_TRUE(result->is_integer());
+    ASSERT_EQ(99, result->GetValueAsInteger());
+
+    result.reset();
+    ASSERT_ANY_THROW(result = ctx.ExecStr("(){count := 1; count += 1; count += 1; --55--; count += 1; count += 1;}; 5555"););
+    ASSERT_FALSE(result);
+
+    result.reset();
+    ASSERT_NO_THROW(result = ctx.ExecStr("(){{count := 1; count += 1; count += 1; --77--; count += 1; count += 1;}}"););
+    ASSERT_TRUE(result);
+    ASSERT_TRUE(result->is_integer());
+    ASSERT_EQ(77, result->GetValueAsInteger());
+
+    result.reset();
+    ASSERT_NO_THROW(result = ctx.ExecStr("(){{count := 1; count += 1; count += 1; --77--; count += 1; count += 1;}}; 7777"););
+    ASSERT_TRUE(result);
+    ASSERT_TRUE(result->is_integer());
+    ASSERT_EQ(7777, result->GetValueAsInteger());
+
+    result.reset();
+    ASSERT_ANY_THROW(result = ctx.ExecStr("(){ (){count := 1; count += 1; count += 1; --:Error(88)--; count += 1; count += 1};  8888; }"););
+    ASSERT_FALSE(result);
+
+    result.reset();
+    ASSERT_NO_THROW(result = ctx.ExecStr("(){ (){{count := 1; count += 1; count += 1; --:Error(99)--; count += 1; count += 1}}; 888}"););
+    ASSERT_TRUE(result);
+    ASSERT_TRUE(result->is_integer());
+    ASSERT_EQ(888, result->GetValueAsInteger());
+
+    result.reset();
+    ASSERT_NO_THROW(result = ctx.ExecStr("(){ (){{count := 1; count += 1; count += 1; --:Error(99)--; count += 1; count += 1}}; }"););
+    ASSERT_TRUE(result);
+    ASSERT_EQ(1, result->size());
+    ASSERT_EQ(99, (*result)[0]->GetValueAsInteger());
+
+    result.reset();
+    ASSERT_NO_THROW(result = ctx.ExecStr("(){ (){{count := 1; count += 1; count += 1; --:Error(33)--; count += 1; count += 1}};  }"););
+    ASSERT_TRUE(result);
+    ASSERT_EQ(1, result->size());
+    ASSERT_EQ(33, (*result)[0]->GetValueAsInteger());
+
+    result.reset();
+    ASSERT_NO_THROW(result = ctx.ExecStr("(){ (){{count := 1; count += 1; count += 1; --:Error(44)--; count += 1; count += 1}};  9999; }"););
+    ASSERT_TRUE(result);
+    ASSERT_EQ(9999, result->GetValueAsInteger());
+
+    result.reset();
+    // Не должен перехватытвать другой класс объекта
+    ASSERT_ANY_THROW(result = ctx.ExecStr("(){ (){{count := 1; count += 1; count += 1; --:Error(55)--; count += 1; count += 1}}:ErrorRunTime;  }"););
+    ASSERT_FALSE(result);
+
+
     ObjPtr test_err = ctx.GetTypeFromString(":Error");
-    ASSERT_TRUE(test_err->op_class_test(":Error",&ctx));
-    ASSERT_FALSE(test_err->op_class_test(":ErrorRunTime",&ctx));
+    ASSERT_TRUE(test_err->op_class_test(":Error", &ctx));
+    ASSERT_FALSE(test_err->op_class_test(":ErrorRunTime", &ctx));
 
     ObjPtr test_rt = ctx.GetTypeFromString(":ErrorRunTime");
-    ASSERT_TRUE(test_rt->op_class_test(":ErrorRunTime",&ctx));
-    ASSERT_TRUE(test_rt->op_class_test(":Error",&ctx));
-    
+    ASSERT_TRUE(test_rt->op_class_test(":ErrorRunTime", &ctx));
+    ASSERT_TRUE(test_rt->op_class_test(":Error", &ctx));
+
     result.reset();
     // Не должен перехватытвать другой класс объекта, но его перехватывает внешний блок
     ASSERT_NO_THROW(result = ctx.ExecStr("(){{ (){{count := 1; count += 1; count += 1; --:Error(66)--; count += 1; count += 1}}:ErrorRunTime;  777; }}"););
@@ -491,7 +491,7 @@ TEST(Alg, Return) {
     ASSERT_TRUE(result->is_error());
     ASSERT_STREQ(":Error(66)", result->toString().c_str());
 
-    
+
     result.reset();
     // Должен перехватытвать прерывание и вернуть его как обычный объект без исключения из внешнего блока
     ASSERT_NO_THROW(result = ctx.ExecStr("(){ (){{count := 1; count += 1; count += 1; --:ErrorRunTime(77)--; count += 1; count += 1}}:ErrorRunTime }"););
@@ -516,5 +516,9 @@ TEST(Alg, Return) {
     ASSERT_EQ(9999, result->GetValueAsInteger());
 }
 
+TEST(Alg, BreakContinue) {
+
+    //    !!!!!!!!!!!!!
+}
 
 #endif // UNITTEST

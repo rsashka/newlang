@@ -556,6 +556,7 @@ void ParserException(const char *msg, std::string &buffer, int row, int col);
         //    ASSERT(self.dim() == 0);
         ASSERT(set.dim() == 0);
 
+        bool *ptr_boll = nullptr;
         signed char *ptr_char = nullptr;
         short *ptr_short = nullptr;
         int *ptr_int = nullptr;
@@ -566,6 +567,11 @@ void ParserException(const char *msg, std::string &buffer, int row, int col);
         if (self.dim() == 0 && set.dim() == 0) {
             // scalar := scalar
             switch (fromTorchType(self.scalar_type())) {
+                case ObjType::Bool:
+                    ptr_boll = self.data_ptr<bool>();
+                    ASSERT(ptr_boll);
+                    *ptr_boll = set.item().toBool();
+                    return;
                 case ObjType::Char:
                     ptr_char = self.data_ptr<signed char>();
                     ASSERT(ptr_char);
@@ -602,7 +608,13 @@ void ParserException(const char *msg, std::string &buffer, int row, int col);
 
             if (self.dim() == 1) {
                 ObjType type = fromTorchType(self.scalar_type());
-                if (ObjType::Char == type) {
+                if (ObjType::Bool == type) {
+                    auto acc_bool = self.accessor<bool, 1 > ();
+                    for (int i = 0; i < acc_bool.size(0); i++) {
+                        acc_bool[i] = set.item().toBool();
+                    }
+                    return;
+                } else if (ObjType::Char == type) {
                     auto acc_char = self.accessor<signed char, 1 > ();
                     for (int i = 0; i < acc_char.size(0); i++) {
                         acc_char[i] = set.item().toChar();
@@ -641,7 +653,15 @@ void ParserException(const char *msg, std::string &buffer, int row, int col);
                 }
             } else if (self.dim() == 2) {
                 ObjType type = fromTorchType(self.scalar_type());
-                if (ObjType::Char == type) {
+                if (ObjType::Bool == type) {
+                    auto acc_bool = self.accessor<bool, 2 > ();
+                    for (int i = 0; i < acc_bool.size(0); i++) {
+                        for (int j = 0; j < acc_bool.size(1); j++) {
+                            acc_bool[i][j] = set.item().toBool();
+                        }
+                    }
+                    return;
+                } else if (ObjType::Char == type) {
                     auto acc_char = self.accessor<signed char, 2 > ();
                     for (int i = 0; i < acc_char.size(0); i++) {
                         for (int j = 0; j < acc_char.size(1); j++) {

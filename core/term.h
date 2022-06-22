@@ -512,7 +512,7 @@ namespace newlang {
 
                 case TermID::WHILE: // [cond] <->  repeat;
                     result = "[" + result + "]";
-                    result += m_text;
+                        result += m_text;
                     ASSERT(m_right);
                     result += m_right->toString();
                     result += ";";
