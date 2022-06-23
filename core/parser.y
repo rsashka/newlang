@@ -65,6 +65,270 @@
 /*** BEGIN EXAMPLE - Change the example grammar's tokens below ***/
 %define api.value.type {TermPtr}
 
+/*
+ * Термины в CamelCase соответствуют типам данных NewLang
+ * БНФ лексики NewLang
+ * 
+ * Integer ::= целые числа | целые числа "_"  целые числа  (Bool, Char, Short, Int, Long  +  BigNum)
+ * Number ::= с плавающей точкой  (Float, Double)
+ * Complex ::= комплексные числа  (ComplexFloat, ComplexDouble)
+ * Fraction ::= Integer "\" Integer    (Представление BigNum / BigNum)
+ * Currency ::= "`" Integer  | "`" Integer "."  Integer  (Представление Fraction == BigNum / 10000)
+ * 
+ * Ariphmetic ::= Integer  | Number | Complex | Currency | Fraction
+ * 
+ * StrChar ::= "'" символы "'"
+ * StrWide ::= "\"" символы "\""
+ * RawChar ::= r"'" символы "'"  |  R"'" символы "'"
+ * RawWide ::= r"\"" символы "\""  | R"\"" символы "\""
+ * RawStr ::= RawChar | RawWide
+ * TemplateChar::= "'''" символы "'''"
+ * TemplateWide ::= "\"\"\"" символы  "\"\"\""
+ * Template ::=  TemplateChar |  TemplateWide
+ * 
+ * String  ::= StrWide | StrChar | RawStr | Template
+ * 
+ * Literal := String | Ariphmetic
+ * 
+ * name ::= идентификатор (буквы, цифры(крмое первой), подчерк)
+ * 
+ * Term ::= [@$~]? name
+ * Type ::=  :name
+ *   ::=  :name
+ * Call ::= Term( ... )
+ * 
+ * eval ::= Leteral | Term | Call
+ * 
+ * 
+ * Exit ::= "--"
+ * Error ::= "--" eval "--"
+ * 
+ * rval  ::= eval
+ * lval 
+ * 
+ * ops ::= "+" | "-" ...
+ * expression ::= rval  ops  rval
+ * 
+ * exec ::=  rval
+ * block ::=  exec |  {  exec  } |  {  block  exec  }
+ * 
+ * setup ::=   "::=" | ":=" | "="
+ * assign ::=  lval   setup  rval  
+ *      |  lval   setup  execution
+ * 
+ * 
+ * 
+ * Константа нужна в сигнатуре константы/функции при её определении
+ * Ссылка (адрес) нужен и при определнии и при вызове функции
+ * func( & ref = default ):={}
+ * %func( ref = &value );  func( &value );
+ * func( %const = default ):={}
+ * func( & %const_ref = default ):={}
+ * const := 123; # Переменная
+ * %const := 123; # Константа
+ * %const := 123; # Константа
+ * 
+ * :class%const   определение констант снаружи класса
+ * :class%const() а внури класса 
+ * 
+ * Один конструктор для классов (несколько конструкторов ненужно, т.к. есть именованые аргументы и произольноекол-во параметров)
+ * 
+ * :class (<аргументы конструктора>) := :base1(), :base2() {
+ * 
+ * 
+ * 
+ *   конструктор всегда статический (функция класса, т.к. объект отсутствует)
+ *   ::class::class(<аргументы должны совпадать ???????  >) ::= <конструктор>;
+ *   :class::class() ::= {<конструктор>};
+ *   :class::class() ::= {{<конструктор>}};
+ * 
+ * # Инициализация для функции  demo
+ * @::var = _;
+ * @print := NewLang(import= «printf(format:Format, ...):Int» );
+ * --;
+ * 
+ * %{   std::string demo(const char *arg) {; $var = arg;  %}
+ *      (arg === _ ) --> {
+ *                      @print(«Нет аргументов»);
+ *                      %{ return std::string(«Нет аргументов»); %}
+ *                  },
+ *      _ --> {
+ *              @print(«Передан %s», $var);
+ *              %{ return static_cast<std::string>($var); %}                   
+ *      }
+ * %{ }  %}  # End demo func
+ * 
+ *   Для реализации DSL, единая точка входа переименованием аргументов
+ *   NewLang(eval=_, import=_, exec=_, load=_, compile=_, file=_,) ::= {{
+ *      $* ==> {  # Выполняется точное сравнение
+ *          (,) --> help();
+ *          (eval='',) --> %{ NewLang::eval(static_cast<const char *>($eval)); %};
+ *          (import='',), (import="",) --> %{ NewLang::import(static_cast<const char *>($import)); %};
+ *          (exec:String=,) --> %{ NewLang::exec(static_cast<const char *>($exec)); %};
+ *          (compile:String=, file:String, ) --> %{ NewLang::compile(static_cast<const char *>($compile), static_cast<const char *>($file)); %};
+ *      }
+ *   }}
+ *   NewLang("eval string");
+ *   NewLang(import='class():class');
+ *   NewLang(file="eval file name");
+ *   NewLang(import="import object");
+ *   NewLang(compile="import object");
+ *   NewLang(load="module_name", init=1);
+ * 
+ *   __constructor1() := NewLang(import = 'class():class');
+ *   __constructor2(arg) := NewLang(import = 'class(arg:Int):class');
+ *   __constructor3(arg) := NewLang(import = 'class(arg:StrChar):class');
+ * 
+ *   :class::class(arg=_) ::= {
+ *      arg:? => { # Выполняется не точное сравнение c приведеним типов
+ *          :None -> __constructor1();
+ *          :Int -> __constructor2(arg);
+ *          :String -> __constructor3(arg);
+ *          _ -> -- "Неизвестный тип аргумента" --;
+ *      }
+ *  }
+ * 
+ * Проблема перегразки функций разными типами аргументов специфична только для компилируемых языков сос ставтической ьтипизацией
+ * Для языков с динамической типизацией перегразука функций не требуется, т.к. типы аргументов могут быть произвольными
+ * Но перегрузка фунций в языке со статической типизаице может еще исолпьзоваться и для замены одной реалихациина функции 
+ * на другую если типы аргументов различаются, что эквивалентно замене (добавлению) новой функции для другого типа аргументов.
+ * 
+ * Как сделать замену одной реалихации фнуции на дургуо для языка с динамиечской типизацией без перегрузки функций?
+ * 1. Сохранять предыдущую функцию в реализации (нужнны локальные статические переменные и/или деструкторы)
+ * 2. Добавлять новую реализацию функции средствами языка (не нужны локальные статические переменные и деструкторы, 
+ * но нужно перечисление списка функций чтобы вызвать предыдущую реализацию. Все функции можно вытащить итератором)
+ * 
+ * Связанный вопрос - пересечения имен у переменный и функций и их уникальности в одной области видимости.
+ * Таготею к Эсперанто, по струкутре слова часто можно понять смысл и часть речи и нет двойных смыслов
+ * 
+ * Для глобальных объектов - имена уникальны, но есть возможност добавлять несколько варинатов реализации одного и того же термина 
+ * (новый термин заменяет старый, но в новом есть возможност вызывать предыдущий вариант реализации).
+ * 
+ * Для локальных объектов - имена <перекрываются>, а объекты не "заменяются", а "перекрываются".
+ * Это получается из-за того, что к локальным объектам кроме имени можно обратить по <индексу>, а к глобальным только по имени.
+ * Локальный объект добаляется в начало списка, а его имя ищется последовательно (потом можно будет прикрутить хешмап)
+ * 
+ * super() ??????????????
+ * 
+ *  func(arg) []= { # Добавить(переопределить) фукнцию/объект
+ *      (arg ~ type) -> -- "Переопределенное значение";
+ *      -- $$(arg);  # Вызвать родительский объект
+ *   }
+ * 
+ *   деструктор всегда метод объекта
+ *   Деструктор импортировать НЕ НУЖНО, т.к. для класса он должне вызываться автоматически (сделать shared_ptr)
+ *   но сам по себе деструктор нужен для действий внутри NewLang
+ *   ~class() ::= <деструктор>;
+ *   ~class() ::= {<деструктор>};
+ *   ~class() ::= {{<деструктор>}};
+ * 
+ * все метод классов, кроме статических - вирутальные (могут быть переопределены в наследниках)
+ * Класс с чистым вирутальным методом (None) создать можно, но вызвать метод нельзя (будет ошибка)
+ * Интерфейсы ненужны, т.к. есть утиная типизация
+ * 
+ * Ссылка на статические поля класса
+ * Ссылка на статические методы класса
+ * Ссылка на поля класса
+ * Ссылка на методы класса
+ * Конструкторы
+ * Дестурктор
+ * 
+ * Derived2::*Derived2_mfp
+ * 
+ * 
+ * https://docs.microsoft.com/ru-ru/cpp/build/reference/decorated-names?view=msvc-160
+ * Формат внутреннего имени C++
+ * Внутреннее имя функции C++ содержит следующие сведения.
+ * - Имя функции.
+ * - Класс, членом которого является функция, если это функция-член. Это может быть класс, в который входит содержащий функцию класс, и т. д.
+ * - Пространство имен, которой принадлежит функция, если она входит в пространство имен.
+ * - Типы параметров функции.
+ * - Соглашение о вызовах.
+ * - Тип значения, возвращаемого функцией.
+ * Имена функций и классов кодируются во внутреннем имени. Остальная часть внутреннего имени — это код, 
+ * который имеет смысл только для компилятора и компоновщика. 
+ * 
+ * 
+ * 
+ * 
+ *   :class.var_class (static) := "";
+ *   :class.var_class (static) := 1; # публичное поле объекта
+ *   :class._var_class (static) := 1; # защиенное поле объекта
+ *   :class.__var_class (static) := 1; # приватное поле объекта
+ *   :class.__var_class__ (static) := 1; # Системное 
+ * 
+ *   var := 1; # публичное поле объекта
+ *   _var := 1; # защиенное поле объекта
+ *   __var := 1; # приватное поле объекта
+ *   __var__ := 1; # Системное 
+ *   var1, var2, var3:Int := _;  # Переменная объекта
+ * 
+ *   :class.var_class  - к статическому полю
+ * 
+ *   :class::base2.field  - к статическому полю
+ *   class::base2.field  - к обычному полю
+ * 
+ *   value_at_class := eval at create type;  # Код инициализации во время создания типа класса
+ *   value_at_object := {  # Код инициализации во время создания экземпляра класса
+ *      eval at create object
+ *   };  
+ *   value_at_object_no_error := {{ # Код инициализации во время создания экземпляра класса без ошибок
+ *      eval at create object
+ *   }};  
+ * 
+ *   func_at_class() := eval at create type;  # Тело функции формируется во время создания типа класса (может возвращаться другой функцией)
+ *   func() := {  # Код функции для вызова с генерацией исключений
+ *      eval at create object
+ *   };  
+ *   func_no_error() := {{ # Код функции для вызова без генерации исключений
+ *      eval at create object
+ *   }}; 
+ *  
+ * };
+ * 
+ * 
+ * <условный оператор FOLLOW>  ::=  
+ * 
+ * <условный оператор if> ::= if <булево выражение> then <оператор> [else <оператор>]
+ * <булево выражение> ::= "NOT" <булево выражение>
+ *     | <булево выражение> <логическая операция> <булево выражение>
+ *     | <выражение> <операция сравнения> <выражение>
+ * <логическая операция> ::= "OR" | "AND"
+ * <выражение> ::= <переменная> | <строка> | <символ>
+ * <операция сравнения> ::= "=" | "<" | ">"
+ * 
+ * 
+ * 
+ * 
+ * https://habr.com/ru/post/141756/
+ * 
+ * Для начала опишем нужную часть грамматики с помощью расширенной формы Бэкуса-Наура (РБНФ) (wiki).
+
+
+class_def = CLASS classname [inheritance] COLON suite
+classname = ID
+inheritance = LBRACE class_args_list RBRACE
+class_args_list = [class_arg]
+class_arg = dotted_name {COMMA dotted_name}
+dotted_name = ID {DOT ID}
+
+
+Здесь [X] — 0 или 1 вхождение X, {Y} — 0 и более вхождений Y.
+
+Для определения имени класса и его зависимостей вполне достаточно. Теперь для функций.
+
+
+func_def = DEF funcname LBRACE [func_args_list] RBRACE COLON suite
+funcname = ID
+func_args_list = [func_arg]
+func_arg = (dotted_name | star_arg) {OTHER | COMMA | dotted_name | star_arg | MESSAGE}
+star_arg = [STAR] STAR ID
+
+
+Кстати, предполагается, что код пользователя будет корректным (с точки зрения интерпретатора), иначе правила грамматики надо определять строже.
+ * 
+ */
+
 
 %token                  INTEGER		"Integer"
 %token                  NUMBER		"Number"
@@ -78,25 +342,34 @@
 %token			TERM            "Term"
 %token			SYMBOL          "Symbol"
 
+%token			UNKNOWN		"Token ONLY UNKNOWN"
+%token			OPERATOR_DIV
+
+%token			NEWLANG		"@@"
+%token			PARENT		"$$"
+%token			ARGS		"$*"
+%token			EXIT		"--"
+%token			MACRO		"Macro"
+%token			MACRO_BODY      "Macro body"
+
 %token			CREATE		"::="
 %token			CREATE_OR_ASSIGN ":="
-%token			TENSOR_BEGIN
-%token			TENSOR_END
-%token			POWER		"**"
+%token			APPEND		"[]="
 
-%token			APPEND		"[]"
-%token			FOLLOW		"->"
-%token			REPEAT		"<->"
+%token			TRY_BEGIN
+%token			TRY_END
+%token			BLOCK_TRY
+%token			MIDDLE_CALL_TRY
+%token			MIDDLE_CALL_BLOCK
+
+
+%token			FOLLOW
+%token			MATCHING
+%token			WHILE
+%token			UNTIL
 
 %token			ARGUMENT		
-%token			CONCAT
 
-%token			CLASS		"@@"
-%token			EXIT		"--"
-%token			EXCEPTION       "##"
-
-//%token			ARGCOUNT        "$#"
-%token			ARGSSTR		"$*"
 
 %token			RANGE           ".."
 %token			ELLIPSIS        "..."
@@ -104,15 +377,16 @@
 %token			ASSIGN_MATH     "Arithmetic assign value"
 
 %token			END         0	"end of file"
+%token			COMMENT
 
 %token                  SOURCE
-%token			ITERATOR
+%token			ITERATOR        "!!"
+%token			ITERATOR_QQ     "??"
 
 %token			TRANSPARENT
 %token			SIMPLE_AND
 %token			SIMPLE_OR
 %token			SIMPLE_XOR
-%token			LAMBDA
 %token			OPERATOR
 
 
@@ -124,106 +398,192 @@
 /* Можно сделать проверку синтаксиса для чистых функций на уровне парсера, но придется делать два варианта основных операций 
  * (кода, выражений, логики и т.д.) только с разрешенными объектами */
 
+/*
+%left '+' '-'
+%left '*' '/'
+%nonassoc ABS NEG
+*/
+
+/* %glr-parser */
+/*
+%right '='  CREATE  CREATE_OR_ASSIGN   APPEND
+%left  '-' '+'
+%left  '*' '/' '%'
+%left  NEG     
+%right CONCAT  POWER    // Exponentiation
+*/
+
+/*%left  '-' '+'
+%left  '*' '/' '%' */
+/*%left  '-' '+'
+%left  NEG */
+
+//%expect 2
+/* () - вызов без аргументов может быть rcall и lcall 
+ * ; - разделители игнорируются в любом количестве
+ */
+
 %% /*** Grammar Rules ***/
 
 
-dim: INTEGER
-        {
-            $$ = $1;
-        }
-    | TERM  '='  INTEGER
-        {
-            $$ = $3;
-            $$->SetName($1->getText());
-        }
-
-dims: dim
-        {
-            $$ = $1;
-        }
-    | dims  ','  dim
-        {
-            $$ = $1;
-            $$->AppendSeq($3);
-//            $$->Last()->Append($3);
-        }
-
-    
-type:  ':'  TERM
-        {
-            $$ = $2;
-        }
-    | ':'  TERM  '['  dims   ']'
-        {
-            $$ = $2; 
-            $$->SetArgs($4);
-        }
-
 /*
-type: type_name
-        {
-            $$ = $1;
-        }
-    | type_name  '['  ']'
-        {
-            $$ = $1;
-            $$->SetTermID(TermID::DICT);
-        }
-    | type_name  '['  ELLIPSIS  ']'
-        {
-            $$ = $1;
-            $$->SetArgs($3);
-            $$->SetTermID(TermID::DICT);
-        }
-    | type_name  '['  dim  ']'
-        {
-            $$ = $1;
-            $$->SetArgs($3);
-            $$->SetTermID(TermID::DICT);
-        }
+comment: COMMENT
+            {
+                $$ = $1;  
+            }
+        | comment  COMMENT
+            {
+                $$ = $1;  
+                $$->AppendSequenceTerm($2);
+            }
 */
 
-digits: INTEGER
+
+/* Фиксированная размерность тензоров для использования в типах данных */
+type_dim: INTEGER
+        {
+            $$ = $1;
+        }
+    |  ELLIPSIS
+        {
+            // Произвольное количество элементов
+            $$ = $1; 
+        }
+/*    | TERM  '='  INTEGER
+        { // torch поддерживает именованные диапазоны, но пока незнаю, нужны ли они?
+            $$ = $3;
+            $$->SetName($1->getText());
+        } */
+
+type_dims: type_dim
+        {
+            $$ = $1;
+        }
+    | type_dims  ','  type_dim
+        {
+            $$ = $1;
+            $$->AppendCommaTerm($3);
+        }
+
+type_class:  ':'  TERM
+            {
+                $$ = $2;
+                $$->m_text.insert(0, ":");
+            }
+
+type_name:  type_class
+            {
+                $$ = $1;
+            }
+        |  type_class   '['  type_dims   ']'
+            {
+                $$ = $1;
+                $$->SetDims($type_dims);
+            }
+        | ':'  '&'  TERM
+            {
+                // Для функций, возвращаюющих ссылки
+                $$ = $3;
+                $$->m_text.insert(0, ":");
+                $$->MakeRef();
+            }
+        | ':'   '&'   TERM   '['  type_dims   ']'
+            {
+                // Для функций, возвращаюющих ссылки
+                $$ = $3;
+                $$->m_text.insert(0, ":");
+                $$->SetDims($type_dims);
+                $$->MakeRef();
+            }
+
+
+type:  type_name
+            {
+                $$ = $1;
+                $$->SetTermID(TermID::TYPE);
+            }
+        | type_name   call
+            {
+                $$ = $1;
+                $$->SetArgs($2);
+                $$->SetTermID(TermID::TYPE_CALL);
+            }
+        | ':'  strtype 
+            {
+                // Если тип еще не определён и/или его ненужно проверять во время компиляции, то имя типа можно взять в кавычки.
+                $$ = $2;
+                $$->SetTermID(TermID::TYPENAME);
+                $$->m_text.insert(0, ":");
+            }
+
+        
+        
+
+digits_literal: INTEGER
             {
                 $$ = $1;
                 $$->SetType(nullptr);
-            }
-        | INTEGER  type
-            {
-                $$ = $1;
-                $$->SetType($2);
             }
          | NUMBER
             {
                 $$ = $1;
                 $$->SetType(nullptr);
             }
-         | NUMBER  type
-            {
-                $$ = $1;
-                $$->SetType($2);
-            }
          | COMPLEX
             {
                 $$ = $1;
                 $$->SetType(nullptr);
-            }
-         | COMPLEX  type
-            {
-                $$ = $1;
-                $$->SetType($2);
             }
          | FRACTION
             {
                 $$ = $1;
                 $$->SetType(nullptr);
             }
-         | FRACTION  type
+        
+digits:  digits_literal
+            {
+                $$ = $1;
+            }
+        | digits_literal  type
             {
                 $$ = $1;
                 $$->SetType($2);
             }
 
+        
+        
+range_val:  rval_name
+        {
+            $$ = $1;  
+        }
+    |  digits
+        {
+            $$ = $1;
+        }
+/*    |  '-'  digits
+        {
+            $$ = $2;
+            $$->m_text.insert(0,"-");
+        } */
+            
+        
+range: range_val  RANGE  range_val
+        {
+            $$ = $2;
+            $$->push_back($1, "start");
+            $$->push_back($3, "stop");
+        }
+    | range_val  RANGE  range_val  RANGE  range_val
+        {
+            $$ = $2;
+            $$->push_back($1, "start");
+            $$->push_back($3, "stop");
+            $$->push_back($5, "step");
+        }
+        
+        
+        
+        
 strtype: STRWIDE
         {
             $$ = $1;
@@ -235,38 +595,22 @@ strtype: STRWIDE
             $$->SetType(nullptr);
         }
 
-strindex:  strtype  '['  ind_args  ']'
-        {
-            $$ = $1; 
-            $2->SetTermID(TermID::INDEX);
-            $2->SetArgs($ind_args);
-            $$->Last()->Append($2);
-        }
-        
 string: strtype
         {
             $$ = $1;
         }
-    | strtype  '('  define_vals  ')'
+    | strtype  call
         {
             $$ = $1;
-            $$->SetArgs($3);
+            $$->SetArgs($2);
         }
-    | strindex
-        {
-            $$ = $1;
-        }
-/*    | STRVAR
-        {
-            $$ = $1;
-        }
-    | STRVAR  '('  define_vals  ')'
-        {
-            $$ = $1;
-            $$->SetArgs($3);
-        }*/
-
-
+   
+/* Незнаю, нужны ли теперь символы? Раньше планировалось с их помощью расширять синтаксис языковых конструкций, 
+ * но это относится к парсеру и не может изменяться динамически в зависимости от наличия существующий объектов и определений.
+ * Если относится к символам как к идентификаторам на других языках, то опять же это лучше делать на уровне лексера и парсера,
+ * чтобы еще при обработке исходников вместо создания неопределнных последовательностьей возникала ошибка времени компиляции,
+ * а не передача отдельных символов как не распознанных терминалов.
+ */
 symbols: SYMBOL
             {
                 $$ = $1;
@@ -299,7 +643,9 @@ namespace:  name_fragment
                 $$->m_namespace.insert(0, "::");
             }
 
-ns_term:  TERM
+        
+/* Допустимые имена переменных и функций. Деструктор с ~ выявляеся на этапе анализа, а не парсинга, т.к. это обычный термин*/
+name:  TERM
             {
                   $$ = $1;
             }
@@ -308,390 +654,299 @@ ns_term:  TERM
                 $$ = $2;  
                 $$->m_namespace.swap($1->m_namespace);
             }
-        |  ns_term  type
-            {
-                $$ = $1;
-                $$->SetType($2);
-            }
-/*
-count:  ARGCOUNT
-            {
-                $$ = $1;
-            }
-       | ARGCOUNT  '(' arg  ')'
-            {
-                $$=$1;
-                $$->push_back($arg, "");
-            }
-*/
-tostr:  ARGSSTR
-            {
-                $$ = $1;
-            }
-       | ARGSSTR  '(' arg  ')'
-            {
-                $$=$1;
-                $$->push_back($arg, "");
-            }
 
-term:   ns_term
+
+        
+/* Допустимые <имена> объеков */
+assign_name:  name
+                {
+                    $$ = $1;
+                }
+            |  symbols
+                {
+                    $$ = $1;  
+                }
+            |  namespace  symbols
+                {
+                    $$ = $2;  
+                    $$->m_namespace.swap($1->m_namespace);
+                }
+            | ARGUMENT  /* $123 */
+                {
+                    $$ = $1;
+                }
+            |  PARENT  /* $$ - rval */
+                {
+                    $$ = $1; 
+                }
+       
+/* Допустимые lvalue объекты */
+lval:  assign_name
             {
                 $$ = $1;
             }
-        | ARGUMENT
+        | '&' assign_name
             {
-                $$ = $1;
+                $$ = $2;
+                $$->MakeRef();
             }
-        | EXIT
-            {
-                $$ = $1;
-            }
-        | tostr
-            {
-                $$ = $1;
-            }
-/*        | count
-            {
-                $$ = $1;
-            }*/
-        |  term  '['  ind_args  ']'
+        /* Не могут быть ссылками*/
+        |  assign_name  '['  args  ']'
             {   
                 $$ = $1; 
                 $2->SetTermID(TermID::INDEX);
-                $2->SetArgs($ind_args);
+                $2->SetArgs($args);
                 $$->Last()->Append($2);
             }
-        |  term  '['  ind_args  ']'  type
-            {   
-                $$ = $1; 
-                $2->SetTermID(TermID::INDEX);
-                $2->SetArgs($ind_args);
-                $$->Last()->Append($2);
-                $$->SetType($5);
-            }
-        |  term  '.'  TERM
+        |  lval  '.'  TERM
             {
                 $$ = $1; 
                 $3->SetTermID(TermID::FIELD);
                 $$->Last()->Append($3);
             }
-      
+        |  lval  '.'  TERM  call
+            {
+                $$ = $1; 
+                $3->SetTermID(TermID::FIELD);
+                $3->SetArgs($call);
+                $$->Last()->Append($3);
+            }
+        |  type
+            {   
+                $$ = $1; 
+            }
+        |  type  type
+            {   
+                $$ = $1; 
+                $$->SetType($2);
+            }
+        |  name  type
+            {   
+                $$ = $1; 
+                $$->SetType($type);
+            }
+        |  name  call
+            {   
+                $$ = $name; 
+                $$->SetTermID(TermID::CALL);
+                $$->SetArgs($call);
+            }
+        |  name  call  type
+            {   
+                $$ = $name; 
+                $$->SetTermID(TermID::CALL);
+                $$->SetArgs($call);
+                $$->SetType($type);
+            }
 
-
-
-ind_arg:  arithmetic
+rval_name: lval
             {
-                $$ = $1;
+                $$ = $1; 
             }
-        | range
+        | NEWLANG  call /* @@ - rval */
             {
-                $$ = $1;
-            }
-        | ELLIPSIS
-            {
-                $$ = $1;
-            }
-
-
-ind_args:  ind_arg
-            {
-                $$ = $1;
-            }
-        | ind_args  ','  ind_arg
-            {
-                $$ = $1;
-                $$->AppendSeq($3);
-//                $$->Last()->Append($3);
-            }
-            
-            
-/* eval возвращает результат выполнения */
-eval:  term  
-            {
-                $$ = $1;  
-            }
-        | func_term  call
-            {
-                $$ = $1;  
+                $$ = $1; 
                 $$->SetTermID(TermID::CALL);
                 $$->SetArgs($2);
             }
-        | term  '.'  TERM  call
+        | ARGS /* $* - rval */
             {
-                $$ = $1; 
-                $3->SetTermID(TermID::FIELD);
-                $3->SetArgs($4);
-                $$->Last()->Append($3);
+                $$ = $1;
             }
-        | iterator
+/*        | GLOBAL  @*  - rval
             {
-                $$ = $1;  
-            }
-        | TERM   '!'
-            {
-                $$ = $2;
-                $$->SetTermID(TermID::ITERATOR);
-                $$->Last()->Append($1, Term::LEFT); 
-            }
+                $$ = $1;
+            } */
 
         
-iter_call:  '?'
+       
+rval_var:  rval_name
             {
-                $$=$1;
+                $$ = $1;
             }
-        | '?'  call
-            {
-                $$=$1;
-                $$->SetArgs($2);
-            }
-        | ITERATOR /* !! ?? */
-            {
-                $$=$1;
-            }
-        | ITERATOR  call
-            {
-                $$=$1;
-                $$->SetArgs($2);
-            }
-          
-
-iterator: eval  iter_call
+        |  rval_name  iter_all
             {
                 $$ = $2;
                 $$->SetTermID(TermID::ITERATOR);
                 $$->Last()->Append($1, Term::LEFT); 
             }
-
-
-call:  '('  ')'
-            {   
+        |  rval_name  iter_all  call
+            {
+                $$ = $2;
+                $$->SetTermID(TermID::ITERATOR);
+                $$->Last()->Append($1, Term::LEFT); 
+                $$->SetArgs($call);
+            }
+        |  string
+            {
                 $$ = $1;
-                $$->clear_();
             }
-        | '('  args  ')'
+        | digits
             {
-                $$ = $2;
+                $$ = $1;
             }
-        | '('  named_args  ')'
+        |  collection
             {
-                $$ = $2;
+                $$ = $1;
             }
-        | '('  args  ','  named_args  ')'
+        |  range
             {
-                $$ = $2;
-                $$->AppendSeq($4);
-//                $$->Last()->Append($4);
+                $$ = $1;
+            }
+        
+        
+        
+rval:   rval_var
+            {
+                $$ = $1;
             }
 
-call_def:  call
-            {   
-                $$ = $call;
-            }
-        | '('  ELLIPSIS  ')'
-            {   
-                $$ = $2;
-            }
-        | '('  args  ','  ELLIPSIS  ')'
-            {
-                $$ = $2;
-                $$->AppendSeq($4);
-//                $$->Last()->Append($4);
-            }
-        | '('  named_args  ','  ELLIPSIS  ')'
-            {
-                $$ = $2;
-                $$->AppendSeq($4);
-//                $$->Last()->Append($4);
-            }
-        | '('  args  ','  named_args  ','  ELLIPSIS  ')'
-            {
-                $$ = $2;
-                $$->AppendSeq($4);
-                $$->AppendSeq($6);
-//                $$->Last()->Append($4);
-//                $$->Last()->Append($6);
-            }
-     
 
+iter_all:  '!'
+            {
+                $$=$1;
+            }
+        | '?'
+            {
+                $$=$1;
+            }
+        | ITERATOR
+            {
+                $$=$1;
+            }
+        | ITERATOR_QQ
+            {
+                $$=$1;
+                $$->SetTermID(TermID::ITERATOR);
+            }
        
-args: arg
-        {
-            $$ = $1;
-        }
-    | args  ','  arg
-        {
-            $$ = $1;
-            $$->AppendSeq($3);
-//            $$->Last()->Append($3); // Link args form right side
-        }
 
+/*
+ * Порядок аргументов проверяется не на уровне парсера, а при анализе объекта, поэтому 
+ * в парсере именованные и не именованные аргуметы могут идти в любом порядке и в любом месте.
+ * 
+ * Но различаются аругменты с левой и правой стороны от оператора присвоения!
+ * С левой стороны в скобках указывается прототип функции, где у каждого аргумента должно быть имя, может быть указан тип данных 
+ * и признак ссылки, а последним оператором может быть многоточие (т.е. произвольное кол-во аргументов).
+ * С правой стороны в скобках происходит вызов функции (для функции, которая возвращает ссылку, перед именем "&" не ставится),
+ * а перед аргументами может стоять многоточие или два (т.е. операторы раскрытия словаря).
+ * 
+ * <Но все это анализирутся тоже после парсера на уровне компилятора/интерпретатора!>
+ * 
+ */
+        
     
-arg: rval
-        {
-            $$ = $1;
-        }
-/*    | arithmetic
-        {
-            $$ = $1;
-        }
-    |  logical
-        {
-            $$ = $1;
-        }*/
-    |  collection_all
-        {
-            $$ = $1;
-        }
-    | '&'  TERM
-        {
+
+/* Аргументом может быть что угодно */
+arg: name  '='
+        {  // Именованный аргумент
             $$ = $2;
-            $$->MakeRef();
+            $$->m_name.swap($1->m_text);
+            $$->SetTermID(TermID::EMPTY);
         }
-    |  TERM  type
+    | name  type  '='
+        { // Именованный аргумент
+            $$ = $3;
+            $$->SetType($type);
+            $$->m_name.swap($1->m_text);
+            $$->SetTermID(TermID::EMPTY);
+        }
+    | name  '='  rval
+        { // Именованный аргумент
+            $$ = $rval;
+            $$->SetName($1->getText());
+        }
+    | name  type  '='  rval
+        { // Именованный аргумент
+            $$ = $rval;
+            $$->SetType($type);
+            $$->SetName($1->getText());
+        }
+    | rval
         {
+            // сюда попадают и именованные аргументы как операция присвоения значения
             $$ = $1;
-            $$->SetType($2);
         }
-    |  '&'  TERM  type
-        {
-            $$ = $2;
-            $$->SetType($3);
-            $$->MakeRef();
-        }
-    |  ELLIPSIS  ELLIPSIS  term
-        {
-            // Раскрыть элементы словаря в последовательность ИМЕНОВАННЫХ параметров
-            $$ = $2;
-            $$->Append($1, Term::LEFT); 
-            $$->Append($3, Term::RIGHT); 
-        }
-    |  ELLIPSIS  term  
+    |  ELLIPSIS
         {
             // Раскрыть элементы словаря в последовательность не именованных параметров
             $$ = $1; 
-            $$->Append($2);
         }
-    |  lambda
+    |  ELLIPSIS  rval
         {
-            $$ = $1;
+            // Раскрыть элементы словаря в последовательность не именованных параметров
+            $$ = $1; 
+            $$->Append($rval, Term::RIGHT);
         }
-/*    | TERM   '!'
-        {
+    |  ELLIPSIS  ELLIPSIS  rval
+       {            
+            // Раскрыть элементы словаря в последовательность ИМЕНОВАННЫХ параметров
             $$ = $2;
-            $$->SetTermID(TermID::ITERATOR);
-            $$->Last()->Append($1, Term::LEFT); 
+            $$->Append($1, Term::LEFT); 
+            $$->Append($rval, Term::RIGHT); 
         }
-*/
+    |  ELLIPSIS  rval  ELLIPSIS
+       {            
+            // Заполнить данные значением
+            $$ = $1;
+            $$->SetTermID(TermID::FILLING);
+            $$->Append($rval, Term::RIGHT); 
+        }
+
+args: arg
+            {
+                $$ = $1;
+            }
+        | args  ','  arg
+            {
+                $$ = $1;
+                $$->AppendCommaTerm($3);
+            }
         
-   
-lambda: '('  ')' '{'  '}'
-        {
-            $$ = $1;
-            $$->m_text.clear();
-            $$->SetTermID(TermID::LAMBDA);
-        }
-    | '('  ')' LAMBDA '{'  '}'
-        {
-            $$ = $3;
-        }
-    | '(' define_vals ')' LAMBDA '{'  '}'
-        {
-            $$ = $4;
-            $$->SetArgs($2);
-        }
-    | '(' ')' LAMBDA '{'  simple_seq  '}'
-        {
-            $$ = $3;
-            $$->Append($simple_seq, Term::RIGHT);
-        }
-    | '(' define_vals ')' LAMBDA '{'  simple_seq  '}'
-        {
-            $$ = $4;
-            $$->SetArgs($2);
-            $$->Append($simple_seq, Term::RIGHT);
-        }
-    | '('  ')'  type  '{'  '}'
-        {
-            $$ = $1;
-            $$->m_text.clear();
-            $$->SetTermID(TermID::LAMBDA);
-            $$->SetType($3);
-        }
-    
-
-named_args: named_arg
-                {
-                    $$ = $1;
-                }
-            | named_args  ','  named_arg
-                {
-                    $$ = $1;
-                    $$->AppendSeq($3);
-//                    $$->Last()->Append($3);
-                }
-
-named_arg:  TERM  '='
-                {
-                    $$ = $1;
-                    $1->m_text.swap($1->m_name);
-//                    $$->SetName($1->getText());
-                }
-            | TERM  '='  arg
-                {
-                    $$ = $3;
-                    $$->SetName($1->getText());
-                }
-            |  TERM  type  '='  arg
-                {
-                    $$ = $4;
-                    $$->SetName($1->getText());
-                    $$->SetType($2);
-                }
-           
-           
+        
+call:  '('  ')'
+            {   
+                $$ = $1;
+                $$->SetTermID(TermID::END);
+            }
+        | '('  args   ')'
+            {
+                $$ = $2;
+            }
+        
+        
 array: '['  args  ','  ']'
             {
                 $$ = $1;
                 $$->m_text.clear();
                 $$->SetTermID(TermID::TENSOR);
-                $$->SetArgs($2);
+                $$->SetArgs($args);
             }
-        | '['  args  ','  ']'  ':'  TERM
+        | '['  args  ','  ']'  type
             {
                 $$ = $1;
                 $$->m_text.clear();
                 $$->SetTermID(TermID::TENSOR);
-                $$->SetArgs($2);
-                $$->SetType($6);
+                $$->SetArgs($args);
+                $$->SetType($type);
             }
-        
-define_val: arg
+        | '['  ','  ']'  type
             {
+                // Не инициализированый тензор должен быть с конкретным типом 
                 $$ = $1;
-            }
-        | named_arg
-            {
-                $$ = $1;
+                $$->m_text.clear();
+                $$->SetTermID(TermID::TENSOR);
+                $$->SetType($type);
             }
 
-define_vals: define_val
-                {
-                    $$ = $1;
-                }
-            |  define_vals  ','  define_val
-                {
-                    $$ = $1;
-                    $$->AppendSeq($3);
-//                    $$->Last()->Append($3);
-                }
-
+            
 dictionary: '('  ','  ')'
             {
                 $$ = $1;
                 $$->m_text.clear();
                 $$->SetTermID(TermID::DICT);
             }
-        | '('  define_vals  ','  ')'
+        | '('  args  ','  ')'
             {
                 $$ = $1;
                 $$->m_text.clear();
@@ -699,42 +954,20 @@ dictionary: '('  ','  ')'
                 $$->SetArgs($2);
             }
 
-        
-class_no_type: '('  ')'
-            {
-                $$ = $1;
-                $$->m_text.clear();
-                $$->SetTermID(TermID::CLASS);
-            }
-        | '('  define_vals  ')'
-            {
-                $$ = $1;
-                $$->m_text.clear();
-                $$->SetTermID(TermID::CLASS);
-                $$->SetArgs($2);
-            }
 
-
-class:  class_no_type
+class:  dictionary
             {
                 $$ = $1;
             }
-        | class_no_type ':'  term
+        | dictionary   type_class
             {
                 $$ = $1;
-                $$->m_class_name.swap($3->m_text);
+                $$->m_text = $type_class->m_text;
+                $$->m_class_name = $type_class->m_text;
             }
-
+            
+           
 collection: array 
-            {
-                $$ = $1;
-            }
-        | dictionary
-            {
-                $$ = $1;
-            }
-        
-collection_all: collection        
             {
                 $$ = $1;
             }
@@ -742,56 +975,17 @@ collection_all: collection
             {
                 $$ = $1;
             }
-        
 
-lval_item:  term
-            {
-                $$ = $1;
-            }
-        |  TERM  type
-            {
-                $$ = $1;
-                $$->SetType($2);
-            }
-        |  ELLIPSIS
-            {
-                $$ = $1;
-            }
-        
 
-lval:  lval_item
+      
+           
+assign_op:  /* '='  
             {
-                $$ = $1;
-            }
-        | lval  ','  lval_item
-            {
-                $$ = $1;
-                $$->AppendSeq($3);
-//                $$->Last()->Append($3);
-            }
-
-/*
-append:  APPEND  CREATE
-            {
-                // Append a new item to the array (:=)
-                $$ = $2;
-                $$->SetTermID(TermID::APPEND);
-            }
-        |  APPEND  '.'  TERM  CREATE 
-            {
-                // Append a new named item to the dictionary (:=)
-                $$ = $4;
-                $$->SetTermID(TermID::APPEND);
-                $$->m_name.assign($3->getText());
-            }
-*/       
-            
-assign:  '='  /* ASSIGN */
-            {
+                // ASSIGN
                 $$ = $1;
                 $$->SetTermID(TermID::ASSIGN);
             }
-        | CREATE_OR_ASSIGN /* := */
+        | */ CREATE_OR_ASSIGN /* := */
             {
                 $$ = $1;
             }
@@ -803,255 +997,88 @@ assign:  '='  /* ASSIGN */
             {
                 $$ = $1;
             }
-
-assign_val: assign 
+        | TRANSPARENT /* ::- :- */
             {
-                $$=$1;
+                $$ = $1;
             }
 
-assign_local:  lval  assign   /* REMOVE  value */
-            {
-                $$ = $2;  
-                $$->Append($1, Term::LEFT); 
-            }
-        |  lval  assign_val  rval
-            {
-                $$ = $2;  
-                $$->Append($1, Term::LEFT); 
-                $$->Append($3, Term::RIGHT); 
-            }
-        |  type  assign_val  type
-            {
-                $1->SetType($1);
-                $1->m_text.insert(0, ":");
-                $1->m_type_name.insert(0, ":");
 
-                $3->SetType($3);
-                $3->m_text.insert(0, ":");
-                $3->m_type_name.insert(0, ":");
-
-                $$ = $2;  
-                $$->Append($1, Term::LEFT); 
-                $$->Append($3, Term::RIGHT); 
-            }
-        |  type  assign_val  dictionary
-            {
-                $1->SetType($1);
-                $1->m_text.insert(0, ":");
-                $1->m_type_name.insert(0, ":");
-
-                $3->SetType($3);
-
-                $$ = $2;  
-                $$->Append($1, Term::LEFT); 
-                $$->Append($3, Term::RIGHT); 
-            }
-
-        |  type  assign_val  class
-            {
-                $1->SetType($1);
-                $1->m_text.insert(0, ":");
-                $1->m_type_name.insert(0, ":");
-
-                $3->SetType($3);
-
-                $$ = $2;  
-                $$->Append($1, Term::LEFT); 
-                $$->Append($3, Term::RIGHT); 
-            }
-        |  type  assign_val  func_term  call
-            {
-                $1->SetType($1);
-                $1->m_text.insert(0, ":");
-                $1->m_type_name.insert(0, ":");
-
-                $3->SetTermID(TermID::CALL);
-                $3->SetArgs($4);
-
-                $$ = $2;  
-                $$->Append($1, Term::LEFT); 
-                $$->Append($3, Term::RIGHT); 
-            }
-        |  type  assign_val  ':' func_term  call
-            {
-                $1->SetType($1);
-                $1->m_text.insert(0, ":");
-                $1->m_type_name.insert(0, ":");
-
-                $4->SetType($4);
-                $4->m_text.insert(0, ":");
-                $4->m_type_name.insert(0, ":");
-                $4->SetTermID(TermID::CALL);
-                $4->SetArgs($5);
-
-                $$ = $2;  
-                $$->Append($1, Term::LEFT); 
-                $$->Append($4, Term::RIGHT); 
-            }
-/*        | lval  assign_val  arithmetic
-            {
-                $$ = $2;  
-                $$->Append($1, Term::LEFT); 
-                $$->Append($3, Term::RIGHT); 
-            }
-        | lval  assign_val  logical
-            {
-                $$ = $2;  
-                $$->Append($1, Term::LEFT); 
-                $$->Append($3, Term::RIGHT); 
-            }*/
-        | lval  assign_val  collection_all
-            {
-                $$ = $2;  
-                $$->Append($1, Term::LEFT); 
-                $$->Append($3, Term::RIGHT); 
-            }
-/*        | lval  assign_val  class
-            {
-                $$ = $2;  
-                $$->Append($1, Term::LEFT); 
-                $$->Append($3, Term::RIGHT); 
-            }*/
-/*        | lval  assign_val  class_name
-            {
-                $$ = $2;  
-                $$->Append($1, Term::LEFT); 
-                $$->Append($3, Term::RIGHT); 
-            } */
-/*        | lval  assign_val  tensor
-            {
-                $$ = $2;  
-                $$->Append($1, Term::LEFT); 
-                $$->Append($3, Term::RIGHT); 
-            } */
-        | lval  assign_val  lambda
-            {
-                $$ = $2;  
-                $$->Append($1, Term::LEFT); 
-                $$->Append($3, Term::RIGHT); 
-            }
-        | lval  CREATE  iter_call
-            {
-                $$ = $2;  
-                $$->Append($1, Term::LEFT); 
-                $$->Append($3, Term::RIGHT); 
-            }
-/*        | lval  SESSION  iter_call
-            {
-                $$ = $2;  
-                $$->Append($1, Term::LEFT); 
-                $$->Append($3, Term::RIGHT); 
-            }*/
-            | function
+assign_expr:  block
                 {
                     $$ = $1;  
                 }
-            | simple_func
+            | condition
                 {
                     $$ = $1;  
                 }
-        
-assign_global: assign_local
+            | ELLIPSIS  rval
+                {
+                    $$ = $1;  
+                    $$->Append($rval, Term::RIGHT); 
+                }
+
+
+assign_item:  lval
                 {
                     $$ = $1;
                 }
-        
-       
-func_term: ns_term
-            {
-                $$ = $1;
-            }
-        |  symbols
-            {
-                $$ = $1;
-            }        
-        |  namespace  symbols
-            {
-                $$ = $1;
-                $$->m_text = $2->m_text;
-            }        
+            |  ELLIPSIS
+                {
+                    $$ = $1;
+                }
 
-        
-func_name:  func_term  call_def
-            {
-                $$ = $1;  
-                $$->SetArgs($2);
-                $$->SetTermID(TermID::CALL);
-            }
-        |  func_term   call_def  type
-            {
-                $$ = $1;  
-                $$->SetArgs($2);
-                $$->SetTermID(TermID::CALL);
-                $$->SetType($3);
-            }
-
-        
-        
-function: func_name  assign  exec_src
-            {
-                $$ = $2;  
-                $$->Append($1, Term::LEFT); 
-                $$->Append($3, Term::RIGHT);
-                $$->SetTermID(TermID::FUNCTION);
-            }
-        | func_name  TRANSPARENT  exec_src
-            {
-                $$ = $2;  
-                $$->Append($1, Term::LEFT); 
-                $$->Append($3, Term::RIGHT);
-            }
-        | func_name  assign  '{'  '}'
-            {
-                $$ = $2;  
-                $$->Append($1, Term::LEFT); 
-                $3->clear_();
-                $$->Append($3, Term::RIGHT);
-            }
-        | func_name  TRANSPARENT  '{'  '}'
-            {
-                $$ = $2;  
-                $$->Append($1, Term::LEFT); 
-                $3->clear_();
-                $$->Append($3, Term::RIGHT);
-            }
-/*        |  func_name  func_def   call_def   '{'  source  '}'
-            {
-                $$ = $2;  
-                $$->SetTermID(TermID::FUNCTION);
-                $$->Append($1, Term::LEFT); 
-                
-                $source->SetArgs($call);
-                $$->Append($source, Term::RIGHT);
-            }
+assign_seq: assign_item
+                {
+                    $$ = $1;
+                }
+            |  assign_seq  ','  assign_item
+                {
+                    $$ = $1;
+                    $$->AppendCommaTerm($3);
+                }
+/*
+lval = rval;
+lval, lval, lval = rval;
+func() = rval;
+func() = simple, simple, simple;
 */
+assign:  assign_seq  assign_op  assign_expr
+            {
+                $$ = $2;  
+                $$->Append($1, Term::LEFT); 
+                $$->Append($3, Term::RIGHT); 
+            }
+        | assign_seq  '='  assign_expr
+            {
+                $$ = $2;  
+                $$->SetTermID(TermID::ASSIGN);
+                $$->Append($1, Term::LEFT); 
+                $$->Append($3, Term::RIGHT); 
+            }
 
+        
+body:   rval
+            {
+                $$ = $1;
+            }
+        |  block
+            {
+                $$ = $1;
+            }
 
-simple_item:  logical
+        
+simple_seq:  condition
                 {
                     $$ = $1;
                 }
-            | assign_local
+            | simple_seq ',' condition
                 {
                     $$ = $1;
-                }
-            | arithmetic
-                {
-                    $$ = $1;
-                }
-
-simple_seq:  simple_item
-                {
-                    $$ = $1;
-                }
-            | simple_seq ',' simple_item
-                {
-                    $$ = $1;
-                    // Несколько команд подряд
-                    $$->BlockCodeAppend($3); 
-//                    $$->push_back($3);
+                    // Несколько условий подряд
+                    $$->AppendSequenceTerm($3);
                 }
 
+            
 simple: SIMPLE_AND
         {
             $$ = $1;
@@ -1064,30 +1091,177 @@ simple: SIMPLE_AND
         {
             $$ = $1;
         }
-            
-simple_func: func_name  simple  simple_seq
+
+/* Допустимые <имена> функций. Они тоже могут возвращать ссылки на объекты, но тип взвращаемого значения стоит после аргументов */    
+simple_func:  lval  simple  simple_seq
         {
             $$ = $2;  
             $$->Append($1, Term::LEFT); 
+            
+            $3->ConvertSequenceToBlock(TermID::BLOCK, false);
             $$->Append($3, Term::RIGHT);
         }
-            
-            
-    
+         
 
-arithmetic: arithmetic '+' addition 
+block:  '{'  '}'
+            {
+                $$ = $1; 
+                $$->SetTermID(TermID::BLOCK);
+            }
+        | '{'  sequence  '}'
+            {
+                $$ = $2; 
+                $$->ConvertSequenceToBlock(TermID::BLOCK);
+            }
+        | '{'  sequence  separator  '}'
+            {
+                $$ = $2; 
+                $$->ConvertSequenceToBlock(TermID::BLOCK);
+            }
+        | TRY_BEGIN  TRY_END  type_class
+            {
+                $$ = $1; 
+                $$->ConvertSequenceToBlock(TermID::BLOCK_TRY);
+                $$->SetType($type_class);
+            }
+        | TRY_BEGIN  sequence  TRY_END
+            {
+                $$ = $2; 
+                $$->ConvertSequenceToBlock(TermID::BLOCK_TRY);
+            }
+        | TRY_BEGIN  sequence  separator  TRY_END
+            {
+                $$ = $2; 
+                $$->ConvertSequenceToBlock(TermID::BLOCK_TRY);
+            }
+        | TRY_BEGIN  sequence  TRY_END  type_class
+            {
+                $$ = $2; 
+                $$->ConvertSequenceToBlock(TermID::BLOCK_TRY);
+                $$->SetType($type_class);
+            }
+        | TRY_BEGIN  sequence  separator  TRY_END  type_class
+            {
+                $$ = $2; 
+                $$->ConvertSequenceToBlock(TermID::BLOCK_TRY);
+                $$->SetType($type_class);
+            }
+
+block_call:  '('  MIDDLE_CALL_BLOCK  sequence  '}' 
+            {
+                $$ = $sequence; 
+                $$->ConvertSequenceToBlock(TermID::CALL_BLOCK);
+            }
+        | '('  MIDDLE_CALL_BLOCK  sequence  separator '}' 
+            {
+                $$ = $sequence; 
+                $$->ConvertSequenceToBlock(TermID::CALL_BLOCK);
+            }
+        |  '('  args  MIDDLE_CALL_BLOCK  sequence  '}'
+            {
+                $$ = $sequence; 
+                $$->SetArgs($args);
+                $$->ConvertSequenceToBlock(TermID::CALL_BLOCK);
+            }
+        | '('  args  MIDDLE_CALL_BLOCK  sequence  separator  '}'
+            {
+                $$ = $sequence; 
+                $$->SetArgs($args);
+                $$->ConvertSequenceToBlock(TermID::CALL_BLOCK);
+            }
+        | '('  MIDDLE_CALL_TRY  sequence  TRY_END
+            {
+                $$ = $sequence; 
+                $$->ConvertSequenceToBlock(TermID::CALL_TRY);
+            }
+        | '('  MIDDLE_CALL_TRY  sequence  TRY_END  type_class
+            {
+                $$ = $sequence; 
+                $$->ConvertSequenceToBlock(TermID::CALL_TRY);
+                $$->m_class_name = $type_class->m_text;
+            }
+        | '('  MIDDLE_CALL_TRY  sequence  separator  TRY_END
+            {
+                $$ = $sequence; 
+                $$->ConvertSequenceToBlock(TermID::CALL_TRY);
+            }
+        | '('  MIDDLE_CALL_TRY  sequence  separator  TRY_END  type_class
+            {
+                $$ = $sequence; 
+                $$->ConvertSequenceToBlock(TermID::CALL_TRY);
+                $$->m_class_name = $type_class->m_text;
+            }
+        | '('  args  MIDDLE_CALL_TRY  sequence  TRY_END
+            {
+                $$ = $sequence; 
+                $$->SetArgs($args);
+                $$->ConvertSequenceToBlock(TermID::CALL_TRY);
+            }
+        | '('  args  MIDDLE_CALL_TRY  sequence  TRY_END  type_class
+            {
+                $$ = $sequence; 
+                $$->SetArgs($args);
+                $$->ConvertSequenceToBlock(TermID::CALL_TRY);
+                $$->m_class_name = $type_class->m_text;
+            }
+        | '('  args  MIDDLE_CALL_TRY  sequence  separator  TRY_END
+            {
+                $$ = $sequence; 
+                $$->SetArgs($args);
+                $$->ConvertSequenceToBlock(TermID::CALL_TRY);
+            }
+        | '('  args  MIDDLE_CALL_TRY  sequence  separator  TRY_END  type_class
+            {
+                $$ = $sequence; 
+                $$->SetArgs($args);
+                $$->ConvertSequenceToBlock(TermID::CALL_TRY);
+                $$->m_class_name = $type_class->m_text;
+            }
+
+        
+
+/* 
+ * lvalue - объект в памяти, которому может быть присовено значение (может быть ссылкой и/или константой)
+ * rvalue - объект, которому <НЕ> может быть присвоено значение (литерал, итератор, вызов функции)
+ * Все lvalue могут быть преобразованы в rvalue. 
+ * eval - rvalue или операция с rvalue. Возвращает результат выполнения <ОДНОЙ операции !!!!!!!>
+ * 
+ * Операции присвоения используют lvalue, многоточие или определение функций
+ * Алгоритмы используют eval или блок кода (у matching)
+ */
+
+operator: OPERATOR
+            {
+                $$ = $1;
+            }
+        | '~'
+            {
+                $$ = $1;
+                $$->SetTermID(TermID::OPERATOR);
+            }
+
+
+arithmetic:  addition
+                { 
+                    $$ = $1; 
+                }
+            |  arithmetic '+' addition
                 { 
                     $$ = $2;
                     $$->SetTermID(TermID::OPERATOR);
                     $$->Append($1, Term::LEFT);                    
                     $$->Append($3, Term::RIGHT); 
                 }
-            | arithmetic '-' addition 
+            | arithmetic '-'  addition
                 { 
                     $$ = $2;
                     $$->SetTermID(TermID::OPERATOR);
                     $$->Append($1, Term::LEFT);                    
                     $$->Append($3, Term::RIGHT); 
+                }
+            | '-'  addition /*  %prec NEG */
+                { 
+                    $$ = $2; 
                 }
             |  digits   digits
                 {
@@ -1097,10 +1271,6 @@ arithmetic: arithmetic '+' addition
                     $2->m_text = $2->m_text.substr(1);
                     $$->Append($2, Term::RIGHT); 
                 }
-            | addition
-                { 
-                    $$ = $1; 
-                }
 
 
 op_factor: '*'
@@ -1108,6 +1278,10 @@ op_factor: '*'
                 $$ = $1;
             }
         |  '/'
+            {
+                $$ = $1;
+            }
+        |  OPERATOR_DIV
             {
                 $$ = $1;
             }
@@ -1123,7 +1297,12 @@ addition:   addition  op_factor  factor
                     $$->Append($1, Term::LEFT); 
                     $$->Append($3, Term::RIGHT); 
                 }
-            |  digits  digits  op_factor  factor 
+/*            | '-'  addition  %prec NEG
+                { 
+                    $$ = $2; 
+                } */
+    
+/*            |  digits  digits  op_factor  factor 
                 {
 #warning PRIORITET OP
                     //@todo location
@@ -1136,7 +1315,7 @@ addition:   addition  op_factor  factor
                     $$->SetTermID(TermID::OPERATOR);
                     $$->Append(temp, Term::LEFT); 
                     $$->Append($4, Term::RIGHT); 
-                }
+                } */
             |  sfactor
                 { 
                     $$ = $1; 
@@ -1147,161 +1326,22 @@ sfactor: factor
             { 
                 $$ = $1; 
             }
-/*        | '(' factor ')'
+
+factor:   rval_var
+            {
+                $$ = $1; 
+            }
+        | '('  arithmetic  ')'
             { 
                 $$ = $2; 
-            }*/
-/*        | '-' factor
-            {
-                $$ = $1;
-                $$->SetTermID(TermID::OPERATOR);
-                $$->Append($2, Term::RIGHT); 
             }
-        | '+' factor
-            {
-                $$ = $2;
-            }
-*/        
-
-factor:   digits
-            {
-                $$ = $1; 
-            }
-        |  eval
-            {
-                $$ = $1; 
-            }
-/*        | '('  arithmetic  ')'
+/*        | '-'  rval   %prec  NEG
             {
                 $$ = $2; 
-            }
-*/        
+            } */
 
-str_op: string
-        {
-            $$ = $1;
-        }
-/*    | string CONCAT string
-        {
-            $$ = $2;
-            $$->SetTermID(TermID::CONCAT);
-            $$->Append($1, Term::LEFT); 
-            $$->Append($3, Term::RIGHT); 
-        } */
-    | rval CONCAT rval
-        {
-            $$ = $2;
-            $$->SetTermID(TermID::CONCAT);
-            $$->Append($1, Term::LEFT); 
-            $$->Append($3, Term::RIGHT); 
-        }
-    | string  POWER  INTEGER
-        {
-            $$ = $2;
-            $$->SetTermID(TermID::OPERATOR);
-            $$->Append($1, Term::LEFT); 
-            $$->Append($3, Term::RIGHT); 
-        }
-    
-rval:  str_op
-        {
-            $$ = $1;
-        }
-    |  arithmetic
-        {
-            $$ = $1;
-        }
-    |  logical
-        {
-            $$ = $1;
-        }
-    |  collection_all
-        {
-            $$ = $1;
-        }
-    | TENSOR_BEGIN   rval  TENSOR_END
-        {
-            $$ = $1;
-            $$->Append($2, Term::LEFT); 
-        }
-    | TENSOR_BEGIN   rval  TENSOR_END  type
-        {
-            $$ = $1;
-            $$->SetType($4);
-            $$->Append($2, Term::LEFT); 
-        }
-    | TENSOR_BEGIN   rval  ELLIPSIS TENSOR_END
-        {
-            $$ = $1;
-            $$->Append($2, Term::LEFT); 
-            $$->Append($3, Term::RIGHT); 
-        }
-    | TENSOR_BEGIN   rval  ELLIPSIS TENSOR_END  type
-        {
-            $$ = $1;
-            $$->SetType($type);
-            $$->Append($2, Term::LEFT); 
-            $$->Append($3, Term::RIGHT); 
-        }
-    | TENSOR_BEGIN   range  TENSOR_END
-        {
-            $$ = $1;
-            $$->Append($2, Term::LEFT); 
-        }
-    | TENSOR_BEGIN   range  TENSOR_END  type
-        {
-            $$ = $1;
-            $$->SetType($type);
-            $$->Append($2, Term::LEFT); 
-        }
-
-    
-    
-operator: OPERATOR
-            {
-                $$ = $1;
-            }
-        | POWER
-            {
-                $$ = $1;
-            }
-        
-logical: rval operator rval
-        {
-            $$ = $2;
-            $$->Append($1, Term::LEFT); 
-            $$->Append($3, Term::RIGHT); 
-        }
-    | rval  LAMBDA  rval /* && || ^^ */
-        {
-            $$ = $2;
-            $$->SetTermID(TermID::OPERATOR);
-            $$->Append($1, Term::LEFT); 
-            $$->Append($3, Term::RIGHT); 
-        }
-    | rval  '~'  rval
-        {
-            $$ = $2;
-            $$->SetTermID(TermID::OPERATOR);
-            $$->Append($1, Term::LEFT); 
-            $$->Append($3, Term::RIGHT); 
-        }
-/*    | rval  operator  collection_all
-        {
-            $$ = $2;
-            $$->SetTermID(TermID::OPERATOR);
-            $$->Append($1, Term::LEFT); 
-            $$->Append($3, Term::RIGHT); 
-        }
-    | rval  '~'  collection_all
-        {
-            $$ = $2;
-            $$->SetTermID(TermID::OPERATOR);
-            $$->Append($1, Term::LEFT); 
-            $$->Append($3, Term::RIGHT); 
-        }
-*/
-
+       
+   
 source: SOURCE
             {
                 $$=$1;
@@ -1311,255 +1351,203 @@ source: SOURCE
                 $$=$1;
                 $$->Last()->Append($2); 
             }
-
-end:  ';'  | END
-
-
-expression: source
-            {
-                $$=$1;
-            }
-        | source  ';'
-            {
-                $$=$1;
-            }
-        | follow
-            {
-                $$ = $1; 
-            }
-        | follow  ';'
-            {
-                $$ = $1; 
-            }
-        |  eval   end
-            {
-                $$=$1;
-            }
-        |  arg   end
-            {
-                $$=$1;
-            }
-        | range  end
-            {
-                $$=$1;
-            }
-        | repeat  end
-            {
-                $$ = $1; 
-            }
-        |  assign_global  end
-            {
-                $$=$1;
-            }
-        | EXIT  end
-            {
-                $$=$1;
-            }
-/*        | count  end
-            {
-                $$=$1;
-            }*/
-
-/*       
-exit: EXIT   
-        {
-            $$=$1;
-        }
-    | RETURN  arg
-        {
-            $$=$1;
-            $$->Append($2, Term::RIGHT); 
-        }
-*/
         
+condition: source
+            {
+                $$=$1;
+            }
+        | logical
+            {
+                $$ = $1;
+            }
+
+        
+logical:  arithmetic
+            {
+                    $$ = $1;
+            }
+        |  arithmetic operator arithmetic
+            {
+                $$ = $2;
+                $$->Append($1, Term::LEFT); 
+                $$->Append($3, Term::RIGHT); 
+            }
+        
+        
+
+        
+match_cond: '['   condition   ']' 
+            {
+                $$ = $condition;
+            }
+
+if_then:  match_cond  FOLLOW  body
+            {
+                $$=$2;
+                $$->Append($1, Term::LEFT); 
+                $$->Append($3, Term::RIGHT); 
+            }
+
 follow: if_then
             {
                 $$ = $1; 
                 $$->AppendFollow($1);
             }
-        | if_then  FOLLOW  exec_src
-            {
-                // final else
-                $$ = $1; 
-                $2->Append($3, Term::RIGHT); 
-                $$->AppendFollow($1);
-                $$->AppendFollow($2);
-            }
-        | if_then  follow
+        | follow  ','  if_then
             {
                 $$ = $1; 
-                $$->m_follow.swap($2->m_follow);
-                $$->InsertFollow($1);
-            }
-
-cond: logical
-        {
-            $$ = $1;
-        }
-    | arithmetic
-        {
-            $$ = $1;
-        }
-            
-        
-if_then:  cond  FOLLOW  exec_src
-            {
-                $$=$2;
-                $$->Append($1, Term::LEFT); 
-                $$->Append($3, Term::RIGHT); 
-            }
-        |  '[' cond ']'  FOLLOW  exec_src
-            {
-                $$=$4;
-                $$->Append($2, Term::LEFT); 
-                $$->Append($5, Term::RIGHT); 
-            }
-
-range_val:  eval 
-        {
-            $$ = $1;  
-        }
-    |  digits
-        {
-            $$ = $1;  
-        }
-    |  '-'  digits
-        {
-            $$ = $2;
-            $$->m_text.insert(0,"-");
-        }
-            
-        
-range: range_val  RANGE  range_val
-        {
-            $$ = $2;
-            $$->push_back($1, "start");
-            $$->push_back($3, "stop");
-        }
-    | range_val  RANGE  range_val  RANGE  range_val
-        {
-            $$ = $2;
-            $$->push_back($1, "start");
-            $$->push_back($3, "stop");
-            $$->push_back($5, "step");
-        }
-        
-rep_item:  eval
-            {
-                $$=$1;
-            }
-        | eval  '!'
-            {
-                $$=$2;
-                $$->SetTermID(TermID::ITERATOR);
-                $$->Last()->Append($1, Term::LEFT); 
-            }
-        | TERM  '='  eval
-            {
-                $$ = $2;
-                $$->SetTermID(TermID::ASSIGN);
-                $$->Append($1, Term::LEFT); 
-                $$->Append($3, Term::RIGHT); 
-            }
-        | TERM  '='  eval  '!'
-            {
-                $$ = $2;
-                $$->SetTermID(TermID::ASSIGN);
-                $$->Append($1, Term::LEFT); 
-                
-                $4->SetTermID(TermID::ITERATOR);
-                $4->Last()->Append($3, Term::LEFT); 
-                $$->Append($4, Term::RIGHT); 
-            }
-        | range
-            {
-                $$=$1;
-            }
-        |  TERM  '='  range
-            {
-                $$ = $2;  
-                $$->SetTermID(TermID::ASSIGN);
-                $$->Append($1, Term::LEFT); 
-                $$->Append($3, Term::RIGHT); 
-            }
-        
-repeat_counter:  rep_item
-            {
-                $$=$1;
-                $$->AppendFollow($1);
-                
-            }
-        | repeat_counter  ';'  rep_item
-            {
-                $$=$1;
                 $$->AppendFollow($3);
             }
-            
-repeat:  cond  REPEAT  exec_src
+        
+   
+repeat: match_cond  WHILE  body
             {
                 $$=$2;
-                $$->Append($1, Term::LEFT); 
-                $$->Append($3, Term::RIGHT); 
+                $$->Append($match_cond, Term::LEFT); 
+                $$->Append($body, Term::RIGHT); 
             }
-        | '[' cond ']'  REPEAT  exec_src
+        |  body  UNTIL  match_cond
+            {
+                $$=$2;
+                $$->Append($body, Term::LEFT); 
+                $$->Append($match_cond, Term::RIGHT); 
+            }
+
+matches:  rval_name
+            {
+                $$=$1;
+            }
+        |  matches  ','  rval_var
+            {
+                $$ = $1;
+                $$->AppendFollow($3);
+            }        
+        
+match_item: '[' matches  ']' FOLLOW  body
             {
                 $$=$4;
                 $$->Append($2, Term::LEFT); 
                 $$->Append($5, Term::RIGHT); 
             }
-        | '[' cond ']'  '?'  REPEAT  exec_src
+
+match_items:  match_item
             {
-                $$=$5;
-                $4->AppendFollow($2);
-                $4->SetTermID(TermID::ITERATOR);
-                $$->Append($4, Term::LEFT); 
-                $$->Append($6, Term::RIGHT); 
+                $$ = $1;
             }
-        | '[' repeat_counter ']'  '?'  REPEAT  exec_src
+        | match_items  ';'  match_item
             {
-                $$=$5;
-                $4->m_follow.swap($2->m_follow);
-                $4->SetTermID(TermID::ITERATOR);
-                $$->Append($4, Term::LEFT); 
-                $$->Append($6, Term::RIGHT); 
+                $$ = $1;
+                $$->AppendSequenceTerm($match_item);
+            }
+        
+match_body:  '{'  match_items  '}'
+            {
+                $$ = $2;
+                $$->ConvertSequenceToBlock(TermID::BLOCK);
             }
 
-exec_items:  expression
+
+
+match:  match_cond   MATCHING  match_body
+            {
+                $$=$2;
+                $$->Append($1, Term::LEFT); 
+                $$->Append($3, Term::RIGHT);
+            }
+        |  block  MATCHING  match_body
+            {
+                $$=$2;
+                $$->Append($1, Term::LEFT); 
+                $$->Append($3, Term::RIGHT);
+            }
+
+        
+        
+exit:  EXIT
+        {
+            $$ = $1;
+        }
+    |  EXIT   rval   EXIT
+        {
+            $$ = $1;
+            $$->Append($2, Term::RIGHT); 
+        }
+        
+/*  expression - одна операция или результат <ОДНОГО выражения без завершающей точки с запятой !!!!!> */
+seq_item: condition
+            {
+                $$=$1;
+            } 
+        | exit
             {
                 $$=$1;
             }
-        | exec_items  expression
+        | simple_func
             {
                 $$=$1;
+            }
+        | assign
+            {
+                $$ = $1;
+            }
+        | follow
+            {
+                $$ = $1; 
+            }
+        | match
+            {
+                $$ = $1; 
+            }
+        | repeat
+            {
+                $$ = $1; 
+            }
+        |  MACRO  assign_op  MACRO_BODY
+            {
+                $$ = $2;  
+                $$->Append($1, Term::LEFT); 
+                $$->Append($3, Term::RIGHT); 
+            }
+        
+sequence:  seq_item
+            {
+                $$ = $1;  
+            }
+        | block_call
+            {
+                $$ = $1;  
+            }
+        | sequence  separator  block_call 
+            {
+                $$ = $1;  
                 // Несколько команд подряд
-                $$->BlockCodeAppend($2); 
+                $$->AppendSequenceTerm($block_call);
+            }
+        | sequence  separator  seq_item
+            {
+                $$ = $1;  
+                // Несколько команд подряд
+                $$->AppendSequenceTerm($seq_item);
             }
 
-        
-exec_src:  expression
-            {
-                $$ = $1; 
-            }
-        | '{'  exec_items  '}'
-            {
-                $$ = $2; 
-            }
 
+separator: ';' | separator  ';'        
         
-execution:  exec_items
-            {
-                $$ = $1; 
-            }
-        
-ast:  %empty | ';'
-        |  execution
+
+ast:    END
+        | separator
+        | sequence
             {
                driver.AstAddTerm($1);
             }
-        |  rval  END
+        | sequence separator
             {
                driver.AstAddTerm($1);
             }
+/*        | comment
+            {
+               driver.AstAddTerm($1);
+            } */
 
 start	:   ast
 

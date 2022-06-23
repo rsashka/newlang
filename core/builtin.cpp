@@ -5,14 +5,14 @@
 
 using namespace newlang;
 
-#define NEWLANG_FUNCTION(NAME)  newlang::ObjPtr NAME(newlang::Context *ctx, newlang::Object &in) 
-#define NEWLANG_TRANSPARENT(NAME)  newlang::ObjPtr NAME(const newlang::Context *ctx, const newlang::Object &in) 
+#define NEWLANG_FUNCTION(NAME)  newlang::ObjPtr NAME(newlang::Context *ctx, newlang::Obj &in) 
+#define NEWLANG_TRANSPARENT(NAME)  newlang::ObjPtr NAME(const newlang::Context *ctx, const newlang::Obj &in) 
 
 namespace newlang {
 
     NEWLANG_TRANSPARENT(min) {
         if(in.size() < 2) {
-            LOG_CALLSTACK(std::invalid_argument, "Empty argument list parameter!");
+            LOG_RUNTIME("Empty argument list parameter!");
         }
         ObjPtr out = in.at(1).second;
         for (size_t i = 2; i < in.size(); i++) {
@@ -25,7 +25,7 @@ namespace newlang {
 
     NEWLANG_TRANSPARENT(max) {
         if(in.size() < 2) {
-            LOG_CALLSTACK(std::invalid_argument, "Empty argument list parameter!");
+            LOG_RUNTIME("Empty argument list parameter!");
         }
         ObjPtr out = in.at(1).second;
         for (size_t i = 2; i < in.size(); i++) {
@@ -36,30 +36,26 @@ namespace newlang {
         return out;
     }
 
-    NEWLANG_FUNCTION(const_) {
+    NEWLANG_FUNCTION(clone) {
         if(in.size() != 2) {
-            LOG_CALLSTACK(std::invalid_argument, "Bad argument count parameter!");
-        }
-        return in[1]->MakeConst();
-    }
-
-    NEWLANG_FUNCTION(clone_) {
-        if(in.size() != 2) {
-            LOG_CALLSTACK(std::invalid_argument, "Bad argument count parameter!");
+            LOG_RUNTIME("Bad argument count parameter!");
         }
         return in[1]->Clone(nullptr);
     }
 
-    //    NEWLANG_FUNCTION(print_) {
-    //        ObjPtr out = Object::CreateString("");
-    //        for (size_t i = 1; i < in.size(); i++) {
-    //            if(in.at(i).second) {
-    //                out->m_string += in.at(i).second->GetValueAsString();
-    //            }
-    //        }
-    //        printf("%s", out->m_string.c_str());
-    //        return out;
-    //    }
+    NEWLANG_FUNCTION(const_) {
+        if(in.size() != 2) {
+            LOG_RUNTIME("Bad argument count parameter!");
+        }
+        return in[1]->MakeConst();
+    }
+
+    NEWLANG_FUNCTION(mutable_) {
+        if(in.size() != 2) {
+            LOG_RUNTIME("Bad argument count parameter!");
+        }
+        return in[1]->MakeMutable();
+    }
 
     NEWLANG_FUNCTION(import) {
         if(!ctx) {
@@ -73,84 +69,27 @@ namespace newlang {
         if(!ctx) {
             LOG_RUNTIME("No access to context!");
         }
-        return ctx->Eval(in.at(1).second->GetValueAsString().c_str());
+        return ctx->ExecStr(in.at(1).second->GetValueAsString().c_str());
     }
 
     NEWLANG_FUNCTION(exec) {
         if(!ctx) {
             LOG_RUNTIME("No access to context!");
         }
-        return ctx->Exec(in.at(1).second->GetValueAsString().c_str());
+        return ctx->ExecFile(in.at(1).second->GetValueAsString().c_str());
     }
-
-    NEWLANG_FUNCTION(srand) {
-        std::srand(in.at(1).second->GetValueAsInteger());
-        return Object::CreateNone();
-    }
-
-    NEWLANG_TRANSPARENT(rand) {
-        return Object::CreateValue(std::rand());
-    }
-
-    //    NEWLANG_FUNCTION(load) {
-    //        if(!ctx) {
-    //            LOG_RUNTIME("No access to context!");
-    //        }
-    //        return ctx->m_runtime->LoadModule(in.at(1).second->GetValueAsString().c_str(),
-    //                in["module"]->GetValueAsString().c_str(), in["lazzy"]->GetValueAsBoolean());
-    //    }
 
 
 
 #undef NEWLANG_FUNCTION
 #undef NEWLANG_TRANSPARENT
 
-
-
-#define DEFINE_ENUM(name, cast) \
-newlang::ObjPtr name(const newlang::Context *ctx, const newlang::Object &in) {\
-    if(in.size() < 1 || !in.at(1).second) {\
-        LOG_CALLSTACK(std::invalid_argument, "Bad argument count parameter!");\
-    }\
-    return in.at(1).second->Convert(ObjType:: cast);\
-}\
-newlang::ObjPtr name##_(newlang::Context *ctx, newlang::Object &in) {\
-    if(in.size() < 1 || !in.at(1).second) {\
-        LOG_CALLSTACK(std::invalid_argument, "Bad argument count parameter!");\
-    }\
-    return in.at(1).second->Convert_(ObjType:: cast);\
 }
 
-    NL_BUILTIN_CAST_TYPE(DEFINE_ENUM)
 
-#undef DEFINE_ENUM
 
-}
 
-//void Context::CreateBuiltin() {
-//    //    VERIFY(ctx->RegisterLibFunction(nullptr, "term(...)", &term_, Object::TRANSPARENT));
-//
-//    VERIFY(RegisterLibFunction(nullptr, "min(arg, ...)", (void *) &min, ObjType::TRANSPARENT));
-//    VERIFY(RegisterLibFunction(nullptr, "max(arg, ...)", (void *) &max, ObjType::TRANSPARENT));
-//    VERIFY(RegisterLibFunction(nullptr, "мин(arg, ...)", (void *) &min, ObjType::TRANSPARENT));
-//    VERIFY(RegisterLibFunction(nullptr, "макс(arg, ...)", (void *) &max, ObjType::TRANSPARENT));
-//
-//    //    VERIFY(ctx->RegisterLibFunction(nullptr, "range(start, stop, step=1)", &range, Object::Type::TRANSPARENT));
-//    //    VERIFY(ctx->RegisterLibFunction(nullptr, "dict(...)", &dictionary, Object::Type::TRANSPARENT));
-//    //    VERIFY(ctx->RegisterLibFunction(nullptr, "dictionary(...)", &dictionary, Object::Type::TRANSPARENT));
-//
-//    VERIFY(RegisterLibFunction(nullptr, "const(arg1)", (void *) &const_, ObjType::FUNCTION));
-//    //    VERIFY(ctx->RegisterLibFunction(nullptr, "clone(arg1)", &clone_, Object::Type::TRANSPARENT));
-//    VERIFY(RegisterLibFunction(nullptr, "print(...)", (void *) &print_, ObjType::FUNCTION));
-//
-//#define DEFINE_ENUM(name, cast) \
-//    VERIFY(RegisterLibFunction(nullptr, #name "(var, shape=_): " #cast, (void *)& newlang:: name, ObjType::TRANSPARENT)); \
-//    VERIFY(RegisterLibFunction(nullptr, #name "_(&var, shape=_): " #cast, (void *)& newlang:: name##_, ObjType::FUNCTION));
-//
-//    NL_BUILTIN_CAST_TYPE(DEFINE_ENUM)
-//
-//#undef DEFINE_ENUM
-//}
+
 
 bool BuiltInTorchDirect::CheckDirect(CompileInfo &ci, TermPtr &term, std::string &output) {
 

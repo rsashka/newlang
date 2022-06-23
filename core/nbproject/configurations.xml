@@ -1,6 +1,13 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <configurationDescriptor version="100">
   <logicalFolder name="root" displayName="root" projectFiles="true" kind="ROOT">
+    <logicalFolder name="f1" displayName="docs" projectFiles="true">
+      <itemPath>../docs/CNAME</itemPath>
+      <itemPath>../docs/_config.yml</itemPath>
+      <itemPath>../docs/algs.md</itemPath>
+      <itemPath>../docs/index.md</itemPath>
+      <itemPath>../docs/syntax.md</itemPath>
+    </logicalFolder>
     <logicalFolder name="SourceFiles"
                    displayName="Исходные файлы"
                    projectFiles="true">
@@ -8,6 +15,7 @@
         <itemPath>nlp/fileio.nlp</itemPath>
       </logicalFolder>
       <logicalFolder name="f1" displayName="test" projectFiles="true">
+        <itemPath>test/alg_test.cpp</itemPath>
         <itemPath>test/eval_test.cpp</itemPath>
         <itemPath>test/fraction_test.cpp</itemPath>
         <itemPath>test/lexer_test.cpp</itemPath>
@@ -19,12 +27,10 @@
       <itemPath>builtin.cpp</itemPath>
       <itemPath>context.cpp</itemPath>
       <itemPath>lexer.cpp</itemPath>
-      <itemPath>lexer.yy.cpp</itemPath>
       <itemPath>newlang.cpp</itemPath>
       <itemPath>nlc.cpp</itemPath>
       <itemPath>object.cpp</itemPath>
       <itemPath>parser.cpp</itemPath>
-      <itemPath>parser.yy.cpp</itemPath>
       <itemPath>term.cpp</itemPath>
       <itemPath>variable.cpp</itemPath>
     </logicalFolder>
@@ -36,13 +42,10 @@
       <itemPath>context.h</itemPath>
       <itemPath>fraction.h</itemPath>
       <itemPath>lexer.h</itemPath>
-      <itemPath>lexer.yy.h</itemPath>
-      <itemPath>location.hh</itemPath>
       <itemPath>newlang.h</itemPath>
       <itemPath>nlc.h</itemPath>
       <itemPath>object.h</itemPath>
       <itemPath>parser.h</itemPath>
-      <itemPath>parser.yy.h</itemPath>
       <itemPath>pch.h</itemPath>
       <itemPath>term.h</itemPath>
       <itemPath>types.h</itemPath>
@@ -55,8 +58,13 @@
                    projectFiles="true">
       <itemPath>../contrib/googletest/googletest/src/gtest-all.cc</itemPath>
       <itemPath>../contrib/googletest/googletest/src/gtest_main.cc</itemPath>
+      <itemPath>lexer.yy.cpp</itemPath>
+      <itemPath>lexer.yy.h</itemPath>
+      <itemPath>location.hh</itemPath>
       <itemPath>../contrib/logger/logger.cpp</itemPath>
       <itemPath>../contrib/logger/logger.h</itemPath>
+      <itemPath>parser.yy.cpp</itemPath>
+      <itemPath>parser.yy.h</itemPath>
       <itemPath>pch.h.gch</itemPath>
     </logicalFolder>
     <logicalFolder name="TestFiles"
@@ -68,13 +76,16 @@
                    displayName="Важные файлы"
                    projectFiles="false"
                    kind="IMPORTANT_FILES_FOLDER">
+      <itemPath>/home/rsashka/SOURCE/PUBLIC/NewLang/newlang/LICENSE</itemPath>
       <itemPath>Makefile</itemPath>
     </logicalFolder>
     <itemPath>../README.md</itemPath>
-    <itemPath>../Syntax.md</itemPath>
     <itemPath>lexer.l</itemPath>
     <itemPath>parser.y</itemPath>
   </logicalFolder>
+  <sourceRootList>
+    <Elem>/home/rsashka/SOURCE/PUBLIC/NewLang/newlang/core/test</Elem>
+  </sourceRootList>
   <projectmakefile>Makefile</projectmakefile>
   <confs>
     <conf name="Debug" type="1">
@@ -137,8 +148,6 @@
       </compileType>
       <item path="../README.md" ex="false" tool="3" flavor2="0">
       </item>
-      <item path="../Syntax.md" ex="false" tool="3" flavor2="0">
-      </item>
       <item path="../contrib/googletest/googletest/src/gtest-all.cc"
             ex="true"
             tool="1"
@@ -158,6 +167,16 @@
       <item path="../contrib/logger/logger.cpp" ex="false" tool="1" flavor2="11">
       </item>
       <item path="../contrib/logger/logger.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../docs/CNAME" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../docs/_config.yml" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../docs/algs.md" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../docs/index.md" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../docs/syntax.md" ex="false" tool="3" flavor2="0">
       </item>
       <item path="autocomplete.h" ex="false" tool="3" flavor2="0">
       </item>
@@ -288,6 +307,11 @@
           <customToolAdditionalDep>parser.yy.cpp location.hh pch.h.gch</customToolAdditionalDep>
         </customTool>
       </item>
+      <item path="test/alg_test.cpp" ex="false" tool="1" flavor2="9">
+        <ccTool>
+          <additionalDep>pch.h.gch</additionalDep>
+        </ccTool>
+      </item>
       <item path="test/eval_test.cpp" ex="false" tool="1" flavor2="9">
         <ccTool>
           <additionalDep>pch.h.gch</additionalDep>
@@ -378,8 +402,6 @@
       </compileType>
       <item path="../README.md" ex="false" tool="3" flavor2="0">
       </item>
-      <item path="../Syntax.md" ex="false" tool="3" flavor2="0">
-      </item>
       <item path="../contrib/googletest/googletest/src/gtest-all.cc"
             ex="false"
             tool="1"
@@ -393,6 +415,16 @@
       <item path="../contrib/logger/logger.cpp" ex="false" tool="1" flavor2="0">
       </item>
       <item path="../contrib/logger/logger.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../docs/CNAME" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../docs/_config.yml" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../docs/algs.md" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../docs/index.md" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../docs/syntax.md" ex="false" tool="3" flavor2="0">
       </item>
       <item path="autocomplete.h" ex="false" tool="3" flavor2="0">
       </item>
@@ -461,6 +493,8 @@
       </item>
       <item path="term.h" ex="false" tool="3" flavor2="0">
       </item>
+      <item path="test/alg_test.cpp" ex="false" tool="1" flavor2="0">
+      </item>
       <item path="test/eval_test.cpp" ex="false" tool="1" flavor2="0">
       </item>
       <item path="test/fraction_test.cpp" ex="false" tool="1" flavor2="0">
@@ -516,8 +550,9 @@
             <pElem>../contrib/libtorch/include/torch/csrc/api/include</pElem>
             <pElem>../contrib/libtorch/include</pElem>
             <pElem>../contrib/tensorboard_logger/include</pElem>
+            <pElem>/usr/lib/llvm-13/include</pElem>
           </incDir>
-          <commandLine>-std=c++17 --no-gnu-unique -Wno-trigraphs -Winvalid-pch -Werror=return-type</commandLine>
+          <commandLine>-std=c++17 --no-gnu-unique -Wno-trigraphs -Winvalid-pch -Werror=return-type -Wmaybe-uninitialized -Wuninitialized -Wformat -Wmaybe-uninitialized</commandLine>
           <preprocessorList>
             <Elem>DEBUG</Elem>
             <Elem>LOG_LEVEL_NORMAL=LOG_LEVEL_DEBUG</Elem>
@@ -538,17 +573,18 @@
             <linkerLibStdlibItem>PosixThreads</linkerLibStdlibItem>
             <linkerLibStdlibItem>DynamicLinking</linkerLibStdlibItem>
             <linkerLibFileItem>../contrib/libffi/output/lib/libffi.a</linkerLibFileItem>
-            <linkerLibLibItem>c10</linkerLibLibItem>
-            <linkerLibLibItem>torch_cpu</linkerLibLibItem>
-            <linkerLibLibItem>torch</linkerLibLibItem>
             <linkerLibLibItem>crypto</linkerLibLibItem>
+            <linkerLibLibItem>LLVM-13</linkerLibLibItem>
+            <linkerLibLibItem>torch</linkerLibLibItem>
+            <linkerLibLibItem>c10</linkerLibLibItem>
+            <linkerLibLibItem>c10_cuda</linkerLibLibItem>
+            <linkerLibLibItem>torch_cpu</linkerLibLibItem>
+            <linkerLibLibItem>torch_cuda</linkerLibLibItem>
           </linkerLibItems>
           <commandLine>-Wl,--export-dynamic</commandLine>
         </linkerTool>
       </compileType>
       <item path="../README.md" ex="false" tool="3" flavor2="0">
-      </item>
-      <item path="../Syntax.md" ex="false" tool="3" flavor2="0">
       </item>
       <item path="../contrib/googletest/googletest/src/gtest-all.cc"
             ex="false"
@@ -569,6 +605,16 @@
       <item path="../contrib/logger/logger.cpp" ex="false" tool="1" flavor2="11">
       </item>
       <item path="../contrib/logger/logger.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../docs/CNAME" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../docs/_config.yml" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../docs/algs.md" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../docs/index.md" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../docs/syntax.md" ex="false" tool="3" flavor2="0">
       </item>
       <item path="autocomplete.h" ex="false" tool="3" flavor2="0">
       </item>
@@ -683,7 +729,7 @@
       </item>
       <item path="pch.h" ex="false" tool="3" flavor2="0">
         <customTool>
-          <customToolCommandline>g++ -o pch.h.gch -c pch.h -g -I.. -I../contrib/libtorch/include/torch/csrc/api/include -I../contrib/libtorch/include --no-gnu-unique -Wno-trigraphs -Winvalid-pch -Werror=return-type -g -DDEBUG -DLOG_LEVEL_NORMAL=LOG_LEVEL_DEBUG -DPDC_WIDE -DUNITTEST -I../contrib/googletest/googletest -I../contrib/googletest/googletest/include -I../contrib/Lyra/include -I../contrib/libtorch/include/torch/csrc/api/include -I../contrib/libtorch/include -I.. -I../contrib/tensorboard_logger/include -I/usr/lib/llvm-13/include -std=c++17</customToolCommandline>
+          <customToolCommandline>g++ -o pch.h.gch -c pch.h -g -I.. -I../contrib/libtorch/include/torch/csrc/api/include -I../contrib/libtorch/include --no-gnu-unique -Wno-trigraphs -Winvalid-pch -Werror=return-type -Wmaybe-uninitialized -Wuninitialized -Wformat -Wmaybe-uninitialized -g -DDEBUG -DLOG_LEVEL_NORMAL=LOG_LEVEL_DEBUG -DPDC_WIDE -DUNITTEST -I../contrib/googletest/googletest -I../contrib/googletest/googletest/include -I../contrib/Lyra/include -I../contrib/libtorch/include/torch/csrc/api/include -I../contrib/libtorch/include -I.. -I../contrib/tensorboard_logger/include -I/usr/lib/llvm-13/include -std=c++17</customToolCommandline>
           <customToolOutputs>pch.h.gch</customToolOutputs>
         </customTool>
       </item>
@@ -698,6 +744,11 @@
         <customTool>
           <customToolAdditionalDep>parser.yy.cpp location.hh pch.h.gch</customToolAdditionalDep>
         </customTool>
+      </item>
+      <item path="test/alg_test.cpp" ex="false" tool="1" flavor2="0">
+        <ccTool>
+          <additionalDep>pch.h.gch</additionalDep>
+        </ccTool>
       </item>
       <item path="test/eval_test.cpp" ex="false" tool="1" flavor2="0">
         <ccTool>
@@ -841,8 +892,6 @@
       </compileType>
       <item path="../README.md" ex="false" tool="3" flavor2="0">
       </item>
-      <item path="../Syntax.md" ex="false" tool="3" flavor2="0">
-      </item>
       <item path="../contrib/googletest/googletest/src/gtest-all.cc"
             ex="false"
             tool="1"
@@ -862,6 +911,16 @@
       <item path="../contrib/logger/logger.cpp" ex="false" tool="1" flavor2="0">
       </item>
       <item path="../contrib/logger/logger.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../docs/CNAME" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../docs/_config.yml" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../docs/algs.md" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../docs/index.md" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../docs/syntax.md" ex="false" tool="3" flavor2="0">
       </item>
       <item path="autocomplete.h" ex="false" tool="3" flavor2="0">
       </item>
@@ -957,6 +1016,8 @@
           <customToolAdditionalDep>parser.yy.cpp location.hh</customToolAdditionalDep>
         </customTool>
       </item>
+      <item path="test/alg_test.cpp" ex="false" tool="1" flavor2="0">
+      </item>
       <item path="test/eval_test.cpp" ex="false" tool="1" flavor2="0">
       </item>
       <item path="test/fraction_test.cpp" ex="false" tool="1" flavor2="0">
@@ -1046,8 +1107,6 @@
       </compileType>
       <item path="../README.md" ex="false" tool="3" flavor2="0">
       </item>
-      <item path="../Syntax.md" ex="false" tool="3" flavor2="0">
-      </item>
       <item path="../contrib/googletest/googletest/src/gtest-all.cc"
             ex="false"
             tool="1"
@@ -1061,6 +1120,16 @@
       <item path="../contrib/logger/logger.cpp" ex="false" tool="1" flavor2="9">
       </item>
       <item path="../contrib/logger/logger.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../docs/CNAME" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../docs/_config.yml" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../docs/algs.md" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../docs/index.md" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../docs/syntax.md" ex="false" tool="3" flavor2="0">
       </item>
       <item path="autocomplete.h" ex="false" tool="3" flavor2="0">
       </item>
@@ -1155,6 +1224,8 @@
         <customTool>
           <customToolAdditionalDep>parser.yy.cpp location.hh</customToolAdditionalDep>
         </customTool>
+      </item>
+      <item path="test/alg_test.cpp" ex="false" tool="1" flavor2="9">
       </item>
       <item path="test/eval_test.cpp" ex="false" tool="1" flavor2="9">
       </item>
@@ -1273,8 +1344,6 @@
       </compileType>
       <item path="../README.md" ex="false" tool="3" flavor2="0">
       </item>
-      <item path="../Syntax.md" ex="false" tool="3" flavor2="0">
-      </item>
       <item path="../contrib/googletest/googletest/src/gtest-all.cc"
             ex="false"
             tool="1"
@@ -1288,6 +1357,16 @@
       <item path="../contrib/logger/logger.cpp" ex="false" tool="1" flavor2="11">
       </item>
       <item path="../contrib/logger/logger.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../docs/CNAME" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../docs/_config.yml" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../docs/algs.md" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../docs/index.md" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../docs/syntax.md" ex="false" tool="3" flavor2="0">
       </item>
       <item path="autocomplete.h" ex="false" tool="3" flavor2="0">
       </item>
@@ -1382,6 +1461,8 @@
         <customTool>
           <customToolAdditionalDep>parser.yy.cpp location.hh</customToolAdditionalDep>
         </customTool>
+      </item>
+      <item path="test/alg_test.cpp" ex="false" tool="1" flavor2="11">
       </item>
       <item path="test/eval_test.cpp" ex="false" tool="1" flavor2="11">
       </item>
@@ -1496,8 +1577,6 @@
       </compileType>
       <item path="../README.md" ex="false" tool="3" flavor2="0">
       </item>
-      <item path="../Syntax.md" ex="false" tool="3" flavor2="0">
-      </item>
       <item path="../contrib/googletest/googletest/src/gtest-all.cc"
             ex="false"
             tool="1"
@@ -1511,6 +1590,16 @@
       <item path="../contrib/logger/logger.cpp" ex="false" tool="1" flavor2="11">
       </item>
       <item path="../contrib/logger/logger.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../docs/CNAME" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../docs/_config.yml" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../docs/algs.md" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../docs/index.md" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../docs/syntax.md" ex="false" tool="3" flavor2="0">
       </item>
       <item path="autocomplete.h" ex="false" tool="3" flavor2="0">
       </item>
@@ -1605,6 +1694,8 @@
         <customTool>
           <customToolAdditionalDep>parser.yy.cpp location.hh</customToolAdditionalDep>
         </customTool>
+      </item>
+      <item path="test/alg_test.cpp" ex="false" tool="1" flavor2="11">
       </item>
       <item path="test/eval_test.cpp" ex="false" tool="1" flavor2="11">
       </item>

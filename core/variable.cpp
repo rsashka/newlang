@@ -13,12 +13,12 @@ using namespace newlang;
 //    for (size_t i = 0; i < term->size(); i++) {
 //        if(term->name(i).empty()) {
 //            if(as_value) {
-//                m_args.push_back(std::pair<std::string, ObjPtr>("", Object::CreateFrom(ctx, term->at(i))));
+//                m_args.push_back(std::pair<std::string, ObjPtr>("", Obj::CreateFrom(ctx, term->at(i))));
 //            } else {
 //                m_args.push_back(std::pair<std::string, ObjPtr>(term->at(i)->getText(), nullptr));
 //            }
 //        } else {
-//            m_args.push_back(Arg(term->name(i).c_str(), Object::CreateFrom(ctx, term->at(i))));
+//            m_args.push_back(Arg(term->name(i).c_str(), Obj::CreateFrom(ctx, term->at(i))));
 //        }
 //    }
 //    CheckOrder_();
@@ -52,7 +52,7 @@ using namespace newlang;
 //                LOG_EXCEPT(std::invalid_argument, "Position %d requires a named argument!", (int) i + 1);
 //            }
 //            if(i < clone.m_args.size()) {
-//                if(clone.m_args[i].second && in.m_args[i].second->getType() != clone.m_args[i].second->getType() && clone.m_args[i].second->getType() != Object::Type::EMPTY) {
+//                if(clone.m_args[i].second && in.m_args[i].second->getType() != clone.m_args[i].second->getType() && clone.m_args[i].second->getType() != Obj::Type::EMPTY) {
 //                    LOG_EXCEPT(std::invalid_argument, "Different type arg '%s' and '%s'", clone.m_args[i].second->toString().c_str(), in.m_args[i].second->toString().c_str());
 //                }
 //                clone.m_args[i].second = in.m_args[i].second;
@@ -66,7 +66,7 @@ using namespace newlang;
 //            named = true;
 //            ObjPtr find = clone.Find(in.m_args[i].first.c_str());
 //            if(find) {
-//                if(clone.m_args[i].second && find->getType() != in.m_args[i].second->getType() && find->getType() != Object::Type::EMPTY) {
+//                if(clone.m_args[i].second && find->getType() != in.m_args[i].second->getType() && find->getType() != Obj::Type::EMPTY) {
 //                    LOG_EXCEPT(std::invalid_argument, "Different type arg '%s' and '%s'", find->toString().c_str(), in.m_args[i].second->toString().c_str());
 //                }
 //                find->op_assign(in.m_args[i].second);
@@ -104,7 +104,7 @@ using namespace newlang;
 //        if(test_position && m_args[i].first.empty()) {
 //            // У аргумента нет имени - проверяем позицию аргумента
 //            if(arg_pos < obj->size()) {
-//                if((*obj)[arg_pos]->getType() != m_args[i].second->getType() && (*obj)[arg_pos]->getType() != Object::Type::EMPTY) {
+//                if((*obj)[arg_pos]->getType() != m_args[i].second->getType() && (*obj)[arg_pos]->getType() != Obj::Type::EMPTY) {
 //                    is_ok = false;
 //                    LOG_ERROR("Different type arg %s and %s", m_args[i].second->toString().c_str(), (*obj)[arg_pos]->toString().c_str());
 //                }
@@ -123,7 +123,7 @@ using namespace newlang;
 //                if(found == obj->end()) {
 //                    obj->push_back(m_args[i].second, m_args[i].first);
 //                } else {
-//                    if((*found)->getType() != m_args[i].second->getType() && (*found)->getType() != Object::Type::EMPTY) {
+//                    if((*found)->getType() != m_args[i].second->getType() && (*found)->getType() != Obj::Type::EMPTY) {
 //                        LOG_RUNTIME("Different type arg %d and %s", (int) (*found)->getType(), m_args[i].second->toString().c_str());
 //                    }
 //                    (*obj)[m_args[i].first] = m_args[i].second;

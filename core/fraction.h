@@ -53,7 +53,7 @@ public:
 
     double GetAsNumber() {
         CHECK_INIT(this);
-#warning Refactor convert big integer to double!
+        //@todo Refactor convert big integer to double!
         return GetAsInteger();
     }
 

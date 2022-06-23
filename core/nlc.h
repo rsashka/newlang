@@ -82,7 +82,7 @@ public:
     std::string m_eval; //<  Входная информация для выполнения
     Context m_ctx;
     ObjPtr m_args;
-    std::map<Object *, ObjPtr> m_local_vars; //< Локальные переменные и объекты, которые создаются интерпретатором
+    std::map<Obj *, ObjPtr> m_local_vars; //< Локальные переменные и объекты, которые создаются интерпретатором
 
     utils::Logger::LogLevelType m_loglevel_save;
     utils::Logger::FuncCallback *m_log_callback_save;
@@ -157,13 +157,13 @@ public:
             return false;
         }
 
-        m_args = Object::CreateDict();
+        m_args = Obj::CreateDict();
         for (int i = 0; i < argc; i++) {
             std::vector<std::string> split = SplitString(argv[i], "=");
             if (split.size() > 1) {
-                m_args->push_back(Object::Arg(split[0], &argv[i][split[0].size() + 1]));
+                m_args->push_back(Obj::CreateString(split[0]), &argv[i][split[0].size() + 1]);
             } else {
-                m_args->push_back(Object::Arg(argv[i]));
+                m_args->push_back(Obj::CreateString(argv[i]));
             }
         }
 
@@ -325,7 +325,7 @@ public:
                     LOG_RUNTIME("Eval expression empty!");
                 }
 
-                ObjPtr result = Context::Eval(&m_ctx, term, *m_args);
+                ObjPtr result = Context::ExecStr(&m_ctx, term, m_args.get());
 
                 if (result && m_local_vars.find(result.get()) == m_local_vars.end()) {
                     m_local_vars[result.get()] = result;
@@ -350,7 +350,7 @@ public:
                 //                LOG_INFO("%s", m_output.c_str());
             }
 
-        } catch (parser_exception &err) {
+        } catch (Interrupt &err) {
             // Вывод информации об ошибке синтаксиса при парсинге без информации о точке вызова макроса LOG_INFO
             utils::Logger::LogLevelType save_level = utils::Logger::Instance()->GetLogLevel();
             utils::Logger::Instance()->SetLogLevel(LOG_LEVEL_INFO);
@@ -600,7 +600,7 @@ public:
                         LOG_RUNTIME("Eval expression empty!");
                     }
 
-                    ObjPtr res = Context::Eval(&m_ctx, term, *m_args);
+                    ObjPtr res = Context::ExecStr(&m_ctx, term, m_args.get());
 
                     if (res) {
                         

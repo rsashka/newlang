@@ -47,6 +47,7 @@ OBJECTFILES= \
 	${OBJECTDIR}/parser.o \
 	${OBJECTDIR}/parser.yy.o \
 	${OBJECTDIR}/term.o \
+	${OBJECTDIR}/test/alg_test.o \
 	${OBJECTDIR}/test/eval_test.o \
 	${OBJECTDIR}/test/fraction_test.o \
 	${OBJECTDIR}/test/lexer_test.o \
@@ -150,6 +151,11 @@ ${OBJECTDIR}/term.o: term.cpp
 	${MKDIR} -p ${OBJECTDIR}
 	${RM} "$@.d"
 	$(COMPILE.cc) -O3 -Werror -I.. -std=c++14 -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/term.o term.cpp
+
+${OBJECTDIR}/test/alg_test.o: test/alg_test.cpp
+	${MKDIR} -p ${OBJECTDIR}/test
+	${RM} "$@.d"
+	$(COMPILE.cc) -O3 -Werror -I.. -std=c++14 -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/test/alg_test.o test/alg_test.cpp
 
 ${OBJECTDIR}/test/eval_test.o: test/eval_test.cpp
 	${MKDIR} -p ${OBJECTDIR}/test
