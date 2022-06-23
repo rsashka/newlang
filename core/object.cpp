@@ -30,12 +30,14 @@ ObjPtr Interrupt::CreateErrorMessage(const std::string message, const std::strin
     ObjType type = typeFromString(error_name, nullptr, &has_error);
 
     std::string str(message);
+    ObjPtr result;
     if (has_error) {
         str += " Extra error: Type name interrupt '" + error_name + "' is not a base type!";
+        result = Obj::CreateType(ObjType::Error);
+    } else {
+        result = Obj::CreateType(type);
     }
 
-    ObjPtr result = Obj::CreateType(type);
-    //    result->m_class_name = name;
     result->m_var_is_init = true;
     result->push_back(Obj::Arg(Obj::CreateString(str)));
     return result;
@@ -111,23 +113,79 @@ int64_t Obj::resize_(int64_t size, ObjPtr fill, const std::string name) {
 
     } else if (is_dictionary_type()) {
         return Variable::resize(size, fill ? fill : Obj::CreateNone(), name);
+    } else if (is_tensor()) {
+        std::vector<int64_t> sizes;
+        for (int i = 0; i < m_value.dim(); i++) {
+            sizes.push_back(m_value.size(i));
+        }
+
+        if (sizes.empty()) { // Scalar
+
+            LOG_RUNTIME("Method resize for SCALAR type '%s' not implemented!", newlang::toString(m_var_type_current));
+
+        } else if (size == 0 || sizes[0] == size) {
+            // Tensor size OK - do nothing            
+        } else if (size > 0) { // Increase tensor size
+
+            // The size is positive, just change the number of elements by adding or removing the last
+            ASSERT(sizes.size() == 1);
+
+            sizes[0] = size;
+            m_value.resize_(at::IntArrayRef(sizes));
+
+        } else { // Decrease tensor size
+            // If the size is negative - add or remove elements first
+            size = -size;
+            if (sizes[0] == size) {
+                // Tensor size OK - do nothing            
+            } else if (sizes[0] > size) {
+
+                ASSERT(sizes.size() == 1);
+
+                at::Tensor ind = torch::arange(sizes[0] - size - 1, sizes[0] - 1, at::ScalarType::Long);
+                at::Tensor any = torch::zeros(sizes[0] - size, at::ScalarType::Long);
+                //                LOG_DEBUG("arange %s    %s", TensorToString(ind).c_str(), TensorToString(any).c_str());
+
+                ind = at::cat({any, ind});
+                //                LOG_DEBUG("cat %s", TensorToString(ind).c_str());
+
+                //                LOG_DEBUG("m_value %s", TensorToString(m_value).c_str());
+                m_value.index_copy_(0, ind, m_value.clone());
+                //                LOG_DEBUG("index_copy_ %s", TensorToString(m_value).c_str());
+
+                sizes[0] = size;
+                m_value.resize_(at::IntArrayRef(sizes));
+                //                LOG_DEBUG("resize_ %s", TensorToString(m_value).c_str());
+
+            } else { // sizes[0] < size
+                ASSERT(sizes.size() == 1);
+                
+                m_value = at::cat({torch::zeros(size - sizes[0], m_value.scalar_type()), m_value});
+          }
+        }
+
+        if (size == 0) {
+            m_value.reset();
+            m_var_is_init = false;
+        }
+        return size;
     }
-    LOG_RUNTIME("NOT IMPLEMENTED!");
+    LOG_RUNTIME("Method resize for type '%s' not implemented!", newlang::toString(m_var_type_current));
 }
 
-const Variable<ObjPtr>::PairType &Obj::at(int64_t index) const {
+const Variable<ObjPtr>::PairType & Obj::at(int64_t index) const {
     if (m_var_type_current == ObjType::StrChar) {
         if (index < m_str.size()) {
             m_str_pair = pair(CreateString(std::string(1, m_str[index])));
             return m_str_pair;
         }
-        LOG_CALLSTACK(std::out_of_range, "Index '%lu' not exists in byte string '%s'!", static_cast<unsigned long> (index), m_str.c_str());
+        LOG_RUNTIME("Index '%lu' not exists in byte string '%s'!", static_cast<unsigned long> (index), m_str.c_str());
     } else if (m_var_type_current == ObjType::StrWide) {
         if (index < m_wstr.size()) {
             m_str_pair = pair(CreateString(std::wstring(1, m_wstr[index])));
             return m_str_pair;
         }
-        LOG_CALLSTACK(std::out_of_range, "Index '%lu' not exists in byte string '%s'!", static_cast<unsigned long> (index), "WIDE");
+        LOG_RUNTIME("Index '%lu' not exists in byte string '%s'!", static_cast<unsigned long> (index), "WIDE");
 
     } else if (is_tensor()) {
         torch::Tensor t = m_value.index({(int) index});
@@ -137,19 +195,19 @@ const Variable<ObjPtr>::PairType &Obj::at(int64_t index) const {
     return Variable::at(index);
 }
 
-Variable<ObjPtr>::PairType &Obj::at(int64_t index) {
+Variable<ObjPtr>::PairType & Obj::at(int64_t index) {
     if (m_var_type_current == ObjType::StrChar) {
         if (index < m_str.size()) {
             m_str_pair = pair(CreateString(std::string(1, m_str[index])));
             return m_str_pair;
         }
-        LOG_CALLSTACK(std::out_of_range, "Index '%lu' not exists in byte string '%s'!", static_cast<unsigned long> (index), m_str.c_str());
+        LOG_RUNTIME("Index '%lu' not exists in byte string '%s'!", static_cast<unsigned long> (index), m_str.c_str());
     } else if (m_var_type_current == ObjType::StrWide) {
         if (index < m_wstr.size()) {
             m_str_pair = pair(CreateString(std::wstring(1, m_wstr[index])));
             return m_str_pair;
         }
-        LOG_CALLSTACK(std::out_of_range, "Index '%lu' not exists in byte string '%s'!", static_cast<unsigned long> (index), "WIDE");
+        LOG_RUNTIME("Index '%lu' not exists in byte string '%s'!", static_cast<unsigned long> (index), "WIDE");
 
     } else if (is_tensor()) {
         torch::Tensor t = m_value.index({(int) index});
@@ -167,7 +225,7 @@ const ObjPtr Obj::index_get(const std::vector<Index> &index) const {
         if (index[0].integer() < m_str.size()) {
             return CreateString(std::string(1, m_str[index[0].integer()]));
         }
-        LOG_CALLSTACK(std::out_of_range, "Index '%s' not exists in byte string '%s'!", IndexToString(index).c_str(), m_str.c_str());
+        LOG_RUNTIME("Index '%s' not exists in byte string '%s'!", IndexToString(index).c_str(), m_str.c_str());
     } else if (m_var_type_current == ObjType::StrWide) {
         if (index.size() != 1 || !index[0].is_integer()) {
             LOG_RUNTIME("The index must be an integer value '%s'!", IndexToString(index).c_str());
@@ -175,7 +233,7 @@ const ObjPtr Obj::index_get(const std::vector<Index> &index) const {
         if (index[0].integer() < m_wstr.size()) {
             return CreateString(std::wstring(1, m_wstr[index[0].integer()]));
         }
-        LOG_CALLSTACK(std::out_of_range, "Index '%s' not exists in byte string '%s'!", IndexToString(index).c_str(), "WIDE");
+        LOG_RUNTIME("Index '%s' not exists in byte string '%s'!", IndexToString(index).c_str(), "WIDE");
 
     } else if (is_tensor()) {
         torch::Tensor t = m_value.index(index);
@@ -199,7 +257,7 @@ ObjPtr Obj::index_set_(const std::vector<Index> &index, const ObjPtr value) {
             m_var_is_init = true;
             return shared();
         }
-        LOG_CALLSTACK(std::out_of_range, "Index '%s' not exists in byte string '%s'!", IndexToString(index).c_str(), m_str.c_str());
+        LOG_RUNTIME("Index '%s' not exists in byte string '%s'!", IndexToString(index).c_str(), m_str.c_str());
     } else if (m_var_type_current == ObjType::StrWide) {
         if (index.size() != 1 || !index[0].is_integer()) {
             LOG_RUNTIME("The index must be an integer value '%s'!", IndexToString(index).c_str());
@@ -210,7 +268,7 @@ ObjPtr Obj::index_set_(const std::vector<Index> &index, const ObjPtr value) {
             m_var_is_init = true;
             return shared();
         }
-        LOG_CALLSTACK(std::out_of_range, "Index '%s' not exists in byte string '%s'!", IndexToString(index).c_str(), "WIDE");
+        LOG_RUNTIME("Index '%s' not exists in byte string '%s'!", IndexToString(index).c_str(), "WIDE");
 
     } else if (is_tensor()) {
 
@@ -224,7 +282,7 @@ ObjPtr Obj::index_set_(const std::vector<Index> &index, const ObjPtr value) {
         }
         (*at(index[0].integer()).second) = value;
         return shared();
-        LOG_CALLSTACK(std::out_of_range, "Index '%s' not exists in object '%s'!", IndexToString(index).c_str(), toString().c_str());
+        LOG_RUNTIME("Index '%s' not exists in object '%s'!", IndexToString(index).c_str(), toString().c_str());
     }
     LOG_RUNTIME("Don`t set index '%s' in object '%s'!", IndexToString(index).c_str(), toString().c_str());
 }
@@ -237,7 +295,7 @@ ObjPtr Obj::op_set_index(size_t index, std::string value) {
             m_var_is_init = true;
             return shared();
         }
-        LOG_CALLSTACK(std::out_of_range, "Index '%lu' not exists in byte string '%s'!", static_cast<unsigned long> (index), m_str.c_str());
+        LOG_RUNTIME("Index '%lu' not exists in byte string '%s'!", static_cast<unsigned long> (index), m_str.c_str());
     } else if (m_var_type_current == ObjType::StrWide) {
         if (index < m_wstr.size()) {
             m_wstr.erase(index, 1);
@@ -245,7 +303,7 @@ ObjPtr Obj::op_set_index(size_t index, std::string value) {
             m_var_is_init = true;
             return shared();
         }
-        LOG_CALLSTACK(std::out_of_range, "Index '%lu' not exists in byte string '%s'!", static_cast<unsigned long> (index), "WIDE");
+        LOG_RUNTIME("Index '%lu' not exists in byte string '%s'!", static_cast<unsigned long> (index), "WIDE");
     }
     //    at(index).second.set_(value);
     (*at(index).second) = value;
@@ -413,7 +471,7 @@ ObjPtr Obj::operator/=(Obj value) {
     LOG_RUNTIME("Operator '/' fail for '%s' and '%s'", toString().c_str(), value.toString().c_str());
 }
 
-ObjPtr Obj::op_div_ceil_(Obj &value) {
+ObjPtr Obj::op_div_ceil_(Obj & value) {
     if (is_tensor() && value.is_tensor()) {
         ObjType type = m_var_type_current;
         testResultIntegralType(ObjType::Float, false);
@@ -445,7 +503,7 @@ size_t Obj::ItemValueCount(ObjPtr &find, bool strong) {
     return result;
 }
 
-void Obj::CloneDataTo(Obj &clone) const {
+void Obj::CloneDataTo(Obj & clone) const {
 
     NL_CHECK(!isLocalType(m_var_type_current), "Local object not clonable!");
 
@@ -471,13 +529,13 @@ void Obj::CloneDataTo(Obj &clone) const {
         clone.m_ref_count = m_ref_count;
         clone.m_func_ptr = m_func_ptr;
         *const_cast<TermPtr *> (&clone.m_func_proto) = m_func_proto;
-        if (is_tensor()) {
+        if (is_tensor() && m_var_is_init) {
             clone.m_value = m_value.clone();
         }
     }
 }
 
-void Obj::ClonePropTo(Obj &clone) const {
+void Obj::ClonePropTo(Obj & clone) const {
 
     NL_CHECK(!isLocalType(m_var_type_current), "Local object not clonable!");
 
@@ -490,7 +548,7 @@ void Obj::ClonePropTo(Obj &clone) const {
             }
         } else {
             if (name(i).empty()) {
-                LOG_CALLSTACK(std::logic_error, "Null arg %d without name! %s", i, toString().c_str());
+                LOG_RUNTIME("Null arg %d without name! %s", i, toString().c_str());
             }
             // Объекта может не быть у обязательных параметров функций
             clone.push_back(nullptr, name(i));
@@ -498,7 +556,7 @@ void Obj::ClonePropTo(Obj &clone) const {
     }
 }
 
-void Obj::SetTermProp(Term &term) {
+void Obj::SetTermProp(Term & term) {
     m_namespace = term.m_namespace;
 }
 
@@ -712,11 +770,11 @@ std::string Obj::toString(bool deep) const {
                 return result;
         }
     }
-    LOG_CALLSTACK(std::logic_error, "Unknown type '%s' (%d)", newlang::toString(m_var_type_current), (int) m_var_type_current);
+    LOG_RUNTIME("Unknown type '%s' (%d)", newlang::toString(m_var_type_current), (int) m_var_type_current);
 }
 
 void TensorToString_(const torch::Tensor &tensor, c10::IntArrayRef shape, std::vector<Index> &ind, const int64_t pos,
-        std::stringstream &str) {
+        std::stringstream & str) {
     std::string intend;
     ASSERT(pos < ind.size());
     str << "[";
@@ -759,7 +817,7 @@ void TensorToString_(const torch::Tensor &tensor, c10::IntArrayRef shape, std::v
     str << "]";
 }
 
-std::string newlang::TensorToString(const torch::Tensor &tensor) {
+std::string newlang::TensorToString(const torch::Tensor & tensor) {
     std::string result;
     std::stringstream ss;
 
@@ -888,7 +946,7 @@ ObjPtr Obj::CreateFunc(Context *ctx, TermPtr proto, ObjType type, const std::str
     return result;
 }
 
-Obj::Obj(Context *ctx, const TermPtr term, bool as_value, Obj *local_vars) {
+Obj::Obj(Context *ctx, const TermPtr term, bool as_value, Obj * local_vars) {
 
     if (!term) {
         NL_CHECK(term, "Fail term!");
@@ -946,7 +1004,7 @@ bool Obj::CheckArgs() const {
     return !has_error;
 }
 
-ObjPtr Obj::Call(Context *ctx, Obj *args) {
+ObjPtr Obj::Call(Context *ctx, Obj * args) {
     if (is_string_type()) {
         ObjPtr result = Clone();
         result->m_str = format(result->m_str, args);
@@ -999,14 +1057,14 @@ ObjPtr Obj::Call(Context *ctx, Obj *args) {
         return result;
 
     } else if (args->size() > 1) {
-        LOG_CALLSTACK(std::logic_error, "Unsupported operation for data type %d '%s'", (int) m_var_type_current, toString().c_str());
+        LOG_RUNTIME("Unsupported operation for data type %d '%s'", (int) m_var_type_current, toString().c_str());
     }
     return Clone();
 }
 
 // Обновить параметры для вызова функции или элементы у словаря при создании копии
 
-void Obj::ConvertToArgs_(Obj &in, bool check_valid, Context *ctx) {
+void Obj::ConvertToArgs_(Obj &in, bool check_valid, Context * ctx) {
     bool named = false;
     bool is_ellipsis = false;
     if (check_valid && size()) {
@@ -1023,7 +1081,7 @@ void Obj::ConvertToArgs_(Obj &in, bool check_valid, Context *ctx) {
 
         if (in.name(i).empty()) {
             //            if(check_valid && named) {
-            //                LOG_CALLSTACK(std::invalid_argument, "Position %d requires a named argument!", (int) i + 1);
+            //                LOG_RUNTIME("Position %d requires a named argument!", (int) i + 1);
             //            }
             if (i < size()) {
                 if (check_valid && at(i).second && at(i).second->getType() != ObjType::None) {
@@ -1052,7 +1110,7 @@ void Obj::ConvertToArgs_(Obj &in, bool check_valid, Context *ctx) {
                 at(i).second->op_assign(in[i]);
             } else {
                 if (check_valid && !is_ellipsis && m_func_proto && i >= m_func_proto->size()) {
-                    LOG_CALLSTACK(std::invalid_argument, "Positional args overflow. Ptrototype '%s'!",
+                    LOG_RUNTIME("Positional args overflow. Ptrototype '%s'!",
                             m_func_proto ? m_func_proto->toString().c_str() : "Prototype not exists!");
                 }
                 push_back(in.at(i));
@@ -1062,7 +1120,7 @@ void Obj::ConvertToArgs_(Obj &in, bool check_valid, Context *ctx) {
             auto find = select(in.name(i));
             if (find != end()) {
                 if (check_valid && *find && (*find)->getType() != in[i]->getType() && (*find)->getType() != ObjType::None) {
-                    LOG_CALLSTACK(std::invalid_argument, "Different type arg '%s' and '%s'", (*find)->toString().c_str(),
+                    LOG_RUNTIME("Different type arg '%s' and '%s'", (*find)->toString().c_str(),
                             in[i]->toString().c_str());
                 }
                 //@todo  Проверка ограничений размер данных при указаном типе
@@ -1078,7 +1136,7 @@ void Obj::ConvertToArgs_(Obj &in, bool check_valid, Context *ctx) {
                     }
                 }
                 if (check_valid && !is_ellipsis) {
-                    LOG_CALLSTACK(std::invalid_argument, "Named arg '%s' not found!", in.name(i).c_str());
+                    LOG_RUNTIME("Named arg '%s' not found!", in.name(i).c_str());
                 }
                 push_back(in.at(i));
 done:
@@ -1097,7 +1155,7 @@ void Obj::CheckArgsValid() const {
     for (size_t i = 0; i < Variable::size(); i++) {
         //        if(!at(i).second) {
         //
-        //            LOG_CALLSTACK(std::invalid_argument, "Argument %d '%s' missed!", (int) i + 1, at(i).first.c_str());
+        //            LOG_RUNTIME("Argument %d '%s' missed!", (int) i + 1, at(i).first.c_str());
         //        }
     }
     //    if(!CheckArgs_()) {
@@ -1111,7 +1169,7 @@ void Obj::CheckArgsValid() const {
  *
  *
  */
-int Obj::op_compare(Obj &value) {
+int Obj::op_compare(Obj & value) {
     if (this == &value) {
         return 0;
     }
@@ -1158,7 +1216,7 @@ int Obj::op_compare(Obj &value) {
 // */
 //
 
-bool Obj::op_equal(Obj &value) {
+bool Obj::op_equal(Obj & value) {
     if (this == &value) {
         return true;
     } else if (is_tensor()) {
@@ -1208,7 +1266,7 @@ bool Obj::op_equal(Obj &value) {
     return false; // оставшиеся типы равны только если идентичны сами объекты (первое условие)
 }
 
-bool Obj::op_accurate(Obj &value) {
+bool Obj::op_accurate(Obj & value) {
     if (this == &value || (is_none_type() && value.is_none_type())) {
         return true;
     } else if ((is_bool_type() && value.is_bool_type()) || (is_arithmetic_type() && value.is_arithmetic_type()) ||
@@ -1256,7 +1314,7 @@ ObjPtr Obj::op_bit_and_set(Obj &obj, bool strong) {
     LOG_RUNTIME("Incompatible types %d and %d for '&' operator!", (int) m_var_type_current, (int) obj.m_var_type_current);
 }
 
-bool Obj::op_class_test(ObjPtr obj, Context *ctx) {
+bool Obj::op_class_test(ObjPtr obj, Context * ctx) {
     if (obj->is_string_type()) {
         return op_class_test(obj->GetValueAsString().c_str(), ctx);
     } else if (!obj->m_class_name.empty()) {
@@ -1268,7 +1326,7 @@ bool Obj::op_class_test(ObjPtr obj, Context *ctx) {
     }
 }
 
-bool Obj::op_class_test(const char *name, Context *ctx) {
+bool Obj::op_class_test(const char *name, Context * ctx) {
 
     ASSERT(name || *name);
 
@@ -1327,7 +1385,7 @@ bool Obj::op_duck_test_prop(Obj *base, Obj *value, bool strong) {
     return true;
 }
 
-ObjPtr Obj::op_pow_(Obj &obj) {
+ObjPtr Obj::op_pow_(Obj & obj) {
     if (obj.is_arithmetic_type()) {
         if (is_tensor()) {
             m_value.pow_(obj.toTensor());
@@ -1384,7 +1442,7 @@ bool Obj::op_duck_test(Obj *value, bool strong) {
     return m_var_type_current == value->m_var_type_current;
 }
 
-std::string Obj::format(std::string format, Obj *args) {
+std::string Obj::format(std::string format, Obj * args) {
     if (args && !args->empty()) {
         std::string name;
         std::string place;
@@ -1458,7 +1516,7 @@ ObjPtr Obj::toShape_(ObjPtr dims) {
     return shared();
 }
 
-ObjPtr Obj::toType_(Obj *type) {
+ObjPtr Obj::toType_(Obj * type) {
     ASSERT(type);
     if (type->m_var_type_current != ObjType::Type) {
         LOG_RUNTIME("Fail type object '%s'!", type->toString().c_str());
@@ -1699,7 +1757,7 @@ void ShapeFromDict(const Obj *obj, std::vector<int64_t> &shape) {
     }
 }
 
-std::vector<int64_t> newlang::TensorShapeFromDict(const Obj *obj) {
+std::vector<int64_t> newlang::TensorShapeFromDict(const Obj * obj) {
     std::vector<int64_t> shape;
     ShapeFromDict(obj, shape);
     return shape;
@@ -1805,7 +1863,7 @@ torch::Tensor newlang::ConvertToTensor(Obj *data, at::ScalarType type, bool resh
     LOG_RUNTIME("Can`t convert type %d to tensor!", (int) data->m_var_type_current);
 }
 
-at::TensorOptions newlang::ConvertToTensorOptions(const Obj *obj) {
+at::TensorOptions newlang::ConvertToTensorOptions(const Obj * obj) {
     if (!obj || obj->is_none_type()) {
 
         return at::TensorOptions();
@@ -1813,7 +1871,7 @@ at::TensorOptions newlang::ConvertToTensorOptions(const Obj *obj) {
     LOG_RUNTIME("Not implemented!");
 }
 
-at::DimnameList newlang::ConvertToDimnameList(const Obj *obj) {
+at::DimnameList newlang::ConvertToDimnameList(const Obj * obj) {
     if (!obj || obj->is_none_type()) {
 
         return {};
@@ -2170,7 +2228,7 @@ bool newlang::ParsePrintfFormat(Obj args, size_t start) {
     return result;
 }
 
-void newlang::ConvertRangeToDict(Obj *from, Obj &to) {
+void newlang::ConvertRangeToDict(Obj *from, Obj & to) {
 
     to.m_var_is_init = false;
 
@@ -2377,7 +2435,7 @@ ObjPtr Obj::CreateBaseType(ObjType type) {
     return result;
 }
 
-ObjPtr Obj::BaseTypeConstructor(const Context *ctx, Obj &args) {
+ObjPtr Obj::BaseTypeConstructor(const Context *ctx, Obj & args) {
 
     if (args.empty() || !args[0]) {
         LOG_RUNTIME("Self simple type not defined!");

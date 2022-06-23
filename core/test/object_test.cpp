@@ -81,10 +81,8 @@ TEST(ObjTest, Dict) {
 
     Obj var(ObjType::Dictionary);
     ASSERT_TRUE(var.empty());
-    EXPECT_THROW(
-            var[0],
-            std::out_of_range
-            );
+    EXPECT_ANY_THROW(var[0]);
+    
     ASSERT_EQ(0, var.size());
     ObjPtr var2 = ctx.ExecStr("(,)");
 
@@ -120,11 +118,9 @@ TEST(ObjTest, AsMap) {
 
     ObjPtr map = Obj::CreateType(ObjType::Dictionary);
     ASSERT_TRUE(map->empty());
-    EXPECT_THROW(
-            (*map)["test1"],
-            std::out_of_range
-            );
+    EXPECT_ANY_THROW((*map)["test1"]);
     ASSERT_EQ(0, map->size());
+    
     ObjPtr temp = Obj::CreateString("Test");
     map->push_back(temp, "test1");
     map->push_back(Obj::CreateValue(100, ObjType::None), "test2");
@@ -476,13 +472,9 @@ TEST(Args, All) {
     *arg_999_123_named += arg_123_named;
     ASSERT_EQ(2, arg_999_123_named->size());
 
-    ASSERT_THROW(
-            proto1.ConvertToArgs(arg_999, true, nullptr), // Прототип не принимает позиционных аргументов
-            std::invalid_argument);
+    ASSERT_ANY_THROW(proto1.ConvertToArgs(arg_999, true, nullptr)); // Прототип не принимает позиционных аргументов
 
-    ASSERT_THROW(
-            proto1.ConvertToArgs(arg_empty_named, true, nullptr), // Прототип не принимает именованных аргументов
-            std::invalid_argument);
+    ASSERT_ANY_THROW(proto1.ConvertToArgs(arg_empty_named, true, nullptr)); // Прототип не принимает именованных аргументов
 
 
     ASSERT_TRUE(p.Parse("test(arg1)"));
@@ -501,10 +493,7 @@ TEST(Args, All) {
     ASSERT_TRUE((*o_arg_empty_named)[0]);
     ASSERT_STREQ("_", (*o_arg_empty_named)[0]->toString().c_str());
 
-    ASSERT_THROW(
-            proto2.ConvertToArgs(arg_123_named, true, nullptr), // Имя аругмента отличается
-            std::invalid_argument);
-
+    ASSERT_ANY_THROW(proto2.ConvertToArgs(arg_123_named, true, nullptr)); // Имя аругмента отличается
 
 
     // Нормальный вызов

@@ -146,19 +146,6 @@ TEST(Eval, Assign) {
     list = ctx.ExecStr("$");
     ASSERT_STREQ("$=('var_str', 'var_export', 'func_eval',)", list->toString().c_str());
 
-    ObjPtr tensor3 = ctx.ExecStr("t:Int[2,3] := 123");
-    ASSERT_TRUE(tensor3);
-    ASSERT_EQ(ObjType::Int, tensor3->m_var_type_current) << toString(tensor3->m_var_type_current);
-    ASSERT_EQ(ObjType::Int, tensor3->m_var_type_fixed) << toString(tensor3->m_var_type_fixed);
-    ASSERT_EQ(2, tensor3->m_value.dim());
-    ASSERT_EQ(2, tensor3->m_value.size(0));
-    ASSERT_EQ(3, tensor3->m_value.size(1));
-
-    for (int x = 0; x < tensor3->size(0); x++) {
-        for (int y = 0; y < tensor3->size(1); y++) {
-            ASSERT_STREQ("123", tensor3->index_get({x, y})->GetValueAsString().c_str());
-        }
-    }
 
     ObjPtr dict1 = ctx.ExecStr("(10, 2,  3,   4,   )");
     ASSERT_TRUE(dict1);
@@ -1053,7 +1040,7 @@ TEST_F(OpEvalTest, Ops) {
 
     Obj vars(Obj::Arg(var1, "var1"));
 
-    ASSERT_THROW(Test("$var1"), std::out_of_range);
+    ASSERT_ANY_THROW(Test("$var1"));
     ASSERT_NO_THROW(Test("$var1", vars));
     ASSERT_STREQ("100", Test("$var1", vars));
 
@@ -1063,8 +1050,8 @@ TEST_F(OpEvalTest, Ops) {
     ASSERT_STREQ("$=('var1', 'var2',)", Test("$"));
     ASSERT_STREQ("20", Test("var2"));
 
-    ASSERT_THROW(Test("$var2"), std::out_of_range);
-    ASSERT_THROW(Test("$var2", vars), std::out_of_range);
+    ASSERT_ANY_THROW(Test("$var2"));
+    ASSERT_ANY_THROW(Test("$var2", vars));
     vars.push_back(Obj::Arg(var2, "var2"));
 
     ASSERT_NO_THROW(Test("$var2", vars));
@@ -1074,7 +1061,7 @@ TEST_F(OpEvalTest, Ops) {
     ASSERT_STREQ("120", Test("var1+=var2"));
     ASSERT_STREQ("$=('var1', 'var2',)", Test("$"));
 
-    ASSERT_THROW(Test("$var1"), std::out_of_range);
+    ASSERT_ANY_THROW(Test("$var1"));
     ASSERT_NO_THROW(Test("$var1", vars));
     ASSERT_STREQ("120", Test("$var1", vars));
 

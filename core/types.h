@@ -3,8 +3,6 @@
 
 #include <core/pch.h>
 
-#include <contrib/logger/logger.h>
-
 namespace newlang {
 
 typedef at::indexing::TensorIndex Index;
@@ -30,10 +28,10 @@ class Interrupt : public std::exception {
      
       inline static const char * Return = ":Return";
       inline static const char * Error = ":Error";
-      inline static const char * Parser = ":Parser";
-      inline static const char * RunTime = ":RunTime";
-      inline static const char * Signal = ":Signal";
-      inline static const char * Abort = ":Abort";
+      inline static const char * Parser = ":ErrorParser";
+      inline static const char * RunTime = ":ErrorRunTime";
+      inline static const char * Signal = ":ErrorSignal";
+      inline static const char * Abort = ":ErrorAbort";
 
     Interrupt(const ObjPtr obj);
     Interrupt(const std::string message, const std::string error_name=Error);
@@ -553,8 +551,12 @@ void ParserException(const char *msg, std::string &buffer, int row, int col);
             LOG_RUNTIME("Different sizes of tensors!");
         }
 
-        //    ASSERT(self.dim() == 0);
-        ASSERT(set.dim() == 0);
+        if (set.dim() != 0) {
+            self = set.clone();
+            return;
+            
+            ASSERT(set.dim() == 0);
+        }
 
         bool *ptr_boll = nullptr;
         signed char *ptr_char = nullptr;

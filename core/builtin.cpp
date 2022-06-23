@@ -12,7 +12,7 @@ namespace newlang {
 
     NEWLANG_TRANSPARENT(min) {
         if(in.size() < 2) {
-            LOG_CALLSTACK(std::invalid_argument, "Empty argument list parameter!");
+            LOG_RUNTIME("Empty argument list parameter!");
         }
         ObjPtr out = in.at(1).second;
         for (size_t i = 2; i < in.size(); i++) {
@@ -25,7 +25,7 @@ namespace newlang {
 
     NEWLANG_TRANSPARENT(max) {
         if(in.size() < 2) {
-            LOG_CALLSTACK(std::invalid_argument, "Empty argument list parameter!");
+            LOG_RUNTIME("Empty argument list parameter!");
         }
         ObjPtr out = in.at(1).second;
         for (size_t i = 2; i < in.size(); i++) {
@@ -38,21 +38,21 @@ namespace newlang {
 
     NEWLANG_FUNCTION(clone) {
         if(in.size() != 2) {
-            LOG_CALLSTACK(std::invalid_argument, "Bad argument count parameter!");
+            LOG_RUNTIME("Bad argument count parameter!");
         }
         return in[1]->Clone(nullptr);
     }
 
     NEWLANG_FUNCTION(const_) {
         if(in.size() != 2) {
-            LOG_CALLSTACK(std::invalid_argument, "Bad argument count parameter!");
+            LOG_RUNTIME("Bad argument count parameter!");
         }
         return in[1]->MakeConst();
     }
 
     NEWLANG_FUNCTION(mutable_) {
         if(in.size() != 2) {
-            LOG_CALLSTACK(std::invalid_argument, "Bad argument count parameter!");
+            LOG_RUNTIME("Bad argument count parameter!");
         }
         return in[1]->MakeMutable();
     }

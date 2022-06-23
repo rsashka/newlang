@@ -964,7 +964,6 @@ class:  dictionary
                 $$ = $1;
                 $$->m_text = $type_class->m_text;
                 $$->m_class_name = $type_class->m_text;
-//                $$->SetType($2);
             }
             
            
@@ -1057,7 +1056,7 @@ assign:  assign_seq  assign_op  assign_expr
                 $$->Append($3, Term::RIGHT); 
             }
 
-            
+        
 body:   rval
             {
                 $$ = $1;
@@ -1361,15 +1360,6 @@ condition: source
             {
                 $$ = $1;
             }
-/*        | exit
-            {
-                $$=$1;
-            }
-        | range
-            {
-                $$ = $1;  
-            }
-*/
 
         
 logical:  arithmetic
@@ -1390,7 +1380,7 @@ match_cond: '['   condition   ']'
             {
                 $$ = $condition;
             }
-        
+
 if_then:  match_cond  FOLLOW  body
             {
                 $$=$2;
@@ -1410,11 +1400,6 @@ follow: if_then
             }
         
    
-/* term -->> {};
- * (op) -->> {};
- * {} <<-- term;
- * {} <<-- (op);
- */        
 repeat: match_cond  WHILE  body
             {
                 $$=$2;

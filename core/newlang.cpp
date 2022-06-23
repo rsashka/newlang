@@ -1594,35 +1594,10 @@ std::string NewLang::GetImpl(CompileInfo &ci, TermPtr term, std::string &output)
             }
             return "";
 
-//        case TermID::EXCEPTION:
-//            if(term->m_right) {
-//                GetImpl(ci, term->m_right, temp);
-//                output += "throw newlang_exception(" + temp + ")";
-//
-//            } else {
-//                output += "throw newlang_exception(Obj::CreateNone())";
-//            }
-//            return "";
-
-
         case TermID::ARGS:
             result = "in";
             output += result;
             return result;
-
-            //        case TermID::CREMENT:
-            //            temp.clear();
-            //            if(term->m_left && !term->m_right) {
-            //                GetImpl(ci, term->m_left, temp);
-            //                result = "(*" + temp + ")" + term->m_text;
-            //            } else if(term->m_right && !term->m_left) {
-            //                GetImpl(ci, term->m_right, temp);
-            //                result = term->m_text + "(*" + temp + ")";
-            //            } else {
-            //                LOG_RUNTIME("Double CREMENT logic not support!");
-            //            }
-            //            output += result;
-            //            return result;
 
         case TermID::ASSIGN:
             GetImpl(ci, term->Left(), result);
@@ -1772,7 +1747,7 @@ std::string NewLang::GetImpl(CompileInfo &ci, TermPtr term, std::string &output)
                 result += ci.GetIndent() + "if((" + temp + ")->GetValueAsBoolean()) {";
             } else {
                 if(i == 0 || i != term->m_follow.size() - 1) {
-                    LOG_CALLSTACK(std::logic_error, "Bad logic follow '%s'", term->toString().c_str());
+                    LOG_RUNTIME("Bad logic follow '%s'", term->toString().c_str());
                 }
                 result += " else {";
             }
@@ -1781,7 +1756,7 @@ std::string NewLang::GetImpl(CompileInfo &ci, TermPtr term, std::string &output)
                 GetImpl(ci, term->m_follow[i]->Right(), temp);
                 result += "\n" NEWLANG_INDENT_OP + ci.GetIndent() + temp + ";\n" + ci.GetIndent() + "}";
             } else {
-                LOG_CALLSTACK(std::logic_error, "Bad logic follow '%s'", term->toString().c_str());
+                LOG_RUNTIME("Bad logic follow '%s'", term->toString().c_str());
             }
         }
         result += "\n";

@@ -399,7 +399,7 @@ namespace newlang {
 
         ObjPtr & at(ObjPtr find) {
             if (!find->is_string_type()) {
-                LOG_CALLSTACK(std::runtime_error, "Value must be a string type %d", (int) find->getType());
+                LOG_RUNTIME("Value must be a string type %d", (int) find->getType());
             }
             return Variable<ObjPtr>::at(find->GetValueAsString()).second;
         }
@@ -985,11 +985,13 @@ namespace newlang {
                         return GetValueAsInteger();
                     }
             }
-            LOG_CALLSTACK(std::runtime_error, "Data type incompatible %s", toString().c_str());
+            LOG_RUNTIME("Data type incompatible %s", toString().c_str());
         }
 
         inline bool GetValueAsBoolean() const {
-            TEST_INIT_();
+            if (!m_var_is_init) {
+                return false;
+            }
             if (is_scalar()) {
                 return m_value.toType(at::ScalarType::Bool).item<double>();
             } else if (isSimpleType(m_var_type_current)) {
@@ -1547,6 +1549,12 @@ namespace newlang {
                 return;
             } else if ((is_none_type() || is_tensor()) && value->is_tensor()) {
 
+                if (value->empty()) {
+                    m_value.reset();
+                    m_var_is_init = false;
+                    return;
+                }
+
                 if (!canCast(value->m_var_type_current, m_var_type_current)) {
                     testConvertType(value->m_var_type_current);
                     toType_(value->getType());
@@ -1555,15 +1563,19 @@ namespace newlang {
                     m_value = value->m_value;
                     m_var_type_current = value->m_var_type_current;
                 } else {
-                    //                m_value = m_value.toType(toTorchType(value->m_var_type_current));
 
                     if (m_value.dim() == 0 && value->m_value.dim() != 0) {
                         LOG_RUNTIME("Fail assign tensor to scalar!");
                     }
-                    if (!m_value.sizes().equals(value->m_value.sizes()) && value->m_value.dim() != 0) {
-                        LOG_RUNTIME("Different sizes of tensors!");
+                    if (!m_var_is_init) {
+                        m_value = value->m_value.clone();
+                    } else {
+                        if (!m_value.sizes().equals(value->m_value.sizes()) && value->m_value.dim() != 0) {
+                            LOG_RUNTIME("Different sizes of tensors!");
+                        } else {
+                            setTensorValue(m_value, value->m_value);
+                        }
                     }
-                    setTensorValue(m_value, value->m_value);
                 }
                 m_var_is_init = true;
                 return;
@@ -1682,19 +1694,9 @@ namespace newlang {
 
     public:
 
-        /*
-         * Bool -> Byte, Char -> Short -> Int -> Long -> Float, Double -> ComplexFloat, ComplexDouble
-         */
-
         ObjType m_var_type_current; ///< Текущий тип значения объекта
         ObjType m_var_type_fixed; ///< Максимальный размер для арифметических типов, который задается разработчиком
-        //        std::string m_var_type_name;
-        //    bool m_var_type_defined; ///< Определен ли конкретный тип переменной или он может быть изменен?
-        // @todo Нужно ли поддерживать не инициализированные типизированные переменные ???????????????? 
-        // None:Byte, _:Char нужно контролировать тип значения, но тип None является и типом и значением одновремнно, 
-        // после которого превоначальный тип может быть измерен на произвольный.
         bool m_var_is_init; ///< Содержит ли объект корректное значение ???
-        //    bool m_is_fixed_type; ///< Тип фиксирован и не может быть изменен
 
         //    struct FuncInfo {
         //        const TermPtr m_func_proto;
@@ -1708,7 +1710,6 @@ namespace newlang {
         std::string m_var_name; ///< Имя переменной, в которой хранится объект
 
         ObjPtr m_dimensions; ///< Размерности для ObjType::Type
-        //        ObjPtr m_class_base; ///< Имя базового класса
         std::string m_class_name; ///< Имя класса объекта (у базовых типов отсуствует)
         std::vector<ObjPtr> m_class_parents; ///< Родительские классы (типы)
 

@@ -58,14 +58,6 @@ Context::Context(RuntimePtr global) {
         Context::m_funcs["eval"] = CreateBuiltin("eval(string:String)", (void *) &eval, ObjType::FUNCTION);
         Context::m_funcs["exec"] = CreateBuiltin("exec(filename:String)", (void *) &exec, ObjType::FUNCTION);
 
-
-        //#define REGISTER_TYPES(name) \
-//    ASSERT(Context::m_funcs.find(":"#name) == Context::m_funcs.end()); \
-//    Context::m_funcs[":"#name] = CreateBuiltin(":"#name "(...):" #name, (void *)& newlang:: name, ObjType::TRANSPARENT);
-        //        //    Context::m_funcs[#name "_"] = CreateBuiltin(#name "_(...):" #name, (void *)& newlang:: name##_, ObjType::FUNCTION);
-        //        NL_BUILTIN_CAST_TYPE(REGISTER_TYPES)
-        //#undef REGISTER_TYPES
-
     }
 
     if (Context::m_types.empty()) {
@@ -548,7 +540,7 @@ ObjPtr Context::CREATE_OR_ASSIGN(Context *ctx, const TermPtr &term, Obj *local_v
             for (int i = 0; i < list_obj.size() - 1; i++) {
                 if (list_term[i]->getTermID() != TermID::NONE) {
                     if (i < rval->size()) {
-                        list_obj[i]->SetValue_((*rval)[i]->Clone());
+                        list_obj[i]->SetValue_((*rval)[i]); //->Clone()
                     } else {
                         list_obj[i]->SetValue_(Obj::CreateNone());
                     }
@@ -1267,20 +1259,14 @@ ObjPtr Context::eval_EXIT(Context *ctx, const TermPtr &term, Obj * args) {
             ret = CreateRVal(ctx, term->Right(), args);
         } else {
             ret = ctx->GetTypeFromString(Interrupt::Return);
-            //            Obj args_call;
-            //            args_call.push_back(Obj::Arg(CreateRVal(ctx, term->Right(), args)));
             ret = ret->Call(ctx, Obj::Arg(CreateRVal(ctx, term->Right(), args)));
-            //            ret->push_back(Obj::Arg(CreateRVal(ctx, term->Right(), args)));
         }
     } else {
         ret = ctx->GetTypeFromString(Interrupt::Return);
         ret = ret->Call(ctx, Obj::Arg(Obj::CreateNone()));
-        //      ret->push_back(Obj::Arg(Obj::CreateNone()));
     }
-
+    ASSERT(ret);
     throw Interrupt(ret);
-
-    return nullptr;
 }
 
 ObjPtr Context::CallBlock(Context *ctx, const TermPtr &block, Obj * local_vars) {
@@ -1289,10 +1275,8 @@ ObjPtr Context::CallBlock(Context *ctx, const TermPtr &block, Obj * local_vars) 
     if (!block->m_block.empty()) {
         for (size_t i = 0; i < block->m_block.size(); i++) {
             result = ExecStr(ctx, block->m_block[i], local_vars);
-            LOG_DEBUG("%d: %s", (int) i, result->toString().c_str());
         }
     } else {
-
         result = ExecStr(ctx, block, local_vars);
     }
     return result;
@@ -1455,6 +1439,7 @@ ObjPtr Context::CreateNative(TermPtr proto, const char *module, bool lazzy, cons
         } else if (result->m_func_ptr && result->is_tensor()) {
             result->m_value = torch::from_blob(result->m_func_ptr, {
             }, toTorchType(type));
+            result->m_var_is_init = true;
         } else {
 
             LOG_RUNTIME("Fail CreateNative for object %s", result->toString().c_str());
@@ -1593,7 +1578,7 @@ ObjPtr Context::CreateLVal(Context *ctx, TermPtr term, Obj * args) {
     //    }
 
     ObjPtr result = Obj::CreateNone();
-    //    result->m_ctx = ctx;
+    result->m_var_is_init = false;
     result->m_var_name = term->m_text;
 
     *const_cast<TermPtr *> (&result->m_func_proto) = term;
@@ -1604,7 +1589,6 @@ ObjPtr Context::CreateLVal(Context *ctx, TermPtr term, Obj * args) {
         result->m_var_type_current = ObjType::FUNCTION;
         result->m_var_type_fixed = result->m_var_type_current;
         *const_cast<TermPtr *> (&result->m_func_proto) = term;
-        result->m_var_is_init = false;
     } else if (type) {
         result->m_var_type_current = typeFromString(type->getText().c_str(), ctx);
         result->m_var_type_fixed = result->m_var_type_current;
@@ -1625,7 +1609,6 @@ ObjPtr Context::CreateLVal(Context *ctx, TermPtr term, Obj * args) {
                 }
             }
             result->m_value = torch::empty(dims, toTorchType(result->m_var_type_current));
-            result->m_var_is_init = false;
         }
     }
     if (!isType(term->m_text)) {
@@ -1956,7 +1939,6 @@ ObjPtr Context::CreateRVal(Context *ctx, TermPtr term, Obj * local_vars) {
                 if (term->size()) {
                     Obj args(ctx, term, true, local_vars);
                     result = result->Call(ctx, &args);
-                    //                    11111111111111111111111
                 }
 
             }
@@ -1964,7 +1946,6 @@ ObjPtr Context::CreateRVal(Context *ctx, TermPtr term, Obj * local_vars) {
                 // Делать ислкючение или возвращать объект "ошибка" ?????
                 LOG_RUNTIME("Term '%s' not found!", term->GetFullName().c_str());
             }
-            result->m_var_is_init = true;
 
             field = term->m_right;
             if (field && field->getTermID() == TermID::FIELD) {

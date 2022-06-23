@@ -138,7 +138,7 @@ namespace newlang {
 
         inline Type & insert(int64_t index, Type value, const std::string &name = "") {
             if (index < 0 || index >= m_data.size()) {
-                LOG_CALLSTACK(std::out_of_range, "Index '%ld' not exists!", index);
+                LOG_RUNTIME("Index '%ld' not exists!", index);
             }
             return m_data.insert(m_data.begin() + index, std::pair<std::string, Type>(name, value))->second;
         }
@@ -153,7 +153,7 @@ namespace newlang {
                     return m_data.at(m_data.size() + index);
                 }
             }
-            LOG_CALLSTACK(std::out_of_range, "Index '%ld' not exists!", index);
+            LOG_RUNTIME("Index '%ld' not exists!", index);
         }
 
         virtual const PairType & at(const int64_t index) const {
@@ -166,7 +166,7 @@ namespace newlang {
                     return m_data.at(m_data.size() + index);
                 }
             }
-            LOG_CALLSTACK(std::out_of_range, "Index '%ld' not exists!", index);
+            LOG_RUNTIME("Index '%ld' not exists!", index);
         }
 
         template <typename N>
@@ -180,7 +180,7 @@ namespace newlang {
             if (found != m_data.end()) {
                 return found.data();
             }
-            LOG_CALLSTACK(std::out_of_range, "Property '%s' not found!", name.c_str());
+            LOG_RUNTIME("Property '%s' not found!", name.c_str());
         }
 
         //    template <typename N>
@@ -194,7 +194,7 @@ namespace newlang {
         //        if (found != m_data.end()) {
         //            return found.data();
         //        }
-        //        LOG_CALLSTACK(std::out_of_range, "Property '%s' not found!", name.c_str());
+        //        LOG_RUNTIME("Property '%s' not found!", name.c_str());
         //    }
 
         //    virtual const PairType & at(const std::string name) {
@@ -209,7 +209,7 @@ namespace newlang {
             if (index < m_data.size()) {
                 return m_data.at(index).first;
             }
-            LOG_CALLSTACK(std::out_of_range, "Index '%lu' not exists!", static_cast<unsigned long> (index));
+            LOG_RUNTIME("Index '%lu' not exists!", static_cast<unsigned long> (index));
         }
 
         virtual bool empty() const {
@@ -253,7 +253,7 @@ namespace newlang {
                 if (m_found != m_data.end()) {
                     return m_found->second;
                 }
-                LOG_CALLSTACK(std::out_of_range, "Property '%s' not found  or iterator completed!", m_key.c_str());
+                LOG_RUNTIME("Property '%s' not found  or iterator completed!", m_key.c_str());
             }
 
             inline const Type &operator*() const {
@@ -264,7 +264,7 @@ namespace newlang {
                 if (m_found != m_data.end()) {
                     return *m_found;
                 }
-                LOG_CALLSTACK(std::out_of_range, "Property '%s' not found  or iterator completed!", m_key.c_str());
+                LOG_RUNTIME("Property '%s' not found  or iterator completed!", m_key.c_str());
             }
 
             inline const PairType &data() const {
@@ -273,7 +273,7 @@ namespace newlang {
 
             const iterator &operator++() {
                 if (m_found == m_data.end()) {
-                    LOG_CALLSTACK(std::out_of_range, "Property '%s' not found  or iterator completed!", m_key.c_str());
+                    LOG_RUNTIME("Property '%s' not found  or iterator completed!", m_key.c_str());
                 }
                 m_found++;
                 search_loop();
@@ -286,7 +286,7 @@ namespace newlang {
 
             iterator operator++(int) {
                 if (m_found == m_data.end()) {
-                    LOG_CALLSTACK(std::out_of_range, "Property '%s' not found  or iterator completed!", m_key.c_str());
+                    LOG_RUNTIME("Property '%s' not found  or iterator completed!", m_key.c_str());
                 }
                 iterator copy(*this);
                 m_found++;
@@ -405,14 +405,14 @@ namespace newlang {
             if (index < m_data.size()) {
                 return m_data.erase(m_data.begin() + index);
             }
-            LOG_CALLSTACK(std::out_of_range, "Index '%lu' not exists!", static_cast<unsigned long> (index));
+            LOG_RUNTIME("Index '%lu' not exists!", static_cast<unsigned long> (index));
         }
 
         typename DataType::iterator erase(iterator iter) {
             if (!iter.complete()) {
                 return m_data.erase(iter.m_found);
             }
-            LOG_CALLSTACK(std::out_of_range, "Try erase end of iter!");
+            LOG_RUNTIME("Try erase end of iter!");
         }
 
         virtual iterator select() {

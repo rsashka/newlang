@@ -1229,12 +1229,11 @@ TEST_F(ParserTest, FunctionEmpty2) {
 }
 
 TEST_F(ParserTest, FunctionArgsFail) {
-    ASSERT_THROW(Parse("мин(... ...) := {$0:=0;};"), Interrupt);
-    //    ASSERT_THROW(Parse("мин(..., arg) := {$0:=0;};"), parser_exception);
-    ASSERT_THROW(Parse("мин(arg ...) := {$0:=0;};"), Interrupt);
-    ASSERT_THROW(Parse("мин(arg=1 ..., arg) := {$0:=0;};"), Interrupt);
-    ASSERT_THROW(Parse("мин(arg=1, arg ...) := {$0:=0;};"), Interrupt);
-    ASSERT_THROW(Parse("мин(arg=1 ...) := {$0:=0;};"), Interrupt);
+    ASSERT_ANY_THROW(Parse("мин(... ...) := {$0:=0;};"));
+    ASSERT_ANY_THROW(Parse("мин(arg ...) := {$0:=0;};"));
+    ASSERT_ANY_THROW(Parse("мин(arg=1 ..., arg) := {$0:=0;};"));
+    ASSERT_ANY_THROW(Parse("мин(arg=1, arg ...) := {$0:=0;};"));
+    ASSERT_ANY_THROW(Parse("мин(arg=1 ...) := {$0:=0;};"));
 }
 
 TEST_F(ParserTest, ArrayAdd7) {

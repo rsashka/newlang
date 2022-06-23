@@ -248,6 +248,103 @@ TEST(Alg, Foreach) {
     ASSERT_EQ(150, summa->GetValueAsInteger());
     ASSERT_EQ(50, counter->GetValueAsInteger());
 
+    summa = ctx.ExecStr("summa := 0");
+    dict = ctx.ExecStr("dict := (1,2,3,4,5,)");
+    temp = ctx.ExecStr("item := 0; [dict] ->> {item, dict := ... dict; summa += item}");
+    ASSERT_TRUE(temp);
+    ASSERT_TRUE(temp->is_integer());
+    ASSERT_EQ(15, temp->GetValueAsInteger());
+    ASSERT_TRUE(dict->is_dictionary_type());
+    ASSERT_EQ(0, dict->size());
+    ASSERT_EQ(15, summa->GetValueAsInteger());
+
+
+
+
+
+    counter = ctx.ExecStr("counter := 55");
+    ASSERT_EQ(55, counter->GetValueAsInteger());
+
+    ObjPtr tensor = ctx.ExecStr("tensor := [10,11,12,]");
+    ASSERT_TRUE(tensor);
+    ASSERT_TRUE(tensor->is_tensor());
+    ASSERT_TRUE(tensor->GetValueAsBoolean());
+    ASSERT_EQ(3, tensor->size());
+    ASSERT_EQ(10, (*tensor)[0]->GetValueAsInteger());
+    ASSERT_EQ(11, (*tensor)[1]->GetValueAsInteger());
+    ASSERT_EQ(12, (*tensor)[2]->GetValueAsInteger());
+
+    temp = ctx.ExecStr("counter, tensor  := ... tensor ");
+    ASSERT_TRUE(temp);
+    ASSERT_TRUE(temp->is_tensor());
+    ASSERT_EQ(2, temp->size());
+
+    ASSERT_EQ(10, counter->GetValueAsInteger());
+
+    ASSERT_TRUE(tensor->is_tensor());
+    ASSERT_TRUE(tensor->GetValueAsBoolean());
+    ASSERT_EQ(2, tensor ->size());
+    ASSERT_EQ(11, (*tensor)[0]->GetValueAsInteger());
+    ASSERT_EQ(12, (*tensor)[1]->GetValueAsInteger());
+
+    temp = ctx.ExecStr("counter, tensor := ... tensor ");
+    ASSERT_TRUE(temp);
+    ASSERT_TRUE(temp->is_tensor());
+    ASSERT_EQ(1, temp->size());
+
+    ASSERT_EQ(11, counter->GetValueAsInteger());
+
+    ASSERT_TRUE(tensor->is_tensor());
+    ASSERT_TRUE(tensor->GetValueAsBoolean());
+    ASSERT_EQ(1, tensor ->size());
+    ASSERT_EQ(12, (*tensor)[0]->GetValueAsInteger());
+
+    temp = ctx.ExecStr("counter, tensor := ... tensor ");
+    ASSERT_TRUE(temp);
+    ASSERT_TRUE(temp->is_tensor());
+    ASSERT_EQ(0, temp->size());
+
+    ASSERT_EQ(12, counter->GetValueAsInteger());
+
+    ASSERT_TRUE(tensor->is_tensor());
+    ASSERT_FALSE(tensor->GetValueAsBoolean());
+    ASSERT_EQ(0, tensor ->size());
+
+    temp = ctx.ExecStr("counter, tensor := ... tensor");
+    ASSERT_TRUE(temp);
+    ASSERT_TRUE(temp->is_tensor());
+    ASSERT_TRUE(temp->empty());
+    ASSERT_FALSE(tensor->GetValueAsBoolean());
+    ASSERT_TRUE(tensor->is_tensor());
+    ASSERT_TRUE(tensor->empty());
+
+    ASSERT_TRUE(counter);
+    ASSERT_TRUE(counter->empty());
+
+
+
+    ObjPtr summa2 = ctx.ExecStr("summa := 0");
+    ObjPtr tensor2 = ctx.ExecStr("tensor := [10,20,30,40,50,60,]");
+    ObjPtr temp2 = ctx.ExecStr("item2 := 0; [tensor] ->> {item2, tensor := ... tensor; summa += item2}");
+    ASSERT_TRUE(temp2);
+    ASSERT_TRUE(temp2->is_integer());
+    ASSERT_EQ(210, temp2->GetValueAsInteger());
+    ASSERT_EQ(210, summa2->GetValueAsInteger());
+    ASSERT_TRUE(tensor2->is_tensor());
+    ASSERT_FALSE(tensor2->GetValueAsBoolean());
+
+    ObjPtr tensor_size = ctx.ExecStr("tensor_size := [10,20,30,40,]");
+    ASSERT_EQ(4, tensor_size->size());
+    ASSERT_EQ(10, (*tensor_size)[0]->GetValueAsInteger());
+    ASSERT_EQ(40, (*tensor_size)[3]->GetValueAsInteger());
+
+    tensor_size->resize_(-10, nullptr);
+    ASSERT_EQ(10, tensor_size->size());
+    ASSERT_EQ(0, (*tensor_size)[0]->GetValueAsInteger());
+    ASSERT_EQ(0, (*tensor_size)[5]->GetValueAsInteger());
+    ASSERT_EQ(10, (*tensor_size)[6]->GetValueAsInteger());
+    ASSERT_EQ(40, (*tensor_size)[9]->GetValueAsInteger());
+    
 }
 
 TEST(Alg, Return) {
