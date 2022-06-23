@@ -6,10 +6,7 @@
       <itemPath>../docs/_config.yml</itemPath>
       <itemPath>../docs/algs.md</itemPath>
       <itemPath>../docs/index.md</itemPath>
-      <itemPath>../docs/op_convert.md</itemPath>
-      <itemPath>../docs/ops.md</itemPath>
       <itemPath>../docs/syntax.md</itemPath>
-      <itemPath>../docs/types.md</itemPath>
     </logicalFolder>
     <logicalFolder name="SourceFiles"
                    displayName="Исходные файлы"
@@ -18,6 +15,7 @@
         <itemPath>nlp/fileio.nlp</itemPath>
       </logicalFolder>
       <logicalFolder name="f1" displayName="test" projectFiles="true">
+        <itemPath>test/alg_test.cpp</itemPath>
         <itemPath>test/eval_test.cpp</itemPath>
         <itemPath>test/fraction_test.cpp</itemPath>
         <itemPath>test/lexer_test.cpp</itemPath>
@@ -178,13 +176,7 @@
       </item>
       <item path="../docs/index.md" ex="false" tool="3" flavor2="0">
       </item>
-      <item path="../docs/op_convert.md" ex="false" tool="3" flavor2="0">
-      </item>
-      <item path="../docs/ops.md" ex="false" tool="3" flavor2="0">
-      </item>
       <item path="../docs/syntax.md" ex="false" tool="3" flavor2="0">
-      </item>
-      <item path="../docs/types.md" ex="false" tool="3" flavor2="0">
       </item>
       <item path="autocomplete.h" ex="false" tool="3" flavor2="0">
       </item>
@@ -315,6 +307,11 @@
           <customToolAdditionalDep>parser.yy.cpp location.hh pch.h.gch</customToolAdditionalDep>
         </customTool>
       </item>
+      <item path="test/alg_test.cpp" ex="false" tool="1" flavor2="9">
+        <ccTool>
+          <additionalDep>pch.h.gch</additionalDep>
+        </ccTool>
+      </item>
       <item path="test/eval_test.cpp" ex="false" tool="1" flavor2="9">
         <ccTool>
           <additionalDep>pch.h.gch</additionalDep>
@@ -427,13 +424,7 @@
       </item>
       <item path="../docs/index.md" ex="false" tool="3" flavor2="0">
       </item>
-      <item path="../docs/op_convert.md" ex="false" tool="3" flavor2="0">
-      </item>
-      <item path="../docs/ops.md" ex="false" tool="3" flavor2="0">
-      </item>
       <item path="../docs/syntax.md" ex="false" tool="3" flavor2="0">
-      </item>
-      <item path="../docs/types.md" ex="false" tool="3" flavor2="0">
       </item>
       <item path="autocomplete.h" ex="false" tool="3" flavor2="0">
       </item>
@@ -501,6 +492,8 @@
       <item path="term.cpp" ex="false" tool="1" flavor2="0">
       </item>
       <item path="term.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="test/alg_test.cpp" ex="false" tool="1" flavor2="0">
       </item>
       <item path="test/eval_test.cpp" ex="false" tool="1" flavor2="0">
       </item>
@@ -580,11 +573,13 @@
             <linkerLibStdlibItem>PosixThreads</linkerLibStdlibItem>
             <linkerLibStdlibItem>DynamicLinking</linkerLibStdlibItem>
             <linkerLibFileItem>../contrib/libffi/output/lib/libffi.a</linkerLibFileItem>
-            <linkerLibLibItem>c10</linkerLibLibItem>
-            <linkerLibLibItem>torch_cpu</linkerLibLibItem>
-            <linkerLibLibItem>torch</linkerLibLibItem>
             <linkerLibLibItem>crypto</linkerLibLibItem>
             <linkerLibLibItem>LLVM-13</linkerLibLibItem>
+            <linkerLibLibItem>torch</linkerLibLibItem>
+            <linkerLibLibItem>c10</linkerLibLibItem>
+            <linkerLibLibItem>c10_cuda</linkerLibLibItem>
+            <linkerLibLibItem>torch_cpu</linkerLibLibItem>
+            <linkerLibLibItem>torch_cuda</linkerLibLibItem>
           </linkerLibItems>
           <commandLine>-Wl,--export-dynamic</commandLine>
         </linkerTool>
@@ -619,13 +614,7 @@
       </item>
       <item path="../docs/index.md" ex="false" tool="3" flavor2="0">
       </item>
-      <item path="../docs/op_convert.md" ex="false" tool="3" flavor2="0">
-      </item>
-      <item path="../docs/ops.md" ex="false" tool="3" flavor2="0">
-      </item>
       <item path="../docs/syntax.md" ex="false" tool="3" flavor2="0">
-      </item>
-      <item path="../docs/types.md" ex="false" tool="3" flavor2="0">
       </item>
       <item path="autocomplete.h" ex="false" tool="3" flavor2="0">
       </item>
@@ -755,6 +744,11 @@
         <customTool>
           <customToolAdditionalDep>parser.yy.cpp location.hh pch.h.gch</customToolAdditionalDep>
         </customTool>
+      </item>
+      <item path="test/alg_test.cpp" ex="false" tool="1" flavor2="0">
+        <ccTool>
+          <additionalDep>pch.h.gch</additionalDep>
+        </ccTool>
       </item>
       <item path="test/eval_test.cpp" ex="false" tool="1" flavor2="0">
         <ccTool>
@@ -926,13 +920,7 @@
       </item>
       <item path="../docs/index.md" ex="false" tool="3" flavor2="0">
       </item>
-      <item path="../docs/op_convert.md" ex="false" tool="3" flavor2="0">
-      </item>
-      <item path="../docs/ops.md" ex="false" tool="3" flavor2="0">
-      </item>
       <item path="../docs/syntax.md" ex="false" tool="3" flavor2="0">
-      </item>
-      <item path="../docs/types.md" ex="false" tool="3" flavor2="0">
       </item>
       <item path="autocomplete.h" ex="false" tool="3" flavor2="0">
       </item>
@@ -1027,6 +1015,8 @@
         <customTool>
           <customToolAdditionalDep>parser.yy.cpp location.hh</customToolAdditionalDep>
         </customTool>
+      </item>
+      <item path="test/alg_test.cpp" ex="false" tool="1" flavor2="0">
       </item>
       <item path="test/eval_test.cpp" ex="false" tool="1" flavor2="0">
       </item>
@@ -1139,13 +1129,7 @@
       </item>
       <item path="../docs/index.md" ex="false" tool="3" flavor2="0">
       </item>
-      <item path="../docs/op_convert.md" ex="false" tool="3" flavor2="0">
-      </item>
-      <item path="../docs/ops.md" ex="false" tool="3" flavor2="0">
-      </item>
       <item path="../docs/syntax.md" ex="false" tool="3" flavor2="0">
-      </item>
-      <item path="../docs/types.md" ex="false" tool="3" flavor2="0">
       </item>
       <item path="autocomplete.h" ex="false" tool="3" flavor2="0">
       </item>
@@ -1240,6 +1224,8 @@
         <customTool>
           <customToolAdditionalDep>parser.yy.cpp location.hh</customToolAdditionalDep>
         </customTool>
+      </item>
+      <item path="test/alg_test.cpp" ex="false" tool="1" flavor2="9">
       </item>
       <item path="test/eval_test.cpp" ex="false" tool="1" flavor2="9">
       </item>
@@ -1380,13 +1366,7 @@
       </item>
       <item path="../docs/index.md" ex="false" tool="3" flavor2="0">
       </item>
-      <item path="../docs/op_convert.md" ex="false" tool="3" flavor2="0">
-      </item>
-      <item path="../docs/ops.md" ex="false" tool="3" flavor2="0">
-      </item>
       <item path="../docs/syntax.md" ex="false" tool="3" flavor2="0">
-      </item>
-      <item path="../docs/types.md" ex="false" tool="3" flavor2="0">
       </item>
       <item path="autocomplete.h" ex="false" tool="3" flavor2="0">
       </item>
@@ -1481,6 +1461,8 @@
         <customTool>
           <customToolAdditionalDep>parser.yy.cpp location.hh</customToolAdditionalDep>
         </customTool>
+      </item>
+      <item path="test/alg_test.cpp" ex="false" tool="1" flavor2="11">
       </item>
       <item path="test/eval_test.cpp" ex="false" tool="1" flavor2="11">
       </item>
@@ -1617,13 +1599,7 @@
       </item>
       <item path="../docs/index.md" ex="false" tool="3" flavor2="0">
       </item>
-      <item path="../docs/op_convert.md" ex="false" tool="3" flavor2="0">
-      </item>
-      <item path="../docs/ops.md" ex="false" tool="3" flavor2="0">
-      </item>
       <item path="../docs/syntax.md" ex="false" tool="3" flavor2="0">
-      </item>
-      <item path="../docs/types.md" ex="false" tool="3" flavor2="0">
       </item>
       <item path="autocomplete.h" ex="false" tool="3" flavor2="0">
       </item>
@@ -1718,6 +1694,8 @@
         <customTool>
           <customToolAdditionalDep>parser.yy.cpp location.hh</customToolAdditionalDep>
         </customTool>
+      </item>
+      <item path="test/alg_test.cpp" ex="false" tool="1" flavor2="11">
       </item>
       <item path="test/eval_test.cpp" ex="false" tool="1" flavor2="11">
       </item>

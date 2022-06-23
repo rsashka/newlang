@@ -47,6 +47,7 @@ OBJECTFILES= \
 	${OBJECTDIR}/parser.o \
 	${OBJECTDIR}/parser.yy.o \
 	${OBJECTDIR}/term.o \
+	${OBJECTDIR}/test/alg_test.o \
 	${OBJECTDIR}/test/eval_test.o \
 	${OBJECTDIR}/test/fraction_test.o \
 	${OBJECTDIR}/test/lexer_test.o \
@@ -164,6 +165,11 @@ ${OBJECTDIR}/term.o: term.cpp
 : term.h parser.yy.cpp location.hh
 	@echo Выполнение шага пользовательского сборки
 	
+
+${OBJECTDIR}/test/alg_test.o: test/alg_test.cpp
+	${MKDIR} -p ${OBJECTDIR}/test
+	${RM} "$@.d"
+	$(COMPILE.cc) -g -DDEBUG -DLOG_LEVEL_NORMAL=LOG_LEVEL_DEBUG -DPDC_WIDE -I../contrib/googletest/googletest -I../contrib/googletest/googletest/include -I../contrib/Tensorflow/bazel-bin/tensorflow/include -I../contrib/Lyra/include -I.. -std=c++14 -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/test/alg_test.o test/alg_test.cpp
 
 ${OBJECTDIR}/test/eval_test.o: test/eval_test.cpp
 	${MKDIR} -p ${OBJECTDIR}/test
