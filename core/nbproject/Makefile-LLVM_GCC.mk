@@ -46,6 +46,7 @@ OBJECTFILES= \
 	${OBJECTDIR}/object.o \
 	${OBJECTDIR}/parser.o \
 	${OBJECTDIR}/parser.yy.o \
+	${OBJECTDIR}/syntax_help.o \
 	${OBJECTDIR}/term.o \
 	${OBJECTDIR}/test/alg_test.o \
 	${OBJECTDIR}/test/eval_test.o \
@@ -55,7 +56,8 @@ OBJECTFILES= \
 	${OBJECTDIR}/test/nlc_test.o \
 	${OBJECTDIR}/test/object_test.o \
 	${OBJECTDIR}/test/parser_test.o \
-	${OBJECTDIR}/variable.o
+	${OBJECTDIR}/variable.o \
+	${OBJECTDIR}/version.o
 
 
 # C Compiler Flags
@@ -157,6 +159,11 @@ ${OBJECTDIR}/parser.yy.o: parser.yy.cpp parser.y
 	@echo Выполнение шага пользовательского сборки
 	
 
+${OBJECTDIR}/syntax_help.o: syntax_help.cpp
+	${MKDIR} -p ${OBJECTDIR}
+	${RM} "$@.d"
+	$(COMPILE.cc) -g -DDEBUG -DLOG_LEVEL_NORMAL=LOG_LEVEL_DEBUG -DPDC_WIDE -I../contrib/googletest/googletest -I../contrib/googletest/googletest/include -I../contrib/Tensorflow/bazel-bin/tensorflow/include -I../contrib/Lyra/include -I.. -std=c++14 -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/syntax_help.o syntax_help.cpp
+
 ${OBJECTDIR}/term.o: term.cpp
 	${MKDIR} -p ${OBJECTDIR}
 	${RM} "$@.d"
@@ -210,6 +217,11 @@ ${OBJECTDIR}/variable.o: variable.cpp
 	${MKDIR} -p ${OBJECTDIR}
 	${RM} "$@.d"
 	$(COMPILE.cc) -g -DDEBUG -DLOG_LEVEL_NORMAL=LOG_LEVEL_DEBUG -DPDC_WIDE -I../contrib/googletest/googletest -I../contrib/googletest/googletest/include -I../contrib/Tensorflow/bazel-bin/tensorflow/include -I../contrib/Lyra/include -I.. -std=c++14 -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/variable.o variable.cpp
+
+${OBJECTDIR}/version.o: version.c
+	${MKDIR} -p ${OBJECTDIR}
+	${RM} "$@.d"
+	$(COMPILE.c) -g -s -DDEBUG -DLOG_LEVEL_NORMAL=LOG_LEVEL_DUMP -DUNITTEST -I../contrib/googletest/googletest -I../contrib/googletest/googletest/include -I.. -std=c11 -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/version.o version.c
 
 : warning_pop.h parser.yy.cpp location.hh
 	@echo Выполнение шага пользовательского сборки

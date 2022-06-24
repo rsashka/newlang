@@ -51,6 +51,7 @@ FUNC_DIRECT(newlang_print, print_);
 FUNC_DIRECT(newlang_eval, eval);
 FUNC_DIRECT(newlang_exec, exec);
 
+FUNC_TRANSPARENT(newlang_help, help);
 /*
  * 
  * 
