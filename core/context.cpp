@@ -52,11 +52,11 @@ Context::Context(RuntimePtr global) {
         Context::m_funcs["max"] = CreateBuiltin("max(arg, ...)", (void *) &max, ObjType::TRANSPARENT);
         Context::m_funcs["макс"] = Context::m_funcs["max"];
 
-        Context::m_funcs["import"] =
-                CreateBuiltin("import(arg, module='', lazzy=0)", (void *) &import, ObjType::FUNCTION);
+        Context::m_funcs["import"] = CreateBuiltin("import(arg, module='', lazzy=0)", (void *) &import, ObjType::FUNCTION);
 
         Context::m_funcs["eval"] = CreateBuiltin("eval(string:String)", (void *) &eval, ObjType::FUNCTION);
         Context::m_funcs["exec"] = CreateBuiltin("exec(filename:String)", (void *) &exec, ObjType::FUNCTION);
+        Context::m_funcs["help"] = CreateBuiltin("help(...)", (void *) &help, ObjType::TRANSPARENT);
 
     }
 
@@ -167,6 +167,7 @@ ObjPtr Context::CreateBuiltin(const char *prototype, void *func, ObjType type) {
             Obj::CreateFunc(this, proto->Left(), type,
             proto->Left()->getName().empty() ? proto->Left()->getText() : proto->Left()->getName());
     obj->m_func_ptr = func;
+    obj->m_var_is_init = true;
 
     return obj;
 }

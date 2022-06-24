@@ -1,5 +1,7 @@
 #include "pch.h"
 
+#include <core/syntax_help.cpp>
+
 #include <core/builtin.h>
 #include <core/newlang.h>
 
@@ -11,12 +13,12 @@ using namespace newlang;
 namespace newlang {
 
     NEWLANG_TRANSPARENT(min) {
-        if(in.size() < 2) {
+        if (in.size() < 2) {
             LOG_RUNTIME("Empty argument list parameter!");
         }
         ObjPtr out = in.at(1).second;
         for (size_t i = 2; i < in.size(); i++) {
-            if(*in.at(i).second < out) {
+            if (*in.at(i).second < out) {
                 out = in.at(i).second;
             }
         }
@@ -24,12 +26,12 @@ namespace newlang {
     }
 
     NEWLANG_TRANSPARENT(max) {
-        if(in.size() < 2) {
+        if (in.size() < 2) {
             LOG_RUNTIME("Empty argument list parameter!");
         }
         ObjPtr out = in.at(1).second;
         for (size_t i = 2; i < in.size(); i++) {
-            if(*in.at(i).second > out) {
+            if (*in.at(i).second > out) {
                 out = in.at(i).second;
             }
         }
@@ -37,28 +39,28 @@ namespace newlang {
     }
 
     NEWLANG_FUNCTION(clone) {
-        if(in.size() != 2) {
+        if (in.size() != 2) {
             LOG_RUNTIME("Bad argument count parameter!");
         }
         return in[1]->Clone(nullptr);
     }
 
     NEWLANG_FUNCTION(const_) {
-        if(in.size() != 2) {
+        if (in.size() != 2) {
             LOG_RUNTIME("Bad argument count parameter!");
         }
         return in[1]->MakeConst();
     }
 
     NEWLANG_FUNCTION(mutable_) {
-        if(in.size() != 2) {
+        if (in.size() != 2) {
             LOG_RUNTIME("Bad argument count parameter!");
         }
         return in[1]->MakeMutable();
     }
 
     NEWLANG_FUNCTION(import) {
-        if(!ctx) {
+        if (!ctx) {
             LOG_RUNTIME("No access to context!");
         }
         return ctx->CreateNative(in.at(1).second->GetValueAsString().c_str(),
@@ -66,19 +68,28 @@ namespace newlang {
     }
 
     NEWLANG_FUNCTION(eval) {
-        if(!ctx) {
+        if (!ctx) {
             LOG_RUNTIME("No access to context!");
         }
         return ctx->ExecStr(in.at(1).second->GetValueAsString().c_str());
     }
 
     NEWLANG_FUNCTION(exec) {
-        if(!ctx) {
+        if (!ctx) {
             LOG_RUNTIME("No access to context!");
         }
         return ctx->ExecFile(in.at(1).second->GetValueAsString().c_str());
     }
 
+    NEWLANG_TRANSPARENT(help) {
+
+        std::string help_str;
+        for (int i = 0; i < newlang_syntax_help_size; i++) {
+            help_str.append(newlang_syntax_help_arr[i]);
+            help_str.append("\n\r");
+        }
+        return Obj::CreateString(help_str);
+    }
 
 
 #undef NEWLANG_FUNCTION
@@ -86,24 +97,19 @@ namespace newlang {
 
 }
 
-
-
-
-
-
 bool BuiltInTorchDirect::CheckDirect(CompileInfo &ci, TermPtr &term, std::string &output) {
 
-    if(term->size() == 0 && m_tensor_noarg.find(term->getText()) != m_tensor_noarg.end()) {
+    if (term->size() == 0 && m_tensor_noarg.find(term->getText()) != m_tensor_noarg.end()) {
         output += "->asTensor_()." + term->getText() + "(), " + output;
 
         return true;
-    } else if(term->size() == 1) {
+    } else if (term->size() == 1) {
 
-        if((*term)[0]->IsScalar() && m_tensor_scalar.find(term->getText()) != m_tensor_scalar.end()) {
+        if ((*term)[0]->IsScalar() && m_tensor_scalar.find(term->getText()) != m_tensor_scalar.end()) {
             output += "->asTensor_()." + term->getText() + "(" + (*term)[0]->getText() + "), " + output;
             return true;
 
-        } else if((*term)[0]->getTermID() == TermID::TERM) {
+        } else if ((*term)[0]->getTermID() == TermID::TERM) {
             std::string temp;
             NewLang::GetImpl(ci, (*term)[0], temp);
             output += "->asTensor_()." + term->getText() + "(" + temp + "->asTensor_()), " + output;

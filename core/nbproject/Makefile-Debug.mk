@@ -45,6 +45,7 @@ OBJECTFILES= \
 	${OBJECTDIR}/object.o \
 	${OBJECTDIR}/parser.o \
 	${OBJECTDIR}/parser.yy.o \
+	${OBJECTDIR}/syntax_help.o \
 	${OBJECTDIR}/term.o \
 	${OBJECTDIR}/test/alg_test.o \
 	${OBJECTDIR}/test/eval_test.o \
@@ -54,7 +55,8 @@ OBJECTFILES= \
 	${OBJECTDIR}/test/nlc_test.o \
 	${OBJECTDIR}/test/object_test.o \
 	${OBJECTDIR}/test/parser_test.o \
-	${OBJECTDIR}/variable.o
+	${OBJECTDIR}/variable.o \
+	${OBJECTDIR}/version.o
 
 
 # C Compiler Flags
@@ -86,6 +88,11 @@ ${OBJECTDIR}/_ext/e16507f5/logger.o: ../contrib/logger/logger.cpp
 	${MKDIR} -p ${OBJECTDIR}/_ext/e16507f5
 	${RM} "$@.d"
 	$(COMPILE.cc) -g -DDEBUG -DLOG_LEVEL_NORMAL=LOG_LEVEL_DEBUG -DPDC_WIDE -I.. -I../contrib/googletest/googletest -I../contrib/googletest/googletest/include -I../contrib/Lyra/include -I../contrib/libtorch/include/torch/csrc/api/include -I../contrib/libtorch/include -I../contrib/tensorboard_logger/include -std=c++14 -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/_ext/e16507f5/logger.o ../contrib/logger/logger.cpp
+
+temp/syntax.temp.txt: ../docs/syntax.md ../docs/syntax.md
+	${MKDIR} -p temp
+	@echo Выполнение шага пользовательского сборки
+	mkdir temp || pandoc -t plain ../docs/syntax.md > temp/syntax.temp.txt
 
 ${OBJECTDIR}/builtin.o: builtin.cpp parser.h parser.yy.h pch.h.gch location.hh
 	${MKDIR} -p ${OBJECTDIR}
@@ -178,6 +185,11 @@ pch.h.gch: pch.h
 	@echo Выполнение шага пользовательского сборки
 	g++ -o pch.h.gch -c pch.h -g -I.. -I../contrib/libtorch/include/torch/csrc/api/include -I../contrib/libtorch/include --no-gnu-unique -Wno-trigraphs -Winvalid-pch -Werror=return-type -g -DDEBUG -DLOG_LEVEL_NORMAL=LOG_LEVEL_DEBUG -DPDC_WIDE  -I../contrib/googletest/googletest -I../contrib/googletest/googletest/include -I../contrib/Lyra/include -I../contrib/libtorch/include/torch/csrc/api/include -I../contrib/libtorch/include -I.. -I../contrib/tensorboard_logger/include -I/usr/lib/llvm-13/include -std=c++17
 
+${OBJECTDIR}/syntax_help.o: syntax_help.cpp
+	${MKDIR} -p ${OBJECTDIR}
+	${RM} "$@.d"
+	$(COMPILE.cc) -g -DDEBUG -DLOG_LEVEL_NORMAL=LOG_LEVEL_DEBUG -DPDC_WIDE -I.. -I../contrib/googletest/googletest -I../contrib/googletest/googletest/include -I../contrib/Lyra/include -I../contrib/libtorch/include/torch/csrc/api/include -I../contrib/libtorch/include -I../contrib/tensorboard_logger/include -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/syntax_help.o syntax_help.cpp
+
 ${OBJECTDIR}/term.o: term.cpp parser.h parser.yy.h pch.h.gch location.hh
 	${MKDIR} -p ${OBJECTDIR}
 	${RM} "$@.d"
@@ -240,6 +252,11 @@ ${OBJECTDIR}/variable.o: variable.cpp pch.h.gch
 	@echo Выполнение шага пользовательского сборки
 	
 
+${OBJECTDIR}/version.o: version.c
+	${MKDIR} -p ${OBJECTDIR}
+	${RM} "$@.d"
+	$(COMPILE.c) -g -s -DDEBUG -DLOG_LEVEL_NORMAL=LOG_LEVEL_DUMP -I../contrib/googletest/googletest -I../contrib/googletest/googletest/include -I.. -std=c11 -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/version.o version.c
+
 : warning_pop.h parser.yy.cpp location.hh
 	@echo Выполнение шага пользовательского сборки
 	
@@ -254,6 +271,7 @@ ${OBJECTDIR}/variable.o: variable.cpp pch.h.gch
 # Clean Targets
 .clean-conf: ${CLEAN_SUBPROJECTS}
 	${RM} -r ${CND_BUILDDIR}/${CND_CONF}
+	${RM} temp/syntax.temp.txt
 	${RM} 
 	${RM} 
 	${RM} 

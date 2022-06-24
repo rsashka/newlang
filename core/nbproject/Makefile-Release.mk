@@ -46,6 +46,7 @@ OBJECTFILES= \
 	${OBJECTDIR}/object.o \
 	${OBJECTDIR}/parser.o \
 	${OBJECTDIR}/parser.yy.o \
+	${OBJECTDIR}/syntax_help.o \
 	${OBJECTDIR}/term.o \
 	${OBJECTDIR}/test/alg_test.o \
 	${OBJECTDIR}/test/eval_test.o \
@@ -55,7 +56,8 @@ OBJECTFILES= \
 	${OBJECTDIR}/test/nlc_test.o \
 	${OBJECTDIR}/test/object_test.o \
 	${OBJECTDIR}/test/parser_test.o \
-	${OBJECTDIR}/variable.o
+	${OBJECTDIR}/variable.o \
+	${OBJECTDIR}/version.o
 
 
 # C Compiler Flags
@@ -147,6 +149,11 @@ ${OBJECTDIR}/parser.yy.o: parser.yy.cpp
 	${RM} "$@.d"
 	$(COMPILE.cc) -O3 -Werror -I.. -std=c++14 -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/parser.yy.o parser.yy.cpp
 
+${OBJECTDIR}/syntax_help.o: syntax_help.cpp
+	${MKDIR} -p ${OBJECTDIR}
+	${RM} "$@.d"
+	$(COMPILE.cc) -O3 -Werror -I.. -std=c++14 -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/syntax_help.o syntax_help.cpp
+
 ${OBJECTDIR}/term.o: term.cpp
 	${MKDIR} -p ${OBJECTDIR}
 	${RM} "$@.d"
@@ -196,6 +203,11 @@ ${OBJECTDIR}/variable.o: variable.cpp
 	${MKDIR} -p ${OBJECTDIR}
 	${RM} "$@.d"
 	$(COMPILE.cc) -O3 -Werror -I.. -std=c++14 -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/variable.o variable.cpp
+
+${OBJECTDIR}/version.o: version.c
+	${MKDIR} -p ${OBJECTDIR}
+	${RM} "$@.d"
+	$(COMPILE.c) -O3 -Werror -s -I.. -std=c11 -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/version.o version.c
 
 # Subprojects
 .build-subprojects:

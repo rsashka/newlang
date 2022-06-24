@@ -10,6 +10,11 @@ contrib/*
 **/DartConfiguration.tcl
 Makefile
 
+core/syntax_help.cpp
+core/version.*
+docs/syntax.txt
+
+
 # Binaries
 *.7z
 *.dmg
