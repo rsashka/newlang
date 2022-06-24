@@ -24,7 +24,7 @@ protected:
     int Count(TermID token_id) {
         int result = 0;
         for (size_t c = 0; c < ast->size(); c++) {
-            if ((*ast)[c]->m_id == token_id) {
+            if((*ast)[c]->m_id == token_id) {
                 result++;
             }
         }
@@ -1712,6 +1712,99 @@ TEST_F(ParserTest, Exit) {
     ASSERT_TRUE(Parse("--:class()--;;"));
     ASSERT_TRUE(Parse("--:class(arg)--;"));
     ASSERT_TRUE(Parse("--:class(arg)--;;"));
+}
+
+
+//        |  MACRO
+//            {
+//                $$ = $1;  
+//            }
+//        |  MACRO  call
+//            {
+//                $$ = $1;  
+//                $$->SetArgs($call);
+//            }
+//        |  MACRO  MACRO_BODY
+//            {
+//                $$ = $1;  
+//                $$->Append($2, Term::RIGHT); 
+//            }
+//        |  MACRO  call  MACRO_BODY
+//            {
+//                $$ = $1;  
+//                $$->SetArgs($call);
+//                $$->Append($3, Term::RIGHT); 
+//            }
+
+/*
+ * \\macro     body  body body body body body body body body\\\
+ * \\macro()        body\\\
+ * \\macro(arg1)   \$arg1     body\\\
+ * \\macro(arg1, arg2)   \$arg1  \$arg2     \$*    body\\\
+ * \\if(cond) [ cond ] -> \\\
+ * \\elseif(cond) ,[ cond ] -> \\\
+ * \\else ,[_] -> \\\
+ * 
+ * \if(cond) {}         [ cond ] -> {}
+ * \elseif(cond) {}     ,[ cond ] -> {}
+ * \else {};            ,[_] -> {};
+ * 
+ * \\while(cond) [cond] -->> \\\
+ * \while(cond) {};     [cond] -->> {};
+ * 
+ * \\dowhile(cond)  <<--[cond]\\\
+ * \do {} \dowhile(cond);   {}<<--[cond]
+ * 
+ * \\return  --\\\
+ * \\return(...)  --\$*--\\\
+ * \\throw(...)  --:Error(\$*)--\\\
+ * \return;
+ * \return();
+ * \return(100);
+ * 
+ * \\match(val, op)   [\$val] \$op>\\\
+ * \\case(val) [\$val]-->\\\
+ * 
+ * \match(val, ~) {
+ * \case(val) {};
+ * }; 
+ * 
+ */
+
+int TestExtract(const char * text, Parser::MacrosStore & list, int n_count = 0) {
+    std::string str(text);
+    int ret = Parser::ExtractMacros(str, list);
+
+    int counter = 0;
+    for (int i = 0; i < str.size(); i++) {
+        if(str[i] == '\n') {
+            counter++;
+        } else {
+            ASSERT(str[i] == ' ');
+        }
+    }
+    ASSERT(counter == n_count);
+    return ret;
+}
+
+TEST_F(ParserTest, Macro1) {
+    Parser::MacrosStore macros;
+
+    ASSERT_EQ(1, TestExtract("\\\\macro 12345\\\\\\", macros));
+    ASSERT_TRUE(macros.find("\\macro") != macros.end());
+    ASSERT_STREQ("macro 12345", macros.find("\\macro")->second.c_str());
+
+    ASSERT_EQ(2, TestExtract("\\\\macro2() 123\\\\\\", macros));
+    ASSERT_TRUE(macros.find("\\macro2") != macros.end());
+    ASSERT_STREQ("macro2() 123", macros.find("\\macro2")->second.c_str());
+
+    ASSERT_EQ(3, TestExtract("\\\\macro3(name)12345\\\\\\", macros));
+    ASSERT_TRUE(macros.find("\\macro3") != macros.end());
+    ASSERT_STREQ("macro3(name)12345", macros.find("\\macro3")->second.c_str());
+
+    ASSERT_EQ(4, TestExtract("\\\\macro4(name, name2) 12345\n\n6789\\\\\\;", macros, 2));
+    ASSERT_TRUE(macros.find("\\macro4") != macros.end());
+    ASSERT_STREQ("macro4(name, name2) 12345\n\n6789", macros.find("\\macro4")->second.c_str());
 }
 
 TEST_F(ParserTest, HelloWorld) {

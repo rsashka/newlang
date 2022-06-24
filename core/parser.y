@@ -1502,10 +1502,24 @@ seq_item: condition
             {
                 $$ = $1; 
             }
-        |  MACRO  assign_op  MACRO_BODY
+        |  MACRO
             {
-                $$ = $2;  
-                $$->Append($1, Term::LEFT); 
+                $$ = $1;  
+            }
+        |  MACRO  call
+            {
+                $$ = $1;  
+                $$->Append($call, Term::LEFT); 
+            }
+        |  MACRO  MACRO_BODY
+            {
+                $$ = $1;  
+                $$->Append($2, Term::RIGHT); 
+            }
+        |  MACRO  call  MACRO_BODY
+            {
+                $$ = $1;  
+                $$->Append($call, Term::LEFT); 
                 $$->Append($3, Term::RIGHT); 
             }
         

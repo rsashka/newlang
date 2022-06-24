@@ -765,8 +765,12 @@ void ParserException(const char *msg, std::string &buffer, int row, int col);
         return !name.empty() && name[0] == ':';
     }
 
+    inline bool isMacro(const std::string_view name) {
+        return !name.empty() && name[0] == '\\';
+    }
+
     inline bool isLocalAny(const char *name) {
-        return name && !(name[0] == '$' || name[0] == '@' || name[0] == ':' || name[0] == '%');
+        return name && !(name[0] == '$' || name[0] == '@' || name[0] == ':' || name[0] == '%' || name[0] == '\\');
     }
 
     inline bool isMutableName(const std::string name) {

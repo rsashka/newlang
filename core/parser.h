@@ -83,6 +83,106 @@ public:
 
     void AstAddTerm(TermPtr &term);
 
+    typedef std::map<std::string, std::string> MacrosStore;
+
+    inline static const std::string MACROS_START = "\\\\";
+    inline static const std::string MACROS_END = "\\\\\\";
+
+    static inline bool ParseNameMacro(const std::string &body, std::string &name, std::string &args) {
+        size_t len = 0;
+        // имя макроса должно быть в самом начале строки без пробелов
+        if (body.empty() || body[0] != '\\') {
+            return false; // Нет имени макроса
+        }
+        size_t pos = 1;
+        while (pos < body.size()) {
+            if (std::isspace(static_cast<unsigned char> (body[pos])) || body[pos] == '(') {
+                name = body.substr(0, pos);
+                break;
+            }
+            pos++;
+        }
+
+        if (pos == 0) {
+            LOG_DEBUG("Macro name not found!");
+            return false; // Нет имени макроса
+        }
+
+        // после имени без пробела жет быть открывающая скобка
+        if (body[pos] != '(') {
+            args.clear();
+            return true; // Открывающей скобки нет, значит нет аргументов
+        }
+        size_t start = pos;
+        while (pos < body.size()) {
+            if (body[pos] == ')') {
+                args = body.substr(start, pos);
+                return true;
+            }
+            pos++;
+        }
+        LOG_DEBUG("Fail parse macro args!");
+        return false; // Нет закрывающей скобки, косяк в аргументах
+    }
+
+    static size_t ExtractMacros(std::string &text, MacrosStore &store) {
+        /*
+         * Сперва искать начало определения макроса \\, потом завершение определения макроса \\\
+         * Вырезать тело определения макроса из строки парсинга и добавить макрос в хранилище.
+         */
+
+        size_t start = text.find(MACROS_START); // Начало макроса
+        size_t stop = std::string::npos;
+        if (start != std::string::npos) {
+            stop = text.find(MACROS_END, start + MACROS_START.size() + 1);
+
+            if (stop == std::string::npos) {
+                LOG_RUNTIME("Macro termination symbol not found! Start at %d '%s'", (int) start, text.c_str());
+                // throw Interrupt(ParserMessage(buffer, row, col, "%s", msg), Interrupt::Parser);
+            }
+
+            std::string body = text.substr(start + MACROS_START.size(), stop - MACROS_START.size());
+            std::string name;
+            std::string args;
+            if (!ParseNameMacro(body, name, args)) {
+                LOG_RUNTIME("Fail parse name macro! '%s'", body.c_str());
+                // throw Interrupt(ParserMessage(buffer, row, col, "%s", msg), Interrupt::Parser);
+            }
+
+            auto found = store.find(name);
+            if (found != store.end()) {
+                std::string f_name;
+                std::string f_args;
+                VERIFY(ParseNameMacro(found->second, f_name, f_args));
+                if (f_args.empty() == args.empty()) {
+                    LOG_RUNTIME("Macro %s arguments are duplicated! %s %s", name.c_str(), args.c_str(), f_args.c_str());
+                    // throw Interrupt(ParserMessage(buffer, row, col, "%s", msg), Interrupt::Parser);
+                }
+            }
+            store[name] = body;
+
+            // Заменить определение макроса пробелами, кроме переводов строк, чтобы не съезжала позиция парсинга
+            std::string fill(stop + MACROS_END.size() - start, ' ');
+
+            ASSERT(fill.size() > body.size());
+            for (size_t i = 0; i < body.size(); i++) {
+                if (body[i] == '\n') {
+                    fill[i] = '\n';
+                }
+            }
+            text.replace(start, stop + MACROS_END.size(), fill);
+        }
+        return store.size();
+    }
+
+    static bool ExpandMacros(std::string &text, MacrosStore &store) {
+        /*
+         * Искать макросы и заменять их в строке на развернутые определения из хранилища.
+         */
+        return false;
+    }
+
+
 private:
     TermPtr &m_ast;
 
