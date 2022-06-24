@@ -75,7 +75,7 @@ FFLAGS=
 ASFLAGS=
 
 # Link Libraries and Options
-LDLIBSOPTIONS=-L../contrib/libtorch/lib -Wl,-rpath,'../contrib/libtorch/lib' -lpthread -ldl ../contrib/libffi/output/lib/libffi.a -lcrypto -lLLVM-13 -ltorch -lc10 -lc10_cuda -ltorch_cpu -ltorch_cuda
+LDLIBSOPTIONS=-L../contrib/libtorch/lib -Wl,-rpath,'../contrib/libtorch/lib' -lpthread -ldl ../contrib/libffi/output/lib/libffi.a -lcrypto -lLLVM-13 -ltorch -lc10 -ltorch_cpu
 
 # Build Targets
 .build-conf: ${BUILD_SUBPROJECTS}

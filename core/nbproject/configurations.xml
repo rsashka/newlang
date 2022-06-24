@@ -597,9 +597,7 @@
             <linkerLibLibItem>LLVM-13</linkerLibLibItem>
             <linkerLibLibItem>torch</linkerLibLibItem>
             <linkerLibLibItem>c10</linkerLibLibItem>
-            <linkerLibLibItem>c10_cuda</linkerLibLibItem>
             <linkerLibLibItem>torch_cpu</linkerLibLibItem>
-            <linkerLibLibItem>torch_cuda</linkerLibLibItem>
           </linkerLibItems>
           <commandLine>-Wl,--export-dynamic</commandLine>
         </linkerTool>
