@@ -817,11 +817,13 @@ TEST(Eval, MacroDSL) {
 
     const char * run_raw = ""
             "count:=5;"
-            "[count<10]-->>{{"
-            "   [count>5]-->{"
-            "           --100--;"
-            "       }; "
-            "   count+=1;"
+            "(){{"
+            "  [count<10]-->>{"
+            "    [count>5]-->{"
+            "      --100--;"
+            "    }; "
+            "    count+=1;"
+            "  };"
             "}};";
 
     ObjPtr result = ctx.ExecStr(run_raw);
@@ -832,11 +834,13 @@ TEST(Eval, MacroDSL) {
 
     const char * run_macro = ""
             "count:=5;"
-            "\\while(count<10){{"
-            "  \\if(count>5){"
+            "(){{"
+            "  \\while(count<10){"
+            "    \\if(count>5){"
             "      \\return(42);"
             "    };"
-            "  count+=1;"
+            "    count+=1;"
+            "  };"
             "}};"
             "";
 
@@ -845,7 +849,7 @@ TEST(Eval, MacroDSL) {
     result = ctx.ExecStr(run_macro);
     ASSERT_TRUE(result);
     ASSERT_TRUE(result->is_integer());
-    ASSERT_EQ(4, count->GetValueAsInteger());
+    ASSERT_EQ(6, count->GetValueAsInteger());
     ASSERT_EQ(42, result->GetValueAsInteger());
 }
 

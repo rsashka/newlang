@@ -2013,7 +2013,7 @@ TEST_F(ParserTest, ExpandMacro) {
     result = Parser::ExpandMacro(macro, body);
     ASSERT_STREQ("\\return(100);", result.c_str());
 
-    macro = "\\return(...)    --\\$*--";
+    macro = "\\return(...)--\\$*--";
     body = "\\return(100);";
     result = Parser::ExpandMacro(macro, body);
     ASSERT_STREQ("--100--;", result.c_str());
