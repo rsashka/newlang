@@ -20,9 +20,6 @@ namespace newlang {
     class Parser {
     public:
 
-        /// construct a new parser driver context
-        //    Parser(class CalcContext& calc);
-
         Parser(TermPtr &ast);
 
         /// enable debug output in the flex scanner
@@ -78,16 +75,18 @@ namespace newlang {
          * expressions. */
         //    class CalcContext& calc;
 
-        TermPtr Parse(const std::string_view str);
-        static TermPtr ParseString(const std::string_view str);
-
         void AstAddTerm(TermPtr &term);
 
-        typedef std::map<std::string, std::string> MacrosStore;
+
         typedef std::vector<std::string> MacrosArgs;
+        typedef std::map<std::string, std::string, std::greater<std::string>> MacrosStore;
 
         inline static const std::string MACROS_START = "\\\\";
         inline static const std::string MACROS_END = "\\\\\\";
+
+
+        TermPtr Parse(const std::string_view str, MacrosStore *store = nullptr);
+        static TermPtr ParseString(const std::string_view str, MacrosStore *store = nullptr);
 
         static inline std::string ParseMacroName(const std::string &body) {
             // имя макроса должно быть в самом начале строки без пробелов и начинаться на один слешь
@@ -115,20 +114,21 @@ namespace newlang {
             std::string arg;
             for (size_t i = name.size(); i < body.size(); i++) {
                 if (body[i] == ',' || body[i] == ')') {
+                    trim(arg);
                     if (!arg.empty()) {
-                        trim(arg);
+                        if (arg.find(".") != std::string::npos && arg.compare("...") != 0) {
+                            LOG_RUNTIME("Macro argument name failure '%s'!", arg.c_str());
+                        }
                         result.push_back(arg); // новый аргумент макроса
                         arg.clear();
                     } else if (body[i] == ',') {
                         LOG_RUNTIME("Macro argument missing!");
                     }
+                } else {
+                    arg.append(1, body[i]); // имя аргумента
                 }
                 if (body[i] == ')') {
                     return result; // Аругменты закончились
-                } else {
-                    if (body[i] != ',') {
-                        arg.append(1, body[i]); // имя аргумента
-                    }
                 }
             }
             // Нет закрывающей скобки
@@ -174,7 +174,7 @@ namespace newlang {
 
                 if (fill) {
                     // Заменить определение макроса пробелами, кроме переводов строк, чтобы не съезжала позиция парсинга
-                    std::string fill(stop + MACROS_END.size() - start, ' ');
+                    std::string fill(stop - start + MACROS_END.size(), ' ');
 
                     ASSERT(fill.size() > body.size());
                     for (size_t i = 0; i < body.size(); i++) {
@@ -182,7 +182,7 @@ namespace newlang {
                             fill[i + 1] = '\n';
                         }
                     }
-                    text.replace(start, stop + MACROS_END.size(), fill);
+                    text.replace(start, fill.size(), fill);
                 }
                 return true;
             }
@@ -198,18 +198,23 @@ namespace newlang {
             std::string result(text);
 
             if (name[name.size() - 1] != '(') {
-                body_base = macro.substr(name.size() + 1);
+                body_base = macro.substr(name.size());
+                if (!body_base.empty() && std::isspace(static_cast<unsigned char> (body_base[0]))) {
+                    body_base = body_base.erase(0, 1);
+                }
             } else {
+                bool done = false;
                 size_t pos = name.size();
                 while (pos < macro.size()) {
                     if (macro[pos] == ')') {
                         // Аругменты закончились
                         body_base = macro.substr(pos + 1);
+                        done = true;
                         break;
                     }
                     pos++;
                 }
-                if (body_base.empty()) {
+                if (!done) {
                     // Нет закрывающей скобки
                     LOG_RUNTIME("Closing bracket not found! '%s'", macro.c_str());
                 }
@@ -262,8 +267,10 @@ namespace newlang {
 
                         for (size_t i = 0; i < args.size() && i < args_define.size(); i++) {
                             // Заменить аргумент по имени
-                            std::string arg_name = "\\\\\\$" + args[i];
-                            body = std::regex_replace(body, std::regex(arg_name), args_define[i]);
+                            if (args[i].compare("...") != 0) {
+                                std::string arg_name = "\\\\\\$" + args[i];
+                                body = std::regex_replace(body, std::regex(arg_name), args_define[i]);
+                            }
                         }
 
                         std::string summary;
@@ -286,15 +293,19 @@ namespace newlang {
             return result;
         }
 
-        /**
-         * Развернуть макросы во входной строке
-         * @param text Входная строка
-         * @param store Храниличе макросов
-         * @return 
-         */
-        static bool ExpandMacros(std::string &text, MacrosStore &store) {
+        static std::string ParseAllMacros(const std::string_view input, MacrosStore *store) {
+            std::string result(input);
+            if (store) {
+                bool done;
+                do {
+                    done = ExtractMacros(result, *store);
+                } while (done);
 
-            return false;
+                for (auto &elem : *store) {
+                    result = ExpandMacro(elem.second, result);
+                }
+            }
+            return result;
         }
 
 

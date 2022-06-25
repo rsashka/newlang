@@ -1714,28 +1714,6 @@ TEST_F(ParserTest, Exit) {
     ASSERT_TRUE(Parse("--:class(arg)--;;"));
 }
 
-
-//        |  MACRO
-//            {
-//                $$ = $1;  
-//            }
-//        |  MACRO  call
-//            {
-//                $$ = $1;  
-//                $$->SetArgs($call);
-//            }
-//        |  MACRO  MACRO_BODY
-//            {
-//                $$ = $1;  
-//                $$->Append($2, Term::RIGHT); 
-//            }
-//        |  MACRO  call  MACRO_BODY
-//            {
-//                $$ = $1;  
-//                $$->SetArgs($call);
-//                $$->Append($3, Term::RIGHT); 
-//            }
-
 /*
  * \\macro     body  body body body body body body body body\\\
  * \\macro()        body\\\
@@ -1793,6 +1771,8 @@ TEST_F(ParserTest, MacroName) {
     ASSERT_STREQ("", Parser::ParseMacroName(body).c_str());
     body = "";
     ASSERT_STREQ("", Parser::ParseMacroName(body).c_str());
+    body = "\\return(...)    --\\$*--";
+    ASSERT_STREQ("\\return(", Parser::ParseMacroName(body).c_str());
 }
 
 TEST_F(ParserTest, MacroArgs) {
@@ -1841,6 +1821,24 @@ TEST_F(ParserTest, MacroArgs) {
     ASSERT_STREQ("11", args[0].c_str());
     ASSERT_STREQ("...", args[1].c_str());
 
+    body = "\\return(...)    --\\$*--";
+    args = Parser::ParseMacroArgs(body);
+    ASSERT_EQ(1, args.size());
+    ASSERT_STREQ("...", args[0].c_str());
+    
+    ASSERT_ANY_THROW(
+            body = "\\macro(,)";
+            args = Parser::ParseMacroArgs(body);
+            );
+    ASSERT_ANY_THROW(
+            body = "\\macro( , )";
+            args = Parser::ParseMacroArgs(body);
+            );
+    ASSERT_ANY_THROW(
+            body = "\\macro(,,)";
+            args = Parser::ParseMacroArgs(body);
+            );
+
     body = "\\macro)";
     args = Parser::ParseMacroArgs(body);
     ASSERT_EQ(0, args.size());
@@ -1876,12 +1874,12 @@ TEST_F(ParserTest, MacroExtract) {
     ASSERT_STREQ("\\macro 12345", macros.find("\\macro")->second.c_str());
     ASSERT_STREQ("                ", body.c_str());
 
-    body = "\\\\macro2() 123\\\\\\";
+    body = "\\\\macro2()123\\\\\\";
     ASSERT_TRUE(Parser::ExtractMacros(body, macros));
     ASSERT_EQ(2, macros.size());
     ASSERT_TRUE(macros.find("\\macro2(") != macros.end());
-    ASSERT_STREQ("\\macro2() 123", macros.find("\\macro2(")->second.c_str());
-    ASSERT_STREQ("                 ", body.c_str());
+    ASSERT_STREQ("\\macro2()123", macros.find("\\macro2(")->second.c_str());
+    ASSERT_STREQ("                ", body.c_str());
 
     body = "\\\\macro3(name)12345\\\\\\";
     ASSERT_TRUE(Parser::ExtractMacros(body, macros));
@@ -1896,6 +1894,42 @@ TEST_F(ParserTest, MacroExtract) {
     ASSERT_TRUE(macros.find("\\macro3(") != macros.end());
     ASSERT_STREQ("\\macro4(name, name2) 12345\n\n6789", macros.find("\\macro4(")->second.c_str());
     ASSERT_STREQ("                           \n\n       ", body.c_str());
+
+    body = "\\\\empty\\\\\\";
+    ASSERT_TRUE(Parser::ExtractMacros(body, macros));
+    ASSERT_EQ(5, macros.size());
+    ASSERT_TRUE(macros.find("\\empty") != macros.end());
+    ASSERT_STREQ("\\empty", macros.find("\\empty")->second.c_str());
+    ASSERT_STREQ("          ", body.c_str());
+
+    body = "\\\\empty( )\\\\\\";
+    ASSERT_TRUE(Parser::ExtractMacros(body, macros));
+    ASSERT_EQ(6, macros.size());
+    ASSERT_TRUE(macros.find("\\empty(") != macros.end());
+    ASSERT_STREQ("\\empty( )", macros.find("\\empty(")->second.c_str());
+    ASSERT_STREQ("             ", body.c_str());
+
+    body = "\\\\m1\\\\\\\\\\m2() \\\\\\\\\\m3\\\\\\";
+    size_t size = body.size();
+    ASSERT_TRUE(Parser::ExtractMacros(body, macros));
+    ASSERT_EQ(7, macros.size());
+    ASSERT_EQ(size, body.size());
+    ASSERT_STREQ("       \\\\m2() \\\\\\\\\\m3\\\\\\", body.c_str());
+
+    ASSERT_TRUE(Parser::ExtractMacros(body, macros));
+    ASSERT_EQ(8, macros.size());
+    ASSERT_EQ(size, body.size());
+    ASSERT_STREQ("                 \\\\m3\\\\\\", body.c_str());
+
+    ASSERT_TRUE(Parser::ExtractMacros(body, macros));
+    ASSERT_EQ(9, macros.size());
+    ASSERT_EQ(size, body.size());
+    ASSERT_STREQ("                        ", body.c_str());
+
+    std::string result = Parser::ParseAllMacros("\\macro \\macro2() \\macro", &macros);
+    ASSERT_STREQ("12345 123 12345", result.c_str());
+
+
 }
 
 TEST_F(ParserTest, ExpandMacro) {
@@ -1917,18 +1951,18 @@ TEST_F(ParserTest, ExpandMacro) {
     body = "\\macro \\macro \\macro";
     result = Parser::ExpandMacro(macro, body);
     ASSERT_STREQ("\\macro \\macro \\macro", result.c_str());
-    
+
     macro = "\\macro()12345";
     body = "\\macro() \\macro() \\macro";
     result = Parser::ExpandMacro(macro, body);
     ASSERT_STREQ("12345 12345 \\macro", result.c_str());
-    
+
     macro = "\\macro()12345";
     body = "\\macro(88) \\macro(99) \\macro";
     result = Parser::ExpandMacro(macro, body);
     ASSERT_STREQ("12345 12345 \\macro", result.c_str());
-    
-    
+
+
     macro = "\\macro(arg)\\$arg";
     body = "\\macro(88)";
     result = Parser::ExpandMacro(macro, body);
@@ -1973,6 +2007,38 @@ TEST_F(ParserTest, ExpandMacro) {
     body = "\\macro(1,2)\\macro(1,2)";
     result = Parser::ExpandMacro(macro, body);
     ASSERT_STREQ("1,2 1 21,21,2 1 21,2", result.c_str());
+
+    macro = "\\\\return    --\\\\\\";
+    body = "\\return(100);";
+    result = Parser::ExpandMacro(macro, body);
+    ASSERT_STREQ("\\return(100);", result.c_str());
+
+    macro = "\\return(...)    --\\$*--";
+    body = "\\return(100);";
+    result = Parser::ExpandMacro(macro, body);
+    ASSERT_STREQ("--100--;", result.c_str());
+
+}
+
+TEST_F(ParserTest, MacroDSL) {
+
+    Parser::MacrosStore macros;
+    std::string dsl = ""
+            "\\\\if(cond)       [\\$cond]-->\\\\\\"
+            "\\\\elseif(cond)   ,[\\$cond]-->\\\\\\"
+            "\\\\else           ,[_]-->\\\\\\"
+            ""
+            "\\\\while(cond)    [\\$cond]<<->>\\\\\\"
+            "\\\\dowhile(cond)  <<->>[\\$cond]\\\\\\"
+            "\\\\return         --\\\\\\"
+            "\\\\return(...)    --\\$*--\\\\\\"
+            "";
+
+    while (Parser::ExtractMacros(dsl, macros))
+        ;
+    ASSERT_EQ(7, macros.size());
+
+
 }
 
 TEST_F(ParserTest, HelloWorld) {

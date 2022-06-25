@@ -135,7 +135,7 @@ public:
 
     static std::map<std::string, Context::EvalFunction> m_ops;
     static std::map<std::string, Context::EvalFunction> m_builtin_calls;
-    static std::map<std::string, std::string> m_macros; ///< Хотя макросы и могут обработываться в рантайме, но доступны только для парсера
+    static Parser::MacrosStore m_macros; ///< Хотя макросы и могут обработываться в рантайме, но доступны они только для парсера
 
     static void Reset() {
         m_types.clear();
@@ -154,7 +154,7 @@ public:
     }
 
     inline ObjPtr ExecStr(const std::string &source) {
-        TermPtr exec = Parser::ParseString(source);
+        TermPtr exec = Parser::ParseString(source, &m_macros);
         if (exec->m_id == TermID::BLOCK) {
             exec->m_id = TermID::CALL_BLOCK;
         } else if (exec->m_id == TermID::BLOCK_TRY) {
@@ -164,7 +164,7 @@ public:
     }
 
     inline ObjPtr ExecStr(const std::string_view str, Obj *args) {
-        return ExecStr(this, Parser::ParseString(str), args);
+        return ExecStr(this, Parser::ParseString(str, &m_macros), args);
     }
 
     inline static ObjPtr ExecStr(Context *ctx, TermPtr term) {
@@ -411,7 +411,7 @@ public:
         std::string func_dump(prototype);
         func_dump += " := {};";
 
-        TermPtr proto = Parser::ParseString(func_dump);
+        TermPtr proto = Parser::ParseString(func_dump, &m_macros);
         ObjPtr obj =
                 Obj::CreateFunc(this, proto->Left(), type,
                 proto->Left()->getName().empty() ? proto->Left()->getText() : proto->Left()->getName());

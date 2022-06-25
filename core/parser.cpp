@@ -34,10 +34,13 @@ bool Parser::parse_string(const std::string_view input, const std::string_view s
     return parse_stream(iss, sname.begin());
 }
 
-TermPtr Parser::Parse(const std::string_view str) {
+TermPtr Parser::Parse(const std::string_view input, MacrosStore *store) {
+
+    std::string parse_string = ParseAllMacros(input, store);
+
     m_ast = Term::Create(TermID::END, "");
-    m_ast->SetSource(std::make_shared<std::string>(str));
-    m_stream.str(*m_ast->m_source);
+    m_ast->SetSource(std::make_shared<std::string>(input));
+    m_stream.str(parse_string);
     Scanner scanner(&m_stream, &std::cout, m_ast->m_source);
     lexer = &scanner;
 
@@ -52,10 +55,10 @@ TermPtr Parser::Parse(const std::string_view str) {
     return m_ast;
 }
 
-TermPtr Parser::ParseString(const std::string_view str) {
+TermPtr Parser::ParseString(const std::string_view str, MacrosStore *store) {
     TermPtr ast = Term::Create(TermID::END, "");
     Parser p(ast);
-    return p.Parse(str);
+    return p.Parse(str, store);
 }
 
 void Parser::error(const class location& l, const std::string& m) {
