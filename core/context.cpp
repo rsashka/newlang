@@ -6,6 +6,7 @@
 #include <core/term.h>
 #include <core/types.h>
 #include <filesystem>
+#include <stdbool.h>
 
 using namespace newlang;
 
@@ -41,22 +42,23 @@ std::map<std::string, Context::EvalFunction> Context::m_ops;
 std::map<std::string, Context::EvalFunction> Context::m_builtin_calls;
 std::map<std::string, ObjPtr> Context::m_types;
 std::map<std::string, Context::FuncItem> Context::m_funcs;
+Parser::MacrosStore Context::m_macros;
 
 Context::Context(RuntimePtr global) {
     m_runtime = global;
 
     if (Context::m_funcs.empty()) {
-        Context::m_funcs["min"] = CreateBuiltin("min(arg, ...)", (void *) &min, ObjType::TRANSPARENT);
-        Context::m_funcs["мин"] = Context::m_funcs["min"];
 
-        Context::m_funcs["max"] = CreateBuiltin("max(arg, ...)", (void *) &max, ObjType::TRANSPARENT);
-        Context::m_funcs["макс"] = Context::m_funcs["max"];
+        VERIFY(CreateBuiltin("min(arg, ...)", (void *) &min, ObjType::TRANSPARENT));
+        VERIFY(CreateBuiltin("мин(arg, ...)", (void *) &min, ObjType::TRANSPARENT));
+        VERIFY(CreateBuiltin("max(arg, ...)", (void *) &max, ObjType::TRANSPARENT));
+        VERIFY(CreateBuiltin("макс(arg, ...)", (void *) &max, ObjType::TRANSPARENT));
 
-        Context::m_funcs["import"] = CreateBuiltin("import(arg, module='', lazzy=0)", (void *) &import, ObjType::FUNCTION);
+        VERIFY(CreateBuiltin("import(arg, module='', lazzy=0)", (void *) &import, ObjType::FUNCTION));
 
-        Context::m_funcs["eval"] = CreateBuiltin("eval(string:String)", (void *) &eval, ObjType::FUNCTION);
-        Context::m_funcs["exec"] = CreateBuiltin("exec(filename:String)", (void *) &exec, ObjType::FUNCTION);
-        Context::m_funcs["help"] = CreateBuiltin("help(...)", (void *) &help, ObjType::TRANSPARENT);
+        VERIFY(CreateBuiltin("eval(string:String)", (void *) &eval, ObjType::FUNCTION));
+        VERIFY(CreateBuiltin("exec(filename:String)", (void *) &exec, ObjType::FUNCTION));
+        VERIFY(CreateBuiltin("help(...)", (void *) &help, ObjType::TRANSPARENT));
 
     }
 
@@ -155,21 +157,28 @@ Context::Context(RuntimePtr global) {
     }
 }
 
-ObjPtr Context::CreateBuiltin(const char *prototype, void *func, ObjType type) {
+bool Context::CreateBuiltin(const char *prototype, void *func, ObjType type) {
     ASSERT(prototype);
     ASSERT(func);
 
     std::string func_dump(prototype);
     func_dump += " := {};";
 
-    TermPtr proto = Parser::ParseString(func_dump);
-    ObjPtr obj =
-            Obj::CreateFunc(this, proto->Left(), type,
-            proto->Left()->getName().empty() ? proto->Left()->getText() : proto->Left()->getName());
+    TermPtr proto = Parser::ParseString(func_dump, &m_macros);
+    ASSERT(proto->Left() && !proto->Left()->getText().empty());
+    ObjPtr obj = Obj::CreateFunc(this, proto->Left(), type, proto->Left()->getText());
+
     obj->m_func_ptr = func;
     obj->m_var_is_init = true;
 
-    return obj;
+    auto found = m_funcs.find(proto->Left()->getText());
+    if (found != m_funcs.end()) {
+        LOG_DEBUG("Buildin function %s already exists!", proto->Left()->toString().c_str());
+        return false;
+    }
+
+    Context::m_funcs[proto->Left()->getText()] = obj;
+    return true;
 }
 
 inline ObjType newlang::typeFromString(const std::string type, Context *ctx, bool *has_error) {
@@ -260,10 +269,7 @@ ObjPtr Context::ExecStr(Context *ctx, TermPtr term, Obj *args) {
 }
 
 ObjPtr Context::eval_END(Context *ctx, const TermPtr &term, Obj *args) {
-    ASSERT(term && term->m_text.compare("") == 0);
-    LOG_RUNTIME("eval_END: %s", term->toString().c_str());
-
-    return nullptr;
+    return Obj::CreateNone();
 }
 
 ObjPtr Context::eval_UNKNOWN(Context *ctx, const TermPtr &term, Obj *args) {
@@ -1372,12 +1378,12 @@ ObjPtr Context::CreateNative(const char *proto, const char *module, bool lazzy, 
     TermPtr term;
     try {
         // Термин или термин + тип парсятся без ошибок
-        term = Parser::ParseString(proto);
+        term = Parser::ParseString(proto, &m_macros);
     } catch (std::exception &e) {
         try {
             std::string func(proto);
             func += ":={}";
-            term = Parser::ParseString(func)->Left();
+            term = Parser::ParseString(func, &m_macros)->Left();
         } catch (std::exception &e) {
 
             LOG_RUNTIME("Fail parsing prototype '%s'!", e.what());

@@ -594,13 +594,14 @@ public:
                 break;
             } else if (!buff.empty()) {
                 try {
-                    TermPtr term = Parser::ParseString(utf8_encode(buff));
+//                    TermPtr term = m_ctx.ExecStr(utf8_encode(buff));
+//
+//                    if (!term) {
+//                        LOG_RUNTIME("Eval expression empty!");
+//                    }
+                    std::string input = utf8_encode(buff);
 
-                    if (!term) {
-                        LOG_RUNTIME("Eval expression empty!");
-                    }
-
-                    ObjPtr res = Context::ExecStr(&m_ctx, term, m_args.get());
+                    ObjPtr res = m_ctx.ExecStr(input, m_args.get());
 
                     if (res) {
                         

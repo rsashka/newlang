@@ -743,226 +743,114 @@ TEST(Eval, Convert) {
 
     //    EXPECT_TRUE(dlsym(nullptr, "_ZN7newlang4CharEPKNS_7ContextERKNS_6ObjectE"));
     //    EXPECT_TRUE(dlsym(nullptr, "_ZN7newlang6Short_EPNS_7ContextERNS_6ObjectE"));
+}
+
+TEST(Eval, Macros) {
+
+    Context::Reset();
+    Context ctx(RunTime::Init());
+
+    ASSERT_EQ(0, Context::m_macros.size());
+    ObjPtr none = ctx.ExecStr("\\\\macro\\\\\\");
+
+    ASSERT_EQ(1, Context::m_macros.size());
+    none = ctx.ExecStr("\\\\macro2 2\\\\\\");
+    ASSERT_EQ(2, Context::m_macros.size());
+
+    none = ctx.ExecStr("\\\\macro3() 3\\\\\\");
+    ASSERT_EQ(3, Context::m_macros.size());
+
+    none = ctx.ExecStr("\\\\macro4(arg) \\$arg\\\\\\");
+    ASSERT_EQ(4, Context::m_macros.size());
 
 
-    //    ASSERT_TRUE(opts->GetProcAddress(MangaledFunc("Bool").c_str()));
-    //    ASSERT_TRUE(opts->GetProcAddress(MangaledFunc("Char").c_str()));
-    //    ASSERT_TRUE(opts->GetProcAddress(MangaledFunc("Short").c_str()));
-    //    ASSERT_TRUE(opts->GetProcAddress(MangaledFunc("Int").c_str()));
-    //    ASSERT_TRUE(opts->GetProcAddress(MangaledFunc("Long").c_str()));
-    //    //    ASSERT_TRUE(opts->GetProcAddress(MangaledFunc("Half").c_str()));
-    //    ASSERT_TRUE(opts->GetProcAddress(MangaledFunc("Float").c_str()));
-    //    ASSERT_TRUE(opts->GetProcAddress(MangaledFunc("Double").c_str()));
-    //    ASSERT_TRUE(opts->GetProcAddress(MangaledFunc("ComplexFloat").c_str()));
-    //    ASSERT_TRUE(opts->GetProcAddress(MangaledFunc("ComplexDouble").c_str()));
-    //    //    ASSERT_TRUE(opts->GetProcAddress(MangaledFunc("BFloat16").c_str()));
-    //    ASSERT_TRUE(opts->GetProcAddress(MangaledFunc("StrChar").c_str()));
-    //    ASSERT_TRUE(opts->GetProcAddress(MangaledFunc("StrWide").c_str()));
-    //    ASSERT_TRUE(opts->GetProcAddress(MangaledFunc("Dictionary").c_str()));
-    //    ASSERT_TRUE(opts->GetProcAddress(MangaledFunc("Class").c_str()));
-    //    ASSERT_TRUE(opts->GetProcAddress(MangaledFunc("None").c_str()));
-    //    ASSERT_TRUE(opts->GetProcAddress(MangaledFunc("Integer").c_str()));
-    //    ASSERT_TRUE(opts->GetProcAddress(MangaledFunc("Number").c_str()));
-    //    ASSERT_TRUE(opts->GetProcAddress(MangaledFunc("Complex").c_str()));
-    //    ASSERT_TRUE(opts->GetProcAddress(MangaledFunc("String").c_str()));
-    //
-    //
-    //    ObjPtr byte = Obj::CreateValue(1, ObjType::Bool);
-    //    ASSERT_EQ(ObjType::Bool, byte->m_var_type_current) << toString(byte->m_var_type_current);
-    //
-    //    ASSERT_TRUE(ctx.CallByName("Char", Obj::Arg(byte)));
-    //    ASSERT_EQ(ObjType::Char, ctx.CallByName("Char", Obj::Arg(byte))->m_var_type_current) << toString(byte->m_var_type_current);
-    //    ASSERT_EQ(ObjType::Bool, byte->m_var_type_current) << toString(byte->m_var_type_current);
-    //
-    //    ASSERT_EQ(ObjType::Char, newlang_Char(nullptr, Obj::Arg(byte))->m_var_type_current) << toString(byte->m_var_type_current);
-    //    //    ASSERT_STREQ("1", newlang_Char(nullptr, Obj::Arg(byte))->toString().c_str());
-    //
-    //    ASSERT_EQ(ObjType::Short, newlang_Short(nullptr, Obj::Arg(byte))->m_var_type_current) << toString(byte->m_var_type_current);
-    //    ASSERT_EQ(ObjType::Int, newlang_Int(nullptr, Obj::Arg(byte))->m_var_type_current) << toString(byte->m_var_type_current);
-    //    ASSERT_EQ(ObjType::Long, newlang_Long(nullptr, Obj::Arg(byte))->m_var_type_current) << toString(byte->m_var_type_current);
-    //    //    ASSERT_EQ(ObjType::Half, newlang_Half(nullptr, Obj::Arg(byte))->m_var_type) << toString(byte->m_var_type);
-    //    ASSERT_EQ(ObjType::Float, newlang_Float(nullptr, Obj::Arg(byte))->m_var_type_current) << toString(byte->m_var_type_current);
-    //    ASSERT_EQ(ObjType::Double, newlang_Double(nullptr, Obj::Arg(byte))->m_var_type_current) << toString(byte->m_var_type_current);
-    //
-    //    ASSERT_EQ(ObjType::Long, newlang_Integer(nullptr, Obj::Arg(byte))->m_var_type_current) << toString(byte->m_var_type_current);
-    //    ASSERT_EQ(ObjType::Float, newlang_Number(nullptr, Obj::Arg(byte))->m_var_type_current) << toString(byte->m_var_type_current);
-    //
-    //    //    ASSERT_EQ(ObjType::Byte, newlang_Byte_(nullptr, Obj::Arg(byte))->m_var_type) << toString(byte->m_var_type);
-    //    //    ASSERT_EQ(ObjType::Byte, byte->m_var_type) << toString(byte->m_var_type);
-    //
-    //
-    //    //    ASSERT_EQ(ObjType::Byte, ctx.CallByName("Byte_", Obj::Arg(byte))->m_var_type) << toString(byte->m_var_type);
-    //    //    ASSERT_EQ(ObjType::Byte, byte->m_var_type) << toString(byte->m_var_type);
-    //
-    //    // @todo Для работы функций mutable функций требуется передача по ссылкам !!!!!!!!!!!!1
-    //
-    //    //    ASSERT_EQ(ObjType::Char, ctx.CallByName("Char_", Obj::Arg(byte))->m_var_type) << toString(byte->m_var_type);
-    //    //    ASSERT_EQ(ObjType::Char, byte->m_var_type) << toString(byte->m_var_type);
-    //    //
-    //    //    ASSERT_EQ(ObjType::Double, ctx.CallByName("Double_", Obj::Arg(byte))->m_var_type) << toString(byte->m_var_type);
-    //    //    ASSERT_EQ(ObjType::Double, byte->m_var_type) << toString(byte->m_var_type);
-    //
-    //    //    Obj::CreateFromType();
-    //
-    //    ObjPtr value = Obj::CreateNone();
-    //    ObjPtr range1 = Obj::CreateRange(0, 0.99, 0.1);
-    //
-    //    ASSERT_TRUE(range1);
-    //    ASSERT_EQ(range1->getType(), ObjType::Range);
-    //
-    //    ASSERT_NO_THROW(ConvertRangeToDict(range1.get(), *value.get()));
-    //    ASSERT_TRUE(value);
-    //
-    //    ASSERT_EQ(value->getType(), ObjType::Dictionary);
-    //    ASSERT_EQ(10, value->size());
-    //
-    //    ASSERT_DOUBLE_EQ(0, (*value)[0]->GetValueAsNumber());
-    //    ASSERT_DOUBLE_EQ(0.1, (*value)[1]->GetValueAsNumber());
-    //    ASSERT_DOUBLE_EQ(0.2, (*value)[2]->GetValueAsNumber());
-    //    ASSERT_DOUBLE_EQ(0.3, (*value)[3]->GetValueAsNumber());
-    //    ASSERT_DOUBLE_EQ(0.4, (*value)[4]->GetValueAsNumber());
-    //    ASSERT_DOUBLE_EQ(0.5, (*value)[5]->GetValueAsNumber());
-    //    ASSERT_DOUBLE_EQ(0.6, (*value)[6]->GetValueAsNumber());
-    //    ASSERT_DOUBLE_EQ(0.7, (*value)[7]->GetValueAsNumber());
-    //    ASSERT_DOUBLE_EQ(0.8, (*value)[8]->GetValueAsNumber());
-    //    ASSERT_DOUBLE_EQ(0.9, (*value)[9]->GetValueAsNumber());
-    //
-    //
-    //    ObjPtr range2 = Obj::CreateRange(0, -5);
-    //
-    //    ASSERT_TRUE(range2);
-    //    ASSERT_EQ(range2->getType(), ObjType::Range);
-    //    ASSERT_EQ(0, (*range2)["start"]->GetValueAsInteger());
-    //    ASSERT_EQ(-5, (*range2)["stop"]->GetValueAsInteger());
-    //    ASSERT_EQ(-1, (*range2)["step"]->GetValueAsInteger());
-    //
-    //    ASSERT_NO_THROW(ConvertRangeToDict(range2.get(), *value.get()));
-    //    ASSERT_TRUE(value);
-    //
-    //    ASSERT_EQ(value->getType(), ObjType::Dictionary);
-    //    ASSERT_EQ(15, value->size());
-    //
-    //    ASSERT_EQ(0, (*value)[10]->GetValueAsInteger());
-    //    ASSERT_EQ(-1, (*value)[11]->GetValueAsInteger());
-    //    ASSERT_EQ(-2, (*value)[12]->GetValueAsInteger());
-    //    ASSERT_EQ(-3, (*value)[13]->GetValueAsInteger());
-    //    ASSERT_EQ(-4, (*value)[14]->GetValueAsInteger());
-    //
-    //    torch::Tensor tensor1 = torch::empty({0});
-    //    ASSERT_NO_THROW(ConvertStringToTensor("test", tensor1));
-    //
-    //    ASSERT_EQ(1, tensor1.dim());
-    //    ASSERT_EQ(4, tensor1.size(0));
-    //    ASSERT_EQ('t', tensor1.index({0}).item<int>());
-    //    ASSERT_EQ('e', tensor1.index({1}).item<int>());
-    //    ASSERT_EQ('s', tensor1.index({2}).item<int>());
-    //    ASSERT_EQ('t', tensor1.index({3}).item<int>());
-    //
-    //    torch::Tensor tensor2 = torch::empty({0});
-    //    ASSERT_NO_THROW(ConvertStringToTensor(L"TESTЁ", tensor2));
-    //    ASSERT_EQ(1, tensor2.dim());
-    //    ASSERT_EQ(5, tensor2.size(0));
-    //    ASSERT_EQ(L'T', tensor2.index({0}).item<int>());
-    //    ASSERT_EQ(L'E', tensor2.index({1}).item<int>());
-    //    ASSERT_EQ(L'S', tensor2.index({2}).item<int>());
-    //    ASSERT_EQ(L'T', tensor2.index({3}).item<int>());
-    //    ASSERT_EQ(L'Ё', tensor2.index({4}).item<int>());
-    //
-    //    torch::Tensor tensor_utf = torch::empty({0});
-    //    ASSERT_NO_THROW(ConvertStringToTensor(L"Русё", tensor_utf));
-    //    ASSERT_EQ(1, tensor_utf.dim());
-    //    ASSERT_EQ(4, tensor_utf.size(0));
-    //    ASSERT_EQ(L'Р', tensor_utf.index({0}).item<int>());
-    //    ASSERT_EQ(L'у', tensor_utf.index({1}).item<int>());
-    //    ASSERT_EQ(L'с', tensor_utf.index({2}).item<int>());
-    //    ASSERT_EQ(L'ё', tensor_utf.index({3}).item<int>());
-    //
-    //
-    //    std::string str1;
-    //    ASSERT_NO_THROW(ConvertTensorToString(torch::range(1, 4, 1), str1));
-    //    ASSERT_STREQ("\x1\x2\x3\x4", str1.c_str());
-    //
-    //    std::wstring str2;
-    //    ASSERT_NO_THROW(ConvertTensorToString(torch::range(0x1001, 0x4008, 0x1002), str2));
-    //    ASSERT_EQ(4, str2.size());
-    //    ASSERT_EQ(L'\x10\x01', str2[0]);
-    //    ASSERT_EQ(L'\x20\x03', str2[1]);
-    //    ASSERT_EQ(L'\x30\x05', str2[2]);
-    //    ASSERT_EQ(L'\x40\x07', str2[3]);
-    //
-    //    //    ASSERT_EQ(0x1001, str2[0]);
-    //    //    ASSERT_EQ(0x2003, str2[1]);
-    //    //    ASSERT_EQ(0x3005, str2[2]);
-    //    //    ASSERT_EQ(0x4007, str2[3]);
-    //
-    //    std::string str3;
-    //    int array[8] = {1, 2, 3, 4, 5, 6, 7, 8};
-    //    torch::Tensor tensor4 = torch::from_blob(array,{2, 4}, at::kInt);
-    //
-    //    ASSERT_EQ(2, tensor4.dim());
-    //    ASSERT_EQ(2, tensor4.size(0));
-    //    ASSERT_EQ(4, tensor4.size(1));
-    //    ASSERT_NO_THROW(ConvertTensorToString(tensor4, str1));
-    //    ASSERT_STREQ("\x1\x2\x3\x4\x5\x6\x7\x8", str1.c_str());
-    //
-    //
-    //    ObjPtr dict1 = Obj::CreateNone();
-    //    ASSERT_NO_THROW(ConvertTensorToDict(tensor1, *dict1.get()));
-    //    ASSERT_EQ(4, dict1->size());
-    //    ASSERT_EQ('t', (*dict1)[0]->GetValueAsInteger());
-    //    ASSERT_EQ('e', (*dict1)[1]->GetValueAsInteger());
-    //    ASSERT_EQ('s', (*dict1)[2]->GetValueAsInteger());
-    //    ASSERT_EQ('t', (*dict1)[3]->GetValueAsInteger());
-    //
-    //    ASSERT_NO_THROW(ConvertTensorToDict(tensor4, *dict1.get()));
-    //    ASSERT_EQ(12, dict1->size());
-    //    ASSERT_EQ('t', (*dict1)[0]->GetValueAsInteger());
-    //    ASSERT_EQ('e', (*dict1)[1]->GetValueAsInteger());
-    //    ASSERT_EQ('s', (*dict1)[2]->GetValueAsInteger());
-    //    ASSERT_EQ('t', (*dict1)[3]->GetValueAsInteger());
-    //    ASSERT_EQ(1, (*dict1)[4]->GetValueAsInteger());
-    //    ASSERT_EQ(2, (*dict1)[5]->GetValueAsInteger());
-    //    ASSERT_EQ(3, (*dict1)[6]->GetValueAsInteger());
-    //    ASSERT_EQ(4, (*dict1)[7]->GetValueAsInteger());
-    //    ASSERT_EQ(5, (*dict1)[8]->GetValueAsInteger());
-    //    ASSERT_EQ(6, (*dict1)[9]->GetValueAsInteger());
-    //    ASSERT_EQ(7, (*dict1)[10]->GetValueAsInteger());
-    //    ASSERT_EQ(8, (*dict1)[11]->GetValueAsInteger());
-    //
-    //    ASSERT_NO_THROW(ConvertTensorToDict(tensor2, *dict1.get()));
-    //    ASSERT_EQ(17, dict1->size());
-    //
-    //    ASSERT_EQ(L'T', (*dict1)[12]->GetValueAsInteger());
-    //    ASSERT_EQ(L'E', (*dict1)[13]->GetValueAsInteger());
-    //    ASSERT_EQ(L'S', (*dict1)[14]->GetValueAsInteger());
-    //    ASSERT_EQ(L'T', (*dict1)[15]->GetValueAsInteger());
-    //    ASSERT_EQ(L'Ё', (*dict1)[16]->GetValueAsInteger());
-    //
-    //    torch::Tensor result = torch::empty({0});
-    //    ASSERT_NO_THROW(ConvertDictToTensor(*dict1.get(), result));
-    //    ASSERT_EQ(1, result.dim());
-    //    ASSERT_EQ(17, result.size(0));
-    //
-    //
-    //    ASSERT_EQ('t', result.index({0}).item<int>()) << TensorToString(result) << "\n";
-    //    ASSERT_EQ('e', result.index({1}).item<int>());
-    //    ASSERT_EQ('s', result[2].item<int>());
-    //    ASSERT_EQ('t', result[3].item<int>());
-    //    ASSERT_EQ(1, result[4].item<int>());
-    //    ASSERT_EQ(2, result[5].item<int>());
-    //    ASSERT_EQ(3, result[6].item<int>());
-    //    ASSERT_EQ(4, result[7].item<int>());
-    //    ASSERT_EQ(5, result[8].item<int>());
-    //    ASSERT_EQ(6, result[9].item<int>());
-    //    ASSERT_EQ(7, result[10].item<int>());
-    //    ASSERT_EQ(8, result[11].item<int>());
-    //
-    //    ASSERT_EQ(L'T', result[12].item<int>());
-    //    ASSERT_EQ(L'E', result[13].item<int>());
-    //    ASSERT_EQ(L'S', result[14].item<int>());
-    //    ASSERT_EQ(L'T', result[15].item<int>());
-    //    ASSERT_EQ(L'Ё', result[16].item<int>());
+    ObjPtr result = ctx.ExecStr("\\macro");
+    ASSERT_TRUE(result);
+    ASSERT_TRUE(result->is_none_type());
 
+    result = ctx.ExecStr("\\macro2");
+    ASSERT_TRUE(result);
+    ASSERT_TRUE(result->is_integer());
+    ASSERT_EQ(2, result->GetValueAsInteger());
+
+    result = ctx.ExecStr("\\macro3()");
+    ASSERT_TRUE(result);
+    ASSERT_TRUE(result->is_integer());
+    ASSERT_EQ(3, result->GetValueAsInteger());
+
+    result = ctx.ExecStr("\\macro4(999)");
+    ASSERT_TRUE(result);
+    ASSERT_TRUE(result->is_integer());
+    ASSERT_EQ(999, result->GetValueAsInteger());
+
+    result = ctx.ExecStr("\\macro4(999);\\macro;\\macro4(42)");
+    ASSERT_TRUE(result);
+    ASSERT_TRUE(result->is_integer());
+    ASSERT_EQ(42, result->GetValueAsInteger());
+
+}
+
+TEST(Eval, MacroDSL) {
+
+    Context::Reset();
+    Context ctx(RunTime::Init());
+
+
+    const char * dsl = ""
+            "\\\\if(cond)       [\\$cond]-->\\\\\\"
+            "\\\\elseif(cond)   ,[\\$cond]-->\\\\\\"
+            "\\\\else           ,[_]-->\\\\\\"
+            ""
+            "\\\\while(cond)    [\\$cond]-->>\\\\\\"
+            "\\\\dowhile(cond)  <<--[\\$cond]\\\\\\"
+            "\\\\return         --\\\\\\"
+            "\\\\return(...)    --\\$*--\\\\\\"
+            "";
+
+    ASSERT_EQ(0, Context::m_macros.size());
+    ObjPtr none = ctx.ExecStr(dsl);
+    ASSERT_EQ(7, Context::m_macros.size());
+
+    ObjPtr count = ctx.ExecStr("@count:=0;");
+    ASSERT_TRUE(count);
+    ASSERT_EQ(0, count->GetValueAsInteger());
+
+    const char * run_raw = ""
+            "count:=5;"
+            "(){{"
+            "  [count<10]-->>{"
+            "    [count>5]-->{"
+            "      --100--;"
+            "    }; "
+            "    count+=1;"
+            "  };"
+            "}};";
+
+    ObjPtr result = ctx.ExecStr(run_raw);
+    ASSERT_TRUE(result);
+    ASSERT_TRUE(result->is_integer());
+    ASSERT_EQ(6, count->GetValueAsInteger());
+    ASSERT_EQ(100, result->GetValueAsInteger());
+
+    const char * run_macro = ""
+            "count:=5;"
+            "(){{"
+            "  \\while(count<10){"
+            "    \\if(count>5){"
+            "      \\return(42);"
+            "    };"
+            "    count+=1;"
+            "  };"
+            "}};"
+            "";
+
+
+
+    result = ctx.ExecStr(run_macro);
+    ASSERT_TRUE(result);
+    ASSERT_TRUE(result->is_integer());
+    ASSERT_EQ(6, count->GetValueAsInteger());
+    ASSERT_EQ(42, result->GetValueAsInteger());
 }
 
 class OpEvalTest : public ::testing::Test {

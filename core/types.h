@@ -5,6 +5,22 @@
 
 namespace newlang {
 
+    static constexpr const char* ws = " \t\n\r\f\v";
+
+    inline std::string & rtrim(std::string& s, const char* t = ws) {
+        s.erase(s.find_last_not_of(t) + 1);
+        return s;
+    }
+
+    inline std::string & ltrim(std::string& s, const char* t = ws) {
+        s.erase(0, s.find_first_not_of(t));
+        return s;
+    }
+
+    inline std::string & trim(std::string& s, const char* t = ws) {
+        return ltrim(rtrim(s, t), t);
+    }
+    
 typedef at::indexing::TensorIndex Index;
 typedef at::IntArrayRef Dimension;
 
@@ -554,7 +570,7 @@ void ParserException(const char *msg, std::string &buffer, int row, int col);
         if (set.dim() != 0) {
             self = set.clone();
             return;
-            
+
             ASSERT(set.dim() == 0);
         }
 
@@ -765,8 +781,12 @@ void ParserException(const char *msg, std::string &buffer, int row, int col);
         return !name.empty() && name[0] == ':';
     }
 
+    inline bool isMacro(const std::string_view name) {
+        return !name.empty() && name[0] == '\\';
+    }
+
     inline bool isLocalAny(const char *name) {
-        return name && !(name[0] == '$' || name[0] == '@' || name[0] == ':' || name[0] == '%');
+        return name && !(name[0] == '$' || name[0] == '@' || name[0] == ':' || name[0] == '%' || name[0] == '\\');
     }
 
     inline bool isMutableName(const std::string name) {

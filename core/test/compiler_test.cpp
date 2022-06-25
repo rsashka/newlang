@@ -13,7 +13,7 @@
 
 using namespace newlang;
 
-TEST(NewLang, Example1) {
+TEST(Compiler, EvalExample) {
 
     TermPtr p;
     Parser parser(p);
@@ -34,7 +34,7 @@ TEST(NewLang, Example1) {
     ASSERT_EQ(0, op->size());
 }
 
-TEST(NewLang, MangleName) {
+TEST(Compiler, MangleName) {
 
     EXPECT_STREQ("newlang_min", MangleName("мин").c_str()) << MangleName("мин");
     EXPECT_STREQ("newlang_maks", MangleName("макс").c_str()) << MangleName("макс");
@@ -422,7 +422,7 @@ bool str_cmp_strart(const char *base_str, const char *cmp_str) {
 //     world!\\n\")")->GetValueAsString().c_str());
 // }
 
-TEST(NewLang, DISABLED_Function) {
+TEST(Compiler, DISABLED_Function) {
 
     const char *func_text =
             "func_sum(arg1, arg2) :- {$arg1 + $arg2;};\n"
@@ -503,137 +503,7 @@ TEST(NewLang, DISABLED_Function) {
     file.close();
 }
 
-TEST(NewLang, String) {
-
-    ObjPtr str_byte = Obj::CreateString("byte");
-    ASSERT_STREQ("byte", str_byte->GetValueAsString().c_str());
-    ASSERT_EQ(4, str_byte->size());
-    ASSERT_EQ(4, str_byte->m_str.size());
-    ASSERT_STREQ("b", (*str_byte)[0]->GetValueAsString().c_str());
-    ASSERT_STREQ("y", (*str_byte)[1]->GetValueAsString().c_str());
-    ASSERT_STREQ("t", (*str_byte)[2]->GetValueAsString().c_str());
-    ASSERT_STREQ("e", (*str_byte)[3]->GetValueAsString().c_str());
-
-    str_byte->op_set_index(0, "B");
-    str_byte->op_set_index(1, "Y");
-    ASSERT_STREQ("BYte", str_byte->GetValueAsString().c_str());
-    str_byte->op_set_index(2, "T");
-    str_byte->op_set_index(3, "E");
-    ASSERT_STREQ("BYTE", str_byte->GetValueAsString().c_str());
-
-    ObjPtr str_char = Obj::CreateString(L"строка");
-    ASSERT_EQ(6, str_char->size());
-    ASSERT_EQ(6, str_char->m_wstr.size());
-
-    ASSERT_STREQ("с", (*str_char)[0]->GetValueAsString().c_str());
-    ASSERT_STREQ("т", (*str_char)[1]->GetValueAsString().c_str());
-    ASSERT_STREQ("р", (*str_char)[2]->GetValueAsString().c_str());
-    ASSERT_STREQ("о", (*str_char)[3]->GetValueAsString().c_str());
-    ASSERT_STREQ("к", (*str_char)[4]->GetValueAsString().c_str());
-    ASSERT_STREQ("а", (*str_char)[5]->GetValueAsString().c_str());
-
-    str_char->op_set_index(0, "С");
-    str_char->op_set_index(1, "Т");
-    ASSERT_STREQ("СТрока", str_char->GetValueAsString().c_str());
-    str_char->op_set_index(2, "Р");
-    str_char->op_set_index(3, "О");
-    ASSERT_STREQ("СТРОка", str_char->GetValueAsString().c_str());
-
-
-    ObjPtr format = Obj::CreateString("$1 $2 ${name}");
-    ObjPtr str1 = (*format)(nullptr);
-    ASSERT_STREQ("$1 $2 ${name}", str1->GetValueAsString().c_str());
-
-    ObjPtr str2 = (*format)(nullptr, Obj::Arg(100));
-    ASSERT_STREQ("100 $2 ${name}", str2->GetValueAsString().c_str());
-
-    ObjPtr str3 = (*format)(nullptr, Obj::Arg(-1), Obj::Arg("222"));
-    ASSERT_STREQ("-1 222 ${name}", str3->GetValueAsString().c_str());
-
-    ObjPtr str4 = (*format)(nullptr, Obj::Arg("value", "name"));
-    ASSERT_STREQ("value $2 value", str4->GetValueAsString().c_str());
-
-    format = Obj::CreateString("$nameno ${имя1} $name $имя");
-    ObjPtr str5 = (*format)(nullptr, Obj::Arg("value", "name"), Obj::Arg("УТФ8-УТФ8", "имя"), Obj::Arg("УТФ8", "имя1"));
-    ASSERT_STREQ("valueno УТФ8 value УТФ8-УТФ8", str5->GetValueAsString().c_str());
-}
-
-TEST(NewLang, Tensor) {
-
-    // Байтовые строки
-    ObjPtr str = Obj::CreateString("test");
-    ObjPtr t_str = Obj::CreateTensor(str->toTensor());
-    ASSERT_EQ(t_str->m_var_type_current, ObjType::Char) << toString(t_str->m_var_type_current);
-    ASSERT_EQ(4, t_str->size());
-    EXPECT_STREQ(t_str->toType(ObjType::StrWide)->GetValueAsString().c_str(), "test");
-
-    ASSERT_EQ(t_str->index_get({0})->GetValueAsInteger(), 't');
-    ASSERT_EQ(t_str->index_get({1})->GetValueAsInteger(), 'e');
-    ASSERT_EQ(t_str->index_get({2})->GetValueAsInteger(), 's');
-    ASSERT_EQ(t_str->index_get({3})->GetValueAsInteger(), 't');
-
-    t_str->index_set_({1}, Obj::CreateString("E"));
-    t_str->index_set_({2}, Obj::CreateString("S"));
-
-    EXPECT_STREQ(t_str->toType(ObjType::StrWide)->GetValueAsString().c_str(), "tESt");
-
-    // Символьные сторки
-    ObjPtr wstr = Obj::CreateString(L"ТЕСТ");
-    ObjPtr t_wstr = Obj::CreateTensor(wstr->toTensor());
-    ASSERT_EQ(t_wstr->m_var_type_current, ObjType::Int);
-    ASSERT_EQ(4, t_wstr->size());
-    EXPECT_STREQ(t_wstr->toType(ObjType::StrWide)->GetValueAsString().c_str(), "ТЕСТ");
-
-    ASSERT_EQ(t_wstr->index_get({0})->GetValueAsInteger(), L'Т');
-    ASSERT_EQ(t_wstr->index_get({1})->GetValueAsInteger(), L'Е');
-    ASSERT_EQ(t_wstr->index_get({2})->GetValueAsInteger(), L'С');
-    ASSERT_EQ(t_wstr->index_get({3})->GetValueAsInteger(), L'Т');
-
-    t_wstr->index_set_({1}, Obj::CreateString(L"е"));
-    t_wstr->index_set_({2}, Obj::CreateString(L"с"));
-
-    EXPECT_STREQ(t_wstr->toType(ObjType::StrWide)->GetValueAsString().c_str(), "ТесТ");
-
-
-
-
-    //    ObjPtr dict = Context::CreateRVal(nullptr, "(1, [10,20,30,],)");
-    //
-    //    ASSERT_TRUE(dict);
-    //    ASSERT_EQ(2, dict->size());
-    //    ASSERT_EQ(0, (*dict)[0]->size());
-    //    ASSERT_EQ(3, (*dict)[1]->size());
-    //
-    //    ASSERT_EQ(1, (*dict)[0]->GetValueAsInteger());
-    //
-    //    ASSERT_EQ(10, (*(*dict)[1])[0]->GetValueAsInteger());
-    //    ASSERT_EQ(20, (*(*dict)[1])[1]->GetValueAsInteger());
-    //    ASSERT_EQ(30, (*(*dict)[1])[2]->GetValueAsInteger());
-    //
-    //    ObjPtr t_dict = Obj::CreateTensor(dict, ObjType::Int);
-    //
-    //    ASSERT_EQ(4, t_dict->size());
-    //    ASSERT_EQ(t_dict->index_get({0})->GetValueAsInteger(), 1);
-    //    ASSERT_EQ(t_dict->index_get({1})->GetValueAsInteger(), 10);
-    //    ASSERT_EQ(t_dict->index_get({2})->GetValueAsInteger(), 20);
-    //    ASSERT_EQ(t_dict->index_get({3})->GetValueAsInteger(), 30);
-    //
-    //
-    //    ObjPtr diag = Context::CreateRVal(nullptr, "[[ [ [1,], [2,22,], [3, 33, 333.0,] ] ]]");
-    //
-    //    ObjPtr t_diag = Obj::CreateTensor(diag, ObjType::Float);
-    //
-    //    ASSERT_EQ(6, t_diag->size());
-    //    ASSERT_EQ(t_diag->index_get({0})->GetValueAsNumber(), 1);
-    //    ASSERT_EQ(t_diag->index_get({1})->GetValueAsNumber(), 2);
-    //    ASSERT_EQ(t_diag->index_get({2})->GetValueAsNumber(), 22);
-    //    ASSERT_EQ(t_diag->index_get({3})->GetValueAsNumber(), 3);
-    //    ASSERT_EQ(t_diag->index_get({4})->GetValueAsNumber(), 33);
-    //    ASSERT_EQ(t_diag->index_get({5})->GetValueAsNumber(), 333);
-
-}
-
-TEST(NewLang, DISABLED_FuncsTypes) {
+TEST(Compiler, DISABLED_FuncsTypes) {
 
     /*
      * - Проверка типов аргументов при вызове функций

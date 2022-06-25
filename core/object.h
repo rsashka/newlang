@@ -674,8 +674,8 @@ namespace newlang {
          * или сравнение должно зависить от того, есть ли в образце вложенные словари (классы) ??????????????
          */
 
-        bool op_class_test(ObjPtr obj, Context *ctx);
-        bool op_class_test(const char * name, Context *ctx);
+        bool op_class_test(ObjPtr obj, Context *ctx) const;
+        bool op_class_test(const char * name, Context *ctx) const;
 
         inline bool op_duck_test(ObjPtr obj, bool strong) {
             ASSERT(obj);
