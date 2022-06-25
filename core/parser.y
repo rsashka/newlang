@@ -1504,23 +1504,11 @@ seq_item: condition
             }
         |  MACRO
             {
-                $$ = $1;  
+                $$ = $1;  // Их быть не должно, т.к. макросы должны раскрываться до парсинга синтаксиса
             }
-        |  MACRO  call
+        |  MACRO_BODY
             {
-                $$ = $1;  
-                $$->Append($call, Term::LEFT); 
-            }
-        |  MACRO  MACRO_BODY
-            {
-                $$ = $1;  
-                $$->Append($2, Term::RIGHT); 
-            }
-        |  MACRO  call  MACRO_BODY
-            {
-                $$ = $1;  
-                $$->Append($call, Term::LEFT); 
-                $$->Append($3, Term::RIGHT); 
+                $$ = $1;  // Их быть не должно, т.к. макросы должны раскрываться до парсинга синтаксиса
             }
         
 sequence:  seq_item

@@ -11,182 +11,297 @@
 
 namespace newlang {
 
-/** The Driver class brings together all components. It creates an instance of
- * the Parser and Scanner classes and connects them. Then the input stream is
- * fed into the scanner object and the parser gets it's token
- * sequence. Furthermore the driver object is available in the grammar rules as
- * a parameter. Therefore the driver class contains a reference to the
- * structure into which the parsed data is saved. */
-class Parser {
-public:
+    /** The Driver class brings together all components. It creates an instance of
+     * the Parser and Scanner classes and connects them. Then the input stream is
+     * fed into the scanner object and the parser gets it's token
+     * sequence. Furthermore the driver object is available in the grammar rules as
+     * a parameter. Therefore the driver class contains a reference to the
+     * structure into which the parsed data is saved. */
+    class Parser {
+    public:
 
-    /// construct a new parser driver context
-    //    Parser(class CalcContext& calc);
+        /// construct a new parser driver context
+        //    Parser(class CalcContext& calc);
 
-    Parser(TermPtr &ast);
+        Parser(TermPtr &ast);
 
-    /// enable debug output in the flex scanner
-    bool trace_scanning;
+        /// enable debug output in the flex scanner
+        bool trace_scanning;
 
-    /// enable debug output in the bison parser
-    bool trace_parsing;
+        /// enable debug output in the bison parser
+        bool trace_parsing;
 
-    /// stream name (file or input stream) used for error messages.
-    std::string streamname;
+        /// stream name (file or input stream) used for error messages.
+        std::string streamname;
 
-    std::istringstream m_stream;
+        std::istringstream m_stream;
 
 
-    /** Invoke the scanner and parser for a stream.
-     * @param in	input stream
-     * @param sname	stream name for error messages
-     * @return		true if successfully parsed
-     */
-    bool parse_stream(std::istream& in, const std::string_view sname = "stream input");
-
-    /** Invoke the scanner and parser on an input string.
-     * @param input	input string
-     * @param sname	stream name for error messages
-     * @return		true if successfully parsed
-     */
-    bool parse_string(const std::string_view input, const std::string_view sname = "string stream");
-
-    /** Invoke the scanner and parser on a file. Use parse_stream with a
-     * std::ifstream if detection of file reading errors is required.
-     * @param filename	input file name
-     * @return		true if successfully parsed
-     */
-    bool parse_file(const std::string_view filename);
-
-    // To demonstrate pure handling of parse errors, instead of
-    // simply dumping them on the standard error output, we will pass
-    // them to the driver using the following two member functions.
-
-    /** Error handling with associated line number. This can be modified to
-     * output the error e.g. to a dialog box. */
-    void error(const class location& l, const std::string& m);
-
-    /** General error handling. This can be modified to output the error
-     * e.g. to a dialog box. */
-    void error(const std::string_view m);
-
-    /** Pointer to the current lexer instance, this is used to connect the
-     * parser to the scanner. It is used in the yylex macro. */
-    class Scanner* lexer;
-
-    /** Reference to the calculator context filled during parsing of the
-     * expressions. */
-    //    class CalcContext& calc;
-
-    TermPtr Parse(const std::string_view str);
-    static TermPtr ParseString(const std::string_view str);
-
-    void AstAddTerm(TermPtr &term);
-
-    typedef std::map<std::string, std::string> MacrosStore;
-
-    inline static const std::string MACROS_START = "\\\\";
-    inline static const std::string MACROS_END = "\\\\\\";
-
-    static inline bool ParseNameMacro(const std::string &body, std::string &name, std::string &args) {
-        size_t len = 0;
-        // имя макроса должно быть в самом начале строки без пробелов
-        if (body.empty() || body[0] != '\\') {
-            return false; // Нет имени макроса
-        }
-        size_t pos = 1;
-        while (pos < body.size()) {
-            if (std::isspace(static_cast<unsigned char> (body[pos])) || body[pos] == '(') {
-                name = body.substr(0, pos);
-                break;
-            }
-            pos++;
-        }
-
-        if (pos == 0) {
-            LOG_DEBUG("Macro name not found!");
-            return false; // Нет имени макроса
-        }
-
-        // после имени без пробела жет быть открывающая скобка
-        if (body[pos] != '(') {
-            args.clear();
-            return true; // Открывающей скобки нет, значит нет аргументов
-        }
-        size_t start = pos;
-        while (pos < body.size()) {
-            if (body[pos] == ')') {
-                args = body.substr(start, pos);
-                return true;
-            }
-            pos++;
-        }
-        LOG_DEBUG("Fail parse macro args!");
-        return false; // Нет закрывающей скобки, косяк в аргументах
-    }
-
-    static size_t ExtractMacros(std::string &text, MacrosStore &store) {
-        /*
-         * Сперва искать начало определения макроса \\, потом завершение определения макроса \\\
-         * Вырезать тело определения макроса из строки парсинга и добавить макрос в хранилище.
+        /** Invoke the scanner and parser for a stream.
+         * @param in	input stream
+         * @param sname	stream name for error messages
+         * @return		true if successfully parsed
          */
+        bool parse_stream(std::istream& in, const std::string_view sname = "stream input");
 
-        size_t start = text.find(MACROS_START); // Начало макроса
-        size_t stop = std::string::npos;
-        if (start != std::string::npos) {
-            stop = text.find(MACROS_END, start + MACROS_START.size() + 1);
+        /** Invoke the scanner and parser on an input string.
+         * @param input	input string
+         * @param sname	stream name for error messages
+         * @return		true if successfully parsed
+         */
+        bool parse_string(const std::string_view input, const std::string_view sname = "string stream");
 
-            if (stop == std::string::npos) {
-                LOG_RUNTIME("Macro termination symbol not found! Start at %d '%s'", (int) start, text.c_str());
-                // throw Interrupt(ParserMessage(buffer, row, col, "%s", msg), Interrupt::Parser);
+        /** Invoke the scanner and parser on a file. Use parse_stream with a
+         * std::ifstream if detection of file reading errors is required.
+         * @param filename	input file name
+         * @return		true if successfully parsed
+         */
+        bool parse_file(const std::string_view filename);
+
+        // To demonstrate pure handling of parse errors, instead of
+        // simply dumping them on the standard error output, we will pass
+        // them to the driver using the following two member functions.
+
+        /** Error handling with associated line number. This can be modified to
+         * output the error e.g. to a dialog box. */
+        void error(const class location& l, const std::string& m);
+
+        /** General error handling. This can be modified to output the error
+         * e.g. to a dialog box. */
+        void error(const std::string_view m);
+
+        /** Pointer to the current lexer instance, this is used to connect the
+         * parser to the scanner. It is used in the yylex macro. */
+        class Scanner* lexer;
+
+        /** Reference to the calculator context filled during parsing of the
+         * expressions. */
+        //    class CalcContext& calc;
+
+        TermPtr Parse(const std::string_view str);
+        static TermPtr ParseString(const std::string_view str);
+
+        void AstAddTerm(TermPtr &term);
+
+        typedef std::map<std::string, std::string> MacrosStore;
+        typedef std::vector<std::string> MacrosArgs;
+
+        inline static const std::string MACROS_START = "\\\\";
+        inline static const std::string MACROS_END = "\\\\\\";
+
+        static inline std::string ParseMacroName(const std::string &body) {
+            // имя макроса должно быть в самом начале строки без пробелов и начинаться на один слешь
+            if (body.size() < 3 || body[0] != '\\' || body[1] == '\\') {
+                return std::string(); // Нет имени макроса
+            }
+            for (size_t i = 0; i < body.size(); i++) {
+                if (std::isspace(static_cast<unsigned char> (body[i]))) {
+                    return body.substr(0, i);
+                } else if (body[i] == '(') {
+                    return body.substr(0, i + 1); // Для макросов с аргументами имя включает открывающую скобку
+                }
+            }
+            return body; // Макрос без тела
+        }
+
+        static inline MacrosArgs ParseMacroArgs(const std::string &body) {
+            std::string name = ParseMacroName(body);
+            MacrosArgs result;
+
+            if (name.size() < 2 || name[name.size() - 1] != '(') {
+                return result; // Нет имени макроса или аргументов
             }
 
-            std::string body = text.substr(start + MACROS_START.size(), stop - MACROS_START.size());
-            std::string name;
-            std::string args;
-            if (!ParseNameMacro(body, name, args)) {
-                LOG_RUNTIME("Fail parse name macro! '%s'", body.c_str());
-                // throw Interrupt(ParserMessage(buffer, row, col, "%s", msg), Interrupt::Parser);
+            std::string arg;
+            for (size_t i = name.size(); i < body.size(); i++) {
+                if (body[i] == ',' || body[i] == ')') {
+                    if (!arg.empty()) {
+                        trim(arg);
+                        result.push_back(arg); // новый аргумент макроса
+                        arg.clear();
+                    } else if (body[i] == ',') {
+                        LOG_RUNTIME("Macro argument missing!");
+                    }
+                }
+                if (body[i] == ')') {
+                    return result; // Аругменты закончились
+                } else {
+                    if (body[i] != ',') {
+                        arg.append(1, body[i]); // имя аргумента
+                    }
+                }
             }
+            // Нет закрывающей скобки
+            LOG_RUNTIME("Closing bracket not found!");
+        }
 
-            auto found = store.find(name);
-            if (found != store.end()) {
-                std::string f_name;
-                std::string f_args;
-                VERIFY(ParseNameMacro(found->second, f_name, f_args));
-                if (f_args.empty() == args.empty()) {
-                    LOG_RUNTIME("Macro %s arguments are duplicated! %s %s", name.c_str(), args.c_str(), f_args.c_str());
+        /**
+         * Искать в строке text начало определения макроса \\, потом завершение определения макроса \\\
+         * Вырезать тело определения макроса из строки и добавить макрос в хранилище store.
+         * @param text Строка для парсинга
+         * @param store Хранилище макросов
+         * @param fill Удалять ли макрос из входной строки
+         * @return Истина, если была произведена замена, иначе ложь
+         */
+        static bool ExtractMacros(std::string &text, MacrosStore &store, bool fill = true) {
+
+            ASSERT(MACROS_START.size() == 2);
+            ASSERT(MACROS_END.size() == 3);
+
+            size_t start = text.find(MACROS_START); // Начало макроса
+            size_t stop = std::string::npos;
+            if (start != std::string::npos) {
+                stop = text.find(MACROS_END, start + MACROS_START.size() + 1);
+
+                if (stop == std::string::npos) {
+                    LOG_RUNTIME("Macro termination symbol not found! Start at %d '%s'", (int) start, text.c_str());
                     // throw Interrupt(ParserMessage(buffer, row, col, "%s", msg), Interrupt::Parser);
                 }
+
+                std::string body = text.substr(start + MACROS_START.size() - 1, stop - start - MACROS_START.size() + 1);
+                std::string name = ParseMacroName(body);
+                if (name.empty()) {
+                    LOG_RUNTIME("Fail parse name macro! '%s'", body.c_str());
+                    // throw Interrupt(ParserMessage(buffer, row, col, "%s", msg), Interrupt::Parser);
+                }
+
+                auto found = store.find(name);
+                if (found != store.end()) {
+                    LOG_RUNTIME("Macro name %s are duplicated!", name.c_str());
+                    // throw Interrupt(ParserMessage(buffer, row, col, "%s", msg), Interrupt::Parser);
+                }
+                store[name] = body;
+
+                if (fill) {
+                    // Заменить определение макроса пробелами, кроме переводов строк, чтобы не съезжала позиция парсинга
+                    std::string fill(stop + MACROS_END.size() - start, ' ');
+
+                    ASSERT(fill.size() > body.size());
+                    for (size_t i = 0; i < body.size(); i++) {
+                        if (body[i] == '\n') {
+                            fill[i + 1] = '\n';
+                        }
+                    }
+                    text.replace(start, stop + MACROS_END.size(), fill);
+                }
+                return true;
             }
-            store[name] = body;
+            return false;
+        }
 
-            // Заменить определение макроса пробелами, кроме переводов строк, чтобы не съезжала позиция парсинга
-            std::string fill(stop + MACROS_END.size() - start, ' ');
+        static std::string ExpandMacro(const std::string &macro, const std::string &text) {
 
-            ASSERT(fill.size() > body.size());
-            for (size_t i = 0; i < body.size(); i++) {
-                if (body[i] == '\n') {
-                    fill[i] = '\n';
+            std::string name = ParseMacroName(macro);
+            MacrosArgs args = ParseMacroArgs(macro);
+
+            std::string body_base;
+            std::string result(text);
+
+            if (name[name.size() - 1] != '(') {
+                body_base = macro.substr(name.size() + 1);
+            } else {
+                size_t pos = name.size();
+                while (pos < macro.size()) {
+                    if (macro[pos] == ')') {
+                        // Аругменты закончились
+                        body_base = macro.substr(pos + 1);
+                        break;
+                    }
+                    pos++;
+                }
+                if (body_base.empty()) {
+                    // Нет закрывающей скобки
+                    LOG_RUNTIME("Closing bracket not found! '%s'", macro.c_str());
                 }
             }
-            text.replace(start, stop + MACROS_END.size(), fill);
+
+            size_t pos_start = 0;
+            size_t pos_end = 0;
+            while ((pos_start + name.size() - 1) < result.size()) {
+                pos_start = result.find(name, pos_start);
+                if (pos_start == std::string::npos) {
+                    break;
+                }
+
+                pos_end = pos_start + name.size();
+
+                if (name[name.size() - 1] != '(') {
+
+                    result.replace(pos_start, pos_end - pos_start, body_base);
+
+                } else {
+
+                    size_t bracet_count = 0;
+                    while (pos_end < result.size()) {
+                        if (result[pos_end] == '(') {
+                            bracet_count++;
+                        } else if (result[pos_end] == ')') {
+                            if (bracet_count == 0) {
+                                pos_end++;
+                                break;
+                            } else {
+                                bracet_count--;
+                            }
+                        }
+                        pos_end++;
+                    }
+                    if (pos_end > result.size()) {
+                        // Нет закрывающей скобки
+                        LOG_RUNTIME("Closing bracket not found! '%s'", result.c_str());
+                    }
+
+
+                    MacrosArgs args_define = ParseMacroArgs(result.substr(pos_start, pos_end));
+                    if (args_define.empty()) {
+
+                        result.replace(pos_start, pos_end - pos_start, body_base);
+
+                    } else {
+
+                        std::string body(body_base);
+
+                        for (size_t i = 0; i < args.size() && i < args_define.size(); i++) {
+                            // Заменить аргумент по имени
+                            std::string arg_name = "\\\\\\$" + args[i];
+                            body = std::regex_replace(body, std::regex(arg_name), args_define[i]);
+                        }
+
+                        std::string summary;
+                        for (size_t i = 0; i < args_define.size(); i++) {
+                            // Заменить аргумент по номеру
+                            std::string arg_num = "\\\\\\$" + std::to_string(i + 1);
+                            body = std::regex_replace(body, std::regex(arg_num), args_define[i]);
+
+                            if (!summary.empty()) {
+                                summary += ",";
+                            }
+                            summary += args_define[i];
+                        }
+                        body = std::regex_replace(body, std::regex("\\\\\\$\\*"), summary);
+
+                        result.replace(pos_start, pos_end - pos_start, body);
+                    }
+                }
+            }
+            return result;
         }
-        return store.size();
-    }
 
-    static bool ExpandMacros(std::string &text, MacrosStore &store) {
-        /*
-         * Искать макросы и заменять их в строке на развернутые определения из хранилища.
+        /**
+         * Развернуть макросы во входной строке
+         * @param text Входная строка
+         * @param store Храниличе макросов
+         * @return 
          */
-        return false;
-    }
+        static bool ExpandMacros(std::string &text, MacrosStore &store) {
+
+            return false;
+        }
 
 
-private:
-    TermPtr &m_ast;
+    private:
+        TermPtr &m_ast;
 
-};
+    };
 
 } // namespace example
 
