@@ -365,8 +365,7 @@ star_arg = [STAR] STAR ID
 
 %token			FOLLOW
 %token			MATCHING
-%token			WHILE
-%token			UNTIL
+%token			REPEAT
 
 %token			ARGUMENT		
 
@@ -1400,15 +1399,17 @@ follow: if_then
             }
         
    
-repeat: match_cond  WHILE  body
+repeat: match_cond  REPEAT  body
             {
                 $$=$2;
+                $$->SetTermID(TermID::WHILE);
                 $$->Append($match_cond, Term::LEFT); 
                 $$->Append($body, Term::RIGHT); 
             }
-        |  body  UNTIL  match_cond
+        |  body  REPEAT  match_cond
             {
                 $$=$2;
+                $$->SetTermID(TermID::DOWHILE);
                 $$->Append($body, Term::LEFT); 
                 $$->Append($match_cond, Term::RIGHT); 
             }

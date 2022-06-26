@@ -58,7 +58,7 @@ namespace newlang {
         _(FOLLOW) \
         _(MATCHING) \
         _(WHILE) \
-        _(UNTIL) \
+        _(DOWHILE) \
         \
         _(RANGE) \
         _(ELLIPSIS) \
@@ -512,13 +512,13 @@ namespace newlang {
 
                 case TermID::WHILE: // [cond] <->  repeat;
                     result = "[" + result + "]";
-                        result += m_text;
+                    result += m_text;
                     ASSERT(m_right);
                     result += m_right->toString();
                     result += ";";
                     return result;
 
-                case TermID::UNTIL:
+                case TermID::DOWHILE:
                     result = result;
                     result += m_text + "[";
                     ASSERT(m_right);
@@ -807,7 +807,6 @@ namespace newlang {
             }
             return item;
         }
-
 
         inline bool ConvertSequenceToBlock(TermID id, bool force = true) {
 

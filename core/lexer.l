@@ -351,10 +351,8 @@ term    [$@%]({ualpha}|[_])?({name})?
 {macro}     YY_TOKEN(MACRO);
 ".."        YY_TOKEN(RANGE);
 "..."       YY_TOKEN(ELLIPSIS);
-"->>"       YY_TOKEN(WHILE);
-"-->>"      YY_TOKEN(WHILE);
-"<<-"       YY_TOKEN(UNTIL);
-"<<--"      YY_TOKEN(UNTIL);
+"<<->>"     YY_TOKEN_ONLY(REPEAT);
+"<<-->>"    YY_TOKEN_ONLY(REPEAT);
 "->"        YY_TOKEN(FOLLOW);
 "-->"       YY_TOKEN(FOLLOW);
 "~>"        YY_TOKEN(MATCHING);

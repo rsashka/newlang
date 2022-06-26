@@ -540,7 +540,7 @@ TEST(Eval, Fileio) {
     Context::Reset();
     Context ctx(RunTime::Init());
 
-    ASSERT_NO_THROW(ctx.ExecFile("nlp/fileio.nlp"));
+    ASSERT_NO_THROW(ctx.ExecFile("nlp/fileio.nlp", nullptr, false));
 
     ASSERT_TRUE(ctx.FindTerm("fopen"));
     ASSERT_TRUE(ctx.FindTerm("fputs"));
@@ -795,21 +795,45 @@ TEST(Eval, MacroDSL) {
     Context::Reset();
     Context ctx(RunTime::Init());
 
+    /*
+     * Для следующего релиза:
+     * - Макросы
+     * - Синтаксис циклов к единому виду
+     * - Обработка в циклах вовзврата, ошибок, break и continue
+     * - Примеры программ в обычном виде
+     * - Сборка nlc под Windows и выпуск в виде бинарника
+     * 
+     * - Расширение методов Obj за счет вызовов torch
+     * - Примеры программ для тензорных вычислений
+     * 
+     */
 
     const char * dsl = ""
             "\\\\if(cond)       [\\$cond]-->\\\\\\"
-            "\\\\elseif(cond)   ,[\\$cond]-->\\\\\\"
+            "\\\\elif(cond)     ,[\\$cond]-->\\\\\\"
             "\\\\else           ,[_]-->\\\\\\"
             ""
-            "\\\\while(cond)    [\\$cond]-->>\\\\\\"
-            "\\\\dowhile(cond)  <<--[\\$cond]\\\\\\"
+            "\\\\while(cond)    [\\$cond]<<-->>\\\\\\"
+            "\\\\dowhile(cond)  <<-->>[\\$cond]\\\\\\"
+            ""
+            "\\\\break      --:Break--\\\\\\"
+            "\\\\continue   --:Continue--\\\\\\"
+            ""
             "\\\\return         --\\\\\\"
             "\\\\return(...)    --\\$*--\\\\\\"
+            "\\\\error(...)    --:Error(\\$*)--\\\\\\"
+            ""
+            "\\\\true 1\\\\\\"
+            "\\\\yes 1\\\\\\"
+            "\\\\false 0\\\\\\"
+            "\\\\no 0\\\\\\"
+            ""
+            "\\\\this $0\\\\\\"
             "";
 
     ASSERT_EQ(0, Context::m_macros.size());
     ObjPtr none = ctx.ExecStr(dsl);
-    ASSERT_EQ(7, Context::m_macros.size());
+    ASSERT_TRUE(Context::m_macros.size() > 10);
 
     ObjPtr count = ctx.ExecStr("@count:=0;");
     ASSERT_TRUE(count);
@@ -817,16 +841,15 @@ TEST(Eval, MacroDSL) {
 
     const char * run_raw = ""
             "count:=5;"
-            "(){{"
-            "  [count<10]-->>{"
-            "    [count>5]-->{"
-            "      --100--;"
-            "    }; "
-            "    count+=1;"
-            "  };"
-            "}};";
+            "[count<10]<<-->>{{"
+            "  [count>5]-->{"
+            "    --100--;"
+            "  }; "
+            "  count+=1;"
+            "}};"
+            ;
 
-    ObjPtr result = ctx.ExecStr(run_raw);
+    ObjPtr result = ctx.ExecStr(run_raw, nullptr, true);
     ASSERT_TRUE(result);
     ASSERT_TRUE(result->is_integer());
     ASSERT_EQ(6, count->GetValueAsInteger());
@@ -834,19 +857,17 @@ TEST(Eval, MacroDSL) {
 
     const char * run_macro = ""
             "count:=5;"
-            "(){{"
-            "  \\while(count<10){"
-            "    \\if(count>5){"
-            "      \\return(42);"
-            "    };"
-            "    count+=1;"
+            "\\while(count<10){{"
+            "  \\if(count>5){"
+            "    \\return(42);"
             "  };"
+            "  count+=1;"
             "}};"
             "";
 
 
 
-    result = ctx.ExecStr(run_macro);
+    result = ctx.ExecStr(run_macro, nullptr, true);
     ASSERT_TRUE(result);
     ASSERT_TRUE(result->is_integer());
     ASSERT_EQ(6, count->GetValueAsInteger());
@@ -865,7 +886,7 @@ protected:
     const char *Test(std::string eval, Obj &vars) {
         eval += ";";
         m_result = m_ctx.ExecStr(eval, &vars);
-        if (m_result) {
+        if(m_result) {
             m_string = m_result->GetValueAsString();
             return m_string.c_str();
         }
@@ -1214,11 +1235,11 @@ TEST(EvalOp, InstanceName) {
 
     for (auto &elem : test_name) {
         res.reset();
-        ASSERT_NO_THROW(res = ctx.ExecStr(elem.first)) << elem.first;
+        ASSERT_NO_THROW(res = ctx.ExecStr(elem.first, nullptr, false)) << elem.first;
         EXPECT_TRUE(res) << elem.first;
-        if (res) {
+        if(res) {
             EXPECT_TRUE(res->is_bool_type()) << elem.first;
-            if (elem.second) {
+            if(elem.second) {
                 EXPECT_TRUE(res->GetValueAsBoolean()) << elem.first;
             } else {
                 EXPECT_FALSE(res->GetValueAsBoolean()) << elem.first;

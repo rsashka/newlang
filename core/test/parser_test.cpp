@@ -1486,26 +1486,26 @@ TEST_F(ParserTest, BlockTry) {
 }
 
 TEST_F(ParserTest, Repeat) {
-    ASSERT_TRUE(Parse("[val] -->> val;"));
-    ASSERT_TRUE(Parse("val <<-- [val];;"));
-    ASSERT_TRUE(Parse("[val] -->> {val;};"));
-    ASSERT_TRUE(Parse("[val] -->> {val;};;"));
-    ASSERT_TRUE(Parse("[val] -->> {val;};"));
-    ASSERT_TRUE(Parse("[val] -->> {val;};;"));
+    ASSERT_TRUE(Parse("[val] <<-->> val;"));
+    ASSERT_TRUE(Parse("val <<-->> [val];;"));
+    ASSERT_TRUE(Parse("[val] <<-->> {val;};"));
+    ASSERT_TRUE(Parse("[val] <<-->> {val;};;"));
+    ASSERT_TRUE(Parse("[val] <<-->> {val;};"));
+    ASSERT_TRUE(Parse("[val] <<-->> {val;};;"));
 
-    ASSERT_TRUE(Parse("val <<- [val()];"));
-    ASSERT_TRUE(Parse("val <<- [val()];;"));
-    ASSERT_TRUE(Parse("[val()] -->> {val();};"));
-    ASSERT_TRUE(Parse("[val()] -->> {val();};;"));
-    ASSERT_TRUE(Parse("[val()] -->> {val();};"));
-    ASSERT_TRUE(Parse("[val()] -->> {val();};;"));
+    ASSERT_TRUE(Parse("val <<->> [val()];"));
+    ASSERT_TRUE(Parse("val <<->> [val()];;"));
+    ASSERT_TRUE(Parse("[val()] <<-->> {val();};"));
+    ASSERT_TRUE(Parse("[val()] <<-->> {val();};;"));
+    ASSERT_TRUE(Parse("[val()] <<-->> {val();};"));
+    ASSERT_TRUE(Parse("[val()] <<-->> {val();};;"));
 
-    ASSERT_TRUE(Parse("[val()] -->> {val()};val();"));
-    ASSERT_TRUE(Parse("val <<-- [val()];val();"));
-    ASSERT_TRUE(Parse("[val()] -->> {val();val();};"));
-    ASSERT_TRUE(Parse("[val()] -->> {val();val();};;"));
-    ASSERT_TRUE(Parse("[val()] -->> {val();val();};"));
-    ASSERT_TRUE(Parse("[val()] -->> {val();val();};;"));
+    ASSERT_TRUE(Parse("[val()] <<-->> {val()};val();"));
+    ASSERT_TRUE(Parse("val <<-->> [val()];val();"));
+    ASSERT_TRUE(Parse("[val()] <<-->> {val();val();};"));
+    ASSERT_TRUE(Parse("[val()] <<-->> {val();val();};;"));
+    ASSERT_TRUE(Parse("[val()] <<-->> {val();val();};"));
+    ASSERT_TRUE(Parse("[val()] <<-->> {val();val();};;"));
 }
 
 TEST_F(ParserTest, Operators) {
@@ -1539,67 +1539,67 @@ TEST_F(ParserTest, Operators) {
 }
 
 TEST_F(ParserTest, DISABLED_Repeat0) {
-    ASSERT_TRUE(Parse("[human || $ttttt && 123 != test[0].field ] -->> if_1;"));
-    ASSERT_STREQ("[human || $ttttt && 123 != test[0].field]-->>{if_1;};", ast->toString().c_str());
+    ASSERT_TRUE(Parse("[human || $ttttt && 123 != test[0].field ] <<-->> if_1;"));
+    ASSERT_STREQ("[human || $ttttt && 123 != test[0].field]<<-->>{if_1;};", ast->toString().c_str());
 }
 
 TEST_F(ParserTest, Repeat1) {
-    ASSERT_TRUE(Parse("[test == human] -->> if_1;"));
-    ASSERT_STREQ("[test==human]-->>if_1;", ast->toString().c_str());
+    ASSERT_TRUE(Parse("[test == human] <<-->> if_1;"));
+    ASSERT_STREQ("[test==human]<<-->>if_1;", ast->toString().c_str());
 }
 
 TEST_F(ParserTest, Repeat2) {
-    ASSERT_TRUE(Parse("[test != human] -->> {if_1;};"));
-    ASSERT_STREQ("[test!=human]-->>{if_1;};", ast->toString().c_str());
+    ASSERT_TRUE(Parse("[test != human] <<-->> {if_1;};"));
+    ASSERT_STREQ("[test!=human]<<-->>{if_1;};", ast->toString().c_str());
 
-    ASSERT_TRUE(Parse("{if_1;} <<-- [test != human];"));
-    ASSERT_STREQ("{if_1;}<<--[test!=human];", ast->toString().c_str());
+    ASSERT_TRUE(Parse("{if_1;} <<-->> [test != human];"));
+    ASSERT_STREQ("{if_1;}<<-->>[test!=human];", ast->toString().c_str());
 }
 
 TEST_F(ParserTest, Repeat3) {
-    ASSERT_TRUE(Parse("[test != human] -->> {if_1;if_2;then3;};"));
-    ASSERT_STREQ("[test!=human]-->>{if_1; if_2; then3;};", ast->toString().c_str());
+    ASSERT_TRUE(Parse("[test != human] <<-->> {if_1;if_2;then3;};"));
+    ASSERT_STREQ("[test!=human]<<-->>{if_1; if_2; then3;};", ast->toString().c_str());
 
-    ASSERT_TRUE(Parse("{if_1;if_2;then3;} <<-- [test != human];"));
-    ASSERT_STREQ("{if_1; if_2; then3;}<<--[test!=human];", ast->toString().c_str());
+    ASSERT_TRUE(Parse("{if_1;if_2;then3;} <<-->> [test != human];"));
+    ASSERT_STREQ("{if_1; if_2; then3;}<<-->>[test!=human];", ast->toString().c_str());
 }
 
 TEST_F(ParserTest, Repeat4) {
-    ASSERT_TRUE(Parse("[test()] -->> {if_1;if_2;then3;};"));
-    ASSERT_STREQ("[test()]-->>{if_1; if_2; then3;};", ast->toString().c_str());
+    ASSERT_TRUE(Parse("[test()] <<-->> {if_1;if_2;then3;};"));
+    ASSERT_STREQ("[test()]<<-->>{if_1; if_2; then3;};", ast->toString().c_str());
 
-    ASSERT_TRUE(Parse("[test()] -->> {if_1;if_2;then3;};"));
-    ASSERT_STREQ("[test()]-->>{if_1; if_2; then3;};", ast->toString().c_str());
+    ASSERT_TRUE(Parse("[test()] <<-->> {if_1;if_2;then3;};"));
+    ASSERT_STREQ("[test()]<<-->>{if_1; if_2; then3;};", ast->toString().c_str());
 
-    ASSERT_TRUE(Parse("{if_1;if_2;then3;} <<--  [test()];"));
-    ASSERT_STREQ("{if_1; if_2; then3;}<<--[test()];", ast->toString().c_str());
+    ASSERT_TRUE(Parse("{if_1;if_2;then3;} <<-->>  [test()];"));
+    ASSERT_STREQ("{if_1; if_2; then3;}<<-->>[test()];", ast->toString().c_str());
 
-    ASSERT_TRUE(Parse("{if_1;if_2;then3;} <<--  [test()];"));
-    ASSERT_STREQ("{if_1; if_2; then3;}<<--[test()];", ast->toString().c_str());
+    ASSERT_TRUE(Parse("{if_1;if_2;then3;} <<-->>  [test()];"));
+    ASSERT_STREQ("{if_1; if_2; then3;}<<-->>[test()];", ast->toString().c_str());
 }
 
 TEST_F(ParserTest, Repeat5) {
-    ASSERT_TRUE(Parse(" [ test! ]-->> {if_1;if_2;then3;};"));
-    ASSERT_STREQ("[test!]-->>{if_1; if_2; then3;};", ast->toString().c_str());
+    ASSERT_TRUE(Parse(" [ test! ]<<-->> {if_1;if_2;then3;};"));
+    ASSERT_STREQ("[test!]<<-->>{if_1; if_2; then3;};", ast->toString().c_str());
 
-    ASSERT_TRUE(Parse(" [test!] -->> {if_1;if_2;then3;};"));
-    ASSERT_STREQ("[test!]-->>{if_1; if_2; then3;};", ast->toString().c_str());
+    ASSERT_TRUE(Parse(" [test!] <<-->> {if_1;if_2;then3;};"));
+    ASSERT_STREQ("[test!]<<-->>{if_1; if_2; then3;};", ast->toString().c_str());
 
-    ASSERT_TRUE(Parse("{if_1;if_2;then3;}<<--[test!];"));
-    ASSERT_STREQ("{if_1; if_2; then3;}<<--[test!];", ast->toString().c_str());
+    ASSERT_TRUE(Parse("{if_1;if_2;then3;}<<-->>[test!];"));
+    ASSERT_STREQ("{if_1; if_2; then3;}<<-->>[test!];", ast->toString().c_str());
 
-    ASSERT_TRUE(Parse("{if_1;if_2;then3;}<<--[test!];"));
-    ASSERT_STREQ("{if_1; if_2; then3;}<<--[test!];", ast->toString().c_str());
+    ASSERT_TRUE(Parse("{if_1;if_2;then3;}<<-->>[test!];"));
+    ASSERT_STREQ("{if_1; if_2; then3;}<<-->>[test!];", ast->toString().c_str());
 }
 
 TEST_F(ParserTest, Repeat6) {
-    ASSERT_TRUE(Parse("[test!] -->> {if_1;if_2;then3;};"));
-    ASSERT_STREQ("[test!]-->>{if_1; if_2; then3;};", ast->toString().c_str());
+    ASSERT_TRUE(Parse("[test!] <<-->> {if_1;if_2;then3;};"));
+    ASSERT_STREQ("[test!]<<-->>{if_1; if_2; then3;};", ast->toString().c_str());
 }
 
 TEST_F(ParserTest, Repeat7) {
-    ASSERT_TRUE(Parse("[test[0].@field != $test()!!] -->> if_1;"));
-    ASSERT_STREQ("[test[0].@field!=$test()!!]-->>if_1;", ast->toString().c_str());
+    ASSERT_TRUE(Parse("[test[0].@field != $test()!!] <<-->> if_1;"));
+    ASSERT_STREQ("[test[0].@field!=$test()!!]<<-->>if_1;", ast->toString().c_str());
 }
 
 TEST_F(ParserTest, Range) {
@@ -1608,16 +1608,16 @@ TEST_F(ParserTest, Range) {
 }
 
 TEST_F(ParserTest, Range1) {
-    ASSERT_TRUE(Parse("[i!] -->> call();"));
-    ASSERT_STREQ("[i!]-->>call();", ast->toString().c_str());
+    ASSERT_TRUE(Parse("[i!] <<-->> call();"));
+    ASSERT_STREQ("[i!]<<-->>call();", ast->toString().c_str());
 
-    ASSERT_TRUE(Parse("call() <<-- [i!];"));
-    ASSERT_STREQ("call()<<--[i!];", ast->toString().c_str());
+    ASSERT_TRUE(Parse("call() <<-->> [i!];"));
+    ASSERT_STREQ("call()<<-->>[i!];", ast->toString().c_str());
 }
 
 TEST_F(ParserTest, Range2) {
-    ASSERT_TRUE(Parse("[i()] -->> @error(\"Error\");"));
-    ASSERT_STREQ("[i()]-->>@error(\"Error\");", ast->toString().c_str());
+    ASSERT_TRUE(Parse("[i()] <<-->> @error(\"Error\");"));
+    ASSERT_STREQ("[i()]<<-->>@error(\"Error\");", ast->toString().c_str());
 }
 
 TEST_F(ParserTest, DISABLED_Follow0) {

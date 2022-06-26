@@ -125,7 +125,7 @@ TEST(ObjTest, String) {
     format = Obj::CreateString("$nameno ${имя1} $name $имя");
     ObjPtr str5 = (*format)(nullptr, Obj::Arg("value", "name"), Obj::Arg("УТФ8-УТФ8", "имя"), Obj::Arg("УТФ8", "имя1"));
     ASSERT_STREQ("valueno УТФ8 value УТФ8-УТФ8", str5->GetValueAsString().c_str());
-   
+
 }
 
 TEST(ObjTest, Dict) {
@@ -135,7 +135,7 @@ TEST(ObjTest, Dict) {
     Obj var(ObjType::Dictionary);
     ASSERT_TRUE(var.empty());
     EXPECT_ANY_THROW(var[0]);
-    
+
     ASSERT_EQ(0, var.size());
     ObjPtr var2 = ctx.ExecStr("(,)");
 
@@ -173,7 +173,7 @@ TEST(ObjTest, AsMap) {
     ASSERT_TRUE(map->empty());
     EXPECT_ANY_THROW((*map)["test1"]);
     ASSERT_EQ(0, map->size());
-    
+
     ObjPtr temp = Obj::CreateString("Test");
     map->push_back(temp, "test1");
     map->push_back(Obj::CreateValue(100, ObjType::None), "test2");
@@ -389,12 +389,12 @@ TEST(ObjTest, Print) {
     ObjPtr obj_empty = Obj::CreateType(ObjType::Class, "name");
     ASSERT_STREQ("name=()", obj_empty->toString().c_str()) << obj_empty;
 
-//    ObjPtr var_obj = Obj::CreateFrom("obj", obj_empty);
-//    ASSERT_STREQ("obj=name()", var_obj->toString().c_str()) << var_obj;
-//
-//    var_int->m_var_name = "int";
-//    var_obj->push_back((*var_int.get())(nullptr));
-//    ASSERT_STREQ("obj=name(int=100)", var_obj->toString().c_str()) << var_obj;
+    //    ObjPtr var_obj = Obj::CreateFrom("obj", obj_empty);
+    //    ASSERT_STREQ("obj=name()", var_obj->toString().c_str()) << var_obj;
+    //
+    //    var_int->m_var_name = "int";
+    //    var_obj->push_back((*var_int.get())(nullptr));
+    //    ASSERT_STREQ("obj=name(int=100)", var_obj->toString().c_str()) << var_obj;
 
 }
 
@@ -694,7 +694,7 @@ TEST(ObjTest, Tensor) {
     ASSERT_EQ(2, t1->m_value.dim());
     ASSERT_EQ(2, t1->m_value.size(0));
     ASSERT_EQ(3, t1->m_value.size(1));
-    
+
     // Байтовые строки
     ObjPtr str = Obj::CreateString("test");
     ObjPtr t_str = Obj::CreateTensor(str->toTensor());
@@ -728,7 +728,7 @@ TEST(ObjTest, Tensor) {
     t_wstr->index_set_({2}, Obj::CreateString(L"с"));
 
     EXPECT_STREQ(t_wstr->toType(ObjType::StrWide)->GetValueAsString().c_str(), "ТесТ");
-   
+
 }
 
 #endif // UNITTEST

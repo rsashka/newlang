@@ -1035,7 +1035,7 @@ ObjPtr Obj::Call(Context *ctx, Obj * args) {
         } else if(m_var_type_current == ObjType::NativeFunc) {
             result = CallNative(ctx, *param.get());
         } else if(m_var_type_current == ObjType::EVAL_FUNCTION || m_var_type_current == ObjType::SimplePureFunc) {
-            result = Context::CallBlock(ctx, m_block_source, param.get());
+            result = Context::CallBlock(ctx, m_block_source, param.get(), false);
         } else if(m_var_type_current == ObjType::SimplePureAND) {
             result = Context::EvalBlockAND(ctx, m_block_source, param.get());
         } else if(m_var_type_current == ObjType::SimplePureOR) {

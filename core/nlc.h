@@ -36,8 +36,8 @@ namespace newlang {
 
 #define NLC_FILE_HISTORY ".nlc_history"
 
-class NLC {
-public:
+    class NLC {
+    public:
 
 #define NLC_MODE(_) \
     _(ERROR,    0) \
@@ -47,587 +47,587 @@ public:
     _(EVAL,     4) \
     _(EXEC,     5)
 
-    //    _(COMPILE,  6)
+        //    _(COMPILE,  6)
 
-    enum class Mode : uint8_t {
+        enum class Mode : uint8_t {
 #define DEFINE_ENUM(name, value) name = value,
-        NLC_MODE(DEFINE_ENUM)
+            NLC_MODE(DEFINE_ENUM)
 #undef DEFINE_ENUM
-    };
+        };
 
-    inline const char* toString(Mode mode) {
+        inline const char* toString(Mode mode) {
 #define DEFINE_CASE(name, _) \
   case Mode::name:     \
     return #name;
 
-        switch (mode) {
-                NLC_MODE(DEFINE_CASE)
-            default:
-                LOG_ERROR("UNKNOWN MODE %d", static_cast<int> (mode));
-                return "UNKNOWN MODE";
-        }
+            switch (mode) {
+                    NLC_MODE(DEFINE_CASE)
+                default:
+                    LOG_ERROR("UNKNOWN MODE %d", static_cast<int> (mode));
+                    return "UNKNOWN MODE";
+            }
 #undef DEFINE_CASE
-    }
-
-
-    std::string m_path; //< Имя исполняемого файла
-    Mode m_mode; //< Режим выполнения 
-    std::vector<std::string> m_modules; //< Список модулей, которые загружаются перед выполнением
-    std::vector<std::string> m_load_only; //< Список модулей, которые предварительно загружаются перед выполнением без инициализации
-    bool m_no_default; //< Не загружать модуль default.nlp (модуль по умолчанию)
-    std::string m_ifile; //< Имя входного файла (если есть)
-    std::string m_ofile; //< Имя выходного файла (если есть)
-    bool m_is_silent; //< Нужно ли выводит сообщения
-    std::string m_output; //<  Информация для вывода, в т.ч. при ошибке о текст подсказки
-    std::string m_eval; //<  Входная информация для выполнения
-    Context m_ctx;
-    ObjPtr m_args;
-    std::map<Obj *, ObjPtr> m_local_vars; //< Локальные переменные и объекты, которые создаются интерпретатором
-
-    utils::Logger::LogLevelType m_loglevel_save;
-    utils::Logger::FuncCallback *m_log_callback_save;
-    void *m_log_callback_arg_save;
-
-    NLC() : m_ctx(RunTime::Init()) {
-        m_mode = Mode::ERROR;
-        m_log_callback_save = nullptr;
-        m_log_callback_arg_save = nullptr;
-    }
-
-    NLC(int argc, const char** argv) : m_ctx(RunTime::Init(argc, argv)) {
-        m_mode = Mode::ERROR;
-        m_log_callback_save = nullptr;
-        m_log_callback_arg_save = nullptr;
-        ParseArgs(argc, argv);
-    }
-
-    NLC(const char * str) : NLC() {
-        std::vector<std::string> split = SplitString(str, " ");
-        std::vector<const char *> argv;
-        for (size_t i = 0; i < split.size(); i++) {
-            argv.push_back(split[i].data());
         }
-        ParseArgs(argv.size(), argv.data());
-    }
 
-    virtual ~NLC() {
-        utils::Logger::Instance()->SetCallback(m_log_callback_save, m_log_callback_arg_save);
-    }
 
-    static std::vector<std::string> SplitString(const char * str, const char *delim) {
+        std::string m_path; //< Имя исполняемого файла
+        Mode m_mode; //< Режим выполнения 
+        std::vector<std::string> m_modules; //< Список модулей, которые загружаются перед выполнением
+        std::vector<std::string> m_load_only; //< Список модулей, которые предварительно загружаются перед выполнением без инициализации
+        bool m_no_default; //< Не загружать модуль default.nlp (модуль по умолчанию)
+        std::string m_ifile; //< Имя входного файла (если есть)
+        std::string m_ofile; //< Имя выходного файла (если есть)
+        bool m_is_silent; //< Нужно ли выводит сообщения
+        std::string m_output; //<  Информация для вывода, в т.ч. при ошибке о текст подсказки
+        std::string m_eval; //<  Входная информация для выполнения
+        Context m_ctx;
+        ObjPtr m_args;
+        std::map<Obj *, ObjPtr> m_local_vars; //< Локальные переменные и объекты, которые создаются интерпретатором
 
-        std::vector<std::string> result;
-        std::string s(str);
+        utils::Logger::LogLevelType m_loglevel_save;
+        utils::Logger::FuncCallback *m_log_callback_save;
+        void *m_log_callback_arg_save;
 
-        size_t pos;
-        size_t end;
-        s.erase(0, s.find_first_not_of(delim));
-        while (!s.empty()) {
-            pos = s.find(delim);
-            if (pos == std::string::npos) {
-                result.push_back(s);
-                break;
-            } else {
-                result.push_back(s.substr(0, pos));
-                s.erase(0, pos);
+        NLC() : m_ctx(RunTime::Init()) {
+            m_mode = Mode::ERROR;
+            m_log_callback_save = nullptr;
+            m_log_callback_arg_save = nullptr;
+        }
+
+        NLC(int argc, const char** argv) : m_ctx(RunTime::Init(argc, argv)) {
+            m_mode = Mode::ERROR;
+            m_log_callback_save = nullptr;
+            m_log_callback_arg_save = nullptr;
+            ParseArgs(argc, argv);
+        }
+
+        NLC(const char * str) : NLC() {
+            std::vector<std::string> split = SplitString(str, " ");
+            std::vector<const char *> argv;
+            for (size_t i = 0; i < split.size(); i++) {
+                argv.push_back(split[i].data());
             }
+            ParseArgs(argv.size(), argv.data());
+        }
+
+        virtual ~NLC() {
+            utils::Logger::Instance()->SetCallback(m_log_callback_save, m_log_callback_arg_save);
+        }
+
+        static std::vector<std::string> SplitString(const char * str, const char *delim) {
+
+            std::vector<std::string> result;
+            std::string s(str);
+
+            size_t pos;
+            size_t end;
             s.erase(0, s.find_first_not_of(delim));
-        }
-        return result;
-    }
-
-    static void LoggerCallback(void *param, utils::Logger::LogLevelType level, const char * str, bool flush) {
-        NLC *nlc = static_cast<NLC *> (param);
-        if (nlc && nlc->m_is_silent) {
-            return;
-        }
-        fprintf(stdout, "%s", str);
-        if (flush) {
-            fflush(stdout);
-        }
-        if (nlc) {
-            nlc->m_output += str;
-        }
-    }
-
-    bool ParseArgs(int argc, const char** argv) {
-
-        if (!argc || !argv) {
-            m_output = "Bad args nullptr";
-            return false;
+            while (!s.empty()) {
+                pos = s.find(delim);
+                if (pos == std::string::npos) {
+                    result.push_back(s);
+                    break;
+                } else {
+                    result.push_back(s.substr(0, pos));
+                    s.erase(0, pos);
+                }
+                s.erase(0, s.find_first_not_of(delim));
+            }
+            return result;
         }
 
-        m_args = Obj::CreateDict();
-        for (int i = 0; i < argc; i++) {
-            std::vector<std::string> split = SplitString(argv[i], "=");
-            if (split.size() > 1) {
-                m_args->push_back(Obj::CreateString(split[0]), &argv[i][split[0].size() + 1]);
-            } else {
-                m_args->push_back(Obj::CreateString(argv[i]));
+        static void LoggerCallback(void *param, utils::Logger::LogLevelType level, const char * str, bool flush) {
+            NLC *nlc = static_cast<NLC *> (param);
+            if (nlc && nlc->m_is_silent) {
+                return;
+            }
+            fprintf(stdout, "%s", str);
+            if (flush) {
+                fflush(stdout);
+            }
+            if (nlc) {
+                nlc->m_output += str;
             }
         }
 
+        bool ParseArgs(int argc, const char** argv) {
 
-        m_mode = Mode::INTERACTIVE;
-        if (argc) {
-            m_path = argv[0];
-        } else {
-            m_path.clear();
-        }
-        m_eval.clear();
-        m_modules.clear();
-        m_load_only.clear();
-        m_no_default = false;
-        m_ifile.clear();
-        m_ofile.clear();
-        m_output.clear();
-        m_is_silent = false;
+            if (!argc || !argv) {
+                m_output = "Bad args nullptr";
+                return false;
+            }
 
-        bool is_debug = false;
-        bool is_help = false;
-        bool is_ver = false;
-        std::string load_list;
-        std::string load_only;
-        std::string compile;
-        std::string exec;
-        std::string eval;
-
-        utils::Logger::Instance()->SaveCallback(m_log_callback_save, m_log_callback_arg_save);
-        m_loglevel_save = utils::Logger::Instance()->GetLogLevel();
-        utils::Logger::Instance()->Clear();
-        utils::Logger::Instance()->SetCallback(&LoggerCallback, this);
-
-        auto cli
-                = lyra::help(is_help).description("Description!!!!!!!!!!!!!!!!!!")
-                | lyra::opt(is_ver) ["-v"] ["--version"]("Version New Lang Compiler.")
-                | lyra::opt(is_debug) ["-d"] ["--debug"]("Debug detail mode.")
-                | lyra::opt(m_is_silent) ["-s"] ["--silent"]("Silent mode without message output.")
-                | lyra::opt(m_ofile, "filename") ["-o"]["--output"] ("Output file name.")
-                | lyra::opt(load_list, "list") ["-l"] ["--load"]("List of load modules.")
-                | lyra::opt(load_only, "list") ["--load-only"]("List of load only modules (without init module after load).")
-                | lyra::opt(compile, "filename") ["-c"] ["--compile"]("Compile input file and build NLM module.")
-                | lyra::opt(exec, "filename") ["-x"] ["--exec"]("Compile and make module, load and eXecute main module function.")
-                | lyra::opt(m_ifile, "filename") ["-e"] ["--eval"]("Evaluate file in interpreter mode.")
-                | lyra::arg(m_eval, "expression") ("Evaluate expression excluding compilation.")
-                ;
+            m_args = Obj::CreateDict();
+            for (int i = 0; i < argc; i++) {
+                std::vector<std::string> split = SplitString(argv[i], "=");
+                if (split.size() > 1) {
+                    m_args->push_back(Obj::CreateString(split[0]), &argv[i][split[0].size() + 1]);
+                } else {
+                    m_args->push_back(Obj::CreateString(argv[i]));
+                }
+            }
 
 
-        auto result = cli.parse({argc, argv});
-        if (!result) {
-            m_mode = Mode::ERROR;
-            m_output = result.message();
-            return false;
-        }
-
-        if (is_debug) {
-            utils::Logger::Instance()->SetLogLevel(LOG_LEVEL_DEBUG);
-        }
-
-        if (is_help) {
-            m_mode = Mode::HELP;
-            std::ostringstream out;
-            out << cli;
-            m_output = out.str();
-            return true;
-        }
-
-        if (is_ver) {
-            m_mode = Mode::VERSION;
-            m_output = "Version info";
-            return true;
-        }
-
-        m_modules = SplitString(load_list.c_str(), ",");
-        m_load_only = SplitString(load_only.c_str(), ",");
-
-        int cnt = 0;
-        cnt += !compile.empty();
-        cnt += !exec.empty();
-        cnt += !m_ifile.empty();
-        cnt += !m_eval.empty();
-
-        if (cnt > 1) {
-            m_mode = Mode::ERROR;
-            m_output = "Select only one mode: Compile, eXec or Eval!";
-            //        } else if (!compile.empty()) {
-            //            m_mode = Mode::COMPILE;
-            //            m_ifile = compile;
-            //        } else if (!exec.empty()) {
-            //            m_mode = Mode::EXEC;
-            //            m_ifile = exec;
-        } else if (!m_eval.empty() || !m_ifile.empty()) {
-            m_mode = Mode::EVAL;
-        } else {
             m_mode = Mode::INTERACTIVE;
-        }
-
-        return m_mode != Mode::ERROR;
-    }
-
-    int Run() {
-        try {
-            //#warning EVAL
-            //            ASSERT(false);
-            //            for (auto &elem : m_load_only) {
-            //                if (!m_ctx.m_info.global->LoadModule(AddDefaultFileExt(elem.c_str(), ".nlm").c_str(), false, &m_ctx)) {
-            //                    LOG_RUNTIME("Fail load-only module '%s'", AddDefaultFileExt(elem.c_str(), ".nlm").c_str());
-            //                }
-            //            }
-            //
-            //            for (auto &elem : m_modules) {
-            //                if (!m_ctx.m_info.global->LoadModule(AddDefaultFileExt(elem.c_str(), ".nlm").c_str(), true, &m_ctx)) {
-            //                    LOG_RUNTIME("Fail load or init module '%s'", AddDefaultFileExt(elem.c_str(), ".nlm").c_str());
-            //                }
-            //            }
-
-            if (m_mode == Mode::ERROR || m_mode == Mode::VERSION || m_mode == Mode::HELP) {
-                LOG_INFO("%s", m_output.c_str());
-                return 0;
-                //            } else if (m_mode == Mode::COMPILE || m_mode == Mode::EXEC) {
-                //
-                //                if (m_ifile.empty()) {
-                //                    LOG_RUNTIME("Empty input file!");
-                //                    m_ifile = AddDefaultFileExt(m_ifile.c_str(), ".nlp");
-                //                }
-                //                if (m_ofile.empty()) {
-                //                    m_ofile = m_ifile;
-                //                    m_ofile = ReplaceFileExt(m_ofile.c_str(), ".nlp", ".nlm");
-                //                } else {
-                //                    m_ofile = AddDefaultFileExt(m_ofile.c_str(), ".nlm");
-                //                }
-                //
-                //                switch (m_mode) {
-                //                    case Mode::COMPILE:
-                //                        //                        if (!m_ctx.m_runtime->m_info.global->CompileModule(m_ifile.c_str(), m_ofile.c_str())) {
-                //                        LOG_RUNTIME("Compile file '%s' fail!", m_ifile.c_str());
-                //                        //                        }
-                //                        break;
-                //                    case Mode::EXEC:
-                //#warning EVAL
-                //                        ASSERT(false);
-                //                        //                        ObjPtr result = NewLang::ExecModule(m_ifile.c_str(), m_ofile.c_str(), true, &m_ctx);
-                //                        //                        m_output = result->GetValueAsString();
-                //                        break;
-                //                }
-            } else if (m_mode == Mode::EVAL) {
-                if (!m_eval.empty() && !m_ifile.empty()) {
-                    LOG_RUNTIME("Error at the same time specified a source file '%s' and an expression '%s' !", m_ifile.c_str(), m_eval.c_str());
-                } else if (!m_ifile.empty()) {
-                    m_eval = ReadFile(m_ifile.c_str());
-                    if (m_eval.empty()) {
-                        LOG_RUNTIME("Fail read or empty source file '%s'!", m_ifile.c_str());
-                    }
-                }
-                TermPtr term;
-                Parser p(term);
-                p.Parse(m_eval.c_str());
-                if (!term || m_eval.empty()) {
-                    LOG_RUNTIME("Eval expression empty!");
-                }
-
-                ObjPtr result = Context::ExecStr(&m_ctx, term, m_args.get());
-
-                if (result && m_local_vars.find(result.get()) == m_local_vars.end()) {
-                    m_local_vars[result.get()] = result;
-                }
-
-                m_output = result->GetValueAsString();
-
-                if (!m_ofile.empty()) {
-                    std::ofstream out(m_ofile);
-                    out << m_output;
-                    out.close();
-                }
-                if (!m_output.empty()) {
-                    utils::Logger::LogLevelType save_level = utils::Logger::Instance()->GetLogLevel();
-                    utils::Logger::Instance()->SetLogLevel(LOG_LEVEL_INFO);
-                    LOG_INFO("%s", m_output.c_str());
-                    utils::Logger::Instance()->SetLogLevel(save_level);
-                }
+            if (argc) {
+                m_path = argv[0];
             } else {
-                ASSERT(m_mode == Mode::INTERACTIVE);
-                Interative();
-                //                LOG_INFO("%s", m_output.c_str());
+                m_path.clear();
+            }
+            m_eval.clear();
+            m_modules.clear();
+            m_load_only.clear();
+            m_no_default = false;
+            m_ifile.clear();
+            m_ofile.clear();
+            m_output.clear();
+            m_is_silent = false;
+
+            bool is_debug = false;
+            bool is_help = false;
+            bool is_ver = false;
+            std::string load_list;
+            std::string load_only;
+            std::string compile;
+            std::string exec;
+            std::string eval;
+
+            utils::Logger::Instance()->SaveCallback(m_log_callback_save, m_log_callback_arg_save);
+            m_loglevel_save = utils::Logger::Instance()->GetLogLevel();
+            utils::Logger::Instance()->Clear();
+            utils::Logger::Instance()->SetCallback(&LoggerCallback, this);
+
+            auto cli
+                    = lyra::help(is_help).description("Description!!!!!!!!!!!!!!!!!!")
+                    | lyra::opt(is_ver) ["-v"] ["--version"]("Version New Lang Compiler.")
+                    | lyra::opt(is_debug) ["-d"] ["--debug"]("Debug detail mode.")
+                    | lyra::opt(m_is_silent) ["-s"] ["--silent"]("Silent mode without message output.")
+                    | lyra::opt(m_ofile, "filename") ["-o"]["--output"] ("Output file name.")
+                    | lyra::opt(load_list, "list") ["-l"] ["--load"]("List of load modules.")
+                    | lyra::opt(load_only, "list") ["--load-only"]("List of load only modules (without init module after load).")
+                    | lyra::opt(compile, "filename") ["-c"] ["--compile"]("Compile input file and build NLM module.")
+                    | lyra::opt(exec, "filename") ["-x"] ["--exec"]("Compile and make module, load and eXecute main module function.")
+                    | lyra::opt(m_ifile, "filename") ["-e"] ["--eval"]("Evaluate file in interpreter mode.")
+                    | lyra::arg(m_eval, "expression") ("Evaluate expression excluding compilation.")
+                    ;
+
+
+            auto result = cli.parse({argc, argv});
+            if (!result) {
+                m_mode = Mode::ERROR;
+                m_output = result.message();
+                return false;
             }
 
-        } catch (Interrupt &err) {
-            // Вывод информации об ошибке синтаксиса при парсинге без информации о точке вызова макроса LOG_INFO
-            utils::Logger::LogLevelType save_level = utils::Logger::Instance()->GetLogLevel();
-            utils::Logger::Instance()->SetLogLevel(LOG_LEVEL_INFO);
-            LOG_INFO("%s", err.what());
-            utils::Logger::Instance()->SetLogLevel(save_level);
-            return 1;
-        } catch (...) {
-            return 1;
+            if (is_debug) {
+                utils::Logger::Instance()->SetLogLevel(LOG_LEVEL_DEBUG);
+            }
+
+            if (is_help) {
+                m_mode = Mode::HELP;
+                std::ostringstream out;
+                out << cli;
+                m_output = out.str();
+                return true;
+            }
+
+            if (is_ver) {
+                m_mode = Mode::VERSION;
+                m_output = "Version info";
+                return true;
+            }
+
+            m_modules = SplitString(load_list.c_str(), ",");
+            m_load_only = SplitString(load_only.c_str(), ",");
+
+            int cnt = 0;
+            cnt += !compile.empty();
+            cnt += !exec.empty();
+            cnt += !m_ifile.empty();
+            cnt += !m_eval.empty();
+
+            if (cnt > 1) {
+                m_mode = Mode::ERROR;
+                m_output = "Select only one mode: Compile, eXec or Eval!";
+                //        } else if (!compile.empty()) {
+                //            m_mode = Mode::COMPILE;
+                //            m_ifile = compile;
+                //        } else if (!exec.empty()) {
+                //            m_mode = Mode::EXEC;
+                //            m_ifile = exec;
+            } else if (!m_eval.empty() || !m_ifile.empty()) {
+                m_mode = Mode::EVAL;
+            } else {
+                m_mode = Mode::INTERACTIVE;
+            }
+
+            return m_mode != Mode::ERROR;
         }
-        return 0;
-    }
 
-    bool IsDelimiter(wchar_t c) {
-        return c == L' ' || c == L'&' || c == L'=' || c == L';' || c == L','
-                || c == L'+' || c == L'-' || c == L'*' || c == L'/'
-                || c == L'<' || c == L'>' || c == L'|' || c == L'~' || c == L'^';
-    }
+        int Run() {
+            try {
+                //#warning EVAL
+                //            ASSERT(false);
+                //            for (auto &elem : m_load_only) {
+                //                if (!m_ctx.m_info.global->LoadModule(AddDefaultFileExt(elem.c_str(), ".nlm").c_str(), false, &m_ctx)) {
+                //                    LOG_RUNTIME("Fail load-only module '%s'", AddDefaultFileExt(elem.c_str(), ".nlm").c_str());
+                //                }
+                //            }
+                //
+                //            for (auto &elem : m_modules) {
+                //                if (!m_ctx.m_info.global->LoadModule(AddDefaultFileExt(elem.c_str(), ".nlm").c_str(), true, &m_ctx)) {
+                //                    LOG_RUNTIME("Fail load or init module '%s'", AddDefaultFileExt(elem.c_str(), ".nlm").c_str());
+                //                }
+                //            }
 
-    bool Interative() {
+                if (m_mode == Mode::ERROR || m_mode == Mode::VERSION || m_mode == Mode::HELP) {
+                    LOG_INFO("%s", m_output.c_str());
+                    return 0;
+                    //            } else if (m_mode == Mode::COMPILE || m_mode == Mode::EXEC) {
+                    //
+                    //                if (m_ifile.empty()) {
+                    //                    LOG_RUNTIME("Empty input file!");
+                    //                    m_ifile = AddDefaultFileExt(m_ifile.c_str(), ".nlp");
+                    //                }
+                    //                if (m_ofile.empty()) {
+                    //                    m_ofile = m_ifile;
+                    //                    m_ofile = ReplaceFileExt(m_ofile.c_str(), ".nlp", ".nlm");
+                    //                } else {
+                    //                    m_ofile = AddDefaultFileExt(m_ofile.c_str(), ".nlm");
+                    //                }
+                    //
+                    //                switch (m_mode) {
+                    //                    case Mode::COMPILE:
+                    //                        //                        if (!m_ctx.m_runtime->m_info.global->CompileModule(m_ifile.c_str(), m_ofile.c_str())) {
+                    //                        LOG_RUNTIME("Compile file '%s' fail!", m_ifile.c_str());
+                    //                        //                        }
+                    //                        break;
+                    //                    case Mode::EXEC:
+                    //#warning EVAL
+                    //                        ASSERT(false);
+                    //                        //                        ObjPtr result = NewLang::ExecModule(m_ifile.c_str(), m_ofile.c_str(), true, &m_ctx);
+                    //                        //                        m_output = result->GetValueAsString();
+                    //                        break;
+                    //                }
+                } else if (m_mode == Mode::EVAL) {
+                    if (!m_eval.empty() && !m_ifile.empty()) {
+                        LOG_RUNTIME("Error at the same time specified a source file '%s' and an expression '%s' !", m_ifile.c_str(), m_eval.c_str());
+                    } else if (!m_ifile.empty()) {
+                        m_eval = ReadFile(m_ifile.c_str());
+                        if (m_eval.empty()) {
+                            LOG_RUNTIME("Fail read or empty source file '%s'!", m_ifile.c_str());
+                        }
+                    }
+                    TermPtr term;
+                    Parser p(term);
+                    p.Parse(m_eval.c_str());
+                    if (!term || m_eval.empty()) {
+                        LOG_RUNTIME("Eval expression empty!");
+                    }
 
+                    ObjPtr result = Context::ExecStr(&m_ctx, term, m_args.get(), true);
 
-        std::string output;
-        std::vector<std::string> history;
+                    if (result && m_local_vars.find(result.get()) == m_local_vars.end()) {
+                        m_local_vars[result.get()] = result;
+                    }
 
+                    m_output = result->GetValueAsString();
 
-        std::ifstream infile;
-        infile.open(NLC_FILE_HISTORY);
-        while (infile.is_open() && getline(infile, output)) {
-            history.push_back(output);
+                    if (!m_ofile.empty()) {
+                        std::ofstream out(m_ofile);
+                        out << m_output;
+                        out.close();
+                    }
+                    if (!m_output.empty()) {
+                        utils::Logger::LogLevelType save_level = utils::Logger::Instance()->GetLogLevel();
+                        utils::Logger::Instance()->SetLogLevel(LOG_LEVEL_INFO);
+                        LOG_INFO("%s", m_output.c_str());
+                        utils::Logger::Instance()->SetLogLevel(save_level);
+                    }
+                } else {
+                    ASSERT(m_mode == Mode::INTERACTIVE);
+                    Interative();
+                    //                LOG_INFO("%s", m_output.c_str());
+                }
+
+            } catch (Interrupt &err) {
+                // Вывод информации об ошибке синтаксиса при парсинге без информации о точке вызова макроса LOG_INFO
+                utils::Logger::LogLevelType save_level = utils::Logger::Instance()->GetLogLevel();
+                utils::Logger::Instance()->SetLogLevel(LOG_LEVEL_INFO);
+                LOG_INFO("%s", err.what());
+                utils::Logger::Instance()->SetLogLevel(save_level);
+                return 1;
+            } catch (...) {
+                return 1;
+            }
+            return 0;
         }
-        infile.close();
 
-        std::ofstream filehistory;
-        filehistory.open(NLC_FILE_HISTORY, std::ios::app);
+        bool IsDelimiter(wchar_t c) {
+            return c == L' ' || c == L'&' || c == L'=' || c == L';' || c == L','
+                    || c == L'+' || c == L'-' || c == L'*' || c == L'/'
+                    || c == L'<' || c == L'>' || c == L'|' || c == L'~' || c == L'^';
+        }
+
+        bool Interative() {
 
 
-        const char* title = ">";
-        COLOR_TYPE title_color = "1";
-        COLOR_TYPE predict_color = "80";
-        COLOR_TYPE main_color = "0";
+            std::string output;
+            std::vector<std::string> history;
 
-        std::wstring buff;
 
-        // Cursor offset in buffer for moving
-        int offset = 0;
+            std::ifstream infile;
+            infile.open(NLC_FILE_HISTORY);
+            while (infile.is_open() && getline(infile, output)) {
+                history.push_back(output);
+            }
+            infile.close();
 
-        color_print("Type ", predict_color);
-        color_print("help()", main_color);
-        color_print("<Enter> for help about ", predict_color);
-        color_print("NewLang", title_color);
-        color_print(" syntax and commands or ", predict_color);
-        color_print("--", main_color);
-        color_print("<Enter> to exit the program.\n", predict_color);
+            std::ofstream filehistory;
+            filehistory.open(NLC_FILE_HISTORY, std::ios::app);
 
-        // Calculate title length
-        int title_len = (short) strlen(title);
-        bool show_all = false;
 
-        while (1) {
+            const char* title = ">";
+            COLOR_TYPE title_color = "1";
+            COLOR_TYPE predict_color = "80";
+            COLOR_TYPE main_color = "0";
 
-            int history_pos = history.size();
+            std::wstring buff;
+
+            // Cursor offset in buffer for moving
+            int offset = 0;
+
+            color_print("Type ", predict_color);
+            color_print("help()", main_color);
+            color_print("<Enter> for help about ", predict_color);
+            color_print("NewLang", title_color);
+            color_print(" syntax and commands or ", predict_color);
+            color_print("--", main_color);
+            color_print("<Enter> to exit the program.\n", predict_color);
+
+            // Calculate title length
+            int title_len = (short) strlen(title);
+            bool show_all = false;
 
             while (1) {
-                // Print title with title color
-                clear_line();
-                color_print(title, title_color);
-                printf(title_len != 0 ? " " : "");
-                fflush(stdout);
 
-                // Get length of last word in input
-                short space_offset = 0;
-                while (buff.size() && space_offset < buff.size() && !IsDelimiter(buff[buff.size() - space_offset - 1])) {//buff[buff.size() - space_offset - 1] != L' ') {
-                    space_offset += 1;
-                }
+                int history_pos = history.size();
 
-                // Print current buffer
-                color_print(utf8_encode(buff).c_str(), main_color);
-                fflush(stdout);
+                while (1) {
+                    // Print title with title color
+                    clear_line();
+                    color_print(title, title_color);
+                    printf(title_len != 0 ? " " : "");
+                    fflush(stdout);
 
-                std::vector<std::wstring> predict;
-
-                predict.clear();
-                if (space_offset) {
-                    size_t overflow = 5;
-
-                    predict = m_ctx.SelectPredict(&buff[buff.size() - space_offset], overflow); // Не более 5 примеров продолжения
-
-                    if (predict.size()) {
-                        if (show_all) {
-                            // Показать все варинанты
-                            std::wstring helper;
-                            for (int i = 0; i < overflow; i++) {
-                                if (i >= predict.size()) {
-                                    break;
-                                }
-                                if (!helper.empty()) {
-                                    helper += L" ";
-                                }
-                                helper += predict[i];
-                            }
-                            if (predict.size() >= overflow) {
-                                helper += L" ..."; // и есть еще
-                            }
-                            color_print(utf8_encode(helper.substr(space_offset)).c_str(), predict_color);
-                        } else {
-                            std::wstring show(predict[0]);
-                            if (space_offset <= show.size()) {
-                                if (predict.size() > 1) { // Присутсвует более одного варианта
-                                    show += L"...";
-                                }
-                                color_print(utf8_encode(show.substr(space_offset)).c_str(), predict_color);
-                            }
-                        }
-                    }
-                }
-
-                // Move cursor to buffer end
-                short x = (short) (buff.size() + title_len + (title_len != 0) + 1 - offset);
-                set_cursor_x(x);
-
-                // Read character from console
-                int ch = _getch();
-
-                // Wait next symbol if character in ignore keys
-                if (is_ignore_key(ch)) {
-                    continue;
-                }// Return buffer if ENTER was pressed
-                else if (ch == KEY_ENTER) {
-                    if (!buff.empty() && (history.size() == 0 || (history.size() && history[history.size() - 1].compare(utf8_encode(buff)) != 0))) {
-                        history.push_back(utf8_encode(buff));
-                        filehistory << utf8_encode(buff) << "\n";
-                        filehistory.flush();
-                    }
-                    break;
-                }// Keyboard interrupt handler for Windows
-#if defined(OS_WINDOWS)
-                else if (ch == CTRL_C) {
-                    predictions_free(pred);
-                    tree_free(rules);
-                    free(buff);
-                    exit(0);
-                }
-#endif
-                    // Edit buffer like backspace if BACKSPACE was pressed
-                else if (ch == KEY_BACKSPACE) {
-                    if (buff.size() && buff.size() - offset >= 1) {
-                        // Delete character from buffer
-                        for (unsigned i = (unsigned int) (buff.size() - offset - 1); i < buff.size() - 1; i++) {
-                            buff[i] = buff[i + 1];
-                        }
-                        buff.resize(buff.size() - 1);
-                    }
-                    // Apply prediction if TAB was pressed
-                } else if (ch == KEY_TAB) {
-
-                    if (predict.size() == 1 || (predict.size() > 1 && show_all)) {
-                        if (space_offset < predict[0].size()) {
-                            buff.append(predict[0].substr(space_offset));
-                        }
-                        show_all = false;
-                    } else {
-                        show_all = true;
+                    // Get length of last word in input
+                    short space_offset = 0;
+                    while (buff.size() && space_offset < buff.size() && !IsDelimiter(buff[buff.size() - space_offset - 1])) {//buff[buff.size() - space_offset - 1] != L' ') {
+                        space_offset += 1;
                     }
 
-                }// Arrows and Delete keys handler
-                else if (
-                        ch == SPECIAL_SEQ_1
-#if defined(OS_WINDOWS)
-                        || ch
-#elif defined(OS_UNIX)
-                        && _getch()
-#endif
-                        == SPECIAL_SEQ_2
-                        ) {
-                    switch (_getch()) {
-                        case KEY_LEFT:
-                            // Increase offset from the end of the buffer if left key pressed
-                            offset = (offset < buff.size()) ? (offset + 1) : buff.size();
-                            break;
-                        case KEY_RIGHT:
-                            // Decrease offset from the end of the buffer if left key pressed
-                            offset = (offset > 0) ? offset - 1 : 0;
-                            break;
-                        case KEY_UP:
-                            if (!history.empty() && history_pos > 0) {
-                                clear_line();
-                                history_pos--;
-                                buff = utf8_decode(history[history_pos]);
-                            }
-                            break;
-                        case KEY_DOWN:
-                            if (!history.empty() && history_pos + 1 < history.size()) {
-                                clear_line();
-                                history_pos++;
-                                buff = utf8_decode(history[history_pos]);
-                            }
-                            break;
-                        case KEY_DEL: // Edit buffer like DELETE key
-#if defined(OS_UNIX)
-                            if (_getch() == KEY_DEL_AFTER)
-#endif
-                            {
-                                if (buff.size() && offset != 0) {
-                                    // Delete character from buffer
-                                    for (unsigned i = (unsigned int) (buff.size() - offset); i < buff.size() - 1; i++) {
-                                        buff[i] = buff[i + 1];
+                    // Print current buffer
+                    color_print(utf8_encode(buff).c_str(), main_color);
+                    fflush(stdout);
+
+                    std::vector<std::wstring> predict;
+
+                    predict.clear();
+                    if (space_offset) {
+                        size_t overflow = 5;
+
+                        predict = m_ctx.SelectPredict(&buff[buff.size() - space_offset], overflow); // Не более 5 примеров продолжения
+
+                        if (predict.size()) {
+                            if (show_all) {
+                                // Показать все варинанты
+                                std::wstring helper;
+                                for (int i = 0; i < overflow; i++) {
+                                    if (i >= predict.size()) {
+                                        break;
                                     }
-                                    buff.resize(buff.size() - 1);
-                                    offset -= 1;
+                                    if (!helper.empty()) {
+                                        helper += L" ";
+                                    }
+                                    helper += predict[i];
+                                }
+                                if (predict.size() >= overflow) {
+                                    helper += L" ..."; // и есть еще
+                                }
+                                color_print(utf8_encode(helper.substr(space_offset)).c_str(), predict_color);
+                            } else {
+                                std::wstring show(predict[0]);
+                                if (space_offset <= show.size()) {
+                                    if (predict.size() > 1) { // Присутсвует более одного варианта
+                                        show += L"...";
+                                    }
+                                    color_print(utf8_encode(show.substr(space_offset)).c_str(), predict_color);
                                 }
                             }
-                            break;
-                        default:
-                            break;
-                    }
-                }// Add character to buffer considering
-                    // offset if any key was pressed
-                else {
-
-                    int w_ch;
-                    if (!(ch & 0x80)) {
-                        w_ch = ch;
-                    } else if ((ch & 0xE0) == 0xC0) { // двухбайтовые UTF8
-                        w_ch = ch & 0x1F;
-                        w_ch <<= 6;
-                        ch = _getch();
-                        w_ch |= (ch & 0x3F);
-                    } else {
-                        LOG_ERROR("Unsupported char %d", ch);
-                        w_ch = 0;
-                    }
-
-                    buff += w_ch;
-                }
-            }
-
-
-            std::string result;
-            if (buff.compare(L"--") == 0 || buff.compare(L"--;") == 0) {
-                printf("\n");
-                break;
-            } else if (!buff.empty()) {
-                try {
-//                    TermPtr term = m_ctx.ExecStr(utf8_encode(buff));
-//
-//                    if (!term) {
-//                        LOG_RUNTIME("Eval expression empty!");
-//                    }
-                    std::string input = utf8_encode(buff);
-
-                    ObjPtr res = m_ctx.ExecStr(input, m_args.get());
-
-                    if (res) {
-                        
-                        if (m_local_vars.find(res.get()) == m_local_vars.end()) {
-                            m_local_vars[res.get()] = res;
                         }
-                        
-                        result = res->GetValueAsString();
-                    } else {
-                        result = "nullptr";
                     }
 
-                } catch (std::exception &err) {
-                    result = err.what();
+                    // Move cursor to buffer end
+                    short x = (short) (buff.size() + title_len + (title_len != 0) + 1 - offset);
+                    set_cursor_x(x);
+
+                    // Read character from console
+                    int ch = _getch();
+
+                    // Wait next symbol if character in ignore keys
+                    if (is_ignore_key(ch)) {
+                        continue;
+                    }// Return buffer if ENTER was pressed
+                    else if (ch == KEY_ENTER) {
+                        if (!buff.empty() && (history.size() == 0 || (history.size() && history[history.size() - 1].compare(utf8_encode(buff)) != 0))) {
+                            history.push_back(utf8_encode(buff));
+                            filehistory << utf8_encode(buff) << "\n";
+                            filehistory.flush();
+                        }
+                        break;
+                    }// Keyboard interrupt handler for Windows
+#if defined(OS_WINDOWS)
+                    else if (ch == CTRL_C) {
+                        predictions_free(pred);
+                        tree_free(rules);
+                        free(buff);
+                        exit(0);
+                    }
+#endif
+                        // Edit buffer like backspace if BACKSPACE was pressed
+                    else if (ch == KEY_BACKSPACE) {
+                        if (buff.size() && buff.size() - offset >= 1) {
+                            // Delete character from buffer
+                            for (unsigned i = (unsigned int) (buff.size() - offset - 1); i < buff.size() - 1; i++) {
+                                buff[i] = buff[i + 1];
+                            }
+                            buff.resize(buff.size() - 1);
+                        }
+                        // Apply prediction if TAB was pressed
+                    } else if (ch == KEY_TAB) {
+
+                        if (predict.size() == 1 || (predict.size() > 1 && show_all)) {
+                            if (space_offset < predict[0].size()) {
+                                buff.append(predict[0].substr(space_offset));
+                            }
+                            show_all = false;
+                        } else {
+                            show_all = true;
+                        }
+
+                    }// Arrows and Delete keys handler
+                    else if (
+                            ch == SPECIAL_SEQ_1
+#if defined(OS_WINDOWS)
+                            || ch
+#elif defined(OS_UNIX)
+                            && _getch()
+#endif
+                            == SPECIAL_SEQ_2
+                            ) {
+                        switch (_getch()) {
+                            case KEY_LEFT:
+                                // Increase offset from the end of the buffer if left key pressed
+                                offset = (offset < buff.size()) ? (offset + 1) : buff.size();
+                                break;
+                            case KEY_RIGHT:
+                                // Decrease offset from the end of the buffer if left key pressed
+                                offset = (offset > 0) ? offset - 1 : 0;
+                                break;
+                            case KEY_UP:
+                                if (!history.empty() && history_pos > 0) {
+                                    clear_line();
+                                    history_pos--;
+                                    buff = utf8_decode(history[history_pos]);
+                                }
+                                break;
+                            case KEY_DOWN:
+                                if (!history.empty() && history_pos + 1 < history.size()) {
+                                    clear_line();
+                                    history_pos++;
+                                    buff = utf8_decode(history[history_pos]);
+                                }
+                                break;
+                            case KEY_DEL: // Edit buffer like DELETE key
+#if defined(OS_UNIX)
+                                if (_getch() == KEY_DEL_AFTER)
+#endif
+                                {
+                                    if (buff.size() && offset != 0) {
+                                        // Delete character from buffer
+                                        for (unsigned i = (unsigned int) (buff.size() - offset); i < buff.size() - 1; i++) {
+                                            buff[i] = buff[i + 1];
+                                        }
+                                        buff.resize(buff.size() - 1);
+                                        offset -= 1;
+                                    }
+                                }
+                                break;
+                            default:
+                                break;
+                        }
+                    }// Add character to buffer considering
+                        // offset if any key was pressed
+                    else {
+
+                        int w_ch;
+                        if (!(ch & 0x80)) {
+                            w_ch = ch;
+                        } else if ((ch & 0xE0) == 0xC0) { // двухбайтовые UTF8
+                            w_ch = ch & 0x1F;
+                            w_ch <<= 6;
+                            ch = _getch();
+                            w_ch |= (ch & 0x3F);
+                        } else {
+                            LOG_ERROR("Unsupported char %d", ch);
+                            w_ch = 0;
+                        }
+
+                        buff += w_ch;
+                    }
                 }
-                buff.clear();
+
+
+                std::string result;
+                if (buff.compare(L"--") == 0 || buff.compare(L"--;") == 0) {
+                    printf("\n");
+                    break;
+                } else if (!buff.empty()) {
+                    try {
+                        //                    TermPtr term = m_ctx.ExecStr(utf8_encode(buff));
+                        //
+                        //                    if (!term) {
+                        //                        LOG_RUNTIME("Eval expression empty!");
+                        //                    }
+                        std::string input = utf8_encode(buff);
+
+                        ObjPtr res = m_ctx.ExecStr(input, m_args.get(), true);
+
+                        if (res) {
+
+                            if (m_local_vars.find(res.get()) == m_local_vars.end()) {
+                                m_local_vars[res.get()] = res;
+                            }
+
+                            result = res->GetValueAsString();
+                        } else {
+                            result = "nullptr";
+                        }
+
+                    } catch (std::exception &err) {
+                        result = err.what();
+                    }
+                    buff.clear();
+                }
+                printf("\n%s\n", result.c_str());
+                show_all = false;
             }
-            printf("\n%s\n", result.c_str());
-            show_all = false;
+
+            filehistory.close();
+            return 0;
         }
 
-        filehistory.close();
-        return 0;
-    }
-
-};
+    };
 
 }
 
