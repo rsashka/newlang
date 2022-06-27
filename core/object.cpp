@@ -179,16 +179,16 @@ const Variable<ObjPtr>::PairType & Obj::at(int64_t index) const {
             m_str_pair = pair(CreateString(std::string(1, m_str[index])));
             return m_str_pair;
         }
-        LOG_RUNTIME("Index '%lu' not exists in byte string '%s'!", static_cast<unsigned long> (index), m_str.c_str());
+        LOG_RUNTIME("Index '%ld' not exists in byte string '%s'!", index, m_str.c_str());
     } else if(m_var_type_current == ObjType::StrWide) {
         if(index < static_cast<int64_t> (m_wstr.size())) {
             m_str_pair = pair(CreateString(std::wstring(1, m_wstr[index])));
             return m_str_pair;
         }
-        LOG_RUNTIME("Index '%lu' not exists in byte string '%s'!", static_cast<unsigned long> (index), "WIDE");
+        LOG_RUNTIME("Index '%ld' not exists in byte string '%s'!", index, "WIDE");
 
     } else if(is_tensor()) {
-        torch::Tensor t = m_value.index({(int) index});
+        torch::Tensor t = m_value.index({index});
         m_str_pair = pair(Obj::CreateTensor(t));
         return m_str_pair;
     }
@@ -201,13 +201,13 @@ Variable<ObjPtr>::PairType & Obj::at(int64_t index) {
             m_str_pair = pair(CreateString(std::string(1, m_str[index])));
             return m_str_pair;
         }
-        LOG_RUNTIME("Index '%lu' not exists in byte string '%s'!", static_cast<unsigned long> (index), m_str.c_str());
+        LOG_RUNTIME("Index '%ld' not exists in byte string '%s'!", index, m_str.c_str());
     } else if(m_var_type_current == ObjType::StrWide) {
         if(index < static_cast<int64_t> (m_wstr.size())) {
             m_str_pair = pair(CreateString(std::wstring(1, m_wstr[index])));
             return m_str_pair;
         }
-        LOG_RUNTIME("Index '%lu' not exists in byte string '%s'!", static_cast<unsigned long> (index), "WIDE");
+        LOG_RUNTIME("Index '%ld' not exists in byte string '%s'!", index, "WIDE");
 
     } else if(is_tensor()) {
         torch::Tensor t = m_value.index({(int) index});
@@ -287,23 +287,23 @@ ObjPtr Obj::index_set_(const std::vector<Index> &index, const ObjPtr value) {
     LOG_RUNTIME("Don`t set index '%s' in object '%s'!", IndexToString(index).c_str(), toString().c_str());
 }
 
-ObjPtr Obj::op_set_index(size_t index, std::string value) {
+ObjPtr Obj::op_set_index(int64_t index, std::string value) {
     if(m_var_type_current == ObjType::StrChar) {
-        if(index < m_str.size()) {
+        if(index < static_cast<int64_t>(m_str.size())) {
             m_str.erase(index, 1);
             m_str.insert(index, value);
             m_var_is_init = true;
             return shared();
         }
-        LOG_RUNTIME("Index '%lu' not exists in byte string '%s'!", static_cast<unsigned long> (index), m_str.c_str());
+        LOG_RUNTIME("Index '%ld' not exists in byte string '%s'!", index, m_str.c_str());
     } else if(m_var_type_current == ObjType::StrWide) {
-        if(index < m_wstr.size()) {
+        if(index < static_cast<int64_t>(m_wstr.size())) {
             m_wstr.erase(index, 1);
             m_wstr.insert(index, utf8_decode(value));
             m_var_is_init = true;
             return shared();
         }
-        LOG_RUNTIME("Index '%lu' not exists in byte string '%s'!", static_cast<unsigned long> (index), "WIDE");
+        LOG_RUNTIME("Index '%ld' not exists in byte string '%s'!", index, "WIDE");
     }
     //    at(index).second.set_(value);
     (*at(index).second) = value;

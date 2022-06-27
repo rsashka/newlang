@@ -1728,9 +1728,9 @@ void Context::ItemTensorEval(torch::Tensor &self, ObjPtr obj, ObjPtr args) {
     if(self.dim() == 0) {
 
         signed char *ptr_char = nullptr;
-        short *ptr_short = nullptr;
-        int *ptr_int = nullptr;
-        long *ptr_long = nullptr;
+        int16_t *ptr_short = nullptr;
+        int32_t *ptr_int = nullptr;
+        int64_t *ptr_long = nullptr;
         float *ptr_float = nullptr;
         double *ptr_double = nullptr;
 
@@ -1741,19 +1741,19 @@ void Context::ItemTensorEval(torch::Tensor &self, ObjPtr obj, ObjPtr args) {
                 *ptr_char = static_cast<signed char> (obj->Call(this)->GetValueAsInteger());
                 return;
             case ObjType::Short:
-                ptr_short = self.data_ptr<short>();
+                ptr_short = self.data_ptr<int16_t>();
                 ASSERT(ptr_short);
-                *ptr_short = static_cast<short> (obj->Call(this)->GetValueAsInteger());
+                *ptr_short = static_cast<int16_t> (obj->Call(this)->GetValueAsInteger());
                 return;
             case ObjType::Int:
-                ptr_int = self.data_ptr<int>();
+                ptr_int = self.data_ptr<int32_t>();
                 ASSERT(ptr_int);
-                *ptr_int = static_cast<int> (obj->Call(this)->GetValueAsInteger());
+                *ptr_int = static_cast<int32_t> (obj->Call(this)->GetValueAsInteger());
                 return;
             case ObjType::Long:
-                ptr_long = self.data_ptr<long>();
+                ptr_long = self.data_ptr<int64_t>();
                 ASSERT(ptr_long);
-                *ptr_long = static_cast<long> (obj->Call(this)->GetValueAsInteger());
+                *ptr_long = static_cast<int64_t> (obj->Call(this)->GetValueAsInteger());
                 return;
             case ObjType::Float:
                 ptr_float = self.data_ptr<float>();

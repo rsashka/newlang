@@ -115,10 +115,12 @@
       <LanguageStandard_C>stdc17</LanguageStandard_C>
       <PrecompiledHeaderOutputFile>pch.h.pch</PrecompiledHeaderOutputFile>
       <RemoveUnreferencedCodeData>false</RemoveUnreferencedCodeData>
+      <FunctionLevelLinking>true</FunctionLevelLinking>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
+      <OutputFile>$(OutDir)nlc$(TargetExt)</OutputFile>
     </Link>
     <ProjectReference>
       <UseLibraryDependencyInputs>true</UseLibraryDependencyInputs>

@@ -1,6 +1,7 @@
+#include "pch.h"
+
 #ifdef UNITTEST
 
-#include "core/pch.h"
 #include "core/fraction.h"
 
 #include <core/warning_push.h>

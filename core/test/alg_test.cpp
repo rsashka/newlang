@@ -1,7 +1,8 @@
-#include "core/parser.h"
+#include "pch.h"
+
 #ifdef UNITTEST
 
-#include <core/pch.h>
+#include "core/parser.h"
 
 #include <signal.h>
 

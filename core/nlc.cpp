@@ -10,7 +10,7 @@ using namespace newlang;
 #pragma comment(lib, "torch.lib")
 #pragma comment(lib, "torch_cpu.lib")
 #pragma comment(lib, "c10.lib")
-#pragma comment(lib, "libffi.a")
+#pragma comment(lib, "libffi.dll.a")
 
 //#pragma comment(lib, "pthreadpool.lib")
 //#pragma comment(lib, "libprotoc.lib")

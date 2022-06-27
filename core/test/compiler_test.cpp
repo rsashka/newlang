@@ -1,6 +1,7 @@
+#include "pch.h"
+
 #ifdef UNITTEST
 
-#include "core/pch.h"
 #include "core/term.h"
 
 #include <core/warning_push.h>

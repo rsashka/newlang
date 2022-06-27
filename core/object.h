@@ -1462,7 +1462,7 @@ namespace newlang {
         inline ObjPtr op_set_index(ObjPtr index, ObjPtr value) {
             return op_set_index(index->GetValueAsInteger(), value->GetValueAsString());
         }
-        ObjPtr op_set_index(size_t index, std::string value);
+        ObjPtr op_set_index(int64_t index, std::string value);
 
         template < typename T>
         typename std::enable_if<std::is_same<T, bool>::value, void>::type

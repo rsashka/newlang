@@ -578,9 +578,9 @@ void ParserException(const char *msg, std::string &buffer, int row, int col);
 
         bool *ptr_boll = nullptr;
         signed char *ptr_char = nullptr;
-        short *ptr_short = nullptr;
-        int *ptr_int = nullptr;
-        long *ptr_long = nullptr;
+        int16_t *ptr_short = nullptr;
+        int32_t *ptr_int = nullptr;
+        int64_t *ptr_long = nullptr;
         float *ptr_float = nullptr;
         double *ptr_double = nullptr;
 
@@ -598,19 +598,19 @@ void ParserException(const char *msg, std::string &buffer, int row, int col);
                     *ptr_char = set.item().toChar();
                     return;
                 case ObjType::Short:
-                    ptr_short = self.data_ptr<short>();
+                    ptr_short = self.data_ptr<int16_t>();
                     ASSERT(ptr_short);
                     *ptr_short = set.item().toShort();
                     return;
                 case ObjType::Int:
-                    ptr_int = self.data_ptr<int>();
+                    ptr_int = self.data_ptr<int32_t>();
                     ASSERT(ptr_int);
                     *ptr_int = set.item().toInt();
                     return;
                 case ObjType::Long:
-                    ptr_long = self.data_ptr<long>();
+                    ptr_long = self.data_ptr<int64_t>();
                     ASSERT(ptr_long);
-                    *ptr_long = static_cast<long> (set.item().toLong());
+                    *ptr_long = static_cast<int64_t> (set.item().toLong());
                     return;
                 case ObjType::Float:
                     ptr_float = self.data_ptr<float>();
@@ -641,21 +641,21 @@ void ParserException(const char *msg, std::string &buffer, int row, int col);
                     }
                     return;
                 } else if (ObjType::Short == type) {
-                    auto acc_short = self.accessor<short, 1>();
+                    auto acc_short = self.accessor<int16_t, 1>();
                     for (int i = 0; i < acc_short.size(0); i++) {
                         acc_short[i] = set.item().toShort();
                     }
                     return;
                 } else if (ObjType::Int == type) {
-                    auto acc_int = self.accessor<int, 1>();
+                    auto acc_int = self.accessor<int32_t, 1>();
                     for (int i = 0; i < acc_int.size(0); i++) {
                         acc_int[i] = set.item().toInt();
                     }
                     return;
                 } else if (ObjType::Long == type) {
-                    auto acc_long = self.accessor<long, 1>();
+                    auto acc_long = self.accessor<int64_t, 1>();
                     for (int i = 0; i < acc_long.size(0); i++) {
-                        acc_long[i] = static_cast<long> (set.item().toLong());
+                        acc_long[i] = static_cast<int64_t> (set.item().toLong());
                     }
                     return;
                 } else if (ObjType::Float == type) {
@@ -690,7 +690,7 @@ void ParserException(const char *msg, std::string &buffer, int row, int col);
                     }
                     return;
                 } else if (ObjType::Short == type) {
-                    auto acc_short = self.accessor<short, 2>();
+                    auto acc_short = self.accessor<int16_t, 2>();
                     for (int i = 0; i < acc_short.size(0); i++) {
                         for (int j = 0; j < acc_short.size(1); j++) {
                             acc_short[i][j] = set.item().toShort();
@@ -698,7 +698,7 @@ void ParserException(const char *msg, std::string &buffer, int row, int col);
                     }
                     return;
                 } else if (ObjType::Int == type) {
-                    auto acc_int = self.accessor<int, 2>();
+                    auto acc_int = self.accessor<int32_t, 2>();
                     for (int i = 0; i < acc_int.size(0); i++) {
                         for (int j = 0; j < acc_int.size(1); j++) {
                             acc_int[i][j] = set.item().toInt();
@@ -706,10 +706,10 @@ void ParserException(const char *msg, std::string &buffer, int row, int col);
                     }
                     return;
                 } else if (ObjType::Long == type) {
-                    auto acc_long = self.accessor<long, 2>();
+                    auto acc_long = self.accessor<int64_t, 2>();
                     for (int i = 0; i < acc_long.size(0); i++) {
                         for (int j = 0; j < acc_long.size(1); j++) {
-                            acc_long[i][j] = static_cast<long> (set.item().toLong());
+                            acc_long[i][j] = static_cast<int64_t> (set.item().toLong());
                         }
                     }
                     return;
