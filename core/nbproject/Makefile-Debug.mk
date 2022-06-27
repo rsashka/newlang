@@ -48,10 +48,10 @@ OBJECTFILES= \
 	${OBJECTDIR}/syntax_help.o \
 	${OBJECTDIR}/term.o \
 	${OBJECTDIR}/test/alg_test.o \
+	${OBJECTDIR}/test/compiler_test.o \
 	${OBJECTDIR}/test/eval_test.o \
 	${OBJECTDIR}/test/fraction_test.o \
 	${OBJECTDIR}/test/lexer_test.o \
-	${OBJECTDIR}/test/newlang_test.o \
 	${OBJECTDIR}/test/nlc_test.o \
 	${OBJECTDIR}/test/object_test.o \
 	${OBJECTDIR}/test/parser_test.o \
@@ -204,6 +204,11 @@ ${OBJECTDIR}/test/alg_test.o: test/alg_test.cpp pch.h.gch
 	${RM} "$@.d"
 	$(COMPILE.cc) -g -DDEBUG -DLOG_LEVEL_NORMAL=LOG_LEVEL_DEBUG -DPDC_WIDE -I.. -I../contrib/googletest/googletest -I../contrib/googletest/googletest/include -I../contrib/Lyra/include -I../contrib/libtorch/include/torch/csrc/api/include -I../contrib/libtorch/include -I../contrib/tensorboard_logger/include -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/test/alg_test.o test/alg_test.cpp
 
+${OBJECTDIR}/test/compiler_test.o: test/compiler_test.cpp pch.h.gch
+	${MKDIR} -p ${OBJECTDIR}/test
+	${RM} "$@.d"
+	$(COMPILE.cc) -g -DDEBUG -DLOG_LEVEL_NORMAL=LOG_LEVEL_DEBUG -DPDC_WIDE -I.. -I../contrib/googletest/googletest -I../contrib/googletest/googletest/include -I../contrib/Lyra/include -I../contrib/libtorch/include/torch/csrc/api/include -I../contrib/libtorch/include -I../contrib/tensorboard_logger/include -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/test/compiler_test.o test/compiler_test.cpp
+
 ${OBJECTDIR}/test/eval_test.o: test/eval_test.cpp pch.h.gch
 	${MKDIR} -p ${OBJECTDIR}/test
 	${RM} "$@.d"
@@ -218,11 +223,6 @@ ${OBJECTDIR}/test/lexer_test.o: test/lexer_test.cpp pch.h.gch
 	${MKDIR} -p ${OBJECTDIR}/test
 	${RM} "$@.d"
 	$(COMPILE.cc) -g -DDEBUG -DLOG_LEVEL_NORMAL=LOG_LEVEL_DEBUG -DPDC_WIDE -I.. -I../contrib/googletest/googletest -I../contrib/googletest/googletest/include -I../contrib/Lyra/include -I../contrib/libtorch/include/torch/csrc/api/include -I../contrib/libtorch/include -I../contrib/tensorboard_logger/include -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/test/lexer_test.o test/lexer_test.cpp
-
-${OBJECTDIR}/test/newlang_test.o: test/newlang_test.cpp pch.h.gch
-	${MKDIR} -p ${OBJECTDIR}/test
-	${RM} "$@.d"
-	$(COMPILE.cc) -g -DDEBUG -DLOG_LEVEL_NORMAL=LOG_LEVEL_DEBUG -DPDC_WIDE -I.. -I../contrib/googletest/googletest -I../contrib/googletest/googletest/include -I../contrib/Lyra/include -I../contrib/libtorch/include/torch/csrc/api/include -I../contrib/libtorch/include -I../contrib/tensorboard_logger/include -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/test/newlang_test.o test/newlang_test.cpp
 
 ${OBJECTDIR}/test/nlc_test.o: test/nlc_test.cpp pch.h.gch
 	${MKDIR} -p ${OBJECTDIR}/test

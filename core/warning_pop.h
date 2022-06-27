@@ -10,6 +10,6 @@
 
 #elif _MSC_VER
 
-#error MS compiler not testesd!
+#pragma warning(pop)
 
 #endif

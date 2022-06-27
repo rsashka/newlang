@@ -1,7 +1,7 @@
 
 %{ /*** C/C++ Declarations ***/
 
-#include <core/pch.h>
+#include "pch.h"
 
 #include <core/term.h>
 #include <core/context.h>
@@ -382,7 +382,7 @@ star_arg = [STAR] STAR ID
 %token			ITERATOR        "!!"
 %token			ITERATOR_QQ     "??"
 
-%token			TRANSPARENT
+%token			PUREFUNC
 %token			SIMPLE_AND
 %token			SIMPLE_OR
 %token			SIMPLE_XOR
@@ -996,7 +996,7 @@ assign_op:  /* '='
             {
                 $$ = $1;
             }
-        | TRANSPARENT /* ::- :- */
+        | PUREFUNC /* ::- :- */
             {
                 $$ = $1;
             }

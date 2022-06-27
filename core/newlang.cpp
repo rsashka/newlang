@@ -206,6 +206,7 @@ std::string NewLang::WriteSimpleBody_(CompileInfo &ci, TermPtr &func) {
     //    result += (*func_op)(ci, func, FunctionStep::COMPLETE);
     //
     //    return result;
+    return "";
 }
 
 bool newlang::Tranliterate(const wchar_t c, std::wstring &str) {
@@ -633,7 +634,7 @@ std::string NewLang::MakeCppFileVariable(CompileInfo &ci, TermPtr &var, std::ost
 
 std::string NewLang::MakeCppFileCallArgs(CompileInfo &ci, TermPtr &args, TermPtr proto) {
     std::string result;
-    for (size_t i = 0; i < args->size(); i++) {
+    for (int i = 0; i < args->size(); i++) {
         if(i) {
             result += ", ";
         }
@@ -728,48 +729,48 @@ bool NewLang::MakeCppFile(TermPtr ast, std::ostream &out, const char * source, C
 }
 
 bool NewLang::Execute(const char *exec, std::string *out, int *exit_code) {
-    int status;
-    pid_t pid;
-
-    int mypipe[2];
-    pipe(mypipe);
-
-    pid = fork();
-    if(pid < 0) {
-        LOG_ERROR("Fork fail");
-        return false;
-    } else if(!pid) {
-        close(mypipe[0]); /* close unused in */
-        dup2(mypipe[1], 1); /* stdout to pipe out */
-
-        execl("/bin/bash", "bash", "-c", exec, NULL);
-
-        close(mypipe[1]);
-        _exit(EXIT_SUCCESS);
-    }
-
-    pid = wait(&status);
-
-    /* parent process */
-    close(mypipe[1]); /* close unused out */
-
-    char buf[1024] = "";
-    ssize_t nbytes;
-    /* read from pipe in */
-    while((nbytes = read(mypipe[0], buf, sizeof (buf))) > 0) {
-        if(out) {
-            out->append(buf, nbytes);
-        }
-    }
-    close(mypipe[0]);
-
-    if(WIFEXITED(status)) {
-        if(exit_code) {
-
-            *exit_code = WEXITSTATUS(status);
-        }
-        return true;
-    }
+//    int status;
+//    pid_t pid;
+//
+//    int mypipe[2];
+//    pipe(mypipe);
+//
+//    pid = fork();
+//    if(pid < 0) {
+//        LOG_ERROR("Fork fail");
+//        return false;
+//    } else if(!pid) {
+//        close(mypipe[0]); /* close unused in */
+//        dup2(mypipe[1], 1); /* stdout to pipe out */
+//
+//        execl("/bin/bash", "bash", "-c", exec, NULL);
+//
+//        close(mypipe[1]);
+//        _exit(EXIT_SUCCESS);
+//    }
+//
+//    pid = wait(&status);
+//
+//    /* parent process */
+//    close(mypipe[1]); /* close unused out */
+//
+//    char buf[1024] = "";
+//    ssize_t nbytes;
+//    /* read from pipe in */
+//    while((nbytes = read(mypipe[0], buf, sizeof (buf))) > 0) {
+//        if(out) {
+//            out->append(buf, nbytes);
+//        }
+//    }
+//    close(mypipe[0]);
+//
+//    if(WIFEXITED(status)) {
+//        if(exit_code) {
+//
+//            *exit_code = WEXITSTATUS(status);
+//        }
+//        return true;
+//    }
     return false;
 }
 
@@ -970,62 +971,63 @@ bool NewLang::CompileModule(const char* filename, const char* output) {
 
 bool NewLang::GccMakeModule(const char * in_file, const char * module, const char * opts, std::string *out, int *exit_code) {
 
-    char temp[MAXPATHLEN];
-    if(!getcwd(temp, sizeof (temp))) {
-        return false;
-    }
+    //char temp[MAXPATHLEN];
+    //if(!getcwd(temp, sizeof (temp))) {
+    //    return false;
+    //}
 
-    std::string dir(temp);
+    //std::string dir(temp);
 
-    std::string out_file(dir);
+    //std::string out_file(dir);
 
-    out_file.append("/");
-    out_file.append(module);
-    //    out_file.append(".so");
+    //out_file.append("/");
+    //out_file.append(module);
+    ////    out_file.append(".so");
 
-    if(!opts) {
-        struct stat file_src;
-        struct stat file_so;
-        if(lstat(in_file, &file_src) == 0 && lstat(out_file.c_str(), &file_so) == 0) {
-            if(file_src.st_mtime < file_so.st_mtime && file_so.st_size) {
-                LOG_DEBUG("Skip build %s", out_file.c_str());
-                return true;
-            }
-        }
-    }
+    //if(!opts) {
+    //    struct stat file_src;
+    //    struct stat file_so;
+    //    if(lstat(in_file, &file_src) == 0 && lstat(out_file.c_str(), &file_so) == 0) {
+    //        if(file_src.st_mtime < file_so.st_mtime && file_so.st_size) {
+    //            LOG_DEBUG("Skip build %s", out_file.c_str());
+    //            return true;
+    //        }
+    //    }
+    //}
 
-    std::remove(out_file.c_str());
+    //std::remove(out_file.c_str());
 
 
-    //g++ -std=c++17  -c -g -DDEBUG -DLOG_LEVEL_NORMAL=LOG_LEVEL_DEBUG -DUNITTEST -I.. -I../contrib/googletest/googletest -I../contrib/googletest/googletest/include -MMD -MP -MF "test_gen.cpp.o.d" -o test_out.o test_gen.cpp
+    ////g++ -std=c++17  -c -g -DDEBUG -DLOG_LEVEL_NORMAL=LOG_LEVEL_DEBUG -DUNITTEST -I.. -I../contrib/googletest/googletest -I../contrib/googletest/googletest/include -MMD -MP -MF "test_gen.cpp.o.d" -o test_out.o test_gen.cpp
 
-    std::string exec("cd ");
-    exec.append(dir);
-    exec.append(" && ");
+    //std::string exec("cd ");
+    //exec.append(dir);
+    //exec.append(" && ");
 
-    exec.append("g++ -std=c++14 -Werror=return-type -c -g -fPIC -DDEBUG -DLOG_LEVEL_NORMAL=LOG_LEVEL_DEBUG ");
-    if(opts) {
-        exec.append(opts);
-    }
-    exec.append(" -I.. -I../contrib/googletest/googletest -I../contrib/googletest/googletest/include -I../contrib/torch/include/torch/csrc/api/include -I../contrib/torch/include -MMD -MP -MF \"");
-    exec.append(in_file);
-    exec.append(".o.d\" -o ");
-    exec.append(in_file);
-    exec.append(".o ");
-    exec.append(in_file);
+    //exec.append("g++ -std=c++14 -Werror=return-type -c -g -fPIC -DDEBUG -DLOG_LEVEL_NORMAL=LOG_LEVEL_DEBUG ");
+    //if(opts) {
+    //    exec.append(opts);
+    //}
+    //exec.append(" -I.. -I../contrib/googletest/googletest -I../contrib/googletest/googletest/include -I../contrib/torch/include/torch/csrc/api/include -I../contrib/torch/include -MMD -MP -MF \"");
+    //exec.append(in_file);
+    //exec.append(".o.d\" -o ");
+    //exec.append(in_file);
+    //exec.append(".o ");
+    //exec.append(in_file);
 
-    exec.append(" && ");
+    //exec.append(" && ");
 
-    //g++ -o test_gen.so test_gen.o -shared -fPIC
-    exec.append("g++ -o ");
-    exec.append(out_file);
-    exec.append(" ");
-    exec.append(in_file);
-    exec.append(".o -shared -fPIC");
+    ////g++ -o test_gen.so test_gen.o -shared -fPIC
+    //exec.append("g++ -o ");
+    //exec.append(out_file);
+    //exec.append(" ");
+    //exec.append(in_file);
+    //exec.append(".o -shared -fPIC");
 
-    LOG_DEBUG("%s", exec.c_str());
+    //LOG_DEBUG("%s", exec.c_str());
 
-    return Execute(exec.c_str(), out, exit_code);
+    //return Execute(exec.c_str(), out, exit_code);
+    return false;
 }
 
 NewLang::NewLang(RuntimePtr rt) : m_runtime(rt) {
@@ -1200,14 +1202,14 @@ ObjPtr NewLang::GetIndexField(Context *ctx, ObjPtr obj, TermPtr term, bool creat
 //            }
 //            return lval;
 //
-//        } else if(term_id == TermID::SIMPLE || term_id == TermID::FUNCTION || term_id == TermID::TRANSPARENT) {
+//        } else if(term_id == TermID::SIMPLE || term_id == TermID::FUNCTION || term_id == TermID::PUREFUNC) {
 //            if(!make_function) { // Игнорировать определения функций при выполнении
 //                // Ничего не делаем
 //                ObjType type;
 //                switch(term_id) {
 //                    case TermID::SIMPLE:
-//                    case TermID::TRANSPARENT:
-//                        type = ObjType::TRANSPARENT;
+//                    case TermID::PUREFUNC:
+//                        type = ObjType::PUREFUNC;
 //                        break;
 //                    case TermID::FUNCTION:
 //                        type = ObjType::FUNCTION;
@@ -1277,8 +1279,8 @@ bool RunTime::LoadModule(const char *name_str, bool init, Context *ctx, const ch
 //                ObjType type;
 //                switch(proto->getTermID()) {
 //                    case TermID::SIMPLE:
-//                    case TermID::TRANSPARENT:
-//                        type = ObjType::TRANSPARENT;
+//                    case TermID::PUREFUNC:
+//                        type = ObjType::PUREFUNC;
 //                        break;
 //                    case TermID::FUNCTION:
 //                        type = ObjType::FUNCTION;
@@ -1386,7 +1388,7 @@ bool CheckClearFunction(TermPtr term) {
 //    }
 //
 //    for (auto &elem : m_global_funcs) {
-//        if((elem.second->m_func_source) && ((elem.second->m_func_source)->getTermID() == TermID::SIMPLE || (elem.second->m_func_source)->getTermID() == TermID::TRANSPARENT)) {
+//        if((elem.second->m_func_source) && ((elem.second->m_func_source)->getTermID() == TermID::SIMPLE || (elem.second->m_func_source)->getTermID() == TermID::PUREFUNC)) {
 //            TermPtr term = (elem.second->m_func_source)->Right();
 //            if(!CheckClearFunction(term)) {
 //                LOG_DEBUG("The function '%s' cannot be saved because it is not clean!", elem.second->m_func_source->Left()->toString().c_str());
@@ -1404,8 +1406,8 @@ bool CheckClearFunction(TermPtr term) {
 //    return RunTime::Instance()->ExecModule(name, ReplaceFileExt(name, ".ctx", ".nlm").c_str(), true, ctx)->getType() != ObjType::Error;
 //}
 
-ObjPtr RunTime::ExecModule(const char *module, const char *output, bool cached, Context * ctx) {
-    std::string source = ReadFile(module);
+ObjPtr RunTime::ExecModule(const char *mod, const char *output, bool cached, Context * ctx) {
+    /*std::string source = ReadFile(mod);
     Obj args;
     if(cached && access(output, F_OK) != -1 && LoadModule(output, true)) {
         if(m_modules[output]->m_source && *(m_modules[output]->m_source) && source.compare(*(m_modules[output]->m_source)) == 0) {
@@ -1417,8 +1419,9 @@ ObjPtr RunTime::ExecModule(const char *module, const char *output, bool cached, 
     }
     if(NewLang::CompileModule(module, output) && LoadModule(output)) {
         return m_modules[output]->Main(ctx, args);
-    }
-    LOG_RUNTIME("Fail compile module '%s' form file '%s'.", output, module);
+    }*/
+    LOG_RUNTIME("Fail compile module '%s' form file '%s'.", output, mod);
+    return nullptr; 
 }
 
 void NewLang::ReplaceSourceVariable(CompileInfo &ci, size_t count, std::string &body) {
@@ -1449,7 +1452,6 @@ std::string NewLang::GetImpl(CompileInfo &ci, TermPtr term, std::string &output)
     std::string temp;
 
     std::string temp2;
-    size_t index;
     std::vector<std::string> iters;
     TermPtr proto;
     TermPtr proto2;
@@ -1490,7 +1492,7 @@ std::string NewLang::GetImpl(CompileInfo &ci, TermPtr term, std::string &output)
 
         case TermID::DICT:
             temp = "";
-            for (size_t i = 0; i < term->size(); i++) {
+            for (int i = 0; i < term->size(); i++) {
                 if(!temp.empty()) {
                     temp += ", ";
                 }
@@ -1663,7 +1665,7 @@ std::string NewLang::GetImpl(CompileInfo &ci, TermPtr term, std::string &output)
             ASSERT(term->Left());
             result = BeginIterators(ci, term->Left(), output, iters);
 
-            for (size_t i = 0; i < iters.size(); i++) {
+            for (int i = 0; i < iters.size(); i++) {
                 output += ci.GetIndent(i) + "while(!" + iters[i] + ".complete()) {\n";
             }
 
@@ -1771,7 +1773,7 @@ std::string NewLang::MakeIteratorCallArgs_(CompileInfo &ci, TermPtr args, std::v
     std::string result;
     size_t iter_pos = 0;
 
-    for (size_t i = 0; i < args->size(); i++) {
+    for (int i = 0; i < args->size(); i++) {
         std::string impl;
 
         if(i) {
@@ -1815,7 +1817,7 @@ std::string NewLang::BeginIterators(CompileInfo &ci, TermPtr args, std::string &
 
     // Аргументы функции с локальным доступом по имени или ииндексу
     if(args->size()) {
-        for (size_t i = 0; i < args->size(); i++) {
+        for (int i = 0; i < args->size(); i++) {
             if((*args)[i]->GetTokenID() == TermID::ITERATOR) {
                 std::string name;
                 if((*args)[i]->getText().compare("!") == 0) {

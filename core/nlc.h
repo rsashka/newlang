@@ -40,12 +40,12 @@ namespace newlang {
     public:
 
 #define NLC_MODE(_) \
-    _(ERROR,    0) \
-    _(HELP,     1)\
-    _(VERSION,  2)\
-    _(INTERACTIVE, 3)\
-    _(EVAL,     4) \
-    _(EXEC,     5)
+    _(ModeError,    0) \
+    _(ModeHelp,     1)\
+    _(ModeVersion,  2)\
+    _(ModeInter,    3)\
+    _(ModeEval,     4) \
+    _(ModeExec,     5)
 
         //    _(COMPILE,  6)
 
@@ -89,13 +89,13 @@ namespace newlang {
         void *m_log_callback_arg_save;
 
         NLC() : m_ctx(RunTime::Init()) {
-            m_mode = Mode::ERROR;
+            m_mode = Mode::ModeError;
             m_log_callback_save = nullptr;
             m_log_callback_arg_save = nullptr;
         }
 
         NLC(int argc, const char** argv) : m_ctx(RunTime::Init(argc, argv)) {
-            m_mode = Mode::ERROR;
+            m_mode = Mode::ModeError;
             m_log_callback_save = nullptr;
             m_log_callback_arg_save = nullptr;
             ParseArgs(argc, argv);
@@ -120,7 +120,6 @@ namespace newlang {
             std::string s(str);
 
             size_t pos;
-            size_t end;
             s.erase(0, s.find_first_not_of(delim));
             while (!s.empty()) {
                 pos = s.find(delim);
@@ -150,7 +149,7 @@ namespace newlang {
             }
         }
 
-        bool ParseArgs(int argc, const char** argv) {
+        bool ParseArgs(int64_t argc, const char** argv) {
 
             if (!argc || !argv) {
                 m_output = "Bad args nullptr";
@@ -168,7 +167,7 @@ namespace newlang {
             }
 
 
-            m_mode = Mode::INTERACTIVE;
+            m_mode = Mode::ModeInter;
             if (argc) {
                 m_path = argv[0];
             } else {
@@ -212,9 +211,9 @@ namespace newlang {
                     ;
 
 
-            auto result = cli.parse({argc, argv});
+            auto result = cli.parse({static_cast<int>(argc), argv});
             if (!result) {
-                m_mode = Mode::ERROR;
+                m_mode = Mode::ModeError;
                 m_output = result.message();
                 return false;
             }
@@ -224,7 +223,7 @@ namespace newlang {
             }
 
             if (is_help) {
-                m_mode = Mode::HELP;
+                m_mode = Mode::ModeHelp;
                 std::ostringstream out;
                 out << cli;
                 m_output = out.str();
@@ -232,7 +231,7 @@ namespace newlang {
             }
 
             if (is_ver) {
-                m_mode = Mode::VERSION;
+                m_mode = Mode::ModeVersion;
                 m_output = "Version info";
                 return true;
             }
@@ -247,7 +246,7 @@ namespace newlang {
             cnt += !m_eval.empty();
 
             if (cnt > 1) {
-                m_mode = Mode::ERROR;
+                m_mode = Mode::ModeError;
                 m_output = "Select only one mode: Compile, eXec or Eval!";
                 //        } else if (!compile.empty()) {
                 //            m_mode = Mode::COMPILE;
@@ -256,12 +255,12 @@ namespace newlang {
                 //            m_mode = Mode::EXEC;
                 //            m_ifile = exec;
             } else if (!m_eval.empty() || !m_ifile.empty()) {
-                m_mode = Mode::EVAL;
+                m_mode = Mode::ModeEval;
             } else {
-                m_mode = Mode::INTERACTIVE;
+                m_mode = Mode::ModeInter;
             }
 
-            return m_mode != Mode::ERROR;
+            return m_mode != Mode::ModeError;
         }
 
         int Run() {
@@ -280,7 +279,7 @@ namespace newlang {
                 //                }
                 //            }
 
-                if (m_mode == Mode::ERROR || m_mode == Mode::VERSION || m_mode == Mode::HELP) {
+                if (m_mode == Mode::ModeError || m_mode == Mode::ModeVersion || m_mode == Mode::ModeHelp) {
                     LOG_INFO("%s", m_output.c_str());
                     return 0;
                     //            } else if (m_mode == Mode::COMPILE || m_mode == Mode::EXEC) {
@@ -309,7 +308,7 @@ namespace newlang {
                     //                        //                        m_output = result->GetValueAsString();
                     //                        break;
                     //                }
-                } else if (m_mode == Mode::EVAL) {
+                } else if (m_mode == Mode::ModeEval) {
                     if (!m_eval.empty() && !m_ifile.empty()) {
                         LOG_RUNTIME("Error at the same time specified a source file '%s' and an expression '%s' !", m_ifile.c_str(), m_eval.c_str());
                     } else if (!m_ifile.empty()) {
@@ -345,7 +344,7 @@ namespace newlang {
                         utils::Logger::Instance()->SetLogLevel(save_level);
                     }
                 } else {
-                    ASSERT(m_mode == Mode::INTERACTIVE);
+                    ASSERT(m_mode == Mode::ModeInter);
                     Interative();
                     //                LOG_INFO("%s", m_output.c_str());
                 }
@@ -388,14 +387,20 @@ namespace newlang {
 
 
             const char* title = ">";
+#ifdef _MSC_VER
+            COLOR_TYPE title_color = 0;
+            COLOR_TYPE predict_color = 0;
+            COLOR_TYPE main_color = 0;
+#else
             COLOR_TYPE title_color = "1";
             COLOR_TYPE predict_color = "80";
             COLOR_TYPE main_color = "0";
+#endif
 
             std::wstring buff;
 
             // Cursor offset in buffer for moving
-            int offset = 0;
+            int64_t offset = 0;
 
             color_print("Type ", predict_color);
             color_print("help()", main_color);
@@ -411,7 +416,7 @@ namespace newlang {
 
             while (1) {
 
-                int history_pos = history.size();
+                int64_t history_pos = history.size();
 
                 while (1) {
                     // Print title with title color
@@ -486,14 +491,14 @@ namespace newlang {
                         }
                         break;
                     }// Keyboard interrupt handler for Windows
-#if defined(OS_WINDOWS)
-                    else if (ch == CTRL_C) {
-                        predictions_free(pred);
-                        tree_free(rules);
-                        free(buff);
-                        exit(0);
-                    }
-#endif
+//#if defined(OS_WINDOWS)
+//                    else if (ch == CTRL_C) {
+//                        predictions_free(pred);
+//                        tree_free(rules);
+//                        free(buff);
+//                        exit(0);
+//                    }
+//#endif
                         // Edit buffer like backspace if BACKSPACE was pressed
                     else if (ch == KEY_BACKSPACE) {
                         if (buff.size() && buff.size() - offset >= 1) {
@@ -528,7 +533,7 @@ namespace newlang {
                         switch (_getch()) {
                             case KEY_LEFT:
                                 // Increase offset from the end of the buffer if left key pressed
-                                offset = (offset < buff.size()) ? (offset + 1) : buff.size();
+                                offset = (offset < static_cast<int64_t>(buff.size())) ? (offset + 1) : buff.size();
                                 break;
                             case KEY_RIGHT:
                                 // Decrease offset from the end of the buffer if left key pressed
@@ -542,7 +547,7 @@ namespace newlang {
                                 }
                                 break;
                             case KEY_DOWN:
-                                if (!history.empty() && history_pos + 1 < history.size()) {
+                                if (!history.empty() && history_pos + 1 < static_cast<int64_t>(history.size())) {
                                     clear_line();
                                     history_pos++;
                                     buff = utf8_decode(history[history_pos]);

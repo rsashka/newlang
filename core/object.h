@@ -46,20 +46,28 @@ namespace newlang {
      */
     int64_t ConcatData(Obj *dest, Obj &src, ConcatMode mode = ConcatMode::Error);
 
-    inline std::string utf8_encode(const std::wstring_view source) {
-        try {
-            return std::wstring_convert < std::codecvt_utf8<wchar_t>>().to_bytes(source.cbegin(), source.cend());
-        } catch (std::exception &err) {
-            return err.what();
+    // Convert a wide Unicode string to an UTF8 string
+
+    inline std::string utf8_encode(const std::wstring wstr) {
+        std::string utf8line;
+
+        if (wstr.empty()) {
+            return utf8line;
         }
+        utf8line = std::wstring_convert < std::codecvt_utf8<wchar_t>>().to_bytes(wstr.c_str());
+        return utf8line;
     }
 
-    inline std::wstring utf8_decode(const std::string_view source) {
-        try {
-            return std::wstring_convert < std::codecvt_utf8<wchar_t>>().from_bytes(source.cbegin(), source.cend());
-        } catch (std::exception &err) {
-            return std::wstring_convert < std::codecvt_utf8<wchar_t>>().from_bytes(err.what());
+    // Convert an UTF8 string to a wide Unicode String
+
+    inline std::wstring utf8_decode(const std::string str) {
+        std::wstring wide_line;
+
+        if (str.empty()) {
+            return wide_line;
         }
+        wide_line = std::wstring_convert < std::codecvt_utf8<wchar_t>>().from_bytes(str.c_str());
+        return wide_line;
     }
 
     ObjType getSummaryTensorType(ObjPtr & obj, ObjType start);
@@ -97,28 +105,28 @@ namespace newlang {
             m_var_type_fixed = fixed;
         }
 
-        template < typename T >
-        Obj(T data, typename std::enable_if<!std::is_reference<T>::value>::type* = 0) {
-            m_var_type_current = ObjType::Dictionary;
-            m_var_type_fixed = ObjType::Dictionary;
-            m_dimensions = nullptr;
-            push_front(Arg(data));
-        }
-
-        template < typename T >
-        Obj(T &data, typename std::enable_if<std::is_reference<T>::value>::type* = 0) {
-            m_var_type_current = ObjType::Dictionary;
-            m_var_type_fixed = ObjType::Dictionary;
-            m_dimensions = nullptr;
-            push_front(Arg(data));
-        }
+        //        template < typename T >
+        //        Obj(T data, typename std::enable_if<!std::is_reference<T>::value>::type* = 0) {
+        //            m_var_type_current = ObjType::Dictionary;
+        //            m_var_type_fixed = ObjType::Dictionary;
+        //            m_dimensions = nullptr;
+        //            push_front(Arg(data, nullptr));
+        //        }
+        //
+        //        template < typename T >
+        //        Obj(T &data, typename std::enable_if<std::is_reference<T>::value>::type* = 0) {
+        //            m_var_type_current = ObjType::Dictionary;
+        //            m_var_type_fixed = ObjType::Dictionary;
+        //            m_dimensions = nullptr;
+        //            push_front(Arg(data, nullptr));
+        //        }
 
         Obj(Context *ctx, const TermPtr term, bool as_value, Obj *local_vars);
 
-        template <typename A, typename... T>
-        inline Obj(A arg, T... rest) : Obj(rest...) {
-            push_front(Arg(arg));
-        }
+        //        template <typename A, typename... T>
+        //        inline Obj(A arg, T... rest) : Obj(rest...) {
+        //            push_front(Arg(arg));
+        //        }
 
         [[nodiscard]]
         static inline PairType ArgNull(const std::string name = "") {
@@ -135,23 +143,20 @@ namespace newlang {
             return Variable<ObjPtr>::pair(value, name);
         }
 
-        template<typename T>
-        typename std::enable_if<std::is_same<PairType, T>::value, PairType>::type
-        __attribute__ ((warn_unused_result))
-        static inline Arg(T value) {
-            return value;
-        }
+        //        template<typename T>
+        //        typename std::enable_if<std::is_same<PairType, T>::value, PairType>::type
+        //        static inline Arg(T value) {
+        //            return value;
+        //        }
 
         template<typename T>
         typename std::enable_if<std::is_pointer<T>::value || std::is_same<std::string, T>::value, PairType>::type
-        __attribute__ ((warn_unused_result))
         static inline Arg(T value, const std::string name = "") {
             return pair(CreateString(value), name);
         }
 
         template<typename T>
         typename std::enable_if<!std::is_same<PairType, T>::value && !std::is_pointer<T>::value && !std::is_same<std::string, T>::value, PairType>::type
-        __attribute__ ((warn_unused_result))
         static inline Arg(T value, const std::string name = "") {
             return Variable<ObjPtr>::pair(CreateValue(value, ObjType::None), name);
         }
@@ -160,7 +165,7 @@ namespace newlang {
             try {
                 return shared_from_this();
             } catch (std::bad_weak_ptr &err) {
-                LOG_RUNTIME("Exception thrown bad_weak_ptr!");
+                LOG_RUNTIME("Exception thrown bad_weak_ptr! %s", err.what());
             }
         }
 
@@ -282,7 +287,7 @@ namespace newlang {
 
         [[nodiscard]]
         inline bool is_other_type() const {
-            return !(is_none_type() || is_bool_type() | is_arithmetic_type() || is_string_type() || is_dictionary_type());
+            return !(is_none_type() || is_bool_type() || is_arithmetic_type() || is_string_type() || is_dictionary_type());
         }
 
         [[nodiscard]]
@@ -384,24 +389,33 @@ namespace newlang {
             return Variable<ObjPtr>::empty();
         }
 
-        inline ObjPtr at(const std::string_view name) {
-            return Variable<ObjPtr>::at(name.begin()).second;
+        //        virtual ObjPtr at(const std::string name) {
+        //            return Variable<ObjPtr>::at(name.begin()).second;
+        //        }
+        //
+        //        virtual ObjPtr at(const std::string name) const {
+        //            Obj * const obj = (Obj * const) this;
+        //            return obj->Variable<ObjPtr>::at(name.begin()).second;
+        //            //        return Variable<ObjPtr>::at(name.begin()).second;
+        //        }
+
+        Variable<ObjPtr>::PairType & at(const std::string_view name) const {
+            Obj * const obj = (Obj * const) this;
+            return obj->Variable<ObjPtr>::at(name);
         }
 
-        inline ObjPtr at(const std::string_view name) const {
-            Obj * const obj = (Obj * const) this;
-            return obj->Variable<ObjPtr>::at(name.begin()).second;
-            //        return Variable<ObjPtr>::at(name.begin()).second;
+        Variable<ObjPtr>::PairType & at(const std::string_view name) override {
+            return Variable<ObjPtr>::at(name);
         }
 
         Variable<ObjPtr>::PairType & at(const int64_t index) override;
         const Variable<ObjPtr>::PairType & at(const int64_t index) const override;
 
-        ObjPtr & at(ObjPtr find) {
+        Variable<ObjPtr>::PairType & at(ObjPtr find) {
             if (!find->is_string_type()) {
                 LOG_RUNTIME("Value must be a string type %d", (int) find->getType());
             }
-            return Variable<ObjPtr>::at(find->GetValueAsString()).second;
+            return Variable<ObjPtr>::at(find->GetValueAsString());
         }
 
         bool exist(ObjPtr &find, bool strong);
@@ -425,8 +439,12 @@ namespace newlang {
         template <typename... T>
         typename std::enable_if<is_all<Obj::PairType, T ...>::value, ObjPtr>::type
         inline operator()(Context *ctx, T ... args) {
-            Obj list = Obj(args...);
-            return Call(ctx, &list);
+            auto list = {args...};
+            Obj arg;
+            for (auto &elem : list) {
+                arg.push_back(elem);
+            }
+            return Call(ctx, &arg);
         }
 
         inline ObjPtr Call(Context *ctx) {
@@ -437,8 +455,12 @@ namespace newlang {
         template <typename... T>
         typename std::enable_if<is_all<Obj::PairType, T ...>::value, ObjPtr>::type
         inline Call(Context *ctx, T ... args) {
-            Obj list = Obj(args...);
-            return Call(ctx, &list);
+            auto list = {args...};
+            Obj arg;
+            for (auto &elem : list) {
+                arg.push_back(elem);
+            }
+            return Call(ctx, &arg);
         }
 
         ObjPtr Call(Context *ctx, Obj *args);
@@ -953,7 +975,7 @@ namespace newlang {
                 case ObjType::Float:
                 case ObjType::Double:
                 case ObjType::Number:
-                    return m_value.item<double>();
+                    return static_cast<int64_t> (m_value.item<double>());
 
                 case ObjType::StrWide:
                     return std::stoll(m_wstr);
@@ -982,7 +1004,7 @@ namespace newlang {
 
                 default:
                     if (is_simple()) {
-                        return GetValueAsInteger();
+                        return static_cast<double> (GetValueAsInteger());
                     }
             }
             LOG_RUNTIME("Data type incompatible %s", toString().c_str());
@@ -1243,7 +1265,7 @@ namespace newlang {
 
         std::vector<int64_t> toIntVector(bool raise = true) const {
             std::vector<int64_t> result;
-            for (size_t i = 0; i < size(); i++) {
+            for (int i = 0; i < size(); i++) {
                 if (raise && !at(i).second->is_integer()) {
                     LOG_RUNTIME("Item does not contain an integer value! '%s'", at(i).second->GetValueAsString().c_str());
                 }
@@ -1610,7 +1632,7 @@ namespace newlang {
                 m_var_is_init = true;
 
                 return;
-            } else if ((is_none_type() || m_var_type_current == ObjType::FUNCTION) && value->is_function()) {
+            } else if ((is_none_type() || m_var_type_current == ObjType::Function) && value->is_function()) {
                 //@todo Check function type args !!!
 
                 std::string old_name = m_var_name;
@@ -1620,7 +1642,7 @@ namespace newlang {
                 m_var_is_init = true;
 
                 return;
-            } else if ((is_none_type() || m_var_type_current == ObjType::FUNCTION || m_var_type_current == ObjType::EVAL_FUNCTION) && (value->m_var_type_current == ObjType::BLOCK || value->m_var_type_current == ObjType::BLOCK_TRY)) {
+            } else if ((is_none_type() || m_var_type_current == ObjType::Function || m_var_type_current == ObjType::EVAL_FUNCTION) && (value->m_var_type_current == ObjType::BLOCK || value->m_var_type_current == ObjType::BLOCK_TRY)) {
                 //@todo Check function type args !!!
 
                 //            std::string old_name = m_var_name;
@@ -1671,9 +1693,9 @@ namespace newlang {
 
 
         static ObjPtr CreateFunc(Context *ctx, TermPtr proto, ObjType type, const std::string var_name = "");
-        static ObjPtr CreateFunc(std::string proto, FunctionType *func_addr, ObjType type = ObjType::FUNCTION);
+        static ObjPtr CreateFunc(std::string proto, FunctionType *func_addr, ObjType type = ObjType::Function);
 
-        ObjPtr ConvertToArgs(Obj &args, bool check_valid, Context *ctx) const {
+        ObjPtr ConvertToArgs(Obj *args, bool check_valid, Context *ctx) const {
             ObjPtr result = Clone();
             result->ConvertToArgs_(args, check_valid, ctx);
 
@@ -1690,7 +1712,7 @@ namespace newlang {
 
     protected:
 
-        void ConvertToArgs_(Obj &args, bool check_valid, Context *ctx = nullptr); // Обновить параметры для вызова функции или элементы у словаря при создании копии
+        void ConvertToArgs_(Obj *args, bool check_valid, Context *ctx = nullptr); // Обновить параметры для вызова функции или элементы у словаря при создании копии
 
     public:
 

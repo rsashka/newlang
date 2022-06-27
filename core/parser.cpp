@@ -11,7 +11,7 @@ Parser::Parser(TermPtr &ast) : m_ast(ast) {
     m_ast = Term::Create(TermID::END, "");
 }
 
-bool Parser::parse_stream(std::istream& in, const std::string_view sname) {
+bool Parser::parse_stream(std::istream& in, const std::string sname) {
     streamname = sname;
 
     Scanner scanner(&in);
@@ -23,15 +23,15 @@ bool Parser::parse_stream(std::istream& in, const std::string_view sname) {
     return (parser.parse() == 0);
 }
 
-bool Parser::parse_file(const std::string_view filename) {
-    std::ifstream in(filename.begin());
+bool Parser::parse_file(const std::string filename) {
+    std::ifstream in(filename);
     if (!in.good()) return false;
-    return parse_stream(in, filename.begin());
+    return parse_stream(in, filename.c_str());
 }
 
-bool Parser::parse_string(const std::string_view input, const std::string_view sname) {
-    std::istringstream iss(input.begin());
-    return parse_stream(iss, sname.begin());
+bool Parser::parse_string(const std::string input, const std::string sname) {
+    std::istringstream iss(input.c_str());
+    return parse_stream(iss, sname.c_str());
 }
 
 TermPtr Parser::Parse(const std::string_view input, MacrosStore *store) {

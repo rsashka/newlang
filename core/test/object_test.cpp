@@ -509,14 +509,14 @@ TEST(Args, All) {
     //    ASSERT_FALSE(proto1.m_is_ellipsis);
 
 
-    Obj arg_999(Obj::CreateValue(999, ObjType::None));
-    EXPECT_EQ(ObjType::Short, arg_999[0]->getType()) << torch::toString(toTorchType(arg_999[0]->getType()));
+    ObjPtr arg_999(Obj::CreateValue(999, ObjType::None));
+    EXPECT_EQ(ObjType::Short, (*arg_999)[0]->getType()) << torch::toString(toTorchType((*arg_999)[0]->getType()));
 
-    Obj arg_empty_named(Obj::Arg());
-    ASSERT_EQ(ObjType::None, arg_empty_named[0]->getType());
+    ObjPtr arg_empty_named = Obj::CreateDict(Obj::Arg());
+    ASSERT_EQ(ObjType::None, (*arg_empty_named)[0]->getType());
 
-    Obj arg_123_named(Obj::Arg(123, "named"));
-    EXPECT_EQ(ObjType::Char, arg_123_named[0]->getType()) << torch::toString(toTorchType(arg_123_named[0]->getType()));
+    ObjPtr arg_123_named = Obj::CreateDict(Obj::Arg(123, "named"));
+    EXPECT_EQ(ObjType::Char, (*arg_123_named)[0]->getType()) << torch::toString(toTorchType((*arg_123_named)[0]->getType()));
 
     ObjPtr arg_999_123_named = Obj::CreateDict();
     ASSERT_EQ(0, arg_999_123_named->size());
@@ -525,9 +525,9 @@ TEST(Args, All) {
     *arg_999_123_named += arg_123_named;
     ASSERT_EQ(2, arg_999_123_named->size());
 
-    ASSERT_ANY_THROW(proto1.ConvertToArgs(arg_999, true, nullptr)); // Прототип не принимает позиционных аргументов
+    ASSERT_ANY_THROW(proto1.ConvertToArgs(arg_999.get(), true, nullptr)); // Прототип не принимает позиционных аргументов
 
-    ASSERT_ANY_THROW(proto1.ConvertToArgs(arg_empty_named, true, nullptr)); // Прототип не принимает именованных аргументов
+    ASSERT_ANY_THROW(proto1.ConvertToArgs(arg_empty_named.get(), true, nullptr)); // Прототип не принимает именованных аргументов
 
 
     ASSERT_TRUE(p.Parse("test(arg1)"));
@@ -537,16 +537,16 @@ TEST(Args, All) {
     ASSERT_STREQ("arg1", proto2.name(0).c_str());
     ASSERT_EQ(nullptr, proto2.at(0).second);
 
-    ObjPtr o_arg_999 = proto2.ConvertToArgs(arg_999, true, nullptr);
+    ObjPtr o_arg_999 = proto2.ConvertToArgs(arg_999.get(), true, nullptr);
     ASSERT_TRUE((*o_arg_999)[0]);
     ASSERT_STREQ("999", (*o_arg_999)[0]->toString().c_str());
 
     //    proto2[0].reset(); // Иначе типы гурментов буду отличаться
-    ObjPtr o_arg_empty_named = proto2.ConvertToArgs(arg_empty_named, false, nullptr);
+    ObjPtr o_arg_empty_named = proto2.ConvertToArgs(arg_empty_named.get(), false, nullptr);
     ASSERT_TRUE((*o_arg_empty_named)[0]);
     ASSERT_STREQ("_", (*o_arg_empty_named)[0]->toString().c_str());
 
-    ASSERT_ANY_THROW(proto2.ConvertToArgs(arg_123_named, true, nullptr)); // Имя аругмента отличается
+    ASSERT_ANY_THROW(proto2.ConvertToArgs(arg_123_named.get(), true, nullptr)); // Имя аругмента отличается
 
 
     // Нормальный вызов
@@ -560,21 +560,21 @@ TEST(Args, All) {
     ASSERT_STREQ("...", proto3.name(1).c_str());
     ASSERT_FALSE(proto3.at(1).second);
 
-    ObjPtr proto3_arg = proto3.ConvertToArgs(arg_999, true, nullptr);
+    ObjPtr proto3_arg = proto3.ConvertToArgs(arg_999.get(), true, nullptr);
     ASSERT_EQ(1, proto3_arg->size());
     ASSERT_TRUE((*proto3_arg)[0]);
     ASSERT_STREQ("999", (*proto3_arg)[0]->toString().c_str());
     ASSERT_STREQ("empty", proto3_arg->name(0).c_str());
 
     // Дополнительный аргумент
-    Obj arg_extra(Obj::CreateValue(999, ObjType::None), Obj::Arg(123, "named"));
+    ObjPtr arg_extra = Obj::CreateDict(Obj::Arg(Obj::CreateValue(999, ObjType::None)), Obj::Arg(123, "named"));
 
-    ASSERT_EQ(2, arg_extra.size());
-    EXPECT_EQ(ObjType::Short, arg_extra[0]->getType()) << torch::toString(toTorchType(arg_extra[0]->getType()));
-    EXPECT_EQ(ObjType::Char, arg_extra[1]->getType()) << torch::toString(toTorchType(arg_extra[1]->getType()));
+    ASSERT_EQ(2, arg_extra->size());
+    EXPECT_EQ(ObjType::Short, (*arg_extra)[0]->getType()) << torch::toString(toTorchType((*arg_extra)[0]->getType()));
+    EXPECT_EQ(ObjType::Char, (*arg_extra)[1]->getType()) << torch::toString(toTorchType((*arg_extra)[1]->getType()));
 
 
-    ObjPtr proto3_extra = proto3.ConvertToArgs(arg_extra, true, nullptr);
+    ObjPtr proto3_extra = proto3.ConvertToArgs(arg_extra.get(), true, nullptr);
     ASSERT_EQ(2, proto3_extra->size());
     ASSERT_STREQ("999", (*proto3_extra)[0]->toString().c_str());
     ASSERT_STREQ("empty", proto3_extra->name(0).c_str());
@@ -600,9 +600,9 @@ TEST(Args, All) {
     ASSERT_STREQ("arg1", proto_str.at(0).first.c_str());
     ASSERT_EQ(nullptr, proto_str[0]);
 
-    Obj arg_str(Obj::Arg(L"СТРОКА", "str"), Obj::Arg(555, "arg1"));
+    ObjPtr arg_str = Obj::CreateDict(Obj::Arg(L"СТРОКА", "str"), Obj::Arg(555, "arg1"));
 
-    ObjPtr proto_str_arg = proto_str.ConvertToArgs(arg_str, true, nullptr);
+    ObjPtr proto_str_arg = proto_str.ConvertToArgs(arg_str.get(), true, nullptr);
     ASSERT_STREQ("arg1", proto_str_arg->at(0).first.c_str());
     ASSERT_TRUE(proto_str_arg->at(0).second);
     ASSERT_STREQ("555", (*proto_str_arg)[0]->toString().c_str());
@@ -618,7 +618,7 @@ TEST(Args, All) {
     ASSERT_STREQ("arg1", proto_any.at(0).first.c_str());
     ASSERT_EQ(nullptr, proto_any.at(0).second);
 
-    ObjPtr any = proto_any.ConvertToArgs(arg_str, true, nullptr);
+    ObjPtr any = proto_any.ConvertToArgs(arg_str.get(), true, nullptr);
     ASSERT_EQ(2, any->size());
     ASSERT_STREQ("arg1", any->at(0).first.c_str());
     ASSERT_TRUE(any->at(0).second);
@@ -630,8 +630,8 @@ TEST(Args, All) {
     //
     ASSERT_TRUE(p.Parse("min(arg, ...) := {}"));
     Obj min_proto(&ctx, ast->Left(), false, &local);
-    Obj min_args(Obj::Arg(200), Obj::Arg(100), Obj::Arg(300)); // min(200,100,300)
-    ObjPtr min_arg = min_proto.ConvertToArgs(min_args, true, nullptr);
+    ObjPtr min_args = Obj::CreateDict(Obj::Arg(200), Obj::Arg(100), Obj::Arg(300));
+    ObjPtr min_arg = min_proto.ConvertToArgs(min_args.get(), true, nullptr);
 
     ASSERT_EQ(3, min_arg->size());
     ASSERT_STREQ("200", (*min_arg)[0]->toString().c_str());

@@ -29,7 +29,7 @@ class Obj;
 class Context;
 class NewLang;
 class RunTime;
-class CompileInfo;
+struct CompileInfo;
 
 typedef std::shared_ptr<Term> TermPtr;
 typedef std::shared_ptr<Obj> ObjPtr;
@@ -76,7 +76,7 @@ void ParserException(const char *msg, std::string &buffer, int row, int col);
     do {                                                                                                               \
         std::string empty;                                                                                             \
         std::string message =                                                                                          \
-            ParserMessage(term->m_source ? *term->m_source : empty, term->m_line, term->m_col, format, ##__VA_ARGS__); \
+            newlang::ParserMessage(term->m_source ? *term->m_source : empty, term->m_line, term->m_col, format, ##__VA_ARGS__); \
         LOG_EXCEPT_LEVEL(Interrupt, LOG_LEVEL_INFO, "", "%s", message.c_str());                                 \
     } while (0)
 
@@ -97,7 +97,7 @@ void ParserException(const char *msg, std::string &buffer, int row, int col);
             message += "' (" __FILE__ ":" TO_STR(__LINE__) ")";                                                        \
             LOG_EXCEPT_LEVEL(                                                                                          \
                 Interrupt, LOG_LEVEL_INFO, "", "%s",                                                            \
-                ParserMessage(*term->m_source, term->m_line, term->m_col, "%s", message.c_str()).c_str());             \
+                newlang::ParserMessage(*term->m_source, term->m_line, term->m_col, "%s", message.c_str()).c_str());             \
         }                                                                                                              \
     } while (0)
 
@@ -148,9 +148,8 @@ void ParserException(const char *msg, std::string &buffer, int row, int col);
     \
     _(Pointer, 64)          \
     _(NativeFunc, 65)       \
-    _(FUNCTION, 100)        \
+    _(Function, 100)        \
     _(PureFunc, 101)        \
-    _(TRANSPARENT, 102)     \
     \
     _(Range, 104)           \
     _(Dictionary, 105)      \
@@ -165,7 +164,6 @@ void ParserException(const char *msg, std::string &buffer, int row, int col);
     _(SimplePureXOR, 114)   \
     \
     _(Eval, 118)            \
-    _(Function, 119)        \
     _(Other, 120)           \
     _(Plain, 121)           \
     _(Struct, 201)          \
@@ -285,14 +283,18 @@ void ParserException(const char *msg, std::string &buffer, int row, int col);
 #define DEFINE_ENUM(name, value) name = static_cast<uint8_t>(value),
         NL_TYPES(DEFINE_ENUM)
 #undef DEFINE_ENUM
+        _NumOptions
     };
+
+    constexpr uint16_t NumObjTypes = static_cast<uint16_t> (ObjType::_NumOptions);
+
 
 #define MAKE_TYPE_NAME(type_name)  type_name
 
     inline const char *toString(ObjType type) {
 #define DEFINE_CASE(name, _)                                                                                           \
     case ObjType::name:                                                                                                \
-        return MAKE_TYPE_NAME(":"#name);
+        return MAKE_TYPE_NAME(":" #name);
 
         switch (type) {
                 NL_TYPES(DEFINE_CASE)
@@ -334,7 +336,7 @@ void ParserException(const char *msg, std::string &buffer, int row, int col);
     }
 
     inline bool isFunction(ObjType t) {
-        return t == ObjType::TRANSPARENT || t == ObjType::FUNCTION || t == ObjType::NativeFunc ||
+        return t == ObjType::PureFunc || t == ObjType::Function || t == ObjType::NativeFunc ||
                 t == ObjType::EVAL_FUNCTION || t == ObjType::PureFunc || t == ObjType::SimplePureAND ||
                 t == ObjType::SimplePureOR || t == ObjType::SimplePureXOR;
     }
@@ -608,7 +610,7 @@ void ParserException(const char *msg, std::string &buffer, int row, int col);
                 case ObjType::Long:
                     ptr_long = self.data_ptr<long>();
                     ASSERT(ptr_long);
-                    *ptr_long = set.item().toLong();
+                    *ptr_long = static_cast<long> (set.item().toLong());
                     return;
                 case ObjType::Float:
                     ptr_float = self.data_ptr<float>();
@@ -653,7 +655,7 @@ void ParserException(const char *msg, std::string &buffer, int row, int col);
                 } else if (ObjType::Long == type) {
                     auto acc_long = self.accessor<long, 1>();
                     for (int i = 0; i < acc_long.size(0); i++) {
-                        acc_long[i] = set.item().toLong();
+                        acc_long[i] = static_cast<long> (set.item().toLong());
                     }
                     return;
                 } else if (ObjType::Float == type) {
@@ -707,7 +709,7 @@ void ParserException(const char *msg, std::string &buffer, int row, int col);
                     auto acc_long = self.accessor<long, 2>();
                     for (int i = 0; i < acc_long.size(0); i++) {
                         for (int j = 0; j < acc_long.size(1); j++) {
-                            acc_long[i][j] = set.item().toLong();
+                            acc_long[i][j] = static_cast<long> (set.item().toLong());
                         }
                     }
                     return;

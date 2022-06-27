@@ -305,11 +305,11 @@ namespace newlang {
             return find.empty() || (pos && find.size() == pos);
         }
 
-        std::vector<std::wstring> SelectPredict(std::wstring_view wstart, size_t overage_count = 0) {
+        std::vector<std::wstring> SelectPredict(std::wstring wstart, size_t overage_count = 0) {
             return SelectPredict(utf8_encode(wstart), overage_count);
         }
 
-        std::vector<std::wstring> SelectPredict(std::string_view start, size_t overage_count = 0) {
+        std::vector<std::wstring> SelectPredict(std::string start, size_t overage_count = 0) {
 
             std::vector<std::wstring> result;
 
@@ -321,11 +321,11 @@ namespace newlang {
 
             if (isGlobal(start)) {
                 prefix = start[0];
-                start.remove_prefix(1);
+                start = start.substr(1);
                 find_global = true;
             } else if (isLocal(start)) {
                 prefix = start[0];
-                start.remove_prefix(1);
+                start = start.substr(1);
                 find_local = true;
             } else if (isType(start)) {
                 //                prefix = start[0];
@@ -488,8 +488,8 @@ namespace newlang {
         }
 
         enum class MatchMode {
-            EQUAL,
-            STRICT,
+            MatchEqual,
+            MatchStrict,
             TYPE_NAME,
             TYPE_EQUAL,
             TYPE_STRICT,

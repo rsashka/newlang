@@ -14,16 +14,16 @@ GREP=grep
 NM=nm
 CCADMIN=CCadmin
 RANLIB=ranlib
-CC=gcc
-CCC=g++
-CXX=g++
+CC=i686-w64-mingw32-gcc-9.3-posix
+CCC=i686-w64-mingw32-g++-posix
+CXX=i686-w64-mingw32-g++-posix
 FC=gfortran
-AS=as
+AS=i686-w64-mingw32-as
 
 # Macros
-CND_PLATFORM=GNU-Linux
+CND_PLATFORM=Win32-i686-Linux
 CND_DLIB_EXT=so
-CND_CONF=UnitTest
+CND_CONF=UnitTest-Win32
 CND_DISTDIR=dist
 CND_BUILDDIR=build
 

@@ -36,11 +36,25 @@
 #pragma GCC diagnostic ignored "-Wnon-virtual-dtor"
 #pragma GCC diagnostic ignored "-Weffc++"
 #pragma GCC diagnostic ignored "-Wunused-parameter"
+#pragma GCC diagnostic ignored "-Wattributes"
+
 
                
 
 #elif _MSC_VER
 
-#error MS compiler not testesd!
+#pragma warning(push)
+#pragma warning(disable : 4244)
+#pragma warning(disable : 4251)
+#pragma warning(disable : 4624)
+#pragma warning(disable : 4067)
+#pragma warning(disable : 4275)
+#pragma warning(disable : 4101)
+#pragma warning(disable : 4267)
+#pragma warning(disable : 4015)
+#pragma warning(disable : 4014)
+#pragma warning(disable : 4067)
+#pragma warning(disable : 4005)
 
 #endif
+

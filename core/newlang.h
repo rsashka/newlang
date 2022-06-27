@@ -40,7 +40,7 @@ T repeat(T str, const std::size_t n) {
 }
 
 class Context;
-class CompileInfo;
+struct CompileInfo;
 
 class Module {
 public:
@@ -56,14 +56,22 @@ public:
 
     bool Load(const char *name) {
         m_name = name;
+#ifdef _MSC_VER
+        m_handle = nullptr;
+#else
         m_handle = dlopen(name, RTLD_LAZY | RTLD_LOCAL); // Для GCC нужно собирать с --no-gnu-unique для замены модулей в рантайме
+#endif
         return m_handle;
     }
 
     virtual ~Module() {
         //Если динамическая библиотека экпортировала функцию, названную _fini, то эта функция вызывается перед выгрузкой библиотеки.  
         if (m_handle) {
+#ifdef _MSC_VER
+        m_handle = nullptr;
+#else
             dlclose(m_handle);
+#endif
         }
         m_handle = nullptr;
     }
@@ -159,7 +167,7 @@ struct CompileInfo {
 
     size_t indent;
 
-    std::string GetIndent(int offset = 0) {
+    std::string GetIndent(int64_t offset = 0) {
         return repeat(std::string(NEWLANG_INDENT_OP), indent + offset);
     }
 

@@ -370,8 +370,8 @@ term    [$@%]({ualpha}|[_])?({name})?
 "{{"        YY_TOKEN_ONLY(TRY_BEGIN);
 "}}"        YY_TOKEN_ONLY(TRY_END);
 
-"::-"       YY_TOKEN(TRANSPARENT);
-":-"        YY_TOKEN(TRANSPARENT);
+"::-"       YY_TOKEN(PUREFUNC);
+":-"        YY_TOKEN(PUREFUNC);
 "::&&="     YY_TOKEN(SIMPLE_AND);
 ":&&="      YY_TOKEN(SIMPLE_AND);
 "::||="     YY_TOKEN(SIMPLE_OR);

@@ -62,6 +62,22 @@ CND_ARTIFACT_PATH_LLVM_GCC=dist/LLVM_GCC/GNU-Linux/core
 CND_PACKAGE_DIR_LLVM_GCC=dist/LLVM_GCC/GNU-Linux/package
 CND_PACKAGE_NAME_LLVM_GCC=core.tar
 CND_PACKAGE_PATH_LLVM_GCC=dist/LLVM_GCC/GNU-Linux/package/core.tar
+# UnitTest-Win64 configuration
+CND_PLATFORM_UnitTest-Win64=Win64-x86_64-Linux
+CND_ARTIFACT_DIR_UnitTest-Win64=
+CND_ARTIFACT_NAME_UnitTest-Win64=newlang_test
+CND_ARTIFACT_PATH_UnitTest-Win64=newlang_test
+CND_PACKAGE_DIR_UnitTest-Win64=dist/UnitTest-Win64/Win64-x86_64-Linux/package
+CND_PACKAGE_NAME_UnitTest-Win64=core.tar
+CND_PACKAGE_PATH_UnitTest-Win64=dist/UnitTest-Win64/Win64-x86_64-Linux/package/core.tar
+# UnitTest-Win32 configuration
+CND_PLATFORM_UnitTest-Win32=Win32-i686-Linux
+CND_ARTIFACT_DIR_UnitTest-Win32=
+CND_ARTIFACT_NAME_UnitTest-Win32=newlang_test
+CND_ARTIFACT_PATH_UnitTest-Win32=newlang_test
+CND_PACKAGE_DIR_UnitTest-Win32=dist/UnitTest-Win32/Win32-i686-Linux/package
+CND_PACKAGE_NAME_UnitTest-Win32=core.tar
+CND_PACKAGE_PATH_UnitTest-Win32=dist/UnitTest-Win32/Win32-i686-Linux/package/core.tar
 #
 # include compiler specific variables
 #

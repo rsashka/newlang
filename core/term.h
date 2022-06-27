@@ -52,7 +52,7 @@ namespace newlang {
         _(SIMPLE_AND) \
         _(SIMPLE_OR) \
         _(SIMPLE_XOR) \
-        _(TRANSPARENT) \
+        _(PUREFUNC) \
         _(ITERATOR) \
         _(ITERATOR_QQ)\
         _(FOLLOW) \
@@ -100,6 +100,7 @@ namespace newlang {
     }
 
     size_t IndexArg(TermPtr term);
+    std::string ParserMessage(std::string &buffer, int row, int col, const char *format, ...);
 
     class Term : public Variable<TermPtr>, public std::enable_shared_from_this<Term> {
     public:
@@ -175,7 +176,7 @@ namespace newlang {
         }
 
         inline bool IsFunction() {
-            return m_id == TermID::FUNCTION || m_id == TermID::TRANSPARENT || m_id == TermID::SIMPLE_AND || m_id == TermID::SIMPLE_OR || m_id == TermID::SIMPLE_XOR;
+            return m_id == TermID::FUNCTION || m_id == TermID::PUREFUNC || m_id == TermID::SIMPLE_AND || m_id == TermID::SIMPLE_OR || m_id == TermID::SIMPLE_XOR;
         }
 
         inline bool IsVariable() {
@@ -270,8 +271,8 @@ namespace newlang {
                 ASSERT(this != Left().get());
                 result += Left()->toString();
             }
+
             TermPtr temp;
-            size_t dot, last;
             bool test;
             switch (m_id) {
                 case TermID::END:// name=<END>
@@ -415,7 +416,7 @@ namespace newlang {
                     }
                     return result;
                 case TermID::FUNCTION:
-                case TermID::TRANSPARENT:
+                case TermID::PUREFUNC:
 
                     result += " " + m_text + " ";
                     result.insert(0, m_namespace);
@@ -424,7 +425,7 @@ namespace newlang {
                     if (m_right->GetTokenID() != TermID::SOURCE && !result.empty() && result[result.size() - 1] != ';') {
                         result += ";";
                     }
-                    for (size_t i = 0; i < m_right->size(); i++) {
+                    for (int i = 0; i < m_right->size(); i++) {
                         result += m_right->at(i).second->toString();
                     }
                     //                result += "};";
@@ -699,7 +700,7 @@ namespace newlang {
             if (m_type && m_type.get() != this) {
                 m_type->SetSource(source);
             }
-            for (size_t i = 0; i < size(); i++) {
+            for (int i = 0; i < size(); i++) {
                 at(i).second->SetSource(m_source);
             }
             for (auto &elem : m_block) {

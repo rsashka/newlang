@@ -883,9 +883,9 @@ protected:
     OpEvalTest() : m_ctx(RunTime::Init()) {
     }
 
-    const char *Test(std::string eval, Obj &vars) {
+    const char *Test(std::string eval, Obj *vars) {
         eval += ";";
-        m_result = m_ctx.ExecStr(eval, &vars);
+        m_result = m_ctx.ExecStr(eval, vars);
         if(m_result) {
             m_string = m_result->GetValueAsString();
             return m_string.c_str();
@@ -899,7 +899,7 @@ protected:
     const char *Test(const char *eval) {
         Obj vars;
 
-        return Test(eval, vars);
+        return Test(eval, &vars);
     }
 };
 
@@ -947,11 +947,11 @@ TEST_F(OpEvalTest, Ops) {
     ASSERT_STREQ("$=('var1',)", Test("$"));
     ASSERT_STREQ("100", Test("var1"));
 
-    Obj vars(Obj::Arg(var1, "var1"));
+    ObjPtr vars = Obj::CreateDict(Obj::Arg(var1, "var1"));
 
     ASSERT_ANY_THROW(Test("$var1"));
-    ASSERT_NO_THROW(Test("$var1", vars));
-    ASSERT_STREQ("100", Test("$var1", vars));
+    ASSERT_NO_THROW(Test("$var1", vars.get()));
+    ASSERT_STREQ("100", Test("$var1", vars.get()));
 
     ASSERT_STREQ("20", Test("var2:=9+11"));
     ObjPtr var2 = m_result;
@@ -960,21 +960,21 @@ TEST_F(OpEvalTest, Ops) {
     ASSERT_STREQ("20", Test("var2"));
 
     ASSERT_ANY_THROW(Test("$var2"));
-    ASSERT_ANY_THROW(Test("$var2", vars));
-    vars.push_back(Obj::Arg(var2, "var2"));
+    ASSERT_ANY_THROW(Test("$var2", vars.get()));
+    vars->push_back(Obj::Arg(var2, "var2"));
 
-    ASSERT_NO_THROW(Test("$var2", vars));
-    ASSERT_STREQ("20", Test("$var2", vars));
+    ASSERT_NO_THROW(Test("$var2", vars.get()));
+    ASSERT_STREQ("20", Test("$var2", vars.get()));
 
     ASSERT_STREQ("100", Test("var1"));
     ASSERT_STREQ("120", Test("var1+=var2"));
     ASSERT_STREQ("$=('var1', 'var2',)", Test("$"));
 
     ASSERT_ANY_THROW(Test("$var1"));
-    ASSERT_NO_THROW(Test("$var1", vars));
-    ASSERT_STREQ("120", Test("$var1", vars));
+    ASSERT_NO_THROW(Test("$var1", vars.get()));
+    ASSERT_STREQ("120", Test("$var1", vars.get()));
 
-    vars.clear_();
+    vars->clear_();
     m_result.reset();
     var1.reset();
     ASSERT_STREQ("$=('var2',)", Test("$"));

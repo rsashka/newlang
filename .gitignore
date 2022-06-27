@@ -6,9 +6,15 @@ contrib/*
 **/CMakeCache.txt
 **/*.cmake
 **/newlang-unit-tests
+**/newlang-unit-tests.exe
 **/nlc
+**/nlc.exe
 **/DartConfiguration.tcl
 Makefile
+
+**/*.i
+**/*.vcxproj.filters
+**/*.vcxproj.user
 
 core/syntax_help.cpp
 core/version.*

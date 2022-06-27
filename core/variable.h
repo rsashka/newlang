@@ -137,7 +137,7 @@ namespace newlang {
         }
 
         inline Type & insert(int64_t index, Type value, const std::string &name = "") {
-            if (index < 0 || index >= m_data.size()) {
+            if (index < 0 || index >= static_cast<int64_t>(m_data.size())) {
                 LOG_RUNTIME("Index '%ld' not exists!", index);
             }
             return m_data.insert(m_data.begin() + index, std::pair<std::string, Type>(name, value))->second;
@@ -145,11 +145,11 @@ namespace newlang {
 
         virtual PairType & at(const int64_t index) {
             if (index >= 0) {
-                if (index < m_data.size()) {
+                if (index < static_cast<int64_t>(m_data.size())) {
                     return m_data.at(index);
                 }
             } else {
-                if (-index < m_data.size()) {
+                if (-index < static_cast<int64_t>(m_data.size())) {
                     return m_data.at(m_data.size() + index);
                 }
             }
@@ -158,29 +158,29 @@ namespace newlang {
 
         virtual const PairType & at(const int64_t index) const {
             if (index >= 0) {
-                if (index < m_data.size()) {
+                if (index < static_cast<int64_t>(m_data.size())) {
                     return m_data.at(index);
                 }
             } else {
-                if (-index < m_data.size()) {
+                if (-index < static_cast<int64_t>(m_data.size())) {
                     return m_data.at(m_data.size() + index);
                 }
             }
             LOG_RUNTIME("Index '%ld' not exists!", index);
         }
 
-        template <typename N>
-        typename std::enable_if<std::is_same<char, std::remove_cv<N>>::value, Type &>::type
-        inline at(N * name) {
-            return at(std::string(name));
-        }
+//        template <typename N>
+//        typename std::enable_if<std::is_same<char, std::remove_cv<N>>::value, Type &>::type
+//        inline at(N * name) {
+//            return at(std::string(name));
+//        }
 
-        virtual PairType & at(const std::string name) {
+        virtual PairType & at(const std::string_view name) {
             iterator found = select(name);
             if (found != m_data.end()) {
                 return found.data();
             }
-            LOG_RUNTIME("Property '%s' not found!", name.c_str());
+            LOG_RUNTIME("Property '%s' not found!", name.begin());
         }
 
         //    template <typename N>
@@ -231,9 +231,9 @@ namespace newlang {
             } else {
                 // Если размер отрицательный - добавить или удалить вначале
                 size = -size;
-                if (m_data.size() > size) {
+                if (static_cast<int64_t>(m_data.size()) > size) {
                     m_data.erase(m_data.begin(), m_data.begin() + (m_data.size() - size));
-                } else if (m_data.size() < size) {
+                } else if (static_cast<int64_t>(m_data.size()) < size) {
                     m_data.insert(m_data.begin(), (m_data.size() - size), std::pair<std::string, Type>(name, fill));
                 } else {
                     m_data.clear();
@@ -335,7 +335,7 @@ namespace newlang {
                 search_loop();
             }
 
-            iterator(DataType &data, const std::string & find_key) : m_data(data), m_find_key(true), m_key(find_key), m_func(nullptr), m_found(data.begin()) {
+            iterator(DataType &data, const std::string_view find_key) : m_data(data), m_find_key(true), m_key(find_key), m_func(nullptr), m_found(data.begin()) {
                 search_loop();
             }
 
@@ -373,7 +373,7 @@ namespace newlang {
             const std::string m_key;
             typename DataType::iterator m_found;
 
-            const CompareFuncType *m_func;
+            CompareFuncType *m_func;
             Variable<T> m_func_args;
             const void *m_func_extra;
         };
@@ -423,7 +423,7 @@ namespace newlang {
         //        return select();
         //    }
 
-        virtual iterator select(const std::string & key) {
+        virtual iterator select(const std::string_view key) {
             return iterator(m_data, key);
         }
 

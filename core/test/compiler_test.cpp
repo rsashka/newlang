@@ -438,7 +438,7 @@ TEST(Compiler, DISABLED_Function) {
 
     TermPtr func1 = funcs->BlockCode()[0];
 
-    ASSERT_EQ(TermID::TRANSPARENT, func1->GetTokenID());
+    ASSERT_EQ(TermID::PUREFUNC, func1->GetTokenID());
     ASSERT_TRUE(func1->Left());
     ASSERT_EQ(2, func1->Left()->size());
 
@@ -465,7 +465,7 @@ TEST(Compiler, DISABLED_Function) {
 
     TermPtr func2 = funcs->BlockCode()[1];
 
-    ASSERT_EQ(TermID::TRANSPARENT, func2->GetTokenID());
+    ASSERT_EQ(TermID::PUREFUNC, func2->GetTokenID());
     ASSERT_TRUE(func2->Left());
     ASSERT_EQ(2, func2->Left()->size());
 

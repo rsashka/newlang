@@ -5,10 +5,13 @@
 
 
 #include <stdio.h>
-#include <stdint.h>
-#include <unistd.h>
 #include <string.h>
 #include <limits.h>
+
+#ifndef _MSC_VER
+#include <stdint.h>
+#include <unistd.h>
+#endif
 
 #define LOG_EXCEPT_LEVEL(EXCEPT, LEVEL, PREFIX, ...)  throw EXCEPT(std::string(LOG_MAKE(LEVEL, PREFIX, ##__VA_ARGS__)))
 #define LOG_EXCEPT(EXCEPT, ...)  LOG_EXCEPT_LEVEL(EXCEPT, LOG_LEVEL_ERROR, "E:", ##__VA_ARGS__)
@@ -40,7 +43,7 @@
 
 #ifndef ASSERT
 
-#if defined(__cplusplus) && defined(__cpp_exceptions)
+#if defined(__cplusplus) && defined(__cpp_exceptions) && defined(__unix__)
 #include <stdexcept>
 
 // Выброс исключения на PC для тестирования нештатной ситуации
@@ -89,6 +92,8 @@
 
 
 #if defined(__cplusplus)
+
+#include <iostream>
 #include <string>
 
 #include "mcucpp/static_assert.h"

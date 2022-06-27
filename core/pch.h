@@ -28,17 +28,32 @@
 #include <sstream>
 #include <iostream>
 #include <fstream>
-#include <unistd.h>
+//#include <unistd.h>
 #include <fcntl.h>
 
 
 #include <stdarg.h>
 #include <sys/stat.h>
 #include <sys/types.h>
+
+#ifdef _MSC_VER
+
+#include <windows.h>
+#include <stdio.h>
+#include <wchar.h>
+#include <string.h>
+#include <contrib/libffi/win64/include/ffi.h>
+
+#else
+
 #include <sys/param.h>
 #include <wait.h>
 #include <dlfcn.h>
 #include <printf.h>
+
+#include <contrib/libffi/output/include/ffi.h>
+
+#endif
 
 
 #include <core/warning_push.h>
@@ -46,7 +61,6 @@
 #include <ATen/ATen.h>
 
 #include <contrib/logger/logger.h>
-#include <contrib/libffi/output/include/ffi.h>
 #include <core/warning_pop.h>
 
 #include <core/types.h>

@@ -41,6 +41,14 @@
                     <name>LLVM_GCC</name>
                     <type>1</type>
                 </confElem>
+                <confElem>
+                    <name>UnitTest-Win64</name>
+                    <type>1</type>
+                </confElem>
+                <confElem>
+                    <name>UnitTest-Win32</name>
+                    <type>1</type>
+                </confElem>
             </confList>
             <formatting>
                 <project-formatting-style>false</project-formatting-style>

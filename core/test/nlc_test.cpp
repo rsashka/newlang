@@ -15,24 +15,24 @@ TEST(NLC, Options) {
 
     NLC nlc0;
     ASSERT_TRUE(nlc0.m_path.empty());
-    ASSERT_EQ(NLC::Mode::ERROR, nlc0.m_mode);
+    ASSERT_EQ(NLC::Mode::ModeError, nlc0.m_mode);
 
     NLC nlc1("");
     ASSERT_TRUE(nlc1.m_path.empty());
-    ASSERT_EQ(NLC::Mode::ERROR, nlc1.m_mode);
+    ASSERT_EQ(NLC::Mode::ModeError, nlc1.m_mode);
 
     NLC nlc2("path");
     ASSERT_STREQ("path", nlc2.m_path.c_str());
-    ASSERT_EQ(NLC::Mode::INTERACTIVE, nlc2.m_mode) << nlc2.m_output;
+    ASSERT_EQ(NLC::Mode::ModeInter, nlc2.m_mode) << nlc2.m_output;
 
     NLC nlc3("   path   --help    ");
     ASSERT_STREQ("path", nlc3.m_path.c_str());
-    ASSERT_EQ(NLC::Mode::HELP, nlc3.m_mode);
+    ASSERT_EQ(NLC::Mode::ModeHelp, nlc3.m_mode);
     ASSERT_FALSE(nlc3.m_output.empty()) << nlc3.m_output;
 
     NLC nlc4("path   -v");
     ASSERT_STREQ("path", nlc4.m_path.c_str());
-    ASSERT_EQ(NLC::Mode::VERSION, nlc4.m_mode);
+    ASSERT_EQ(NLC::Mode::ModeVersion, nlc4.m_mode);
 
     //    NLC nlc5("path  --output=output_file -cinput_file");
     //    ASSERT_STREQ("path", nlc5.m_path.c_str());
@@ -55,14 +55,14 @@ TEST(NLC, Options) {
 
     NLC nlc9("path  --load=module2.nlm  call(arg1,100)");
     ASSERT_STREQ("path", nlc9.m_path.c_str());
-    ASSERT_EQ(NLC::Mode::EVAL, nlc9.m_mode);
+    ASSERT_EQ(NLC::Mode::ModeEval, nlc9.m_mode);
     ASSERT_EQ(1, nlc9.m_modules.size());
     ASSERT_STREQ("module2.nlm", nlc9.m_modules[0].c_str());
     ASSERT_STREQ("call(arg1,100)", nlc9.m_eval.c_str());
 
     NLC nlc10("path  --load=module2.nlm,module3.nlm 100+200");
     ASSERT_STREQ("path", nlc10.m_path.c_str());
-    ASSERT_EQ(NLC::Mode::EVAL, nlc10.m_mode);
+    ASSERT_EQ(NLC::Mode::ModeEval, nlc10.m_mode);
     ASSERT_EQ(2, nlc10.m_modules.size());
     ASSERT_STREQ("module2.nlm", nlc10.m_modules[0].c_str());
     ASSERT_STREQ("module3.nlm", nlc10.m_modules[1].c_str());
@@ -70,7 +70,7 @@ TEST(NLC, Options) {
 
     NLC nlc11("path  --load=module2.nlm,,   --load-only=,tt1,tt2,tt3  \"100+200\"");
     ASSERT_STREQ("path", nlc11.m_path.c_str());
-    ASSERT_EQ(NLC::Mode::EVAL, nlc11.m_mode) << nlc11.m_output;
+    ASSERT_EQ(NLC::Mode::ModeEval, nlc11.m_mode) << nlc11.m_output;
     ASSERT_EQ(1, nlc11.m_modules.size());
     ASSERT_STREQ("module2.nlm", nlc11.m_modules[0].c_str());
     ASSERT_STREQ("\"100+200\"", nlc11.m_eval.c_str());
@@ -112,11 +112,11 @@ TEST(NLC, FileFunc) {
 
 TEST(NLC, Eval) {
     NLC nlc6("path  --badarg --output=output_file");
-    ASSERT_EQ(NLC::Mode::EVAL, nlc6.m_mode);
+    ASSERT_EQ(NLC::Mode::ModeEval, nlc6.m_mode);
     ASSERT_EQ(1, nlc6.Run());
 
     NLC nlc7("path func(bad!,,args)");
-    ASSERT_EQ(NLC::Mode::EVAL, nlc7.m_mode) << nlc7.m_output;
+    ASSERT_EQ(NLC::Mode::ModeEval, nlc7.m_mode) << nlc7.m_output;
     ASSERT_EQ(1, nlc7.Run());
 }
 
@@ -473,7 +473,7 @@ TEST(NLC, EvalHelloWorld) {
 ////    Parser parser(ast);
 ////    parser.Parse("brother(arg1, arg2)");
 ////    ObjPtr filter_brother = Obj::CreateFunc(nullptr, ast,
-/// ObjType::TRANSPARENT); /    filter_brother->m_function = (void
+/// ObjType::PUREFUNC); /    filter_brother->m_function = (void
 ///*)&test_brother; /    Object filt_args(Obj::Arg(filter_brother));
 ////
 ////

@@ -17,7 +17,7 @@ namespace newlang {
             LOG_RUNTIME("Empty argument list parameter!");
         }
         ObjPtr out = in.at(1).second;
-        for (size_t i = 2; i < in.size(); i++) {
+        for (int i = 2; i < in.size(); i++) {
             if(*in.at(i).second < out) {
                 out = in.at(i).second;
             }
@@ -30,7 +30,7 @@ namespace newlang {
             LOG_RUNTIME("Empty argument list parameter!");
         }
         ObjPtr out = in.at(1).second;
-        for (size_t i = 2; i < in.size(); i++) {
+        for (int i = 2; i < in.size(); i++) {
             if(*in.at(i).second > out) {
                 out = in.at(i).second;
             }

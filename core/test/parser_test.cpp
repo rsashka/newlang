@@ -23,7 +23,7 @@ protected:
 
     int Count(TermID token_id) {
         int result = 0;
-        for (size_t c = 0; c < ast->size(); c++) {
+        for (int c = 0; c < ast->size(); c++) {
             if ((*ast)[c]->m_id == token_id) {
                 result++;
             }
@@ -665,7 +665,7 @@ TEST_F(ParserTest, Iterator) {
     ASSERT_EQ(1, arg->size());
     ASSERT_STREQ("arg", (*arg)[0]->getText().c_str());
 
-#pragma GCC warning "ITERATOR"
+// #pragma GCC warning "ITERATOR"
     //    ASSERT_TRUE(Parse("term(arg=value)??(100)"));
     //    ASSERT_STREQ("??", ast->getText().c_str());
     //    ASSERT_EQ(1, ast->getItemCount());
