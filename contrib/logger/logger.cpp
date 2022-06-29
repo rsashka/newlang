@@ -5,9 +5,9 @@
 
 #include <contrib/logger/logger.h>
 
-#include <core/warning_push.h>
+#include "warning_push.h"
 #include <contrib/logger/mcucpp/ring_buffer.h>
-#include <core/warning_pop.h>
+#include "warning_pop.h"
 
 
 using namespace utils;

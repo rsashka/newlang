@@ -16,9 +16,11 @@ Makefile
 **/*.vcxproj.filters
 **/*.vcxproj.user
 
-core/syntax_help.cpp
-core/version.*
+**/syntax_help.cpp
+**/version.*
 docs/syntax.txt
+output
+**/*temp*
 
 
 # Binaries

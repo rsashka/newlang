@@ -1,0 +1,8 @@
+lexer.yy.h
+lexer.yy.cpp
+location.hh
+parser.yy.h
+parser.yy.cpp
+*.gv
+*.output
+**/gcov**
