@@ -197,6 +197,10 @@ namespace newlang {
             std::string body_base;
             std::string result(text);
 
+            if (name.empty() || result.empty()) {
+                return result;
+            }
+
             if (name[name.size() - 1] != '(') {
                 body_base = macro.substr(name.size());
                 if (!body_base.empty() && std::isspace(static_cast<unsigned char> (body_base[0]))) {

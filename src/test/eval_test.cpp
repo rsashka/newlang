@@ -569,17 +569,25 @@ TEST(ExecStr, Funcs) {
     Context::Reset();
     Context ctx(RunTime::Init());
 
-    ObjPtr printf = ctx.ExecStr("printf := @import('printf(format:Format, ...):Int');");
-    ASSERT_TRUE(printf);
-    ASSERT_STREQ("printf=printf(format:Format, ...):Int{}", printf->toString().c_str());
+    EXPECT_TRUE(ctx.m_runtime->GetNativeAddr("printf"));
+
+    ObjPtr p = ctx.ExecStr("printf := @import('printf(format:Format, ...):Int');");
+    ASSERT_TRUE(p);
+    ASSERT_STREQ("printf=printf(format:Format, ...):Int{}", p->toString().c_str());
+
+    ObjPtr res = p->Call(&ctx, Obj::Arg(Obj::CreateString("%s")), Obj::Arg(Obj::CreateString("call direct")));
+    ASSERT_TRUE(res);
+    ASSERT_TRUE(res->is_integer());
+    ASSERT_EQ(11, res->GetValueAsInteger());
+
 
     ObjPtr hello = ctx.ExecStr("hello(str='') := {printf('%s', $str); $str;}");
     ASSERT_TRUE(hello);
     ASSERT_STREQ("hello=hello(str=''):={printf('%s', $str); $str;}", hello->toString().c_str());
 
-    ObjPtr result = ctx.ExecStr("hello('Привет, мир!\\n');");
+    ObjPtr result = ctx.ExecStr("hello('Привет, мир!');");
     ASSERT_TRUE(result);
-    ASSERT_STREQ("Привет, мир!\n", result->GetValueAsString().c_str());
+    ASSERT_STREQ("Привет, мир!", result->GetValueAsString().c_str());
 }
 
 /*

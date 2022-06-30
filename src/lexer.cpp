@@ -5,13 +5,10 @@ namespace newlang {
 
     Scanner::Scanner(std::istream* in, std::ostream* out, std::shared_ptr<std::string> source)
     : NewLangFlexLexer(in, out), source_string(source) {
+//        yy_flex_debug = true;
     }
 
     Scanner::~Scanner() {
-    }
-
-    void Scanner::set_debug(bool b) {
-        yy_flex_debug = b;
     }
 
 }

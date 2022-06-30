@@ -34,7 +34,7 @@ namespace newlang {
 
     at::TensorOptions ConvertToTensorOptions(const Obj *obj);
     at::DimnameList ConvertToDimnameList(const Obj *obj);
-    bool ParsePrintfFormat(Obj args, size_t start = 1);
+    bool ParsePrintfFormat(Obj *args, size_t start = 1);
 
     enum class ConcatMode : uint8_t {
         Error = 0,
@@ -947,10 +947,6 @@ namespace newlang {
                     }
                 }
             }
-        }
-
-        void dump_tensor_(std::string & str) const {
-            str += m_value.toString();
         }
 
         std::string toString(bool deep = true) const;

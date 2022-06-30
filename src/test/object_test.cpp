@@ -129,6 +129,58 @@ TEST(ObjTest, String) {
 
 }
 
+TEST(ObjTest, PrintFormat) {
+
+    ObjPtr format_none = Obj::CreateDict(Obj::Arg(Obj::CreateString("")));
+    ASSERT_TRUE(ParsePrintfFormat(format_none.get(), 0));
+    format_none->push_back(Obj::CreateString(""));
+    ASSERT_FALSE(ParsePrintfFormat(format_none.get(), 0));
+
+    ObjPtr format_string = Obj::CreateDict(Obj::Arg(Obj::CreateString("%s")));
+    ASSERT_FALSE(ParsePrintfFormat(format_string.get(), 0));
+    format_string->push_back(Obj::CreateString(""));
+    ASSERT_TRUE(ParsePrintfFormat(format_string.get(), 0));
+    format_string->push_back(Obj::CreateString(""));
+    ASSERT_FALSE(ParsePrintfFormat(format_string.get(), 0));
+
+    ObjPtr format_int = Obj::CreateDict(Obj::Arg(Obj::CreateString("%d")));
+    ASSERT_FALSE(ParsePrintfFormat(format_int.get(), 0));
+    format_int->push_back(Obj::CreateValue(100));
+    ASSERT_TRUE(ParsePrintfFormat(format_int.get(), 0));
+    format_int->push_back(Obj::CreateString(""));
+    ASSERT_FALSE(ParsePrintfFormat(format_int.get(), 0));
+
+    format_int = Obj::CreateDict(Obj::Arg(Obj::CreateString("%d %d")));
+    ASSERT_FALSE(ParsePrintfFormat(format_int.get(), 0));
+    format_int->push_back(Obj::CreateValue(100));
+    ASSERT_FALSE(ParsePrintfFormat(format_int.get(), 0));
+    format_int->push_back(Obj::CreateValue(100));
+    ASSERT_TRUE(ParsePrintfFormat(format_int.get(), 0));
+    format_int->push_back(Obj::CreateString(""));
+    ASSERT_FALSE(ParsePrintfFormat(format_int.get(), 0));
+
+    ObjPtr format_number = Obj::CreateDict(Obj::Arg(Obj::CreateString("%f")));
+    ASSERT_FALSE(ParsePrintfFormat(format_number.get(), 0));
+    format_number->push_back(Obj::CreateValue(0.003));
+    ASSERT_TRUE(ParsePrintfFormat(format_number.get(), 0));
+    format_number->push_back(Obj::CreateString(""));
+    ASSERT_FALSE(ParsePrintfFormat(format_number.get(), 0));
+
+    ObjPtr format_full = Obj::CreateDict(Obj::Arg(Obj::CreateString("%s %d %f %s")));
+    ASSERT_FALSE(ParsePrintfFormat(format_full.get(), 0));
+    format_full->push_back(Obj::CreateString(""));
+    ASSERT_FALSE(ParsePrintfFormat(format_full.get(), 0));
+    format_full->push_back(Obj::CreateValue(100));
+    ASSERT_FALSE(ParsePrintfFormat(format_full.get(), 0));
+    format_full->push_back(Obj::CreateValue(0.003));
+    ASSERT_FALSE(ParsePrintfFormat(format_full.get(), 0));
+    format_full->push_back(Obj::CreateString(""));
+    ASSERT_TRUE(ParsePrintfFormat(format_full.get(), 0));
+
+    format_full->push_back(Obj::CreateString(""));
+    ASSERT_FALSE(ParsePrintfFormat(format_full.get(), 0));
+}
+
 TEST(ObjTest, Dict) {
 
     Context ctx(RunTime::Init());
@@ -696,6 +748,12 @@ TEST(ObjTest, Tensor) {
     ASSERT_EQ(2, t1->m_value.size(0));
     ASSERT_EQ(3, t1->m_value.size(1));
 
+    std::string from_str = "русские буквы для ПРОВЕРКИ КОНВЕРТАЦИИ символов";
+    std::wstring to_str = utf8_decode(from_str);
+    std::string conv_str = utf8_encode(to_str);
+
+    ASSERT_STREQ(from_str.c_str(), conv_str.c_str());
+
     // Байтовые строки
     ObjPtr str = Obj::CreateString("test");
     ObjPtr t_str = Obj::CreateTensor(str->toTensor());
@@ -718,12 +776,13 @@ TEST(ObjTest, Tensor) {
     ObjPtr t_wstr = Obj::CreateTensor(wstr->toTensor());
     ASSERT_EQ(t_wstr->m_var_type_current, ObjType::Int);
     ASSERT_EQ(4, t_wstr->size());
-    EXPECT_STREQ(t_wstr->toType(ObjType::StrWide)->GetValueAsString().c_str(), "ТЕСТ");
 
     ASSERT_EQ(t_wstr->index_get({0})->GetValueAsInteger(), L'Т');
     ASSERT_EQ(t_wstr->index_get({1})->GetValueAsInteger(), L'Е');
     ASSERT_EQ(t_wstr->index_get({2})->GetValueAsInteger(), L'С');
     ASSERT_EQ(t_wstr->index_get({3})->GetValueAsInteger(), L'Т');
+
+    EXPECT_STREQ(t_wstr->toType(ObjType::StrWide)->GetValueAsString().c_str(), "ТЕСТ");
 
     t_wstr->index_set_({1}, Obj::CreateString(L"е"));
     t_wstr->index_set_({2}, Obj::CreateString(L"с"));

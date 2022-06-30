@@ -106,30 +106,36 @@ term    [$@%]({ualpha}|[_])?({name})?
     yylloc->step();
 %}
 
-
-"/*"         {
-                BEGIN(state_COMMENT);
-                //buffer.clear();
-}
+"/*"            {
+                    yy_push_state(state_COMMENT);
+                    buffer.clear();
+                    buffer.append(yytext, yyleng);
+                }
 
 <state_COMMENT>{
 
+"/*"            {
+                    yy_push_state(state_COMMENT);
+                    buffer.append(yytext, yyleng);
+                }
+
 \n              {
-                    //buffer.append(yytext, yyleng);
+                    buffer.append(yytext, yyleng);
                     yylloc->lines(yyleng); 
                     yylloc->step();
                 }
 
-[^*^\n]*       //buffer.append(yytext, yyleng);
-
-
-"*"[^*/]*      //buffer.append(yytext, yyleng);
-
 "*/"            {
-                    BEGIN(INITIAL);
-//                    *yylval = Term::Create(TermID::COMMENT, buffer.c_str(), buffer.size(), yylloc, source_string);
-//                    return token::COMMENT;
+                    yy_pop_state();
+                    buffer.append(yytext, yyleng);
+//                  *yylval = Term::Create(TermID::COMMENT, buffer.c_str(), buffer.size(), yylloc, source_string);
+//                  return token::COMMENT;
                 }
+
+.               {
+                    buffer.append(yytext, yyleng);
+                }
+
 } /* End of state_COMMENT state */
 
 "#"[^\n]* {

@@ -603,10 +603,7 @@ std::string Obj::toString(bool deep) const {
         if(is_scalar()) {
             result += GetValueAsString();
         } else {
-            result += "[";
-            dump_tensor_(result);
-            result += ",";
-            result += "]";
+            result += TensorToString(m_value);
         }
         return result;
     } else if(isSimpleType(m_var_type_current)) {
@@ -1803,12 +1800,18 @@ torch::Tensor newlang::ConvertToTensor(Obj *data, at::ScalarType type, bool resh
         return torch::from_blob((void *) data->m_str.data(), data->m_str.size(), type).clone();
     } else if(data->m_var_type_current == ObjType::StrWide) {
         if(type == at::ScalarType::Undefined) {
-            type = at::ScalarType::Int;
+            if(sizeof (wchar_t) == sizeof (int32_t)) {
+                type = at::ScalarType::Int;
+            } else if(sizeof (wchar_t) == sizeof (int16_t)) {
+                type = at::ScalarType::Short;
+            } else {
+                LOG_RUNTIME("Unsupport wchar_t size '%d'!!!", (int) sizeof (wchar_t));
+            }
         }
         // В символьную строку конвертируется любой целочисленный скаляр или одномерный тензор
         return torch::from_blob((void *) data->m_wstr.data(), {
             (int) data->m_wstr.size()
-        }, type).clone();
+        }, type).toType(at::ScalarType::Int).clone();
     } else if(data->is_range()) {
 
         ASSERT(data->at("start").second);
@@ -1917,7 +1920,7 @@ ObjPtr Obj::CallNative(Context *ctx, Obj args) {
 
     if(!m_func_ptr) {
         NL_CHECK(m_module_name.empty() || ctx, "You cannot load a module without access to the runtime context!");
-        m_func_ptr = ctx->m_runtime->GetProcAddress(m_func_mangle_name.empty() ? m_func_proto->m_text.c_str() : m_func_mangle_name.c_str(),
+        m_func_ptr = ctx->m_runtime->GetNativeAddr(m_func_mangle_name.empty() ? m_func_proto->m_text.c_str() : m_func_mangle_name.c_str(),
                 m_module_name.empty() ? nullptr : m_module_name.c_str());
     }
     NL_CHECK(m_func_ptr, "Fail load func name '%s' (%s) or fail load module '%s'!", m_func_proto->m_text.c_str(),
@@ -2043,8 +2046,10 @@ ObjPtr Obj::CallNative(Context *ctx, Obj args) {
             default:
                 LOG_RUNTIME("Native arg '%s' not implemented!", args[i]->toString().c_str());
         }
-        if(pind < check_count && (*m_func_proto)[pind]->GetType() && (*m_func_proto)[pind]->GetType()->m_text.compare("Format") == 0) {
-            NL_CHECK(ParsePrintfFormat(args, i), "Fail format string or type args!");
+        if(pind < check_count && (*m_func_proto)[pind]->GetType()) {
+            if((*m_func_proto)[pind]->GetType()->m_text.compare(newlang::toString(ObjType::Format)) == 0) {
+                NL_CHECK(ParsePrintfFormat(&args, i), "Fail format string or type args!");
+            }
         }
     }
 
@@ -2141,18 +2146,22 @@ ObjPtr Obj::CallNative(Context *ctx, Obj args) {
     return Obj::CreateNone();
 }
 
-bool newlang::ParsePrintfFormat(Obj args, size_t start) {
+bool newlang::ParsePrintfFormat(Obj *args, size_t start) {
 
-    //if(args.size() <= start || !args[start]) {
-    //    LOG_WARNING("Missing format string!");
-    //    return false;
-    //}
-    //if(!args[start]->is_string_type()) {
-    //    LOG_WARNING("Argument Format '%s' not string type!", args[start]->toString().c_str());
-    //    return false;
-    //}
+    if(!args) {
+        LOG_WARNING("Missing object!");
+        return false;
+    }
+    if(args->size() <= start || !(*args)[start]) {
+        LOG_WARNING("Missing format string!");
+        return false;
+    }
+    if(!(*args)[start]->is_string_type()) {
+        LOG_WARNING("Argument Format '%s' not string type!", (*args)[start]->toString().c_str());
+        return false;
+    }
 
-    //std::string format = args[start]->GetValueAsString();
+    //std::string format = (*args)[start]->GetValueAsString();
     //size_t count = parse_printf_format(format.c_str(), 0, nullptr);
     //std::vector<int> types(count);
 
@@ -2163,7 +2172,7 @@ bool newlang::ParsePrintfFormat(Obj args, size_t start) {
     //ObjType cast;
     //while(i < types.size()) {
 
-    //    if(aind < args.size()) {
+    //    if(aind < args->size()) {
     //        //            if(types[i] & PA_FLAG_PTR == PA_FLAG_PTR) {
     //        //                LOG_WARNING("Pointer arg '%u' not suppotred!", i);
     //        //                result = false;
@@ -2173,39 +2182,42 @@ bool newlang::ParsePrintfFormat(Obj args, size_t start) {
     //        //            }
     //        switch(types[i] & ~PA_FLAG_MASK) {
     //            case PA_INT:
-    //                if(types[i] & PA_FLAG_MASK == 0) {
+    //                if((types[i] & PA_FLAG_MASK) == 0) {
     //                    cast = ObjType::Int;
-    //                } else if(types[i] & PA_FLAG_LONG == PA_FLAG_LONG) {
+    //                } else if(((types[i] & PA_FLAG_LONG) == PA_FLAG_LONG) || ((types[i] & PA_FLAG_LONG) == PA_FLAG_LONG_LONG)) {
     //                    cast = ObjType::Long;
-    //                } else if(types[i] & PA_FLAG_SHORT == PA_FLAG_SHORT) {
+    //                } else if((types[i] & PA_FLAG_SHORT) == PA_FLAG_SHORT) {
     //                    cast = ObjType::Short;
+    //                } else {
+    //                    LOG_WARNING("Format flag at pos %d unrecognized! %s", i, format.c_str());
+    //                    result = false;
     //                }
-    //                if(!canCast(args[aind]->m_var_type_current, cast)) {
-    //                    LOG_WARNING("Cast '%s' to '%s' not supported!", newlang::toString(args[aind]->m_var_type_current),
+    //                if(!canCast((*args)[aind]->m_var_type_current, cast)) {
+    //                    LOG_WARNING("Cast '%s' to '%s' not supported!", newlang::toString((*args)[aind]->m_var_type_current),
     //                            newlang::toString(cast));
     //                    result = false;
     //                }
     //                break;
     //            case PA_CHAR:
     //                if(types[i] & PA_FLAG_MASK) {
-    //                    LOG_WARNING("format modifier arg '%s' %u not supported!", newlang::toString(args[aind]->m_var_type_current), i);
+    //                    LOG_WARNING("format modifier arg '%s' %u not supported!", newlang::toString((*args)[aind]->m_var_type_current), i);
     //                    result = false;
     //                }
     //                cast = ObjType::Char;
-    //                if(!canCast(args[aind]->m_var_type_current, cast)) {
-    //                    LOG_WARNING("Cast '%s' to '%s' not supported!", newlang::toString(args[aind]->m_var_type_current),
+    //                if(!canCast((*args)[aind]->m_var_type_current, cast)) {
+    //                    LOG_WARNING("Cast '%s' to '%s' not supported!", newlang::toString((*args)[aind]->m_var_type_current),
     //                            newlang::toString(cast));
     //                    result = false;
     //                }
     //                break;
     //            case PA_STRING:
     //                if(types[i] & PA_FLAG_MASK) {
-    //                    LOG_WARNING("format modifier arg '%s' %u not supported!", newlang::toString(args[aind]->m_var_type_current), i);
+    //                    LOG_WARNING("format modifier arg '%s' %u not supported!", newlang::toString((*args)[aind]->m_var_type_current), i);
     //                    result = false;
     //                }
     //                cast = ObjType::StrChar;
-    //                if(!canCast(args[aind]->m_var_type_current, cast)) {
-    //                    LOG_WARNING("Cast '%s' to '%s' not supported!", newlang::toString(args[aind]->m_var_type_current),
+    //                if(!canCast((*args)[aind]->m_var_type_current, cast)) {
+    //                    LOG_WARNING("Cast '%s' to '%s' not supported!", newlang::toString((*args)[aind]->m_var_type_current),
     //                            newlang::toString(cast));
     //                    result = false;
     //                }
@@ -2213,12 +2225,12 @@ bool newlang::ParsePrintfFormat(Obj args, size_t start) {
     //            case PA_FLOAT:
     //            case PA_DOUBLE:
     //                if(types[i] & PA_FLAG_MASK) {
-    //                    LOG_WARNING("format modifier arg '%s' %u not supported!", newlang::toString(args[aind]->m_var_type_current), i);
+    //                    LOG_WARNING("format modifier arg '%s' %u not supported!", newlang::toString((*args)[aind]->m_var_type_current), i);
     //                    result = false;
     //                }
     //                cast = ObjType::Double;
-    //                if(!canCast(args[aind]->m_var_type_current, cast)) {
-    //                    LOG_WARNING("Cast '%s' to '%s' not supported!", newlang::toString(args[aind]->m_var_type_current),
+    //                if(!canCast((*args)[aind]->m_var_type_current, cast)) {
+    //                    LOG_WARNING("Cast '%s' to '%s' not supported!", newlang::toString((*args)[aind]->m_var_type_current),
     //                            newlang::toString(cast));
     //                    result = false;
     //                }
@@ -2237,12 +2249,12 @@ bool newlang::ParsePrintfFormat(Obj args, size_t start) {
     //    i++;
     //    aind++;
     //}
-    //if(aind != args.size()) {
+    //if(aind != args->size()) {
     //    LOG_WARNING("Extra arguments more %u", i);
     //    return false;
     //}
     //return result;
-    return false;
+    return true;
 }
 
 void newlang::ConvertRangeToDict(Obj *from, Obj & to) {

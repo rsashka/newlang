@@ -44,6 +44,8 @@
 #include <string.h>
 #include <contrib/libffi/win64/include/ffi.h>
 
+#pragma execution_character_set("utf-8")
+
 #else
 
 #include <sys/param.h>

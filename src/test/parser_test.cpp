@@ -1396,6 +1396,22 @@ TEST_F(ParserTest, DISABLED_Comment6) {
     ASSERT_EQ(TermID::CREATE, ast->m_block[3]->getTermID()) << newlang::toString(ast->getTermID());
 }
 
+
+TEST_F(ParserTest, CommentIncluded) {
+//    const char *str = "/* !!!!!!! \n"
+//            "@print(\"Привет, мир!\\n\");\n*/";
+//    "# @print(\"Привет, мир!\\n\");\n";
+//    ASSERT_TRUE(Parse(str));
+
+    const char *str2 = "/* /* /* /* term();\n"
+            "print1(str=\"\") ::= term();\n"
+            "print2(str=\"\") ::= term();\n\n */ "
+            "print3( */ str=\"\") ::= term();\n\n\n"
+            "ddd  */  ";
+    "# @print(\"Привет, мир!\\n\");\n";
+    ASSERT_TRUE(Parse(str2));
+}
+
 TEST_F(ParserTest, Types) {
     EXPECT_TRUE(Parse(":type1 := :type;"));
     EXPECT_TRUE(Parse(":type2 := :type;"));

@@ -811,7 +811,7 @@ ObjPtr Context::eval_FOLLOW(Context *ctx, const TermPtr &term, Obj * args) {
      * 
      */
 
-    for (int i = 0; i < term->m_follow.size(); i++) {
+    for (int64_t i = 0; i < term->m_follow.size(); i++) {
 
         ASSERT(term->m_follow[i]->Left());
         ObjPtr cond = ExecStr(ctx, term->m_follow[i]->Left(), args, false);
@@ -1488,7 +1488,7 @@ ObjPtr Context::CreateNative(TermPtr proto, const char *module, bool lazzy, cons
     if(lazzy) {
         result->m_func_ptr = nullptr;
     } else {
-        result->m_func_ptr = m_runtime->GetProcAddress(
+        result->m_func_ptr = m_runtime->GetNativeAddr(
                 result->m_func_mangle_name.empty() ? proto->m_text.c_str() : result->m_func_mangle_name.c_str(), module);
         if(result->is_function() || type == ObjType::Pointer) {
             NL_CHECK(result->m_func_ptr, "Error getting address '%s' from '%s'!", proto->toString().c_str(), module);
@@ -1504,7 +1504,18 @@ ObjPtr Context::CreateNative(TermPtr proto, const char *module, bool lazzy, cons
     return result;
 }
 
-void *RunTime::GetProcAddress(const char *name, const char *module) {
+std::string RunTime::GetLastErrorMessage() {
+#ifndef _MSC_VER
+    return std::string(strerror(errno));
+#else
+    wchar_t buffer[256];
+    FormatMessage(FORMAT_MESSAGE_FROM_SYSTEM, NULL, GetLastError(),
+            MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT), buffer, sizeof(buffer), NULL);
+    return utf8_encode(buffer);
+#endif        
+}
+
+void *RunTime::GetNativeAddr(const char *name, const char *module) {
     if(module && module[0]) {
         if(m_modules.find(module) == m_modules.end()) {
             LoadModule(module, false, nullptr);
@@ -1517,13 +1528,17 @@ void *RunTime::GetProcAddress(const char *name, const char *module) {
 #ifndef _MSC_VER
         return dlsym(m_modules[module]->GetHandle(), name);
 #else
-        return nullptr;
+        return static_cast<void *>(::GetProcAddress(m_modules[module]->GetHandle(), name));
 #endif
     }
 #ifndef _MSC_VER
     return dlsym(nullptr, name);
 #else
-    return nullptr;
+    HMODULE msys = GetModuleHandle(L"msys-2.0.dll");
+    if(!msys){
+        LOG_DEBUG("GetModuleHandle: %s", RunTime::GetLastErrorMessage().c_str());
+    }
+    return static_cast<void *>(::GetProcAddress(msys, name));
 #endif
 }
 
@@ -2067,7 +2082,7 @@ ObjPtr Context::CreateRVal(Context *ctx, TermPtr term, Obj * local_vars, bool in
             }
 
             args = Obj::CreateDict();
-            for (int i = 0; i < term->size(); i++) {
+            for (int64_t i = 0; i < term->size(); i++) {
 
 
                 if((*term)[i]->GetTokenID() == TermID::FILLING) {
