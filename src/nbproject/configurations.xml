@@ -593,7 +593,6 @@
           <linkerLibItems>
             <linkerLibStdlibItem>PosixThreads</linkerLibStdlibItem>
             <linkerLibStdlibItem>DynamicLinking</linkerLibStdlibItem>
-            <linkerLibFileItem>../contrib/libffi/output/lib/libffi.a</linkerLibFileItem>
             <linkerLibLibItem>crypto</linkerLibLibItem>
             <linkerLibLibItem>LLVM-13</linkerLibLibItem>
             <linkerLibLibItem>torch</linkerLibLibItem>

@@ -75,13 +75,11 @@ FFLAGS=
 ASFLAGS=
 
 # Link Libraries and Options
-LDLIBSOPTIONS=-L../contrib/libtorch/lib -Wl,-rpath,'../contrib/libtorch/lib' -lpthread -ldl ../contrib/libffi/output/lib/libffi.a -lcrypto -lLLVM-13 -ltorch -lc10 -ltorch_cpu
+LDLIBSOPTIONS=-L../contrib/libtorch/lib -Wl,-rpath,'../contrib/libtorch/lib' -lpthread -ldl -lcrypto -lLLVM-13 -ltorch -lc10 -ltorch_cpu
 
 # Build Targets
 .build-conf: ${BUILD_SUBPROJECTS}
 	"${MAKE}"  -f nbproject/Makefile-${CND_CONF}.mk ../output/nlc_unit_test
-
-../output/nlc_unit_test: ../contrib/libffi/output/lib/libffi.a
 
 ../output/nlc_unit_test: ${OBJECTFILES}
 	${MKDIR} -p ../output

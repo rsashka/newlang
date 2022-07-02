@@ -7,9 +7,6 @@
 [submodule "contrib/tensorboard_logger"]
 	path = contrib/tensorboard_logger
 	url = https://github.com/RustingSword/tensorboard_logger.git
-[submodule "contrib/libffi"]
-	path = contrib/libffi
-	url = https://github.com/libffi/libffi.git
 [submodule "contrib/text2cpp"]
 	path = contrib/text2cpp
 	url = https://github.com/lostjared/text2cpp.git

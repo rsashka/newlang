@@ -1510,7 +1510,7 @@ std::string RunTime::GetLastErrorMessage() {
 #else
     wchar_t buffer[256];
     FormatMessage(FORMAT_MESSAGE_FROM_SYSTEM, NULL, GetLastError(),
-            MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT), buffer, sizeof(buffer), NULL);
+            MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT), buffer, sizeof (buffer), NULL);
     return utf8_encode(buffer);
 #endif        
 }
@@ -1525,20 +1525,18 @@ void *RunTime::GetNativeAddr(const char *name, const char *module) {
 
             return nullptr;
         }
+
 #ifndef _MSC_VER
         return dlsym(m_modules[module]->GetHandle(), name);
 #else
-        return static_cast<void *>(::GetProcAddress(m_modules[module]->GetHandle(), name));
+        return static_cast<void *> (::GetProcAddress(m_modules[module]->GetHandle(), name));
 #endif
     }
+
 #ifndef _MSC_VER
     return dlsym(nullptr, name);
 #else
-    HMODULE msys = GetModuleHandle(L"msys-2.0.dll");
-    if(!msys){
-        LOG_DEBUG("GetModuleHandle: %s", RunTime::GetLastErrorMessage().c_str());
-    }
-    return static_cast<void *>(::GetProcAddress(msys, name));
+    return static_cast<void *> (::GetProcAddress(m_msys, name));
 #endif
 }
 

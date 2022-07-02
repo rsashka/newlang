@@ -108,6 +108,7 @@
     <LibraryPath>..\..\contrib\libffi\win64\lib;..\..\contrib\libtorch-win\lib;$(LibraryPath)</LibraryPath>
     <OutDir>..\..\output\</OutDir>
     <TargetName>nlc_unit_test</TargetName>
+    <LinkIncremental>false</LinkIncremental>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>

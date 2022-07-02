@@ -108,20 +108,20 @@ TEST(Eval, Assign) {
     ASSERT_EQ(func_export->getType(), ObjType::NativeFunc);
     ASSERT_STREQ("func_export=func_export(arg1:Long, arg2:Char=100):Long{}", func_export->toString().c_str());
 
-    ObjPtr result = func_export->Call(nullptr, Obj::Arg(200), Obj::Arg(10));
+    ObjPtr result = func_export->Call(&ctx, Obj::Arg(200), Obj::Arg(10));
     ASSERT_TRUE(result);
     ASSERT_EQ(210, result->GetValueAsInteger());
 
-    result = func_export->Call(nullptr, Obj::Arg(10), Obj::Arg(10));
+    result = func_export->Call(&ctx, Obj::Arg(10), Obj::Arg(10));
     ASSERT_TRUE(result);
     ASSERT_EQ(20, result->GetValueAsInteger());
 
-    result = func_export->Call(nullptr, Obj::Arg(10));
+    result = func_export->Call(&ctx, Obj::Arg(10));
     ASSERT_TRUE(result);
     ASSERT_EQ(110, result->GetValueAsInteger());
 
     // Переполнение второго аргумента
-    ASSERT_ANY_THROW(func_export->Call(nullptr, Obj::Arg(1000), Obj::Arg(1000)));
+    ASSERT_ANY_THROW(func_export->Call(&ctx, Obj::Arg(1000), Obj::Arg(1000)));
 
     list = ctx.ExecStr("$");
     ASSERT_STREQ("$=('var_str', 'var_num', 'var_export', 'func_export',)", list->toString().c_str());
@@ -575,19 +575,35 @@ TEST(ExecStr, Funcs) {
     ASSERT_TRUE(p);
     ASSERT_STREQ("printf=printf(format:Format, ...):Int{}", p->toString().c_str());
 
-    ObjPtr res = p->Call(&ctx, Obj::Arg(Obj::CreateString("%s")), Obj::Arg(Obj::CreateString("call direct")));
+
+    typedef int (* printf_type)(const char *, ...);
+
+    printf_type ttt = (printf_type) p->m_func_ptr;
+    ASSERT_EQ(7, (*ttt)("Test 1 "));
+    ASSERT_EQ(18,(*ttt)("%s", "Test Variadic call"));
+    
+    ObjPtr res = p->Call(&ctx, Obj::Arg(Obj::CreateString("Test")));
+    ASSERT_TRUE(res);
+    ASSERT_TRUE(res->is_integer());
+    ASSERT_EQ(4, res->GetValueAsInteger());
+
+    res = p->Call(&ctx, Obj::Arg(Obj::CreateString("%s")), Obj::Arg(Obj::CreateString("call direct")));
     ASSERT_TRUE(res);
     ASSERT_TRUE(res->is_integer());
     ASSERT_EQ(11, res->GetValueAsInteger());
 
+    res = p->Call(&ctx, Obj::Arg(Obj::CreateString("%s")), Obj::Arg(Obj::CreateString("Русские символы")));
+    ASSERT_TRUE(res);
+    ASSERT_TRUE(res->is_integer());
+    ASSERT_TRUE(15 <= res->GetValueAsInteger());
 
     ObjPtr hello = ctx.ExecStr("hello(str='') := {printf('%s', $str); $str;}");
     ASSERT_TRUE(hello);
     ASSERT_STREQ("hello=hello(str=''):={printf('%s', $str); $str;}", hello->toString().c_str());
 
-    ObjPtr result = ctx.ExecStr("hello('Привет, мир!');");
+    ObjPtr result = ctx.ExecStr("hello('Привет, мир!\\n');");
     ASSERT_TRUE(result);
-    ASSERT_STREQ("Привет, мир!", result->GetValueAsString().c_str());
+    ASSERT_STREQ("Привет, мир!\n", result->GetValueAsString().c_str());
 }
 
 /*

@@ -115,8 +115,58 @@ namespace newlang {
     class RunTime {
     public:
 
-        static RuntimePtr Init(int argc = 0, const char** argv = nullptr) {
-            return std::make_shared<RunTime>();
+        static RuntimePtr Init(int argc = 0, const char** argv = nullptr, bool ignore_error = true) {
+            RuntimePtr rt = std::make_shared<RunTime>();
+
+#ifdef _MSC_VER
+            rt->m_msys = LoadLibrary(L"msys-2.0.dll");
+            if (!rt->m_msys) {
+                if!(ignore_error) {
+                    LOG_RUNTIME("Fail LoadLibrary msys-2.0.dll: %s", RunTime::GetLastErrorMessage().c_str());
+                }
+            }
+
+            typedef void init_type();
+
+            init_type *init = (init_type *) GetProcAddress(m_msys, "msys_dll_init");
+            if (rt->m_msys && !init) {
+                if!(ignore_error) {
+                    FreeLibrary(rt->m_msys);
+                    LOG_RUNTIME("msys_dll_init  not found! %s", RunTime::GetLastErrorMessage().c_str());
+                }
+                (*init)();
+            }
+#else
+            rt->m_msys = dlopen("libffi.so", RTLD_NOW);
+#endif
+
+            rt->m_ffi_type_void = static_cast<ffi_type *> (GetDirectAddressFromLibrary(rt->m_msys, "ffi_type_void"));
+            rt->m_ffi_type_uint8 = static_cast<ffi_type *> (GetDirectAddressFromLibrary(rt->m_msys, "ffi_type_uint8"));
+            rt->m_ffi_type_sint8 = static_cast<ffi_type *> (GetDirectAddressFromLibrary(rt->m_msys, "ffi_type_sint8"));
+            rt->m_ffi_type_uint16 = static_cast<ffi_type *> (GetDirectAddressFromLibrary(rt->m_msys, "ffi_type_uint16"));
+            rt->m_ffi_type_sint16 = static_cast<ffi_type *> (GetDirectAddressFromLibrary(rt->m_msys, "ffi_type_sint16"));
+            rt->m_ffi_type_uint32 = static_cast<ffi_type *> (GetDirectAddressFromLibrary(rt->m_msys, "ffi_type_uint32"));
+            rt->m_ffi_type_sint32 = static_cast<ffi_type *> (GetDirectAddressFromLibrary(rt->m_msys, "ffi_type_sint32"));
+            rt->m_ffi_type_uint64 = static_cast<ffi_type *> (GetDirectAddressFromLibrary(rt->m_msys, "ffi_type_uint64"));
+            rt->m_ffi_type_sint64 = static_cast<ffi_type *> (GetDirectAddressFromLibrary(rt->m_msys, "ffi_type_sint64"));
+            rt->m_ffi_type_float = static_cast<ffi_type *> (GetDirectAddressFromLibrary(rt->m_msys, "ffi_type_float"));
+            rt->m_ffi_type_double = static_cast<ffi_type *> (GetDirectAddressFromLibrary(rt->m_msys, "ffi_type_double"));
+            rt->m_ffi_type_pointer = static_cast<ffi_type *> (GetDirectAddressFromLibrary(rt->m_msys, "ffi_type_pointer"));
+
+            rt->m_ffi_prep_cif = reinterpret_cast<ffi_prep_cif_type *> (GetDirectAddressFromLibrary(rt->m_msys, "ffi_prep_cif"));
+            rt->m_ffi_prep_cif_var = reinterpret_cast<ffi_prep_cif_var_type *> (GetDirectAddressFromLibrary(rt->m_msys, "ffi_prep_cif_var"));
+            rt->m_ffi_call = reinterpret_cast<ffi_call_type *> (GetDirectAddressFromLibrary(rt->m_msys, "ffi_call"));
+
+            return rt;
+        }
+
+        inline static void * GetDirectAddressFromLibrary(void *handle, const char * name) {
+#ifdef _MSC_VER
+            return static_cast<void *> (::GetProcAddress(handle, name));
+#else
+
+            return dlsym(handle, name);
+#endif
         }
 
         //    void ReadBuiltInProto(ProtoType &proto);
@@ -128,6 +178,12 @@ namespace newlang {
         void * GetNativeAddr(const char * name, const char *module = nullptr);
 
         virtual ~RunTime() {
+#ifdef _MSC_VER
+            if (m_msys) {
+                FreeLibrary(m_msys);
+                m_msys = nullptr;
+            }
+#endif
         }
 
         RunTime() {
@@ -135,13 +191,36 @@ namespace newlang {
 
         static std::string GetLastErrorMessage();
 
+        typedef ffi_status ffi_prep_cif_type(ffi_cif *cif, ffi_abi abi, unsigned int nargs, ffi_type *rtype, ffi_type **atypes);
+        typedef ffi_status ffi_prep_cif_var_type(ffi_cif *cif, ffi_abi abi, unsigned int nfixedargs, unsigned int ntotalargs, ffi_type *rtype, ffi_type **atypes);
+        typedef void ffi_call_type(ffi_cif *cif, void (*fn)(void), void *rvalue, void **avalue);
+
     protected:
 
         SCOPE(private) :
         RunTime(const RunTime&) = delete;
         const RunTime& operator=(const RunTime&) = delete;
 
+        void * m_msys;
         std::map<std::string, Module *> m_modules;
+
+        ffi_type * m_ffi_type_void;
+        ffi_type * m_ffi_type_uint8;
+        ffi_type * m_ffi_type_sint8;
+        ffi_type * m_ffi_type_uint16;
+        ffi_type * m_ffi_type_sint16;
+        ffi_type * m_ffi_type_uint32;
+        ffi_type * m_ffi_type_sint32;
+        ffi_type * m_ffi_type_uint64;
+        ffi_type * m_ffi_type_sint64;
+        ffi_type * m_ffi_type_float;
+        ffi_type * m_ffi_type_double;
+        ffi_type * m_ffi_type_pointer;
+
+        ffi_prep_cif_type *m_ffi_prep_cif;
+        ffi_prep_cif_var_type * m_ffi_prep_cif_var;
+        ffi_call_type * m_ffi_call;
+
     };
 
     struct CompileInfo {
@@ -152,10 +231,12 @@ namespace newlang {
             if (rt) {
                 //            rt->ReadBuiltInProto(builtin);
             }
+
             m_builtin_direct = new BuiltInTorchDirect();
         }
 
         virtual ~CompileInfo() {
+
             delete m_builtin_direct;
         }
 
@@ -178,6 +259,7 @@ namespace newlang {
         size_t indent;
 
         std::string GetIndent(int64_t offset = 0) {
+
             return repeat(std::string(NEWLANG_INDENT_OP), indent + offset);
         }
 
@@ -185,16 +267,19 @@ namespace newlang {
         public:
 
             Indent(CompileInfo &i) : info(i) {
+
                 info.indent++;
             }
 
             ~Indent() {
+
                 info.indent--;
             }
             CompileInfo &info;
         };
 
         Indent NewIndent() {
+
             return Indent(*this);
         }
 
@@ -209,6 +294,7 @@ namespace newlang {
         ObjPtr Run(const char *source, void *context);
 
         ObjPtr RunFile(const char *filename) {
+
             return Obj::CreateNone();
         }
 
@@ -272,6 +358,7 @@ namespace newlang {
         }
 
         static void WriteIncludeFiles_(std::ostream & out) {
+
             out << "#include \"pch.h\"\n";
             out << "#include \"newlang.h\"\n";
             out << "#include \"builtin.h\"\n";

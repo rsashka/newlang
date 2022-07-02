@@ -35,6 +35,7 @@
 #include <stdarg.h>
 #include <sys/stat.h>
 #include <sys/types.h>
+#include <ffi.h>
 
 #ifdef _MSC_VER
 
@@ -48,12 +49,12 @@
 
 #else
 
-#include <sys/param.h>
+#ifndef __WIN32__
 #include <wait.h>
 #include <dlfcn.h>
-#include <printf.h>
+#endif
 
-#include <contrib/libffi/output/include/ffi.h>
+#include <sys/param.h>
 
 #endif
 
