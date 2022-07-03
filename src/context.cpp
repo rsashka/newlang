@@ -811,7 +811,7 @@ ObjPtr Context::eval_FOLLOW(Context *ctx, const TermPtr &term, Obj * args) {
      * 
      */
 
-    for (int64_t i = 0; i < term->m_follow.size(); i++) {
+    for (int64_t i = 0; i < static_cast<int64_t>(term->m_follow.size()); i++) {
 
         ASSERT(term->m_follow[i]->Left());
         ObjPtr cond = ExecStr(ctx, term->m_follow[i]->Left(), args, false);
@@ -1536,7 +1536,7 @@ void *RunTime::GetNativeAddr(const char *name, const char *module) {
 #ifndef _MSC_VER
     return dlsym(nullptr, name);
 #else
-    return static_cast<void *> (::GetProcAddress(m_msys, name));
+    return static_cast<void *>(::GetProcAddress((HMODULE)m_msys, name));
 #endif
 }
 

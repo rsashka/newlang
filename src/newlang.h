@@ -118,53 +118,78 @@ namespace newlang {
         static RuntimePtr Init(int argc = 0, const char** argv = nullptr, bool ignore_error = true) {
             RuntimePtr rt = std::make_shared<RunTime>();
 
+            std::string ffi_file;
+
 #ifdef _MSC_VER
-            rt->m_msys = LoadLibrary(L"msys-2.0.dll");
+
+            std::wstring sys_file;
+            std::string sys_init;
+
+//#define CYGWIN
+#ifdef CYGWIN
+            sys_file = L"cygwin1.dll";
+            sys_init = "cygwin_dll_init";
+            ffi_file = "cygffi-6.dll";
+#else
+            sys_file = L"msys-2.0.dll";
+            sys_init = "msys_dll_init";
+            ffi_file = "libffi-7.dll";
+#endif
+
+            rt->m_msys = LoadLibrary(sys_file.c_str());
             if (!rt->m_msys) {
-                if!(ignore_error) {
-                    LOG_RUNTIME("Fail LoadLibrary msys-2.0.dll: %s", RunTime::GetLastErrorMessage().c_str());
-                }
+                LOG_RUNTIME("Fail LoadLibrary %s: %s", sys_file.c_str(), RunTime::GetLastErrorMessage().c_str());
             }
 
             typedef void init_type();
 
-            init_type *init = (init_type *) GetProcAddress(m_msys, "msys_dll_init");
+            init_type *init = (init_type *) GetProcAddress((HMODULE) rt->m_msys, sys_init.c_str());
             if (rt->m_msys && !init) {
-                if!(ignore_error) {
-                    FreeLibrary(rt->m_msys);
-                    LOG_RUNTIME("msys_dll_init  not found! %s", RunTime::GetLastErrorMessage().c_str());
-                }
+                FreeLibrary((HMODULE) rt->m_msys);
+                LOG_RUNTIME("Func %s not found! %s", sys_init.c_str(), RunTime::GetLastErrorMessage().c_str());
                 (*init)();
             }
+            rt->m_ffi_handle = LoadLibrary(utf8_decode(ffi_file).c_str());
 #else
-            rt->m_msys = dlopen("libffi.so", RTLD_NOW);
+            ffi_file = "libffi.so";
+            rt->m_ffi_handle = dlopen(ffi_file.c_str(), RTLD_NOW);
 #endif
 
-            rt->m_ffi_type_void = static_cast<ffi_type *> (GetDirectAddressFromLibrary(rt->m_msys, "ffi_type_void"));
-            rt->m_ffi_type_uint8 = static_cast<ffi_type *> (GetDirectAddressFromLibrary(rt->m_msys, "ffi_type_uint8"));
-            rt->m_ffi_type_sint8 = static_cast<ffi_type *> (GetDirectAddressFromLibrary(rt->m_msys, "ffi_type_sint8"));
-            rt->m_ffi_type_uint16 = static_cast<ffi_type *> (GetDirectAddressFromLibrary(rt->m_msys, "ffi_type_uint16"));
-            rt->m_ffi_type_sint16 = static_cast<ffi_type *> (GetDirectAddressFromLibrary(rt->m_msys, "ffi_type_sint16"));
-            rt->m_ffi_type_uint32 = static_cast<ffi_type *> (GetDirectAddressFromLibrary(rt->m_msys, "ffi_type_uint32"));
-            rt->m_ffi_type_sint32 = static_cast<ffi_type *> (GetDirectAddressFromLibrary(rt->m_msys, "ffi_type_sint32"));
-            rt->m_ffi_type_uint64 = static_cast<ffi_type *> (GetDirectAddressFromLibrary(rt->m_msys, "ffi_type_uint64"));
-            rt->m_ffi_type_sint64 = static_cast<ffi_type *> (GetDirectAddressFromLibrary(rt->m_msys, "ffi_type_sint64"));
-            rt->m_ffi_type_float = static_cast<ffi_type *> (GetDirectAddressFromLibrary(rt->m_msys, "ffi_type_float"));
-            rt->m_ffi_type_double = static_cast<ffi_type *> (GetDirectAddressFromLibrary(rt->m_msys, "ffi_type_double"));
-            rt->m_ffi_type_pointer = static_cast<ffi_type *> (GetDirectAddressFromLibrary(rt->m_msys, "ffi_type_pointer"));
+            if (!rt->m_ffi_handle) {
+                LOG_RUNTIME("Fail load %s!", ffi_file.c_str());
+            }
 
-            rt->m_ffi_prep_cif = reinterpret_cast<ffi_prep_cif_type *> (GetDirectAddressFromLibrary(rt->m_msys, "ffi_prep_cif"));
-            rt->m_ffi_prep_cif_var = reinterpret_cast<ffi_prep_cif_var_type *> (GetDirectAddressFromLibrary(rt->m_msys, "ffi_prep_cif_var"));
-            rt->m_ffi_call = reinterpret_cast<ffi_call_type *> (GetDirectAddressFromLibrary(rt->m_msys, "ffi_call"));
+            rt->m_ffi_type_void = static_cast<ffi_type *> (GetDirectAddressFromLibrary(rt->m_ffi_handle, "ffi_type_void"));
+            rt->m_ffi_type_uint8 = static_cast<ffi_type *> (GetDirectAddressFromLibrary(rt->m_ffi_handle, "ffi_type_uint8"));
+            rt->m_ffi_type_sint8 = static_cast<ffi_type *> (GetDirectAddressFromLibrary(rt->m_ffi_handle, "ffi_type_sint8"));
+            rt->m_ffi_type_uint16 = static_cast<ffi_type *> (GetDirectAddressFromLibrary(rt->m_ffi_handle, "ffi_type_uint16"));
+            rt->m_ffi_type_sint16 = static_cast<ffi_type *> (GetDirectAddressFromLibrary(rt->m_ffi_handle, "ffi_type_sint16"));
+            rt->m_ffi_type_uint32 = static_cast<ffi_type *> (GetDirectAddressFromLibrary(rt->m_ffi_handle, "ffi_type_uint32"));
+            rt->m_ffi_type_sint32 = static_cast<ffi_type *> (GetDirectAddressFromLibrary(rt->m_ffi_handle, "ffi_type_sint32"));
+            rt->m_ffi_type_uint64 = static_cast<ffi_type *> (GetDirectAddressFromLibrary(rt->m_ffi_handle, "ffi_type_uint64"));
+            rt->m_ffi_type_sint64 = static_cast<ffi_type *> (GetDirectAddressFromLibrary(rt->m_ffi_handle, "ffi_type_sint64"));
+            rt->m_ffi_type_float = static_cast<ffi_type *> (GetDirectAddressFromLibrary(rt->m_ffi_handle, "ffi_type_float"));
+            rt->m_ffi_type_double = static_cast<ffi_type *> (GetDirectAddressFromLibrary(rt->m_ffi_handle, "ffi_type_double"));
+            rt->m_ffi_type_pointer = static_cast<ffi_type *> (GetDirectAddressFromLibrary(rt->m_ffi_handle, "ffi_type_pointer"));
+
+            rt->m_ffi_prep_cif = reinterpret_cast<ffi_prep_cif_type *> (GetDirectAddressFromLibrary(rt->m_ffi_handle, "ffi_prep_cif"));
+            rt->m_ffi_prep_cif_var = reinterpret_cast<ffi_prep_cif_var_type *> (GetDirectAddressFromLibrary(rt->m_ffi_handle, "ffi_prep_cif_var"));
+            rt->m_ffi_call = reinterpret_cast<ffi_call_type *> (GetDirectAddressFromLibrary(rt->m_ffi_handle, "ffi_call"));
+
+            if (!(rt->m_ffi_type_uint8 && rt->m_ffi_type_sint8 && rt->m_ffi_type_uint16 && rt->m_ffi_type_sint16 &&
+                    rt->m_ffi_type_uint32 && rt->m_ffi_type_sint32 && rt->m_ffi_type_uint64 && rt->m_ffi_type_sint64 &&
+                    rt->m_ffi_type_float && rt->m_ffi_type_double && rt->m_ffi_type_pointer && rt->m_ffi_type_void &&
+                    rt->m_ffi_prep_cif && rt->m_ffi_prep_cif_var && rt->m_ffi_call)) {
+                LOG_RUNTIME("Fail init data from %s!", ffi_file.c_str());
+            }
 
             return rt;
         }
 
         inline static void * GetDirectAddressFromLibrary(void *handle, const char * name) {
 #ifdef _MSC_VER
-            return static_cast<void *> (::GetProcAddress(handle, name));
+            return static_cast<void *> (::GetProcAddress((HMODULE) handle, name));
 #else
-
             return dlsym(handle, name);
 #endif
         }
@@ -178,10 +203,20 @@ namespace newlang {
         void * GetNativeAddr(const char * name, const char *module = nullptr);
 
         virtual ~RunTime() {
+
 #ifdef _MSC_VER
+            if (m_ffi_handle) {
+                FreeLibrary((HMODULE) m_ffi_handle);
+                m_ffi_handle = nullptr;
+            }
             if (m_msys) {
-                FreeLibrary(m_msys);
+                FreeLibrary((HMODULE) m_msys);
                 m_msys = nullptr;
+            }
+#else
+            if (m_ffi_handle) {
+                dlclose(m_ffi_handle);
+                m_ffi_handle = nullptr;
             }
 #endif
         }
@@ -201,9 +236,13 @@ namespace newlang {
         RunTime(const RunTime&) = delete;
         const RunTime& operator=(const RunTime&) = delete;
 
+#ifdef _MSC_VER
         void * m_msys;
+#endif
+
         std::map<std::string, Module *> m_modules;
 
+        void * m_ffi_handle;
         ffi_type * m_ffi_type_void;
         ffi_type * m_ffi_type_uint8;
         ffi_type * m_ffi_type_sint8;

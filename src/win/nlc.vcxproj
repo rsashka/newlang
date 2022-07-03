@@ -104,11 +104,10 @@
     <TargetName>nlc_unit_test</TargetName>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='UnitTest|x64'">
-    <IncludePath>$(VC_IncludePath);$(WindowsSDK_IncludePath);..;../..;../../..;../../contrib/;../../contrib/googletest/googletest;../../contrib/googletest/googletest/include;../../contrib/Lyra/include;../../contrib/libtorch-win/include;../../contrib/libtorch-win/include/torch/csrc/api/include;../../contrib/tensorboard_logger/include;../../contrib/libffi/win64/include</IncludePath>
+    <IncludePath>$(VC_IncludePath);$(WindowsSDK_IncludePath);..;../..;../../..;../../contrib/;../../contrib/googletest/googletest;../../contrib/googletest/googletest/include;../../contrib/Lyra/include;../../contrib/libtorch-win/include;../../contrib/libtorch-win/include/torch/csrc/api/include;../../contrib/tensorboard_logger/include;C:\msys64\usr\include;C:\Program Files\OpenSSL-Win64\include</IncludePath>
     <LibraryPath>..\..\contrib\libffi\win64\lib;..\..\contrib\libtorch-win\lib;$(LibraryPath)</LibraryPath>
     <OutDir>..\..\output\</OutDir>
     <TargetName>nlc_unit_test</TargetName>
-    <LinkIncremental>false</LinkIncremental>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>
@@ -192,6 +191,7 @@
       <SubSystem>Console</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <AdditionalLibraryDirectories>%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalDependencies>C:\Program Files\OpenSSL-Win64\lib\libcrypto_static.lib;Ws2_32.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
     <ProjectReference />
     <PostBuildEvent>

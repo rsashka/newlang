@@ -2156,7 +2156,7 @@ bool newlang::ParsePrintfFormat(Obj *args, size_t start) {
         LOG_WARNING("Missing object!");
         return false;
     }
-    if(args->size() <= start || !(*args)[start]) {
+    if(args->size() <= static_cast<int64_t>(start) || !(*args)[start]) {
         LOG_WARNING("Missing format string!");
         return false;
     }

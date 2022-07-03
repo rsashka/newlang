@@ -28,36 +28,26 @@
 #include <sstream>
 #include <iostream>
 #include <fstream>
-//#include <unistd.h>
 #include <fcntl.h>
-
 
 #include <stdarg.h>
 #include <sys/stat.h>
 #include <sys/types.h>
-#include <ffi.h>
 
 #ifdef _MSC_VER
 
 #include <windows.h>
-#include <stdio.h>
 #include <wchar.h>
-#include <string.h>
-#include <contrib/libffi/win64/include/ffi.h>
-
-#pragma execution_character_set("utf-8")
 
 #else
 
-#ifndef __WIN32__
 #include <wait.h>
 #include <dlfcn.h>
-#endif
-
 #include <sys/param.h>
 
 #endif
 
+#include <ffi.h>
 
 #include "warning_push.h"
 #include <torch/torch.h>
