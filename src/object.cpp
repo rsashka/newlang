@@ -2565,6 +2565,8 @@ ObjPtr Obj::BaseTypeConstructor(const Context *ctx, Obj & args) {
         result = ConstructorSimpleType_(ctx, args);
     } else if(args[0]->m_var_type_fixed == ObjType::Dictionary) {
         result = ConstructorDictionary_(ctx, args);
+    } else if(args[0]->m_var_type_fixed == ObjType::Pointer && args.size() > 1) {
+        result = ConstructorNative_(ctx, args);
     } else if(args[0]->m_var_type_fixed == ObjType::Class) {
         result = ConstructorClass_(ctx, args);
     } else if(args[0]->m_var_type_fixed == ObjType::Struct || args[0]->m_var_type_fixed == ObjType::Union) {
@@ -2732,6 +2734,18 @@ ObjPtr Obj::ConstructorDictionary_(const Context *ctx, Obj & args) {
     result->m_var_is_init = true;
 
     return result;
+}
+
+ObjPtr Obj::ConstructorNative_(const Context *ctx_const, Obj & args) {
+    if(args.size() < 2) {
+        LOG_RUNTIME("Empty argument list!");
+    }
+    if(!args.at(1).second->is_string_type()) {
+        LOG_RUNTIME("First argument not a string!");
+    }
+    //@todo Передача дополнительных аргументов? args["module"]->GetValueAsString().c_str(), args["lazzy"]->GetValueAsBoolean()
+    Context *ctx = const_cast<Context *> (ctx_const);
+    return ctx->CreateNative(args.at(1).second->GetValueAsString().c_str());
 }
 
 ObjPtr Obj::ConstructorClass_(const Context *ctx, Obj & args) {

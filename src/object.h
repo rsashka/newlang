@@ -1078,6 +1078,7 @@ namespace newlang {
         static ObjPtr BaseTypeConstructor(const Context *ctx, Obj &in);
         static ObjPtr ConstructorSimpleType_(const Context *ctx, Obj & args);
         static ObjPtr ConstructorDictionary_(const Context *ctx, Obj & args);
+        static ObjPtr ConstructorNative_(const Context *ctx, Obj & args);
         static ObjPtr ConstructorClass_(const Context *ctx, Obj & args);
         static ObjPtr ConstructorStruct_(const Context *ctx, Obj & args);
         static ObjPtr ConstructorEnum_(const Context *ctx, Obj & args);

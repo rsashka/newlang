@@ -2056,7 +2056,7 @@ TEST_F(ParserTest, MacroDSL) {
 }
 
 TEST_F(ParserTest, HelloWorld) {
-    ASSERT_TRUE(Parse("hello(str=\"\") := { printf(format:Format, ...):Int := @import('printf'); printf('%s', $1); $str;};"));
+    ASSERT_TRUE(Parse("hello(str=\"\") := { printf(format:Format, ...):Int := :Pointer('printf'); printf('%s', $1); $str;};"));
     //    ASSERT_STREQ("!!!!!!!!!!!!!!", ast->toString().c_str());
 }
 

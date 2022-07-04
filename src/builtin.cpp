@@ -59,27 +59,27 @@ namespace newlang {
         return in[1]->MakeMutable();
     }
 
-    NEWLANG_FUNCTION(import) {
-        if(!ctx) {
-            LOG_RUNTIME("No access to context!");
-        }
-        return ctx->CreateNative(in.at(1).second->GetValueAsString().c_str(),
-                in["module"]->GetValueAsString().c_str(), in["lazzy"]->GetValueAsBoolean());
-    }
-
-    NEWLANG_FUNCTION(eval) {
-        if(!ctx) {
-            LOG_RUNTIME("No access to context!");
-        }
-        return ctx->ExecStr(in.at(1).second->GetValueAsString().c_str(), &in, true);
-    }
-
-    NEWLANG_FUNCTION(exec) {
-        if(!ctx) {
-            LOG_RUNTIME("No access to context!");
-        }
-        return ctx->ExecFile(in.at(1).second->GetValueAsString().c_str(), &in, true);
-    }
+//    NEWLANG_FUNCTION(import) {
+//        if(!ctx) {
+//            LOG_RUNTIME("No access to context!");
+//        }
+//        return ctx->CreateNative(in.at(1).second->GetValueAsString().c_str(),
+//                in["module"]->GetValueAsString().c_str(), in["lazzy"]->GetValueAsBoolean());
+//    }
+//
+//    NEWLANG_FUNCTION(eval) {
+//        if(!ctx) {
+//            LOG_RUNTIME("No access to context!");
+//        }
+//        return ctx->ExecStr(in.at(1).second->GetValueAsString().c_str(), &in, true);
+//    }
+//
+//    NEWLANG_FUNCTION(exec) {
+//        if(!ctx) {
+//            LOG_RUNTIME("No access to context!");
+//        }
+//        return ctx->ExecFile(in.at(1).second->GetValueAsString().c_str(), &in, true);
+//    }
 
     NEWLANG_TRANSPARENT(help) {
 

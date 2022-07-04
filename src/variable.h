@@ -118,13 +118,11 @@ namespace newlang {
 
         inline Type & push_front(PairType pair) {
             m_data.insert(m_data.begin(), pair);
-            //            m_data.push_front(pair);
             return at(0).second;
         }
 
         inline void pop_front() {
             m_data.erase(m_data.begin());
-            //            m_data.pop_front();
         }
 
         inline Type top() const {

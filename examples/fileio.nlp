@@ -1,49 +1,49 @@
 
 :File ::= :Pointer;
 
-@stdin:File ::= import("_IO_2_1_stdin_:File");
-@stdout:File ::= import("_IO_2_1_stdout_:File");
-@stderr:File ::= import("stderr:File");
+@stdin:File ::= :Pointer("_IO_2_1_stdin_:File");
+@stdout:File ::= :Pointer("_IO_2_1_stdout_:File");
+@stderr:File ::= :Pointer("stderr:File");
 
-@fopen(filename:String, modes:String):File ::= import("fopen(filename:StrChar, modes:StrChar):File");;
-@fopen64(filename:String, modes:String):File ::= import("fopen(filename:StrChar, modes:StrChar):File");;
+@fopen(filename:String, modes:String):File ::= :Pointer("fopen(filename:StrChar, modes:StrChar):File");;
+@fopen64(filename:String, modes:String):File ::= :Pointer("fopen(filename:StrChar, modes:StrChar):File");;
 
-@freopen(filename:String, modes:String):File ::= import("freopen(filename:StrChar, modes:StrChar, stream:File):File");;
-@freopen64(filename:String, modes:String):File ::= import("freopen64(filename:StrChar, modes:StrChar, stream:File):File");;
+@freopen(filename:String, modes:String):File ::= :Pointer("freopen(filename:StrChar, modes:StrChar, stream:File):File");;
+@freopen64(filename:String, modes:String):File ::= :Pointer("freopen64(filename:StrChar, modes:StrChar, stream:File):File");;
 
 #extern FILE *fdopen (int __fd, const char *__modes) __THROW __wur;
 
-@fclose(stream:File):Int ::= import("fclose(stream:File):Int");;
-@fcloseall():Int ::= import("fcloseall():Int");;
+@fclose(stream:File):Int ::= :Pointer("fclose(stream:File):Int");;
+@fcloseall():Int ::= :Pointer("fcloseall():Int");;
 
-@fflush(stream:File):Int ::= import("fflush(stream:File):Int");;
-@fflush_unlocked(stream:File):Int ::= import("fflush_unlocked(stream:File):Int");;
+@fflush(stream:File):Int ::= :Pointer("fflush(stream:File):Int");;
+@fflush_unlocked(stream:File):Int ::= :Pointer("fflush_unlocked(stream:File):Int");;
 
-@fremove(filename:String):Int ::= import("remove(filename:StrChar):Int");;
+@fremove(filename:String):Int ::= :Pointer("remove(filename:StrChar):Int");;
 
-@frename(old:String, new:String):Int ::= import("rename(old:StrChar, new:StrChar):Int");;
+@frename(old:String, new:String):Int ::= :Pointer("rename(old:StrChar, new:StrChar):Int");;
 
-@ftmpfile():File ::= import("tmpfile():File");;
-@ftmpfile64():File ::= import("tmpfile64():File");;
+@ftmpfile():File ::= :Pointer("tmpfile():File");;
+@ftmpfile64():File ::= :Pointer("tmpfile64():File");;
 
-@ftmpnam(template:String):StrChar ::= import("tmpnam(template:StrChar):StrChar");;
-@ftmpnam_r(template:String):StrChar ::= import("tmpnam(template:StrChar):StrChar");;
+@ftmpnam(template:String):StrChar ::= :Pointer("tmpnam(template:StrChar):StrChar");;
+@ftmpnam_r(template:String):StrChar ::= :Pointer("tmpnam(template:StrChar):StrChar");;
 
-@ftempnam(dir:String, prefix:String):StrChar ::= import("tempnam(dir:StrChar, prefix:StrChar):StrChar");;
+@ftempnam(dir:String, prefix:String):StrChar ::= :Pointer("tempnam(dir:StrChar, prefix:StrChar):StrChar");;
 
 
 
-@fprintf(stream:File, format:Format, ...):Int ::= import("fprintf(stream:File, format:Format, ...):Int");;
-@fscanf(stream:File, format:Format, ...):Int ::= import("fscanf(stream:File, format:Format, ...):Int");;       
+@fprintf(stream:File, format:Format, ...):Int ::= :Pointer("fprintf(stream:File, format:Format, ...):Int");;
+@fscanf(stream:File, format:Format, ...):Int ::= :Pointer("fscanf(stream:File, format:Format, ...):Int");;       
         
-@fgetc(stream:File):Int ::= import("fgetc(stream:File):Int");;
+@fgetc(stream:File):Int ::= :Pointer("fgetc(stream:File):Int");;
 
-@fgetc_unlocked(stream:File):Int ::= import("fgetc_unlocked(stream:File):Int");;
+@fgetc_unlocked(stream:File):Int ::= :Pointer("fgetc_unlocked(stream:File):Int");;
 
-@fungetc(c:Int, stream:File):Int ::= import("ungetc(c:Int, stream:File):Int");;
+@fungetc(c:Int, stream:File):Int ::= :Pointer("ungetc(c:Int, stream:File):Int");;
 
-@fputc(c:Int, stream:File):Int ::= import("fputc(c:Int, stream:File):Int");;
-@fputs(string:String, stream:File):Int ::= import("fputs(c:StrChar, stream:File):Int");;
+@fputc(c:Int, stream:File):Int ::= :Pointer("fputc(c:Int, stream:File):Int");;
+@fputs(string:String, stream:File):Int ::= :Pointer("fputs(c:StrChar, stream:File):Int");;
 
 
 #extern size_t fread (void *__restrict __ptr, size_t __size,
@@ -59,7 +59,7 @@
 #			       size_t __n, FILE *__restrict __stream);
 #
 SEEK ::= :Enum(SET=0, CUR=1, END=2);
-@fseek(stream:File, offset:Long, whence:Int):Int ::= import("fseek(stream:File, offset:Long, whence:Int):Int");;
+@fseek(stream:File, offset:Long, whence:Int):Int ::= :Pointer("fseek(stream:File, offset:Long, whence:Int):Int");;
 
 
 #extern long int ftell (FILE *__stream) __wur;

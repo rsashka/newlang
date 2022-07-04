@@ -45,11 +45,9 @@ FUNC_TRANSPARENT(newlang_clone, clone);
 FUNC_TRANSPARENT(newlang_const_, const_);
 FUNC_TRANSPARENT(newlang_mutable_, mutable_);
 
-FUNC_DIRECT(newlang_import, import);
-FUNC_DIRECT(newlang_print, print_);
-
-FUNC_DIRECT(newlang_eval, eval);
-FUNC_DIRECT(newlang_exec, exec);
+//FUNC_DIRECT(newlang_import, import);
+//FUNC_DIRECT(newlang_eval, eval);
+//FUNC_DIRECT(newlang_exec, exec);
 
 FUNC_TRANSPARENT(newlang_help, help);
 /*

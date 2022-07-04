@@ -54,10 +54,10 @@ Context::Context(RuntimePtr global) {
         VERIFY(CreateBuiltin("max(arg, ...)", (void *) &max, ObjType::PureFunc));
         VERIFY(CreateBuiltin("макс(arg, ...)", (void *) &max, ObjType::PureFunc));
 
-        VERIFY(CreateBuiltin("import(arg, module='', lazzy=0)", (void *) &import, ObjType::Function));
+        //        VERIFY(CreateBuiltin("import(arg, module='', lazzy=0)", (void *) &import, ObjType::Function));
+        //        VERIFY(CreateBuiltin("eval(string:String)", (void *) &eval, ObjType::Function));
+        //        VERIFY(CreateBuiltin("exec(filename:String)", (void *) &exec, ObjType::Function));
 
-        VERIFY(CreateBuiltin("eval(string:String)", (void *) &eval, ObjType::Function));
-        VERIFY(CreateBuiltin("exec(filename:String)", (void *) &exec, ObjType::Function));
         VERIFY(CreateBuiltin("help(...)", (void *) &help, ObjType::PureFunc));
 
     }
@@ -1454,7 +1454,6 @@ ObjPtr Context::CreateNative(TermPtr proto, const char *module, bool lazzy, cons
         type = typeFromString(proto->m_type_name, this);
         switch(type) {
             case ObjType::Bool:
-                //            case ObjType::Byte:
             case ObjType::Char:
             case ObjType::Short:
             case ObjType::Int:
@@ -2186,7 +2185,7 @@ ObjPtr Context::CreateRVal(Context *ctx, TermPtr term, Obj * local_vars, bool in
             temp = ctx->GetTerm(term->GetFullName().c_str(), term->isRef());
 
             if(!temp) {
-                ASSERT(temp);
+                LOG_RUNTIME("Term '%s' not found!", term->GetFullName().c_str());
             }
 
             args = Obj::CreateDict();

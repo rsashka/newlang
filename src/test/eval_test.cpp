@@ -89,7 +89,7 @@ TEST(Eval, Assign) {
     ASSERT_STREQ("$=('var_str', 'var_num',)", list->toString().c_str());
 
     var_long = 987654321;
-    ObjPtr var_export = ctx.ExecStr("var_export := @import(\"var_long:Long\")");
+    ObjPtr var_export = ctx.ExecStr("var_export := :Pointer(\"var_long:Long\")");
     ASSERT_TRUE(var_export);
     ASSERT_TRUE(var_export->is_tensor()) << var_export;
     ASSERT_EQ(var_export->getType(), ObjType::Long);
@@ -102,7 +102,7 @@ TEST(Eval, Assign) {
     list = ctx.ExecStr("$");
     ASSERT_STREQ("$=('var_str', 'var_num', 'var_export',)", list->toString().c_str());
 
-    ObjPtr func_export = ctx.ExecStr("func_export := @import(\"func_export(arg1:Long, arg2:Char=100):Long\")");
+    ObjPtr func_export = ctx.ExecStr("func_export := :Pointer(\"func_export(arg1:Long, arg2:Char=100):Long\")");
     ASSERT_TRUE(func_export);
     ASSERT_TRUE(func_export->is_function()) << func_export;
     ASSERT_EQ(func_export->getType(), ObjType::NativeFunc);
@@ -270,7 +270,7 @@ TEST(Eval, Tensor) {
             "0,], [0, 0,], [0, 0,], [0, 0,],\n]:Double",
             tt->GetValueAsString().c_str());
 
-    ObjPtr rand = ctx.ExecStr("rand := @import('rand():Int')");
+    ObjPtr rand = ctx.ExecStr("rand := :Pointer('rand():Int')");
 
     // Может быть раскрытие словаря, который возвращает вызов функции
     // и может быть многократный вызов одной и той функции
@@ -372,8 +372,8 @@ TEST(Eval, TypesNative) {
     //    <stdout@@GLIBC_2.2.5> fputs("TEST STDOUT", stdout); // 0x7fff6ec7e760
     //    <_IO_2_1_stdout_> fputs("TEST STDOUT", (FILE *)f_stdout->m_func_ptr);
 
-    //    //stdout:File ::= import("stdout:File");
-    //    ObjPtr f2_stdout = ctx.ExecStr("stdout:File ::= import('stdout:File')");
+    //    //stdout:File ::= :Pointer("stdout:File");
+    //    ObjPtr f2_stdout = ctx.ExecStr("stdout:File ::= :Pointer('stdout:File')");
     //    ASSERT_TRUE(f2_stdout);
     //    ASSERT_TRUE(f2_stdout->m_func_ptr);
     //    ASSERT_EQ(f_stdout->m_func_ptr, f2_stdout->m_func_ptr);
@@ -383,7 +383,7 @@ TEST(Eval, TypesNative) {
     ASSERT_TRUE(fopen);
     ASSERT_TRUE(fopen->m_func_ptr);
 
-    ObjPtr fopen2 = ctx.ExecStr("@fopen2 ::= import('fopen(filename:StrChar, modes:StrChar):File')");
+    ObjPtr fopen2 = ctx.ExecStr("@fopen2 ::= :Pointer('fopen(filename:StrChar, modes:StrChar):File')");
     ASSERT_TRUE(fopen2);
     ASSERT_TRUE(fopen2->m_func_ptr);
     ASSERT_EQ(fopen->m_func_ptr, fopen2->m_func_ptr);
@@ -392,33 +392,33 @@ TEST(Eval, TypesNative) {
     ASSERT_TRUE(!iter.complete());
 
     ObjPtr fopen3 = ctx.ExecStr("@fopen3(filename:String, modes:String):File ::= "
-            "import('fopen(filename:StrChar, modes:StrChar):File')");
+            ":Pointer('fopen(filename:StrChar, modes:StrChar):File')");
     ASSERT_TRUE(fopen3);
     ASSERT_TRUE(fopen3->m_func_ptr);
     ASSERT_EQ(fopen->m_func_ptr, fopen3->m_func_ptr);
 
-    ObjPtr fclose = ctx.ExecStr("@fclose(stream:File):Int ::= import(\"fclose(stream:File):Int\")");
+    ObjPtr fclose = ctx.ExecStr("@fclose(stream:File):Int ::= :Pointer(\"fclose(stream:File):Int\")");
     ASSERT_TRUE(fclose);
     ASSERT_TRUE(fclose->m_func_ptr);
 
     ObjPtr fremove = ctx.ExecStr("@fremove(filename:String):Int ::= "
-            "import(\"remove(filename:StrChar):Int\")");
+            ":Pointer(\"remove(filename:StrChar):Int\")");
     ASSERT_TRUE(fremove);
     ASSERT_TRUE(fremove->m_func_ptr);
 
     ObjPtr frename = ctx.ExecStr("@rename(old:String, new:String):Int ::= "
-            "import('rename(old:StrChar, new:StrChar):Int')");
+            ":Pointer('rename(old:StrChar, new:StrChar):Int')");
     ASSERT_TRUE(frename);
     ASSERT_TRUE(frename->m_func_ptr);
 
     ObjPtr fprintf = ctx.ExecStr("@fprintf(stream:File, format:Format, ...):Int ::= "
-            "import('fprintf(stream:File, format:Format, ...):Int')");
+            ":Pointer('fprintf(stream:File, format:Format, ...):Int')");
     ASSERT_TRUE(fremove);
     ObjPtr fputc = ctx.ExecStr("@fputc(c:Int, stream:File):Int ::= "
-            "import('fputc(c:Int, stream:File):Int')");
+            ":Pointer('fputc(c:Int, stream:File):Int')");
     ASSERT_TRUE(fremove);
     ObjPtr fputs = ctx.ExecStr("@fputs(s:String, stream:File):Int ::= "
-            "import('fputs(s:StrChar, stream:File):Int')");
+            ":Pointer('fputs(s:StrChar, stream:File):Int')");
     ASSERT_TRUE(fputs);
 
     std::filesystem::create_directories("temp");
@@ -518,7 +518,7 @@ TEST(Eval, TypesNative) {
     ASSERT_EQ(2, F_res->GetValueAsInteger());
 
     ObjPtr seek = ctx.ExecStr("@fseek(stream:File, offset:Long, whence:Int):Int ::= "
-            "import('fseek(stream:File, offset:Long, whence:Int):Int')");
+            ":Pointer('fseek(stream:File, offset:Long, whence:Int):Int')");
     ASSERT_TRUE(seek);
 
     F_res = ctx.ExecStr("fseek(F2, 10, @SEEK.SET)");
@@ -571,7 +571,7 @@ TEST(ExecStr, Funcs) {
 
     EXPECT_TRUE(ctx.m_runtime->GetNativeAddr("printf"));
 
-    ObjPtr p = ctx.ExecStr("printf := @import('printf(format:Format, ...):Int');");
+    ObjPtr p = ctx.ExecStr("printf := :Pointer('printf(format:Format, ...):Int');");
     ASSERT_TRUE(p);
     ASSERT_STREQ("printf=printf(format:Format, ...):Int{}", p->toString().c_str());
 
