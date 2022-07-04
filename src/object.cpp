@@ -382,6 +382,15 @@ ObjPtr Obj::operator+=(Obj value) {
                 return shared();
             }
             break;
+
+        case ObjType::Fraction:
+            if(value.m_var_type_current == ObjType::Fraction) {
+                m_fraction->operator+=(*(value.m_fraction.get()));
+            } else {
+                m_fraction->operator+=(*(value.toType(ObjType::Fraction)->m_fraction.get()));
+            }
+            return shared();
+
     }
     LOG_RUNTIME("Operator '+' fail for '%s' and '%s'", toString().c_str(), value.toString().c_str());
 }
@@ -415,6 +424,13 @@ ObjPtr Obj::operator-=(Obj value) {
                 return shared();
             }
             break;
+        case ObjType::Fraction:
+            if(value.m_var_type_current == ObjType::Fraction) {
+                m_fraction->operator-=(*(value.m_fraction.get()));
+            } else {
+                m_fraction->operator-=(*(value.toType(ObjType::Fraction)->m_fraction.get()));
+            }
+            return shared();
     }
     LOG_RUNTIME("Operator '-' fail for '%s' and '%s'", toString().c_str(), value.toString().c_str());
 }
@@ -458,6 +474,14 @@ ObjPtr Obj::operator*=(Obj value) {
                 return shared();
             }
 
+        case ObjType::Fraction:
+            if(value.m_var_type_current == ObjType::Fraction) {
+                m_fraction->operator*=(*(value.m_fraction.get()));
+            } else {
+                m_fraction->operator*=(*(value.toType(ObjType::Fraction)->m_fraction.get()));
+            }
+            return shared();
+
     }
     LOG_RUNTIME("Operator '*' fail for '%s' and '%s'", toString().c_str(), value.toString().c_str());
 }
@@ -466,6 +490,13 @@ ObjPtr Obj::operator/=(Obj value) {
     if(is_tensor() && value.is_tensor()) {
         testResultIntegralType(ObjType::Double, false);
         m_value.div_(value.m_value);
+        return shared();
+    } else if(m_var_type_current == ObjType::Fraction) {
+        if(value.m_var_type_current == ObjType::Fraction) {
+            m_fraction->operator/=(*(value.m_fraction.get()));
+        } else {
+            m_fraction->operator/=(*(value.toType(ObjType::Fraction)->m_fraction.get()));
+        }
         return shared();
     }
     LOG_RUNTIME("Operator '/' fail for '%s' and '%s'", toString().c_str(), value.toString().c_str());
@@ -478,6 +509,13 @@ ObjPtr Obj::op_div_ceil_(Obj & value) {
         m_value.div_(value.m_value, "floor");
         m_value = m_value.toType(toTorchType(type));
         return shared();
+    } else if(m_var_type_current == ObjType::Fraction) {
+        //        if(value.m_var_type_current == ObjType::Fraction) {
+        //            m_fraction->operator/=(value.m_fraction);
+        //        } else {
+        //            m_fraction->operator/=(value.toType(ObjPtr::Fraction)->m_fraction);
+        //        }
+        //        return shared();
     }
     LOG_RUNTIME("Operator '//' fail for '%s' and '%s'", toString().c_str(), value.toString().c_str());
 }
@@ -487,6 +525,13 @@ ObjPtr Obj::operator%=(Obj value) {
         testResultIntegralType(value.m_var_type_current, false);
         m_value.fmod_(value.m_value);
         return shared();
+    } else if(m_var_type_current == ObjType::Fraction) {
+        //        if(value.m_var_type_current == ObjType::Fraction) {
+        //            m_fraction->operator*=(value.m_fraction);
+        //        } else {
+        //            m_fraction->operator*=(value.toType(ObjPtr::Fraction)->m_fraction);
+        //        }
+        //        return shared();
     }
     LOG_RUNTIME("Operator '%%' fail for '%s' and '%s'", toString().c_str(), value.toString().c_str());
 }
@@ -1407,25 +1452,30 @@ bool Obj::op_duck_test_prop(Obj *base, Obj *value, bool strong) {
 }
 
 ObjPtr Obj::op_pow_(Obj & obj) {
-    if(obj.is_arithmetic_type()) {
-        if(is_tensor()) {
-            m_value.pow_(obj.toTensor());
+    if(is_tensor()) {
+        m_value.pow_(obj.toTensor());
+        return shared();
+    } else if(is_arithmetic_type()) {
+        if(is_integer()) {
+            SetValue_(static_cast<int64_t> (pow(GetValueAsInteger(), obj.GetValueAsInteger()) + 0.5));
             return shared();
-        } else if(is_arithmetic_type()) {
-            if(is_integer()) {
-                SetValue_(static_cast<int64_t> (pow(GetValueAsInteger(), obj.GetValueAsInteger()) + 0.5));
-                return shared();
-            } else if(isFloatingType(m_var_type_current)) {
-                SetValue_(pow(GetValueAsNumber(), obj.GetValueAsNumber()));
-                return shared();
-            }
-        } else if(m_var_type_current == ObjType::StrChar && obj.is_integer()) {
-            m_str = repeat(m_str, obj.GetValueAsInteger());
-            return shared();
-        } else if(m_var_type_current == ObjType::StrWide && obj.is_integer()) {
-            m_wstr = repeat(m_wstr, obj.GetValueAsInteger());
+        } else if(isFloatingType(m_var_type_current)) {
+            SetValue_(pow(GetValueAsNumber(), obj.GetValueAsNumber()));
             return shared();
         }
+    } else if(m_var_type_current == ObjType::StrChar && obj.is_integer()) {
+        m_str = repeat(m_str, obj.GetValueAsInteger());
+        return shared();
+    } else if(m_var_type_current == ObjType::StrWide && obj.is_integer()) {
+        m_wstr = repeat(m_wstr, obj.GetValueAsInteger());
+        return shared();
+    } else if(m_var_type_current == ObjType::Fraction) {
+        //        if(value.m_var_type_current == ObjType::Fraction) {
+        //            m_fraction->op_pow_(value.m_fraction);
+        //        } else {
+        //            m_fraction->op_pow_(value.toType(ObjPtr::Fraction)->m_fraction);
+        //        }
+        //        return shared();
     }
     LOG_RUNTIME("Unsupported power operator for '%s' and '%s'!", toString().c_str(), obj.toString().c_str());
 }

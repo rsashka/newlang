@@ -966,18 +966,34 @@ TEST_F(OpEvalTest, Ops) {
     ASSERT_STREQ("5.1", Test("1.1+4"));
     ASSERT_STREQ("5.5", Test("1+4.5"));
 
+    ASSERT_STREQ("10\\1", Test("10\\1"));
+    ASSERT_STREQ("32\\1", Test("10\\1+22\\1"));
+    ASSERT_STREQ("5\\1", Test("4\\5 + 42\\10"));
+    ASSERT_STREQ("11\\1", Test("10\\1 + 1"));
+    ASSERT_STREQ("4\\3", Test("1\\3 + 1"));
+    
     ASSERT_STREQ("-12", Test("10 - 22"));
     ASSERT_STREQ("-2.9", Test("1.1 - 4"));
     ASSERT_STREQ("-3.5", Test("1 - 4.5"));
+    ASSERT_STREQ("-17\\5", Test("4\\5 - 42\\10"));
+    ASSERT_STREQ("-9\\10", Test("1\\10 - 1"));
+    ASSERT_STREQ("-2\\3", Test("1\\3 - 1"));
 
     ASSERT_STREQ("66", Test("2 * 33"));
     ASSERT_STREQ("-5.5", Test("1.1 * -5"));
     ASSERT_STREQ("180", Test("10 * 18"));
+    ASSERT_STREQ("66\\1", Test("2\\1 * 66\\2"));
+    ASSERT_STREQ("-15\\1", Test("3\\1 * -5"));
+    ASSERT_STREQ("9\\5", Test("18\\100 * 10"));
 
     ASSERT_STREQ("5", Test("10/2"));
     ASSERT_STREQ("5.05", Test("10.1 / 2"));
     ASSERT_STREQ("0.1", Test("1 / 10"));
     ASSERT_STREQ("0.1", Test("1.0 / 10"));
+
+    ASSERT_STREQ("4\\3", Test("12\\3 / 3"));
+    ASSERT_STREQ("1\\1", Test("5\\10 / 1\\2"));
+    ASSERT_STREQ("1\\100", Test("1\\10 / 10"));
 
     ASSERT_STREQ("5", Test("10//2"));
     ASSERT_STREQ("5", Test("10.0 // 2"));

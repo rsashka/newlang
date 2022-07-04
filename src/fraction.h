@@ -179,16 +179,19 @@ namespace newlang {
         BigNum m_numerator; // Числитель
         BigNum m_denominator; // Знаменатель
 
-        // Функция нужна для сокращения дроби
-        void reduce();
     public:
         // Конструктор принимает значения числителя и знаменателя
 
         Fraction() : Fraction("0", "1") {
         }
 
-        Fraction(const unsigned long value) : Fraction() {
-            BN_set_word(m_numerator.value, value);
+        Fraction(const int64_t value) : Fraction() {
+            if (value < 0) {
+                BN_set_word(m_numerator.value, -value);
+                BN_set_negative(m_numerator.value, -1);
+            } else {
+                BN_set_word(m_numerator.value, value);
+            }
         }
 
         Fraction(const Fraction &copy) : m_numerator(copy.m_numerator), m_denominator(copy.m_denominator) {
@@ -233,69 +236,69 @@ namespace newlang {
             return m_numerator.GetAsNumber() / m_denominator.GetAsNumber();
         }
 
-        //    // Наибольший общий делитель
-        //    // (англ.) greatest common divisor
-        //
-        //    static int gcd(int a, int b) {
-        //        while (b > 0) {
-        //            int c = a % b;
-        //            a = b;
-        //            b = c;
-        //        }
-        //        return a;
-        //    }
-        //
-        //    // Наименьшее общее кратное
-        //    // (англ.) least common multiple
-        //
-        //    static int lcm(int a, int b) {
-        //        return gcd(a, b) * a * b;
-        //    }
-        //public void reduce ()
-        //{
-        //    BigInteger num = BigInteger.valueOf(numerator);
-        //    int gcd = num.gcd(BigInteger.valueOf(denominator)).intValue();
-        //
-        //    this.denominator /= gcd;
-        //    this.numerator /= gcd;
-        //
-        //}
+        // Сокращения дроби
 
-        Fraction& operator*(const Fraction &fraction) {
-            LOG_RUNTIME("Not implemented!");
-            //        m_numerator = m_numerator * fraction.getNumerator();
-            //        m_denominator = m_denominator * fraction.getDenominator();
-            //        reduce();
+        void reduce() {
+            BigNum::CtxHelper ctx;
+            BigNum gcd;
+
+            if (!BN_gcd(gcd.value, m_numerator.value, m_denominator.value, ctx.ctx)) {
+                LOG_RUNTIME("Fail call BN_gcd!");
+            }
+
+            BigNum rem;
+            m_numerator.div(gcd, rem);
+            ASSERT(rem.isZero());
+            m_denominator.div(gcd, rem);
+            ASSERT(rem.isZero());
+        }
+
+        Fraction& operator*=(const Fraction &fraction) {
+            m_numerator.mul(fraction.m_numerator);
+            m_denominator.mul(fraction.m_denominator);
+            reduce();
             return *this;
         }
 
-        Fraction& operator/(const Fraction &fraction) {
-            LOG_RUNTIME("Not implemented!");
-            //        m_numerator = m_numerator * fraction.getDenominator();
-            //        m_denominator = m_denominator * fraction.getNumerator();
-            //        reduce();
+        Fraction& operator/=(const Fraction &fraction) {
+            m_numerator.mul(fraction.m_denominator);
+            m_denominator.mul(fraction.m_numerator);
+            reduce();
             return *this;
         }
 
-        Fraction& operator-(const Fraction &fraction) {
-            LOG_RUNTIME("Not implemented!");
-            //        int relNumerator = m_numerator * fraction.getDenominator();
-            //        m_numerator = m_numerator * fraction.getDenominator() - m_denominator * fraction.getNumerator();
-            //        m_denominator = gcd(m_denominator, fraction.getDenominator());
-            //        reduce();
+        Fraction& operator-=(const Fraction &fraction) {
+
+            BigNum sub_num(fraction.m_numerator);
+            sub_num.mul(m_denominator);
+
+            m_numerator.mul(fraction.m_denominator);
+            m_denominator.mul(fraction.m_denominator);
+
+            m_numerator.sub(sub_num);
+
+            reduce();
             return *this;
         }
 
-        Fraction& operator+(const Fraction &fraction) {
-            LOG_RUNTIME("Not implemented!");
-            //        int unionDenominator = lcm(m_denominator, fraction.getDenominator());
-            //        int relNumerator = m_numerator * unionDenominator;
-            //        int mulNumerator = fraction.m_numerator * unionDenominator;
-            //        m_numerator = relNumerator * mulNumerator;
-            //        m_denominator = unionDenominator;
-            //        reduce();
+        Fraction& operator+=(const Fraction &fraction) {
+            BigNum add_num(fraction.m_numerator);
+            add_num.mul(m_denominator);
+
+            m_numerator.mul(fraction.m_denominator);
+            m_denominator.mul(fraction.m_denominator);
+
+            m_numerator.add(add_num);
+
+            reduce();
             return *this;
         }
+
+        Fraction& op_pow_(const Fraction &fraction) {
+            LOG_RUNTIME("Not implemented!");
+            return *this;
+        }
+
     };
 };
 #endif /* FRACTION_H */
