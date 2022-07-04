@@ -6,6 +6,7 @@
 
 #include <types.h>
 #include <variable.h>
+#include <fraction.h>
 
 namespace newlang {
 
@@ -105,28 +106,8 @@ namespace newlang {
             m_var_type_fixed = fixed;
         }
 
-        //        template < typename T >
-        //        Obj(T data, typename std::enable_if<!std::is_reference<T>::value>::type* = 0) {
-        //            m_var_type_current = ObjType::Dictionary;
-        //            m_var_type_fixed = ObjType::Dictionary;
-        //            m_dimensions = nullptr;
-        //            push_front(Arg(data, nullptr));
-        //        }
-        //
-        //        template < typename T >
-        //        Obj(T &data, typename std::enable_if<std::is_reference<T>::value>::type* = 0) {
-        //            m_var_type_current = ObjType::Dictionary;
-        //            m_var_type_fixed = ObjType::Dictionary;
-        //            m_dimensions = nullptr;
-        //            push_front(Arg(data, nullptr));
-        //        }
-
         Obj(Context *ctx, const TermPtr term, bool as_value, Obj *local_vars);
 
-        //        template <typename A, typename... T>
-        //        inline Obj(A arg, T... rest) : Obj(rest...) {
-        //            push_front(Arg(arg));
-        //        }
 
         [[nodiscard]]
         static inline PairType ArgNull(const std::string name = "") {
@@ -142,12 +123,6 @@ namespace newlang {
         static inline PairType Arg(ObjPtr value, const std::string name = "") {
             return Variable<ObjPtr>::pair(value, name);
         }
-
-        //        template<typename T>
-        //        typename std::enable_if<std::is_same<PairType, T>::value, PairType>::type
-        //        static inline Arg(T value) {
-        //            return value;
-        //        }
 
         template<typename T>
         typename std::enable_if<std::is_pointer<T>::value || std::is_same<std::string, T>::value, PairType>::type
@@ -388,16 +363,6 @@ namespace newlang {
             }
             return Variable<ObjPtr>::empty();
         }
-
-        //        virtual ObjPtr at(const std::string name) {
-        //            return Variable<ObjPtr>::at(name.begin()).second;
-        //        }
-        //
-        //        virtual ObjPtr at(const std::string name) const {
-        //            Obj * const obj = (Obj * const) this;
-        //            return obj->Variable<ObjPtr>::at(name.begin()).second;
-        //            //        return Variable<ObjPtr>::at(name.begin()).second;
-        //        }
 
         Variable<ObjPtr>::PairType & at(const std::string_view name) const {
             Obj * const obj = (Obj * const) this;
@@ -973,6 +938,10 @@ namespace newlang {
                 case ObjType::Number:
                     return static_cast<int64_t> (m_value.item<double>());
 
+                case ObjType::Fraction:
+                    ASSERT(m_fraction);
+                    return m_fraction->GetAsInteger();
+
                 case ObjType::StrWide:
                     return std::stoll(m_wstr);
                 case ObjType::StrChar:
@@ -992,6 +961,10 @@ namespace newlang {
                 case ObjType::Float:
                 case ObjType::Double:
                     return m_value.item<double>();
+
+                case ObjType::Fraction:
+                    ASSERT(m_fraction);
+                    return m_fraction->GetAsNumber();
 
                 case ObjType::StrWide:
                     return std::stod(m_wstr);
@@ -1023,6 +996,10 @@ namespace newlang {
                         return !m_str.empty();
                     case ObjType::None:
                         return false;
+
+                    case ObjType::Fraction:
+                        ASSERT(m_fraction);
+                        return m_fraction->GetAsInteger();
 
                     case ObjType::Dictionary:
                     case ObjType::Class:
@@ -1059,6 +1036,41 @@ namespace newlang {
         static ObjPtr CreateType(ObjType type, const char *var_name = nullptr, ObjType fixed = ObjType::None) {
             TermPtr term = nullptr;
             return std::make_shared<Obj>(type, var_name, term, fixed);
+        }
+
+        static ObjPtr CreateFraction(const std::string_view val) {
+
+            std::string str;
+            std::remove_copy(val.begin(), val.end(), back_inserter(str), '_');
+
+            if (str.empty()) {
+                LOG_RUNTIME("Empty string!");
+            }
+
+            ObjPtr frac = Obj::CreateType(ObjType::Fraction);
+
+            // Ищем разделитель дроби
+            size_t pos = str.find("\\");
+
+            // Если символ не найден - то вся строка является числом 
+            if (pos == std::string::npos) {
+                frac->m_fraction = std::make_shared<Fraction>(str, "1");
+            } else {
+                // Числитель - левая часть
+                // Знаменатель - правая часть
+                frac->m_fraction = std::make_shared<Fraction>(str.substr(0, pos), str.substr(pos + 1, str.length()));
+                // Знаменатель не должен быть равен нулю
+                if (frac->m_fraction->m_denominator.isZero()) {
+                    LOG_RUNTIME("Denominator must be different from zero!");
+                }
+            }
+
+            frac->m_var_is_init = true;
+            if (str.compare(frac->m_fraction->GetAsString().c_str()) != 0) {
+                LOG_RUNTIME("Fraction value '%s' does not match source string  '%s'!", frac->m_fraction->GetAsString().c_str(), str.c_str());
+            }
+
+            return frac;
         }
 
 
@@ -1673,11 +1685,10 @@ namespace newlang {
             m_wstr.clear();
             m_var_type_current = ObjType::None;
 
-            //        m_var_name.clear();
-            //        m_string.clear();
             m_class_parents.clear();
             m_var_is_init = false;
             m_value.reset();
+            m_fraction.reset();
             //        m_var = std::monostate();
             //        m_value.reset(); //????????????????
             //        m_items.clear();
@@ -1742,6 +1753,7 @@ namespace newlang {
         void *m_func_ptr;
         ffi_abi m_func_abi;
         torch::Tensor m_value;
+        std::shared_ptr<Fraction> m_fraction;
 
         TermPtr m_block_source;
         bool m_check_args; //< Проверять аргументы на корректность (для всех видов функций) @ref MakeArgs

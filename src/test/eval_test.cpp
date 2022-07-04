@@ -344,7 +344,7 @@ TEST(Eval, FuncSimple) {
     //    "arg2"))->GetValueAsBoolean());
 }
 
-TEST(Eval, Types) {
+TEST(Eval, TypesNative) {
 
     Context::Reset();
     Context ctx(RunTime::Init());
@@ -764,6 +764,39 @@ TEST(Eval, Convert) {
     ASSERT_TRUE(obj_float->m_var_is_init);
     ASSERT_STREQ("[\n  [3, 4,], [1, 2,],\n]:Float", obj_float->GetValueAsString().c_str());
 
+    
+    
+    
+    
+    ObjPtr frac_0 = ctx.ExecStr("0\\1");
+    ASSERT_TRUE(frac_0);
+    ASSERT_EQ(ObjType::Fraction, frac_0->getType());
+    ASSERT_EQ(ObjType::None, frac_0->m_var_type_fixed);
+    ASSERT_STREQ("0\\1", frac_0->GetValueAsString().c_str());
+
+    ObjPtr frac_1 = ctx.ExecStr("1\\1");
+    ASSERT_TRUE(frac_1);
+    ASSERT_EQ(ObjType::Fraction, frac_1->getType());
+    ASSERT_EQ(ObjType::None, frac_1->m_var_type_fixed);
+    ASSERT_STREQ("1\\1", frac_1->GetValueAsString().c_str());
+
+    ObjPtr frac_2 = ctx.ExecStr("222_222_222_222222_222_222_222\\1_1_1_1");
+    ASSERT_TRUE(frac_2);
+    ASSERT_EQ(ObjType::Fraction, frac_2->getType());
+    ASSERT_EQ(ObjType::None, frac_2->m_var_type_fixed);
+    ASSERT_STREQ("222222222222222222222222\\1111", frac_2->GetValueAsString().c_str());
+
+    ObjPtr obj_frac = ctx.ExecStr(":Fraction(0)");
+    ASSERT_TRUE(obj_frac);
+    ASSERT_FALSE(obj_frac->is_tensor());
+    ASSERT_FALSE(obj_frac->is_scalar());
+    ASSERT_EQ(ObjType::Fraction, obj_frac->getType()) << toString(obj_frac->m_var_type_current);
+
+    ASSERT_TRUE(obj_frac->m_var_is_init);
+    ASSERT_STREQ("0\\1", obj_frac->GetValueAsString().c_str());
+    ASSERT_EQ(0, obj_frac->GetValueAsInteger());
+    
+    
 
     //    EXPECT_TRUE(dlsym(nullptr, "_ZN7newlang4CharEPKNS_7ContextERKNS_6ObjectE"));
     //    EXPECT_TRUE(dlsym(nullptr, "_ZN7newlang6Short_EPNS_7ContextERNS_6ObjectE"));

@@ -93,6 +93,18 @@ TEST_F(ParserTest, LiteralString4) {
     ASSERT_STREQ("'strbyte'(term(), 123)", ast->toString().c_str());
 }
 
+TEST_F(ParserTest, LiteralEval1) {
+    ASSERT_TRUE(Parse("``"));
+    ASSERT_EQ(TermID::EVAL, ast->getTermID()) << newlang::toString(ast->getTermID());
+    ASSERT_STREQ("``", ast->toString().c_str());
+}
+
+TEST_F(ParserTest, LiteralEval2) {
+    ASSERT_TRUE(Parse("`strbyte(term(), 123);`"));
+    ASSERT_EQ(TermID::EVAL, ast->getTermID()) << newlang::toString(ast->getTermID());
+    ASSERT_STREQ("`strbyte(term(), 123);`", ast->toString().c_str());
+}
+
 TEST_F(ParserTest, LiteralFraction) {
     ASSERT_TRUE(Parse("1\\1;"));
     ASSERT_EQ(TermID::FRACTION, ast->getTermID()) << newlang::toString(ast->getTermID());
@@ -105,20 +117,6 @@ TEST_F(ParserTest, LiteralFraction) {
     ASSERT_TRUE(Parse("123456789123456789123456789\\123456789123456789123456789;"));
     ASSERT_EQ(TermID::FRACTION, ast->getTermID()) << newlang::toString(ast->getTermID());
     ASSERT_STREQ("123456789123456789123456789\\123456789123456789123456789", ast->toString().c_str());
-}
-
-TEST_F(ParserTest, DISABLED_LiteralCurrency) {
-    ASSERT_TRUE(Parse("`1;"));
-    ASSERT_EQ(TermID::CURRENCY, ast->getTermID()) << newlang::toString(ast->getTermID());
-    ASSERT_STREQ("`1", ast->toString().c_str());
-
-    ASSERT_TRUE(Parse("1`23;"));
-    ASSERT_EQ(TermID::CURRENCY, ast->getTermID()) << newlang::toString(ast->getTermID());
-    ASSERT_STREQ("`123", ast->toString().c_str());
-
-    ASSERT_TRUE(Parse("1`2`3456.123;"));
-    ASSERT_EQ(TermID::CURRENCY, ast->getTermID()) << newlang::toString(ast->getTermID());
-    ASSERT_STREQ("123`456.123", ast->toString().c_str());
 }
 
 TEST_F(ParserTest, DISABLED_LiteralComplex) {

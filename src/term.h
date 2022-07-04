@@ -28,9 +28,9 @@ namespace newlang {
         _(STRWIDE) \
         _(STRCHAR) \
         _(TEMPLATE) \
+        _(EVAL) \
         _(COMMENT) \
         \
-        _(CURRENCY) \
         _(FRACTION) \
         \
         _(NONE) \
@@ -228,6 +228,7 @@ namespace newlang {
                 case TermID::TENSOR:
                 case TermID::DICT:
                 case TermID::OPERATOR:
+                case TermID::EVAL:
                     return true;
                 default:
                     return IsLiteral() || IsVariable() || IsFunction();
@@ -360,6 +361,16 @@ namespace newlang {
                         result += ")";
                     }
                     return result;
+
+                case TermID::EVAL:
+                    if (!result.empty()) {
+                        result += "=";
+                    }
+                    result += "`";
+                    result += m_text;
+                    result += "`";
+                    return result;
+
                 case TermID::INTEGER:// name:=123
                 case TermID::NUMBER: // name:=123.0
                     test = result.empty();
@@ -637,7 +648,6 @@ namespace newlang {
                 case TermID::SYMBOL:
                 case TermID::FRACTION:
                 case TermID::COMPLEX:
-                case TermID::CURRENCY:
                     return m_text;
 
                 case TermID::EMPTY:

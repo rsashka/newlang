@@ -67,7 +67,6 @@ ualpha  {alpha}|{U2}{U1}|{U3}{U1}{U1}|{U4}{U1}{U1}{U1}
 
 digit   [0-9]
 integer {digit}([_]?{digit}+)*
-currency -?`{digit}(`?{digit}+)*
 name    ({ualpha}|[_])({ualpha}|{digit}|[_])*
 macro   \\({ualpha}|[_])?({name})?
 
@@ -95,6 +94,7 @@ term    [$@%]({ualpha}|[_])?({name})?
 %x state_COMMENT
 %x state_SOURCE
 %x state_MACRO
+%x state_EVAL
 
 
 %% /*** Regular Expressions Part ***/
@@ -279,11 +279,6 @@ term    [$@%]({ualpha}|[_])?({name})?
 } /* End of state_STRWIDE state*/
 
 
-'      { /* Start state state_STRCHAR */
-            BEGIN(state_STRCHAR);
-            buffer.clear();
-}
-            
 "r'"    {
                 BEGIN(state_STRCHAR_RAW);
                 buffer.clear();
@@ -291,6 +286,12 @@ term    [$@%]({ualpha}|[_])?({name})?
 
 <state_STRCHAR_RAW>{
 .           buffer.append(yytext, yyleng);
+}
+
+
+'      { /* Start state state_STRCHAR */
+            BEGIN(state_STRCHAR);
+            buffer.clear();
 }
 
 <state_STRCHAR>{
@@ -339,11 +340,34 @@ term    [$@%]({ualpha}|[_])?({name})?
 } /* End of state_STRCHAR state*/
 
 
+"`"     { /* Start state state_EVAL */
+            BEGIN(state_EVAL);
+            buffer.clear();
+}
+
+<state_EVAL>{
+
+"`"     {
+            BEGIN(INITIAL);
+            *yylval = Term::Create(TermID::EVAL, buffer.c_str(), buffer.size(), yylloc, source_string);
+            return token::EVAL;
+        }
+
+\n      {
+            /* generate error message */
+            YY_FATAL_ERROR("Unterminated eval string");
+        }
+
+.           buffer.append(yytext, yyleng);
+            
+
+} /* End of state_EVAL state*/
+
+
 -?{number}[-+]{number}j | {number}j  YY_TOKEN(COMPLEX);
 -?{number}[-+]{number}i | {number}i  YY_TOKEN(COMPLEX);
 -?{integer}\\-?{integer} YY_TOKEN(FRACTION);
 -?{integer}     YY_TOKEN(INTEGER);
-{currency}      YY_TOKEN(CURRENCY);
 {number}        YY_TOKEN(NUMBER);
 
 "::"        YY_TOKEN(NAMESPACE);

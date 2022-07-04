@@ -550,6 +550,45 @@ TEST(ObjTest, CreateFromString) {
     ASSERT_STREQ("строка", var2->GetValueAsString().c_str());
 }
 
+TEST(ObjTest, CreateFromFraction) {
+
+    Context ctx(RunTime::Init());
+
+    ObjPtr var = Context::CreateRVal(&ctx, Parser::ParseString("123\\1"));
+    ASSERT_TRUE(var);
+    ASSERT_EQ(ObjType::Fraction, var->getType()) << toString(var->getType());
+    ASSERT_EQ(123, var->GetValueAsInteger());
+    ASSERT_DOUBLE_EQ(123, var->GetValueAsInteger());
+
+    ObjPtr var2 = ctx.ExecStr("123\\1");
+    ASSERT_TRUE(var2);
+    ASSERT_EQ(ObjType::Fraction, var2->getType()) << toString(var2->getType());
+    ASSERT_EQ(123, var2->GetValueAsInteger());
+    ASSERT_DOUBLE_EQ(123, var2->GetValueAsNumber());
+
+    var = Context::CreateRVal(&ctx, Parser::ParseString("-123\\1"));
+    ASSERT_TRUE(var);
+    ASSERT_EQ(ObjType::Fraction, var->getType()) << toString(var->getType());
+    ASSERT_EQ(-123, var->GetValueAsInteger());
+    ASSERT_DOUBLE_EQ(-123, var->GetValueAsInteger());
+
+    var2 = ctx.ExecStr("-123\\1");
+    ASSERT_TRUE(var2);
+    ASSERT_EQ(ObjType::Fraction, var2->getType()) << toString(var2->getType());
+    ASSERT_EQ(-123, var2->GetValueAsInteger());
+    ASSERT_DOUBLE_EQ(-123, var2->GetValueAsNumber());
+
+    ASSERT_ANY_THROW(Context::CreateRVal(&ctx, Term::Create(TermID::FRACTION, "1\\0")));
+    ASSERT_ANY_THROW(Context::CreateRVal(&ctx, Term::Create(TermID::FRACTION, "1\\")));
+    ASSERT_ANY_THROW(Context::CreateRVal(&ctx, Term::Create(TermID::FRACTION, "")));
+    ASSERT_ANY_THROW(Context::CreateRVal(&ctx, Term::Create(TermID::FRACTION, "asdsdff")));
+    ASSERT_ANY_THROW(Context::CreateRVal(&ctx, Term::Create(TermID::FRACTION, "asdsdff\\dddddd")));
+    ASSERT_ANY_THROW(Context::CreateRVal(&ctx, Term::Create(TermID::FRACTION, "123asdsdff\\dddddd")));
+    ASSERT_ANY_THROW(Context::CreateRVal(&ctx, Term::Create(TermID::FRACTION, "123\\111dddddd")));
+    ASSERT_ANY_THROW(Context::CreateRVal(&ctx, Term::Create(TermID::FRACTION, "123wwwww\\111")));
+}
+
+
 TEST(Args, All) {
     Context ctx(RunTime::Init());
     TermPtr ast;

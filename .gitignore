@@ -21,6 +21,7 @@ Makefile
 docs/syntax.txt
 output
 **/*temp*
+**/.vs
 
 
 # Binaries

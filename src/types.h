@@ -20,7 +20,52 @@ namespace newlang {
     inline std::string & trim(std::string& s, const char* t = ws) {
         return ltrim(rtrim(s, t), t);
     }
+
     
+    template <typename T>
+    class SharedPtrWrapper {
+    public:
+
+        explicit SharedPtrWrapper(T* p, void (*deleter)(T*)) : ptr_() {
+            if (!p) {
+                return;
+            }
+
+            if (!deleter) {
+                deleter = NullDeleter;
+            }
+
+            try {
+                ptr_ = std::shared_ptr<T>(p, deleter);
+            } catch (...) {
+            }
+        }
+
+        operator bool() const {
+            return !!ptr_;
+        }
+
+        T* get() const {
+            return ptr_.get();
+        }
+
+        T& operator*() const {
+            return *ptr_;
+        }
+
+        T* operator->() const {
+            return get();
+        }
+
+    private:
+
+        static void NullDeleter(T*) {
+        }
+
+        std::shared_ptr<T> ptr_;
+    };
+
+
 typedef at::indexing::TensorIndex Index;
 typedef at::IntArrayRef Dimension;
 
@@ -133,9 +178,7 @@ void ParserException(const char *msg, std::string &buffer, int row, int col);
                             \
     _(Tensor, 32)           \
                             \
-    _(BigNum, 33)           \
-    _(Currency, 34)         \
-    _(Fraction, 35)         \
+    _(Fraction, 33)         \
     \
     _(Arithmetic, 47)       \
     \
@@ -847,9 +890,9 @@ void ParserException(const char *msg, std::string &buffer, int row, int col);
             case ObjType::Number: // Любое число с ПЛАВАЮЩЕЙ ТОЧКОЙ
                 return isFloatingType(type) || isIntegralType(type, true);
             case ObjType::Complex: // Любое КОМПЛЕКСНОЕ число
-                return isComplexType(type) || isFloatingType(type) || isIntegralType(type, true);
+                return isIntegralType(type, true) || isFloatingType(type) || isComplexType(type);
             case ObjType::Arithmetic: // Любое число
-                return isComplexType(type) || isFloatingType(type) || isIntegralType(type, true) || type == ObjType::BigNum || type == ObjType::Fraction || type == ObjType::Currency;
+                return isIntegralType(type, true) || isFloatingType(type) || isComplexType(type) || type == ObjType::Fraction;
             case ObjType::String: // Строка любого типа
                 return isString(type);
             case ObjType::Object: // Любой объект (Class или Dictionary)

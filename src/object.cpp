@@ -521,6 +521,10 @@ void Obj::CloneDataTo(Obj & clone) const {
         clone.m_str = m_str;
         clone.m_wstr = m_wstr;
 
+        if(m_fraction) {
+            clone.m_fraction = std::make_shared<Fraction>(*m_fraction.get());
+        }
+
         clone.m_class_parents = m_class_parents;
         clone.m_class_name = m_class_name;
         //        clone.m_ctx = m_ctx;
@@ -767,6 +771,11 @@ std::string Obj::toString(bool deep) const {
             case ObjType::Ellipsis:
                 result += "...";
                 return result;
+
+            case ObjType::Fraction:
+                ASSERT(m_fraction);
+                result += m_fraction->GetAsString();
+                return result;
         }
     }
     LOG_RUNTIME("Unknown type '%s' (%d)", newlang::toString(m_var_type_current), (int) m_var_type_current);
@@ -912,6 +921,11 @@ std::string Obj::GetValueAsString() const {
 
         case ObjType::Range:
             result += toString();
+            return result;
+
+        case ObjType::Fraction:
+            ASSERT(m_fraction);
+            result += m_fraction->GetAsString();
             return result;
     }
     LOG_RUNTIME("Data type '%s' %d incompatible to string!", newlang::toString(m_var_type_current), (int) m_var_type_current);
@@ -1605,14 +1619,23 @@ void Obj::toType_(ObjType target) {
             ConvertTensorToDict(m_value, *this);
             m_value.reset();
             return;
+        } else if(target == ObjType::Fraction) {
+            if(!is_scalar()) {
+                LOG_RUNTIME("Fraction convert support for scalar only!");
+            }
+            m_fraction = std::make_shared<Fraction>(GetValueAsInteger());
+            m_value.reset();
+            m_var_type_current = target;
+            return;
         }
     } else if(is_string_type()) {
         // Из строки в другой тип данных
-        if(isString(target)) {
-            // Строки хранятся в байтовом представлении и их ненужно конвертировать
-            m_var_type_current = target;
-            return;
-        } else if(isTensor(target)) {
+        //        if(isString(target)) {
+        //            // Строки хранятся в байтовом представлении и их ненужно конвертировать
+        //            m_var_type_current = target;
+        //            return;
+        //        } else 
+        if(isTensor(target)) {
             // Сконвертировать строку в тензор
             torch::Tensor std_data;
             std::wstring_convert < std::codecvt_utf8<wchar_t>, wchar_t> converter;
@@ -1649,6 +1672,12 @@ void Obj::toType_(ObjType target) {
 
             m_var_type_current = target;
             ConvertTensorToDict(temp, *this);
+            m_str.clear();
+            m_wstr.clear();
+            return;
+        } else if(target == ObjType::Fraction) {
+            m_fraction = std::make_shared<Fraction>(GetValueAsString(), "1");
+            m_var_type_current = target;
             m_str.clear();
             m_wstr.clear();
             return;
@@ -2023,9 +2052,7 @@ ObjPtr Obj::CallNative(Context *ctx, Obj args) {
                 m_args_val.push_back(temp);
                 break;
 
-            case ObjType::StrWide:
             case ObjType::StrChar:
-                ASSERT(type == ObjType::StrChar);
                 if(pind < check_count) {
                     NL_CHECK(!(*m_func_proto)[pind]->m_type_name.empty(), "Undefined type arg '%s'", (*m_func_proto)[pind]->toString().c_str());
                     NL_CHECK(canCast(type, typeFromString((*m_func_proto)[pind]->m_type_name, ctx)), "Fail cast from '%s' to '%s'",
@@ -2033,6 +2060,17 @@ ObjPtr Obj::CallNative(Context *ctx, Obj args) {
                 }
                 m_args_type.push_back(ctx->m_runtime->m_ffi_type_pointer);
                 temp.ptr = args[i]->m_str.c_str();
+                m_args_val.push_back(temp);
+                break;
+
+            case ObjType::StrWide:
+                if(pind < check_count) {
+                    NL_CHECK(!(*m_func_proto)[pind]->m_type_name.empty(), "Undefined type arg '%s'", (*m_func_proto)[pind]->toString().c_str());
+                    NL_CHECK(canCast(type, typeFromString((*m_func_proto)[pind]->m_type_name, ctx)), "Fail cast from '%s' to '%s'",
+                            (*m_func_proto)[pind]->m_type_name.c_str(), newlang::toString(type));
+                }
+                m_args_type.push_back(ctx->m_runtime->m_ffi_type_pointer);
+                temp.ptr = args[i]->m_wstr.c_str();
                 m_args_val.push_back(temp);
                 break;
 
@@ -2156,7 +2194,7 @@ bool newlang::ParsePrintfFormat(Obj *args, size_t start) {
         LOG_WARNING("Missing object!");
         return false;
     }
-    if(args->size() <= static_cast<int64_t>(start) || !(*args)[start]) {
+    if(args->size() <= static_cast<int64_t> (start) || !(*args)[start]) {
         LOG_WARNING("Missing format string!");
         return false;
     }
@@ -2165,100 +2203,127 @@ bool newlang::ParsePrintfFormat(Obj *args, size_t start) {
         return false;
     }
 
-    //std::string format = (*args)[start]->GetValueAsString();
-    //size_t count = parse_printf_format(format.c_str(), 0, nullptr);
-    //std::vector<int> types(count);
+    std::string format = (*args)[start]->GetValueAsString();
 
-    //parse_printf_format(format.c_str(), types.size(), types.data());
-    //bool result = true;
-    //unsigned i = 0;
-    //unsigned aind = start + 1;
-    //ObjType cast;
-    //while(i < types.size()) {
 
-    //    if(aind < args->size()) {
-    //        //            if(types[i] & PA_FLAG_PTR == PA_FLAG_PTR) {
-    //        //                LOG_WARNING("Pointer arg '%u' not suppotred!", i);
-    //        //                result = false;
-    //        //                i++;
-    //        //                aind++;
-    //        //                continue;
-    //        //            }
-    //        switch(types[i] & ~PA_FLAG_MASK) {
-    //            case PA_INT:
-    //                if((types[i] & PA_FLAG_MASK) == 0) {
-    //                    cast = ObjType::Int;
-    //                } else if(((types[i] & PA_FLAG_LONG) == PA_FLAG_LONG) || ((types[i] & PA_FLAG_LONG) == PA_FLAG_LONG_LONG)) {
-    //                    cast = ObjType::Long;
-    //                } else if((types[i] & PA_FLAG_SHORT) == PA_FLAG_SHORT) {
-    //                    cast = ObjType::Short;
-    //                } else {
-    //                    LOG_WARNING("Format flag at pos %d unrecognized! %s", i, format.c_str());
-    //                    result = false;
-    //                }
-    //                if(!canCast((*args)[aind]->m_var_type_current, cast)) {
-    //                    LOG_WARNING("Cast '%s' to '%s' not supported!", newlang::toString((*args)[aind]->m_var_type_current),
-    //                            newlang::toString(cast));
-    //                    result = false;
-    //                }
-    //                break;
-    //            case PA_CHAR:
-    //                if(types[i] & PA_FLAG_MASK) {
-    //                    LOG_WARNING("format modifier arg '%s' %u not supported!", newlang::toString((*args)[aind]->m_var_type_current), i);
-    //                    result = false;
-    //                }
-    //                cast = ObjType::Char;
-    //                if(!canCast((*args)[aind]->m_var_type_current, cast)) {
-    //                    LOG_WARNING("Cast '%s' to '%s' not supported!", newlang::toString((*args)[aind]->m_var_type_current),
-    //                            newlang::toString(cast));
-    //                    result = false;
-    //                }
-    //                break;
-    //            case PA_STRING:
-    //                if(types[i] & PA_FLAG_MASK) {
-    //                    LOG_WARNING("format modifier arg '%s' %u not supported!", newlang::toString((*args)[aind]->m_var_type_current), i);
-    //                    result = false;
-    //                }
-    //                cast = ObjType::StrChar;
-    //                if(!canCast((*args)[aind]->m_var_type_current, cast)) {
-    //                    LOG_WARNING("Cast '%s' to '%s' not supported!", newlang::toString((*args)[aind]->m_var_type_current),
-    //                            newlang::toString(cast));
-    //                    result = false;
-    //                }
-    //                break;
-    //            case PA_FLOAT:
-    //            case PA_DOUBLE:
-    //                if(types[i] & PA_FLAG_MASK) {
-    //                    LOG_WARNING("format modifier arg '%s' %u not supported!", newlang::toString((*args)[aind]->m_var_type_current), i);
-    //                    result = false;
-    //                }
-    //                cast = ObjType::Double;
-    //                if(!canCast((*args)[aind]->m_var_type_current, cast)) {
-    //                    LOG_WARNING("Cast '%s' to '%s' not supported!", newlang::toString((*args)[aind]->m_var_type_current),
-    //                            newlang::toString(cast));
-    //                    result = false;
-    //                }
-    //                break;
-    //            default:
-    //                LOG_WARNING("Arg '%u' not supported!", i);
-    //                // PA_WCHAR,     /* wide char */
-    //                // PA_WSTRING,   /* const wchar_t *, wide character string */
-    //                // PA_POINTER,   /* void * */
-    //                result = false;
-    //        }
-    //    } else {
-    //        LOG_WARNING("Missing argument %u", i);
-    //        return false;
-    //    }
-    //    i++;
-    //    aind++;
-    //}
-    //if(aind != args->size()) {
-    //    LOG_WARNING("Extra arguments more %u", i);
-    //    return false;
-    //}
-    //return result;
-    return true;
+    static const std::string flags_list = "-+0123456789.lLh"; // '#', '*'
+    static const std::string types_list = "diufFeEgGxXaAoscp"; //, 'n'
+
+    static std::string valid_chars;
+    if(valid_chars.empty()) {
+        valid_chars.append(flags_list);
+        valid_chars.append(types_list);
+    }
+
+    bool result = true;
+    int aind = start + 1;
+
+    size_t pos = 0;
+    while(pos < format.length()) {
+        pos = format.find_first_of('%', pos);
+        if(pos == format.npos) {
+            break;
+        }
+        pos++;
+        if(format[pos] == '%' || !format[pos]) {
+            continue;
+        }
+
+        if(aind >= args->size()) {
+
+            LOG_WARNING("Missing argument %u", (int) pos);
+            return false;
+
+        } else {
+
+            pos = format.find_first_not_of(valid_chars, pos);
+            if(pos == format.npos) {
+                pos = format.length();
+            }
+            pos--;
+
+            ObjType cast = ObjType::None;
+            switch(format[pos]) {
+
+                case 'a': //%a	Шестнадцатеричное в виде 0xh.hhhhp+d (только С99)
+                case 'A': //%A	Шестнадцатеричное в виде 0Xh.hhhhP+d (только С99)
+                case 'd': //%d	Десятичное целое со знаком
+                case 'i': //%i	Десятичное целое со знаком
+                case 'o': //%o	Восьмеричное без знака
+                case 'u': //%u	Десятичное целое без знака
+                case 'x': //%x	Шестнадцатеричное без знака (буквы на нижнем регистре)
+                case 'X': //%X	Шестнадцатеричное без знака (буквы на верхнем регистре)
+                    cast = ObjType::Int;
+                    if(pos && (format[pos - 1] == 'l' || format[pos - 1] == 'L')) {
+                        cast = ObjType::Long;
+                    } else if(pos && format[pos - 1] == 'h') {
+                        cast = ObjType::Short;
+                    }
+                    if(!canCast((*args)[aind]->m_var_type_current, cast)) {
+                        LOG_WARNING("Cast '%s' to '%s' not supported!", newlang::toString((*args)[aind]->m_var_type_current), newlang::toString(cast));
+                        result = false;
+                    }
+                    break;
+
+
+                case 'e'://%e	Экспоненциальное представление ('е' на нижнем регистре)
+                case 'E'://%E	Экспоненциальное представление ('Е' на верхнем регистре)
+                case 'f'://%f	Десятичное с плавающей точкой
+                case 'g'://%g	В зависимости от того, какой вывод будет короче, используется %е или %f
+                case 'G'://%G	В зависимости от того, какой вывод будет короче, используется %Е или %F
+
+                    cast = ObjType::Double;
+                    if(!canCast((*args)[aind]->m_var_type_current, cast)) {
+                        LOG_WARNING("Cast '%s' to '%s' not supported!", newlang::toString((*args)[aind]->m_var_type_current), newlang::toString(cast));
+                        result = false;
+                    }
+                    break;
+
+                case 'c':
+                    cast = ObjType::Char;
+                    if(pos && (format[pos - 1] == 'l' || format[pos - 1] == 'L')) {
+                        cast = ObjType::Int;
+                    }
+                    if(!canCast((*args)[aind]->m_var_type_current, cast)) {
+                        LOG_WARNING("Cast '%s' to '%s' not supported!", newlang::toString((*args)[aind]->m_var_type_current), newlang::toString(cast));
+                        result = false;
+                    }
+                    break;
+
+                case 's':
+                    cast = ObjType::StrChar;
+                    if(pos && (format[pos - 1] == 'l' || format[pos - 1] == 'L')) {
+                        cast = ObjType::StrWide;
+                    }
+                    if(!canCast((*args)[aind]->m_var_type_current, cast)) {
+                        LOG_WARNING("Cast '%s' to '%s' not supported!", newlang::toString((*args)[aind]->m_var_type_current), newlang::toString(cast));
+                        result = false;
+                    }
+                    break;
+
+
+                case 'p':
+                    cast = ObjType::Pointer;
+                    if(!canCast((*args)[aind]->m_var_type_current, cast)) {
+                        LOG_WARNING("Cast '%s' to '%s' not supported!", newlang::toString((*args)[aind]->m_var_type_current), newlang::toString(cast));
+                        result = false;
+                    }
+                    break;
+
+                default:
+                    LOG_WARNING("Format modifier '%c' at pos %d in '%s' not supported!", format[pos], (int) pos, format.c_str());
+                    result = false;
+            }
+        }
+        pos++;
+        aind++; // Следующий аргумент
+    }
+
+    if(aind != args->size()) {
+        LOG_WARNING("Extra arguments more %d", aind);
+        return false;
+    }
+    return result;
 }
 
 void newlang::ConvertRangeToDict(Obj *from, Obj & to) {
@@ -2287,6 +2352,7 @@ void newlang::ConvertRangeToDict(Obj *from, Obj & to) {
     } else {
         ASSERT((*from)["step"]->GetValueAsNumber() < 0);
         while((*value) > (*from)["stop"]) {
+
             to.push_back(value->Clone());
             (*value) += (*from)["step"];
         }
@@ -2296,6 +2362,7 @@ void newlang::ConvertRangeToDict(Obj *from, Obj & to) {
 }
 
 void newlang::ConvertStringToTensor(const std::string &from, torch::Tensor &to, ObjType type) {
+
     ASSERT(!from.empty());
     ASSERT(type == ObjType::None || type == ObjType::Char || type == ObjType::Tensor);
     to = torch::from_blob((void *) from.data(),{(int64_t) from.size()}, at::ScalarType::Char).clone();
@@ -2309,6 +2376,7 @@ void newlang::ConvertStringToTensor(const std::wstring &from, torch::Tensor &to,
     } else if(sizeof (wchar_t) == sizeof (int16_t)) {
         to = torch::from_blob((void *) from.data(),{(int) from.size()}, torch::Dtype::Short);
     } else {
+
         LOG_RUNTIME("Unsupport wchar_t size '%d'!!!", (int) sizeof (wchar_t));
     }
     to = to.toType(torch::Dtype::Int).clone();
@@ -2339,17 +2407,21 @@ template <typename T> void ConvertTensorToStringTemplate(const torch::Tensor &fr
     } else {
         index->push_back(0);
         for (int64_t i = 0; i < from.size(pos - 1); i++) {
-            (*index)[pos - 1] = i;
+            (
+
+                    *index)[pos - 1] = i;
             ConvertTensorToString(from, to, index);
         }
     }
 }
 
 void newlang::ConvertTensorToString(const torch::Tensor &from, std::string &to, std::vector<Index> *index) {
+
     ConvertTensorToStringTemplate<std::string>(from, to, index);
 }
 
 void newlang::ConvertTensorToString(const torch::Tensor &from, std::wstring &to, std::vector<Index> *index) {
+
     ConvertTensorToStringTemplate<std::wstring>(from, to, index);
 }
 
@@ -2382,7 +2454,9 @@ void newlang::ConvertTensorToDict(const torch::Tensor &from, Obj &to, std::vecto
     } else {
         index->push_back(0);
         for (int64_t i = 0; i < from.size(pos - 1); i++) {
-            (*index)[pos - 1] = i;
+            (
+
+                    *index)[pos - 1] = i;
             ConvertTensorToDict(from, to, index);
         }
     }
@@ -2403,6 +2477,7 @@ void newlang::ConvertDictToTensor(Obj &from, torch::Tensor &to, ObjType type) {
         if(to.dim() != 1 || to.size(0) == 0) {
             to = temp.clone();
         } else {
+
             to = torch::cat({to, temp});
         }
     }
@@ -2433,6 +2508,7 @@ void newlang::ConvertValueToTensor(Obj *from, torch::Tensor &to, ObjType type) {
     } else if(from->is_dictionary_type()) {
         ConvertDictToTensor(*from, to, type);
     } else {
+
         LOG_RUNTIME("Fail convert object type %s to tensor (%s)!", newlang::toString(from->getType()), from->toString().c_str());
     }
 }
@@ -2473,6 +2549,7 @@ ObjPtr Obj::CreateBaseType(ObjType type) {
 
     result->m_func_ptr = (void *) BaseTypeConstructor;
     result->m_is_const = true;
+
     return result;
 }
 
@@ -2632,6 +2709,7 @@ ObjPtr Obj::ConstructorSimpleType_(const Context *ctx, Obj & args) {
             }
             result->m_value = result->m_value.reshape(dims);
         } else {
+
             LOG_RUNTIME("Fail esing dimensions for type '%s'!", newlang::toString(result->getType()));
         }
     }
@@ -2652,6 +2730,7 @@ ObjPtr Obj::ConstructorDictionary_(const Context *ctx, Obj & args) {
         result->push_back(args[i], args.name(i));
     }
     result->m_var_is_init = true;
+
     return result;
 }
 
@@ -2663,6 +2742,7 @@ ObjPtr Obj::ConstructorClass_(const Context *ctx, Obj & args) {
             LOG_RUNTIME("Field pos %d has no name!", i);
         }
         if(!result->select(result->name(i)).complete()) {
+
             LOG_RUNTIME("Field name '%s' at index %d already exists!", result->name(i).c_str(), i);
         }
     }
@@ -2682,6 +2762,7 @@ ObjPtr Obj::ConstructorStruct_(const Context *ctx, Obj & args) {
             LOG_RUNTIME("Field '%s' at pos %d not defined!", result->name(i).c_str(), i);
         }
         if(!(*result)[i] || !isSimpleType((*result)[i]->getType()) || isGenericType((*result)[i]->getType())) {
+
             LOG_RUNTIME("Field '%s' at pos %d not simple type! (%s)", result->name(i).c_str(), i, newlang::toString((*result)[i]->getType()));
         }
     }
@@ -2739,6 +2820,7 @@ ObjPtr Obj::ConstructorError_(const Context *ctx, Obj & args) {
     result->m_var_type_current = ObjType::Error;
     result->m_var_type_fixed = ObjType::Error;
     if(!result->size()) {
+
         LOG_RUNTIME("Argument for type ':Error' required!");
     }
     return result;
@@ -2752,6 +2834,7 @@ ObjPtr Obj::ConstructorReturn_(const Context *ctx, Obj & args) {
         result->push_back(Obj::Arg(Obj::CreateNone()));
     }
     if(result->size() != 1) {
+
         LOG_RUNTIME("Multiple argument for type ':Return'!");
     }
     return result;

@@ -75,7 +75,7 @@
  * Fraction ::= Integer "\" Integer    (Представление BigNum / BigNum)
  * Currency ::= "`" Integer  | "`" Integer "."  Integer  (Представление Fraction == BigNum / 10000)
  * 
- * Ariphmetic ::= Integer  | Number | Complex | Currency | Fraction
+ * Ariphmetic ::= Integer  | Number | Complex | Fraction
  * 
  * StrChar ::= "'" символы "'"
  * StrWide ::= "\"" символы "\""
@@ -334,10 +334,10 @@ star_arg = [STAR] STAR ID
 %token                  NUMBER		"Number"
 %token                  COMPLEX		"Complex"
 %token                  FRACTION	"Fraction"
-%token                  CURRENCY	"Currency"
 %token           	STRCHAR		"StrChar"
 %token           	STRWIDE		"StrWide"
 %token           	TEMPLATE	"Template"
+%token           	EVAL            "Eval"
 
 %token			TERM            "Term"
 %token			SYMBOL          "Symbol"
@@ -790,6 +790,10 @@ rval_var:  rval_name
             }
         |  range
             {
+                $$ = $1;
+            }
+        |  EVAL 
+            {   
                 $$ = $1;
             }
         

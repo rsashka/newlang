@@ -68,6 +68,7 @@ Context::Context(RuntimePtr global) {
         VERIFY(RegisterTypeHierarchy(ObjType::Any,{}));
 
         VERIFY(RegisterTypeHierarchy(ObjType::Arithmetic,{":Any"}));
+        VERIFY(RegisterTypeHierarchy(ObjType::Fraction,{":Arithmetic"}));
         VERIFY(RegisterTypeHierarchy(ObjType::Tensor,{":Arithmetic"}));
 
         VERIFY(RegisterTypeHierarchy(ObjType::Integer,{":Tensor"}));
@@ -84,10 +85,6 @@ Context::Context(RuntimePtr global) {
         VERIFY(RegisterTypeHierarchy(ObjType::Complex,{":Tensor"}));
         VERIFY(RegisterTypeHierarchy(ObjType::ComplexFloat,{":Complex"}));
         VERIFY(RegisterTypeHierarchy(ObjType::ComplexDouble,{":Complex"}));
-
-        VERIFY(RegisterTypeHierarchy(ObjType::BigNum,{":Arithmetic"}));
-        VERIFY(RegisterTypeHierarchy(ObjType::Fraction,{":Arithmetic"}));
-        VERIFY(RegisterTypeHierarchy(ObjType::Currency,{":Arithmetic"}));
 
         VERIFY(RegisterTypeHierarchy(ObjType::String,{":Any"}));
         VERIFY(RegisterTypeHierarchy(ObjType::StrChar,{":String"}));
@@ -389,7 +386,7 @@ inline ObjPtr Context::eval_COMPLEX(Context *ctx, const TermPtr &term, Obj *args
     return CreateRVal(ctx, term, args);
 }
 
-inline ObjPtr Context::eval_CURRENCY(Context *ctx, const TermPtr &term, Obj *args) {
+inline ObjPtr Context::eval_EVAL(Context *ctx, const TermPtr &term, Obj *args) {
     return CreateRVal(ctx, term, args);
 }
 
@@ -811,7 +808,7 @@ ObjPtr Context::eval_FOLLOW(Context *ctx, const TermPtr &term, Obj * args) {
      * 
      */
 
-    for (int64_t i = 0; i < static_cast<int64_t>(term->m_follow.size()); i++) {
+    for (int64_t i = 0; i < static_cast<int64_t> (term->m_follow.size()); i++) {
 
         ASSERT(term->m_follow[i]->Left());
         ObjPtr cond = ExecStr(ctx, term->m_follow[i]->Left(), args, false);
@@ -1536,7 +1533,11 @@ void *RunTime::GetNativeAddr(const char *name, const char *module) {
 #ifndef _MSC_VER
     return dlsym(nullptr, name);
 #else
-    return static_cast<void *>(::GetProcAddress((HMODULE)m_msys, name));
+    void *result = static_cast<void *> (::GetProcAddress(GetModuleHandle(nullptr), name));
+    if(result) {
+        return result;
+    }
+    return static_cast<void *> (::GetProcAddress((HMODULE) m_msys, name));
 #endif
 }
 
@@ -2059,6 +2060,10 @@ ObjPtr Context::CreateRVal(Context *ctx, TermPtr term, Obj * local_vars, bool in
 
             return result;
 
+        case TermID::EVAL:
+            return ctx->ExecStr(term->m_text.c_str(), local_vars, false);
+
+
         case TermID::TYPE:
         case TermID::TYPE_CALL:
 
@@ -2265,6 +2270,10 @@ ObjPtr Context::CreateRVal(Context *ctx, TermPtr term, Obj * local_vars, bool in
             result->m_var_is_init = true;
 
             return result;
+
+        case TermID::FRACTION:
+            return Obj::CreateFraction(term->m_text);
+
     }
     LOG_RUNTIME("Fail create type %s from '%s'", newlang::toString(term->getTermID()), term->toString().c_str());
 
