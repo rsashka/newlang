@@ -2923,6 +2923,9 @@ ObjPtr Obj::ConstructorInterraption_(const Context* ctx, Obj& args, ObjType type
 }
 
 template<>
+const Iterator<Obj>::IterPairType Iterator<Obj>::m_interator_end = IterObj::pair(Obj::CreateType(ObjType::IteratorEnd, ObjType::IteratorEnd, true));
+
+template<>
 ObjPtr Iterator<Obj>::read_and_next(int64_t count) {
     ObjPtr result;
 
@@ -2949,5 +2952,12 @@ ObjPtr Iterator<Obj>::read_and_next(int64_t count) {
             (*this)++;
         }
     }
+    return result;
+}
+
+
+ObjPtr Obj::MakeIterator() {
+    ObjPtr result = CreateType(ObjType::Iterator, ObjType::Iterator, true);
+    result->m_iterator = std::make_shared<Iterator < Obj >> (shared());
     return result;
 }

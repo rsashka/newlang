@@ -839,7 +839,7 @@ TEST(ObjTest, Iterator) {
     ASSERT_TRUE(std::regex_match("\n\n\\n", all));
 
 
-    Iterator <Obj> iter(*dict);
+    Iterator <Obj> iter(dict);
 
     ASSERT_TRUE(iter == iter.begin());
     ASSERT_TRUE(iter != iter.end());
@@ -961,32 +961,36 @@ TEST(ObjTest, Iterator) {
     
     
     
-    Iterator <Obj> flt(*dict, "");
+    Iterator <Obj> flt(dict, "");
     ObjPtr flt_res = flt.read_and_next(-100);
     ASSERT_TRUE(flt_res);
     ASSERT_EQ(1, flt_res->size());
     ASSERT_EQ(4, flt_res->at(0).second->GetValueAsInteger());
     
 
-    Iterator <Obj> flt1(*dict, ".");
+    Iterator <Obj> flt1(dict, ".");
     ObjPtr flt1_res = flt1.read_and_next(-100);
     ASSERT_TRUE(flt1_res);
     ASSERT_EQ(1, flt1_res->size());
     ASSERT_EQ(1, flt1_res->at(0).second->GetValueAsInteger());
 
 
-    Iterator <Obj> flt2(*dict, "..");
+    Iterator <Obj> flt2(dict, "..");
     ObjPtr flt2_res = flt2.read_and_next(-100);
     ASSERT_TRUE(flt2_res);
     ASSERT_EQ(1, flt2_res->size());
     ASSERT_EQ(2, flt2_res->at(0).second->GetValueAsInteger());
 
-    Iterator <Obj> flt3(*dict, "...");
+    Iterator <Obj> flt3(dict, "...");
     ObjPtr flt3_res = flt3.read_and_next(-100);
     ASSERT_TRUE(flt3_res);
     ASSERT_EQ(2, flt3_res->size());
     ASSERT_EQ(3, flt3_res->at(0).second->GetValueAsInteger());
     ASSERT_EQ(5, flt3_res->at(1).second->GetValueAsInteger());
+    
+    
+    
+    ObjPtr iter1 = dict->MakeIterator();
 
 }
 
