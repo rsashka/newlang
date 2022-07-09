@@ -27,7 +27,7 @@ TEST(Compiler, EvalExample) {
     ASSERT_EQ(TermID::CALL, op->GetTokenID());
     ASSERT_STREQ("newlang", op->getText().c_str());
     ASSERT_EQ(1, op->size());
-    ASSERT_STREQ("cpp", (*op)[0]->getText().c_str());
+    ASSERT_STREQ("cpp", (*op)[0].second->getText().c_str());
 
     op = p->BlockCode()[1];
     ASSERT_EQ(TermID::SOURCE, op->GetTokenID());

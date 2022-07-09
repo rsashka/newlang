@@ -1,4 +1,4 @@
-#!./nlc --eval
+#!../output/nlc --eval
 
 # Example implementation DSL — domain-specific language for english
 # Macros implementation name:"\name", body start: "\\", body end: "\\\", replace var_args \$*

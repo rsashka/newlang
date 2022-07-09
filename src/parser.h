@@ -164,7 +164,13 @@ namespace newlang {
                     LOG_RUNTIME("Fail parse name macro! '%s'", body.c_str());
                     // throw Interrupt(ParserMessage(buffer, row, col, "%s", msg), Interrupt::Parser);
                 }
-
+////\__LINE__
+////\__FILE__
+////\__FUNC__
+////\__CLASS__
+////\__MACRO__
+//
+//#\line 20
                 auto found = store.find(name);
                 if (found != store.end()) {
                     LOG_RUNTIME("Macro name %s are duplicated!", name.c_str());

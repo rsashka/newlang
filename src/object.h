@@ -35,7 +35,7 @@ namespace newlang {
 
     at::TensorOptions ConvertToTensorOptions(const Obj *obj);
     at::DimnameList ConvertToDimnameList(const Obj *obj);
-    bool ParsePrintfFormat(Obj *args, size_t start = 1);
+    bool ParsePrintfFormat(Obj *args, int start = 1);
 
     enum class ConcatMode : uint8_t {
         Error = 0,
@@ -76,14 +76,7 @@ namespace newlang {
     void calcTensorDims(ObjPtr & obj, std::vector<int64_t> &dims);
     void testTensorDims(ObjPtr & obj, at::IntArrayRef dims, int64_t pos);
 
-    template<class... Ts> struct overloaded : Ts... {
-        using Ts::operator()...;
-        class Obj *obj;
-    };
-    // explicit deduction guide (not needed as of C++20)
-    template<class... Ts> overloaded(Ts...) -> overloaded<Ts...>;
-
-    class Obj : public Variable<ObjPtr>, public std::enable_shared_from_this<Obj> {
+    class Obj : public Variable<Obj>, public std::enable_shared_from_this<Obj> {
     public:
 
         //    constexpr static const char * BUILDIN_TYPE = "__var_type__";
@@ -92,7 +85,7 @@ namespace newlang {
         //    constexpr static const char * BUILDIN_CLASS = "__class_name__";
         //    constexpr static const char * BUILDIN_NAMESPACE = "__namespace__";
 
-        Obj(ObjType type = ObjType::None, const char *var_name = nullptr, TermPtr func_proto = nullptr, ObjType fixed = ObjType::None) :
+        Obj(ObjType type = ObjType::None, const char *var_name = nullptr, TermPtr func_proto = nullptr, ObjType fixed = ObjType::None, bool init = false) :
         m_var_type_current(type), m_var_name(var_name ? var_name : ""), m_func_proto(func_proto) {
             //        m_ctx = nullptr;
             m_is_const = false;
@@ -104,6 +97,7 @@ namespace newlang {
             m_is_reference = false;
             m_func_abi = FFI_DEFAULT_ABI;
             m_var_type_fixed = fixed;
+            m_var_is_init = init;
         }
 
         Obj(Context *ctx, const TermPtr term, bool as_value, Obj *local_vars);
@@ -111,7 +105,7 @@ namespace newlang {
 
         [[nodiscard]]
         static inline PairType ArgNull(const std::string name = "") {
-            return Variable<ObjPtr>::pair(nullptr, name);
+            return pair(nullptr, name);
         }
 
         [[nodiscard]]
@@ -121,7 +115,7 @@ namespace newlang {
 
         [[nodiscard]]
         static inline PairType Arg(ObjPtr value, const std::string name = "") {
-            return Variable<ObjPtr>::pair(value, name);
+            return pair(value, name);
         }
 
         template<typename T>
@@ -133,7 +127,7 @@ namespace newlang {
         template<typename T>
         typename std::enable_if<!std::is_same<PairType, T>::value && !std::is_pointer<T>::value && !std::is_same<std::string, T>::value, PairType>::type
         static inline Arg(T value, const std::string name = "") {
-            return Variable<ObjPtr>::pair(CreateValue(value, ObjType::None), name);
+            return pair(CreateValue(value, ObjType::None), name);
         }
 
         inline ObjPtr shared() {
@@ -345,13 +339,13 @@ namespace newlang {
 
         inline void SetTermProp(Term &term);
 
-        int64_t size() const override {
+        virtual int64_t size() const {
             return size(0);
         }
-        int64_t size(int64_t ind) const;
+        virtual int64_t size(int64_t ind) const;
         int64_t resize_(int64_t size, ObjPtr fill, const std::string = "");
 
-        bool empty() const override {
+        virtual bool empty() const {
             if (is_none_type()) {
                 return true;
             } else if (m_var_type_current == ObjType::StrChar) {
@@ -361,26 +355,26 @@ namespace newlang {
             } else if (is_tensor()) {
                 return !m_var_is_init || at::_is_zerotensor(m_value);
             }
-            return Variable<ObjPtr>::empty();
+            return Variable<Obj>::empty();
         }
 
-        Variable<ObjPtr>::PairType & at(const std::string_view name) const {
+        Variable<Obj>::PairType & at(const std::string_view name) const {
             Obj * const obj = (Obj * const) this;
-            return obj->Variable<ObjPtr>::at(name);
+            return obj->Variable<Obj>::at(name);
         }
 
-        Variable<ObjPtr>::PairType & at(const std::string_view name) override {
-            return Variable<ObjPtr>::at(name);
+        Variable<Obj>::PairType & at(const std::string_view name) override {
+            return Variable<Obj>::at(name);
         }
 
-        Variable<ObjPtr>::PairType & at(const int64_t index) override;
-        const Variable<ObjPtr>::PairType & at(const int64_t index) const override;
+        Variable<Obj>::PairType & at(const int64_t index) override;
+        const Variable<Obj>::PairType & at(const int64_t index) const override;
 
-        Variable<ObjPtr>::PairType & at(ObjPtr find) {
+        Variable<Obj>::PairType & at(ObjPtr find) {
             if (!find->is_string_type()) {
                 LOG_RUNTIME("Value must be a string type %d", (int) find->getType());
             }
-            return Variable<ObjPtr>::at(find->GetValueAsString());
+            return Variable<Obj>::at(find->GetValueAsString());
         }
 
         bool exist(ObjPtr &find, bool strong);
@@ -874,7 +868,7 @@ namespace newlang {
         static ObjPtr GetIndex(ObjPtr obj, TermPtr index_arg);
 
         static ObjPtr GetIndex(ObjPtr obj, size_t index) {
-            return (*obj)[index];
+            return (*obj)[index].second;
         }
 
         void dump_dict_(std::string &str, bool deep = true) const {
@@ -1033,9 +1027,8 @@ namespace newlang {
 
         }
 
-        static ObjPtr CreateType(ObjType type, const char *var_name = nullptr, ObjType fixed = ObjType::None) {
-            TermPtr term = nullptr;
-            return std::make_shared<Obj>(type, var_name, term, fixed);
+        static ObjPtr CreateType(ObjType type, ObjType fixed = ObjType::None, bool is_init = false) {
+            return std::make_shared<Obj>(type, nullptr, nullptr, fixed, is_init);
         }
 
         static ObjPtr CreateFraction(const std::string_view val) {
@@ -1090,7 +1083,7 @@ namespace newlang {
         static ObjPtr CreateBaseType(ObjType type);
 
         static ObjPtr CreateNone() {
-            return CreateType(ObjType::None);
+            return CreateType(ObjType::None, ObjType::None, true);
         }
 
         template <typename T1, typename T2, typename T3>
@@ -1149,20 +1142,20 @@ namespace newlang {
             LOG_RUNTIME("Fail tensor type %s", val.toString().c_str());
         }
 
-        static ObjPtr CreateBool(bool value, const char *var_name = nullptr) {
-            ObjPtr result = CreateType(ObjType::None, var_name);
+        static ObjPtr CreateBool(bool value) {
+            ObjPtr result = CreateType(ObjType::None);
             result->m_value = torch::scalar_tensor(value, torch::Dtype::Bool);
             result->m_var_type_current = ObjType::Bool;
             result->m_var_is_init = true;
             return result;
         }
 
-        static ObjPtr CreateTensor(torch::Tensor tensor, const char *var_name = nullptr) {
+        static ObjPtr CreateTensor(torch::Tensor tensor) {
             ObjType check_type = GetType(tensor);
             if (!isTensor(check_type)) {
                 LOG_RUNTIME("Unsupport torch type %s (%d)!", at::toString(tensor.dtype().toScalarType()), (int) tensor.dtype().toScalarType());
             }
-            ObjPtr result = CreateType(check_type, var_name);
+            ObjPtr result = CreateType(check_type);
             result->m_value = tensor;
             result->m_var_is_init = true;
             return result;
@@ -1186,16 +1179,16 @@ namespace newlang {
         at::indexing::Slice toSlice() {
             NL_CHECK(is_range(), "Convert to slice supported for range only!");
 
-            ASSERT(size() == 3 && Variable<ObjPtr>::at("start").second && Variable<ObjPtr>::at("stop").second && Variable<ObjPtr>::at("step").second);
+            ASSERT(size() == 3 && Variable<Obj>::at("start").second && Variable<Obj>::at("stop").second && Variable<Obj>::at("step").second);
 
-            NL_CHECK(Variable<ObjPtr>::at("start").second->is_integer(), "Slice value start support integer type only!");
-            NL_CHECK(Variable<ObjPtr>::at("stop").second->is_integer(), "Slice value stop support integer type only!");
-            NL_CHECK(Variable<ObjPtr>::at("step").second->is_integer(), "Slice value step support integer type only!");
+            NL_CHECK(Variable<Obj>::at("start").second->is_integer(), "Slice value start support integer type only!");
+            NL_CHECK(Variable<Obj>::at("stop").second->is_integer(), "Slice value stop support integer type only!");
+            NL_CHECK(Variable<Obj>::at("step").second->is_integer(), "Slice value step support integer type only!");
 
             return at::indexing::Slice(
-                    Variable<ObjPtr>::at("start").second->GetValueAsInteger(),
-                    Variable<ObjPtr>::at("stop").second->GetValueAsInteger(),
-                    Variable<ObjPtr>::at("step").second->GetValueAsInteger());
+                    Variable<Obj>::at("start").second->GetValueAsInteger(),
+                    Variable<Obj>::at("stop").second->GetValueAsInteger(),
+                    Variable<Obj>::at("step").second->GetValueAsInteger());
         }
 
         /*
@@ -1746,7 +1739,7 @@ namespace newlang {
         std::string m_namespace;
         std::string m_str;
         std::wstring m_wstr;
-        mutable std::pair<std::string, Variable<ObjPtr>::Type> m_str_pair; //< Для доступа к отдельным символам строк
+        mutable PairType m_str_pair; //< Для доступа к отдельным символам строк
 
         const TermPtr m_func_proto;
         std::string m_func_mangle_name;
@@ -1769,6 +1762,192 @@ namespace newlang {
 
 
     };
+
+
+    /*
+     * Требуется разделять конейнеры с данными и итераторы по данным.
+     * В С++ контейнеры предоставялют итераторы непосредственно из самого контейнера.
+     * Это удобно для использования в рукописном коде, но сложно контроллировать в генерируемом исходнике, 
+     * т.к. требуется использовать и итертор и сам контейнер с данными (для сравнения с end()).
+     * 
+     * Логика работы с итераторами следующая.
+     * Итератор - отдельный объект, которому для создания требуется контейнер с данными.
+     * Итератор два интерфейса перебора данных:
+     * 1. - первый интерфейс итератора как в С++
+     * 2. - второй интерфейс для использования в генерируемом коде  с логикой NewLang
+     * 
+     * Разделение контейнера и итератора на два объекта позволит выполнять проверку на использование 
+     * 
+     */
+
+    /*
+     * Итератор 
+     */
+    template <typename T>
+    class Iterator : public std::iterator<std::input_iterator_tag, T> {
+    public:
+
+        enum class IterCmp : int8_t {
+            No = static_cast<int8_t> (ObjType::None), /* skip data */
+            Yes = static_cast<int8_t> (ObjType::Iterator), /* return data */
+            End = static_cast<int8_t> (ObjType::IteratorEnd), /* iterator complete */
+        };
+
+        STATIC_ASSERT(static_cast<bool> (IterCmp::Yes));
+        STATIC_ASSERT(!static_cast<bool> (IterCmp::No));
+
+        typedef Iterator<T> iterator;
+        typedef Iterator<const T> const_iterator;
+
+        typedef Variable<T> IterObj;
+        typedef typename Variable<T>::Type IterObjPtr;
+        typedef typename Variable<T>::PairType IterPairType;
+        typedef typename Variable<T>::ListType IterListType;
+
+
+        typedef IterCmp CompareFuncType(const IterPairType &pair, const T *args, void *extra);
+
+        /**
+         * Итератор для элементов списка с regex фильтром по имени элемента (по умолчанию для всех элементов списка)
+         * @param obj
+         * @param find_key
+         */
+        Iterator(T &obj, const std::string find_key = "(.|\\n)*") :
+        Iterator(obj, &CompareFuncDefault, reinterpret_cast<T *> (const_cast<std::string *> (&find_key)), static_cast<void *> (this)) {
+        }
+
+        /**
+         * Итератор для элементов списка с фильтром в виде функции обратного вызова
+         * @param obj
+         * @param func
+         * @param arg
+         * @param extra
+         */
+        Iterator(T &obj, CompareFuncType *func, T *arg, void * extra = nullptr) :
+        m_iter_obj(obj), m_match(), m_func(func), m_func_args(arg), m_func_extra(extra), m_found(m_iter_obj.begin()) {
+            search_loop();
+        }
+
+        Iterator(const Iterator &iter) : m_iter_obj(iter.m_iter_obj), m_match(iter.m_match), m_func(iter.m_func),
+        m_func_args(iter.m_func_args), m_func_extra(iter.m_func_extra), m_found(iter.m_found) {
+        }
+
+        SCOPE(private) :
+        T &m_iter_obj;
+        std::regex m_match;
+        std::string m_filter;
+        CompareFuncType *m_func;
+        T *m_func_args;
+        void *m_func_extra;
+
+        mutable typename Variable<T>::iterator m_found;
+
+        inline static const IterPairType m_interator_end = IterObj::pair(Obj::CreateType(ObjType::IteratorEnd, ObjType::IteratorEnd, true));
+
+        static IterCmp CompareFuncDefault(const IterPairType &pair, const T *filter, void *extra) {
+            const std::string * str_filter = reinterpret_cast<const std::string *> (filter);
+            Iterator * iter = static_cast<Iterator *> (extra);
+            if (iter && str_filter) {
+
+                iter->m_func_args = nullptr; // Передается однократно при создании объекта
+                iter->m_filter = *str_filter;
+
+                if (!iter->m_filter.empty()) {
+                    try {
+                        iter->m_match = std::regex(iter->m_filter);
+                    } catch (const std::regex_error &err) {
+                        LOG_RUNTIME("Regular expression for '%s' error '%s'!", str_filter->c_str(), err.what());
+                    }
+                }
+            }
+
+            if (iter) {
+                if (iter->m_filter.empty()) {
+                    return pair.first.empty() ? IterCmp::Yes : IterCmp::No;
+                } else {
+                    return std::regex_match(pair.first, iter->m_match) ? IterCmp::Yes : IterCmp::No;
+                }
+            }
+            return IterCmp::Yes;
+        }
+
+    public:
+
+        iterator begin() {
+            Iterator<T> copy(*this);
+            copy.reset();
+            return copy;
+        }
+
+        iterator end() {
+            Iterator<T> copy(*this);
+            copy.m_found = copy.m_iter_obj.end();
+            return copy;
+        }
+
+        inline const IterPairType &operator*() {
+            if (m_found == m_iter_obj.end()) {
+                return m_interator_end;
+            }
+            return *m_found;
+        }
+
+        inline const IterPairType &operator*() const {
+            if (m_found == m_iter_obj.end()) {
+                return m_interator_end;
+            }
+            return *m_found;
+        }
+
+        ObjPtr read_and_next(int64_t count);
+
+        const iterator &operator++() const {
+            if (m_found != m_iter_obj.end()) {
+                m_found++;
+                search_loop();
+            }
+            return *this;
+        }
+
+        inline const iterator operator++(int) const {
+            return iterator::operator++();
+        }
+
+
+        inline bool operator==(const iterator &other) const {
+            return m_found == other.m_found;
+        }
+
+        inline bool operator!=(const iterator &other) const {
+            return m_found != other.m_found;
+        }
+
+        inline void reset() {
+            m_found = m_iter_obj.begin();
+            search_loop();
+        }
+
+
+    protected:
+
+        void search_loop() const {
+            while (m_found != m_iter_obj.end()) {
+                IterCmp result = IterCmp::Yes;
+                if (m_func) {
+                    result = (*m_func)(*m_found, m_func_args, m_func_extra);
+                    if (result == IterCmp::End) {
+                        m_found = m_iter_obj.end();
+                    }
+                }
+                if (result != IterCmp::No) {
+                    // IterCmp::Yes || IterCmp::End
+                    return;
+                }
+                m_found++;
+            }
+        }
+    };
+
 
 } // namespace newlang
 

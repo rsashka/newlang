@@ -39,7 +39,13 @@
 #define TO_STR(ARG) TO_STR2(ARG)
 #endif
 
-
+// Use: #pragma message WARNING("My message")
+#if _MSC_VER
+#define FILE_LINE_LINK __FILE__ "(" TO_STR(__LINE__) ") : "
+#define WARNING(exp) (FILE_LINE_LINK "WARNING: " exp)
+#else//__GNUC__ - may need other defines for different compilers
+#define WARNING(exp) ("WARNING: " exp)
+#endif
 
 #ifndef ASSERT
 
@@ -205,96 +211,97 @@ EXTERN_C void log_print_callstack();
 
 namespace utils {
 
-class Logger {
-public:
-    typedef uint8_t LogLevelType;
-    typedef void FuncCallback(void *param, LogLevelType level, const char * str, bool flush);
+    class Logger {
+    public:
+        typedef uint8_t LogLevelType;
+        typedef void FuncCallback(void *param, LogLevelType level, const char * str, bool flush);
 
-    inline LogLevelType GetLogLevel() {
-        return m_level;
-    }
+        inline LogLevelType GetLogLevel() {
+            return m_level;
+        }
 
-    inline LogLevelType GetLogLevelNormal() {
-        return LOG_LEVEL_NORMAL;
-    }
+        inline LogLevelType GetLogLevelNormal() {
+            return LOG_LEVEL_NORMAL;
+        }
 
-    inline LogLevelType SetLogLevel(const LogLevelType level) {
-        LogLevelType prev_level = m_level;
-        if (level >= LOG_LEVEL_ABORT && level <= LOG_LEVEL_MAX) {
-            m_level = level;
-        } else {
+        inline LogLevelType SetLogLevel(const LogLevelType level) {
+            LogLevelType prev_level = m_level;
+            if (level >= LOG_LEVEL_ABORT && level <= LOG_LEVEL_MAX) {
+                m_level = level;
+            } else {
+                m_level = LOG_LEVEL_NORMAL;
+            }
+            return prev_level;
+        }
+
+        inline bool SetPrintCallstack(bool enable) {
+            bool prev = m_print_callstack;
+            m_print_callstack = enable;
+            return prev;
+        }
+
+        inline bool GetPrintCallstack() {
+            return m_print_callstack;
+        }
+
+        static void PrintfCallback(void *param, LogLevelType level, const char * str, bool flush) {
+            _UNUSED(param);
+            _UNUSED(level);
+            fprintf(stdout, "%s", str);
+            if (flush) {
+                fflush(stdout);
+            }
+        }
+
+        void SetCallback(FuncCallback * func, void * param) {
+            m_func = func;
+            m_func_param = param;
+        }
+
+        void SaveCallback(FuncCallback *&func, void * &param) {
+            func = m_func;
+            param = m_func_param;
+        }
+
+        void Clear();
+        const char * AddString(LogLevelType level, char const *string, bool flush);
+        static const char * GetLogLevelDesc(LogLevelType level);
+
+        uint16_t GetDump(uint8_t *data, uint16_t max_size);
+        uint16_t GetDumpSize();
+
+        static inline Logger * Instance() {
+            // Шаблон с определением static Logger m_instance; собирается с warning в MinGW
+            if (m_instance == nullptr) {
+                m_instance = new Logger();
+            }
+            return m_instance;
+        }
+    private:
+
+        Logger() {
             m_level = LOG_LEVEL_NORMAL;
-        }
-        return prev_level;
-    }
-    
-    inline bool SetPrintCallstack(bool enable) {
-        bool prev = m_print_callstack;
-        m_print_callstack = enable;
-        return prev;
-    }
-    inline bool GetPrintCallstack() {
-        return m_print_callstack;
-    }
-
-    static void PrintfCallback(void *param, LogLevelType level, const char * str, bool flush) {
-        _UNUSED(param);
-        _UNUSED(level);
-        fprintf(stdout, "%s", str);
-        if (flush) {
-            fflush(stdout);
-        }
-    }
-
-    void SetCallback(FuncCallback * func, void * param) {
-        m_func = func;
-        m_func_param = param;
-    }
-
-    void SaveCallback(FuncCallback *&func, void * &param) {
-        func = m_func;
-        param = m_func_param;
-    }
-
-    void Clear();
-    const char * AddString(LogLevelType level, char const *string, bool flush);
-    static const char * GetLogLevelDesc(LogLevelType level);
-
-    uint16_t GetDump(uint8_t *data, uint16_t max_size);
-    uint16_t GetDumpSize();
-
-    static inline Logger * Instance() {
-        // Шаблон с определением static Logger m_instance; собирается с warning в MinGW
-        if (m_instance == nullptr) {
-            m_instance = new Logger();
-        }
-        return m_instance;
-    }
-private:
-
-    Logger() {
-        m_level = LOG_LEVEL_NORMAL;
 #ifdef USE_HAL_DRIVER
-        STATIC_ASSERT(LOG_LEVEL_MAX < LOG_LEVEL_DUMP);
-        STATIC_ASSERT(LOG_LEVEL_NORMAL <= LOG_LEVEL_DEBUG);
-        m_func = nullptr;
+            STATIC_ASSERT(LOG_LEVEL_MAX < LOG_LEVEL_DUMP);
+            STATIC_ASSERT(LOG_LEVEL_NORMAL <= LOG_LEVEL_DEBUG);
+            m_func = nullptr;
 #else
-        m_func = &PrintfCallback;
+            m_func = &PrintfCallback;
 #endif
-        m_func_param = nullptr;
-        m_print_callstack = false;
-    }
-    Logger(const Logger&) = delete;
-    const Logger& operator=(const Logger&) = delete;
+            m_func_param = nullptr;
+            m_print_callstack = false;
+        }
+        Logger(const Logger&) = delete;
+        const Logger& operator=(const Logger&) = delete;
 
-    virtual ~Logger() {
-    }
-    static Logger * m_instance;
-    LogLevelType m_level;
-    FuncCallback *m_func;
-    void * m_func_param;
-    bool m_print_callstack;
-};
+        virtual ~Logger() {
+        }
+        static Logger * m_instance;
+        LogLevelType m_level;
+        FuncCallback *m_func;
+        void * m_func_param;
+        bool m_print_callstack;
+    };
 }
 #endif
 

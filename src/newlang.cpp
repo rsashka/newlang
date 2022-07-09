@@ -643,7 +643,7 @@ std::string NewLang::MakeCppFileCallArgs(CompileInfo &ci, TermPtr &args, TermPtr
 
         if(proto) {
             if(i < proto->size()) {
-                TermPtr term = (*proto)[i];
+                TermPtr term = (*proto)[i].second;
                 if(args->at(i).second) {
                     NL_TYPECHECK(args->at(i).second, args->at(i).second->m_type_name, term->m_type_name);
                 }
@@ -1064,11 +1064,11 @@ ObjPtr NewLang::GetIndexField(Context *ctx, ObjPtr obj, TermPtr term, bool creat
         return obj;
     } else if(term->Right()->getTermID() == TermID::FIELD && !term->Right()->Right() && create_field) {
         // Если последнее в списке поле создается
-        return obj->push_back(Obj::CreateNone(), term->Right()->getText().c_str());
+        return obj->push_back(Obj::CreateNone(), term->Right()->getText().c_str()).second;
     }
     ObjPtr result;
     if(term->Right()->getTermID() == TermID::FIELD) {
-        result = (*obj)[term->Right()->m_text.c_str()];
+        result = (*obj)[term->Right()->m_text.c_str()].second;
         return GetIndexField(ctx, result, term->Right());
     } else if(term->Right()->getTermID() == TermID::INDEX) {
         result = Obj::GetIndex(obj, term->Right());
@@ -1497,7 +1497,7 @@ std::string NewLang::GetImpl(CompileInfo &ci, TermPtr term, std::string &output)
                     temp += ", ";
                 }
                 temp2.clear();
-                GetImpl(ci, (*term)[i], temp2);
+                GetImpl(ci, (*term)[i].second, temp2);
                 temp += "Obj::Arg(" + temp2;
                 if(!term->name(i).empty()) {
                     temp += ", \"" + term->name(i) + "\"";
@@ -1818,18 +1818,18 @@ std::string NewLang::BeginIterators(CompileInfo &ci, TermPtr args, std::string &
     // Аргументы функции с локальным доступом по имени или ииндексу
     if(args->size()) {
         for (int i = 0; i < args->size(); i++) {
-            if((*args)[i]->GetTokenID() == TermID::ITERATOR) {
+            if((*args)[i].second->GetTokenID() == TermID::ITERATOR) {
                 std::string name;
-                if((*args)[i]->getText().compare("!") == 0) {
+                if((*args)[i].second->getText().compare("!") == 0) {
 
-                    ASSERT((*args)[i]->Left());
-                    ASSERT(!(*args)[i]->size()); // todo пока без обработки аргументов
+                    ASSERT((*args)[i].second->Left());
+                    ASSERT(!(*args)[i].second->size()); // todo пока без обработки аргументов
 
                     name = "iter_" + std::to_string(i + 1);
                     iters.push_back(name);
-                    output += ci.GetIndent() + "auto " + name + "= ctx->m_info.global->select(\"" + (*args)[i]->Left()->getText() + "\");\n";
+                    output += ci.GetIndent() + "auto " + name + "= ctx->m_info.global->select(\"" + (*args)[i].second->Left()->getText() + "\");\n";
                 } else {
-                    LOG_RUNTIME("Iterator '%s' not implemented!", (*args)[i]->getText().c_str());
+                    LOG_RUNTIME("Iterator '%s' not implemented!", (*args)[i].second->getText().c_str());
                 }
             }
         }

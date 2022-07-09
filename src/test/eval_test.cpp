@@ -35,7 +35,7 @@ TEST(Eval, Assign) {
     ASSERT_EQ(var1->m_var_type_current, ObjType::Char);
     ASSERT_EQ(var1->m_var_type_fixed, ObjType::None);
     ASSERT_STREQ("var1=123", var1->toString().c_str());
-    ASSERT_FALSE(ctx.select("var1").complete());
+    ASSERT_FALSE(ctx.find("var1") == ctx.end());
 
     list = ctx.ExecStr("$");
     ASSERT_STREQ("$=('var1',)", list->toString().c_str());
@@ -49,12 +49,12 @@ TEST(Eval, Assign) {
 
     ASSERT_TRUE(ctx.ExecStr("var1 = 999"));
     ASSERT_STREQ("var1=999", var1->toString().c_str());
-    ASSERT_FALSE(ctx.select("var1").complete());
+    ASSERT_FALSE(ctx.find("var1") == ctx.end());
 
     ASSERT_TRUE(ctx.ExecStr("var1 = _"));
     ASSERT_EQ(var1->getType(), ObjType::None);
     ASSERT_STREQ("var1=_", var1->toString().c_str());
-    ASSERT_FALSE(ctx.select("var1").complete());
+    ASSERT_FALSE(ctx.find("var1") == ctx.end());
 
     list = ctx.ExecStr("$");
     ASSERT_STREQ("$=('var1',)", list->toString().c_str());
@@ -72,7 +72,7 @@ TEST(Eval, Assign) {
     ASSERT_EQ(var_str->m_var_type_current, ObjType::StrChar);
     //    ASSERT_EQ(var_str->m_var_type_fixed, ObjType::String);
     ASSERT_STREQ("var_str='Строка'", var_str->toString().c_str());
-    ASSERT_FALSE(ctx.select("var_str").complete());
+    ASSERT_FALSE(ctx.find("var_str") == ctx.end());
 
     list = ctx.ExecStr("$");
     ASSERT_STREQ("$=('var_str',)", list->toString().c_str());
@@ -388,8 +388,8 @@ TEST(Eval, TypesNative) {
     ASSERT_TRUE(fopen2->m_func_ptr);
     ASSERT_EQ(fopen->m_func_ptr, fopen2->m_func_ptr);
     ASSERT_TRUE(ctx.FindTerm("fopen2"));
-    auto iter = ctx.m_global_terms.select("fopen2");
-    ASSERT_TRUE(!iter.complete());
+    auto iter = ctx.m_global_terms.find("fopen2");
+    ASSERT_NE(iter, ctx.m_global_terms.end());
 
     ObjPtr fopen3 = ctx.ExecStr("@fopen3(filename:String, modes:String):File ::= "
             ":Pointer('fopen(filename:StrChar, modes:StrChar):File')");
@@ -464,48 +464,48 @@ TEST(Eval, TypesNative) {
     ASSERT_TRUE(SEEK1);
 
     ASSERT_EQ(3, SEEK1->size());
-    ASSERT_TRUE((*SEEK1)[0]);
-    ASSERT_EQ(ObjType::Char, (*SEEK1)[0]->getType()) << newlang::toString((*SEEK1)[0]->getType());
-    ASSERT_EQ(ObjType::Char, (*SEEK1)[0]->m_var_type_fixed) << newlang::toString((*SEEK1)[0]->m_var_type_fixed);
-    ASSERT_EQ(10, (*SEEK1)[0]->GetValueAsInteger());
+    ASSERT_TRUE((*SEEK1)[0].second);
+    ASSERT_EQ(ObjType::Char, (*SEEK1)[0].second->getType()) << newlang::toString((*SEEK1)[0].second->getType());
+    ASSERT_EQ(ObjType::Char, (*SEEK1)[0].second->m_var_type_fixed) << newlang::toString((*SEEK1)[0].second->m_var_type_fixed);
+    ASSERT_EQ(10, (*SEEK1)[0].second->GetValueAsInteger());
 
-    ASSERT_TRUE((*SEEK1)[1]);
-    ASSERT_EQ(ObjType::Char, (*SEEK1)[1]->getType()) << newlang::toString((*SEEK1)[1]->getType());
-    ASSERT_EQ(ObjType::Char, (*SEEK1)[1]->m_var_type_fixed) << newlang::toString((*SEEK1)[1]->m_var_type_fixed);
-    ASSERT_EQ(11, (*SEEK1)[1]->GetValueAsInteger());
+    ASSERT_TRUE((*SEEK1)[1].second);
+    ASSERT_EQ(ObjType::Char, (*SEEK1)[1].second->getType()) << newlang::toString((*SEEK1)[1].second->getType());
+    ASSERT_EQ(ObjType::Char, (*SEEK1)[1].second->m_var_type_fixed) << newlang::toString((*SEEK1)[1].second->m_var_type_fixed);
+    ASSERT_EQ(11, (*SEEK1)[1].second->GetValueAsInteger());
 
-    ASSERT_TRUE((*SEEK1)[2]);
-    ASSERT_EQ(ObjType::Char, (*SEEK1)[2]->getType()) << newlang::toString((*SEEK1)[2]->getType());
-    ASSERT_EQ(ObjType::Char, (*SEEK1)[2]->m_var_type_fixed) << newlang::toString((*SEEK1)[2]->m_var_type_fixed);
-    ASSERT_EQ(20, (*SEEK1)[2]->GetValueAsInteger());
+    ASSERT_TRUE((*SEEK1)[2].second);
+    ASSERT_EQ(ObjType::Char, (*SEEK1)[2].second->getType()) << newlang::toString((*SEEK1)[2].second->getType());
+    ASSERT_EQ(ObjType::Char, (*SEEK1)[2].second->m_var_type_fixed) << newlang::toString((*SEEK1)[2].second->m_var_type_fixed);
+    ASSERT_EQ(20, (*SEEK1)[2].second->GetValueAsInteger());
 
-    ASSERT_EQ(10, (*SEEK1)["SET"]->GetValueAsInteger());
-    ASSERT_EQ(11, (*SEEK1)["CUR"]->GetValueAsInteger());
-    ASSERT_EQ(20, (*SEEK1)["END"]->GetValueAsInteger());
+    ASSERT_EQ(10, (*SEEK1)["SET"].second->GetValueAsInteger());
+    ASSERT_EQ(11, (*SEEK1)["CUR"].second->GetValueAsInteger());
+    ASSERT_EQ(20, (*SEEK1)["END"].second->GetValueAsInteger());
 
     ObjPtr SEEK2 = ctx.ExecStr("@SEEK2 ::= :Enum(SET=, CUR=, END=300)");
     ASSERT_TRUE(SEEK2);
     ASSERT_EQ(3, SEEK2->size());
-    ASSERT_EQ(0, (*SEEK2)[0]->GetValueAsInteger());
-    ASSERT_EQ(ObjType::Bool, (*SEEK2)[0]->getType());
-    ASSERT_EQ(1, (*SEEK2)[1]->GetValueAsInteger());
-    ASSERT_EQ(ObjType::Bool, (*SEEK2)[1]->getType());
-    ASSERT_EQ(300, (*SEEK2)[2]->GetValueAsInteger());
-    ASSERT_EQ(ObjType::Short, (*SEEK2)[2]->getType());
-    ASSERT_EQ(0, (*SEEK2)["SET"]->GetValueAsInteger());
-    ASSERT_EQ(1, (*SEEK2)["CUR"]->GetValueAsInteger());
-    ASSERT_EQ(300, (*SEEK2)["END"]->GetValueAsInteger());
+    ASSERT_EQ(0, (*SEEK2)[0].second->GetValueAsInteger());
+    ASSERT_EQ(ObjType::Bool, (*SEEK2)[0].second->getType());
+    ASSERT_EQ(1, (*SEEK2)[1].second->GetValueAsInteger());
+    ASSERT_EQ(ObjType::Bool, (*SEEK2)[1].second->getType());
+    ASSERT_EQ(300, (*SEEK2)[2].second->GetValueAsInteger());
+    ASSERT_EQ(ObjType::Short, (*SEEK2)[2].second->getType());
+    ASSERT_EQ(0, (*SEEK2)["SET"].second->GetValueAsInteger());
+    ASSERT_EQ(1, (*SEEK2)["CUR"].second->GetValueAsInteger());
+    ASSERT_EQ(300, (*SEEK2)["END"].second->GetValueAsInteger());
 
     ObjPtr SEEK = ctx.ExecStr("@SEEK ::= :Enum(SET=0, CUR=1, END=2)");
     ASSERT_TRUE(SEEK);
 
     ASSERT_EQ(3, SEEK->size());
-    ASSERT_EQ(0, (*SEEK)[0]->GetValueAsInteger());
-    ASSERT_EQ(1, (*SEEK)[1]->GetValueAsInteger());
-    ASSERT_EQ(2, (*SEEK)[2]->GetValueAsInteger());
-    ASSERT_EQ(0, (*SEEK)["SET"]->GetValueAsInteger());
-    ASSERT_EQ(1, (*SEEK)["CUR"]->GetValueAsInteger());
-    ASSERT_EQ(2, (*SEEK)["END"]->GetValueAsInteger());
+    ASSERT_EQ(0, (*SEEK)[0].second->GetValueAsInteger());
+    ASSERT_EQ(1, (*SEEK)[1].second->GetValueAsInteger());
+    ASSERT_EQ(2, (*SEEK)[2].second->GetValueAsInteger());
+    ASSERT_EQ(0, (*SEEK)["SET"].second->GetValueAsInteger());
+    ASSERT_EQ(1, (*SEEK)["CUR"].second->GetValueAsInteger());
+    ASSERT_EQ(2, (*SEEK)["END"].second->GetValueAsInteger());
 
     F_res = ctx.ExecStr("@SEEK.SET");
     ASSERT_TRUE(F_res);
@@ -575,6 +575,8 @@ TEST(ExecStr, Funcs) {
     ASSERT_TRUE(p);
     ASSERT_STREQ("printf=printf(format:Format, ...):Int{}", p->toString().c_str());
 
+#ifndef _MSC_VER
+#pragma message WARNING("Fail native call from Windows!!!!")
 
     typedef int (* printf_type)(const char *, ...);
 
@@ -604,6 +606,7 @@ TEST(ExecStr, Funcs) {
     ObjPtr result = ctx.ExecStr("hello('Привет, мир!\\n');");
     ASSERT_TRUE(result);
     ASSERT_STREQ("Привет, мир!\n", result->GetValueAsString().c_str());
+#endif
 }
 
 /*
@@ -661,7 +664,7 @@ TEST(Eval, Convert) {
 
     ASSERT_TRUE(type_dim->m_dimensions);
     ASSERT_EQ(1, type_dim->m_dimensions->size());
-    ASSERT_EQ(0, (*type_dim->m_dimensions)[0]->GetValueAsInteger());
+    ASSERT_EQ(0, (*type_dim->m_dimensions)[0].second->GetValueAsInteger());
 
     ObjPtr type_ell = ctx.ExecStr(":Int[10, ...]");
     ASSERT_TRUE(type_ell);
@@ -670,8 +673,8 @@ TEST(Eval, Convert) {
 
     ASSERT_TRUE(type_ell->m_dimensions);
     ASSERT_EQ(2, type_ell->m_dimensions->size());
-    ASSERT_EQ(10, (*type_ell->m_dimensions)[0]->GetValueAsInteger());
-    ASSERT_EQ(ObjType::Ellipsis, (*type_ell->m_dimensions)[1]->getType());
+    ASSERT_EQ(10, (*type_ell->m_dimensions)[0].second->GetValueAsInteger());
+    ASSERT_EQ(ObjType::Ellipsis, (*type_ell->m_dimensions)[1].second->getType());
 
 
 

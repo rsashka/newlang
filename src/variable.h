@@ -43,10 +43,6 @@ namespace newlang {
                 || std::fabs(x - y) < std::numeric_limits<T>::min();
     }
 
-    /*
-     * 
-     * 
-     */
 
     /*
      * Шаблон для объектов типа словарь (именованные и не именованный свойства с доступом по индексу и/или имени).
@@ -56,6 +52,9 @@ namespace newlang {
      * Им объекта и имя переменной, содержащей объект - это разные имена.
      * 
      */
+
+
+    template <typename T> class Iter;
 
     /*
      * Аргумент по умолчанию может быть литерал или выражение.
@@ -76,387 +75,111 @@ namespace newlang {
      * новые аргументы по мимо тех, которые уже определены в прототипе функции.
      */
 
-    template <typename T>
-    class Variable {
-    public:
-        typedef T Type;
+    template <typename T, typename PTR = std::shared_ptr<T>>
+    class Variable : public std::list<std::pair<std::string, PTR>>
+    {
+        public:
+        typedef PTR Type;
         typedef std::pair<std::string, Type> PairType;
-        //    typedef std::pair<std::string, const Type> PairTypeConst;
-        typedef std::list<PairType> DataType;
-
-        class iterator;
-        typedef iterator const_iterator;
-        //typedef typename _Rep_type::const_iterator            iterator;
-        //typedef typename _Rep_type::const_iterator            const_iterator;    
-
-        typedef bool CompareFuncType(const PairType &pair, Variable<T> &args, const void *extra);
+        typedef std::list<PairType> ListType;
 
         template <typename I>
-        typename std::enable_if<std::is_integral<I>::value && !std::is_pointer<I>::value, const Type &>::type
-        inline operator[](I index) {
-            return at(index).second;
+                typename std::enable_if < std::is_integral<I>::value && !std::is_pointer<I>::value, const PairType &>::type
+                inline operator[](I index) {
+            return at(index);
         }
 
         template <typename N>
-        typename std::enable_if<std::is_same<N, std::string>::value || std::is_pointer<N>::value, const Type &>::type
-        inline operator[](N name) {
-            return at(name).second;
+                typename std::enable_if < std::is_same<N, std::string>::value || std::is_pointer<N>::value, const PairType &>::type
+                inline operator[](N name) {
+            return at(name);
         }
 
-        inline Type & push_back(Type value, const std::string &name = "") {
+        inline PairType & push_back(const PairType & p) {
+            ListType::push_back(p);
+            return *at_index(-1);
+        }
+
+        inline PairType & push_back(const Type value, const std::string &name = "") {
             return push_back(pair(value, name));
         }
 
-        inline Type & push_back(PairType data) {
-            m_data.push_back(data);
-            return at(m_data.size() - 1).second;
-        }
-
-        inline Type & push_front(Type value, const std::string &name = "") {
-            return push_front(pair(value, name));
-        }
-
-        inline Type & push_front(PairType pair) {
-            m_data.insert(m_data.begin(), pair);
-            return at(0).second;
-        }
-
-        inline void pop_front() {
-            m_data.erase(m_data.begin());
-        }
-
-        inline Type top() const {
-            if (m_data.empty()) {
-                return nullptr;
+        inline PairType top() const {
+            if (ListType::empty()) {
+                LOG_RUNTIME("Empty Index '%ld' not exists!", index);
             }
-            return m_data[m_data.size() - 1].second;
+            return *ListType::back();
         }
 
-        static inline PairType pair(Type value, const std::string name = "") {
+        static inline PairType pair(const Type value, const std::string name = "") {
             return std::pair<std::string, Type>(name, value);
-        }
-
-        inline Type & insert(int64_t index, Type value, const std::string &name = "") {
-            if (index < 0 || index >= static_cast<int64_t> (m_data.size())) {
-                LOG_RUNTIME("Index '%ld' not exists!", index);
-            }
-            return m_data.insert(at_index(index), std::pair<std::string, Type>(name, value))->second;
         }
 
         virtual PairType & at(const int64_t index) {
             return *at_index(index);
-            //        if (index >= 0) {
-            //                if (index < static_cast<int64_t> (m_data.size())) {
-            //                    int64_t pos = 0;
-            //                    typename DataType::iterator iter = m_data.begin();
-            //                    while (iter != m_data.end()) {
-            //                        if (pos == index) {
-            //                            return *iter;
-            //                        }
-            //                        pos++;
-            //                        iter++;
-            //                    }
-            //                    LOG_RUNTIME("Index %ld not exists!", index);
-            //                    //                    return m_data.at(index);
-            //                }
-            //            } else {
-            //                if (-index < static_cast<int64_t> (m_data.size())) {
-            //                    int64_t pos = index + 1;
-            //                    typename DataType::reverse_iterator iter = m_data.rbegin();
-            //                    while (iter != m_data.rend()) {
-            //                        if (pos == 0) {
-            //                            return *iter;
-            //                        }
-            //                        pos--;
-            //                        iter++;
-            //                    }
-            //                    LOG_RUNTIME("Index %ld not exists!", index);
-            //                    //                    return m_data.at(m_data.size() + index);
-            //                }
-            //            }
-            //            LOG_RUNTIME("Index '%ld' not exists!", index);
         }
 
         virtual const PairType & at(const int64_t index) const {
             return *at_index_const(index);
-            //            if (index >= 0) {
-            //                if (index < static_cast<int64_t> (m_data.size())) {
-            //                    int64_t pos = 0;
-            //                    typename DataType::const_iterator iter = m_data.begin();
-            //                    while (iter != m_data.end()) {
-            //                        if (pos == index) {
-            //                            return *iter;
-            //                        }
-            //                        pos++;
-            //                        iter++;
-            //                    }
-            //                    LOG_RUNTIME("Index %ld not exists!", index);
-            //                    //                    return m_data.at(index);
-            //                }
-            //            } else {
-            //                if (-index < static_cast<int64_t> (m_data.size())) {
-            //                    int64_t pos = index + 1;
-            //                    typename DataType::const_reverse_iterator iter = m_data.rbegin();
-            //                    while (iter != m_data.rend()) {
-            //                        if (pos == 0) {
-            //                            return *iter;
-            //                        }
-            //                        pos--;
-            //                        iter++;
-            //                    }
-            //                    LOG_RUNTIME("Index %ld not exists!", index);
-            //                    //                    return m_data.at(m_data.size() + index);
-            //                }
-            //            }
-            //            LOG_RUNTIME("Index '%ld' not exists!", index);
         }
 
-        //        template <typename N>
-        //        typename std::enable_if<std::is_same<char, std::remove_cv<N>>::value, Type &>::type
-        //        inline at(N * name) {
-        //            return at(std::string(name));
-        //        }
+        typename ListType::iterator find(const std::string_view name) {
+            auto iter = ListType::begin();
+            while (iter != ListType::end()) {
+                if (iter->first.compare(name) == 0) {
+                    return iter;
+                }
+                iter++;
+            }
+            return ListType::end();
+        }
+
+        typename ListType::const_iterator find(const std::string_view name) const {
+            return find(name);
+        }
 
         virtual PairType & at(const std::string_view name) {
-            iterator found = select(name);
-            if (found != m_data.end()) {
-                return found.data();
+            auto iter = find(name);
+            if (iter != ListType::end()) {
+                return *iter;
             }
             LOG_RUNTIME("Property '%s' not found!", name.begin());
         }
-
-        //    template <typename N>
-        //    typename std::enable_if<std::is_same<char, std::remove_cv<N>>::value, Type &>::type
-        //    inline at(N * name) const {
-        //        return at(std::string(name));
-        //    }
-        //
-        //    virtual PairType & at(const std::string name) const {
-        //        iterator found = select(name);
-        //        if (found != m_data.end()) {
-        //            return found.data();
-        //        }
-        //        LOG_RUNTIME("Property '%s' not found!", name.c_str());
-        //    }
-
-        //    virtual const PairType & at(const std::string name) {
-        //        iterator found = select(name);
-        //        if (found != m_data.end()) {
-        //            return found.data();
-        //        }
-        //        LOG_EXCEPT(std::out_of_range, "Property '%s' not found!", name.c_str());
-        //    }
 
         virtual const std::string & name(const int64_t index) const {
             return at_index_const(index)->first;
         }
 
-        virtual bool empty() const {
-            return m_data.empty();
-        }
-
         virtual void clear_() {
-            m_data.clear();
+            ListType::clear();
         }
 
-        virtual int64_t size() const {
-            return m_data.size();
-        }
-
-        virtual int64_t resize(int64_t size, const Type fill, const std::string &name = "") {
-            if (size >= 0) {
+        virtual int64_t resize(int64_t new_size, const Type fill, const std::string &name = "") {
+            if (new_size >= 0) {
                 // Размер положительный, просто изменить число элементов добавив или удалив последние
-                m_data.resize(size, std::pair<std::string, Type>(name, fill));
+                ListType::resize(new_size, std::pair<std::string, Type>(name, fill));
             } else {
                 // Если размер отрицательный - добавить или удалить вначале
-                size = -size;
-                if (static_cast<int64_t> (m_data.size()) > size) {
+                new_size = -new_size;
+                if (static_cast<int64_t> (ListType::size()) > new_size) {
 
-                    m_data.erase(m_data.begin(), at_index(m_data.size() - size));
+                    ListType::erase(ListType::begin(), at_index(ListType::size() - new_size));
 
-                    //                    int64_t pos = 0;
-                    //                    typename DataType::iterator iter = m_data.begin();
-                    //                    while (iter != m_data.end()) {
-                    //                        if (pos == size) {
-                    //                            return m_data.size();
-                    //                        }
-                    //                        pos++;
-                    //                        iter++;
-                    //                    }
-                } else if (static_cast<int64_t> (m_data.size()) < size) {
-                    m_data.insert(m_data.begin(), (m_data.size() - size), std::pair<std::string, Type>(name, fill));
+                } else if (static_cast<int64_t> (ListType::size()) < new_size) {
+                    ListType::insert(ListType::begin(), (ListType::size() - new_size), std::pair<std::string, Type>(name, fill));
                 } else {
-                    m_data.clear();
+                    ListType::clear();
                 }
             }
-            return m_data.size();
+            return ListType::size();
         }
 
-        /*
-         * 
-         */
-        class iterator {
-            friend class Variable<T>;
-        public:
-
-            Type &operator*() {
-                if (m_found != m_data.end()) {
-                    return m_found->second;
-                }
-                LOG_RUNTIME("Property '%s' not found  or iterator completed!", m_key.c_str());
-            }
-
-            inline const Type &operator*() const {
-                return operator*();
-            }
-
-            PairType &data() {
-                if (m_found != m_data.end()) {
-                    return *m_found;
-                }
-                LOG_RUNTIME("Property '%s' not found  or iterator completed!", m_key.c_str());
-            }
-
-            inline const PairType &data() const {
-                return data();
-            }
-
-            const iterator &operator++() {
-                if (m_found == m_data.end()) {
-                    LOG_RUNTIME("Property '%s' not found  or iterator completed!", m_key.c_str());
-                }
-                m_found++;
-                search_loop();
-                return *this;
-            }
-
-            inline const const_iterator &operator++() const {
-                return operator++();
-            }
-
-            iterator operator++(int) {
-                if (m_found == m_data.end()) {
-                    LOG_RUNTIME("Property '%s' not found  or iterator completed!", m_key.c_str());
-                }
-                iterator copy(*this);
-                m_found++;
-                search_loop();
-                return copy;
-            }
-
-            //        inline const_iterator operator++(int) const {
-            //            return iterator::operator++(int);
-            //        }
-
-            inline bool operator==(const typename DataType::iterator &other) const {
-                return m_found == other;
-            }
-
-            inline bool operator==(const typename DataType::const_iterator &other) const {
-                return m_found == other;
-            }
-
-            inline bool operator!=(const typename DataType::iterator &other) const {
-                return m_found != other;
-            }
-
-            inline bool operator!=(const typename DataType::const_iterator &other) const {
-                return m_found != other;
-            }
-
-            //        inline bool complete() {
-            //            return m_found == m_data.end();
-            //        }
-
-            inline bool complete() const {
-                return m_found == m_data.end();
-            }
-
-            inline int64_t reset() {
-                m_found = m_data.begin();
-                search_loop();
-                return m_find_key ? -1 : static_cast<int64_t> (m_data.size());
-            }
-
-
-        protected:
-
-            iterator(DataType &data) : m_data(data), m_find_key(false), m_func(nullptr), m_found(data.begin()) {
-                search_loop();
-            }
-
-            iterator(DataType &data, const std::string_view find_key) : m_data(data), m_find_key(true), m_key(find_key), m_func(nullptr), m_found(data.begin()) {
-                search_loop();
-            }
-
-            //        iterator(DataType &data, const std::string & find_key) : m_data(data), m_find_key(true), m_key(find_key), m_func(nullptr), m_found(data.begin()) {
-            //            search_loop();
-            //        }
-
-            iterator(DataType &data, CompareFuncType *func, Variable<T> &arg, void * extra = nullptr) :
-            m_data(data), m_find_key(true), m_found(data.begin()), m_func(func), m_func_args(arg), m_func_extra(extra) {
-                //            m_func_args.in
-                search_loop();
-            }
-
-            void search_loop() {
-                if (!m_find_key) {
-                    return;
-                }
-                while (m_found != m_data.end()) {
-                    if (m_func) {
-                        if ((*m_func)(*m_found, m_func_args, m_func_extra)) {
-                            return;
-                        }
-                    } else {
-                        if (m_found->first.compare(m_key) == 0) {
-                            return;
-                        }
-                    }
-                    m_found++;
-                }
-            }
-
-        private:
-            DataType & m_data;
-            const bool m_find_key;
-            const std::string m_key;
-            typename DataType::iterator m_found;
-
-            CompareFuncType *m_func;
-            Variable<T> m_func_args;
-            const void *m_func_extra;
-        };
-
-        /* Базовый класс остается открытым, чтобы можно было использовать STL для обработки типовых итераторов в пермеенных.
-         * Но для использования в NewLang предназначены вирутальные методы iter, которые для простых объектов соответствуют
-         * типовым STL итераторам, а в производных класса (Context и т.д.) могу быть переопределены
-         * 
-         *      
-         */
-
-        virtual typename DataType::iterator begin() {
-            return m_data.begin();
-        }
-
-        inline typename DataType::const_iterator begin() const {
-            return m_data.begin();
-        }
-
-        virtual typename DataType::iterator end() {
-            return m_data.end();
-        }
-
-        inline typename DataType::const_iterator end() const {
-            return m_data.end();
-        }
-
-        typename DataType::iterator at_index(const int64_t index) {
+        typename ListType::iterator at_index(const int64_t index) {
             if (index < 0) {
-                if (-index < static_cast<int64_t> (m_data.size())) {
+                if (-index <= static_cast<int64_t> (ListType::size())) {
                     int64_t pos = index + 1;
-                    typename DataType::iterator iter = m_data.end();
-                    while (iter != m_data.begin()) {
+                    typename ListType::iterator iter = ListType::end();
+                    while (iter != ListType::begin()) {
                         iter--;
                         if (pos == 0) {
                             return iter;
@@ -466,8 +189,8 @@ namespace newlang {
                 }
             } else {
                 int64_t pos = 0;
-                typename DataType::iterator iter = m_data.begin();
-                while (iter != m_data.end()) {
+                typename ListType::iterator iter = ListType::begin();
+                while (iter != ListType::end()) {
                     if (pos == index) {
                         return iter;
                     }
@@ -478,12 +201,12 @@ namespace newlang {
             LOG_RUNTIME("Index '%ld' not exists!", index);
         }
 
-        typename DataType::const_iterator at_index_const(const int64_t index) const {
+        typename ListType::const_iterator at_index_const(const int64_t index) const {
             if (index < 0) {
-                if (-index < static_cast<int64_t> (m_data.size())) {
+                if (-index < static_cast<int64_t> (ListType::size())) {
                     int64_t pos = index + 1;
-                    typename DataType::const_iterator iter = m_data.end();
-                    while (iter != m_data.begin()) {
+                    typename ListType::const_iterator iter = ListType::end();
+                    while (iter != ListType::begin()) {
                         iter--;
                         if (pos == 0) {
                             return iter;
@@ -493,8 +216,8 @@ namespace newlang {
                 }
             } else {
                 int64_t pos = 0;
-                typename DataType::const_iterator iter = m_data.begin();
-                while (iter != m_data.end()) {
+                typename ListType::const_iterator iter = ListType::begin();
+                while (iter != ListType::end()) {
                     if (pos == index) {
                         return iter;
                     }
@@ -506,58 +229,7 @@ namespace newlang {
         }
 
         virtual void erase(const int64_t index) {
-            m_data.erase(at_index(index));
-        }
-
-        typename DataType::iterator erase(typename DataType::iterator iter) {
-            return m_data.erase(iter);
-        }
-
-        typename DataType::iterator erase(iterator iter) {
-            if (!iter.complete()) {
-
-                return m_data.erase(iter.m_found);
-            }
-            LOG_RUNTIME("Try erase end of iter!");
-        }
-
-        virtual iterator select() {
-
-            return iterator(m_data);
-        }
-
-        //    inline const_iterator select() const {
-        //        return select();
-        //    }
-
-        virtual iterator select(const std::string_view key) {
-
-            return iterator(m_data, key);
-        }
-
-        //    virtual iterator select(const std::string & key) const {
-        //        return iterator(m_data, key);
-        //    }
-
-        inline iterator select(CompareFuncType *func, void * extra = nullptr) {
-            Variable<T> args;
-
-            return select(func, args, extra);
-        }
-
-        virtual iterator select(CompareFuncType *func, Variable<T> args, void * extra = nullptr) {
-
-            return iterator(m_data, func, args, extra);
-        }
-
-        /*
-         * 
-         * 
-         */
-
-        inline static PairType Arg(Type obj, const std::string name = "") {
-
-            return std::pair<std::string, Type>(name, obj);
+            ListType::erase(at_index_const(index));
         }
 
         virtual ~Variable() {
@@ -577,20 +249,6 @@ namespace newlang {
         template <class... A> inline Variable(PairType arg, A... rest) : Variable(rest...) {
             push_front(arg.second, arg.first);
         }
-
-        SCOPE(protected) :
-        DataType m_data;
-
-
-        /**
-         * Обновить аргументы по умолчанию реальными значениями по следующим правилам:
-         * 1. Изначально объект содержит аргументы по умолчанию.
-         * 2. Имена именованныех аргументов должны быть уникальны.
-         * 3. Имена передаваемые именованных аргументов должны присутствовать в аргументах по умолчанию.
-         * 4. Не именованные аргументы должны передаваться перед именованными.
-         * 5. Лимит количества аргументов определнных типов при создании объекта (описан в протитипе функции). 
-         */
-
     };
 
 } // namespace newlang

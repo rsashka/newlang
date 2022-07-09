@@ -102,7 +102,7 @@ namespace newlang {
     size_t IndexArg(TermPtr term);
     std::string ParserMessage(std::string &buffer, int row, int col, const char *format, ...);
 
-    class Term : public Variable<TermPtr>, public std::enable_shared_from_this<Term> {
+    class Term : public Variable<Term>, public std::enable_shared_from_this<Term> {
     public:
 
         static TermPtr Create(Term * term) {

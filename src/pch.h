@@ -59,7 +59,7 @@
 #include "types.h"
 
 #undef LOG_RUNTIME
-#define LOG_RUNTIME(...)  LOG_EXCEPT(newlang::Interrupt, ##__VA_ARGS__)
+#define LOG_RUNTIME(format, ...)  LOG_EXCEPT(newlang::Interrupt, format, ##__VA_ARGS__)
 
 #endif // NEWLANG_PCH_H_
 

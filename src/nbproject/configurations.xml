@@ -102,9 +102,10 @@
           <stripSymbols>true</stripSymbols>
           <standard>10</standard>
           <incDir>
+            <pElem>.</pElem>
+            <pElem>..</pElem>
             <pElem>../contrib/googletest/googletest</pElem>
             <pElem>../contrib/googletest/googletest/include</pElem>
-            <pElem>..</pElem>
           </incDir>
           <preprocessorList>
             <Elem>DEBUG</Elem>
@@ -113,6 +114,7 @@
         </cTool>
         <ccTool>
           <incDir>
+            <pElem>.</pElem>
             <pElem>..</pElem>
             <pElem>../contrib/googletest/googletest</pElem>
             <pElem>../contrib/googletest/googletest/include</pElem>
@@ -130,7 +132,7 @@
           <useLinkerLibraries>false</useLinkerLibraries>
         </ccTool>
         <linkerTool>
-          <output>nlc</output>
+          <output>../output/nlc</output>
           <linkerAddLib>
             <pElem>../contrib/libtorch/lib</pElem>
           </linkerAddLib>
@@ -141,10 +143,10 @@
           <linkerLibItems>
             <linkerLibStdlibItem>PosixThreads</linkerLibStdlibItem>
             <linkerLibStdlibItem>DynamicLinking</linkerLibStdlibItem>
-            <linkerLibFileItem>../contrib/libffi/output/lib/libffi.a</linkerLibFileItem>
             <linkerLibLibItem>c10</linkerLibLibItem>
             <linkerLibLibItem>torch_cpu</linkerLibLibItem>
             <linkerLibLibItem>torch</linkerLibLibItem>
+            <linkerLibLibItem>crypto</linkerLibLibItem>
           </linkerLibItems>
           <commandLine>-Wl,--export-dynamic</commandLine>
         </linkerTool>

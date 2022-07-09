@@ -211,7 +211,7 @@ namespace newlang {
                     ;
 
 
-            auto result = cli.parse({static_cast<int>(argc), argv});
+            auto result = cli.parse({static_cast<int> (argc), argv});
             if (!result) {
                 m_mode = Mode::ModeError;
                 m_output = result.message();
@@ -238,6 +238,14 @@ namespace newlang {
 
             m_modules = SplitString(load_list.c_str(), ",");
             m_load_only = SplitString(load_only.c_str(), ",");
+
+            int len;
+            char buffer[100];
+            fcntl(STDIN_FILENO, F_SETFL, fcntl(STDIN_FILENO, F_GETFL, 0) | O_NONBLOCK);
+            while ((len = read(STDIN_FILENO, buffer, sizeof (buffer))) > 0) {
+                m_eval.append(buffer, len);
+            }
+            fcntl(STDIN_FILENO, F_SETFL, fcntl(STDIN_FILENO, F_GETFL, 0) & ~O_NONBLOCK);
 
             int cnt = 0;
             cnt += !compile.empty();
@@ -317,36 +325,28 @@ namespace newlang {
                             LOG_RUNTIME("Fail read or empty source file '%s'!", m_ifile.c_str());
                         }
                     }
-                    TermPtr term;
-                    Parser p(term);
-                    p.Parse(m_eval.c_str());
-                    if (!term || m_eval.empty()) {
-                        LOG_RUNTIME("Eval expression empty!");
-                    }
 
-                    ObjPtr result = Context::ExecStr(&m_ctx, term, m_args.get(), true);
+                    ObjPtr result = m_ctx.ExecStr(m_eval, m_args.get(), true);
 
                     if (result && m_local_vars.find(result.get()) == m_local_vars.end()) {
                         m_local_vars[result.get()] = result;
                     }
 
                     m_output = result->GetValueAsString();
+                    m_output += "\n";
 
                     if (!m_ofile.empty()) {
                         std::ofstream out(m_ofile);
                         out << m_output;
                         out.close();
                     }
-                    if (!m_output.empty()) {
-                        utils::Logger::LogLevelType save_level = utils::Logger::Instance()->GetLogLevel();
-                        utils::Logger::Instance()->SetLogLevel(LOG_LEVEL_INFO);
-                        LOG_INFO("%s", m_output.c_str());
-                        utils::Logger::Instance()->SetLogLevel(save_level);
-                    }
+
+                    fcntl(STDOUT_FILENO, F_SETFL, fcntl(STDOUT_FILENO, F_GETFL, 0) | O_NONBLOCK);
+                    write(STDOUT_FILENO, m_output.c_str(), m_output.size());
+
                 } else {
                     ASSERT(m_mode == Mode::ModeInter);
                     Interative();
-                    //                LOG_INFO("%s", m_output.c_str());
                 }
 
             } catch (Interrupt &err) {
@@ -491,14 +491,14 @@ namespace newlang {
                         }
                         break;
                     }// Keyboard interrupt handler for Windows
-//#if defined(OS_WINDOWS)
-//                    else if (ch == CTRL_C) {
-//                        predictions_free(pred);
-//                        tree_free(rules);
-//                        free(buff);
-//                        exit(0);
-//                    }
-//#endif
+                        //#if defined(OS_WINDOWS)
+                        //                    else if (ch == CTRL_C) {
+                        //                        predictions_free(pred);
+                        //                        tree_free(rules);
+                        //                        free(buff);
+                        //                        exit(0);
+                        //                    }
+                        //#endif
                         // Edit buffer like backspace if BACKSPACE was pressed
                     else if (ch == KEY_BACKSPACE) {
                         if (buff.size() && buff.size() - offset >= 1) {
@@ -533,7 +533,7 @@ namespace newlang {
                         switch (_getch()) {
                             case KEY_LEFT:
                                 // Increase offset from the end of the buffer if left key pressed
-                                offset = (offset < static_cast<int64_t>(buff.size())) ? (offset + 1) : buff.size();
+                                offset = (offset < static_cast<int64_t> (buff.size())) ? (offset + 1) : buff.size();
                                 break;
                             case KEY_RIGHT:
                                 // Decrease offset from the end of the buffer if left key pressed
@@ -547,7 +547,7 @@ namespace newlang {
                                 }
                                 break;
                             case KEY_DOWN:
-                                if (!history.empty() && history_pos + 1 < static_cast<int64_t>(history.size())) {
+                                if (!history.empty() && history_pos + 1 < static_cast<int64_t> (history.size())) {
                                     clear_line();
                                     history_pos++;
                                     buff = utf8_decode(history[history_pos]);

@@ -183,7 +183,7 @@ namespace newlang {
                 LOG_RUNTIME("Fail init data from %s!", ffi_file.c_str());
             }
 
-            return rt;
+            return std::move(rt);
         }
 
         inline static void * GetDirectAddressFromLibrary(void *handle, const char * name) {
@@ -232,7 +232,8 @@ namespace newlang {
 
     protected:
 
-        SCOPE(private) :
+        //SCOPE(private) :
+    public:
         RunTime(const RunTime&) = delete;
         const RunTime& operator=(const RunTime&) = delete;
 
@@ -327,7 +328,7 @@ namespace newlang {
         //    Context * m_ctx;
     };
 
-    class NewLang : public Variable<ObjPtr> {
+    class NewLang : public Variable<Obj> {
     public:
 
         ObjPtr Run(const char *source, void *context);

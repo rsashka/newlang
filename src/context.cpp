@@ -232,7 +232,7 @@ void newlang::NewLangSignalHandler(int signal) {
 
 //#include "StdCapture.h"
 
-ObjPtr Context::ExecStr(Context *ctx, TermPtr term, Obj *args, bool int_catch) {
+ObjPtr Context::Eval(Context *ctx, TermPtr term, Obj *args, bool int_catch) {
 
     //    StdCapture Capture;
     //
@@ -267,7 +267,7 @@ ObjPtr Context::ExecStr(Context *ctx, TermPtr term, Obj *args, bool int_catch) {
         if(int_catch && obj.m_obj->getType() == ObjType::Return) {
 
             ASSERT(obj.m_obj->size() == 1);
-            return (*obj.m_obj)[0]; // Возврат данных
+            return (*obj.m_obj)[0].second; // Возврат данных
 
         } else if(int_catch) {
             ASSERT(obj.m_obj);
@@ -500,13 +500,13 @@ ObjPtr Context::CREATE_OR_ASSIGN(Context *ctx, const TermPtr &term, Obj *local_v
         } else if(elem->getTermID() == TermID::NONE) {
             result = Obj::CreateNone();
         } else {
-            auto found = ctx->select(elem->m_text);
-            if(found.complete() && mode == CreateMode::ASSIGN_ONLY) {
+            auto found = ctx->find(elem->m_text);
+            if(found == ctx->end() && mode == CreateMode::ASSIGN_ONLY) {
                 NL_PARSER(elem, "Variable '%s' not found!", elem->m_text.c_str());
             }
 
-            if(!found.complete()) {
-                result = (*found).lock(); // Но она может быть возвращена как локальная
+            if(found != ctx->end()) {
+                result = (*found).second.lock(); // Но она может быть возвращена как локальная
             }
 
             if(result && mode == CreateMode::CREATE_ONLY) {
@@ -514,7 +514,7 @@ ObjPtr Context::CREATE_OR_ASSIGN(Context *ctx, const TermPtr &term, Obj *local_v
             }
 
             if(!term->Right()) { // Удаление глобальной переменной
-                ctx->erase(found);
+                ctx->ListType::erase(found);
             } else {
                 if(!result && (mode == CreateMode::ASSIGN_ONLY)) {
                     NL_PARSER(term->Left(), "Object '%s' not found!", term->Left()->m_text.c_str());
@@ -545,9 +545,9 @@ ObjPtr Context::CREATE_OR_ASSIGN(Context *ctx, const TermPtr &term, Obj *local_v
     ObjPtr rval;
     if(term->Right()->getTermID() == TermID::ELLIPSIS) {
         ASSERT(term->Right()->Right());
-        rval = ExecStr(ctx, term->Right()->Right(), local_vars, false);
+        rval = Eval(ctx, term->Right()->Right(), local_vars, false);
     } else {
-        rval = ExecStr(ctx, term->Right(), local_vars, false);
+        rval = Eval(ctx, term->Right(), local_vars, false);
     }
     if(!rval) {
         NL_PARSER(term->Right(), "Object is missing or expression is not evaluated!");
@@ -563,7 +563,7 @@ ObjPtr Context::CREATE_OR_ASSIGN(Context *ctx, const TermPtr &term, Obj *local_v
             for (int i = 0; i < list_obj.size() - 1; i++) {
                 if(list_term[i]->getTermID() != TermID::NONE) {
                     if(i < rval->size()) {
-                        list_obj[i]->SetValue_((*rval)[i]); //->Clone()
+                        list_obj[i]->SetValue_((*rval)[i].second); //->Clone()
                     } else {
                         list_obj[i]->SetValue_(Obj::CreateNone());
                     }
@@ -642,10 +642,10 @@ ObjPtr Context::eval_FUNCTION(Context *ctx, const TermPtr &term, Obj * args) {
     ASSERT(term->Left());
     ASSERT(ctx);
 
-    auto found = ctx->select(term->Left()->m_text);
+    auto found = ctx->find(term->Left()->m_text);
     if(!term->Right()) {
-        if(!found.complete()) {
-            ctx->erase(found);
+        if(found != ctx->end()) {
+            ctx->ListType::erase(found);
             return Obj::Yes();
         }
         return Obj::No();
@@ -744,7 +744,7 @@ ObjPtr Context::eval_WHILE(Context *ctx, const TermPtr &term, Obj * args) {
     ASSERT(term->Right());
 
     ObjPtr result = Obj::CreateNone();
-    ObjPtr cond = ExecStr(ctx, term->Left(), args, false);
+    ObjPtr cond = Eval(ctx, term->Left(), args, false);
     while(cond->GetValueAsBoolean()) {
 
         try {
@@ -752,7 +752,7 @@ ObjPtr Context::eval_WHILE(Context *ctx, const TermPtr &term, Obj * args) {
             LOG_DEBUG("result %s", result->toString().c_str());
 
             result = CreateRVal(ctx, term->Right(), args, false);
-            cond = ExecStr(ctx, term->Left(), args, false);
+            cond = Eval(ctx, term->Left(), args, false);
 
         } catch (Interrupt &obj) {
 
@@ -780,7 +780,7 @@ ObjPtr Context::eval_DOWHILE(Context *ctx, const TermPtr &term, Obj * args) {
         try {
 
             result = CreateRVal(ctx, term->Left(), args, false);
-            cond = ExecStr(ctx, term->Right(), args, false);
+            cond = Eval(ctx, term->Right(), args, false);
 
         } catch (Interrupt &obj) {
 
@@ -811,7 +811,7 @@ ObjPtr Context::eval_FOLLOW(Context *ctx, const TermPtr &term, Obj * args) {
     for (int64_t i = 0; i < static_cast<int64_t> (term->m_follow.size()); i++) {
 
         ASSERT(term->m_follow[i]->Left());
-        ObjPtr cond = ExecStr(ctx, term->m_follow[i]->Left(), args, false);
+        ObjPtr cond = Eval(ctx, term->m_follow[i]->Left(), args, false);
 
         if(cond->GetValueAsBoolean() || (i + 1 == term->m_follow.size() && cond->is_none_type())) {
 
@@ -958,7 +958,7 @@ ObjPtr Context::op_EQUAL(Context *ctx, const TermPtr &term, Obj * args) {
     ASSERT(term->Left());
     ASSERT(term->Right());
 
-    return ExecStr(ctx, term->Left(), args)->op_equal(ExecStr(ctx, term->Right(), args)) ? Obj::Yes() : Obj::No();
+    return Eval(ctx, term->Left(), args)->op_equal(Eval(ctx, term->Right(), args)) ? Obj::Yes() : Obj::No();
 }
 
 ObjPtr Context::op_ACCURATE(Context *ctx, const TermPtr &term, Obj * args) {
@@ -966,7 +966,7 @@ ObjPtr Context::op_ACCURATE(Context *ctx, const TermPtr &term, Obj * args) {
     ASSERT(term->Left());
     ASSERT(term->Right());
 
-    return ExecStr(ctx, term->Left(), args)->op_accurate(ExecStr(ctx, term->Right(), args)) ? Obj::Yes() : Obj::No();
+    return Eval(ctx, term->Left(), args)->op_accurate(Eval(ctx, term->Right(), args)) ? Obj::Yes() : Obj::No();
 }
 
 ObjPtr Context::op_NE(Context *ctx, const TermPtr &term, Obj * args) {
@@ -974,7 +974,7 @@ ObjPtr Context::op_NE(Context *ctx, const TermPtr &term, Obj * args) {
     ASSERT(term->Left());
     ASSERT(term->Right());
 
-    return ExecStr(ctx, term->Left(), args)->operator!=(ExecStr(ctx, term->Right(), args)) ? Obj::Yes() : Obj::No();
+    return Eval(ctx, term->Left(), args)->operator!=(Eval(ctx, term->Right(), args)) ? Obj::Yes() : Obj::No();
 }
 
 ObjPtr Context::op_LT(Context *ctx, const TermPtr &term, Obj * args) {
@@ -982,7 +982,7 @@ ObjPtr Context::op_LT(Context *ctx, const TermPtr &term, Obj * args) {
     ASSERT(term->Left());
     ASSERT(term->Right());
 
-    return ExecStr(ctx, term->Left(), args)->operator<(ExecStr(ctx, term->Right(), args)) ? Obj::Yes() : Obj::No();
+    return Eval(ctx, term->Left(), args)->operator<(Eval(ctx, term->Right(), args)) ? Obj::Yes() : Obj::No();
 }
 
 ObjPtr Context::op_GT(Context *ctx, const TermPtr &term, Obj * args) {
@@ -990,7 +990,7 @@ ObjPtr Context::op_GT(Context *ctx, const TermPtr &term, Obj * args) {
     ASSERT(term->Left());
     ASSERT(term->Right());
 
-    return ExecStr(ctx, term->Left(), args)->operator>(ExecStr(ctx, term->Right(), args)) ? Obj::Yes() : Obj::No();
+    return Eval(ctx, term->Left(), args)->operator>(Eval(ctx, term->Right(), args)) ? Obj::Yes() : Obj::No();
 }
 
 ObjPtr Context::op_LE(Context *ctx, const TermPtr &term, Obj * args) {
@@ -998,7 +998,7 @@ ObjPtr Context::op_LE(Context *ctx, const TermPtr &term, Obj * args) {
     ASSERT(term->Left());
     ASSERT(term->Right());
 
-    return ExecStr(ctx, term->Left(), args)->operator<=(ExecStr(ctx, term->Right(), args)) ? Obj::Yes() : Obj::No();
+    return Eval(ctx, term->Left(), args)->operator<=(Eval(ctx, term->Right(), args)) ? Obj::Yes() : Obj::No();
 }
 
 ObjPtr Context::op_GE(Context *ctx, const TermPtr &term, Obj * args) {
@@ -1006,7 +1006,7 @@ ObjPtr Context::op_GE(Context *ctx, const TermPtr &term, Obj * args) {
     ASSERT(term->Left());
     ASSERT(term->Right());
 
-    return ExecStr(ctx, term->Left(), args)->operator>=(ExecStr(ctx, term->Right(), args)) ? Obj::Yes() : Obj::No();
+    return Eval(ctx, term->Left(), args)->operator>=(Eval(ctx, term->Right(), args)) ? Obj::Yes() : Obj::No();
 }
 
 /*
@@ -1019,7 +1019,7 @@ ObjPtr Context::op_AND(Context *ctx, const TermPtr &term, Obj * args) {
     ASSERT(term->Left());
     ASSERT(term->Right());
 
-    return ExecStr(ctx, term->Left(), args)->op_bit_and(ExecStr(ctx, term->Right(), args), false);
+    return Eval(ctx, term->Left(), args)->op_bit_and(Eval(ctx, term->Right(), args), false);
 }
 
 ObjPtr Context::op_OR(Context *ctx, const TermPtr &term, Obj * args) {
@@ -1079,9 +1079,9 @@ ObjPtr Context::op_PLUS(Context *ctx, const TermPtr &term, Obj * args) {
     ASSERT(term->Right());
     if(term->Left()) {
 
-        return ExecStr(ctx, term->Left(), args)->operator+(ExecStr(ctx, term->Right(), args));
+        return Eval(ctx, term->Left(), args)->operator+(Eval(ctx, term->Right(), args));
     }
-    return ExecStr(ctx, term->Left(), args)->operator+();
+    return Eval(ctx, term->Left(), args)->operator+();
 }
 
 ObjPtr Context::op_MINUS(Context *ctx, const TermPtr &term, Obj * args) {
@@ -1089,9 +1089,9 @@ ObjPtr Context::op_MINUS(Context *ctx, const TermPtr &term, Obj * args) {
     ASSERT(term->Right());
     if(term->Left()) {
 
-        return ExecStr(ctx, term->Left(), args)->operator-(ExecStr(ctx, term->Right(), args));
+        return Eval(ctx, term->Left(), args)->operator-(Eval(ctx, term->Right(), args));
     }
-    return ExecStr(ctx, term->Left(), args)->operator-();
+    return Eval(ctx, term->Left(), args)->operator-();
 }
 
 ObjPtr Context::op_DIV(Context *ctx, const TermPtr &term, Obj * args) {
@@ -1099,7 +1099,7 @@ ObjPtr Context::op_DIV(Context *ctx, const TermPtr &term, Obj * args) {
     ASSERT(term->Left());
     ASSERT(term->Right());
 
-    return ExecStr(ctx, term->Left(), args)->operator/(ExecStr(ctx, term->Right(), args));
+    return Eval(ctx, term->Left(), args)->operator/(Eval(ctx, term->Right(), args));
 }
 
 ObjPtr Context::op_DIV_CEIL(Context *ctx, const TermPtr &term, Obj * args) {
@@ -1107,7 +1107,7 @@ ObjPtr Context::op_DIV_CEIL(Context *ctx, const TermPtr &term, Obj * args) {
     ASSERT(term->Left());
     ASSERT(term->Right());
 
-    return ExecStr(ctx, term->Left(), args)->op_div_ceil(ExecStr(ctx, term->Right(), args));
+    return Eval(ctx, term->Left(), args)->op_div_ceil(Eval(ctx, term->Right(), args));
 }
 
 ObjPtr Context::op_MUL(Context *ctx, const TermPtr &term, Obj * args) {
@@ -1115,7 +1115,7 @@ ObjPtr Context::op_MUL(Context *ctx, const TermPtr &term, Obj * args) {
     ASSERT(term->Left());
     ASSERT(term->Right());
 
-    return ExecStr(ctx, term->Left(), args)->operator*(ExecStr(ctx, term->Right(), args));
+    return Eval(ctx, term->Left(), args)->operator*(Eval(ctx, term->Right(), args));
 }
 
 ObjPtr Context::op_REM(Context *ctx, const TermPtr &term, Obj * args) {
@@ -1123,7 +1123,7 @@ ObjPtr Context::op_REM(Context *ctx, const TermPtr &term, Obj * args) {
     ASSERT(term->Left());
     ASSERT(term->Right());
 
-    return ExecStr(ctx, term->Left(), args)->operator%(ExecStr(ctx, term->Right(), args));
+    return Eval(ctx, term->Left(), args)->operator%(Eval(ctx, term->Right(), args));
 }
 
 ObjPtr Context::op_POW(Context *ctx, const TermPtr &term, Obj * args) {
@@ -1131,7 +1131,7 @@ ObjPtr Context::op_POW(Context *ctx, const TermPtr &term, Obj * args) {
     ASSERT(term->Left());
     ASSERT(term->Right());
 
-    return ExecStr(ctx, term->Left(), args)->op_pow(ExecStr(ctx, term->Right(), args));
+    return Eval(ctx, term->Left(), args)->op_pow(Eval(ctx, term->Right(), args));
 }
 
 /*
@@ -1143,7 +1143,7 @@ ObjPtr Context::op_PLUS_(Context *ctx, const TermPtr &term, Obj * args) {
     ASSERT(term->Left());
     ASSERT(term->Right());
 
-    return ExecStr(ctx, term->Left(), args)->operator+=(ExecStr(ctx, term->Right(), args));
+    return Eval(ctx, term->Left(), args)->operator+=(Eval(ctx, term->Right(), args));
 }
 
 ObjPtr Context::op_MINUS_(Context *ctx, const TermPtr &term, Obj * args) {
@@ -1151,7 +1151,7 @@ ObjPtr Context::op_MINUS_(Context *ctx, const TermPtr &term, Obj * args) {
     ASSERT(term->Left());
     ASSERT(term->Right());
 
-    return ExecStr(ctx, term->Left(), args)->operator-=(ExecStr(ctx, term->Right(), args));
+    return Eval(ctx, term->Left(), args)->operator-=(Eval(ctx, term->Right(), args));
 }
 
 ObjPtr Context::op_DIV_(Context *ctx, const TermPtr &term, Obj * args) {
@@ -1159,7 +1159,7 @@ ObjPtr Context::op_DIV_(Context *ctx, const TermPtr &term, Obj * args) {
     ASSERT(term->Left());
     ASSERT(term->Right());
 
-    return ExecStr(ctx, term->Left(), args)->operator/=(ExecStr(ctx, term->Right(), args));
+    return Eval(ctx, term->Left(), args)->operator/=(Eval(ctx, term->Right(), args));
 }
 
 ObjPtr Context::op_DIV_CEIL_(Context *ctx, const TermPtr &term, Obj * args) {
@@ -1167,7 +1167,7 @@ ObjPtr Context::op_DIV_CEIL_(Context *ctx, const TermPtr &term, Obj * args) {
     ASSERT(term->Left());
     ASSERT(term->Right());
 
-    return ExecStr(ctx, term->Left(), args)->op_div_ceil_(ExecStr(ctx, term->Right(), args));
+    return Eval(ctx, term->Left(), args)->op_div_ceil_(Eval(ctx, term->Right(), args));
 }
 
 ObjPtr Context::op_MUL_(Context *ctx, const TermPtr &term, Obj * args) {
@@ -1175,7 +1175,7 @@ ObjPtr Context::op_MUL_(Context *ctx, const TermPtr &term, Obj * args) {
     ASSERT(term->Left());
     ASSERT(term->Right());
 
-    return ExecStr(ctx, term->Left(), args)->operator*=(ExecStr(ctx, term->Right(), args));
+    return Eval(ctx, term->Left(), args)->operator*=(Eval(ctx, term->Right(), args));
 }
 
 ObjPtr Context::op_REM_(Context *ctx, const TermPtr &term, Obj * args) {
@@ -1183,7 +1183,7 @@ ObjPtr Context::op_REM_(Context *ctx, const TermPtr &term, Obj * args) {
     ASSERT(term->Left());
     ASSERT(term->Right());
 
-    return ExecStr(ctx, term->Left(), args)->operator%=(ExecStr(ctx, term->Right(), args));
+    return Eval(ctx, term->Left(), args)->operator%=(Eval(ctx, term->Right(), args));
 }
 
 ObjPtr Context::op_POW_(Context *ctx, const TermPtr &term, Obj * args) {
@@ -1191,7 +1191,7 @@ ObjPtr Context::op_POW_(Context *ctx, const TermPtr &term, Obj * args) {
     ASSERT(term->Left());
     ASSERT(term->Right());
 
-    return ExecStr(ctx, term->Left(), args)->op_pow_(ExecStr(ctx, term->Right(), args));
+    return Eval(ctx, term->Left(), args)->op_pow_(Eval(ctx, term->Right(), args));
 }
 
 ObjPtr Context::op_CONCAT(Context *ctx, const TermPtr &term, Obj * args) {
@@ -1199,7 +1199,7 @@ ObjPtr Context::op_CONCAT(Context *ctx, const TermPtr &term, Obj * args) {
     ASSERT(term->Left());
     ASSERT(term->Right());
 
-    return ExecStr(ctx, term->Left(), args)->op_concat_(ExecStr(ctx, term->Right(), args), ConcatMode::Append);
+    return Eval(ctx, term->Left(), args)->op_concat_(Eval(ctx, term->Right(), args), ConcatMode::Append);
 }
 
 ObjPtr Context::op_TYPE_EQ(Context *ctx, const TermPtr &term, Obj * args) {
@@ -1208,9 +1208,9 @@ ObjPtr Context::op_TYPE_EQ(Context *ctx, const TermPtr &term, Obj * args) {
     ASSERT(term->Right());
 
     if(isType(term->Right()->GetFullName())) {
-        return Obj::CreateBool(ExecStr(ctx, term->Left(), args)->op_class_test(term->Right()->GetFullName().c_str(), ctx));
+        return Obj::CreateBool(Eval(ctx, term->Left(), args)->op_class_test(term->Right()->GetFullName().c_str(), ctx));
     }
-    return Obj::CreateBool(ExecStr(ctx, term->Left(), args)->op_class_test(ExecStr(ctx, term->Right(), args), ctx));
+    return Obj::CreateBool(Eval(ctx, term->Left(), args)->op_class_test(Eval(ctx, term->Right(), args), ctx));
 }
 
 ObjPtr Context::op_TYPE_EQ2(Context *ctx, const TermPtr &term, Obj * args) {
@@ -1218,7 +1218,7 @@ ObjPtr Context::op_TYPE_EQ2(Context *ctx, const TermPtr &term, Obj * args) {
     ASSERT(term->Left());
     ASSERT(term->Right());
 
-    return Obj::CreateBool(ExecStr(ctx, term->Left(), args)->op_duck_test(ExecStr(ctx, term->Right(), args), false));
+    return Obj::CreateBool(Eval(ctx, term->Left(), args)->op_duck_test(Eval(ctx, term->Right(), args), false));
 }
 
 ObjPtr Context::op_TYPE_EQ3(Context *ctx, const TermPtr &term, Obj * args) {
@@ -1226,7 +1226,7 @@ ObjPtr Context::op_TYPE_EQ3(Context *ctx, const TermPtr &term, Obj * args) {
     ASSERT(term->Left());
     ASSERT(term->Right());
 
-    return Obj::CreateBool(ExecStr(ctx, term->Left(), args)->op_duck_test(ExecStr(ctx, term->Right(), args), true));
+    return Obj::CreateBool(Eval(ctx, term->Left(), args)->op_duck_test(Eval(ctx, term->Right(), args), true));
 }
 
 ObjPtr Context::op_TYPE_NE(Context *ctx, const TermPtr &term, Obj * args) {
@@ -1234,9 +1234,9 @@ ObjPtr Context::op_TYPE_NE(Context *ctx, const TermPtr &term, Obj * args) {
     ASSERT(term->Left());
     ASSERT(term->Right());
     if(isType(term->Right()->GetFullName())) {
-        return Obj::CreateBool(!ExecStr(ctx, term->Left(), args)->op_class_test(term->Right()->GetFullName().c_str(), ctx));
+        return Obj::CreateBool(!Eval(ctx, term->Left(), args)->op_class_test(term->Right()->GetFullName().c_str(), ctx));
     }
-    return Obj::CreateBool(!ExecStr(ctx, term->Left(), args)->op_class_test(ExecStr(ctx, term->Right(), args), ctx));
+    return Obj::CreateBool(!Eval(ctx, term->Left(), args)->op_class_test(Eval(ctx, term->Right(), args), ctx));
 }
 
 ObjPtr Context::op_TYPE_NE2(Context *ctx, const TermPtr &term, Obj * args) {
@@ -1244,7 +1244,7 @@ ObjPtr Context::op_TYPE_NE2(Context *ctx, const TermPtr &term, Obj * args) {
     ASSERT(term->Left());
     ASSERT(term->Right());
 
-    return Obj::CreateBool(!ExecStr(ctx, term->Left(), args)->op_duck_test(ExecStr(ctx, term->Right(), args), false));
+    return Obj::CreateBool(!Eval(ctx, term->Left(), args)->op_duck_test(Eval(ctx, term->Right(), args), false));
 }
 
 ObjPtr Context::op_TYPE_NE3(Context *ctx, const TermPtr &term, Obj * args) {
@@ -1252,7 +1252,7 @@ ObjPtr Context::op_TYPE_NE3(Context *ctx, const TermPtr &term, Obj * args) {
     ASSERT(term->Left());
     ASSERT(term->Right());
 
-    return Obj::CreateBool(!ExecStr(ctx, term->Left(), args)->op_duck_test(ExecStr(ctx, term->Right(), args), true));
+    return Obj::CreateBool(!Eval(ctx, term->Left(), args)->op_duck_test(Eval(ctx, term->Right(), args), true));
 }
 
 /*
@@ -1331,10 +1331,10 @@ ObjPtr Context::CallBlock(Context *ctx, const TermPtr &block, Obj * local_vars, 
     try {
         if(!block->m_block.empty()) {
             for (size_t i = 0; i < block->m_block.size(); i++) {
-                result = ExecStr(ctx, block->m_block[i], local_vars, false);
+                result = Eval(ctx, block->m_block[i], local_vars, false);
             }
         } else {
-            result = ExecStr(ctx, block, local_vars, false);
+            result = Eval(ctx, block, local_vars, false);
         }
     } catch (Interrupt &obj) {
 
@@ -1351,7 +1351,7 @@ ObjPtr Context::CallBlock(Context *ctx, const TermPtr &block, Obj * local_vars, 
             if(block->m_class_name.empty()) {
                 // Только при возврате значения :Return
                 ASSERT(obj.m_obj->size() == 1);
-                return (*obj.m_obj)[0];
+                return (*obj.m_obj)[0].second;
             }
         } else if(!block->m_class_name.empty()) {
             throw; // Объект возврата не соответствует требуемому типу
@@ -1365,13 +1365,13 @@ ObjPtr Context::EvalBlockAND(Context *ctx, const TermPtr &block, Obj * local_var
     ObjPtr result = nullptr;
     if(block->GetTokenID() == TermID::BLOCK) {
         for (size_t i = 0; i < block->m_block.size(); i++) {
-            result = ExecStr(ctx, block->m_block[i], local_vars, false);
+            result = Eval(ctx, block->m_block[i], local_vars, false);
             if(!result || !result->GetValueAsBoolean()) {
                 return Obj::No();
             }
         }
     } else {
-        result = ExecStr(ctx, block, local_vars, false);
+        result = Eval(ctx, block, local_vars, false);
     }
     if(!result || !result->GetValueAsBoolean()) {
 
@@ -1384,13 +1384,13 @@ ObjPtr Context::EvalBlockOR(Context *ctx, const TermPtr &block, Obj * local_vars
     ObjPtr result = nullptr;
     if(block->GetTokenID() == TermID::BLOCK) {
         for (size_t i = 0; i < block->m_block.size(); i++) {
-            result = ExecStr(ctx, block->m_block[i], local_vars, false);
+            result = Eval(ctx, block->m_block[i], local_vars, false);
             if(result && result->GetValueAsBoolean()) {
                 return Obj::Yes();
             }
         }
     } else {
-        result = ExecStr(ctx, block, local_vars, false);
+        result = Eval(ctx, block, local_vars, false);
     }
     if(result && result->GetValueAsBoolean()) {
 
@@ -1404,13 +1404,13 @@ ObjPtr Context::EvalBlockXOR(Context *ctx, const TermPtr &block, Obj * local_var
     size_t xor_counter = 0;
     if(block->GetTokenID() == TermID::BLOCK) {
         for (size_t i = 0; i < block->m_block.size(); i++) {
-            result = ExecStr(ctx, block->m_block[i], local_vars, false);
+            result = Eval(ctx, block->m_block[i], local_vars, false);
             if(result && result->GetValueAsBoolean()) {
                 xor_counter++;
             }
         }
     } else {
-        result = ExecStr(ctx, block, local_vars, false);
+        result = Eval(ctx, block, local_vars, false);
         if(result && result->GetValueAsBoolean()) {
 
             xor_counter++;
@@ -1443,6 +1443,11 @@ ObjPtr Context::CreateNative(TermPtr proto, const char *module, bool lazzy, cons
     NL_CHECK(proto, "Fail prototype native function!");
     NL_CHECK((module == nullptr || (module && *module == '\0')) || m_runtime,
             "You cannot load a module '%s' without access to the runtime context!", module);
+
+#ifdef _MSC_VER
+#pragma message WARNING("Fail native call from Windows!!!!")
+    return Obj::CreateNone();
+#endif    
 
     ObjPtr result;
     ObjType type;
@@ -1544,7 +1549,7 @@ void Context::CleanUp() {
     auto iter = begin();
     while(iter != end()) {
         if(iter->second.expired()) {
-            iter = erase(iter);
+            iter = ListType::erase(iter);
         } else {
             iter++;
         }
@@ -1553,14 +1558,14 @@ void Context::CleanUp() {
 
 ObjPtr Context::FindSessionTerm(const char *name, bool current_only) {
     CleanUp();
-    auto found = select(MakeName(name));
-    while(!found.complete()) {
-        ObjPtr obj = found.data().second.lock();
+    auto found = find(MakeName(name));
+    while(found != end()) {
+        ObjPtr obj = found->second.lock();
         if(obj) {
 
             return obj;
         }
-        erase(found);
+        ListType::erase(found);
         found++;
     }
     return nullptr;
@@ -1654,10 +1659,10 @@ ObjPtr Context::CreateLVal(Context *ctx, TermPtr term, Obj * args) {
 
     ctx->CleanUp();
 
-    auto iter = ctx->select(term->m_text);
+    auto iter = ctx->find(term->m_text);
 
-    if(!iter.complete()) {
-        ObjPtr obj = (*iter).lock();
+    if(iter != ctx->end()) {
+        ObjPtr obj = (*iter).second.lock();
         if(obj) {
             return obj;
         }
@@ -2005,13 +2010,13 @@ ObjPtr Context::CreateRVal(Context *ctx, TermPtr term, Obj * local_vars, bool in
 
                 ASSERT(ctx);
 
-                auto iter = ctx->m_data.begin();
-                while(iter != ctx->m_data.end()) {
+                auto iter = ctx->begin();
+                while(iter != ctx->end()) {
                     if(!iter->second.expired()) {
                         result->push_back(Obj::CreateString(iter->first));
                         iter++;
                     } else {
-                        iter = ctx->m_data.erase(iter);
+                        iter = ctx->ListType::erase(iter);
                     }
                 }
 
@@ -2078,7 +2083,7 @@ ObjPtr Context::CreateRVal(Context *ctx, TermPtr term, Obj * local_vars, bool in
             ASSERT(result->m_var_type_fixed == type);
 
             // Размерность, если указана
-            result->m_dimensions = Obj::CreateType(result->m_var_type_current, nullptr, result->m_var_type_current);
+            result->m_dimensions = Obj::CreateType(result->m_var_type_current, result->m_var_type_current, true);
             for (size_t i = 0; i < term->m_dims.size(); i++) {
                 result->m_dimensions->push_back(CreateRVal(ctx, term->m_dims[i], local_vars));
             }
@@ -2087,19 +2092,19 @@ ObjPtr Context::CreateRVal(Context *ctx, TermPtr term, Obj * local_vars, bool in
             for (int64_t i = 0; i < term->size(); i++) {
 
 
-                if((*term)[i]->GetTokenID() == TermID::FILLING) {
+                if((*term)[i].second->GetTokenID() == TermID::FILLING) {
 
                     // Заполнение значений вызовом функции
                     // :Type(1, 2, 3, ... rand() ... );
 
 
-                    ASSERT(!(*term)[i]->Left());
-                    ASSERT((*term)[i]->Right());
+                    ASSERT(!(*term)[i].second->Left());
+                    ASSERT((*term)[i].second->Right());
 
 
-                    ObjPtr expr = ctx->FindTerm((*term)[i]->Right()->GetFullName());
+                    ObjPtr expr = ctx->FindTerm((*term)[i].second->Right()->GetFullName());
 
-                    if((*term)[i]->Right()->getTermID() != TermID::CALL) {
+                    if((*term)[i].second->Right()->getTermID() != TermID::CALL) {
                         LOG_RUNTIME("Operator filling supported function call only!");
                     }
 
@@ -2114,11 +2119,11 @@ ObjPtr Context::CreateRVal(Context *ctx, TermPtr term, Obj * local_vars, bool in
                     int64_t full_size = 1;
                     for (int dim_index = 0; dim_index < result->m_dimensions->size(); dim_index++) {
 
-                        if(!(*result->m_dimensions)[dim_index]->is_integer()) {
+                        if(!(*result->m_dimensions)[dim_index].second->is_integer()) {
                             LOG_RUNTIME("Dimension index for function filling support integer value only!");
                         }
 
-                        full_size *= (*result->m_dimensions)[dim_index]->GetValueAsInteger();
+                        full_size *= (*result->m_dimensions)[dim_index].second->GetValueAsInteger();
                     }
 
                     if(full_size <= 0) {
@@ -2136,16 +2141,16 @@ ObjPtr Context::CreateRVal(Context *ctx, TermPtr term, Obj * local_vars, bool in
 
                     break;
 
-                } else if((*term)[i]->GetTokenID() == TermID::ELLIPSIS) {
+                } else if((*term)[i].second->GetTokenID() == TermID::ELLIPSIS) {
 
                     if(!term->name(i).empty()) {
                         LOG_RUNTIME("Named ellipsys not implemented!");
                     }
 
-                    if((*term)[i]->Right()) {
+                    if((*term)[i].second->Right()) {
 
-                        bool named = ((*term)[i]->Left() && (*term)[i]->Left()->getTermID() == TermID::ELLIPSIS);
-                        ObjPtr exp = CreateRVal(ctx, (*term)[i]->Right());
+                        bool named = ((*term)[i].second->Left() && (*term)[i].second->Left()->getTermID() == TermID::ELLIPSIS);
+                        ObjPtr exp = CreateRVal(ctx, (*term)[i].second->Right());
 
                         if(!exp->is_dictionary_type()) {
                             LOG_RUNTIME("Expansion operator applies to dictionary only!");
@@ -2154,9 +2159,9 @@ ObjPtr Context::CreateRVal(Context *ctx, TermPtr term, Obj * local_vars, bool in
 
                         for (int index = 0; index < exp->size(); index++) {
                             if(named) {
-                                args->push_back((*exp)[index], exp->name(index).empty() ? "" : exp->name(index));
+                                args->push_back((*exp)[index].second, exp->name(index).empty() ? "" : exp->name(index));
                             } else {
-                                args->push_back((*exp)[index]);
+                                args->push_back((*exp)[index].second);
                             }
                         }
 
@@ -2165,9 +2170,9 @@ ObjPtr Context::CreateRVal(Context *ctx, TermPtr term, Obj * local_vars, bool in
                 }
 
                 if(term->name(i).empty()) {
-                    args->push_back(CreateRVal(ctx, (*term)[i], local_vars));
+                    args->push_back(CreateRVal(ctx, (*term)[i].second, local_vars));
                 } else {
-                    args->push_back(CreateRVal(ctx, (*term)[i], local_vars), term->name(i).c_str());
+                    args->push_back(CreateRVal(ctx, (*term)[i].second, local_vars), term->name(i).c_str());
                 }
 
             }
@@ -2191,9 +2196,9 @@ ObjPtr Context::CreateRVal(Context *ctx, TermPtr term, Obj * local_vars, bool in
             args = Obj::CreateDict();
             for (int i = 0; i < term->size(); i++) {
                 if(term->name(i).empty()) {
-                    args->push_back(CreateRVal(ctx, (*term)[i], local_vars));
+                    args->push_back(CreateRVal(ctx, (*term)[i].second, local_vars));
                 } else {
-                    args->push_back(CreateRVal(ctx, (*term)[i], local_vars), term->name(i).c_str());
+                    args->push_back(CreateRVal(ctx, (*term)[i].second, local_vars), term->name(i).c_str());
                 }
             }
 
@@ -2210,9 +2215,9 @@ ObjPtr Context::CreateRVal(Context *ctx, TermPtr term, Obj * local_vars, bool in
             result->m_var_type_current = ObjType::Dictionary;
             for (int i = 0; i < term->size(); i++) {
                 if(term->name(i).empty()) {
-                    result->push_back(CreateRVal(ctx, (*term)[i], local_vars));
+                    result->push_back(CreateRVal(ctx, (*term)[i].second, local_vars));
                 } else {
-                    result->push_back(CreateRVal(ctx, (*term)[i], local_vars), term->name(i).c_str());
+                    result->push_back(CreateRVal(ctx, (*term)[i].second, local_vars), term->name(i).c_str());
                 }
             }
             result->m_var_is_init = true;
@@ -2257,7 +2262,7 @@ ObjPtr Context::CreateRVal(Context *ctx, TermPtr term, Obj * local_vars, bool in
 
             for (int i = 0; i < term->size(); i++) {
                 ASSERT(!term->name(i).empty());
-                result->push_back(CreateRVal(ctx, (*term)[i], local_vars), term->name(i).c_str());
+                result->push_back(CreateRVal(ctx, (*term)[i].second, local_vars), term->name(i).c_str());
             }
 
             if(result->size() == 2) {

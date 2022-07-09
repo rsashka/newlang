@@ -22,49 +22,6 @@ namespace newlang {
     }
 
     
-    template <typename T>
-    class SharedPtrWrapper {
-    public:
-
-        explicit SharedPtrWrapper(T* p, void (*deleter)(T*)) : ptr_() {
-            if (!p) {
-                return;
-            }
-
-            if (!deleter) {
-                deleter = NullDeleter;
-            }
-
-            try {
-                ptr_ = std::shared_ptr<T>(p, deleter);
-            } catch (...) {
-            }
-        }
-
-        operator bool() const {
-            return !!ptr_;
-        }
-
-        T* get() const {
-            return ptr_.get();
-        }
-
-        T& operator*() const {
-            return *ptr_;
-        }
-
-        T* operator->() const {
-            return get();
-        }
-
-    private:
-
-        static void NullDeleter(T*) {
-        }
-
-        std::shared_ptr<T> ptr_;
-    };
-
 
 typedef at::indexing::TensorIndex Index;
 typedef at::IntArrayRef Dimension;
@@ -188,6 +145,9 @@ void ParserException(const char *msg, std::string &buffer, int row, int col);
     _(ViewChar, 51)         \
     _(ViewWide, 52)         \
     _(String, 55)           \
+    \
+    _(Iterator, 62)         \
+    _(IteratorEnd, 63)      \
     \
     _(Pointer, 64)          \
     _(NativeFunc, 65)       \

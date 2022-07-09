@@ -103,7 +103,7 @@ namespace newlang {
         _("export", NOT_SUPPORT)\
         _("local", NOT_SUPPORT)
 
-    class Context : public Variable< std::weak_ptr<Obj> > {
+    class Context : public Variable<Obj, std::weak_ptr<Obj>> {
     public:
 
         static ObjPtr eval_END(Context *ctx, const TermPtr & term, Obj *args);
@@ -165,10 +165,10 @@ namespace newlang {
                 temp = Obj::CreateNone();
                 args = temp.get();
             }
-            return ExecStr(this, exec, args, int_catch);
+            return Eval(this, exec, args, int_catch);
         }
 
-        static ObjPtr ExecStr(Context *ctx, TermPtr term, Obj *args, bool int_catch = false);
+        static ObjPtr Eval(Context *ctx, TermPtr term, Obj *args, bool int_catch = false);
 
         static ObjPtr ExpandAssign(Context *ctx, TermPtr lvar, TermPtr rval, Obj *args, CreateMode mode);
         static ObjPtr ExpandCreate(Context *ctx, TermPtr lvar, TermPtr rval, Obj *args);
@@ -214,9 +214,9 @@ namespace newlang {
             if (str.size() && (str[0] == '$' || str[0] == '@')) {
                 str = str.substr(1);
             }
-            auto found = select(name);
-            if (!found.complete()) {
-                erase(found);
+            auto found = find(name);
+            if (found != end()) {
+                ListType::erase(found);
                 return Obj::Yes();
             }
             return Obj::No();
@@ -227,9 +227,9 @@ namespace newlang {
             if (str.size() && (str[0] == '$' || str[0] == '@')) {
                 str = str.substr(1);
             }
-            auto found = select(str);
-            if (!found.complete()) {
-                return (*found).lock();
+            auto found = find(str);
+            if (found != end()) {
+                return found->second.lock();
             }
             auto func = m_funcs.find(str);
             if (func != m_funcs.end()) {
@@ -243,7 +243,7 @@ namespace newlang {
         }
 
         RuntimePtr m_runtime; // Глобальный контекс, если к нему есть доступ
-        Variable<ObjPtr> m_global_terms;
+        Variable<Obj> m_global_terms;
 
         virtual ~Context() {
         }
@@ -260,10 +260,9 @@ namespace newlang {
         ObjPtr FindGlobalTerm(TermPtr term);
 
         ObjPtr FindGlobalTerm(const std::string name) {
-            auto found = m_global_terms.select(MakeName(name));
-            if (!found.complete()) {
-
-                return *found;
+            auto found = m_global_terms.find(MakeName(name));
+            if (found != m_global_terms.end()) {
+                return found->second;
             }
             return GetObject(name);
         }
@@ -274,7 +273,7 @@ namespace newlang {
 
         void RegisterInContext(Obj &args) {
             for (int i = static_cast<int> (args.size()) - 1; args.size() && i >= 0; i--) {
-                push_front(args.at(i).second, args.at(i).first);
+                push_front(pair(args.at(i).second, args.at(i).first));
             }
         }
 

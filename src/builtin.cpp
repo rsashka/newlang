@@ -42,21 +42,21 @@ namespace newlang {
         if(in.size() != 2) {
             LOG_RUNTIME("Bad argument count parameter!");
         }
-        return in[1]->Clone(nullptr);
+        return in[1].second->Clone(nullptr);
     }
 
     NEWLANG_FUNCTION(const_) {
         if(in.size() != 2) {
             LOG_RUNTIME("Bad argument count parameter!");
         }
-        return in[1]->MakeConst();
+        return in[1].second->MakeConst();
     }
 
     NEWLANG_FUNCTION(mutable_) {
         if(in.size() != 2) {
             LOG_RUNTIME("Bad argument count parameter!");
         }
-        return in[1]->MakeMutable();
+        return in[1].second->MakeMutable();
     }
 
 //    NEWLANG_FUNCTION(import) {
@@ -105,13 +105,13 @@ bool BuiltInTorchDirect::CheckDirect(CompileInfo &ci, TermPtr &term, std::string
         return true;
     } else if(term->size() == 1) {
 
-        if((*term)[0]->IsScalar() && m_tensor_scalar.find(term->getText()) != m_tensor_scalar.end()) {
-            output += "->asTensor_()." + term->getText() + "(" + (*term)[0]->getText() + "), " + output;
+        if((*term)[0].second->IsScalar() && m_tensor_scalar.find(term->getText()) != m_tensor_scalar.end()) {
+            output += "->asTensor_()." + term->getText() + "(" + (*term)[0].second->getText() + "), " + output;
             return true;
 
-        } else if((*term)[0]->getTermID() == TermID::TERM) {
+        } else if((*term)[0].second->getTermID() == TermID::TERM) {
             std::string temp;
-            NewLang::GetImpl(ci, (*term)[0], temp);
+            NewLang::GetImpl(ci, (*term)[0].second, temp);
             output += "->asTensor_()." + term->getText() + "(" + temp + "->asTensor_()), " + output;
             return true;
         }

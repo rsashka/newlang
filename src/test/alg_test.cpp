@@ -135,22 +135,22 @@ TEST(Alg, Foreach) {
     test->push_back(Obj::Arg(12));
     test->push_back(Obj::Arg(13));
     ASSERT_EQ(4, test->size());
-    ASSERT_EQ(10, (*test)[0]->GetValueAsInteger());
-    ASSERT_EQ(13, (*test)[3]->GetValueAsInteger());
+    ASSERT_EQ(10, (*test)[0].second->GetValueAsInteger());
+    ASSERT_EQ(13, (*test)[3].second->GetValueAsInteger());
 
     ASSERT_EQ(test->resize_(4, nullptr), test->size());
     ASSERT_EQ(4, test->size());
-    ASSERT_EQ(10, (*test)[0]->GetValueAsInteger());
-    ASSERT_EQ(13, (*test)[3]->GetValueAsInteger());
+    ASSERT_EQ(10, (*test)[0].second->GetValueAsInteger());
+    ASSERT_EQ(13, (*test)[3].second->GetValueAsInteger());
 
     test->resize_(-3, nullptr);
     ASSERT_EQ(3, test->size());
-    ASSERT_EQ(11, (*test)[0]->GetValueAsInteger());
-    ASSERT_EQ(13, (*test)[2]->GetValueAsInteger());
+    ASSERT_EQ(11, (*test)[0].second->GetValueAsInteger());
+    ASSERT_EQ(13, (*test)[2].second->GetValueAsInteger());
 
     test->resize_(-1, nullptr);
     ASSERT_EQ(1, test->size());
-    ASSERT_EQ(13, (*test)[0]->GetValueAsInteger());
+    ASSERT_EQ(13, (*test)[0].second->GetValueAsInteger());
 
     test->resize_(0, nullptr);
     ASSERT_EQ(0, test->size());
@@ -163,8 +163,8 @@ TEST(Alg, Foreach) {
     ASSERT_TRUE(dict);
     ASSERT_TRUE(dict->is_dictionary_type());
     ASSERT_EQ(3, dict->size());
-    ASSERT_EQ(1, (*dict)[0]->GetValueAsInteger());
-    ASSERT_EQ(3, (*dict)[2]->GetValueAsInteger());
+    ASSERT_EQ(1, (*dict)[0].second->GetValueAsInteger());
+    ASSERT_EQ(3, (*dict)[2].second->GetValueAsInteger());
 
     ObjPtr temp = ctx.ExecStr("counter, dict := ... dict");
     ASSERT_TRUE(temp);
@@ -175,8 +175,8 @@ TEST(Alg, Foreach) {
 
     ASSERT_TRUE(dict->is_dictionary_type());
     ASSERT_EQ(2, dict->size());
-    ASSERT_EQ(2, (*dict)[0]->GetValueAsInteger());
-    ASSERT_EQ(3, (*dict)[1]->GetValueAsInteger());
+    ASSERT_EQ(2, (*dict)[0].second->GetValueAsInteger());
+    ASSERT_EQ(3, (*dict)[1].second->GetValueAsInteger());
 
     temp = ctx.ExecStr("counter, dict := ... dict");
     ASSERT_TRUE(temp);
@@ -187,7 +187,7 @@ TEST(Alg, Foreach) {
 
     ASSERT_TRUE(dict->is_dictionary_type());
     ASSERT_EQ(1, dict->size());
-    ASSERT_EQ(3, (*dict)[0]->GetValueAsInteger());
+    ASSERT_EQ(3, (*dict)[0].second->GetValueAsInteger());
 
     temp = ctx.ExecStr("counter, dict := ... dict");
     ASSERT_TRUE(temp);
@@ -271,9 +271,9 @@ TEST(Alg, Foreach) {
     ASSERT_TRUE(tensor->is_tensor());
     ASSERT_TRUE(tensor->GetValueAsBoolean());
     ASSERT_EQ(3, tensor->size());
-    ASSERT_EQ(10, (*tensor)[0]->GetValueAsInteger());
-    ASSERT_EQ(11, (*tensor)[1]->GetValueAsInteger());
-    ASSERT_EQ(12, (*tensor)[2]->GetValueAsInteger());
+    ASSERT_EQ(10, (*tensor)[0].second->GetValueAsInteger());
+    ASSERT_EQ(11, (*tensor)[1].second->GetValueAsInteger());
+    ASSERT_EQ(12, (*tensor)[2].second->GetValueAsInteger());
 
     temp = ctx.ExecStr("counter, tensor  := ... tensor ");
     ASSERT_TRUE(temp);
@@ -285,8 +285,8 @@ TEST(Alg, Foreach) {
     ASSERT_TRUE(tensor->is_tensor());
     ASSERT_TRUE(tensor->GetValueAsBoolean());
     ASSERT_EQ(2, tensor ->size());
-    ASSERT_EQ(11, (*tensor)[0]->GetValueAsInteger());
-    ASSERT_EQ(12, (*tensor)[1]->GetValueAsInteger());
+    ASSERT_EQ(11, (*tensor)[0].second->GetValueAsInteger());
+    ASSERT_EQ(12, (*tensor)[1].second->GetValueAsInteger());
 
     temp = ctx.ExecStr("counter, tensor := ... tensor ");
     ASSERT_TRUE(temp);
@@ -298,7 +298,7 @@ TEST(Alg, Foreach) {
     ASSERT_TRUE(tensor->is_tensor());
     ASSERT_TRUE(tensor->GetValueAsBoolean());
     ASSERT_EQ(1, tensor ->size());
-    ASSERT_EQ(12, (*tensor)[0]->GetValueAsInteger());
+    ASSERT_EQ(12, (*tensor)[0].second->GetValueAsInteger());
 
     temp = ctx.ExecStr("counter, tensor := ... tensor ");
     ASSERT_TRUE(temp);
@@ -336,15 +336,15 @@ TEST(Alg, Foreach) {
 
     ObjPtr tensor_size = ctx.ExecStr("tensor_size := [10,20,30,40,]");
     ASSERT_EQ(4, tensor_size->size());
-    ASSERT_EQ(10, (*tensor_size)[0]->GetValueAsInteger());
-    ASSERT_EQ(40, (*tensor_size)[3]->GetValueAsInteger());
+    ASSERT_EQ(10, (*tensor_size)[0].second->GetValueAsInteger());
+    ASSERT_EQ(40, (*tensor_size)[3].second->GetValueAsInteger());
 
     tensor_size->resize_(-10, nullptr);
     ASSERT_EQ(10, tensor_size->size());
-    ASSERT_EQ(0, (*tensor_size)[0]->GetValueAsInteger());
-    ASSERT_EQ(0, (*tensor_size)[5]->GetValueAsInteger());
-    ASSERT_EQ(10, (*tensor_size)[6]->GetValueAsInteger());
-    ASSERT_EQ(40, (*tensor_size)[9]->GetValueAsInteger());
+    ASSERT_EQ(0, (*tensor_size)[0].second->GetValueAsInteger());
+    ASSERT_EQ(0, (*tensor_size)[5].second->GetValueAsInteger());
+    ASSERT_EQ(10, (*tensor_size)[6].second->GetValueAsInteger());
+    ASSERT_EQ(40, (*tensor_size)[9].second->GetValueAsInteger());
 
 }
 
@@ -461,7 +461,7 @@ TEST(Alg, Return) {
     } catch (Interrupt &except) {
         ASSERT_EQ(ObjType::Return, except.m_obj->getType());
         ASSERT_EQ(1, except.m_obj->size());
-        ASSERT_TRUE((*except.m_obj)[0]->is_none_type());
+        ASSERT_TRUE((*except.m_obj)[0].second->is_none_type());
     }
     ASSERT_FALSE(result);
 
@@ -470,7 +470,7 @@ TEST(Alg, Return) {
     } catch (Interrupt &except) {
         ASSERT_EQ(ObjType::Return, except.m_obj->getType());
         ASSERT_EQ(1, except.m_obj->size());
-        ASSERT_STREQ("100", (*except.m_obj)[0]->toString().c_str());
+        ASSERT_STREQ("100", (*except.m_obj)[0].second->toString().c_str());
     }
     ASSERT_FALSE(result);
 
@@ -479,7 +479,7 @@ TEST(Alg, Return) {
     } catch (Interrupt &except) {
         ASSERT_EQ(ObjType::Return, except.m_obj->getType());
         ASSERT_EQ(1, except.m_obj->size());
-        ASSERT_STREQ("'Тест'", (*except.m_obj)[0]->toString().c_str());
+        ASSERT_STREQ("'Тест'", (*except.m_obj)[0].second->toString().c_str());
     }
     ASSERT_FALSE(result);
 
@@ -508,7 +508,7 @@ TEST(Alg, Return) {
         ASSERT_EQ(ObjType::Error, except.m_obj->getType());
         ASSERT_EQ(1, except.m_obj->size());
         ASSERT_STREQ(":Error('ТЕКСТ')", except.m_obj->toString().c_str());
-        ASSERT_STREQ("'ТЕКСТ'", (*except.m_obj)[0]->toString().c_str());
+        ASSERT_STREQ("'ТЕКСТ'", (*except.m_obj)[0].second->toString().c_str());
     }
     ASSERT_FALSE(result);
 
@@ -555,13 +555,13 @@ TEST(Alg, Return) {
     ASSERT_NO_THROW(result = ctx.ExecStr("(){ (){{count := 1; count += 1; count += 1; --:Error(99)--; count += 1; count += 1}}; }", nullptr, false););
     ASSERT_TRUE(result);
     ASSERT_EQ(1, result->size());
-    ASSERT_EQ(99, (*result)[0]->GetValueAsInteger());
+    ASSERT_EQ(99, (*result)[0].second->GetValueAsInteger());
 
     result.reset();
     ASSERT_NO_THROW(result = ctx.ExecStr("(){ (){{count := 1; count += 1; count += 1; --:Error(33)--; count += 1; count += 1}};  }", nullptr, false););
     ASSERT_TRUE(result);
     ASSERT_EQ(1, result->size());
-    ASSERT_EQ(33, (*result)[0]->GetValueAsInteger());
+    ASSERT_EQ(33, (*result)[0].second->GetValueAsInteger());
 
     result.reset();
     ASSERT_NO_THROW(result = ctx.ExecStr("(){ (){{count := 1; count += 1; count += 1; --:Error(44)--; count += 1; count += 1}};  9999; }", nullptr, false););
@@ -595,7 +595,7 @@ TEST(Alg, Return) {
     ASSERT_NO_THROW(result = ctx.ExecStr("(){ (){{count := 1; count += 1; count += 1; --:ErrorRunTime(77)--; count += 1; count += 1}}:ErrorRunTime }", nullptr, false););
     ASSERT_TRUE(result);
     ASSERT_EQ(1, result->size());
-    ASSERT_EQ(77, (*result)[0]->GetValueAsInteger());
+    ASSERT_EQ(77, (*result)[0].second->GetValueAsInteger());
 
     result.reset();
     ASSERT_NO_THROW(result = ctx.ExecStr("(){ (){{count := 1; count += 1; count += 1; --:ErrorRunTime(88)--; count += 1; count += 1}}:ErrorRunTime;  9999; }", nullptr, false););
@@ -606,7 +606,7 @@ TEST(Alg, Return) {
     ASSERT_NO_THROW(result = ctx.ExecStr("(){ (){{count := 1; count += 1; count += 1; --:ErrorRunTime(77)--; count += 1; count += 1}}:Error }", nullptr, false););
     ASSERT_TRUE(result);
     ASSERT_EQ(1, result->size());
-    ASSERT_EQ(77, (*result)[0]->GetValueAsInteger());
+    ASSERT_EQ(77, (*result)[0].second->GetValueAsInteger());
 
     result.reset();
     ASSERT_NO_THROW(result = ctx.ExecStr("(){ (){{count := 1; count += 1; count += 1; --:ErrorRunTime(88)--; count += 1; count += 1}}:Error;  9999; }", nullptr, false););
