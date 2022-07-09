@@ -100,6 +100,10 @@ ${OBJECTDIR}/_ext/e16507f5/logger.o: ../contrib/logger/logger.cpp
 	${RM} "$@.d"
 	$(COMPILE.cc) -g -DDEBUG -DLOG_LEVEL_NORMAL=LOG_LEVEL_DEBUG -DPDC_WIDE -DUNITTEST -I. -I.. -I../contrib/googletest/googletest -I../contrib/googletest/googletest/include -I../contrib/Lyra/include -I../contrib/libtorch/include/torch/csrc/api/include -I../contrib/libtorch/include -I../contrib/tensorboard_logger/include -I/usr/lib/llvm-13/include -std=c++14 -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/_ext/e16507f5/logger.o ../contrib/logger/logger.cpp
 
+syntax_help.cpp: ../docs/syntax.txt
+	@echo Выполнение шага пользовательского сборки
+	../contrib/text2cpp/output/bin/text2cpp ../docs/syntax.txt  syntax_help.cpp syntax_help s
+
 ${OBJECTDIR}/builtin.o: builtin.cpp parser.h parser.yy.h pch.h.gch location.hh
 	${MKDIR} -p ${OBJECTDIR}
 	${RM} "$@.d"
@@ -277,6 +281,7 @@ ${OBJECTDIR}/version.o: version.c
 # Clean Targets
 .clean-conf: ${CLEAN_SUBPROJECTS}
 	${RM} -r ${CND_BUILDDIR}/${CND_CONF}
+	${RM} syntax_help.cpp
 	${RM} 
 	${RM} 
 	${RM} 
