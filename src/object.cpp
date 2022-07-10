@@ -2932,10 +2932,10 @@ ObjPtr Iterator<Obj>::read_and_next(int64_t count) {
     if(count == 0) {
         result = (*(*this)).second;
         (*this)++;
-    } else if(count > 0) {
+    } else if(count < 0) {
 
         result = Obj::CreateDict();
-        for (int64_t i = 0; i < count; i++) {
+        for (int64_t i = 0; i < -count; i++) {
             if(*this != this->end()) {
                 result->push_back(*(*this));
                 (*this)++;
@@ -2945,7 +2945,6 @@ ObjPtr Iterator<Obj>::read_and_next(int64_t count) {
         }
 
     } else {
-        count = -count;
         result = Obj::CreateDict();
         while(*this != this->end() && result->size() < count) {
             result->push_back(*(*this));
@@ -2954,7 +2953,6 @@ ObjPtr Iterator<Obj>::read_and_next(int64_t count) {
     }
     return result;
 }
-
 
 ObjPtr Obj::MakeIterator() {
     ObjPtr result = CreateType(ObjType::Iterator, ObjType::Iterator, true);

@@ -446,8 +446,11 @@ term    [$@%]({ualpha}|[_])?({name})?
 ">="        YY_TOKEN(OPERATOR);
 ">"         YY_TOKEN(OPERATOR);
 
-"??"        YY_TOKEN(ITERATOR_QQ);
+
 "!!"        YY_TOKEN(ITERATOR);
+"??"        YY_TOKEN(ITERATOR);
+"?!"        YY_TOKEN(ITERATOR);
+"!?"        YY_TOKEN(ITERATOR);
 
 
  /* gobble up white-spaces */

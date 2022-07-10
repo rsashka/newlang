@@ -582,8 +582,8 @@ TEST(ExecStr, Funcs) {
 
     printf_type ttt = (printf_type) p->m_func_ptr;
     ASSERT_EQ(7, (*ttt)("Test 1 "));
-    ASSERT_EQ(18,(*ttt)("%s", "Test Variadic call"));
-    
+    ASSERT_EQ(18, (*ttt)("%s", "Test Variadic call"));
+
     ObjPtr res = p->Call(&ctx, Obj::Arg(Obj::CreateString("Test")));
     ASSERT_TRUE(res);
     ASSERT_TRUE(res->is_integer());
@@ -767,10 +767,10 @@ TEST(Eval, Convert) {
     ASSERT_TRUE(obj_float->m_var_is_init);
     ASSERT_STREQ("[\n  [3, 4,], [1, 2,],\n]:Float", obj_float->GetValueAsString().c_str());
 
-    
-    
-    
-    
+
+
+
+
     ObjPtr frac_0 = ctx.ExecStr("0\\1");
     ASSERT_TRUE(frac_0);
     ASSERT_EQ(ObjType::Fraction, frac_0->getType());
@@ -798,8 +798,8 @@ TEST(Eval, Convert) {
     ASSERT_TRUE(obj_frac->m_var_is_init);
     ASSERT_STREQ("0\\1", obj_frac->GetValueAsString().c_str());
     ASSERT_EQ(0, obj_frac->GetValueAsInteger());
-    
-    
+
+
 
     //    EXPECT_TRUE(dlsym(nullptr, "_ZN7newlang4CharEPKNS_7ContextERKNS_6ObjectE"));
     //    EXPECT_TRUE(dlsym(nullptr, "_ZN7newlang6Short_EPNS_7ContextERNS_6ObjectE"));
@@ -934,6 +934,59 @@ TEST(Eval, MacroDSL) {
     ASSERT_EQ(42, result->GetValueAsInteger());
 }
 
+TEST(Eval, Iterator) {
+
+
+
+}
+
+TEST(Eval, Brother) {
+    /*
+     * 
+     * :Human := :Class(пол:Пол=_, родители = (,));
+     *  #!./dist/Debug/GNU-Linux/nlc --exec
+     * :Sex := :Enum(male, female); 
+     * :Human := :Class(sex:Sex=, parent=(,));
+     * @Tom := :Human(Sex.male);
+     * @Janna := :Human(Sex.female);
+     * @Jake := :Human(Sex.male, (Tom, Janna,));
+     * @Tim := :Human(Sex.male, parent=(Tom,));
+     *
+     * Brother(h1, h2) := $h1 != $h2, $h1.sex==male, $h1.parent * $h2.parent;
+     * printf := :Native("printf(format:Format, ...):Int"); 
+     * 
+     * 
+     * h1 := $?;
+     * [ h1 ] <<-->> {
+     *      h2 := $?;
+     *      [ h2 ] <<-->> {
+     *          [ Brother(h1!, h2!) ] --> { 
+     *              printf("%s brother %s", ""(h1), `h2`);
+     *          }
+     *      }
+     * }
+     * 
+     * h1 := \iterator($);
+     * \while( h1 ) {
+     *      h2 := \iterator($);
+     *      \while( h2 } {
+     *          \if( Brother(h1!, h2!) ) { 
+     *              result []= "$1 brother $2"(h1, h2);
+     *          }
+     *      }
+     * }
+     * --result--;
+     * 
+     * >>> ("Tim brother Jake", "Jake brother Tim",)
+     * 
+     * 
+     * 
+     */
+
+
+
+}
+
 class OpEvalTest : public ::testing::Test {
 protected:
     Context m_ctx;
@@ -974,7 +1027,7 @@ TEST_F(OpEvalTest, Ops) {
     ASSERT_STREQ("5\\1", Test("4\\5 + 42\\10"));
     ASSERT_STREQ("11\\1", Test("10\\1 + 1"));
     ASSERT_STREQ("4\\3", Test("1\\3 + 1"));
-    
+
     ASSERT_STREQ("-12", Test("10 - 22"));
     ASSERT_STREQ("-2.9", Test("1.1 - 4"));
     ASSERT_STREQ("-3.5", Test("1 - 4.5"));

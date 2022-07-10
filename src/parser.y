@@ -379,8 +379,7 @@ star_arg = [STAR] STAR ID
 %token			COMMENT
 
 %token                  SOURCE
-%token			ITERATOR        "!!"
-%token			ITERATOR_QQ     "??"
+%token			ITERATOR
 
 %token			PUREFUNC
 %token			SIMPLE_AND
@@ -766,13 +765,11 @@ rval_var:  rval_name
         |  rval_name  iter_all
             {
                 $$ = $2;
-                $$->SetTermID(TermID::ITERATOR);
                 $$->Last()->Append($1, Term::LEFT); 
             }
         |  rval_name  iter_all  call
             {
                 $$ = $2;
-                $$->SetTermID(TermID::ITERATOR);
                 $$->Last()->Append($1, Term::LEFT); 
                 $$->SetArgs($call);
             }
@@ -817,11 +814,7 @@ iter_all:  '!'
             {
                 $$=$1;
             }
-        | ITERATOR_QQ
-            {
-                $$=$1;
-                $$->SetTermID(TermID::ITERATOR);
-            }
+
        
 
 /*

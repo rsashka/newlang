@@ -863,12 +863,16 @@ TEST(ObjTest, Iterator) {
      * 
      * dict! и dict!(0) эквивалентны
      * dict! -> 1,  dict! -> 2, dict! -> 3, dict! -> 4, dict! -> 5, dict! -> :IteratorEnd
-     * Различия отрицательного размера возвращаемого словаря
-     * dict!(1) -> (1,),  dict!(1) -> (2,),  dict!(1) -> (3,),  dict!(1) -> (4,),  dict!(1) -> (5,),  dict!(1) -> (:IteratorEnd,),  
-     * dict!(-1) -> (1,),  dict!(-1) -> (2,),  dict!(-1) -> (3,),  dict!(-1) -> (4,),  dict!(-1) -> (5,),  dict!(-1) -> (,),  
-     * dict!(3) -> (1, 2, 3,),  dict!(3) -> (4, 5, :IteratorEnd,)
-     * dict!(-3) -> (1, 2, 3,), dict!(-3) -> (4, 5,)
+     * Различия отрицательного размера возвращаемого словаря для итератора
+     * dict!(-1) -> (1,),  ...  dict!(-1) -> (5,),  dict!(-1) -> (:IteratorEnd,),  
+     * dict!(1) -> (1,),  ...  dict!(1) -> (5,),  dict!(1) -> (,),  
+     * dict!(-3) -> (1, 2, 3,),  dict!(-3) -> (4, 5, :IteratorEnd,)
+     * dict!(3) -> (1, 2, 3,), dict!(3) -> (4, 5,)
      * 
+     * !? или ?! эквиваленты и создают итератор и сразу его выполняет, 
+     * вовзращая все значения в виде элементов словаря, т.е. ?(LINQ); !(:Long.__max__)
+     * А зачем может быть нужен итератор "??" - может сброс в начальное состояние???
+     * Итератор !! эквиваленетен вызову !(1)
      */
 
     ASSERT_TRUE(iter == iter.begin());
@@ -913,21 +917,21 @@ TEST(ObjTest, Iterator) {
     ASSERT_TRUE(iter == iter.begin());
     ASSERT_TRUE(iter != iter.end());
 
-    ObjPtr dict1 = iter.read_and_next(3);
+    ObjPtr dict1 = iter.read_and_next(-3);
     ASSERT_TRUE(dict1);
     ASSERT_EQ(3, dict1->size());
     ASSERT_EQ(1, dict1->at(0).second->GetValueAsInteger());
     ASSERT_EQ(2, dict1->at(1).second->GetValueAsInteger());
     ASSERT_EQ(3, dict1->at(2).second->GetValueAsInteger());
 
-    ObjPtr dict2 = iter.read_and_next(3);
+    ObjPtr dict2 = iter.read_and_next(-3);
     ASSERT_TRUE(dict2);
     ASSERT_EQ(3, dict2->size());
     ASSERT_EQ(4, dict2->at(0).second->GetValueAsInteger());
     ASSERT_EQ(5, dict2->at(1).second->GetValueAsInteger());
     ASSERT_EQ(ObjType::IteratorEnd, dict2->at(2).second->getType());
 
-    ObjPtr dict3 = iter.read_and_next(3);
+    ObjPtr dict3 = iter.read_and_next(-3);
     ASSERT_TRUE(dict3);
     ASSERT_EQ(3, dict1->size());
     ASSERT_EQ(ObjType::IteratorEnd, dict3->at(0).second->getType());
@@ -941,20 +945,20 @@ TEST(ObjTest, Iterator) {
     ASSERT_TRUE(iter == iter.begin());
     ASSERT_TRUE(iter != iter.end());
 
-    dict1 = iter.read_and_next(-3);
+    dict1 = iter.read_and_next(3);
     ASSERT_TRUE(dict1);
     ASSERT_EQ(3, dict1->size());
     ASSERT_EQ(1, dict1->at(0).second->GetValueAsInteger());
     ASSERT_EQ(2, dict1->at(1).second->GetValueAsInteger());
     ASSERT_EQ(3, dict1->at(2).second->GetValueAsInteger());
 
-    dict2 = iter.read_and_next(-3);
+    dict2 = iter.read_and_next(3);
     ASSERT_TRUE(dict2);
     ASSERT_EQ(2, dict2->size());
     ASSERT_EQ(4, dict2->at(0).second->GetValueAsInteger());
     ASSERT_EQ(5, dict2->at(1).second->GetValueAsInteger());
 
-    dict3 = iter.read_and_next(-3);
+    dict3 = iter.read_and_next(3);
     ASSERT_TRUE(dict3);
     ASSERT_EQ(0, dict3->size());
 
@@ -962,27 +966,27 @@ TEST(ObjTest, Iterator) {
     
     
     Iterator <Obj> flt(dict, "");
-    ObjPtr flt_res = flt.read_and_next(-100);
+    ObjPtr flt_res = flt.read_and_next(100);
     ASSERT_TRUE(flt_res);
     ASSERT_EQ(1, flt_res->size());
     ASSERT_EQ(4, flt_res->at(0).second->GetValueAsInteger());
     
 
     Iterator <Obj> flt1(dict, ".");
-    ObjPtr flt1_res = flt1.read_and_next(-100);
+    ObjPtr flt1_res = flt1.read_and_next(100);
     ASSERT_TRUE(flt1_res);
     ASSERT_EQ(1, flt1_res->size());
     ASSERT_EQ(1, flt1_res->at(0).second->GetValueAsInteger());
 
 
     Iterator <Obj> flt2(dict, "..");
-    ObjPtr flt2_res = flt2.read_and_next(-100);
+    ObjPtr flt2_res = flt2.read_and_next(100);
     ASSERT_TRUE(flt2_res);
     ASSERT_EQ(1, flt2_res->size());
     ASSERT_EQ(2, flt2_res->at(0).second->GetValueAsInteger());
 
     Iterator <Obj> flt3(dict, "...");
-    ObjPtr flt3_res = flt3.read_and_next(-100);
+    ObjPtr flt3_res = flt3.read_and_next(100);
     ASSERT_TRUE(flt3_res);
     ASSERT_EQ(2, flt3_res->size());
     ASSERT_EQ(3, flt3_res->at(0).second->GetValueAsInteger());
