@@ -330,12 +330,6 @@ ObjPtr Context::eval_CALL_TRY(Context *ctx, const TermPtr &term, Obj *args) {
     return CallBlock(ctx, term, args, true);
 }
 
-ObjPtr Context::eval_ITERATOR_QQ(Context *ctx, const TermPtr &term, Obj *args) {
-    LOG_RUNTIME("eval_ITERATOR_QQ: %s", term->toString().c_str());
-
-    return nullptr;
-}
-
 ObjPtr Context::eval_MACRO(Context *ctx, const TermPtr &term, Obj *args) {
     LOG_RUNTIME("eval_MACRO: %s", term->toString().c_str());
 
@@ -448,7 +442,7 @@ ObjPtr Context::eval_COMMENT(Context *ctx, const TermPtr &term, Obj *args) {
 }
 
 ObjPtr Context::eval_SYMBOL(Context *ctx, const TermPtr &term, Obj *args) {
-    LOG_RUNTIME("SYMBOL Not implemented!");
+    LOG_RUNTIME("SYMBOL '%s' Not implemented!", term->m_text.c_str());
     return nullptr;
 }
 
@@ -706,9 +700,7 @@ ObjPtr Context::eval_PUREFUNC(Context *ctx, const TermPtr &term, Obj * args) {
  *
  */
 ObjPtr Context::eval_ITERATOR(Context *ctx, const TermPtr &term, Obj * args) {
-    LOG_RUNTIME("ITERATOR Not implemented!");
-
-    return nullptr;
+    return CreateRVal(ctx, term, args);
 }
 
 ObjPtr Context::eval_RANGE(Context *ctx, const TermPtr &term, Obj * args) {
@@ -2194,13 +2186,7 @@ ObjPtr Context::CreateRVal(Context *ctx, TermPtr term, Obj * local_vars, bool in
             }
 
             args = Obj::CreateDict();
-            for (int i = 0; i < term->size(); i++) {
-                if(term->name(i).empty()) {
-                    args->push_back(CreateRVal(ctx, (*term)[i].second, local_vars));
-                } else {
-                    args->push_back(CreateRVal(ctx, (*term)[i].second, local_vars), term->name(i).c_str());
-                }
-            }
+            ctx->CreateArgs_(args, term, local_vars);
 
             if(term->getTermID() == TermID::EXIT) {
                 return result;
@@ -2213,13 +2199,8 @@ ObjPtr Context::CreateRVal(Context *ctx, TermPtr term, Obj * local_vars, bool in
         case TermID::TENSOR:
         case TermID::DICT:
             result->m_var_type_current = ObjType::Dictionary;
-            for (int i = 0; i < term->size(); i++) {
-                if(term->name(i).empty()) {
-                    result->push_back(CreateRVal(ctx, (*term)[i].second, local_vars));
-                } else {
-                    result->push_back(CreateRVal(ctx, (*term)[i].second, local_vars), term->name(i).c_str());
-                }
-            }
+            ctx->CreateArgs_(result, term, local_vars);
+
             result->m_var_is_init = true;
             if(term->getTermID() == TermID::TENSOR) {
 
@@ -2278,8 +2259,45 @@ ObjPtr Context::CreateRVal(Context *ctx, TermPtr term, Obj * local_vars, bool in
         case TermID::FRACTION:
             return Obj::CreateFraction(term->m_text);
 
+        case TermID::ITERATOR:
+
+            ASSERT(term->Left());
+
+            temp = ctx->GetTerm(term->Left()->GetFullName().c_str(), true);
+            if(!temp) {
+                LOG_RUNTIME("Term '%s' not found!", term->GetFullName().c_str());
+            }
+
+            args = Obj::CreateDict();
+            ctx->CreateArgs_(args, term, local_vars);
+
+            if(term->m_text.compare("?") == 0) {
+                return temp->MakeIterator(args.get());
+            } else if(term->m_text.compare("??") == 0) {
+                return temp->IteratorReset();
+            } else if(term->m_text.compare("!") == 0) {
+                return temp->IteratorNext(0);
+            } else if(term->m_text.compare("!!") == 0) {
+                return temp->IteratorNext(1);
+            } else if(term->m_text.compare("!?") == 0 || term->m_text.compare("?!") == 0) {
+                result = temp->MakeIterator(args.get());
+                return result->IteratorNext(std::numeric_limits<int64_t>::max());
+            } else {
+                LOG_RUNTIME("Iterator '%s' not recognized in '%s'!", term->m_text.c_str(), term->toString().c_str());
+            }
+
     }
     LOG_RUNTIME("Fail create type %s from '%s'", newlang::toString(term->getTermID()), term->toString().c_str());
 
     return nullptr;
+}
+
+void Context::CreateArgs_(ObjPtr &args, TermPtr &term, Obj *local_vars) {
+    for (int i = 0; i < term->size(); i++) {
+        if(term->name(i).empty()) {
+            args->push_back(CreateRVal(this, (*term)[i].second, local_vars));
+        } else {
+            args->push_back(CreateRVal(this, (*term)[i].second, local_vars), term->name(i).c_str());
+        }
+    }
 }

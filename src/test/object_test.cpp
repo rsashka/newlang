@@ -994,7 +994,7 @@ TEST(ObjTest, Iterator) {
     
     
     
-    ObjPtr iter1 = dict->MakeIterator();
+//    ObjPtr iter1 = dict->MakeIterator();
 
 }
 

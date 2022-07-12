@@ -2954,8 +2954,26 @@ ObjPtr Iterator<Obj>::read_and_next(int64_t count) {
     return result;
 }
 
-ObjPtr Obj::MakeIterator() {
+ObjPtr Obj::MakeIterator(Obj * args) {
     ObjPtr result = CreateType(ObjType::Iterator, ObjType::Iterator, true);
     result->m_iterator = std::make_shared<Iterator < Obj >> (shared());
     return result;
 }
+
+ObjPtr Obj::IteratorReset() {
+    if(m_var_type_current != ObjType::Iterator) {
+        LOG_RUNTIME("Method available an iterator only!");
+    }
+    ASSERT(m_iterator);
+    m_iterator->reset();
+    return shared();
+}
+
+ObjPtr Obj::IteratorNext(int64_t count) {
+    if(m_var_type_current != ObjType::Iterator) {
+        LOG_RUNTIME("Method available an iterator only!");
+    }
+    ASSERT(m_iterator);
+    return m_iterator->read_and_next(count);
+}
+

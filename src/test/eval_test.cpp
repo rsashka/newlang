@@ -889,6 +889,13 @@ TEST(Eval, MacroDSL) {
             "\\\\no 0\\\\\\"
             ""
             "\\\\this $0\\\\\\"
+            ""
+            //            "\\\\iquery(...) \\$var?(\\$*)\\\\\\"
+            //            "\\\\inext(var) \\$var!\\\\\\"
+            //            "\\\\inext(var, count) \\$var!(\\$count)\\\\\\"
+            //            "\\ireset(var) \\$var??\\\\\\"
+            //            "\\iselect(var) \\$var?!\\\\\\"
+            //            "\\iselect(var, ...) \\$var?!(\\$*)\\\\\\"
             "";
 
     ASSERT_EQ(0, Context::m_macros.size());
@@ -936,6 +943,199 @@ TEST(Eval, MacroDSL) {
 
 TEST(Eval, Iterator) {
 
+    Context::Reset();
+    Context ctx(RunTime::Init());
+
+    ObjPtr dict = ctx.ExecStr("dict := ('1'=1, \"22\"=2, '333'=3, 4, \"555\"=5,)");
+    ASSERT_TRUE(dict);
+    ASSERT_EQ(5, dict->size());
+    ASSERT_EQ(1, dict->at(0).second->GetValueAsInteger());
+    ASSERT_EQ(2, dict->at(1).second->GetValueAsInteger());
+    ASSERT_EQ(3, dict->at(2).second->GetValueAsInteger());
+    ASSERT_EQ(4, dict->at(3).second->GetValueAsInteger());
+    ASSERT_EQ(5, dict->at(4).second->GetValueAsInteger());
+    ASSERT_STREQ("1", dict->at(0).first.c_str());
+    ASSERT_STREQ("22", dict->at(1).first.c_str());
+    ASSERT_STREQ("333", dict->at(2).first.c_str());
+    ASSERT_STREQ("", dict->at(3).first.c_str());
+    ASSERT_STREQ("555", dict->at(4).first.c_str());
+
+    ObjPtr iter = ctx.ExecStr("iter := dict?");
+
+    ASSERT_TRUE(iter);
+    ASSERT_EQ(ObjType::Iterator, iter->getType()) << toString(iter->getType());
+//
+//    ASSERT_TRUE(*(iter->m_iterator) == iter->begin());
+//    ASSERT_TRUE(*(iter->m_iterator) != iter->end());
+//
+//    ObjPtr copy = Obj::CreateDict();
+//    for (auto &elem : iter) {
+//        copy->push_back(elem.second, elem.first);
+//    }
+//
+//    ASSERT_TRUE(iter->m_iterator == iter->begin());
+//    ASSERT_TRUE(iter->m_iterator != iter->end());
+//
+//    
+//    
+//    ASSERT_EQ(dict->size(), copy->size());
+//    ObjPtr dict1 = ctx.ExecStr("iter?!");
+//    ASSERT_TRUE(dict1);
+//    ASSERT_EQ(5, dict1->size());
+//    ASSERT_EQ(1, dict1->at(0).second->GetValueAsInteger());
+//    ASSERT_EQ(2, dict1->at(1).second->GetValueAsInteger());
+//    ASSERT_EQ(3, dict1->at(2).second->GetValueAsInteger());
+//    ASSERT_EQ(4, dict1->at(3).second->GetValueAsInteger());
+//    ASSERT_EQ(5, dict1->at(4).second->GetValueAsInteger());
+//    ASSERT_STREQ("1", dict1->at(0).first.c_str());
+//    ASSERT_STREQ("22", dict1->at(1).first.c_str());
+//    ASSERT_STREQ("333", dict1->at(2).first.c_str());
+//    ASSERT_STREQ("", dict1->at(3).first.c_str());
+//    ASSERT_STREQ("555", dict1->at(4).first.c_str());
+
+
+
+    /*
+     * Создание итератора
+     * ?, ?(), ?("Фильтр"), ?(func), ?(func, args...)
+     * 
+     * Перебор элементов итератора
+     * !, !(), !(0), !(3), !(-3)
+     * 
+     * dict! и dict!(0) эквивалентны
+     * dict! -> 1,  dict! -> 2, dict! -> 3, dict! -> 4, dict! -> 5, dict! -> :IteratorEnd
+     * Различия отрицательного размера возвращаемого словаря для итератора
+     * dict!(-1) -> (1,),  ...  dict!(-1) -> (5,),  dict!(-1) -> (:IteratorEnd,),  
+     * dict!(1) -> (1,),  ...  dict!(1) -> (5,),  dict!(1) -> (,),  
+     * dict!(-3) -> (1, 2, 3,),  dict!(-3) -> (4, 5, :IteratorEnd,)
+     * dict!(3) -> (1, 2, 3,), dict!(3) -> (4, 5,)
+     * 
+     * !? или ?! эквиваленты и создают итератор и сразу его выполняет, 
+     * вовзращая все значения в виде элементов словаря, т.е. ?(LINQ); !(:Long.__max__)
+     * А зачем может быть нужен итератор "??" - может сброс в начальное состояние???
+     * Итератор !! эквиваленетен вызову !(1)
+     */
+
+    //    ASSERT_TRUE(iter->m_iterator == iter->begin());
+    //
+    //    ObjPtr one = iter.read_and_next(0);
+    //    ASSERT_TRUE(one);
+    //    ASSERT_EQ(1, dict->at(0).second->GetValueAsInteger());
+    //
+    //    ASSERT_EQ(2, (*iter).second->GetValueAsInteger());
+    //    one = iter.read_and_next(0);
+    //    ASSERT_TRUE(one);
+    //    ASSERT_EQ(2, dict->at(1).second->GetValueAsInteger());
+    //
+    //    ASSERT_EQ(3, (*iter).second->GetValueAsInteger());
+    //    one = iter.read_and_next(0);
+    //    ASSERT_TRUE(one);
+    //    ASSERT_EQ(3, dict->at(2).second->GetValueAsInteger());
+    //
+    //    ASSERT_EQ(4, (*iter).second->GetValueAsInteger());
+    //    one = iter.read_and_next(0);
+    //    ASSERT_TRUE(one);
+    //    ASSERT_EQ(4, dict->at(3).second->GetValueAsInteger());
+    //
+    //    ASSERT_EQ(5, (*iter).second->GetValueAsInteger());
+    //    one = iter.read_and_next(0);
+    //    ASSERT_TRUE(one);
+    //    ASSERT_EQ(5, dict->at(4).second->GetValueAsInteger());
+    //
+    //    one = iter.read_and_next(0);
+    //    ASSERT_TRUE(one);
+    //    ASSERT_EQ(ObjType::IteratorEnd, one->getType()) << one << " " << toString(one->getType());
+    //
+    //    one = iter.read_and_next(0);
+    //    ASSERT_TRUE(one);
+    //    ASSERT_EQ(ObjType::IteratorEnd, one->getType()) << one << " " << toString(one->getType());
+    //
+    //
+    //
+    //
+    //    ASSERT_TRUE(iter == iter.end());
+    //    iter.reset();
+    //    ASSERT_TRUE(iter == iter.begin());
+    //    ASSERT_TRUE(iter != iter.end());
+    //
+    //    ObjPtr dict1 = iter.read_and_next(-3);
+    //    ASSERT_TRUE(dict1);
+    //    ASSERT_EQ(3, dict1->size());
+    //    ASSERT_EQ(1, dict1->at(0).second->GetValueAsInteger());
+    //    ASSERT_EQ(2, dict1->at(1).second->GetValueAsInteger());
+    //    ASSERT_EQ(3, dict1->at(2).second->GetValueAsInteger());
+    //
+    //    ObjPtr dict2 = iter.read_and_next(-3);
+    //    ASSERT_TRUE(dict2);
+    //    ASSERT_EQ(3, dict2->size());
+    //    ASSERT_EQ(4, dict2->at(0).second->GetValueAsInteger());
+    //    ASSERT_EQ(5, dict2->at(1).second->GetValueAsInteger());
+    //    ASSERT_EQ(ObjType::IteratorEnd, dict2->at(2).second->getType());
+    //
+    //    ObjPtr dict3 = iter.read_and_next(-3);
+    //    ASSERT_TRUE(dict3);
+    //    ASSERT_EQ(3, dict1->size());
+    //    ASSERT_EQ(ObjType::IteratorEnd, dict3->at(0).second->getType());
+    //    ASSERT_EQ(ObjType::IteratorEnd, dict3->at(1).second->getType());
+    //    ASSERT_EQ(ObjType::IteratorEnd, dict3->at(2).second->getType());
+    //
+    //
+    //
+    //    ASSERT_TRUE(iter == iter.end());
+    //    iter.reset();
+    //    ASSERT_TRUE(iter == iter.begin());
+    //    ASSERT_TRUE(iter != iter.end());
+    //
+    //    dict1 = iter.read_and_next(3);
+    //    ASSERT_TRUE(dict1);
+    //    ASSERT_EQ(3, dict1->size());
+    //    ASSERT_EQ(1, dict1->at(0).second->GetValueAsInteger());
+    //    ASSERT_EQ(2, dict1->at(1).second->GetValueAsInteger());
+    //    ASSERT_EQ(3, dict1->at(2).second->GetValueAsInteger());
+    //
+    //    dict2 = iter.read_and_next(3);
+    //    ASSERT_TRUE(dict2);
+    //    ASSERT_EQ(2, dict2->size());
+    //    ASSERT_EQ(4, dict2->at(0).second->GetValueAsInteger());
+    //    ASSERT_EQ(5, dict2->at(1).second->GetValueAsInteger());
+    //
+    //    dict3 = iter.read_and_next(3);
+    //    ASSERT_TRUE(dict3);
+    //    ASSERT_EQ(0, dict3->size());
+    //
+    //
+    //
+    //
+    //    Iterator <Obj> flt(dict, "");
+    //    ObjPtr flt_res = flt.read_and_next(100);
+    //    ASSERT_TRUE(flt_res);
+    //    ASSERT_EQ(1, flt_res->size());
+    //    ASSERT_EQ(4, flt_res->at(0).second->GetValueAsInteger());
+    //
+    //
+    //    Iterator <Obj> flt1(dict, ".");
+    //    ObjPtr flt1_res = flt1.read_and_next(100);
+    //    ASSERT_TRUE(flt1_res);
+    //    ASSERT_EQ(1, flt1_res->size());
+    //    ASSERT_EQ(1, flt1_res->at(0).second->GetValueAsInteger());
+    //
+    //
+    //    Iterator <Obj> flt2(dict, "..");
+    //    ObjPtr flt2_res = flt2.read_and_next(100);
+    //    ASSERT_TRUE(flt2_res);
+    //    ASSERT_EQ(1, flt2_res->size());
+    //    ASSERT_EQ(2, flt2_res->at(0).second->GetValueAsInteger());
+    //
+    //    Iterator <Obj> flt3(dict, "...");
+    //    ObjPtr flt3_res = flt3.read_and_next(100);
+    //    ASSERT_TRUE(flt3_res);
+    //    ASSERT_EQ(2, flt3_res->size());
+    //    ASSERT_EQ(3, flt3_res->at(0).second->GetValueAsInteger());
+    //    ASSERT_EQ(5, flt3_res->at(1).second->GetValueAsInteger());
+    //
+    //
+    //
+    //    ObjPtr iter1 = dict->MakeIterator();
 
 
 }

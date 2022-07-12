@@ -339,7 +339,15 @@ public:
         return shared();
     }
 
-    ObjPtr MakeIterator();
+    ObjPtr MakeIterator(Obj * args);
+    ObjPtr IteratorReset();
+
+    inline ObjPtr IteratorNext(ObjPtr count) {
+        return IteratorNext(count->GetValueAsInteger());
+    }
+    ObjPtr IteratorNext(int64_t count);
+
+
 
 #define TEST_CONST_() if (m_is_const) {LOG_RUNTIME("Can`t edit const value '%s'!", toString().c_str());}
 #define TEST_INIT_() if (!m_var_is_init) {LOG_RUNTIME("Object not initialized '%s'!", toString().c_str());}

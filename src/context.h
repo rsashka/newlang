@@ -198,7 +198,8 @@ namespace newlang {
         static ObjPtr CreateLVal(Context *ctx, TermPtr type, Obj *args);
         static ObjPtr CreateRVal(Context *ctx, TermPtr term, Obj *args, bool int_catch = true);
         static ObjPtr CreateRVal(Context *ctx, const char *source, Obj *args, bool int_catch = true);
-
+        void CreateArgs_(ObjPtr &args, TermPtr &term, Obj *local_vars);
+        
         static std::vector<Index> MakeIndex(Context *ctx, TermPtr term, Obj *local_vars);
 
         void ItemTensorEval_(torch::Tensor &tensor, c10::IntArrayRef shape, std::vector<Index> &ind, const int64_t pos, ObjPtr & obj, ObjPtr &args);

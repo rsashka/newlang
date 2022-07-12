@@ -1059,23 +1059,23 @@ NewLang::NewLang(RuntimePtr rt) : m_runtime(rt) {
 //    return ExecModule(filename, filename, true, ctx);
 //}
 
-ObjPtr NewLang::GetIndexField(Context *ctx, ObjPtr obj, TermPtr term, bool create_field) {
-    if(!term->Right()) {
-        return obj;
-    } else if(term->Right()->getTermID() == TermID::FIELD && !term->Right()->Right() && create_field) {
-        // Если последнее в списке поле создается
-        return obj->push_back(Obj::CreateNone(), term->Right()->getText().c_str()).second;
-    }
-    ObjPtr result;
-    if(term->Right()->getTermID() == TermID::FIELD) {
-        result = (*obj)[term->Right()->m_text.c_str()].second;
-        return GetIndexField(ctx, result, term->Right());
-    } else if(term->Right()->getTermID() == TermID::INDEX) {
-        result = Obj::GetIndex(obj, term->Right());
-        return GetIndexField(ctx, result, term->Right());
-    }
-    LOG_RUNTIME("Fail type %s of object '%s'!", newlang::toString(term->Right()->getTermID()), term->Right()->toString().c_str());
-}
+//ObjPtr NewLang::GetIndexField(Context *ctx, ObjPtr obj, TermPtr term, bool create_field) {
+//    if(!term->Right()) {
+//        return obj;
+//    } else if(term->Right()->getTermID() == TermID::FIELD && !term->Right()->Right() && create_field) {
+//        // Если последнее в списке поле создается
+//        return obj->push_back(Obj::CreateNone(), term->Right()->getText().c_str()).second;
+//    }
+//    ObjPtr result;
+//    if(term->Right()->getTermID() == TermID::FIELD) {
+//        result = (*obj)[term->Right()->m_text.c_str()].second;
+//        return GetIndexField(ctx, result, term->Right());
+//    } else if(term->Right()->getTermID() == TermID::INDEX) {
+//        result = Obj::GetIndex(obj, term->Right());
+//        return GetIndexField(ctx, result, term->Right());
+//    }
+//    LOG_RUNTIME("Fail type %s of object '%s'!", newlang::toString(term->Right()->getTermID()), term->Right()->toString().c_str());
+//}
 
 //ObjPtr NewLang::Eval(Context *ctx, TermPtr calc, bool make_function) {
 //    try {

@@ -653,7 +653,14 @@ name:  TERM
                 $$->m_namespace.swap($1->m_namespace);
             }
 
-
+arg_name: name 
+        {
+            $$ = $1;
+        }
+    | strtype 
+        {
+            $$ = $1;
+        }
         
 /* Допустимые <имена> объеков */
 assign_name:  name
@@ -805,10 +812,12 @@ rval:   rval_var
 iter_all:  '!'
             {
                 $$=$1;
+                $$->SetTermID(TermID::ITERATOR);
             }
         | '?'
             {
                 $$=$1;
+                $$->SetTermID(TermID::ITERATOR);
             }
         | ITERATOR
             {
@@ -834,7 +843,7 @@ iter_all:  '!'
     
 
 /* Аргументом может быть что угодно */
-arg: name  '='
+arg: arg_name  '='
         {  // Именованный аргумент
             $$ = $2;
             $$->m_name.swap($1->m_text);
@@ -847,7 +856,7 @@ arg: name  '='
             $$->m_name.swap($1->m_text);
             $$->SetTermID(TermID::EMPTY);
         }
-    | name  '='  rval
+    | arg_name  '='  rval
         { // Именованный аргумент
             $$ = $rval;
             $$->SetName($1->getText());

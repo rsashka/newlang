@@ -54,7 +54,6 @@ namespace newlang {
         _(SIMPLE_XOR) \
         _(PUREFUNC) \
         _(ITERATOR) \
-        _(ITERATOR_QQ)\
         _(FOLLOW) \
         _(MATCHING) \
         _(WHILE) \
