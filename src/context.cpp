@@ -2212,7 +2212,7 @@ ObjPtr Context::CreateRVal(Context *ctx, TermPtr term, Obj * local_vars, bool in
                 } else {
                     result->m_var_is_init = false;
                 }
-                result->Variable::clear_();
+                result->resize(0, nullptr, "");
                 result->m_var_type_current = type;
             } else {
                 result->m_class_name = term->m_class_name;

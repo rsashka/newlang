@@ -105,6 +105,8 @@ namespace newlang {
 
     class Context : public Variable<Obj, std::weak_ptr<Obj>> {
     public:
+        
+        friend class Obj;
 
         static ObjPtr eval_END(Context *ctx, const TermPtr & term, Obj *args);
         static ObjPtr func_NOT_SUPPORT(Context *ctx, const TermPtr & term, Obj *args);

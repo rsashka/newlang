@@ -93,12 +93,12 @@ namespace newlang {
             return push_back(pair(value, name));
         }
 
-        inline PairType top() const {
-            if (ListType::empty()) {
-                LOG_RUNTIME("Empty Index '%ld' not exists!", index);
-            }
-            return *ListType::back();
-        }
+        //        inline PairType top() const {
+        //            if (ListType::empty()) {
+        //                LOG_RUNTIME("Empty Index '%ld' not exists!", index);
+        //            }
+        //            return *ListType::back();
+        //        }
 
         static inline PairType pair(const Type value, const std::string name = "") {
             return std::pair<std::string, Type>(name, value);

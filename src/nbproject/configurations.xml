@@ -79,7 +79,10 @@
                    displayName="Важные файлы"
                    projectFiles="false"
                    kind="IMPORTANT_FILES_FOLDER">
-      <itemPath>/home/rsashka/SOURCE/PUBLIC/NewLang/newlang/LICENSE</itemPath>
+      <itemPath>../.clang-format</itemPath>
+      <itemPath>../.gitignore</itemPath>
+      <itemPath>../.gitmodules</itemPath>
+      <itemPath>../LICENSE</itemPath>
       <itemPath>Makefile</itemPath>
     </logicalFolder>
     <itemPath>../README.md</itemPath>
