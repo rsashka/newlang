@@ -2280,11 +2280,27 @@ ObjPtr Context::CreateRVal(Context *ctx, TermPtr term, Obj * local_vars, bool in
             } else if(term->m_text.compare("!!") == 0) {
                 return temp->IteratorNext(1);
             } else if(term->m_text.compare("!?") == 0 || term->m_text.compare("?!") == 0) {
-                result = temp->MakeIterator(args.get());
-                return result->IteratorNext(std::numeric_limits<int64_t>::max());
+
+                val_int = std::numeric_limits<int64_t>::max();
+                if(args->empty() || (args->size() == 1 && args->at(0).second->is_integer())) {
+                    result = temp->MakeIterator(Iterator<Obj>::FIND_KEY_DEFAULT, false);
+                    if(args->size()) {
+                        val_int = args->at(0).second->GetValueAsInteger();
+                    }
+                } else if(args->size() == 1 && args->at(0).second->is_string_type()) {
+                    result = temp->MakeIterator(args->at(0).second->GetValueAsString(), false);
+                } else if(args->size() == 2 && args->at(0).second->is_string_type() && args->at(1).second->is_integer()) {
+                    result = temp->MakeIterator(args->at(0).second->GetValueAsString(), false);
+                    val_int = args->at(1).second->GetValueAsInteger();
+                } else {
+                    LOG_RUNTIME("Iterator`s args '%s' not allowed!", args->toString().c_str());
+                }
+                return result->IteratorNext(val_int);
+
             } else {
                 LOG_RUNTIME("Iterator '%s' not recognized in '%s'!", term->m_text.c_str(), term->toString().c_str());
             }
+
 
     }
     LOG_RUNTIME("Fail create type %s from '%s'", newlang::toString(term->getTermID()), term->toString().c_str());

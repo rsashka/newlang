@@ -574,6 +574,7 @@ void Obj::CloneDataTo(Obj & clone) const {
         if(m_fraction) {
             clone.m_fraction = std::make_shared<Fraction>(*m_fraction.get());
         }
+        clone.m_iterator = m_iterator;
 
         clone.m_class_parents = m_class_parents;
         clone.m_class_name = m_class_name;
@@ -2954,9 +2955,40 @@ ObjPtr Iterator<Obj>::read_and_next(int64_t count) {
     return result;
 }
 
-ObjPtr Obj::MakeIterator(Obj * args) {
+ObjPtr Obj::MakeIterator(const std::string filter, bool check_create) {
     ObjPtr result = CreateType(ObjType::Iterator, ObjType::Iterator, true);
-    result->m_iterator = std::make_shared<Iterator < Obj >> (shared());
+    if(!is_indexing()) {
+        if(getType() == ObjType::Iterator && !check_create) {
+            return shared();
+        }
+        LOG_RUNTIME("Can't create iterator from '%s'!", toString().c_str());
+    }
+    result->m_iterator = std::make_shared<Iterator < Obj >> (shared(), filter);
+    return result;
+}
+
+ObjPtr Obj::MakeIterator(Obj *args) {
+    ObjPtr result = CreateType(ObjType::Iterator, ObjType::Iterator, true);
+    if(!is_indexing()) {
+        if(getType() == ObjType::Iterator) {
+            return shared();
+        }
+        LOG_RUNTIME("Can't create iterator from '%s'!", toString().c_str());
+    }
+
+    if(!args || args->size() == 0) {
+        result->m_iterator = std::make_shared<Iterator < Obj >> (shared());
+    } else if(args->size() == 1 && args->at(0).second && args->at(0).second->is_string_type()) {
+        result->m_iterator = std::make_shared<Iterator < Obj >> (shared(), args->GetValueAsString());
+    } else if(args->size() >= 1 && args->at(0).second && args->at(0).second->is_function()) {
+        ASSERT(false);
+        //        ObjPtr func = args->at(0).second;
+        //        ObjPtr func_arg = args->Clone();
+        //        func_arg->resize_(-(func_arg->size() - 1)); // Удалить первый элемент
+        //        result->m_iterator = std::make_shared<Iterator < Obj >> (shared(), func.get(), func_arg.get());
+    } else {
+        LOG_RUNTIME("Invalid arguments for iterator create! '%s'", args->toString().c_str());
+    }
     return result;
 }
 

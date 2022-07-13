@@ -879,27 +879,27 @@ TEST(ObjTest, Iterator) {
 
     ObjPtr one = iter.read_and_next(0);
     ASSERT_TRUE(one);
-    ASSERT_EQ(1, dict->at(0).second->GetValueAsInteger());
+    ASSERT_EQ(1, one->GetValueAsInteger());
 
     ASSERT_EQ(2, (*iter).second->GetValueAsInteger());
     one = iter.read_and_next(0);
     ASSERT_TRUE(one);
-    ASSERT_EQ(2, dict->at(1).second->GetValueAsInteger());
+    ASSERT_EQ(2, one->GetValueAsInteger());
 
     ASSERT_EQ(3, (*iter).second->GetValueAsInteger());
     one = iter.read_and_next(0);
     ASSERT_TRUE(one);
-    ASSERT_EQ(3, dict->at(2).second->GetValueAsInteger());
+    ASSERT_EQ(3, one->GetValueAsInteger());
 
     ASSERT_EQ(4, (*iter).second->GetValueAsInteger());
     one = iter.read_and_next(0);
     ASSERT_TRUE(one);
-    ASSERT_EQ(4, dict->at(3).second->GetValueAsInteger());
+    ASSERT_EQ(4, one->GetValueAsInteger());
 
     ASSERT_EQ(5, (*iter).second->GetValueAsInteger());
     one = iter.read_and_next(0);
     ASSERT_TRUE(one);
-    ASSERT_EQ(5, dict->at(4).second->GetValueAsInteger());
+    ASSERT_EQ(5, one->GetValueAsInteger());
 
     one = iter.read_and_next(0);
     ASSERT_TRUE(one);

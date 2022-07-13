@@ -128,12 +128,14 @@ namespace newlang {
 
         typedef IterCmp CompareFuncType(const IterPairType &pair, const T *args, void *extra);
 
+        inline static const std::string FIND_KEY_DEFAULT = "(.|\\n)*";
+
         /**
          * Итератор для элементов списка с regex фильтром по имени элемента (по умолчанию для всех элементов списка)
          * @param obj
          * @param find_key
          */
-        Iterator(std::shared_ptr<T> obj, const std::string find_key = "(.|\\n)*") :
+        Iterator(std::shared_ptr<T> obj, const std::string find_key = FIND_KEY_DEFAULT) :
         Iterator(obj, &CompareFuncDefault, reinterpret_cast<T *> (const_cast<std::string *> (&find_key)), static_cast<void *> (this)) {
         }
 
@@ -344,7 +346,8 @@ namespace newlang {
             return shared();
         }
 
-        ObjPtr MakeIterator(Obj * args);
+        ObjPtr MakeIterator(const std::string, bool check_create = true);
+        ObjPtr MakeIterator(Obj *args);
         ObjPtr IteratorReset();
 
         inline ObjPtr IteratorNext(ObjPtr count) {

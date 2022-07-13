@@ -380,6 +380,7 @@ star_arg = [STAR] STAR ID
 
 %token                  SOURCE
 %token			ITERATOR
+%token			ITERATOR_QQ
 
 %token			PUREFUNC
 %token			SIMPLE_AND
@@ -774,12 +775,6 @@ rval_var:  rval_name
                 $$ = $2;
                 $$->Last()->Append($1, Term::LEFT); 
             }
-        |  rval_name  iter_all  call
-            {
-                $$ = $2;
-                $$->Last()->Append($1, Term::LEFT); 
-                $$->SetArgs($call);
-            }
         |  string
             {
                 $$ = $1;
@@ -809,19 +804,35 @@ rval:   rval_var
             }
 
 
+iter_call:  '?'
+            {
+                $$=$1;
+                $$->SetTermID(TermID::ITERATOR);
+            }
+        | ITERATOR  /* ?! ?! */
+            {
+                $$=$1;
+            }
+
+        
 iter_all:  '!'
             {
                 $$=$1;
                 $$->SetTermID(TermID::ITERATOR);
             }
-        | '?'
+        | ITERATOR_QQ  /* !! ?? */
             {
                 $$=$1;
                 $$->SetTermID(TermID::ITERATOR);
             }
-        | ITERATOR
+        | iter_call
             {
                 $$=$1;
+            }
+        | iter_call  call
+            {
+                $$=$1;
+                $$->SetArgs($call);
             }
 
        
