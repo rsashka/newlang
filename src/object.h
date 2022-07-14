@@ -288,7 +288,6 @@ namespace newlang {
             //        m_ctx = nullptr;
             m_is_const = false;
             m_check_args = false;
-            m_ref_count = 0;
             m_func_ptr = nullptr;
             m_dimensions = nullptr;
             m_value = torch::empty({0}, isSimpleType(type) ? toTorchType(type) : at::ScalarType::Undefined);
@@ -1696,8 +1695,6 @@ namespace newlang {
             if (new_name) {
                 clone->m_var_name = new_name;
             }
-            clone->m_is_const = false;
-            clone->m_ref_count = 0;
             return clone;
         }
 
@@ -2044,7 +2041,7 @@ namespace newlang {
         //    SCOPE(protected) :
         bool m_is_const; //< Признак константы (по умолчанию изменения разрешено)
         bool m_is_reference; //< Признак ссылки на объект (mutable)
-        size_t m_ref_count;
+        std::shared_ptr<std::string> m_help;
 
 
     };

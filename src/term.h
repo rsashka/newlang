@@ -647,6 +647,7 @@ namespace newlang {
                 case TermID::SYMBOL:
                 case TermID::FRACTION:
                 case TermID::COMPLEX:
+                case TermID::MACRO:
                     return m_text;
 
                 case TermID::EMPTY:

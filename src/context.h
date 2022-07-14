@@ -40,7 +40,6 @@ namespace newlang {
      * 
      * 
      */
-    class ContextCursor;
 
     typedef std::map<std::string, const TermPtr> ProtoType;
 
@@ -103,13 +102,13 @@ namespace newlang {
         _("export", NOT_SUPPORT)\
         _("local", NOT_SUPPORT)
 
-    class Context : public Variable<Obj, std::weak_ptr<Obj>> {
+    class Context : public Variable<Obj, std::weak_ptr<Obj> > {
     public:
-        
+
         friend class Obj;
 
-        static ObjPtr eval_END(Context *ctx, const TermPtr & term, Obj *args);
-        static ObjPtr func_NOT_SUPPORT(Context *ctx, const TermPtr & term, Obj *args);
+        static ObjPtr eval_END(Context *ctx, const TermPtr & term, Obj * args);
+        static ObjPtr func_NOT_SUPPORT(Context *ctx, const TermPtr & term, Obj * args);
 
         enum class CreateMode {
             CREATE_ONLY,
@@ -133,7 +132,7 @@ namespace newlang {
 #undef PROTO_OP
 
 
-        typedef ObjPtr(*EvalFunction)(Context *ctx, const TermPtr & term, Obj *args);
+        typedef ObjPtr(*EvalFunction)(Context *ctx, const TermPtr & term, Obj * args);
 
         static std::map<std::string, Context::EvalFunction> m_ops;
         static std::map<std::string, Context::EvalFunction> m_builtin_calls;
@@ -173,13 +172,13 @@ namespace newlang {
         static ObjPtr Eval(Context *ctx, TermPtr term, Obj *args, bool int_catch = false);
 
         static ObjPtr ExpandAssign(Context *ctx, TermPtr lvar, TermPtr rval, Obj *args, CreateMode mode);
-        static ObjPtr ExpandCreate(Context *ctx, TermPtr lvar, TermPtr rval, Obj *args);
+        static ObjPtr ExpandCreate(Context *ctx, TermPtr lvar, TermPtr rval, Obj * args);
 
         Context(RuntimePtr global);
 
 
         static std::map<std::string, ObjPtr> m_types;
-        typedef std::variant<ObjPtr, std::vector<ObjPtr>> FuncItem;
+        typedef std::variant<ObjPtr, std::vector < ObjPtr>> FuncItem;
         static std::map<std::string, FuncItem> m_funcs; // Системный и встроенные функции 
 
         inline static ObjPtr CreateLVal(Context *ctx, TermPtr type) {
@@ -197,14 +196,14 @@ namespace newlang {
             return CreateRVal(ctx, source, &args, int_catch);
         }
 
-        static ObjPtr CreateLVal(Context *ctx, TermPtr type, Obj *args);
+        static ObjPtr CreateLVal(Context *ctx, TermPtr type, Obj * args);
         static ObjPtr CreateRVal(Context *ctx, TermPtr term, Obj *args, bool int_catch = true);
         static ObjPtr CreateRVal(Context *ctx, const char *source, Obj *args, bool int_catch = true);
-        void CreateArgs_(ObjPtr &args, TermPtr &term, Obj *local_vars);
-        
-        static std::vector<Index> MakeIndex(Context *ctx, TermPtr term, Obj *local_vars);
+        void CreateArgs_(ObjPtr &args, TermPtr &term, Obj * local_vars);
 
-        void ItemTensorEval_(torch::Tensor &tensor, c10::IntArrayRef shape, std::vector<Index> &ind, const int64_t pos, ObjPtr & obj, ObjPtr &args);
+        static std::vector<Index> MakeIndex(Context *ctx, TermPtr term, Obj * local_vars);
+
+        void ItemTensorEval_(torch::Tensor &tensor, c10::IntArrayRef shape, std::vector<Index> &ind, const int64_t pos, ObjPtr & obj, ObjPtr & args);
         void ItemTensorEval(torch::Tensor &tensor, ObjPtr obj, ObjPtr args);
 
         void ReadBuiltInProto(ProtoType & proto);
@@ -270,17 +269,17 @@ namespace newlang {
             return GetObject(name);
         }
 
-        void RegisterInContext(ObjPtr &args) {
+        void RegisterInContext(ObjPtr & args) {
             RegisterInContext(*args);
         }
 
-        void RegisterInContext(Obj &args) {
+        void RegisterInContext(Obj & args) {
             for (int i = static_cast<int> (args.size()) - 1; args.size() && i >= 0; i--) {
                 push_front(pair(args.at(i).second, args.at(i).first));
             }
         }
 
-        void UnRegisterInContext(Obj &args) {
+        void UnRegisterInContext(Obj & args) {
             for (int i = static_cast<int> (args.size()) - 1; args.size() && i >= 0; i--) {
                 pop_front();
             }
@@ -289,9 +288,9 @@ namespace newlang {
 
         static ObjPtr CallBlock(Context *ctx, const TermPtr &block, Obj *local_vars, bool int_catch);
 
-        static ObjPtr EvalBlockAND(Context *ctx, const TermPtr &block, Obj *local_vars);
-        static ObjPtr EvalBlockOR(Context *ctx, const TermPtr &block, Obj *local_vars);
-        static ObjPtr EvalBlockXOR(Context *ctx, const TermPtr &block, Obj *local_vars);
+        static ObjPtr EvalBlockAND(Context *ctx, const TermPtr &block, Obj * local_vars);
+        static ObjPtr EvalBlockOR(Context *ctx, const TermPtr &block, Obj * local_vars);
+        static ObjPtr EvalBlockXOR(Context *ctx, const TermPtr &block, Obj * local_vars);
 
         ObjPtr CreateNative(const char *proto, const char *module = nullptr, bool lazzy = false, const char *mangle_name = nullptr, ffi_abi abi = FFI_DEFAULT_ABI);
         ObjPtr CreateNative(TermPtr proto, const char *module = nullptr, bool lazzy = false, const char *mangle_name = nullptr, ffi_abi abi = FFI_DEFAULT_ABI);
@@ -319,6 +318,7 @@ namespace newlang {
             bool find_local = false;
             bool find_global = false;
             bool find_types = false;
+            bool find_macro = false;
 
             std::string prefix;
 
@@ -330,16 +330,28 @@ namespace newlang {
                 prefix = start[0];
                 start = start.substr(1);
                 find_local = true;
+            } else if (isMacro(start)) {
+                find_macro = true;
             } else if (isType(start)) {
-                //                prefix = start[0];
-                //                start.remove_prefix(1);
                 find_types = true;
             } else {
                 find_local = true;
                 find_global = true;
                 find_types = true;
+                find_macro = true;
             }
 
+
+            if (find_macro) {
+                for (auto &elem : m_macros) {
+                    if (pred_compare(start, elem.first)) {
+                        result.push_back(utf8_decode(prefix + elem.first));
+                        if (result.size() > overage_count + 1) {
+                            break;
+                        }
+                    }
+                }
+            }
 
             if (find_local) {
                 for (int i = 0; i < size(); i++) {
@@ -497,7 +509,7 @@ namespace newlang {
             TYPE_EQUAL,
             TYPE_STRICT,
         };
-        static bool MatchCompare(Obj &match, ObjPtr &value, MatchMode mode, Context *ctx);
+        static bool MatchCompare(Obj &match, ObjPtr &value, MatchMode mode, Context * ctx);
         static bool MatchEstimate(Obj &match, const TermPtr &match_item, MatchMode mode, Context *ctx, Obj * args);
 
         SCOPE(protected) :

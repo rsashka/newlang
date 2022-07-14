@@ -97,27 +97,27 @@ namespace newlang {
 
 }
 
-bool BuiltInTorchDirect::CheckDirect(CompileInfo &ci, TermPtr &term, std::string &output) {
-
-    if(term->size() == 0 && m_tensor_noarg.find(term->getText()) != m_tensor_noarg.end()) {
-        output += "->asTensor_()." + term->getText() + "(), " + output;
-
-        return true;
-    } else if(term->size() == 1) {
-
-        if((*term)[0].second->IsScalar() && m_tensor_scalar.find(term->getText()) != m_tensor_scalar.end()) {
-            output += "->asTensor_()." + term->getText() + "(" + (*term)[0].second->getText() + "), " + output;
-            return true;
-
-        } else if((*term)[0].second->getTermID() == TermID::TERM) {
-            std::string temp;
-            NewLang::GetImpl(ci, (*term)[0].second, temp);
-            output += "->asTensor_()." + term->getText() + "(" + temp + "->asTensor_()), " + output;
-            return true;
-        }
-    }
-    return false;
-}
+//bool BuiltInTorchDirect::CheckDirect(CompileInfo &ci, TermPtr &term, std::string &output) {
+//
+//    if(term->size() == 0 && m_tensor_noarg.find(term->getText()) != m_tensor_noarg.end()) {
+//        output += "->asTensor_()." + term->getText() + "(), " + output;
+//
+//        return true;
+//    } else if(term->size() == 1) {
+//
+//        if((*term)[0].second->IsScalar() && m_tensor_scalar.find(term->getText()) != m_tensor_scalar.end()) {
+//            output += "->asTensor_()." + term->getText() + "(" + (*term)[0].second->getText() + "), " + output;
+//            return true;
+//
+//        } else if((*term)[0].second->getTermID() == TermID::TERM) {
+//            std::string temp;
+//            NewLang::GetImpl(ci, (*term)[0].second, temp);
+//            output += "->asTensor_()." + term->getText() + "(" + temp + "->asTensor_()), " + output;
+//            return true;
+//        }
+//    }
+//    return false;
+//}
 
 BuiltInTorchDirect::BuiltInTorchDirect() {
 

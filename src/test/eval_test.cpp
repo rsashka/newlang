@@ -1092,52 +1092,114 @@ TEST(Eval, Iterator) {
 
 }
 
-TEST(Eval, Brother) {
-    /*
-     * 
-     * :Human := :Class(пол:Пол=_, родители = (,));
-     *  #!./dist/Debug/GNU-Linux/nlc --exec
-     * :Sex := :Enum(male, female); 
-     * :Human := :Class(sex:Sex=, parent=(,));
-     * @Tom := :Human(Sex.male);
-     * @Janna := :Human(Sex.female);
-     * @Jake := :Human(Sex.male, (Tom, Janna,));
-     * @Tim := :Human(Sex.male, parent=(Tom,));
-     *
-     * Brother(h1, h2) := $h1 != $h2, $h1.sex==male, $h1.parent * $h2.parent;
-     * printf := :Native("printf(format:Format, ...):Int"); 
-     * 
-     * 
-     * h1 := $?;
-     * [ h1 ] <<-->> {
-     *      h2 := $?;
-     *      [ h2 ] <<-->> {
-     *          [ Brother(h1!, h2!) ] --> { 
-     *              printf("%s brother %s", ""(h1), `h2`);
-     *          }
-     *      }
-     * }
-     * 
-     * h1 := \iterator($);
-     * \while( h1 ) {
-     *      h2 := \iterator($);
-     *      \while( h2 } {
-     *          \if( Brother(h1!, h2!) ) { 
-     *              result []= "$1 brother $2"(h1, h2);
-     *          }
-     *      }
-     * }
-     * --result--;
-     * 
-     * >>> ("Tim brother Jake", "Jake brother Tim",)
-     * 
-     * 
-     * 
-     */
-
-
-
-}
+//TEST(Eval, Brother) {
+//    /*
+//     * 
+//     * :Human := :Class(пол:Пол=_, родители = (,));
+//     *  #!./dist/Debug/GNU-Linux/nlc --exec
+//     * :Sex := :Enum(male, female); 
+//     * :Human := :Class(sex:Sex=, parent=(,));
+//     * @Tom := :Human(Sex.male);
+//     * @Janna := :Human(Sex.female);
+//     * @Jake := :Human(Sex.male, (Tom, Janna,));
+//     * @Tim := :Human(Sex.male, parent=(Tom,));
+//     *
+//     * Brother(h1, h2) := $h1 != $h2, $h1.sex==male, $h1.parent * $h2.parent;
+//     * printf := :Native("printf(format:Format, ...):Int"); 
+//     * 
+//     * h1 := $?;
+//     * [ h1 ] <<-->> {
+//     *      h2 := $?;
+//     *      [ h2 ] <<-->> {
+//     *          [ Brother(h1!, h2!) ] --> { 
+//     *              printf("%s brother %s", ""(h1), `h2`);
+//     *          }
+//     *      }
+//     * }
+//     * 
+//     * h1 := \iterator($);
+//     * \while( h1 ) {
+//     *      h2 := \iterator($);
+//     *      \while( h2 } {
+//     *          \if( Brother(h1!, h2!) ) { 
+//     *              result []= "$1 brother $2"(h1, h2);
+//     *          }
+//     *      }
+//     * }
+//     * --result--;
+//     * 
+//     * >>> ("Tim brother Jake", "Jake brother Tim",)
+//     * 
+//     */
+//
+//    Context::Reset();
+//    Context ctx(RunTime::Init());
+//
+//    ObjPtr Sex = ctx.ExecStr(":Sex := :Enum(male=1, 'female')");
+//    ASSERT_TRUE(Sex);
+//    ASSERT_TRUE(Sex->isConst());
+//    ASSERT_EQ(2, Sex->size());
+//    ASSERT_STREQ("male", Sex->at(0).first.c_str());
+//    ASSERT_EQ(1, Sex->at(0).second->GetValueAsInteger());
+//    ASSERT_STREQ("female", Sex->at(1).first.c_str());
+//    ASSERT_EQ(2, Sex->at(1).second->GetValueAsInteger());
+//
+//    ObjPtr Human = ctx.ExecStr(":Human := :Class(sex:Sex=, parent=(,))");
+//
+//    ASSERT_TRUE(Human);
+//    ASSERT_EQ(2, Human->size());
+//    ASSERT_STREQ("sex", Human->at(0).first.c_str());
+//    ASSERT_TRUE(Human->at(0).second->is_none_type());
+//    ASSERT_STREQ("parent", Human->at(1).first.c_str());
+//    ASSERT_TRUE(Human->at(1).second->is_dictionary_type());
+//    ASSERT_EQ(0, Human->at(1).second->size());
+//
+//
+//    ObjPtr Tom = ctx.ExecStr("Tom := :Human(:Sex.male)");
+//    ASSERT_TRUE(Tom);
+//    ASSERT_EQ(2, Tom->size());
+//    ASSERT_STREQ("sex", Tom->at(0).first.c_str());
+////    ASSERT_TRUE(Tom->at(0).second->is_integer());
+//    ASSERT_EQ(1, Tom->at(0).second->GetValueAsInteger());
+//    ASSERT_STREQ("parent", Tom->at(1).first.c_str());
+//    ASSERT_TRUE(Tom->at(1).second->is_dictionary_type());
+//    ASSERT_EQ(0, Tom->at(1).second->size());
+//
+//    ObjPtr Janna = ctx.ExecStr("Janna := :Human(:Sex.female)");
+//    ASSERT_TRUE(Janna);
+//    ASSERT_EQ(2, Janna->size());
+//    ASSERT_STREQ("sex", Janna->at(0).first.c_str());
+//    ASSERT_TRUE(Janna->at(0).second->is_integer());
+//    ASSERT_EQ(2, Janna->at(0).second->GetValueAsInteger());
+//    ASSERT_STREQ("parent", Janna->at(1).first.c_str());
+//    ASSERT_TRUE(Janna->at(1).second->is_dictionary_type());
+//    ASSERT_EQ(0, Janna->at(1).second->size());
+//
+//
+//    ObjPtr Jake = ctx.ExecStr("Jake := :Human(:Sex.male, (Tom, Janna,))");
+//    ASSERT_TRUE(Jake);
+//    ASSERT_EQ(2, Jake->size());
+//    ASSERT_STREQ("sex", Jake->at(0).first.c_str());
+//    ASSERT_TRUE(Jake->at(0).second->is_integer());
+//    ASSERT_EQ(1, Jake->at(0).second->GetValueAsInteger());
+//    ASSERT_STREQ("parent", Jake->at(1).first.c_str());
+//    ASSERT_TRUE(Jake->at(1).second->is_dictionary_type());
+//    ASSERT_EQ(2, Jake->at(1).second->size());
+//
+//    ObjPtr Tim = ctx.ExecStr("Tim := :Human(:Sex.male, (Tom,))");
+//    ASSERT_TRUE(Tim);
+//    ASSERT_EQ(2, Tim->size());
+//    ASSERT_STREQ("sex", Tim->at(0).first.c_str());
+//    ASSERT_TRUE(Tim->at(0).second->is_integer());
+//    ASSERT_EQ(1, Tim->at(0).second->GetValueAsInteger());
+//    ASSERT_STREQ("parent", Tim->at(1).first.c_str());
+//    ASSERT_TRUE(Tim->at(1).second->is_dictionary_type());
+//    ASSERT_EQ(1, Tim->at(1).second->size());
+//
+//
+//
+//
+//}
 
 class OpEvalTest : public ::testing::Test {
 protected:

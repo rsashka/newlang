@@ -1537,16 +1537,16 @@ std::string NewLang::GetImpl(CompileInfo &ci, TermPtr term, std::string &output)
             output += result;
             return result;
 
-        case TermID::FIELD:
-            ASSERT(!term->getName().empty() || !term->getText().empty());
-            ASSERT(!term->Right());
-
-            if(!ci.m_builtin_direct->CheckDirect(ci, term, output)) {
-                output.insert(0, "(*");
-                output += ")[\"" + term->getText() + "\"]";
-            }
-            result = output;
-            return result;
+//        case TermID::FIELD:
+//            ASSERT(!term->getName().empty() || !term->getText().empty());
+//            ASSERT(!term->Right());
+//
+//            if(!ci.m_builtin_direct->CheckDirect(ci, term, output)) {
+//                output.insert(0, "(*");
+//                output += ")[\"" + term->getText() + "\"]";
+//            }
+//            result = output;
+//            return result;
 
         case TermID::SOURCE:
             temp = term->getText();

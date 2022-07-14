@@ -60,7 +60,7 @@ public:
 
     BuiltInTorchDirect();
 
-    bool CheckDirect(CompileInfo &ci, TermPtr &term, std::string &output);
+//    bool CheckDirect(CompileInfo &ci, TermPtr &term, std::string &output);
 
     virtual ~BuiltInTorchDirect() {
     }

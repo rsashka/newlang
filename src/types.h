@@ -31,7 +31,6 @@ class Obj;
 class Context;
 class NewLang;
 class RunTime;
-struct CompileInfo;
 
 typedef std::shared_ptr<Term> TermPtr;
 typedef std::shared_ptr<Obj> ObjPtr;

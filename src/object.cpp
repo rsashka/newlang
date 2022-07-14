@@ -578,10 +578,8 @@ void Obj::CloneDataTo(Obj & clone) const {
 
         clone.m_class_parents = m_class_parents;
         clone.m_class_name = m_class_name;
-        //        clone.m_ctx = m_ctx;
-        clone.m_is_const = false;
+        clone.m_is_const = m_is_const;
 
-        clone.m_ref_count = m_ref_count;
         clone.m_func_ptr = m_func_ptr;
         *const_cast<TermPtr *> (&clone.m_func_proto) = m_func_proto;
         if(is_tensor() && m_var_is_init) {
@@ -2811,12 +2809,15 @@ ObjPtr Obj::ConstructorNative_(const Context *ctx_const, Obj & args) {
 ObjPtr Obj::ConstructorClass_(const Context *ctx, Obj & args) {
     ObjPtr result = ConstructorDictionary_(ctx, args);
     result->m_var_type_fixed = ObjType::Class;
-    for (int i = 0; i < result->size(); i++) {
+    result->m_var_is_init = true;
+    for (int i = 1; i < result->size(); i++) {
         if(result->name(i).empty()) {
             LOG_RUNTIME("Field pos %d has no name!", i);
         }
-        if(result->find(result->name(i)) != result->end()) {
-            LOG_RUNTIME("Field name '%s' at index %d already exists!", result->name(i).c_str(), i);
+        for (int pos = 0; pos < i; pos++) {
+            if(result->name(pos).compare(result->name(i)) == 0) {
+                LOG_RUNTIME("Field name '%s' at index %d already exists!", result->name(i).c_str(), i);
+            }
         }
     }
     return result;
@@ -2884,6 +2885,7 @@ ObjPtr Obj::ConstructorEnum_(const Context *ctx, Obj & args) {
     }
 
     result->m_is_const = true;
+    result->m_var_is_init = true;
 
     return result;
 }
@@ -3008,4 +3010,9 @@ ObjPtr Obj::IteratorNext(int64_t count) {
     ASSERT(m_iterator);
     return m_iterator->read_and_next(count);
 }
+
+//void Obj::SetHelp(const std::string &help) {
+//    Context::HelpInfo help_info = Context::;
+//    std::shared_ptr<std::string> m_help = help;
+//}
 

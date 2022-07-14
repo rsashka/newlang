@@ -331,9 +331,8 @@ ObjPtr Context::eval_CALL_TRY(Context *ctx, const TermPtr &term, Obj *args) {
 }
 
 ObjPtr Context::eval_MACRO(Context *ctx, const TermPtr &term, Obj *args) {
-    LOG_RUNTIME("eval_MACRO: %s", term->toString().c_str());
-
-    return nullptr;
+    LOG_ERROR("Macro %s not found!", term->toString().c_str());
+    return Obj::CreateNone();
 }
 
 ObjPtr Context::eval_MACRO_BODY(Context *ctx, const TermPtr &term, Obj *args) {
@@ -588,7 +587,6 @@ ObjPtr Context::CREATE_OR_ASSIGN(Context *ctx, const TermPtr &term, Obj *local_v
                 }
 
                 result = rval->Clone();
-                result->m_is_const = false;
                 result->m_class_name = list_term[i]->m_text;
                 result->m_class_parents.push_back(rval);
 
