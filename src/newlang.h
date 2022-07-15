@@ -112,8 +112,135 @@ namespace newlang {
 
     //typedef std::map<std::string, const TermPtr> ProtoType;
 
+    /*
+ 
+    LLVMBuilderRef builder = LLVMCreateBuilder();
+    LLVMModuleRef mod = LLVMModuleCreateWithName("my_module");
+    char *error = NULL;
+
+    LLVMExecutionEngineRef engine;
+
+    LLVMLinkInMCJIT();
+    LLVMInitializeNativeTarget();
+    LLVMInitializeNativeAsmPrinter();
+    LLVMInitializeNativeAsmParser();
+
+    if(LLVMCreateExecutionEngineForModule(&engine, mod, &error) != 0) {
+        fprintf(stderr, "failed to create execution engine\n");
+        abort();
+    }
+    if(error) {
+        fprintf(stderr, "error: %s\n", error);
+        LLVMDisposeMessage(error);
+        exit(EXIT_FAILURE);
+    }
+
+
+    typedef int(*Printf)(const char *format, ...);
+    Printf prn = reinterpret_cast<Printf> (LLVMGetPointerToNamedFunction(engine, "printf"));
+
+
+    LLVMDisposeBuilder(builder);
+    LLVMDisposeExecutionEngine(engine);
+
+     */
     class RunTime {
     public:
+
+        //        static LLVMBuilderRef m_llvm_builder;
+        //        static LLVMModuleRef m_llvm_module;
+        //        static LLVMExecutionEngineRef m_llvm_engine;
+
+//        static void * LLVMGetPointerToNamedFunction_(LLVMExecutionEngineRef EE, const char *Name) {
+//            return reinterpret_cast<void *> (reinterpret_cast<llvm::ExecutionEngine *> (EE)->getPointerToNamedFunction(Name, false));
+//        }
+
+        void * m_ffi_handle;
+
+        RunTime() : m_ffi_handle(nullptr) {
+
+            //            llvm::cl::PrintHelpMessage();
+            //            llvm::cl::ResetAllOptionOccurrences();
+
+            //            llvm::cl::Option::~Option()
+
+            //            LLVMInitializeCore(LLVMGetGlobalPassRegistry());
+            /* program init */
+            //            LLVMInitializeNativeTarget();
+            //            LLVMInitializeNativeAsmPrinter();
+            //            LLVMInitializeNativeAsmParser();
+            //            LLVMLinkInMCJIT();
+
+            //            builder = CreateBuilder();
+
+            //            if (!m_llvm_engine) {
+
+
+            //                m_llvm_builder = LLVMCreateBuilder();
+            //                m_llvm_module = LLVMModuleCreateWithName("nlc");
+
+            //                LLVMLinkInMCJIT();
+            //                LLVMInitializeNativeTarget();
+            //                LLVMInitializeNativeAsmPrinter();
+            //                LLVMInitializeNativeAsmParser();
+            //
+
+            // Загружает символы исполняемого файла для поиска с помощью SearchForAddressOfSymbol
+            llvm::sys::DynamicLibrary::LoadLibraryPermanently(nullptr, nullptr);
+
+            //
+            //                char *error = NULL;
+            //                if (LLVMCreateExecutionEngineForModule(&m_llvm_engine, m_llvm_module, &error) != 0) {
+            //                    LOG_RUNTIME("Failed to create execution engine LLVM!");
+            //                }
+            //                if (error) {
+            //                    std::string msg = error;
+            //                    LLVMDisposeMessage(error);
+            //                    LOG_RUNTIME("Failed to create execution engine LLVM '%s'!", msg.c_str());
+            //                }
+
+//            typedef int(*Printf)(const char *format, ...);
+//            Printf prn = reinterpret_cast<Printf> (GetDirectAddressFromLibrary(nullptr, "printf")); //LLVMGetPointerToNamedFunction_(m_llvm_engine, "printf"));
+//            if (!prn) {
+//                LOG_ERROR("Printf not found!!.");
+//            } else {
+//                int res = prn(" %s ", "\n\nУРА !!!!!!!!\n\n");
+//                LOG_DEBUG("PRINTF !!!! %d  !!!!!!!!!!!!!!!", res);
+//            }
+//
+//            LOG_DEBUG("LLVM init complete!");
+            //            }
+        }
+
+        virtual ~RunTime() {
+
+#ifdef _MSC_VER
+            if (m_ffi_handle) {
+                FreeLibrary((HMODULE) m_ffi_handle);
+                m_ffi_handle = nullptr;
+            }
+            if (m_msys) {
+                FreeLibrary((HMODULE) m_msys);
+                m_msys = nullptr;
+            }
+#else
+            //            if (m_ffi_handle) {
+            //                dlclose(m_ffi_handle);
+            //                m_ffi_handle = nullptr;
+            //            }
+
+            //            LLVMDisposeBuilder(m_llvm_builder);
+            //            LLVMDisposeExecutionEngine(m_llvm_engine);
+            //
+            //            m_llvm_module = nullptr;
+            //            m_llvm_engine = nullptr;
+            //            m_llvm_builder = nullptr;
+
+#endif
+            //            DisposeBuilder(builder);
+            //            llvm::cl::ResetAllOptionOccurrences();
+            LLVMShutdown();
+        }
 
         static RuntimePtr Init(int argc = 0, const char** argv = nullptr, bool ignore_error = true) {
             RuntimePtr rt = std::make_shared<RunTime>();
@@ -125,7 +252,7 @@ namespace newlang {
             std::wstring sys_file;
             std::string sys_init;
 
-//#define CYGWIN
+            //#define CYGWIN
 #ifdef CYGWIN
             sys_file = L"cygwin1.dll";
             sys_init = "cygwin_dll_init";
@@ -151,13 +278,19 @@ namespace newlang {
             }
             rt->m_ffi_handle = LoadLibrary(utf8_decode(ffi_file).c_str());
 #else
-            ffi_file = "libffi.so";
-            rt->m_ffi_handle = dlopen(ffi_file.c_str(), RTLD_NOW);
-#endif
-
-            if (!rt->m_ffi_handle) {
-                LOG_RUNTIME("Fail load %s!", ffi_file.c_str());
+            std::string error;
+            if (!llvm::sys::DynamicLibrary::LoadLibraryPermanently("libffi", &error)) {
+                LOG_RUNTIME("Fail load library libffi.so '%s'", error.c_str());
             }
+
+
+            //            ffi_file = "libffi.so";
+            //            rt->m_ffi_handle = dlopen(ffi_file.c_str(), RTLD_NOW);
+#endif
+            //
+            //            if (!rt->m_ffi_handle) {
+            //                LOG_RUNTIME("Fail load %s!", ffi_file.c_str());
+            //            }
 
             rt->m_ffi_type_void = static_cast<ffi_type *> (GetDirectAddressFromLibrary(rt->m_ffi_handle, "ffi_type_void"));
             rt->m_ffi_type_uint8 = static_cast<ffi_type *> (GetDirectAddressFromLibrary(rt->m_ffi_handle, "ffi_type_uint8"));
@@ -183,14 +316,23 @@ namespace newlang {
                 LOG_RUNTIME("Fail init data from %s!", ffi_file.c_str());
             }
 
-            return std::move(rt);
+            return rt;
         }
 
         inline static void * GetDirectAddressFromLibrary(void *handle, const char * name) {
 #ifdef _MSC_VER
             return static_cast<void *> (::GetProcAddress((HMODULE) handle, name));
 #else
-            return dlsym(handle, name);
+            void *res = llvm::sys::DynamicLibrary::SearchForAddressOfSymbol(name);
+            if (res) {
+                return res;
+            }
+            //            if (m_llvm_engine) {
+            //                //            ASSERT(m_llvm_engine);
+            //                return LLVMGetPointerToNamedFunction_(m_llvm_engine, name);
+            //            }
+            return nullptr;
+            //            return dlsym(handle, name);
 #endif
         }
 
@@ -201,28 +343,6 @@ namespace newlang {
         ObjPtr ExecModule(const char *module, const char *output, bool cached, Context * ctx);
 
         void * GetNativeAddr(const char * name, const char *module = nullptr);
-
-        virtual ~RunTime() {
-
-#ifdef _MSC_VER
-            if (m_ffi_handle) {
-                FreeLibrary((HMODULE) m_ffi_handle);
-                m_ffi_handle = nullptr;
-            }
-            if (m_msys) {
-                FreeLibrary((HMODULE) m_msys);
-                m_msys = nullptr;
-            }
-#else
-            if (m_ffi_handle) {
-                dlclose(m_ffi_handle);
-                m_ffi_handle = nullptr;
-            }
-#endif
-        }
-
-        RunTime() {
-        }
 
         static std::string GetLastErrorMessage();
 
@@ -243,7 +363,6 @@ namespace newlang {
 
         std::map<std::string, Module *> m_modules;
 
-        void * m_ffi_handle;
         ffi_type * m_ffi_type_void;
         ffi_type * m_ffi_type_uint8;
         ffi_type * m_ffi_type_sint8;

@@ -2,9 +2,6 @@
 
 #include <nlc.h>
 
-using namespace std;
-using namespace newlang;
-
 #ifdef _MSC_VER
 
 #pragma comment(lib, "torch.lib")
@@ -16,8 +13,29 @@ using namespace newlang;
 #ifndef UNITTEST
 
 int main(int argc, char** argv) {
-    NLC nlc(argc, (const char **)argv);
-    return nlc.Run();
+
+    newlang::NLC nlc(argc, (const char **) argv);
+
+    //#0  __GI___libc_free (mem=0x1) at malloc.c:3102
+    //#1  0x00007fffe3d0c113 in llvm::cl::Option::~Option() () from ../contrib/libtorch/lib/libtorch_cpu.so
+    //#2  0x00007fffd93eafde in __cxa_finalize (d=0x7ffff6c74000) at cxa_finalize.c:83
+    //#3  0x00007fffe0b80723 in __do_global_dtors_aux () from ../contrib/libtorch/lib/libtorch_cpu.so
+    //#4  0x00007fffffffdd80 in ?? ()
+    //#5  0x00007ffff7fe0f6b in _dl_fini () at dl-fini.c:138
+
+    //#0  0x00000000c0200000 in ?? ()
+    //#1  0x00007fffda7b844f in ?? () from /lib/x86_64-linux-gnu/libLLVM-13.so.1
+    //#2  0x00007fffd95ecfde in __cxa_finalize (d=0x7fffdf9a0ba0) at cxa_finalize.c:83
+    //#3  0x00007fffda743cd7 in ?? () from /lib/x86_64-linux-gnu/libLLVM-13.so.1
+    //#4  0x00007fffffffdd80 in ?? ()
+    //#5  0x00007ffff7fe0f6b in _dl_fini () at dl-fini.c:138
+    
+    // При завершении приложения происходит Segmentation fault из-за двойного освобожнения памяти статической переменой
+    // llvm::cl::Option::~Option() во время выгрузки динамически библиотек libLLVM или libtorch_cpu
+    // Чтобы убрать этот coredump вместо нормального завершения main вызываю _exit, чтобы 
+    // все остальные функции освобождения памяти не вызывались при завершении процесса.
+    
+    _exit(nlc.Run());
 }
 
 #endif

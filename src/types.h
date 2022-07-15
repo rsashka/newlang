@@ -43,12 +43,12 @@ typedef ObjPtr TransparentType(const Context *ctx, Obj &in);
 class Interrupt : public std::exception {
   public:
      
-      inline static const char * Return = ":Return";
-      inline static const char * Error = ":Error";
-      inline static const char * Parser = ":ErrorParser";
-      inline static const char * RunTime = ":ErrorRunTime";
-      inline static const char * Signal = ":ErrorSignal";
-      inline static const char * Abort = ":ErrorAbort";
+      static const char * Return;
+      static const char * Error;
+      static const char * Parser;
+      static const char * RunTime;
+      static const char * Signal;
+      static const char * Abort;
 
     Interrupt(const ObjPtr obj);
     Interrupt(const std::string message, const std::string error_name=Error);
@@ -352,8 +352,8 @@ void ParserException(const char *msg, std::string &buffer, int row, int col);
     }
 
     inline bool isIntegralType(ObjType t, bool includeBool) {
-        return static_cast<uint8_t> (t) >= static_cast<uint8_t> (ObjType::Char) &&
-                static_cast<uint8_t> (t) <= static_cast<uint8_t> (ObjType::Integer) ||
+        return (static_cast<uint8_t> (t) >= static_cast<uint8_t> (ObjType::Char) &&
+                static_cast<uint8_t> (t) <= static_cast<uint8_t> (ObjType::Integer)) ||
                 (includeBool && t == ObjType::Bool);
     }
 
@@ -773,19 +773,19 @@ void ParserException(const char *msg, std::string &buffer, int row, int col);
      *
      *
      */
-    inline bool isGlobal(const std::string_view name) {
+    inline bool isGlobal(const std::string name) {
         return !name.empty() && name[0] == '@';
     }
 
-    inline bool isLocal(const std::string_view name) {
+    inline bool isLocal(const std::string name) {
         return !name.empty() && name[0] == '$';
     }
 
-    inline bool isType(const std::string_view name) {
+    inline bool isType(const std::string name) {
         return !name.empty() && name[0] == ':';
     }
 
-    inline bool isMacro(const std::string_view name) {
+    inline bool isMacro(const std::string name) {
         return !name.empty() && name[0] == '\\';
     }
 

@@ -44,6 +44,13 @@ std::map<std::string, ObjPtr> Context::m_types;
 std::map<std::string, Context::FuncItem> Context::m_funcs;
 Parser::MacrosStore Context::m_macros;
 
+const char * Interrupt::Return = ":Return";
+const char * Interrupt::Error = ":Error";
+const char * Interrupt::Parser = ":ErrorParser";
+const char * Interrupt::RunTime = ":ErrorRunTime";
+const char * Interrupt::Signal = ":ErrorSignal";
+const char * Interrupt::Abort = ":ErrorAbort";
+
 Context::Context(RuntimePtr global) {
     m_runtime = global;
 
@@ -1440,7 +1447,7 @@ ObjPtr Context::CreateNative(TermPtr proto, const char *module, bool lazzy, cons
 #endif    
 
     ObjPtr result;
-    ObjType type;
+    ObjType type = ObjType::None;
     if(proto->GetTokenID() == TermID::TERM) {
         if(proto->m_type_name.empty()) {
             LOG_RUNTIME("Cannot create native variable without specifying the type!");
@@ -1462,6 +1469,8 @@ ObjPtr Context::CreateNative(TermPtr proto, const char *module, bool lazzy, cons
         }
     } else if(proto->GetTokenID() == TermID::CALL) {
         type = ObjType::NativeFunc;
+    } else {
+        LOG_RUNTIME("Native type undefined! '%s'", proto->toString().c_str());
     }
 
     result = Obj::CreateType(type);
@@ -1489,7 +1498,7 @@ ObjPtr Context::CreateNative(TermPtr proto, const char *module, bool lazzy, cons
             result->m_var_is_init = true;
         } else {
 
-            LOG_RUNTIME("Fail CreateNative for object %s", result->toString().c_str());
+            LOG_RUNTIME("Fail CreateNative for object %s", proto->toString().c_str());
         }
     }
     return result;
@@ -1518,14 +1527,40 @@ void *RunTime::GetNativeAddr(const char *name, const char *module) {
         }
 
 #ifndef _MSC_VER
-        return dlsym(m_modules[module]->GetHandle(), name);
+
+        return GetDirectAddressFromLibrary(m_modules[module]->GetHandle(), name);
 #else
         return static_cast<void *> (::GetProcAddress(m_modules[module]->GetHandle(), name));
 #endif
     }
 
 #ifndef _MSC_VER
-    return dlsym(nullptr, name);
+//    ASSERT(m_llvm_engine);
+
+    //    LOG_DEBUG("getAddressToGlobalIfAvailable( %s ) = %ld", "var_long", m_llvm_engine->getAddressToGlobalIfAvailable("var_long"));
+    //    LOG_DEBUG("getGlobalValueAddress( %s ) = %ld", "var_long", m_llvm_engine->getGlobalValueAddress("var_long"));
+    //    LOG_DEBUG("getPointerToNamedFunction( %s ) = %ld", "var_long", (long)m_llvm_engine->getPointerToNamedFunction("var_long", false));
+    //    
+    //    LOG_DEBUG("getAddressToGlobalIfAvailable( %s ) = %ld", "_var_long", m_llvm_engine->getAddressToGlobalIfAvailable("_var_long"));
+    //    LOG_DEBUG("getGlobalValueAddress( %s ) = %ld", "_var_long", m_llvm_engine->getGlobalValueAddress("_var_long"));
+    //    LOG_DEBUG("getPointerToNamedFunction( %s ) = %ld", "_var_long", (long)m_llvm_engine->getPointerToNamedFunction("_var_long", false));
+    //    
+    //    LOG_DEBUG("getAddressToGlobalIfAvailable( %s ) = %ld", "func_export", m_llvm_engine->getAddressToGlobalIfAvailable("func_export"));
+    //    LOG_DEBUG("getGlobalValueAddress( %s ) = %ld", "func_export", m_llvm_engine->getGlobalValueAddress("func_export"));
+    //    LOG_DEBUG("getPointerToNamedFunction( %s ) = %ld", "func_export", (long)m_llvm_engine->getPointerToNamedFunction("func_export", false));
+    //    
+    //    LOG_DEBUG("getAddressToGlobalIfAvailable( %s ) = %ld", "_func_export", m_llvm_engine->getAddressToGlobalIfAvailable("_func_export"));
+    //    LOG_DEBUG("getGlobalValueAddress( %s ) = %ld", "_func_export", m_llvm_engine->getGlobalValueAddress("_func_export"));
+    //    LOG_DEBUG("getPointerToNamedFunction( %s ) = %ld", "_func_export", (long)m_llvm_engine->getPointerToNamedFunction("_func_export", false));
+    //
+    //    
+    //    LOG_DEBUG("getAddressToGlobalIfAvailable( %s ) = %ld", name, m_llvm_engine->getAddressToGlobalIfAvailable(name));
+    //    LOG_DEBUG("getGlobalValueAddress( %s ) = %ld", name, m_llvm_engine->getGlobalValueAddress(name));
+    //    LOG_DEBUG("getPointerToNamedFunction( %s ) = %ld", name, (long)m_llvm_engine->getPointerToNamedFunction(name, false));
+
+    //m_llvm_engine->getPointerToNamedFunction(name, false);
+    return GetDirectAddressFromLibrary(nullptr, name);
+    //    return ::dlsym(::dlopen(nullptr, RTLD_NOW | RTLD_GLOBAL), name);
 #else
     void *result = static_cast<void *> (::GetProcAddress(GetModuleHandle(nullptr), name));
     if(result) {

@@ -7,6 +7,9 @@
 
 using namespace newlang;
 
+const std::string Parser::MACROS_START = "\\\\";
+const std::string Parser::MACROS_END = "\\\\\\";
+
 Parser::Parser(TermPtr &ast) : m_ast(ast) {
     m_ast = Term::Create(TermID::END, "");
 }
@@ -24,7 +27,7 @@ bool Parser::parse_stream(std::istream& in, const std::string sname) {
 
 bool Parser::parse_file(const std::string filename) {
     std::ifstream in(filename);
-    if (!in.good()) return false;
+    if(!in.good()) return false;
     return parse_stream(in, filename.c_str());
 }
 
@@ -33,7 +36,7 @@ bool Parser::parse_string(const std::string input, const std::string sname) {
     return parse_stream(iss, sname.c_str());
 }
 
-TermPtr Parser::Parse(const std::string_view input, MacrosStore *store) {
+TermPtr Parser::Parse(const std::string input, MacrosStore *store) {
 
     std::string parse_string = ParseAllMacros(input, store);
 
@@ -44,7 +47,7 @@ TermPtr Parser::Parse(const std::string_view input, MacrosStore *store) {
     lexer = &scanner;
 
     parser parser(*this);
-    if (parser.parse() != 0) {
+    if(parser.parse() != 0) {
         return m_ast;
     }
 
@@ -54,7 +57,7 @@ TermPtr Parser::Parse(const std::string_view input, MacrosStore *store) {
     return m_ast;
 }
 
-TermPtr Parser::ParseString(const std::string_view str, MacrosStore *store) {
+TermPtr Parser::ParseString(const std::string str, MacrosStore *store) {
     TermPtr ast = Term::Create(TermID::END, "");
     Parser p(ast);
     return p.Parse(str, store);
@@ -64,7 +67,7 @@ void Parser::error(const class location& l, const std::string& m) {
     std::cerr << l << ": " << m << std::endl;
 }
 
-void Parser::error(const std::string_view m) {
+void Parser::error(const std::string &m) {
     std::cerr << m << std::endl;
 }
 
@@ -77,10 +80,10 @@ void Parser::AstAddTerm(TermPtr &term) {
     ASSERT(m_ast);
     ASSERT(m_ast->m_source);
     term->m_source = m_ast->m_source;
-    if (m_ast->m_id == TermID::END) {
+    if(m_ast->m_id == TermID::END) {
         m_ast = term;
         m_ast->ConvertSequenceToBlock(TermID::BLOCK, false);
-    } else if (!m_ast->IsBlock()) {
+    } else if(!m_ast->IsBlock()) {
         m_ast->ConvertSequenceToBlock(TermID::BLOCK, true);
     } else {
         m_ast->m_block.push_back(term);
@@ -98,7 +101,7 @@ std::string newlang::ParserMessage(std::string &buffer, int row, int col, const 
 
     std::string message(va_buffer);
 
-    if (row) { // Если переданы координаты ошибки
+    if(row) { // Если переданы координаты ошибки
         message += " at line ";
         message += std::to_string(row);
         message += " col ";
@@ -109,9 +112,9 @@ std::string newlang::ParserMessage(std::string &buffer, int row, int col, const 
 
     // Ищем нужную строку
     size_t pos = 0;
-    if (buffer.find("\n") != std::string::npos) {
+    if(buffer.find("\n") != std::string::npos) {
         int count = 1;
-        while (count < row) {
+        while(count < row) {
             pos = buffer.find("\n", pos + 1);
             count++;
         }
@@ -120,7 +123,7 @@ std::string newlang::ParserMessage(std::string &buffer, int row, int col, const 
     std::string tmp = buffer.substr((pos ? pos + 1 : pos), buffer.find("\n", pos + 1));
     tmp = tmp.substr(0, tmp.find("\n", col));
 
-    if (row + 1) { // Если переданы координаты ошибки, показываем место
+    if(row + 1) { // Если переданы координаты ошибки, показываем место
 
         // Лексер обрабатывает строки в байтах, а вывод в UTF8
         // поэтому позиция ошибки лексера може не совпадать для многобайтных символов

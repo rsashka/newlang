@@ -40,7 +40,7 @@
 #endif
 
 // Use: #pragma message WARNING("My message")
-#if _MSC_VER
+#ifdef _MSC_VER
 #define FILE_LINE_LINK __FILE__ "(" TO_STR(__LINE__) ") : "
 #define WARNING(exp) (FILE_LINE_LINK "WARNING: " exp)
 #else//__GNUC__ - may need other defines for different compilers

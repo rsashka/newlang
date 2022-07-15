@@ -65,7 +65,7 @@ namespace newlang {
 
         /** General error handling. This can be modified to output the error
          * e.g. to a dialog box. */
-        void error(const std::string_view m);
+        void error(const std::string &m);
 
         /** Pointer to the current lexer instance, this is used to connect the
          * parser to the scanner. It is used in the yylex macro. */
@@ -81,12 +81,12 @@ namespace newlang {
         typedef std::vector<std::string> MacrosArgs;
         typedef std::map<std::string, std::string, std::greater<std::string>> MacrosStore;
 
-        inline static const std::string MACROS_START = "\\\\";
-        inline static const std::string MACROS_END = "\\\\\\";
+        static const std::string MACROS_START;
+        static const std::string MACROS_END;
 
 
-        TermPtr Parse(const std::string_view str, MacrosStore *store = nullptr);
-        static TermPtr ParseString(const std::string_view str, MacrosStore *store = nullptr);
+        TermPtr Parse(const std::string str, MacrosStore *store = nullptr);
+        static TermPtr ParseString(const std::string str, MacrosStore *store = nullptr);
 
         static inline std::string ParseMacroName(const std::string &body) {
             // имя макроса должно быть в самом начале строки без пробелов и начинаться на один слешь
@@ -180,15 +180,15 @@ namespace newlang {
 
                 if (fill) {
                     // Заменить определение макроса пробелами, кроме переводов строк, чтобы не съезжала позиция парсинга
-                    std::string fill(stop - start + MACROS_END.size(), ' ');
+                    std::string fill_str(stop - start + MACROS_END.size(), ' ');
 
-                    ASSERT(fill.size() > body.size());
+                    ASSERT(fill_str.size() > body.size());
                     for (size_t i = 0; i < body.size(); i++) {
                         if (body[i] == '\n') {
-                            fill[i + 1] = '\n';
+                            fill_str[i + 1] = '\n';
                         }
                     }
-                    text.replace(start, fill.size(), fill);
+                    text.replace(start, fill_str.size(), fill_str);
                 }
                 return true;
             }
@@ -303,7 +303,7 @@ namespace newlang {
             return result;
         }
 
-        static std::string ParseAllMacros(const std::string_view input, MacrosStore *store) {
+        static std::string ParseAllMacros(const std::string input, MacrosStore *store) {
             std::string result(input);
             if (store) {
                 bool done;

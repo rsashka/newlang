@@ -530,7 +530,6 @@ namespace newlang {
                     return result;
 
                 case TermID::DOWHILE:
-                    result = result;
                     result += m_text + "[";
                     ASSERT(m_right);
                     result += m_right->toString();

@@ -54,7 +54,7 @@ VERSION_MAJOR=0
 VERSION_MINOR=1
 VERSION_PATCH=0
 VERSION_HEADER="version.h"
-VERSION_FILE="version.c"
+VERSION_FILE="version.cpp"
 
 
 GIT_TAG_VERSION=$(shell git describe --abbrev=0 --tags)

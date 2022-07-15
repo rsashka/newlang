@@ -31,7 +31,7 @@ DEFAULTCONF=Debug
 CONF=${DEFAULTCONF}
 
 # All Configurations
-ALLCONFS=Debug Release UnitTest UnitTest_LLVM GCOV LLVM LLVM_GCC UnitTest-Win64 UnitTest-Win32 
+ALLCONFS=Debug Debug_LLVM Release UnitTest UnitTest_LLVM GCOV LLVM LLVM_GCC UnitTest-Win64 UnitTest-Win32 
 
 
 # build

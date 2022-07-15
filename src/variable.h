@@ -112,7 +112,7 @@ namespace newlang {
             return *at_index_const(index);
         }
 
-        typename ListType::iterator find(const std::string_view name) {
+        typename ListType::iterator find(const std::string name) {
             auto iter = ListType::begin();
             while (iter != ListType::end()) {
                 if (iter->first.compare(name) == 0) {
@@ -123,16 +123,16 @@ namespace newlang {
             return ListType::end();
         }
 
-        typename ListType::const_iterator find(const std::string_view name) const {
-            return find(name);
-        }
+//        typename ListType::const_iterator find(const std::string_view name) const {
+//            return find(name);
+//        }
 
-        virtual PairType & at(const std::string_view name) {
+        virtual PairType & at(const std::string name) {
             auto iter = find(name);
             if (iter != ListType::end()) {
                 return *iter;
             }
-            LOG_RUNTIME("Property '%s' not found!", name.begin());
+            LOG_RUNTIME("Property '%s' not found!", name.c_str());
         }
 
         virtual const std::string & name(const int64_t index) const {

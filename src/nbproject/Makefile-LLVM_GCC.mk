@@ -218,10 +218,10 @@ ${OBJECTDIR}/variable.o: variable.cpp
 	${RM} "$@.d"
 	$(COMPILE.cc) -g -DDEBUG -DLOG_LEVEL_NORMAL=LOG_LEVEL_DEBUG -DPDC_WIDE -I../contrib/googletest/googletest -I../contrib/googletest/googletest/include -I../contrib/Tensorflow/bazel-bin/tensorflow/include -I../contrib/Lyra/include -I.. -std=c++14 -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/variable.o variable.cpp
 
-${OBJECTDIR}/version.o: version.c
+${OBJECTDIR}/version.o: version.cpp
 	${MKDIR} -p ${OBJECTDIR}
 	${RM} "$@.d"
-	$(COMPILE.c) -g -s -DDEBUG -DLOG_LEVEL_NORMAL=LOG_LEVEL_DUMP -DUNITTEST -I../contrib/googletest/googletest -I../contrib/googletest/googletest/include -I.. -std=c11 -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/version.o version.c
+	$(COMPILE.cc) -g -DDEBUG -DLOG_LEVEL_NORMAL=LOG_LEVEL_DEBUG -DPDC_WIDE -I../contrib/googletest/googletest -I../contrib/googletest/googletest/include -I../contrib/Tensorflow/bazel-bin/tensorflow/include -I../contrib/Lyra/include -I.. -std=c++14 -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/version.o version.cpp
 
 : warning_pop.h parser.yy.cpp location.hh
 	@echo Выполнение шага пользовательского сборки

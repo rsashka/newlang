@@ -154,7 +154,7 @@ namespace newlang {
             return ExecStr(source, args, int_catch);
         }
 
-        inline ObjPtr ExecStr(const std::string_view str, Obj *args = nullptr, bool int_catch = false) {
+        inline ObjPtr ExecStr(const std::string str, Obj *args = nullptr, bool int_catch = false) {
             TermPtr exec = Parser::ParseString(str, &m_macros);
             if (exec->m_id == TermID::BLOCK) {
                 exec->m_id = TermID::CALL_BLOCK;
@@ -178,7 +178,7 @@ namespace newlang {
 
 
         static std::map<std::string, ObjPtr> m_types;
-        typedef std::variant<ObjPtr, std::vector < ObjPtr>> FuncItem;
+        typedef at::variant<ObjPtr, std::vector < ObjPtr> > FuncItem;
         static std::map<std::string, FuncItem> m_funcs; // Системный и встроенные функции 
 
         inline static ObjPtr CreateLVal(Context *ctx, TermPtr type) {
@@ -235,11 +235,11 @@ namespace newlang {
             }
             auto func = m_funcs.find(str);
             if (func != m_funcs.end()) {
-                if (std::holds_alternative<ObjPtr>(func->second)) {
-                    return std::get<ObjPtr>(func->second);
+                if (at::holds_alternative<ObjPtr>(func->second)) {
+                    return at::get<ObjPtr>(func->second);
                 }
-                ASSERT(std::holds_alternative<std::vector < ObjPtr >> (func->second));
-                return std::get<std::vector < ObjPtr >> (func->second)[0];
+                ASSERT(at::holds_alternative<std::vector < ObjPtr >> (func->second));
+                return at::get<std::vector < ObjPtr >> (func->second)[0];
             }
             return nullptr;
         }
@@ -296,7 +296,7 @@ namespace newlang {
         ObjPtr CreateNative(TermPtr proto, const char *module = nullptr, bool lazzy = false, const char *mangle_name = nullptr, ffi_abi abi = FFI_DEFAULT_ABI);
         ObjPtr CreateNative(Obj args);
 
-        static bool pred_compare(const std::string_view find, const std::string_view str) {
+        static bool pred_compare(const std::string &find, const std::string &str) {
             size_t pos = 0;
             while (pos < find.size() && pos < str.size()) {
                 if (find[pos] != str[pos]) {

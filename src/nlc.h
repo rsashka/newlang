@@ -239,6 +239,9 @@ namespace newlang {
             m_modules = SplitString(load_list.c_str(), ",");
             m_load_only = SplitString(load_only.c_str(), ",");
 
+#ifdef _WIN32
+
+#else
             int len;
             char buffer[100];
             fcntl(STDIN_FILENO, F_SETFL, fcntl(STDIN_FILENO, F_GETFL, 0) | O_NONBLOCK);
@@ -246,7 +249,7 @@ namespace newlang {
                 m_eval.append(buffer, len);
             }
             fcntl(STDIN_FILENO, F_SETFL, fcntl(STDIN_FILENO, F_GETFL, 0) & ~O_NONBLOCK);
-
+#endif
             int cnt = 0;
             cnt += !compile.empty();
             cnt += !exec.empty();
@@ -340,9 +343,13 @@ namespace newlang {
                         out << m_output;
                         out.close();
                     }
+#ifdef _WIN32 
 
+#else
                     fcntl(STDOUT_FILENO, F_SETFL, fcntl(STDOUT_FILENO, F_GETFL, 0) | O_NONBLOCK);
                     write(STDOUT_FILENO, m_output.c_str(), m_output.size());
+#endif // _WIN32 
+
 
                 } else {
                     ASSERT(m_mode == Mode::ModeInter);

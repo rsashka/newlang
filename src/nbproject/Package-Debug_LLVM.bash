@@ -7,14 +7,14 @@
 # Macros
 TOP=`pwd`
 CND_PLATFORM=CLang-Linux
-CND_CONF=UnitTest_LLVM
+CND_CONF=Debug_LLVM
 CND_DISTDIR=dist
 CND_BUILDDIR=build
 CND_DLIB_EXT=so
 NBTMPDIR=${CND_BUILDDIR}/${CND_CONF}/${CND_PLATFORM}/tmp-packaging
 TMPDIRNAME=tmp-packaging
-OUTPUT_PATH=../output/nlc_unit_test
-OUTPUT_BASENAME=nlc_unit_test
+OUTPUT_PATH=../output/nlc
+OUTPUT_BASENAME=nlc
 PACKAGE_TOP_DIR=src/
 
 # Functions

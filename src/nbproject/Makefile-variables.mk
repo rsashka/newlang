@@ -14,6 +14,14 @@ CND_ARTIFACT_PATH_Debug=../output/nlc
 CND_PACKAGE_DIR_Debug=dist/Debug/GNU-Linux/package
 CND_PACKAGE_NAME_Debug=src.tar
 CND_PACKAGE_PATH_Debug=dist/Debug/GNU-Linux/package/src.tar
+# Debug_LLVM configuration
+CND_PLATFORM_Debug_LLVM=CLang-Linux
+CND_ARTIFACT_DIR_Debug_LLVM=../output
+CND_ARTIFACT_NAME_Debug_LLVM=nlc
+CND_ARTIFACT_PATH_Debug_LLVM=../output/nlc
+CND_PACKAGE_DIR_Debug_LLVM=dist/Debug_LLVM/CLang-Linux/package
+CND_PACKAGE_NAME_Debug_LLVM=src.tar
+CND_PACKAGE_PATH_Debug_LLVM=dist/Debug_LLVM/CLang-Linux/package/src.tar
 # Release configuration
 CND_PLATFORM_Release=GNU-Linux
 CND_ARTIFACT_DIR_Release=dist/Release/GNU-Linux
@@ -32,9 +40,9 @@ CND_PACKAGE_NAME_UnitTest=src.tar
 CND_PACKAGE_PATH_UnitTest=dist/UnitTest/GNU-Linux/package/src.tar
 # UnitTest_LLVM configuration
 CND_PLATFORM_UnitTest_LLVM=CLang-Linux
-CND_ARTIFACT_DIR_UnitTest_LLVM=dist/UnitTest_LLVM/CLang-Linux
-CND_ARTIFACT_NAME_UnitTest_LLVM=src
-CND_ARTIFACT_PATH_UnitTest_LLVM=dist/UnitTest_LLVM/CLang-Linux/src
+CND_ARTIFACT_DIR_UnitTest_LLVM=../output
+CND_ARTIFACT_NAME_UnitTest_LLVM=nlc_unit_test
+CND_ARTIFACT_PATH_UnitTest_LLVM=../output/nlc_unit_test
 CND_PACKAGE_DIR_UnitTest_LLVM=dist/UnitTest_LLVM/CLang-Linux/package
 CND_PACKAGE_NAME_UnitTest_LLVM=src.tar
 CND_PACKAGE_PATH_UnitTest_LLVM=dist/UnitTest_LLVM/CLang-Linux/package/src.tar

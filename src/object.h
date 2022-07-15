@@ -128,14 +128,14 @@ namespace newlang {
 
         typedef IterCmp CompareFuncType(const IterPairType &pair, const T *args, void *extra);
 
-        inline static const std::string FIND_KEY_DEFAULT = "(.|\\n)*";
+        static const std::string FIND_KEY_DEFAULT;
 
         /**
          * Итератор для элементов списка с regex фильтром по имени элемента (по умолчанию для всех элементов списка)
          * @param obj
          * @param find_key
          */
-        Iterator(std::shared_ptr<T> obj, const std::string find_key = FIND_KEY_DEFAULT) :
+        explicit Iterator(std::shared_ptr<T> obj, const std::string find_key = Iterator::FIND_KEY_DEFAULT) :
         Iterator(obj, &CompareFuncDefault, reinterpret_cast<T *> (const_cast<std::string *> (&find_key)), static_cast<void *> (this)) {
         }
 
@@ -282,6 +282,9 @@ namespace newlang {
         //    constexpr static const char * BUILDIN_BASE = "__class_base__";
         //    constexpr static const char * BUILDIN_CLASS = "__class_name__";
         //    constexpr static const char * BUILDIN_NAMESPACE = "__namespace__";
+        
+        typedef Variable::PairType PairType;
+        
 
         Obj(ObjType type = ObjType::None, const char *var_name = nullptr, TermPtr func_proto = nullptr, ObjType fixed = ObjType::None, bool init = false) :
         m_var_type_current(type), m_var_name(var_name ? var_name : ""), m_func_proto(func_proto) {
@@ -295,6 +298,7 @@ namespace newlang {
             m_func_abi = FFI_DEFAULT_ABI;
             m_var_type_fixed = fixed;
             m_var_is_init = init;
+            m_is_const = false;
         }
 
         Obj(Context *ctx, const TermPtr term, bool as_value, Obj *local_vars);
@@ -566,12 +570,12 @@ namespace newlang {
             return Variable<Obj>::empty();
         }
 
-        Variable<Obj>::PairType & at(const std::string_view name) const {
+        Variable<Obj>::PairType & at(const std::string name) const {
             Obj * const obj = (Obj * const) this;
             return obj->Variable<Obj>::at(name);
         }
 
-        Variable<Obj>::PairType & at(const std::string_view name) override {
+        Variable<Obj>::PairType & at(const std::string name) override {
             return Variable<Obj>::at(name);
         }
 
@@ -650,13 +654,13 @@ namespace newlang {
             return at(name);
         }
 
-        Obj::iterator find(const std::string_view name) {
+        Obj::iterator find(const std::string name) {
             return Variable::find(name);
         }
 
-        Obj::const_iterator find(const std::string_view name) const {
-            return Variable::find(name);
-        }
+//        Obj::const_iterator find(const std::string_view name) const {
+//            return Variable::find(name);
+//        }
 
         Obj::iterator begin() {
             return Variable::begin();
@@ -1336,7 +1340,7 @@ namespace newlang {
             return std::make_shared<Obj>(type, nullptr, nullptr, fixed, is_init);
         }
 
-        static ObjPtr CreateFraction(const std::string_view val) {
+        static ObjPtr CreateFraction(const std::string val) {
 
             std::string str;
             std::remove_copy(val.begin(), val.end(), back_inserter(str), '_');

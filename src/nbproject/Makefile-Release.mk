@@ -204,10 +204,10 @@ ${OBJECTDIR}/variable.o: variable.cpp
 	${RM} "$@.d"
 	$(COMPILE.cc) -O3 -Werror -I.. -std=c++14 -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/variable.o variable.cpp
 
-${OBJECTDIR}/version.o: version.c
+${OBJECTDIR}/version.o: version.cpp
 	${MKDIR} -p ${OBJECTDIR}
 	${RM} "$@.d"
-	$(COMPILE.c) -O3 -Werror -s -I.. -std=c11 -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/version.o version.c
+	$(COMPILE.cc) -O3 -Werror -I.. -std=c++14 -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/version.o version.cpp
 
 # Subprojects
 .build-subprojects:

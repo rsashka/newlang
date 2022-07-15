@@ -11,6 +11,9 @@
 
 using namespace newlang;
 
+template <>
+const std::string Iterator<Obj>::FIND_KEY_DEFAULT = "(.|\\n)*";
+
 std::ostream &operator<<(std::ostream &out, newlang::Obj &var) {
     out << var.toString().c_str();
     return out;
@@ -565,6 +568,8 @@ void Obj::CloneDataTo(Obj & clone) const {
 
         if(m_dimensions) {
             clone.m_dimensions = m_dimensions->Clone();
+        } else {
+            clone.m_dimensions = nullptr;
         }
 
         clone.m_var_name = m_var_name;
@@ -573,6 +578,8 @@ void Obj::CloneDataTo(Obj & clone) const {
 
         if(m_fraction) {
             clone.m_fraction = std::make_shared<Fraction>(*m_fraction.get());
+        } else {
+            clone.m_fraction = nullptr;
         }
         clone.m_iterator = m_iterator;
 
@@ -581,7 +588,9 @@ void Obj::CloneDataTo(Obj & clone) const {
         clone.m_is_const = m_is_const;
 
         clone.m_func_ptr = m_func_ptr;
-        *const_cast<TermPtr *> (&clone.m_func_proto) = m_func_proto;
+        if(m_func_proto) {
+            *const_cast<TermPtr *> (&clone.m_func_proto) = m_func_proto;
+        }
         if(is_tensor() && m_var_is_init) {
             clone.m_value = m_value.clone();
         }
@@ -1025,6 +1034,8 @@ Obj::Obj(Context *ctx, const TermPtr term, bool as_value, Obj * local_vars) {
     m_var_type_current = ObjType::Dictionary;
     m_func_abi = FFI_DEFAULT_ABI;
     m_dimensions = nullptr;
+    m_var_is_init = false;
+    m_is_const = false;
 
     *const_cast<TermPtr *> (&m_func_proto) = term;
 
@@ -1135,7 +1146,7 @@ void Obj::ConvertToArgs_(Obj *in, bool check_valid, Context * ctx) {
 
     ASSERT(in);
 
-    bool named = false;
+    //    bool named = false;
     bool is_ellipsis = false;
     if(check_valid && size()) {
         if(at(size() - 1).first.compare("...") == 0) {
@@ -1167,9 +1178,9 @@ void Obj::ConvertToArgs_(Obj *in, bool check_valid, Context * ctx) {
                     at(i).second->m_is_reference = (*m_func_proto)[i].second->isRef();
                     ObjType base_type = ObjType::None;
                     if(ctx) {
-                        base_type = typeFromString((*m_func_proto)[i].second->m_type_name, ctx);
-                    } else {
                         base_type = ctx->BaseTypeFromString((*m_func_proto)[i].second->m_type_name);
+                    } else {
+                        base_type = typeFromString((*m_func_proto)[i].second->m_type_name, ctx);
                     }
                     ObjType limit_type = (*in)[i].second->getTypeAsLimit();
                     if(!canCast(limit_type, base_type)) {
@@ -1186,7 +1197,7 @@ void Obj::ConvertToArgs_(Obj *in, bool check_valid, Context * ctx) {
                 push_back(in->at(i));
             }
         } else {
-            named = true;
+            //            named = true;
             auto found = find(in->name(i));
             if(found != end()) {
                 if(check_valid && (*found).second && (*found).second->getType() != (*in)[i].second->getType() && (*found).second->getType() != ObjType::None) {
@@ -1221,16 +1232,16 @@ done:
 }
 
 void Obj::CheckArgsValid() const {
-    bool named = false;
-    for (int i = 0; i < Variable::size(); i++) {
-        //        if(!at(i).second) {
-        //
-        //            LOG_RUNTIME("Argument %d '%s' missed!", (int) i + 1, at(i).first.c_str());
-        //        }
-    }
-    //    if(!CheckArgs_()) {
-    //        LOG_RUNTIME("Fail arguments!");
+    //    bool named = false;
+    //    for (int i = 0; i < Variable::size(); i++) {
+    //        //        if(!at(i).second) {
+    //        //
+    //        //            LOG_RUNTIME("Argument %d '%s' missed!", (int) i + 1, at(i).first.c_str());
+    //        //        }
     //    }
+    //    //    if(!CheckArgs_()) {
+    //    //        LOG_RUNTIME("Fail arguments!");
+    //    //    }
 }
 
 /*
@@ -1417,7 +1428,7 @@ bool Obj::op_class_test(const char *name, Context * ctx) const {
     }
 
     ObjType check_type = m_var_type_current;
-    if(m_var_type_current == ObjType::Type || !m_var_is_init && m_var_type_current == ObjType::None) {
+    if(m_var_type_current == ObjType::Type || (!m_var_is_init && m_var_type_current == ObjType::None)) {
         check_type = m_var_type_fixed;
     }
 
@@ -2720,14 +2731,14 @@ ObjPtr Obj::ConstructorSimpleType_(const Context *ctx, Obj & args) {
                     LOG_RUNTIME("Object has no dimensions!");
                 }
                 int64_t full_size = 1;
-                for (int i = 0; i < dims.size(); i++) {
-                    full_size *= dims[i];
+                for (int j = 0; j < dims.size(); j++) {
+                    full_size *= dims[j];
                 }
                 if(full_size <= 0) {
                     LOG_RUNTIME("Items count error for all dimensions!");
                 }
 
-                for (int64_t i = result->size(); i < full_size; i++) {
+                for (int64_t j = result->size(); j < full_size; j++) {
                     result->op_concat_(prev, ConcatMode::Append);
                 }
 

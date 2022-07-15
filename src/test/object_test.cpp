@@ -15,7 +15,6 @@
 #include <builtin.h>
 
 
-using namespace std;
 using namespace newlang;
 
 TEST(ObjTest, Empty) {

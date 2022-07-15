@@ -259,10 +259,10 @@ ${OBJECTDIR}/variable.o: variable.cpp pch.h.gch
 	@echo Выполнение шага пользовательского сборки
 	
 
-${OBJECTDIR}/version.o: version.c
+${OBJECTDIR}/version.o: version.cpp
 	${MKDIR} -p ${OBJECTDIR}
 	${RM} "$@.d"
-	$(COMPILE.c) -g -s -DDEBUG -DLOG_LEVEL_NORMAL=LOG_LEVEL_DUMP -DUNITTEST -I.. -I../contrib/googletest/googletest -I../contrib/googletest/googletest/include -I/usr/share/mingw-w64/include/ -std=c11 -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/version.o version.c
+	$(COMPILE.cc) -g -DDEBUG -DLOG_LEVEL_NORMAL=LOG_LEVEL_DEBUG -DPDC_WIDE -DUNITTEST -I.. -I../contrib/googletest/googletest -I../contrib/googletest/googletest/include -I../contrib/Lyra/include -I../contrib/libtorch-win/include/torch/csrc/api/include -I../contrib/libtorch-win/include -I../contrib/tensorboard_logger/include -I/usr/share/mingw-w64/include/ -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/version.o version.cpp
 
 : warning_pop.h parser.yy.cpp location.hh
 	@echo Выполнение шага пользовательского сборки

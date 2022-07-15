@@ -1392,19 +1392,18 @@ TEST_F(ParserTest, Comment6) {
     ASSERT_FALSE(ast->size());
 }
 
-
 TEST_F(ParserTest, CommentIncluded) {
-//    const char *str = "/* !!!!!!! \n"
-//            "@print(\"Привет, мир!\\n\");\n*/";
-//    "# @print(\"Привет, мир!\\n\");\n";
-//    ASSERT_TRUE(Parse(str));
+    //    const char *str = "/* !!!!!!! \n"
+    //            "@print(\"Привет, мир!\\n\");\n*/";
+    //    "# @print(\"Привет, мир!\\n\");\n";
+    //    ASSERT_TRUE(Parse(str));
 
     const char *str2 = "/* /* /* /* term();\n"
             "print1(str=\"\") ::= term();\n"
             "print2(str=\"\") ::= term();\n\n */ "
             "print3( */ str=\"\") ::= term();\n\n\n"
-            "ddd  */  ";
-    "# @print(\"Привет, мир!\\n\");\n";
+            "ddd  */  "
+            "# @print(\"Привет, мир!\\n\");\n";
     ASSERT_TRUE(Parse(str2));
 }
 

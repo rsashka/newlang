@@ -6,6 +6,10 @@
 
 using namespace newlang;
 
+//LLVMBuilderRef RunTime::m_llvm_builder = nullptr;
+//LLVMModuleRef RunTime::m_llvm_module = nullptr;
+//LLVMExecutionEngineRef RunTime::m_llvm_engine = nullptr;
+
 TermPtr CompileInfo::isFunction(TermPtr term) {
     ASSERT(term);
     if(term) {
@@ -401,82 +405,82 @@ std::string newlang::MangleName(const char * name) {
 
 bool NewLang::MakeFunctionCpp(CompileInfo &ci, std::string func_name, TermPtr &func_define, std::ostream &out) {
     LOG_RUNTIME("MakeFunctionCpp Not implemeneted!");
-//    if(!func_define->IsFunction()) {
-//        LOG_RUNTIME("No function name");
-//    }
-//    if(!func_define->Right()) {
-//        LOG_RUNTIME("No function body");
-//    }
-//
-//    std::string text = func_define->toString();
-//    text = std::regex_replace(text, std::regex("\""), "\\\"");
-//    text = std::regex_replace(text, std::regex("\n"), "\\n");
-//    text = std::regex_replace(text, std::regex("\t"), "\\t");
-//    text = std::regex_replace(text, std::regex("\r"), "\\r");
-//    text = std::regex_replace(text, std::regex("\b"), "\\b");
-//    text = std::regex_replace(text, std::regex("\f"), "\\f");
-//    out << "const char * " << MangleName(func_define->Left()->GetFullName().c_str()) << "_text";
-//    out << "=\"" << text << "\";\n";
-//
-//    out << "const ObjPtr " << MangleName(func_define->Left()->GetFullName().c_str()) << "_arguments";
-//    out << "=Obj::CreateDict(Obj::ArgNull(\"self\")";
-//    if(func_define->Left()->size()) {
-//        for (size_t i = 0; i < func_define->Left()->size(); i++) {
-//            out << ", ";
-//            std::string var_name;
-//            if(func_define->Left()->name(i).empty()) {
-//                var_name = func_define->Left()->at(i).second->GetFullName();
-//                out << "Obj::ArgNull(";
-//
-//            } else {
-//                out << "Obj::Arg(";
-//                var_name = func_define->Left()->name(i);
-//                std::string impl;
-//                GetImpl(ci, func_define->Left()->at(i).second, impl);
-//                out << impl;
-//                out << ", ";
-//            }
-//            out << "\"" << var_name << "\")";
-//        }
-//    }
-//    out << ");";
-//    out << " // Default function args \n";
-//
-//
-//    WriteFunctionName_(func_define, out);
-//    out << " {\n";
-//
-//
-//    // Аргументы функции с локальным доступом по имени или индексу
-//    if(func_define->Left()->size()) {
-//        for (size_t i = 0; i < func_define->Left()->size(); i++) {
-//            std::string var_name;
-//            if(func_define->Left()->name(i).empty()) {
-//                var_name = func_define->Left()->at(i).second->GetFullName();
-//            } else {
-//                var_name = func_define->Left()->name(i);
-//            }
-//            ci.arguments.insert(std::pair<std::string, TermPtr>(var_name, func_define->Left()));
-//        }
-//    }
-//
-//    std::string body;
-//    if(func_define->GetTokenID() == TermID::SIMPLE) {
-//        body = WriteSimpleBody_(ci, func_define);
-//    } else {
-//        body = MakeFunctionBodyCpp(ci, func_define->Right());
-//    }
-//
-//    out << body;
-//
-//    // Проверка типа возвращаемого значения из функции
-//    NL_TYPECHECK(func_define->Left(), func_define->Left()->m_type_name, ci.last_type);
-//
-//    out << "}\n";
-//
-//    ci.arguments.clear();
-//
-//    return true;
+    //    if(!func_define->IsFunction()) {
+    //        LOG_RUNTIME("No function name");
+    //    }
+    //    if(!func_define->Right()) {
+    //        LOG_RUNTIME("No function body");
+    //    }
+    //
+    //    std::string text = func_define->toString();
+    //    text = std::regex_replace(text, std::regex("\""), "\\\"");
+    //    text = std::regex_replace(text, std::regex("\n"), "\\n");
+    //    text = std::regex_replace(text, std::regex("\t"), "\\t");
+    //    text = std::regex_replace(text, std::regex("\r"), "\\r");
+    //    text = std::regex_replace(text, std::regex("\b"), "\\b");
+    //    text = std::regex_replace(text, std::regex("\f"), "\\f");
+    //    out << "const char * " << MangleName(func_define->Left()->GetFullName().c_str()) << "_text";
+    //    out << "=\"" << text << "\";\n";
+    //
+    //    out << "const ObjPtr " << MangleName(func_define->Left()->GetFullName().c_str()) << "_arguments";
+    //    out << "=Obj::CreateDict(Obj::ArgNull(\"self\")";
+    //    if(func_define->Left()->size()) {
+    //        for (size_t i = 0; i < func_define->Left()->size(); i++) {
+    //            out << ", ";
+    //            std::string var_name;
+    //            if(func_define->Left()->name(i).empty()) {
+    //                var_name = func_define->Left()->at(i).second->GetFullName();
+    //                out << "Obj::ArgNull(";
+    //
+    //            } else {
+    //                out << "Obj::Arg(";
+    //                var_name = func_define->Left()->name(i);
+    //                std::string impl;
+    //                GetImpl(ci, func_define->Left()->at(i).second, impl);
+    //                out << impl;
+    //                out << ", ";
+    //            }
+    //            out << "\"" << var_name << "\")";
+    //        }
+    //    }
+    //    out << ");";
+    //    out << " // Default function args \n";
+    //
+    //
+    //    WriteFunctionName_(func_define, out);
+    //    out << " {\n";
+    //
+    //
+    //    // Аргументы функции с локальным доступом по имени или индексу
+    //    if(func_define->Left()->size()) {
+    //        for (size_t i = 0; i < func_define->Left()->size(); i++) {
+    //            std::string var_name;
+    //            if(func_define->Left()->name(i).empty()) {
+    //                var_name = func_define->Left()->at(i).second->GetFullName();
+    //            } else {
+    //                var_name = func_define->Left()->name(i);
+    //            }
+    //            ci.arguments.insert(std::pair<std::string, TermPtr>(var_name, func_define->Left()));
+    //        }
+    //    }
+    //
+    //    std::string body;
+    //    if(func_define->GetTokenID() == TermID::SIMPLE) {
+    //        body = WriteSimpleBody_(ci, func_define);
+    //    } else {
+    //        body = MakeFunctionBodyCpp(ci, func_define->Right());
+    //    }
+    //
+    //    out << body;
+    //
+    //    // Проверка типа возвращаемого значения из функции
+    //    NL_TYPECHECK(func_define->Left(), func_define->Left()->m_type_name, ci.last_type);
+    //
+    //    out << "}\n";
+    //
+    //    ci.arguments.clear();
+    //
+    //    return true;
 
 }
 
@@ -729,48 +733,48 @@ bool NewLang::MakeCppFile(TermPtr ast, std::ostream &out, const char * source, C
 }
 
 bool NewLang::Execute(const char *exec, std::string *out, int *exit_code) {
-//    int status;
-//    pid_t pid;
-//
-//    int mypipe[2];
-//    pipe(mypipe);
-//
-//    pid = fork();
-//    if(pid < 0) {
-//        LOG_ERROR("Fork fail");
-//        return false;
-//    } else if(!pid) {
-//        close(mypipe[0]); /* close unused in */
-//        dup2(mypipe[1], 1); /* stdout to pipe out */
-//
-//        execl("/bin/bash", "bash", "-c", exec, NULL);
-//
-//        close(mypipe[1]);
-//        _exit(EXIT_SUCCESS);
-//    }
-//
-//    pid = wait(&status);
-//
-//    /* parent process */
-//    close(mypipe[1]); /* close unused out */
-//
-//    char buf[1024] = "";
-//    ssize_t nbytes;
-//    /* read from pipe in */
-//    while((nbytes = read(mypipe[0], buf, sizeof (buf))) > 0) {
-//        if(out) {
-//            out->append(buf, nbytes);
-//        }
-//    }
-//    close(mypipe[0]);
-//
-//    if(WIFEXITED(status)) {
-//        if(exit_code) {
-//
-//            *exit_code = WEXITSTATUS(status);
-//        }
-//        return true;
-//    }
+    //    int status;
+    //    pid_t pid;
+    //
+    //    int mypipe[2];
+    //    pipe(mypipe);
+    //
+    //    pid = fork();
+    //    if(pid < 0) {
+    //        LOG_ERROR("Fork fail");
+    //        return false;
+    //    } else if(!pid) {
+    //        close(mypipe[0]); /* close unused in */
+    //        dup2(mypipe[1], 1); /* stdout to pipe out */
+    //
+    //        execl("/bin/bash", "bash", "-c", exec, NULL);
+    //
+    //        close(mypipe[1]);
+    //        _exit(EXIT_SUCCESS);
+    //    }
+    //
+    //    pid = wait(&status);
+    //
+    //    /* parent process */
+    //    close(mypipe[1]); /* close unused out */
+    //
+    //    char buf[1024] = "";
+    //    ssize_t nbytes;
+    //    /* read from pipe in */
+    //    while((nbytes = read(mypipe[0], buf, sizeof (buf))) > 0) {
+    //        if(out) {
+    //            out->append(buf, nbytes);
+    //        }
+    //    }
+    //    close(mypipe[0]);
+    //
+    //    if(WIFEXITED(status)) {
+    //        if(exit_code) {
+    //
+    //            *exit_code = WEXITSTATUS(status);
+    //        }
+    //        return true;
+    //    }
     return false;
 }
 
@@ -1251,63 +1255,63 @@ NewLang::NewLang(RuntimePtr rt) : m_runtime(rt) {
 
 bool RunTime::LoadModule(const char *name_str, bool init, Context *ctx, const char *module_name) {
     ASSERT(!"Not impelmented");
-//    std::string name(module_name ? module_name : name_str);
-//    try {
-//        m_modules.insert(std::pair<std::string, Module *>(name, new Module(name_str)));
-//        void * handle = m_modules[name]->GetHandle();
-//
-//        const size_t * func_list_count = static_cast<const size_t *> (dlsym(handle, NEWLANG_PREFIX "_func_list_count"));
-//        const char ** func_list = static_cast<const char **> (dlsym(handle, NEWLANG_PREFIX "_func_list"));
-//        m_modules[name]->m_source = static_cast<const char **> (dlsym(handle, NEWLANG_PREFIX "_module_source"));
-//        m_modules[name]->m_main = reinterpret_cast<FunctionType*> (dlsym(handle, NEWLANG_PREFIX "_main_module_func"));
-//
-//        //@todo INIT MODULE
-//
-//        ObjPtr func;
-//        if(func_list_count && func_list) {
-//            TermPtr proto;
-//            Parser parser(proto);
-//            for (size_t i = 0; i < (*func_list_count); i++) {
-//                LOG_DEBUG("Load '%s' form module '%s'.", func_list[i], name_str);
-//
-//                std::string arg_name = NEWLANG_PREFIX "_";
-//                arg_name += func_list[i];
-//                arg_name += "_text";
-//
-//                const char ** func_proto = static_cast<const char **> (dlsym(handle, arg_name.c_str()));
-//                parser.Parse(*func_proto);
-//                ObjType type;
-//                switch(proto->getTermID()) {
-//                    case TermID::SIMPLE:
-//                    case TermID::PUREFUNC:
-//                        type = ObjType::PUREFUNC;
-//                        break;
-//                    case TermID::FUNCTION:
-//                        type = ObjType::FUNCTION;
-//                        break;
-//                    default:
-//                        LOG_RUNTIME("Function type '%s' unknown '%s'", newlang::toString(proto->getTermID()), proto->toString().c_str());
-//                }
-//                func = Obj::CreateFunc(ctx, proto->Left(), type, func_list[i]);
-//                func->m_func_ptr = reinterpret_cast<void *> (dlsym(handle, MangleName(func_list[i]).c_str()));
-//                func->m_func_source = proto;
-//
-//                //@todo call init module                
-//                if(!(func->m_func_ptr && ctx->RegisterObject(func))) {
-//                    LOG_ERROR("Fail load '%s' form module '%s'.", func_list[i], name_str);
-//                } else {
-//                    m_modules[name]->Funcs()[func_list[i]] = func;
-//                }
-//            }
-//
-//            return true;
-//        }
-//        LOG_WARNING("In module '%s' functions not found!", name_str);
-//        return true;
-//    } catch (std::runtime_error &e) {
-//
-//        LOG_ERROR("%s", e.what());
-//    }
+    //    std::string name(module_name ? module_name : name_str);
+    //    try {
+    //        m_modules.insert(std::pair<std::string, Module *>(name, new Module(name_str)));
+    //        void * handle = m_modules[name]->GetHandle();
+    //
+    //        const size_t * func_list_count = static_cast<const size_t *> (dlsym(handle, NEWLANG_PREFIX "_func_list_count"));
+    //        const char ** func_list = static_cast<const char **> (dlsym(handle, NEWLANG_PREFIX "_func_list"));
+    //        m_modules[name]->m_source = static_cast<const char **> (dlsym(handle, NEWLANG_PREFIX "_module_source"));
+    //        m_modules[name]->m_main = reinterpret_cast<FunctionType*> (dlsym(handle, NEWLANG_PREFIX "_main_module_func"));
+    //
+    //        //@todo INIT MODULE
+    //
+    //        ObjPtr func;
+    //        if(func_list_count && func_list) {
+    //            TermPtr proto;
+    //            Parser parser(proto);
+    //            for (size_t i = 0; i < (*func_list_count); i++) {
+    //                LOG_DEBUG("Load '%s' form module '%s'.", func_list[i], name_str);
+    //
+    //                std::string arg_name = NEWLANG_PREFIX "_";
+    //                arg_name += func_list[i];
+    //                arg_name += "_text";
+    //
+    //                const char ** func_proto = static_cast<const char **> (dlsym(handle, arg_name.c_str()));
+    //                parser.Parse(*func_proto);
+    //                ObjType type;
+    //                switch(proto->getTermID()) {
+    //                    case TermID::SIMPLE:
+    //                    case TermID::PUREFUNC:
+    //                        type = ObjType::PUREFUNC;
+    //                        break;
+    //                    case TermID::FUNCTION:
+    //                        type = ObjType::FUNCTION;
+    //                        break;
+    //                    default:
+    //                        LOG_RUNTIME("Function type '%s' unknown '%s'", newlang::toString(proto->getTermID()), proto->toString().c_str());
+    //                }
+    //                func = Obj::CreateFunc(ctx, proto->Left(), type, func_list[i]);
+    //                func->m_func_ptr = reinterpret_cast<void *> (dlsym(handle, MangleName(func_list[i]).c_str()));
+    //                func->m_func_source = proto;
+    //
+    //                //@todo call init module                
+    //                if(!(func->m_func_ptr && ctx->RegisterObject(func))) {
+    //                    LOG_ERROR("Fail load '%s' form module '%s'.", func_list[i], name_str);
+    //                } else {
+    //                    m_modules[name]->Funcs()[func_list[i]] = func;
+    //                }
+    //            }
+    //
+    //            return true;
+    //        }
+    //        LOG_WARNING("In module '%s' functions not found!", name_str);
+    //        return true;
+    //    } catch (std::runtime_error &e) {
+    //
+    //        LOG_ERROR("%s", e.what());
+    //    }
     return false;
 }
 
@@ -1421,7 +1425,7 @@ ObjPtr RunTime::ExecModule(const char *mod, const char *output, bool cached, Con
         return m_modules[output]->Main(ctx, args);
     }*/
     LOG_RUNTIME("Fail compile module '%s' form file '%s'.", output, mod);
-    return nullptr; 
+    return nullptr;
 }
 
 void NewLang::ReplaceSourceVariable(CompileInfo &ci, size_t count, std::string &body) {
@@ -1537,16 +1541,16 @@ std::string NewLang::GetImpl(CompileInfo &ci, TermPtr term, std::string &output)
             output += result;
             return result;
 
-//        case TermID::FIELD:
-//            ASSERT(!term->getName().empty() || !term->getText().empty());
-//            ASSERT(!term->Right());
-//
-//            if(!ci.m_builtin_direct->CheckDirect(ci, term, output)) {
-//                output.insert(0, "(*");
-//                output += ")[\"" + term->getText() + "\"]";
-//            }
-//            result = output;
-//            return result;
+            //        case TermID::FIELD:
+            //            ASSERT(!term->getName().empty() || !term->getText().empty());
+            //            ASSERT(!term->Right());
+            //
+            //            if(!ci.m_builtin_direct->CheckDirect(ci, term, output)) {
+            //                output.insert(0, "(*");
+            //                output += ")[\"" + term->getText() + "\"]";
+            //            }
+            //            result = output;
+            //            return result;
 
         case TermID::SOURCE:
             temp = term->getText();
@@ -1555,7 +1559,7 @@ std::string NewLang::GetImpl(CompileInfo &ci, TermPtr term, std::string &output)
             return "";
 
         case TermID::CALL:
-            if(proto = ci.isArgument(term)) {
+            if((proto = ci.isArgument(term))) {
                 result = "in[\"" + MakeName(term->GetFullName()) + "\"]->Call(";
                 result += MakeCppFileCallArgs(ci, term, proto);
                 result += ")";
@@ -1567,7 +1571,7 @@ std::string NewLang::GetImpl(CompileInfo &ci, TermPtr term, std::string &output)
                     result += ", " + temp;
                 }
                 result += ")";
-            } else if(proto = ci.isFunction(term)) {
+            } else if((proto = ci.isFunction(term))) {
                 //Непосредственный вызов - разрешение имени во время компиляции
                 result = MakeLocalName(term->getText().c_str()) + "(ctx, ";
                 result += "Obj::CreateDict(Obj::Arg()";
