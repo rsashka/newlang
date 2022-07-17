@@ -36,7 +36,6 @@ OBJECTDIR=${CND_BUILDDIR}/${CND_CONF}/${CND_PLATFORM}
 # Object Files
 OBJECTFILES= \
 	${OBJECTDIR}/_ext/1e501df/gtest-all.o \
-	${OBJECTDIR}/_ext/1e501df/gtest_main.o \
 	${OBJECTDIR}/_ext/e16507f5/logger.o \
 	${OBJECTDIR}/builtin.o \
 	${OBJECTDIR}/context.o \
@@ -90,11 +89,6 @@ ${OBJECTDIR}/_ext/1e501df/gtest-all.o: ../contrib/googletest/googletest/src/gtes
 	${MKDIR} -p ${OBJECTDIR}/_ext/1e501df
 	${RM} "$@.d"
 	$(COMPILE.cc) -g -DDEBUG -DLOG_LEVEL_NORMAL=LOG_LEVEL_DEBUG -DPDC_WIDE -DUNITTEST -I.. -I../contrib/googletest/googletest -I../contrib/googletest/googletest/include -I../contrib/Lyra/include -I../contrib/libtorch/include/torch/csrc/api/include -I../contrib/libtorch/include -I../contrib/tensorboard_logger/include -I/usr/lib/llvm-13/include -std=c++14 -Wno-error -Wno-all -Wno-extra -Wno-ctor-dtor-privacy -Wno-undef -Wno-sign-compare -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/_ext/1e501df/gtest-all.o ../contrib/googletest/googletest/src/gtest-all.cc
-
-${OBJECTDIR}/_ext/1e501df/gtest_main.o: ../contrib/googletest/googletest/src/gtest_main.cc
-	${MKDIR} -p ${OBJECTDIR}/_ext/1e501df
-	${RM} "$@.d"
-	$(COMPILE.cc) -g -DDEBUG -DLOG_LEVEL_NORMAL=LOG_LEVEL_DEBUG -DPDC_WIDE -DUNITTEST -I.. -I../contrib/googletest/googletest -I../contrib/googletest/googletest/include -I../contrib/Lyra/include -I../contrib/libtorch/include/torch/csrc/api/include -I../contrib/libtorch/include -I../contrib/tensorboard_logger/include -I/usr/lib/llvm-13/include -std=c++14 -Wno-error -Wno-all -Wno-extra -Wno-ctor-dtor-privacy -Wno-undef -Wno-sign-compare -Wno-conversion -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/_ext/1e501df/gtest_main.o ../contrib/googletest/googletest/src/gtest_main.cc
 
 ${OBJECTDIR}/_ext/e16507f5/logger.o: ../contrib/logger/logger.cpp
 	${MKDIR} -p ${OBJECTDIR}/_ext/e16507f5

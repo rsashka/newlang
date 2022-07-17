@@ -144,7 +144,7 @@
  * 
  * # Инициализация для функции  demo
  * @::var = _;
- * @print := NewLang(import= «printf(format:Format, ...):Int» );
+ * @print := NewLang(import= «printf(format:FmtChar, ...):Int» );
  * --;
  * 
  * %{   std::string demo(const char *arg) {; $var = arg;  %}

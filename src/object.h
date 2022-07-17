@@ -282,9 +282,8 @@ namespace newlang {
         //    constexpr static const char * BUILDIN_BASE = "__class_base__";
         //    constexpr static const char * BUILDIN_CLASS = "__class_name__";
         //    constexpr static const char * BUILDIN_NAMESPACE = "__namespace__";
-        
+
         typedef Variable::PairType PairType;
-        
 
         Obj(ObjType type = ObjType::None, const char *var_name = nullptr, TermPtr func_proto = nullptr, ObjType fixed = ObjType::None, bool init = false) :
         m_var_type_current(type), m_var_name(var_name ? var_name : ""), m_func_proto(func_proto) {
@@ -295,7 +294,7 @@ namespace newlang {
             m_dimensions = nullptr;
             m_value = torch::empty({0}, isSimpleType(type) ? toTorchType(type) : at::ScalarType::Undefined);
             m_is_reference = false;
-            m_func_abi = FFI_DEFAULT_ABI;
+            //            m_func_abi = FFI_DEFAULT_ABI;
             m_var_type_fixed = fixed;
             m_var_is_init = init;
             m_is_const = false;
@@ -658,9 +657,9 @@ namespace newlang {
             return Variable::find(name);
         }
 
-//        Obj::const_iterator find(const std::string_view name) const {
-//            return Variable::find(name);
-//        }
+        //        Obj::const_iterator find(const std::string_view name) const {
+        //            return Variable::find(name);
+        //        }
 
         Obj::iterator begin() {
             return Variable::begin();
@@ -1321,6 +1320,44 @@ namespace newlang {
                 }
                 return true;
             }
+        }
+
+        LLVMGenericValueRef GetGenericValueRef(LLVMTypeRef type) {
+            if (is_integer() || is_bool_type()) {
+                return LLVMCreateGenericValueOfInt(type, GetValueAsInteger(), true);
+            } else if (is_floating()) {
+                return LLVMCreateGenericValueOfFloat(type, GetValueAsNumber());
+            } else if (getType() == ObjType::StrChar || getType() == ObjType::FmtChar) {
+                return LLVMCreateGenericValueOfPointer((void *) m_str.c_str());
+            } else if (getType() == ObjType::StrWide) {
+                return LLVMCreateGenericValueOfPointer((void *) m_wstr.c_str());
+            } else if (getType() == ObjType::Pointer) {
+                return LLVMCreateGenericValueOfPointer(m_func_ptr);
+            }
+            LOG_RUNTIME("Not support LLVM type '%s'", newlang::toString(m_var_type_current));
+        }
+
+        static ObjPtr CreateFromGenericValue(ObjType type, LLVMGenericValueRef ref, LLVMTypeRef llvm_type) {
+            if (type == ObjType::None) {
+                return Obj::CreateNone();
+            } else if (isIntegralType(type, true)) {
+                int64_t value = LLVMGenericValueToInt(ref, true);
+                unsigned width = LLVMGenericValueIntWidth(ref);
+                return Obj::CreateValue(value, type);
+            } else if (isFloatingType(type)) {
+                return Obj::CreateValue((double) LLVMGenericValueToFloat(llvm_type, ref), type);
+            } else if (type == ObjType::StrChar) {
+                return Obj::CreateString(std::string((const char *) LLVMGenericValueToPointer(ref)));
+            } else if (type == ObjType::StrWide) {
+                return Obj::CreateString(std::wstring((const wchar_t *)LLVMGenericValueToPointer(ref)));
+            } else if (type == ObjType::Pointer) {
+
+                ObjPtr result = Obj::CreateType(type, ObjType::None, true);
+                result->m_func_ptr = LLVMGenericValueToPointer(ref);
+
+                return result;
+            }
+            LOG_RUNTIME("Create to type '%s' form LLVM type not implemented!", newlang::toString(type));
         }
 
         at::Scalar toTorchScalar() {
@@ -2031,7 +2068,7 @@ namespace newlang {
         std::string m_func_mangle_name;
         std::string m_module_name;
         void *m_func_ptr;
-        ffi_abi m_func_abi;
+        //        ffi_abi m_func_abi;
         torch::Tensor m_value;
         std::shared_ptr<Fraction> m_fraction;
         std::shared_ptr< Iterator<Obj> > m_iterator;
@@ -2039,13 +2076,10 @@ namespace newlang {
         TermPtr m_block_source;
         bool m_check_args; //< Проверять аргументы на корректность (для всех видов функций) @ref MakeArgs
 
-        //    Context *m_ctx;
-
-
         //    SCOPE(protected) :
         bool m_is_const; //< Признак константы (по умолчанию изменения разрешено)
         bool m_is_reference; //< Признак ссылки на объект (mutable)
-        std::shared_ptr<std::string> m_help;
+        DocPtr m_help;
 
 
     };

@@ -41,6 +41,17 @@ TEST(Compiler, MangleName) {
     EXPECT_STREQ("newlang_maks", MangleName("макс").c_str()) << MangleName("макс");
 }
 
+TEST(LLVM, Symbols) {
+
+    auto rt = RunTime::Init();
+
+
+    EXPECT_TRUE(LLVMSearchForAddressOfSymbol("printf"));
+    EXPECT_TRUE(LLVMSearchForAddressOfSymbol("fopen"));
+
+}
+
+
 // TEST(NewLang, Simple) {
 //     TermPtr context;
 //     Parser parser(context);
@@ -138,7 +149,7 @@ bool str_cmp_strart(const char *base_str, const char *cmp_str) {
     std::string base(base_str);
     std::string cmp(cmp_str);
     for (size_t i = 0; i < base.size() && i < cmp.size(); i++) {
-        if (base[i] != cmp[i]) {
+        if(base[i] != cmp[i]) {
             return false;
         }
     }
@@ -576,10 +587,10 @@ TEST(Compiler, DISABLED_FuncsTypes) {
     ASSERT_TRUE(ctx.m_runtime->LoadModule("call_types.temp.nlm", false, &ctx));
 
     // Переполнение байтовой переменной $res во время выполнения последнего оператора "+="
-    Obj args;
-    ASSERT_TRUE(ctx.m_runtime->m_modules["temp/call_types.temp.nlm"]);
-    ASSERT_NO_THROW(
-            ctx.m_runtime->m_modules["temp/call_types.temp.nlm"]->Main(&ctx, args));
+    //    Obj args;
+    //    ASSERT_TRUE(ctx.m_runtime->m_modules["temp/call_types.temp.nlm"]);
+    //    ASSERT_NO_THROW(
+    //            ctx.m_runtime->m_modules["temp/call_types.temp.nlm"]->Main(&ctx, args));
     //@todo Контроль переполнения при операциях для типизированных переменных
     //????????????????
     //@todo Такой же как и для остальных операций

@@ -36,7 +36,6 @@ OBJECTDIR=${CND_BUILDDIR}/${CND_CONF}/${CND_PLATFORM}
 # Object Files
 OBJECTFILES= \
 	${OBJECTDIR}/_ext/1e501df/gtest-all.o \
-	${OBJECTDIR}/_ext/1e501df/gtest_main.o \
 	${OBJECTDIR}/_ext/e16507f5/logger.o \
 	${OBJECTDIR}/builtin.o \
 	${OBJECTDIR}/context.o \
@@ -83,17 +82,12 @@ LDLIBSOPTIONS=-L../contrib/libtorch/lib -L/usr/lib/x86_64-linux-gnu -Wl,-rpath,'
 
 ../output/nlc_unit_test: ${OBJECTFILES}
 	${MKDIR} -p ../output
-	${LINK.cc} -o ../output/nlc_unit_test ${OBJECTFILES} ${LDLIBSOPTIONS} `llvm-config-13 --libs --ldflags` -stdlib=libstdc++ -fuse-ld=lld-13 -g
+	${LINK.cc} -o ../output/nlc_unit_test ${OBJECTFILES} ${LDLIBSOPTIONS} `llvm-config-13 --libs --ldflags` -fuse-ld=lld-13 -g
 
 ${OBJECTDIR}/_ext/1e501df/gtest-all.o: ../contrib/googletest/googletest/src/gtest-all.cc
 	${MKDIR} -p ${OBJECTDIR}/_ext/1e501df
 	${RM} "$@.d"
 	$(COMPILE.cc) -g -DDEBUG -DLOG_LEVEL_NORMAL=LOG_LEVEL_DEBUG -DPDC_WIDE -DUNITTEST -I. -I.. -I/usr/lib/llvm-13/lib/clang/13.0.1/include -I/usr/include/llvm-c-13 -I/usr/include/x86_64-linux-gnu/c++/10 -I/usr/include/c++/10 -I/usr/local/include -I/usr/include -I../contrib/googletest/googletest -I../contrib/googletest/googletest/include -I../contrib/Tensorflow/bazel-bin/tensorflow/include -I../contrib/Lyra/include -I../contrib/libtorch/include/torch/csrc/api/include -I../contrib/libtorch/include -std=c++14 -Wno-undef -Wno-sign-compare -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/_ext/1e501df/gtest-all.o ../contrib/googletest/googletest/src/gtest-all.cc
-
-${OBJECTDIR}/_ext/1e501df/gtest_main.o: ../contrib/googletest/googletest/src/gtest_main.cc
-	${MKDIR} -p ${OBJECTDIR}/_ext/1e501df
-	${RM} "$@.d"
-	$(COMPILE.cc) -g -DDEBUG -DLOG_LEVEL_NORMAL=LOG_LEVEL_DEBUG -DPDC_WIDE -DUNITTEST -I. -I.. -I/usr/lib/llvm-13/lib/clang/13.0.1/include -I/usr/include/llvm-c-13 -I/usr/include/x86_64-linux-gnu/c++/10 -I/usr/include/c++/10 -I/usr/local/include -I/usr/include -I../contrib/googletest/googletest -I../contrib/googletest/googletest/include -I../contrib/Tensorflow/bazel-bin/tensorflow/include -I../contrib/Lyra/include -I../contrib/libtorch/include/torch/csrc/api/include -I../contrib/libtorch/include -std=c++14 -Wno-undef -Wno-sign-compare -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/_ext/1e501df/gtest_main.o ../contrib/googletest/googletest/src/gtest_main.cc
 
 ${OBJECTDIR}/_ext/e16507f5/logger.o: ../contrib/logger/logger.cpp
 	${MKDIR} -p ${OBJECTDIR}/_ext/e16507f5

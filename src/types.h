@@ -64,6 +64,41 @@ class Interrupt : public std::exception {
 
 void NewLangSignalHandler(int signal);
 
+
+struct Docs;
+typedef std::shared_ptr<Docs> DocPtr;
+
+struct Docs {
+    
+    static std::multimap<std::string, DocPtr> m_docs;
+    
+    std::string index;
+    std::string text;
+
+    Docs(std::string body) {
+        size_t pos = body.find("\n");
+        size_t pos2 = body.find("\n\n");
+        if (pos != std::string::npos && pos == pos2) {
+            // Индексируемый заголовок должен быть первой строкой и отделаться пустой строкой от остального текста
+            index = body.substr(0, pos);
+            text = body.substr(pos + 2);
+        } else {
+            text = body;
+        }
+    }
+
+    static DocPtr Build(std::string body) {
+        return std::make_shared<Docs>(body);
+    }
+    
+    static DocPtr Append(std::string body, const std::string func=""){
+        DocPtr result = Build(body);
+        m_docs.insert(std::pair<std::string, DocPtr>(func,result));
+        return result;
+    }
+};
+
+
 #ifdef __GNUC__
 std::string ParserMessage(std::string &buffer, int row, int col, const char *format, ...)
     __attribute__((format(printf, 4, 5)));
@@ -140,9 +175,10 @@ void ParserException(const char *msg, std::string &buffer, int row, int col);
     \
     _(StrChar, 48)          \
     _(StrWide, 49)          \
-    _(Format, 50)           \
-    _(ViewChar, 51)         \
-    _(ViewWide, 52)         \
+    _(FmtChar, 50)           \
+    _(FmtWide, 51)           \
+    _(ViewChar, 52)         \
+    _(ViewWide, 53)         \
     _(String, 55)           \
     \
     _(Iterator, 62)         \
@@ -381,7 +417,7 @@ void ParserException(const char *msg, std::string &buffer, int row, int col);
 
     inline bool isString(ObjType t) {
         return t == ObjType::StrChar || t == ObjType::StrWide || t == ObjType::ViewWide || t == ObjType::ViewWide
-                || t == ObjType::String || t == ObjType::Format;
+                || t == ObjType::String || t == ObjType::FmtChar || t == ObjType::FmtWide;
     }
 
     inline bool isPlainDataType(ObjType t) {
@@ -499,6 +535,39 @@ void ParserException(const char *msg, std::string &buffer, int row, int col);
     }
 
     ObjType typeFromString(const std::string type, Context *ctx = nullptr, bool *has_error = nullptr);
+
+    inline LLVMTypeRef toLLVMType(ObjType t, bool none_if_error = false) {
+        switch (t) {
+            case ObjType::None:
+                return LLVMVoidType();
+            case ObjType::Bool:
+                return LLVMInt1Type();
+            case ObjType::Char:
+                return LLVMInt8Type();
+            case ObjType::Short:
+                return LLVMInt16Type();
+            case ObjType::Int:
+                return LLVMInt32Type();
+            case ObjType::Long:
+            case ObjType::Integer:
+                return LLVMInt64Type();
+            case ObjType::Float:
+            case ObjType::Tensor:
+                return LLVMFloatType();
+            case ObjType::Double:
+            case ObjType::Number:
+                return LLVMDoubleType();
+
+            case ObjType::Pointer:
+            case ObjType::StrChar:
+            case ObjType::FmtChar:
+                return LLVMPointerType(LLVMInt8Type(), 0);
+            case ObjType::StrWide:
+            case ObjType::FmtWide:
+                return LLVMPointerType(LLVMInt32Type(), 0);
+        }
+        LOG_RUNTIME("Can`t convert type '%s' to LLVM type!", toString(t));
+    }
 
     /*
      * Можно ли привести один тип к другому типу с учетом размера данных

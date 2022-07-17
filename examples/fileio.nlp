@@ -2,44 +2,44 @@
 
 :File ::= :Pointer;
 
-@stdin:File ::= :Pointer("_IO_2_1_stdin_:File");
-@stdout:File ::= :Pointer("_IO_2_1_stdout_:File");
-@stderr:File ::= :Pointer("stderr:File");
+#@stdin:File ::= :Pointer("stdin:File");
+#@stdout:File ::= :Pointer("stdout:File");
+#@stderr:File ::= :Pointer("stderr:File");
 
 @fopen(filename:String, modes:String):File ::= :Pointer("fopen(filename:StrChar, modes:StrChar):File");;
 @fopen64(filename:String, modes:String):File ::= :Pointer("fopen(filename:StrChar, modes:StrChar):File");;
 
 @freopen(filename:String, modes:String):File ::= :Pointer("freopen(filename:StrChar, modes:StrChar, stream:File):File");;
-@freopen64(filename:String, modes:String):File ::= :Pointer("freopen64(filename:StrChar, modes:StrChar, stream:File):File");;
+#@freopen64(filename:String, modes:String):File ::= :Pointer("freopen64(filename:StrChar, modes:StrChar, stream:File):File");;
 
 #extern FILE *fdopen (int __fd, const char *__modes) __THROW __wur;
 
 @fclose(stream:File):Int ::= :Pointer("fclose(stream:File):Int");;
-@fcloseall():Int ::= :Pointer("fcloseall():Int");;
+#@fcloseall():Int ::= :Pointer("fcloseall():Int");;
 
 @fflush(stream:File):Int ::= :Pointer("fflush(stream:File):Int");;
-@fflush_unlocked(stream:File):Int ::= :Pointer("fflush_unlocked(stream:File):Int");;
+#@fflush_unlocked(stream:File):Int ::= :Pointer("fflush_unlocked(stream:File):Int");;
 
 @fremove(filename:String):Int ::= :Pointer("remove(filename:StrChar):Int");;
 
 @frename(old:String, new:String):Int ::= :Pointer("rename(old:StrChar, new:StrChar):Int");;
 
 @ftmpfile():File ::= :Pointer("tmpfile():File");;
-@ftmpfile64():File ::= :Pointer("tmpfile64():File");;
+#@ftmpfile64():File ::= :Pointer("tmpfile64():File");;
 
-@ftmpnam(template:String):StrChar ::= :Pointer("tmpnam(template:StrChar):StrChar");;
-@ftmpnam_r(template:String):StrChar ::= :Pointer("tmpnam(template:StrChar):StrChar");;
+#@ftmpnam(template:String):StrChar ::= :Pointer("tmpnam(template:StrChar):StrChar");;
+#@ftmpnam_r(template:String):StrChar ::= :Pointer("tmpnam(template:StrChar):StrChar");;
 
-@ftempnam(dir:String, prefix:String):StrChar ::= :Pointer("tempnam(dir:StrChar, prefix:StrChar):StrChar");;
+#@ftempnam(dir:String, prefix:String):StrChar ::= :Pointer("tempnam(dir:StrChar, prefix:StrChar):StrChar");;
 
 
 
-@fprintf(stream:File, format:Format, ...):Int ::= :Pointer("fprintf(stream:File, format:Format, ...):Int");;
-@fscanf(stream:File, format:Format, ...):Int ::= :Pointer("fscanf(stream:File, format:Format, ...):Int");;       
+@fprintf(stream:File, format:FmtChar, ...):Int ::= :Pointer("fprintf(stream:File, format:FmtChar, ...):Int");;
+@fscanf(stream:File, format:FmtChar, ...):Int ::= :Pointer("fscanf(stream:File, format:FmtChar, ...):Int");;       
         
 @fgetc(stream:File):Int ::= :Pointer("fgetc(stream:File):Int");;
 
-@fgetc_unlocked(stream:File):Int ::= :Pointer("fgetc_unlocked(stream:File):Int");;
+#@fgetc_unlocked(stream:File):Int ::= :Pointer("fgetc_unlocked(stream:File):Int");;
 
 @fungetc(c:Int, stream:File):Int ::= :Pointer("ungetc(c:Int, stream:File):Int");;
 

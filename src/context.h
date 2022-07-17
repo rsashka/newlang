@@ -144,6 +144,7 @@ namespace newlang {
             m_macros.clear();
             m_ops.clear();
             m_builtin_calls.clear();
+            Docs::m_docs.clear();
         }
 
         inline ObjPtr ExecFile(const std::string &filename, Obj *args = nullptr, bool int_catch = true) {
@@ -292,8 +293,8 @@ namespace newlang {
         static ObjPtr EvalBlockOR(Context *ctx, const TermPtr &block, Obj * local_vars);
         static ObjPtr EvalBlockXOR(Context *ctx, const TermPtr &block, Obj * local_vars);
 
-        ObjPtr CreateNative(const char *proto, const char *module = nullptr, bool lazzy = false, const char *mangle_name = nullptr, ffi_abi abi = FFI_DEFAULT_ABI);
-        ObjPtr CreateNative(TermPtr proto, const char *module = nullptr, bool lazzy = false, const char *mangle_name = nullptr, ffi_abi abi = FFI_DEFAULT_ABI);
+        ObjPtr CreateNative(const char *proto, const char *module = nullptr, bool lazzy = false, const char *mangle_name = nullptr);
+        ObjPtr CreateNative(TermPtr proto, const char *module = nullptr, bool lazzy = false, const char *mangle_name = nullptr);
         ObjPtr CreateNative(Obj args);
 
         static bool pred_compare(const std::string &find, const std::string &str) {

@@ -1318,27 +1318,27 @@ bool RunTime::LoadModule(const char *name_str, bool init, Context *ctx, const ch
 bool RunTime::UnLoadModule(Context *ctx, const char* name, bool deinit) {
     bool result = false;
     bool is_error = false;
-    auto it = m_modules.begin();
-    while(it != m_modules.end()) {
-        if(name == nullptr || it->first.compare(name) == 0) {
-
-            for (auto &elem : it->second->Funcs()) {
-                if(!ctx->RemoveObject(elem.first.c_str())) {
-                    LOG_ERROR("Fail unregister func '%s' from module '%s'.", elem.first.c_str(), it->first.c_str());
-                    is_error = true;
-                }
-            }
-            LOG_DEBUG("UnLoad module '%s'.", it->first.c_str());
-
-            //@todo call deinit module
-            delete it->second;
-            it = m_modules.erase(it);
-            result = true;
-        } else {
-
-            it++;
-        }
-    }
+//    auto it = m_modules.begin();
+//    while(it != m_modules.end()) {
+//        if(name == nullptr || it->first.compare(name) == 0) {
+//
+//            for (auto &elem : it->second->Funcs()) {
+//                if(!ctx->RemoveObject(elem.first.c_str())) {
+//                    LOG_ERROR("Fail unregister func '%s' from module '%s'.", elem.first.c_str(), it->first.c_str());
+//                    is_error = true;
+//                }
+//            }
+//            LOG_DEBUG("UnLoad module '%s'.", it->first.c_str());
+//
+//            //@todo call deinit module
+//            delete it->second;
+//            it = m_modules.erase(it);
+//            result = true;
+//        } else {
+//
+//            it++;
+//        }
+//    }
     return result && !is_error;
 }
 

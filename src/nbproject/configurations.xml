@@ -56,7 +56,6 @@
                    displayName="Файлы ресурсов"
                    projectFiles="true">
       <itemPath>../contrib/googletest/googletest/src/gtest-all.cc</itemPath>
-      <itemPath>../contrib/googletest/googletest/src/gtest_main.cc</itemPath>
       <itemPath>lexer.yy.cpp</itemPath>
       <itemPath>lexer.yy.h</itemPath>
       <itemPath>location.hh</itemPath>
@@ -162,14 +161,6 @@
             flavor2="11">
         <ccTool>
           <commandLine>-Wno-error -Wno-all -Wno-extra -Wno-ctor-dtor-privacy -Wno-undef -Wno-sign-compare</commandLine>
-        </ccTool>
-      </item>
-      <item path="../contrib/googletest/googletest/src/gtest_main.cc"
-            ex="true"
-            tool="1"
-            flavor2="11">
-        <ccTool>
-          <commandLine>-Wno-error -Wno-all -Wno-extra -Wno-ctor-dtor-privacy -Wno-undef -Wno-sign-compare -Wno-conversion</commandLine>
         </ccTool>
       </item>
       <item path="../contrib/logger/logger.cpp" ex="false" tool="1" flavor2="11">
@@ -462,14 +453,6 @@
           <commandLine>-Wno-undef -Wno-sign-compare</commandLine>
         </ccTool>
       </item>
-      <item path="../contrib/googletest/googletest/src/gtest_main.cc"
-            ex="true"
-            tool="1"
-            flavor2="11">
-        <ccTool>
-          <commandLine>-Wno-undef -Wno-sign-compare</commandLine>
-        </ccTool>
-      </item>
       <item path="../contrib/logger/logger.cpp" ex="false" tool="1" flavor2="9">
       </item>
       <item path="../contrib/logger/logger.h" ex="false" tool="3" flavor2="0">
@@ -657,11 +640,6 @@
             tool="1"
             flavor2="11">
       </item>
-      <item path="../contrib/googletest/googletest/src/gtest_main.cc"
-            ex="true"
-            tool="1"
-            flavor2="11">
-      </item>
       <item path="../contrib/logger/logger.cpp" ex="false" tool="1" flavor2="0">
       </item>
       <item path="../contrib/logger/logger.h" ex="false" tool="3" flavor2="0">
@@ -846,14 +824,6 @@
             flavor2="11">
         <ccTool>
           <commandLine>-Wno-error -Wno-all -Wno-extra -Wno-ctor-dtor-privacy -Wno-undef -Wno-sign-compare</commandLine>
-        </ccTool>
-      </item>
-      <item path="../contrib/googletest/googletest/src/gtest_main.cc"
-            ex="false"
-            tool="1"
-            flavor2="11">
-        <ccTool>
-          <commandLine>-Wno-error -Wno-all -Wno-extra -Wno-ctor-dtor-privacy -Wno-undef -Wno-sign-compare -Wno-conversion</commandLine>
         </ccTool>
       </item>
       <item path="../contrib/logger/logger.cpp" ex="false" tool="1" flavor2="11">
@@ -1137,20 +1107,12 @@
             <linkerLibLibItem>torch_cpu</linkerLibLibItem>
             <linkerLibLibItem>crypto</linkerLibLibItem>
           </linkerLibItems>
-          <commandLine>`llvm-config-13 --libs --ldflags` -stdlib=libstdc++ -fuse-ld=lld-13 -g</commandLine>
+          <commandLine>`llvm-config-13 --libs --ldflags` -fuse-ld=lld-13 -g</commandLine>
         </linkerTool>
       </compileType>
       <item path="../README.md" ex="false" tool="3" flavor2="0">
       </item>
       <item path="../contrib/googletest/googletest/src/gtest-all.cc"
-            ex="false"
-            tool="1"
-            flavor2="11">
-        <ccTool>
-          <commandLine>-Wno-undef -Wno-sign-compare</commandLine>
-        </ccTool>
-      </item>
-      <item path="../contrib/googletest/googletest/src/gtest_main.cc"
             ex="false"
             tool="1"
             flavor2="11">
@@ -1364,11 +1326,6 @@
       <item path="../README.md" ex="false" tool="3" flavor2="0">
       </item>
       <item path="../contrib/googletest/googletest/src/gtest-all.cc"
-            ex="false"
-            tool="1"
-            flavor2="11">
-      </item>
-      <item path="../contrib/googletest/googletest/src/gtest_main.cc"
             ex="false"
             tool="1"
             flavor2="11">
@@ -1611,11 +1568,6 @@
             tool="1"
             flavor2="11">
       </item>
-      <item path="../contrib/googletest/googletest/src/gtest_main.cc"
-            ex="true"
-            tool="1"
-            flavor2="11">
-      </item>
       <item path="../contrib/logger/logger.cpp" ex="false" tool="1" flavor2="11">
       </item>
       <item path="../contrib/logger/logger.h" ex="false" tool="3" flavor2="0">
@@ -1850,11 +1802,6 @@
             tool="1"
             flavor2="11">
       </item>
-      <item path="../contrib/googletest/googletest/src/gtest_main.cc"
-            ex="true"
-            tool="1"
-            flavor2="11">
-      </item>
       <item path="../contrib/logger/logger.cpp" ex="false" tool="1" flavor2="11">
       </item>
       <item path="../contrib/logger/logger.h" ex="false" tool="3" flavor2="0">
@@ -2076,14 +2023,6 @@
             flavor2="11">
         <ccTool>
           <commandLine>-Wno-error -Wno-all -Wno-extra -Wno-ctor-dtor-privacy -Wno-undef -Wno-sign-compare</commandLine>
-        </ccTool>
-      </item>
-      <item path="../contrib/googletest/googletest/src/gtest_main.cc"
-            ex="false"
-            tool="1"
-            flavor2="11">
-        <ccTool>
-          <commandLine>-Wno-error -Wno-all -Wno-extra -Wno-ctor-dtor-privacy -Wno-undef -Wno-sign-compare -Wno-conversion</commandLine>
         </ccTool>
       </item>
       <item path="../contrib/logger/logger.cpp" ex="false" tool="1" flavor2="11">
@@ -2368,14 +2307,6 @@
             flavor2="11">
         <ccTool>
           <commandLine>-Wno-error -Wno-all -Wno-extra -Wno-ctor-dtor-privacy -Wno-undef -Wno-sign-compare</commandLine>
-        </ccTool>
-      </item>
-      <item path="../contrib/googletest/googletest/src/gtest_main.cc"
-            ex="false"
-            tool="1"
-            flavor2="11">
-        <ccTool>
-          <commandLine>-Wno-error -Wno-all -Wno-extra -Wno-ctor-dtor-privacy -Wno-undef -Wno-sign-compare -Wno-conversion</commandLine>
         </ccTool>
       </item>
       <item path="../contrib/logger/logger.cpp" ex="false" tool="1" flavor2="11">

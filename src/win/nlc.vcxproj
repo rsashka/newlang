@@ -63,7 +63,7 @@
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='UnitTest|x64'" Label="Configuration">
     <ConfigurationType>Application</ConfigurationType>
     <UseDebugLibraries>true</UseDebugLibraries>
-    <PlatformToolset>ClangCL</PlatformToolset>
+    <PlatformToolset>v143</PlatformToolset>
     <CharacterSet>Unicode</CharacterSet>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" Label="Configuration">
@@ -104,10 +104,11 @@
     <TargetName>nlc_unit_test</TargetName>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='UnitTest|x64'">
-    <IncludePath>$(VC_IncludePath);$(WindowsSDK_IncludePath);..;../..;../../..;../../contrib/;../../contrib/googletest/googletest;../../contrib/googletest/googletest/include;../../contrib/Lyra/include;../../contrib/libtorch-win/include;../../contrib/libtorch-win/include/torch/csrc/api/include;../../contrib/tensorboard_logger/include;C:\msys64\usr\include;C:\Program Files\OpenSSL-Win64\include</IncludePath>
-    <LibraryPath>..\..\contrib\libffi\win64\lib;..\..\contrib\libtorch-win\lib;$(LibraryPath)</LibraryPath>
+    <IncludePath>$(VC_IncludePath);$(WindowsSDK_IncludePath);..;../..;../../..;../../contrib/;../../contrib/googletest/googletest;../../contrib/googletest/googletest/include;../../contrib/Lyra/include;../../contrib/libtorch-win/include;../../contrib/libtorch-win/include/torch/csrc/api/include;../../contrib/tensorboard_logger/include;C:\msys64\usr\include;C:\Program Files\OpenSSL-Win64\include;C:\Program Files\LLVM\include\include</IncludePath>
+    <LibraryPath>..\..\contrib\libffi\win64\lib;..\..\contrib\libtorch-win\lib;C:\Program Files\LLVM\lib\lib;$(LibraryPath)</LibraryPath>
     <OutDir>..\..\output\</OutDir>
     <TargetName>nlc_unit_test</TargetName>
+    <ExternalIncludePath>C:\Program Files\LLVM\include\include;C:\msys64\usr\include;$(ExternalIncludePath)</ExternalIncludePath>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>
@@ -192,7 +193,7 @@
     <Link>
       <SubSystem>Console</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalLibraryDirectories>%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalLibraryDirectories>C:\Program Files\LLVM\lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
       <AdditionalDependencies>Ws2_32.lib;legacy_stdio_definitions.lib;legacy_stdio_wide_specifiers.lib;C:\Program Files\OpenSSL-Win64\lib\libcrypto_static.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <IgnoreSpecificDefaultLibraries>MSVCRT</IgnoreSpecificDefaultLibraries>
     </Link>
@@ -220,11 +221,6 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="..\..\contrib\googletest\googletest\src\gtest-all.cc">
-      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">NotUsing</PrecompiledHeader>
-      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='UnitTest|x64'">NotUsing</PrecompiledHeader>
-    </ClCompile>
-    <ClCompile Include="..\..\contrib\googletest\googletest\src\gtest_main.cc">
-      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">NotUsing</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='UnitTest|x64'">NotUsing</PrecompiledHeader>
     </ClCompile>
     <ClCompile Include="..\..\contrib\logger\logger.cpp">
@@ -269,8 +265,7 @@
     <ClCompile Include="..\test\object_test.cpp" />
     <ClCompile Include="..\test\parser_test.cpp" />
     <ClCompile Include="..\variable.cpp" />
-    <ClCompile Include="..\version.c">
-      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">NotUsing</PrecompiledHeader>
+    <ClCompile Include="..\version.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='UnitTest|x64'">NotUsing</PrecompiledHeader>
     </ClCompile>
   </ItemGroup>

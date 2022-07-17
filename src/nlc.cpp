@@ -8,13 +8,20 @@
 #pragma comment(lib, "torch_cpu.lib")
 #pragma comment(lib, "c10.lib")
 
+#pragma comment(lib, "LLVMSupport.lib")
+#pragma comment(lib, "LLVM-C.lib")
+
+
 #endif
 
-#ifndef UNITTEST
+#ifdef UNITTEST
 
-int main(int argc, char** argv) {
+#include <cstdio>
+#include "gtest/gtest.h"
 
-    newlang::NLC nlc(argc, (const char **) argv);
+int main(int argc, char **argv) {
+    printf("Running main() from %s\n", __FILE__);
+    testing::InitGoogleTest(&argc, argv);
 
     //#0  __GI___libc_free (mem=0x1) at malloc.c:3102
     //#1  0x00007fffe3d0c113 in llvm::cl::Option::~Option() () from ../contrib/libtorch/lib/libtorch_cpu.so
@@ -29,12 +36,19 @@ int main(int argc, char** argv) {
     //#3  0x00007fffda743cd7 in ?? () from /lib/x86_64-linux-gnu/libLLVM-13.so.1
     //#4  0x00007fffffffdd80 in ?? ()
     //#5  0x00007ffff7fe0f6b in _dl_fini () at dl-fini.c:138
-    
+
     // При завершении приложения происходит Segmentation fault из-за двойного освобожнения памяти статической переменой
     // llvm::cl::Option::~Option() во время выгрузки динамически библиотек libLLVM или libtorch_cpu
     // Чтобы убрать этот coredump вместо нормального завершения main вызываю _exit, чтобы 
     // все остальные функции освобождения памяти не вызывались при завершении процесса.
-    
+
+    _exit(RUN_ALL_TESTS());
+}
+
+#else
+
+int main(int argc, char** argv) {
+    newlang::NLC nlc(argc, (const char **) argv);
     _exit(nlc.Run());
 }
 

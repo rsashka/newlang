@@ -26,10 +26,10 @@ using namespace newlang;
 //if invoking the linker via the clang-cl frontend), you can opt in to this behaviour by adding the lld specific option -lldmingw
 //, which enables a number of MinGW-specific behaviours in lld.
 
-extern "C" __attribute__ ((visibility("default"))) int64_t var_long; //, export_name("var_long")
+extern "C" int64_t var_long; //, export_name("var_long") __attribute__ ((visibility("default")))
 int64_t var_long = 987654321;
 
-extern "C" __attribute__ ((visibility("default"))) int64_t func_export(int64_t arg_long, uint8_t arg_byte) {
+extern "C" int64_t func_export(int64_t arg_long, uint8_t arg_byte) { // __attribute__ ((visibility("default"))) 
     return arg_long + arg_byte;
 }
 
@@ -423,8 +423,8 @@ TEST(Eval, TypesNative) {
     ASSERT_TRUE(frename);
     ASSERT_TRUE(frename->m_func_ptr);
 
-    ObjPtr fprintf = ctx.ExecStr("@fprintf(stream:File, format:Format, ...):Int ::= "
-            ":Pointer('fprintf(stream:File, format:Format, ...):Int')");
+    ObjPtr fprintf = ctx.ExecStr("@fprintf(stream:File, format:FmtChar, ...):Int ::= "
+            ":Pointer('fprintf(stream:File, format:FmtChar, ...):Int')");
     ASSERT_TRUE(fremove);
     ObjPtr fputc = ctx.ExecStr("@fputc(c:Int, stream:File):Int ::= "
             ":Pointer('fputc(c:Int, stream:File):Int')");
@@ -583,12 +583,10 @@ TEST(ExecStr, Funcs) {
 
     EXPECT_TRUE(ctx.m_runtime->GetNativeAddr("printf"));
 
-    ObjPtr p = ctx.ExecStr("printf := :Pointer('printf(format:Format, ...):Int');");
+    ObjPtr p = ctx.ExecStr("printf := :Pointer('printf(format:FmtChar, ...):Int');");
     ASSERT_TRUE(p);
-    ASSERT_STREQ("printf=printf(format:Format, ...):Int{}", p->toString().c_str());
-
-#ifndef _MSC_VER
-#pragma message WARNING("Fail native call from Windows!!!!")
+    ASSERT_TRUE(p->m_func_ptr);
+    ASSERT_STREQ("printf=printf(format:FmtChar, ...):Int{}", p->toString().c_str());
 
     typedef int (* printf_type)(const char *, ...);
 
@@ -618,7 +616,6 @@ TEST(ExecStr, Funcs) {
     ObjPtr result = ctx.ExecStr("hello('Привет, мир!\\n');");
     ASSERT_TRUE(result);
     ASSERT_STREQ("Привет, мир!\n", result->GetValueAsString().c_str());
-#endif
 }
 
 /*
@@ -1117,7 +1114,7 @@ TEST(Eval, Iterator) {
 //     * @Tim := :Human(Sex.male, parent=(Tom,));
 //     *
 //     * Brother(h1, h2) := $h1 != $h2, $h1.sex==male, $h1.parent * $h2.parent;
-//     * printf := :Native("printf(format:Format, ...):Int"); 
+//     * printf := :Native("printf(format:FmtChar, ...):Int"); 
 //     * 
 //     * h1 := $?;
 //     * [ h1 ] <<-->> {

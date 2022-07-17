@@ -43,6 +43,7 @@ std::map<std::string, Context::EvalFunction> Context::m_builtin_calls;
 std::map<std::string, ObjPtr> Context::m_types;
 std::map<std::string, Context::FuncItem> Context::m_funcs;
 Parser::MacrosStore Context::m_macros;
+std::multimap<std::string, DocPtr> Docs::m_docs;
 
 const char * Interrupt::Return = ":Return";
 const char * Interrupt::Error = ":Error";
@@ -96,7 +97,7 @@ Context::Context(RuntimePtr global) {
         VERIFY(RegisterTypeHierarchy(ObjType::String,{":Any"}));
         VERIFY(RegisterTypeHierarchy(ObjType::StrChar,{":String"}));
         VERIFY(RegisterTypeHierarchy(ObjType::StrWide,{":String"}));
-        VERIFY(RegisterTypeHierarchy(ObjType::Format,{":String"}));
+        VERIFY(RegisterTypeHierarchy(ObjType::FmtChar,{":String"}));
 
         VERIFY(RegisterTypeHierarchy(ObjType::Dictionary,{":Any"}));
         VERIFY(RegisterTypeHierarchy(ObjType::Class,{":Dictionary"}));
@@ -313,6 +314,10 @@ ObjPtr Context::eval_BLOCK(Context *ctx, const TermPtr &term, Obj *args) {
     obj->m_block_source = term;
     obj->m_var_is_init = true;
 
+    if(term->size() && term->at(0).second->IsString()) {
+        obj->m_help = Docs::Append(term->at(0).second->m_text);
+    }
+
     return obj;
 }
 
@@ -321,6 +326,10 @@ ObjPtr Context::eval_BLOCK_TRY(Context *ctx, const TermPtr &term, Obj *args) {
     ObjPtr obj = Obj::CreateType(ObjType::BLOCK_TRY);
     obj->m_block_source = term;
     obj->m_var_is_init = true;
+
+    if(term->size() && term->at(0).second->IsString()) {
+        obj->m_help = Docs::Append(term->at(0).second->m_text);
+    }
 
     return obj;
 }
@@ -1417,7 +1426,7 @@ ObjPtr Context::EvalBlockXOR(Context *ctx, const TermPtr &block, Obj * local_var
     return (xor_counter & 1) ? Obj::Yes() : Obj::No();
 }
 
-ObjPtr Context::CreateNative(const char *proto, const char *module, bool lazzy, const char *mangle_name, ffi_abi abi) {
+ObjPtr Context::CreateNative(const char *proto, const char *module, bool lazzy, const char *mangle_name) {
     TermPtr term;
     try {
         // Термин или термин + тип парсятся без ошибок
@@ -1432,19 +1441,14 @@ ObjPtr Context::CreateNative(const char *proto, const char *module, bool lazzy, 
             LOG_RUNTIME("Fail parsing prototype '%s'!", e.what());
         }
     }
-    return CreateNative(term, module, lazzy, mangle_name, abi);
+    return CreateNative(term, module, lazzy, mangle_name);
 }
 
-ObjPtr Context::CreateNative(TermPtr proto, const char *module, bool lazzy, const char *mangle_name, ffi_abi abi) {
+ObjPtr Context::CreateNative(TermPtr proto, const char *module, bool lazzy, const char *mangle_name) {
 
     NL_CHECK(proto, "Fail prototype native function!");
     NL_CHECK((module == nullptr || (module && *module == '\0')) || m_runtime,
             "You cannot load a module '%s' without access to the runtime context!", module);
-
-#ifdef _MSC_VER
-#pragma message WARNING("Fail native call from Windows!!!!")
-    return Obj::CreateNone();
-#endif    
 
     ObjPtr result;
     ObjType type = ObjType::None;
@@ -1477,7 +1481,7 @@ ObjPtr Context::CreateNative(TermPtr proto, const char *module, bool lazzy, cons
     result->m_var_type_fixed = type; // Тип определен и не может измениться в дальнейшем
 
     *const_cast<TermPtr *> (&result->m_func_proto) = proto;
-    result->m_func_abi = abi;
+//    result->m_func_abi = abi;
 
     if(mangle_name) {
         result->m_func_mangle_name = mangle_name;
@@ -1516,26 +1520,26 @@ std::string RunTime::GetLastErrorMessage() {
 }
 
 void *RunTime::GetNativeAddr(const char *name, const char *module) {
-    if(module && module[0]) {
-        if(m_modules.find(module) == m_modules.end()) {
-            LoadModule(module, false, nullptr);
-        }
-        if(m_modules.find(module) == m_modules.end()) {
-            LOG_WARNING("Fail load module '%s'!", module);
+//    if(module && module[0]) {
+//        if(m_modules.find(module) == m_modules.end()) {
+//            LoadModule(module, false, nullptr);
+//        }
+//        if(m_modules.find(module) == m_modules.end()) {
+//            LOG_WARNING("Fail load module '%s'!", module);
+//
+//            return nullptr;
+//        }
+//
+////#ifndef _MSC_VER
+//
+//        return GetDirectAddressFromLibrary(m_modules[module]->GetHandle(), name);
+////#else
+//        //return static_cast<void *> (::GetProcAddress(m_modules[module]->GetHandle(), name));
+////#endif
+//    }
 
-            return nullptr;
-        }
-
-#ifndef _MSC_VER
-
-        return GetDirectAddressFromLibrary(m_modules[module]->GetHandle(), name);
-#else
-        return static_cast<void *> (::GetProcAddress(m_modules[module]->GetHandle(), name));
-#endif
-    }
-
-#ifndef _MSC_VER
-//    ASSERT(m_llvm_engine);
+//#ifndef _MSC_VER
+    //    ASSERT(m_llvm_engine);
 
     //    LOG_DEBUG("getAddressToGlobalIfAvailable( %s ) = %ld", "var_long", m_llvm_engine->getAddressToGlobalIfAvailable("var_long"));
     //    LOG_DEBUG("getGlobalValueAddress( %s ) = %ld", "var_long", m_llvm_engine->getGlobalValueAddress("var_long"));
@@ -1561,13 +1565,13 @@ void *RunTime::GetNativeAddr(const char *name, const char *module) {
     //m_llvm_engine->getPointerToNamedFunction(name, false);
     return GetDirectAddressFromLibrary(nullptr, name);
     //    return ::dlsym(::dlopen(nullptr, RTLD_NOW | RTLD_GLOBAL), name);
-#else
-    void *result = static_cast<void *> (::GetProcAddress(GetModuleHandle(nullptr), name));
-    if(result) {
-        return result;
-    }
-    return static_cast<void *> (::GetProcAddress((HMODULE) m_msys, name));
-#endif
+//#else
+//    void *result = static_cast<void *> (::GetProcAddress(GetModuleHandle(nullptr), name));
+    //if(result) {
+      //  return result;
+//    }
+  //  return static_cast<void *> (::GetProcAddress((HMODULE) m_msys, name));
+//#endif
 }
 
 void Context::CleanUp() {
@@ -2114,7 +2118,7 @@ ObjPtr Context::CreateRVal(Context *ctx, TermPtr term, Obj * local_vars, bool in
             }
 
             args = Obj::CreateDict();
-            for (int64_t i = 0; i < term->size(); i++) {
+            for (int64_t i = 0; i < static_cast<int64_t>(term->size()); i++) {
 
 
                 if((*term)[i].second->GetTokenID() == TermID::FILLING) {

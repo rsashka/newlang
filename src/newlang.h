@@ -10,7 +10,9 @@
 #include <object.h>
 #include <context.h>
 #include <parser.h>
-//#include <contrib/cpp-jit-llvm/cpp_jit.h>
+
+
+
 
 namespace newlang {
 
@@ -39,304 +41,40 @@ namespace newlang {
         return str;
     }
 
-    class Context;
+//    class Context;
     struct CompileInfo;
 
-    class Module {
-    public:
-
-        typedef std::map<std::string, ObjPtr> FuncMap;
-        typedef
-#ifdef _MSC_VER
-        HMODULE
-#else
-        void *
-#endif
-        HandleType;
-
-        Module(const char * name = nullptr) {
-            m_handle = nullptr;
-            if (!Load(name)) {
-                LOG_RUNTIME("Can`t load %s", name);
-            }
-        }
-
-        bool Load(const char *name) {
-            m_name = name;
-#ifdef _MSC_VER
-            std::wstring win_name = utf8_decode(name);
-            m_handle = LoadLibrary(win_name.c_str());
-#else
-            m_handle = dlopen(name, RTLD_LAZY | RTLD_LOCAL); // Для GCC нужно собирать с --no-gnu-unique для замены модулей в рантайме
-#endif
-            return m_handle;
-        }
-
-        virtual ~Module() {
-            //Если динамическая библиотека экпортировала функцию, названную _fini, то эта функция вызывается перед выгрузкой библиотеки.  
-            if (m_handle) {
-#ifdef _MSC_VER
-                FreeLibrary(m_handle);
-#else
-                dlclose(m_handle);
-#endif
-            }
-            m_handle = nullptr;
-        }
-
-        ObjPtr Main(Context *ctx, Obj &args) {
-            if (m_main) {
-                return (*m_main)(ctx, args);
-            }
-            LOG_DEBUG("Main function in module '%s' not found!", m_name.c_str());
-            return Obj::CreateNone();
-        }
-
-        inline FuncMap& Funcs() {
-            return m_funcs;
-        }
-
-        const char **m_source;
-        FunctionType *m_main;
-
-        inline HandleType GetHandle() {
-            return m_handle;
-        }
-
-        SCOPE(private) :
-        HandleType m_handle;
-        std::string m_name;
-        FuncMap m_funcs;
-    };
-
-
-    //typedef std::map<std::string, const TermPtr> ProtoType;
-
-    /*
- 
-    LLVMBuilderRef builder = LLVMCreateBuilder();
-    LLVMModuleRef mod = LLVMModuleCreateWithName("my_module");
-    char *error = NULL;
-
-    LLVMExecutionEngineRef engine;
-
-    LLVMLinkInMCJIT();
-    LLVMInitializeNativeTarget();
-    LLVMInitializeNativeAsmPrinter();
-    LLVMInitializeNativeAsmParser();
-
-    if(LLVMCreateExecutionEngineForModule(&engine, mod, &error) != 0) {
-        fprintf(stderr, "failed to create execution engine\n");
-        abort();
-    }
-    if(error) {
-        fprintf(stderr, "error: %s\n", error);
-        LLVMDisposeMessage(error);
-        exit(EXIT_FAILURE);
-    }
-
-
-    typedef int(*Printf)(const char *format, ...);
-    Printf prn = reinterpret_cast<Printf> (LLVMGetPointerToNamedFunction(engine, "printf"));
-
-
-    LLVMDisposeBuilder(builder);
-    LLVMDisposeExecutionEngine(engine);
-
-     */
     class RunTime {
     public:
 
-        //        static LLVMBuilderRef m_llvm_builder;
-        //        static LLVMModuleRef m_llvm_module;
-        //        static LLVMExecutionEngineRef m_llvm_engine;
+        RunTime() {
 
-//        static void * LLVMGetPointerToNamedFunction_(LLVMExecutionEngineRef EE, const char *Name) {
-//            return reinterpret_cast<void *> (reinterpret_cast<llvm::ExecutionEngine *> (EE)->getPointerToNamedFunction(Name, false));
-//        }
+            LLVMInitializeCore(LLVMGetGlobalPassRegistry());
 
-        void * m_ffi_handle;
-
-        RunTime() : m_ffi_handle(nullptr) {
-
-            //            llvm::cl::PrintHelpMessage();
-            //            llvm::cl::ResetAllOptionOccurrences();
-
-            //            llvm::cl::Option::~Option()
-
-            //            LLVMInitializeCore(LLVMGetGlobalPassRegistry());
             /* program init */
-            //            LLVMInitializeNativeTarget();
-            //            LLVMInitializeNativeAsmPrinter();
-            //            LLVMInitializeNativeAsmParser();
-            //            LLVMLinkInMCJIT();
-
-            //            builder = CreateBuilder();
-
-            //            if (!m_llvm_engine) {
-
-
-            //                m_llvm_builder = LLVMCreateBuilder();
-            //                m_llvm_module = LLVMModuleCreateWithName("nlc");
-
-            //                LLVMLinkInMCJIT();
-            //                LLVMInitializeNativeTarget();
-            //                LLVMInitializeNativeAsmPrinter();
-            //                LLVMInitializeNativeAsmParser();
-            //
+            LLVMInitializeNativeTarget();
+            LLVMInitializeNativeAsmPrinter();
+            LLVMInitializeNativeAsmParser();
+            LLVMLinkInMCJIT();
 
             // Загружает символы исполняемого файла для поиска с помощью SearchForAddressOfSymbol
-            llvm::sys::DynamicLibrary::LoadLibraryPermanently(nullptr, nullptr);
-
-            //
-            //                char *error = NULL;
-            //                if (LLVMCreateExecutionEngineForModule(&m_llvm_engine, m_llvm_module, &error) != 0) {
-            //                    LOG_RUNTIME("Failed to create execution engine LLVM!");
-            //                }
-            //                if (error) {
-            //                    std::string msg = error;
-            //                    LLVMDisposeMessage(error);
-            //                    LOG_RUNTIME("Failed to create execution engine LLVM '%s'!", msg.c_str());
-            //                }
-
-//            typedef int(*Printf)(const char *format, ...);
-//            Printf prn = reinterpret_cast<Printf> (GetDirectAddressFromLibrary(nullptr, "printf")); //LLVMGetPointerToNamedFunction_(m_llvm_engine, "printf"));
-//            if (!prn) {
-//                LOG_ERROR("Printf not found!!.");
-//            } else {
-//                int res = prn(" %s ", "\n\nУРА !!!!!!!!\n\n");
-//                LOG_DEBUG("PRINTF !!!! %d  !!!!!!!!!!!!!!!", res);
-//            }
-//
-//            LOG_DEBUG("LLVM init complete!");
-            //            }
+            LLVMLoadLibraryPermanently(nullptr);
         }
 
         virtual ~RunTime() {
-
-#ifdef _MSC_VER
-            if (m_ffi_handle) {
-                FreeLibrary((HMODULE) m_ffi_handle);
-                m_ffi_handle = nullptr;
-            }
-            if (m_msys) {
-                FreeLibrary((HMODULE) m_msys);
-                m_msys = nullptr;
-            }
-#else
-            //            if (m_ffi_handle) {
-            //                dlclose(m_ffi_handle);
-            //                m_ffi_handle = nullptr;
-            //            }
-
-            //            LLVMDisposeBuilder(m_llvm_builder);
-            //            LLVMDisposeExecutionEngine(m_llvm_engine);
-            //
-            //            m_llvm_module = nullptr;
-            //            m_llvm_engine = nullptr;
-            //            m_llvm_builder = nullptr;
-
-#endif
-            //            DisposeBuilder(builder);
-            //            llvm::cl::ResetAllOptionOccurrences();
-            LLVMShutdown();
+            //LLVMShutdown();
         }
 
         static RuntimePtr Init(int argc = 0, const char** argv = nullptr, bool ignore_error = true) {
             RuntimePtr rt = std::make_shared<RunTime>();
 
-            std::string ffi_file;
-
-#ifdef _MSC_VER
-
-            std::wstring sys_file;
-            std::string sys_init;
-
-            //#define CYGWIN
-#ifdef CYGWIN
-            sys_file = L"cygwin1.dll";
-            sys_init = "cygwin_dll_init";
-            ffi_file = "cygffi-6.dll";
-#else
-            sys_file = L"msys-2.0.dll";
-            sys_init = "msys_dll_init";
-            ffi_file = "libffi-7.dll";
-#endif
-
-            rt->m_msys = LoadLibrary(sys_file.c_str());
-            if (!rt->m_msys) {
-                LOG_RUNTIME("Fail LoadLibrary %s: %s", sys_file.c_str(), RunTime::GetLastErrorMessage().c_str());
-            }
-
-            typedef void init_type();
-
-            init_type *init = (init_type *) GetProcAddress((HMODULE) rt->m_msys, sys_init.c_str());
-            if (rt->m_msys && !init) {
-                FreeLibrary((HMODULE) rt->m_msys);
-                LOG_RUNTIME("Func %s not found! %s", sys_init.c_str(), RunTime::GetLastErrorMessage().c_str());
-                (*init)();
-            }
-            rt->m_ffi_handle = LoadLibrary(utf8_decode(ffi_file).c_str());
-#else
-            std::string error;
-            if (!llvm::sys::DynamicLibrary::LoadLibraryPermanently("libffi", &error)) {
-                LOG_RUNTIME("Fail load library libffi.so '%s'", error.c_str());
-            }
-
-
-            //            ffi_file = "libffi.so";
-            //            rt->m_ffi_handle = dlopen(ffi_file.c_str(), RTLD_NOW);
-#endif
-            //
-            //            if (!rt->m_ffi_handle) {
-            //                LOG_RUNTIME("Fail load %s!", ffi_file.c_str());
-            //            }
-
-            rt->m_ffi_type_void = static_cast<ffi_type *> (GetDirectAddressFromLibrary(rt->m_ffi_handle, "ffi_type_void"));
-            rt->m_ffi_type_uint8 = static_cast<ffi_type *> (GetDirectAddressFromLibrary(rt->m_ffi_handle, "ffi_type_uint8"));
-            rt->m_ffi_type_sint8 = static_cast<ffi_type *> (GetDirectAddressFromLibrary(rt->m_ffi_handle, "ffi_type_sint8"));
-            rt->m_ffi_type_uint16 = static_cast<ffi_type *> (GetDirectAddressFromLibrary(rt->m_ffi_handle, "ffi_type_uint16"));
-            rt->m_ffi_type_sint16 = static_cast<ffi_type *> (GetDirectAddressFromLibrary(rt->m_ffi_handle, "ffi_type_sint16"));
-            rt->m_ffi_type_uint32 = static_cast<ffi_type *> (GetDirectAddressFromLibrary(rt->m_ffi_handle, "ffi_type_uint32"));
-            rt->m_ffi_type_sint32 = static_cast<ffi_type *> (GetDirectAddressFromLibrary(rt->m_ffi_handle, "ffi_type_sint32"));
-            rt->m_ffi_type_uint64 = static_cast<ffi_type *> (GetDirectAddressFromLibrary(rt->m_ffi_handle, "ffi_type_uint64"));
-            rt->m_ffi_type_sint64 = static_cast<ffi_type *> (GetDirectAddressFromLibrary(rt->m_ffi_handle, "ffi_type_sint64"));
-            rt->m_ffi_type_float = static_cast<ffi_type *> (GetDirectAddressFromLibrary(rt->m_ffi_handle, "ffi_type_float"));
-            rt->m_ffi_type_double = static_cast<ffi_type *> (GetDirectAddressFromLibrary(rt->m_ffi_handle, "ffi_type_double"));
-            rt->m_ffi_type_pointer = static_cast<ffi_type *> (GetDirectAddressFromLibrary(rt->m_ffi_handle, "ffi_type_pointer"));
-
-            rt->m_ffi_prep_cif = reinterpret_cast<ffi_prep_cif_type *> (GetDirectAddressFromLibrary(rt->m_ffi_handle, "ffi_prep_cif"));
-            rt->m_ffi_prep_cif_var = reinterpret_cast<ffi_prep_cif_var_type *> (GetDirectAddressFromLibrary(rt->m_ffi_handle, "ffi_prep_cif_var"));
-            rt->m_ffi_call = reinterpret_cast<ffi_call_type *> (GetDirectAddressFromLibrary(rt->m_ffi_handle, "ffi_call"));
-
-            if (!(rt->m_ffi_type_uint8 && rt->m_ffi_type_sint8 && rt->m_ffi_type_uint16 && rt->m_ffi_type_sint16 &&
-                    rt->m_ffi_type_uint32 && rt->m_ffi_type_sint32 && rt->m_ffi_type_uint64 && rt->m_ffi_type_sint64 &&
-                    rt->m_ffi_type_float && rt->m_ffi_type_double && rt->m_ffi_type_pointer && rt->m_ffi_type_void &&
-                    rt->m_ffi_prep_cif && rt->m_ffi_prep_cif_var && rt->m_ffi_call)) {
-                LOG_RUNTIME("Fail init data from %s!", ffi_file.c_str());
-            }
-
             return rt;
         }
 
         inline static void * GetDirectAddressFromLibrary(void *handle, const char * name) {
-#ifdef _MSC_VER
-            return static_cast<void *> (::GetProcAddress((HMODULE) handle, name));
-#else
-            void *res = llvm::sys::DynamicLibrary::SearchForAddressOfSymbol(name);
-            if (res) {
-                return res;
-            }
-            //            if (m_llvm_engine) {
-            //                //            ASSERT(m_llvm_engine);
-            //                return LLVMGetPointerToNamedFunction_(m_llvm_engine, name);
-            //            }
-            return nullptr;
-            //            return dlsym(handle, name);
-#endif
+            return LLVMSearchForAddressOfSymbol(name);
         }
 
-        //    void ReadBuiltInProto(ProtoType &proto);
 
         bool LoadModule(const char *name, bool init = true, Context *ctx = nullptr, const char *module_name = nullptr);
         bool UnLoadModule(Context *ctx, const char *name = nullptr, bool deinit = true);
@@ -346,41 +84,15 @@ namespace newlang {
 
         static std::string GetLastErrorMessage();
 
-        typedef ffi_status ffi_prep_cif_type(ffi_cif *cif, ffi_abi abi, unsigned int nargs, ffi_type *rtype, ffi_type **atypes);
-        typedef ffi_status ffi_prep_cif_var_type(ffi_cif *cif, ffi_abi abi, unsigned int nfixedargs, unsigned int ntotalargs, ffi_type *rtype, ffi_type **atypes);
-        typedef void ffi_call_type(ffi_cif *cif, void (*fn)(void), void *rvalue, void **avalue);
-
     protected:
 
         //SCOPE(private) :
     public:
         RunTime(const RunTime&) = delete;
         const RunTime& operator=(const RunTime&) = delete;
-
-#ifdef _MSC_VER
-        void * m_msys;
-#endif
-
-        std::map<std::string, Module *> m_modules;
-
-        ffi_type * m_ffi_type_void;
-        ffi_type * m_ffi_type_uint8;
-        ffi_type * m_ffi_type_sint8;
-        ffi_type * m_ffi_type_uint16;
-        ffi_type * m_ffi_type_sint16;
-        ffi_type * m_ffi_type_uint32;
-        ffi_type * m_ffi_type_sint32;
-        ffi_type * m_ffi_type_uint64;
-        ffi_type * m_ffi_type_sint64;
-        ffi_type * m_ffi_type_float;
-        ffi_type * m_ffi_type_double;
-        ffi_type * m_ffi_type_pointer;
-
-        ffi_prep_cif_type *m_ffi_prep_cif;
-        ffi_prep_cif_var_type * m_ffi_prep_cif_var;
-        ffi_call_type * m_ffi_call;
-
+    
     };
+    
 
     struct CompileInfo {
         BuiltInTorchDirect * m_builtin_direct;
