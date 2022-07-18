@@ -981,14 +981,14 @@ namespace newlang {
             return false;
         }
 
-        inline ObjPtr operator==(ObjPtr obj) {
-            ASSERT(obj);
-            return operator==(*obj);
-        }
-
-        inline ObjPtr operator==(Obj obj) {
-            return op_equal(obj) ? Obj::Yes() : Obj::No();
-        }
+        //        inline ObjPtr operator==(ObjPtr obj) {
+        //            ASSERT(obj);
+        //            return operator==(*obj);
+        //        }
+        //
+        //        inline ObjPtr operator==(Obj obj) {
+        //            return op_equal(obj) ? Obj::Yes() : Obj::No();
+        //        }
         bool op_equal(Obj & value);
 
         inline bool op_accurate(ObjPtr obj) {
@@ -997,14 +997,14 @@ namespace newlang {
         }
         bool op_accurate(Obj & value);
 
-        inline ObjPtr operator!=(ObjPtr obj) {
-            ASSERT(obj);
-            return operator!=(*obj);
-        }
-
-        inline ObjPtr operator!=(Obj obj) {
-            return op_equal(obj) ? Obj::No() : Obj::Yes();
-        }
+        //        inline ObjPtr operator!=(ObjPtr obj) {
+        //            ASSERT(obj);
+        //            return operator!=(*obj);
+        //        }
+        //
+        //        inline ObjPtr operator!=(Obj obj) {
+        //            return op_equal(obj) ? Obj::No() : Obj::Yes();
+        //        }
 
         inline ObjPtr op_bit_and(ObjPtr obj, bool strong) {
             ASSERT(obj);
@@ -1245,9 +1245,15 @@ namespace newlang {
                     return m_fraction->GetAsInteger();
 
                 case ObjType::StrWide:
-                    return std::stoll(m_wstr);
+                case ObjType::FmtWide:
+                    if (m_wstr.size() == 1) {
+                        return m_wstr[0];
+                    }
                 case ObjType::StrChar:
-                    return std::stoll(m_str);
+                case ObjType::FmtChar:
+                    if (m_str.size() == 1) {
+                        return m_str[0];
+                    }
                 default:
                     if (m_var_type_current == ObjType::Pointer || m_var_type_fixed == ObjType::Pointer) {
                         return reinterpret_cast<int64_t> (m_func_ptr);
@@ -1268,13 +1274,8 @@ namespace newlang {
                     ASSERT(m_fraction);
                     return m_fraction->GetAsNumber();
 
-                case ObjType::StrWide:
-                    return std::stod(m_wstr);
-                case ObjType::StrChar:
-                    return std::stod(m_str);
-
                 default:
-                    if (is_simple()) {
+                    if (is_simple() || is_string_type()) {
                         return static_cast<double> (GetValueAsInteger());
                     }
             }
@@ -1323,17 +1324,32 @@ namespace newlang {
         }
 
         LLVMGenericValueRef GetGenericValueRef(LLVMTypeRef type) {
-            if (is_integer() || is_bool_type()) {
+            if (type == LLVMInt1Type() || type == LLVMInt8Type() || type == LLVMInt16Type() || type == LLVMInt32Type() || type == LLVMInt64Type()) {
                 return LLVMCreateGenericValueOfInt(type, GetValueAsInteger(), true);
-            } else if (is_floating()) {
+            } else if (type == LLVMFloatType() || type == LLVMDoubleType()) {
                 return LLVMCreateGenericValueOfFloat(type, GetValueAsNumber());
-            } else if (getType() == ObjType::StrChar || getType() == ObjType::FmtChar) {
-                return LLVMCreateGenericValueOfPointer((void *) m_str.c_str());
-            } else if (getType() == ObjType::StrWide) {
-                return LLVMCreateGenericValueOfPointer((void *) m_wstr.c_str());
-            } else if (getType() == ObjType::Pointer) {
-                return LLVMCreateGenericValueOfPointer(m_func_ptr);
+            } else if (type == LLVMPointerType(LLVMInt8Type(), 0)) {
+                if (getType() == ObjType::StrChar || getType() == ObjType::FmtChar) {
+                    return LLVMCreateGenericValueOfPointer((void *) m_str.c_str());
+                } else if (getType() == ObjType::Pointer) {
+                    return LLVMCreateGenericValueOfPointer(m_func_ptr);
+                }
+            } else if (type == LLVMPointerType(LLVMInt32Type(), 0)) {
+                if (getType() == ObjType::StrWide || getType() == ObjType::FmtWide) {
+                    return LLVMCreateGenericValueOfPointer((void *) m_wstr.c_str());
+                }
             }
+            //        if (is_integer() || is_bool_type()) {
+            //            return LLVMCreateGenericValueOfInt(type, GetValueAsInteger(), true);
+            //        } else if (is_floating()) {
+            //                return LLVMCreateGenericValueOfFloat(type, GetValueAsNumber());
+            //        } else if (getType() == ObjType::StrChar || getType() == ObjType::FmtChar) {
+            //            return LLVMCreateGenericValueOfPointer((void *) m_str.c_str());
+            //        } else if (getType() == ObjType::StrWide) {
+            //            return LLVMCreateGenericValueOfPointer((void *) m_wstr.c_str());
+            //        } else if (getType() == ObjType::Pointer) {
+            //            return LLVMCreateGenericValueOfPointer(m_func_ptr);
+            //        }
             LOG_RUNTIME("Not support LLVM type '%s'", newlang::toString(m_var_type_current));
         }
 
@@ -1346,10 +1362,20 @@ namespace newlang {
                 return Obj::CreateValue(value, type);
             } else if (isFloatingType(type)) {
                 return Obj::CreateValue((double) LLVMGenericValueToFloat(llvm_type, ref), type);
-            } else if (type == ObjType::StrChar) {
-                return Obj::CreateString(std::string((const char *) LLVMGenericValueToPointer(ref)));
-            } else if (type == ObjType::StrWide) {
-                return Obj::CreateString(std::wstring((const wchar_t *)LLVMGenericValueToPointer(ref)));
+            } else if (type == ObjType::StrChar || type == ObjType::FmtChar) {
+                if (llvm_type == LLVMInt8Type()) {
+                    return Obj::CreateString(std::string(1, (char) LLVMGenericValueToInt(ref, false)));
+                } else {
+                    //@todo Нужна проверка на тип LLVM данных?
+                    return Obj::CreateString(std::string((const char *) LLVMGenericValueToPointer(ref)));
+                }
+            } else if (type == ObjType::StrWide || type == ObjType::FmtWide) {
+                if (llvm_type == LLVMInt32Type()) {
+                    return Obj::CreateString(std::wstring(1, (wchar_t) LLVMGenericValueToInt(ref, false)));
+                } else {
+                    //@todo Нужна проверка на тип LLVM данных?
+                    return Obj::CreateString(std::wstring((const wchar_t *)LLVMGenericValueToPointer(ref)));
+                }
             } else if (type == ObjType::Pointer) {
 
                 ObjPtr result = Obj::CreateType(type, ObjType::None, true);
@@ -1952,10 +1978,12 @@ namespace newlang {
                 switch (m_var_type_current) {
                     case ObjType::None:
                     case ObjType::StrChar:
-                        SetValue_(value->m_str);
+                    case ObjType::FmtChar:
+                        SetValue_(value->GetValueAsString());
                         return;
                     case ObjType::StrWide:
-                        SetValue_(value->m_wstr);
+                    case ObjType::FmtWide:
+                        SetValue_(value->GetValueAsStringWide());
                         return;
                 }
 

@@ -56,6 +56,7 @@ OBJECTFILES= \
 	${OBJECTDIR}/test/nlc_test.o \
 	${OBJECTDIR}/test/object_test.o \
 	${OBJECTDIR}/test/parser_test.o \
+	${OBJECTDIR}/test/speed_test.o \
 	${OBJECTDIR}/variable.o \
 	${OBJECTDIR}/version.o
 
@@ -198,6 +199,11 @@ ${OBJECTDIR}/test/parser_test.o: test/parser_test.cpp
 	${MKDIR} -p ${OBJECTDIR}/test
 	${RM} "$@.d"
 	$(COMPILE.cc) -O3 -Werror -I.. -std=c++14 -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/test/parser_test.o test/parser_test.cpp
+
+${OBJECTDIR}/test/speed_test.o: test/speed_test.cpp
+	${MKDIR} -p ${OBJECTDIR}/test
+	${RM} "$@.d"
+	$(COMPILE.cc) -O3 -Werror -I.. -std=c++14 -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/test/speed_test.o test/speed_test.cpp
 
 ${OBJECTDIR}/variable.o: variable.cpp
 	${MKDIR} -p ${OBJECTDIR}

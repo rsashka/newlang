@@ -11,7 +11,13 @@
                    displayName="Исходные файлы"
                    projectFiles="true">
       <logicalFolder name="f3" displayName="examples" projectFiles="true">
+        <itemPath>../examples/_run.sh</itemPath>
+        <itemPath>../examples/dsl.nlp</itemPath>
         <itemPath>../examples/fileio.nlp</itemPath>
+        <itemPath>../examples/foreach.nlp</itemPath>
+        <itemPath>../examples/fraction.nlp</itemPath>
+        <itemPath>../examples/speed_test.nlp</itemPath>
+        <itemPath>../examples/speed_test.py</itemPath>
       </logicalFolder>
       <logicalFolder name="f1" displayName="test" projectFiles="true">
         <itemPath>test/alg_test.cpp</itemPath>
@@ -22,6 +28,7 @@
         <itemPath>test/nlc_test.cpp</itemPath>
         <itemPath>test/object_test.cpp</itemPath>
         <itemPath>test/parser_test.cpp</itemPath>
+        <itemPath>test/speed_test.cpp</itemPath>
       </logicalFolder>
       <itemPath>builtin.cpp</itemPath>
       <itemPath>context.cpp</itemPath>
@@ -182,7 +189,19 @@
       </item>
       <item path="../docs/syntax.txt" ex="false" tool="3" flavor2="0">
       </item>
+      <item path="../examples/_run.sh" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../examples/dsl.nlp" ex="false" tool="3" flavor2="0">
+      </item>
       <item path="../examples/fileio.nlp" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../examples/foreach.nlp" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../examples/fraction.nlp" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../examples/speed_test.nlp" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../examples/speed_test.py" ex="false" tool="3" flavor2="0">
       </item>
       <item path="autocomplete.h" ex="false" tool="3" flavor2="0">
       </item>
@@ -350,6 +369,11 @@
           <additionalDep>pch.h.gch</additionalDep>
         </ccTool>
       </item>
+      <item path="test/speed_test.cpp" ex="false" tool="1" flavor2="9">
+        <ccTool>
+          <additionalDep>pch.h.gch</additionalDep>
+        </ccTool>
+      </item>
       <item path="types.h" ex="false" tool="3" flavor2="0">
         <customTool>
           <customToolAdditionalDep>pch.h.gch</customToolAdditionalDep>
@@ -467,7 +491,19 @@
       </item>
       <item path="../docs/syntax.txt" ex="false" tool="3" flavor2="0">
       </item>
+      <item path="../examples/_run.sh" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../examples/dsl.nlp" ex="false" tool="3" flavor2="0">
+      </item>
       <item path="../examples/fileio.nlp" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../examples/foreach.nlp" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../examples/fraction.nlp" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../examples/speed_test.nlp" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../examples/speed_test.py" ex="false" tool="3" flavor2="0">
       </item>
       <item path="autocomplete.h" ex="false" tool="3" flavor2="0">
       </item>
@@ -579,6 +615,8 @@
       </item>
       <item path="test/parser_test.cpp" ex="false" tool="1" flavor2="9">
       </item>
+      <item path="test/speed_test.cpp" ex="false" tool="1" flavor2="9">
+      </item>
       <item path="types.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="variable.cpp" ex="false" tool="1" flavor2="9">
@@ -654,7 +692,19 @@
       </item>
       <item path="../docs/syntax.txt" ex="false" tool="3" flavor2="0">
       </item>
+      <item path="../examples/_run.sh" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../examples/dsl.nlp" ex="false" tool="3" flavor2="0">
+      </item>
       <item path="../examples/fileio.nlp" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../examples/foreach.nlp" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../examples/fraction.nlp" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../examples/speed_test.nlp" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../examples/speed_test.py" ex="false" tool="3" flavor2="0">
       </item>
       <item path="autocomplete.h" ex="false" tool="3" flavor2="0">
       </item>
@@ -738,6 +788,8 @@
       <item path="test/object_test.cpp" ex="false" tool="1" flavor2="11">
       </item>
       <item path="test/parser_test.cpp" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="test/speed_test.cpp" ex="false" tool="1" flavor2="0">
       </item>
       <item path="types.h" ex="false" tool="3" flavor2="0">
       </item>
@@ -844,7 +896,19 @@
           <customToolOutputs>syntax_help.cpp</customToolOutputs>
         </customTool>
       </item>
+      <item path="../examples/_run.sh" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../examples/dsl.nlp" ex="false" tool="3" flavor2="0">
+      </item>
       <item path="../examples/fileio.nlp" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../examples/foreach.nlp" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../examples/fraction.nlp" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../examples/speed_test.nlp" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../examples/speed_test.py" ex="false" tool="3" flavor2="0">
       </item>
       <item path="autocomplete.h" ex="false" tool="3" flavor2="0">
       </item>
@@ -1012,6 +1076,11 @@
           <additionalDep>pch.h.gch</additionalDep>
         </ccTool>
       </item>
+      <item path="test/speed_test.cpp" ex="false" tool="1" flavor2="0">
+        <ccTool>
+          <additionalDep>pch.h.gch</additionalDep>
+        </ccTool>
+      </item>
       <item path="types.h" ex="false" tool="3" flavor2="0">
         <customTool>
           <customToolAdditionalDep>pch.h.gch</customToolAdditionalDep>
@@ -1134,7 +1203,19 @@
       </item>
       <item path="../docs/syntax.txt" ex="false" tool="3" flavor2="0">
       </item>
+      <item path="../examples/_run.sh" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../examples/dsl.nlp" ex="false" tool="3" flavor2="0">
+      </item>
       <item path="../examples/fileio.nlp" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../examples/foreach.nlp" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../examples/fraction.nlp" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../examples/speed_test.nlp" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../examples/speed_test.py" ex="false" tool="3" flavor2="0">
       </item>
       <item path="autocomplete.h" ex="false" tool="3" flavor2="0">
       </item>
@@ -1246,6 +1327,8 @@
       </item>
       <item path="test/parser_test.cpp" ex="false" tool="1" flavor2="0">
       </item>
+      <item path="test/speed_test.cpp" ex="false" tool="1" flavor2="0">
+      </item>
       <item path="types.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="variable.cpp" ex="false" tool="1" flavor2="0">
@@ -1344,7 +1427,19 @@
       </item>
       <item path="../docs/syntax.txt" ex="false" tool="3" flavor2="0">
       </item>
+      <item path="../examples/_run.sh" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../examples/dsl.nlp" ex="false" tool="3" flavor2="0">
+      </item>
       <item path="../examples/fileio.nlp" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../examples/foreach.nlp" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../examples/fraction.nlp" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../examples/speed_test.nlp" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../examples/speed_test.py" ex="false" tool="3" flavor2="0">
       </item>
       <item path="autocomplete.h" ex="false" tool="3" flavor2="0">
       </item>
@@ -1455,6 +1550,8 @@
       <item path="test/object_test.cpp" ex="false" tool="1" flavor2="11">
       </item>
       <item path="test/parser_test.cpp" ex="false" tool="1" flavor2="9">
+      </item>
+      <item path="test/speed_test.cpp" ex="false" tool="1" flavor2="9">
       </item>
       <item path="types.h" ex="false" tool="3" flavor2="0">
       </item>
@@ -1582,7 +1679,19 @@
       </item>
       <item path="../docs/syntax.txt" ex="false" tool="3" flavor2="0">
       </item>
+      <item path="../examples/_run.sh" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../examples/dsl.nlp" ex="false" tool="3" flavor2="0">
+      </item>
       <item path="../examples/fileio.nlp" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../examples/foreach.nlp" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../examples/fraction.nlp" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../examples/speed_test.nlp" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../examples/speed_test.py" ex="false" tool="3" flavor2="0">
       </item>
       <item path="autocomplete.h" ex="false" tool="3" flavor2="0">
       </item>
@@ -1693,6 +1802,8 @@
       <item path="test/object_test.cpp" ex="false" tool="1" flavor2="11">
       </item>
       <item path="test/parser_test.cpp" ex="false" tool="1" flavor2="11">
+      </item>
+      <item path="test/speed_test.cpp" ex="false" tool="1" flavor2="11">
       </item>
       <item path="types.h" ex="false" tool="3" flavor2="0">
       </item>
@@ -1816,7 +1927,19 @@
       </item>
       <item path="../docs/syntax.txt" ex="false" tool="3" flavor2="0">
       </item>
+      <item path="../examples/_run.sh" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../examples/dsl.nlp" ex="false" tool="3" flavor2="0">
+      </item>
       <item path="../examples/fileio.nlp" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../examples/foreach.nlp" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../examples/fraction.nlp" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../examples/speed_test.nlp" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../examples/speed_test.py" ex="false" tool="3" flavor2="0">
       </item>
       <item path="autocomplete.h" ex="false" tool="3" flavor2="0">
       </item>
@@ -1927,6 +2050,8 @@
       <item path="test/object_test.cpp" ex="false" tool="1" flavor2="11">
       </item>
       <item path="test/parser_test.cpp" ex="false" tool="1" flavor2="11">
+      </item>
+      <item path="test/speed_test.cpp" ex="false" tool="1" flavor2="11">
       </item>
       <item path="types.h" ex="false" tool="3" flavor2="0">
       </item>
@@ -2039,7 +2164,19 @@
       </item>
       <item path="../docs/syntax.txt" ex="false" tool="3" flavor2="0">
       </item>
+      <item path="../examples/_run.sh" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../examples/dsl.nlp" ex="false" tool="3" flavor2="0">
+      </item>
       <item path="../examples/fileio.nlp" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../examples/foreach.nlp" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../examples/fraction.nlp" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../examples/speed_test.nlp" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../examples/speed_test.py" ex="false" tool="3" flavor2="0">
       </item>
       <item path="autocomplete.h" ex="false" tool="3" flavor2="0">
       </item>
@@ -2207,6 +2344,11 @@
           <additionalDep>pch.h.gch</additionalDep>
         </ccTool>
       </item>
+      <item path="test/speed_test.cpp" ex="false" tool="1" flavor2="9">
+        <ccTool>
+          <additionalDep>pch.h.gch</additionalDep>
+        </ccTool>
+      </item>
       <item path="types.h" ex="false" tool="3" flavor2="0">
         <customTool>
           <customToolAdditionalDep>pch.h.gch</customToolAdditionalDep>
@@ -2323,7 +2465,19 @@
       </item>
       <item path="../docs/syntax.txt" ex="false" tool="3" flavor2="0">
       </item>
+      <item path="../examples/_run.sh" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../examples/dsl.nlp" ex="false" tool="3" flavor2="0">
+      </item>
       <item path="../examples/fileio.nlp" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../examples/foreach.nlp" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../examples/fraction.nlp" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../examples/speed_test.nlp" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../examples/speed_test.py" ex="false" tool="3" flavor2="0">
       </item>
       <item path="autocomplete.h" ex="false" tool="3" flavor2="0">
       </item>
@@ -2487,6 +2641,11 @@
         </ccTool>
       </item>
       <item path="test/parser_test.cpp" ex="false" tool="1" flavor2="9">
+        <ccTool>
+          <additionalDep>pch.h.gch</additionalDep>
+        </ccTool>
+      </item>
+      <item path="test/speed_test.cpp" ex="false" tool="1" flavor2="9">
         <ccTool>
           <additionalDep>pch.h.gch</additionalDep>
         </ccTool>

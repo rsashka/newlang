@@ -41,24 +41,13 @@ namespace newlang {
         return str;
     }
 
-//    class Context;
+    //    class Context;
     struct CompileInfo;
 
     class RunTime {
     public:
 
         RunTime() {
-
-            LLVMInitializeCore(LLVMGetGlobalPassRegistry());
-
-            /* program init */
-            LLVMInitializeNativeTarget();
-            LLVMInitializeNativeAsmPrinter();
-            LLVMInitializeNativeAsmParser();
-            LLVMLinkInMCJIT();
-
-            // Загружает символы исполняемого файла для поиска с помощью SearchForAddressOfSymbol
-            LLVMLoadLibraryPermanently(nullptr);
         }
 
         virtual ~RunTime() {
@@ -90,9 +79,8 @@ namespace newlang {
     public:
         RunTime(const RunTime&) = delete;
         const RunTime& operator=(const RunTime&) = delete;
-    
+
     };
-    
 
     struct CompileInfo {
         BuiltInTorchDirect * m_builtin_direct;

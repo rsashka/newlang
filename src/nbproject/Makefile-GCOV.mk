@@ -56,6 +56,7 @@ OBJECTFILES= \
 	${OBJECTDIR}/test/nlc_test.o \
 	${OBJECTDIR}/test/object_test.o \
 	${OBJECTDIR}/test/parser_test.o \
+	${OBJECTDIR}/test/speed_test.o \
 	${OBJECTDIR}/variable.o \
 	${OBJECTDIR}/version.o
 
@@ -212,6 +213,11 @@ ${OBJECTDIR}/test/parser_test.o: test/parser_test.cpp
 	${MKDIR} -p ${OBJECTDIR}/test
 	${RM} "$@.d"
 	$(COMPILE.cc) -g -DDEBUG -DLOG_LEVEL_NORMAL=LOG_LEVEL_DEBUG -DPDC_WIDE -DUNITTEST -I.. -I../contrib/googletest/googletest -I../contrib/googletest/googletest/include -I../contrib/Tensorflow/bazel-bin/tensorflow/include -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/test/parser_test.o test/parser_test.cpp
+
+${OBJECTDIR}/test/speed_test.o: test/speed_test.cpp
+	${MKDIR} -p ${OBJECTDIR}/test
+	${RM} "$@.d"
+	$(COMPILE.cc) -g -DDEBUG -DLOG_LEVEL_NORMAL=LOG_LEVEL_DEBUG -DPDC_WIDE -DUNITTEST -I.. -I../contrib/googletest/googletest -I../contrib/googletest/googletest/include -I../contrib/Tensorflow/bazel-bin/tensorflow/include -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/test/speed_test.o test/speed_test.cpp
 
 ${OBJECTDIR}/variable.o: variable.cpp
 	${MKDIR} -p ${OBJECTDIR}

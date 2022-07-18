@@ -138,6 +138,9 @@ namespace newlang {
         static std::map<std::string, Context::EvalFunction> m_builtin_calls;
         static Parser::MacrosStore m_macros; ///< Хотя макросы и могут обработываться в рантайме, но доступны они только для парсера
 
+
+        LLVMBuilderRef m_llvm_builder;
+
         static void Reset() {
             m_types.clear();
             m_funcs.clear();
@@ -249,6 +252,8 @@ namespace newlang {
         Variable<Obj> m_global_terms;
 
         virtual ~Context() {
+            LLVMDisposeBuilder(m_llvm_builder);
+            m_llvm_builder = nullptr;
         }
 
         ObjPtr GetTerm(const std::string name, bool is_ref);

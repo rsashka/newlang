@@ -107,7 +107,6 @@ std::string newlang::ParserMessage(std::string &buffer, int row, int col, const 
         message += " col ";
         message += std::to_string(col);
         message += "\n";
-        row--;
     }
 
     // Ищем нужную строку
@@ -123,7 +122,7 @@ std::string newlang::ParserMessage(std::string &buffer, int row, int col, const 
     std::string tmp = buffer.substr((pos ? pos + 1 : pos), buffer.find("\n", pos + 1));
     tmp = tmp.substr(0, tmp.find("\n", col));
 
-    if(row + 1) { // Если переданы координаты ошибки, показываем место
+    if(row) { // Если переданы координаты ошибки, показываем место
 
         // Лексер обрабатывает строки в байтах, а вывод в UTF8
         // поэтому позиция ошибки лексера може не совпадать для многобайтных символов

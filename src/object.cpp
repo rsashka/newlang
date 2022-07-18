@@ -226,22 +226,30 @@ Variable<Obj>::PairType & Obj::at(int64_t index) {
 }
 
 const ObjPtr Obj::index_get(const std::vector<Index> &index) const {
-    if(m_var_type_current == ObjType::StrChar) {
+    if(m_var_type_current == ObjType::StrChar || m_var_type_current == ObjType::FmtChar) {
         if(index.size() != 1 || !index[0].is_integer()) {
             LOG_RUNTIME("The index must be an integer value '%s'!", IndexToString(index).c_str());
         }
-        if(index[0].integer() < static_cast<int64_t> (m_str.size())) {
-            return CreateString(std::string(1, m_str[index[0].integer()]));
+        int64_t pos = index[0].integer();
+        if(pos < 0) {
+            pos = m_str.size() + pos; // Позиция с конца строки
+        }
+        if(pos < static_cast<int64_t> (m_str.size())) {
+            return CreateString(std::string(1, m_str[pos]));
         }
         LOG_RUNTIME("Index '%s' not exists in byte string '%s'!", IndexToString(index).c_str(), m_str.c_str());
-    } else if(m_var_type_current == ObjType::StrWide) {
+    } else if(m_var_type_current == ObjType::StrWide || m_var_type_current == ObjType::FmtWide) {
         if(index.size() != 1 || !index[0].is_integer()) {
             LOG_RUNTIME("The index must be an integer value '%s'!", IndexToString(index).c_str());
         }
-        if(index[0].integer() < static_cast<int64_t> (m_wstr.size())) {
-            return CreateString(std::wstring(1, m_wstr[index[0].integer()]));
+        int64_t pos = index[0].integer();
+        if(pos < 0) {
+            pos = m_wstr.size() + pos; // Позиция с конца строки
         }
-        LOG_RUNTIME("Index '%s' not exists in byte string '%s'!", IndexToString(index).c_str(), "WIDE");
+        if(pos < static_cast<int64_t> (m_wstr.size())) {
+            return CreateString(std::wstring(1, m_wstr[pos]));
+        }
+        LOG_RUNTIME("Index '%s' not exists in WIDE string '%s'!", IndexToString(index).c_str(), utf8_encode(m_wstr).c_str());
 
     } else if(is_tensor()) {
         torch::Tensor t = m_value.index(index);
@@ -259,9 +267,13 @@ ObjPtr Obj::index_set_(const std::vector<Index> &index, const ObjPtr value) {
         if(index.size() != 1 || !index[0].is_integer()) {
             LOG_RUNTIME("The index must be an integer value '%s'!", IndexToString(index).c_str());
         }
-        if(index[0].integer() < static_cast<int64_t> (m_str.size())) {
-            m_str.erase(index[0].integer(), 1);
-            m_str.insert(index[0].integer(), value->toType(ObjType::StrChar)->m_str);
+        int64_t pos = index[0].integer();
+        if(pos < 0) {
+            pos = m_str.size() + pos; // Позиция с конца строки
+        }
+        if(pos < static_cast<int64_t> (m_str.size())) {
+            m_str.erase(pos, 1);
+            m_str.insert(pos, value->toType(ObjType::StrChar)->m_str);
             m_var_is_init = true;
             return shared();
         }
@@ -270,9 +282,13 @@ ObjPtr Obj::index_set_(const std::vector<Index> &index, const ObjPtr value) {
         if(index.size() != 1 || !index[0].is_integer()) {
             LOG_RUNTIME("The index must be an integer value '%s'!", IndexToString(index).c_str());
         }
-        if(index[0].integer() < static_cast<int64_t> (m_wstr.size())) {
-            m_wstr.erase(index[0].integer(), 1);
-            m_wstr.insert(index[0].integer(), value->toType(ObjType::StrWide)->m_wstr);
+        int64_t pos = index[0].integer();
+        if(pos < 0) {
+            pos = m_str.size() + pos; // Позиция с конца строки
+        }
+        if(pos < static_cast<int64_t> (m_wstr.size())) {
+            m_wstr.erase(pos, 1);
+            m_wstr.insert(pos, value->toType(ObjType::StrWide)->m_wstr);
             m_var_is_init = true;
             return shared();
         }
@@ -942,9 +958,11 @@ std::string Obj::GetValueAsString() const {
             return TensorToString(m_value);
 
         case ObjType::StrChar:
+        case ObjType::FmtChar:
             return m_str;
 
         case ObjType::StrWide:
+        case ObjType::FmtWide:
             return utf8_encode(m_wstr);
 
         case ObjType::NativeFunc:
@@ -1184,8 +1202,11 @@ void Obj::ConvertToArgs_(Obj *in, bool check_valid, Context * ctx) {
                     }
                     ObjType limit_type = (*in)[i].second->getTypeAsLimit();
                     if(!canCast(limit_type, base_type)) {
-                        LOG_RUNTIME("Fail cast value '%s' to type '%s'",
-                                (*in)[i].second->toString().c_str(), (*m_func_proto)[i].second->m_type_name.c_str());
+                        // Строку с одним символом можно преобразовать в арифметичсекий тип
+                        if(!(isArithmeticType(base_type) && (*in)[i].second->is_string_type() && (*in)[i].second->size() == 1)) {
+                            LOG_RUNTIME("Fail cast value '%s' to type '%s'",
+                                    (*in)[i].second->toString().c_str(), (*m_func_proto)[i].second->m_type_name.c_str());
+                        }
                     }
                 }
                 at(i).second->op_assign((*in)[i].second);
@@ -2026,8 +2047,14 @@ ObjPtr Obj::CallNative(Context *ctx, Obj args) {
         ObjType type = args[i].second->getTypeAsLimit();
         if(pind < check_count) {
             NL_CHECK(!(*m_func_proto)[pind].second->m_type_name.empty(), "Undefined type arg '%s'", (*m_func_proto)[pind].second->toString().c_str());
-            NL_CHECK(canCast(type, typeFromString((*m_func_proto)[pind].second->m_type_name, ctx)), "Fail cast from '%s' to '%s'",
-                    (*m_func_proto)[pind].second->m_type_name.c_str(), newlang::toString(type));
+
+            ObjType proto_type = typeFromString((*m_func_proto)[pind].second->m_type_name, ctx);
+            if(!canCast(type, proto_type)) {
+                if(!((type == ObjType::StrChar || type == ObjType::FmtChar) && proto_type == ObjType::Char) ||
+                        ((type == ObjType::StrWide || type == ObjType::FmtWide) && proto_type == ObjType::Int)) {
+                    LOG_RUNTIME("Fail cast from '%s' to '%s'", (*m_func_proto)[pind].second->m_type_name.c_str(), newlang::toString(type));
+                }
+            }
         }
 
         ObjType check_type;
@@ -2042,6 +2069,16 @@ ObjPtr Obj::CallNative(Context *ctx, Obj args) {
             pointer_exist = true;
         }
 
+        if(check_type == ObjType::Bool && m_namespace.empty()) {
+            // В чистом С (для пустого m_namespace) для логического типа используется тип int
+            check_type = ObjType::Int;
+        }
+        if((check_type == ObjType::FmtWide || check_type == ObjType::StrWide) ||
+                ((check_type == ObjType::FmtChar || check_type == ObjType::StrChar) &&
+                (args[i].second->getType() == ObjType::StrWide || args[i].second->getType() == ObjType::FmtWide))) {
+            LOG_RUNTIME("Convert wide characters as native function arguments not supported!");
+        }
+
         LLVMTypeRef temp = toLLVMType(check_type);
         arg_types.push_back(temp);
         arg_generic.push_back(args[i].second->GetGenericValueRef(temp));
@@ -2052,11 +2089,6 @@ ObjPtr Obj::CallNative(Context *ctx, Obj args) {
             }
         }
     }
-
-
-    LLVMInitializeNativeTarget();
-    LLVMInitializeNativeAsmPrinter();
-    LLVMInitializeNativeAsmParser();
 
     auto module = LLVMModuleCreateWithName("call_native");
     LLVMExecutionEngineRef interpreter;
@@ -2070,8 +2102,7 @@ ObjPtr Obj::CallNative(Context *ctx, Obj args) {
 
     // Create the code block of the function bar
     auto entry = LLVMAppendBasicBlock(wrap, "entry");
-    auto builder = LLVMCreateBuilder();
-    LLVMPositionBuilderAtEnd(builder, entry);
+    LLVMPositionBuilderAtEnd(ctx->m_llvm_builder, entry);
 
 
 
@@ -2084,10 +2115,10 @@ ObjPtr Obj::CallNative(Context *ctx, Obj args) {
 
     //    LLVMValueRef param_call[] = {LLVMGetParam(wrap, 0)};
     LLVMValueRef func_call = LLVMAddFunction(module, "m_func_ptr", func_res_type); // Имя функции может пересечся с сужествующими при связывании?????
-    LLVMValueRef func_ret = LLVMBuildCall2(builder, func_res_type, func_call, args_param.data(), static_cast<unsigned int> (args_param.size()), m_func_proto->m_text.c_str());
+    LLVMValueRef func_ret = LLVMBuildCall2(ctx->m_llvm_builder, func_res_type, func_call, args_param.data(), static_cast<unsigned int> (args_param.size()), m_func_proto->m_text.c_str());
 
     //return value 
-    LLVMBuildRet(builder, func_ret);
+    LLVMBuildRet(ctx->m_llvm_builder, func_ret);
 
 
     char *error = nullptr;
@@ -2103,7 +2134,7 @@ ObjPtr Obj::CallNative(Context *ctx, Obj args) {
 
 #ifdef UNITTEST
     char *dump = LLVMPrintValueToString(wrap);
-    LOG_INFO("LLVM DUMP %s:\n%s\r\r", toString().c_str(), dump);
+    LOG_DEBUG("LLVM DUMP %s:\n%s\r\r", toString().c_str(), dump);
     LLVMDisposeMessage(dump);
 #endif
 
@@ -2140,11 +2171,6 @@ ObjPtr Obj::CallNative(Context *ctx, Obj args) {
     for (auto &elem : arg_generic) {
         LLVMDisposeGenericValue(elem);
     }
-
-    LLVMDisposeBuilder(builder);
-    //    LLVMDisposeExecutionEngine(engine);
-    //    LLVMDisposeModule(module);
-
     return result;
 }
 

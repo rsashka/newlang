@@ -52,8 +52,18 @@ const char * Interrupt::RunTime = ":ErrorRunTime";
 const char * Interrupt::Signal = ":ErrorSignal";
 const char * Interrupt::Abort = ":ErrorAbort";
 
-Context::Context(RuntimePtr global) {
+Context::Context(RuntimePtr global) : m_llvm_builder(LLVMCreateBuilder()) {
     m_runtime = global;
+
+    LLVMInitializeCore(LLVMGetGlobalPassRegistry());
+
+    /* program init */
+    LLVMInitializeNativeTarget();
+    LLVMInitializeNativeAsmPrinter();
+    LLVMInitializeNativeAsmParser();
+    LLVMLinkInMCJIT();
+    // Загружает символы исполняемого файла для поиска с помощью SearchForAddressOfSymbol
+    LLVMLoadLibraryPermanently(nullptr);
 
     if(Context::m_funcs.empty()) {
 
@@ -611,7 +621,12 @@ ObjPtr Context::CREATE_OR_ASSIGN(Context *ctx, const TermPtr &term, Obj *local_v
             } else if(list_term[i]->getTermID() == TermID::NONE) {
                 // Skip
             } else {
-                list_obj[i]->SetValue_(rval);
+                if(list_term[i]->Right()) {
+                    ASSERT(list_term[i]->Right()->GetTokenID() == TermID::INDEX);
+                    list_obj[i]->index_set_(MakeIndex(ctx, list_term[i]->Right(), local_vars), rval);
+                } else {
+                    list_obj[i]->SetValue_(rval);
+                }
                 if(list_obj[i]->m_var_type_current == ObjType::Function && (rval->m_var_type_current == ObjType::BLOCK || rval->m_var_type_current == ObjType::BLOCK_TRY)) {
                     list_obj[i]->m_var_type_current = ObjType::EVAL_FUNCTION;
                 }
@@ -755,7 +770,7 @@ ObjPtr Context::eval_WHILE(Context *ctx, const TermPtr &term, Obj * args) {
 
         try {
 
-            LOG_DEBUG("result %s", result->toString().c_str());
+            //            LOG_DEBUG("result %s", result->toString().c_str());
 
             result = CreateRVal(ctx, term->Right(), args, false);
             cond = Eval(ctx, term->Left(), args, false);
@@ -980,7 +995,7 @@ ObjPtr Context::op_NE(Context *ctx, const TermPtr &term, Obj * args) {
     ASSERT(term->Left());
     ASSERT(term->Right());
 
-    return Eval(ctx, term->Left(), args)->operator!=(Eval(ctx, term->Right(), args)) ? Obj::Yes() : Obj::No();
+    return Eval(ctx, term->Left(), args)->op_equal(Eval(ctx, term->Right(), args)) ? Obj::No() : Obj::Yes();
 }
 
 ObjPtr Context::op_LT(Context *ctx, const TermPtr &term, Obj * args) {
@@ -1481,7 +1496,7 @@ ObjPtr Context::CreateNative(TermPtr proto, const char *module, bool lazzy, cons
     result->m_var_type_fixed = type; // Тип определен и не может измениться в дальнейшем
 
     *const_cast<TermPtr *> (&result->m_func_proto) = proto;
-//    result->m_func_abi = abi;
+    //    result->m_func_abi = abi;
 
     if(mangle_name) {
         result->m_func_mangle_name = mangle_name;
@@ -1520,25 +1535,25 @@ std::string RunTime::GetLastErrorMessage() {
 }
 
 void *RunTime::GetNativeAddr(const char *name, const char *module) {
-//    if(module && module[0]) {
-//        if(m_modules.find(module) == m_modules.end()) {
-//            LoadModule(module, false, nullptr);
-//        }
-//        if(m_modules.find(module) == m_modules.end()) {
-//            LOG_WARNING("Fail load module '%s'!", module);
-//
-//            return nullptr;
-//        }
-//
-////#ifndef _MSC_VER
-//
-//        return GetDirectAddressFromLibrary(m_modules[module]->GetHandle(), name);
-////#else
-//        //return static_cast<void *> (::GetProcAddress(m_modules[module]->GetHandle(), name));
-////#endif
-//    }
+    //    if(module && module[0]) {
+    //        if(m_modules.find(module) == m_modules.end()) {
+    //            LoadModule(module, false, nullptr);
+    //        }
+    //        if(m_modules.find(module) == m_modules.end()) {
+    //            LOG_WARNING("Fail load module '%s'!", module);
+    //
+    //            return nullptr;
+    //        }
+    //
+    ////#ifndef _MSC_VER
+    //
+    //        return GetDirectAddressFromLibrary(m_modules[module]->GetHandle(), name);
+    ////#else
+    //        //return static_cast<void *> (::GetProcAddress(m_modules[module]->GetHandle(), name));
+    ////#endif
+    //    }
 
-//#ifndef _MSC_VER
+    //#ifndef _MSC_VER
     //    ASSERT(m_llvm_engine);
 
     //    LOG_DEBUG("getAddressToGlobalIfAvailable( %s ) = %ld", "var_long", m_llvm_engine->getAddressToGlobalIfAvailable("var_long"));
@@ -1565,13 +1580,13 @@ void *RunTime::GetNativeAddr(const char *name, const char *module) {
     //m_llvm_engine->getPointerToNamedFunction(name, false);
     return GetDirectAddressFromLibrary(nullptr, name);
     //    return ::dlsym(::dlopen(nullptr, RTLD_NOW | RTLD_GLOBAL), name);
-//#else
-//    void *result = static_cast<void *> (::GetProcAddress(GetModuleHandle(nullptr), name));
+    //#else
+    //    void *result = static_cast<void *> (::GetProcAddress(GetModuleHandle(nullptr), name));
     //if(result) {
-      //  return result;
-//    }
-  //  return static_cast<void *> (::GetProcAddress((HMODULE) m_msys, name));
-//#endif
+    //  return result;
+    //    }
+    //  return static_cast<void *> (::GetProcAddress((HMODULE) m_msys, name));
+    //#endif
 }
 
 void Context::CleanUp() {
@@ -1618,11 +1633,10 @@ ObjPtr Context::FindTerm(const std::string name) {
     }
 
     if(!result) {
-        return GetObject(name.c_str());
+        result = GetObject(name.c_str());
     }
 
-    if(result || isLocalAny(name.c_str()) || isLocal(name)) {
-
+    if(result && (isLocalAny(name.c_str()) || isLocal(name))) {
         return result;
     }
     return FindGlobalTerm(name);
@@ -2118,7 +2132,7 @@ ObjPtr Context::CreateRVal(Context *ctx, TermPtr term, Obj * local_vars, bool in
             }
 
             args = Obj::CreateDict();
-            for (int64_t i = 0; i < static_cast<int64_t>(term->size()); i++) {
+            for (int64_t i = 0; i < static_cast<int64_t> (term->size()); i++) {
 
 
                 if((*term)[i].second->GetTokenID() == TermID::FILLING) {
@@ -2219,7 +2233,7 @@ ObjPtr Context::CreateRVal(Context *ctx, TermPtr term, Obj * local_vars, bool in
             temp = ctx->GetTerm(term->GetFullName().c_str(), term->isRef());
 
             if(!temp) {
-                LOG_RUNTIME("Term '%s' not found!", term->GetFullName().c_str());
+                NL_PARSER(term, "Term '%s' not found!", term->GetFullName().c_str());
             }
 
             args = Obj::CreateDict();

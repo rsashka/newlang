@@ -41,6 +41,10 @@ TEST(Compiler, MangleName) {
     EXPECT_STREQ("newlang_maks", MangleName("макс").c_str()) << MangleName("макс");
 }
 
+void test_void_func() {
+}
+int test_void_val = 0;
+
 TEST(LLVM, Symbols) {
 
     auto rt = RunTime::Init();
@@ -49,6 +53,17 @@ TEST(LLVM, Symbols) {
     EXPECT_TRUE(LLVMSearchForAddressOfSymbol("printf"));
     EXPECT_TRUE(LLVMSearchForAddressOfSymbol("fopen"));
 
+    EXPECT_FALSE(LLVMSearchForAddressOfSymbol("test_void_func"));
+    EXPECT_FALSE(LLVMSearchForAddressOfSymbol("test_void_val"));
+
+    LLVMAddSymbol("test_void_func", (void *) &test_void_func);
+    LLVMAddSymbol("test_void_val", &test_void_val);
+
+    EXPECT_TRUE(LLVMSearchForAddressOfSymbol("test_void_func"));
+    EXPECT_TRUE(LLVMSearchForAddressOfSymbol("test_void_val"));
+
+    EXPECT_EQ(&test_void_func, LLVMSearchForAddressOfSymbol("test_void_func"));
+    EXPECT_EQ(&test_void_val, LLVMSearchForAddressOfSymbol("test_void_val"));
 }
 
 

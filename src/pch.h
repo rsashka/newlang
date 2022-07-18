@@ -61,10 +61,12 @@
 #include <contrib/logger/logger.h>
 #include "warning_pop.h"
 
-#include "types.h"
 
 #undef LOG_RUNTIME
 #define LOG_RUNTIME(format, ...)  LOG_EXCEPT(newlang::Interrupt, format, ##__VA_ARGS__)
+
+#include "types.h"
+
 
 #endif // NEWLANG_PCH_H_
 

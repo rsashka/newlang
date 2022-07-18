@@ -463,17 +463,9 @@ TEST(ObjTest, CreateFromInteger) {
     ASSERT_EQ(ObjType::Char, var2->getType()) << toString(var2->getType());
     ASSERT_EQ(-123, var2->GetValueAsInteger());
 
-    ASSERT_THROW(
-            var = Context::CreateRVal(&ctx, Term::Create(TermID::INTEGER, "")),
-            std::runtime_error);
-
-    ASSERT_THROW(
-            var = Context::CreateRVal(&ctx, Term::Create(TermID::INTEGER, "lkdfjsha")),
-            std::runtime_error);
-
-    ASSERT_THROW(
-            var = Context::CreateRVal(&ctx, Term::Create(TermID::INTEGER, "123lkdfjsha")),
-            std::runtime_error);
+    ASSERT_ANY_THROW(Context::CreateRVal(&ctx, Term::Create(TermID::INTEGER, "")));
+    ASSERT_ANY_THROW(Context::CreateRVal(&ctx, Term::Create(TermID::INTEGER, "lkdfjsha")));
+    ASSERT_ANY_THROW(Context::CreateRVal(&ctx, Term::Create(TermID::INTEGER, "123lkdfjsha")));
 }
 
 TEST(ObjTest, CreateFromNumber) {
@@ -500,17 +492,9 @@ TEST(ObjTest, CreateFromNumber) {
     ASSERT_EQ(ObjType::Double, var2->getType());
     ASSERT_DOUBLE_EQ(-123.123, var2->GetValueAsNumber());
 
-    ASSERT_THROW(
-            var = Context::CreateRVal(&ctx, Term::Create(TermID::NUMBER, "")),
-            std::runtime_error);
-
-    ASSERT_THROW(
-            var = Context::CreateRVal(&ctx, Term::Create(TermID::NUMBER, "lkdfjsha")),
-            std::runtime_error);
-
-    ASSERT_THROW(
-            var = Context::CreateRVal(&ctx, Term::Create(TermID::NUMBER, "123lkdfjsha")),
-            std::runtime_error);
+    ASSERT_ANY_THROW(Context::CreateRVal(&ctx, Term::Create(TermID::NUMBER, "")));
+    ASSERT_ANY_THROW(Context::CreateRVal(&ctx, Term::Create(TermID::NUMBER, "lkdfjsha")));
+    ASSERT_ANY_THROW(Context::CreateRVal(&ctx, Term::Create(TermID::NUMBER, "123lkdfjsha")));
 }
 
 TEST(ObjTest, CreateFromString) {
@@ -961,15 +945,15 @@ TEST(ObjTest, Iterator) {
     ASSERT_TRUE(dict3);
     ASSERT_EQ(0, dict3->size());
 
-    
-    
-    
+
+
+
     Iterator <Obj> flt(dict, "");
     ObjPtr flt_res = flt.read_and_next(100);
     ASSERT_TRUE(flt_res);
     ASSERT_EQ(1, flt_res->size());
     ASSERT_EQ(4, flt_res->at(0).second->GetValueAsInteger());
-    
+
 
     Iterator <Obj> flt1(dict, ".");
     ObjPtr flt1_res = flt1.read_and_next(100);
@@ -990,10 +974,10 @@ TEST(ObjTest, Iterator) {
     ASSERT_EQ(2, flt3_res->size());
     ASSERT_EQ(3, flt3_res->at(0).second->GetValueAsInteger());
     ASSERT_EQ(5, flt3_res->at(1).second->GetValueAsInteger());
-    
-    
-    
-//    ObjPtr iter1 = dict->MakeIterator();
+
+
+
+    //    ObjPtr iter1 = dict->MakeIterator();
 
 }
 
