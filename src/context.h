@@ -432,7 +432,7 @@ namespace newlang {
             ObjPtr obj =
                     Obj::CreateFunc(this, proto->Left(), type,
                     proto->Left()->getName().empty() ? proto->Left()->getText() : proto->Left()->getName());
-            obj->m_func_ptr = func;
+            obj->m_var = func;
 
             return obj;
         }

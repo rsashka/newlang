@@ -77,7 +77,7 @@ TEST(ObjTest, String) {
     ObjPtr str_byte = Obj::CreateString("byte");
     ASSERT_STREQ("byte", str_byte->GetValueAsString().c_str());
     ASSERT_EQ(4, str_byte->size());
-    ASSERT_EQ(4, str_byte->m_str.size());
+    ASSERT_EQ(4, str_byte->m_value.size());
     ASSERT_STREQ("b", (*str_byte)[0].second->GetValueAsString().c_str());
     ASSERT_STREQ("y", (*str_byte)[1].second->GetValueAsString().c_str());
     ASSERT_STREQ("t", (*str_byte)[2].second->GetValueAsString().c_str());
@@ -92,7 +92,7 @@ TEST(ObjTest, String) {
 
     ObjPtr str_char = Obj::CreateString(L"строка");
     ASSERT_EQ(6, str_char->size());
-    ASSERT_EQ(6, str_char->m_wstr.size());
+    ASSERT_EQ(6, str_char->m_string.size());
 
     ASSERT_STREQ("с", (*str_char)[0].second->GetValueAsString().c_str());
     ASSERT_STREQ("т", (*str_char)[1].second->GetValueAsString().c_str());
@@ -754,9 +754,9 @@ TEST(ObjTest, Tensor) {
     ASSERT_EQ(ObjType::Int, t1->m_var_type_fixed);
     ASSERT_FALSE(t1->m_var_is_init);
 
-    ASSERT_EQ(2, t1->m_value.dim());
-    ASSERT_EQ(2, t1->m_value.size(0));
-    ASSERT_EQ(3, t1->m_value.size(1));
+    ASSERT_EQ(2, t1->m_tensor.dim());
+    ASSERT_EQ(2, t1->m_tensor.size(0));
+    ASSERT_EQ(3, t1->m_tensor.size(1));
 
     std::string from_str = "русские буквы для ПРОВЕРКИ КОНВЕРТАЦИИ символов";
     std::wstring to_str = utf8_decode(from_str);
@@ -766,25 +766,58 @@ TEST(ObjTest, Tensor) {
 
     // Байтовые строки
     ObjPtr str = Obj::CreateString("test");
-    ObjPtr t_str = Obj::CreateTensor(str->toTensor());
+
+    ASSERT_STREQ("test", str->m_value.c_str());
+
+    torch::Tensor tstr_t;
+
+    ConvertStringToTensor(str->m_value, tstr_t, ObjType::Char);
+
+    ASSERT_TRUE(tstr_t.defined());
+    ASSERT_EQ(tstr_t.index({0}).item<int>(), 't');
+    ASSERT_EQ(tstr_t.index({1}).item<int>(), 'e');
+    ASSERT_EQ(tstr_t.index({2}).item<int>(), 's');
+    ASSERT_EQ(tstr_t.index({3}).item<int>(), 't');
+
+
+    torch::Tensor tensot_temp = str->toType(ObjType::Tensor)->m_tensor;
+    ASSERT_TRUE(tensot_temp.defined());
+    ASSERT_EQ(tensot_temp.index({0}).item<int>(), 't');
+    ASSERT_EQ(tensot_temp.index({1}).item<int>(), 'e');
+    ASSERT_EQ(tensot_temp.index({2}).item<int>(), 's');
+    ASSERT_EQ(tensot_temp.index({3}).item<int>(), 't');
+
+    ObjPtr t_str = Obj::CreateTensor(tensot_temp);
     ASSERT_EQ(t_str->m_var_type_current, ObjType::Char) << toString(t_str->m_var_type_current);
     ASSERT_EQ(4, t_str->size());
-    EXPECT_STREQ(t_str->toType(ObjType::StrWide)->GetValueAsString().c_str(), "test");
+    ASSERT_TRUE(t_str->m_tensor.defined());
+
+    ASSERT_EQ(t_str->m_tensor.index({0}).item<int>(), 't');
+    ASSERT_EQ(t_str->m_tensor.index({1}).item<int>(), 'e');
+    ASSERT_EQ(t_str->m_tensor.index({2}).item<int>(), 's');
+    ASSERT_EQ(t_str->m_tensor.index({3}).item<int>(), 't');
 
     ASSERT_EQ(t_str->index_get({0})->GetValueAsInteger(), 't');
     ASSERT_EQ(t_str->index_get({1})->GetValueAsInteger(), 'e');
     ASSERT_EQ(t_str->index_get({2})->GetValueAsInteger(), 's');
     ASSERT_EQ(t_str->index_get({3})->GetValueAsInteger(), 't');
 
+    ASSERT_STREQ(t_str->toType(ObjType::StrWide)->GetValueAsString().c_str(), "test") << t_str->toType(ObjType::StrWide)->GetValueAsString();
+
     t_str->index_set_({1}, Obj::CreateString("E"));
     t_str->index_set_({2}, Obj::CreateString("S"));
 
-    EXPECT_STREQ(t_str->toType(ObjType::StrWide)->GetValueAsString().c_str(), "tESt");
+    EXPECT_STREQ(t_str->toType(ObjType::StrWide)->GetValueAsString().c_str(), "tESt") << t_str->toType(ObjType::StrWide)->GetValueAsString();
 
     // Символьные сторки
     ObjPtr wstr = Obj::CreateString(L"ТЕСТ");
-    ObjPtr t_wstr = Obj::CreateTensor(wstr->toTensor());
-    ASSERT_EQ(t_wstr->m_var_type_current, ObjType::Int);
+    ObjPtr t_wstr = Obj::CreateTensor(wstr->toType(ObjType::Tensor)->m_tensor);
+    if(sizeof (wchar_t) == 2) {
+        ASSERT_EQ(t_wstr->m_var_type_current, ObjType::Short);
+    } else {
+        ASSERT_TRUE(sizeof (wchar_t) == 4);
+        ASSERT_EQ(t_wstr->m_var_type_current, ObjType::Int);
+    }
     ASSERT_EQ(4, t_wstr->size());
 
     ASSERT_EQ(t_wstr->index_get({0})->GetValueAsInteger(), L'Т');
@@ -792,12 +825,17 @@ TEST(ObjTest, Tensor) {
     ASSERT_EQ(t_wstr->index_get({2})->GetValueAsInteger(), L'С');
     ASSERT_EQ(t_wstr->index_get({3})->GetValueAsInteger(), L'Т');
 
-    EXPECT_STREQ(t_wstr->toType(ObjType::StrWide)->GetValueAsString().c_str(), "ТЕСТ");
+    std::wstring test_wide = t_wstr->toType(ObjType::StrWide)->GetValueAsStringWide();
+    EXPECT_STREQ(utf8_encode(test_wide).c_str(), "ТЕСТ");
+
+    std::string test_str = t_wstr->toType(ObjType::StrWide)->GetValueAsString();
+    EXPECT_STREQ(test_str.c_str(), "ТЕСТ") << test_str;
 
     t_wstr->index_set_({1}, Obj::CreateString(L"е"));
     t_wstr->index_set_({2}, Obj::CreateString(L"с"));
 
-    EXPECT_STREQ(t_wstr->toType(ObjType::StrWide)->GetValueAsString().c_str(), "ТесТ");
+    test_str = t_wstr->toType(ObjType::StrWide)->GetValueAsString();
+    EXPECT_STREQ(test_str.c_str(), "ТесТ") << test_str;
 
 }
 

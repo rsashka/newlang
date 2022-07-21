@@ -1308,6 +1308,14 @@ op_factor: '*'
         
 addition:   addition  op_factor  factor 
                 { 
+    
+                    if($op_factor->m_text.compare("/")==0 && $factor->m_text.compare("1")==0) {
+                        // throw syntax_error(yyla.location, 
+                        NL_PARSER($op_factor, "Do not use division by one (e.g. 123/1), "
+                                "as this operation does not make sense, but it is easy to "
+                                "confuse it with the notation of a fraction literal (123\\1).");
+                    }
+    
                     $$ = $2;
                     $$->SetTermID(TermID::OPERATOR);
                     $$->Append($1, Term::LEFT); 

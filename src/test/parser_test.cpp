@@ -110,6 +110,13 @@ TEST_F(ParserTest, LiteralFraction) {
     ASSERT_EQ(TermID::FRACTION, ast->getTermID()) << newlang::toString(ast->getTermID());
     ASSERT_STREQ("1\\1", ast->toString().c_str());
 
+    /* Защита от случайной операции деления на единицу вместо указания дроби */
+    ASSERT_ANY_THROW(Parse("1/1"));
+    ASSERT_ANY_THROW(Parse("rrr := 1/1"));
+    ASSERT_NO_THROW(Parse("rrr := 1\\1"));
+    ASSERT_ANY_THROW(Parse("rrr := 11111111111111111/1"));
+    ASSERT_NO_THROW(Parse("rrr := 11111111111111111\\1"));
+    
     ASSERT_TRUE(Parse("100\\100;"));
     ASSERT_EQ(TermID::FRACTION, ast->getTermID()) << newlang::toString(ast->getTermID());
     ASSERT_STREQ("100\\100", ast->toString().c_str());

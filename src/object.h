@@ -29,12 +29,12 @@ namespace newlang {
      * новые аргументы по мимо тех, которые уже определены в прототипе функции.
      */
 
-    ObjType DictionarySummaryType(const Obj *obj);
+    //    ObjType DictionarySummaryType(const Obj *obj);
     std::vector<int64_t> TensorShapeFromDict(const Obj *obj);
-    torch::Tensor ConvertToTensor(Obj *obj, at::ScalarType type = at::ScalarType::Undefined, bool reshape = true);
-
-    at::TensorOptions ConvertToTensorOptions(const Obj *obj);
-    at::DimnameList ConvertToDimnameList(const Obj *obj);
+    //    torch::Tensor ConvertToTensor(Obj *obj, at::ScalarType type = at::ScalarType::Undefined, bool reshape = true);
+    //
+    //    at::TensorOptions ConvertToTensorOptions(const Obj *obj);
+    //    at::DimnameList ConvertToDimnameList(const Obj *obj);
     bool ParsePrintfFormat(Obj *args, int start = 1);
 
     enum class ConcatMode : uint8_t {
@@ -71,12 +71,13 @@ namespace newlang {
         return wide_line;
     }
 
-    ObjType getSummaryTensorType(ObjPtr & obj, ObjType start);
-    std::vector<int64_t> getTensorSizes(Obj *obj);
-    void calcTensorDims(ObjPtr & obj, std::vector<int64_t> &dims);
-    void testTensorDims(ObjPtr & obj, at::IntArrayRef dims, int64_t pos);
-
-
+    /* Для конвертирования словаря в тензор для вывода общего типа данных для всех элементов */
+    ObjType getSummaryTensorType(Obj *obj, ObjType start);
+    void ConvertStringToTensor(const std::string &from, torch::Tensor &to, ObjType type = ObjType::None);
+    void ConvertStringToTensor(const std::wstring &from, torch::Tensor &to, ObjType type = ObjType::None);
+    void ConvertTensorToString(const torch::Tensor &from, std::string &to, std::vector<Index> *index = nullptr);
+    void ConvertTensorToString(const torch::Tensor &from, std::wstring &to, std::vector<Index> *index = nullptr);
+    void ConvertTensorToDict(const torch::Tensor &from, Obj &to, std::vector<Index> *index = nullptr);
 
 
 
@@ -286,18 +287,16 @@ namespace newlang {
         typedef Variable::PairType PairType;
 
         Obj(ObjType type = ObjType::None, const char *var_name = nullptr, TermPtr func_proto = nullptr, ObjType fixed = ObjType::None, bool init = false) :
-        m_var_type_current(type), m_var_name(var_name ? var_name : ""), m_func_proto(func_proto) {
-            //        m_ctx = nullptr;
+        m_var_type_current(type), m_var_name(var_name ? var_name : ""), m_prototype(func_proto) {
             m_is_const = false;
             m_check_args = false;
-            m_func_ptr = nullptr;
             m_dimensions = nullptr;
-            m_value = torch::empty({0}, isSimpleType(type) ? toTorchType(type) : at::ScalarType::Undefined);
             m_is_reference = false;
-            //            m_func_abi = FFI_DEFAULT_ABI;
             m_var_type_fixed = fixed;
             m_var_is_init = init;
             m_is_const = false;
+            m_var = at::monostate();
+            ASSERT(!m_tensor.defined());
         }
 
         Obj(Context *ctx, const TermPtr term, bool as_value, Obj *local_vars);
@@ -455,6 +454,16 @@ namespace newlang {
         }
 
         [[nodiscard]]
+        inline bool is_string_char_type() const {
+            return isStringChar(m_var_type_current);
+        }
+
+        [[nodiscard]]
+        inline bool is_string_wide_type() const {
+            return isStringWide(m_var_type_current);
+        }
+
+        [[nodiscard]]
         inline bool is_dictionary_type() const {
             return isDictionary(m_var_type_current);
         }
@@ -482,7 +491,7 @@ namespace newlang {
 
         [[nodiscard]]
         inline bool is_scalar() const {
-            return is_tensor() && m_value.dim() == 0;
+            return is_tensor() && !m_tensor.defined();
         }
 
         [[nodiscard]]
@@ -498,6 +507,11 @@ namespace newlang {
         [[nodiscard]]
         inline bool is_integer() const {
             return isIntegralType(m_var_type_current, false);
+        }
+
+        [[nodiscard]]
+        inline bool is_integral() const {
+            return isIntegralType(m_var_type_current, true);
         }
 
         [[nodiscard]]
@@ -526,6 +540,11 @@ namespace newlang {
         }
 
         [[nodiscard]]
+        inline bool is_fraction() const {
+            return m_var_type_current == ObjType::Fraction;
+        }
+
+        [[nodiscard]]
         inline bool is_type_name() const {
             return isTypeName(m_var_type_current);
         }
@@ -539,9 +558,6 @@ namespace newlang {
         inline bool is_return() const {
             return m_var_type_current == ObjType::Return || m_var_type_fixed == ObjType::Return;
         }
-
-        [[nodiscard]]
-        ObjType SummaryArithmeticType(ObjType type);
 
         [[nodiscard]]
         inline bool is_defined_type() {
@@ -560,11 +576,11 @@ namespace newlang {
             if (is_none_type()) {
                 return true;
             } else if (m_var_type_current == ObjType::StrChar) {
-                return !m_var_is_init || m_str.empty();
+                return !m_var_is_init || m_value.empty();
             } else if (m_var_type_current == ObjType::StrWide) {
-                return !m_var_is_init || m_wstr.empty();
+                return !m_var_is_init || m_string.empty();
             } else if (is_tensor()) {
-                return !m_var_is_init || at::_is_zerotensor(m_value);
+                return !m_var_is_init || at::_is_zerotensor(m_tensor);
             }
             return Variable<Obj>::empty();
         }
@@ -657,10 +673,6 @@ namespace newlang {
             return Variable::find(name);
         }
 
-        //        Obj::const_iterator find(const std::string_view name) const {
-        //            return Variable::find(name);
-        //        }
-
         Obj::iterator begin() {
             return Variable::begin();
         }
@@ -717,15 +729,15 @@ namespace newlang {
 
         void clear_(bool clear_iterator_name) {
 
-            m_str.clear();
-            m_wstr.clear();
+            m_value.clear();
+            m_string.clear();
             m_var_type_current = ObjType::None;
 
             m_class_parents.clear();
             m_var_is_init = false;
-            m_value.reset();
+            m_tensor.reset();
             m_fraction.reset();
-            //        m_var = std::monostate();
+            m_var = at::monostate();
             //        m_value.reset(); //????????????????
             //        m_items.clear();
         }
@@ -748,7 +760,7 @@ namespace newlang {
         ObjPtr operator-() {
             if (is_arithmetic_type()) {
                 if (is_tensor()) {
-                    m_value = -m_value;
+                    m_tensor = -m_tensor;
                 } else if (is_integer()) {
                     SetValue_(-GetValueAsInteger());
                 } else if (isFloatingType(m_var_type_current)) {
@@ -771,7 +783,7 @@ namespace newlang {
 
         ObjPtr &operator-(ObjPtr & obj) {
             if (is_tensor()) {
-                obj->m_value = torch::zeros_like(obj->m_value) - obj->m_value;
+                obj->m_tensor = torch::zeros_like(obj->m_tensor) - obj->m_tensor;
                 return obj;
             }
             LOG_RUNTIME("Object '%s' not numeric!", obj->toString().c_str());
@@ -782,7 +794,7 @@ namespace newlang {
 
         ObjPtr operator++() {
             if (is_tensor()) {
-                m_value.add_(torch::ones_like(m_value));
+                m_tensor.add_(torch::ones_like(m_tensor));
 
                 return shared();
             }
@@ -801,7 +813,7 @@ namespace newlang {
 
         ObjPtr operator--() {
             if (is_tensor()) {
-                m_value.sub_(torch::ones_like(m_value));
+                m_tensor.sub_(torch::ones_like(m_tensor));
                 return shared();
             }
             LOG_RUNTIME("Object '%s' not numeric!", toString().c_str());
@@ -981,14 +993,6 @@ namespace newlang {
             return false;
         }
 
-        //        inline ObjPtr operator==(ObjPtr obj) {
-        //            ASSERT(obj);
-        //            return operator==(*obj);
-        //        }
-        //
-        //        inline ObjPtr operator==(Obj obj) {
-        //            return op_equal(obj) ? Obj::Yes() : Obj::No();
-        //        }
         bool op_equal(Obj & value);
 
         inline bool op_accurate(ObjPtr obj) {
@@ -996,15 +1000,6 @@ namespace newlang {
             return op_accurate(*obj);
         }
         bool op_accurate(Obj & value);
-
-        //        inline ObjPtr operator!=(ObjPtr obj) {
-        //            ASSERT(obj);
-        //            return operator!=(*obj);
-        //        }
-        //
-        //        inline ObjPtr operator!=(Obj obj) {
-        //            return op_equal(obj) ? Obj::No() : Obj::Yes();
-        //        }
 
         inline ObjPtr op_bit_and(ObjPtr obj, bool strong) {
             ASSERT(obj);
@@ -1224,21 +1219,51 @@ namespace newlang {
             return utf8_decode(GetValueAsString());
         }
 
-        inline int64_t GetValueAsInteger() const {
+        int64_t GetValueAsInteger() const {
             TEST_INIT_();
+
             switch (m_var_type_current) {
                 case ObjType::Bool:
+                    if (at::holds_alternative<int64_t>(m_var)) {
+                        return at::get<int64_t>(m_var);
+                    } else if (at::holds_alternative<bool *>(m_var)) {
+                        return *at::get<bool *>(m_var);
+                    }
                 case ObjType::Char:
+                    if (at::holds_alternative<int64_t>(m_var)) {
+                        return at::get<int64_t>(m_var);
+                    } else if (at::holds_alternative<int8_t *>(m_var)) {
+                        return *at::get<int8_t *>(m_var);
+                    }
                 case ObjType::Short:
+                    if (at::holds_alternative<int64_t>(m_var)) {
+                        return at::get<int64_t>(m_var);
+                    } else if (at::holds_alternative<int16_t *>(m_var)) {
+                        return *at::get<int16_t *>(m_var);
+                    }
                 case ObjType::Int:
+                    if (at::holds_alternative<int64_t>(m_var)) {
+                        return at::get<int64_t>(m_var);
+                    } else if (at::holds_alternative<int32_t *>(m_var)) {
+                        return *at::get<int32_t *>(m_var);
+                    }
                 case ObjType::Long:
+                    if (at::holds_alternative<int64_t>(m_var)) {
+                        return at::get<int64_t>(m_var);
+                    } else if (at::holds_alternative<int64_t *>(m_var)) {
+                        return *at::get<int64_t *>(m_var);
+                    }
                 case ObjType::Integer:
-                    return m_value.toType(at::ScalarType::Long).item<int64_t>();
+                    if (at::holds_alternative<int64_t>(m_var)) {
+                        return at::get<int64_t>(m_var);
+                    }
+                    ASSERT(!is_scalar());
+                    LOG_RUNTIME("Can`t convert tensor to scalar!");
 
                 case ObjType::Float:
                 case ObjType::Double:
                 case ObjType::Number:
-                    return static_cast<int64_t> (m_value.item<double>());
+                    return static_cast<int64_t>(GetValueAsNumber());
 
                 case ObjType::Fraction:
                     ASSERT(m_fraction);
@@ -1246,17 +1271,18 @@ namespace newlang {
 
                 case ObjType::StrWide:
                 case ObjType::FmtWide:
-                    if (m_wstr.size() == 1) {
-                        return m_wstr[0];
+                    if (m_string.size() == 1) {
+                        return m_string[0];
                     }
                 case ObjType::StrChar:
                 case ObjType::FmtChar:
-                    if (m_str.size() == 1) {
-                        return m_str[0];
+                    if (m_value.size() == 1) {
+                        return m_value[0];
                     }
                 default:
                     if (m_var_type_current == ObjType::Pointer || m_var_type_fixed == ObjType::Pointer) {
-                        return reinterpret_cast<int64_t> (m_func_ptr);
+                        ASSERT(at::holds_alternative<void *>(m_var));
+                        return reinterpret_cast<int64_t> (at::get<void *>(m_var));
                     }
                     LOG_RUNTIME("Data type incompatible %s", toString().c_str());
             }
@@ -1265,10 +1291,29 @@ namespace newlang {
 
         inline double GetValueAsNumber() const {
             TEST_INIT_();
+
             switch (m_var_type_current) {
+
                 case ObjType::Float:
+                    if (at::holds_alternative<double>(m_var)) {
+                        return at::get<double>(m_var);
+                    } else if (at::holds_alternative<float *>(m_var)) {
+                        return *at::get<float *>(m_var);
+                    }
                 case ObjType::Double:
-                    return m_value.item<double>();
+                    if (at::holds_alternative<double>(m_var)) {
+                        return at::get<double>(m_var);
+                    } else if (at::holds_alternative<double *>(m_var)) {
+                        return *at::get<double *>(m_var);
+                    }
+                case ObjType::Number:
+                    if (at::holds_alternative<double>(m_var)) {
+                        return at::get<double>(m_var);
+                    }
+                    if (is_scalar()) {
+                        ASSERT(!is_scalar());
+                    }
+                    LOG_RUNTIME("Can`t convert tensor to scalar!");
 
                 case ObjType::Fraction:
                     ASSERT(m_fraction);
@@ -1287,16 +1332,17 @@ namespace newlang {
                 return false;
             }
             if (is_scalar()) {
-                return m_value.toType(at::ScalarType::Bool).item<double>();
+                return GetValueAsInteger();
+                //return m_tensor.toType(at::ScalarType::Bool).item<double>();
             } else if (isSimpleType(m_var_type_current)) {
                 // Error: Boolean value of Tensor with more than one value is ambiguous
-                return !at::_is_zerotensor(m_value);
+                return !at::_is_zerotensor(m_tensor);
             } else {
                 switch (m_var_type_current) {
                     case ObjType::StrWide:
-                        return !m_wstr.empty();
+                        return !m_string.empty();
                     case ObjType::StrChar:
-                        return !m_str.empty();
+                        return !m_value.empty();
                     case ObjType::None:
                         return false;
 
@@ -1330,26 +1376,16 @@ namespace newlang {
                 return LLVMCreateGenericValueOfFloat(type, GetValueAsNumber());
             } else if (type == LLVMPointerType(LLVMInt8Type(), 0)) {
                 if (getType() == ObjType::StrChar || getType() == ObjType::FmtChar) {
-                    return LLVMCreateGenericValueOfPointer((void *) m_str.c_str());
+                    return LLVMCreateGenericValueOfPointer((void *) m_value.c_str());
                 } else if (getType() == ObjType::Pointer) {
-                    return LLVMCreateGenericValueOfPointer(m_func_ptr);
+                    ASSERT(at::holds_alternative<void *>(m_var));
+                    return LLVMCreateGenericValueOfPointer(at::get<void *>(m_var));
                 }
             } else if (type == LLVMPointerType(LLVMInt32Type(), 0)) {
                 if (getType() == ObjType::StrWide || getType() == ObjType::FmtWide) {
-                    return LLVMCreateGenericValueOfPointer((void *) m_wstr.c_str());
+                    return LLVMCreateGenericValueOfPointer((void *) m_string.c_str());
                 }
             }
-            //        if (is_integer() || is_bool_type()) {
-            //            return LLVMCreateGenericValueOfInt(type, GetValueAsInteger(), true);
-            //        } else if (is_floating()) {
-            //                return LLVMCreateGenericValueOfFloat(type, GetValueAsNumber());
-            //        } else if (getType() == ObjType::StrChar || getType() == ObjType::FmtChar) {
-            //            return LLVMCreateGenericValueOfPointer((void *) m_str.c_str());
-            //        } else if (getType() == ObjType::StrWide) {
-            //            return LLVMCreateGenericValueOfPointer((void *) m_wstr.c_str());
-            //        } else if (getType() == ObjType::Pointer) {
-            //            return LLVMCreateGenericValueOfPointer(m_func_ptr);
-            //        }
             LOG_RUNTIME("Not support LLVM type '%s'", newlang::toString(m_var_type_current));
         }
 
@@ -1379,25 +1415,13 @@ namespace newlang {
             } else if (type == ObjType::Pointer) {
 
                 ObjPtr result = Obj::CreateType(type, ObjType::None, true);
-                result->m_func_ptr = LLVMGenericValueToPointer(ref);
+                result->m_var = LLVMGenericValueToPointer(ref);
 
                 return result;
             }
             LOG_RUNTIME("Create to type '%s' form LLVM type not implemented!", newlang::toString(type));
         }
 
-        at::Scalar toTorchScalar() {
-            at::Scalar result;
-            if (is_integer() || is_bool_type()) {
-                result = at::Scalar(GetValueAsInteger());
-            } else if (is_floating()) {
-                result = at::Scalar(GetValueAsNumber());
-            } else {
-                LOG_RUNTIME("Not support Torch ScalarType '%s'", newlang::toString(m_var_type_current));
-            }
-            return result;
-
-        }
 
         static ObjPtr CreateType(ObjType type, ObjType fixed = ObjType::None, bool is_init = false) {
             return std::make_shared<Obj>(type, nullptr, nullptr, fixed, is_init);
@@ -1515,10 +1539,8 @@ namespace newlang {
         }
 
         static ObjPtr CreateBool(bool value) {
-            ObjPtr result = CreateType(ObjType::None);
-            result->m_value = torch::scalar_tensor(value, torch::Dtype::Bool);
-            result->m_var_type_current = ObjType::Bool;
-            result->m_var_is_init = true;
+            ObjPtr result = CreateType(ObjType::Bool, ObjType::None, true);
+            result->SetValue_(value);
             return result;
         }
 
@@ -1527,25 +1549,20 @@ namespace newlang {
             if (!isTensor(check_type)) {
                 LOG_RUNTIME("Unsupport torch type %s (%d)!", at::toString(tensor.dtype().toScalarType()), (int) tensor.dtype().toScalarType());
             }
-            ObjPtr result = CreateType(check_type);
-            result->m_value = tensor;
-            result->m_var_is_init = true;
+            ObjPtr result;
+            if (tensor.dim() == 0) {
+                if (tensor.is_floating_point()) {
+                    result = Obj::CreateValue(tensor.item<double>(), check_type);
+                } else {
+                    ASSERT(!tensor.is_complex());
+                    result = Obj::CreateValue(tensor.item<int64_t>(), check_type);
+                }
+            } else {
+                result = CreateType(check_type);
+                result->m_tensor = tensor;
+                result->m_var_is_init = true;
+            }
             return result;
-        }
-
-        static ObjPtr CreateTensor(ObjPtr data, ObjType type) {
-            torch::Tensor var = ConvertToTensor(data.get(), toTorchType(type), false);
-            //        ConvertToTensor(data->index_get({0}).get(), type, false);
-            return CreateTensor(var);
-        }
-
-        inline torch::Tensor toTensor() {
-            return ConvertToTensor(this);
-        }
-
-        inline torch::Tensor & asTensor_() {
-            NL_CHECK(is_tensor(), "Fail type as Tensor");
-            return m_value;
         }
 
         at::indexing::Slice toSlice() {
@@ -1612,7 +1629,7 @@ namespace newlang {
                         LOG_RUNTIME("Fail convert scalar type '%s' to Index!", newlang::toString(m_var_type_current));
                 }
             } else if (is_tensor()) {
-                return Index(m_value);
+                return Index(m_tensor);
             } else if (is_ellipsis()) {
                 return Index(at::indexing::Ellipsis);
             } else if (is_range()) {
@@ -1625,17 +1642,6 @@ namespace newlang {
             return GetValueAsBoolean();
         }
 
-        inline operator at::Tensor() {
-            return ConvertToTensor(this);
-        }
-
-        inline operator at::TensorOptions() const {
-            return ConvertToTensorOptions(this);
-        }
-
-        inline operator at::DimnameList() const {
-            return ConvertToDimnameList(this);
-        }
 
         std::vector<int64_t> toIntVector(bool raise = true) const {
             std::vector<int64_t> result;
@@ -1649,11 +1655,6 @@ namespace newlang {
         }
 
 
-        //  ПЕРЕКРЫВАЕТ ДРУГИЕ МЕТОДЫ  !!!!!!!!!!!!!! at::TensorOptions()
-        //    inline operator std::string () const {
-        //        return GetValueAsString();
-        //    }
-
         template <typename T>
         typename std::enable_if<std::is_integral<T>::value, ObjPtr>::type
         static CreateValue(T value, ObjType fix_type = ObjType::None) {
@@ -1664,7 +1665,8 @@ namespace newlang {
                 NL_CHECK(canCast(result->m_var_type_current, fix_type),
                         "Fail cast type from '%s' to '%s'!", newlang::toString(result->m_var_type_current), newlang::toString(fix_type));
             }
-            result->m_value = torch::scalar_tensor(value, toTorchType(result->m_var_type_current));
+            result->m_var = static_cast<int64_t> (value);
+            // result->m_tensor = torch::scalar_tensor(value, toTorchType(result->m_var_type_current));
             result->m_var_is_init = true;
             return result;
         }
@@ -1679,14 +1681,15 @@ namespace newlang {
                 NL_CHECK(canCast(result->m_var_type_current, fix_type),
                         "Fail cast type from '%s' to '%s'!", newlang::toString(result->m_var_type_current), newlang::toString(fix_type));
             }
-            result->m_value = torch::scalar_tensor(value, toTorchType(result->m_var_type_current));
+            result->m_var = static_cast<double> (value);
+            //result->m_tensor = torch::scalar_tensor(value, toTorchType(result->m_var_type_current));
             result->m_var_is_init = true;
             return result;
         }
 
         static ObjPtr CreateString(const std::string str) {
             ObjPtr result = CreateType(ObjType::StrChar);
-            result->m_str = str;
+            result->m_value = str;
             result->m_var_type_fixed = ObjType::String;
             result->m_var_is_init = true;
             return result;
@@ -1694,7 +1697,7 @@ namespace newlang {
 
         static ObjPtr CreateString(const std::wstring str) {
             ObjPtr result = CreateType(ObjType::StrWide);
-            result->m_wstr = str;
+            result->m_string = str;
             result->m_var_type_fixed = ObjType::String;
             result->m_var_is_init = true;
             return result;
@@ -1702,16 +1705,14 @@ namespace newlang {
 
         inline static ObjPtr Yes() {
             ObjPtr result = std::make_shared<Obj>(ObjType::Bool);
-            bool value = true;
-            result->m_value = torch::scalar_tensor(value);
+            result->m_var = static_cast<int64_t> (1);
             result->m_var_is_init = true;
             return result->MakeConst();
         }
 
         inline static ObjPtr No() {
             ObjPtr result = std::make_shared<Obj>(ObjType::Bool);
-            bool value = false;
-            result->m_value = torch::scalar_tensor(value);
+            result->m_var = static_cast<int64_t> (0);
             result->m_var_is_init = true;
             return result->MakeConst();
         }
@@ -1788,39 +1789,26 @@ namespace newlang {
         void CloneDataTo(Obj & clone) const;
         void ClonePropTo(Obj & clone) const;
 
-        virtual ~Obj() {
-            //        Clear();
+        inline ObjPtr toType(ObjType type) const {
+            ObjPtr clone = Clone();
+            clone->toType_(type);
+            return clone;
         }
 
-        ObjPtr toType(ObjType target) const {
-            ObjPtr result = Clone();
-            result->toType_(target);
-            return result;
-        }
-
-        ObjPtr toType_(Obj *type);
+        /*
+         * Варианты преобраования типов
+         * Range -> Dict
+         * Tensor -> Dict
+         * Dict -> Tensor
+         * String -> Tensor
+         * Tensor -> String
+         */
         void toType_(ObjType type);
 
-        ObjPtr toShape(ObjPtr dims) const {
-            ObjPtr result = Clone();
-            result->toShape_(dims);
-            return result;
-        }
-        ObjPtr toShape_(ObjPtr shape);
-
-        ObjPtr Convert(ObjType type, ObjPtr shape = nullptr) const {
-            ObjPtr result = Clone();
-            result->Convert_(type, shape);
-            return result;
+        virtual ~Obj() {
+            clear_();
         }
 
-        ObjPtr Convert_(ObjType type, ObjPtr shape = nullptr) {
-            if (shape) {
-                toShape_(shape);
-            }
-            toType_(type);
-            return shared();
-        }
 
         const ObjPtr index_get(const std::vector<Index> & index) const;
 
@@ -1839,14 +1827,7 @@ namespace newlang {
         template < typename T>
         typename std::enable_if<std::is_same<T, bool>::value, void>::type
         SetValue_(bool value) {
-
-            TEST_CONST_();
-
-            ASSERT(m_var_type_current != ObjType::Class);
-            clear_();
-            m_value = torch::scalar_tensor(value, torch::Dtype::Bool);
-            m_var_type_current = GetType(m_value);
-            m_var_is_init = true;
+            SetValue_(static_cast<int64_t> (value));
         }
 
         template < typename T>
@@ -1855,8 +1836,8 @@ namespace newlang {
             TEST_CONST_();
             ASSERT(m_var_type_current != ObjType::Class);
             clear_();
-            m_value = torch::scalar_tensor(value, toTorchType(typeFromLimit((int64_t) value)));
-            m_var_type_current = GetType(m_value);
+            m_var = static_cast<int64_t> (value);
+            m_var_type_current = typeFromLimit(static_cast<int64_t> (value));
             m_var_is_init = true;
         }
 
@@ -1867,8 +1848,8 @@ namespace newlang {
             TEST_CONST_();
             ASSERT(m_var_type_current != ObjType::Class);
             clear_();
-            m_value = torch::scalar_tensor(value, toTorchType(typeFromLimit(value)));
-            m_var_type_current = GetType(m_value);
+            m_var = static_cast<double> (value);
+            m_var_type_current = typeFromLimit(value);
             m_var_is_init = true;
         }
 
@@ -1892,7 +1873,7 @@ namespace newlang {
                 testConvertType(ObjType::StrChar);
                 m_var_type_current = ObjType::StrChar;
             }
-            m_str.swap(text);
+            m_value.swap(text);
             m_var_is_init = true;
         }
 
@@ -1902,7 +1883,7 @@ namespace newlang {
                 testConvertType(ObjType::StrWide);
                 m_var_type_current = ObjType::StrWide;
             }
-            m_wstr.swap(text);
+            m_string.swap(text);
             m_var_is_init = true;
         }
 
@@ -1931,7 +1912,19 @@ namespace newlang {
                 }
             }
             if (new_type != m_var_type_current) {
-                m_value = m_value.toType(toTorchType(new_type));
+                if (is_scalar()) {
+                    if (isFloatingType(new_type) && isIntegralType(m_var_type_current, true)) {
+                        // Для скаляров повышение типа с целочисленного на число с плавающий точкой
+                        m_var = static_cast<double> (GetValueAsInteger());
+                    } else {
+                        // Измерение размерности, а не типа - ничего делать ненужно
+                        ASSERT((isFloatingType(new_type) && isFloatingType(m_var_type_current)) ||
+                                (isIntegralType(new_type, true) && isIntegralType(m_var_type_current, true)));
+                    }
+                } else {
+                    ASSERT(m_tensor.defined());
+                    m_tensor = m_tensor.toType(toTorchType(new_type));
+                }
                 m_var_type_current = new_type;
             }
         }
@@ -1944,39 +1937,134 @@ namespace newlang {
             } else if ((is_none_type() || is_tensor()) && value->is_tensor()) {
 
                 if (value->empty()) {
-                    m_value.reset();
+                    m_var = at::monostate();
+                    m_tensor.reset();
                     m_var_is_init = false;
                     return;
                 }
 
                 if (!canCast(value->m_var_type_current, m_var_type_current)) {
                     testConvertType(value->m_var_type_current);
-                    toType_(value->getType());
                 }
+
                 if (is_none_type()) {
-                    m_value = value->m_value;
+
+                    // Присаеваем данные пустому значению
+                    ASSERT(at::holds_alternative<at::monostate>(m_var));
+                    ASSERT(!m_tensor.defined());
+
+                    if (value->is_scalar()) {
+                        m_var = value->m_var;
+                        //                        if (value->is_integral()) {
+                        //                            m_var = value->GetValueAsInteger(); // Нужно считывать значение, т.к. может быть ссылка
+                        //                        } else {
+                        //                            ASSERT(value->is_floating());
+                        //                            m_var = value->GetValueAsNumber(); // Нужно считывать значение, т.к. может быть ссылка
+                        //                        }
+                    } else {
+                        m_tensor = value->m_tensor.clone();
+                    }
                     m_var_type_current = value->m_var_type_current;
+
                 } else {
 
-                    if (m_value.dim() == 0 && value->m_value.dim() != 0) {
-                        LOG_RUNTIME("Fail assign tensor to scalar!");
-                    }
-                    if (!m_var_is_init) {
-                        m_value = value->m_value.clone();
-                    } else {
-                        if (!m_value.sizes().equals(value->m_value.sizes()) && value->m_value.dim() != 0) {
-                            LOG_RUNTIME("Different sizes of tensors!");
+                    // текущая переменная уже сожержит данные
+
+                    if (is_scalar() && value->is_scalar()) {
+                        // Два скаляра
+                        switch (m_var_type_current) {
+                            case ObjType::Bool:
+                                if (at::holds_alternative<int64_t>(m_var)) {
+                                    m_var = value->GetValueAsInteger();
+                                } else if (at::holds_alternative<bool *>(m_var)) {
+                                    ASSERT(at::get<bool *>(m_var));
+                                    *at::get<bool *>(m_var) = value->GetValueAsInteger();
+                                }
+                                break;
+                            case ObjType::Char:
+                                if (at::holds_alternative<int64_t>(m_var)) {
+                                    m_var = value->GetValueAsInteger();
+                                } else if (at::holds_alternative<int8_t *>(m_var)) {
+                                    ASSERT(at::get<int8_t *>(m_var));
+                                    *at::get<int8_t *>(m_var) = static_cast<int8_t>(value->GetValueAsInteger());
+                                }
+                                break;
+                            case ObjType::Short:
+                                if (at::holds_alternative<int64_t>(m_var)) {
+                                    m_var = value->GetValueAsInteger();
+                                } else if (at::holds_alternative<int16_t *>(m_var)) {
+                                    ASSERT(at::get<int16_t *>(m_var));
+                                    *at::get<int16_t *>(m_var) = static_cast<int16_t>(value->GetValueAsInteger());
+                                }
+                                break;
+                            case ObjType::Int:
+                                if (at::holds_alternative<int64_t>(m_var)) {
+                                    m_var = value->GetValueAsInteger();
+                                } else if (at::holds_alternative<int32_t *>(m_var)) {
+                                    ASSERT(at::get<int32_t *>(m_var));
+                                    *at::get<int32_t *>(m_var) = static_cast<int32_t>(value->GetValueAsInteger());
+                                }
+                                break;
+                            case ObjType::Long:
+                                if (at::holds_alternative<int64_t>(m_var)) {
+                                    m_var = value->GetValueAsInteger();
+                                } else if (at::holds_alternative<int64_t *>(m_var)) {
+                                    ASSERT(at::get<int64_t *>(m_var));
+                                    *at::get<int64_t *>(m_var) = value->GetValueAsInteger();
+                                }
+                                break;
+                            case ObjType::Float:
+                                if (at::holds_alternative<double>(m_var)) {
+                                    m_var = value->GetValueAsNumber();
+                                } else if (at::holds_alternative<float *>(m_var)) {
+                                    ASSERT(at::get<float *>(m_var));
+                                    *at::get<float *>(m_var) = static_cast<float>(value->GetValueAsNumber());
+                                }
+                                break;
+                            case ObjType::Double:
+                                if (at::holds_alternative<double>(m_var)) {
+                                    m_var = value->GetValueAsNumber();
+                                } else if (at::holds_alternative<double *>(m_var)) {
+                                    ASSERT(at::get<double *>(m_var));
+                                    *at::get<double *>(m_var) = value->GetValueAsNumber();
+                                }
+                                break;
+                            default:
+                                LOG_RUNTIME("Fail set value type '%s'!", newlang::toString(m_var_type_current));
+                        }
+
+                    } else if (is_scalar() && !value->is_scalar()) {
+
+                        m_var = at::monostate();
+                        ASSERT(!m_tensor.defined());
+                        m_tensor = value->m_tensor.clone();
+
+                    } else if (!is_scalar() && value->is_scalar()) {
+
+                        // Установить одно значение для всех элементов тензора
+                        if (is_integral()) {
+                            m_tensor.set_(torch::scalar_tensor(value->GetValueAsInteger(), m_tensor.scalar_type()));
                         } else {
-                            setTensorValue(m_value, value->m_value);
+                            ASSERT(is_floating());
+                            m_tensor.set_(torch::scalar_tensor(value->GetValueAsNumber(), m_tensor.scalar_type()));
+                        }
+
+                    } else {
+                        //  Продублировать значения тензора если они одинакового размера
+                        if (m_tensor.sizes().equals(value->m_tensor.sizes())) {
+                            m_tensor = value->m_tensor.toType(m_tensor.scalar_type()).clone();
+                        } else {
+                            LOG_RUNTIME("Different sizes of tensors!");
                         }
                     }
                 }
                 m_var_is_init = true;
                 return;
+
             } else if ((is_none_type() || is_string_type()) && value->is_string_type()) {
 
                 switch (m_var_type_current) {
-                    case ObjType::None:
+                    case ObjType::None: // @todo Какой тип сроки по умолчанию? Пока байтовые
                     case ObjType::StrChar:
                     case ObjType::FmtChar:
                         SetValue_(value->GetValueAsString());
@@ -1988,24 +2076,25 @@ namespace newlang {
                 }
 
             } else if (is_none_type() || isObjectType(m_var_type_current)) {
+
                 std::string old_name = m_var_name;
                 clear_();
                 value->CloneDataTo(*this);
                 value->ClonePropTo(*this);
                 m_var_name.swap(old_name);
                 m_var_is_init = true;
-
                 return;
-            } else if ((is_none_type() || m_var_type_current == ObjType::Pointer) && value->m_var_type_current == ObjType::Pointer) {
-                //@todo Check tree type !!!
 
-                std::string old_name = m_var_name;
-                value->CloneDataTo(*this);
-                value->ClonePropTo(*this);
-                m_var_name.swap(old_name);
-                m_var_is_init = true;
+                //            } else if ((is_none_type() || m_var_type_current == ObjType::Pointer) && value->m_var_type_current == ObjType::Pointer) {
+                //                //@todo Check tree type !!!
+                //
+                //                std::string old_name = m_var_name;
+                //                value->CloneDataTo(*this);
+                //                value->ClonePropTo(*this);
+                //                m_var_name.swap(old_name);
+                //                m_var_is_init = true;
+                //                return;
 
-                return;
             } else if ((is_none_type() || m_var_type_current == ObjType::Function) && value->is_function()) {
                 //@todo Check function type args !!!
 
@@ -2028,7 +2117,7 @@ namespace newlang {
                 //            m_var_name.swap(old_name);
                 //            m_var_is_init = true;
                 //            *const_cast<TermPtr *> (&m_func_proto) = save_proto;
-                m_block_source = value->m_block_source;
+                m_sequence = value->m_sequence;
                 //            m_var_type_current = save_type;
 
                 return;
@@ -2059,7 +2148,7 @@ namespace newlang {
 
         inline const TermPtr Proto() {
 
-            return m_func_proto;
+            return m_prototype;
         }
 
     protected:
@@ -2072,37 +2161,54 @@ namespace newlang {
         ObjType m_var_type_fixed; ///< Максимальный размер для арифметических типов, который задается разработчиком
         bool m_var_is_init; ///< Содержит ли объект корректное значение ???
 
-        //    struct FuncInfo {
-        //        const TermPtr m_func_proto;
-        //        std::string m_func_mangle_name;
-        //        void *m_func_ptr;
-        //        ffi_abi m_func_abi;
-        //    };
-        //    std::variant<std::monostate, torch::Tensor, FuncInfo, std::string, std::wstring, std::string_view, std::wstring_view> m_var;
 
-
+        std::string m_namespace;
         std::string m_var_name; ///< Имя переменной, в которой хранится объект
 
         ObjPtr m_dimensions; ///< Размерности для ObjType::Type
         std::string m_class_name; ///< Имя класса объекта (у базовых типов отсуствует)
         std::vector<ObjPtr> m_class_parents; ///< Родительские классы (типы)
 
-        std::string m_namespace;
-        std::string m_str;
-        std::wstring m_wstr;
         mutable PairType m_str_pair; //< Для доступа к отдельным символам строк
 
-        const TermPtr m_func_proto;
         std::string m_func_mangle_name;
         std::string m_module_name;
-        void *m_func_ptr;
-        //        ffi_abi m_func_abi;
-        torch::Tensor m_value;
-        std::shared_ptr<Fraction> m_fraction;
-        std::shared_ptr< Iterator<Obj> > m_iterator;
 
-        TermPtr m_block_source;
+        // Применение variant необходимо для полей хранения данных, чтобы контролировать их инициализацию
+        //        std::variant<std::monostate, void *, torch::Tensor, std::string, std::wstring, std::string_view, std::wstring_view,
+        //        std::shared_ptr<Fraction>, std::shared_ptr< Iterator<Obj> >, TermPtr> m_var;
+
+        //        std::variant<std::monostate, void *, torch::Tensor, std::string, std::wstring, std::string_view, std::wstring_view> m_var;
+
+        struct NativeData {
+            void * ptr;
+            int64_t size;
+        };
+
+        at::variant<at::monostate, int64_t, double, void *, // None, скаляры и ссылки на функции (нужно различать чистые, обычные и нативные???)
+        bool *, int8_t *, int16_t *, int32_t *, int64_t *, float *, double *, NativeData, // Ссылки на нативные скаляры и данные
+        Fraction, torch::Tensor, std::string, std::wstring, TermPtr, Iterator<Obj>> m_var;
+
+        //        union {
+        //            int64_t m_integer;
+        //            double m_number;
+        //            void *m_pointer; ///< Содержит указатель на нативную функцию или область памяти с данными или скаляр
+        //        };
+
+        std::string m_value; ///< Содержит байтовую строку или байтовый массив с данными для представления в нативном виде (Struct, Unuion, Enum)
+        std::wstring m_string; ///< Содержит строку широких символов
+        torch::Tensor m_tensor; ///< Содержит только размерные тензоры (скляры хранятся в поле m_pointer и не создают m_tensor.defined())
+        std::shared_ptr<Fraction> m_fraction; ///< Содержит дробь из длинных чисел
+        std::shared_ptr< Iterator<Obj> > m_iterator; ///< Итератор для данных
+        TermPtr m_sequence; ///< Последовательно распарсенных команд для выполнения
+        const TermPtr m_prototype; ///< Описание прототипп функции (или данных)
+
         bool m_check_args; //< Проверять аргументы на корректность (для всех видов функций) @ref MakeArgs
+
+        /* Для будущей переделки системы типов и базового класса: 
+         * Должен быть интерфейс с поддерживаемыми операциями для стандартных типов данных
+         * и набор реализаций для скаляров, строк, тензоров, нативных функций, дробей, внутренних функций и т.д.
+         */
 
         //    SCOPE(protected) :
         bool m_is_const; //< Признак константы (по умолчанию изменения разрешено)

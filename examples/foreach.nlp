@@ -2,9 +2,9 @@
 
 :File ::= :Pointer;
 
-@stdin:File ::= :Pointer("_IO_2_1_stdin_:File");
-@stdout:File ::= :Pointer("_IO_2_1_stdout_:File");
-@stderr:File ::= :Pointer("stderr:File");
+#@stdin:File ::= :Pointer("stdin:File");
+#@stdout:File ::= :Pointer("stdout:File");
+#@stderr:File ::= :Pointer("stderr:File");
 
 @fopen(filename:String, modes:String):File ::= :Pointer("fopen(filename:StrChar, modes:StrChar):File");;
 @fopen64(filename:String, modes:String):File ::= :Pointer("fopen(filename:StrChar, modes:StrChar):File");;

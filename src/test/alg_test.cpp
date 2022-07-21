@@ -217,6 +217,13 @@ TEST(Alg, Foreach) {
     dict->push_back(Obj::Arg(50));
     ASSERT_EQ(5, dict->size());
 
+    temp = ctx.ExecStr("dict");
+    ASSERT_TRUE(temp);
+    ASSERT_TRUE(temp->is_dictionary_type());
+    ASSERT_FALSE(temp->is_scalar());
+    ASSERT_TRUE(temp->GetValueAsBoolean());
+    ASSERT_EQ(5, temp->size());
+
     temp = ctx.ExecStr(":Bool(dict)");
     ASSERT_TRUE(temp);
     ASSERT_TRUE(temp->is_bool_type());

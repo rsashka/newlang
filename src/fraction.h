@@ -1,12 +1,9 @@
+#include "pch.h"
+
 #ifndef FRACTION_H
 #define FRACTION_H
 
 #include <openssl/bn.h>
-#include <string>
-
-#include <contrib/logger/logger.h>
-
-#include "pch.h"
 
 namespace newlang {
 
@@ -28,7 +25,11 @@ namespace newlang {
         BigNum(const BigNum &copy) : BigNum() {
             VERIFY(BN_copy(value, copy.value));
         }
-        BigNum& operator=(const BigNum&) = delete; // Disallow copying
+
+        BigNum& operator=(const BigNum & copy) {
+            VERIFY(BN_copy(value, copy.value));
+            return *this;
+        }
 
         virtual ~BigNum() {
             if (value) {
@@ -294,7 +295,52 @@ namespace newlang {
             return *this;
         }
 
+        Fraction& operator%=(const Fraction &fraction) {
+            LOG_RUNTIME("Not implemented!");
+            return *this;
+        }
+
+        Fraction &operator^=(const Fraction &) {
+            LOG_RUNTIME("Operator '^=' not implementd!");
+            return *this;
+        }
+
+        Fraction & operator|=(const Fraction &) {
+            LOG_RUNTIME("Operator '|=' not implementd!");
+            return *this;
+        }
+
+        Fraction &op_lshift_set(const Fraction &) {
+            LOG_RUNTIME("Operator '<<=' not implementd!");
+            return *this;
+        }
+
+        Fraction & op_rshift_set(const Fraction &) {
+            LOG_RUNTIME("Operator '>>=' not implementd!");
+            return *this;
+        }
+
+        const Fraction & op_rrshift_set(const Fraction &) {
+            LOG_RUNTIME("Operator '>>>=' not implementd!");
+            return *this;
+        }
+
         Fraction& op_pow_(const Fraction &fraction) {
+            LOG_RUNTIME("Not implemented!");
+            return *this;
+        }
+
+        bool op_equal(const Fraction &fraction) const {
+            LOG_RUNTIME("Not implemented!");
+            return false;
+        }
+
+        int op_compare(const Fraction &fraction) const {
+            LOG_RUNTIME("Not implemented!");
+            return false;
+        }
+
+        Fraction &op_div_ceil_(Fraction &fraction) {
             LOG_RUNTIME("Not implemented!");
             return *this;
         }

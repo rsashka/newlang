@@ -183,7 +183,7 @@ bool Context::CreateBuiltin(const char *prototype, void *func, ObjType type) {
     ASSERT(proto->Left() && !proto->Left()->getText().empty());
     ObjPtr obj = Obj::CreateFunc(this, proto->Left(), type, proto->Left()->getText());
 
-    obj->m_func_ptr = func;
+    obj->m_var = func;
     obj->m_var_is_init = true;
 
     auto found = m_funcs.find(proto->Left()->getText());
@@ -321,7 +321,7 @@ ObjPtr Context::eval_UNKNOWN(Context *ctx, const TermPtr &term, Obj *args) {
 ObjPtr Context::eval_BLOCK(Context *ctx, const TermPtr &term, Obj *args) {
     ASSERT(term && term->getTermID() == TermID::BLOCK);
     ObjPtr obj = Obj::CreateType(ObjType::BLOCK);
-    obj->m_block_source = term;
+    obj->m_sequence = term;
     obj->m_var_is_init = true;
 
     if(term->size() && term->at(0).second->IsString()) {
@@ -334,7 +334,7 @@ ObjPtr Context::eval_BLOCK(Context *ctx, const TermPtr &term, Obj *args) {
 ObjPtr Context::eval_BLOCK_TRY(Context *ctx, const TermPtr &term, Obj *args) {
     ASSERT(term && term->getTermID() == TermID::BLOCK_TRY);
     ObjPtr obj = Obj::CreateType(ObjType::BLOCK_TRY);
-    obj->m_block_source = term;
+    obj->m_sequence = term;
     obj->m_var_is_init = true;
 
     if(term->size() && term->at(0).second->IsString()) {
@@ -576,7 +576,7 @@ ObjPtr Context::CREATE_OR_ASSIGN(Context *ctx, const TermPtr &term, Obj *local_v
 
     if(term->Right()->getTermID() == TermID::ELLIPSIS) {
         if(rval->is_dictionary_type() || rval->is_tensor()) {
-            if(rval->is_scalar()) {
+            if(!rval->empty() && rval->is_scalar()) {
                 LOG_RUNTIME("Fail expand scalar!");
             }
             for (int i = 0; i < list_obj.size() - 1; i++) {
@@ -698,7 +698,7 @@ ObjPtr Context::eval_FUNCTION(Context *ctx, const TermPtr &term, Obj * args) {
         }
         lval->m_var_type_fixed = lval->m_var_type_current;
         lval->m_var_is_init = true;
-        lval->m_block_source = term->Right();
+        lval->m_sequence = term->Right();
     }
 
     return ctx->RegisterObject(lval);
@@ -1493,9 +1493,9 @@ ObjPtr Context::CreateNative(TermPtr proto, const char *module, bool lazzy, cons
     }
 
     result = Obj::CreateType(type);
-    result->m_var_type_fixed = type; // Тип определен и не может измениться в дальнейшем
+    result->m_var_type_fixed = ObjType::Pointer; // Тип определен и не может измениться в дальнейшем
 
-    *const_cast<TermPtr *> (&result->m_func_proto) = proto;
+    *const_cast<TermPtr *> (&result->m_prototype) = proto;
     //    result->m_func_abi = abi;
 
     if(mangle_name) {
@@ -1504,16 +1504,49 @@ ObjPtr Context::CreateNative(TermPtr proto, const char *module, bool lazzy, cons
     if(module) {
         result->m_module_name = module;
     }
+    void * ptr = nullptr;
     if(lazzy) {
-        result->m_func_ptr = nullptr;
+        result->m_var = static_cast<void *> (nullptr);
     } else {
-        result->m_func_ptr = m_runtime->GetNativeAddr(
-                result->m_func_mangle_name.empty() ? proto->m_text.c_str() : result->m_func_mangle_name.c_str(), module);
+        ASSERT(at::holds_alternative<at::monostate>(result->m_var));
+
+        ptr = m_runtime->GetNativeAddr(result->m_func_mangle_name.empty() ? proto->m_text.c_str() : result->m_func_mangle_name.c_str(), module);
+
+        switch(type) {
+            case ObjType::Bool:
+                result->m_var = static_cast<bool *> (ptr);
+                break;
+            case ObjType::Char:
+                result->m_var = static_cast<int8_t *> (ptr);
+                break;
+            case ObjType::Short:
+                result->m_var = static_cast<int16_t *> (ptr);
+                break;
+            case ObjType::Int:
+                result->m_var = static_cast<int32_t *> (ptr);
+                break;
+            case ObjType::Long:
+                result->m_var = static_cast<int64_t *> (ptr);
+                break;
+            case ObjType::Float:
+                result->m_var = static_cast<float *> (ptr);
+                break;
+            case ObjType::Double:
+                result->m_var = static_cast<double *> (ptr);
+                break;
+
+            case ObjType::NativeFunc:
+            default:
+                result->m_var = ptr;
+        }
+        //        result->m_var = m_runtime->GetNativeAddr(
+        //                result->m_func_mangle_name.empty() ? proto->m_text.c_str() : result->m_func_mangle_name.c_str(), module);
+
         if(result->is_function() || type == ObjType::Pointer) {
-            NL_CHECK(result->m_func_ptr, "Error getting address '%s' from '%s'!", proto->toString().c_str(), module);
-        } else if(result->m_func_ptr && result->is_tensor()) {
-            result->m_value = torch::from_blob(result->m_func_ptr, {
-            }, toTorchType(type));
+            NL_CHECK(at::get<void *>(result->m_var), "Error getting address '%s' from '%s'!", proto->toString().c_str(), module);
+        } else if(ptr && result->is_tensor()) {
+            //            result->m_tensor = torch::from_blob(at::get<void *>(result->m_var),{
+            //            }, toTorchType(type));
             result->m_var_is_init = true;
         } else {
 
@@ -1535,58 +1568,7 @@ std::string RunTime::GetLastErrorMessage() {
 }
 
 void *RunTime::GetNativeAddr(const char *name, const char *module) {
-    //    if(module && module[0]) {
-    //        if(m_modules.find(module) == m_modules.end()) {
-    //            LoadModule(module, false, nullptr);
-    //        }
-    //        if(m_modules.find(module) == m_modules.end()) {
-    //            LOG_WARNING("Fail load module '%s'!", module);
-    //
-    //            return nullptr;
-    //        }
-    //
-    ////#ifndef _MSC_VER
-    //
-    //        return GetDirectAddressFromLibrary(m_modules[module]->GetHandle(), name);
-    ////#else
-    //        //return static_cast<void *> (::GetProcAddress(m_modules[module]->GetHandle(), name));
-    ////#endif
-    //    }
-
-    //#ifndef _MSC_VER
-    //    ASSERT(m_llvm_engine);
-
-    //    LOG_DEBUG("getAddressToGlobalIfAvailable( %s ) = %ld", "var_long", m_llvm_engine->getAddressToGlobalIfAvailable("var_long"));
-    //    LOG_DEBUG("getGlobalValueAddress( %s ) = %ld", "var_long", m_llvm_engine->getGlobalValueAddress("var_long"));
-    //    LOG_DEBUG("getPointerToNamedFunction( %s ) = %ld", "var_long", (long)m_llvm_engine->getPointerToNamedFunction("var_long", false));
-    //    
-    //    LOG_DEBUG("getAddressToGlobalIfAvailable( %s ) = %ld", "_var_long", m_llvm_engine->getAddressToGlobalIfAvailable("_var_long"));
-    //    LOG_DEBUG("getGlobalValueAddress( %s ) = %ld", "_var_long", m_llvm_engine->getGlobalValueAddress("_var_long"));
-    //    LOG_DEBUG("getPointerToNamedFunction( %s ) = %ld", "_var_long", (long)m_llvm_engine->getPointerToNamedFunction("_var_long", false));
-    //    
-    //    LOG_DEBUG("getAddressToGlobalIfAvailable( %s ) = %ld", "func_export", m_llvm_engine->getAddressToGlobalIfAvailable("func_export"));
-    //    LOG_DEBUG("getGlobalValueAddress( %s ) = %ld", "func_export", m_llvm_engine->getGlobalValueAddress("func_export"));
-    //    LOG_DEBUG("getPointerToNamedFunction( %s ) = %ld", "func_export", (long)m_llvm_engine->getPointerToNamedFunction("func_export", false));
-    //    
-    //    LOG_DEBUG("getAddressToGlobalIfAvailable( %s ) = %ld", "_func_export", m_llvm_engine->getAddressToGlobalIfAvailable("_func_export"));
-    //    LOG_DEBUG("getGlobalValueAddress( %s ) = %ld", "_func_export", m_llvm_engine->getGlobalValueAddress("_func_export"));
-    //    LOG_DEBUG("getPointerToNamedFunction( %s ) = %ld", "_func_export", (long)m_llvm_engine->getPointerToNamedFunction("_func_export", false));
-    //
-    //    
-    //    LOG_DEBUG("getAddressToGlobalIfAvailable( %s ) = %ld", name, m_llvm_engine->getAddressToGlobalIfAvailable(name));
-    //    LOG_DEBUG("getGlobalValueAddress( %s ) = %ld", name, m_llvm_engine->getGlobalValueAddress(name));
-    //    LOG_DEBUG("getPointerToNamedFunction( %s ) = %ld", name, (long)m_llvm_engine->getPointerToNamedFunction(name, false));
-
-    //m_llvm_engine->getPointerToNamedFunction(name, false);
     return GetDirectAddressFromLibrary(nullptr, name);
-    //    return ::dlsym(::dlopen(nullptr, RTLD_NOW | RTLD_GLOBAL), name);
-    //#else
-    //    void *result = static_cast<void *> (::GetProcAddress(GetModuleHandle(nullptr), name));
-    //if(result) {
-    //  return result;
-    //    }
-    //  return static_cast<void *> (::GetProcAddress((HMODULE) m_msys, name));
-    //#endif
 }
 
 void Context::CleanUp() {
@@ -1720,14 +1702,14 @@ ObjPtr Context::CreateLVal(Context *ctx, TermPtr term, Obj * args) {
     result->m_var_is_init = false;
     result->m_var_name = term->m_text;
 
-    *const_cast<TermPtr *> (&result->m_func_proto) = term;
+    *const_cast<TermPtr *> (&result->m_prototype) = term;
 
     TermPtr type = term->GetType();
     if(term->IsFunction() || term->getTermID() == TermID::CALL) {
 
         result->m_var_type_current = ObjType::Function;
         result->m_var_type_fixed = result->m_var_type_current;
-        *const_cast<TermPtr *> (&result->m_func_proto) = term;
+        *const_cast<TermPtr *> (&result->m_prototype) = term;
     } else if(type) {
         result->m_var_type_current = typeFromString(type->getText().c_str(), ctx);
         result->m_var_type_fixed = result->m_var_type_current;
@@ -1747,7 +1729,7 @@ ObjPtr Context::CreateLVal(Context *ctx, TermPtr term, Obj * args) {
                     dims.push_back(temp->GetValueAsInteger());
                 }
             }
-            result->m_value = torch::empty(dims, toTorchType(result->m_var_type_current));
+            result->m_tensor = torch::empty(dims, toTorchType(result->m_var_type_current));
         }
     }
     if(!isType(term->m_text)) {
@@ -1924,8 +1906,8 @@ std::vector<Index> Context::MakeIndex(Context *ctx, TermPtr term, Obj * local_va
 
                 if(temp->is_scalar()) {
                     result.push_back(Index(temp->GetValueAsInteger()));
-                } else if(temp->m_value.dim() == 1) {
-                    result.push_back(Index(temp->m_value));
+                } else if(temp->m_tensor.dim() == 1) {
+                    result.push_back(Index(temp->m_tensor));
                 } else {
                     NL_PARSER(term->at(i).second, "Extra dimensions index not support '%d'!", i);
                 }
@@ -1970,40 +1952,35 @@ ObjPtr Context::CreateRVal(Context *ctx, TermPtr term, Obj * local_vars, bool in
     at::Scalar torch_scalar;
     switch(term->getTermID()) {
         case TermID::INTEGER:
+
             val_int = parseInteger(term->getText().c_str());
-            NL_TYPECHECK(term, newlang::toString(typeFromLimit(val_int)),
-                    term->m_type_name); // Соответстствует ли тип значению?
+            NL_TYPECHECK(term, newlang::toString(typeFromLimit(val_int)), term->m_type_name); // Соответстствует ли тип значению?
+
+            result = Obj::CreateValue(val_int);
             result->m_var_type_current = typeFromLimit(val_int);
             if(term->GetType()) {
                 result->m_var_type_fixed = typeFromString(term->m_type_name, ctx);
                 result->m_var_type_current = result->m_var_type_fixed;
             }
-            result->m_value = torch::scalar_tensor(val_int, toTorchType(result->m_var_type_current));
-            result->m_var_is_init = true;
             return result;
+
         case TermID::NUMBER:
             val_dbl = parseDouble(term->getText().c_str());
-            NL_TYPECHECK(term, newlang::toString(typeFromLimit(val_dbl)),
-                    term->m_type_name); // Соответстствует ли тип значению?
+            NL_TYPECHECK(term, newlang::toString(typeFromLimit(val_dbl)), term->m_type_name); // Соответстствует ли тип значению?
+
+            result = Obj::CreateValue(val_dbl);
             result->m_var_type_current = typeFromLimit(val_dbl);
             if(term->GetType()) {
                 result->m_var_type_fixed = typeFromString(term->m_type_name, ctx);
                 result->m_var_type_current = result->m_var_type_fixed;
             }
-            result->m_value = torch::scalar_tensor(val_dbl, toTorchType(result->m_var_type_current));
-            result->m_var_is_init = true;
-            return result;
-        case TermID::STRWIDE:
-            result->m_var_type_current = ObjType::StrWide;
-            result->m_wstr = utf8_decode(term->getText());
-            result->m_var_is_init = true;
             return result;
 
+        case TermID::STRWIDE:
+            return Obj::CreateString(utf8_decode(term->getText()));
+
         case TermID::STRCHAR:
-            result->m_var_type_current = ObjType::StrChar;
-            result->m_str = term->getText();
-            result->m_var_is_init = true;
-            return result;
+            return Obj::CreateString(term->getText());
 
             /*        case TermID::FIELD:
                         if(module && module->HasFunc(term->GetFullName().c_str())) {
@@ -2256,14 +2233,24 @@ ObjPtr Context::CreateRVal(Context *ctx, TermPtr term, Obj * local_vars, bool in
             if(term->getTermID() == TermID::TENSOR) {
 
                 result->m_var_type_fixed = typeFromString(term->m_type_name, ctx);
-                type = getSummaryTensorType(result, result->m_var_type_fixed);
+                type = getSummaryTensorType(result.get(), result->m_var_type_fixed);
 
                 if(type != ObjType::None) {
-                    result->m_value = ConvertToTensor(result.get(), toTorchType(type));
+
+
+                    sizes = TensorShapeFromDict(result.get());
+                    result->toType_(type);
+
+                    if(!sizes.empty()) {
+                        ASSERT(result->m_tensor.defined());
+                        result->m_tensor = result->m_tensor.reshape(sizes);
+                    }
+
+
                 } else {
                     result->m_var_is_init = false;
                 }
-                result->resize(0, nullptr, "");
+                //                result->resize(0, nullptr, "");
                 result->m_var_type_current = type;
             } else {
                 result->m_class_name = term->m_class_name;
@@ -2359,7 +2346,7 @@ ObjPtr Context::CreateRVal(Context *ctx, TermPtr term, Obj * local_vars, bool in
     return nullptr;
 }
 
-void Context::CreateArgs_(ObjPtr &args, TermPtr &term, Obj *local_vars) {
+void Context::CreateArgs_(ObjPtr &args, TermPtr &term, Obj * local_vars) {
     for (int i = 0; i < term->size(); i++) {
         if(term->name(i).empty()) {
             args->push_back(CreateRVal(this, (*term)[i].second, local_vars));

@@ -329,7 +329,7 @@ namespace newlang {
                         }
                     }
 
-                    ObjPtr result = m_ctx.ExecStr(m_eval, m_args.get(), true);
+                    ObjPtr result = m_ctx.ExecStr(m_eval, m_args.get(), false);
 
                     if (result && m_local_vars.find(result.get()) == m_local_vars.end()) {
                         m_local_vars[result.get()] = result;

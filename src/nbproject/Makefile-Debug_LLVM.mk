@@ -64,8 +64,8 @@ OBJECTFILES= \
 CFLAGS=
 
 # CC Compiler Flags
-CCFLAGS=`llvm-config-13 --cxxflags` -std=c++17 -fexceptions -fcxx-exceptions -Wall -Wextra -Werror -Wfloat-equal -Wundef -Wcast-align -Wwrite-strings -Wmissing-declarations -Wredundant-decls -Wshadow -Woverloaded-virtual -Wno-trigraphs -Wno-invalid-source-encoding -stdlib=libstdc++ -Wno-error=unused-variable -Wno-error=unused-parameter -Wno-error=switch -fsanitize=undefined-trap -fsanitize-undefined-trap-on-error                                         -Wno-undefined-var-template -Wno-switch  
-CXXFLAGS=`llvm-config-13 --cxxflags` -std=c++17 -fexceptions -fcxx-exceptions -Wall -Wextra -Werror -Wfloat-equal -Wundef -Wcast-align -Wwrite-strings -Wmissing-declarations -Wredundant-decls -Wshadow -Woverloaded-virtual -Wno-trigraphs -Wno-invalid-source-encoding -stdlib=libstdc++ -Wno-error=unused-variable -Wno-error=unused-parameter -Wno-error=switch -fsanitize=undefined-trap -fsanitize-undefined-trap-on-error                                         -Wno-undefined-var-template -Wno-switch  
+CCFLAGS=`llvm-config-13 --cxxflags` -std=c++17 -fexceptions -fcxx-exceptions -Wall -Wextra -Werror -Wfloat-equal -Wundef -Wcast-align -Wwrite-strings -Wmissing-declarations -Wredundant-decls -Wshadow -Woverloaded-virtual -Wno-trigraphs -Wno-invalid-source-encoding -stdlib=libstdc++ -Wno-error=unused-variable -Wno-error=unused-parameter -Wno-error=switch -fsanitize=undefined-trap -fsanitize-undefined-trap-on-error                                         -Wno-undefined-var-template -Wno-switch                         
+CXXFLAGS=`llvm-config-13 --cxxflags` -std=c++17 -fexceptions -fcxx-exceptions -Wall -Wextra -Werror -Wfloat-equal -Wundef -Wcast-align -Wwrite-strings -Wmissing-declarations -Wredundant-decls -Wshadow -Woverloaded-virtual -Wno-trigraphs -Wno-invalid-source-encoding -stdlib=libstdc++ -Wno-error=unused-variable -Wno-error=unused-parameter -Wno-error=switch -fsanitize=undefined-trap -fsanitize-undefined-trap-on-error                                         -Wno-undefined-var-template -Wno-switch                         
 
 # Fortran Compiler Flags
 FFLAGS=
@@ -94,12 +94,12 @@ ${OBJECTDIR}/builtin.o: builtin.cpp
 	${RM} "$@.d"
 	$(COMPILE.cc) -g -O2 -DDEBUG -DLOG_LEVEL_NORMAL=LOG_LEVEL_DEBUG -DPDC_WIDE -I. -I.. -I/usr/lib/llvm-13/lib/clang/13.0.1/include -I/usr/include/x86_64-linux-gnu/c++/10 -I/usr/include/c++/10 -I/usr/local/include -I/usr/include -I../contrib/googletest/googletest -I../contrib/googletest/googletest/include -I../contrib/Tensorflow/bazel-bin/tensorflow/include -I../contrib/Lyra/include -I../contrib/libtorch/include/torch/csrc/api/include -I../contrib/libtorch/include -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/builtin.o builtin.cpp
 
-${OBJECTDIR}/context.o: context.cpp parser.h parser.yy.h
+${OBJECTDIR}/context.o: context.cpp
 	${MKDIR} -p ${OBJECTDIR}
 	${RM} "$@.d"
 	$(COMPILE.cc) -g -O2 -DDEBUG -DLOG_LEVEL_NORMAL=LOG_LEVEL_DEBUG -DPDC_WIDE -I. -I.. -I/usr/lib/llvm-13/lib/clang/13.0.1/include -I/usr/include/x86_64-linux-gnu/c++/10 -I/usr/include/c++/10 -I/usr/local/include -I/usr/include -I../contrib/googletest/googletest -I../contrib/googletest/googletest/include -I../contrib/Tensorflow/bazel-bin/tensorflow/include -I../contrib/Lyra/include -I../contrib/libtorch/include/torch/csrc/api/include -I../contrib/libtorch/include -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/context.o context.cpp
 
-${OBJECTDIR}/lexer.o: lexer.cpp parser.yy.h parser.yy.cpp location.hh
+${OBJECTDIR}/lexer.o: lexer.cpp
 	${MKDIR} -p ${OBJECTDIR}
 	${RM} "$@.d"
 	$(COMPILE.cc) -g -O2 -DDEBUG -DLOG_LEVEL_NORMAL=LOG_LEVEL_DEBUG -DPDC_WIDE -I. -I.. -I/usr/lib/llvm-13/lib/clang/13.0.1/include -I/usr/include/x86_64-linux-gnu/c++/10 -I/usr/include/c++/10 -I/usr/local/include -I/usr/include -I../contrib/googletest/googletest -I../contrib/googletest/googletest/include -I../contrib/Tensorflow/bazel-bin/tensorflow/include -I../contrib/Lyra/include -I../contrib/libtorch/include/torch/csrc/api/include -I../contrib/libtorch/include -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/lexer.o lexer.cpp
@@ -152,6 +152,10 @@ ${OBJECTDIR}/parser.yy.o: parser.yy.cpp parser.y
 	@echo Выполнение шага пользовательского сборки
 	
 
+pch.h.pch: pch.h
+	@echo Выполнение шага пользовательского сборки
+	
+
 ${OBJECTDIR}/syntax_help.o: syntax_help.cpp
 	${MKDIR} -p ${OBJECTDIR}
 	${RM} "$@.d"
@@ -199,7 +203,7 @@ ${OBJECTDIR}/test/nlc_test.o: test/nlc_test.cpp
 ${OBJECTDIR}/test/object_test.o: test/object_test.cpp
 	${MKDIR} -p ${OBJECTDIR}/test
 	${RM} "$@.d"
-	$(COMPILE.cc) -g -O2 -DDEBUG -DLOG_LEVEL_NORMAL=LOG_LEVEL_DEBUG -DPDC_WIDE -I. -I.. -I/usr/lib/llvm-13/lib/clang/13.0.1/include -I/usr/include/x86_64-linux-gnu/c++/10 -I/usr/include/c++/10 -I/usr/local/include -I/usr/include -I../contrib/googletest/googletest -I../contrib/googletest/googletest/include -I../contrib/Tensorflow/bazel-bin/tensorflow/include -I../contrib/Lyra/include -I../contrib/libtorch/include/torch/csrc/api/include -I../contrib/libtorch/include -std=c++14 -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/test/object_test.o test/object_test.cpp
+	$(COMPILE.cc) -g -O2 -DDEBUG -DLOG_LEVEL_NORMAL=LOG_LEVEL_DEBUG -DPDC_WIDE -I. -I.. -I/usr/lib/llvm-13/lib/clang/13.0.1/include -I/usr/include/x86_64-linux-gnu/c++/10 -I/usr/include/c++/10 -I/usr/local/include -I/usr/include -I../contrib/googletest/googletest -I../contrib/googletest/googletest/include -I../contrib/Tensorflow/bazel-bin/tensorflow/include -I../contrib/Lyra/include -I../contrib/libtorch/include/torch/csrc/api/include -I../contrib/libtorch/include -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/test/object_test.o test/object_test.cpp
 
 ${OBJECTDIR}/test/parser_test.o: test/parser_test.cpp
 	${MKDIR} -p ${OBJECTDIR}/test
@@ -239,6 +243,7 @@ ${OBJECTDIR}/version.o: version.cpp
 	${RM} lexer.yy.cpp lexer.yy.h
 	${RM} parser.yy.h parser.yy.cpp location.hh
 	${RM} 
+	${RM} pch.h.pch
 	${RM} 
 	${RM} 
 	${RM} 

@@ -415,9 +415,16 @@ void ParserException(const char *msg, std::string &buffer, int row, int col);
                 static_cast<uint8_t> (t) <= static_cast<uint8_t> (ObjType::Arithmetic);
     }
 
+    inline bool isStringChar(ObjType t) {
+        return t == ObjType::StrChar || t == ObjType::FmtChar || t == ObjType::ViewChar;
+    }
+
+    inline bool isStringWide(ObjType t) {
+        return t == ObjType::StrWide || t == ObjType::ViewWide || t == ObjType::FmtWide;
+    }
+
     inline bool isString(ObjType t) {
-        return t == ObjType::StrChar || t == ObjType::StrWide || t == ObjType::ViewWide || t == ObjType::ViewWide
-                || t == ObjType::String || t == ObjType::FmtChar || t == ObjType::FmtWide;
+        return isStringChar(t) || isStringWide(t) || t == ObjType::String;
     }
 
     inline bool isPlainDataType(ObjType t) {
@@ -593,6 +600,8 @@ void ParserException(const char *msg, std::string &buffer, int row, int col);
             return true;
         } else if (isDictionary(from) && isDictionary(to)) {
             return true;
+        } else if (isFunction(from) && isFunction(to)) {
+            return true;
         }
         return false;
     }
@@ -627,184 +636,6 @@ void ParserException(const char *msg, std::string &buffer, int row, int col);
 
     inline bool canCast(const std::string from, const std::string to) {
         return canCast(typeFromString(from), typeFromString(to));
-    }
-
-    inline void setTensorValue(torch::Tensor &self, torch::Tensor &set) {
-        if (!at::canCast(set.scalar_type(), self.scalar_type())) {
-            LOG_RUNTIME("Can`t cast '%s' to '%s'!", at::toString(set.scalar_type()), at::toString(self.scalar_type()));
-        }
-        if (self.dim() == 0 && set.dim() != 0) {
-            LOG_RUNTIME("Fail assign tensor to scalar!");
-        }
-        if (!self.sizes().equals(set.sizes()) && set.dim() != 0) {
-            LOG_RUNTIME("Different sizes of tensors!");
-        }
-
-        if (set.dim() != 0) {
-            self = set.clone();
-            return;
-
-            ASSERT(set.dim() == 0);
-        }
-
-        bool *ptr_boll = nullptr;
-        signed char *ptr_char = nullptr;
-        int16_t *ptr_short = nullptr;
-        int32_t *ptr_int = nullptr;
-        int64_t *ptr_long = nullptr;
-        float *ptr_float = nullptr;
-        double *ptr_double = nullptr;
-
-        if (self.dim() == 0 && set.dim() == 0) {
-            // scalar := scalar
-            switch (fromTorchType(self.scalar_type())) {
-                case ObjType::Bool:
-                    ptr_boll = self.data_ptr<bool>();
-                    ASSERT(ptr_boll);
-                    *ptr_boll = set.item().toBool();
-                    return;
-                case ObjType::Char:
-                    ptr_char = self.data_ptr<signed char>();
-                    ASSERT(ptr_char);
-                    *ptr_char = set.item().toChar();
-                    return;
-                case ObjType::Short:
-                    ptr_short = self.data_ptr<int16_t>();
-                    ASSERT(ptr_short);
-                    *ptr_short = set.item().toShort();
-                    return;
-                case ObjType::Int:
-                    ptr_int = self.data_ptr<int32_t>();
-                    ASSERT(ptr_int);
-                    *ptr_int = set.item().toInt();
-                    return;
-                case ObjType::Long:
-                    ptr_long = self.data_ptr<int64_t>();
-                    ASSERT(ptr_long);
-                    *ptr_long = static_cast<int64_t> (set.item().toLong());
-                    return;
-                case ObjType::Float:
-                    ptr_float = self.data_ptr<float>();
-                    ASSERT(ptr_float);
-                    *ptr_float = set.item().toFloat();
-                    return;
-                case ObjType::Double:
-                    ptr_double = self.data_ptr<double>();
-                    ASSERT(ptr_double);
-                    *ptr_double = set.item().toDouble();
-                    return;
-            }
-        } else if (self.dim() != 0 && set.dim() == 0) {
-            // tensor := scalar
-
-            if (self.dim() == 1) {
-                ObjType type = fromTorchType(self.scalar_type());
-                if (ObjType::Bool == type) {
-                    auto acc_bool = self.accessor<bool, 1 > ();
-                    for (int i = 0; i < acc_bool.size(0); i++) {
-                        acc_bool[i] = set.item().toBool();
-                    }
-                    return;
-                } else if (ObjType::Char == type) {
-                    auto acc_char = self.accessor<signed char, 1 > ();
-                    for (int i = 0; i < acc_char.size(0); i++) {
-                        acc_char[i] = set.item().toChar();
-                    }
-                    return;
-                } else if (ObjType::Short == type) {
-                    auto acc_short = self.accessor<int16_t, 1>();
-                    for (int i = 0; i < acc_short.size(0); i++) {
-                        acc_short[i] = set.item().toShort();
-                    }
-                    return;
-                } else if (ObjType::Int == type) {
-                    auto acc_int = self.accessor<int32_t, 1>();
-                    for (int i = 0; i < acc_int.size(0); i++) {
-                        acc_int[i] = set.item().toInt();
-                    }
-                    return;
-                } else if (ObjType::Long == type) {
-                    auto acc_long = self.accessor<int64_t, 1>();
-                    for (int i = 0; i < acc_long.size(0); i++) {
-                        acc_long[i] = static_cast<int64_t> (set.item().toLong());
-                    }
-                    return;
-                } else if (ObjType::Float == type) {
-                    auto acc_float = self.accessor<float, 1>();
-                    for (int i = 0; i < acc_float.size(0); i++) {
-                        acc_float[i] = set.item().toFloat();
-                    }
-                    return;
-                } else if (ObjType::Double == type) {
-                    auto acc_double = self.accessor<double, 1>();
-                    for (int i = 0; i < acc_double.size(0); i++) {
-                        acc_double[i] = set.item().toDouble();
-                    }
-                    return;
-                }
-            } else if (self.dim() == 2) {
-                ObjType type = fromTorchType(self.scalar_type());
-                if (ObjType::Bool == type) {
-                    auto acc_bool = self.accessor<bool, 2 > ();
-                    for (int i = 0; i < acc_bool.size(0); i++) {
-                        for (int j = 0; j < acc_bool.size(1); j++) {
-                            acc_bool[i][j] = set.item().toBool();
-                        }
-                    }
-                    return;
-                } else if (ObjType::Char == type) {
-                    auto acc_char = self.accessor<signed char, 2 > ();
-                    for (int i = 0; i < acc_char.size(0); i++) {
-                        for (int j = 0; j < acc_char.size(1); j++) {
-                            acc_char[i][j] = set.item().toChar();
-                        }
-                    }
-                    return;
-                } else if (ObjType::Short == type) {
-                    auto acc_short = self.accessor<int16_t, 2>();
-                    for (int i = 0; i < acc_short.size(0); i++) {
-                        for (int j = 0; j < acc_short.size(1); j++) {
-                            acc_short[i][j] = set.item().toShort();
-                        }
-                    }
-                    return;
-                } else if (ObjType::Int == type) {
-                    auto acc_int = self.accessor<int32_t, 2>();
-                    for (int i = 0; i < acc_int.size(0); i++) {
-                        for (int j = 0; j < acc_int.size(1); j++) {
-                            acc_int[i][j] = set.item().toInt();
-                        }
-                    }
-                    return;
-                } else if (ObjType::Long == type) {
-                    auto acc_long = self.accessor<int64_t, 2>();
-                    for (int i = 0; i < acc_long.size(0); i++) {
-                        for (int j = 0; j < acc_long.size(1); j++) {
-                            acc_long[i][j] = static_cast<int64_t> (set.item().toLong());
-                        }
-                    }
-                    return;
-                } else if (ObjType::Float == type) {
-                    auto acc_float = self.accessor<float, 2>();
-                    for (int i = 0; i < acc_float.size(0); i++) {
-                        for (int j = 0; j < acc_float.size(1); j++) {
-                            acc_float[i][j] = set.item().toFloat();
-                        }
-                    }
-                    return;
-                } else if (ObjType::Double == type) {
-                    auto acc_double = self.accessor<double, 2>();
-                    for (int i = 0; i < acc_double.size(0); i++) {
-                        for (int j = 0; j < acc_double.size(1); j++) {
-                            acc_double[i][j] = set.item().toDouble();
-                        }
-                    }
-                    return;
-                }
-            }
-            LOG_RUNTIME("Set data tensor for dims %d not implemented!", (int) self.dim());
-        }
-        LOG_RUNTIME("Fail set data tensor type '%s'!", at::toString(self.scalar_type()));
     }
 
     inline int64_t parseInteger(const char *str) {
@@ -941,26 +772,6 @@ void ParserException(const char *msg, std::string &buffer, int row, int col);
                 return false;
         }
     }
-
-
-    /*
-     * Range -> Dict
-     * String -> Tensor
-     * Tensor -> String
-     * Dict -> Tensor
-     * Tensor -> Dict
-     */
-    void ConvertRangeToDict(Obj *from, Obj &to);
-
-    void ConvertStringToTensor(const std::string &from, torch::Tensor &to, ObjType type = ObjType::None);
-    void ConvertStringToTensor(const std::wstring &from, torch::Tensor &to, ObjType type = ObjType::None);
-
-    void ConvertTensorToString(const torch::Tensor &from, std::string &to, std::vector<Index> *index = nullptr);
-    void ConvertTensorToString(const torch::Tensor &from, std::wstring &to, std::vector<Index> *index = nullptr);
-
-    void ConvertDictToTensor(Obj &from, torch::Tensor &to, ObjType type = ObjType::Tensor);
-    void ConvertTensorToDict(const torch::Tensor &from, Obj &to, std::vector<Index> *index = nullptr);
-    void ConvertValueToTensor(Obj *from, torch::Tensor &to, ObjType type = ObjType::None);
 
 } // namespace newlang
 

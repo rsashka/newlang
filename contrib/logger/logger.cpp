@@ -140,7 +140,7 @@ EXTERN_C const char * log_printf(uint8_t level, const char *prefix, const char *
 
     Logger::Instance()->AddString(level, buffer, false);
 
-    if(file && (level != LOG_LEVEL_INFO || Logger::Instance()->GetLogLevel() >= LOG_LEVEL_DEBUG)) {
+    if(file && (level != LOG_LEVEL_INFO || Logger::Instance()->GetLogLevel() >= LOG_LEVEL_DUMP)) {
         const char * file_name = strrchr(file, '/');
         snprintf(buffer, LOG_MAX_BUFFER_SIZE, " (%s:%d)%s", ((file_name && *file_name == '/') ? file_name + 1 : file), line, nl ? "\n" : "");
 

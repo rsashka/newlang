@@ -443,7 +443,7 @@
             <pElem>../contrib/libtorch/include/torch/csrc/api/include</pElem>
             <pElem>../contrib/libtorch/include</pElem>
           </incDir>
-          <commandLine>`llvm-config-13 --cxxflags` -std=c++17 -fexceptions -fcxx-exceptions -Wall -Wextra -Werror -Wfloat-equal -Wundef -Wcast-align -Wwrite-strings -Wmissing-declarations -Wredundant-decls -Wshadow -Woverloaded-virtual -Wno-trigraphs -Wno-invalid-source-encoding -stdlib=libstdc++ -Wno-error=unused-variable -Wno-error=unused-parameter -Wno-error=switch -fsanitize=undefined-trap -fsanitize-undefined-trap-on-error                                         -Wno-undefined-var-template -Wno-switch </commandLine>
+          <commandLine>`llvm-config-13 --cxxflags` -std=c++17 -fexceptions -fcxx-exceptions -Wall -Wextra -Werror -Wfloat-equal -Wundef -Wcast-align -Wwrite-strings -Wmissing-declarations -Wredundant-decls -Wshadow -Woverloaded-virtual -Wno-trigraphs -Wno-invalid-source-encoding -stdlib=libstdc++ -Wno-error=unused-variable -Wno-error=unused-parameter -Wno-error=switch -fsanitize=undefined-trap -fsanitize-undefined-trap-on-error                                         -Wno-undefined-var-template -Wno-switch                        </commandLine>
           <preprocessorList>
             <Elem>DEBUG</Elem>
             <Elem>LOG_LEVEL_NORMAL=LOG_LEVEL_DEBUG</Elem>
@@ -508,12 +508,15 @@
       <item path="autocomplete.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="builtin.cpp" ex="false" tool="1" flavor2="9">
+        <ccTool>
+          <additionalDep></additionalDep>
+        </ccTool>
       </item>
       <item path="builtin.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="context.cpp" ex="false" tool="1" flavor2="9">
         <ccTool>
-          <additionalDep>parser.h parser.yy.h</additionalDep>
+          <additionalDep></additionalDep>
         </ccTool>
       </item>
       <item path="context.h" ex="false" tool="3" flavor2="0">
@@ -522,7 +525,7 @@
       </item>
       <item path="lexer.cpp" ex="false" tool="1" flavor2="9">
         <ccTool>
-          <additionalDep>parser.yy.h parser.yy.cpp location.hh</additionalDep>
+          <additionalDep></additionalDep>
         </ccTool>
       </item>
       <item path="lexer.h" ex="false" tool="3" flavor2="0">
@@ -548,10 +551,16 @@
       <item path="location.hh" ex="false" tool="3" flavor2="0">
       </item>
       <item path="newlang.cpp" ex="false" tool="1" flavor2="9">
+        <ccTool>
+          <additionalDep></additionalDep>
+        </ccTool>
       </item>
       <item path="newlang.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="nlc.cpp" ex="false" tool="1" flavor2="9">
+        <ccTool>
+          <additionalDep></additionalDep>
+        </ccTool>
       </item>
       <item path="nlc.h" ex="false" tool="3" flavor2="0">
       </item>
@@ -563,6 +572,9 @@
       <item path="object.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="parser.cpp" ex="false" tool="1" flavor2="9">
+        <ccTool>
+          <additionalDep></additionalDep>
+        </ccTool>
       </item>
       <item path="parser.h" ex="false" tool="3" flavor2="0">
       </item>
@@ -584,6 +596,9 @@
         </customTool>
       </item>
       <item path="pch.h" ex="false" tool="3" flavor2="0">
+        <customTool>
+          <customToolOutputs>pch.h.pch</customToolOutputs>
+        </customTool>
       </item>
       <item path="pch.h.gch" ex="false" tool="3" flavor2="0">
       </item>
@@ -600,22 +615,49 @@
         </customTool>
       </item>
       <item path="test/alg_test.cpp" ex="false" tool="1" flavor2="9">
+        <ccTool>
+          <additionalDep></additionalDep>
+        </ccTool>
       </item>
       <item path="test/compiler_test.cpp" ex="false" tool="1" flavor2="9">
+        <ccTool>
+          <additionalDep></additionalDep>
+        </ccTool>
       </item>
       <item path="test/eval_test.cpp" ex="false" tool="1" flavor2="9">
+        <ccTool>
+          <additionalDep></additionalDep>
+        </ccTool>
       </item>
       <item path="test/fraction_test.cpp" ex="false" tool="1" flavor2="9">
+        <ccTool>
+          <additionalDep></additionalDep>
+        </ccTool>
       </item>
       <item path="test/lexer_test.cpp" ex="false" tool="1" flavor2="9">
+        <ccTool>
+          <additionalDep></additionalDep>
+        </ccTool>
       </item>
       <item path="test/nlc_test.cpp" ex="false" tool="1" flavor2="9">
+        <ccTool>
+          <additionalDep></additionalDep>
+        </ccTool>
       </item>
-      <item path="test/object_test.cpp" ex="false" tool="1" flavor2="11">
+      <item path="test/object_test.cpp" ex="false" tool="1" flavor2="9">
+        <ccTool>
+          <additionalDep></additionalDep>
+        </ccTool>
       </item>
       <item path="test/parser_test.cpp" ex="false" tool="1" flavor2="9">
+        <ccTool>
+          <additionalDep></additionalDep>
+        </ccTool>
       </item>
       <item path="test/speed_test.cpp" ex="false" tool="1" flavor2="9">
+        <ccTool>
+          <additionalDep></additionalDep>
+        </ccTool>
       </item>
       <item path="types.h" ex="false" tool="3" flavor2="0">
       </item>
@@ -1150,7 +1192,7 @@
             <pElem>../contrib/libtorch/include/torch/csrc/api/include</pElem>
             <pElem>../contrib/libtorch/include</pElem>
           </incDir>
-          <commandLine>`llvm-config-13 --cxxflags` -std=c++17 -fexceptions -fcxx-exceptions -Wall -Wextra -Werror -Wfloat-equal -Wundef -Wcast-align -Wwrite-strings -Wmissing-declarations -Wredundant-decls -Wshadow -Woverloaded-virtual -Wno-trigraphs -Wno-invalid-source-encoding -stdlib=libstdc++ -Wno-error=unused-variable -Wno-error=unused-parameter -Wno-error=switch -fsanitize=undefined-trap -fsanitize-undefined-trap-on-error                                         -Wno-undefined-var-template -Wno-switch   -fvisibility=default</commandLine>
+          <commandLine>`llvm-config-13 --cxxflags` -std=c++17 -fexceptions -fcxx-exceptions -Wall -Wextra -Werror -Wfloat-equal -Wundef -Wcast-align -Wwrite-strings -Wmissing-declarations -Wredundant-decls -Wshadow -Woverloaded-virtual -Wno-trigraphs -Wno-invalid-source-encoding -stdlib=libstdc++ -Wno-error=unused-variable -Wno-error=unused-parameter -Wno-error=switch -fsanitize=undefined-trap -fsanitize-undefined-trap-on-error                                         -Wno-undefined-var-template -Wno-switch   -fvisibility=default              </commandLine>
           <preprocessorList>
             <Elem>DEBUG</Elem>
             <Elem>LOG_LEVEL_NORMAL=LOG_LEVEL_DEBUG</Elem>
@@ -1220,12 +1262,17 @@
       <item path="autocomplete.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="builtin.cpp" ex="false" tool="1" flavor2="0">
+        <ccTool>
+          <commandLine>-include-pch pch.h.pch</commandLine>
+          <additionalDep>pch.h.pch</additionalDep>
+        </ccTool>
       </item>
       <item path="builtin.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="context.cpp" ex="false" tool="1" flavor2="0">
         <ccTool>
-          <additionalDep>parser.h parser.yy.h</additionalDep>
+          <commandLine>-include-pch pch.h.pch</commandLine>
+          <additionalDep>pch.h.pch</additionalDep>
         </ccTool>
       </item>
       <item path="context.h" ex="false" tool="3" flavor2="0">
@@ -1234,7 +1281,8 @@
       </item>
       <item path="lexer.cpp" ex="false" tool="1" flavor2="0">
         <ccTool>
-          <additionalDep>parser.yy.h parser.yy.cpp location.hh</additionalDep>
+          <commandLine>-include-pch pch.h.pch</commandLine>
+          <additionalDep>pch.h.pch</additionalDep>
         </ccTool>
       </item>
       <item path="lexer.h" ex="false" tool="3" flavor2="0">
@@ -1260,21 +1308,34 @@
       <item path="location.hh" ex="false" tool="3" flavor2="0">
       </item>
       <item path="newlang.cpp" ex="false" tool="1" flavor2="0">
+        <ccTool>
+          <commandLine>-include-pch pch.h.pch</commandLine>
+          <additionalDep>pch.h.pch</additionalDep>
+        </ccTool>
       </item>
       <item path="newlang.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="nlc.cpp" ex="false" tool="1" flavor2="0">
+        <ccTool>
+          <commandLine>-include-pch pch.h.pch</commandLine>
+          <additionalDep>pch.h.pch</additionalDep>
+        </ccTool>
       </item>
       <item path="nlc.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="object.cpp" ex="false" tool="1" flavor2="0">
         <ccTool>
-          <additionalDep></additionalDep>
+          <commandLine>-include-pch pch.h.pch</commandLine>
+          <additionalDep>pch.h.pch</additionalDep>
         </ccTool>
       </item>
       <item path="object.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="parser.cpp" ex="false" tool="1" flavor2="0">
+        <ccTool>
+          <commandLine>-include-pch pch.h.pch</commandLine>
+          <additionalDep>pch.h.pch</additionalDep>
+        </ccTool>
       </item>
       <item path="parser.h" ex="false" tool="3" flavor2="0">
       </item>
@@ -1296,6 +1357,10 @@
         </customTool>
       </item>
       <item path="pch.h" ex="false" tool="3" flavor2="0">
+        <customTool>
+          <customToolCommandline>clang++ `llvm-config-13 --cxxflags` -std=c++17 -fexceptions -fcxx-exceptions -Wall -Wextra -Werror -Wfloat-equal -Wundef -Wcast-align -Wwrite-strings -Wmissing-declarations -Wredundant-decls -Wshadow -Woverloaded-virtual -Wno-trigraphs -Wno-invalid-source-encoding -stdlib=libstdc++ -Wno-error=unused-variable -Wno-error=unused-parameter -Wno-error=switch -fsanitize=undefined-trap -fsanitize-undefined-trap-on-error                                         -Wno-undefined-var-template -Wno-switch   -fvisibility=default              -g -DDEBUG -DLOG_LEVEL_NORMAL=LOG_LEVEL_DEBUG -DPDC_WIDE -DUNITTEST -I. -I.. -I/usr/lib/llvm-13/lib/clang/13.0.1/include -I/usr/include/llvm-c-13 -I/usr/include/x86_64-linux-gnu/c++/10 -I/usr/include/c++/10 -I/usr/local/include -I/usr/include -I../contrib/googletest/googletest -I../contrib/googletest/googletest/include -I../contrib/Tensorflow/bazel-bin/tensorflow/include -I../contrib/Lyra/include -I../contrib/libtorch/include/torch/csrc/api/include -I../contrib/libtorch/include                 -x c++-header -o pch.h.pch pch.h -verify-pch -fpch-validate-input-files-content</customToolCommandline>
+          <customToolOutputs>pch.h.pch</customToolOutputs>
+        </customTool>
       </item>
       <item path="pch.h.gch" ex="false" tool="3" flavor2="0">
       </item>
@@ -1303,7 +1368,8 @@
       </item>
       <item path="term.cpp" ex="false" tool="1" flavor2="0">
         <ccTool>
-          <additionalDep></additionalDep>
+          <commandLine>-include-pch pch.h.pch</commandLine>
+          <additionalDep>pch.h.pch</additionalDep>
         </ccTool>
       </item>
       <item path="term.h" ex="false" tool="3" flavor2="0">
@@ -1312,28 +1378,65 @@
         </customTool>
       </item>
       <item path="test/alg_test.cpp" ex="false" tool="1" flavor2="0">
+        <ccTool>
+          <commandLine>-include-pch pch.h.pch</commandLine>
+          <additionalDep>pch.h.pch</additionalDep>
+        </ccTool>
       </item>
       <item path="test/compiler_test.cpp" ex="false" tool="1" flavor2="0">
+        <ccTool>
+          <commandLine>-include-pch pch.h.pch</commandLine>
+          <additionalDep>pch.h.pch</additionalDep>
+        </ccTool>
       </item>
       <item path="test/eval_test.cpp" ex="false" tool="1" flavor2="0">
+        <ccTool>
+          <commandLine>-include-pch pch.h.pch</commandLine>
+          <additionalDep>pch.h.pch</additionalDep>
+        </ccTool>
       </item>
       <item path="test/fraction_test.cpp" ex="false" tool="1" flavor2="0">
+        <ccTool>
+          <commandLine>-include-pch pch.h.pch</commandLine>
+          <additionalDep>pch.h.pch</additionalDep>
+        </ccTool>
       </item>
       <item path="test/lexer_test.cpp" ex="false" tool="1" flavor2="0">
+        <ccTool>
+          <commandLine>-include-pch pch.h.pch</commandLine>
+          <additionalDep>pch.h.pch</additionalDep>
+        </ccTool>
       </item>
       <item path="test/nlc_test.cpp" ex="false" tool="1" flavor2="0">
+        <ccTool>
+          <commandLine>-include-pch pch.h.pch</commandLine>
+          <additionalDep>pch.h.pch</additionalDep>
+        </ccTool>
       </item>
-      <item path="test/object_test.cpp" ex="false" tool="1" flavor2="11">
+      <item path="test/object_test.cpp" ex="false" tool="1" flavor2="9">
+        <ccTool>
+          <commandLine>-include-pch pch.h.pch</commandLine>
+          <additionalDep>pch.h.pch</additionalDep>
+        </ccTool>
       </item>
       <item path="test/parser_test.cpp" ex="false" tool="1" flavor2="0">
+        <ccTool>
+          <commandLine>-include-pch pch.h.pch</commandLine>
+          <additionalDep>pch.h.pch</additionalDep>
+        </ccTool>
       </item>
       <item path="test/speed_test.cpp" ex="false" tool="1" flavor2="0">
+        <ccTool>
+          <commandLine>-include-pch pch.h.pch</commandLine>
+          <additionalDep>pch.h.pch</additionalDep>
+        </ccTool>
       </item>
       <item path="types.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="variable.cpp" ex="false" tool="1" flavor2="0">
         <ccTool>
-          <additionalDep></additionalDep>
+          <commandLine>-include-pch pch.h.pch</commandLine>
+          <additionalDep>pch.h.pch</additionalDep>
         </ccTool>
       </item>
       <item path="variable.h" ex="false" tool="3" flavor2="0">
