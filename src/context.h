@@ -495,8 +495,13 @@ namespace newlang {
 
         ObjPtr GetTypeFromString(const std::string & type, bool *has_error = nullptr) {
             if (type.empty()) {
-                return Obj::CreateNone();
+                if (has_error) {
+                    *has_error = true;
+                    return Obj::CreateNone();
+                }
+                LOG_RUNTIME("Type name '%s' not found!", type.c_str());
             }
+            
             auto result = m_types.find(type);
             if (result == m_types.end()) {
                 if (has_error) {

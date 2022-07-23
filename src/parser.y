@@ -551,19 +551,14 @@ digits:  digits_literal
 
         
         
-range_val:  rval_name
+range_val:  rval_range
         {
             $$ = $1;  
         }
-    |  digits
-        {
-            $$ = $1;
-        }
-/*    |  '-'  digits
+    | '('  arithmetic  ')'
         {
             $$ = $2;
-            $$->m_text.insert(0,"-");
-        } */
+        }
             
         
 range: range_val  RANGE  range_val
@@ -765,21 +760,21 @@ rval_name: lval
             } */
 
         
-       
-rval_var:  rval_name
+rval_range: rval_name
             {
                 $$ = $1;
             }
-        |  rval_name  iter_all
+        | digits
             {
-                $$ = $2;
-                $$->Last()->Append($1, Term::LEFT); 
+                $$ = $1;
             }
         |  string
             {
                 $$ = $1;
             }
-        | digits
+            
+        
+rval_var:  rval_range
             {
                 $$ = $1;
             }
@@ -804,35 +799,40 @@ rval:   rval_var
             }
 
 
-iter_call:  '?'
+iter:  '?'
             {
                 $$=$1;
                 $$->SetTermID(TermID::ITERATOR);
             }
-        | ITERATOR  /* ?! ?! */
+        | '!'
+            {
+                $$=$1;
+                $$->SetTermID(TermID::ITERATOR);
+            }
+        | ITERATOR  /* !! ?? */
             {
                 $$=$1;
             }
 
+iter_call:  iter  '('  args   ')'
+            {
+                $$ = $1;
+                $$->SetArgs($args);
+            }
+
         
-iter_all:  '!'
+iter_all:  ITERATOR_QQ  /* !?  ?! */
             {
                 $$=$1;
                 $$->SetTermID(TermID::ITERATOR);
             }
-        | ITERATOR_QQ  /* !! ?? */
+        | iter
             {
                 $$=$1;
-                $$->SetTermID(TermID::ITERATOR);
             }
         | iter_call
             {
                 $$=$1;
-            }
-        | iter_call  call
-            {
-                $$=$1;
-                $$->SetArgs($call);
             }
 
        
@@ -867,18 +867,18 @@ arg: arg_name  '='
             $$->m_name.swap($1->m_text);
             $$->SetTermID(TermID::EMPTY);
         }
-    | arg_name  '='  rval
+    | arg_name  '='  logical
         { // Именованный аргумент
-            $$ = $rval;
+            $$ = $3;
             $$->SetName($1->getText());
         }
-    | name  type  '='  rval
+    | name  type  '='  logical
         { // Именованный аргумент
-            $$ = $rval;
+            $$ = $4;
             $$->SetType($type);
             $$->SetName($1->getText());
         }
-    | rval
+    | logical
         {
             // сюда попадают и именованные аргументы как операция присвоения значения
             $$ = $1;
@@ -888,25 +888,25 @@ arg: arg_name  '='
             // Раскрыть элементы словаря в последовательность не именованных параметров
             $$ = $1; 
         }
-    |  ELLIPSIS  rval
+    |  ELLIPSIS  logical
         {
             // Раскрыть элементы словаря в последовательность не именованных параметров
             $$ = $1; 
-            $$->Append($rval, Term::RIGHT);
+            $$->Append($2, Term::RIGHT);
         }
-    |  ELLIPSIS  ELLIPSIS  rval
+    |  ELLIPSIS  ELLIPSIS  logical
        {            
             // Раскрыть элементы словаря в последовательность ИМЕНОВАННЫХ параметров
             $$ = $2;
             $$->Append($1, Term::LEFT); 
-            $$->Append($rval, Term::RIGHT); 
+            $$->Append($3, Term::RIGHT); 
         }
-    |  ELLIPSIS  rval  ELLIPSIS
+    |  ELLIPSIS  logical  ELLIPSIS
        {            
             // Заполнить данные значением
             $$ = $1;
             $$->SetTermID(TermID::FILLING);
-            $$->Append($rval, Term::RIGHT); 
+            $$->Append($2, Term::RIGHT); 
         }
 
 args: arg
@@ -1245,6 +1245,12 @@ block_call:  '('  MIDDLE_CALL_BLOCK  sequence  '}'
  * Операции присвоения используют lvalue, многоточие или определение функций
  * Алгоритмы используют eval или блок кода (у matching)
  */
+        
+/*
+ * <arithmetic> -> <arithmetic> + <addition> | <arithmetic> - <addition> | <addition>
+ * <addition> -> <addition> * <factor> | <addition> / <factor> | <factor>
+ * <factor> -> vars | ( <expr> )
+ */
 
 operator: OPERATOR
             {
@@ -1257,11 +1263,7 @@ operator: OPERATOR
             }
 
 
-arithmetic:  addition
-                { 
-                    $$ = $1; 
-                }
-            |  arithmetic '+' addition
+arithmetic:  arithmetic '+' addition
                 { 
                     $$ = $2;
                     $$->SetTermID(TermID::OPERATOR);
@@ -1275,17 +1277,20 @@ arithmetic:  addition
                     $$->Append($1, Term::LEFT);                    
                     $$->Append($3, Term::RIGHT); 
                 }
-            | '-'  addition /*  %prec NEG */
-                { 
-                    $$ = $2; 
-                }
-            |  digits   digits
+            |  addition   digits
                 {
+                    if($digits->m_text[0] != '-') {
+                        NL_PARSER($digits, "Missing operator!");
+                    }
                     //@todo location
-                    $$ = Term::Create(TermID::OPERATOR, $2->m_text.c_str(), 1, nullptr);
+                    $$ = Term::Create(TermID::OPERATOR, $2->m_text.c_str(), 1, & @$);
                     $$->Append($1, Term::LEFT); 
                     $2->m_text = $2->m_text.substr(1);
                     $$->Append($2, Term::RIGHT); 
+                }
+            | addition
+                { 
+                    $$ = $1; 
                 }
 
 
@@ -1306,63 +1311,37 @@ op_factor: '*'
                 $$ = $1;
             }
         
-addition:   addition  op_factor  factor 
+addition:  addition  op_factor  factor
                 { 
-    
-                    if($op_factor->m_text.compare("/")==0 && $factor->m_text.compare("1")==0) {
-                        // throw syntax_error(yyla.location, 
+                    if($1->getTermID() == TermID::INTEGER && $op_factor->m_text.compare("/")==0 && $3->m_text.compare("1")==0) {
                         NL_PARSER($op_factor, "Do not use division by one (e.g. 123/1), "
                                 "as this operation does not make sense, but it is easy to "
                                 "confuse it with the notation of a fraction literal (123\\1).");
                     }
     
-                    $$ = $2;
+                    $$ = $op_factor;
                     $$->SetTermID(TermID::OPERATOR);
                     $$->Append($1, Term::LEFT); 
                     $$->Append($3, Term::RIGHT); 
                 }
-/*            | '-'  addition  %prec NEG
-                { 
-                    $$ = $2; 
-                } */
-    
-/*            |  digits  digits  op_factor  factor 
-                {
-#warning PRIORITET OP
-                    //@todo location
-                    TermPtr temp = Term::Create(TermID::OPERATOR, $2->m_text.c_str(), 1, nullptr);
-                    temp->Append($1, Term::LEFT); 
-                    $2->m_text = $2->m_text.substr(1);
-                    temp->Append($2, Term::RIGHT); 
-
-                    $$ = $3;
-                    $$->SetTermID(TermID::OPERATOR);
-                    $$->Append(temp, Term::LEFT); 
-                    $$->Append($4, Term::RIGHT); 
-                } */
-            |  sfactor
+        |  factor
                 { 
                     $$ = $1; 
                 }    
-            
-
-sfactor: factor              
-            { 
-                $$ = $1; 
-            }
 
 factor:   rval_var
             {
                 $$ = $1; 
             }
-        | '('  arithmetic  ')'
+        | '-'  factor
             { 
-                $$ = $2; 
+                $$ = Term::Create(TermID::OPERATOR, "-", 1,  & @$);
+                $$->Append($2, Term::RIGHT); 
             }
-/*        | '-'  rval   %prec  NEG
+        | '('  arithmetic  ')'
             {
                 $$ = $2; 
-            } */
+            }
 
        
    
@@ -1390,16 +1369,28 @@ logical:  arithmetic
             {
                     $$ = $1;
             }
-        |  arithmetic operator arithmetic
+        |  logical  operator  arithmetic
             {
                 $$ = $2;
                 $$->Append($1, Term::LEFT); 
                 $$->Append($3, Term::RIGHT); 
             }
+        |  arithmetic  iter_all
+            {
+                $$ = $2;
+                $$->Last()->Append($1, Term::LEFT); 
+            }
+        |  logical  operator  arithmetic   iter_all
+            {
+                $$ = $2;
+                $$->Append($1, Term::LEFT); 
+                $iter_all->Last()->Append($arithmetic, Term::LEFT); 
+                $$->Append($iter_all, Term::RIGHT); 
+            }
+        
         
         
 
-        
 match_cond: '['   condition   ']' 
             {
                 $$ = $condition;
@@ -1572,10 +1563,10 @@ ast:    END
             {
                driver.AstAddTerm($1);
             }
-/*        | comment
-            {
-               driver.AstAddTerm($1);
-            } */
+/*        | comment     Комменатарии не добавляются в AST, т.к. в парсере они не нужны, а
+                        их потенциальное использование - документирование кода, решается 
+                        в Python стиле (первый текстовый литерал в коде)
+*/
 
 start	:   ast
 

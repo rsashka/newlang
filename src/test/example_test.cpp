@@ -25,7 +25,7 @@ char convert(char c) {
     return ' ';
 }
 
-TEST(Speed, CPP) {
+TEST(Example, SpeedCPP) {
 
     LOG_INFO("Start speed test C++");
 
@@ -74,7 +74,7 @@ TEST(Speed, CPP) {
 
 }
 
-TEST(Speed, NewLang) {
+TEST(Example, SpeedNewLang) {
 
     Context::Reset();
     Context ctx(RunTime::Init());
@@ -83,7 +83,7 @@ TEST(Speed, NewLang) {
     setvbuf(stdout, nullptr, _IONBF, 0);
     setvbuf(stderr, nullptr, _IONBF, 0);
 
-    
+
     ObjPtr test;
 
     ObjPtr str = ctx.ExecStr("@str := 'ABCDEF\\n';", nullptr, true);
@@ -126,7 +126,7 @@ TEST(Speed, NewLang) {
 
     int sec = std::chrono::duration_cast<std::chrono::seconds>(end - begin).count();
     int ms = std::chrono::duration_cast<std::chrono::microseconds>(end - begin).count() % 1000000;
-    LOG_INFO("Test complete at %d.%d sec", sec, ms);
+    LOG_INFO("Test speed complete at %d.%d sec", sec, ms);
 
     /*
      * 
@@ -175,6 +175,96 @@ TEST(Speed, NewLang) {
      * Программа не преобразуется в промежуточный byte-code, а интерпретируется какждый раз при выполнении.
      * LLVM код вызова нативных функий генерируется каждый раз,  не при создании функции.
      * Возможности для оптимиации производительности чрезвычайно общширны ;-)
+     */
+}
+
+TEST(Example, Fraction) {
+
+    Context::Reset();
+    Context ctx(RunTime::Init());
+
+    setvbuf(stdin, nullptr, _IONBF, 0);
+    setvbuf(stdout, nullptr, _IONBF, 0);
+    setvbuf(stderr, nullptr, _IONBF, 0);
+
+    ObjPtr test;
+    //@fact_recur(n:Integer) := {
+    //    [n > 1] --> {
+    //        -- n * fact_recur(n-1) --;
+    //    };
+    //    1;
+    //};
+
+    ObjPtr str = ctx.ExecStr("@str := 'ABCDEF\\n';", nullptr, true);
+    ASSERT_TRUE(str);
+    ASSERT_STREQ("ABCDEF\n", str->GetValueAsString().c_str());
+
+    ObjPtr test_printf = ctx.ExecStr("@test_printf := :Pointer('printf(format:FmtChar, ...):Int')", nullptr, true);
+    ASSERT_TRUE(test_printf);
+    ASSERT_STREQ("test_printf={}", test_printf->GetValueAsString().c_str());
+
+    ObjPtr iter = ctx.ExecStr("@iterator := (1, 5, 9999,)?", nullptr, true);
+    ASSERT_TRUE(iter);
+    ASSERT_TRUE(iter->getType() == ObjType::Iterator);
+    ASSERT_TRUE(iter->m_iterator);
+    ASSERT_TRUE(*iter->m_iterator.get() == iter->m_iterator->begin());
+    ASSERT_TRUE(*iter->m_iterator.get() != iter->m_iterator->end());
+
+    ObjPtr test_frac = ctx.ExecStr("@test_frac := 999\\123", nullptr, true);
+    ASSERT_TRUE(test_frac);
+    ASSERT_TRUE(test_frac->getType() == ObjType::Fraction);
+    ASSERT_STREQ("999\\123", test_frac->GetValueAsString().c_str());
+
+    ObjPtr str_frac = ctx.ExecStr(":StrChar(test_frac)", nullptr, true);
+    ASSERT_TRUE(str_frac);
+    ASSERT_TRUE(str_frac->getType() == ObjType::StrChar) << newlang::toString(str_frac->getType());
+    ASSERT_STREQ("999\\123", str_frac->GetValueAsString().c_str()) << str_frac->GetValueAsString();
+
+    ObjPtr test_prn = ctx.ExecStr("test_printf('%s', :StrChar(test_frac))", nullptr, true);
+    ASSERT_TRUE(test_prn);
+    ASSERT_STREQ("7", test_prn->GetValueAsString().c_str());
+
+    ObjPtr test_arg = ctx.ExecStr("@test_arg(arg:Fraction) := {$arg}", nullptr, true);
+    ASSERT_TRUE(test_arg);
+    ASSERT_TRUE(test_arg->is_function());
+    ASSERT_FALSE(test_arg->is_none_type());
+    ASSERT_STREQ("test_arg={}", test_arg->GetValueAsString().c_str());
+
+
+
+    ObjPtr frac_test;
+    ASSERT_ANY_THROW(test_arg->Call(&ctx)); // Нет обязательно аргумента
+    ASSERT_ANY_THROW(test_arg->Call(&ctx, Obj::Arg("неправильный тип аругумента")));
+
+    frac_test = test_arg->Call(&ctx, Obj::Arg(1));
+    ASSERT_TRUE(frac_test);
+    ASSERT_EQ(ObjType::Fraction, frac_test->getType()) << newlang::toString(frac_test->getType());
+
+    frac_test = ctx.ExecStr("test_arg(1)", nullptr, true);
+    ASSERT_TRUE(frac_test);
+    ASSERT_STREQ("1\\1", frac_test->GetValueAsString().c_str());
+
+
+
+    utils::Logger::LogLevelType save = utils::Logger::Instance()->SetLogLevel(LOG_LEVEL_INFO);
+    std::chrono::steady_clock::time_point begin = std::chrono::steady_clock::now();
+    ObjPtr result = ctx.ExecFile("../examples/fraction.nlp");
+    std::chrono::steady_clock::time_point end = std::chrono::steady_clock::now();
+    utils::Logger::Instance()->SetLogLevel(save);
+
+
+
+    ASSERT_TRUE(result);
+    ASSERT_TRUE(result->is_string_type()) << result->toString();
+    ASSERT_STREQ("OK", result->GetValueAsString().c_str());
+
+
+    int sec = std::chrono::duration_cast<std::chrono::seconds>(end - begin).count();
+    int ms = std::chrono::duration_cast<std::chrono::microseconds>(end - begin).count() % 1000000;
+    LOG_INFO("Test fraction complete at %d.%d sec", sec, ms);
+
+    /*
+     * 
      */
 }
 

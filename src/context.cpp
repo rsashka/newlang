@@ -770,8 +770,8 @@ ObjPtr Context::eval_WHILE(Context *ctx, const TermPtr &term, Obj * args) {
 
         try {
 
-            //            LOG_DEBUG("result %s", result->toString().c_str());
-
+            LOG_DEBUG("result %s", result->toString().c_str());
+            
             result = CreateRVal(ctx, term->Right(), args, false);
             cond = Eval(ctx, term->Left(), args, false);
 
@@ -2281,7 +2281,7 @@ ObjPtr Context::CreateRVal(Context *ctx, TermPtr term, Obj * local_vars, bool in
 
             for (int i = 0; i < term->size(); i++) {
                 ASSERT(!term->name(i).empty());
-                result->push_back(CreateRVal(ctx, (*term)[i].second, local_vars), term->name(i).c_str());
+                result->push_back(Eval(ctx, (*term)[i].second, local_vars), term->name(i).c_str());
             }
 
             if(result->size() == 2) {
@@ -2301,34 +2301,62 @@ ObjPtr Context::CreateRVal(Context *ctx, TermPtr term, Obj * local_vars, bool in
 
             ASSERT(term->Left());
 
-            temp = ctx->GetTerm(term->Left()->GetFullName().c_str(), true);
+            temp = Eval(ctx, term->Left(), local_vars, false);
             if(!temp) {
-                LOG_RUNTIME("Term '%s' not found!", term->GetFullName().c_str());
+                LOG_RUNTIME("Term '%s' not found!", term->Left()->GetFullName().c_str());
             }
 
             args = Obj::CreateDict();
             ctx->CreateArgs_(args, term, local_vars);
 
+
+            /*
+             * Создание итератора
+             * ?, ?(), ?("Фильтр"), ?(func), ?(func, args...)
+             * 
+             * Перебор элементов итератора
+             * !, !(), !(0), !(3), !(-3)
+             * 
+             * dict! и dict!(0) эквивалентны
+             * dict! -> 1,  dict! -> 2, dict! -> 3, dict! -> 4, dict! -> 5, dict! -> :IteratorEnd
+             * 
+             * Различия отрицательного размера возвращаемого словаря для итератора
+             * dict!(-1) -> (1,),  ...  dict!(-1) -> (5,),  dict!(-1) -> (:IteratorEnd,),  
+             * dict!(1) -> (1,),  ...  dict!(1) -> (5,),  dict!(1) -> (,),  
+             * dict!(-3) -> (1, 2, 3,),  dict!(-3) -> (4, 5, :IteratorEnd,)
+             * dict!(3) -> (1, 2, 3,), dict!(3) -> (4, 5,)
+             * 
+             * Операторы ?! и !? эквивалентны и возвращают текущие данные без перемещения указателя итератора.
+             * 
+             * Оператор ?? создает итератор и сразу его выполняет, возвращая все значения 
+             * в виде элементов словаря, т.е. аналог последовательности ?(LINQ); !(:Long.__max__);
+             * 
+             * Оператор !! - сбрасывает итератор в начальное состояние и возвращает первый элемент
+             */
+
             if(term->m_text.compare("?") == 0) {
-                return temp->MakeIterator(args.get());
-            } else if(term->m_text.compare("??") == 0) {
-                return temp->IteratorReset();
+                return temp->IteratorMake(args.get());
             } else if(term->m_text.compare("!") == 0) {
+                ASSERT(!args->size() && "Argument processing not implemented");
                 return temp->IteratorNext(0);
             } else if(term->m_text.compare("!!") == 0) {
-                return temp->IteratorNext(1);
+                ASSERT(!args->size() && "Argument processing not implemented");
+                temp->IteratorReset();
+                return temp->IteratorData();
             } else if(term->m_text.compare("!?") == 0 || term->m_text.compare("?!") == 0) {
+                return temp->IteratorData();
+            } else if(term->m_text.compare("??") == 0) {
 
                 val_int = std::numeric_limits<int64_t>::max();
                 if(args->empty() || (args->size() == 1 && args->at(0).second->is_integer())) {
-                    result = temp->MakeIterator(Iterator<Obj>::FIND_KEY_DEFAULT, false);
+                    result = temp->IteratorMake(Iterator<Obj>::FIND_KEY_DEFAULT, false);
                     if(args->size()) {
                         val_int = args->at(0).second->GetValueAsInteger();
                     }
                 } else if(args->size() == 1 && args->at(0).second->is_string_type()) {
-                    result = temp->MakeIterator(args->at(0).second->GetValueAsString(), false);
+                    result = temp->IteratorMake(args->at(0).second->GetValueAsString(), false);
                 } else if(args->size() == 2 && args->at(0).second->is_string_type() && args->at(1).second->is_integer()) {
-                    result = temp->MakeIterator(args->at(0).second->GetValueAsString(), false);
+                    result = temp->IteratorMake(args->at(0).second->GetValueAsString(), false);
                     val_int = args->at(1).second->GetValueAsInteger();
                 } else {
                     LOG_RUNTIME("Iterator`s args '%s' not allowed!", args->toString().c_str());
@@ -2349,9 +2377,9 @@ ObjPtr Context::CreateRVal(Context *ctx, TermPtr term, Obj * local_vars, bool in
 void Context::CreateArgs_(ObjPtr &args, TermPtr &term, Obj * local_vars) {
     for (int i = 0; i < term->size(); i++) {
         if(term->name(i).empty()) {
-            args->push_back(CreateRVal(this, (*term)[i].second, local_vars));
+            args->push_back(Eval(this, (*term)[i].second, local_vars));
         } else {
-            args->push_back(CreateRVal(this, (*term)[i].second, local_vars), term->name(i).c_str());
+            args->push_back(Eval(this, (*term)[i].second, local_vars), term->name(i).c_str());
         }
     }
 }

@@ -422,6 +422,10 @@ term    [$@%]({ualpha}|[_])?({name})?
 
 "--"        YY_TOKEN(EXIT);
 
+"||"        YY_TOKEN(OPERATOR);
+"&&"        YY_TOKEN(OPERATOR);
+"^^"        YY_TOKEN(OPERATOR);
+
 ".>."        YY_TOKEN(OPERATOR);
 ".<."        YY_TOKEN(OPERATOR);
 ".>>."       YY_TOKEN(OPERATOR);
@@ -447,10 +451,10 @@ term    [$@%]({ualpha}|[_])?({name})?
 ">"         YY_TOKEN(OPERATOR);
 
 
-"!!"        YY_TOKEN_ONLY(ITERATOR_QQ);
-"??"        YY_TOKEN_ONLY(ITERATOR_QQ);
-"?!"        YY_TOKEN(ITERATOR);
-"!?"        YY_TOKEN(ITERATOR);
+"!!"        YY_TOKEN(ITERATOR);
+"??"        YY_TOKEN(ITERATOR);
+"?!"        YY_TOKEN_ONLY(ITERATOR_QQ);
+"!?"        YY_TOKEN_ONLY(ITERATOR_QQ);
 
 
  /* gobble up white-spaces */

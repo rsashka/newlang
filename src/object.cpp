@@ -370,7 +370,7 @@ ObjType newlang::getSummaryTensorType(Obj *obj, ObjType start) {
     if(!obj) {
         return result;
     }
-    if(obj->is_dictionary_type()) {
+    if(obj->is_dictionary_type() || obj->is_range()) {
         for (int i = 0; i < obj->size(); i++) {
             result = getSummaryTensorType(obj->at(i).second.get(), result);
         }
@@ -378,6 +378,8 @@ ObjType newlang::getSummaryTensorType(Obj *obj, ObjType start) {
     } else if(obj->is_arithmetic_type()) {
         if(isGenericType(obj->m_var_type_fixed)) {
             return std::max(obj->m_var_type_current, start);
+        } else if(start == ObjType::Fraction || obj->m_var_type_current == ObjType::Fraction || obj->m_var_type_fixed == ObjType::Fraction) {
+            return ObjType::Fraction;
         } else {
             if(start >= std::max(obj->m_var_type_current, obj->m_var_type_fixed)) {
                 return start;
@@ -449,9 +451,9 @@ ObjPtr Obj::operator+=(Obj value) {
 
         case ObjType::Fraction:
             if(value.m_var_type_current == ObjType::Fraction) {
-                m_fraction->operator+=(*(value.m_fraction.get()));
+                m_fraction.operator+=(value.m_fraction);
             } else {
-                m_fraction->operator+=(*(value.toType(ObjType::Fraction)->m_fraction.get()));
+                m_fraction.operator+=(value.toType(ObjType::Fraction)->m_fraction);
             }
             return shared();
 
@@ -507,9 +509,9 @@ ObjPtr Obj::operator-=(Obj value) {
             break;
         case ObjType::Fraction:
             if(value.m_var_type_current == ObjType::Fraction) {
-                m_fraction->operator-=(*(value.m_fraction.get()));
+                m_fraction.operator-=(value.m_fraction);
             } else {
-                m_fraction->operator-=(*(value.toType(ObjType::Fraction)->m_fraction.get()));
+                m_fraction.operator-=(value.toType(ObjType::Fraction)->m_fraction);
             }
             return shared();
     }
@@ -580,9 +582,9 @@ ObjPtr Obj::operator*=(Obj value) {
 
         case ObjType::Fraction:
             if(value.m_var_type_current == ObjType::Fraction) {
-                m_fraction->operator*=(*(value.m_fraction.get()));
+                m_fraction.operator*=(value.m_fraction);
             } else {
-                m_fraction->operator*=(*(value.toType(ObjType::Fraction)->m_fraction.get()));
+                m_fraction.operator*=(value.toType(ObjType::Fraction)->m_fraction);
             }
             return shared();
 
@@ -620,9 +622,9 @@ ObjPtr Obj::operator/=(Obj value) {
         return shared();
     } else if(m_var_type_current == ObjType::Fraction) {
         if(value.m_var_type_current == ObjType::Fraction) {
-            m_fraction->operator/=(*(value.m_fraction.get()));
+            m_fraction.operator/=(value.m_fraction);
         } else {
-            m_fraction->operator/=(*(value.toType(ObjType::Fraction)->m_fraction.get()));
+            m_fraction.operator/=(value.toType(ObjType::Fraction)->m_fraction);
         }
         return shared();
     }
@@ -665,12 +667,12 @@ ObjPtr Obj::op_div_ceil_(Obj & value) {
         return shared();
 
     } else if(m_var_type_current == ObjType::Fraction) {
-        //        if(value.m_var_type_current == ObjType::Fraction) {
-        //            m_fraction->operator/=(value.m_fraction);
-        //        } else {
-        //            m_fraction->operator/=(value.toType(ObjPtr::Fraction)->m_fraction);
-        //        }
-        //        return shared();
+        if(value.m_var_type_current == ObjType::Fraction) {
+            m_fraction.op_div_ceil_(value.m_fraction);
+        } else {
+            m_fraction.op_div_ceil_(value.toType(ObjType::Fraction)->m_fraction);
+        }
+        return shared();
     }
     LOG_RUNTIME("Operator '//' fail for '%s' and '%s'", toString().c_str(), value.toString().c_str());
 }
@@ -702,12 +704,12 @@ ObjPtr Obj::operator%=(Obj value) {
         }
         return shared();
     } else if(m_var_type_current == ObjType::Fraction) {
-        //        if(value.m_var_type_current == ObjType::Fraction) {
-        //            m_fraction->operator*=(value.m_fraction);
-        //        } else {
-        //            m_fraction->operator*=(value.toType(ObjPtr::Fraction)->m_fraction);
-        //        }
-        //        return shared();
+        if(value.m_var_type_current == ObjType::Fraction) {
+            m_fraction.operator%=(value.m_fraction);
+        } else {
+            m_fraction.operator%=(value.toType(ObjType::Fraction)->m_fraction);
+        }
+        return shared();
     }
     LOG_RUNTIME("Operator '%%' fail for '%s' and '%s'", toString().c_str(), value.toString().c_str());
 }
@@ -744,12 +746,11 @@ void Obj::CloneDataTo(Obj & clone) const {
         clone.m_value = m_value;
         clone.m_string = m_string;
 
-        if(m_fraction) {
-            clone.m_fraction = std::make_shared<Fraction>(*m_fraction.get());
-        } else {
-            clone.m_fraction = nullptr;
-        }
+        clone.m_fraction = *m_fraction.clone();
         clone.m_iterator = m_iterator;
+        if(m_iter_range_value) {
+            clone.m_iter_range_value = m_iter_range_value->Clone();
+        }
 
         clone.m_class_parents = m_class_parents;
         clone.m_class_name = m_class_name;
@@ -1001,8 +1002,7 @@ std::string Obj::toString(bool deep) const {
                 return result;
 
             case ObjType::Fraction:
-                ASSERT(m_fraction);
-                result += m_fraction->GetAsString();
+                result += m_fraction.GetAsString();
                 return result;
 
             case ObjType::Iterator:
@@ -1161,9 +1161,12 @@ std::string Obj::GetValueAsString() const {
             return result;
 
         case ObjType::Fraction:
-            ASSERT(m_fraction);
-            result += m_fraction->GetAsString();
+            result += m_fraction.GetAsString();
             return result;
+
+        case ObjType::Iterator:
+        case ObjType::IteratorEnd:
+            return newlang::toString(m_var_type_current);
     }
     LOG_RUNTIME("Data type '%s' %d incompatible to string!", newlang::toString(m_var_type_current), (int) m_var_type_current);
 }
@@ -1299,6 +1302,75 @@ ObjPtr Obj::Call(Context *ctx, Obj * args) {
             LOG_RUNTIME("Call by name not implemted '%s'!", toString().c_str());
         }
 
+
+        //    ObjType type_result = ctx->BaseTypeFromString(m_prototype->m_type_name);
+        //    LLVMTypeRef return_llvm_type = toLLVMType(type_result);
+        //
+        //    bool is_ellipsis = (m_prototype->size() && (*m_prototype)[m_prototype->size() - 1].second->getTermID() == TermID::ELLIPSIS);
+        //    size_t check_count = is_ellipsis ? m_prototype->size() - 1 : m_prototype->size();
+        //
+        //    bool pointer_exist = false;
+        //    // Пропустить нулевой аргумент для нативных функций
+        //    for (int i = 1; i < args.size(); i++) {
+        //
+        //        ASSERT(args[i].second);
+        //        if(args[i].second->m_is_reference) {
+        //            LOG_RUNTIME("Argument REFERENCE! %s", args[i].second->toString().c_str());
+        //        }
+        //
+        //        size_t pind = i - 1; // Индекс прототипа на единицу меньше из-за пустого нулевого аргумента
+        //
+        //        ObjType type = args[i].second->getTypeAsLimit();
+        //        if(pind < check_count) {
+        //            NL_CHECK(!(*m_prototype)[pind].second->m_type_name.empty(), "Undefined type arg '%s'", (*m_prototype)[pind].second->toString().c_str());
+        //
+        //            ObjType proto_type = typeFromString((*m_prototype)[pind].second->m_type_name, ctx);
+        //            if(!canCast(type, proto_type)) {
+        //                if(!((type == ObjType::StrChar || type == ObjType::FmtChar) && proto_type == ObjType::Char) ||
+        //                        ((type == ObjType::StrWide || type == ObjType::FmtWide) && proto_type == ObjType::Int)) {
+        //                    LOG_RUNTIME("Fail cast from '%s' to '%s'", (*m_prototype)[pind].second->m_type_name.c_str(), newlang::toString(type));
+        //                }
+        //            }
+        //        }
+        //
+        //        ObjType check_type;
+        //        if(pind < check_count) {
+        //            std::string temp_str = (*m_prototype)[pind].second->m_type_name;
+        //            check_type = typeFromString((*m_prototype)[pind].second->m_type_name, ctx);
+        //        } else {
+        //            check_type = args[i].second->getType();
+        //        }
+        //
+        //        if(args[i].second->is_string_type()) {
+        //            pointer_exist = true;
+        //        }
+        //
+        //        if(check_type == ObjType::Bool && m_namespace.empty()) {
+        //            // В чистом С (для пустого m_namespace) для логического типа используется тип int
+        //            check_type = ObjType::Int;
+        //        }
+        //        if(check_type == ObjType::Iterator) {
+        //            // У итератора передается не объект, а его данные
+        //            ASSERT(args[i].second->m_iterator);
+        //            check_type = args[i].second->m_iterator->data().second->getType();
+        //        }
+        //        if((check_type == ObjType::FmtWide || check_type == ObjType::StrWide) ||
+        //                ((check_type == ObjType::FmtChar || check_type == ObjType::StrChar) &&
+        //                (args[i].second->getType() == ObjType::StrWide || args[i].second->getType() == ObjType::FmtWide))) {
+        //            LOG_RUNTIME("Convert wide characters as native function arguments not supported!");
+        //        }
+        //
+        //        LLVMTypeRef temp = toLLVMType(check_type);
+        //        arg_types.push_back(temp);
+        //        arg_generic.push_back(args[i].second->GetGenericValueRef(temp));
+        //
+        //        if(pind < check_count && (*m_prototype)[pind].second->GetType()) {
+        //            if((*m_prototype)[pind].second->GetType()->m_text.compare(newlang::toString(ObjType::FmtChar)) == 0) {
+        //                NL_CHECK(ParsePrintfFormat(&args, i), "Fail format string or type args!");
+        //            }
+        //        }
+        //    }
+
         if(ctx) {
             ctx->pop_front();
         }
@@ -1342,6 +1414,22 @@ void Obj::ConvertToArgs_(Obj *in, bool check_valid, Context * ctx) {
             //            if(check_valid && named) {
             //                LOG_RUNTIME("Position %d requires a named argument!", (int) i + 1);
             //            }
+            ObjType base_type = ObjType::None;
+            if(i < size()) {
+                if(ctx) {
+                    bool has_error = false;
+                    base_type = ctx->BaseTypeFromString((*m_prototype)[i].second->m_type_name, &has_error);
+                    if(has_error && (*m_prototype)[i].second->getTermID() == TermID::ELLIPSIS) {
+                        base_type = ObjType::Any;
+                    }
+                } else {
+                    base_type = typeFromString((*m_prototype)[i].second->m_type_name, ctx);
+                }
+            } else {
+                base_type = ObjType::Any;
+            }
+
+
             if(i < size()) {
                 if(check_valid && at(i).second && at(i).second->getType() != ObjType::None) {
                     if(!canCast((*in)[i].second->getType(), at(i).second->getType())) {
@@ -1354,28 +1442,24 @@ void Obj::ConvertToArgs_(Obj *in, bool check_valid, Context * ctx) {
                 }
                 if(m_prototype && i < m_prototype->size()) {
                     at(i).second->m_is_reference = (*m_prototype)[i].second->isRef();
-                    ObjType base_type = ObjType::None;
-                    if(ctx) {
-                        base_type = ctx->BaseTypeFromString((*m_prototype)[i].second->m_type_name);
-                    } else {
-                        base_type = typeFromString((*m_prototype)[i].second->m_type_name, ctx);
-                    }
                     ObjType limit_type = (*in)[i].second->getTypeAsLimit();
                     if(!canCast(limit_type, base_type)) {
                         // Строку с одним символом можно преобразовать в арифметичсекий тип
                         if(!(isArithmeticType(base_type) && (*in)[i].second->is_string_type() && (*in)[i].second->size() == 1)) {
-                            LOG_RUNTIME("Fail cast value '%s' to type '%s'",
-                                    (*in)[i].second->toString().c_str(), (*m_prototype)[i].second->m_type_name.c_str());
+                            LOG_RUNTIME("Fail cast value %s%s to type %s",
+                                    (*in)[i].second->toString().c_str(),
+                                    newlang::toString((*in)[i].second->getType()),
+                                    (*m_prototype)[i].second->m_type_name.c_str());
                         }
                     }
                 }
-                at(i).second->op_assign((*in)[i].second);
+                at(i).second->op_assign((*in)[i].second->toType(base_type));
             } else {
                 if(check_valid && !is_ellipsis && m_prototype && i >= m_prototype->size()) {
                     LOG_RUNTIME("Positional args overflow. Ptrototype '%s'!",
                             m_prototype ? m_prototype->toString().c_str() : "Prototype not exists!");
                 }
-                push_back(in->at(i));
+                push_back(in->at(i).second->toType(base_type), in->at(i).first);
             }
         } else {
             //            named = true;
@@ -1413,16 +1497,16 @@ done:
 }
 
 void Obj::CheckArgsValid() const {
-    //    bool named = false;
-    //    for (int i = 0; i < Variable::size(); i++) {
-    //        //        if(!at(i).second) {
-    //        //
-    //        //            LOG_RUNTIME("Argument %d '%s' missed!", (int) i + 1, at(i).first.c_str());
-    //        //        }
+    bool named = false;
+    for (int i = 0; i < Variable::size(); i++) {
+        if(!at(i).second) {
+
+            LOG_RUNTIME("Argument %d '%s' missed!", (int) i + 1, at(i).first.c_str());
+        }
+    }
+    //    if(!CheckArgs_()) {
+    //        LOG_RUNTIME("Fail arguments!");
     //    }
-    //    //    if(!CheckArgs_()) {
-    //    //        LOG_RUNTIME("Fail arguments!");
-    //    //    }
 }
 
 /*
@@ -1452,6 +1536,13 @@ int Obj::op_compare(Obj & value) {
                 return 1;
             };
             return 0;
+        }
+    } else if(is_fraction()) {
+
+        if(value.getType() == ObjType::Fraction) {
+            return m_fraction.op_compare(value.m_fraction);
+        } else {
+            return m_fraction.op_compare(*value.GetValueAsFraction());
         }
 
     } else if((is_string_type() && value.is_string_type())) {
@@ -1508,6 +1599,14 @@ bool Obj::op_equal(Obj & value) {
         return GetValueAsBoolean() == value.GetValueAsBoolean();
     } else if(is_string_type()) {
         return GetValueAsString().compare(value.GetValueAsString()) == 0;
+    } else if(is_fraction()) {
+
+        if(value.getType() == ObjType::Fraction) {
+            return m_fraction.op_equal(value.m_fraction);
+        } else {
+            return m_fraction.op_equal(*value.GetValueAsFraction());
+        }
+
     } else if(is_dictionary_type() && value.is_dictionary_type()) {
         if(size() != value.size()) {
             return false;
@@ -1669,12 +1768,11 @@ ObjPtr Obj::op_pow_(Obj & obj) {
         return shared();
     } else if(is_fraction()) {
 
-        ASSERT(m_fraction);
-        ObjPtr temp = obj.toType(ObjType::Fraction);
-        ASSERT(temp);
-        ASSERT(temp->m_fraction);
-
-        m_fraction->op_pow_(*temp->m_fraction.get());
+        if(obj.getType() == ObjType::Fraction) {
+            m_fraction.op_pow_(obj.m_fraction);
+        } else {
+            m_fraction.op_pow_(*obj.GetValueAsFraction());
+        }
         return shared();
 
     } else if(m_var_type_current == ObjType::StrChar && obj.is_integral()) {
@@ -1839,6 +1937,10 @@ std::vector<int64_t> newlang::TensorShapeFromDict(const Obj * obj) {
     return shape;
 }
 
+
+ObjPtr CallLibFFI_(Context *ctx, Obj args);
+bool InitLibFFI_(const std::string name);
+
 ObjPtr Obj::CallNative(Context *ctx, Obj args) {
 
     if(!ctx || !ctx->m_runtime) {
@@ -1894,6 +1996,11 @@ ObjPtr Obj::CallNative(Context *ctx, Obj args) {
         if(check_type == ObjType::Bool && m_namespace.empty()) {
             // В чистом С (для пустого m_namespace) для логического типа используется тип int
             check_type = ObjType::Int;
+        }
+        if(check_type == ObjType::Iterator) {
+            // У итератора передается не объект, а его данные
+            ASSERT(args[i].second->m_iterator);
+            check_type = args[i].second->m_iterator->data().second->getType();
         }
         if((check_type == ObjType::FmtWide || check_type == ObjType::StrWide) ||
                 ((check_type == ObjType::FmtChar || check_type == ObjType::StrChar) &&
@@ -1997,6 +2104,390 @@ ObjPtr Obj::CallNative(Context *ctx, Obj args) {
     return result;
 }
 
+/*
+ * Так как под виндой не получается передавать аргументы в функции при вызове LLVMRunFunction
+ * похоже придется возвращатсья на libffi. А заодно и сделаю предкомпиляцию модулей LLVM 
+ * при создании функции, а не как сейчас при каждом вызове.
+ * 
+ * Вернул старый рабочий код, чтобы потом не искать его в истории.
+ */
+
+bool InitLibFFI_(const std::string name) {
+    //            std::string ffi_file;
+
+    //        typedef ffi_status ffi_prep_cif_type(ffi_cif *cif, ffi_abi abi, unsigned int nargs, ffi_type *rtype, ffi_type **atypes);
+    //        typedef ffi_status ffi_prep_cif_var_type(ffi_cif *cif, ffi_abi abi, unsigned int nfixedargs, unsigned int ntotalargs, ffi_type *rtype, ffi_type **atypes);
+    //        typedef void ffi_call_type(ffi_cif *cif, void (*fn)(void), void *rvalue, void **avalue);
+    //        ffi_type * m_ffi_type_void;
+    //        ffi_type * m_ffi_type_uint8;
+    //        ffi_type * m_ffi_type_sint8;
+    //        ffi_type * m_ffi_type_uint16;
+    //        ffi_type * m_ffi_type_sint16;
+    //        ffi_type * m_ffi_type_uint32;
+    //        ffi_type * m_ffi_type_sint32;
+    //        ffi_type * m_ffi_type_uint64;
+    //        ffi_type * m_ffi_type_sint64;
+    //        ffi_type * m_ffi_type_float;
+    //        ffi_type * m_ffi_type_double;
+    //        ffi_type * m_ffi_type_pointer;
+    //
+    //        ffi_prep_cif_type *m_ffi_prep_cif;
+    //        ffi_prep_cif_var_type * m_ffi_prep_cif_var;
+    //        ffi_call_type * m_ffi_call;
+    //
+    //#ifdef _MSC_VER
+    //
+    //            std::wstring sys_file;
+    //            std::string sys_init;
+    //
+    //            //#define CYGWIN
+    //#ifdef CYGWIN
+    //            sys_file = L"cygwin1.dll";
+    //            sys_init = "cygwin_dll_init";
+    //            ffi_file = "cygffi-6.dll";
+    //#else
+    //            sys_file = L"msys-2.0.dll";
+    //            sys_init = "msys_dll_init";
+    //            ffi_file = "libffi-7.dll";
+    //#endif
+    //
+    //            rt->m_msys = LoadLibrary(sys_file.c_str());
+    //            if (!rt->m_msys) {
+    //                LOG_RUNTIME("Fail LoadLibrary %s: %s", sys_file.c_str(), RunTime::GetLastErrorMessage().c_str());
+    //            }
+    //
+    //            typedef void init_type();
+    //
+    //            init_type *init = (init_type *) GetProcAddress((HMODULE) rt->m_msys, sys_init.c_str());
+    //            if (rt->m_msys && !init) {
+    //                FreeLibrary((HMODULE) rt->m_msys);
+    //                LOG_RUNTIME("Func %s not found! %s", sys_init.c_str(), RunTime::GetLastErrorMessage().c_str());
+    //                (*init)();
+    //            }
+    //            rt->m_ffi_handle = LoadLibrary(utf8_decode(ffi_file).c_str());
+    //#else
+    //            std::string error;
+    //            if (!llvm::sys::DynamicLibrary::LoadLibraryPermanently("libffi", &error)) {
+    //                LOG_RUNTIME("Fail load library libffi.so '%s'", error.c_str());
+    //            }
+    //
+    //
+    //            //            ffi_file = "libffi.so";
+    //            //            rt->m_ffi_handle = dlopen(ffi_file.c_str(), RTLD_NOW);
+    //#endif
+    //            //
+    //            //            if (!rt->m_ffi_handle) {
+    //            //                LOG_RUNTIME("Fail load %s!", ffi_file.c_str());
+    //            //            }
+    //
+    //            rt->m_ffi_type_void = static_cast<ffi_type *> (GetDirectAddressFromLibrary(rt->m_ffi_handle, "ffi_type_void"));
+    //            rt->m_ffi_type_uint8 = static_cast<ffi_type *> (GetDirectAddressFromLibrary(rt->m_ffi_handle, "ffi_type_uint8"));
+    //            rt->m_ffi_type_sint8 = static_cast<ffi_type *> (GetDirectAddressFromLibrary(rt->m_ffi_handle, "ffi_type_sint8"));
+    //            rt->m_ffi_type_uint16 = static_cast<ffi_type *> (GetDirectAddressFromLibrary(rt->m_ffi_handle, "ffi_type_uint16"));
+    //            rt->m_ffi_type_sint16 = static_cast<ffi_type *> (GetDirectAddressFromLibrary(rt->m_ffi_handle, "ffi_type_sint16"));
+    //            rt->m_ffi_type_uint32 = static_cast<ffi_type *> (GetDirectAddressFromLibrary(rt->m_ffi_handle, "ffi_type_uint32"));
+    //            rt->m_ffi_type_sint32 = static_cast<ffi_type *> (GetDirectAddressFromLibrary(rt->m_ffi_handle, "ffi_type_sint32"));
+    //            rt->m_ffi_type_uint64 = static_cast<ffi_type *> (GetDirectAddressFromLibrary(rt->m_ffi_handle, "ffi_type_uint64"));
+    //            rt->m_ffi_type_sint64 = static_cast<ffi_type *> (GetDirectAddressFromLibrary(rt->m_ffi_handle, "ffi_type_sint64"));
+    //            rt->m_ffi_type_float = static_cast<ffi_type *> (GetDirectAddressFromLibrary(rt->m_ffi_handle, "ffi_type_float"));
+    //            rt->m_ffi_type_double = static_cast<ffi_type *> (GetDirectAddressFromLibrary(rt->m_ffi_handle, "ffi_type_double"));
+    //            rt->m_ffi_type_pointer = static_cast<ffi_type *> (GetDirectAddressFromLibrary(rt->m_ffi_handle, "ffi_type_pointer"));
+    //
+    //            rt->m_ffi_prep_cif = reinterpret_cast<ffi_prep_cif_type *> (GetDirectAddressFromLibrary(rt->m_ffi_handle, "ffi_prep_cif"));
+    //            rt->m_ffi_prep_cif_var = reinterpret_cast<ffi_prep_cif_var_type *> (GetDirectAddressFromLibrary(rt->m_ffi_handle, "ffi_prep_cif_var"));
+    //            rt->m_ffi_call = reinterpret_cast<ffi_call_type *> (GetDirectAddressFromLibrary(rt->m_ffi_handle, "ffi_call"));
+    //
+    //            if (!(rt->m_ffi_type_uint8 && rt->m_ffi_type_sint8 && rt->m_ffi_type_uint16 && rt->m_ffi_type_sint16 &&
+    //                    rt->m_ffi_type_uint32 && rt->m_ffi_type_sint32 && rt->m_ffi_type_uint64 && rt->m_ffi_type_sint64 &&
+    //                    rt->m_ffi_type_float && rt->m_ffi_type_double && rt->m_ffi_type_pointer && rt->m_ffi_type_void &&
+    //                    rt->m_ffi_prep_cif && rt->m_ffi_prep_cif_var && rt->m_ffi_call)) {
+    //                LOG_RUNTIME("Fail init data from %s!", ffi_file.c_str());
+    //            }
+    //
+    //            return rt;
+    //        }
+    //
+    //        inline static void * GetDirectAddressFromLibrary(void *handle, const char * name) {
+    //#ifdef _MSC_VER
+    //            return static_cast<void *> (::GetProcAddress((HMODULE) handle, name));
+    //#else
+    //            void *res = llvm::sys::DynamicLibrary::SearchForAddressOfSymbol(name);
+    //            if (res) {
+    //                return res;
+    //            }
+    //            //            if (m_llvm_engine) {
+    //            //                //            ASSERT(m_llvm_engine);
+    //            //                return LLVMGetPointerToNamedFunction_(m_llvm_engine, name);
+    //            //            }
+    //            return nullptr;
+    //            //            return dlsym(handle, name);
+    //#endif
+    //        }
+
+    return false;
+}
+
+ObjPtr CallLibFFI_(Context *ctx, Obj args) {
+    //
+    //    if(!ctx || !ctx->m_runtime) {
+    //        LOG_RUNTIME("Fail context for call native!");
+    //    }
+    //
+    //    ffi_cif m_cif;
+    //    std::vector<ffi_type *> m_args_type;
+    //    std::vector<void *> m_args_ptr;
+    //
+    //    union VALUE {
+    //        const void *ptr;
+    //        //        ObjPtr obj;
+    //        size_t size;
+    //        int64_t integer;
+    //        double number;
+    //        bool boolean;
+    //    };
+    //    std::vector<VALUE> m_args_val;
+    //    VALUE temp;
+    //
+    //    ASSERT(m_var_type_current == ObjType::NativeFunc);
+    //    ASSERT(m_func_proto);
+    //
+    //    if(!m_func_ptr) {
+    //        NL_CHECK(m_module_name.empty() || ctx, "You cannot load a module without access to the runtime context!");
+    //        m_func_ptr = ctx->m_runtime->GetNativeAddr(m_func_mangle_name.empty() ? m_func_proto->m_text.c_str() : m_func_mangle_name.c_str(),
+    //                m_module_name.empty() ? nullptr : m_module_name.c_str());
+    //    }
+    //    NL_CHECK(m_func_ptr, "Fail load func name '%s' (%s) or fail load module '%s'!", m_func_proto->m_text.c_str(),
+    //            m_func_mangle_name.empty() ? m_func_proto->m_text.c_str() : m_func_mangle_name.c_str(),
+    //            m_module_name.empty() ? "none" : m_module_name.c_str());
+    //
+    //    bool is_ellipsis = (m_func_proto->size() && (*m_func_proto)[m_func_proto->size() - 1].second->getTermID() == TermID::ELLIPSIS);
+    //    size_t check_count = is_ellipsis ? m_func_proto->size() - 1 : m_func_proto->size();
+    //
+    //    // Пропустить нулевой аргумент для нативных функций
+    //    for (int i = 1; i < args.size(); i++) {
+    //
+    //        ASSERT(args[i].second);
+    //        if(args[i].second->m_is_reference) {
+    //            LOG_RUNTIME("Argument REFERENCE! %s", args[i].second->toString().c_str());
+    //        }
+    //
+    //        size_t pind = i - 1; // Индекс прототипа на единицу меньше из-за пустого нулевого аргумента
+    //
+    //        ObjType type = args[i].second->getTypeAsLimit();
+    //        switch(type) {
+    //            case ObjType::Bool:
+    //                if(pind < check_count) {
+    //                    NL_CHECK(!(*m_func_proto)[pind].second->m_type_name.empty(), "Undefined type arg '%s'", (*m_func_proto)[pind].second->toString().c_str());
+    //                    NL_CHECK(canCast(type, typeFromString((*m_func_proto)[pind].second->m_type_name, ctx)), "Fail cast from '%s' to '%s'",
+    //                            (*m_func_proto)[pind].second->m_type_name.c_str(), newlang::toString(type));
+    //                }
+    //                m_args_type.push_back(ctx->m_runtime->m_ffi_type_uint8);
+    //                temp.boolean = args[i].second->GetValueAsBoolean();
+    //                m_args_val.push_back(temp);
+    //                break;
+    //
+    //            case ObjType::Char:
+    //                if(pind < check_count) {
+    //                    NL_CHECK(!(*m_func_proto)[pind].second->m_type_name.empty(), "Undefined type arg '%s'", (*m_func_proto)[pind].second->toString().c_str());
+    //                    NL_CHECK(canCast(type, typeFromString((*m_func_proto)[pind].second->m_type_name, ctx)), "Fail cast from '%s' to '%s'",
+    //                            (*m_func_proto)[pind].second->m_type_name.c_str(), newlang::toString(type));
+    //                }
+    //                m_args_type.push_back(ctx->m_runtime->m_ffi_type_sint8);
+    //                temp.integer = args[i].second->GetValueAsInteger();
+    //                m_args_val.push_back(temp);
+    //                break;
+    //
+    //            case ObjType::Short:
+    //                if(pind < check_count) {
+    //                    NL_CHECK(!(*m_func_proto)[pind].second->m_type_name.empty(), "Undefined type arg '%s'", (*m_func_proto)[pind].second->toString().c_str());
+    //                    NL_CHECK(canCast(type, typeFromString((*m_func_proto)[pind].second->m_type_name, ctx)), "Fail cast from '%s' to '%s'",
+    //                            (*m_func_proto)[pind].second->m_type_name.c_str(), newlang::toString(type));
+    //                }
+    //                m_args_type.push_back(ctx->m_runtime->m_ffi_type_sint16);
+    //                temp.integer = args[i].second->GetValueAsInteger();
+    //                m_args_val.push_back(temp);
+    //                break;
+    //
+    //            case ObjType::Int:
+    //                if(pind < check_count) {
+    //                    NL_CHECK(!(*m_func_proto)[pind].second->m_type_name.empty(), "Undefined type arg '%s'", (*m_func_proto)[pind].second->toString().c_str());
+    //                    NL_CHECK(canCast(type, typeFromString((*m_func_proto)[pind].second->m_type_name, ctx)), "Fail cast from '%s' to '%s'",
+    //                            (*m_func_proto)[pind].second->m_type_name.c_str(), newlang::toString(type));
+    //                }
+    //                m_args_type.push_back(ctx->m_runtime->m_ffi_type_sint32);
+    //                temp.integer = args[i].second->GetValueAsInteger();
+    //                m_args_val.push_back(temp);
+    //                break;
+    //
+    //            case ObjType::Long:
+    //                if(pind < check_count) {
+    //                    NL_CHECK(!(*m_func_proto)[pind].second->m_type_name.empty(), "Undefined type arg '%s'", (*m_func_proto)[pind].second->toString().c_str());
+    //                    NL_CHECK(canCast(type, typeFromString((*m_func_proto)[pind].second->m_type_name, ctx)), "Fail cast from '%s' to '%s'",
+    //                            (*m_func_proto)[pind].second->m_type_name.c_str(), newlang::toString(type));
+    //                }
+    //                m_args_type.push_back(ctx->m_runtime->m_ffi_type_sint64);
+    //                temp.integer = args[i].second->GetValueAsInteger();
+    //                m_args_val.push_back(temp);
+    //                break;
+    //
+    //            case ObjType::Float:
+    //                if(pind < check_count) {
+    //                    NL_CHECK(!(*m_func_proto)[pind].second->m_type_name.empty(), "Undefined type arg '%s'", (*m_func_proto)[pind].second->toString().c_str());
+    //                    NL_CHECK(canCast(type, typeFromString((*m_func_proto)[pind].second->m_type_name, ctx)), "Fail cast from '%s' to '%s'",
+    //                            (*m_func_proto)[pind].second->m_type_name.c_str(), newlang::toString(type));
+    //                }
+    //                m_args_type.push_back(ctx->m_runtime->m_ffi_type_float);
+    //                temp.number = args[i].second->GetValueAsNumber();
+    //                m_args_val.push_back(temp);
+    //                break;
+    //
+    //            case ObjType::Double:
+    //                if(pind < check_count) {
+    //                    NL_CHECK(!(*m_func_proto)[pind].second->m_type_name.empty(), "Undefined type arg '%s'", (*m_func_proto)[pind].second->toString().c_str());
+    //                    NL_CHECK(canCast(type, typeFromString((*m_func_proto)[pind].second->m_type_name, ctx)), "Fail cast from '%s' to '%s'",
+    //                            (*m_func_proto)[pind].second->m_type_name.c_str(), newlang::toString(type));
+    //                }
+    //                m_args_type.push_back(ctx->m_runtime->m_ffi_type_double);
+    //                temp.number = args[i].second->GetValueAsNumber();
+    //                m_args_val.push_back(temp);
+    //                break;
+    //
+    //            case ObjType::StrChar:
+    //                if(pind < check_count) {
+    //                    NL_CHECK(!(*m_func_proto)[pind].second->m_type_name.empty(), "Undefined type arg '%s'", (*m_func_proto)[pind].second->toString().c_str());
+    //                    NL_CHECK(canCast(type, typeFromString((*m_func_proto)[pind].second->m_type_name, ctx)), "Fail cast from '%s' to '%s'",
+    //                            (*m_func_proto)[pind].second->m_type_name.c_str(), newlang::toString(type));
+    //                }
+    //                m_args_type.push_back(ctx->m_runtime->m_ffi_type_pointer);
+    //                temp.ptr = args[i].second->m_str.c_str();
+    //                m_args_val.push_back(temp);
+    //                break;
+    //
+    //            case ObjType::StrWide:
+    //                if(pind < check_count) {
+    //                    NL_CHECK(!(*m_func_proto)[pind].second->m_type_name.empty(), "Undefined type arg '%s'", (*m_func_proto)[pind].second->toString().c_str());
+    //                    NL_CHECK(canCast(type, typeFromString((*m_func_proto)[pind].second->m_type_name, ctx)), "Fail cast from '%s' to '%s'",
+    //                            (*m_func_proto)[pind].second->m_type_name.c_str(), newlang::toString(type));
+    //                }
+    //                m_args_type.push_back(ctx->m_runtime->m_ffi_type_pointer);
+    //                temp.ptr = args[i].second->m_wstr.c_str();
+    //                m_args_val.push_back(temp);
+    //                break;
+    //
+    //            case ObjType::Pointer:
+    //                if(pind < check_count) {
+    //                    NL_CHECK(!(*m_func_proto)[pind].second->m_type_name.empty(), "Undefined type arg '%s'", (*m_func_proto)[pind].second->toString().c_str());
+    //                    NL_CHECK(canCast(type, typeFromString((*m_func_proto)[pind].second->m_type_name, ctx)), "Fail cast from '%s' to '%s'",
+    //                            (*m_func_proto)[pind].second->m_type_name.c_str(), newlang::toString(type));
+    //                }
+    //                m_args_type.push_back(ctx->m_runtime->m_ffi_type_pointer);
+    //                temp.ptr = args[i].second->m_func_ptr;
+    //                m_args_val.push_back(temp);
+    //                break;
+    //
+    //            default:
+    //                LOG_RUNTIME("Native arg '%s' not implemented!", args[i].second->toString().c_str());
+    //        }
+    //        if(pind < check_count && (*m_func_proto)[pind].second->GetType()) {
+    //            if((*m_func_proto)[pind].second->GetType()->m_text.compare(newlang::toString(ObjType::FmtChar)) == 0) {
+    //                NL_CHECK(ParsePrintfFormat(&args, i), "Fail format string or type args!");
+    //            }
+    //        }
+    //    }
+    //
+    //    for (size_t i = 0; i < m_args_val.size(); i++) {
+    //        m_args_ptr.push_back((void *) &m_args_val[i]);
+    //    }
+    //
+    //    NL_CHECK(!m_func_proto->m_type_name.empty(), "Undefined return type '%s'", m_func_proto->toString().c_str());
+    //
+    //    VALUE res_value;
+    //    ffi_type *result_ffi_type = nullptr;
+    //
+    //    ObjType type = ctx->BaseTypeFromString(m_func_proto->m_type_name);
+    //
+    //    switch(type) {
+    //        case ObjType::Bool:
+    //            result_ffi_type = ctx->m_runtime->m_ffi_type_uint8;
+    //            break;
+    //
+    //        case ObjType::Char:
+    //            result_ffi_type = ctx->m_runtime->m_ffi_type_sint8;
+    //            break;
+    //
+    //        case ObjType::Short:
+    //            result_ffi_type = ctx->m_runtime->m_ffi_type_sint16;
+    //            break;
+    //
+    //        case ObjType::Int:
+    //            result_ffi_type = ctx->m_runtime->m_ffi_type_sint32;
+    //            break;
+    //
+    //        case ObjType::Long:
+    //            result_ffi_type = ctx->m_runtime->m_ffi_type_sint64;
+    //            break;
+    //
+    //        case ObjType::Float:
+    //            result_ffi_type = ctx->m_runtime->m_ffi_type_float;
+    //            break;
+    //
+    //        case ObjType::Double:
+    //            result_ffi_type = ctx->m_runtime->m_ffi_type_double;
+    //            break;
+    //
+    //        case ObjType::Pointer:
+    //        case ObjType::StrChar:
+    //        case ObjType::StrWide:
+    //            result_ffi_type = ctx->m_runtime->m_ffi_type_pointer;
+    //            break;
+    //
+    //        default:
+    //            LOG_RUNTIME("Native return type '%s' not implemented!", m_func_proto->m_type_name.c_str());
+    //    }
+    //
+    //    ASSERT(m_func_abi == FFI_DEFAULT_ABI); // Нужны другие типы вызовов ???
+    //    if(ctx->m_runtime->m_ffi_prep_cif(&m_cif, m_func_abi, static_cast<unsigned int> (m_args_type.size()), result_ffi_type, m_args_type.data()) == FFI_OK) {
+    //
+    //        ctx->m_runtime->m_ffi_call(&m_cif, FFI_FN(m_func_ptr), &res_value, m_args_ptr.data());
+    //
+    //        if(result_ffi_type == ctx->m_runtime->m_ffi_type_uint8) {
+    //            // Возвращаемый тип может быть как Byte, так и Bool
+    //            return Obj::CreateValue(static_cast<uint8_t> (res_value.integer), typeFromString(m_func_proto->m_type_name));
+    //        } else if(result_ffi_type == ctx->m_runtime->m_ffi_type_sint8) {
+    //            return Obj::CreateValue(static_cast<int8_t> (res_value.integer), ObjType::Char);
+    //        } else if(result_ffi_type == ctx->m_runtime->m_ffi_type_sint16) {
+    //            return Obj::CreateValue(static_cast<int16_t> (res_value.integer), ObjType::Short);
+    //        } else if(result_ffi_type == ctx->m_runtime->m_ffi_type_sint32) {
+    //            return Obj::CreateValue(static_cast<int32_t> (res_value.integer), ObjType::Int);
+    //        } else if(result_ffi_type == ctx->m_runtime->m_ffi_type_sint64) {
+    //            return Obj::CreateValue(res_value.integer, ObjType::Long);
+    //        } else if(result_ffi_type == ctx->m_runtime->m_ffi_type_float) {
+    //            return Obj::CreateValue(res_value.number, ObjType::Float);
+    //        } else if(result_ffi_type == ctx->m_runtime->m_ffi_type_double) {
+    //            return Obj::CreateValue(res_value.number, ObjType::Double);
+    //        } else if(result_ffi_type == ctx->m_runtime->m_ffi_type_pointer) {
+    //            if(type == ObjType::StrChar) {
+    //                return Obj::CreateString(reinterpret_cast<const char *> (res_value.ptr));
+    //            } else if(type == ObjType::StrWide) {
+    //                return Obj::CreateString(reinterpret_cast<const wchar_t *> (res_value.ptr));
+    //            } else if(type == ObjType::Pointer) {
+    //                ObjPtr result = ctx->GetTypeFromString(m_func_proto->m_type_name);
+    //                result->m_func_ptr = (void *) res_value.ptr;
+    //                result->m_var_is_init = true;
+    //                return result;
+    //            } else {
+    //                LOG_RUNTIME("Error result type '%s' or not implemented!", m_func_proto->m_type_name.c_str());
+    //            }
+    //        } else {
+    //            LOG_RUNTIME("Native return type '%s' not implemented!", m_func_proto->m_type_name.c_str());
+    //        }
+    //    }
+    //
+    //    LOG_RUNTIME("Fail native call '%s'!", toString().c_str());
+    //
+    return Obj::CreateNone();
+}
+
 bool newlang::ParsePrintfFormat(Obj *args, int start) {
 
     if(!args) {
@@ -2051,6 +2542,7 @@ bool newlang::ParsePrintfFormat(Obj *args, int start) {
             }
             pos--;
 
+            ObjType test_type;
             ObjType cast = ObjType::None;
             switch(format[pos]) {
 
@@ -2068,7 +2560,15 @@ bool newlang::ParsePrintfFormat(Obj *args, int start) {
                     } else if(pos && format[pos - 1] == 'h') {
                         cast = ObjType::Short;
                     }
-                    if(!canCast((*args)[aind].second->m_var_type_current, cast)) {
+
+                    if((*args)[aind].second->getType() == ObjType::Iterator) {
+                        ASSERT((*args)[aind].second->m_iterator);
+                        test_type = (*args)[aind].second->m_iterator->data().second->getType();
+                    } else {
+                        test_type = (*args)[aind].second->m_var_type_current;
+                    }
+
+                    if(!canCast(test_type, cast)) {
                         LOG_WARNING("Cast '%s' to '%s' not supported!", newlang::toString((*args)[aind].second->m_var_type_current), newlang::toString(cast));
                         result = false;
                     }
@@ -2250,7 +2750,7 @@ void newlang::ConvertTensorToDict(const torch::Tensor &from, Obj &to, std::vecto
  * Dict -> Tensor
  */
 void Obj::toType_(ObjType type) {
-    if(m_var_type_current == type) {
+    if(m_var_type_current == type || type == ObjType::Any || (is_string_char_type() && isString(type))) {
         return;
     } else if(type == ObjType::None) {
         clear_();
@@ -2429,7 +2929,7 @@ void Obj::toType_(ObjType type) {
             LOG_RUNTIME("Convert tensor to fraction support for scalar only!");
         }
         if(is_integral()) {
-            m_fraction = std::make_shared<Fraction>(GetValueAsInteger());
+            m_fraction = GetValueAsInteger();
             m_var = at::monostate();
         } else {
             LOG_RUNTIME("Convert value '%s' to fraction not implemented!", toString().c_str());
@@ -2600,8 +3100,17 @@ ObjPtr Obj::BaseTypeConstructor(const Context *ctx, Obj & args) {
     } else if(args[0].second->m_var_type_fixed == ObjType::Error || args[0].second->m_var_type_fixed == ObjType::ErrorParser
             || args[0].second->m_var_type_fixed == ObjType::ErrorRunTime || args[0].second->m_var_type_fixed == ObjType::ErrorSignal) {
         result = ConstructorError_(ctx, args);
-    } else {
-
+    } else if(args[0].second->m_var_type_fixed == ObjType::StrChar && args.size() > 1) {
+        result = Obj::CreateString("");
+        for (int i = 1; i < args.size(); i++) {
+            result->op_concat_(args[i].second, ConcatMode::Append);
+        }
+    } else if(args[0].second->m_var_type_fixed == ObjType::StrWide && args.size() > 1) {
+        result = Obj::CreateString(L"");
+        for (int i = 1; i < args.size(); i++) {
+            result->op_concat_(args[i].second, ConcatMode::Append);
+        }
+    } else if(args.size() == 1) { // Клонировать тип
         result = args[0].second->Clone();
         if(result) {
             result->m_is_const = false;
@@ -2768,6 +3277,15 @@ ObjPtr Obj::ConstructorNative_(const Context *ctx_const, Obj & args) {
     return ctx->CreateNative(args.at(1).second->GetValueAsString().c_str());
 }
 
+/*
+ * <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+ * Различие между классом и словарям в том, что элементы словаря могут добавлятся и удаляться динамически,
+ * а у класса состав полей фиуксируется при определении и в последствии они не могут быть добалвены или удалены.
+ * Это нужно для возможности работы синтаксического анализатора на этапе компиляции программы.
+ * >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+ *          
+ */
+
 ObjPtr Obj::ConstructorClass_(const Context *ctx, Obj & args) {
     ObjPtr result = ConstructorDictionary_(ctx, args);
     result->m_var_type_fixed = ObjType::Class;
@@ -2893,47 +3411,167 @@ const Iterator<Obj>::IterPairType Iterator<Obj>::m_interator_end = IterObj::pair
 template<>
 ObjPtr Iterator<Obj>::read_and_next(int64_t count) {
     ObjPtr result;
+    static ObjPtr zero = Obj::CreateValue(0);
 
     if(count == 0) {
-        result = (*(*this)).second;
-        (*this)++;
+        if(m_iter_obj->m_var_type_current == ObjType::Range) {
+
+            ObjPtr value = m_iter_obj->m_iter_range_value;
+            ObjPtr stop = m_iter_obj->at("stop").second;
+            ObjPtr step = m_iter_obj->at("step").second;
+
+            ASSERT(value);
+            ASSERT(stop);
+            ASSERT(step);
+
+            int up_direction = step->op_compare(*zero);
+            ASSERT(up_direction);
+
+            if(up_direction < 0) {
+                if(value->op_compare(*stop) > 0) {
+                    result = value->Clone();
+                    (*value) += step;
+                } else {
+                    result = Iterator::m_interator_end.second->Clone();
+                }
+            } else {
+                if(value->op_compare(*stop) < 0) {
+                    result = value->Clone();
+                    (*value) += step;
+                } else {
+                    result = Iterator::m_interator_end.second->Clone();
+                }
+            }
+
+            } else if(m_iter_obj->is_indexing()) {
+            result = (*(*this)).second;
+            (*this)++;
+        } else {
+            LOG_RUNTIME("Interator to type %s not implemented!", newlang::toString(m_iter_obj->m_var_type_current));
+        }
     } else if(count < 0) {
 
         result = Obj::CreateDict();
-        for (int64_t i = 0; i < -count; i++) {
-            if(*this != this->end()) {
-                result->push_back(*(*this));
-                (*this)++;
-            } else {
-                result->push_back(Obj::CreateType(ObjType::IteratorEnd));
+        result->m_var_is_init = true;
+
+        if(m_iter_obj->m_var_type_current == ObjType::Range) {
+
+            ObjPtr value = m_iter_obj->m_iter_range_value;
+            ObjPtr stop = m_iter_obj->at("stop").second;
+            ObjPtr step = m_iter_obj->at("step").second;
+
+            ASSERT(value);
+            ASSERT(stop);
+            ASSERT(step);
+
+            int up_direction = step->op_compare(*zero);
+            ASSERT(up_direction);
+
+            bool next_value = true;
+            for (int64_t i = 0; i < -count; i++) {
+
+                if(next_value) {
+                    if(up_direction < 0) {
+                        if(value->op_compare(*stop) < 0) {
+                            next_value = false;
+                        } else {
+                            result->push_back(value->Clone());
+                            (*value) += step;
+                        }
+                    } else {
+                        if(value->op_compare(*stop) > 0) {
+                            next_value = false;
+                        } else {
+                            result->push_back(value->Clone());
+                            (*value) += step;
+                        }
+                    }
+                } else {
+                    result->push_back(Obj::CreateType(ObjType::IteratorEnd));
+                }
             }
+
+        } else if(m_iter_obj->is_indexing()) {
+
+            for (int64_t i = 0; i < -count; i++) {
+                if(*this != this->end()) {
+                    result->push_back(*(*this));
+                    (*this)++;
+                } else {
+                    result->push_back(Obj::CreateType(ObjType::IteratorEnd));
+                }
+            }
+
+        } else {
+            LOG_RUNTIME("Interator to type %s not implemented!", newlang::toString(m_iter_obj->m_var_type_current));
         }
 
     } else {
+
         result = Obj::CreateDict();
-        while(*this != this->end() && result->size() < count) {
-            result->push_back(*(*this));
-            (*this)++;
+        result->m_var_is_init = true;
+
+        if(m_iter_obj->is_indexing()) {
+            while(*this != this->end() && result->size() < count) {
+                result->push_back(*(*this));
+                (*this)++;
+            }
+        } else if(m_iter_obj->m_var_type_current == ObjType::Range) {
+
+            ObjPtr value = m_iter_obj->m_iter_range_value;
+            ObjPtr stop = m_iter_obj->at("stop").second;
+            ObjPtr step = m_iter_obj->at("step").second;
+
+            ASSERT(value);
+            ASSERT(stop);
+            ASSERT(step);
+
+            int up_direction = step->op_compare(*zero);
+            ASSERT(up_direction);
+
+            if(up_direction < 0) {
+                while(value->op_compare(*stop) > 0) {
+                    result->push_back(value->Clone());
+                    (*value) += step;
+                }
+            } else {
+                while(value->op_compare(*stop) < 0) {
+                    result->push_back(value->Clone());
+                    (*value) += step;
+                }
+            }
+        
+            m_iter_obj->m_iter_range_value = result->Clone();
+            
+        } else {
+            LOG_RUNTIME("Interator to type %s not implemented!", newlang::toString(m_iter_obj->m_var_type_current));
         }
     }
+
     return result;
 }
 
-ObjPtr Obj::MakeIterator(const std::string filter, bool check_create) {
+ObjPtr Obj::IteratorMake(const std::string filter, bool check_create) {
     ObjPtr result = CreateType(ObjType::Iterator, ObjType::Iterator, true);
-    if(!is_indexing()) {
+    if(!(is_indexing() || m_var_type_current == ObjType::Range)) {
         if(getType() == ObjType::Iterator && !check_create) {
             return shared();
         }
         LOG_RUNTIME("Can't create iterator from '%s'!", toString().c_str());
     }
     result->m_iterator = std::make_shared<Iterator < Obj >> (shared(), filter);
+    ASSERT(result->m_iterator->m_iter_obj.get() == this);
+    ASSERT(!result->m_iterator->m_iter_obj->m_iter_range_value);
+    result->IteratorReset();
+    if(is_range()) {
+        ASSERT(result->m_iterator->m_iter_obj->m_iter_range_value);
+    }
     return result;
 }
 
-ObjPtr Obj::MakeIterator(Obj * args) {
+ObjPtr Obj::IteratorMake(Obj * args) {
     ObjPtr result = CreateType(ObjType::Iterator, ObjType::Iterator, true);
-    if(!is_indexing()) {
+    if(!(is_indexing() || m_var_type_current == ObjType::Range)) {
         if(getType() == ObjType::Iterator) {
             return shared();
         }
@@ -2953,7 +3591,24 @@ ObjPtr Obj::MakeIterator(Obj * args) {
     } else {
         LOG_RUNTIME("Invalid arguments for iterator create! '%s'", args->toString().c_str());
     }
+    ASSERT(result->m_iterator->m_iter_obj.get() == this);
+    ASSERT(!result->m_iterator->m_iter_obj->m_iter_range_value);
+    result->IteratorReset();
+    if(is_range()) {
+        ASSERT(result->m_iterator->m_iter_obj->m_iter_range_value);
+    }
     return result;
+}
+
+ObjPtr Obj::IteratorData() {
+    ASSERT(m_iterator);
+    if(m_iterator->m_iter_obj->is_range()) {
+        ASSERT(m_iterator->m_iter_obj->m_iter_range_value);
+        return m_iterator->m_iter_obj->m_iter_range_value->Clone();
+    } else if(m_iterator->m_iter_obj->is_indexing()) {
+        return m_iterator->data().second;
+    }
+    LOG_RUNTIME("IteratorData not implemented for object type %s!", newlang::toString(m_iterator->m_iter_obj->m_var_type_current));
 }
 
 ObjPtr Obj::IteratorReset() {
@@ -2961,7 +3616,15 @@ ObjPtr Obj::IteratorReset() {
         LOG_RUNTIME("Method available an iterator only!");
     }
     ASSERT(m_iterator);
-    m_iterator->reset();
+
+    if(m_iterator->m_iter_obj->is_range()) {
+        ObjType summary_type = getSummaryTensorType(m_iterator->m_iter_obj.get(), ObjType::None);
+        m_iterator->m_iter_obj->m_iter_range_value = m_iterator->m_iter_obj->at("start").second->toType(summary_type);
+    } else if(m_iterator->m_iter_obj->is_indexing()) {
+        m_iterator->reset();
+    } else {
+        LOG_RUNTIME("IteratorReset not implemented for object type %s!", newlang::toString(m_iterator->m_iter_obj->m_var_type_current));
+    }
     return shared();
 }
 

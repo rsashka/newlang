@@ -618,7 +618,9 @@ namespace newlang {
                     return result;
 
                 case TermID::OPERATOR:
+                    result += " ";
                     result += m_text;
+                    result += " ";
                     if (m_right) {
                         result += m_right->toString();
                     }

@@ -640,6 +640,18 @@ TEST_F(ParserTest, TermCollection2) {
     ASSERT_EQ(TermID::TENSOR, (*ast)[1].second->getTermID()) << newlang::toString((*ast)[1].second->getTermID());
 }
 
+
+TEST_F(ParserTest, OpsCall) {
+    ASSERT_TRUE(Parse("call(1+1)"));
+    ASSERT_TRUE(Parse("call(1-1)"));
+    ASSERT_TRUE(Parse("call(1\\1-1)"));
+    ASSERT_TRUE(Parse("call(term+1)"));
+    ASSERT_TRUE(Parse("call(term-1)"));
+    ASSERT_TRUE(Parse("call(term+term)"));
+    ASSERT_TRUE(Parse("call(term-term)"));
+    ASSERT_TRUE(Parse("call(term-term,term*2)"));
+}
+
 TEST_F(ParserTest, ArgMixedFail) {
     //    EXPECT_THROW(
     //            Parse("term(arg2=arg3, arg1);"), std::runtime_error
@@ -802,26 +814,83 @@ TEST_F(ParserTest, MathNeg) {
     TermPtr op = ast->Right();
     ASSERT_TRUE(op);
     ASSERT_STREQ("-456", op->m_text.c_str());
-}
-
-TEST_F(ParserTest, DISABLED_MathPioritet) {
-    ASSERT_TRUE(Parse("test := 123+456*789;"));
-    ASSERT_STREQ(":=", ast->m_text.c_str());
+    
+    
+    ASSERT_TRUE(Parse("1000-456"));
+    ASSERT_STREQ("-", ast->m_text.c_str());
     ASSERT_TRUE(ast->Left());
     ASSERT_TRUE(ast->Right());
-    ASSERT_STREQ("test", ast->Left()->m_text.c_str());
+    ASSERT_STREQ("1000", ast->Left()->m_text.c_str());
+    op = ast->Right();
+    ASSERT_TRUE(op);
+    ASSERT_STREQ("456", op->m_text.c_str());
+
+    ASSERT_TRUE(Parse("-(456)"));
+    ASSERT_STREQ("-", ast->m_text.c_str());
+    ASSERT_FALSE(ast->Left());
+    ASSERT_TRUE(ast->Right());
+    op = ast->Right();
+    ASSERT_TRUE(op);
+    ASSERT_STREQ("456", op->m_text.c_str());
+    
+    ASSERT_ANY_THROW(Parse("1000 456"));
+}
+
+TEST_F(ParserTest, MathPrioritet) {
+    ASSERT_TRUE(Parse("1+2*3"));
+    ASSERT_STREQ("+", ast->m_text.c_str());
+    ASSERT_TRUE(ast->Left());
+    ASSERT_TRUE(ast->Right());
+    ASSERT_STREQ("1", ast->Left()->m_text.c_str());
     TermPtr op = ast->Right();
     ASSERT_TRUE(op);
     ASSERT_STREQ("*", op->m_text.c_str());
     ASSERT_TRUE(op->Right());
-    ASSERT_STREQ("789", op->Right()->m_text.c_str());
     ASSERT_TRUE(op->Left());
-    ASSERT_STREQ("+", op->Left()->m_text.c_str());
-    TermPtr op2 = op->Right();
-    ASSERT_TRUE(op2->Left());
-    ASSERT_TRUE(op2->Right());
-    ASSERT_STREQ("123", op2->Left()->m_text.c_str());
-    ASSERT_STREQ("456", op2->Right()->m_text.c_str());
+    ASSERT_STREQ("2", op->Left()->m_text.c_str());
+    ASSERT_STREQ("3", op->Right()->m_text.c_str());
+    
+    
+    ASSERT_TRUE(Parse("1*2+3"));
+    ASSERT_STREQ("+", ast->m_text.c_str());
+    ASSERT_TRUE(ast->Left());
+    ASSERT_TRUE(ast->Right());
+    ASSERT_STREQ("3", ast->Right()->m_text.c_str());
+    op = ast->Left();
+    ASSERT_TRUE(op);
+    ASSERT_STREQ("*", op->m_text.c_str());
+    ASSERT_TRUE(op->Right());
+    ASSERT_TRUE(op->Left());
+    ASSERT_STREQ("1", op->Left()->m_text.c_str());
+    ASSERT_STREQ("2", op->Right()->m_text.c_str());
+
+    
+    ASSERT_TRUE(Parse("(1*2)+3"));
+    ASSERT_STREQ("+", ast->m_text.c_str());
+    ASSERT_TRUE(ast->Left());
+    ASSERT_TRUE(ast->Right());
+    ASSERT_STREQ("3", ast->Right()->m_text.c_str());
+    op = ast->Left();
+    ASSERT_TRUE(op);
+    ASSERT_STREQ("*", op->m_text.c_str());
+    ASSERT_TRUE(op->Right());
+    ASSERT_TRUE(op->Left());
+    ASSERT_STREQ("1", op->Left()->m_text.c_str());
+    ASSERT_STREQ("2", op->Right()->m_text.c_str());
+
+    
+    ASSERT_TRUE(Parse("1*(2+3)"));
+    ASSERT_STREQ("*", ast->m_text.c_str());
+    ASSERT_TRUE(ast->Left());
+    ASSERT_TRUE(ast->Right());
+    ASSERT_STREQ("1", ast->Left()->m_text.c_str());
+    op = ast->Right();
+    ASSERT_TRUE(op);
+    ASSERT_STREQ("+", op->m_text.c_str());
+    ASSERT_TRUE(op->Right());
+    ASSERT_TRUE(op->Left());
+    ASSERT_STREQ("2", op->Left()->m_text.c_str());
+    ASSERT_STREQ("3", op->Right()->m_text.c_str());
 }
 
 TEST_F(ParserTest, CodeSimple) {
@@ -1059,12 +1128,12 @@ TEST_F(ParserTest, ArgsArray1) {
 
 TEST_F(ParserTest, LogicEq) {
     ASSERT_TRUE(Parse("var := 1==2;"));
-    ASSERT_STREQ("var := 1==2;", ast->toString().c_str());
+    ASSERT_STREQ("var := 1 == 2;", ast->toString().c_str());
 }
 
 TEST_F(ParserTest, LogicNe) {
     ASSERT_TRUE(Parse("var := 1!=2;"));
-    ASSERT_STREQ("var := 1!=2;", ast->toString().c_str());
+    ASSERT_STREQ("var := 1 != 2;", ast->toString().c_str());
 }
 
 TEST_F(ParserTest, InstanceName) {
@@ -1123,12 +1192,12 @@ TEST_F(ParserTest, FunctionSimple5) {
 
 TEST_F(ParserTest, FunctionTrans0) {
     ASSERT_TRUE(Parse("func(arg1, arg2=123) :&&= $arg1 == $arg2, $11 == $arg1;"));
-    ASSERT_STREQ("func(arg1, arg2=123) :&&= $arg1==$arg2, $11==$arg1", ast->toString().c_str());
+    ASSERT_STREQ("func(arg1, arg2=123) :&&= $arg1 == $arg2, $11 == $arg1", ast->toString().c_str());
 }
 
 TEST_F(ParserTest, FunctionTrans1) {
     ASSERT_TRUE(Parse("human::eq(test=human) :&&= $0==$test;"));
-    ASSERT_STREQ("human::eq(test=human) :&&= $0==$test;", ast->toString().c_str());
+    ASSERT_STREQ("human::eq(test=human) :&&= $0 == $test;", ast->toString().c_str());
 }
 
 TEST_F(ParserTest, FunctionTrans2) {
@@ -1143,12 +1212,12 @@ TEST_F(ParserTest, FunctionTrans3) {
 
 TEST_F(ParserTest, FunctionTrans4) {
     ASSERT_TRUE(Parse("func(arg1, arg2 = 5) :- { [$arg1 < $arg2] -> {%{ return $arg1; %}}; };"));
-    ASSERT_STREQ("func(arg1, arg2=5) :- {[$arg1<$arg2]->{%{ return $arg1; %}};};", ast->toString().c_str());
+    ASSERT_STREQ("func(arg1, arg2=5) :- {[$arg1 < $arg2]->{%{ return $arg1; %}};};", ast->toString().c_str());
 }
 
 TEST_F(ParserTest, FunctionTrans5) {
-    ASSERT_TRUE(Parse("func(arg1, arg2 = 5) :- { [$arg1 < $arg2] -> {%{ return $arg1; %}}, [_] -> {%{ return $arg2; %}}; };"));
-    ASSERT_STREQ("func(arg1, arg2=5) :- {[$arg1<$arg2]->{%{ return $arg1; %}},\n [_]->{%{ return $arg2; %}};};", ast->toString().c_str());
+    ASSERT_TRUE(Parse("func(arg1, arg2 = 5) :- { [$arg1<$arg2] -> {%{ return $arg1; %}}, [_] -> {%{ return $arg2; %}}; };"));
+    ASSERT_STREQ("func(arg1, arg2=5) :- {[$arg1 < $arg2]->{%{ return $arg1; %}},\n [_]->{%{ return $arg2; %}};};", ast->toString().c_str());
 }
 
 TEST_F(ParserTest, FunctionRussian1) {
@@ -1295,22 +1364,22 @@ TEST_F(ParserTest, DISABLED_Ellipsis1) {
 //    ASSERT_STREQ("$name := term2;", ast->toString().c_str());
 //}
 
-TEST_F(ParserTest, DISABLED_Ellipsis2) {
-    ASSERT_TRUE(Parse("@name  :=  term2(... arg);"));
-    ASSERT_EQ(TermID::CREATE, ast->getTermID()) << newlang::toString(ast->getTermID());
-    ASSERT_STREQ("@name := term2(... arg);", ast->toString().c_str());
+TEST_F(ParserTest, Ellipsis2) {
+    ASSERT_TRUE(Parse("@name  :=  term2(   ...   arg);"));
+    ASSERT_EQ(TermID::CREATE_OR_ASSIGN, ast->getTermID()) << newlang::toString(ast->getTermID());
+    ASSERT_STREQ("@name := term2(...arg);", ast->toString().c_str());
 }
 
 TEST_F(ParserTest, Func1) {
     ASSERT_TRUE(Parse("func_arg(arg1 :Char, arg2) :Char := { $arg1+$arg2; };"));
     ASSERT_EQ(TermID::CREATE_OR_ASSIGN, ast->getTermID()) << newlang::toString(ast->getTermID());
-    ASSERT_STREQ("func_arg(arg1:Char, arg2):Char := {$arg1+$arg2;};", ast->toString().c_str());
+    ASSERT_STREQ("func_arg(arg1:Char, arg2):Char := {$arg1 + $arg2;};", ast->toString().c_str());
 }
 
 TEST_F(ParserTest, Func2) {
     ASSERT_TRUE(Parse("func_arg(arg1:&Char, &arg2) :&Char := { $arg1+$arg2; };"));
     ASSERT_EQ(TermID::CREATE_OR_ASSIGN, ast->getTermID()) << newlang::toString(ast->getTermID());
-    ASSERT_STREQ("func_arg(arg1:&Char, &arg2):&Char := {$arg1+$arg2;};", ast->toString().c_str());
+    ASSERT_STREQ("func_arg(arg1:&Char, &arg2):&Char := {$arg1 + $arg2;};", ast->toString().c_str());
 }
 
 TEST_F(ParserTest, Func3) {
@@ -1556,30 +1625,30 @@ TEST_F(ParserTest, Operators) {
     ASSERT_TRUE(Parse("(){val ++ val() / (val - val());};"));
 }
 
-TEST_F(ParserTest, DISABLED_Repeat0) {
-    ASSERT_TRUE(Parse("[human || $ttttt && 123 != test[0].field ] <<-->> if_1;"));
-    ASSERT_STREQ("[human || $ttttt && 123 != test[0].field]<<-->>{if_1;};", ast->toString().c_str());
+TEST_F(ParserTest, Repeat0) {
+    ASSERT_TRUE(Parse("[human || $ttttt  &&  123    !=    test[0].field ] <<-->> if_1;"));
+    ASSERT_STREQ("[human || $ttttt && 123 != test[0].field]<<-->>if_1;", ast->toString().c_str());
 }
 
 TEST_F(ParserTest, Repeat1) {
     ASSERT_TRUE(Parse("[test == human] <<-->> if_1;"));
-    ASSERT_STREQ("[test==human]<<-->>if_1;", ast->toString().c_str());
+    ASSERT_STREQ("[test == human]<<-->>if_1;", ast->toString().c_str());
 }
 
 TEST_F(ParserTest, Repeat2) {
     ASSERT_TRUE(Parse("[test != human] <<-->> {if_1;};"));
-    ASSERT_STREQ("[test!=human]<<-->>{if_1;};", ast->toString().c_str());
+    ASSERT_STREQ("[test != human]<<-->>{if_1;};", ast->toString().c_str());
 
-    ASSERT_TRUE(Parse("{if_1;} <<-->> [test != human];"));
-    ASSERT_STREQ("{if_1;}<<-->>[test!=human];", ast->toString().c_str());
+    ASSERT_TRUE(Parse("{if_1;} <<-->> [test!=human];"));
+    ASSERT_STREQ("{if_1;}<<-->>[test != human];", ast->toString().c_str());
 }
 
 TEST_F(ParserTest, Repeat3) {
     ASSERT_TRUE(Parse("[test != human] <<-->> {if_1;if_2;then3;};"));
-    ASSERT_STREQ("[test!=human]<<-->>{if_1; if_2; then3;};", ast->toString().c_str());
+    ASSERT_STREQ("[test != human]<<-->>{if_1; if_2; then3;};", ast->toString().c_str());
 
     ASSERT_TRUE(Parse("{if_1;if_2;then3;} <<-->> [test != human];"));
-    ASSERT_STREQ("{if_1; if_2; then3;}<<-->>[test!=human];", ast->toString().c_str());
+    ASSERT_STREQ("{if_1; if_2; then3;}<<-->>[test != human];", ast->toString().c_str());
 }
 
 TEST_F(ParserTest, Repeat4) {
@@ -1616,8 +1685,8 @@ TEST_F(ParserTest, Repeat6) {
 }
 
 TEST_F(ParserTest, Repeat7) {
-    ASSERT_TRUE(Parse("[test[0].@field != $test()!!] <<-->> if_1;"));
-    ASSERT_STREQ("[test[0].@field!=$test()!!]<<-->>if_1;", ast->toString().c_str());
+    ASSERT_TRUE(Parse("[test[0].@field != $test!] <<-->> if_1;"));
+    ASSERT_STREQ("[test[0].@field!=$test!]<<-->>if_1;", ast->toString().c_str());
 }
 
 TEST_F(ParserTest, Range) {
@@ -1638,10 +1707,18 @@ TEST_F(ParserTest, Range2) {
     ASSERT_STREQ("[i()]<<-->>@error(\"Error\");", ast->toString().c_str());
 }
 
-TEST_F(ParserTest, DISABLED_Follow0) {
+TEST_F(ParserTest, RangeCall) {
+    ASSERT_TRUE(Parse("0.1..(1+1)"));
+    ASSERT_TRUE(Parse("0.1..(1*2)"));
+    ASSERT_TRUE(Parse("0.1..term()"));
+    ASSERT_TRUE(Parse("0.1..term()..(1*2+2-term)"));
+    ASSERT_TRUE(Parse("$term..(term()+$term)..(-1*2+2-@term())"));
+}
+
+TEST_F(ParserTest, Follow) {
     //@todo Не получается сделать парсер с простым if, т.к. требуется вторая закрывающая точка с запятой
-    ASSERT_TRUE(Parse("[test == human || ttttt && 123 != test.field ] -> if_1;"));
-    ASSERT_STREQ("[test==human]->{if_1;};", ast->toString().c_str());
+    ASSERT_TRUE(Parse("[test     ==    human    ||    ttttt&&123!=test.field ] -> if_1;"));
+    ASSERT_STREQ("[test == human || ttttt && 123 != test.field]->if_1;", ast->toString().c_str());
 }
 
 TEST_F(ParserTest, Follow0) {
@@ -1667,17 +1744,17 @@ TEST_F(ParserTest, Follow0) {
 TEST_F(ParserTest, Follow1) {
     //@todo Не получается сделать парсер с простым if, т.к. требуется вторая закрывающая точка с запятой
     ASSERT_TRUE(Parse("[test == human] -> if_1;"));
-    ASSERT_STREQ("[test==human]->if_1;", ast->toString().c_str());
+    ASSERT_STREQ("[test == human]->if_1;", ast->toString().c_str());
 }
 
 TEST_F(ParserTest, Follow2) {
     ASSERT_TRUE(Parse("[test != human] -> {if_1;};"));
-    ASSERT_STREQ("[test!=human]->{if_1;}", ast->toString().c_str());
+    ASSERT_STREQ("[test != human]->{if_1;}", ast->toString().c_str());
 }
 
 TEST_F(ParserTest, Follow3) {
-    ASSERT_TRUE(Parse("[test != human] -> {if_1;if_2;then3;};"));
-    ASSERT_STREQ("[test!=human]->{if_1; if_2; then3;}", ast->toString().c_str());
+    ASSERT_TRUE(Parse("[test!=human] -> {if_1;if_2;then3;};"));
+    ASSERT_STREQ("[test != human]->{if_1; if_2; then3;}", ast->toString().c_str());
 }
 
 TEST_F(ParserTest, Follow4) {
@@ -1695,7 +1772,7 @@ TEST_F(ParserTest, Follow6) {
     //    ASSERT_STREQ("(@test1)->{then1;},\n ($test2)->{then2;},\n (@test3+$test3)->{then3;},\n _ ->{else; else();};", ast->toString().c_str());
 }
 
-TEST_F(ParserTest, DISABLED_Follow7) {
+TEST_F(ParserTest, Follow7) {
     ASSERT_TRUE(Parse("[test.field[0] > iter!!] -> if_1;"));
     //    ASSERT_STREQ("(test.field[0].field2>iter!!)->{if_1;};", ast->toString().c_str());
 }

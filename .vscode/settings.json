@@ -1,4 +1,13 @@
 {
+  "terminal.integrated.shell.windows": "C:\\msys64\\usr\\bin\\bash.exe",
+  "terminal.integrated.shellArgs.windows": ["--login", "-i"],
+  "terminal.integrated.env.windows":
+  {
+      "MSYSTEM": "MINGW64",
+      "CHERE_INVOKING":"1",
+      "PATH" : "/mingw64/bin:/usr/local/bin:/usr/bin:/bin:/c/Windows/System32:/c/Windows:/c/Windows/System32/Wbem:/c/Windows/System32/WindowsPowerShell/v1.0/"
+  },
+
   /*********
  * CMake *
  *********/

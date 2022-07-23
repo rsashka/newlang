@@ -1,3 +1,11 @@
+[  PASSED  ] 212 tests.
+[  FAILED  ] 3 tests, listed below:
+[  FAILED  ] Eval.TypesNative
+[  FAILED  ] Eval.Fileio
+[  FAILED  ] ExecStr.Funcs
+
+MCJIT::runFunction does not support full-featured argument passing!!!!
+
 # Проект *NewLang*
 *NewLang* - это язык программирования высокого уровня в котором можно сочетать стандартные алгоритмические конструкции 
 с декларативным программированием и тензорными вычислениями для задач машинного обучения.
@@ -52,7 +60,7 @@
     #!./nlc --eval 
     # Определение функции hello
     hello(str) := { 
-      printf := @import('printf(format:Format, ...):Int');  # Импорт стандартной C функции
+      printf := @import('printf(format:FmtChar, ...):Int');  # Импорт стандартной C функции
       printf('%s\n', $str);  # Вызов C функции с проверкой типов аргументов по строке формата
     };
     hello('Привет, мир!'); # Вызвать функцию
@@ -138,12 +146,12 @@
 [libtorch-cxx11-abi-shared-with-deps-1.10.2+cpu.zip](https://download.pytorch.org/libtorch/cpu/libtorch-cxx11-abi-shared-with-deps-1.10.2%2Bcpu.zip))
 - Активировать и скачать исходники субмодулей (`git submodule init && git submodule update`)
 - В каталоге *contrib* запустить файл `build.sh` для сборки библиотеки libffi
-- В каталоге *core* запустить файл `compile_syntax.sh` для генерации файлов парсера и лексического анализатора. Также может потребоваться установка утилит *flex* и *bison*. Если что, у меня установлены flex 2.6.4 и bison (GNU Bison) 3.7.4
+- В каталоге *src* запустить файл `compile_syntax.sh` для генерации файлов парсера и лексического анализатора. Также может потребоваться установка утилит *flex* и *bison*. Если что, у меня установлены flex 2.6.4 и bison (GNU Bison) 3.7.4
 
 
 ### Собрать
-- Юнит-тесты (newlang_test): в каталоге *core* выполнить команду **`make CONF=UnitTest`** *
-- Интерпретатор (nlc): в каталоге *core* выполнить команду **`make CONF=Debug`** *
+- Юнит-тесты (newlang_test): в каталоге *src* выполнить команду **`make CONF=UnitTest`** *
+- Интерпретатор (nlc): в каталоге *src* выполнить команду **`make CONF=Debug`** *
 ---
 *) - Сборка проекта выполняется обычной утилитой make, но сборочные файлы генерируются автоматически в давно устаревшей версии NetBeans 8.2, т.к. это единственная универсальная среда разработки с поддержкой Makefile "из коробки", тогда как в текущей версии Apache NetBeans полноценная поддержка разработки на С/С++ вообще отсутствует. Начал постепеный переход на использование редактора VSCodium (аналога VSCode, в котором вычищена телеметрия от Microsoft) и генерацию скиптов сборки с помощью сmake, но этот процесс пока не завершен. 
 

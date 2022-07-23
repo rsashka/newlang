@@ -51,12 +51,12 @@ OBJECTFILES= \
 	${OBJECTDIR}/test/alg_test.o \
 	${OBJECTDIR}/test/compiler_test.o \
 	${OBJECTDIR}/test/eval_test.o \
+	${OBJECTDIR}/test/example_test.o \
 	${OBJECTDIR}/test/fraction_test.o \
 	${OBJECTDIR}/test/lexer_test.o \
 	${OBJECTDIR}/test/nlc_test.o \
 	${OBJECTDIR}/test/object_test.o \
 	${OBJECTDIR}/test/parser_test.o \
-	${OBJECTDIR}/test/speed_test.o \
 	${OBJECTDIR}/variable.o \
 	${OBJECTDIR}/version.o
 
@@ -175,6 +175,11 @@ ${OBJECTDIR}/test/eval_test.o: test/eval_test.cpp
 	${RM} "$@.d"
 	$(COMPILE.cc) -O3 -Werror -I.. -std=c++14 -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/test/eval_test.o test/eval_test.cpp
 
+${OBJECTDIR}/test/example_test.o: test/example_test.cpp
+	${MKDIR} -p ${OBJECTDIR}/test
+	${RM} "$@.d"
+	$(COMPILE.cc) -O3 -Werror -I.. -std=c++14 -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/test/example_test.o test/example_test.cpp
+
 ${OBJECTDIR}/test/fraction_test.o: test/fraction_test.cpp
 	${MKDIR} -p ${OBJECTDIR}/test
 	${RM} "$@.d"
@@ -199,11 +204,6 @@ ${OBJECTDIR}/test/parser_test.o: test/parser_test.cpp
 	${MKDIR} -p ${OBJECTDIR}/test
 	${RM} "$@.d"
 	$(COMPILE.cc) -O3 -Werror -I.. -std=c++14 -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/test/parser_test.o test/parser_test.cpp
-
-${OBJECTDIR}/test/speed_test.o: test/speed_test.cpp
-	${MKDIR} -p ${OBJECTDIR}/test
-	${RM} "$@.d"
-	$(COMPILE.cc) -O3 -Werror -I.. -std=c++14 -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/test/speed_test.o test/speed_test.cpp
 
 ${OBJECTDIR}/variable.o: variable.cpp
 	${MKDIR} -p ${OBJECTDIR}

@@ -584,17 +584,20 @@ void ParserException(const char *msg, std::string &buffer, int row, int col);
         if (from == to || from == ObjType::None || to == ObjType::None) {
             // Преобразовывать ненужно или указан тип по по умолчанию
             return true;
-        } else if (isSimpleType(from) && isSimpleType(to)) {
-            // Для простых типов приведение типов почти как в Torch, только с учетом размера данных
-            // Запрещено: Big size -> Small Size, т.е.  Byte_tensor *= Int_tensor.
-            // Разрешено: Bool -> Byte, Char -> Short -> Int -> Long -> Float, Double -> ComplexFloat, ComplexDouble
-            //   т.е. Int_tensor += Bool_tensor или ComplexFloat_tensor *= Short_tensor.
+        } else if (isSimpleType(from)) {
+            if (isSimpleType(to)) {
+                // Для простых типов приведение типов почти как в Torch, только с учетом размера данных
+                // Запрещено: Big size -> Small Size, т.е.  Byte_tensor *= Int_tensor.
+                // Разрешено: Bool -> Byte, Char -> Short -> Int -> Long -> Float, Double -> ComplexFloat, ComplexDouble
+                //   т.е. Int_tensor += Bool_tensor или ComplexFloat_tensor *= Short_tensor.
 
-            //        return at::canCast(toTorchType(from), toTorchType(to))
-            //                && (from <= to || from == ObjType::Bool || from <= ObjType::Char || (isFloatingType(from) &&
-            //                isFloatingType(to)));
-            return (from <= to || (isFloatingType(from) && isFloatingType(to)));
-
+                //        return at::canCast(toTorchType(from), toTorchType(to))
+                //                && (from <= to || from == ObjType::Bool || from <= ObjType::Char || (isFloatingType(from) &&
+                //                isFloatingType(to)));
+                return (from <= to || (isFloatingType(from) && isFloatingType(to)));
+            } else if (to == ObjType::Fraction) {
+                return true;
+            }
         } else if (isString(from) && isString(to)) {// && isObjectType(to)) {
             // Строковые типы конвертируются только В объект, т.к. нативные типы не изменяются
             return true;

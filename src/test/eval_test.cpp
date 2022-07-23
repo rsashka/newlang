@@ -1003,7 +1003,7 @@ TEST(Eval, Iterator) {
     ASSERT_STREQ("", dict->at(3).first.c_str());
     ASSERT_STREQ("555", dict->at(4).first.c_str());
 
-    ObjPtr dict1 = ctx.ExecStr("dict?!");
+    ObjPtr dict1 = ctx.ExecStr("dict??");
     ASSERT_TRUE(dict1);
     ASSERT_EQ(5, dict1->size());
     ASSERT_EQ(1, dict1->at(0).second->GetValueAsInteger());
@@ -1057,24 +1057,24 @@ TEST(Eval, Iterator) {
 
 
     ASSERT_TRUE(*(iter->m_iterator) == iter->m_iterator->end());
-    ctx.ExecStr("iter??");
-    ASSERT_TRUE(*(iter->m_iterator) == iter->m_iterator->begin());
+    ctx.ExecStr("iter!!");
+    ASSERT_TRUE(*(iter->m_iterator) != iter->m_iterator->end());
 
-    dict1 = ctx.ExecStr("iter!?(-3)");
+    dict1 = ctx.ExecStr("iter??(-3)");
     ASSERT_TRUE(dict1);
     ASSERT_EQ(3, dict1->size());
     ASSERT_EQ(1, dict1->at(0).second->GetValueAsInteger());
     ASSERT_EQ(2, dict1->at(1).second->GetValueAsInteger());
     ASSERT_EQ(3, dict1->at(2).second->GetValueAsInteger());
 
-    ObjPtr dict2 = ctx.ExecStr("iter!?(-3)");
+    ObjPtr dict2 = ctx.ExecStr("iter??(-3)");
     ASSERT_TRUE(dict2);
     ASSERT_EQ(3, dict2->size());
     ASSERT_EQ(4, dict2->at(0).second->GetValueAsInteger());
     ASSERT_EQ(5, dict2->at(1).second->GetValueAsInteger());
     ASSERT_EQ(ObjType::IteratorEnd, dict2->at(2).second->getType());
 
-    ObjPtr dict3 = ctx.ExecStr("iter!?(-3)");
+    ObjPtr dict3 = ctx.ExecStr("iter??(-3)");
     ASSERT_TRUE(dict3);
     ASSERT_EQ(3, dict1->size());
     ASSERT_EQ(ObjType::IteratorEnd, dict3->at(0).second->getType());
@@ -1084,55 +1084,137 @@ TEST(Eval, Iterator) {
 
 
     ASSERT_TRUE(*(iter->m_iterator) == iter->m_iterator->end());
-    ctx.ExecStr("iter??");
-    ASSERT_TRUE(*(iter->m_iterator) == iter->m_iterator->begin());
+    ctx.ExecStr("iter!!");
+    ASSERT_TRUE(*(iter->m_iterator) != iter->m_iterator->end());
 
-    dict1 = ctx.ExecStr("iter!?(3)");
+    dict1 = ctx.ExecStr("iter??(3)");
     ASSERT_TRUE(dict1);
     ASSERT_EQ(3, dict1->size());
     ASSERT_EQ(1, dict1->at(0).second->GetValueAsInteger());
     ASSERT_EQ(2, dict1->at(1).second->GetValueAsInteger());
     ASSERT_EQ(3, dict1->at(2).second->GetValueAsInteger());
 
-    dict2 = ctx.ExecStr("iter!?(3)");
+    dict2 = ctx.ExecStr("iter??(3)");
     ASSERT_TRUE(dict2);
     ASSERT_EQ(2, dict2->size());
     ASSERT_EQ(4, dict2->at(0).second->GetValueAsInteger());
     ASSERT_EQ(5, dict2->at(1).second->GetValueAsInteger());
 
-    dict3 = ctx.ExecStr("iter!?(3)");
+    dict3 = ctx.ExecStr("iter??(3)");
     ASSERT_TRUE(dict3);
     ASSERT_EQ(0, dict3->size());
 
 
 
     ASSERT_TRUE(*(iter->m_iterator) == iter->m_iterator->end());
-    ctx.ExecStr("iter??");
-    ASSERT_TRUE(*(iter->m_iterator) == iter->m_iterator->begin());
+    ctx.ExecStr("iter!!");
+    ASSERT_TRUE(*(iter->m_iterator) != iter->m_iterator->end());
 
-    ObjPtr flt_res = ctx.ExecStr("dict!?('')");
+    ObjPtr flt_res = ctx.ExecStr("dict??('')");
     ASSERT_TRUE(flt_res);
     ASSERT_EQ(1, flt_res->size());
     ASSERT_EQ(4, flt_res->at(0).second->GetValueAsInteger());
 
 
-    ObjPtr flt1_res = ctx.ExecStr("dict!?('.',100)");
+    ObjPtr flt1_res = ctx.ExecStr("dict??('.',100)");
     ASSERT_TRUE(flt1_res);
     ASSERT_EQ(1, flt1_res->size());
     ASSERT_EQ(1, flt1_res->at(0).second->GetValueAsInteger());
 
 
-    ObjPtr flt2_res = ctx.ExecStr("dict!?('..',100)");
+    ObjPtr flt2_res = ctx.ExecStr("dict??('..',100)");
     ASSERT_TRUE(flt2_res);
     ASSERT_EQ(1, flt2_res->size());
     ASSERT_EQ(2, flt2_res->at(0).second->GetValueAsInteger());
 
-    ObjPtr flt3_res = ctx.ExecStr("dict!?('...',100)");
+    ObjPtr flt3_res = ctx.ExecStr("dict??('...',100)");
     ASSERT_TRUE(flt3_res);
     ASSERT_EQ(2, flt3_res->size());
     ASSERT_EQ(3, flt3_res->at(0).second->GetValueAsInteger());
     ASSERT_EQ(5, flt3_res->at(1).second->GetValueAsInteger());
 
+    
+    
+    ObjPtr range_test = ctx.ExecStr("1\\1..1..-1", nullptr, true);
+    ASSERT_TRUE(range_test);
+    ASSERT_EQ(3, range_test->size());
+    ASSERT_STREQ("1\\1", range_test->at(0).second->GetValueAsString().c_str());
+    ASSERT_STREQ("1", range_test->at(1).second->GetValueAsString().c_str());
+    ASSERT_STREQ("-1", range_test->at(2).second->GetValueAsString().c_str());
+    ASSERT_STREQ("1\\1..1..-1", range_test->GetValueAsString().c_str());
+
+    //    ObjPtr iter_test = ctx.ExecStr("(1,'sss',(,),2,3,)??", nullptr, true);
+    //    ASSERT_TRUE(iter_test);
+    //    ASSERT_STREQ("(1, 'sss', (,), 2, 3,)", iter_test->GetValueAsString().c_str());
+
+    ObjPtr iter_dict = ctx.ExecStr("1..1..(-1)??", nullptr, true);
+    ASSERT_TRUE(iter_dict);
+    ASSERT_STREQ("(,)", iter_dict->GetValueAsString().c_str());
+
+    iter_dict = ctx.ExecStr("2..1..(-1)??", nullptr, true);
+    ASSERT_TRUE(iter_dict);
+    ASSERT_STREQ("(2,)", iter_dict->GetValueAsString().c_str());
+
+    iter_dict = ctx.ExecStr("3..1..(-1)??", nullptr, true);
+    ASSERT_TRUE(iter_dict);
+    ASSERT_STREQ("(3, 2,)", iter_dict->GetValueAsString().c_str());
+
+    iter_dict = ctx.ExecStr("3\\1..1..(-1)??", nullptr, true);
+    ASSERT_TRUE(iter_dict);
+    ASSERT_STREQ("(3\\1, 2\\1,)", iter_dict->GetValueAsString().c_str());
+
+    ObjPtr iter_test = ctx.ExecStr("@iter_test := 3\\1..1..-1?", nullptr, true);
+    ASSERT_TRUE(iter_test);
+    ASSERT_TRUE(iter_test->m_iterator->m_iter_obj->m_iter_range_value);
+    ASSERT_STREQ("3\\1", iter_test->m_iterator->m_iter_obj->m_iter_range_value->GetValueAsString().c_str()) << iter_test->m_iterator->m_iter_obj->m_iter_range_value->GetValueAsString().c_str();
+    ASSERT_EQ(iter_test->getType(), ObjType::Iterator);
+
+    ObjPtr while_test = ctx.ExecStr("[iter_test]<<-->>{--'EXIT'--}", nullptr, true);
+    ASSERT_TRUE(while_test);
+    ASSERT_STREQ("EXIT", while_test->GetValueAsString().c_str()) << while_test->GetValueAsString().c_str();
+
+    iter_test = ctx.ExecStr("@iter_dict := (1,2,3,)?", nullptr, true);
+    ASSERT_TRUE(iter_test);
+//    ASSERT_TRUE(iter_test->m_iterator->m_iter_obj->m_iter_range_value);
+//    ASSERT_STREQ("3\\1", iter_test->m_iterator->m_iter_obj->m_iter_range_value->GetValueAsString().c_str()) << iter_test->m_iterator->m_iter_obj->m_iter_range_value->GetValueAsString().c_str();
+    ASSERT_EQ(iter_test->getType(), ObjType::Iterator);
+
+    while_test = ctx.ExecStr("[iter_dict]<<-->>{--'EXIT'--}", nullptr, true);
+    ASSERT_TRUE(while_test);
+    ASSERT_STREQ("EXIT", while_test->GetValueAsString().c_str()) << while_test->GetValueAsString().c_str();
+
+    iter_test = ctx.ExecStr("iter_test!?", nullptr, true);
+    ASSERT_TRUE(iter_test);
+    ASSERT_STREQ("3\\1", iter_test->GetValueAsString().c_str());
+
+    iter_test = ctx.ExecStr("iter_test!", nullptr, true);
+    ASSERT_TRUE(iter_test);
+    ASSERT_STREQ("3\\1", iter_test->GetValueAsString().c_str());
+
+    iter_test = ctx.ExecStr("iter_test!?", nullptr, true);
+    ASSERT_TRUE(iter_test);
+    ASSERT_STREQ("2\\1", iter_test->GetValueAsString().c_str());
+
+    iter_test = ctx.ExecStr("iter_test?!", nullptr, true);
+    ASSERT_TRUE(iter_test);
+    ASSERT_STREQ("2\\1", iter_test->GetValueAsString().c_str());
+
+    iter_test = ctx.ExecStr("iter_test!", nullptr, true);
+    ASSERT_TRUE(iter_test);
+    ASSERT_STREQ("2\\1", iter_test->GetValueAsString().c_str());
+
+    iter_test = ctx.ExecStr("iter_test!", nullptr, true);
+    ASSERT_TRUE(iter_test);
+    ASSERT_STREQ(":IteratorEnd", iter_test->GetValueAsString().c_str());
+
+    iter_test = ctx.ExecStr("iter_test", nullptr, true);
+    ASSERT_TRUE(iter_test);
+    ASSERT_STREQ(":Iterator", iter_test->GetValueAsString().c_str());
+    
+    while_test = ctx.ExecStr("[iter_test]<<-->>{--'EXIT'--}", nullptr, true);
+    ASSERT_TRUE(while_test);
+    ASSERT_STRNE("EXIT", while_test->GetValueAsString().c_str()) << while_test->GetValueAsString().c_str();
+    
 }
 
 //TEST(Eval, Brother) {

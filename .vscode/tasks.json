@@ -6,7 +6,7 @@
         {
             "label": "Build Debug",
             "type": "shell",
-            "command": "cmake --build /home/rsashka/SOURCE/PUBLIC/NewLang/newlang/build --config Debug --target all --",
+            "command": "cmake --build ${workspaceFolder}/build --config Debug --target all --",
             "args": [],
             "problemMatcher": [],
             "group": {

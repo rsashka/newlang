@@ -14,8 +14,8 @@ namespace newlang {
             ASSERT(value);
         }
 
-        BigNum(const unsigned long var) : BigNum() {
-            BN_set_word(value, var);
+        BigNum(const int64_t var) {
+            set_(var);
         }
 
         BigNum(const std::string str) : BigNum() {
@@ -26,9 +26,27 @@ namespace newlang {
             VERIFY(BN_copy(value, copy.value));
         }
 
-        BigNum& operator=(const BigNum & copy) {
+        inline BigNum& set_(const BigNum & copy) {
             VERIFY(BN_copy(value, copy.value));
             return *this;
+        }
+
+        inline BigNum& set_(const int64_t var) {
+            if (var < 0) {
+                BN_set_word(value, -var);
+                BN_set_negative(value, -1);
+            } else {
+                BN_set_word(value, var);
+            }
+            return *this;
+        }
+
+        BigNum& operator=(const BigNum & var) {
+            return set_(var);
+        }
+
+        BigNum& operator=(const int64_t var) {
+            return set_(var);
         }
 
         virtual ~BigNum() {
@@ -186,21 +204,21 @@ namespace newlang {
         Fraction() : Fraction("0", "1") {
         }
 
-        Fraction(const int64_t value) : Fraction() {
-            if (value < 0) {
-                BN_set_word(m_numerator.value, -value);
-                BN_set_negative(m_numerator.value, -1);
-            } else {
-                BN_set_word(m_numerator.value, value);
-            }
+        Fraction(const int64_t value) {
+            set_(value);
         }
 
-        Fraction(const Fraction &copy) : m_numerator(copy.m_numerator), m_denominator(copy.m_denominator) {
+        Fraction(const Fraction &copy) {
+            set_(copy);
         }
 
         Fraction(const std::string numerator, const std::string denominator) {
-            m_numerator.SetFromString(numerator);
-            m_denominator.SetFromString(denominator);
+            set_(numerator, denominator);
+        }
+
+        inline std::shared_ptr<Fraction> clone() const {
+            std::shared_ptr<Fraction> result = std::make_shared<Fraction>(*this);
+            return result;
         }
 
         std::string GetAsString() const {
@@ -254,6 +272,29 @@ namespace newlang {
             ASSERT(rem.isZero());
         }
 
+        Fraction &set_(const int64_t value) {
+            if (value < 0) {
+                BN_set_word(m_numerator.value, -value);
+                BN_set_negative(m_numerator.value, -1);
+            } else {
+                BN_set_word(m_numerator.value, value);
+            }
+            BN_set_word(m_denominator.value, 1);
+            return *this;
+        }
+
+        Fraction &set_(const Fraction &copy) {
+            m_numerator.set_(copy.m_numerator);
+            m_denominator.set_(copy.m_denominator);
+            return *this;
+        }
+
+        Fraction &set_(const std::string numerator, const std::string denominator) {
+            m_numerator.SetFromString(numerator);
+            m_denominator.SetFromString(denominator);
+            return *this;
+        }
+
         Fraction& operator*=(const Fraction &fraction) {
             m_numerator.mul(fraction.m_numerator);
             m_denominator.mul(fraction.m_denominator);
@@ -265,6 +306,7 @@ namespace newlang {
             m_numerator.mul(fraction.m_denominator);
             m_denominator.mul(fraction.m_numerator);
             reduce();
+
             return *this;
         }
 
@@ -279,6 +321,7 @@ namespace newlang {
             m_numerator.sub(sub_num);
 
             reduce();
+
             return *this;
         }
 
@@ -292,52 +335,73 @@ namespace newlang {
             m_numerator.add(add_num);
 
             reduce();
+
             return *this;
         }
 
         Fraction& operator%=(const Fraction &fraction) {
             LOG_RUNTIME("Not implemented!");
+
             return *this;
         }
 
         Fraction &operator^=(const Fraction &) {
             LOG_RUNTIME("Operator '^=' not implementd!");
+
             return *this;
         }
 
         Fraction & operator|=(const Fraction &) {
             LOG_RUNTIME("Operator '|=' not implementd!");
+
             return *this;
         }
 
         Fraction &op_lshift_set(const Fraction &) {
             LOG_RUNTIME("Operator '<<=' not implementd!");
+
             return *this;
         }
 
         Fraction & op_rshift_set(const Fraction &) {
             LOG_RUNTIME("Operator '>>=' not implementd!");
+
             return *this;
         }
 
         const Fraction & op_rrshift_set(const Fraction &) {
             LOG_RUNTIME("Operator '>>>=' not implementd!");
+
             return *this;
         }
 
         Fraction& op_pow_(const Fraction &fraction) {
             LOG_RUNTIME("Not implemented!");
+
             return *this;
         }
 
         bool op_equal(const Fraction &fraction) const {
-            LOG_RUNTIME("Not implemented!");
-            return false;
+            return BN_cmp(m_numerator.value, fraction.m_numerator.value) == 0 &&
+                    BN_cmp(m_denominator.value, fraction.m_denominator.value) == 0;
         }
 
         int op_compare(const Fraction &fraction) const {
-            LOG_RUNTIME("Not implemented!");
-            return false;
+            if (BN_cmp(m_denominator.value, fraction.m_denominator.value) == 0) {
+                return BN_cmp(m_numerator.value, fraction.m_numerator.value);
+            }
+
+            Fraction first(*this);
+            Fraction second(fraction);
+
+            Fraction mul;
+            mul.m_numerator.set_(m_denominator);
+            second *= mul;
+            mul.m_numerator.set_(fraction.m_denominator);
+            first *= mul;
+
+            ASSERT(BN_cmp(first.m_denominator.value, second.m_denominator.value) == 0);
+            return BN_cmp(first.m_numerator.value, second.m_numerator.value);
         }
 
         Fraction &op_div_ceil_(Fraction &fraction) {

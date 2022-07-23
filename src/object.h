@@ -85,21 +85,67 @@ namespace newlang {
      * Требуется разделять конейнеры с данными и итераторы по данным.
      * В С++ контейнеры предоставялют итераторы непосредственно из самого контейнера.
      * Это удобно для использования в рукописном коде, но сложно контроллировать в генерируемом исходнике, 
-     * т.к. требуется использовать и итертор и сам контейнер с данными (для сравнения с end()).
+     * т.к. требуется использовать и итертор и сам контейнер с данными (для сравнения текущего элемента с end()).
      * 
-     * Логика работы с итераторами следующая.
      * Итератор - отдельный объект, которому для создания требуется контейнер с данными.
-     * Итератор два интерфейса перебора данных:
-     * 1. - первый интерфейс итератора как в С++
+     * Итератор реализует два интерфейса перебора данных:
+     * 1. - первый интерфейс итератора как в С++ 
      * 2. - второй интерфейс для использования в генерируемом коде  с логикой NewLang
      * 
-     * Разделение контейнера и итератора на два объекта позволит выполнять проверку на использование 
+     * template Iterator - Обертка над классическим С++ итератором с добавлением возможности отбора
+     * элементов по имени поля или с помощь функции обратного вызова для пользовательской фильтрации.
+     * 
+     * Программынй интерфейс итераторов для NewLang следующий:
+     * 
+     * ObjPtr IteratorMake(const std::string filter) - создать итератор с возможностью фильтрации по имени поля (данные на начало)
+     * ObjPtr IteratorMake(Obj * args) - создать итератор с фильтрации с помощью пользовательской функции (данные на начало)
+     * ObjPtr IteratorReset() - Сбросить итератор на начало данных (возвращает сам итератор)
+     * ObjPtr IteratorData() - прочитать текущий элемент без смещения указателя. Если данных нет генерируется исключение "конец итератора"
+     * ObjPtr IteratorNext(int64_t count)- прочитать заданное кол-во элементов переместив указатель и вернуть словарь с ними. Если данных 
+     * нет возвращается пустой словарь, а исключение "конец итератора" не генерируется
+     * 
+     * Реализаиця итераторов NewLang с помощью данного интерфейса:
+     *
+     * Создание итератора
+     * ?, ?("Фильтр"), ?(func), ?(func, args...)    - IteratorMake
+     * 
+     * Перебор элементов итератора (IteratorData для ! без аргументов и IteratorNext в остальном случае)
+     * !, !(0), !(3), !(-3)
+     * 
+     * dict! и dict!(0) <НЕ> эквивалентны, т.к. по разному обработывают конец данных
+     * dict! -> 1,  dict! -> 2, dict! -> 3, dict! -> 4, dict! -> 5, dict! -> исключение "конец итератора"
+     * dict!(0) -> 1,  dict!(0) -> 2, ... dict!(0) -> 5, dict!(0) -> :IteratorEnd (может :Empty  - пустое значение ?? )
+     * dict!(1) -> (1,),  dict!(1) -> (2,), ... dict!(1) -> (5,), dict!(1) -> (,)
+     * 
+     * Различия отрицательного размера возвращаемого словаря для итератора 
+     * (Для отрцетельного размера всегда зозвращается словарь указанного размера)
+     * dict!(-1) -> (1,),  ...  dict!(-1) -> (5,),  dict!(-1) -> (:IteratorEnd,),  
+     * dict!(1) -> (1,),  ...  dict!(1) -> (5,),  dict!(1) -> (,),  
+     * dict!(-3) -> (1, 2, 3,),  dict!(-3) -> (4, 5, :IteratorEnd,)
+     * dict!(3) -> (1, 2, 3,), dict!(3) -> (4, 5,)
+     * 
+     * Операторы ?! и !? эквивалентны и возвращают текущие данные без перемещения указателя итератора (IteratorData) и не принимают аргументов.
+     * Остальные итераторы можно вызвать либо без скобок, либо с аргментами в скобрках. Вызов без аргументов зарпрешщен 
+     * (чтобы не пересекаться с логикой копирования объектов и не делать для итераторов аругменты по умолчанию)
+     * 
+     * Оператор ?? создает итератор и сразу его выполняет, возвращая все значения 
+     * в виде элементов словаря, т.е. аналог последовательности ?(LINQ); !(:Long.__max__);
+     * 
+     * Оператор !! без аргументов - сбрасывает итератор в начальное состояние (IteratorReset),
+     * Обператор !! с аргументами выполняется как ! с аругментами, но с начла коллекции.
+     * 
+     * [ ] - оператор приведения данных в логический тип. Испольуется в алгоритмических конструкциях (проверка условий и циклы)
+     * Правила преобразования в логический тип:
+     * Словарь или класс - нет элементов - false, есть элементы - true
+     * Число - ноль или нулевой тензо - false, иначе true
+     * Строка - пустая строка false, иначе true
+     * Итератор - конец данных false, иначе true
+     * :IteratorEnd (:Empty ?) - всегда false
+     * None - true (Это объекст со значением пусто)
+     * Empty - false (Не инициализированный объект)
      * 
      */
-
-    /*
-     * Итератор 
-     */
+    
     template <typename T>
     class Iterator : public std::iterator<std::input_iterator_tag, T> {
     public:
@@ -209,7 +255,18 @@ namespace newlang {
             return copy;
         }
 
+        inline const IterPairType &data() {
+            if (m_found == m_iter_obj->end()) {
+                return m_interator_end;
+            }
+            return *m_found;
+        }
+
         inline const IterPairType &operator*() {
+            return data();
+        }
+
+        inline const IterPairType &data() const {
             if (m_found == m_iter_obj->end()) {
                 return m_interator_end;
             }
@@ -217,10 +274,7 @@ namespace newlang {
         }
 
         inline const IterPairType &operator*() const {
-            if (m_found == m_iter_obj->end()) {
-                return m_interator_end;
-            }
-            return *m_found;
+            return data();
         }
 
         ObjPtr read_and_next(int64_t count);
@@ -347,14 +401,15 @@ namespace newlang {
             return shared();
         }
 
-        ObjPtr MakeIterator(const std::string, bool check_create = true);
-        ObjPtr MakeIterator(Obj *args);
-        ObjPtr IteratorReset();
+        virtual ObjPtr IteratorMake(const std::string, bool check_create = true);
+        virtual ObjPtr IteratorMake(Obj *args);
+        virtual ObjPtr IteratorData();
+        virtual ObjPtr IteratorReset();
+        virtual ObjPtr IteratorNext(int64_t count);
 
         inline ObjPtr IteratorNext(ObjPtr count) {
             return IteratorNext(count->GetValueAsInteger());
         }
-        ObjPtr IteratorNext(int64_t count);
 
 
 
@@ -674,11 +729,17 @@ namespace newlang {
         }
 
         Obj::iterator begin() {
-            return Variable::begin();
+            if (is_indexing() || m_var_type_current == ObjType::Range) {
+                return Variable::begin();
+            }
+            LOG_RUNTIME("Interator for object type %s not implemented!", newlang::toString(m_var_type_current));
         }
 
         Obj::iterator end() {
-            return Variable::end();
+            if (is_indexing() || m_var_type_current == ObjType::Range) {
+                return Variable::end();
+            }
+            LOG_RUNTIME("Interator for object type %s not implemented!", newlang::toString(m_var_type_current));
         }
 
         Obj::const_iterator begin() const {
@@ -736,7 +797,7 @@ namespace newlang {
             m_class_parents.clear();
             m_var_is_init = false;
             m_tensor.reset();
-            m_fraction.reset();
+            m_fraction.set_(0);
             m_var = at::monostate();
             //        m_value.reset(); //????????????????
             //        m_items.clear();
@@ -1074,7 +1135,9 @@ namespace newlang {
 
 
         inline ObjPtr operator*=(ObjPtr obj) {
-            ASSERT(obj);
+            if (!obj) {
+                ASSERT(obj);
+            }
             return operator*=(*obj);
         }
 
@@ -1219,6 +1282,18 @@ namespace newlang {
             return utf8_decode(GetValueAsString());
         }
 
+        std::shared_ptr<Fraction> GetValueAsFraction() const {
+            TEST_INIT_();
+            if (m_var_type_current == ObjType::Fraction) {
+                return m_fraction.clone();
+            } else if (is_integral()) {
+                return std::make_shared<Fraction>(GetValueAsInteger());
+            } else if (is_floating()) {
+                ASSERT("Not implemented!");
+            }
+            LOG_RUNTIME("Value %s incompatible to Fraction or convert not implemented!", toString().c_str());
+        }
+
         int64_t GetValueAsInteger() const {
             TEST_INIT_();
 
@@ -1263,11 +1338,10 @@ namespace newlang {
                 case ObjType::Float:
                 case ObjType::Double:
                 case ObjType::Number:
-                    return static_cast<int64_t>(GetValueAsNumber());
+                    return static_cast<int64_t> (GetValueAsNumber());
 
                 case ObjType::Fraction:
-                    ASSERT(m_fraction);
-                    return m_fraction->GetAsInteger();
+                    return m_fraction.GetAsInteger();
 
                 case ObjType::StrWide:
                 case ObjType::FmtWide:
@@ -1279,14 +1353,18 @@ namespace newlang {
                     if (m_value.size() == 1) {
                         return m_value[0];
                     }
+
+                case ObjType::Iterator:
+                    ASSERT(m_iterator);
+                    return m_iterator->data().second->GetValueAsInteger();
+
                 default:
                     if (m_var_type_current == ObjType::Pointer || m_var_type_fixed == ObjType::Pointer) {
                         ASSERT(at::holds_alternative<void *>(m_var));
                         return reinterpret_cast<int64_t> (at::get<void *>(m_var));
                     }
-                    LOG_RUNTIME("Data type incompatible %s", toString().c_str());
             }
-            return 0;
+            LOG_RUNTIME("Data type incompatible %s", toString().c_str());
         }
 
         inline double GetValueAsNumber() const {
@@ -1316,8 +1394,11 @@ namespace newlang {
                     LOG_RUNTIME("Can`t convert tensor to scalar!");
 
                 case ObjType::Fraction:
-                    ASSERT(m_fraction);
-                    return m_fraction->GetAsNumber();
+                    return m_fraction.GetAsNumber();
+
+                case ObjType::Iterator:
+                    ASSERT(m_iterator);
+                    return m_iterator->data().second->GetValueAsNumber();
 
                 default:
                     if (is_simple() || is_string_type()) {
@@ -1347,8 +1428,7 @@ namespace newlang {
                         return false;
 
                     case ObjType::Fraction:
-                        ASSERT(m_fraction);
-                        return m_fraction->GetAsInteger();
+                        return m_fraction.GetAsInteger();
 
                     case ObjType::Dictionary:
                     case ObjType::Class:
@@ -1358,6 +1438,20 @@ namespace newlang {
                         for (auto &elem : m_class_parents) {
                             if (elem->GetValueAsBoolean()) {
                                 return true;
+                            }
+                        }
+                        return false;
+
+                    case ObjType::Iterator:
+                        ASSERT(m_iterator);
+                        ASSERT(m_iterator->m_iter_obj);
+                        if (m_iterator->m_iter_obj->getType() == ObjType::Range) {
+                            if (m_iterator->m_iter_obj->m_iter_range_value && m_iterator->m_iter_obj->m_iter_range_value->m_var_type_current != ObjType::IteratorEnd) {
+                                return true;
+                            }
+                        } else {
+                            if ((*m_iterator) != m_iterator->end()) {
+                                return m_iterator->data().second->GetValueAsBoolean();
                             }
                         }
                         return false;
@@ -1383,6 +1477,7 @@ namespace newlang {
                 }
             } else if (type == LLVMPointerType(LLVMInt32Type(), 0)) {
                 if (getType() == ObjType::StrWide || getType() == ObjType::FmtWide) {
+
                     return LLVMCreateGenericValueOfPointer((void *) m_string.c_str());
                 }
             }
@@ -1422,8 +1517,8 @@ namespace newlang {
             LOG_RUNTIME("Create to type '%s' form LLVM type not implemented!", newlang::toString(type));
         }
 
-
         static ObjPtr CreateType(ObjType type, ObjType fixed = ObjType::None, bool is_init = false) {
+
             return std::make_shared<Obj>(type, nullptr, nullptr, fixed, is_init);
         }
 
@@ -1443,20 +1538,21 @@ namespace newlang {
 
             // Если символ не найден - то вся строка является числом 
             if (pos == std::string::npos) {
-                frac->m_fraction = std::make_shared<Fraction>(str, "1");
+                frac->m_fraction.set_(0);
             } else {
                 // Числитель - левая часть
                 // Знаменатель - правая часть
-                frac->m_fraction = std::make_shared<Fraction>(str.substr(0, pos), str.substr(pos + 1, str.length()));
+                frac->m_fraction.set_(str.substr(0, pos), str.substr(pos + 1, str.length()));
                 // Знаменатель не должен быть равен нулю
-                if (frac->m_fraction->m_denominator.isZero()) {
+                if (frac->m_fraction.m_denominator.isZero()) {
                     LOG_RUNTIME("Denominator must be different from zero!");
                 }
             }
 
             frac->m_var_is_init = true;
-            if (str.compare(frac->m_fraction->GetAsString().c_str()) != 0) {
-                LOG_RUNTIME("Fraction value '%s' does not match source string  '%s'!", frac->m_fraction->GetAsString().c_str(), str.c_str());
+            if (str.compare(frac->m_fraction.GetAsString().c_str()) != 0) {
+
+                LOG_RUNTIME("Fraction value '%s' does not match source string  '%s'!", frac->m_fraction.GetAsString().c_str(), str.c_str());
             }
 
             return frac;
@@ -1479,6 +1575,7 @@ namespace newlang {
         static ObjPtr CreateBaseType(ObjType type);
 
         static ObjPtr CreateNone() {
+
             return CreateType(ObjType::None, ObjType::None, true);
         }
 
@@ -1489,6 +1586,7 @@ namespace newlang {
             obj->push_back(CreateValue(stop, ObjType::None), "stop");
             obj->push_back(CreateValue(step, ObjType::None), "step");
             obj->m_var_is_init = true;
+
             return obj;
         }
 
@@ -1503,6 +1601,7 @@ namespace newlang {
                 obj->push_back(CreateValue(-1, ObjType::None), "step");
             }
             obj->m_var_is_init = true;
+
             return obj;
         }
 
@@ -1532,6 +1631,7 @@ namespace newlang {
                 case at::ScalarType::ComplexHalf:
                 case at::ScalarType::ComplexFloat:
                     return ObjType::ComplexFloat;
+
                 case at::ScalarType::ComplexDouble:
                     return ObjType::ComplexDouble;
             }
@@ -1541,6 +1641,7 @@ namespace newlang {
         static ObjPtr CreateBool(bool value) {
             ObjPtr result = CreateType(ObjType::Bool, ObjType::None, true);
             result->SetValue_(value);
+
             return result;
         }
 
@@ -1558,6 +1659,7 @@ namespace newlang {
                     result = Obj::CreateValue(tensor.item<int64_t>(), check_type);
                 }
             } else {
+
                 result = CreateType(check_type);
                 result->m_tensor = tensor;
                 result->m_var_is_init = true;
@@ -1633,27 +1735,28 @@ namespace newlang {
             } else if (is_ellipsis()) {
                 return Index(at::indexing::Ellipsis);
             } else if (is_range()) {
+
                 return Index(toSlice());
             }
             LOG_RUNTIME("Fail convert object '%s' to Index!", toString().c_str());
         }
 
         inline operator bool () const {
+
             return GetValueAsBoolean();
         }
-
 
         std::vector<int64_t> toIntVector(bool raise = true) const {
             std::vector<int64_t> result;
             for (int i = 0; i < size(); i++) {
                 if (raise && !at(i).second->is_integer()) {
+
                     LOG_RUNTIME("Item does not contain an integer value! '%s'", at(i).second->GetValueAsString().c_str());
                 }
                 result.push_back(at(i).second->GetValueAsInteger());
             }
             return result;
         }
-
 
         template <typename T>
         typename std::enable_if<std::is_integral<T>::value, ObjPtr>::type
@@ -1668,6 +1771,7 @@ namespace newlang {
             result->m_var = static_cast<int64_t> (value);
             // result->m_tensor = torch::scalar_tensor(value, toTorchType(result->m_var_type_current));
             result->m_var_is_init = true;
+
             return result;
         }
 
@@ -1684,6 +1788,7 @@ namespace newlang {
             result->m_var = static_cast<double> (value);
             //result->m_tensor = torch::scalar_tensor(value, toTorchType(result->m_var_type_current));
             result->m_var_is_init = true;
+
             return result;
         }
 
@@ -1692,6 +1797,7 @@ namespace newlang {
             result->m_value = str;
             result->m_var_type_fixed = ObjType::String;
             result->m_var_is_init = true;
+
             return result;
         }
 
@@ -1700,6 +1806,7 @@ namespace newlang {
             result->m_string = str;
             result->m_var_type_fixed = ObjType::String;
             result->m_var_is_init = true;
+
             return result;
         }
 
@@ -1707,6 +1814,7 @@ namespace newlang {
             ObjPtr result = std::make_shared<Obj>(ObjType::Bool);
             result->m_var = static_cast<int64_t> (1);
             result->m_var_is_init = true;
+
             return result->MakeConst();
         }
 
@@ -1714,10 +1822,12 @@ namespace newlang {
             ObjPtr result = std::make_shared<Obj>(ObjType::Bool);
             result->m_var = static_cast<int64_t> (0);
             result->m_var_is_init = true;
+
             return result->MakeConst();
         }
 
         inline static ObjPtr CreateDict() {
+
             return Obj::CreateType(ObjType::Dictionary);
         }
 
@@ -1730,13 +1840,22 @@ namespace newlang {
                 result->push_back(elem);
             }
             result->m_var_is_init = true;
+
             return result;
         }
 
+        /*
+         * <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+         * Различие между классом и словарям в том, что элементы словаря могут добавлятся и удаляться динамически,
+         * а у класса состав полей фиуксируется при определении и в последствии они не могут быть добалвены или удалены.
+         * >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+         *          
+         */
         inline static ObjPtr CreateClass(std::string name) {
             ObjPtr result = Obj::CreateType(ObjType::Class);
             result->m_class_name = name;
             result->m_var_is_init = true;
+
             return result;
         }
 
@@ -1750,6 +1869,7 @@ namespace newlang {
                 result->push_back(elem);
             }
             result->m_var_is_init = true;
+
             return result;
         }
 
@@ -1761,6 +1881,7 @@ namespace newlang {
             CloneDataTo(*clone);
             ClonePropTo(*clone);
             if (new_name) {
+
                 clone->m_var_name = new_name;
             }
             return clone;
@@ -1769,6 +1890,7 @@ namespace newlang {
         inline void CloneTo(Obj & clone) {
             if (&clone == this) {
                 // Не клонировать сам в себя
+
                 return;
             }
             CloneDataTo(clone);
@@ -1778,6 +1900,7 @@ namespace newlang {
         inline void CloneTo(ObjPtr & clone) {
             if (clone.get() == this) {
                 // Не клонировать сам в себя
+
                 return;
             }
             clone.reset();
@@ -1792,6 +1915,7 @@ namespace newlang {
         inline ObjPtr toType(ObjType type) const {
             ObjPtr clone = Clone();
             clone->toType_(type);
+
             return clone;
         }
 
@@ -1806,6 +1930,7 @@ namespace newlang {
         void toType_(ObjType type);
 
         virtual ~Obj() {
+
             clear_();
         }
 
@@ -1815,11 +1940,13 @@ namespace newlang {
         inline ObjPtr index_set(const std::vector<Index> & index, const ObjPtr value) const {
             ObjPtr result = Clone();
             result->index_set_(index, value);
+
             return result;
         }
         ObjPtr index_set_(const std::vector<Index> & index, const ObjPtr value);
 
         inline ObjPtr op_set_index(ObjPtr index, ObjPtr value) {
+
             return op_set_index(index->GetValueAsInteger(), value->GetValueAsString());
         }
         ObjPtr op_set_index(int64_t index, std::string value);
@@ -1827,12 +1954,14 @@ namespace newlang {
         template < typename T>
         typename std::enable_if<std::is_same<T, bool>::value, void>::type
         SetValue_(bool value) {
+
             SetValue_(static_cast<int64_t> (value));
         }
 
         template < typename T>
         typename std::enable_if<std::is_integral<T>::value, void>::type
         SetValue_(T value) {
+
             TEST_CONST_();
             ASSERT(m_var_type_current != ObjType::Class);
             clear_();
@@ -1856,6 +1985,7 @@ namespace newlang {
         template < typename T>
         typename std::enable_if<std::is_same<char *, T>::value, void>::type
         SetValue_(T text) {
+
             std::string str(text);
             SetValue_(text);
         }
@@ -1863,6 +1993,7 @@ namespace newlang {
         template < typename T>
         typename std::enable_if<std::is_same<wchar_t *, T>::value, void>::type
         SetValue_(T text) {
+
             std::wstring str(text);
             SetValue_(text);
         }
@@ -1870,6 +2001,7 @@ namespace newlang {
         void SetValue_(std::string text) {
             TEST_CONST_();
             if (m_var_type_current != ObjType::StrChar) {
+
                 testConvertType(ObjType::StrChar);
                 m_var_type_current = ObjType::StrChar;
             }
@@ -1880,6 +2012,7 @@ namespace newlang {
         void SetValue_(std::wstring text) {
             TEST_CONST_();
             if (m_var_type_current != ObjType::StrWide) {
+
                 testConvertType(ObjType::StrWide);
                 m_var_type_current = ObjType::StrWide;
             }
@@ -1889,6 +2022,7 @@ namespace newlang {
 
         inline void testConvertType(ObjType type) {
             if (m_var_type_fixed == ObjType::None || canCast(type, m_var_type_fixed)) {
+
                 return;
             }
             LOG_RUNTIME("Cannot changed type from '%s' to '%s'!", newlang::toString(type), newlang::toString(m_var_type_fixed));
@@ -1922,6 +2056,7 @@ namespace newlang {
                                 (isIntegralType(new_type, true) && isIntegralType(m_var_type_current, true)));
                     }
                 } else {
+
                     ASSERT(m_tensor.defined());
                     m_tensor = m_tensor.toType(toTorchType(new_type));
                 }
@@ -1986,7 +2121,7 @@ namespace newlang {
                                     m_var = value->GetValueAsInteger();
                                 } else if (at::holds_alternative<int8_t *>(m_var)) {
                                     ASSERT(at::get<int8_t *>(m_var));
-                                    *at::get<int8_t *>(m_var) = static_cast<int8_t>(value->GetValueAsInteger());
+                                    *at::get<int8_t *>(m_var) = static_cast<int8_t> (value->GetValueAsInteger());
                                 }
                                 break;
                             case ObjType::Short:
@@ -1994,7 +2129,7 @@ namespace newlang {
                                     m_var = value->GetValueAsInteger();
                                 } else if (at::holds_alternative<int16_t *>(m_var)) {
                                     ASSERT(at::get<int16_t *>(m_var));
-                                    *at::get<int16_t *>(m_var) = static_cast<int16_t>(value->GetValueAsInteger());
+                                    *at::get<int16_t *>(m_var) = static_cast<int16_t> (value->GetValueAsInteger());
                                 }
                                 break;
                             case ObjType::Int:
@@ -2002,7 +2137,7 @@ namespace newlang {
                                     m_var = value->GetValueAsInteger();
                                 } else if (at::holds_alternative<int32_t *>(m_var)) {
                                     ASSERT(at::get<int32_t *>(m_var));
-                                    *at::get<int32_t *>(m_var) = static_cast<int32_t>(value->GetValueAsInteger());
+                                    *at::get<int32_t *>(m_var) = static_cast<int32_t> (value->GetValueAsInteger());
                                 }
                                 break;
                             case ObjType::Long:
@@ -2018,7 +2153,7 @@ namespace newlang {
                                     m_var = value->GetValueAsNumber();
                                 } else if (at::holds_alternative<float *>(m_var)) {
                                     ASSERT(at::get<float *>(m_var));
-                                    *at::get<float *>(m_var) = static_cast<float>(value->GetValueAsNumber());
+                                    *at::get<float *>(m_var) = static_cast<float> (value->GetValueAsNumber());
                                 }
                                 break;
                             case ObjType::Double:
@@ -2075,7 +2210,7 @@ namespace newlang {
                         return;
                 }
 
-            } else if (is_none_type() || isObjectType(m_var_type_current)) {
+            } else if ((is_none_type() || is_dictionary_type()) && (value->is_dictionary_type() || value->getType() == ObjType::Iterator)) {
 
                 std::string old_name = m_var_name;
                 clear_();
@@ -2103,8 +2238,20 @@ namespace newlang {
                 value->ClonePropTo(*this);
                 m_var_name.swap(old_name);
                 m_var_is_init = true;
-
                 return;
+
+            } else if ((is_none_type() && value->getType() == ObjType::Fraction) || ((m_var_type_current == ObjType::Fraction) && value->is_arithmetic_type())) {
+
+                if (is_none_type()) {
+                    m_fraction = *value->GetValueAsFraction();
+                    m_var_is_init = true;
+                } else {
+                    m_fraction.set_(*value->GetValueAsFraction());
+                }
+                m_var = at::monostate();
+                m_var_type_current = ObjType::Fraction;
+                return;
+
             } else if ((is_none_type() || m_var_type_current == ObjType::Function || m_var_type_current == ObjType::EVAL_FUNCTION) && (value->m_var_type_current == ObjType::BLOCK || value->m_var_type_current == ObjType::BLOCK_TRY)) {
                 //@todo Check function type args !!!
 
@@ -2115,9 +2262,9 @@ namespace newlang {
                 //            value->CloneDataTo(*this);
                 //            value->ClonePropTo(*this);
                 //            m_var_name.swap(old_name);
-                //            m_var_is_init = true;
                 //            *const_cast<TermPtr *> (&m_func_proto) = save_proto;
                 m_sequence = value->m_sequence;
+                m_var_is_init = value->m_var_is_init;
                 //            m_var_type_current = save_type;
 
                 return;
@@ -2198,8 +2345,9 @@ namespace newlang {
         std::string m_value; ///< Содержит байтовую строку или байтовый массив с данными для представления в нативном виде (Struct, Unuion, Enum)
         std::wstring m_string; ///< Содержит строку широких символов
         torch::Tensor m_tensor; ///< Содержит только размерные тензоры (скляры хранятся в поле m_pointer и не создают m_tensor.defined())
-        std::shared_ptr<Fraction> m_fraction; ///< Содержит дробь из длинных чисел
-        std::shared_ptr< Iterator<Obj> > m_iterator; ///< Итератор для данных
+        Fraction m_fraction; ///< Содержит дробь из длинных чисел
+        std::shared_ptr<Iterator<Obj>> m_iterator; ///< Итератор для данных
+        mutable ObjPtr m_iter_range_value;
         TermPtr m_sequence; ///< Последовательно распарсенных команд для выполнения
         const TermPtr m_prototype; ///< Описание прототипп функции (или данных)
 

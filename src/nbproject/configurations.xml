@@ -23,12 +23,12 @@
         <itemPath>test/alg_test.cpp</itemPath>
         <itemPath>test/compiler_test.cpp</itemPath>
         <itemPath>test/eval_test.cpp</itemPath>
+        <itemPath>test/example_test.cpp</itemPath>
         <itemPath>test/fraction_test.cpp</itemPath>
         <itemPath>test/lexer_test.cpp</itemPath>
         <itemPath>test/nlc_test.cpp</itemPath>
         <itemPath>test/object_test.cpp</itemPath>
         <itemPath>test/parser_test.cpp</itemPath>
-        <itemPath>test/speed_test.cpp</itemPath>
       </logicalFolder>
       <itemPath>builtin.cpp</itemPath>
       <itemPath>context.cpp</itemPath>
@@ -347,6 +347,11 @@
           <additionalDep>pch.h.gch</additionalDep>
         </ccTool>
       </item>
+      <item path="test/example_test.cpp" ex="false" tool="1" flavor2="9">
+        <ccTool>
+          <additionalDep>pch.h.gch</additionalDep>
+        </ccTool>
+      </item>
       <item path="test/fraction_test.cpp" ex="false" tool="1" flavor2="0">
       </item>
       <item path="test/lexer_test.cpp" ex="false" tool="1" flavor2="9">
@@ -365,11 +370,6 @@
         </ccTool>
       </item>
       <item path="test/parser_test.cpp" ex="false" tool="1" flavor2="9">
-        <ccTool>
-          <additionalDep>pch.h.gch</additionalDep>
-        </ccTool>
-      </item>
-      <item path="test/speed_test.cpp" ex="false" tool="1" flavor2="9">
         <ccTool>
           <additionalDep>pch.h.gch</additionalDep>
         </ccTool>
@@ -629,6 +629,11 @@
           <additionalDep></additionalDep>
         </ccTool>
       </item>
+      <item path="test/example_test.cpp" ex="false" tool="1" flavor2="9">
+        <ccTool>
+          <additionalDep></additionalDep>
+        </ccTool>
+      </item>
       <item path="test/fraction_test.cpp" ex="false" tool="1" flavor2="9">
         <ccTool>
           <additionalDep></additionalDep>
@@ -650,11 +655,6 @@
         </ccTool>
       </item>
       <item path="test/parser_test.cpp" ex="false" tool="1" flavor2="9">
-        <ccTool>
-          <additionalDep></additionalDep>
-        </ccTool>
-      </item>
-      <item path="test/speed_test.cpp" ex="false" tool="1" flavor2="9">
         <ccTool>
           <additionalDep></additionalDep>
         </ccTool>
@@ -821,6 +821,8 @@
       </item>
       <item path="test/eval_test.cpp" ex="false" tool="1" flavor2="0">
       </item>
+      <item path="test/example_test.cpp" ex="false" tool="1" flavor2="0">
+      </item>
       <item path="test/fraction_test.cpp" ex="false" tool="1" flavor2="0">
       </item>
       <item path="test/lexer_test.cpp" ex="false" tool="1" flavor2="0">
@@ -830,8 +832,6 @@
       <item path="test/object_test.cpp" ex="false" tool="1" flavor2="11">
       </item>
       <item path="test/parser_test.cpp" ex="false" tool="1" flavor2="0">
-      </item>
-      <item path="test/speed_test.cpp" ex="false" tool="1" flavor2="0">
       </item>
       <item path="types.h" ex="false" tool="3" flavor2="0">
       </item>
@@ -1096,6 +1096,11 @@
           <additionalDep>pch.h.gch</additionalDep>
         </ccTool>
       </item>
+      <item path="test/example_test.cpp" ex="false" tool="1" flavor2="0">
+        <ccTool>
+          <additionalDep>pch.h.gch</additionalDep>
+        </ccTool>
+      </item>
       <item path="test/fraction_test.cpp" ex="false" tool="1" flavor2="0">
       </item>
       <item path="test/lexer_test.cpp" ex="false" tool="1" flavor2="0">
@@ -1114,11 +1119,6 @@
         </ccTool>
       </item>
       <item path="test/parser_test.cpp" ex="false" tool="1" flavor2="0">
-        <ccTool>
-          <additionalDep>pch.h.gch</additionalDep>
-        </ccTool>
-      </item>
-      <item path="test/speed_test.cpp" ex="false" tool="1" flavor2="0">
         <ccTool>
           <additionalDep>pch.h.gch</additionalDep>
         </ccTool>
@@ -1395,6 +1395,12 @@
           <additionalDep>pch.h.pch</additionalDep>
         </ccTool>
       </item>
+      <item path="test/example_test.cpp" ex="false" tool="1" flavor2="0">
+        <ccTool>
+          <commandLine>-include-pch pch.h.pch</commandLine>
+          <additionalDep>pch.h.pch</additionalDep>
+        </ccTool>
+      </item>
       <item path="test/fraction_test.cpp" ex="false" tool="1" flavor2="0">
         <ccTool>
           <commandLine>-include-pch pch.h.pch</commandLine>
@@ -1420,12 +1426,6 @@
         </ccTool>
       </item>
       <item path="test/parser_test.cpp" ex="false" tool="1" flavor2="0">
-        <ccTool>
-          <commandLine>-include-pch pch.h.pch</commandLine>
-          <additionalDep>pch.h.pch</additionalDep>
-        </ccTool>
-      </item>
-      <item path="test/speed_test.cpp" ex="false" tool="1" flavor2="0">
         <ccTool>
           <commandLine>-include-pch pch.h.pch</commandLine>
           <additionalDep>pch.h.pch</additionalDep>
@@ -1644,6 +1644,8 @@
       </item>
       <item path="test/eval_test.cpp" ex="false" tool="1" flavor2="9">
       </item>
+      <item path="test/example_test.cpp" ex="false" tool="1" flavor2="9">
+      </item>
       <item path="test/fraction_test.cpp" ex="false" tool="1" flavor2="0">
       </item>
       <item path="test/lexer_test.cpp" ex="false" tool="1" flavor2="9">
@@ -1653,8 +1655,6 @@
       <item path="test/object_test.cpp" ex="false" tool="1" flavor2="11">
       </item>
       <item path="test/parser_test.cpp" ex="false" tool="1" flavor2="9">
-      </item>
-      <item path="test/speed_test.cpp" ex="false" tool="1" flavor2="9">
       </item>
       <item path="types.h" ex="false" tool="3" flavor2="0">
       </item>
@@ -1896,6 +1896,8 @@
       </item>
       <item path="test/eval_test.cpp" ex="false" tool="1" flavor2="11">
       </item>
+      <item path="test/example_test.cpp" ex="false" tool="1" flavor2="11">
+      </item>
       <item path="test/fraction_test.cpp" ex="false" tool="1" flavor2="0">
       </item>
       <item path="test/lexer_test.cpp" ex="false" tool="1" flavor2="11">
@@ -1905,8 +1907,6 @@
       <item path="test/object_test.cpp" ex="false" tool="1" flavor2="11">
       </item>
       <item path="test/parser_test.cpp" ex="false" tool="1" flavor2="11">
-      </item>
-      <item path="test/speed_test.cpp" ex="false" tool="1" flavor2="11">
       </item>
       <item path="types.h" ex="false" tool="3" flavor2="0">
       </item>
@@ -2144,6 +2144,8 @@
       </item>
       <item path="test/eval_test.cpp" ex="false" tool="1" flavor2="11">
       </item>
+      <item path="test/example_test.cpp" ex="false" tool="1" flavor2="11">
+      </item>
       <item path="test/fraction_test.cpp" ex="false" tool="1" flavor2="0">
       </item>
       <item path="test/lexer_test.cpp" ex="false" tool="1" flavor2="11">
@@ -2153,8 +2155,6 @@
       <item path="test/object_test.cpp" ex="false" tool="1" flavor2="11">
       </item>
       <item path="test/parser_test.cpp" ex="false" tool="1" flavor2="11">
-      </item>
-      <item path="test/speed_test.cpp" ex="false" tool="1" flavor2="11">
       </item>
       <item path="types.h" ex="false" tool="3" flavor2="0">
       </item>
@@ -2425,6 +2425,11 @@
           <additionalDep>pch.h.gch</additionalDep>
         </ccTool>
       </item>
+      <item path="test/example_test.cpp" ex="false" tool="1" flavor2="9">
+        <ccTool>
+          <additionalDep>pch.h.gch</additionalDep>
+        </ccTool>
+      </item>
       <item path="test/fraction_test.cpp" ex="false" tool="1" flavor2="9">
       </item>
       <item path="test/lexer_test.cpp" ex="false" tool="1" flavor2="9">
@@ -2443,11 +2448,6 @@
         </ccTool>
       </item>
       <item path="test/parser_test.cpp" ex="false" tool="1" flavor2="9">
-        <ccTool>
-          <additionalDep>pch.h.gch</additionalDep>
-        </ccTool>
-      </item>
-      <item path="test/speed_test.cpp" ex="false" tool="1" flavor2="9">
         <ccTool>
           <additionalDep>pch.h.gch</additionalDep>
         </ccTool>
@@ -2726,6 +2726,11 @@
           <additionalDep>pch.h.gch</additionalDep>
         </ccTool>
       </item>
+      <item path="test/example_test.cpp" ex="false" tool="1" flavor2="9">
+        <ccTool>
+          <additionalDep>pch.h.gch</additionalDep>
+        </ccTool>
+      </item>
       <item path="test/fraction_test.cpp" ex="false" tool="1" flavor2="9">
       </item>
       <item path="test/lexer_test.cpp" ex="false" tool="1" flavor2="9">
@@ -2744,11 +2749,6 @@
         </ccTool>
       </item>
       <item path="test/parser_test.cpp" ex="false" tool="1" flavor2="9">
-        <ccTool>
-          <additionalDep>pch.h.gch</additionalDep>
-        </ccTool>
-      </item>
-      <item path="test/speed_test.cpp" ex="false" tool="1" flavor2="9">
         <ccTool>
           <additionalDep>pch.h.gch</additionalDep>
         </ccTool>
