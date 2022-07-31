@@ -71,6 +71,8 @@ namespace newlang {
         typedef PTR Type;
         typedef std::pair<std::string, Type> PairType;
         typedef std::list<PairType> ListType;
+        
+        friend class Context;
 
         template <typename I>
                 typename std::enable_if < std::is_integral<I>::value && !std::is_pointer<I>::value, const PairType &>::type

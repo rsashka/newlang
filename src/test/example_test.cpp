@@ -226,7 +226,7 @@ TEST(Example, Fraction) {
 
     ObjPtr test_arg = ctx.ExecStr("@test_arg(arg:Fraction) := {$arg}", nullptr, true);
     ASSERT_TRUE(test_arg);
-    ASSERT_TRUE(test_arg->is_function());
+    ASSERT_TRUE(test_arg->is_function_type());
     ASSERT_FALSE(test_arg->is_none_type());
     ASSERT_STREQ("test_arg={}", test_arg->GetValueAsString().c_str());
 

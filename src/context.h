@@ -105,8 +105,6 @@ namespace newlang {
     class Context : public Variable<Obj, std::weak_ptr<Obj> > {
     public:
 
-        friend class Obj;
-
         static ObjPtr eval_END(Context *ctx, const TermPtr & term, Obj * args);
         static ObjPtr func_NOT_SUPPORT(Context *ctx, const TermPtr & term, Obj * args);
 
@@ -363,7 +361,7 @@ namespace newlang {
                 for (int i = 0; i < size(); i++) {
                     if (pred_compare(start, at(i).first)) {
                         ObjPtr object = at(i).second.lock();
-                        if (object && object->is_function()) {
+                        if (object && object->is_function_type()) {
                             result.push_back(utf8_decode(prefix + at(i).first) + L"(");
                         } else if (object) {
                             result.push_back(utf8_decode(prefix + at(i).first));
@@ -378,7 +376,7 @@ namespace newlang {
             if (find_global) {
                 for (int i = 0; i < m_global_terms.size(); i++) {
                     if (pred_compare(start, m_global_terms.at(i).first)) {
-                        if (m_global_terms.at(i).second->is_function()) {
+                        if (m_global_terms.at(i).second->is_function_type()) {
                             result.push_back(utf8_decode(prefix + m_global_terms.at(i).first) + L"(");
                         } else {
                             result.push_back(utf8_decode(prefix + m_global_terms.at(i).first));

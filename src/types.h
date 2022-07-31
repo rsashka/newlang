@@ -581,7 +581,7 @@ void ParserException(const char *msg, std::string &buffer, int row, int col);
      * Используется в интепретаторе и при выполнении для выдачи предупреждений
      */
     inline bool canCastLimit(const ObjType from, const ObjType to) {
-        if (from == to || from == ObjType::None || to == ObjType::None) {
+        if (from == to || from == ObjType::None || to == ObjType::None || to == ObjType::Any) {
             // Преобразовывать ненужно или указан тип по по умолчанию
             return true;
         } else if (isSimpleType(from)) {

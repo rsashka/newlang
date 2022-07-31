@@ -89,6 +89,11 @@ ${OBJECTDIR}/_ext/e16507f5/logger.o: ../contrib/logger/logger.cpp
 	${RM} "$@.d"
 	$(COMPILE.cc) -g -DDEBUG -DLOG_LEVEL_NORMAL=LOG_LEVEL_DEBUG -DPDC_WIDE -I. -I.. -I../contrib/googletest/googletest -I../contrib/googletest/googletest/include -I../contrib/Lyra/include -I../contrib/libtorch/include/torch/csrc/api/include -I../contrib/libtorch/include -I../contrib/tensorboard_logger/include -std=c++14 -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/_ext/e16507f5/logger.o ../contrib/logger/logger.cpp
 
+temp/syntax.temp.txt: ../docs/op_iterator.md ../docs/syntax.md
+	${MKDIR} -p temp
+	@echo Выполнение шага пользовательского сборки
+	mkdir temp || pandoc -t plain ../docs/syntax.md > temp/syntax.temp.txt
+
 temp/syntax.temp.txt: ../docs/syntax.md ../docs/syntax.md
 	${MKDIR} -p temp
 	@echo Выполнение шага пользовательского сборки
@@ -276,6 +281,7 @@ ${OBJECTDIR}/version.o: version.cpp
 # Clean Targets
 .clean-conf: ${CLEAN_SUBPROJECTS}
 	${RM} -r ${CND_BUILDDIR}/${CND_CONF}
+	${RM} temp/syntax.temp.txt
 	${RM} temp/syntax.temp.txt
 	${RM} 
 	${RM} 

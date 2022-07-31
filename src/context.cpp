@@ -575,7 +575,7 @@ ObjPtr Context::CREATE_OR_ASSIGN(Context *ctx, const TermPtr &term, Obj *local_v
     ASSERT(list_obj.size() == list_term.size());
 
     if(term->Right()->getTermID() == TermID::ELLIPSIS) {
-        if(rval->is_dictionary_type() || rval->is_tensor()) {
+        if(rval->is_dictionary_type() || rval->is_tensor_type()) {
             if(!rval->empty() && rval->is_scalar()) {
                 LOG_RUNTIME("Fail expand scalar!");
             }
@@ -770,8 +770,8 @@ ObjPtr Context::eval_WHILE(Context *ctx, const TermPtr &term, Obj * args) {
 
         try {
 
-            LOG_DEBUG("result %s", result->toString().c_str());
-            
+//            LOG_DEBUG("result %s", result->toString().c_str());
+
             result = CreateRVal(ctx, term->Right(), args, false);
             cond = Eval(ctx, term->Left(), args, false);
 
@@ -1542,9 +1542,9 @@ ObjPtr Context::CreateNative(TermPtr proto, const char *module, bool lazzy, cons
         //        result->m_var = m_runtime->GetNativeAddr(
         //                result->m_func_mangle_name.empty() ? proto->m_text.c_str() : result->m_func_mangle_name.c_str(), module);
 
-        if(result->is_function() || type == ObjType::Pointer) {
+        if(result->is_function_type() || type == ObjType::Pointer) {
             NL_CHECK(at::get<void *>(result->m_var), "Error getting address '%s' from '%s'!", proto->toString().c_str(), module);
-        } else if(ptr && result->is_tensor()) {
+        } else if(ptr && result->is_tensor_type()) {
             //            result->m_tensor = torch::from_blob(at::get<void *>(result->m_var),{
             //            }, toTorchType(type));
             result->m_var_is_init = true;
@@ -1713,7 +1713,7 @@ ObjPtr Context::CreateLVal(Context *ctx, TermPtr term, Obj * args) {
     } else if(type) {
         result->m_var_type_current = typeFromString(type->getText().c_str(), ctx);
         result->m_var_type_fixed = result->m_var_type_current;
-        if(result->is_tensor()) {
+        if(result->is_tensor_type()) {
             std::vector<int64_t> dims;
             if(type->m_dims.size()) {
                 for (size_t i = 0; i < type->m_dims.size(); i++) {
@@ -2103,7 +2103,7 @@ ObjPtr Context::CreateRVal(Context *ctx, TermPtr term, Obj * local_vars, bool in
             ASSERT(result->m_var_type_fixed == type);
 
             // Размерность, если указана
-            result->m_dimensions = Obj::CreateType(result->m_var_type_current, result->m_var_type_current, true);
+            result->m_dimensions = Obj::CreateType(ObjType::Dictionary, ObjType::Dictionary, true);
             for (size_t i = 0; i < term->m_dims.size(); i++) {
                 result->m_dimensions->push_back(CreateRVal(ctx, term->m_dims[i], local_vars));
             }
@@ -2232,7 +2232,11 @@ ObjPtr Context::CreateRVal(Context *ctx, TermPtr term, Obj * local_vars, bool in
             result->m_var_is_init = true;
             if(term->getTermID() == TermID::TENSOR) {
 
-                result->m_var_type_fixed = typeFromString(term->m_type_name, ctx);
+                if(term->m_type_name.empty()) {
+                    result->m_var_type_fixed = ObjType::None;
+                } else {
+                    result->m_var_type_fixed = typeFromString(term->m_type_name, ctx);
+                }
                 type = getSummaryTensorType(result.get(), result->m_var_type_fixed);
 
                 if(type != ObjType::None) {
@@ -2279,6 +2283,7 @@ ObjPtr Context::CreateRVal(Context *ctx, TermPtr term, Obj * local_vars, bool in
 
         case TermID::RANGE:
 
+            result->m_var_type_current = ObjType::Dictionary;
             for (int i = 0; i < term->size(); i++) {
                 ASSERT(!term->name(i).empty());
                 result->push_back(Eval(ctx, (*term)[i].second, local_vars), term->name(i).c_str());
@@ -2349,14 +2354,14 @@ ObjPtr Context::CreateRVal(Context *ctx, TermPtr term, Obj * local_vars, bool in
 
                 val_int = std::numeric_limits<int64_t>::max();
                 if(args->empty() || (args->size() == 1 && args->at(0).second->is_integer())) {
-                    result = temp->IteratorMake(Iterator<Obj>::FIND_KEY_DEFAULT, false);
+                    result = temp->IteratorMake(nullptr, false);
                     if(args->size()) {
                         val_int = args->at(0).second->GetValueAsInteger();
                     }
                 } else if(args->size() == 1 && args->at(0).second->is_string_type()) {
-                    result = temp->IteratorMake(args->at(0).second->GetValueAsString(), false);
+                    result = temp->IteratorMake(args->at(0).second->GetValueAsString().c_str(), false);
                 } else if(args->size() == 2 && args->at(0).second->is_string_type() && args->at(1).second->is_integer()) {
-                    result = temp->IteratorMake(args->at(0).second->GetValueAsString(), false);
+                    result = temp->IteratorMake(args->at(0).second->GetValueAsString().c_str(), false);
                     val_int = args->at(1).second->GetValueAsInteger();
                 } else {
                     LOG_RUNTIME("Iterator`s args '%s' not allowed!", args->toString().c_str());

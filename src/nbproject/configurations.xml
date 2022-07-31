@@ -5,6 +5,7 @@
       <itemPath>../docs/CNAME</itemPath>
       <itemPath>../docs/_config.yml</itemPath>
       <itemPath>../docs/index.md</itemPath>
+      <itemPath>../docs/op_iterator.md</itemPath>
       <itemPath>../docs/syntax.md</itemPath>
     </logicalFolder>
     <logicalFolder name="SourceFiles"
@@ -179,6 +180,13 @@
       <item path="../docs/_config.yml" ex="false" tool="3" flavor2="0">
       </item>
       <item path="../docs/index.md" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../docs/op_iterator.md" ex="false" tool="3" flavor2="0">
+        <customTool>
+          <customToolCommandline>mkdir temp || pandoc -t plain ../docs/syntax.md > temp/syntax.temp.txt</customToolCommandline>
+          <customToolOutputs>temp/syntax.temp.txt</customToolOutputs>
+          <customToolAdditionalDep>../docs/syntax.md</customToolAdditionalDep>
+        </customTool>
       </item>
       <item path="../docs/syntax.md" ex="false" tool="3" flavor2="0">
         <customTool>
@@ -487,6 +495,8 @@
       </item>
       <item path="../docs/index.md" ex="false" tool="3" flavor2="0">
       </item>
+      <item path="../docs/op_iterator.md" ex="false" tool="3" flavor2="0">
+      </item>
       <item path="../docs/syntax.md" ex="false" tool="3" flavor2="0">
       </item>
       <item path="../docs/syntax.txt" ex="false" tool="3" flavor2="0">
@@ -730,6 +740,8 @@
       </item>
       <item path="../docs/index.md" ex="false" tool="3" flavor2="0">
       </item>
+      <item path="../docs/op_iterator.md" ex="false" tool="3" flavor2="0">
+      </item>
       <item path="../docs/syntax.md" ex="false" tool="3" flavor2="0">
       </item>
       <item path="../docs/syntax.txt" ex="false" tool="3" flavor2="0">
@@ -929,6 +941,8 @@
       <item path="../docs/_config.yml" ex="false" tool="3" flavor2="0">
       </item>
       <item path="../docs/index.md" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../docs/op_iterator.md" ex="false" tool="3" flavor2="0">
       </item>
       <item path="../docs/syntax.md" ex="false" tool="3" flavor2="0">
       </item>
@@ -1241,6 +1255,8 @@
       </item>
       <item path="../docs/index.md" ex="false" tool="3" flavor2="0">
       </item>
+      <item path="../docs/op_iterator.md" ex="false" tool="3" flavor2="0">
+      </item>
       <item path="../docs/syntax.md" ex="false" tool="3" flavor2="0">
       </item>
       <item path="../docs/syntax.txt" ex="false" tool="3" flavor2="0">
@@ -1526,6 +1542,8 @@
       </item>
       <item path="../docs/index.md" ex="false" tool="3" flavor2="0">
       </item>
+      <item path="../docs/op_iterator.md" ex="false" tool="3" flavor2="0">
+      </item>
       <item path="../docs/syntax.md" ex="false" tool="3" flavor2="0">
       </item>
       <item path="../docs/syntax.txt" ex="false" tool="3" flavor2="0">
@@ -1778,6 +1796,8 @@
       </item>
       <item path="../docs/index.md" ex="false" tool="3" flavor2="0">
       </item>
+      <item path="../docs/op_iterator.md" ex="false" tool="3" flavor2="0">
+      </item>
       <item path="../docs/syntax.md" ex="false" tool="3" flavor2="0">
       </item>
       <item path="../docs/syntax.txt" ex="false" tool="3" flavor2="0">
@@ -2026,6 +2046,8 @@
       </item>
       <item path="../docs/index.md" ex="false" tool="3" flavor2="0">
       </item>
+      <item path="../docs/op_iterator.md" ex="false" tool="3" flavor2="0">
+      </item>
       <item path="../docs/syntax.md" ex="false" tool="3" flavor2="0">
       </item>
       <item path="../docs/syntax.txt" ex="false" tool="3" flavor2="0">
@@ -2262,6 +2284,8 @@
       <item path="../docs/_config.yml" ex="false" tool="3" flavor2="0">
       </item>
       <item path="../docs/index.md" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../docs/op_iterator.md" ex="false" tool="3" flavor2="0">
       </item>
       <item path="../docs/syntax.md" ex="false" tool="3" flavor2="0">
       </item>
@@ -2563,6 +2587,8 @@
       <item path="../docs/_config.yml" ex="false" tool="3" flavor2="0">
       </item>
       <item path="../docs/index.md" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../docs/op_iterator.md" ex="false" tool="3" flavor2="0">
       </item>
       <item path="../docs/syntax.md" ex="false" tool="3" flavor2="0">
       </item>

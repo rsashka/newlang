@@ -228,6 +228,10 @@ namespace newlang {
             return result;
         }
 
+        int64_t GetAsBoolean() const {
+            return !m_numerator.isZero();
+        }
+
         int64_t GetAsInteger() const {
             if (m_denominator.isZero()) {
                 LOG_RUNTIME("Denominator must be different from zero!");

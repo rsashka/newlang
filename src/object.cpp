@@ -11,9 +11,6 @@
 
 using namespace newlang;
 
-template <>
-const std::string Iterator<Obj>::FIND_KEY_DEFAULT = "(.|\\n)*";
-
 std::ostream &operator<<(std::ostream &out, newlang::Obj &var) {
     out << var.toString().c_str();
     return out;
@@ -63,7 +60,7 @@ const char* Interrupt::what() const noexcept {
 }
 
 int64_t Obj::size(int64_t dim) const {
-    if(is_tensor()) {
+    if(is_tensor_type()) {
         if(is_scalar()) {
             if(dim != 0) {
                 LOG_RUNTIME("Scalar has zero dimension!");
@@ -121,7 +118,7 @@ int64_t Obj::resize_(int64_t new_size, ObjPtr fill, const std::string name) {
 
     } else if(is_dictionary_type()) {
         return Variable::resize(new_size, fill ? fill : Obj::CreateNone(), name);
-    } else if(is_tensor()) {
+    } else if(is_tensor_type()) {
         std::vector<int64_t> sizes;
         for (int i = 0; i < m_tensor.dim(); i++) {
             sizes.push_back(m_tensor.size(i));
@@ -195,7 +192,7 @@ const Variable<Obj>::PairType & Obj::at(int64_t index) const {
         }
         LOG_RUNTIME("Index '%ld' not exists in byte string '%s'!", index, "WIDE");
 
-    } else if(is_tensor()) {
+    } else if(is_tensor_type()) {
         ASSERT(!is_scalar());
         torch::Tensor t = m_tensor.index({index});
         m_str_pair = pair(Obj::CreateTensor(t));
@@ -218,7 +215,7 @@ Variable<Obj>::PairType & Obj::at(int64_t index) {
         }
         LOG_RUNTIME("Index '%ld' not exists in byte string '%s'!", index, "WIDE");
 
-    } else if(is_tensor()) {
+    } else if(is_tensor_type()) {
         ASSERT(!is_scalar());
         ASSERT(m_tensor.defined());
         torch::Tensor t = m_tensor.index({(int) index});
@@ -255,7 +252,7 @@ const ObjPtr Obj::index_get(const std::vector<Index> &index) const {
         }
         LOG_RUNTIME("Index '%s' not exists in WIDE string '%s'!", IndexToString(index).c_str(), utf8_encode(m_string).c_str());
 
-    } else if(is_tensor()) {
+    } else if(is_tensor_type()) {
         ASSERT(!is_scalar());
         ASSERT(m_tensor.defined());
         torch::Tensor t = m_tensor.index(index);
@@ -300,7 +297,7 @@ ObjPtr Obj::index_set_(const std::vector<Index> &index, const ObjPtr value) {
         }
         LOG_RUNTIME("Index '%s' not exists in byte string '%s'!", IndexToString(index).c_str(), "WIDE");
 
-    } else if(is_tensor()) {
+    } else if(is_tensor_type()) {
         ASSERT(!is_scalar());
         ASSERT(m_tensor.defined());
 
@@ -392,8 +389,8 @@ ObjType newlang::getSummaryTensorType(Obj *obj, ObjType start) {
 }
 
 ObjPtr Obj::operator+=(Obj value) {
-    if(is_tensor()) {
-        if(value.is_tensor()) {
+    if(is_tensor_type()) {
+        if(value.is_tensor_type()) {
             testResultIntegralType(value.m_var_type_current, true);
             if(is_scalar() && value.is_scalar()) {
                 if(is_floating()) {
@@ -464,7 +461,7 @@ ObjPtr Obj::operator+=(Obj value) {
 ObjPtr Obj::operator-=(Obj value) {
     if(m_var_type_current == ObjType::None) {
         m_var_type_current = value.m_var_type_current;
-    } else if(is_tensor() && value.is_tensor()) {
+    } else if(is_tensor_type() && value.is_tensor_type()) {
         testResultIntegralType(value.m_var_type_current, true);
         if(is_scalar() && value.is_scalar()) {
             if(is_floating()) {
@@ -521,7 +518,7 @@ ObjPtr Obj::operator-=(Obj value) {
 ObjPtr Obj::operator*=(Obj value) {
     if(m_var_type_current == ObjType::None) {
         m_var_type_current = value.m_var_type_current;
-    } else if(is_tensor() && value.is_tensor()) {
+    } else if(is_tensor_type() && value.is_tensor_type()) {
         testResultIntegralType(value.m_var_type_current, true);
         if(is_scalar() && value.is_scalar()) {
             if(is_floating()) {
@@ -593,7 +590,7 @@ ObjPtr Obj::operator*=(Obj value) {
 }
 
 ObjPtr Obj::operator/=(Obj value) {
-    if(is_tensor() && value.is_tensor()) {
+    if(is_tensor_type() && value.is_tensor_type()) {
         testResultIntegralType(ObjType::Double, true);
         if(is_scalar() && value.is_scalar()) {
             if(is_floating()) {
@@ -632,7 +629,7 @@ ObjPtr Obj::operator/=(Obj value) {
 }
 
 ObjPtr Obj::op_div_ceil_(Obj & value) {
-    if(is_tensor() && value.is_tensor()) {
+    if(is_tensor_type() && value.is_tensor_type()) {
         ObjType type = m_var_type_current;
         testResultIntegralType(ObjType::Float, false);
         if(is_scalar() && value.is_scalar()) {
@@ -678,7 +675,7 @@ ObjPtr Obj::op_div_ceil_(Obj & value) {
 }
 
 ObjPtr Obj::operator%=(Obj value) {
-    if(is_tensor() && value.is_tensor()) {
+    if(is_tensor_type() && value.is_tensor_type()) {
         testResultIntegralType(value.m_var_type_current, true);
         if(is_scalar() && value.is_scalar()) {
             if(is_floating()) {
@@ -773,16 +770,16 @@ void Obj::ClonePropTo(Obj & clone) const {
     for (int i = 0; i < Variable<Obj>::size(); i++) {
         if(Variable<Obj>::at(i).second) {
             if(Variable<Obj>::at(i).second->m_is_reference || Variable<Obj>::at(i).second->m_is_reference) {
-                clone.push_back(Variable<Obj>::at(i));
+                clone.Variable<Obj>::push_back(Variable<Obj>::at(i));
             } else {
-                clone.push_back(Variable<Obj>::at(i).second->Clone(nullptr), name(i));
+                clone.Variable<Obj>::push_back(Variable<Obj>::at(i).second->Clone(nullptr), name(i));
             }
         } else {
             if(name(i).empty()) {
                 LOG_RUNTIME("Null arg %d without name! %s", i, toString().c_str());
             }
             // Объекта может не быть у обязательных параметров функций
-            clone.push_back(nullptr, name(i));
+            clone.Variable<Obj>::push_back(nullptr, name(i));
         }
     }
 }
@@ -830,7 +827,7 @@ std::string Obj::toString(bool deep) const {
         }
         result += "_";
         return result;
-    } else if(is_tensor()) {
+    } else if(is_tensor_type()) {
         if(is_scalar()) {
             result += GetValueAsString();
         } else {
@@ -1266,11 +1263,12 @@ ObjPtr Obj::Call(Context *ctx, Obj * args) {
         ObjPtr result = Clone();
         result->m_value = format(result->m_value, args);
         return result;
-    } else if(is_function() || m_var_type_current == ObjType::Type) {
+    } else if(is_function_type() || m_var_type_current == ObjType::Type) {
         Obj local;
         ObjPtr param;
         if(m_prototype) {
             param = std::make_shared<Obj>(ctx, m_prototype, false, &local);
+            param->m_var_type_current = ObjType::Dictionary;
         } else {
             param = Obj::CreateDict();
         }
@@ -1401,7 +1399,7 @@ void Obj::ConvertToArgs_(Obj *in, bool check_valid, Context * ctx) {
     if(check_valid && size()) {
         if(at(size() - 1).first.compare("...") == 0) {
             is_ellipsis = true;
-            erase(size() - 1);
+            Variable::erase(size() - 1);
         }
     }
     for (int i = 0; i < in->size(); i++) {
@@ -1422,8 +1420,10 @@ void Obj::ConvertToArgs_(Obj *in, bool check_valid, Context * ctx) {
                     if(has_error && (*m_prototype)[i].second->getTermID() == TermID::ELLIPSIS) {
                         base_type = ObjType::Any;
                     }
-                } else {
+                } else if(!(*m_prototype)[i].second->m_type_name.empty()) {
                     base_type = typeFromString((*m_prototype)[i].second->m_type_name, ctx);
+                } else {
+                    base_type = ObjType::Any;
                 }
             } else {
                 base_type = ObjType::Any;
@@ -1572,7 +1572,7 @@ int Obj::op_compare(Obj & value) {
 bool Obj::op_equal(Obj & value) {
     if(this == &value) {
         return true;
-    } else if(is_tensor()) {
+    } else if(is_tensor_type()) {
         ObjType summary_type = static_cast<ObjType> (std::max(
                 static_cast<uint8_t> (m_var_type_current),
                 static_cast<uint8_t> (value.m_var_type_current)));
@@ -1658,7 +1658,7 @@ ObjPtr Obj::op_bit_and_set(Obj &obj, bool strong) {
             }
             return shared();
         }
-    } else if(is_tensor() && obj.is_tensor()) {
+    } else if(is_tensor_type() && obj.is_tensor_type()) {
         int pos = 0;
         while(pos < size()) {
             if(!obj.exist(at(pos).second, strong)) {
@@ -1749,7 +1749,7 @@ bool Obj::op_duck_test_prop(Obj *base, Obj *value, bool strong) {
 }
 
 ObjPtr Obj::op_pow_(Obj & obj) {
-    if(is_tensor()) {
+    if(is_tensor_type()) {
         ASSERT(obj.is_arithmetic_type());
         if(is_scalar()) {
             double temp = pow(GetValueAsNumber(), obj.GetValueAsNumber());
@@ -1801,7 +1801,7 @@ bool Obj::op_duck_test(Obj *value, bool strong) {
     }
 
     if(strong) {
-        if(value->is_simple()) {
+        if(value->is_simple_type()) {
             if(m_var_type_current == value->m_var_type_current || (is_string_type() && value->is_string_type())) {
                 return true;
             }
@@ -1813,7 +1813,7 @@ bool Obj::op_duck_test(Obj *value, bool strong) {
         return (m_var_type_current == ObjType::Long || m_var_type_current == ObjType::Double);
     } else if(is_string_type() && value->is_string_type()) {
         return true;
-    } else if(is_function() && value->is_function()) {
+    } else if(is_function_type() && value->is_function_type()) {
         return true;
     } else if(value->m_var_type_current == ObjType::Dictionary || value->m_var_type_current == ObjType::Class) {
         if(m_var_type_current == ObjType::Dictionary || m_var_type_current == ObjType::Class) {
@@ -1896,7 +1896,7 @@ int64_t newlang::ConcatData(Obj *dest, Obj &src, ConcatMode mode) {
             size++;
         }
 
-    } else if(dest->is_tensor()) {
+    } else if(dest->is_tensor_type()) {
 
         if(dest->m_var_type_current == src.m_var_type_current) {
             if(dest->m_tensor.dim() == 0) {
@@ -1920,7 +1920,7 @@ int64_t newlang::ConcatData(Obj *dest, Obj &src, ConcatMode mode) {
 }
 
 void ShapeFromDict(const Obj *obj, std::vector<int64_t> &shape) {
-    if(obj && (obj->is_dictionary_type() || (obj->is_tensor() && !obj->is_scalar()))) {
+    if(obj && (obj->is_dictionary_type() || (obj->is_tensor_type() && !obj->is_scalar()))) {
         if(!obj->size()) {
             LOG_RUNTIME("Cannot tensor shape from empty dictionary!");
         }
@@ -2755,7 +2755,7 @@ void Obj::toType_(ObjType type) {
     } else if(type == ObjType::None) {
         clear_();
         return;
-    } else if(is_tensor() && isTensor(type)) {
+    } else if(is_tensor_type() && isTensor(type)) {
 
         // Изменить тип тензора
         if(isGenericType(type)) {
@@ -2790,30 +2790,13 @@ void Obj::toType_(ObjType type) {
     } else if(is_range() && isDictionary(type)) {
 
 
-        ObjPtr value = at("start").second;
-        ObjPtr stop = at("stop").second;
-        ObjPtr step = at("step").second;
-
-        ASSERT(value);
-        ASSERT(stop);
-        ASSERT(step);
-
+        ObjPtr iter = IteratorMake();
+        ObjPtr temp = iter->IteratorNext(std::numeric_limits<int64_t>::max());
         Variable::clear_();
-        m_var_type_current = type;
-
-        if((*value) < stop) {
-            ASSERT(step->GetValueAsNumber() > 0);
-            while((*value) < stop) {
-                push_back(value->Clone());
-                (*value) += step;
-            }
-        } else {
-            ASSERT(step->GetValueAsNumber() < 0);
-            while((*value) > stop) {
-                push_back(value->Clone());
-                (*value) += step;
-            }
+        for (auto &elem : *temp) {
+            Variable::push_back(elem);
         }
+        m_var_type_current = type;
         return;
 
     } else if(is_range() && isTensor(type)) {
@@ -2873,7 +2856,7 @@ void Obj::toType_(ObjType type) {
         m_string.clear();
         return;
 
-    } else if(is_tensor() && isStringChar(type)) {
+    } else if(is_tensor_type() && isStringChar(type)) {
 
         if(is_scalar()) {
             int64_t char_val = GetValueAsInteger();
@@ -2900,7 +2883,7 @@ void Obj::toType_(ObjType type) {
         m_var_type_current = type;
         return;
 
-    } else if(is_tensor() && isStringWide(type)) {
+    } else if(is_tensor_type() && isStringWide(type)) {
 
         if(is_scalar()) {
             int64_t char_val = GetValueAsInteger();
@@ -2923,7 +2906,7 @@ void Obj::toType_(ObjType type) {
         m_var_type_current = type;
         return;
 
-    } else if(is_tensor() && type == ObjType::Fraction) {
+    } else if(is_tensor_type() && type == ObjType::Fraction) {
 
         if(!is_scalar()) {
             LOG_RUNTIME("Convert tensor to fraction support for scalar only!");
@@ -2937,7 +2920,7 @@ void Obj::toType_(ObjType type) {
         m_var_type_current = type;
         return;
 
-    } else if(is_tensor() && isDictionary(type)) {
+    } else if(is_tensor_type() && isDictionary(type)) {
 
         if(is_scalar() && is_integral()) {
             ASSERT(at::holds_alternative<int64_t>(m_var));
@@ -3407,16 +3390,18 @@ ObjPtr Obj::ConstructorInterraption_(const Context* ctx, Obj& args, ObjType type
 
 template<>
 const Iterator<Obj>::IterPairType Iterator<Obj>::m_interator_end = IterObj::pair(Obj::CreateType(ObjType::IteratorEnd, ObjType::IteratorEnd, true));
+static const ObjPtr zero = Obj::CreateValue(0);
 
 template<>
 ObjPtr Iterator<Obj>::read_and_next(int64_t count) {
     ObjPtr result;
-    static ObjPtr zero = Obj::CreateValue(0);
 
     if(count == 0) {
         if(m_iter_obj->m_var_type_current == ObjType::Range) {
 
-            ObjPtr value = m_iter_obj->m_iter_range_value;
+            ASSERT(m_iter_obj->m_iter_range_value);
+
+            ObjPtr value = m_iter_obj->m_iter_range_value; //->Clone();
             ObjPtr stop = m_iter_obj->at("stop").second;
             ObjPtr step = m_iter_obj->at("step").second;
 
@@ -3432,18 +3417,19 @@ ObjPtr Iterator<Obj>::read_and_next(int64_t count) {
                     result = value->Clone();
                     (*value) += step;
                 } else {
-                    result = Iterator::m_interator_end.second->Clone();
+                    result = Obj::CreateType(ObjType::IteratorEnd, ObjType::IteratorEnd, true);
                 }
             } else {
                 if(value->op_compare(*stop) < 0) {
                     result = value->Clone();
                     (*value) += step;
                 } else {
-                    result = Iterator::m_interator_end.second->Clone();
+                    result = Obj::CreateType(ObjType::IteratorEnd, ObjType::IteratorEnd, true);
                 }
             }
+            //            m_iter_obj->m_iter_range_value = value;
 
-            } else if(m_iter_obj->is_indexing()) {
+        } else if(m_iter_obj->is_indexing()) {
             result = (*(*this)).second;
             (*this)++;
         } else {
@@ -3456,7 +3442,9 @@ ObjPtr Iterator<Obj>::read_and_next(int64_t count) {
 
         if(m_iter_obj->m_var_type_current == ObjType::Range) {
 
-            ObjPtr value = m_iter_obj->m_iter_range_value;
+            ASSERT(m_iter_obj->m_iter_range_value);
+
+            ObjPtr value = m_iter_obj->m_iter_range_value; //->Clone();
             ObjPtr stop = m_iter_obj->at("stop").second;
             ObjPtr step = m_iter_obj->at("step").second;
 
@@ -3487,9 +3475,10 @@ ObjPtr Iterator<Obj>::read_and_next(int64_t count) {
                         }
                     }
                 } else {
-                    result->push_back(Obj::CreateType(ObjType::IteratorEnd));
+                    result->push_back(Obj::CreateType(ObjType::IteratorEnd, ObjType::IteratorEnd, true));
                 }
             }
+            //m_iter_obj->m_iter_range_value = value;
 
         } else if(m_iter_obj->is_indexing()) {
 
@@ -3498,7 +3487,7 @@ ObjPtr Iterator<Obj>::read_and_next(int64_t count) {
                     result->push_back(*(*this));
                     (*this)++;
                 } else {
-                    result->push_back(Obj::CreateType(ObjType::IteratorEnd));
+                    result->push_back(Obj::CreateType(ObjType::IteratorEnd, ObjType::IteratorEnd, true));
                 }
             }
 
@@ -3511,14 +3500,11 @@ ObjPtr Iterator<Obj>::read_and_next(int64_t count) {
         result = Obj::CreateDict();
         result->m_var_is_init = true;
 
-        if(m_iter_obj->is_indexing()) {
-            while(*this != this->end() && result->size() < count) {
-                result->push_back(*(*this));
-                (*this)++;
-            }
-        } else if(m_iter_obj->m_var_type_current == ObjType::Range) {
+        if(m_iter_obj->m_var_type_current == ObjType::Range) {
 
-            ObjPtr value = m_iter_obj->m_iter_range_value;
+            ASSERT(m_iter_obj->m_iter_range_value);
+
+            ObjPtr value = m_iter_obj->m_iter_range_value; //->Clone();
             ObjPtr stop = m_iter_obj->at("stop").second;
             ObjPtr step = m_iter_obj->at("step").second;
 
@@ -3540,9 +3526,13 @@ ObjPtr Iterator<Obj>::read_and_next(int64_t count) {
                     (*value) += step;
                 }
             }
-        
-            m_iter_obj->m_iter_range_value = result->Clone();
-            
+            //            m_iter_obj->m_iter_range_value.swap(value);
+
+        } else if(m_iter_obj->is_indexing()) {
+            while(*this != this->end() && result->size() < count) {
+                result->push_back(*(*this));
+                (*this)++;
+            }
         } else {
             LOG_RUNTIME("Interator to type %s not implemented!", newlang::toString(m_iter_obj->m_var_type_current));
         }
@@ -3551,7 +3541,7 @@ ObjPtr Iterator<Obj>::read_and_next(int64_t count) {
     return result;
 }
 
-ObjPtr Obj::IteratorMake(const std::string filter, bool check_create) {
+ObjPtr Obj::IteratorMake(const char * filter, bool check_create) {
     ObjPtr result = CreateType(ObjType::Iterator, ObjType::Iterator, true);
     if(!(is_indexing() || m_var_type_current == ObjType::Range)) {
         if(getType() == ObjType::Iterator && !check_create) {
@@ -3572,17 +3562,17 @@ ObjPtr Obj::IteratorMake(const std::string filter, bool check_create) {
 ObjPtr Obj::IteratorMake(Obj * args) {
     ObjPtr result = CreateType(ObjType::Iterator, ObjType::Iterator, true);
     if(!(is_indexing() || m_var_type_current == ObjType::Range)) {
-        if(getType() == ObjType::Iterator) {
-            return shared();
-        }
+        //        if(getType() == ObjType::Iterator) {
+        //            return shared();
+        //        }
         LOG_RUNTIME("Can't create iterator from '%s'!", toString().c_str());
     }
 
     if(!args || args->size() == 0) {
         result->m_iterator = std::make_shared<Iterator < Obj >> (shared());
     } else if(args->size() == 1 && args->at(0).second && args->at(0).second->is_string_type()) {
-        result->m_iterator = std::make_shared<Iterator < Obj >> (shared(), args->GetValueAsString());
-    } else if(args->size() >= 1 && args->at(0).second && args->at(0).second->is_function()) {
+        result->m_iterator = std::make_shared<Iterator < Obj >> (shared(), args->GetValueAsString().c_str());
+    } else if(args->size() >= 1 && args->at(0).second && args->at(0).second->is_function_type()) {
         ASSERT(false);
         //        ObjPtr func = args->at(0).second;
         //        ObjPtr func_arg = args->Clone();
@@ -3601,10 +3591,44 @@ ObjPtr Obj::IteratorMake(Obj * args) {
 }
 
 ObjPtr Obj::IteratorData() {
+    if(!(m_var_type_current == ObjType::Iterator || m_var_type_current == ObjType::IteratorEnd)) {
+        LOG_RUNTIME("Object '%s' not iterator!", toString().c_str());
+    }
+
+    if(m_var_type_current == ObjType::IteratorEnd) {
+        return Iterator<Obj>::m_interator_end.second;
+    }
+
     ASSERT(m_iterator);
+    ASSERT(m_iterator->m_iter_obj);
+
     if(m_iterator->m_iter_obj->is_range()) {
+
         ASSERT(m_iterator->m_iter_obj->m_iter_range_value);
-        return m_iterator->m_iter_obj->m_iter_range_value->Clone();
+
+        ObjPtr value = m_iterator->m_iter_obj->m_iter_range_value; //->Clone();
+        ObjPtr stop = m_iterator->m_iter_obj->at("stop").second;
+        ObjPtr step = m_iterator->m_iter_obj->at("step").second;
+
+        ASSERT(value);
+        ASSERT(stop);
+        ASSERT(step);
+
+        int up_direction = step->op_compare(*zero);
+        ASSERT(up_direction);
+
+        if(up_direction < 0) {
+            if(value->op_compare(*stop) > 0) {
+                return value->Clone();
+            }
+        } else {
+            if(value->op_compare(*stop) < 0) {
+                return value->Clone();
+            }
+        }
+
+        return Iterator<Obj>::m_interator_end.second;
+
     } else if(m_iterator->m_iter_obj->is_indexing()) {
         return m_iterator->data().second;
     }

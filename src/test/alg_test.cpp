@@ -275,7 +275,7 @@ TEST(Alg, Foreach) {
 
     ObjPtr tensor = ctx.ExecStr("tensor := [10,11,12,]");
     ASSERT_TRUE(tensor);
-    ASSERT_TRUE(tensor->is_tensor());
+    ASSERT_TRUE(tensor->is_tensor_type());
     ASSERT_TRUE(tensor->GetValueAsBoolean());
     ASSERT_EQ(3, tensor->size());
     ASSERT_EQ(10, (*tensor)[0].second->GetValueAsInteger());
@@ -284,12 +284,12 @@ TEST(Alg, Foreach) {
 
     temp = ctx.ExecStr("counter, tensor  := ... tensor ");
     ASSERT_TRUE(temp);
-    ASSERT_TRUE(temp->is_tensor());
+    ASSERT_TRUE(temp->is_tensor_type());
     ASSERT_EQ(2, temp->size());
 
     ASSERT_EQ(10, counter->GetValueAsInteger());
 
-    ASSERT_TRUE(tensor->is_tensor());
+    ASSERT_TRUE(tensor->is_tensor_type());
     ASSERT_TRUE(tensor->GetValueAsBoolean());
     ASSERT_EQ(2, tensor ->size());
     ASSERT_EQ(11, (*tensor)[0].second->GetValueAsInteger());
@@ -297,33 +297,33 @@ TEST(Alg, Foreach) {
 
     temp = ctx.ExecStr("counter, tensor := ... tensor ");
     ASSERT_TRUE(temp);
-    ASSERT_TRUE(temp->is_tensor());
+    ASSERT_TRUE(temp->is_tensor_type());
     ASSERT_EQ(1, temp->size());
 
     ASSERT_EQ(11, counter->GetValueAsInteger());
 
-    ASSERT_TRUE(tensor->is_tensor());
+    ASSERT_TRUE(tensor->is_tensor_type());
     ASSERT_TRUE(tensor->GetValueAsBoolean());
     ASSERT_EQ(1, tensor ->size());
     ASSERT_EQ(12, (*tensor)[0].second->GetValueAsInteger());
 
     temp = ctx.ExecStr("counter, tensor := ... tensor ");
     ASSERT_TRUE(temp);
-    ASSERT_TRUE(temp->is_tensor());
+    ASSERT_TRUE(temp->is_tensor_type());
     ASSERT_EQ(0, temp->size());
 
     ASSERT_EQ(12, counter->GetValueAsInteger());
 
-    ASSERT_TRUE(tensor->is_tensor());
+    ASSERT_TRUE(tensor->is_tensor_type());
     ASSERT_FALSE(tensor->GetValueAsBoolean());
     ASSERT_EQ(0, tensor ->size());
 
     temp = ctx.ExecStr("counter, tensor := ... tensor");
     ASSERT_TRUE(temp);
-    ASSERT_TRUE(temp->is_tensor());
+    ASSERT_TRUE(temp->is_tensor_type());
     ASSERT_TRUE(temp->empty());
     ASSERT_FALSE(tensor->GetValueAsBoolean());
-    ASSERT_TRUE(tensor->is_tensor());
+    ASSERT_TRUE(tensor->is_tensor_type());
     ASSERT_TRUE(tensor->empty());
 
     ASSERT_TRUE(counter);
@@ -338,7 +338,7 @@ TEST(Alg, Foreach) {
     ASSERT_TRUE(temp2->is_integer());
     ASSERT_EQ(210, temp2->GetValueAsInteger());
     ASSERT_EQ(210, summa2->GetValueAsInteger());
-    ASSERT_TRUE(tensor2->is_tensor());
+    ASSERT_TRUE(tensor2->is_tensor_type());
     ASSERT_FALSE(tensor2->GetValueAsBoolean());
 
     ObjPtr tensor_size = ctx.ExecStr("tensor_size := [10,20,30,40,]");

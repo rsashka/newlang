@@ -79,8 +79,6 @@ namespace newlang {
     void ConvertTensorToString(const torch::Tensor &from, std::wstring &to, std::vector<Index> *index = nullptr);
     void ConvertTensorToDict(const torch::Tensor &from, Obj &to, std::vector<Index> *index = nullptr);
 
-
-
     /*
      * Требуется разделять конейнеры с данными и итераторы по данным.
      * В С++ контейнеры предоставялют итераторы непосредственно из самого контейнера.
@@ -100,16 +98,16 @@ namespace newlang {
      * ObjPtr IteratorMake(const std::string filter) - создать итератор с возможностью фильтрации по имени поля (данные на начало)
      * ObjPtr IteratorMake(Obj * args) - создать итератор с фильтрации с помощью пользовательской функции (данные на начало)
      * ObjPtr IteratorReset() - Сбросить итератор на начало данных (возвращает сам итератор)
-     * ObjPtr IteratorData() - прочитать текущий элемент без смещения указателя. Если данных нет генерируется исключение "конец итератора"
-     * ObjPtr IteratorNext(int64_t count)- прочитать заданное кол-во элементов переместив указатель и вернуть словарь с ними. Если данных 
-     * нет возвращается пустой словарь, а исключение "конец итератора" не генерируется
+     * ObjPtr IteratorData() - прочитать текущий элемент без смещения указателя. Если данных нет возвращается "конец итератора"
+     * ObjPtr IteratorNext(int64_t count)- прочитать заданное кол-во элементов и переместить итератор на следующий элемент. 
+     * При не нулевом кол-ве, данные возвращаются как элементы словаря. Если указан кол-во элеметов 0 - возвращается текущий элемент.
      * 
      * Реализаиця итераторов NewLang с помощью данного интерфейса:
      *
      * Создание итератора
      * ?, ?("Фильтр"), ?(func), ?(func, args...)    - IteratorMake
      * 
-     * Перебор элементов итератора (IteratorData для ! без аргументов и IteratorNext в остальном случае)
+     * Перебор элементов итератора
      * !, !(0), !(3), !(-3)
      * 
      * dict! и dict!(0) <НЕ> эквивалентны, т.к. по разному обработывают конец данных
@@ -144,8 +142,45 @@ namespace newlang {
      * None - true (Это объекст со значением пусто)
      * Empty - false (Не инициализированный объект)
      * 
+     * 
+     * Логика обработки ссылок
+     * term1 :=  term; # Объект term1 - копия term.
+     * term2 :=  &term; # Объект term2 - ссылка на term (одни и те же данные, т.е. shared_ptr ссылаются на один и тот же объект)
+     * &term3 :=  term; # Создать объект term3 и вернуть ссылку на него (сахар для term3 :=  term; &term3;)
+     * 
+     * 
+     * copy(arg) :=  {}; # Обычная функция принимает любой аргумент как <КОПИЮ> значения
+     * copy(term1); # ОК - передается <КОПИЯ> term1
+     * copy(term2); # ОК - передается <КОПИЯ> term2
+     * copy(&term1); # ОК - передается ссылка на term1 (На самом деле копия ссылки, которая указывает на те же данные)
+     * copy(&term2); # ОК- передается ссылка на term2 (На самом деле копия ссылки, которая указывает на те же данные)
+     * 
+     * ptr(&arg) :=  {}; # Функция, которая принимает только аргумент - <ссылку>
+     * ptr(term1); # Ошибка при компиляции - нужно передавать ссылку !!!!!!!!
+     * ptr(&term1); # ОК
+     * ptr(&term2); # ОК
+     * ptr(term2); # Ошибка при компиляции - нужно передавать ссылку, несмотря на то что term2 УЖЕ содержит ссылку !!!!!!!!
+     * 
+     * 
+     * 
+     * 
+     * <% - Кнстанты и свойста>
+     * Значением константы может быть любой литерал (строка или число)
+     * 
+     * Так как константа определяется во время компиляции, то её значение может быть использовано компилятором 
+     * для анализа исходного текста программы после парсинга ATS и на основе их значений влиять на генерируемый 
+     * трансплайтером финальный код на языке реализации.
+     * 
+     * Константа доступна во время выполнения для чтения как значение системного поля __option__ ( для константы %option)
+     * ::%option - Глобальная область видимости для константы
+     * 
+     * С помощью констант реализуется одноименный функционал (переменные только для чтения), путем установки 
+     * соответствующего поля (term%const=1; или term%const=0;)
+     * 
+     * <Для релиза компилатора, т.к. требует анализа исходникой на уровне файла и предназаначена для генерации кода на С++>
+     * 
      */
-    
+
     template <typename T>
     class Iterator : public std::iterator<std::input_iterator_tag, T> {
     public:
@@ -175,15 +210,15 @@ namespace newlang {
 
         typedef IterCmp CompareFuncType(const IterPairType &pair, const T *args, void *extra);
 
-        static const std::string FIND_KEY_DEFAULT;
+        //        static const std::string FIND_KEY_DEFAULT;
 
         /**
          * Итератор для элементов списка с regex фильтром по имени элемента (по умолчанию для всех элементов списка)
          * @param obj
          * @param find_key
          */
-        explicit Iterator(std::shared_ptr<T> obj, const std::string find_key = Iterator::FIND_KEY_DEFAULT) :
-        Iterator(obj, &CompareFuncDefault, reinterpret_cast<T *> (const_cast<std::string *> (&find_key)), static_cast<void *> (this)) {
+        explicit Iterator(std::shared_ptr<T> obj, const char * find_key = "(.|\\n)*") :
+        Iterator(obj, &CompareFuncDefault, reinterpret_cast<T *> (const_cast<char *> (find_key)), static_cast<void *> (this)) {
         }
 
         /**
@@ -194,12 +229,12 @@ namespace newlang {
          * @param extra
          */
         Iterator(std::shared_ptr<T> obj, CompareFuncType *func, T *arg, void * extra = nullptr) :
-        m_iter_obj(obj), m_match(), m_func(func), m_func_args(arg), m_func_extra(extra), m_found(m_iter_obj->begin()) {
+        m_iter_obj(obj), m_match(), m_func(func), m_func_args(arg), m_func_extra(extra), m_found(m_iter_obj->begin()), m_base_filter(nullptr) {
             search_loop();
         }
 
         Iterator(const Iterator &iter) : m_iter_obj(iter.m_iter_obj), m_match(iter.m_match), m_func(iter.m_func),
-        m_func_args(iter.m_func_args), m_func_extra(iter.m_func_extra), m_found(iter.m_found) {
+        m_func_args(iter.m_func_args), m_func_extra(iter.m_func_extra), m_found(iter.m_found), m_base_filter(iter.m_base_filter) {
         }
 
         SCOPE(private) :
@@ -209,32 +244,36 @@ namespace newlang {
         CompareFuncType *m_func;
         T *m_func_args;
         void *m_func_extra;
-
         mutable typename Variable<T>::iterator m_found;
+        const char * m_base_filter;
 
         static const IterPairType m_interator_end;
 
         static IterCmp CompareFuncDefault(const IterPairType &pair, const T *filter, void *extra) {
-            const std::string * str_filter = reinterpret_cast<const std::string *> (filter);
+            const char * str_filter = reinterpret_cast<const char *> (filter);
             Iterator * iter = static_cast<Iterator *> (extra);
             if (iter && str_filter) {
 
-                iter->m_func_args = nullptr; // Передается однократно при создании объекта
-                iter->m_filter = *str_filter;
+                iter->m_base_filter = str_filter;
+                iter->m_func_args = nullptr; // Строка для фильтрации передается однократно при создании объекта
+                iter->m_filter.assign(str_filter);
 
                 if (!iter->m_filter.empty()) {
                     try {
                         iter->m_match = std::regex(iter->m_filter);
                     } catch (const std::regex_error &err) {
-                        LOG_RUNTIME("Regular expression for '%s' error '%s'!", str_filter->c_str(), err.what());
+                        LOG_RUNTIME("Regular expression for '%s' error '%s'!", str_filter, err.what());
                     }
                 }
             }
 
             if (iter) {
-                if (iter->m_filter.empty()) {
+                if (iter->m_base_filter == nullptr) { // Без фильтра отдаются вообще все поля
+                    return IterCmp::Yes;
+                } else if (iter->m_filter.empty()) { // Если передана пустая строка, то выдаются только поля без имен
                     return pair.first.empty() ? IterCmp::Yes : IterCmp::No;
                 } else {
+                    // Иначе если имя поля совпадает с регуляркой
                     return std::regex_match(pair.first, iter->m_match) ? IterCmp::Yes : IterCmp::No;
                 }
             }
@@ -401,7 +440,7 @@ namespace newlang {
             return shared();
         }
 
-        virtual ObjPtr IteratorMake(const std::string, bool check_create = true);
+        virtual ObjPtr IteratorMake(const char * filter = nullptr, bool check_create = true);
         virtual ObjPtr IteratorMake(Obj *args);
         virtual ObjPtr IteratorData();
         virtual ObjPtr IteratorReset();
@@ -484,8 +523,14 @@ namespace newlang {
             m_class_name = name;
         }
 
-        inline bool isConst() const {
+        [[nodiscard]]
+        inline bool is_const() const {
             return m_is_const;
+        }
+
+        [[nodiscard]]
+        inline bool is_init() const {
+            return m_var_is_init;
         }
 
         [[nodiscard]]
@@ -535,27 +580,27 @@ namespace newlang {
         }
 
         [[nodiscard]]
-        inline bool is_class() const {
+        inline bool is_class_type() const {
             return isClass(m_var_type_current);
         }
 
         [[nodiscard]]
-        inline bool is_simple() const {
+        inline bool is_simple_type() const {
             return isSimpleType(m_var_type_current);
         }
 
         [[nodiscard]]
         inline bool is_scalar() const {
-            return is_tensor() && !m_tensor.defined();
+            return is_tensor_type() && !m_tensor.defined();
         }
 
         [[nodiscard]]
-        inline bool is_function() const {
+        inline bool is_function_type() const {
             return isFunction(m_var_type_current);
         }
 
         [[nodiscard]]
-        inline bool is_tensor() const {
+        inline bool is_tensor_type() const {
             return isTensor(m_var_type_current);
         }
 
@@ -581,7 +626,7 @@ namespace newlang {
 
         [[nodiscard]]
         inline bool is_indexing() const {
-            return is_tensor() || is_string_type() || is_dictionary_type() || is_class();
+            return is_tensor_type() || is_string_type() || is_dictionary_type() || is_class_type() || is_error() || is_return() || is_function_type();
         }
 
         [[nodiscard]]
@@ -634,7 +679,7 @@ namespace newlang {
                 return !m_var_is_init || m_value.empty();
             } else if (m_var_type_current == ObjType::StrWide) {
                 return !m_var_is_init || m_string.empty();
-            } else if (is_tensor()) {
+            } else if (is_tensor_type()) {
                 return !m_var_is_init || at::_is_zerotensor(m_tensor);
             }
             return Variable<Obj>::empty();
@@ -673,7 +718,7 @@ namespace newlang {
          * @return 
          */
         ObjPtr operator()(Context *ctx) {
-            Obj args;
+            Obj args(ObjType::Dictionary);
             return Call(ctx, &args);
         }
 
@@ -689,7 +734,7 @@ namespace newlang {
         }
 
         inline ObjPtr Call(Context *ctx) {
-            Obj args;
+            Obj args(ObjType::Dictionary);
             return Call(ctx, &args);
         }
 
@@ -697,9 +742,9 @@ namespace newlang {
         typename std::enable_if<is_all<Obj::PairType, T ...>::value, ObjPtr>::type
         inline Call(Context *ctx, T ... args) {
             auto list = {args...};
-            Obj arg;
+            Obj arg(ObjType::Dictionary);
             for (auto &elem : list) {
-                arg.push_back(elem);
+                arg.Variable<Obj>::push_back(elem);
             }
             return Call(ctx, &arg);
         }
@@ -715,17 +760,26 @@ namespace newlang {
         template <typename I>
         typename std::enable_if < std::is_integral<I>::value && !std::is_pointer<I>::value, const PairType &>::type
         inline operator[](const I index) {
-            return at(index);
+            if (is_indexing() || m_var_type_current == ObjType::Range) {
+                return at(index);
+            }
+            LOG_RUNTIME("Operator at for object type %s not implemented!", newlang::toString(m_var_type_current));
         }
 
         template <typename N>
         typename std::enable_if < std::is_same<N, std::string>::value || std::is_pointer<N>::value, const PairType &>::type
         inline operator[](const N name) {
-            return at(name);
+            if (is_indexing() || m_var_type_current == ObjType::Range) {
+                return at(name);
+            }
+            LOG_RUNTIME("Operator at for object type %s not implemented!", newlang::toString(m_var_type_current));
         }
 
         Obj::iterator find(const std::string name) {
-            return Variable::find(name);
+            if (is_indexing() || m_var_type_current == ObjType::Range) {
+                return Variable::find(name);
+            }
+            LOG_RUNTIME("Operator find for object type %s not implemented!", newlang::toString(m_var_type_current));
         }
 
         Obj::iterator begin() {
@@ -743,31 +797,52 @@ namespace newlang {
         }
 
         Obj::const_iterator begin() const {
-            return Variable::begin();
+            if (is_indexing() || m_var_type_current == ObjType::Range) {
+                return Variable::begin();
+            }
+            LOG_RUNTIME("Interator for object type %s not implemented!", newlang::toString(m_var_type_current));
         }
 
         Obj::const_iterator end() const {
-            return Variable::end();
+            if (is_indexing() || m_var_type_current == ObjType::Range) {
+                return Variable::end();
+            }
+            LOG_RUNTIME("Interator for object type %s not implemented!", newlang::toString(m_var_type_current));
         }
 
         PairType & push_back(const PairType & p) {
-            return Variable::push_back(p);
+            if (is_indexing()) {
+                return Variable::push_back(p);
+            }
+            LOG_RUNTIME("Operator push_back for object type %s not implemented!", newlang::toString(m_var_type_current));
         }
 
         PairType & push_back(const Type value, const std::string &name = "") {
-            return Variable::push_back(value, name);
+            if (is_indexing()) {
+                return Variable::push_back(value, name);
+            }
+            LOG_RUNTIME("Operator push_back for object type %s not implemented!", newlang::toString(m_var_type_current));
         }
 
         Obj::iterator at_index(const int64_t index) {
-            return Variable::at_index(index);
+            if (is_indexing()) {
+                return Variable::at_index(index);
+            }
+            LOG_RUNTIME("Operator at_index for object type %s not implemented!", newlang::toString(m_var_type_current));
         }
 
         Obj::const_iterator at_index_const(const int64_t index) const {
-            return Variable::at_index_const(index);
+            if (is_indexing()) {
+                return Variable::at_index_const(index);
+            }
+            LOG_RUNTIME("Operator at_index_const for object type %s not implemented!", newlang::toString(m_var_type_current));
         }
 
         Obj::const_iterator insert(Obj::const_iterator pos, const PairType &data) {
-            return Variable::insert(pos, data);
+            if (is_indexing()) {
+                return Variable::insert(pos, data);
+            }
+            LOG_RUNTIME("Operator insert for object type %s not implemented!", newlang::toString(m_var_type_current));
         }
 
         const std::string & name(const int64_t index) const override {
@@ -775,15 +850,21 @@ namespace newlang {
         }
 
         int64_t resize(int64_t new_size, const Type fill, const std::string &name = "") override {
-            return Variable<Obj>::resize(new_size, fill, name);
+            if (is_indexing()) {
+                return Variable<Obj>::resize(new_size, fill, name);
+            }
+            LOG_RUNTIME("Operator resize for object type %s not implemented!", newlang::toString(m_var_type_current));
         }
 
         void erase(const int64_t index) override {
-            Variable<Obj>::erase(index);
+            if (is_indexing()) {
+                Variable<Obj>::erase(index);
+                return;
+            }
+            LOG_RUNTIME("Operator erase(index) for object type %s not implemented!", newlang::toString(m_var_type_current));
         }
 
         void clear_() override {
-
             Variable::clear_();
             clear_(true);
         }
@@ -820,7 +901,7 @@ namespace newlang {
 
         ObjPtr operator-() {
             if (is_arithmetic_type()) {
-                if (is_tensor()) {
+                if (is_tensor_type()) {
                     m_tensor = -m_tensor;
                 } else if (is_integer()) {
                     SetValue_(-GetValueAsInteger());
@@ -836,14 +917,14 @@ namespace newlang {
 
         ObjPtr & operator+(ObjPtr & obj) {
 
-            if (is_tensor()) {
+            if (is_tensor_type()) {
                 return obj;
             }
             LOG_RUNTIME("Object '%s' not numeric!", obj->toString().c_str());
         }
 
         ObjPtr &operator-(ObjPtr & obj) {
-            if (is_tensor()) {
+            if (is_tensor_type()) {
                 obj->m_tensor = torch::zeros_like(obj->m_tensor) - obj->m_tensor;
                 return obj;
             }
@@ -854,7 +935,7 @@ namespace newlang {
         //префиксная версия возвращает значение после инкремента
 
         ObjPtr operator++() {
-            if (is_tensor()) {
+            if (is_tensor_type()) {
                 m_tensor.add_(torch::ones_like(m_tensor));
 
                 return shared();
@@ -873,7 +954,7 @@ namespace newlang {
         //префиксная версия возвращает значение после декремента
 
         ObjPtr operator--() {
-            if (is_tensor()) {
+            if (is_tensor_type()) {
                 m_tensor.sub_(torch::ones_like(m_tensor));
                 return shared();
             }
@@ -1254,7 +1335,7 @@ namespace newlang {
                 } else {
                     if (elem.second) {
 
-                        if (deep || !(elem.second->is_tensor() || elem.second->getType() == ObjType::Class)) {
+                        if (deep || !(elem.second->is_tensor_type() || elem.second->getType() == ObjType::Class)) {
                             str.append(elem.first);
                             str.append("=");
                             str.append(elem.second->toString(false));
@@ -1401,7 +1482,7 @@ namespace newlang {
                     return m_iterator->data().second->GetValueAsNumber();
 
                 default:
-                    if (is_simple() || is_string_type()) {
+                    if (is_simple_type() || is_string_type()) {
                         return static_cast<double> (GetValueAsInteger());
                     }
             }
@@ -1409,7 +1490,7 @@ namespace newlang {
         }
 
         inline bool GetValueAsBoolean() const {
-            if (!m_var_is_init) {
+            if (!m_var_is_init || m_var_type_current == ObjType::IteratorEnd) {
                 return false;
             }
             if (is_scalar()) {
@@ -1428,7 +1509,7 @@ namespace newlang {
                         return false;
 
                     case ObjType::Fraction:
-                        return m_fraction.GetAsInteger();
+                        return m_fraction.GetAsBoolean();
 
                     case ObjType::Dictionary:
                     case ObjType::Class:
@@ -1581,18 +1662,17 @@ namespace newlang {
 
         template <typename T1, typename T2, typename T3>
         static ObjPtr CreateRange(T1 start, T2 stop, T3 step) {
-            ObjPtr obj = CreateType(ObjType::Range);
+            ObjPtr obj = CreateType(ObjType::Dictionary, ObjType::Range, true);
             obj->push_back(CreateValue(start, ObjType::None), "start");
             obj->push_back(CreateValue(stop, ObjType::None), "stop");
             obj->push_back(CreateValue(step, ObjType::None), "step");
-            obj->m_var_is_init = true;
-
+            obj->m_var_type_current = ObjType::Range;
             return obj;
         }
 
         template <typename T1, typename T2>
         static ObjPtr CreateRange(T1 start, T2 stop) {
-            ObjPtr obj = CreateType(ObjType::Range);
+            ObjPtr obj = CreateType(ObjType::Dictionary, ObjType::Range, true);
             obj->push_back(CreateValue(start, ObjType::None), "start");
             obj->push_back(CreateValue(stop, ObjType::None), "stop");
             if (start < stop) {
@@ -1600,7 +1680,7 @@ namespace newlang {
             } else {
                 obj->push_back(CreateValue(-1, ObjType::None), "step");
             }
-            obj->m_var_is_init = true;
+            obj->m_var_type_current = ObjType::Range;
 
             return obj;
         }
@@ -1730,7 +1810,7 @@ namespace newlang {
                     default:
                         LOG_RUNTIME("Fail convert scalar type '%s' to Index!", newlang::toString(m_var_type_current));
                 }
-            } else if (is_tensor()) {
+            } else if (is_tensor_type()) {
                 return Index(m_tensor);
             } else if (is_ellipsis()) {
                 return Index(at::indexing::Ellipsis);
@@ -2069,7 +2149,7 @@ namespace newlang {
             if (value->is_none_type()) {
                 clear_();
                 return;
-            } else if ((is_none_type() || is_tensor()) && value->is_tensor()) {
+            } else if ((is_none_type() || is_tensor_type()) && value->is_tensor_type()) {
 
                 if (value->empty()) {
                     m_var = at::monostate();
@@ -2230,7 +2310,8 @@ namespace newlang {
                 //                m_var_is_init = true;
                 //                return;
 
-            } else if ((is_none_type() || m_var_type_current == ObjType::Function) && value->is_function()) {
+            } else if (((is_none_type() || m_var_type_current == ObjType::Function) && value->is_function_type()) ||
+                    ((is_none_type() || m_var_type_current == ObjType::Pointer) && value->m_var_type_current == ObjType::Pointer)) {
                 //@todo Check function type args !!!
 
                 std::string old_name = m_var_name;
