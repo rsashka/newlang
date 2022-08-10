@@ -105,9 +105,9 @@ TEST_F(ParserTest, LiteralEval2) {
     ASSERT_STREQ("`strbyte(term(), 123);`", ast->toString().c_str());
 }
 
-TEST_F(ParserTest, LiteralFraction) {
+TEST_F(ParserTest, LiteralRational) {
     ASSERT_TRUE(Parse("1\\1;"));
-    ASSERT_EQ(TermID::FRACTION, ast->getTermID()) << newlang::toString(ast->getTermID());
+    ASSERT_EQ(TermID::RATIONAL, ast->getTermID()) << newlang::toString(ast->getTermID());
     ASSERT_STREQ("1\\1", ast->toString().c_str());
 
     /* Защита от случайной операции деления на единицу вместо указания дроби */
@@ -118,11 +118,11 @@ TEST_F(ParserTest, LiteralFraction) {
     ASSERT_NO_THROW(Parse("rrr := 11111111111111111\\1"));
     
     ASSERT_TRUE(Parse("100\\100;"));
-    ASSERT_EQ(TermID::FRACTION, ast->getTermID()) << newlang::toString(ast->getTermID());
+    ASSERT_EQ(TermID::RATIONAL, ast->getTermID()) << newlang::toString(ast->getTermID());
     ASSERT_STREQ("100\\100", ast->toString().c_str());
 
     ASSERT_TRUE(Parse("123456789123456789123456789\\123456789123456789123456789;"));
-    ASSERT_EQ(TermID::FRACTION, ast->getTermID()) << newlang::toString(ast->getTermID());
+    ASSERT_EQ(TermID::RATIONAL, ast->getTermID()) << newlang::toString(ast->getTermID());
     ASSERT_STREQ("123456789123456789123456789\\123456789123456789123456789", ast->toString().c_str());
 }
 
@@ -150,9 +150,9 @@ TEST_F(ParserTest, TermName) {
 }
 
 TEST_F(ParserTest, Tensor1) {
-    ASSERT_TRUE(Parse("[,]:Char"));
+    ASSERT_TRUE(Parse("[,]:Int8"));
     ASSERT_EQ(TermID::TENSOR, ast->getTermID()) << newlang::toString(ast->getTermID());
-    ASSERT_STREQ("[,]:Char", ast->toString().c_str());
+    ASSERT_STREQ("[,]:Int8", ast->toString().c_str());
 
     ASSERT_TRUE(Parse("term[1];"));
     ASSERT_EQ(TermID::TERM, ast->getTermID()) << newlang::toString(ast->getTermID());
@@ -235,23 +235,23 @@ TEST_F(ParserTest, Tensor4) {
     ASSERT_TRUE(Parse(":Type( \"str\" )"));
     ASSERT_STREQ(":Type(\"str\")", ast->toString().c_str());
 
-    ASSERT_TRUE(Parse(":Int[3]( \"str\" ) "));
-    ASSERT_STREQ(":Int[3](\"str\")", ast->toString().c_str());
+    ASSERT_TRUE(Parse(":Int32[3]( \"str\" ) "));
+    ASSERT_STREQ(":Int32[3](\"str\")", ast->toString().c_str());
 
-    ASSERT_TRUE(Parse(":Int[2,2](1,2,3,4);"));
-    ASSERT_STREQ(":Int[2,2](1, 2, 3, 4)", ast->toString().c_str());
+    ASSERT_TRUE(Parse(":Int32[2,2](1,2,3,4);"));
+    ASSERT_STREQ(":Int32[2,2](1, 2, 3, 4)", ast->toString().c_str());
 
-    ASSERT_TRUE(Parse(":Int[2,2]( 0,   ...    )"));
-    ASSERT_STREQ(":Int[2,2](0, ...)", ast->toString().c_str());
+    ASSERT_TRUE(Parse(":Int32[2,2]( 0,   ...    )"));
+    ASSERT_STREQ(":Int32[2,2](0, ...)", ast->toString().c_str());
 
-    ASSERT_TRUE(Parse(":Int( ... ...  dict )"));
-    ASSERT_STREQ(":Int(... ...dict)", ast->toString().c_str());
+    ASSERT_TRUE(Parse(":Int32( ... ...  dict )"));
+    ASSERT_STREQ(":Int32(... ...dict)", ast->toString().c_str());
 
-    ASSERT_TRUE(Parse(":Int( ... dict )"));
-    ASSERT_STREQ(":Int(...dict)", ast->toString().c_str());
+    ASSERT_TRUE(Parse(":Int32( ... dict )"));
+    ASSERT_STREQ(":Int32(...dict)", ast->toString().c_str());
 
-    ASSERT_TRUE(Parse(":Int[2,2](   ...   rand()  ...   )"));
-    ASSERT_STREQ(":Int[2,2](...rand()...)", ast->toString().c_str());
+    ASSERT_TRUE(Parse(":Int32[2,2](   ...   rand()  ...   )"));
+    ASSERT_STREQ(":Int32[2,2](...rand()...)", ast->toString().c_str());
 
     ASSERT_TRUE(Parse(":type[10]( 1,     2,  ...    rand()   ... )"));
     ASSERT_STREQ(":type[10](1, 2, ...rand()...)", ast->toString().c_str());
@@ -289,31 +289,31 @@ TEST_F(ParserTest, ScalarType) {
 
     ASSERT_TRUE(Parse("2;"));
     ASSERT_STREQ("2", ast->toString().c_str());
-    ASSERT_STREQ(":Char", ast->m_type_name.c_str());
+    ASSERT_STREQ(":Int8", ast->m_type_name.c_str());
 
     ASSERT_TRUE(Parse("2_2;"));
     ASSERT_STREQ("2_2", ast->toString().c_str());
-    ASSERT_STREQ(":Char", ast->m_type_name.c_str());
+    ASSERT_STREQ(":Int8", ast->m_type_name.c_str());
 
     ASSERT_TRUE(Parse("-1;"));
     ASSERT_STREQ("-1", ast->toString().c_str());
-    ASSERT_STREQ(":Char", ast->m_type_name.c_str());
+    ASSERT_STREQ(":Int8", ast->m_type_name.c_str());
 
     ASSERT_TRUE(Parse("256;"));
     ASSERT_STREQ("256", ast->toString().c_str());
-    ASSERT_STREQ(":Short", ast->m_type_name.c_str());
+    ASSERT_STREQ(":Int16", ast->m_type_name.c_str());
 
     ASSERT_TRUE(Parse("10_000;"));
     ASSERT_STREQ("10_000", ast->toString().c_str());
-    ASSERT_STREQ(":Short", ast->m_type_name.c_str());
+    ASSERT_STREQ(":Int16", ast->m_type_name.c_str());
 
     ASSERT_TRUE(Parse("100_000;"));
     ASSERT_STREQ("100_000", ast->toString().c_str());
-    ASSERT_STREQ(":Int", ast->m_type_name.c_str());
+    ASSERT_STREQ(":Int32", ast->m_type_name.c_str());
 
     ASSERT_TRUE(Parse("0.0;"));
     ASSERT_STREQ("0.0", ast->toString().c_str());
-    ASSERT_STREQ(":Float", ast->m_type_name.c_str());
+    ASSERT_STREQ(":Float32", ast->m_type_name.c_str());
 
 
 
@@ -321,102 +321,102 @@ TEST_F(ParserTest, ScalarType) {
     ASSERT_STREQ("0:Bool", ast->toString().c_str());
     ASSERT_STREQ(":Bool", ast->m_type_name.c_str());
 
-    ASSERT_TRUE(Parse("0:Int;"));
-    ASSERT_STREQ("0:Int", ast->toString().c_str());
-    ASSERT_STREQ(":Int", ast->m_type_name.c_str());
+    ASSERT_TRUE(Parse("0:Int32;"));
+    ASSERT_STREQ("0:Int32", ast->toString().c_str());
+    ASSERT_STREQ(":Int32", ast->m_type_name.c_str());
 
-    ASSERT_TRUE(Parse("0:Long;"));
-    ASSERT_STREQ("0:Long", ast->toString().c_str());
-    ASSERT_STREQ(":Long", ast->m_type_name.c_str());
+    ASSERT_TRUE(Parse("0:Int64;"));
+    ASSERT_STREQ("0:Int64", ast->toString().c_str());
+    ASSERT_STREQ(":Int64", ast->m_type_name.c_str());
 
-    ASSERT_TRUE(Parse("0:Float;"));
-    ASSERT_STREQ("0:Float", ast->toString().c_str());
-    ASSERT_STREQ(":Float", ast->m_type_name.c_str());
+    ASSERT_TRUE(Parse("0:Float32;"));
+    ASSERT_STREQ("0:Float32", ast->toString().c_str());
+    ASSERT_STREQ(":Float32", ast->m_type_name.c_str());
 
     //    ASSERT_TRUE(Parse("0  :  Half"));
     //    ASSERT_STREQ("0:Half", ast->toString().c_str());
     //    ASSERT_STREQ(":Half", ast->m_type_name.c_str());
 
-    ASSERT_TRUE(Parse("0:Double;"));
-    ASSERT_STREQ("0:Double", ast->toString().c_str());
-    ASSERT_STREQ(":Double", ast->m_type_name.c_str());
+    ASSERT_TRUE(Parse("0:Float64;"));
+    ASSERT_STREQ("0:Float64", ast->toString().c_str());
+    ASSERT_STREQ(":Float64", ast->m_type_name.c_str());
 
 
     ASSERT_TRUE(Parse("1:Bool;"));
     ASSERT_STREQ("1:Bool", ast->toString().c_str());
     ASSERT_STREQ(":Bool", ast->m_type_name.c_str());
 
-    ASSERT_TRUE(Parse("1:Char;"));
-    ASSERT_STREQ("1:Char", ast->toString().c_str());
-    ASSERT_STREQ(":Char", ast->m_type_name.c_str());
+    ASSERT_TRUE(Parse("1:Int8;"));
+    ASSERT_STREQ("1:Int8", ast->toString().c_str());
+    ASSERT_STREQ(":Int8", ast->m_type_name.c_str());
 
-    ASSERT_TRUE(Parse("1:Char;"));
-    ASSERT_STREQ("1:Char", ast->toString().c_str());
-    ASSERT_STREQ(":Char", ast->m_type_name.c_str());
+    ASSERT_TRUE(Parse("1:Int8;"));
+    ASSERT_STREQ("1:Int8", ast->toString().c_str());
+    ASSERT_STREQ(":Int8", ast->m_type_name.c_str());
 
-    ASSERT_TRUE(Parse("1:Double;"));
-    ASSERT_STREQ("1:Double", ast->toString().c_str());
-    ASSERT_STREQ(":Double", ast->m_type_name.c_str());
+    ASSERT_TRUE(Parse("1:Float64;"));
+    ASSERT_STREQ("1:Float64", ast->toString().c_str());
+    ASSERT_STREQ(":Float64", ast->m_type_name.c_str());
 
-    ASSERT_TRUE(Parse("2:Short;"));
-    ASSERT_STREQ("2:Short", ast->toString().c_str());
-    ASSERT_STREQ(":Short", ast->m_type_name.c_str());
+    ASSERT_TRUE(Parse("2:Int16;"));
+    ASSERT_STREQ("2:Int16", ast->toString().c_str());
+    ASSERT_STREQ(":Int16", ast->m_type_name.c_str());
 
-    ASSERT_TRUE(Parse("2_2:Int;"));
-    ASSERT_STREQ("2_2:Int", ast->toString().c_str());
-    ASSERT_STREQ(":Int", ast->m_type_name.c_str());
+    ASSERT_TRUE(Parse("2_2:Int32;"));
+    ASSERT_STREQ("2_2:Int32", ast->toString().c_str());
+    ASSERT_STREQ(":Int32", ast->m_type_name.c_str());
 
-    ASSERT_TRUE(Parse("-1:Char;"));
-    ASSERT_STREQ("-1:Char", ast->toString().c_str());
-    ASSERT_STREQ(":Char", ast->m_type_name.c_str());
+    ASSERT_TRUE(Parse("-1:Int8;"));
+    ASSERT_STREQ("-1:Int8", ast->toString().c_str());
+    ASSERT_STREQ(":Int8", ast->m_type_name.c_str());
 
-    ASSERT_TRUE(Parse("-1 :Long;"));
-    ASSERT_STREQ("-1:Long", ast->toString().c_str());
-    ASSERT_STREQ(":Long", ast->m_type_name.c_str());
+    ASSERT_TRUE(Parse("-1 :Int64;"));
+    ASSERT_STREQ("-1:Int64", ast->toString().c_str());
+    ASSERT_STREQ(":Int64", ast->m_type_name.c_str());
 
-    ASSERT_TRUE(Parse("256 :Short;"));
-    ASSERT_STREQ("256:Short", ast->toString().c_str());
-    ASSERT_STREQ(":Short", ast->m_type_name.c_str());
+    ASSERT_TRUE(Parse("256 :Int16;"));
+    ASSERT_STREQ("256:Int16", ast->toString().c_str());
+    ASSERT_STREQ(":Int16", ast->m_type_name.c_str());
 
-    ASSERT_TRUE(Parse("10_000    :Long;"));
-    ASSERT_STREQ("10_000:Long", ast->toString().c_str());
-    ASSERT_STREQ(":Long", ast->m_type_name.c_str());
+    ASSERT_TRUE(Parse("10_000    :Int64;"));
+    ASSERT_STREQ("10_000:Int64", ast->toString().c_str());
+    ASSERT_STREQ(":Int64", ast->m_type_name.c_str());
 
     //    ASSERT_THROW(Parse("10__000"), parser_exception);
 
-    ASSERT_TRUE(Parse("100_000:  Int;"));
-    ASSERT_STREQ("100_000:Int", ast->toString().c_str());
-    ASSERT_STREQ(":Int", ast->m_type_name.c_str());
+    ASSERT_TRUE(Parse("100_000:  Int32;"));
+    ASSERT_STREQ("100_000:Int32", ast->toString().c_str());
+    ASSERT_STREQ(":Int32", ast->m_type_name.c_str());
 
-    ASSERT_TRUE(Parse("1.0  :  Float;"));
-    ASSERT_STREQ("1.0:Float", ast->toString().c_str());
-    ASSERT_STREQ(":Float", ast->m_type_name.c_str());
+    ASSERT_TRUE(Parse("1.0  :  Float32;"));
+    ASSERT_STREQ("1.0:Float32", ast->toString().c_str());
+    ASSERT_STREQ(":Float32", ast->m_type_name.c_str());
 
 
-    ASSERT_TRUE(Parse("-0.0   :Double;"));
-    ASSERT_STREQ("-0.0:Double", ast->toString().c_str());
-    ASSERT_STREQ(":Double", ast->m_type_name.c_str());
+    ASSERT_TRUE(Parse("-0.0   :Float64;"));
+    ASSERT_STREQ("-0.0:Float64", ast->toString().c_str());
+    ASSERT_STREQ(":Float64", ast->m_type_name.c_str());
 
     ASSERT_THROW(Parse("2:Bool;"), Interrupt);
     ASSERT_THROW(Parse("-1:Bool;"), Interrupt);
-    //        ASSERT_THROW(Parse("-1:Char"), parser_exception);
-    ASSERT_THROW(Parse("300:Char;"), Interrupt);
-    ASSERT_THROW(Parse("100000:Short;"), Interrupt);
+    //        ASSERT_THROW(Parse("-1:Int8"), parser_exception);
+    ASSERT_THROW(Parse("300:Int8;"), Interrupt);
+    ASSERT_THROW(Parse("100000:Int16;"), Interrupt);
     ASSERT_THROW(Parse("0.0:Bool;"), Interrupt);
-    ASSERT_THROW(Parse("0.0:Char;"), Interrupt);
-    ASSERT_THROW(Parse("0.0:Int;"), Interrupt);
-    ASSERT_THROW(Parse("0.0:Long;"), Interrupt);
+    ASSERT_THROW(Parse("0.0:Int8;"), Interrupt);
+    ASSERT_THROW(Parse("0.0:Int32;"), Interrupt);
+    ASSERT_THROW(Parse("0.0:Int64;"), Interrupt);
 }
 
 TEST_F(ParserTest, TensorType) {
-    ASSERT_TRUE(Parse("term:Char[1,2] := [ [1,2,],[3,4,],];"));
-    ASSERT_STREQ("term:Char[1,2] := [[1, 2,], [3, 4,],];", ast->toString().c_str());
+    ASSERT_TRUE(Parse("term:Int8[1,2] := [ [1,2,],[3,4,],];"));
+    ASSERT_STREQ("term:Int8[1,2] := [[1, 2,], [3, 4,],];", ast->toString().c_str());
 
     ASSERT_TRUE(Parse("term[..., 3] := 0;"));
     ASSERT_STREQ("term[..., 3] := 0;", ast->toString().c_str());
 
-    ASSERT_TRUE(Parse("term []= [2, 3,]:Int;"));
-    ASSERT_STREQ("term []= [2, 3,]:Int;", ast->toString().c_str());
+    ASSERT_TRUE(Parse("term []= [2, 3,]:Int32;"));
+    ASSERT_STREQ("term []= [2, 3,]:Int32;", ast->toString().c_str());
 
     //    ASSERT_TRUE(Parse("term[1, 3] :$type []= [[1,2,3,],];"));
     //    ASSERT_STREQ("term[1, 3]:$type []= [[1, 2, 3,],];", ast->toString().c_str());
@@ -597,9 +597,9 @@ TEST_F(ParserTest, TermArgMixed) {
 }
 
 TEST_F(ParserTest, ArgsType) {
-    ASSERT_TRUE(Parse("term(bool:Bool=term(100), int:Int=100, long:Long=@term()):Double:={long;};"));
+    ASSERT_TRUE(Parse("term(bool:Bool=term(100), int:Int32=100, long:Int64=@term()):Float64:={long;};"));
     ASSERT_EQ(TermID::CREATE_OR_ASSIGN, ast->getTermID()) << newlang::toString(ast->getTermID());
-    ASSERT_STREQ("term(bool:Bool=term(100), int:Int=100, long:Long=@term()):Double := {long;};", ast->toString().c_str());
+    ASSERT_STREQ("term(bool:Bool=term(100), int:Int32=100, long:Int64=@term()):Float64 := {long;};", ast->toString().c_str());
 }
 
 TEST_F(ParserTest, TermCall) {
@@ -1340,21 +1340,21 @@ TEST_F(ParserTest, DISABLED_Ellipsis1) {
 //    ASSERT_STREQ("0.1-0.20j;", ast->toString().c_str());
 //}
 //
-//TEST_F(ParserTest, Fraction) {
+//TEST_F(ParserTest, Rational) {
 //    ASSERT_TRUE(Parse("1\\1"));
-//    ASSERT_EQ(TermID::FRACTION, ast->getTermID()) << newlang::toString(ast->getTermID());
+//    ASSERT_EQ(TermID::RATIONAL, ast->getTermID()) << newlang::toString(ast->getTermID());
 //    ASSERT_STREQ("1\\1;", ast->toString().c_str());
 //}
 //
-//TEST_F(ParserTest, Fraction2) {
+//TEST_F(ParserTest, Rational2) {
 //    ASSERT_TRUE(Parse("1\\-20"));
-//    ASSERT_EQ(TermID::FRACTION, ast->getTermID()) << newlang::toString(ast->getTermID());
+//    ASSERT_EQ(TermID::RATIONAL, ast->getTermID()) << newlang::toString(ast->getTermID());
 //    ASSERT_STREQ("1\\-20;", ast->toString().c_str());
 //}
 //
-//TEST_F(ParserTest, Fraction3) {
+//TEST_F(ParserTest, Rational3) {
 //    ASSERT_TRUE(Parse("-3\\+11"));
-//    ASSERT_EQ(TermID::FRACTION, ast->getTermID()) << newlang::toString(ast->getTermID());
+//    ASSERT_EQ(TermID::RATIONAL, ast->getTermID()) << newlang::toString(ast->getTermID());
 //    ASSERT_STREQ("-3\\+11;", ast->toString().c_str());
 //}
 //
@@ -1371,21 +1371,21 @@ TEST_F(ParserTest, Ellipsis2) {
 }
 
 TEST_F(ParserTest, Func1) {
-    ASSERT_TRUE(Parse("func_arg(arg1 :Char, arg2) :Char := { $arg1+$arg2; };"));
+    ASSERT_TRUE(Parse("func_arg(arg1 :Int8, arg2) :Int8 := { $arg1+$arg2; };"));
     ASSERT_EQ(TermID::CREATE_OR_ASSIGN, ast->getTermID()) << newlang::toString(ast->getTermID());
-    ASSERT_STREQ("func_arg(arg1:Char, arg2):Char := {$arg1 + $arg2;};", ast->toString().c_str());
+    ASSERT_STREQ("func_arg(arg1:Int8, arg2):Int8 := {$arg1 + $arg2;};", ast->toString().c_str());
 }
 
 TEST_F(ParserTest, Func2) {
-    ASSERT_TRUE(Parse("func_arg(arg1:&Char, &arg2) :&Char := { $arg1+$arg2; };"));
+    ASSERT_TRUE(Parse("func_arg(arg1:&Int8, &arg2) :&Int8 := { $arg1+$arg2; };"));
     ASSERT_EQ(TermID::CREATE_OR_ASSIGN, ast->getTermID()) << newlang::toString(ast->getTermID());
-    ASSERT_STREQ("func_arg(arg1:&Char, &arg2):&Char := {$arg1 + $arg2;};", ast->toString().c_str());
+    ASSERT_STREQ("func_arg(arg1:&Int8, &arg2):&Int8 := {$arg1 + $arg2;};", ast->toString().c_str());
 }
 
 TEST_F(ParserTest, Func3) {
-    ASSERT_TRUE(Parse("$res:Char ::= func_arg(100, 100);"));
+    ASSERT_TRUE(Parse("$res:Int8 ::= func_arg(100, 100);"));
     ASSERT_EQ(TermID::CREATE, ast->getTermID()) << newlang::toString(ast->getTermID());
-    ASSERT_STREQ("$res:Char ::= func_arg(100, 100);", ast->toString().c_str());
+    ASSERT_STREQ("$res:Int8 ::= func_arg(100, 100);", ast->toString().c_str());
 }
 
 TEST_F(ParserTest, Func4) {
@@ -2137,7 +2137,7 @@ TEST_F(ParserTest, MacroDSL) {
 }
 
 TEST_F(ParserTest, HelloWorld) {
-    ASSERT_TRUE(Parse("hello(str=\"\") := { printf(format:FmtChar, ...):Int := :Pointer('printf'); printf('%s', $1); $str;};"));
+    ASSERT_TRUE(Parse("hello(str=\"\") := { printf(format:FmtChar, ...):Int32 := :Pointer('printf'); printf('%s', $1); $str;};"));
     //    ASSERT_STREQ("!!!!!!!!!!!!!!", ast->toString().c_str());
 }
 

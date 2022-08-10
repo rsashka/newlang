@@ -168,7 +168,7 @@ TEST_F(Lexer, Integer) {
     EXPECT_STREQ("123", tokens[2]->getText().c_str()) << tokens[2]->getText();
 }
 
-TEST_F(Lexer, Number) {
+TEST_F(Lexer, Float) {
     ASSERT_EQ(1, Parse("1.e10"));
     EXPECT_EQ(1, Count(TermID::NUMBER));
     EXPECT_STREQ("1.e10", tokens[0]->getText().c_str());

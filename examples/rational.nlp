@@ -1,8 +1,8 @@
 #!../output/nlc --eval
 
-@printf := :Pointer('printf(format:FmtChar, ...):Int');
+@printf := :Pointer('printf(format:FmtChar, ...):Int32');
 
-@fact_int(n:Int) := {
+@fact_int(n:Int32) := {
     [n > 1] --> {
         n *= fact_int(n-1);
     }, [n==1] --> {
@@ -24,7 +24,7 @@ printf('Recursive factorial with integer overflow at most 13!:\n');
 
 
 
-@fact_range(n:Fraction) := {
+@fact_range(n:Rational) := {
     [n > 2] --> {
         iter := (n-1)..1..-1?; # Итератор для множителей
         [iter?!] <<-->> {
@@ -34,9 +34,9 @@ printf('Recursive factorial with integer overflow at most 13!:\n');
     n
  };
 
-printf('Recursive factorial without overflow with fractional value:\n');
+printf('Recursive factorial without overflow with rationalal value:\n');
 @big := (1, 2, 3, 4, 5, 10, 11, 12, 13, 20, 30, 100, 1000,)?;
-@frac := 0\1;   # fraction value support bigint
+@frac := 0\1;   # rational value support bigint
 
 [ big ] <<-->> {
     printf('%s! -> ', :StrChar(big?!));

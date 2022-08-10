@@ -37,5 +37,5 @@ while (s != s_last):
 
 # You can uncomment the next line to see all k-mers.
 # print(s)
-print("Number of generated k-mers: {}".format(counter))
+print("Float of generated k-mers: {}".format(counter))
 

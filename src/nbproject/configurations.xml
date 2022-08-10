@@ -16,20 +16,21 @@
         <itemPath>../examples/dsl.nlp</itemPath>
         <itemPath>../examples/fileio.nlp</itemPath>
         <itemPath>../examples/foreach.nlp</itemPath>
-        <itemPath>../examples/fraction.nlp</itemPath>
+        <itemPath>../examples/rational.nlp</itemPath>
         <itemPath>../examples/speed_test.nlp</itemPath>
         <itemPath>../examples/speed_test.py</itemPath>
+        <itemPath>../examples/tensor.nlp</itemPath>
       </logicalFolder>
       <logicalFolder name="f1" displayName="test" projectFiles="true">
         <itemPath>test/alg_test.cpp</itemPath>
         <itemPath>test/compiler_test.cpp</itemPath>
         <itemPath>test/eval_test.cpp</itemPath>
         <itemPath>test/example_test.cpp</itemPath>
-        <itemPath>test/fraction_test.cpp</itemPath>
         <itemPath>test/lexer_test.cpp</itemPath>
         <itemPath>test/nlc_test.cpp</itemPath>
         <itemPath>test/object_test.cpp</itemPath>
         <itemPath>test/parser_test.cpp</itemPath>
+        <itemPath>test/rational_test.cpp</itemPath>
       </logicalFolder>
       <itemPath>builtin.cpp</itemPath>
       <itemPath>context.cpp</itemPath>
@@ -47,13 +48,13 @@
       <itemPath>autocomplete.h</itemPath>
       <itemPath>builtin.h</itemPath>
       <itemPath>context.h</itemPath>
-      <itemPath>fraction.h</itemPath>
       <itemPath>lexer.h</itemPath>
       <itemPath>newlang.h</itemPath>
       <itemPath>nlc.h</itemPath>
       <itemPath>object.h</itemPath>
       <itemPath>parser.h</itemPath>
       <itemPath>pch.h</itemPath>
+      <itemPath>rational.h</itemPath>
       <itemPath>term.h</itemPath>
       <itemPath>types.h</itemPath>
       <itemPath>variable.h</itemPath>
@@ -92,11 +93,27 @@
       <itemPath>../LICENSE</itemPath>
       <itemPath>Makefile</itemPath>
     </logicalFolder>
+    <logicalFolder name="TestFiles"
+                   displayName="Файлы тестов"
+                   projectFiles="false"
+                   kind="TEST_LOGICAL_FOLDER">
+    </logicalFolder>
+    <logicalFolder name="ExternalFiles"
+                   displayName="Важные файлы"
+                   projectFiles="false"
+                   kind="IMPORTANT_FILES_FOLDER">
+      <itemPath>../.clang-format</itemPath>
+      <itemPath>../.gitignore</itemPath>
+      <itemPath>../.gitmodules</itemPath>
+      <itemPath>../LICENSE</itemPath>
+      <itemPath>Makefile</itemPath>
+    </logicalFolder>
     <itemPath>../README.md</itemPath>
     <itemPath>lexer.l</itemPath>
     <itemPath>parser.y</itemPath>
   </logicalFolder>
   <sourceRootList>
+    <Elem>/home/rsashka/SOURCE/PUBLIC/NewLang/newlang/test</Elem>
     <Elem>/home/rsashka/SOURCE/PUBLIC/NewLang/newlang/test</Elem>
   </sourceRootList>
   <projectmakefile>Makefile</projectmakefile>
@@ -205,11 +222,13 @@
       </item>
       <item path="../examples/foreach.nlp" ex="false" tool="3" flavor2="0">
       </item>
-      <item path="../examples/fraction.nlp" ex="false" tool="3" flavor2="0">
+      <item path="../examples/rational.nlp" ex="false" tool="3" flavor2="0">
       </item>
       <item path="../examples/speed_test.nlp" ex="false" tool="3" flavor2="0">
       </item>
       <item path="../examples/speed_test.py" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../examples/tensor.nlp" ex="false" tool="3" flavor2="0">
       </item>
       <item path="autocomplete.h" ex="false" tool="3" flavor2="0">
       </item>
@@ -233,8 +252,6 @@
         <customTool>
           <customToolAdditionalDep>pch.h.gch</customToolAdditionalDep>
         </customTool>
-      </item>
-      <item path="fraction.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="lexer.cpp" ex="false" tool="1" flavor2="9">
         <ccTool>
@@ -328,6 +345,8 @@
       </item>
       <item path="pch.h.gch" ex="false" tool="3" flavor2="0">
       </item>
+      <item path="rational.h" ex="false" tool="3" flavor2="0">
+      </item>
       <item path="syntax_help.cpp" ex="false" tool="1" flavor2="0">
       </item>
       <item path="term.cpp" ex="false" tool="1" flavor2="9">
@@ -360,8 +379,6 @@
           <additionalDep>pch.h.gch</additionalDep>
         </ccTool>
       </item>
-      <item path="test/fraction_test.cpp" ex="false" tool="1" flavor2="0">
-      </item>
       <item path="test/lexer_test.cpp" ex="false" tool="1" flavor2="9">
         <ccTool>
           <additionalDep>pch.h.gch</additionalDep>
@@ -381,6 +398,8 @@
         <ccTool>
           <additionalDep>pch.h.gch</additionalDep>
         </ccTool>
+      </item>
+      <item path="test/rational_test.cpp" ex="false" tool="1" flavor2="0">
       </item>
       <item path="types.h" ex="false" tool="3" flavor2="0">
         <customTool>
@@ -509,11 +528,13 @@
       </item>
       <item path="../examples/foreach.nlp" ex="false" tool="3" flavor2="0">
       </item>
-      <item path="../examples/fraction.nlp" ex="false" tool="3" flavor2="0">
+      <item path="../examples/rational.nlp" ex="false" tool="3" flavor2="0">
       </item>
       <item path="../examples/speed_test.nlp" ex="false" tool="3" flavor2="0">
       </item>
       <item path="../examples/speed_test.py" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../examples/tensor.nlp" ex="false" tool="3" flavor2="0">
       </item>
       <item path="autocomplete.h" ex="false" tool="3" flavor2="0">
       </item>
@@ -530,8 +551,6 @@
         </ccTool>
       </item>
       <item path="context.h" ex="false" tool="3" flavor2="0">
-      </item>
-      <item path="fraction.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="lexer.cpp" ex="false" tool="1" flavor2="9">
         <ccTool>
@@ -612,6 +631,8 @@
       </item>
       <item path="pch.h.gch" ex="false" tool="3" flavor2="0">
       </item>
+      <item path="rational.h" ex="false" tool="3" flavor2="0">
+      </item>
       <item path="syntax_help.cpp" ex="false" tool="1" flavor2="9">
       </item>
       <item path="term.cpp" ex="false" tool="1" flavor2="9">
@@ -644,11 +665,6 @@
           <additionalDep></additionalDep>
         </ccTool>
       </item>
-      <item path="test/fraction_test.cpp" ex="false" tool="1" flavor2="9">
-        <ccTool>
-          <additionalDep></additionalDep>
-        </ccTool>
-      </item>
       <item path="test/lexer_test.cpp" ex="false" tool="1" flavor2="9">
         <ccTool>
           <additionalDep></additionalDep>
@@ -665,6 +681,11 @@
         </ccTool>
       </item>
       <item path="test/parser_test.cpp" ex="false" tool="1" flavor2="9">
+        <ccTool>
+          <additionalDep></additionalDep>
+        </ccTool>
+      </item>
+      <item path="test/rational_test.cpp" ex="false" tool="1" flavor2="9">
         <ccTool>
           <additionalDep></additionalDep>
         </ccTool>
@@ -754,11 +775,13 @@
       </item>
       <item path="../examples/foreach.nlp" ex="false" tool="3" flavor2="0">
       </item>
-      <item path="../examples/fraction.nlp" ex="false" tool="3" flavor2="0">
+      <item path="../examples/rational.nlp" ex="false" tool="3" flavor2="0">
       </item>
       <item path="../examples/speed_test.nlp" ex="false" tool="3" flavor2="0">
       </item>
       <item path="../examples/speed_test.py" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../examples/tensor.nlp" ex="false" tool="3" flavor2="0">
       </item>
       <item path="autocomplete.h" ex="false" tool="3" flavor2="0">
       </item>
@@ -769,8 +792,6 @@
       <item path="context.cpp" ex="false" tool="1" flavor2="0">
       </item>
       <item path="context.h" ex="false" tool="3" flavor2="0">
-      </item>
-      <item path="fraction.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="lexer.cpp" ex="false" tool="1" flavor2="0">
       </item>
@@ -821,6 +842,8 @@
       </item>
       <item path="pch.h.gch" ex="false" tool="3" flavor2="0">
       </item>
+      <item path="rational.h" ex="false" tool="3" flavor2="0">
+      </item>
       <item path="syntax_help.cpp" ex="false" tool="1" flavor2="0">
       </item>
       <item path="term.cpp" ex="false" tool="1" flavor2="0">
@@ -835,8 +858,6 @@
       </item>
       <item path="test/example_test.cpp" ex="false" tool="1" flavor2="0">
       </item>
-      <item path="test/fraction_test.cpp" ex="false" tool="1" flavor2="0">
-      </item>
       <item path="test/lexer_test.cpp" ex="false" tool="1" flavor2="0">
       </item>
       <item path="test/nlc_test.cpp" ex="false" tool="1" flavor2="0">
@@ -844,6 +865,8 @@
       <item path="test/object_test.cpp" ex="false" tool="1" flavor2="11">
       </item>
       <item path="test/parser_test.cpp" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="test/rational_test.cpp" ex="false" tool="1" flavor2="0">
       </item>
       <item path="types.h" ex="false" tool="3" flavor2="0">
       </item>
@@ -960,11 +983,13 @@
       </item>
       <item path="../examples/foreach.nlp" ex="false" tool="3" flavor2="0">
       </item>
-      <item path="../examples/fraction.nlp" ex="false" tool="3" flavor2="0">
+      <item path="../examples/rational.nlp" ex="false" tool="3" flavor2="0">
       </item>
       <item path="../examples/speed_test.nlp" ex="false" tool="3" flavor2="0">
       </item>
       <item path="../examples/speed_test.py" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../examples/tensor.nlp" ex="false" tool="3" flavor2="0">
       </item>
       <item path="autocomplete.h" ex="false" tool="3" flavor2="0">
       </item>
@@ -988,8 +1013,6 @@
         <customTool>
           <customToolAdditionalDep>pch.h.gch</customToolAdditionalDep>
         </customTool>
-      </item>
-      <item path="fraction.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="lexer.cpp" ex="false" tool="1" flavor2="0">
         <ccTool>
@@ -1083,6 +1106,8 @@
       </item>
       <item path="pch.h.gch" ex="false" tool="3" flavor2="0">
       </item>
+      <item path="rational.h" ex="false" tool="3" flavor2="0">
+      </item>
       <item path="syntax_help.cpp" ex="false" tool="1" flavor2="0">
       </item>
       <item path="term.cpp" ex="false" tool="1" flavor2="0">
@@ -1115,8 +1140,6 @@
           <additionalDep>pch.h.gch</additionalDep>
         </ccTool>
       </item>
-      <item path="test/fraction_test.cpp" ex="false" tool="1" flavor2="0">
-      </item>
       <item path="test/lexer_test.cpp" ex="false" tool="1" flavor2="0">
         <ccTool>
           <additionalDep>pch.h.gch</additionalDep>
@@ -1136,6 +1159,8 @@
         <ccTool>
           <additionalDep>pch.h.gch</additionalDep>
         </ccTool>
+      </item>
+      <item path="test/rational_test.cpp" ex="false" tool="1" flavor2="0">
       </item>
       <item path="types.h" ex="false" tool="3" flavor2="0">
         <customTool>
@@ -1269,11 +1294,13 @@
       </item>
       <item path="../examples/foreach.nlp" ex="false" tool="3" flavor2="0">
       </item>
-      <item path="../examples/fraction.nlp" ex="false" tool="3" flavor2="0">
+      <item path="../examples/rational.nlp" ex="false" tool="3" flavor2="0">
       </item>
       <item path="../examples/speed_test.nlp" ex="false" tool="3" flavor2="0">
       </item>
       <item path="../examples/speed_test.py" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../examples/tensor.nlp" ex="false" tool="3" flavor2="0">
       </item>
       <item path="autocomplete.h" ex="false" tool="3" flavor2="0">
       </item>
@@ -1292,8 +1319,6 @@
         </ccTool>
       </item>
       <item path="context.h" ex="false" tool="3" flavor2="0">
-      </item>
-      <item path="fraction.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="lexer.cpp" ex="false" tool="1" flavor2="0">
         <ccTool>
@@ -1380,6 +1405,8 @@
       </item>
       <item path="pch.h.gch" ex="false" tool="3" flavor2="0">
       </item>
+      <item path="rational.h" ex="false" tool="3" flavor2="0">
+      </item>
       <item path="syntax_help.cpp" ex="false" tool="1" flavor2="0">
       </item>
       <item path="term.cpp" ex="false" tool="1" flavor2="0">
@@ -1417,12 +1444,6 @@
           <additionalDep>pch.h.pch</additionalDep>
         </ccTool>
       </item>
-      <item path="test/fraction_test.cpp" ex="false" tool="1" flavor2="0">
-        <ccTool>
-          <commandLine>-include-pch pch.h.pch</commandLine>
-          <additionalDep>pch.h.pch</additionalDep>
-        </ccTool>
-      </item>
       <item path="test/lexer_test.cpp" ex="false" tool="1" flavor2="0">
         <ccTool>
           <commandLine>-include-pch pch.h.pch</commandLine>
@@ -1442,6 +1463,12 @@
         </ccTool>
       </item>
       <item path="test/parser_test.cpp" ex="false" tool="1" flavor2="0">
+        <ccTool>
+          <commandLine>-include-pch pch.h.pch</commandLine>
+          <additionalDep>pch.h.pch</additionalDep>
+        </ccTool>
+      </item>
+      <item path="test/rational_test.cpp" ex="false" tool="1" flavor2="0">
         <ccTool>
           <commandLine>-include-pch pch.h.pch</commandLine>
           <additionalDep>pch.h.pch</additionalDep>
@@ -1556,11 +1583,13 @@
       </item>
       <item path="../examples/foreach.nlp" ex="false" tool="3" flavor2="0">
       </item>
-      <item path="../examples/fraction.nlp" ex="false" tool="3" flavor2="0">
+      <item path="../examples/rational.nlp" ex="false" tool="3" flavor2="0">
       </item>
       <item path="../examples/speed_test.nlp" ex="false" tool="3" flavor2="0">
       </item>
       <item path="../examples/speed_test.py" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../examples/tensor.nlp" ex="false" tool="3" flavor2="0">
       </item>
       <item path="autocomplete.h" ex="false" tool="3" flavor2="0">
       </item>
@@ -1574,8 +1603,6 @@
         </ccTool>
       </item>
       <item path="context.h" ex="false" tool="3" flavor2="0">
-      </item>
-      <item path="fraction.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="lexer.cpp" ex="false" tool="1" flavor2="9">
         <ccTool>
@@ -1644,6 +1671,8 @@
       </item>
       <item path="pch.h.gch" ex="false" tool="3" flavor2="0">
       </item>
+      <item path="rational.h" ex="false" tool="3" flavor2="0">
+      </item>
       <item path="syntax_help.cpp" ex="false" tool="1" flavor2="0">
       </item>
       <item path="term.cpp" ex="false" tool="1" flavor2="9">
@@ -1664,8 +1693,6 @@
       </item>
       <item path="test/example_test.cpp" ex="false" tool="1" flavor2="9">
       </item>
-      <item path="test/fraction_test.cpp" ex="false" tool="1" flavor2="0">
-      </item>
       <item path="test/lexer_test.cpp" ex="false" tool="1" flavor2="9">
       </item>
       <item path="test/nlc_test.cpp" ex="false" tool="1" flavor2="9">
@@ -1673,6 +1700,8 @@
       <item path="test/object_test.cpp" ex="false" tool="1" flavor2="11">
       </item>
       <item path="test/parser_test.cpp" ex="false" tool="1" flavor2="9">
+      </item>
+      <item path="test/rational_test.cpp" ex="false" tool="1" flavor2="0">
       </item>
       <item path="types.h" ex="false" tool="3" flavor2="0">
       </item>
@@ -1810,11 +1839,13 @@
       </item>
       <item path="../examples/foreach.nlp" ex="false" tool="3" flavor2="0">
       </item>
-      <item path="../examples/fraction.nlp" ex="false" tool="3" flavor2="0">
+      <item path="../examples/rational.nlp" ex="false" tool="3" flavor2="0">
       </item>
       <item path="../examples/speed_test.nlp" ex="false" tool="3" flavor2="0">
       </item>
       <item path="../examples/speed_test.py" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../examples/tensor.nlp" ex="false" tool="3" flavor2="0">
       </item>
       <item path="autocomplete.h" ex="false" tool="3" flavor2="0">
       </item>
@@ -1828,8 +1859,6 @@
         </ccTool>
       </item>
       <item path="context.h" ex="false" tool="3" flavor2="0">
-      </item>
-      <item path="fraction.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="lexer.cpp" ex="false" tool="1" flavor2="11">
         <ccTool>
@@ -1898,6 +1927,8 @@
       </item>
       <item path="pch.h.gch" ex="false" tool="3" flavor2="0">
       </item>
+      <item path="rational.h" ex="false" tool="3" flavor2="0">
+      </item>
       <item path="syntax_help.cpp" ex="false" tool="1" flavor2="0">
       </item>
       <item path="term.cpp" ex="false" tool="1" flavor2="11">
@@ -1918,8 +1949,6 @@
       </item>
       <item path="test/example_test.cpp" ex="false" tool="1" flavor2="11">
       </item>
-      <item path="test/fraction_test.cpp" ex="false" tool="1" flavor2="0">
-      </item>
       <item path="test/lexer_test.cpp" ex="false" tool="1" flavor2="11">
       </item>
       <item path="test/nlc_test.cpp" ex="false" tool="1" flavor2="11">
@@ -1927,6 +1956,8 @@
       <item path="test/object_test.cpp" ex="false" tool="1" flavor2="11">
       </item>
       <item path="test/parser_test.cpp" ex="false" tool="1" flavor2="11">
+      </item>
+      <item path="test/rational_test.cpp" ex="false" tool="1" flavor2="0">
       </item>
       <item path="types.h" ex="false" tool="3" flavor2="0">
       </item>
@@ -2060,11 +2091,13 @@
       </item>
       <item path="../examples/foreach.nlp" ex="false" tool="3" flavor2="0">
       </item>
-      <item path="../examples/fraction.nlp" ex="false" tool="3" flavor2="0">
+      <item path="../examples/rational.nlp" ex="false" tool="3" flavor2="0">
       </item>
       <item path="../examples/speed_test.nlp" ex="false" tool="3" flavor2="0">
       </item>
       <item path="../examples/speed_test.py" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../examples/tensor.nlp" ex="false" tool="3" flavor2="0">
       </item>
       <item path="autocomplete.h" ex="false" tool="3" flavor2="0">
       </item>
@@ -2078,8 +2111,6 @@
         </ccTool>
       </item>
       <item path="context.h" ex="false" tool="3" flavor2="0">
-      </item>
-      <item path="fraction.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="lexer.cpp" ex="false" tool="1" flavor2="11">
         <ccTool>
@@ -2148,6 +2179,8 @@
       </item>
       <item path="pch.h.gch" ex="false" tool="3" flavor2="0">
       </item>
+      <item path="rational.h" ex="false" tool="3" flavor2="0">
+      </item>
       <item path="syntax_help.cpp" ex="false" tool="1" flavor2="0">
       </item>
       <item path="term.cpp" ex="false" tool="1" flavor2="11">
@@ -2168,8 +2201,6 @@
       </item>
       <item path="test/example_test.cpp" ex="false" tool="1" flavor2="11">
       </item>
-      <item path="test/fraction_test.cpp" ex="false" tool="1" flavor2="0">
-      </item>
       <item path="test/lexer_test.cpp" ex="false" tool="1" flavor2="11">
       </item>
       <item path="test/nlc_test.cpp" ex="false" tool="1" flavor2="11">
@@ -2177,6 +2208,8 @@
       <item path="test/object_test.cpp" ex="false" tool="1" flavor2="11">
       </item>
       <item path="test/parser_test.cpp" ex="false" tool="1" flavor2="11">
+      </item>
+      <item path="test/rational_test.cpp" ex="false" tool="1" flavor2="0">
       </item>
       <item path="types.h" ex="false" tool="3" flavor2="0">
       </item>
@@ -2299,11 +2332,13 @@
       </item>
       <item path="../examples/foreach.nlp" ex="false" tool="3" flavor2="0">
       </item>
-      <item path="../examples/fraction.nlp" ex="false" tool="3" flavor2="0">
+      <item path="../examples/rational.nlp" ex="false" tool="3" flavor2="0">
       </item>
       <item path="../examples/speed_test.nlp" ex="false" tool="3" flavor2="0">
       </item>
       <item path="../examples/speed_test.py" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../examples/tensor.nlp" ex="false" tool="3" flavor2="0">
       </item>
       <item path="autocomplete.h" ex="false" tool="3" flavor2="0">
       </item>
@@ -2327,8 +2362,6 @@
         <customTool>
           <customToolAdditionalDep>pch.h.gch</customToolAdditionalDep>
         </customTool>
-      </item>
-      <item path="fraction.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="lexer.cpp" ex="false" tool="1" flavor2="9">
         <ccTool>
@@ -2422,6 +2455,8 @@
       </item>
       <item path="pch.h.gch" ex="false" tool="3" flavor2="0">
       </item>
+      <item path="rational.h" ex="false" tool="3" flavor2="0">
+      </item>
       <item path="syntax_help.cpp" ex="false" tool="1" flavor2="9">
       </item>
       <item path="term.cpp" ex="false" tool="1" flavor2="9">
@@ -2454,8 +2489,6 @@
           <additionalDep>pch.h.gch</additionalDep>
         </ccTool>
       </item>
-      <item path="test/fraction_test.cpp" ex="false" tool="1" flavor2="9">
-      </item>
       <item path="test/lexer_test.cpp" ex="false" tool="1" flavor2="9">
         <ccTool>
           <additionalDep>pch.h.gch</additionalDep>
@@ -2475,6 +2508,8 @@
         <ccTool>
           <additionalDep>pch.h.gch</additionalDep>
         </ccTool>
+      </item>
+      <item path="test/rational_test.cpp" ex="false" tool="1" flavor2="9">
       </item>
       <item path="types.h" ex="false" tool="3" flavor2="0">
         <customTool>
@@ -2602,11 +2637,13 @@
       </item>
       <item path="../examples/foreach.nlp" ex="false" tool="3" flavor2="0">
       </item>
-      <item path="../examples/fraction.nlp" ex="false" tool="3" flavor2="0">
+      <item path="../examples/rational.nlp" ex="false" tool="3" flavor2="0">
       </item>
       <item path="../examples/speed_test.nlp" ex="false" tool="3" flavor2="0">
       </item>
       <item path="../examples/speed_test.py" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../examples/tensor.nlp" ex="false" tool="3" flavor2="0">
       </item>
       <item path="autocomplete.h" ex="false" tool="3" flavor2="0">
       </item>
@@ -2630,8 +2667,6 @@
         <customTool>
           <customToolAdditionalDep>pch.h.gch</customToolAdditionalDep>
         </customTool>
-      </item>
-      <item path="fraction.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="lexer.cpp" ex="false" tool="1" flavor2="9">
         <ccTool>
@@ -2725,6 +2760,8 @@
       </item>
       <item path="pch.h.gch" ex="false" tool="3" flavor2="0">
       </item>
+      <item path="rational.h" ex="false" tool="3" flavor2="0">
+      </item>
       <item path="syntax_help.cpp" ex="false" tool="1" flavor2="9">
       </item>
       <item path="term.cpp" ex="false" tool="1" flavor2="9">
@@ -2757,8 +2794,6 @@
           <additionalDep>pch.h.gch</additionalDep>
         </ccTool>
       </item>
-      <item path="test/fraction_test.cpp" ex="false" tool="1" flavor2="9">
-      </item>
       <item path="test/lexer_test.cpp" ex="false" tool="1" flavor2="9">
         <ccTool>
           <additionalDep>pch.h.gch</additionalDep>
@@ -2778,6 +2813,8 @@
         <ccTool>
           <additionalDep>pch.h.gch</additionalDep>
         </ccTool>
+      </item>
+      <item path="test/rational_test.cpp" ex="false" tool="1" flavor2="9">
       </item>
       <item path="types.h" ex="false" tool="3" flavor2="0">
         <customTool>

@@ -129,7 +129,7 @@ TEST(NLC, EvalHelloWorld) {
 
     std::string cmd;
     cmd += "#!./dist/Debug/GNU-Linux/nlc --eval\n";
-    cmd += "hello(str='') := { printf := :Pointer('printf(format:FmtChar, ...):Int'); printf('%s', $str); $str;};\n";
+    cmd += "hello(str='') := { printf := :Pointer('printf(format:FmtChar, ...):Int32'); printf('%s', $str); $str;};\n";
     cmd += "hello('Привет, мир!\\n');";
 
     std::filesystem::create_directories("temp");

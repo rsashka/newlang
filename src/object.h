@@ -6,7 +6,7 @@
 
 #include <types.h>
 #include <variable.h>
-#include <fraction.h>
+#include <rational.h>
 
 namespace newlang {
 
@@ -127,7 +127,7 @@ namespace newlang {
      * (чтобы не пересекаться с логикой копирования объектов и не делать для итераторов аругменты по умолчанию)
      * 
      * Оператор ?? создает итератор и сразу его выполняет, возвращая все значения 
-     * в виде элементов словаря, т.е. аналог последовательности ?(LINQ); !(:Long.__max__);
+     * в виде элементов словаря, т.е. аналог последовательности ?(LINQ); !(:Int64.__max__);
      * 
      * Оператор !! без аргументов - сбрасывает итератор в начальное состояние (IteratorReset),
      * Обператор !! с аргументами выполняется как ! с аругментами, но с начла коллекции.
@@ -640,8 +640,8 @@ namespace newlang {
         }
 
         [[nodiscard]]
-        inline bool is_fraction() const {
-            return m_var_type_current == ObjType::Fraction;
+        inline bool is_rational() const {
+            return m_var_type_current == ObjType::Rational;
         }
 
         [[nodiscard]]
@@ -878,7 +878,7 @@ namespace newlang {
             m_class_parents.clear();
             m_var_is_init = false;
             m_tensor.reset();
-            m_fraction.set_(0);
+            m_rational.set_(0);
             m_var = at::monostate();
             //        m_value.reset(); //????????????????
             //        m_items.clear();
@@ -1363,16 +1363,16 @@ namespace newlang {
             return utf8_decode(GetValueAsString());
         }
 
-        std::shared_ptr<Fraction> GetValueAsFraction() const {
+        std::shared_ptr<Rational> GetValueAsRational() const {
             TEST_INIT_();
-            if (m_var_type_current == ObjType::Fraction) {
-                return m_fraction.clone();
+            if (m_var_type_current == ObjType::Rational) {
+                return m_rational.clone();
             } else if (is_integral()) {
-                return std::make_shared<Fraction>(GetValueAsInteger());
+                return std::make_shared<Rational>(GetValueAsInteger());
             } else if (is_floating()) {
                 ASSERT("Not implemented!");
             }
-            LOG_RUNTIME("Value %s incompatible to Fraction or convert not implemented!", toString().c_str());
+            LOG_RUNTIME("Value %s incompatible to Rational or convert not implemented!", toString().c_str());
         }
 
         int64_t GetValueAsInteger() const {
@@ -1385,25 +1385,25 @@ namespace newlang {
                     } else if (at::holds_alternative<bool *>(m_var)) {
                         return *at::get<bool *>(m_var);
                     }
-                case ObjType::Char:
+                case ObjType::Int8:
                     if (at::holds_alternative<int64_t>(m_var)) {
                         return at::get<int64_t>(m_var);
                     } else if (at::holds_alternative<int8_t *>(m_var)) {
                         return *at::get<int8_t *>(m_var);
                     }
-                case ObjType::Short:
+                case ObjType::Int16:
                     if (at::holds_alternative<int64_t>(m_var)) {
                         return at::get<int64_t>(m_var);
                     } else if (at::holds_alternative<int16_t *>(m_var)) {
                         return *at::get<int16_t *>(m_var);
                     }
-                case ObjType::Int:
+                case ObjType::Int32:
                     if (at::holds_alternative<int64_t>(m_var)) {
                         return at::get<int64_t>(m_var);
                     } else if (at::holds_alternative<int32_t *>(m_var)) {
                         return *at::get<int32_t *>(m_var);
                     }
-                case ObjType::Long:
+                case ObjType::Int64:
                     if (at::holds_alternative<int64_t>(m_var)) {
                         return at::get<int64_t>(m_var);
                     } else if (at::holds_alternative<int64_t *>(m_var)) {
@@ -1416,13 +1416,13 @@ namespace newlang {
                     ASSERT(!is_scalar());
                     LOG_RUNTIME("Can`t convert tensor to scalar!");
 
+                case ObjType::Float32:
+                case ObjType::Float64:
                 case ObjType::Float:
-                case ObjType::Double:
-                case ObjType::Number:
                     return static_cast<int64_t> (GetValueAsNumber());
 
-                case ObjType::Fraction:
-                    return m_fraction.GetAsInteger();
+                case ObjType::Rational:
+                    return m_rational.GetAsInteger();
 
                 case ObjType::StrWide:
                 case ObjType::FmtWide:
@@ -1453,19 +1453,19 @@ namespace newlang {
 
             switch (m_var_type_current) {
 
-                case ObjType::Float:
+                case ObjType::Float32:
                     if (at::holds_alternative<double>(m_var)) {
                         return at::get<double>(m_var);
                     } else if (at::holds_alternative<float *>(m_var)) {
                         return *at::get<float *>(m_var);
                     }
-                case ObjType::Double:
+                case ObjType::Float64:
                     if (at::holds_alternative<double>(m_var)) {
                         return at::get<double>(m_var);
                     } else if (at::holds_alternative<double *>(m_var)) {
                         return *at::get<double *>(m_var);
                     }
-                case ObjType::Number:
+                case ObjType::Float:
                     if (at::holds_alternative<double>(m_var)) {
                         return at::get<double>(m_var);
                     }
@@ -1474,8 +1474,8 @@ namespace newlang {
                     }
                     LOG_RUNTIME("Can`t convert tensor to scalar!");
 
-                case ObjType::Fraction:
-                    return m_fraction.GetAsNumber();
+                case ObjType::Rational:
+                    return m_rational.GetAsNumber();
 
                 case ObjType::Iterator:
                     ASSERT(m_iterator);
@@ -1508,8 +1508,8 @@ namespace newlang {
                     case ObjType::None:
                         return false;
 
-                    case ObjType::Fraction:
-                        return m_fraction.GetAsBoolean();
+                    case ObjType::Rational:
+                        return m_rational.GetAsBoolean();
 
                     case ObjType::Dictionary:
                     case ObjType::Class:
@@ -1603,7 +1603,7 @@ namespace newlang {
             return std::make_shared<Obj>(type, nullptr, nullptr, fixed, is_init);
         }
 
-        static ObjPtr CreateFraction(const std::string val) {
+        static ObjPtr CreateRational(const std::string val) {
 
             std::string str;
             std::remove_copy(val.begin(), val.end(), back_inserter(str), '_');
@@ -1612,31 +1612,31 @@ namespace newlang {
                 LOG_RUNTIME("Empty string!");
             }
 
-            ObjPtr frac = Obj::CreateType(ObjType::Fraction);
+            ObjPtr obj = Obj::CreateType(ObjType::Rational);
 
             // Ищем разделитель дроби
             size_t pos = str.find("\\");
 
             // Если символ не найден - то вся строка является числом 
             if (pos == std::string::npos) {
-                frac->m_fraction.set_(0);
+                obj->m_rational.set_(0);
             } else {
                 // Числитель - левая часть
                 // Знаменатель - правая часть
-                frac->m_fraction.set_(str.substr(0, pos), str.substr(pos + 1, str.length()));
+                obj->m_rational.set_(str.substr(0, pos), str.substr(pos + 1, str.length()));
                 // Знаменатель не должен быть равен нулю
-                if (frac->m_fraction.m_denominator.isZero()) {
+                if (obj->m_rational.m_denominator.isZero()) {
                     LOG_RUNTIME("Denominator must be different from zero!");
                 }
             }
 
-            frac->m_var_is_init = true;
-            if (str.compare(frac->m_fraction.GetAsString().c_str()) != 0) {
+            obj->m_var_is_init = true;
+            if (str.compare(obj->m_rational.GetAsString().c_str()) != 0) {
 
-                LOG_RUNTIME("Fraction value '%s' does not match source string  '%s'!", frac->m_fraction.GetAsString().c_str(), str.c_str());
+                LOG_RUNTIME("Rational value '%s' does not match source string  '%s'!", obj->m_rational.GetAsString().c_str(), str.c_str());
             }
 
-            return frac;
+            return obj;
         }
 
 
@@ -1691,29 +1691,30 @@ namespace newlang {
                     return ObjType::Bool;
                 case at::ScalarType::Half:
                 case at::ScalarType::BFloat16:
+                    return ObjType::Float16;
                 case at::ScalarType::Float:
-                    return ObjType::Float;
+                    return ObjType::Float32;
                 case at::ScalarType::Double:
-                    return ObjType::Double;
+                    return ObjType::Float64;
                 case at::ScalarType::Byte:
                 case at::ScalarType::Char:
                 case at::ScalarType::QInt8:
                 case at::ScalarType::QUInt8:
                 case at::ScalarType::QUInt4x2:
-                    return ObjType::Char;
+                    return ObjType::Int8;
                 case at::ScalarType::Short:
-                    return ObjType::Short;
+                    return ObjType::Int16;
                 case at::ScalarType::Int:
                 case at::ScalarType::QInt32:
-                    return ObjType::Int;
+                    return ObjType::Int32;
                 case at::ScalarType::Long:
-                    return ObjType::Long;
+                    return ObjType::Int64;
                 case at::ScalarType::ComplexHalf:
+                    return ObjType::Complex16;
                 case at::ScalarType::ComplexFloat:
-                    return ObjType::ComplexFloat;
-
+                    return ObjType::Complex32;
                 case at::ScalarType::ComplexDouble:
-                    return ObjType::ComplexDouble;
+                    return ObjType::Complex64;
             }
             LOG_RUNTIME("Fail tensor type %s", val.toString().c_str());
         }
@@ -1802,10 +1803,10 @@ namespace newlang {
                     case ObjType::Bool:
                         return Index(GetValueAsBoolean());
 
-                    case ObjType::Char:
-                    case ObjType::Short:
-                    case ObjType::Int:
-                    case ObjType::Long:
+                    case ObjType::Int8:
+                    case ObjType::Int16:
+                    case ObjType::Int32:
+                    case ObjType::Int64:
                         return Index(GetValueAsInteger());
                     default:
                         LOG_RUNTIME("Fail convert scalar type '%s' to Index!", newlang::toString(m_var_type_current));
@@ -2110,19 +2111,27 @@ namespace newlang {
 
         inline void testResultIntegralType(ObjType type, bool upscalint) {
             ObjType new_type = m_var_type_current;
-            if (!canCast(type, m_var_type_current)) {
-                testConvertType(type);
-                new_type = type;
-            }
-            bool check = false;
-            if (upscalint && isIntegralType(m_var_type_current, true) && isIntegralType(type, true)) {
-                if (type < ObjType::Long) {
-                    new_type = static_cast<ObjType> (static_cast<uint8_t> (type) + 1);
-                    check = true;
+
+            if (((is_integral() && isIntegralType(type, true)) || (is_floating() && isFloatingType(type)))
+                    && static_cast<uint8_t> (type) <= static_cast<uint8_t> (m_var_type_current)) {
+                // type already including to current type
+
+            } else {
+
+                if (!canCast(type, m_var_type_current)) {
+                    testConvertType(type);
+                    new_type = type;
                 }
-                if (check && m_var_type_fixed != ObjType::None && !canCast(new_type, m_var_type_fixed)) {
-                    new_type = type; // Тип данных менять нельзя, но сама операция возможна
-                    LOG_WARNING("Data type '%s' cannot be changed to '%s', loss of precision is possible!", newlang::toString(type), newlang::toString(m_var_type_fixed));
+                bool check = false;
+                if (upscalint && isIntegralType(m_var_type_current, true) && isIntegralType(type, true)) {
+                    if (type < ObjType::Int64) {
+                        new_type = static_cast<ObjType> (static_cast<uint8_t> (type) + 1);
+                        check = true;
+                    }
+                    if (check && m_var_type_fixed != ObjType::None && !canCast(new_type, m_var_type_fixed)) {
+                        new_type = type; // Тип данных менять нельзя, но сама операция возможна
+                        LOG_WARNING("Data type '%s' cannot be changed to '%s', loss of precision is possible!", newlang::toString(type), newlang::toString(m_var_type_fixed));
+                    }
                 }
             }
             if (new_type != m_var_type_current) {
@@ -2196,7 +2205,7 @@ namespace newlang {
                                     *at::get<bool *>(m_var) = value->GetValueAsInteger();
                                 }
                                 break;
-                            case ObjType::Char:
+                            case ObjType::Int8:
                                 if (at::holds_alternative<int64_t>(m_var)) {
                                     m_var = value->GetValueAsInteger();
                                 } else if (at::holds_alternative<int8_t *>(m_var)) {
@@ -2204,7 +2213,7 @@ namespace newlang {
                                     *at::get<int8_t *>(m_var) = static_cast<int8_t> (value->GetValueAsInteger());
                                 }
                                 break;
-                            case ObjType::Short:
+                            case ObjType::Int16:
                                 if (at::holds_alternative<int64_t>(m_var)) {
                                     m_var = value->GetValueAsInteger();
                                 } else if (at::holds_alternative<int16_t *>(m_var)) {
@@ -2212,7 +2221,7 @@ namespace newlang {
                                     *at::get<int16_t *>(m_var) = static_cast<int16_t> (value->GetValueAsInteger());
                                 }
                                 break;
-                            case ObjType::Int:
+                            case ObjType::Int32:
                                 if (at::holds_alternative<int64_t>(m_var)) {
                                     m_var = value->GetValueAsInteger();
                                 } else if (at::holds_alternative<int32_t *>(m_var)) {
@@ -2220,7 +2229,7 @@ namespace newlang {
                                     *at::get<int32_t *>(m_var) = static_cast<int32_t> (value->GetValueAsInteger());
                                 }
                                 break;
-                            case ObjType::Long:
+                            case ObjType::Int64:
                                 if (at::holds_alternative<int64_t>(m_var)) {
                                     m_var = value->GetValueAsInteger();
                                 } else if (at::holds_alternative<int64_t *>(m_var)) {
@@ -2228,7 +2237,7 @@ namespace newlang {
                                     *at::get<int64_t *>(m_var) = value->GetValueAsInteger();
                                 }
                                 break;
-                            case ObjType::Float:
+                            case ObjType::Float32:
                                 if (at::holds_alternative<double>(m_var)) {
                                     m_var = value->GetValueAsNumber();
                                 } else if (at::holds_alternative<float *>(m_var)) {
@@ -2236,7 +2245,7 @@ namespace newlang {
                                     *at::get<float *>(m_var) = static_cast<float> (value->GetValueAsNumber());
                                 }
                                 break;
-                            case ObjType::Double:
+                            case ObjType::Float64:
                                 if (at::holds_alternative<double>(m_var)) {
                                     m_var = value->GetValueAsNumber();
                                 } else if (at::holds_alternative<double *>(m_var)) {
@@ -2321,16 +2330,16 @@ namespace newlang {
                 m_var_is_init = true;
                 return;
 
-            } else if ((is_none_type() && value->getType() == ObjType::Fraction) || ((m_var_type_current == ObjType::Fraction) && value->is_arithmetic_type())) {
+            } else if ((is_none_type() && value->getType() == ObjType::Rational) || ((m_var_type_current == ObjType::Rational) && value->is_arithmetic_type())) {
 
                 if (is_none_type()) {
-                    m_fraction = *value->GetValueAsFraction();
+                    m_rational = *value->GetValueAsRational();
                     m_var_is_init = true;
                 } else {
-                    m_fraction.set_(*value->GetValueAsFraction());
+                    m_rational.set_(*value->GetValueAsRational());
                 }
                 m_var = at::monostate();
-                m_var_type_current = ObjType::Fraction;
+                m_var_type_current = ObjType::Rational;
                 return;
 
             } else if ((is_none_type() || m_var_type_current == ObjType::Function || m_var_type_current == ObjType::EVAL_FUNCTION) && (value->m_var_type_current == ObjType::BLOCK || value->m_var_type_current == ObjType::BLOCK_TRY)) {
@@ -2354,7 +2363,7 @@ namespace newlang {
             LOG_RUNTIME("Set value type '%s' not implemented!", newlang::toString(m_var_type_current));
         }
 
-        static std::string format(std::string format, Obj *args);
+        static std::string format(std::string format, Obj * args);
 
 
         bool CallAll(const char *func_name, ObjPtr &arg_in, ObjPtr &result, ObjPtr object = nullptr, size_t limit = 0); // ?
@@ -2364,7 +2373,7 @@ namespace newlang {
         static ObjPtr CreateFunc(Context *ctx, TermPtr proto, ObjType type, const std::string var_name = "");
         static ObjPtr CreateFunc(std::string proto, FunctionType *func_addr, ObjType type = ObjType::Function);
 
-        ObjPtr ConvertToArgs(Obj *args, bool check_valid, Context *ctx) const {
+        ObjPtr ConvertToArgs(Obj *args, bool check_valid, Context * ctx) const {
             ObjPtr result = Clone();
             result->ConvertToArgs_(args, check_valid, ctx);
 
@@ -2404,7 +2413,7 @@ namespace newlang {
 
         // Применение variant необходимо для полей хранения данных, чтобы контролировать их инициализацию
         //        std::variant<std::monostate, void *, torch::Tensor, std::string, std::wstring, std::string_view, std::wstring_view,
-        //        std::shared_ptr<Fraction>, std::shared_ptr< Iterator<Obj> >, TermPtr> m_var;
+        //        std::shared_ptr<Rational>, std::shared_ptr< Iterator<Obj> >, TermPtr> m_var;
 
         //        std::variant<std::monostate, void *, torch::Tensor, std::string, std::wstring, std::string_view, std::wstring_view> m_var;
 
@@ -2413,9 +2422,9 @@ namespace newlang {
             int64_t size;
         };
 
-        at::variant<at::monostate, int64_t, double, void *, // None, скаляры и ссылки на функции (нужно различать чистые, обычные и нативные???)
+        at::variant < at::monostate, int64_t, double, void *, // None, скаляры и ссылки на функции (нужно различать чистые, обычные и нативные???)
         bool *, int8_t *, int16_t *, int32_t *, int64_t *, float *, double *, NativeData, // Ссылки на нативные скаляры и данные
-        Fraction, torch::Tensor, std::string, std::wstring, TermPtr, Iterator<Obj>> m_var;
+        Rational, torch::Tensor, std::string, std::wstring, TermPtr, Iterator < Obj>> m_var;
 
         //        union {
         //            int64_t m_integer;
@@ -2426,8 +2435,8 @@ namespace newlang {
         std::string m_value; ///< Содержит байтовую строку или байтовый массив с данными для представления в нативном виде (Struct, Unuion, Enum)
         std::wstring m_string; ///< Содержит строку широких символов
         torch::Tensor m_tensor; ///< Содержит только размерные тензоры (скляры хранятся в поле m_pointer и не создают m_tensor.defined())
-        Fraction m_fraction; ///< Содержит дробь из длинных чисел
-        std::shared_ptr<Iterator<Obj>> m_iterator; ///< Итератор для данных
+        Rational m_rational; ///< Содержит дробь из длинных чисел
+        std::shared_ptr<Iterator < Obj>> m_iterator; ///< Итератор для данных
         mutable ObjPtr m_iter_range_value;
         TermPtr m_sequence; ///< Последовательно распарсенных команд для выполнения
         const TermPtr m_prototype; ///< Описание прототипп функции (или данных)

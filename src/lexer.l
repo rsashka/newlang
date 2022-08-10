@@ -366,7 +366,7 @@ term    [$@%]({ualpha}|[_])?({name})?
 
 -?{number}[-+]{number}j | {number}j  YY_TOKEN(COMPLEX);
 -?{number}[-+]{number}i | {number}i  YY_TOKEN(COMPLEX);
--?{integer}\\-?{integer} YY_TOKEN(FRACTION);
+-?{integer}\\-?{integer} YY_TOKEN(RATIONAL);
 -?{integer}     YY_TOKEN(INTEGER);
 {number}        YY_TOKEN(NUMBER);
 

@@ -8,7 +8,7 @@
 #include <gtest/gtest.h>
 #include <warning_pop.h>
 
-#include <fraction.h>
+#include <rational.h>
 
 using namespace newlang;
 

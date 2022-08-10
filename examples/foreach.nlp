@@ -14,15 +14,15 @@
 
 #extern FILE *fdopen (int __fd, const char *__modes) __THROW __wur;
 
-@fclose(stream:File):Int ::= :Pointer("fclose(stream:File):Int");;
-@fcloseall():Int ::= :Pointer("fcloseall():Int");;
+@fclose(stream:File):Int32 ::= :Pointer("fclose(stream:File):Int32");;
+@fcloseall():Int32 ::= :Pointer("fcloseall():Int32");;
 
-@fflush(stream:File):Int ::= :Pointer("fflush(stream:File):Int");;
-@fflush_unlocked(stream:File):Int ::= :Pointer("fflush_unlocked(stream:File):Int");;
+@fflush(stream:File):Int32 ::= :Pointer("fflush(stream:File):Int32");;
+@fflush_unlocked(stream:File):Int32 ::= :Pointer("fflush_unlocked(stream:File):Int32");;
 
-@fremove(filename:String):Int ::= :Pointer("remove(filename:StrChar):Int");;
+@fremove(filename:String):Int32 ::= :Pointer("remove(filename:StrChar):Int32");;
 
-@frename(old:String, new:String):Int ::= :Pointer("rename(old:StrChar, new:StrChar):Int");;
+@frename(old:String, new:String):Int32 ::= :Pointer("rename(old:StrChar, new:StrChar):Int32");;
 
 @ftmpfile():File ::= :Pointer("tmpfile():File");;
 @ftmpfile64():File ::= :Pointer("tmpfile64():File");;
@@ -34,17 +34,17 @@
 
 
 
-@fprintf(stream:File, format:Format, ...):Int ::= :Pointer("fprintf(stream:File, format:Format, ...):Int");;
-@fscanf(stream:File, format:Format, ...):Int ::= :Pointer("fscanf(stream:File, format:Format, ...):Int");;       
+@fprintf(stream:File, format:Format, ...):Int32 ::= :Pointer("fprintf(stream:File, format:Format, ...):Int32");;
+@fscanf(stream:File, format:Format, ...):Int32 ::= :Pointer("fscanf(stream:File, format:Format, ...):Int32");;       
         
-@fgetc(stream:File):Int ::= :Pointer("fgetc(stream:File):Int");;
+@fgetc(stream:File):Int32 ::= :Pointer("fgetc(stream:File):Int32");;
 
-@fgetc_unlocked(stream:File):Int ::= :Pointer("fgetc_unlocked(stream:File):Int");;
+@fgetc_unlocked(stream:File):Int32 ::= :Pointer("fgetc_unlocked(stream:File):Int32");;
 
-@fungetc(c:Int, stream:File):Int ::= :Pointer("ungetc(c:Int, stream:File):Int");;
+@fungetc(c:Int32, stream:File):Int32 ::= :Pointer("ungetc(c:Int32, stream:File):Int32");;
 
-@fputc(c:Int, stream:File):Int ::= :Pointer("fputc(c:Int, stream:File):Int");;
-@fputs(string:String, stream:File):Int ::= :Pointer("fputs(c:StrChar, stream:File):Int");;
+@fputc(c:Int32, stream:File):Int32 ::= :Pointer("fputc(c:Int32, stream:File):Int32");;
+@fputs(string:String, stream:File):Int32 ::= :Pointer("fputs(c:StrChar, stream:File):Int32");;
 
 
 #extern size_t fread (void *__restrict __ptr, size_t __size,
@@ -60,7 +60,7 @@
 #			       size_t __n, FILE *__restrict __stream);
 #
 SEEK ::= :Enum(SET=0, CUR=1, END=2);
-@fseek(stream:File, offset:Long, whence:Int):Int ::= :Pointer("fseek(stream:File, offset:Long, whence:Int):Int");;
+@fseek(stream:File, offset:Int64, whence:Int32):Int32 ::= :Pointer("fseek(stream:File, offset:Int64, whence:Int32):Int32");;
 
 
 #extern long int ftell (FILE *__stream) __wur;

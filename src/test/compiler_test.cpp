@@ -540,8 +540,8 @@ TEST(Compiler, DISABLED_FuncsTypes) {
     RuntimePtr opts = RunTime::Init();
     Context ctx(opts);
 
-#define FUNC_ARG "func_arg(arg1: Char, arg2): Char := { $arg1+$arg2; };"
-#define FUNC_RES "func_res(arg1: Char, arg2: Int): Integer := { $arg2+=$arg1; };"
+#define FUNC_ARG "func_arg(arg1: Int8, arg2): Int8 := { $arg1+$arg2; };"
+#define FUNC_RES "func_res(arg1: Int8, arg2: Int32): Integer := { $arg2+=$arg1; };"
 
     TermPtr func;
     Parser parser(func);
@@ -549,12 +549,12 @@ TEST(Compiler, DISABLED_FuncsTypes) {
     std::ostringstream sstr;
 
     // Не соответствие типа функции в операторе
-    parser.Parse(FUNC_ARG FUNC_RES "\n$res:Char := func_arg(100, 100); $res += func_res(100, 100);");
+    parser.Parse(FUNC_ARG FUNC_RES "\n$res:Int8 := func_arg(100, 100); $res += func_res(100, 100);");
     sstr.str("");
     ASSERT_THROW(NewLang::MakeCppFile(func, sstr, nullptr, &ctx), Interrupt) << sstr.str();
 
     // Компилится без ошибок
-    parser.Parse(FUNC_ARG "\nfunc_arg(Char(100), 100);");
+    parser.Parse(FUNC_ARG "\nfunc_arg(Int8(100), 100);");
     sstr.str("");
     ASSERT_NO_THROW(NewLang::MakeCppFile(func, sstr, nullptr, &ctx)) << sstr.str();
 
@@ -564,12 +564,12 @@ TEST(Compiler, DISABLED_FuncsTypes) {
     ASSERT_THROW(NewLang::MakeCppFile(func, sstr, nullptr, &ctx), Interrupt) << sstr.str();
 
     // Не соответствие типа функции
-    parser.Parse(FUNC_ARG FUNC_RES "\n$res:Char := func_res(100, 1000);");
+    parser.Parse(FUNC_ARG FUNC_RES "\n$res:Int8 := func_res(100, 1000);");
     sstr.str("");
     ASSERT_THROW(NewLang::MakeCppFile(func, sstr, nullptr, &ctx), Interrupt) << sstr.str();
 
     // Не соответствие типа функции в операторе
-    parser.Parse(FUNC_ARG FUNC_RES "\n$res:Char := func_arg(100, 100); $res += func_res(100, 100);");
+    parser.Parse(FUNC_ARG FUNC_RES "\n$res:Int8 := func_arg(100, 100); $res += func_res(100, 100);");
     sstr.str("");
     ASSERT_THROW(NewLang::MakeCppFile(func, sstr, nullptr, &ctx), Interrupt) << sstr.str();
 
@@ -579,7 +579,7 @@ TEST(Compiler, DISABLED_FuncsTypes) {
     ASSERT_NO_THROW(NewLang::MakeCppFile(func, sstr, nullptr, &ctx)) << sstr.str();
 
     // Тип есть, но делается каст возвращаемого типа у функции
-    parser.Parse(FUNC_ARG FUNC_RES "\n$res: Char := func_arg(100, 100); $res += Char(func_res(100, 100));");
+    parser.Parse(FUNC_ARG FUNC_RES "\n$res: Int8 := func_arg(100, 100); $res += Int8(func_res(100, 100));");
     sstr.str("");
     ASSERT_NO_THROW(NewLang::MakeCppFile(func, sstr, nullptr, &ctx)) << sstr.str();
 

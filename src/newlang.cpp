@@ -365,8 +365,8 @@ std::string newlang::MangaledFuncCPP(const char *name, const char *space) {
     return result;
 }
 
-//Char    _ZN7newlang4CharEPKNS_7ContextERKNS_6ObjectE
-//Short   _ZN7newlang5ShortEPKNS_7ContextERKNS_6ObjectE
+//Int8    _ZN7newlang4CharEPKNS_7ContextERKNS_6ObjectE
+//Int16   _ZN7newlang5ShortEPKNS_7ContextERKNS_6ObjectE
 //Char_   _ZN7newlang5Char_EPNS_7ContextERNS_6ObjectE
 //Short_  _ZN7newlang6Short_EPNS_7ContextERNS_6ObjectE
 

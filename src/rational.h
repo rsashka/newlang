@@ -1,7 +1,7 @@
 #include "pch.h"
 
-#ifndef FRACTION_H
-#define FRACTION_H
+#ifndef RATIONAL_H
+#define RATIONAL_H
 
 #include <openssl/bn.h>
 
@@ -192,7 +192,7 @@ namespace newlang {
 
     };
 
-    class Fraction {
+    class Rational {
     public:
 
         BigNum m_numerator; // Числитель
@@ -201,23 +201,23 @@ namespace newlang {
     public:
         // Конструктор принимает значения числителя и знаменателя
 
-        Fraction() : Fraction("0", "1") {
+        Rational() : Rational("0", "1") {
         }
 
-        Fraction(const int64_t value) {
+        Rational(const int64_t value) {
             set_(value);
         }
 
-        Fraction(const Fraction &copy) {
+        Rational(const Rational &copy) {
             set_(copy);
         }
 
-        Fraction(const std::string numerator, const std::string denominator) {
+        Rational(const std::string numerator, const std::string denominator) {
             set_(numerator, denominator);
         }
 
-        inline std::shared_ptr<Fraction> clone() const {
-            std::shared_ptr<Fraction> result = std::make_shared<Fraction>(*this);
+        inline std::shared_ptr<Rational> clone() const {
+            std::shared_ptr<Rational> result = std::make_shared<Rational>(*this);
             return result;
         }
 
@@ -276,7 +276,7 @@ namespace newlang {
             ASSERT(rem.isZero());
         }
 
-        Fraction &set_(const int64_t value) {
+        Rational &set_(const int64_t value) {
             if (value < 0) {
                 BN_set_word(m_numerator.value, -value);
                 BN_set_negative(m_numerator.value, -1);
@@ -287,40 +287,40 @@ namespace newlang {
             return *this;
         }
 
-        Fraction &set_(const Fraction &copy) {
+        Rational &set_(const Rational &copy) {
             m_numerator.set_(copy.m_numerator);
             m_denominator.set_(copy.m_denominator);
             return *this;
         }
 
-        Fraction &set_(const std::string numerator, const std::string denominator) {
+        Rational &set_(const std::string numerator, const std::string denominator) {
             m_numerator.SetFromString(numerator);
             m_denominator.SetFromString(denominator);
             return *this;
         }
 
-        Fraction& operator*=(const Fraction &fraction) {
-            m_numerator.mul(fraction.m_numerator);
-            m_denominator.mul(fraction.m_denominator);
+        Rational& operator*=(const Rational &rational) {
+            m_numerator.mul(rational.m_numerator);
+            m_denominator.mul(rational.m_denominator);
             reduce();
             return *this;
         }
 
-        Fraction& operator/=(const Fraction &fraction) {
-            m_numerator.mul(fraction.m_denominator);
-            m_denominator.mul(fraction.m_numerator);
+        Rational& operator/=(const Rational &rational) {
+            m_numerator.mul(rational.m_denominator);
+            m_denominator.mul(rational.m_numerator);
             reduce();
 
             return *this;
         }
 
-        Fraction& operator-=(const Fraction &fraction) {
+        Rational& operator-=(const Rational &rational) {
 
-            BigNum sub_num(fraction.m_numerator);
+            BigNum sub_num(rational.m_numerator);
             sub_num.mul(m_denominator);
 
-            m_numerator.mul(fraction.m_denominator);
-            m_denominator.mul(fraction.m_denominator);
+            m_numerator.mul(rational.m_denominator);
+            m_denominator.mul(rational.m_denominator);
 
             m_numerator.sub(sub_num);
 
@@ -329,12 +329,12 @@ namespace newlang {
             return *this;
         }
 
-        Fraction& operator+=(const Fraction &fraction) {
-            BigNum add_num(fraction.m_numerator);
+        Rational& operator+=(const Rational &rational) {
+            BigNum add_num(rational.m_numerator);
             add_num.mul(m_denominator);
 
-            m_numerator.mul(fraction.m_denominator);
-            m_denominator.mul(fraction.m_denominator);
+            m_numerator.mul(rational.m_denominator);
+            m_denominator.mul(rational.m_denominator);
 
             m_numerator.add(add_num);
 
@@ -343,77 +343,77 @@ namespace newlang {
             return *this;
         }
 
-        Fraction& operator%=(const Fraction &fraction) {
+        Rational& operator%=(const Rational &rational) {
             LOG_RUNTIME("Not implemented!");
 
             return *this;
         }
 
-        Fraction &operator^=(const Fraction &) {
+        Rational &operator^=(const Rational &) {
             LOG_RUNTIME("Operator '^=' not implementd!");
 
             return *this;
         }
 
-        Fraction & operator|=(const Fraction &) {
+        Rational & operator|=(const Rational &) {
             LOG_RUNTIME("Operator '|=' not implementd!");
 
             return *this;
         }
 
-        Fraction &op_lshift_set(const Fraction &) {
+        Rational &op_lshift_set(const Rational &) {
             LOG_RUNTIME("Operator '<<=' not implementd!");
 
             return *this;
         }
 
-        Fraction & op_rshift_set(const Fraction &) {
+        Rational & op_rshift_set(const Rational &) {
             LOG_RUNTIME("Operator '>>=' not implementd!");
 
             return *this;
         }
 
-        const Fraction & op_rrshift_set(const Fraction &) {
+        const Rational & op_rrshift_set(const Rational &) {
             LOG_RUNTIME("Operator '>>>=' not implementd!");
 
             return *this;
         }
 
-        Fraction& op_pow_(const Fraction &fraction) {
+        Rational& op_pow_(const Rational &rational) {
             LOG_RUNTIME("Not implemented!");
 
             return *this;
         }
 
-        bool op_equal(const Fraction &fraction) const {
-            return BN_cmp(m_numerator.value, fraction.m_numerator.value) == 0 &&
-                    BN_cmp(m_denominator.value, fraction.m_denominator.value) == 0;
+        bool op_equal(const Rational &rational) const {
+            return BN_cmp(m_numerator.value, rational.m_numerator.value) == 0 &&
+                    BN_cmp(m_denominator.value, rational.m_denominator.value) == 0;
         }
 
-        int op_compare(const Fraction &fraction) const {
-            if (BN_cmp(m_denominator.value, fraction.m_denominator.value) == 0) {
-                return BN_cmp(m_numerator.value, fraction.m_numerator.value);
+        int op_compare(const Rational &rational) const {
+            if (BN_cmp(m_denominator.value, rational.m_denominator.value) == 0) {
+                return BN_cmp(m_numerator.value, rational.m_numerator.value);
             }
 
-            Fraction first(*this);
-            Fraction second(fraction);
+            Rational first(*this);
+            Rational second(rational);
 
-            Fraction mul;
+            Rational mul;
             mul.m_numerator.set_(m_denominator);
             second *= mul;
-            mul.m_numerator.set_(fraction.m_denominator);
+            mul.m_numerator.set_(rational.m_denominator);
             first *= mul;
 
             ASSERT(BN_cmp(first.m_denominator.value, second.m_denominator.value) == 0);
             return BN_cmp(first.m_numerator.value, second.m_numerator.value);
         }
 
-        Fraction &op_div_ceil_(Fraction &fraction) {
+        Rational &op_div_ceil_(Rational &rational) {
             LOG_RUNTIME("Not implemented!");
             return *this;
         }
 
     };
 };
-#endif /* FRACTION_H */
+#endif /* RATIONAL_H */
 

@@ -69,13 +69,13 @@
  * Термины в CamelCase соответствуют типам данных NewLang
  * БНФ лексики NewLang
  * 
- * Integer ::= целые числа | целые числа "_"  целые числа  (Bool, Char, Short, Int, Long  +  BigNum)
- * Number ::= с плавающей точкой  (Float, Double)
- * Complex ::= комплексные числа  (ComplexFloat, ComplexDouble)
- * Fraction ::= Integer "\" Integer    (Представление BigNum / BigNum)
- * Currency ::= "`" Integer  | "`" Integer "."  Integer  (Представление Fraction == BigNum / 10000)
+ * Integer ::= целые числа | целые числа "_"  целые числа  (Bool, Int8, Int16, Int32, Int64  +  BigNum)
+ * Float ::= с плавающей точкой  (Float32, Float64)
+ * Complex ::= комплексные числа  (Complex32, Complex64)
+ * Rational ::= Integer "\" Integer    (Представление BigNum / BigNum)
+ * Currency ::= "`" Integer  | "`" Integer "."  Integer  (Представление Rational == BigNum / 10000)
  * 
- * Ariphmetic ::= Integer  | Number | Complex | Fraction
+ * Ariphmetic ::= Integer  | Float | Complex | Rational
  * 
  * StrChar ::= "'" символы "'"
  * StrWide ::= "\"" символы "\""
@@ -144,7 +144,7 @@
  * 
  * # Инициализация для функции  demo
  * @::var = _;
- * @print := NewLang(import= «printf(format:FmtChar, ...):Int» );
+ * @print := NewLang(import= «printf(format:FmtChar, ...):Int32» );
  * --;
  * 
  * %{   std::string demo(const char *arg) {; $var = arg;  %}
@@ -176,13 +176,13 @@
  *   NewLang(load="module_name", init=1);
  * 
  *   __constructor1() := NewLang(import = 'class():class');
- *   __constructor2(arg) := NewLang(import = 'class(arg:Int):class');
+ *   __constructor2(arg) := NewLang(import = 'class(arg:Int32):class');
  *   __constructor3(arg) := NewLang(import = 'class(arg:StrChar):class');
  * 
  *   :class::class(arg=_) ::= {
  *      arg:? => { # Выполняется не точное сравнение c приведеним типов
  *          :None -> __constructor1();
- *          :Int -> __constructor2(arg);
+ *          :Int32 -> __constructor2(arg);
  *          :String -> __constructor3(arg);
  *          _ -> -- "Неизвестный тип аргумента" --;
  *      }
@@ -261,7 +261,7 @@
  *   _var := 1; # защиенное поле объекта
  *   __var := 1; # приватное поле объекта
  *   __var__ := 1; # Системное 
- *   var1, var2, var3:Int := _;  # Переменная объекта
+ *   var1, var2, var3:Int32 := _;  # Переменная объекта
  * 
  *   :class.var_class  - к статическому полю
  * 
@@ -331,9 +331,9 @@ star_arg = [STAR] STAR ID
 
 
 %token                  INTEGER		"Integer"
-%token                  NUMBER		"Number"
+%token                  NUMBER		"Float"
 %token                  COMPLEX		"Complex"
-%token                  FRACTION	"Fraction"
+%token                  RATIONAL	"Rational"
 %token           	STRCHAR		"StrChar"
 %token           	STRWIDE		"StrWide"
 %token           	TEMPLATE	"Template"
@@ -533,7 +533,7 @@ digits_literal: INTEGER
                 $$ = $1;
                 $$->SetType(nullptr);
             }
-         | FRACTION
+         | RATIONAL
             {
                 $$ = $1;
                 $$->SetType(nullptr);
@@ -1316,7 +1316,7 @@ addition:  addition  op_factor  factor
                     if($1->getTermID() == TermID::INTEGER && $op_factor->m_text.compare("/")==0 && $3->m_text.compare("1")==0) {
                         NL_PARSER($op_factor, "Do not use division by one (e.g. 123/1), "
                                 "as this operation does not make sense, but it is easy to "
-                                "confuse it with the notation of a fraction literal (123\\1).");
+                                "confuse it with the notation of a rational literal (123\\1).");
                     }
     
                     $$ = $op_factor;

@@ -44,7 +44,7 @@ TEST(Eval, Assign) {
     ASSERT_TRUE(var1->is_arithmetic_type());
     ASSERT_TRUE(var1->is_integer());
     ASSERT_TRUE(at::holds_alternative<int64_t>(var1->m_var));
-    ASSERT_EQ(var1->m_var_type_current, ObjType::Char) << newlang::toString(var1->m_var_type_current);
+    ASSERT_EQ(var1->m_var_type_current, ObjType::Int8) << newlang::toString(var1->m_var_type_current);
     ASSERT_EQ(var1->m_var_type_fixed, ObjType::None) << newlang::toString(var1->m_var_type_fixed);
     ASSERT_STREQ("var1=123", var1->toString().c_str());
     ASSERT_FALSE(ctx.find("var1") == ctx.end());
@@ -54,8 +54,8 @@ TEST(Eval, Assign) {
 
     ASSERT_THROW(ctx.ExecStr("var1 ::= 123"), Interrupt);
 
-    ASSERT_TRUE(ctx.ExecStr("var1 = 100:Char"));
-    ASSERT_EQ(var1->m_var_type_current, ObjType::Char) << newlang::toString(var1->m_var_type_current);
+    ASSERT_TRUE(ctx.ExecStr("var1 = 100:Int8"));
+    ASSERT_EQ(var1->m_var_type_current, ObjType::Int8) << newlang::toString(var1->m_var_type_current);
     ASSERT_EQ(var1->m_var_type_fixed, ObjType::None) << newlang::toString(var1->m_var_type_fixed);
     ASSERT_STREQ("var1=100", var1->toString().c_str());
 
@@ -89,12 +89,12 @@ TEST(Eval, Assign) {
     list = ctx.ExecStr("$");
     ASSERT_STREQ("$=('var_str',)", list->toString().c_str());
 
-    ObjPtr var_num = ctx.ExecStr("var_num := 123.456: Number");
+    ObjPtr var_num = ctx.ExecStr("var_num := 123.456: Float");
     ASSERT_TRUE(var_num);
     ASSERT_TRUE(var_num->is_arithmetic_type());
     ASSERT_TRUE(var_num->is_tensor_type());
-    //    ASSERT_EQ(var_num->m_var_type_current, ObjType::Double);
-    //    ASSERT_EQ(var_num->m_var_type_fixed, ObjType::Number);
+    //    ASSERT_EQ(var_num->m_var_type_current, ObjType::Float64);
+    //    ASSERT_EQ(var_num->m_var_type_fixed, ObjType::Float);
     ASSERT_STREQ("var_num=123.456", var_num->toString().c_str());
 
     list = ctx.ExecStr("$");
@@ -106,10 +106,10 @@ TEST(Eval, Assign) {
 
 
     var_long = 987654321;
-    ObjPtr var_export = ctx.ExecStr("var_export := :Pointer(\"var_long:Long\")");
+    ObjPtr var_export = ctx.ExecStr("var_export := :Pointer(\"var_long:Int64\")");
     ASSERT_TRUE(var_export);
     ASSERT_TRUE(var_export->is_tensor_type()) << var_export;
-    ASSERT_EQ(var_export->getType(), ObjType::Long);
+    ASSERT_EQ(var_export->getType(), ObjType::Int64);
     ASSERT_STREQ("var_export=987654321", var_export->toString().c_str());
     var_long = 123132132;
     ASSERT_STREQ("var_export=123132132", var_export->toString().c_str());
@@ -119,11 +119,11 @@ TEST(Eval, Assign) {
     list = ctx.ExecStr("$");
     ASSERT_STREQ("$=('var_str', 'var_num', 'var_export',)", list->toString().c_str());
 
-    ObjPtr func_export = ctx.ExecStr("func_export := :Pointer(\"func_export(arg1:Long, arg2:Char=100):Long\")");
+    ObjPtr func_export = ctx.ExecStr("func_export := :Pointer(\"func_export(arg1:Int64, arg2:Int8=100):Int64\")");
     ASSERT_TRUE(func_export);
     ASSERT_TRUE(func_export->is_function_type()) << func_export;
     ASSERT_EQ(func_export->getType(), ObjType::NativeFunc);
-    ASSERT_STREQ("func_export=func_export(arg1:Long, arg2:Char=100):Long{}", func_export->toString().c_str());
+    ASSERT_STREQ("func_export=func_export(arg1:Int64, arg2:Int8=100):Int64{}", func_export->toString().c_str());
 
     ObjPtr result = func_export->Call(&ctx, Obj::Arg(200), Obj::Arg(10));
     ASSERT_TRUE(result);
@@ -193,15 +193,15 @@ TEST(Eval, Assign) {
 
     ObjPtr tensor2 = ctx.ExecStr("[222,333,3333,]");
     ASSERT_TRUE(tensor2);
-    ASSERT_STREQ("[222, 333, 3333,]:Short", tensor2->GetValueAsString().c_str());
+    ASSERT_STREQ("[222, 333, 3333,]:Int16", tensor2->GetValueAsString().c_str());
 
     ObjPtr tensorf = ctx.ExecStr("[1.2, 0.22, 0.69,]");
     ASSERT_TRUE(tensorf);
-    ASSERT_STREQ("[1.2, 0.22, 0.69,]:Double", tensorf->GetValueAsString().c_str());
+    ASSERT_STREQ("[1.2, 0.22, 0.69,]:Float64", tensorf->GetValueAsString().c_str());
 
     ObjPtr tensor_all = ctx.ExecStr("[ [1, 1, 0, 0,], [10, 10, 0.1, 0.2,], ]");
     ASSERT_TRUE(tensor_all);
-    ASSERT_EQ(ObjType::Double, tensor_all->m_var_type_current) << toString(tensor_all->m_var_type_current);
+    ASSERT_EQ(ObjType::Float64, tensor_all->m_var_type_current) << toString(tensor_all->m_var_type_current);
     ASSERT_EQ(ObjType::None, tensor_all->m_var_type_fixed) << toString(tensor_all->m_var_type_fixed);
     ASSERT_EQ(2, tensor_all->m_tensor.dim()) << tensor_all->m_tensor.size(0);
     ASSERT_EQ(2, tensor_all->m_tensor.size(0));
@@ -217,7 +217,7 @@ TEST(Eval, Assign) {
     ASSERT_STREQ("0.1", tensor_all->index_get({1, 2})->GetValueAsString().c_str());
     ASSERT_STREQ("0.2", tensor_all->index_get({1, 3})->GetValueAsString().c_str());
 
-    ASSERT_STREQ("[\n  [1, 1, 0, 0,], [10, 10, 0.1, 0.2,],\n]:Double", tensor_all->GetValueAsString().c_str());
+    ASSERT_STREQ("[\n  [1, 1, 0, 0,], [10, 10, 0.1, 0.2,],\n]:Float64", tensor_all->GetValueAsString().c_str());
 }
 
 TEST(Eval, Tensor) {
@@ -230,7 +230,7 @@ TEST(Eval, Tensor) {
 
     ddd = ctx.ExecStr(":Tensor( (1,2,3,) )");
     ASSERT_TRUE(ddd);
-    ASSERT_STREQ("[1, 2, 3,]:Char", ddd->GetValueAsString().c_str()) << ddd->GetValueAsString().c_str();
+    ASSERT_STREQ("[1, 2, 3,]:Int8", ddd->GetValueAsString().c_str()) << ddd->GetValueAsString().c_str();
 
 
     ddd = ctx.ExecStr(":Dictionary(1,2,3)");
@@ -255,75 +255,81 @@ TEST(Eval, Tensor) {
 
     tensor = ctx.ExecStr(":Tensor([1,2,3,])");
     ASSERT_TRUE(tensor);
-    ASSERT_STREQ("[1, 2, 3,]:Char", tensor->GetValueAsString().c_str()) << tensor->GetValueAsString().c_str();
+    ASSERT_STREQ("[1, 2, 3,]:Int8", tensor->GetValueAsString().c_str()) << tensor->GetValueAsString().c_str();
 
-    tensor = ctx.ExecStr(":Int([1,])");
+    tensor = ctx.ExecStr(":Int32([1,])");
     ASSERT_TRUE(tensor);
-    ASSERT_STREQ("[1,]:Int", tensor->GetValueAsString().c_str()) << tensor->GetValueAsString().c_str();
+    ASSERT_STREQ("[1,]:Int32", tensor->GetValueAsString().c_str()) << tensor->GetValueAsString().c_str();
 
     ObjPtr tt = ctx.ExecStr(":Tensor[3]( (1,2,3,) )");
     ASSERT_TRUE(tt);
-    ASSERT_STREQ("[1, 2, 3,]:Char", tt->GetValueAsString().c_str()) << tt->GetValueAsString().c_str();
+    ASSERT_STREQ("[1, 2, 3,]:Int8", tt->GetValueAsString().c_str()) << tt->GetValueAsString().c_str();
 
-    tt = ctx.ExecStr(":Int((1,2,3,))");
+    tt = ctx.ExecStr(":Int32((1,2,3,))");
     ASSERT_TRUE(tt);
-    ASSERT_STREQ("[1, 2, 3,]:Int", tt->GetValueAsString().c_str()) << tt->GetValueAsString().c_str();
+    ASSERT_STREQ("[1, 2, 3,]:Int32", tt->GetValueAsString().c_str()) << tt->GetValueAsString().c_str();
 
-    tt = ctx.ExecStr(":Int[2,3]((1,2,3,4,5,6,))");
+    tt = ctx.ExecStr(":Int32[2,3]((1,2,3,4,5,6,))");
     ASSERT_TRUE(tt);
 
     EXPECT_EQ(2, tt->m_tensor.dim());
     EXPECT_EQ(2, tt->m_tensor.size(0));
     EXPECT_EQ(3, tt->m_tensor.size(1));
 
-    ASSERT_STREQ("[\n  [1, 2, 3,], [4, 5, 6,],\n]:Int", tt->GetValueAsString().c_str());
+    ASSERT_STREQ("[\n  [1, 2, 3,], [4, 5, 6,],\n]:Int32", tt->GetValueAsString().c_str());
 
     ObjPtr str = ctx.ExecStr(":Tensor('first second')");
     ASSERT_TRUE(str);
-    ASSERT_STREQ("[102, 105, 114, 115, 116, 32, 115, 101, 99, 111, 110, 100,]:Char", str->GetValueAsString().c_str());
+    ASSERT_STREQ("[102, 105, 114, 115, 116, 32, 115, 101, 99, 111, 110, 100,]:Int8", str->GetValueAsString().c_str());
 
     tt = ctx.ExecStr(":Tensor((first='first', space=32, second='second',))");
     ASSERT_TRUE(tt);
-    ASSERT_STREQ("[102, 105, 114, 115, 116, 32, 115, 101, 99, 111, 110, 100,]:Char", tt->GetValueAsString().c_str());
+    ASSERT_STREQ("[102, 105, 114, 115, 116, 32, 115, 101, 99, 111, 110, 100,]:Int8", tt->GetValueAsString().c_str());
 
     ASSERT_TRUE(str->op_equal(tt));
 
-    tt = ctx.ExecStr(":Int[6,2](\"Тензор Int  \")");
+    tt = ctx.ExecStr(":Int32[7,2](\"Тензор Int32  \")");
     ASSERT_TRUE(tt);
     ASSERT_STREQ("[\n  [1058, 1077,], [1085, 1079,], [1086, 1088,], [32, 73,], "
-            "[110, 116,], [32, 32,],\n]:Int",
+            "[110, 116,], [51, 50,], [32, 32,],\n]:Int32",
             tt->GetValueAsString().c_str());
 
     tt = ctx.ExecStr(":Tensor(99)");
     ASSERT_TRUE(tt);
     ASSERT_STREQ("99", tt->GetValueAsString().c_str());
 
-    tt = ctx.ExecStr(":Double[10,2](0, ... )");
+    tt = ctx.ExecStr(":Float64[10,2](0, ... )");
     ASSERT_TRUE(tt);
     ASSERT_STREQ("[\n  [0, 0,], [0, 0,], [0, 0,], [0, 0,], [0, 0,], [0, 0,], [0, "
-            "0,], [0, 0,], [0, 0,], [0, 0,],\n]:Double",
+            "0,], [0, 0,], [0, 0,], [0, 0,],\n]:Float64",
             tt->GetValueAsString().c_str());
 
-    ObjPtr rand = ctx.ExecStr("rand := :Pointer('rand():Int')");
+    ObjPtr srand = ctx.ExecStr("srand := :Pointer('srand(seed:Int32):None')");
+    
+    ObjPtr ret = srand->Call(&ctx, Obj::Arg(100));
+    ASSERT_TRUE(ret);
+    ASSERT_TRUE(ret->is_none_type());
+    
+    ObjPtr rand = ctx.ExecStr("rand := :Pointer('rand():Int32')");
 
     // Может быть раскрытие словаря, который возвращает вызов функции
     // и может быть многократный вызов одной и той функции
-    // :Int[3,2]( ... rand() ... )
+    // :Int32[3,2]( ... rand() ... )
     utils::Logger::LogLevelType save = utils::Logger::Instance()->SetLogLevel(LOG_LEVEL_INFO);
-    tt = ctx.ExecStr(":Int[3,2]( ... rand() ... )");
+    tt = ctx.ExecStr(":Int32[3,2]( ... rand() ... )");
     utils::Logger::Instance()->SetLogLevel(save);
 
     ASSERT_TRUE(tt);
     std::string rand_str = tt->GetValueAsString();
     ASSERT_TRUE(50 < tt->GetValueAsString().size()) << rand_str;
 
-    tt = ctx.ExecStr(":Int[5,2]( 0..10 )");
+    tt = ctx.ExecStr(":Int32[5,2]( 0..10 )");
     ASSERT_TRUE(tt);
-    ASSERT_STREQ("[\n  [0, 1,], [2, 3,], [4, 5,], [6, 7,], [8, 9,],\n]:Int", tt->GetValueAsString().c_str());
+    ASSERT_STREQ("[\n  [0, 1,], [2, 3,], [4, 5,], [6, 7,], [8, 9,],\n]:Int32", tt->GetValueAsString().c_str());
 
-    tt = ctx.ExecStr(":Double[5,2]( 0..10 )");
+    tt = ctx.ExecStr(":Float64[5,2]( 0..10 )");
     ASSERT_TRUE(tt);
-    ASSERT_STREQ("[\n  [0, 1,], [2, 3,], [4, 5,], [6, 7,], [8, 9,],\n]:Double", tt->GetValueAsString().c_str());
+    ASSERT_STREQ("[\n  [0, 1,], [2, 3,], [4, 5,], [6, 7,], [8, 9,],\n]:Float64", tt->GetValueAsString().c_str());
 
     tt = ctx.ExecStr("0..1..0.1");
     ASSERT_TRUE(tt);
@@ -335,7 +341,7 @@ TEST(Eval, Tensor) {
 
     tt = ctx.ExecStr(":Tensor( 0..0.99..0.1 )");
     ASSERT_TRUE(tt);
-    ASSERT_STREQ("[0, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9,]:Double", tt->GetValueAsString().c_str());
+    ASSERT_STREQ("[0, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9,]:Float64", tt->GetValueAsString().c_str());
 }
 
 TEST(Eval, FuncSimple) {
@@ -392,7 +398,7 @@ TEST(Eval, TypesNative) {
     ASSERT_EQ(2, types.size());
 
     //    ASSERT_STREQ(":Bool", utf8_encode(types[0]).c_str());
-    //    ASSERT_STREQ(":Char", utf8_encode(types[1]).c_str());
+    //    ASSERT_STREQ(":Int8", utf8_encode(types[1]).c_str());
 
     types = ctx.SelectPredict(":", 5);
     ASSERT_EQ(7, types.size());
@@ -437,30 +443,30 @@ TEST(Eval, TypesNative) {
     ASSERT_TRUE(at::get<void *>(fopen3->m_var));
     ASSERT_EQ(at::get<void *>(fopen->m_var), at::get<void *>(fopen3->m_var));
 
-    ObjPtr fclose = ctx.ExecStr("@fclose(stream:File):Int ::= :Pointer(\"fclose(stream:File):Int\")");
+    ObjPtr fclose = ctx.ExecStr("@fclose(stream:File):Int32 ::= :Pointer(\"fclose(stream:File):Int32\")");
     ASSERT_TRUE(at::holds_alternative<void *>(fclose->m_var));
     ASSERT_TRUE(at::get<void *>(fclose->m_var));
 
-    ObjPtr fremove = ctx.ExecStr("@fremove(filename:String):Int ::= "
-            ":Pointer(\"remove(filename:StrChar):Int\")");
+    ObjPtr fremove = ctx.ExecStr("@fremove(filename:String):Int32 ::= "
+            ":Pointer(\"remove(filename:StrChar):Int32\")");
     ASSERT_TRUE(fremove);
     ASSERT_TRUE(at::holds_alternative<void *>(fremove->m_var));
     ASSERT_TRUE(at::get<void *>(fremove->m_var));
 
-    ObjPtr frename = ctx.ExecStr("@rename(old:String, new:String):Int ::= "
-            ":Pointer('rename(old:StrChar, new:StrChar):Int')");
+    ObjPtr frename = ctx.ExecStr("@rename(old:String, new:String):Int32 ::= "
+            ":Pointer('rename(old:StrChar, new:StrChar):Int32')");
     ASSERT_TRUE(frename);
     ASSERT_TRUE(at::holds_alternative<void *>(frename->m_var));
     ASSERT_TRUE(at::get<void *>(frename->m_var));
 
-    ObjPtr fprintf = ctx.ExecStr("@fprintf(stream:File, format:FmtChar, ...):Int ::= "
-            ":Pointer('fprintf(stream:File, format:FmtChar, ...):Int')");
+    ObjPtr fprintf = ctx.ExecStr("@fprintf(stream:File, format:FmtChar, ...):Int32 ::= "
+            ":Pointer('fprintf(stream:File, format:FmtChar, ...):Int32')");
     ASSERT_TRUE(fremove);
-    ObjPtr fputc = ctx.ExecStr("@fputc(c:Int, stream:File):Int ::= "
-            ":Pointer('fputc(c:Int, stream:File):Int')");
+    ObjPtr fputc = ctx.ExecStr("@fputc(c:Int32, stream:File):Int32 ::= "
+            ":Pointer('fputc(c:Int32, stream:File):Int32')");
     ASSERT_TRUE(fremove);
-    ObjPtr fputs = ctx.ExecStr("@fputs(s:String, stream:File):Int ::= "
-            ":Pointer('fputs(s:StrChar, stream:File):Int')");
+    ObjPtr fputs = ctx.ExecStr("@fputs(s:String, stream:File):Int32 ::= "
+            ":Pointer('fputs(s:StrChar, stream:File):Int32')");
     ASSERT_TRUE(fputs);
 
     std::filesystem::create_directories("temp");
@@ -487,38 +493,38 @@ TEST(Eval, TypesNative) {
     /*
      * Enum (перечисление) использование символьного названия поля вместо "магического" числа
      * 
-     * :EnumStruct = :Enum(One:Int=1, Two=..., Three=10) - все поля имеют имена и автоматическую нумерацию + могут иметь тип
+     * :EnumStruct = :Enum(One:Int32=1, Two=..., Three=10) - все поля имеют имена и автоматическую нумерацию + могут иметь тип
      * :EnumStruct.One
      * var = :EnumStruct(thread, gpu);
      * 
-     * :TypeStruct = :Struct(One:Int=1, Two:Char=0, Three=10) - все типы поле определены
-     * :Class(One:Int=1, Two=..., Three=10)
-     * :Class3 = :Class1(One:Int=1, Two=..., Three=10), Class2(One:Int=1, Two=..., Three=10);
+     * :TypeStruct = :Struct(One:Int32=1, Two:Int8=0, Three=10) - все типы поле определены
+     * :Class(One:Int32=1, Two=..., Three=10)
+     * :Class3 = :Class1(One:Int32=1, Two=..., Three=10), Class2(One:Int32=1, Two=..., Three=10);
      * 
-     * (One:Int=1, Two=_, Three=10,):Enum(thread, gpu) использовать тип значения в имени поля вместо общего типа ----- Enum(One, Two=2, Three=3):Int  ------
+     * (One:Int32=1, Two=_, Three=10,):Enum(thread, gpu) использовать тип значения в имени поля вместо общего типа ----- Enum(One, Two=2, Three=3):Int32  ------
      * [[ One, Two=2, Three=3 ]]:Enum(thread, gpu)
      * 
      * :Seek::SET или @Seek::SET - статическое зачение у глобального типа
      * Seek.SET или $Seek.SET - статическое зачение у глобального типа
      */
 
-    ObjPtr SEEK1 = ctx.ExecStr("@SEEK1 ::= :Enum(SET:Int=10, \"CUR\", END=20)");
+    ObjPtr SEEK1 = ctx.ExecStr("@SEEK1 ::= :Enum(SET:Int32=10, \"CUR\", END=20)");
     ASSERT_TRUE(SEEK1);
 
     ASSERT_EQ(3, SEEK1->size());
     ASSERT_TRUE((*SEEK1)[0].second);
-    ASSERT_EQ(ObjType::Char, (*SEEK1)[0].second->getType()) << newlang::toString((*SEEK1)[0].second->getType());
-    ASSERT_EQ(ObjType::Char, (*SEEK1)[0].second->m_var_type_fixed) << newlang::toString((*SEEK1)[0].second->m_var_type_fixed);
+    ASSERT_EQ(ObjType::Int8, (*SEEK1)[0].second->getType()) << newlang::toString((*SEEK1)[0].second->getType());
+    ASSERT_EQ(ObjType::Int8, (*SEEK1)[0].second->m_var_type_fixed) << newlang::toString((*SEEK1)[0].second->m_var_type_fixed);
     ASSERT_EQ(10, (*SEEK1)[0].second->GetValueAsInteger());
 
     ASSERT_TRUE((*SEEK1)[1].second);
-    ASSERT_EQ(ObjType::Char, (*SEEK1)[1].second->getType()) << newlang::toString((*SEEK1)[1].second->getType());
-    ASSERT_EQ(ObjType::Char, (*SEEK1)[1].second->m_var_type_fixed) << newlang::toString((*SEEK1)[1].second->m_var_type_fixed);
+    ASSERT_EQ(ObjType::Int8, (*SEEK1)[1].second->getType()) << newlang::toString((*SEEK1)[1].second->getType());
+    ASSERT_EQ(ObjType::Int8, (*SEEK1)[1].second->m_var_type_fixed) << newlang::toString((*SEEK1)[1].second->m_var_type_fixed);
     ASSERT_EQ(11, (*SEEK1)[1].second->GetValueAsInteger());
 
     ASSERT_TRUE((*SEEK1)[2].second);
-    ASSERT_EQ(ObjType::Char, (*SEEK1)[2].second->getType()) << newlang::toString((*SEEK1)[2].second->getType());
-    ASSERT_EQ(ObjType::Char, (*SEEK1)[2].second->m_var_type_fixed) << newlang::toString((*SEEK1)[2].second->m_var_type_fixed);
+    ASSERT_EQ(ObjType::Int8, (*SEEK1)[2].second->getType()) << newlang::toString((*SEEK1)[2].second->getType());
+    ASSERT_EQ(ObjType::Int8, (*SEEK1)[2].second->m_var_type_fixed) << newlang::toString((*SEEK1)[2].second->m_var_type_fixed);
     ASSERT_EQ(20, (*SEEK1)[2].second->GetValueAsInteger());
 
     ASSERT_EQ(10, (*SEEK1)["SET"].second->GetValueAsInteger());
@@ -533,7 +539,7 @@ TEST(Eval, TypesNative) {
     ASSERT_EQ(1, (*SEEK2)[1].second->GetValueAsInteger());
     ASSERT_EQ(ObjType::Bool, (*SEEK2)[1].second->getType());
     ASSERT_EQ(300, (*SEEK2)[2].second->GetValueAsInteger());
-    ASSERT_EQ(ObjType::Short, (*SEEK2)[2].second->getType());
+    ASSERT_EQ(ObjType::Int16, (*SEEK2)[2].second->getType());
     ASSERT_EQ(0, (*SEEK2)["SET"].second->GetValueAsInteger());
     ASSERT_EQ(1, (*SEEK2)["CUR"].second->GetValueAsInteger());
     ASSERT_EQ(300, (*SEEK2)["END"].second->GetValueAsInteger());
@@ -559,8 +565,8 @@ TEST(Eval, TypesNative) {
     ASSERT_TRUE(F_res);
     ASSERT_EQ(2, F_res->GetValueAsInteger());
 
-    ObjPtr seek = ctx.ExecStr("@fseek(stream:File, offset:Long, whence:Int):Int ::= "
-            ":Pointer('fseek(stream:File, offset:Long, whence:Int):Int')");
+    ObjPtr seek = ctx.ExecStr("@fseek(stream:File, offset:Int64, whence:Int32):Int32 ::= "
+            ":Pointer('fseek(stream:File, offset:Int64, whence:Int32):Int32')");
     ASSERT_TRUE(seek);
 
     F_res = ctx.ExecStr("fseek(F2, 10, @SEEK.SET)");
@@ -600,7 +606,7 @@ TEST(Eval, Fileio) {
 
     //@todo try and catch segfault
     //    ASSERT_ANY_THROW(
-    //            // Double free
+    //            // Float64 free
     //            file_res = ctx.ExecStr("fclose(file)"););
     //            
     //    Context::Reset();
@@ -613,11 +619,11 @@ TEST(ExecStr, Funcs) {
 
     EXPECT_TRUE(ctx.m_runtime->GetNativeAddr("printf"));
 
-    ObjPtr p = ctx.ExecStr("printf := :Pointer('printf(format:FmtChar, ...):Int');");
+    ObjPtr p = ctx.ExecStr("printf := :Pointer('printf(format:FmtChar, ...):Int32');");
     ASSERT_TRUE(p);
     ASSERT_TRUE(at::holds_alternative<void *>(p->m_var));
     ASSERT_TRUE(at::get<void *>(p->m_var));
-    ASSERT_STREQ("printf=printf(format:FmtChar, ...):Int{}", p->toString().c_str());
+    ASSERT_STREQ("printf=printf(format:FmtChar, ...):Int32{}", p->toString().c_str());
 
     typedef int (* printf_type)(const char *, ...);
 
@@ -654,34 +660,34 @@ TEST(ExecStr, Funcs) {
 }
 
 /*
- * scalar_int := 100:Int; # Тип скаляра во время компиляции
- * scalar_int := 100:Int(__device__="GPU"); # Тип скаляра во время компиляции
- * scalar_int := 100:Int(); ?????? # Тип скаляра во время компиляции
- * :type_int := :Int; # Синоним типа Int во время компиляции (тип не может быть изменен)
- * :type_int := :Int(); # Копия типа Int во время выполнения (тип может быть изменен после Mutable)
+ * scalar_int := 100:Int32; # Тип скаляра во время компиляции
+ * scalar_int := 100:Int32(__device__="GPU"); # Тип скаляра во время компиляции
+ * scalar_int := 100:Int32(); ?????? # Тип скаляра во время компиляции
+ * :type_int := :Int32; # Синоним типа Int32 во время компиляции (тип не может быть изменен)
+ * :type_int := :Int32(); # Копия типа Int32 во время выполнения (тип может быть изменен после Mutable)
  * 
- * scalar_int := :Int(0); # Преобразование типа во время выполнения с автоматической размерностью (скаляр)
- * scalar_int := :Int[0](0); # Преобразование типа во время выполнения с указанием размерности (скаляр)
- * scalar_int := :Int[0]([0,]); # Преобразование типа во время выполнения с указанием размерности (скаляр)
+ * scalar_int := :Int32(0); # Преобразование типа во время выполнения с автоматической размерностью (скаляр)
+ * scalar_int := :Int32[0](0); # Преобразование типа во время выполнения с указанием размерности (скаляр)
+ * scalar_int := :Int32[0]([0,]); # Преобразование типа во время выполнения с указанием размерности (скаляр)
  * 
- * tensor_int := :Int([0,]); # Преобразование типа во время выполнения с автоматической размерностью (тензор)
- * tensor_int := :Int[1](0); # Преобразование типа во время выполнения с указанием размерности (тензор)
- * tensor_int := :Int[...](0); # Преобразование типа во время выполнения с произвольной размернотью (тензор)
+ * tensor_int := :Int32([0,]); # Преобразование типа во время выполнения с автоматической размерностью (тензор)
+ * tensor_int := :Int32[1](0); # Преобразование типа во время выполнения с указанием размерности (тензор)
+ * tensor_int := :Int32[...](0); # Преобразование типа во время выполнения с произвольной размернотью (тензор)
  * 
  * 
- * :синоним := :Int; # Неизменяемый ?????
- * :копия := :Int(); # Изменяемый ?????
+ * :синоним := :Int32; # Неизменяемый ?????
+ * :копия := :Int32(); # Изменяемый ?????
  * 
  * Mutable(:синоним); # Ошибка
  * Mutable(:копия); # Норма
  * 
- * :Int(1); # Не меняет размерность, только тип !!!!
- * :Int[2, ...](100, 200); # Одномерный тензор Int произвольного размера
- * :Int([,], 100, 200); # Объединить аргументы, если их несколько и преобразовать их тип к Int
- * :Int[0](10000000); # Преобразовать тип к скаляру
- * :Int[2](100, 200); # Преобразовать аргументы в тензор указанной размерности и заданного типа
- * :Int[2,1](100, 200); # Преобразовать аргументы в тензор указанной размерности и заданного типа
- * :Int[1,2](100, 200); # Преобразовать аргументы в тензор указанной размерности и заданного типа
+ * :Int32(1); # Не меняет размерность, только тип !!!!
+ * :Int32[2, ...](100, 200); # Одномерный тензор Int32 произвольного размера
+ * :Int32([,], 100, 200); # Объединить аргументы, если их несколько и преобразовать их тип к Int32
+ * :Int32[0](10000000); # Преобразовать тип к скаляру
+ * :Int32[2](100, 200); # Преобразовать аргументы в тензор указанной размерности и заданного типа
+ * :Int32[2,1](100, 200); # Преобразовать аргументы в тензор указанной размерности и заданного типа
+ * :Int32[1,2](100, 200); # Преобразовать аргументы в тензор указанной размерности и заданного типа
  * 
  */
 TEST(Eval, Convert) {
@@ -694,26 +700,26 @@ TEST(Eval, Convert) {
     RuntimePtr opts = RunTime::Init();
     Context ctx(opts);
 
-    ObjPtr type_int = ctx.ExecStr(":Int");
+    ObjPtr type_int = ctx.ExecStr(":Int32");
     ASSERT_TRUE(type_int);
     ASSERT_EQ(ObjType::Type, type_int->getType()) << toString(type_int->m_var_type_current);
-    ASSERT_EQ(ObjType::Int, type_int->m_var_type_fixed) << toString(type_int->m_var_type_fixed);
+    ASSERT_EQ(ObjType::Int32, type_int->m_var_type_fixed) << toString(type_int->m_var_type_fixed);
     ASSERT_EQ(0, type_int->size());
 
 
-    ObjPtr type_dim = ctx.ExecStr(":Int[0]");
+    ObjPtr type_dim = ctx.ExecStr(":Int32[0]");
     ASSERT_TRUE(type_dim);
     ASSERT_EQ(ObjType::Type, type_dim->getType()) << toString(type_dim->m_var_type_current);
-    ASSERT_EQ(ObjType::Int, type_dim->m_var_type_fixed) << toString(type_dim->m_var_type_fixed);
+    ASSERT_EQ(ObjType::Int32, type_dim->m_var_type_fixed) << toString(type_dim->m_var_type_fixed);
 
     ASSERT_TRUE(type_dim->m_dimensions);
     ASSERT_EQ(1, type_dim->m_dimensions->size());
     ASSERT_EQ(0, (*type_dim->m_dimensions)[0].second->GetValueAsInteger());
 
-    ObjPtr type_ell = ctx.ExecStr(":Int[10, ...]");
+    ObjPtr type_ell = ctx.ExecStr(":Int32[10, ...]");
     ASSERT_TRUE(type_ell);
     ASSERT_EQ(ObjType::Type, type_ell->getType());
-    ASSERT_EQ(ObjType::Int, type_ell->m_var_type_fixed);
+    ASSERT_EQ(ObjType::Int32, type_ell->m_var_type_fixed);
 
     ASSERT_TRUE(type_ell->m_dimensions);
     ASSERT_EQ(2, type_ell->m_dimensions->size());
@@ -742,29 +748,29 @@ TEST(Eval, Convert) {
     ASSERT_TRUE(obj_2);
     ASSERT_TRUE(obj_2->is_scalar());
     ASSERT_FALSE(obj_2->m_tensor.defined());
-    ASSERT_EQ(ObjType::Char, obj_2->getType());
+    ASSERT_EQ(ObjType::Int8, obj_2->getType());
     ASSERT_EQ(ObjType::None, obj_2->m_var_type_fixed);
     ASSERT_STREQ("2", obj_2->GetValueAsString().c_str());
 
-    ObjPtr obj_int = ctx.ExecStr(":Int(0)");
+    ObjPtr obj_int = ctx.ExecStr(":Int32(0)");
     ASSERT_TRUE(obj_int);
     ASSERT_TRUE(obj_int->is_scalar());
     ASSERT_FALSE(obj_int->m_tensor.defined());
-    ASSERT_EQ(ObjType::Int, obj_int->getType()) << toString(obj_int->m_var_type_current);
-    ASSERT_EQ(ObjType::Int, obj_int->m_var_type_fixed) << toString(obj_int->m_var_type_fixed);
+    ASSERT_EQ(ObjType::Int32, obj_int->getType()) << toString(obj_int->m_var_type_current);
+    ASSERT_EQ(ObjType::Int32, obj_int->m_var_type_fixed) << toString(obj_int->m_var_type_fixed);
 
     ASSERT_TRUE(obj_int->m_var_is_init);
     ASSERT_STREQ("0", obj_int->GetValueAsString().c_str());
     ASSERT_EQ(0, obj_int->GetValueAsInteger());
 
 
-    ObjPtr scalar = ctx.ExecStr(":Int[0](0)");
+    ObjPtr scalar = ctx.ExecStr(":Int32[0](0)");
     ASSERT_TRUE(scalar);
     ASSERT_TRUE(scalar->is_tensor_type());
     ASSERT_TRUE(scalar->is_scalar());
     ASSERT_FALSE(scalar->m_tensor.defined());
-    ASSERT_EQ(ObjType::Int, scalar->getType()) << toString(scalar->m_var_type_current);
-    ASSERT_EQ(ObjType::Int, scalar->m_var_type_fixed) << toString(scalar->m_var_type_fixed);
+    ASSERT_EQ(ObjType::Int32, scalar->getType()) << toString(scalar->m_var_type_current);
+    ASSERT_EQ(ObjType::Int32, scalar->m_var_type_fixed) << toString(scalar->m_var_type_fixed);
 
     ASSERT_TRUE(scalar->m_var_is_init);
     ASSERT_STREQ("0", scalar->GetValueAsString().c_str());
@@ -780,35 +786,35 @@ TEST(Eval, Convert) {
     ASSERT_STREQ("[0,]:Bool", ten->GetValueAsString().c_str());
 
 
-    ObjPtr obj_ten = ctx.ExecStr(":Int([0,])");
+    ObjPtr obj_ten = ctx.ExecStr(":Int32([0,])");
     ASSERT_TRUE(obj_ten);
     ASSERT_TRUE(obj_ten->is_tensor_type());
     ASSERT_FALSE(obj_ten->is_scalar());
     ASSERT_EQ(at::ScalarType::Int, obj_ten->m_tensor.scalar_type());
-    ASSERT_EQ(ObjType::Int, obj_ten->getType()) << toString(obj_ten->m_var_type_current);
-    ASSERT_EQ(ObjType::Int, obj_ten->m_var_type_fixed) << toString(obj_ten->m_var_type_fixed);
+    ASSERT_EQ(ObjType::Int32, obj_ten->getType()) << toString(obj_ten->m_var_type_current);
+    ASSERT_EQ(ObjType::Int32, obj_ten->m_var_type_fixed) << toString(obj_ten->m_var_type_fixed);
 
     ASSERT_TRUE(obj_ten->m_var_is_init);
-    ASSERT_STREQ("[0,]:Int", obj_ten->GetValueAsString().c_str());
+    ASSERT_STREQ("[0,]:Int32", obj_ten->GetValueAsString().c_str());
 
 
-    ObjPtr obj_auto = ctx.ExecStr(":Int(0, 1, 2, 3)");
+    ObjPtr obj_auto = ctx.ExecStr(":Int32(0, 1, 2, 3)");
     ASSERT_TRUE(obj_auto);
     ASSERT_EQ(at::ScalarType::Int, obj_auto->m_tensor.scalar_type());
-    ASSERT_EQ(ObjType::Int, obj_auto->getType()) << toString(obj_auto->m_var_type_current);
-    ASSERT_EQ(ObjType::Int, obj_auto->m_var_type_fixed) << toString(obj_auto->m_var_type_fixed);
+    ASSERT_EQ(ObjType::Int32, obj_auto->getType()) << toString(obj_auto->m_var_type_current);
+    ASSERT_EQ(ObjType::Int32, obj_auto->m_var_type_fixed) << toString(obj_auto->m_var_type_fixed);
 
     ASSERT_TRUE(obj_auto->m_var_is_init);
-    ASSERT_STREQ("[0, 1, 2, 3,]:Int", obj_auto->GetValueAsString().c_str());
+    ASSERT_STREQ("[0, 1, 2, 3,]:Int32", obj_auto->GetValueAsString().c_str());
 
 
-    ObjPtr obj_float = ctx.ExecStr(":Float[2,2](3, 4, 1, 2)");
+    ObjPtr obj_float = ctx.ExecStr(":Float32[2,2](3, 4, 1, 2)");
     ASSERT_TRUE(obj_float);
-    ASSERT_EQ(ObjType::Float, obj_float->getType()) << toString(obj_float->m_var_type_current);
-    ASSERT_EQ(ObjType::Float, obj_float->m_var_type_fixed) << toString(obj_float->m_var_type_fixed);
+    ASSERT_EQ(ObjType::Float32, obj_float->getType()) << toString(obj_float->m_var_type_current);
+    ASSERT_EQ(ObjType::Float32, obj_float->m_var_type_fixed) << toString(obj_float->m_var_type_fixed);
 
     ASSERT_TRUE(obj_float->m_var_is_init);
-    ASSERT_STREQ("[\n  [3, 4,], [1, 2,],\n]:Float", obj_float->GetValueAsString().c_str());
+    ASSERT_STREQ("[\n  [3, 4,], [1, 2,],\n]:Float32", obj_float->GetValueAsString().c_str());
 
 
 
@@ -816,27 +822,27 @@ TEST(Eval, Convert) {
 
     ObjPtr frac_0 = ctx.ExecStr("0\\1");
     ASSERT_TRUE(frac_0);
-    ASSERT_EQ(ObjType::Fraction, frac_0->getType());
+    ASSERT_EQ(ObjType::Rational, frac_0->getType());
     ASSERT_EQ(ObjType::None, frac_0->m_var_type_fixed);
     ASSERT_STREQ("0\\1", frac_0->GetValueAsString().c_str());
 
     ObjPtr frac_1 = ctx.ExecStr("1\\1");
     ASSERT_TRUE(frac_1);
-    ASSERT_EQ(ObjType::Fraction, frac_1->getType());
+    ASSERT_EQ(ObjType::Rational, frac_1->getType());
     ASSERT_EQ(ObjType::None, frac_1->m_var_type_fixed);
     ASSERT_STREQ("1\\1", frac_1->GetValueAsString().c_str());
 
     ObjPtr frac_2 = ctx.ExecStr("222_222_222_222222_222_222_222\\1_1_1_1");
     ASSERT_TRUE(frac_2);
-    ASSERT_EQ(ObjType::Fraction, frac_2->getType());
+    ASSERT_EQ(ObjType::Rational, frac_2->getType());
     ASSERT_EQ(ObjType::None, frac_2->m_var_type_fixed);
     ASSERT_STREQ("222222222222222222222222\\1111", frac_2->GetValueAsString().c_str());
 
-    ObjPtr obj_frac = ctx.ExecStr(":Fraction(0)");
+    ObjPtr obj_frac = ctx.ExecStr(":Rational(0)");
     ASSERT_TRUE(obj_frac);
     ASSERT_FALSE(obj_frac->is_tensor_type());
     ASSERT_FALSE(obj_frac->is_scalar());
-    ASSERT_EQ(ObjType::Fraction, obj_frac->getType()) << toString(obj_frac->m_var_type_current);
+    ASSERT_EQ(ObjType::Rational, obj_frac->getType()) << toString(obj_frac->m_var_type_current);
 
     ASSERT_TRUE(obj_frac->m_var_is_init);
     ASSERT_STREQ("0\\1", obj_frac->GetValueAsString().c_str());
@@ -1295,7 +1301,7 @@ TEST(Eval, Iterator) {
 //     * @Tim := :Human(Sex.male, parent=(Tom,));
 //     *
 //     * Brother(h1, h2) := $h1 != $h2, $h1.sex==male, $h1.parent * $h2.parent;
-//     * printf := :Native("printf(format:FmtChar, ...):Int"); 
+//     * printf := :Native("printf(format:FmtChar, ...):Int32"); 
 //     * 
 //     * h1 := $?;
 //     * [ h1 ] <<-->> {
@@ -1551,10 +1557,10 @@ TEST(EvalOp, InstanceName) {
      */
 
     ObjPtr obj_bool = Obj::CreateBool(true);
-    ObjPtr obj_char = Obj::CreateValue(20); // ObjType::Char
-    ObjPtr obj_short = Obj::CreateValue(300); // ObjType::Short
-    ObjPtr obj_int = Obj::CreateValue(100000); // ObjType::Int
-    ObjPtr obj_long = Obj::CreateValue(999999999999); // ObjType::Long
+    ObjPtr obj_char = Obj::CreateValue(20); // ObjType::Int8
+    ObjPtr obj_short = Obj::CreateValue(300); // ObjType::Int16
+    ObjPtr obj_int = Obj::CreateValue(100000); // ObjType::Int32
+    ObjPtr obj_long = Obj::CreateValue(999999999999); // ObjType::Int64
     ObjPtr str_char = Obj::CreateString("Байтовая строка");
     ObjPtr str_wide = Obj::CreateString(L"Широкая строка");
 
@@ -1566,40 +1572,40 @@ TEST(EvalOp, InstanceName) {
     obj_class2->m_class_parents.push_back(obj_class1);
 
     ASSERT_TRUE(obj_bool->op_class_test(":Bool", &ctx));
-    ASSERT_TRUE(obj_char->op_class_test(":Char", &ctx));
-    ASSERT_TRUE(obj_char->op_class_test(":Short", &ctx));
-    ASSERT_TRUE(obj_bool->op_class_test(":Int", &ctx));
-    ASSERT_TRUE(obj_bool->op_class_test(":Long", &ctx));
+    ASSERT_TRUE(obj_char->op_class_test(":Int8", &ctx));
+    ASSERT_TRUE(obj_char->op_class_test(":Int16", &ctx));
+    ASSERT_TRUE(obj_bool->op_class_test(":Int32", &ctx));
+    ASSERT_TRUE(obj_bool->op_class_test(":Int64", &ctx));
     ASSERT_TRUE(obj_bool->op_class_test(":Tensor", &ctx));
     ASSERT_TRUE(obj_bool->op_class_test(":Arithmetic", &ctx));
     ASSERT_TRUE(obj_bool->op_class_test(":Any", &ctx));
     ASSERT_FALSE(obj_bool->op_class_test(":None", &ctx));
 
     ASSERT_FALSE(obj_char->op_class_test(":Bool", &ctx));
-    ASSERT_TRUE(obj_char->op_class_test(":Char", &ctx));
-    ASSERT_TRUE(obj_char->op_class_test(":Short", &ctx));
-    ASSERT_TRUE(obj_char->op_class_test(":Int", &ctx));
-    ASSERT_TRUE(obj_char->op_class_test(":Long", &ctx));
+    ASSERT_TRUE(obj_char->op_class_test(":Int8", &ctx));
+    ASSERT_TRUE(obj_char->op_class_test(":Int16", &ctx));
+    ASSERT_TRUE(obj_char->op_class_test(":Int32", &ctx));
+    ASSERT_TRUE(obj_char->op_class_test(":Int64", &ctx));
     ASSERT_TRUE(obj_char->op_class_test(":Tensor", &ctx));
     ASSERT_TRUE(obj_char->op_class_test(":Arithmetic", &ctx));
     ASSERT_TRUE(obj_char->op_class_test(":Any", &ctx));
     ASSERT_FALSE(obj_char->op_class_test(":None", &ctx));
 
     ASSERT_FALSE(obj_short->op_class_test(":Bool", &ctx));
-    ASSERT_FALSE(obj_short->op_class_test(":Char", &ctx));
-    ASSERT_TRUE(obj_short->op_class_test(":Short", &ctx));
-    ASSERT_TRUE(obj_short->op_class_test(":Int", &ctx));
-    ASSERT_TRUE(obj_short->op_class_test(":Long", &ctx));
+    ASSERT_FALSE(obj_short->op_class_test(":Int8", &ctx));
+    ASSERT_TRUE(obj_short->op_class_test(":Int16", &ctx));
+    ASSERT_TRUE(obj_short->op_class_test(":Int32", &ctx));
+    ASSERT_TRUE(obj_short->op_class_test(":Int64", &ctx));
     ASSERT_TRUE(obj_short->op_class_test(":Tensor", &ctx));
     ASSERT_TRUE(obj_short->op_class_test(":Arithmetic", &ctx));
     ASSERT_TRUE(obj_short->op_class_test(":Any", &ctx));
     ASSERT_FALSE(obj_short->op_class_test(":None", &ctx));
 
     ASSERT_FALSE(obj_int->op_class_test(":Bool", &ctx));
-    ASSERT_FALSE(obj_int->op_class_test(":Char", &ctx));
-    ASSERT_FALSE(obj_int->op_class_test(":Short", &ctx));
-    ASSERT_TRUE(obj_int->op_class_test(":Int", &ctx));
-    ASSERT_TRUE(obj_int->op_class_test(":Long", &ctx));
+    ASSERT_FALSE(obj_int->op_class_test(":Int8", &ctx));
+    ASSERT_FALSE(obj_int->op_class_test(":Int16", &ctx));
+    ASSERT_TRUE(obj_int->op_class_test(":Int32", &ctx));
+    ASSERT_TRUE(obj_int->op_class_test(":Int64", &ctx));
     ASSERT_TRUE(obj_int->op_class_test(":Tensor", &ctx));
     ASSERT_TRUE(obj_int->op_class_test(":Arithmetic", &ctx));
     ASSERT_TRUE(obj_int->op_class_test(":Any", &ctx));
@@ -1607,11 +1613,11 @@ TEST(EvalOp, InstanceName) {
 
 
     ASSERT_FALSE(obj_long->op_class_test(":Bool", &ctx));
-    ASSERT_FALSE(obj_long->op_class_test(":Char", &ctx));
-    ASSERT_FALSE(obj_long->op_class_test(":Short", &ctx));
-    ASSERT_EQ(obj_long->m_var_type_current, ObjType::Long);
-    ASSERT_FALSE(obj_long->op_class_test(":Int", &ctx));
-    ASSERT_TRUE(obj_long->op_class_test(":Long", &ctx));
+    ASSERT_FALSE(obj_long->op_class_test(":Int8", &ctx));
+    ASSERT_FALSE(obj_long->op_class_test(":Int16", &ctx));
+    ASSERT_EQ(obj_long->m_var_type_current, ObjType::Int64);
+    ASSERT_FALSE(obj_long->op_class_test(":Int32", &ctx));
+    ASSERT_TRUE(obj_long->op_class_test(":Int64", &ctx));
     ASSERT_TRUE(obj_long->op_class_test(":Tensor", &ctx));
     ASSERT_TRUE(obj_long->op_class_test(":Arithmetic", &ctx));
     ASSERT_TRUE(obj_long->op_class_test(":Any", &ctx));
@@ -1655,13 +1661,13 @@ TEST(EvalOp, InstanceName) {
 
 
 
-    // [,]:Bool ~ :Int
+    // [,]:Bool ~ :Int32
     ObjPtr obj_empty_bool = ctx.ExecStr("[,]:Bool");
     ASSERT_TRUE(obj_empty_bool->op_class_test(":Bool", &ctx));
-    ASSERT_TRUE(obj_empty_bool->op_class_test(":Char", &ctx));
-    ASSERT_TRUE(obj_empty_bool->op_class_test(":Short", &ctx));
-    ASSERT_TRUE(obj_empty_bool->op_class_test(":Int", &ctx));
-    ASSERT_TRUE(obj_empty_bool->op_class_test(":Long", &ctx));
+    ASSERT_TRUE(obj_empty_bool->op_class_test(":Int8", &ctx));
+    ASSERT_TRUE(obj_empty_bool->op_class_test(":Int16", &ctx));
+    ASSERT_TRUE(obj_empty_bool->op_class_test(":Int32", &ctx));
+    ASSERT_TRUE(obj_empty_bool->op_class_test(":Int64", &ctx));
     ASSERT_TRUE(obj_empty_bool->op_class_test(":Tensor", &ctx));
     ASSERT_TRUE(obj_empty_bool->op_class_test(":Arithmetic", &ctx));
     ASSERT_TRUE(obj_empty_bool->op_class_test(":Any", &ctx));
@@ -1671,13 +1677,13 @@ TEST(EvalOp, InstanceName) {
     ASSERT_FALSE(obj_empty_bool->op_class_test(":None", &ctx));
 
 
-    // [,]:Int ~ :Bool
-    ObjPtr obj_empty_int = ctx.ExecStr("[,]:Int");
+    // [,]:Int32 ~ :Bool
+    ObjPtr obj_empty_int = ctx.ExecStr("[,]:Int32");
     ASSERT_FALSE(obj_empty_int->op_class_test(":Bool", &ctx));
-    ASSERT_FALSE(obj_empty_int->op_class_test(":Char", &ctx));
-    ASSERT_FALSE(obj_empty_int->op_class_test(":Short", &ctx));
-    ASSERT_TRUE(obj_empty_int->op_class_test(":Int", &ctx));
-    ASSERT_TRUE(obj_empty_int->op_class_test(":Long", &ctx));
+    ASSERT_FALSE(obj_empty_int->op_class_test(":Int8", &ctx));
+    ASSERT_FALSE(obj_empty_int->op_class_test(":Int16", &ctx));
+    ASSERT_TRUE(obj_empty_int->op_class_test(":Int32", &ctx));
+    ASSERT_TRUE(obj_empty_int->op_class_test(":Int64", &ctx));
     ASSERT_TRUE(obj_empty_int->op_class_test(":Tensor", &ctx));
     ASSERT_TRUE(obj_empty_int->op_class_test(":Arithmetic", &ctx));
     ASSERT_TRUE(obj_empty_int->op_class_test(":Any", &ctx));
@@ -1690,7 +1696,7 @@ TEST(EvalOp, InstanceName) {
     // (,):Class ~ :Class
     ObjPtr obj_class = ctx.ExecStr("(,):Class");
     ASSERT_FALSE(obj_class->op_class_test(":Bool", &ctx));
-    ASSERT_FALSE(obj_class->op_class_test(":Char", &ctx));
+    ASSERT_FALSE(obj_class->op_class_test(":Int8", &ctx));
     ASSERT_FALSE(obj_class->op_class_test(":Tensor", &ctx));
     ASSERT_FALSE(obj_class->op_class_test(":Arithmetic", &ctx));
     ASSERT_TRUE(obj_class->op_class_test(":Any", &ctx));
@@ -1705,7 +1711,7 @@ TEST(EvalOp, InstanceName) {
     ObjPtr obj_class3 = ctx.ExecStr("(,):Class2");
     obj_class3->m_class_parents.push_back(obj_class);
     ASSERT_FALSE(obj_class3->op_class_test(":Bool", &ctx));
-    ASSERT_FALSE(obj_class3->op_class_test(":Char", &ctx));
+    ASSERT_FALSE(obj_class3->op_class_test(":Int8", &ctx));
     ASSERT_FALSE(obj_class3->op_class_test(":Tensor", &ctx));
     ASSERT_FALSE(obj_class3->op_class_test(":Arithmetic", &ctx));
     ASSERT_TRUE(obj_class3->op_class_test(":Any", &ctx));
@@ -1720,7 +1726,7 @@ TEST(EvalOp, InstanceName) {
 
 
 
-    ObjPtr res = ctx.ExecStr(":Int ~ :Int");
+    ObjPtr res = ctx.ExecStr(":Int32 ~ :Int32");
     ASSERT_TRUE(res);
     ASSERT_TRUE(res->is_bool_type());
     ASSERT_TRUE(res->GetValueAsBoolean());
@@ -1733,16 +1739,16 @@ TEST(EvalOp, InstanceName) {
     ASSERT_NO_THROW(ctx.ExecStr("1.0 ~ :FAIL_TYPE"));
 
     std::map<const char *, bool> test_name = {
-        {"0 ~ :Int", true},
-        {"1 ~ :Int", true},
+        {"0 ~ :Int32", true},
+        {"1 ~ :Int32", true},
         {"1 ~ :Bool", true},
         {"1 ~ :Integer", true},
-        {"1 ~ :Number", true},
-        {"1 ~ :Double", true},
+        {"1 ~ :Float", true},
+        {"1 ~ :Float64", true},
         {"10 ~ :Bool", false},
         {"10 !~ :Bool", true},
-        {"1 ~ :Float", true},
-        {"1.0 ~ :Double", true},
+        {"1 ~ :Float32", true},
+        {"1.0 ~ :Float64", true},
         {"1.0 ~ :Integer", false},
         {"1.0 ~ :FAIL_TYPE", false},
 
@@ -1750,14 +1756,14 @@ TEST(EvalOp, InstanceName) {
         {"\"\" ~ :StrWide", true},
         {"'' ~ :String", true},
         {"\"\" ~ :String", true},
-        {"\"\" ~ :Int", false},
+        {"\"\" ~ :Int32", false},
         {"\"\" ~ :None", false},
 
-        {":Int ~ :Int", true},
-        {":Int ~ :Bool", false},
+        {":Int32 ~ :Int32", true},
+        {":Int32 ~ :Bool", false},
 
-        {"[,]:Int ~ :Bool", false},
-        {"[,]:Bool ~ :Int", true},
+        {"[,]:Int32 ~ :Bool", false},
+        {"[,]:Bool ~ :Int32", true},
 
         {"(,):Class ~ :Class", true},
         {"(,):ClassNameNotFound ~ :Class", false},

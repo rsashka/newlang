@@ -153,23 +153,25 @@ void ParserException(const char *msg, std::string &buffer, int row, int col);
     _(None, 0)              \
     \
     _(Bool, 1)              \
-    _(Char, 2)              \
-    _(Short, 3)             \
-    _(Int, 4)               \
-    _(Long, 5)              \
+    _(Int8, 2)              \
+    _(Int16, 3)             \
+    _(Int32, 4)               \
+    _(Int64, 5)              \
     _(Integer, 15)           \
     \
-    _(Float, 16)            \
-    _(Double, 17)           \
-    _(Number, 24)           \
+    _(Float16, 16)            \
+    _(Float32, 17)            \
+    _(Float64, 18)           \
+    _(Float, 24)           \
     \
-    _(ComplexFloat, 25)     \
-    _(ComplexDouble, 26)    \
+    _(Complex16, 25)     \
+    _(Complex32, 26)     \
+    _(Complex64, 27)    \
     _(Complex, 31)          \
                             \
     _(Tensor, 32)           \
                             \
-    _(Fraction, 33)         \
+    _(Rational, 33)         \
     \
     _(Arithmetic, 47)       \
     \
@@ -219,11 +221,11 @@ void ParserException(const char *msg, std::string &buffer, int row, int col);
     _(ErrorSignal, 243)
 
     // BigNum - Длинные целые числа произвольного размера  100:Big
-    // Currency - Fraction со знаменателем `10000 -1`000.00   `-1000  100:Curr
-    // Fraction - произвольная дробь с длинными числами    100\1    100:Frac
+    // Currency - Rational со знаменателем `10000 -1`000.00   `-1000  100:Curr
+    // Rational - произвольная дробь с длинными числами    100\1    100:Frac
     // Frac_tion \1 -> Curr_ency `1.0000 -> Big_Num 100`100`000.  100'100'000.
 
-    //Форматирующий символ дроби (fraction slash, U+2044) позволяет создавать произвольные дроби следующим образом:
+    //Форматирующий символ дроби (rational slash, U+2044) позволяет создавать произвольные дроби следующим образом:
     // последовательность цифр числителя + форматирующий символ дроби + последовательность цифр знаменателя
     // — при выводе на экран или на печать это должно преобразовываться в правильно сформированную дробь.
     // Например, 22⁄371 должна показываться как 22/371 или как 22 371 {\displaystyle {\frac {22}{371}}} {\displaystyle
@@ -233,11 +235,11 @@ void ParserException(const char *msg, std::string &buffer, int row, int col);
     //{6}{7}}})
     // целую часть нужно отделять от числителя дробной части подходящим пробелом (например, пробелом нулевой ширины U+200B).
     //
-    //Кроме того, существует символ ⅟ (fraction numerator one, U+215F), позволяющий формировать дроби с числителем,
+    //Кроме того, существует символ ⅟ (rational numerator one, U+215F), позволяющий формировать дроби с числителем,
     //равным 1.
     //  "/-5 " - квадратный корень из 5,  "3/-5" - корень третьей степени ????
     // "1/_5" - Одна пятая ??
-    // https://github.com/python/cpython/blob/main/Lib/fractions.py
+    // https://github.com/python/cpython/blob/main/Lib/rationals.py
     //
     //_RATIONAL_FORMAT = re.compile(r"""
     //    \A\s*                                 # optional whitespace at the start,
@@ -247,7 +249,7 @@ void ParserException(const char *msg, std::string &buffer, int row, int col);
     //    (?:                                   # followed by
     //       (?:/(?P<denom>\d+(_\d+)*))?        # an optional denominator
     //    |                                     # or
-    //       (?:\.(?P<decimal>d*|\d+(_\d+)*))?  # an optional fractional part
+    //       (?:\.(?P<decimal>d*|\d+(_\d+)*))?  # an optional rationalal part
     //       (?:E(?P<exp>[-+]?\d+(_\d+)*))?     # and optional exponent
     //    )
     //    \s*\Z                                 # and optional whitespace to finish
@@ -265,7 +267,7 @@ void ParserException(const char *msg, std::string &buffer, int row, int col);
      * - может быть изменяемым / не изменяемым (если тип указан явно)
      * - местом хранения (тензор/ссылка на последовательность байт)
      * Строки:
-     * - Обычные (UTF8), тип данных Char
+     * - Обычные (UTF8), тип данных Int8
      * - Широкие (WIDE), тип данных wchar_t
      * - Нативные обычные ViewChar
      * - Нативные широкие ViewWide
@@ -292,24 +294,24 @@ void ParserException(const char *msg, std::string &buffer, int row, int col);
      *
      * Автоматическое приведение типов в выражениях происходит по следующим правилам.
      * - Если тип указан явно, то он не может быть изменен
-     * - Определяется общий тип (Bool, Integer, Number, Complex).
+     * - Определяется общий тип (Bool, Integer, Float, Complex).
      * - Если тип литерала явно не указан, то выбирается минимальный байтовый размер для общего типа.
      * - В выражениях тензор-скаляр, тензором должен быть самый левый элемент выражения.
      * - Итоговым типом поседовательности выражений является тип первого вычисленного элемента.
      * - В операторах присвоения вычисление типа происходит дважды, сперва для правой части выражения, а потом для оператора
      * присовения.
      * - Тип меньшего размера может автоматически приводится к типу большему размеру или к более сложному типу
-     *    bool -> char -> short -> int -> long -> float -> double -> complexfloat -> complexdouble
+     *    bool -> char -> short -> int -> long -> float -> double -> Complex32 -> Complex64
      *    var := 1.0 + 2; // float
-     *    var := 1 + 1000; // Short т.к. первый тип изменяемый
-     *    var := 1:Char + 1000; // Ошибка в выражении т.к. первый тип не изменяемый  Short -x-> Char
-     *    var:Char := 1 + 1000; // Ошибка в присвоении т.к. тип не изменяемый  Short -x-> Char
-     *    var := 1000 + 2; // Short
+     *    var := 1 + 1000; // Int16 т.к. первый тип изменяемый
+     *    var := 1:Int8 + 1000; // Ошибка в выражении т.к. первый тип не изменяемый  Int16 -x-> Int8
+     *    var:Int8 := 1 + 1000; // Ошибка в присвоении т.к. тип не изменяемый  Int16 -x-> Int8
+     *    var := 1000 + 2; // Int16
      *    var := 1000 + 2.0; // Ошибка float -> short, но может быть var := 1000.0 + 2;
      *    var := 1:Bool + 2; // Ошибка byte -> bool, но может быть var := 2 + 1:Bool;
      *
      * - Итоговым типом поседовательности выражений является тип первого вычисленого элемента.
-     *      var := 1.0 + 2; // float  var := 1000 + 2; // Short  var := 1000 + 2.0;
+     *      var := 1.0 + 2; // float  var := 1000 + 2; // Int16  var := 1000 + 2.0;
      * -
      * АПриведение ра
      * Совместимость типов данныъ между собой определяется по следующему принципу.
@@ -348,7 +350,7 @@ void ParserException(const char *msg, std::string &buffer, int row, int col);
     inline bool isGenericType(ObjType t) {
         switch (t) {
             case ObjType::Integer: // Любое ЦЕЛОЕ число включая логический тип
-            case ObjType::Number: // Любое число с ПЛАВАЮЩЕЙ ТОЧКОЙ
+            case ObjType::Float: // Любое число с ПЛАВАЮЩЕЙ ТОЧКОЙ
             case ObjType::Complex: // Любое КОМПЛЕКСНОЕ число
             case ObjType::Tensor: // Любое число в виде тензора (включая логический тип)
             case ObjType::Arithmetic: // Все числа, включая длинные, дроби и денежный формат
@@ -369,8 +371,8 @@ void ParserException(const char *msg, std::string &buffer, int row, int col);
     }
 
     inline bool isBaseType(ObjType t) {
-        return t == ObjType::Bool || t == ObjType::Char || t == ObjType::Short || t == ObjType::Int
-                || t == ObjType::Long || t == ObjType::Float || t == ObjType::Double;
+        return t == ObjType::Bool || t == ObjType::Int8 || t == ObjType::Int16 || t == ObjType::Int32
+                || t == ObjType::Int64 || t == ObjType::Float32 || t == ObjType::Float64;
     }
 
     inline bool isFunction(ObjType t) {
@@ -388,17 +390,17 @@ void ParserException(const char *msg, std::string &buffer, int row, int col);
     }
 
     inline bool isIntegralType(ObjType t, bool includeBool) {
-        return (static_cast<uint8_t> (t) >= static_cast<uint8_t> (ObjType::Char) &&
+        return (static_cast<uint8_t> (t) >= static_cast<uint8_t> (ObjType::Int8) &&
                 static_cast<uint8_t> (t) <= static_cast<uint8_t> (ObjType::Integer)) ||
                 (includeBool && t == ObjType::Bool);
     }
 
     inline bool isFloatingType(ObjType t) {
-        return t == ObjType::Float || t == ObjType::Double || t == ObjType::Number;
+        return t == ObjType::Float32 || t == ObjType::Float64 || t == ObjType::Float;
     }
 
     inline bool isComplexType(ObjType t) {
-        return t == ObjType::ComplexFloat || t == ObjType::ComplexDouble || t == ObjType::Complex;
+        return t == ObjType::Complex32 || t == ObjType::Complex64 || t == ObjType::Complex;
     }
 
     inline bool isTensor(ObjType t) {
@@ -459,24 +461,26 @@ void ParserException(const char *msg, std::string &buffer, int row, int col);
         switch (t) {
             case ObjType::Bool:
                 return at::ScalarType::Bool;
-            case ObjType::Char:
+            case ObjType::Int8:
                 return at::ScalarType::Char;
-            case ObjType::Short:
+            case ObjType::Int16:
                 return at::ScalarType::Short;
-            case ObjType::Int:
+            case ObjType::Int32:
                 return at::ScalarType::Int;
-            case ObjType::Long:
+            case ObjType::Int64:
             case ObjType::Integer:
                 return at::ScalarType::Long;
-            case ObjType::Float:
+            case ObjType::Float32:
             case ObjType::Tensor:
                 return at::ScalarType::Float;
-            case ObjType::Double:
-            case ObjType::Number:
+            case ObjType::Float64:
+            case ObjType::Float:
                 return at::ScalarType::Double;
-            case ObjType::ComplexFloat:
+            case ObjType::Complex16:
+                return at::ScalarType::ComplexHalf;
+            case ObjType::Complex32:
                 return at::ScalarType::ComplexFloat;
-            case ObjType::ComplexDouble:
+            case ObjType::Complex64:
             case ObjType::Complex:
                 return at::ScalarType::ComplexDouble;
         }
@@ -491,53 +495,57 @@ void ParserException(const char *msg, std::string &buffer, int row, int col);
             case at::ScalarType::Char:
             case at::ScalarType::QInt8:
             case at::ScalarType::QUInt8:
-                return ObjType::Char;
+                return ObjType::Int8;
             case at::ScalarType::Short:
-                return ObjType::Short;
+                return ObjType::Int16;
             case at::ScalarType::Int:
             case at::ScalarType::QInt32:
-                return ObjType::Int;
+                return ObjType::Int32;
             case at::ScalarType::Long:
-                return ObjType::Long;
-            case at::ScalarType::Float:
+                return ObjType::Int64;
             case at::ScalarType::BFloat16:
-                return ObjType::Float;
+            case at::ScalarType::Half:
+                return ObjType::Float16;
+            case at::ScalarType::Float:
+                return ObjType::Float32;
             case at::ScalarType::Double:
-                return ObjType::Double;
+                return ObjType::Float64;
+            case at::ScalarType::ComplexHalf:
+                return ObjType::Complex16;
             case at::ScalarType::ComplexFloat:
-                return ObjType::ComplexFloat;
+                return ObjType::Complex32;
             case at::ScalarType::ComplexDouble:
-                return ObjType::ComplexDouble;
+                return ObjType::Complex64;
         }
         LOG_RUNTIME("Can`t convert type '%s' to ObjType!", at::toString(t));
     }
 
-    inline ObjType typeFromLimit(int64_t value, ObjType type_default = ObjType::Long) {
+    inline ObjType typeFromLimit(int64_t value, ObjType type_default = ObjType::Int64) {
         if (value == 1 || value == 0) {
             return ObjType::Bool;
         } else if (value < std::numeric_limits<int32_t>::min() || value > std::numeric_limits<int32_t>::max()) {
             ASSERT(value > std::numeric_limits<int64_t>::min());
             ASSERT(value < std::numeric_limits<int64_t>::max());
-            return ObjType::Long;
+            return ObjType::Int64;
         } else if (value < std::numeric_limits<int16_t>::min() || value > std::numeric_limits<int16_t>::max()) {
-            return ObjType::Int;
+            return ObjType::Int32;
         } else if (value < std::numeric_limits<int8_t>::min() ||
                 value > std::numeric_limits<int8_t>::max()) { //-127 < ... > 128
-            return ObjType::Short;
+            return ObjType::Int16;
         } else {
-            return ObjType::Char;
+            return ObjType::Int8;
         }
         return type_default;
     }
 
-    inline ObjType typeFromLimit(double value, ObjType type_default = ObjType::Float) {
+    inline ObjType typeFromLimit(double value, ObjType type_default = ObjType::Float32) {
         if (std::equal_to<double>()(value, 0)) {
             return type_default;
         }
-        return ObjType::Double;
+        return ObjType::Float64;
     }
 
-    inline ObjType typeFromLimit(std::complex<double> value, ObjType type_default = ObjType::ComplexFloat) {
+    inline ObjType typeFromLimit(std::complex<double> value, ObjType type_default = ObjType::Complex32) {
         LOG_RUNTIME("Not implemented!");
     }
 
@@ -549,20 +557,20 @@ void ParserException(const char *msg, std::string &buffer, int row, int col);
                 return LLVMVoidType();
             case ObjType::Bool:
                 return LLVMInt1Type();
-            case ObjType::Char:
+            case ObjType::Int8:
                 return LLVMInt8Type();
-            case ObjType::Short:
+            case ObjType::Int16:
                 return LLVMInt16Type();
-            case ObjType::Int:
+            case ObjType::Int32:
                 return LLVMInt32Type();
-            case ObjType::Long:
+            case ObjType::Int64:
             case ObjType::Integer:
                 return LLVMInt64Type();
-            case ObjType::Float:
+            case ObjType::Float32:
             case ObjType::Tensor:
                 return LLVMFloatType();
-            case ObjType::Double:
-            case ObjType::Number:
+            case ObjType::Float64:
+            case ObjType::Float:
                 return LLVMDoubleType();
 
             case ObjType::Pointer:
@@ -588,14 +596,14 @@ void ParserException(const char *msg, std::string &buffer, int row, int col);
             if (isSimpleType(to)) {
                 // Для простых типов приведение типов почти как в Torch, только с учетом размера данных
                 // Запрещено: Big size -> Small Size, т.е.  Byte_tensor *= Int_tensor.
-                // Разрешено: Bool -> Byte, Char -> Short -> Int -> Long -> Float, Double -> ComplexFloat, ComplexDouble
-                //   т.е. Int_tensor += Bool_tensor или ComplexFloat_tensor *= Short_tensor.
+                // Разрешено: Bool -> Byte, Int8 -> Int16 -> Int32 -> Int64 -> Float32, Float64 -> Complex32, Complex64
+                //   т.е. Int_tensor += Bool_tensor или Complex32_tensor *= Short_tensor.
 
                 //        return at::canCast(toTorchType(from), toTorchType(to))
-                //                && (from <= to || from == ObjType::Bool || from <= ObjType::Char || (isFloatingType(from) &&
+                //                && (from <= to || from == ObjType::Bool || from <= ObjType::Int8 || (isFloatingType(from) &&
                 //                isFloatingType(to)));
                 return (from <= to || (isFloatingType(from) && isFloatingType(to)));
-            } else if (to == ObjType::Fraction) {
+            } else if (to == ObjType::Rational) {
                 return true;
             }
         } else if (isString(from) && isString(to)) {// && isObjectType(to)) {
@@ -749,12 +757,12 @@ void ParserException(const char *msg, std::string &buffer, int row, int col);
                 return isTensor(type);
             case ObjType::Integer: // Любое ЦЕЛОЕ число включая логический тип
                 return isIntegralType(type, true);
-            case ObjType::Number: // Любое число с ПЛАВАЮЩЕЙ ТОЧКОЙ
+            case ObjType::Float: // Любое число с ПЛАВАЮЩЕЙ ТОЧКОЙ
                 return isFloatingType(type) || isIntegralType(type, true);
             case ObjType::Complex: // Любое КОМПЛЕКСНОЕ число
                 return isIntegralType(type, true) || isFloatingType(type) || isComplexType(type);
             case ObjType::Arithmetic: // Любое число
-                return isIntegralType(type, true) || isFloatingType(type) || isComplexType(type) || type == ObjType::Fraction;
+                return isIntegralType(type, true) || isFloatingType(type) || isComplexType(type) || type == ObjType::Rational;
             case ObjType::String: // Строка любого типа
                 return isString(type);
             case ObjType::Object: // Любой объект (Class или Dictionary)

@@ -375,8 +375,8 @@ ObjType newlang::getSummaryTensorType(Obj *obj, ObjType start) {
     } else if(obj->is_arithmetic_type()) {
         if(isGenericType(obj->m_var_type_fixed)) {
             return std::max(obj->m_var_type_current, start);
-        } else if(start == ObjType::Fraction || obj->m_var_type_current == ObjType::Fraction || obj->m_var_type_fixed == ObjType::Fraction) {
-            return ObjType::Fraction;
+        } else if(start == ObjType::Rational || obj->m_var_type_current == ObjType::Rational || obj->m_var_type_fixed == ObjType::Rational) {
+            return ObjType::Rational;
         } else {
             if(start >= std::max(obj->m_var_type_current, obj->m_var_type_fixed)) {
                 return start;
@@ -396,7 +396,7 @@ ObjPtr Obj::operator+=(Obj value) {
                 if(is_floating()) {
                     ASSERT(at::holds_alternative<double>(m_var));
                     m_var = GetValueAsNumber() + value.GetValueAsNumber();
-                    m_var_type_current = ObjType::Double;
+                    m_var_type_current = ObjType::Float64;
                 } else if(is_integral() && value.is_integral()) {
                     ASSERT(at::holds_alternative<int64_t>(m_var));
                     m_var = GetValueAsInteger() + value.GetValueAsInteger();
@@ -446,11 +446,11 @@ ObjPtr Obj::operator+=(Obj value) {
             }
             break;
 
-        case ObjType::Fraction:
-            if(value.m_var_type_current == ObjType::Fraction) {
-                m_fraction.operator+=(value.m_fraction);
+        case ObjType::Rational:
+            if(value.m_var_type_current == ObjType::Rational) {
+                m_rational.operator+=(value.m_rational);
             } else {
-                m_fraction.operator+=(value.toType(ObjType::Fraction)->m_fraction);
+                m_rational.operator+=(value.toType(ObjType::Rational)->m_rational);
             }
             return shared();
 
@@ -467,7 +467,7 @@ ObjPtr Obj::operator-=(Obj value) {
             if(is_floating()) {
                 ASSERT(at::holds_alternative<double>(m_var));
                 m_var = GetValueAsNumber() - value.GetValueAsNumber();
-                m_var_type_current = ObjType::Double;
+                m_var_type_current = ObjType::Float64;
             } else if(is_integral() && value.is_integral()) {
                 ASSERT(at::holds_alternative<int64_t>(m_var));
                 m_var = GetValueAsInteger() - value.GetValueAsInteger();
@@ -504,11 +504,11 @@ ObjPtr Obj::operator-=(Obj value) {
                 return shared();
             }
             break;
-        case ObjType::Fraction:
-            if(value.m_var_type_current == ObjType::Fraction) {
-                m_fraction.operator-=(value.m_fraction);
+        case ObjType::Rational:
+            if(value.m_var_type_current == ObjType::Rational) {
+                m_rational.operator-=(value.m_rational);
             } else {
-                m_fraction.operator-=(value.toType(ObjType::Fraction)->m_fraction);
+                m_rational.operator-=(value.toType(ObjType::Rational)->m_rational);
             }
             return shared();
     }
@@ -524,7 +524,7 @@ ObjPtr Obj::operator*=(Obj value) {
             if(is_floating()) {
                 ASSERT(at::holds_alternative<double>(m_var));
                 m_var = GetValueAsNumber() * value.GetValueAsNumber();
-                m_var_type_current = ObjType::Double;
+                m_var_type_current = ObjType::Float64;
             } else if(is_integral() && value.is_integral()) {
                 ASSERT(at::holds_alternative<int64_t>(m_var));
                 m_var = GetValueAsInteger() * value.GetValueAsInteger();
@@ -577,11 +577,11 @@ ObjPtr Obj::operator*=(Obj value) {
                 return shared();
             }
 
-        case ObjType::Fraction:
-            if(value.m_var_type_current == ObjType::Fraction) {
-                m_fraction.operator*=(value.m_fraction);
+        case ObjType::Rational:
+            if(value.m_var_type_current == ObjType::Rational) {
+                m_rational.operator*=(value.m_rational);
             } else {
-                m_fraction.operator*=(value.toType(ObjType::Fraction)->m_fraction);
+                m_rational.operator*=(value.toType(ObjType::Rational)->m_rational);
             }
             return shared();
 
@@ -591,12 +591,12 @@ ObjPtr Obj::operator*=(Obj value) {
 
 ObjPtr Obj::operator/=(Obj value) {
     if(is_tensor_type() && value.is_tensor_type()) {
-        testResultIntegralType(ObjType::Double, true);
+        testResultIntegralType(ObjType::Float64, true);
         if(is_scalar() && value.is_scalar()) {
             if(is_floating()) {
                 ASSERT(at::holds_alternative<double>(m_var));
                 m_var = GetValueAsNumber() / value.GetValueAsNumber();
-                m_var_type_current = ObjType::Double;
+                m_var_type_current = ObjType::Float64;
             } else if(is_integral() && value.is_integral()) {
                 ASSERT(at::holds_alternative<int64_t>(m_var));
                 m_var = GetValueAsInteger() / value.GetValueAsInteger();
@@ -617,11 +617,11 @@ ObjPtr Obj::operator/=(Obj value) {
             m_tensor.div_(value.m_tensor);
         }
         return shared();
-    } else if(m_var_type_current == ObjType::Fraction) {
-        if(value.m_var_type_current == ObjType::Fraction) {
-            m_fraction.operator/=(value.m_fraction);
+    } else if(m_var_type_current == ObjType::Rational) {
+        if(value.m_var_type_current == ObjType::Rational) {
+            m_rational.operator/=(value.m_rational);
         } else {
-            m_fraction.operator/=(value.toType(ObjType::Fraction)->m_fraction);
+            m_rational.operator/=(value.toType(ObjType::Rational)->m_rational);
         }
         return shared();
     }
@@ -631,12 +631,12 @@ ObjPtr Obj::operator/=(Obj value) {
 ObjPtr Obj::op_div_ceil_(Obj & value) {
     if(is_tensor_type() && value.is_tensor_type()) {
         ObjType type = m_var_type_current;
-        testResultIntegralType(ObjType::Float, false);
+        testResultIntegralType(ObjType::Float32, false);
         if(is_scalar() && value.is_scalar()) {
             if(is_floating()) {
                 ASSERT(at::holds_alternative<double>(m_var));
                 m_var = floor(GetValueAsNumber() / value.GetValueAsNumber());
-                m_var_type_current = ObjType::Double;
+                m_var_type_current = ObjType::Float64;
             } else if(is_integral() && value.is_integral()) {
                 ASSERT(at::holds_alternative<int64_t>(m_var));
                 m_var = static_cast<int64_t> (GetValueAsInteger() / value.GetValueAsInteger());
@@ -658,16 +658,16 @@ ObjPtr Obj::op_div_ceil_(Obj & value) {
             m_tensor = m_tensor.toType(toTorchType(type));
         }
         //        ObjType type = m_var_type_current;
-        //        testResultIntegralType(ObjType::Float, false);
+        //        testResultIntegralType(ObjType::Float32, false);
         //        m_tensor.div_(value.m_tensor, "floor");
         //        m_tensor = m_tensor.toType(toTorchType(type));
         return shared();
 
-    } else if(m_var_type_current == ObjType::Fraction) {
-        if(value.m_var_type_current == ObjType::Fraction) {
-            m_fraction.op_div_ceil_(value.m_fraction);
+    } else if(m_var_type_current == ObjType::Rational) {
+        if(value.m_var_type_current == ObjType::Rational) {
+            m_rational.op_div_ceil_(value.m_rational);
         } else {
-            m_fraction.op_div_ceil_(value.toType(ObjType::Fraction)->m_fraction);
+            m_rational.op_div_ceil_(value.toType(ObjType::Rational)->m_rational);
         }
         return shared();
     }
@@ -700,11 +700,11 @@ ObjPtr Obj::operator%=(Obj value) {
             m_tensor.fmod_(value.m_tensor);
         }
         return shared();
-    } else if(m_var_type_current == ObjType::Fraction) {
-        if(value.m_var_type_current == ObjType::Fraction) {
-            m_fraction.operator%=(value.m_fraction);
+    } else if(m_var_type_current == ObjType::Rational) {
+        if(value.m_var_type_current == ObjType::Rational) {
+            m_rational.operator%=(value.m_rational);
         } else {
-            m_fraction.operator%=(value.toType(ObjType::Fraction)->m_fraction);
+            m_rational.operator%=(value.toType(ObjType::Rational)->m_rational);
         }
         return shared();
     }
@@ -743,7 +743,7 @@ void Obj::CloneDataTo(Obj & clone) const {
         clone.m_value = m_value;
         clone.m_string = m_string;
 
-        clone.m_fraction = *m_fraction.clone();
+        clone.m_rational = *m_rational.clone();
         clone.m_iterator = m_iterator;
         if(m_iter_range_value) {
             clone.m_iter_range_value = m_iter_range_value->Clone();
@@ -998,8 +998,8 @@ std::string Obj::toString(bool deep) const {
                 result += "...";
                 return result;
 
-            case ObjType::Fraction:
-                result += m_fraction.GetAsString();
+            case ObjType::Rational:
+                result += m_rational.GetAsString();
                 return result;
 
             case ObjType::Iterator:
@@ -1086,17 +1086,17 @@ std::string Obj::GetValueAsString() const {
 
         case ObjType::Tensor:
         case ObjType::Bool:
-        case ObjType::Char:
-        case ObjType::Short:
-        case ObjType::Int:
-        case ObjType::Long:
+        case ObjType::Int8:
+        case ObjType::Int16:
+        case ObjType::Int32:
+        case ObjType::Int64:
         case ObjType::Integer:
+        case ObjType::Float32:
+        case ObjType::Float64:
         case ObjType::Float:
-        case ObjType::Double:
-        case ObjType::Number:
         case ObjType::Complex:
-        case ObjType::ComplexFloat:
-        case ObjType::ComplexDouble:
+        case ObjType::Complex32:
+        case ObjType::Complex64:
             if(is_scalar()) {
                 if(is_integral()) {
                     return std::to_string(GetValueAsInteger());
@@ -1157,8 +1157,8 @@ std::string Obj::GetValueAsString() const {
             result += toString();
             return result;
 
-        case ObjType::Fraction:
-            result += m_fraction.GetAsString();
+        case ObjType::Rational:
+            result += m_rational.GetAsString();
             return result;
 
         case ObjType::Iterator:
@@ -1324,8 +1324,8 @@ ObjPtr Obj::Call(Context *ctx, Obj * args) {
         //
         //            ObjType proto_type = typeFromString((*m_prototype)[pind].second->m_type_name, ctx);
         //            if(!canCast(type, proto_type)) {
-        //                if(!((type == ObjType::StrChar || type == ObjType::FmtChar) && proto_type == ObjType::Char) ||
-        //                        ((type == ObjType::StrWide || type == ObjType::FmtWide) && proto_type == ObjType::Int)) {
+        //                if(!((type == ObjType::StrChar || type == ObjType::FmtChar) && proto_type == ObjType::Int8) ||
+        //                        ((type == ObjType::StrWide || type == ObjType::FmtWide) && proto_type == ObjType::Int32)) {
         //                    LOG_RUNTIME("Fail cast from '%s' to '%s'", (*m_prototype)[pind].second->m_type_name.c_str(), newlang::toString(type));
         //                }
         //            }
@@ -1345,7 +1345,7 @@ ObjPtr Obj::Call(Context *ctx, Obj * args) {
         //
         //        if(check_type == ObjType::Bool && m_namespace.empty()) {
         //            // В чистом С (для пустого m_namespace) для логического типа используется тип int
-        //            check_type = ObjType::Int;
+        //            check_type = ObjType::Int32;
         //        }
         //        if(check_type == ObjType::Iterator) {
         //            // У итератора передается не объект, а его данные
@@ -1537,12 +1537,12 @@ int Obj::op_compare(Obj & value) {
             };
             return 0;
         }
-    } else if(is_fraction()) {
+    } else if(is_rational()) {
 
-        if(value.getType() == ObjType::Fraction) {
-            return m_fraction.op_compare(value.m_fraction);
+        if(value.getType() == ObjType::Rational) {
+            return m_rational.op_compare(value.m_rational);
         } else {
-            return m_fraction.op_compare(*value.GetValueAsFraction());
+            return m_rational.op_compare(*value.GetValueAsRational());
         }
 
     } else if((is_string_type() && value.is_string_type())) {
@@ -1599,12 +1599,12 @@ bool Obj::op_equal(Obj & value) {
         return GetValueAsBoolean() == value.GetValueAsBoolean();
     } else if(is_string_type()) {
         return GetValueAsString().compare(value.GetValueAsString()) == 0;
-    } else if(is_fraction()) {
+    } else if(is_rational()) {
 
-        if(value.getType() == ObjType::Fraction) {
-            return m_fraction.op_equal(value.m_fraction);
+        if(value.getType() == ObjType::Rational) {
+            return m_rational.op_equal(value.m_rational);
         } else {
-            return m_fraction.op_equal(*value.GetValueAsFraction());
+            return m_rational.op_equal(*value.GetValueAsRational());
         }
 
     } else if(is_dictionary_type() && value.is_dictionary_type()) {
@@ -1637,7 +1637,7 @@ bool Obj::op_accurate(Obj & value) {
 }
 
 ObjPtr Obj::op_bit_and_set(Obj &obj, bool strong) {
-    if(m_var_type_current == ObjType::Long) {
+    if(m_var_type_current == ObjType::Int64) {
         if(m_var_type_current == obj.m_var_type_current) {
             m_tensor.bitwise_and_(obj.m_tensor);
             //            m_values.integer &= obj.m_values.integer;
@@ -1766,12 +1766,12 @@ ObjPtr Obj::op_pow_(Obj & obj) {
             m_tensor.pow_(obj.GetValueAsNumber());
         }
         return shared();
-    } else if(is_fraction()) {
+    } else if(is_rational()) {
 
-        if(obj.getType() == ObjType::Fraction) {
-            m_fraction.op_pow_(obj.m_fraction);
+        if(obj.getType() == ObjType::Rational) {
+            m_rational.op_pow_(obj.m_rational);
         } else {
-            m_fraction.op_pow_(*obj.GetValueAsFraction());
+            m_rational.op_pow_(*obj.GetValueAsRational());
         }
         return shared();
 
@@ -1781,11 +1781,11 @@ ObjPtr Obj::op_pow_(Obj & obj) {
     } else if(m_var_type_current == ObjType::StrWide && obj.is_integral()) {
         m_string = repeat(m_string, obj.GetValueAsInteger());
         return shared();
-    } else if(m_var_type_current == ObjType::Fraction) {
-        //        if(value.m_var_type_current == ObjType::Fraction) {
-        //            m_fraction->op_pow_(value.m_fraction);
+    } else if(m_var_type_current == ObjType::Rational) {
+        //        if(value.m_var_type_current == ObjType::Rational) {
+        //            m_rational->op_pow_(value.m_rational);
         //        } else {
-        //            m_fraction->op_pow_(value.toType(ObjPtr::Fraction)->m_fraction);
+        //            m_rational->op_pow_(value.toType(ObjPtr::Rational)->m_rational);
         //        }
         //        return shared();
     }
@@ -1809,8 +1809,8 @@ bool Obj::op_duck_test(Obj *value, bool strong) {
         }
         return op_duck_test_prop(this, value, strong);
     }
-    if(value->m_var_type_current == ObjType::Long || value->m_var_type_current == ObjType::Double) {
-        return (m_var_type_current == ObjType::Long || m_var_type_current == ObjType::Double);
+    if(value->m_var_type_current == ObjType::Int64 || value->m_var_type_current == ObjType::Float64) {
+        return (m_var_type_current == ObjType::Int64 || m_var_type_current == ObjType::Float64);
     } else if(is_string_type() && value->is_string_type()) {
         return true;
     } else if(is_function_type() && value->is_function_type()) {
@@ -1974,8 +1974,8 @@ ObjPtr Obj::CallNative(Context *ctx, Obj args) {
 
             ObjType proto_type = typeFromString((*m_prototype)[pind].second->m_type_name, ctx);
             if(!canCast(type, proto_type)) {
-                if(!((type == ObjType::StrChar || type == ObjType::FmtChar) && proto_type == ObjType::Char) ||
-                        ((type == ObjType::StrWide || type == ObjType::FmtWide) && proto_type == ObjType::Int)) {
+                if(!((type == ObjType::StrChar || type == ObjType::FmtChar) && proto_type == ObjType::Int8) ||
+                        ((type == ObjType::StrWide || type == ObjType::FmtWide) && proto_type == ObjType::Int32)) {
                     LOG_RUNTIME("Fail cast from '%s' to '%s'", (*m_prototype)[pind].second->m_type_name.c_str(), newlang::toString(type));
                 }
             }
@@ -1995,7 +1995,7 @@ ObjPtr Obj::CallNative(Context *ctx, Obj args) {
 
         if(check_type == ObjType::Bool && m_namespace.empty()) {
             // В чистом С (для пустого m_namespace) для логического типа используется тип int
-            check_type = ObjType::Int;
+            check_type = ObjType::Int32;
         }
         if(check_type == ObjType::Iterator) {
             // У итератора передается не объект, а его данные
@@ -2042,13 +2042,24 @@ ObjPtr Obj::CallNative(Context *ctx, Obj args) {
         args_param.push_back(LLVMGetParam(wrap, i - 1));
     }
 
-    //    LLVMValueRef param_call[] = {LLVMGetParam(wrap, 0)};
     LLVMValueRef func_call = LLVMAddFunction(module, "m_func_ptr", func_res_type); // Имя функции может пересечся с сужествующими при связывании?????
-    LLVMValueRef func_ret = LLVMBuildCall2(ctx->m_llvm_builder, func_res_type, func_call, args_param.data(), static_cast<unsigned int> (args_param.size()), m_prototype->m_text.c_str());
 
-    //return value 
-    LLVMBuildRet(ctx->m_llvm_builder, func_ret);
+    if(type_result == ObjType::None) {
+        ASSERT(return_llvm_type == LLVMVoidType());
+        LLVMBuildCall2(ctx->m_llvm_builder, func_res_type, func_call, args_param.data(), static_cast<unsigned int> (args_param.size()), "");
+        LLVMBuildRetVoid(ctx->m_llvm_builder);
+    } else {
+        ASSERT(return_llvm_type != LLVMVoidType());
+        LLVMValueRef func_ret = LLVMBuildCall2(ctx->m_llvm_builder, func_res_type, func_call, args_param.data(), static_cast<unsigned int> (args_param.size()), m_prototype->m_text.c_str());
+        LLVMBuildRet(ctx->m_llvm_builder, func_ret);
+    }
 
+
+#ifdef UNITTEST
+    char *dump = LLVMPrintValueToString(wrap);
+    LOG_DEBUG("LLVM DUMP %s:\n%s\r\r", toString().c_str(), dump);
+    LLVMDisposeMessage(dump);
+#endif
 
     char *error = nullptr;
     if(LLVMVerifyModule(module, LLVMReturnStatusAction, &error)) {
@@ -2059,13 +2070,6 @@ ObjPtr Obj::CallNative(Context *ctx, Obj args) {
         error = nullptr;
     }
 
-
-
-#ifdef UNITTEST
-    char *dump = LLVMPrintValueToString(wrap);
-    LOG_DEBUG("LLVM DUMP %s:\n%s\r\r", toString().c_str(), dump);
-    LLVMDisposeMessage(dump);
-#endif
 
     LLVMExecutionEngineRef engine;
     if(LLVMCreateExecutionEngineForModule(&engine, module, &error)) {
@@ -2286,7 +2290,7 @@ ObjPtr CallLibFFI_(Context *ctx, Obj args) {
     //                m_args_val.push_back(temp);
     //                break;
     //
-    //            case ObjType::Char:
+    //            case ObjType::Int8:
     //                if(pind < check_count) {
     //                    NL_CHECK(!(*m_func_proto)[pind].second->m_type_name.empty(), "Undefined type arg '%s'", (*m_func_proto)[pind].second->toString().c_str());
     //                    NL_CHECK(canCast(type, typeFromString((*m_func_proto)[pind].second->m_type_name, ctx)), "Fail cast from '%s' to '%s'",
@@ -2297,7 +2301,7 @@ ObjPtr CallLibFFI_(Context *ctx, Obj args) {
     //                m_args_val.push_back(temp);
     //                break;
     //
-    //            case ObjType::Short:
+    //            case ObjType::Int16:
     //                if(pind < check_count) {
     //                    NL_CHECK(!(*m_func_proto)[pind].second->m_type_name.empty(), "Undefined type arg '%s'", (*m_func_proto)[pind].second->toString().c_str());
     //                    NL_CHECK(canCast(type, typeFromString((*m_func_proto)[pind].second->m_type_name, ctx)), "Fail cast from '%s' to '%s'",
@@ -2308,7 +2312,7 @@ ObjPtr CallLibFFI_(Context *ctx, Obj args) {
     //                m_args_val.push_back(temp);
     //                break;
     //
-    //            case ObjType::Int:
+    //            case ObjType::Int32:
     //                if(pind < check_count) {
     //                    NL_CHECK(!(*m_func_proto)[pind].second->m_type_name.empty(), "Undefined type arg '%s'", (*m_func_proto)[pind].second->toString().c_str());
     //                    NL_CHECK(canCast(type, typeFromString((*m_func_proto)[pind].second->m_type_name, ctx)), "Fail cast from '%s' to '%s'",
@@ -2319,7 +2323,7 @@ ObjPtr CallLibFFI_(Context *ctx, Obj args) {
     //                m_args_val.push_back(temp);
     //                break;
     //
-    //            case ObjType::Long:
+    //            case ObjType::Int64:
     //                if(pind < check_count) {
     //                    NL_CHECK(!(*m_func_proto)[pind].second->m_type_name.empty(), "Undefined type arg '%s'", (*m_func_proto)[pind].second->toString().c_str());
     //                    NL_CHECK(canCast(type, typeFromString((*m_func_proto)[pind].second->m_type_name, ctx)), "Fail cast from '%s' to '%s'",
@@ -2330,7 +2334,7 @@ ObjPtr CallLibFFI_(Context *ctx, Obj args) {
     //                m_args_val.push_back(temp);
     //                break;
     //
-    //            case ObjType::Float:
+    //            case ObjType::Float32:
     //                if(pind < check_count) {
     //                    NL_CHECK(!(*m_func_proto)[pind].second->m_type_name.empty(), "Undefined type arg '%s'", (*m_func_proto)[pind].second->toString().c_str());
     //                    NL_CHECK(canCast(type, typeFromString((*m_func_proto)[pind].second->m_type_name, ctx)), "Fail cast from '%s' to '%s'",
@@ -2341,7 +2345,7 @@ ObjPtr CallLibFFI_(Context *ctx, Obj args) {
     //                m_args_val.push_back(temp);
     //                break;
     //
-    //            case ObjType::Double:
+    //            case ObjType::Float64:
     //                if(pind < check_count) {
     //                    NL_CHECK(!(*m_func_proto)[pind].second->m_type_name.empty(), "Undefined type arg '%s'", (*m_func_proto)[pind].second->toString().c_str());
     //                    NL_CHECK(canCast(type, typeFromString((*m_func_proto)[pind].second->m_type_name, ctx)), "Fail cast from '%s' to '%s'",
@@ -2411,27 +2415,27 @@ ObjPtr CallLibFFI_(Context *ctx, Obj args) {
     //            result_ffi_type = ctx->m_runtime->m_ffi_type_uint8;
     //            break;
     //
-    //        case ObjType::Char:
+    //        case ObjType::Int8:
     //            result_ffi_type = ctx->m_runtime->m_ffi_type_sint8;
     //            break;
     //
-    //        case ObjType::Short:
+    //        case ObjType::Int16:
     //            result_ffi_type = ctx->m_runtime->m_ffi_type_sint16;
     //            break;
     //
-    //        case ObjType::Int:
+    //        case ObjType::Int32:
     //            result_ffi_type = ctx->m_runtime->m_ffi_type_sint32;
     //            break;
     //
-    //        case ObjType::Long:
+    //        case ObjType::Int64:
     //            result_ffi_type = ctx->m_runtime->m_ffi_type_sint64;
     //            break;
     //
-    //        case ObjType::Float:
+    //        case ObjType::Float32:
     //            result_ffi_type = ctx->m_runtime->m_ffi_type_float;
     //            break;
     //
-    //        case ObjType::Double:
+    //        case ObjType::Float64:
     //            result_ffi_type = ctx->m_runtime->m_ffi_type_double;
     //            break;
     //
@@ -2454,17 +2458,17 @@ ObjPtr CallLibFFI_(Context *ctx, Obj args) {
     //            // Возвращаемый тип может быть как Byte, так и Bool
     //            return Obj::CreateValue(static_cast<uint8_t> (res_value.integer), typeFromString(m_func_proto->m_type_name));
     //        } else if(result_ffi_type == ctx->m_runtime->m_ffi_type_sint8) {
-    //            return Obj::CreateValue(static_cast<int8_t> (res_value.integer), ObjType::Char);
+    //            return Obj::CreateValue(static_cast<int8_t> (res_value.integer), ObjType::Int8);
     //        } else if(result_ffi_type == ctx->m_runtime->m_ffi_type_sint16) {
-    //            return Obj::CreateValue(static_cast<int16_t> (res_value.integer), ObjType::Short);
+    //            return Obj::CreateValue(static_cast<int16_t> (res_value.integer), ObjType::Int16);
     //        } else if(result_ffi_type == ctx->m_runtime->m_ffi_type_sint32) {
-    //            return Obj::CreateValue(static_cast<int32_t> (res_value.integer), ObjType::Int);
+    //            return Obj::CreateValue(static_cast<int32_t> (res_value.integer), ObjType::Int32);
     //        } else if(result_ffi_type == ctx->m_runtime->m_ffi_type_sint64) {
-    //            return Obj::CreateValue(res_value.integer, ObjType::Long);
+    //            return Obj::CreateValue(res_value.integer, ObjType::Int64);
     //        } else if(result_ffi_type == ctx->m_runtime->m_ffi_type_float) {
-    //            return Obj::CreateValue(res_value.number, ObjType::Float);
+    //            return Obj::CreateValue(res_value.number, ObjType::Float32);
     //        } else if(result_ffi_type == ctx->m_runtime->m_ffi_type_double) {
-    //            return Obj::CreateValue(res_value.number, ObjType::Double);
+    //            return Obj::CreateValue(res_value.number, ObjType::Float64);
     //        } else if(result_ffi_type == ctx->m_runtime->m_ffi_type_pointer) {
     //            if(type == ObjType::StrChar) {
     //                return Obj::CreateString(reinterpret_cast<const char *> (res_value.ptr));
@@ -2554,11 +2558,11 @@ bool newlang::ParsePrintfFormat(Obj *args, int start) {
                 case 'u': //%u	Десятичное целое без знака
                 case 'x': //%x	Шестнадцатеричное без знака (буквы на нижнем регистре)
                 case 'X': //%X	Шестнадцатеричное без знака (буквы на верхнем регистре)
-                    cast = ObjType::Int;
+                    cast = ObjType::Int32;
                     if(pos && (format[pos - 1] == 'l' || format[pos - 1] == 'L')) {
-                        cast = ObjType::Long;
+                        cast = ObjType::Int64;
                     } else if(pos && format[pos - 1] == 'h') {
-                        cast = ObjType::Short;
+                        cast = ObjType::Int16;
                     }
 
                     if((*args)[aind].second->getType() == ObjType::Iterator) {
@@ -2581,7 +2585,7 @@ bool newlang::ParsePrintfFormat(Obj *args, int start) {
                 case 'g'://%g	В зависимости от того, какой вывод будет короче, используется %е или %f
                 case 'G'://%G	В зависимости от того, какой вывод будет короче, используется %Е или %F
 
-                    cast = ObjType::Double;
+                    cast = ObjType::Float64;
                     if(!canCast((*args)[aind].second->m_var_type_current, cast)) {
                         LOG_WARNING("Cast '%s' to '%s' not supported!", newlang::toString((*args)[aind].second->m_var_type_current), newlang::toString(cast));
                         result = false;
@@ -2589,9 +2593,9 @@ bool newlang::ParsePrintfFormat(Obj *args, int start) {
                     break;
 
                 case 'c':
-                    cast = ObjType::Char;
+                    cast = ObjType::Int8;
                     if(pos && (format[pos - 1] == 'l' || format[pos - 1] == 'L')) {
-                        cast = ObjType::Int;
+                        cast = ObjType::Int32;
                     }
                     if(!canCast((*args)[aind].second->m_var_type_current, cast)) {
                         LOG_WARNING("Cast '%s' to '%s' not supported!", newlang::toString((*args)[aind].second->m_var_type_current), newlang::toString(cast));
@@ -2797,6 +2801,7 @@ void Obj::toType_(ObjType type) {
             Variable::push_back(elem);
         }
         m_var_type_current = type;
+        m_var_type_fixed = ObjType::None;
         return;
 
     } else if(is_range() && isTensor(type)) {
@@ -2809,7 +2814,7 @@ void Obj::toType_(ObjType type) {
 
         if(isGenericType(type)) {
             m_var_type_fixed = type;
-            m_var_type_current = ObjType::Char;
+            m_var_type_current = ObjType::Int8;
         } else {
             m_var_type_current = type;
         }
@@ -2833,10 +2838,10 @@ void Obj::toType_(ObjType type) {
         if(isGenericType(type)) {
             m_var_type_fixed = type;
             if(sizeof (wchar_t) == 4) {
-                m_var_type_current = ObjType::Int;
+                m_var_type_current = ObjType::Int32;
             } else {
                 ASSERT(sizeof (wchar_t) == 2);
-                m_var_type_current = ObjType::Short;
+                m_var_type_current = ObjType::Int16;
             }
         } else {
             m_var_type_current = type;
@@ -2874,7 +2879,7 @@ void Obj::toType_(ObjType type) {
             m_var = at::monostate();
         } else {
             ASSERT(!is_scalar());
-            if(static_cast<uint8_t> (m_var_type_current) > static_cast<uint8_t> (ObjType::Char)) {
+            if(static_cast<uint8_t> (m_var_type_current) > static_cast<uint8_t> (ObjType::Int8)) {
                 LOG_ERROR("Possible data loss when converting tensor %s to a byte string!", newlang::toString(m_var_type_current));
             }
             ConvertTensorToString(m_tensor, m_value);
@@ -2896,8 +2901,8 @@ void Obj::toType_(ObjType type) {
         } else {
             ASSERT(!is_scalar());
             ASSERT(sizeof (wchar_t) == 2 || sizeof (wchar_t) == 4);
-            if((sizeof (wchar_t) == 2 && static_cast<uint8_t> (m_var_type_current) > static_cast<uint8_t> (ObjType::Short)) ||
-                    (sizeof (wchar_t) == 4 && static_cast<uint8_t> (m_var_type_current) > static_cast<uint8_t> (ObjType::Int))) {
+            if((sizeof (wchar_t) == 2 && static_cast<uint8_t> (m_var_type_current) > static_cast<uint8_t> (ObjType::Int16)) ||
+                    (sizeof (wchar_t) == 4 && static_cast<uint8_t> (m_var_type_current) > static_cast<uint8_t> (ObjType::Int32))) {
                 LOG_ERROR("Possible data loss when converting tensor %s to a wide string!", newlang::toString(m_var_type_current));
             }
             ConvertTensorToString(m_tensor, m_string);
@@ -2906,16 +2911,16 @@ void Obj::toType_(ObjType type) {
         m_var_type_current = type;
         return;
 
-    } else if(is_tensor_type() && type == ObjType::Fraction) {
+    } else if(is_tensor_type() && type == ObjType::Rational) {
 
         if(!is_scalar()) {
-            LOG_RUNTIME("Convert tensor to fraction support for scalar only!");
+            LOG_RUNTIME("Convert tensor to rational support for scalar only!");
         }
         if(is_integral()) {
-            m_fraction = GetValueAsInteger();
+            m_rational = GetValueAsInteger();
             m_var = at::monostate();
         } else {
-            LOG_RUNTIME("Convert value '%s' to fraction not implemented!", toString().c_str());
+            LOG_RUNTIME("Convert value '%s' to rational not implemented!", toString().c_str());
         }
         m_var_type_current = type;
         return;
@@ -3019,20 +3024,20 @@ void Obj::toType_(ObjType type) {
 /*
  * ТИПЫ ДАННЫХ (без аргументов)
  * 
- * :type_int := :Int; # Синоним типа Int во время компиляции (тип не может быть изменен)
- * :type_int := :Int(); # Копия типа Int во время выполнения (тип может быть изменен после Mutable)
- * var_type := :Int; # Тип в переменной, которую можно передавать как аргумент в функции
+ * :type_int := :Int32; # Синоним типа Int32 во время компиляции (тип не может быть изменен)
+ * :type_int := :Int32(); # Копия типа Int32 во время выполнения (тип может быть изменен после Mutable)
+ * var_type := :Int32; # Тип в переменной, которую можно передавать как аргумент в функции
  * 
  * 
  * ЗНАЧЕНИЯ УКАЗАННЫХ ТИПОВ  (при наличии аргументов)
  * 
- * scalar_int := :Int(0); # Преобразование типа во время выполнения с автоматической размерностью (скаляр)
- * scalar_int := :Int[0](0); # Преобразование типа во время выполнения с указанием размерности (скаляр)
- * scalar_int := :Int[0]([0,]); # Преобразование типа во время выполнения с указанием размерности (скаляр)
+ * scalar_int := :Int32(0); # Преобразование типа во время выполнения с автоматической размерностью (скаляр)
+ * scalar_int := :Int32[0](0); # Преобразование типа во время выполнения с указанием размерности (скаляр)
+ * scalar_int := :Int32[0]([0,]); # Преобразование типа во время выполнения с указанием размерности (скаляр)
  * 
- * tensor_int := :Int([0,]); # Преобразование типа во время выполнения с автоматической размерностью (тензор)
- * tensor_int := :Int[1](0); # Преобразование типа во время выполнения с указанием размерности (тензор)
- * tensor_int := :Int[...](0); # Преобразование типа во время выполнения с произвольной размернотью (тензор)
+ * tensor_int := :Int32([0,]); # Преобразование типа во время выполнения с автоматической размерностью (тензор)
+ * tensor_int := :Int32[1](0); # Преобразование типа во время выполнения с указанием размерности (тензор)
+ * tensor_int := :Int32[...](0); # Преобразование типа во время выполнения с произвольной размернотью (тензор)
  */
 
 ObjPtr Obj::CreateBaseType(ObjType type) {

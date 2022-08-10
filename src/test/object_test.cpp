@@ -2,7 +2,7 @@
 
 #ifdef UNITTEST
 
-#include "fraction.h"
+#include "rational.h"
 
 #include <warning_push.h>
 #include <gtest/gtest.h>
@@ -33,28 +33,28 @@ TEST(ObjTest, Value) {
     ASSERT_EQ(ObjType::Bool, var.getType());
 
     var.SetValue_(1.0);
-    ASSERT_EQ(ObjType::Double, var.getType());
+    ASSERT_EQ(ObjType::Float64, var.getType());
 
     var.SetValue_(true);
     ASSERT_EQ(ObjType::Bool, var.getType());
 
     var.SetValue_(2);
-    ASSERT_EQ(ObjType::Char, var.getType());
+    ASSERT_EQ(ObjType::Int8, var.getType());
 
     var.SetValue_(-100);
-    ASSERT_EQ(ObjType::Char, var.getType());
+    ASSERT_EQ(ObjType::Int8, var.getType());
 
     var.SetValue_(1000);
-    ASSERT_EQ(ObjType::Short, var.getType());
+    ASSERT_EQ(ObjType::Int16, var.getType());
 
     var.SetValue_(100000);
-    ASSERT_EQ(ObjType::Int, var.getType());
+    ASSERT_EQ(ObjType::Int32, var.getType());
 
     var.SetValue_(10000000000);
-    ASSERT_EQ(ObjType::Long, var.getType());
+    ASSERT_EQ(ObjType::Int64, var.getType());
 
     var.SetValue_(2.0);
-    ASSERT_EQ(ObjType::Double, var.getType());
+    ASSERT_EQ(ObjType::Float64, var.getType());
 
     var.SetValue_(false);
     ASSERT_EQ(ObjType::Bool, var.getType());
@@ -250,8 +250,8 @@ TEST(ObjTest, Eq) {
     ObjPtr var_bool = Obj::CreateBool(true);
     ObjPtr var_empty = Obj::CreateNone();
 
-    ASSERT_EQ(var_int->m_var_type_current, ObjType::Char) << (int) var_int->getType();
-    ASSERT_EQ(var_num->m_var_type_current, ObjType::Double) << (int) var_num->getType();
+    ASSERT_EQ(var_int->m_var_type_current, ObjType::Int8) << (int) var_int->getType();
+    ASSERT_EQ(var_num->m_var_type_current, ObjType::Float64) << (int) var_num->getType();
     ASSERT_EQ(var_str->m_var_type_current, ObjType::StrWide) << (int) var_str->getType();
     ASSERT_EQ(var_bool->m_var_type_current, ObjType::Bool) << (int) var_bool->getType();
     ASSERT_EQ(var_empty->m_var_type_current, ObjType::None) << (int) var_empty->getType();
@@ -304,6 +304,48 @@ TEST(ObjTest, Eq) {
 
     ASSERT_TRUE(var_empty->op_accurate(var_empty));
     ASSERT_TRUE(var_empty->op_accurate(var_empty2));
+}
+
+
+TEST(ObjTest, Ops) {
+
+    ObjPtr var_zero = Obj::CreateValue(0, ObjType::None);
+    ASSERT_TRUE(var_zero->is_bool_type());
+    ASSERT_TRUE(var_zero->is_arithmetic_type());
+    ASSERT_EQ(ObjType::Bool, var_zero->m_var_type_current);
+
+    ObjPtr var_bool = Obj::CreateBool(true);
+    ASSERT_TRUE(var_bool->is_bool_type());
+    ASSERT_TRUE(var_bool->is_arithmetic_type());
+    ASSERT_EQ(ObjType::Bool, var_bool->m_var_type_current);
+    
+    ObjPtr var_char = Obj::CreateValue(100);
+    ASSERT_TRUE(var_char->is_arithmetic_type());
+    ASSERT_EQ(ObjType::Int8, var_char->m_var_type_current);
+
+    ObjPtr var_int = Obj::CreateValue(100000);
+    ASSERT_TRUE(var_int->is_arithmetic_type());
+    ASSERT_EQ(ObjType::Int32, var_int->m_var_type_current) <<  newlang::toString(var_char->m_var_type_current);
+    
+    ObjPtr var_float = Obj::CreateValue(1.0);
+    ASSERT_TRUE(var_float->is_arithmetic_type());
+    ASSERT_EQ(ObjType::Float64, var_float->m_var_type_current) <<  newlang::toString(var_char->m_var_type_current);
+    
+    ObjPtr var_tensor = Obj::CreateRange(0, 10)->toType(ObjType::Int32);
+    ASSERT_TRUE(var_tensor->is_arithmetic_type());
+    ASSERT_EQ(ObjType::Int32, var_tensor->m_var_type_current) <<  newlang::toString(var_char->m_var_type_current);
+    
+    var_tensor->operator *=(var_bool);
+    ASSERT_TRUE(var_tensor->is_arithmetic_type());
+    EXPECT_EQ(ObjType::Int32, var_tensor->m_var_type_current) <<  newlang::toString(var_char->m_var_type_current);
+    
+    var_tensor->operator *=(var_int);
+    ASSERT_TRUE(var_tensor->is_arithmetic_type());
+    EXPECT_EQ(ObjType::Int32, var_tensor->m_var_type_current) <<  newlang::toString(var_char->m_var_type_current);
+    
+    var_tensor->operator *=(var_float);
+    ASSERT_TRUE(var_tensor->is_arithmetic_type());
+    EXPECT_EQ(ObjType::Float64, var_tensor->m_var_type_current) <<  newlang::toString(var_char->m_var_type_current);
 }
 
 TEST(ObjTest, Exist) {
@@ -445,22 +487,22 @@ TEST(ObjTest, CreateFromInteger) {
 
     ObjPtr var = Context::CreateRVal(&ctx, Parser::ParseString("123"));
     ASSERT_TRUE(var);
-    ASSERT_EQ(ObjType::Char, var->getType()) << toString(var->getType());
+    ASSERT_EQ(ObjType::Int8, var->getType()) << toString(var->getType());
     ASSERT_EQ(123, var->GetValueAsInteger());
 
     ObjPtr var2 = ctx.ExecStr("123");
     ASSERT_TRUE(var2);
-    ASSERT_EQ(ObjType::Char, var2->getType()) << toString(var2->getType());
+    ASSERT_EQ(ObjType::Int8, var2->getType()) << toString(var2->getType());
     ASSERT_EQ(123, var2->GetValueAsInteger());
 
     var = Context::CreateRVal(&ctx, Parser::ParseString("-123"));
     ASSERT_TRUE(var);
-    ASSERT_EQ(ObjType::Char, var->getType()) << toString(var->getType());
+    ASSERT_EQ(ObjType::Int8, var->getType()) << toString(var->getType());
     ASSERT_EQ(-123, var->GetValueAsInteger());
 
     var2 = ctx.ExecStr("-123");
     ASSERT_TRUE(var2);
-    ASSERT_EQ(ObjType::Char, var2->getType()) << toString(var2->getType());
+    ASSERT_EQ(ObjType::Int8, var2->getType()) << toString(var2->getType());
     ASSERT_EQ(-123, var2->GetValueAsInteger());
 
     ASSERT_ANY_THROW(Context::CreateRVal(&ctx, Term::Create(TermID::INTEGER, "")));
@@ -474,22 +516,22 @@ TEST(ObjTest, CreateFromNumber) {
 
     ObjPtr var = Context::CreateRVal(&ctx, Parser::ParseString("123.123"));
     ASSERT_TRUE(var);
-    ASSERT_EQ(ObjType::Double, var->getType());
+    ASSERT_EQ(ObjType::Float64, var->getType());
     ASSERT_DOUBLE_EQ(123.123, var->GetValueAsNumber());
 
     ObjPtr var2 = ctx.ExecStr("123.123");
     ASSERT_TRUE(var2);
-    ASSERT_EQ(ObjType::Double, var2->getType());
+    ASSERT_EQ(ObjType::Float64, var2->getType());
     ASSERT_DOUBLE_EQ(123.123, var2->GetValueAsNumber());
 
     var = Context::CreateRVal(&ctx, Parser::ParseString("-123.123"));
     ASSERT_TRUE(var);
-    ASSERT_EQ(ObjType::Double, var->getType());
+    ASSERT_EQ(ObjType::Float64, var->getType());
     ASSERT_DOUBLE_EQ(-123.123, var->GetValueAsNumber());
 
     var2 = ctx.ExecStr("-123.123");
     ASSERT_TRUE(var2);
-    ASSERT_EQ(ObjType::Double, var2->getType());
+    ASSERT_EQ(ObjType::Float64, var2->getType());
     ASSERT_DOUBLE_EQ(-123.123, var2->GetValueAsNumber());
 
     ASSERT_ANY_THROW(Context::CreateRVal(&ctx, Term::Create(TermID::NUMBER, "")));
@@ -522,42 +564,42 @@ TEST(ObjTest, CreateFromString) {
     ASSERT_STREQ("строка", var2->GetValueAsString().c_str());
 }
 
-TEST(ObjTest, CreateFromFraction) {
+TEST(ObjTest, CreateFromRational) {
 
     Context ctx(RunTime::Init());
 
     ObjPtr var = Context::CreateRVal(&ctx, Parser::ParseString("123\\1"));
     ASSERT_TRUE(var);
-    ASSERT_EQ(ObjType::Fraction, var->getType()) << toString(var->getType());
+    ASSERT_EQ(ObjType::Rational, var->getType()) << toString(var->getType());
     ASSERT_EQ(123, var->GetValueAsInteger());
     ASSERT_DOUBLE_EQ(123.0, var->GetValueAsNumber());
 
     ObjPtr var2 = ctx.ExecStr("123\\1");
     ASSERT_TRUE(var2);
-    ASSERT_EQ(ObjType::Fraction, var2->getType()) << toString(var2->getType());
+    ASSERT_EQ(ObjType::Rational, var2->getType()) << toString(var2->getType());
     ASSERT_EQ(123, var2->GetValueAsInteger());
     ASSERT_DOUBLE_EQ(123, var2->GetValueAsNumber());
 
     var = Context::CreateRVal(&ctx, Parser::ParseString("-123\\1"));
     ASSERT_TRUE(var);
-    ASSERT_EQ(ObjType::Fraction, var->getType()) << toString(var->getType());
+    ASSERT_EQ(ObjType::Rational, var->getType()) << toString(var->getType());
     ASSERT_EQ(-123, var->GetValueAsInteger());
     ASSERT_DOUBLE_EQ(-123.0, var->GetValueAsNumber());
 
     var2 = ctx.ExecStr("-123\\1");
     ASSERT_TRUE(var2);
-    ASSERT_EQ(ObjType::Fraction, var2->getType()) << toString(var2->getType());
+    ASSERT_EQ(ObjType::Rational, var2->getType()) << toString(var2->getType());
     ASSERT_EQ(-123, var2->GetValueAsInteger());
     ASSERT_DOUBLE_EQ(-123, var2->GetValueAsNumber());
 
-    ASSERT_ANY_THROW(Context::CreateRVal(&ctx, Term::Create(TermID::FRACTION, "1\\0")));
-    ASSERT_ANY_THROW(Context::CreateRVal(&ctx, Term::Create(TermID::FRACTION, "1\\")));
-    ASSERT_ANY_THROW(Context::CreateRVal(&ctx, Term::Create(TermID::FRACTION, "")));
-    ASSERT_ANY_THROW(Context::CreateRVal(&ctx, Term::Create(TermID::FRACTION, "asdsdff")));
-    ASSERT_ANY_THROW(Context::CreateRVal(&ctx, Term::Create(TermID::FRACTION, "asdsdff\\dddddd")));
-    ASSERT_ANY_THROW(Context::CreateRVal(&ctx, Term::Create(TermID::FRACTION, "123asdsdff\\dddddd")));
-    ASSERT_ANY_THROW(Context::CreateRVal(&ctx, Term::Create(TermID::FRACTION, "123\\111dddddd")));
-    ASSERT_ANY_THROW(Context::CreateRVal(&ctx, Term::Create(TermID::FRACTION, "123wwwww\\111")));
+    ASSERT_ANY_THROW(Context::CreateRVal(&ctx, Term::Create(TermID::RATIONAL, "1\\0")));
+    ASSERT_ANY_THROW(Context::CreateRVal(&ctx, Term::Create(TermID::RATIONAL, "1\\")));
+    ASSERT_ANY_THROW(Context::CreateRVal(&ctx, Term::Create(TermID::RATIONAL, "")));
+    ASSERT_ANY_THROW(Context::CreateRVal(&ctx, Term::Create(TermID::RATIONAL, "asdsdff")));
+    ASSERT_ANY_THROW(Context::CreateRVal(&ctx, Term::Create(TermID::RATIONAL, "asdsdff\\dddddd")));
+    ASSERT_ANY_THROW(Context::CreateRVal(&ctx, Term::Create(TermID::RATIONAL, "123asdsdff\\dddddd")));
+    ASSERT_ANY_THROW(Context::CreateRVal(&ctx, Term::Create(TermID::RATIONAL, "123\\111dddddd")));
+    ASSERT_ANY_THROW(Context::CreateRVal(&ctx, Term::Create(TermID::RATIONAL, "123wwwww\\111")));
 }
 
 TEST(Args, All) {
@@ -573,13 +615,13 @@ TEST(Args, All) {
 
 
     ObjPtr arg_999 = Obj::CreateDict(Obj::Arg(Obj::CreateValue(999, ObjType::None)));
-    EXPECT_EQ(ObjType::Short, (*arg_999)[0].second->getType()) << torch::toString(toTorchType((*arg_999)[0].second->getType()));
+    EXPECT_EQ(ObjType::Int16, (*arg_999)[0].second->getType()) << torch::toString(toTorchType((*arg_999)[0].second->getType()));
 
     ObjPtr arg_empty_named = Obj::CreateDict(Obj::Arg());
     ASSERT_EQ(ObjType::None, (*arg_empty_named)[0].second->getType());
 
     ObjPtr arg_123_named = Obj::CreateDict(Obj::Arg(123, "named"));
-    EXPECT_EQ(ObjType::Char, (*arg_123_named)[0].second->getType()) << torch::toString(toTorchType((*arg_123_named)[0].second->getType()));
+    EXPECT_EQ(ObjType::Int8, (*arg_123_named)[0].second->getType()) << torch::toString(toTorchType((*arg_123_named)[0].second->getType()));
 
     ObjPtr arg_999_123_named = Obj::CreateDict();
     ASSERT_EQ(0, arg_999_123_named->size());
@@ -633,8 +675,8 @@ TEST(Args, All) {
     ObjPtr arg_extra = Obj::CreateDict(Obj::Arg(Obj::CreateValue(999, ObjType::None)), Obj::Arg(123, "named"));
 
     ASSERT_EQ(2, arg_extra->size());
-    EXPECT_EQ(ObjType::Short, (*arg_extra)[0].second->getType()) << torch::toString(toTorchType((*arg_extra)[0].second->getType()));
-    EXPECT_EQ(ObjType::Char, (*arg_extra)[1].second->getType()) << torch::toString(toTorchType((*arg_extra)[1].second->getType()));
+    EXPECT_EQ(ObjType::Int16, (*arg_extra)[0].second->getType()) << torch::toString(toTorchType((*arg_extra)[0].second->getType()));
+    EXPECT_EQ(ObjType::Int8, (*arg_extra)[1].second->getType()) << torch::toString(toTorchType((*arg_extra)[1].second->getType()));
 
 
     ObjPtr proto3_extra = proto3.ConvertToArgs(arg_extra.get(), true, nullptr);
@@ -713,23 +755,23 @@ TEST(Types, FromLimit) {
     std::multimap<int64_t, ObjType> IntTypes = {
         {0, ObjType::Bool},
         {1, ObjType::Bool},
-        {2, ObjType::Char},
-        {127, ObjType::Char},
-        //        {255, ObjType::Char},
-        {256, ObjType::Short},
-        {-1, ObjType::Char},
-        {-200, ObjType::Short},
-        {66000, ObjType::Int},
-        {-33000, ObjType::Int},
-        {5000000000, ObjType::Long},
+        {2, ObjType::Int8},
+        {127, ObjType::Int8},
+        //        {255, ObjType::Int8},
+        {256, ObjType::Int16},
+        {-1, ObjType::Int8},
+        {-200, ObjType::Int16},
+        {66000, ObjType::Int32},
+        {-33000, ObjType::Int32},
+        {5000000000, ObjType::Int64},
     };
 
     for (auto elem : IntTypes) {
         ASSERT_EQ(elem.second, typeFromLimit(elem.first)) << elem.first << " " << toString(elem.second);
     }
 
-    ASSERT_EQ(ObjType::Double, typeFromLimit(1.0));
-    ASSERT_EQ(ObjType::Float, typeFromLimit(0.0));
+    ASSERT_EQ(ObjType::Float64, typeFromLimit(1.0));
+    ASSERT_EQ(ObjType::Float32, typeFromLimit(0.0));
 
 }
 
@@ -747,11 +789,11 @@ TEST(ObjTest, Tensor) {
     RuntimePtr opts = RunTime::Init();
     Context ctx(opts);
 
-    TermPtr term = Parser::ParseString("var:Int[2,3]");
+    TermPtr term = Parser::ParseString("var:Int32[2,3]");
 
     ObjPtr t1 = Context::CreateLVal(&ctx, term);
-    ASSERT_EQ(ObjType::Int, t1->m_var_type_current);
-    ASSERT_EQ(ObjType::Int, t1->m_var_type_fixed);
+    ASSERT_EQ(ObjType::Int32, t1->m_var_type_current);
+    ASSERT_EQ(ObjType::Int32, t1->m_var_type_fixed);
     ASSERT_FALSE(t1->m_var_is_init);
 
     ASSERT_EQ(2, t1->m_tensor.dim());
@@ -771,7 +813,7 @@ TEST(ObjTest, Tensor) {
 
     torch::Tensor tstr_t;
 
-    ConvertStringToTensor(str->m_value, tstr_t, ObjType::Char);
+    ConvertStringToTensor(str->m_value, tstr_t, ObjType::Int8);
 
     ASSERT_TRUE(tstr_t.defined());
     ASSERT_EQ(tstr_t.index({0}).item<int>(), 't');
@@ -788,7 +830,7 @@ TEST(ObjTest, Tensor) {
     ASSERT_EQ(tensot_temp.index({3}).item<int>(), 't');
 
     ObjPtr t_str = Obj::CreateTensor(tensot_temp);
-    ASSERT_EQ(t_str->m_var_type_current, ObjType::Char) << toString(t_str->m_var_type_current);
+    ASSERT_EQ(t_str->m_var_type_current, ObjType::Int8) << toString(t_str->m_var_type_current);
     ASSERT_EQ(4, t_str->size());
     ASSERT_TRUE(t_str->m_tensor.defined());
 
@@ -813,10 +855,10 @@ TEST(ObjTest, Tensor) {
     ObjPtr wstr = Obj::CreateString(L"ТЕСТ");
     ObjPtr t_wstr = Obj::CreateTensor(wstr->toType(ObjType::Tensor)->m_tensor);
     if(sizeof (wchar_t) == 2) {
-        ASSERT_EQ(t_wstr->m_var_type_current, ObjType::Short);
+        ASSERT_EQ(t_wstr->m_var_type_current, ObjType::Int16);
     } else {
         ASSERT_TRUE(sizeof (wchar_t) == 4);
-        ASSERT_EQ(t_wstr->m_var_type_current, ObjType::Int);
+        ASSERT_EQ(t_wstr->m_var_type_current, ObjType::Int32);
     }
     ASSERT_EQ(4, t_wstr->size());
 

@@ -86,23 +86,23 @@ Context::Context(RuntimePtr global) : m_llvm_builder(LLVMCreateBuilder()) {
         VERIFY(RegisterTypeHierarchy(ObjType::Any,{}));
 
         VERIFY(RegisterTypeHierarchy(ObjType::Arithmetic,{":Any"}));
-        VERIFY(RegisterTypeHierarchy(ObjType::Fraction,{":Arithmetic"}));
+        VERIFY(RegisterTypeHierarchy(ObjType::Rational,{":Arithmetic"}));
         VERIFY(RegisterTypeHierarchy(ObjType::Tensor,{":Arithmetic"}));
 
         VERIFY(RegisterTypeHierarchy(ObjType::Integer,{":Tensor"}));
         VERIFY(RegisterTypeHierarchy(ObjType::Bool,{":Integer"}));
-        VERIFY(RegisterTypeHierarchy(ObjType::Char,{":Integer"}));
-        VERIFY(RegisterTypeHierarchy(ObjType::Short,{":Integer"}));
-        VERIFY(RegisterTypeHierarchy(ObjType::Int,{":Integer"}));
-        VERIFY(RegisterTypeHierarchy(ObjType::Long,{":Integer"}));
+        VERIFY(RegisterTypeHierarchy(ObjType::Int8,{":Integer"}));
+        VERIFY(RegisterTypeHierarchy(ObjType::Int16,{":Integer"}));
+        VERIFY(RegisterTypeHierarchy(ObjType::Int32,{":Integer"}));
+        VERIFY(RegisterTypeHierarchy(ObjType::Int64,{":Integer"}));
 
-        VERIFY(RegisterTypeHierarchy(ObjType::Number,{":Tensor"}));
-        VERIFY(RegisterTypeHierarchy(ObjType::Float,{":Number"}));
-        VERIFY(RegisterTypeHierarchy(ObjType::Double,{":Number"}));
+        VERIFY(RegisterTypeHierarchy(ObjType::Float,{":Tensor"}));
+        VERIFY(RegisterTypeHierarchy(ObjType::Float32,{":Float"}));
+        VERIFY(RegisterTypeHierarchy(ObjType::Float64,{":Float"}));
 
         VERIFY(RegisterTypeHierarchy(ObjType::Complex,{":Tensor"}));
-        VERIFY(RegisterTypeHierarchy(ObjType::ComplexFloat,{":Complex"}));
-        VERIFY(RegisterTypeHierarchy(ObjType::ComplexDouble,{":Complex"}));
+        VERIFY(RegisterTypeHierarchy(ObjType::Complex32,{":Complex"}));
+        VERIFY(RegisterTypeHierarchy(ObjType::Complex64,{":Complex"}));
 
         VERIFY(RegisterTypeHierarchy(ObjType::String,{":Any"}));
         VERIFY(RegisterTypeHierarchy(ObjType::StrChar,{":String"}));
@@ -409,7 +409,7 @@ inline ObjPtr Context::eval_EVAL(Context *ctx, const TermPtr &term, Obj *args) {
     return CreateRVal(ctx, term, args);
 }
 
-inline ObjPtr Context::eval_FRACTION(Context *ctx, const TermPtr &term, Obj *args) {
+inline ObjPtr Context::eval_RATIONAL(Context *ctx, const TermPtr &term, Obj *args) {
     return CreateRVal(ctx, term, args);
 }
 
@@ -1475,12 +1475,12 @@ ObjPtr Context::CreateNative(TermPtr proto, const char *module, bool lazzy, cons
         type = typeFromString(proto->m_type_name, this);
         switch(type) {
             case ObjType::Bool:
-            case ObjType::Char:
-            case ObjType::Short:
-            case ObjType::Int:
-            case ObjType::Long:
-            case ObjType::Float:
-            case ObjType::Double:
+            case ObjType::Int8:
+            case ObjType::Int16:
+            case ObjType::Int32:
+            case ObjType::Int64:
+            case ObjType::Float32:
+            case ObjType::Float64:
             case ObjType::Pointer:
                 break;
             default:
@@ -1516,22 +1516,22 @@ ObjPtr Context::CreateNative(TermPtr proto, const char *module, bool lazzy, cons
             case ObjType::Bool:
                 result->m_var = static_cast<bool *> (ptr);
                 break;
-            case ObjType::Char:
+            case ObjType::Int8:
                 result->m_var = static_cast<int8_t *> (ptr);
                 break;
-            case ObjType::Short:
+            case ObjType::Int16:
                 result->m_var = static_cast<int16_t *> (ptr);
                 break;
-            case ObjType::Int:
+            case ObjType::Int32:
                 result->m_var = static_cast<int32_t *> (ptr);
                 break;
-            case ObjType::Long:
+            case ObjType::Int64:
                 result->m_var = static_cast<int64_t *> (ptr);
                 break;
-            case ObjType::Float:
+            case ObjType::Float32:
                 result->m_var = static_cast<float *> (ptr);
                 break;
-            case ObjType::Double:
+            case ObjType::Float64:
                 result->m_var = static_cast<double *> (ptr);
                 break;
 
@@ -1761,15 +1761,15 @@ void Context::ItemTensorEval_(torch::Tensor &tensor, c10::IntArrayRef shape, std
         for (ind[pos] = 0; ind[pos].integer() < shape[pos]; ind[pos] = ind[pos].integer() + 1) {
 
             switch(type) {
-                case ObjType::Char:
-                case ObjType::Short:
-                case ObjType::Int:
-                case ObjType::Long:
+                case ObjType::Int8:
+                case ObjType::Int16:
+                case ObjType::Int32:
+                case ObjType::Int64:
                     value = at::Scalar(obj->Call(this)->GetValueAsInteger()); // args
                     tensor.index_put_(ind, value);
                     break;
-                case ObjType::Float:
-                case ObjType::Double:
+                case ObjType::Float32:
+                case ObjType::Float64:
                     value = at::Scalar(obj->Call(this)->GetValueAsNumber()); // args
                     tensor.index_put_(ind, value);
 
@@ -1792,32 +1792,32 @@ void Context::ItemTensorEval(torch::Tensor &self, ObjPtr obj, ObjPtr args) {
         double *ptr_double = nullptr;
 
         switch(fromTorchType(self.scalar_type())) {
-            case ObjType::Char:
+            case ObjType::Int8:
                 ptr_char = self.data_ptr<signed char>();
                 ASSERT(ptr_char);
                 *ptr_char = static_cast<signed char> (obj->Call(this)->GetValueAsInteger());
                 return;
-            case ObjType::Short:
+            case ObjType::Int16:
                 ptr_short = self.data_ptr<int16_t>();
                 ASSERT(ptr_short);
                 *ptr_short = static_cast<int16_t> (obj->Call(this)->GetValueAsInteger());
                 return;
-            case ObjType::Int:
+            case ObjType::Int32:
                 ptr_int = self.data_ptr<int32_t>();
                 ASSERT(ptr_int);
                 *ptr_int = static_cast<int32_t> (obj->Call(this)->GetValueAsInteger());
                 return;
-            case ObjType::Long:
+            case ObjType::Int64:
                 ptr_long = self.data_ptr<int64_t>();
                 ASSERT(ptr_long);
                 *ptr_long = static_cast<int64_t> (obj->Call(this)->GetValueAsInteger());
                 return;
-            case ObjType::Float:
+            case ObjType::Float32:
                 ptr_float = self.data_ptr<float>();
                 ASSERT(ptr_float);
                 *ptr_float = static_cast<float> (obj->Call(this)->GetValueAsNumber());
                 return;
-            case ObjType::Double:
+            case ObjType::Float64:
                 ptr_double = self.data_ptr<double>();
                 ASSERT(ptr_double);
                 *ptr_double = static_cast<double> (obj->Call(this)->GetValueAsNumber());
@@ -2299,8 +2299,8 @@ ObjPtr Context::CreateRVal(Context *ctx, TermPtr term, Obj * local_vars, bool in
 
             return result;
 
-        case TermID::FRACTION:
-            return Obj::CreateFraction(term->m_text);
+        case TermID::RATIONAL:
+            return Obj::CreateRational(term->m_text);
 
         case TermID::ITERATOR:
 
@@ -2334,7 +2334,7 @@ ObjPtr Context::CreateRVal(Context *ctx, TermPtr term, Obj * local_vars, bool in
              * Операторы ?! и !? эквивалентны и возвращают текущие данные без перемещения указателя итератора.
              * 
              * Оператор ?? создает итератор и сразу его выполняет, возвращая все значения 
-             * в виде элементов словаря, т.е. аналог последовательности ?(LINQ); !(:Long.__max__);
+             * в виде элементов словаря, т.е. аналог последовательности ?(LINQ); !(:Int64.__max__);
              * 
              * Оператор !! - сбрасывает итератор в начальное состояние и возвращает первый элемент
              */

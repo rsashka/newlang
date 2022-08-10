@@ -70,7 +70,7 @@ TEST(Example, SpeedCPP) {
     std::chrono::steady_clock::time_point end = std::chrono::steady_clock::now();
     int sec = std::chrono::duration_cast<std::chrono::seconds>(end - begin).count();
     int ms = std::chrono::duration_cast<std::chrono::microseconds>(end - begin).count() % 1000000;
-    LOG_INFO("Number of generated k-mers: %d  at %d.%d sec", counter, sec, ms);
+    LOG_INFO("Float of generated k-mers: %d  at %d.%d sec", counter, sec, ms);
 
 }
 
@@ -90,7 +90,7 @@ TEST(Example, SpeedNewLang) {
     ASSERT_TRUE(str);
     ASSERT_STREQ("ABCDEF\n", str->GetValueAsString().c_str());
 
-    test = ctx.ExecStr("@printf := :Pointer('printf(format:FmtChar, ...):Int'); @str := 'ABCDEF\\n'; printf('%s', str)", nullptr, true);
+    test = ctx.ExecStr("@printf := :Pointer('printf(format:FmtChar, ...):Int32'); @str := 'ABCDEF\\n'; printf('%s', str)", nullptr, true);
     ASSERT_TRUE(test);
     ASSERT_STREQ("7", test->GetValueAsString().c_str());
 
@@ -100,7 +100,7 @@ TEST(Example, SpeedNewLang) {
 
 
     LLVMAddSymbol("convert", (void *) &convert);
-    ObjPtr test_convert = ctx.ExecStr("@test_convert := :Pointer('convert(sym:Char):Char')", nullptr, true);
+    ObjPtr test_convert = ctx.ExecStr("@test_convert := :Pointer('convert(sym:Int8):Int8')", nullptr, true);
     ASSERT_TRUE(test_convert);
 
     test = ctx.ExecStr("test_convert('A')", nullptr, true);
@@ -131,14 +131,14 @@ TEST(Example, SpeedNewLang) {
     /*
      * 
      * Start speed test C++
-     * Number of generated k-mers: 67108864  at 2.502049 sec
+     * Float of generated k-mers: 67108864  at 2.502049 sec
      * 
      * Start
-     * Number of generated k-mers: 67108864
+     * Float of generated k-mers: 67108864
      * real	0m33,794s     
      * 
      * Start speed test NewLang
-     * Number of generated k-mers: 67108864
+     * Float of generated k-mers: 67108864
      * Test complete at  ????????????????????
      * 
      * Своя функция @convert 
@@ -168,7 +168,7 @@ TEST(Example, SpeedNewLang) {
      * 
      * Start speed test NewLang
      * From AAAAAAAAAA to TTTTTTTTTT
-     * Number of generated k-mers: 1048576
+     * Float of generated k-mers: 1048576
      * Test complete at 320.401650 sec (более 5 минут)
      * 
      * Никакой оптимизации не проводилось. 
@@ -178,7 +178,7 @@ TEST(Example, SpeedNewLang) {
      */
 }
 
-TEST(Example, Fraction) {
+TEST(Example, Rational) {
 
     Context::Reset();
     Context ctx(RunTime::Init());
@@ -199,7 +199,7 @@ TEST(Example, Fraction) {
     ASSERT_TRUE(str);
     ASSERT_STREQ("ABCDEF\n", str->GetValueAsString().c_str());
 
-    ObjPtr test_printf = ctx.ExecStr("@test_printf := :Pointer('printf(format:FmtChar, ...):Int')", nullptr, true);
+    ObjPtr test_printf = ctx.ExecStr("@test_printf := :Pointer('printf(format:FmtChar, ...):Int32')", nullptr, true);
     ASSERT_TRUE(test_printf);
     ASSERT_STREQ("test_printf={}", test_printf->GetValueAsString().c_str());
 
@@ -212,7 +212,7 @@ TEST(Example, Fraction) {
 
     ObjPtr test_frac = ctx.ExecStr("@test_frac := 999\\123", nullptr, true);
     ASSERT_TRUE(test_frac);
-    ASSERT_TRUE(test_frac->getType() == ObjType::Fraction);
+    ASSERT_TRUE(test_frac->getType() == ObjType::Rational);
     ASSERT_STREQ("999\\123", test_frac->GetValueAsString().c_str());
 
     ObjPtr str_frac = ctx.ExecStr(":StrChar(test_frac)", nullptr, true);
@@ -224,7 +224,7 @@ TEST(Example, Fraction) {
     ASSERT_TRUE(test_prn);
     ASSERT_STREQ("7", test_prn->GetValueAsString().c_str());
 
-    ObjPtr test_arg = ctx.ExecStr("@test_arg(arg:Fraction) := {$arg}", nullptr, true);
+    ObjPtr test_arg = ctx.ExecStr("@test_arg(arg:Rational) := {$arg}", nullptr, true);
     ASSERT_TRUE(test_arg);
     ASSERT_TRUE(test_arg->is_function_type());
     ASSERT_FALSE(test_arg->is_none_type());
@@ -238,7 +238,7 @@ TEST(Example, Fraction) {
 
     frac_test = test_arg->Call(&ctx, Obj::Arg(1));
     ASSERT_TRUE(frac_test);
-    ASSERT_EQ(ObjType::Fraction, frac_test->getType()) << newlang::toString(frac_test->getType());
+    ASSERT_EQ(ObjType::Rational, frac_test->getType()) << newlang::toString(frac_test->getType());
 
     frac_test = ctx.ExecStr("test_arg(1)", nullptr, true);
     ASSERT_TRUE(frac_test);
@@ -248,7 +248,7 @@ TEST(Example, Fraction) {
 
     utils::Logger::LogLevelType save = utils::Logger::Instance()->SetLogLevel(LOG_LEVEL_INFO);
     std::chrono::steady_clock::time_point begin = std::chrono::steady_clock::now();
-    ObjPtr result = ctx.ExecFile("../examples/fraction.nlp");
+    ObjPtr result = ctx.ExecFile("../examples/rational.nlp");
     std::chrono::steady_clock::time_point end = std::chrono::steady_clock::now();
     utils::Logger::Instance()->SetLogLevel(save);
 
@@ -261,11 +261,35 @@ TEST(Example, Fraction) {
 
     int sec = std::chrono::duration_cast<std::chrono::seconds>(end - begin).count();
     int ms = std::chrono::duration_cast<std::chrono::microseconds>(end - begin).count() % 1000000;
-    LOG_INFO("Test fraction complete at %d.%d sec", sec, ms);
+    LOG_INFO("Test rational complete at %d.%d sec", sec, ms);
 
     /*
      * 
      */
+}
+
+
+
+TEST(Example, Tensor) {
+
+    Context::Reset();
+    Context ctx(RunTime::Init());
+
+    setvbuf(stdin, nullptr, _IONBF, 0);
+    setvbuf(stdout, nullptr, _IONBF, 0);
+    setvbuf(stderr, nullptr, _IONBF, 0);
+
+
+    utils::Logger::LogLevelType save = utils::Logger::Instance()->SetLogLevel(LOG_LEVEL_INFO);
+    std::chrono::steady_clock::time_point begin = std::chrono::steady_clock::now();
+    ObjPtr result = ctx.ExecFile("../examples/tensor.nlp");
+    std::chrono::steady_clock::time_point end = std::chrono::steady_clock::now();
+    utils::Logger::Instance()->SetLogLevel(save);
+
+    
+    ASSERT_TRUE(result);
+    ASSERT_TRUE(result->is_string_type()) << result->toString();
+    ASSERT_STREQ("OK", result->GetValueAsString().c_str());
 }
 
 #endif // UNITTEST

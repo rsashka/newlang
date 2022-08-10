@@ -1,10 +1,10 @@
 #!../output/nlc
 
-@printf := :Pointer('printf(format:FmtChar, ...):Int');
+@printf := :Pointer('printf(format:FmtChar, ...):Int32');
 
 printf('\nStart speed test NewLang\n');
 
-@convert := :Pointer('convert(sym:Char):Char');
+@convert := :Pointer('convert(sym:Int8):Int8');
 
 /*
 @convert(c) := {{
@@ -69,7 +69,7 @@ printf('From %s to %s\n', s, s_last );
     };
 };
 
-printf('Number of generated k-mers: %d\n', counter);
+printf('Float of generated k-mers: %d\n', counter);
 "OK";
 
 

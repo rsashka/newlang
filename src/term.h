@@ -31,7 +31,7 @@ namespace newlang {
         _(EVAL) \
         _(COMMENT) \
         \
-        _(FRACTION) \
+        _(RATIONAL) \
         \
         _(NONE) \
         _(EMPTY) \
@@ -646,7 +646,7 @@ namespace newlang {
                     return result;
 
                 case TermID::SYMBOL:
-                case TermID::FRACTION:
+                case TermID::RATIONAL:
                 case TermID::COMPLEX:
                 case TermID::MACRO:
                     return m_text;
@@ -1027,12 +1027,12 @@ namespace newlang {
                         NL_PARSER(type, "Error cast '%s' to integer type '%s'", m_text.c_str(), m_type_name.c_str());
                     }
                 } else if (m_id == TermID::NUMBER) {
-                    ObjType type_val = typeFromLimit(parseDouble(m_text.c_str()), ObjType::Float);
+                    ObjType type_val = typeFromLimit(parseDouble(m_text.c_str()), ObjType::Float32);
                     if (!canCastLimit(type_val, typeFromString(m_type_name))) {
                         NL_PARSER(type, "Error cast '%s' to numeric type '%s'", m_text.c_str(), m_type_name.c_str());
                     }
                 } else if (m_id == TermID::COMPLEX) {
-                    ObjType type_val = typeFromLimit(parseComplex(m_text.c_str()), ObjType::ComplexFloat);
+                    ObjType type_val = typeFromLimit(parseComplex(m_text.c_str()), ObjType::Complex32);
                     if (!canCastLimit(type_val, typeFromString(m_type_name))) {
                         NL_PARSER(type, "Error cast '%s' to complex type '%s'", m_text.c_str(), m_type_name.c_str());
                     }
@@ -1045,9 +1045,9 @@ namespace newlang {
                 if (m_id == TermID::INTEGER) {
                     m_type_name = newlang::toString(typeFromLimit(parseInteger(m_text.c_str()), ObjType::Bool));
                 } else if (m_id == TermID::NUMBER) {
-                    m_type_name = newlang::toString(typeFromLimit(parseDouble(m_text.c_str()), ObjType::Float));
+                    m_type_name = newlang::toString(typeFromLimit(parseDouble(m_text.c_str()), ObjType::Float32));
                 } else if (m_id == TermID::COMPLEX) {
-                    m_type_name = newlang::toString(typeFromLimit(parseComplex(m_text.c_str()), ObjType::ComplexFloat));
+                    m_type_name = newlang::toString(typeFromLimit(parseComplex(m_text.c_str()), ObjType::Complex32));
                 } else if (m_id == TermID::STRCHAR) {
                     m_type_name = newlang::toString(ObjType::StrChar);
                 } else if (m_id == TermID::STRWIDE) {

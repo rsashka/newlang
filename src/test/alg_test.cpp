@@ -491,11 +491,11 @@ TEST(Alg, Return) {
     ASSERT_FALSE(result);
 
     try {
-        result = ctx.ExecStr("--:Int--", nullptr, false);
+        result = ctx.ExecStr("--:Int32--", nullptr, false);
     } catch (Interrupt &except) {
-        ASSERT_STREQ(":Int", except.m_obj->m_class_name.c_str());
+        ASSERT_STREQ(":Int32", except.m_obj->m_class_name.c_str());
         ASSERT_EQ(0, except.m_obj->size());
-        ASSERT_STREQ(":Int", except.m_obj->toString().c_str());
+        ASSERT_STREQ(":Int32", except.m_obj->toString().c_str());
     }
     ASSERT_FALSE(result);
 
