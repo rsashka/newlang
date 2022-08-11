@@ -9,6 +9,7 @@ contrib/*
 **/newlang-unit-tests.exe
 **/nlc
 **/nlc.exe
+**/**tar.xz
 **/DartConfiguration.tcl
 Makefile
 

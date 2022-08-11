@@ -74,7 +74,7 @@ FFLAGS=
 ASFLAGS=
 
 # Link Libraries and Options
-LDLIBSOPTIONS=-L../contrib/libtorch/lib -Wl,-rpath,'../contrib/libtorch/lib' -lc10 -ltorch_cpu -lcrypto
+LDLIBSOPTIONS=-L../contrib/libtorch/lib -Wl,-rpath,'.' -Wl,-rpath,'../contrib/libtorch/lib' -lc10 -ltorch_cpu -lcrypto
 
 # Build Targets
 .build-conf: ${BUILD_SUBPROJECTS}
