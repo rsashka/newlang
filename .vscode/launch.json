@@ -4,6 +4,7 @@
     // Для получения дополнительной информации посетите: https://go.microsoft.com/fwlink/?linkid=830387
     "version": "0.2.0",
     "configurations": [
+        
         // {
         //     "type": "gdb",
         //     "request": "launch",
@@ -43,7 +44,7 @@
                 "--gtest_shuffle",
                 "--gtest_filter=Types.Convert:Eval.Tensor:Eval.Assign:ParserTest.Tensor1",
             ],
-            "cwd": "${workspaceFolder}/core",
+            "cwd": "${workspaceFolder}/src",
             "stopAtEntry": false,
             "environment": [
                 // {"name":"LD_LIBRARY_PATH","value": "$LD_LIBRARY_PATH;${workspaceFolder}/contrib/libtorch/lib"},
@@ -62,7 +63,7 @@
             //     "trace": true
             // },
             // "sourceFileMap": {
-            //     "${workspaceFolder}/core": "${workspaceFolder}/core",
+            //     "${workspaceFolder}/src": "${workspaceFolder}/src",
             //     "/build/gcc-4.8-fNUjSI/gcc-4.8-4.8.4/build/i686-linux-gnu/libstdc++-v3/include": "/usr/include/c++/4.8"
             // },
             "setupCommands": [

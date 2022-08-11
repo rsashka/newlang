@@ -34,7 +34,7 @@ add_compile_options(
 #    set(CMAKE_CXX_EXTENSIONS OFF)
 #endif()
 
-# add_executable(GCC core/nlc.cpp)
+# add_executable(GCC src/nlc.cpp)
 
 set(THREADS_PREFER_PTHREAD_FLAG ON)
 find_package(Threads REQUIRED)
@@ -43,46 +43,46 @@ find_package(Threads REQUIRED)
 add_custom_command(
     OUTPUT
         # ${ATXT}
-        ${CMAKE_CURRENT_SOURCE_DIR}/core/parser.yy.h
-        ${CMAKE_CURRENT_SOURCE_DIR}/core/parser.yy.cpp
-        ${CMAKE_CURRENT_SOURCE_DIR}/core/lexer.yy.h
-        ${CMAKE_CURRENT_SOURCE_DIR}/core/lexer.yy.cpp
-        ${CMAKE_CURRENT_SOURCE_DIR}/core/location.hh
+        ${CMAKE_CURRENT_SOURCE_DIR}/src/parser.yy.h
+        ${CMAKE_CURRENT_SOURCE_DIR}/src/parser.yy.cpp
+        ${CMAKE_CURRENT_SOURCE_DIR}/src/lexer.yy.h
+        ${CMAKE_CURRENT_SOURCE_DIR}/src/lexer.yy.cpp
+        ${CMAKE_CURRENT_SOURCE_DIR}/src/location.hh
     COMMAND ./compile_syntax.sh
-    WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/core
+    WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/src
     COMMENT "Compile syntax from files parser.y and lexer.l"
     DEPENDS
-        ${CMAKE_CURRENT_SOURCE_DIR}/core/compile_syntax.sh
-        ${CMAKE_CURRENT_SOURCE_DIR}/core/parser.y
-        ${CMAKE_CURRENT_SOURCE_DIR}/core/lexer.l
+        ${CMAKE_CURRENT_SOURCE_DIR}/src/compile_syntax.sh
+        ${CMAKE_CURRENT_SOURCE_DIR}/src/parser.y
+        ${CMAKE_CURRENT_SOURCE_DIR}/src/lexer.l
     VERBATIM)
  
 
-file(GLOB CORE_SRC
-    ${CMAKE_CURRENT_SOURCE_DIR}/core/builtin.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/core/context.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/core/lexer.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/core/lexer.yy.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/core/newlang.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/core/object.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/core/parser.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/core/parser.yy.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/core/term.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/core/variable.cpp
+file(GLOB src_SRC
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/builtin.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/context.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/lexer.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/lexer.yy.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/newlang.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/object.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/parser.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/parser.yy.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/term.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/variable.cpp
     
 
     ${CMAKE_CURRENT_SOURCE_DIR}/contrib/logger/logger.cpp
 
-    # core/builtin.cpp
-    # core/context.cpp
-    # core/lexer.cpp
-    # core/lexer.yy.cpp
-    # core/newlang.cpp
-    # core/object.cpp
-    # core/parser.cpp
-    # core/parser.yy.cpp
-    # core/term.cpp
-    # core/variable.cpp
+    # src/builtin.cpp
+    # src/context.cpp
+    # src/lexer.cpp
+    # src/lexer.yy.cpp
+    # src/newlang.cpp
+    # src/object.cpp
+    # src/parser.cpp
+    # src/parser.yy.cpp
+    # src/term.cpp
+    # src/variable.cpp
     
     # contrib/logger/logger.cpp
 
@@ -92,9 +92,9 @@ file(GLOB CORE_SRC
 
 
 file(GLOB TEST_SRC
-    ${CMAKE_CURRENT_SOURCE_DIR}/core/test/*.cpp)
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/test/*.cpp)
 file(GLOB NLC_SRC
-    ${CMAKE_CURRENT_SOURCE_DIR}/core/nlc.cpp)
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/nlc.cpp)
 
 link_directories(contrib/libtorch/lib)
 link_directories(contrib/libffi/output/lib)
@@ -112,10 +112,10 @@ link_libraries(
 
 set(EXECUTABLE_OUTPUT_PATH ${CMAKE_SOURCE_DIR})
 
-add_executable(nlc ${CORE_SRC})
+add_executable(nlc ${src_SRC})
 target_sources(nlc PRIVATE ${NLC_SRC})
 
-add_executable(newlang-unit-tests ${CORE_SRC})
+add_executable(newlang-unit-tests ${src_SRC})
 target_sources(newlang-unit-tests PRIVATE ${TEST_SRC})
 # и RUNTIME_OUTPUT_NAME 
 
@@ -128,9 +128,9 @@ ADD_DEFINITIONS(-DDEBUG)
 target_compile_options(newlang-unit-tests PRIVATE -DUNITTEST)
 
 
-target_precompile_headers(newlang-unit-tests PRIVATE core/pch.h)
-target_precompile_headers(nlc PRIVATE core/pch.h)
-SET(PCH_DST core/pch.h)
+target_precompile_headers(newlang-unit-tests PRIVATE src/pch.h)
+target_precompile_headers(nlc PRIVATE src/pch.h)
+SET(PCH_DST src/pch.h)
 
 
 
@@ -156,6 +156,8 @@ endif()
 target_sources(newlang-unit-tests PRIVATE contrib/googletest/googletest/src/gtest_main.cc)
 target_sources(newlang-unit-tests PRIVATE contrib/googletest/googletest/src/gtest-all.cc)
 
+target_include_directories(newlang-unit-tests PUBLIC contrib/libffi/win64/include)
+
 target_include_directories(newlang-unit-tests PUBLIC contrib/googletest/googletest)
 target_include_directories(newlang-unit-tests PUBLIC contrib/googletest/googletest/include)
 
@@ -165,7 +167,7 @@ include_directories(
     contrib/libtorch/include/torch/csrc/api/include
     contrib/libtorch/include
     contrib/tensorboard_logger/include
-    /usr/lib/llvm-13/include
+    # /usr/lib/llvm-13/include
     )
 
 
@@ -174,7 +176,7 @@ if(NOT MYLIB_TESTING)
 elseif(IS_SUBPROJECT)
     message(STATUS "Mylib не тестируется в режиме подмодуля")
 else()
-    target_sources(newlang-unit-tests PRIVATE core/test/)
+    target_sources(newlang-unit-tests PRIVATE src/test/)
 endif()
 
 enable_testing()
@@ -187,5 +189,5 @@ enable_testing()
 # # Установить файлы "DataCache.txt" и "MessageLog.txt" в директорию "~/":
 # install(FILES DataCache.txt MessageLog.txt DESTINATION ~/)
 # Процесс описания установки папок аналогичен, за тем исключением, что вместо ключевого слова FILES следует указать DIRECTORY. Важно подметить, что при установке будет копироваться всё содержимое папки, а не только её название. Пример установки папок выглядит следующим образом:
-# # Установить каталоги "MessageCollection" и "CoreFiles" в директорию "~/":
-# install(DIRECTORY MessageCollection CoreFiles DESTINATION ~/)
+# # Установить каталоги "MessageCollection" и "srcFiles" в директорию "~/":
+# install(DIRECTORY MessageCollection srcFiles DESTINATION ~/)

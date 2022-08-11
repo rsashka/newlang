@@ -1,0 +1,75 @@
+#!../output/nlc
+
+@printf := :Pointer('printf(format:FmtChar, ...):Int32');
+
+printf('\nStart speed test NewLang\n');
+
+@convert := :Pointer('convert(sym:Int8):Int8');
+
+/*
+@convert(c) := {{
+    [c == 'A'] --> 'C',
+    [c == 'C'] --> 'G',
+    [c == 'G'] --> 'T',
+    [c == 'T'] --> 'A',
+    [_] --> ' ';
+}};
+*/
+
+
+
+@opt := 'ACGT';
+
+@s := '';
+@s_last := '';
+@len_str := 5;
+@change_next := 0;
+
+i := 0;
+[i < len_str] <<->> {
+    s += @opt[0];
+    i += 1;
+};
+
+i := 0;
+[i < len_str] <<->> {
+    s_last += opt[-1];
+    i += 1;
+};
+
+printf('From %s to %s\n', s, s_last );
+
+@counter := 1;
+
+[s != s_last] <<->> {
+    
+    counter += 1;
+    #printf('%d\n', counter);
+    
+    # You can uncomment the next line to see all k-mers.
+    # cout << s << endl;  
+    #printf('%s\n', s);
+    
+    change_next := 1;
+
+    i := 0;
+
+    [i < len_str] <<->> {
+        [change_next] --> {
+            [s[i] == opt[-1]] --> {
+                s[i] := convert(s[i]);
+                change_next := 1; 
+            }, 
+            [_] --> {
+                s[i] := convert(s[i]);
+                i = len_str;
+            };
+        };
+        i += 1;
+    };
+};
+
+printf('Float of generated k-mers: %d\n', counter);
+"OK";
+
+

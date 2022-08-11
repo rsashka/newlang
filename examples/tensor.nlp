@@ -1,0 +1,25 @@
+#!../output/nlc --eval
+
+@printf := :Pointer('printf(format:FmtChar, ...):Int32');
+
+@tensor := :Tensor[5,5](1, -2, 3, 4, 5, 6, 42, ...);
+printf('%s\n', :StrChar(tensor));
+
+@mult := tensor * 100;
+printf('*=2 -> %s\n', :StrChar(mult));
+
+mult += 11;
+printf('+= 11 -> %s\n', :StrChar(mult));
+
+@srand := :Pointer('srand(seed:Int32):None');
+srand(100);
+@rand := :Pointer('rand():Int32');
+@matrix := :Tensor[10,10]( ... rand() ...);
+printf('rand -> %s\n', :StrChar(matrix));
+
+@matrix *= 1;
+printf('rand -> %s\n', :StrChar(matrix));
+
+
+# Check factorial 1000!
+[ matrix ] -> "OK";

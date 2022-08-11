@@ -1,13 +1,13 @@
-#include <stdio.h>
+//#include <stdio.h>
 #include <stdarg.h>
 #include <string.h>
 
 
 #include <contrib/logger/logger.h>
 
-#include <core/warning_push.h>
+#include "warning_push.h"
 #include <contrib/logger/mcucpp/ring_buffer.h>
-#include <core/warning_pop.h>
+#include "warning_pop.h"
 
 
 using namespace utils;
@@ -140,7 +140,7 @@ EXTERN_C const char * log_printf(uint8_t level, const char *prefix, const char *
 
     Logger::Instance()->AddString(level, buffer, false);
 
-    if(file && (level != LOG_LEVEL_INFO || Logger::Instance()->GetLogLevel() >= LOG_LEVEL_DEBUG)) {
+    if(file && (level != LOG_LEVEL_INFO || Logger::Instance()->GetLogLevel() >= LOG_LEVEL_DUMP)) {
         const char * file_name = strrchr(file, '/');
         snprintf(buffer, LOG_MAX_BUFFER_SIZE, " (%s:%d)%s", ((file_name && *file_name == '/') ? file_name + 1 : file), line, nl ? "\n" : "");
 
@@ -307,7 +307,7 @@ EXTERN_C size_t BinToHexBuffer(const uint8_t * buf, const size_t size, char * st
 #include <execinfo.h>
 #include <cxxabi.h>
 
-inline char * basename(char * str) {
+inline const char * get_basename(const char * str) {
     if(str) {
         size_t pos = strlen(str);
         while(pos) {
@@ -362,10 +362,10 @@ EXTERN_C void log_print_callstack() {
                 strncat(function, "()", sz);
                 function[sz - 1] = '\0';
             }
-            LOG_INFO("    %s:%s", basename(stack_strings[i]), basename(function));
+            LOG_INFO("    %s:%s", get_basename(stack_strings[i]), get_basename(function));
         } else {
             // didn't find the mangled name, just print the whole line
-            LOG_INFO("    %s", basename(stack_strings[i]));
+            LOG_INFO("    %s", get_basename(stack_strings[i]));
         }
         free(function);
     }

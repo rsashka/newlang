@@ -6,13 +6,22 @@ contrib/*
 **/CMakeCache.txt
 **/*.cmake
 **/newlang-unit-tests
+**/newlang-unit-tests.exe
 **/nlc
+**/nlc.exe
 **/DartConfiguration.tcl
 Makefile
 
-core/syntax_help.cpp
-core/version.*
+**/*.i
+**/*.vcxproj.filters
+**/*.vcxproj.user
+
+**/syntax_help.cpp
+**/version.*
 docs/syntax.txt
+output
+**/*temp*
+**/.vs
 
 
 # Binaries
