@@ -99,6 +99,11 @@ temp/syntax.temp.txt: ../docs/syntax.md ../docs/syntax.md
 	@echo Выполнение шага пользовательского сборки
 	mkdir temp || pandoc -t plain ../docs/syntax.md > temp/syntax.temp.txt
 
+temp/syntax.temp.txt: ../docs/version.md ../docs/syntax.md
+	${MKDIR} -p temp
+	@echo Выполнение шага пользовательского сборки
+	mkdir temp || pandoc -t plain ../docs/syntax.md > temp/syntax.temp.txt
+
 ${OBJECTDIR}/builtin.o: builtin.cpp parser.h parser.yy.h pch.h.gch location.hh
 	${MKDIR} -p ${OBJECTDIR}
 	${RM} "$@.d"
@@ -281,6 +286,7 @@ ${OBJECTDIR}/version.o: version.cpp
 # Clean Targets
 .clean-conf: ${CLEAN_SUBPROJECTS}
 	${RM} -r ${CND_BUILDDIR}/${CND_CONF}
+	${RM} temp/syntax.temp.txt
 	${RM} temp/syntax.temp.txt
 	${RM} temp/syntax.temp.txt
 	${RM} 

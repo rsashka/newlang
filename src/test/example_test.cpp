@@ -268,8 +268,6 @@ TEST(Example, Rational) {
      */
 }
 
-
-
 TEST(Example, Tensor) {
 
     Context::Reset();
@@ -286,10 +284,56 @@ TEST(Example, Tensor) {
     std::chrono::steady_clock::time_point end = std::chrono::steady_clock::now();
     utils::Logger::Instance()->SetLogLevel(save);
 
-    
+
     ASSERT_TRUE(result);
     ASSERT_TRUE(result->is_string_type()) << result->toString();
     ASSERT_STREQ("OK", result->GetValueAsString().c_str());
 }
+
+TEST(Example, Hello) {
+
+    Context::Reset();
+    Context ctx(RunTime::Init());
+
+
+    ObjPtr prn = ctx.ExecStr("@prn := :Pointer('printf(format:FmtChar, ...):Int32')");
+    ASSERT_TRUE(prn);
+
+    ObjPtr res = prn->Call(&ctx, Obj::Arg(Obj::CreateString("Привет, мир!\n")));
+    ASSERT_TRUE(res);
+    ASSERT_TRUE(res->is_integer()) << res->toString();
+    ASSERT_STREQ("22", res->GetValueAsString().c_str());
+
+    ObjPtr func = ctx.ExecStr("@func(arg) := {$arg}");
+    ASSERT_TRUE(func);
+
+    res = func->Call(&ctx, Obj::Arg(Obj::CreateString("TEST")));
+    ASSERT_TRUE(res);
+    ASSERT_TRUE(res->is_string_char_type()) << res->toString();
+    ASSERT_STREQ("TEST", res->GetValueAsString().c_str());
+    //    hello(str) := { 
+    //      printf := :Pointer('printf(format:FmtChar, ...):Int32');  # Импорт стандартной C функции
+    //      printf('%s\n', $str);  # Вызов C функции с проверкой типов аргументов по строке формата
+    //    };
+    //    hello('Привет, мир!'); # Вызвать функцию    
+
+
+    setvbuf(stdin, nullptr, _IONBF, 0);
+    setvbuf(stdout, nullptr, _IONBF, 0);
+    setvbuf(stderr, nullptr, _IONBF, 0);
+
+
+    utils::Logger::LogLevelType save = utils::Logger::Instance()->SetLogLevel(LOG_LEVEL_INFO);
+    std::chrono::steady_clock::time_point begin = std::chrono::steady_clock::now();
+    ObjPtr result = ctx.ExecFile("../examples/hello.nlp");
+    std::chrono::steady_clock::time_point end = std::chrono::steady_clock::now();
+    utils::Logger::Instance()->SetLogLevel(save);
+
+
+    ASSERT_TRUE(result);
+    ASSERT_TRUE(result->is_string_type()) << result->toString();
+    ASSERT_STREQ("Привет, мир!", result->GetValueAsString().c_str());
+}
+
 
 #endif // UNITTEST

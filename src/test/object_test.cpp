@@ -732,6 +732,23 @@ TEST(Args, All) {
     ASSERT_TRUE(any->at(1).second);
     ASSERT_STREQ("\"СТРОКА\"", (*any)[1].second->toString().c_str());
 
+    
+    ASSERT_TRUE(p.Parse("func(arg) := {}"));
+    Obj proto_func(&ctx, ast->Left(), false, &local);
+    //    ASSERT_TRUE(proto_any.m_is_ellipsis);
+    ASSERT_EQ(1, proto_func.size());
+    ASSERT_STREQ("arg", proto_func.at(0).first.c_str());
+    ASSERT_EQ(nullptr, proto_func.at(0).second);
+
+    ObjPtr arg_str2 = Obj::CreateDict(Obj::Arg("STRING"));
+    
+    proto_func.ConvertToArgs_(arg_str2.get(), true, nullptr);
+    ASSERT_EQ(1, proto_func.size());
+    ASSERT_STREQ("arg", proto_func.at(0).first.c_str());
+    ASSERT_TRUE(proto_func.at(0).second);
+    ASSERT_STREQ("'STRING'", proto_func[0].second->toString().c_str());
+    ASSERT_EQ(ObjType::StrChar, proto_func[0].second->getType());
+    
     //
     ASSERT_TRUE(p.Parse("min(arg, ...) := {}"));
     Obj min_proto(&ctx, ast->Left(), false, &local);

@@ -79,11 +79,11 @@ LDLIBSOPTIONS=-L../contrib/libtorch/lib -L/usr/lib/x86_64-linux-gnu -Wl,-rpath,'
 
 # Build Targets
 .build-conf: ${BUILD_SUBPROJECTS}
-	"${MAKE}"  -f nbproject/Makefile-${CND_CONF}.mk ../output/nlc_unit_test
+	"${MAKE}"  -f nbproject/Makefile-${CND_CONF}.mk ../output/nlc_test
 
-../output/nlc_unit_test: ${OBJECTFILES}
+../output/nlc_test: ${OBJECTFILES}
 	${MKDIR} -p ../output
-	${LINK.cc} -o ../output/nlc_unit_test ${OBJECTFILES} ${LDLIBSOPTIONS} `llvm-config-13 --libs --ldflags` -fuse-ld=lld-13 -g
+	${LINK.cc} -o ../output/nlc_test ${OBJECTFILES} ${LDLIBSOPTIONS} `llvm-config-13 --libs --ldflags` -fuse-ld=lld-13 -g
 
 ${OBJECTDIR}/_ext/1e501df/gtest-all.o: ../contrib/googletest/googletest/src/gtest-all.cc
 	${MKDIR} -p ${OBJECTDIR}/_ext/1e501df

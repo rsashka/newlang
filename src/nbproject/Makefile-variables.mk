@@ -41,8 +41,8 @@ CND_PACKAGE_PATH_UnitTest=dist/UnitTest/GNU-Linux/package/src.tar
 # UnitTest_LLVM configuration
 CND_PLATFORM_UnitTest_LLVM=CLang-Linux
 CND_ARTIFACT_DIR_UnitTest_LLVM=../output
-CND_ARTIFACT_NAME_UnitTest_LLVM=nlc_unit_test
-CND_ARTIFACT_PATH_UnitTest_LLVM=../output/nlc_unit_test
+CND_ARTIFACT_NAME_UnitTest_LLVM=nlc_test
+CND_ARTIFACT_PATH_UnitTest_LLVM=../output/nlc_test
 CND_PACKAGE_DIR_UnitTest_LLVM=dist/UnitTest_LLVM/CLang-Linux/package
 CND_PACKAGE_NAME_UnitTest_LLVM=src.tar
 CND_PACKAGE_PATH_UnitTest_LLVM=dist/UnitTest_LLVM/CLang-Linux/package/src.tar

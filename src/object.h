@@ -1874,20 +1874,14 @@ namespace newlang {
         }
 
         static ObjPtr CreateString(const std::string str) {
-            ObjPtr result = CreateType(ObjType::StrChar);
+            ObjPtr result = CreateType(ObjType::StrChar, ObjType::String, true);
             result->m_value = str;
-            result->m_var_type_fixed = ObjType::String;
-            result->m_var_is_init = true;
-
             return result;
         }
 
         static ObjPtr CreateString(const std::wstring str) {
-            ObjPtr result = CreateType(ObjType::StrWide);
+            ObjPtr result = CreateType(ObjType::StrWide, ObjType::String, true);
             result->m_string = str;
-            result->m_var_type_fixed = ObjType::String;
-            result->m_var_is_init = true;
-
             return result;
         }
 
@@ -2388,7 +2382,7 @@ namespace newlang {
             return m_prototype;
         }
 
-    protected:
+    SCOPE(protected):
 
         void ConvertToArgs_(Obj *args, bool check_valid, Context *ctx = nullptr); // Обновить параметры для вызова функции или элементы у словаря при создании копии
 

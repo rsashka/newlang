@@ -1415,10 +1415,14 @@ void Obj::ConvertToArgs_(Obj *in, bool check_valid, Context * ctx) {
             ObjType base_type = ObjType::None;
             if(i < size()) {
                 if(ctx) {
-                    bool has_error = false;
-                    base_type = ctx->BaseTypeFromString((*m_prototype)[i].second->m_type_name, &has_error);
-                    if(has_error && (*m_prototype)[i].second->getTermID() == TermID::ELLIPSIS) {
+                    if((*m_prototype)[i].second->m_type_name.empty()) {
                         base_type = ObjType::Any;
+                    } else {
+                        bool has_error = false;
+                        base_type = ctx->BaseTypeFromString((*m_prototype)[i].second->m_type_name, &has_error);
+                        if(has_error && (*m_prototype)[i].second->getTermID() == TermID::ELLIPSIS) {
+                            base_type = ObjType::Any;
+                        }
                     }
                 } else if(!(*m_prototype)[i].second->m_type_name.empty()) {
                     base_type = typeFromString((*m_prototype)[i].second->m_type_name, ctx);
