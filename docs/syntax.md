@@ -42,38 +42,38 @@
 
 Например:
 ```
-\\if(cond)       [\$cond]--> \\\
-\\elif(cond)     ,[\$cond]--> \\\
-\\else           ,[_]--> \\\
+    \\if(cond)       [\$cond]--> \\\
+    \\elif(cond)     ,[\$cond]--> \\\
+    \\else           ,[_]--> \\\
 
-\\while(cond)    [\$cond] <<-->> \\\
-\\dowhile(cond)  <<-->> [\$cond] \\\
+    \\while(cond)    [\$cond] <<-->> \\\
+    \\dowhile(cond)  <<-->> [\$cond] \\\
 
-\\return         --\\\
-\\return(...)    -- \$* --\\\
+    \\return         --\\\
+    \\return(...)    -- \$* --\\\
 
-\\true      1\\\
-\\false     0\\\
+    \\true      1\\\
+    \\false     0\\\
 ```
 
 Тогда цикл до 5:
 ```
-count:=1;
-[ 1 ] <<-->> {
-    [count>5] --> {
-        -- 42 --;
+    count:=1;
+    [ 1 ] <<-->> {
+        [count>5] --> {
+            -- 42 --;
+        };
+        count+=1;
     };
-    count+=1;
-};
 ```
 
 будет выгладеть более привычно
 ```
-count:=5;
-\while( \true ) {
-    \if(count>5) {
-        \return(42);
+    count:=5;
+    \while( \true ) {
+        \if(count>5) {
+            \return(42);
+        };
+        count+=1;
     };
-    count+=1;
-};
 ```
