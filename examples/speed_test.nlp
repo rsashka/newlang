@@ -26,13 +26,13 @@ printf('\nStart speed test NewLang\n');
 @change_next := 0;
 
 i := 0;
-[i < len_str] <<->> {
+[i < len_str] <-> {
     s += @opt[0];
     i += 1;
 };
 
 i := 0;
-[i < len_str] <<->> {
+[i < len_str] <-> {
     s_last += opt[-1];
     i += 1;
 };
@@ -41,7 +41,7 @@ printf('From %s to %s\n', s, s_last );
 
 @counter := 1;
 
-[s != s_last] <<->> {
+[s != s_last] <-> {
     
     counter += 1;
     #printf('%d\n', counter);
@@ -54,7 +54,7 @@ printf('From %s to %s\n', s, s_last );
 
     i := 0;
 
-    [i < len_str] <<->> {
+    [i < len_str] <-> {
         [change_next] --> {
             [s[i] == opt[-1]] --> {
                 s[i] := convert(s[i]);

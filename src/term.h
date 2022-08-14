@@ -540,12 +540,12 @@ namespace newlang {
 
                     if (m_follow.empty()) {
                         result.insert(0, "[");
-                        result += "]->{";
+                        result += "]-->{";
                         ASSERT(m_right);
                         result += m_right->toString();
                         result += "}";
                         if (m_right->m_right) {
-                            result += "->";
+                            result += "-->";
                             result += m_right->m_right->toString();
                         }
                     } else {
@@ -562,7 +562,7 @@ namespace newlang {
                                 result += " ";
                             }
                             if (m_follow[i]->m_right) {
-                                result += "->";
+                                result += "-->";
                                 result += m_follow[i]->m_right->toString();
                                 if (m_follow[i]->m_right->getTermID() != TermID::BLOCK) {
                                     result += ";";
@@ -570,7 +570,7 @@ namespace newlang {
                                 //                            result += "}";
                             } else {
                                 if (nested || (!nested && m_follow[i]->m_left)) {
-                                    result += "->";
+                                    result += "-->";
                                 }
                                 result += m_follow[i]->toString(true);
                                 if (m_follow[i]->getTermID() != TermID::BLOCK) {

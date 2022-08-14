@@ -22,4 +22,4 @@ printf('rand -> %s\n', :StrChar(matrix));
 
 
 # Check factorial 1000!
-[ matrix ] -> "OK";
+[ matrix ] --> "OK";

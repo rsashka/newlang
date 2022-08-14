@@ -651,7 +651,7 @@ namespace newlang {
 
         [[nodiscard]]
         inline bool is_error() const {
-            return m_var_type_current == ObjType::Error || m_var_type_fixed == ObjType::Error;
+            return m_var_type_current == ObjType::Error || m_var_type_fixed == ObjType::Error || m_var_type_current == ObjType::ErrorParser || m_var_type_current == ObjType::ErrorRunTime || m_var_type_current == ObjType::ErrorSignal;
         }
 
         [[nodiscard]]

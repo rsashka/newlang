@@ -824,8 +824,8 @@ ObjPtr Context::eval_DOWHILE(Context *ctx, const TermPtr &term, Obj * args) {
 ObjPtr Context::eval_FOLLOW(Context *ctx, const TermPtr &term, Obj * args) {
 
     /*
-     * [cond] -> {expr};
-     * [cond] -> {expr}, [_] -> {else};
+     * [cond] --> {expr};
+     * [cond] --> {expr}, [_] --> {else};
      * 
      */
 
@@ -883,9 +883,9 @@ bool Context::MatchEstimate(Obj &match, const TermPtr &match_item, MatchMode mod
 ObjPtr Context::eval_MATCHING(Context *ctx, const TermPtr &term, Obj * args) {
     /*
      * [match] ==> { # ~> ~~> ~~~> ===>
-     *  [cond1] -> {expr};
-     *  [cond2, cond3] -> {expr};
-     *  [_] -> {expr};
+     *  [cond1] --> {expr};
+     *  [cond2, cond3] --> {expr};
+     *  [_] --> {expr};
      * };
      */
 

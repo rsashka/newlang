@@ -21,54 +21,54 @@ TEST(Alg, Follow) {
 
     ObjPtr result = nullptr;
 
-    result = ctx.ExecStr("[1]->100");
+    result = ctx.ExecStr("[1]-->100");
     ASSERT_TRUE(result);
     ASSERT_EQ(100, result->GetValueAsInteger());
 
-    result = ctx.ExecStr("[-1]->99");
+    result = ctx.ExecStr("[-1]-->99");
     ASSERT_TRUE(result);
     ASSERT_EQ(99, result->GetValueAsInteger());
 
-    result = ctx.ExecStr("[0]->111");
+    result = ctx.ExecStr("[0]-->111");
     ASSERT_TRUE(result);
     ASSERT_TRUE(result->is_none_type());
 
-    result = ctx.ExecStr("[1]->111");
+    result = ctx.ExecStr("[1]-->111");
     ASSERT_TRUE(result);
     ASSERT_EQ(111, result->GetValueAsInteger());
 
 
 
-    result = ctx.ExecStr("[0]->100,[1]->300");
+    result = ctx.ExecStr("[0]-->100,[1]-->300");
     ASSERT_TRUE(result);
     ASSERT_EQ(300, result->GetValueAsInteger());
 
-    result = ctx.ExecStr("[0]->100,[0]->300,[99]->99,[_]->1000");
+    result = ctx.ExecStr("[0]-->100,[0]-->300,[99]-->99,[_]-->1000");
     ASSERT_TRUE(result);
     ASSERT_EQ(99, result->GetValueAsInteger());
 
-    result = ctx.ExecStr("[0]->111,[_]->1000");
+    result = ctx.ExecStr("[0]-->111,[_]-->1000");
     ASSERT_TRUE(result);
     ASSERT_EQ(1000, result->GetValueAsInteger());
 
-    result = ctx.ExecStr("[0]->{100},[1]->{10;20;30}");
+    result = ctx.ExecStr("[0]-->{100},[1]-->{10;20;30}");
     ASSERT_TRUE(result);
     ASSERT_EQ(30, result->GetValueAsInteger());
 
-    result = ctx.ExecStr("[0]->{100},[0]->{300},[99]->{99},[_]->{1000}");
+    result = ctx.ExecStr("[0]-->{100},[0]-->{300},[99]-->{99},[_]-->{1000}");
     ASSERT_TRUE(result);
     ASSERT_EQ(99, result->GetValueAsInteger());
 
-    result = ctx.ExecStr("[0]->111,[_]->{30;50;1000}");
+    result = ctx.ExecStr("[0]-->111,[_]-->{30;50;1000}");
     ASSERT_TRUE(result);
     ASSERT_EQ(1000, result->GetValueAsInteger());
 
 
-    result = ctx.ExecStr("@cond := 100; [@cond]->111,[_]->1000");
+    result = ctx.ExecStr("@cond := 100; [@cond]-->111,[_]-->1000");
     ASSERT_TRUE(result);
     ASSERT_EQ(111, result->GetValueAsInteger());
 
-    result = ctx.ExecStr("@cond2 := 0; [@cond2]->111,[_]->1000");
+    result = ctx.ExecStr("@cond2 := 0; [@cond2]-->111,[_]-->1000");
     ASSERT_TRUE(result);
     ASSERT_EQ(1000, result->GetValueAsInteger());
 }
@@ -111,12 +111,12 @@ TEST(Alg, Repeat) {
     result = ctx.ExecStr("result -= 1");
     ASSERT_EQ(3, result->GetValueAsInteger());
 
-    counter = ctx.ExecStr("[result -= 1] <<->> {counter += 1}");
+    counter = ctx.ExecStr("[result -= 1] <-> {counter += 1}");
     ASSERT_TRUE(counter);
     ASSERT_EQ(2, counter->GetValueAsInteger());
 
 
-    counter = ctx.ExecStr("{result += 1; counter += 1} <<->> [result < 10]");
+    counter = ctx.ExecStr("{result += 1; counter += 1} <-> [result < 10]");
     ASSERT_EQ(10, result->GetValueAsInteger());
 
     ASSERT_TRUE(counter);
@@ -245,7 +245,7 @@ TEST(Alg, Foreach) {
 
     ObjPtr summa = ctx.ExecStr("summa := 0");
 
-    temp = ctx.ExecStr("counter = 0; [dict] <<-->> {counter, dict := ... dict; summa += counter}");
+    temp = ctx.ExecStr("counter = 0; [dict] <-> {counter, dict := ... dict; summa += counter}");
     ASSERT_TRUE(temp);
     ASSERT_TRUE(temp->is_integer());
     ASSERT_EQ(150, temp->GetValueAsInteger());
@@ -258,7 +258,7 @@ TEST(Alg, Foreach) {
 
     summa = ctx.ExecStr("summa := 0");
     dict = ctx.ExecStr("dict := (1,2,3,4,5,)");
-    temp = ctx.ExecStr("item := 0; [dict] <<->> {item, dict := ... dict; summa += item}");
+    temp = ctx.ExecStr("item := 0; [dict] <-> {item, dict := ... dict; summa += item}");
     ASSERT_TRUE(temp);
     ASSERT_TRUE(temp->is_integer());
     ASSERT_EQ(15, temp->GetValueAsInteger());
@@ -333,7 +333,7 @@ TEST(Alg, Foreach) {
 
     ObjPtr summa2 = ctx.ExecStr("summa := 0");
     ObjPtr tensor2 = ctx.ExecStr("tensor := [10,20,30,40,50,60,]");
-    ObjPtr temp2 = ctx.ExecStr("item2 := 0; [tensor] <<->> {item2, tensor := ... tensor; summa += item2}");
+    ObjPtr temp2 = ctx.ExecStr("item2 := 0; [tensor] <-> {item2, tensor := ... tensor; summa += item2}");
     ASSERT_TRUE(temp2);
     ASSERT_TRUE(temp2->is_integer());
     ASSERT_EQ(210, temp2->GetValueAsInteger());
@@ -392,20 +392,20 @@ TEST(Alg, Return) {
      * }}:Break
      * dict := (10,20,30,40,50,60,70,80,);
      * :Break := :Return;
-     * [dict] <<->> {{
+     * [dict] <-> {{
      *      item, dict := ... dict; 
      *      summa += item;
-     *      [summa > 100] -> --:Break--;
+     *      [summa > 100] --> --:Break--;
      *      summa += item;
      * }}:Break;
      * 
      * :Continue := :Return;
      * dict := (10,20,30,40,50,60,70,80,);
-     * [dict] <<->> {
+     * [dict] <-> {
      *      {{
      *          item, dict := ... dict; 
      *          summa += item;
-     *          [summa > 100] -> --:Continue--;
+     *          [summa > 100] --> --:Continue--;
      *          summa += item;
      *      }}:Continue;
      * }

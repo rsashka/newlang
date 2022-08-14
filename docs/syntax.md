@@ -52,8 +52,8 @@
     \\elif(cond)     ,[\$cond]--> \\\
     \\else           ,[_]--> \\\
 
-    \\while(cond)    [\$cond] <<-->> \\\
-    \\dowhile(cond)  <<-->> [\$cond] \\\
+    \\while(cond)    [\$cond] <-> \\\
+    \\dowhile(cond)  <-> [\$cond] \\\
 
     \\return         --\\\
     \\return(...)    -- \$* --\\\
@@ -65,7 +65,7 @@
 Тогда цикл до 5:
 ```
     count:=1;
-    [ 1 ] <<-->> {
+    [ 1 ] <-> {
         [count>5] --> {
             -- 42 --;
         };

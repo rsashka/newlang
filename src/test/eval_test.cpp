@@ -14,18 +14,6 @@
 
 using namespace newlang;
 
-//To clarify a few things; it's not the compiler (Clang) itself that produces import libraries, but the linker, and the object file format plays a large role in the process.
-//Adjusting which symbols are exported via __attribute__((visibility(default)))
-//(when either marking other symbols as hidden with __attribute__((visibility(hidden)))
-//, or setting the default with something like -fvisibility=hidden
-//, works with both GCC and Clang when building ELF object files. COFF doesn't have a similar per-symbol visibility flag.
-//When linking a DLL with MS link.exe, or LLVM's lld-link (which mimics link.exe's behaviour), only symbols either marked with __declspec(dllexport)
-//, or listed in a def file that is passed to the linker, are exported.
-//Within the MinGW ecosystem (which brings a bit more of unix-like behaviours), the default is to export all global symbols (with some amount of logic to avoid exporting things that belong to the mingw base libraries themselves) if no symbols are explicitly chosen to be exported.
-//If linking with lld-link instead of MS link.exe (either by calling lld-link instead of link, if calling the linker directly, or by adding -fuse-ld=lld
-//if invoking the linker via the clang-cl frontend), you can opt in to this behaviour by adding the lld specific option -lldmingw
-//, which enables a number of MinGW-specific behaviours in lld.
-
 int64_t var_long = 987654321;
 
 int64_t func_export(int64_t arg_long, uint8_t arg_byte) {
@@ -922,8 +910,8 @@ TEST(Eval, MacroDSL) {
             "\\\\elif(cond)     ,[\\$cond]-->\\\\\\"
             "\\\\else           ,[_]-->\\\\\\"
             ""
-            "\\\\while(cond)    [\\$cond]<<-->>\\\\\\"
-            "\\\\dowhile(cond)  <<-->>[\\$cond]\\\\\\"
+            "\\\\while(cond)    [\\$cond]<->\\\\\\"
+            "\\\\dowhile(cond)  <->[\\$cond]\\\\\\"
             ""
             "\\\\break      --:Break--\\\\\\"
             "\\\\continue   --:Continue--\\\\\\"
@@ -957,7 +945,7 @@ TEST(Eval, MacroDSL) {
 
     const char * run_raw = ""
             "count:=5;"
-            "[count<10]<<-->>{{"
+            "[count<10]<->{{"
             "  [count>5]-->{"
             "    --100--;"
             "  }; "
@@ -1211,7 +1199,7 @@ TEST(Eval, Iterator) {
     ASSERT_STREQ("3\\1", iter_test->m_iterator->m_iter_obj->m_iter_range_value->GetValueAsString().c_str()) << iter_test->m_iterator->m_iter_obj->m_iter_range_value->GetValueAsString().c_str();
     ASSERT_EQ(iter_test->getType(), ObjType::Iterator);
 
-    ObjPtr while_test = ctx.ExecStr("[iter_test]<<-->>{--'EXIT'--}", nullptr, true);
+    ObjPtr while_test = ctx.ExecStr("[iter_test]<->{--'EXIT'--}", nullptr, true);
     ASSERT_TRUE(while_test);
     ASSERT_STREQ("EXIT", while_test->GetValueAsString().c_str()) << while_test->GetValueAsString().c_str();
 
@@ -1221,7 +1209,7 @@ TEST(Eval, Iterator) {
     //    ASSERT_STREQ("3\\1", iter_dict->m_iterator->m_iter_obj->m_iter_range_value->GetValueAsString().c_str()) << iter_test->m_iterator->m_iter_obj->m_iter_range_value->GetValueAsString().c_str();
     ASSERT_EQ(iter_dict->getType(), ObjType::Iterator);
 
-    while_test = ctx.ExecStr("[iter_dict]<<-->>{--'EXIT'--}", nullptr, true);
+    while_test = ctx.ExecStr("[iter_dict]<->{--'EXIT'--}", nullptr, true);
     ASSERT_TRUE(while_test);
     ASSERT_STREQ("EXIT", while_test->GetValueAsString().c_str()) << while_test->GetValueAsString().c_str();
 
@@ -1282,7 +1270,7 @@ TEST(Eval, Iterator) {
     ASSERT_STREQ(":IteratorEnd", item_val->IteratorData()->GetValueAsString().c_str());
     ASSERT_FALSE(item_val->IteratorNext(0)->GetValueAsBoolean());
 
-    while_test = ctx.ExecStr("[iter_test?!]<<-->>{--'EXIT'--}", nullptr, true);
+    while_test = ctx.ExecStr("[iter_test?!]<->{--'EXIT'--}", nullptr, true);
     ASSERT_TRUE(while_test);
     ASSERT_STRNE("EXIT", while_test->GetValueAsString().c_str()) << while_test->GetValueAsString().c_str();
 
@@ -1304,9 +1292,9 @@ TEST(Eval, Iterator) {
 //     * printf := :Native("printf(format:FmtChar, ...):Int32"); 
 //     * 
 //     * h1 := $?;
-//     * [ h1 ] <<-->> {
+//     * [ h1 ] <-> {
 //     *      h2 := $?;
-//     *      [ h2 ] <<-->> {
+//     *      [ h2 ] <-> {
 //     *          [ Brother(h1!, h2!) ] --> { 
 //     *              printf("%s brother %s", ""(h1), `h2`);
 //     *          }
@@ -1548,13 +1536,6 @@ TEST(EvalOp, InstanceName) {
 
     RuntimePtr opts = RunTime::Init();
     Context ctx(opts);
-
-    /*
-     * Реализация системы типов сделана следующим образом:
-     * Каждый объект содержит одно из перечисления ObjType + символьное наименование класса
-     * 
-     *      
-     */
 
     ObjPtr obj_bool = Obj::CreateBool(true);
     ObjPtr obj_char = Obj::CreateValue(20); // ObjType::Int8
