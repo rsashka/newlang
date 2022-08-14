@@ -383,6 +383,8 @@ term    [$@%]({ualpha}|[_])?({name})?
 "..."       YY_TOKEN(ELLIPSIS);
 "<<->>"     YY_TOKEN_ONLY(REPEAT);
 "<<-->>"    YY_TOKEN_ONLY(REPEAT);
+"<->"       YY_TOKEN_ONLY(REPEAT);
+"<-->"      YY_TOKEN_ONLY(REPEAT);
 "->"        YY_TOKEN(FOLLOW);
 "-->"       YY_TOKEN(FOLLOW);
 "~>"        YY_TOKEN(MATCHING);
