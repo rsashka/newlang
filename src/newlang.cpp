@@ -1590,7 +1590,10 @@ std::string NewLang::GetImpl(CompileInfo &ci, TermPtr term, std::string &output)
             output += result;
             return result;
 
-        case TermID::EXIT:
+            
+        case TermID::INT_PLUS:
+        case TermID::INT_MINUS:
+            
             if(term->m_right) {
                 GetImpl(ci, term->m_right, temp);
                 output += "return " + temp;

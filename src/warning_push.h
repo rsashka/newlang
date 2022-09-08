@@ -12,6 +12,10 @@
 #pragma clang diagnostic ignored "-Wcast-align"
 #pragma clang diagnostic ignored "-Wunused-variable"
 
+// starting from clang-15
+#pragma clang diagnostic ignored "-Wdeprecated-builtins"
+#pragma clang diagnostic ignored "-Wunused-but-set-variable"
+
 #elif __GNUC__
 
 /*

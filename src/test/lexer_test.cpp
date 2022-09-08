@@ -159,12 +159,12 @@ TEST_F(Lexer, Integer) {
 
     EXPECT_STREQ("123456", tokens[0]->getText().c_str());
 
-    ASSERT_EQ(3, Parse("123456++123"));
+    ASSERT_EQ(3, Parse("123456**123"));
     EXPECT_EQ(1, Count(TermID::OPERATOR));
     EXPECT_EQ(2, Count(TermID::INTEGER));
 
     EXPECT_STREQ("123456", tokens[0]->getText().c_str()) << tokens[0]->getText();
-    EXPECT_STREQ("++", tokens[1]->getText().c_str()) << tokens[1]->getText();
+    EXPECT_STREQ("**", tokens[1]->getText().c_str()) << tokens[1]->getText();
     EXPECT_STREQ("123", tokens[2]->getText().c_str()) << tokens[2]->getText();
 }
 
@@ -289,12 +289,10 @@ TEST_F(Lexer, CodeSource) {
 }
 
 TEST_F(Lexer, Assign) {
-    ASSERT_EQ(5, Parse(":= :- :&&= :||= :^^="));
+    ASSERT_EQ(5, Parse(":= :- ::= ::- ="));
+    EXPECT_EQ(1, Count(TermID::CREATE));
     EXPECT_EQ(1, Count(TermID::CREATE_OR_ASSIGN));
-    EXPECT_EQ(1, Count(TermID::PUREFUNC));
-    EXPECT_EQ(1, Count(TermID::SIMPLE_AND));
-    EXPECT_EQ(1, Count(TermID::SIMPLE_OR));
-    EXPECT_EQ(1, Count(TermID::SIMPLE_XOR));
+    EXPECT_EQ(2, Count(TermID::PUREFUNC));
 }
 
 TEST_F(Lexer, Function) {
@@ -371,10 +369,11 @@ TEST_F(Lexer, Arg) {
 }
 
 TEST_F(Lexer, Args) {
-    ASSERT_EQ(9, Parse("$0 $1 $22 $333 $4sss $sss1 -- $*   ")) << Dump();
+    ASSERT_EQ(10, Parse("$0 $1 $22 $333 $4sss $sss1 -- ++ $*   ")) << Dump();
     EXPECT_EQ(5, Count(TermID::ARGUMENT));
     EXPECT_EQ(1, Count(TermID::ARGS));
-    EXPECT_EQ(1, Count(TermID::EXIT));
+    EXPECT_EQ(1, Count(TermID::INT_PLUS));
+    EXPECT_EQ(1, Count(TermID::INT_PLUS));
     EXPECT_EQ(2, Count(TermID::TERM));
 }
 

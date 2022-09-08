@@ -67,7 +67,7 @@ ualpha  {alpha}|{U2}{U1}|{U3}{U1}{U1}|{U4}{U1}{U1}{U1}
 
 digit   [0-9]
 integer {digit}([_]?{digit}+)*
-name    ({ualpha}|[_])({ualpha}|{digit}|[_])*
+name    ({ualpha}|[_])({ualpha}|{digit}|[_])*^?
 macro   \\({ualpha}|[_])?({name})?
 
 /* 
@@ -392,20 +392,22 @@ term    [$@%]({ualpha}|[_])?({name})?
 "::="       YY_TOKEN(CREATE);
 ":="        YY_TOKEN(CREATE_OR_ASSIGN);
 "[]="       YY_TOKEN(APPEND);
+"::-"       YY_TOKEN(PUREFUNC);
+":-"        YY_TOKEN(PUREFUNC);
 
 "){{"       YY_TOKEN_ONLY(MIDDLE_CALL_TRY);
 "){"        YY_TOKEN_ONLY(MIDDLE_CALL_BLOCK);
-"{{"        YY_TOKEN_ONLY(TRY_BEGIN);
-"}}"        YY_TOKEN_ONLY(TRY_END);
 
-"::-"       YY_TOKEN(PUREFUNC);
-":-"        YY_TOKEN(PUREFUNC);
-"::&&="     YY_TOKEN(SIMPLE_AND);
-":&&="      YY_TOKEN(SIMPLE_AND);
-"::||="     YY_TOKEN(SIMPLE_OR);
-":||="      YY_TOKEN(SIMPLE_OR);
-"::^^="     YY_TOKEN(SIMPLE_XOR);
-":^^="      YY_TOKEN(SIMPLE_XOR);
+"++"        YY_TOKEN(INT_PLUS);
+"--"        YY_TOKEN(INT_MINUS);
+
+"{{"        YY_TOKEN_ONLY(INT_ALL_BEGIN);
+"}}"        YY_TOKEN_ONLY(INT_ALL_END);
+"+{"        YY_TOKEN_ONLY(INT_PLUS_BEGIN);
+"+}"        YY_TOKEN_ONLY(INT_PLUS_END);
+"-{"        YY_TOKEN_ONLY(INT_MINUS_BEGIN);
+"-}"        YY_TOKEN_ONLY(INT_MINUS_END);
+
 
 "//"        YY_TOKEN_ONLY(OPERATOR_DIV);
 "++="       YY_TOKEN(OPERATOR);
@@ -418,11 +420,10 @@ term    [$@%]({ualpha}|[_])?({name})?
 "%="        YY_TOKEN(OPERATOR);
 "~="        YY_TOKEN(OPERATOR);
 
-"--"        YY_TOKEN(EXIT);
-
 "||"        YY_TOKEN(OPERATOR);
-"&&"        YY_TOKEN(OPERATOR);
+"&&"        YY_TOKEN_ONLY(OPERATOR_AND);
 "^^"        YY_TOKEN(OPERATOR);
+"&&&"       YY_TOKEN_ONLY(OPERATOR_PTR);
 
 ".>."        YY_TOKEN(OPERATOR);
 ".<."        YY_TOKEN(OPERATOR);
@@ -433,7 +434,6 @@ term    [$@%]({ualpha}|[_])?({name})?
 ".~."        YY_TOKEN(OPERATOR);
 
 "**"        YY_TOKEN(OPERATOR);
-"++"        YY_TOKEN(OPERATOR);
 "!~~~"      YY_TOKEN(OPERATOR);
 "~~~"       YY_TOKEN(OPERATOR);
 "!~~"       YY_TOKEN(OPERATOR);

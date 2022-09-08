@@ -43,6 +43,8 @@ typedef ObjPtr TransparentType(const Context *ctx, Obj &in);
 class Interrupt : public std::exception {
   public:
      
+      static const char * IntPlus;
+      static const char * IntMinus;
       static const char * Return;
       static const char * Error;
       static const char * Parser;
@@ -148,21 +150,28 @@ void ParserException(const char *msg, std::string &buffer, int row, int col);
 //// диапазон - счетчик/срез для указания неизменяемой последовательности чисел для индексов или счетчиков
 //// ошибка - информация о состоянии ошибки приложения
 
-
+/* Синонимы типов требуются для точного указания типа при импорте С++ функций, т.к. mangling name для них отличаются*/
 #define NL_TYPES(_)         \
     _(None, 0)              \
     \
     _(Bool, 1)              \
     _(Int8, 2)              \
-    _(Int16, 3)             \
-    _(Int32, 4)               \
-    _(Int64, 5)              \
-    _(Integer, 15)           \
+    _(Char, 3)              /* signed char*/ \
+    _(Byte, 4)             /* unsigned char*/ \
+    _(Int16, 5)            /*short*/ \
+    _(Word, 6)            /*unsigned short*/ \
+    _(Int32, 7)            /*int*/ \
+    _(DWord, 8)             /*unsigned int*/ \
+    _(Int64, 9)            /*long*/ \
+    _(DWord64, 10)           /*unsigned long*/ \
+    _(Integer, 15)          \
     \
-    _(Float16, 16)            \
-    _(Float32, 17)            \
-    _(Float64, 18)           \
-    _(Float, 24)           \
+    _(Float16, 16)          \
+    _(Float32, 17)          \
+    _(Single,  18)          \
+    _(Float64, 19)          \
+    _(Double, 20)          \
+    _(Number, 24)           \
     \
     _(Complex16, 25)     \
     _(Complex32, 26)     \
@@ -198,10 +207,6 @@ void ParserException(const char *msg, std::string &buffer, int row, int col);
     _(BLOCK, 108)           \
     _(BLOCK_TRY, 109)       \
     _(EVAL_FUNCTION, 110)   \
-    _(SimplePureFunc, 111)  \
-    _(SimplePureAND, 112)   \
-    _(SimplePureOR, 113)    \
-    _(SimplePureXOR, 114)   \
     \
     _(Eval, 118)            \
     _(Other, 120)           \
@@ -212,6 +217,9 @@ void ParserException(const char *msg, std::string &buffer, int row, int col);
     _(Object, 122)          \
     _(Any, 123)             \
     _(Type, 200)            \
+    \
+    _(IntPlus, 210)         \
+    _(IntMinus, 211)        \
     _(Return, 230)          \
     _(Break, 231)           \
     _(Continue, 232)        \
@@ -219,41 +227,6 @@ void ParserException(const char *msg, std::string &buffer, int row, int col);
     _(ErrorParser, 241)     \
     _(ErrorRunTime, 242)    \
     _(ErrorSignal, 243)
-
-    // BigNum - Длинные целые числа произвольного размера  100:Big
-    // Currency - Rational со знаменателем `10000 -1`000.00   `-1000  100:Curr
-    // Rational - произвольная дробь с длинными числами    100\1    100:Frac
-    // Frac_tion \1 -> Curr_ency `1.0000 -> Big_Num 100`100`000.  100'100'000.
-
-    //Форматирующий символ дроби (rational slash, U+2044) позволяет создавать произвольные дроби следующим образом:
-    // последовательность цифр числителя + форматирующий символ дроби + последовательность цифр знаменателя
-    // — при выводе на экран или на печать это должно преобразовываться в правильно сформированную дробь.
-    // Например, 22⁄371 должна показываться как 22/371 или как 22 371 {\displaystyle {\frac {22}{371}}} {\displaystyle
-    // {\frac {22}{371}}} (может использоваться как «косая», так и «вертикальная» форма представления дроби)[1].
-    //
-    //Для правильного отображения смешанных дробей (наподобие 3 6 7 {\displaystyle 3{\frac {6}{7}}} {\displaystyle 3{\frac
-    //{6}{7}}})
-    // целую часть нужно отделять от числителя дробной части подходящим пробелом (например, пробелом нулевой ширины U+200B).
-    //
-    //Кроме того, существует символ ⅟ (rational numerator one, U+215F), позволяющий формировать дроби с числителем,
-    //равным 1.
-    //  "/-5 " - квадратный корень из 5,  "3/-5" - корень третьей степени ????
-    // "1/_5" - Одна пятая ??
-    // https://github.com/python/cpython/blob/main/Lib/rationals.py
-    //
-    //_RATIONAL_FORMAT = re.compile(r"""
-    //    \A\s*                                 # optional whitespace at the start,
-    //    (?P<sign>[-+]?)                       # an optional sign, then
-    //    (?=\d|\.\d)                           # lookahead for digit or .digit
-    //    (?P<num>\d*|\d+(_\d+)*)               # numerator (possibly empty)
-    //    (?:                                   # followed by
-    //       (?:/(?P<denom>\d+(_\d+)*))?        # an optional denominator
-    //    |                                     # or
-    //       (?:\.(?P<decimal>d*|\d+(_\d+)*))?  # an optional rationalal part
-    //       (?:E(?P<exp>[-+]?\d+(_\d+)*))?     # and optional exponent
-    //    )
-    //    \s*\Z                                 # and optional whitespace to finish
-    //""", re.VERBOSE | re.IGNORECASE)
 
     /*
      * Типы данных различаются:
@@ -345,12 +318,62 @@ void ParserException(const char *msg, std::string &buffer, int row, int col);
 #undef MAKE_TYPE_NAME
     }
 
+    /*
+     * https://en.cppreference.com/w/cpp/language/types
+     */
+
+    inline const char *toCXXType(ObjType type, bool int_bool) {
+        switch (type) {
+            case ObjType::None:
+                return "void";
+
+            case ObjType::Bool:
+                return int_bool ? "int" : "bool";
+            case ObjType::Int8:
+                return "char";
+            case ObjType::Char:
+                return "signed char";
+            case ObjType::Byte:
+                return "unsigned char";
+            case ObjType::Int16:
+                return "signed short";
+            case ObjType::Word:
+                return "unsigned short";
+            case ObjType::Int32:
+                return "signed int";
+            case ObjType::DWord:
+                return "unsigned int";
+            case ObjType::Int64:
+                return "signed long long int";
+            case ObjType::DWord64:
+                return "unsigned long long int";
+
+            case ObjType::Float32:
+            case ObjType::Single:
+                return "float";
+            case ObjType::Float64:
+            case ObjType::Double:
+                return "double";
+        }
+        LOG_RUNTIME("NewLang type '%s'(%d) can't be represented by C++ type!", toString(type), static_cast<int> (type));
+    }
+
+    inline const char *toCXXRef(std::string &ref) {
+        if (ref.compare("&") == 0) {
+            return "*";
+        } else if (ref.compare("&&") == 0) {
+            return "&";
+        } else if (ref.compare("&&&") == 0) {
+            return "&&";
+        }
+        LOG_RUNTIME("Unknown reference type '%s'!", ref.c_str());
+    }
     // Обобщенные типы данных
 
     inline bool isGenericType(ObjType t) {
         switch (t) {
             case ObjType::Integer: // Любое ЦЕЛОЕ число включая логический тип
-            case ObjType::Float: // Любое число с ПЛАВАЮЩЕЙ ТОЧКОЙ
+            case ObjType::Number: // Любое число с ПЛАВАЮЩЕЙ ТОЧКОЙ
             case ObjType::Complex: // Любое КОМПЛЕКСНОЕ число
             case ObjType::Tensor: // Любое число в виде тензора (включая логический тип)
             case ObjType::Arithmetic: // Все числа, включая длинные, дроби и денежный формат
@@ -377,8 +400,7 @@ void ParserException(const char *msg, std::string &buffer, int row, int col);
 
     inline bool isFunction(ObjType t) {
         return t == ObjType::PureFunc || t == ObjType::Function || t == ObjType::NativeFunc ||
-                t == ObjType::EVAL_FUNCTION || t == ObjType::PureFunc || t == ObjType::SimplePureAND ||
-                t == ObjType::SimplePureOR || t == ObjType::SimplePureXOR;
+                t == ObjType::EVAL_FUNCTION || t == ObjType::PureFunc;
     }
 
     inline bool isEval(ObjType t) {
@@ -390,13 +412,13 @@ void ParserException(const char *msg, std::string &buffer, int row, int col);
     }
 
     inline bool isIntegralType(ObjType t, bool includeBool) {
-        return (static_cast<uint8_t> (t) >= static_cast<uint8_t> (ObjType::Int8) &&
+        return (static_cast<uint8_t> (t) > static_cast<uint8_t> (ObjType::Bool) &&
                 static_cast<uint8_t> (t) <= static_cast<uint8_t> (ObjType::Integer)) ||
                 (includeBool && t == ObjType::Bool);
     }
 
     inline bool isFloatingType(ObjType t) {
-        return t == ObjType::Float32 || t == ObjType::Float64 || t == ObjType::Float;
+        return t == ObjType::Float16 || t == ObjType::Float32 || t == ObjType::Float64 || t == ObjType::Number;
     }
 
     inline bool isComplexType(ObjType t) {
@@ -474,7 +496,7 @@ void ParserException(const char *msg, std::string &buffer, int row, int col);
             case ObjType::Tensor:
                 return at::ScalarType::Float;
             case ObjType::Float64:
-            case ObjType::Float:
+            case ObjType::Number:
                 return at::ScalarType::Double;
             case ObjType::Complex16:
                 return at::ScalarType::ComplexHalf;
@@ -570,7 +592,7 @@ void ParserException(const char *msg, std::string &buffer, int row, int col);
             case ObjType::Tensor:
                 return LLVMFloatType();
             case ObjType::Float64:
-            case ObjType::Float:
+            case ObjType::Number:
                 return LLVMDoubleType();
 
             case ObjType::Pointer:
@@ -727,6 +749,10 @@ void ParserException(const char *msg, std::string &buffer, int row, int col);
         return !isPrivateName(name) && name.find("_") == 0;
     }
 
+    inline bool isConst(const std::string name) {
+        return !name.empty() && name[name.size() - 1] == '^';
+    }
+
     inline std::string DimToString(const Dimension dim) {
         std::stringstream ss;
         ss << dim;
@@ -757,7 +783,7 @@ void ParserException(const char *msg, std::string &buffer, int row, int col);
                 return isTensor(type);
             case ObjType::Integer: // Любое ЦЕЛОЕ число включая логический тип
                 return isIntegralType(type, true);
-            case ObjType::Float: // Любое число с ПЛАВАЮЩЕЙ ТОЧКОЙ
+            case ObjType::Number: // Любое число с ПЛАВАЮЩЕЙ ТОЧКОЙ
                 return isFloatingType(type) || isIntegralType(type, true);
             case ObjType::Complex: // Любое КОМПЛЕКСНОЕ число
                 return isIntegralType(type, true) || isFloatingType(type) || isComplexType(type);

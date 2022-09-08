@@ -943,10 +943,6 @@ std::string Obj::toString(bool deep) const {
                 return result;
 
             case ObjType::EVAL_FUNCTION: // name=>{function code}
-            case ObjType::SimplePureFunc:
-            case ObjType::SimplePureAND:
-            case ObjType::SimplePureOR:
-            case ObjType::SimplePureXOR:
                 ASSERT(m_prototype);
                 result += m_prototype->m_text;
                 result += "(";
@@ -958,14 +954,8 @@ std::string Obj::toString(bool deep) const {
 
                 if(m_var_type_current == ObjType::EVAL_FUNCTION) {
                     result += ":=";
-                } else if(m_var_type_current == ObjType::SimplePureFunc) {
+                } else if(m_var_type_current == ObjType::PureFunc) {
                     result += ":-";
-                } else if(m_var_type_current == ObjType::SimplePureAND) {
-                    result += "::&&=";
-                } else if(m_var_type_current == ObjType::SimplePureOR) {
-                    result += "::||=";
-                } else if(m_var_type_current == ObjType::SimplePureXOR) {
-                    result += "::^^=";
                 } else {
                     LOG_RUNTIME("Fail function type");
                 }
@@ -1093,7 +1083,7 @@ std::string Obj::GetValueAsString() const {
         case ObjType::Integer:
         case ObjType::Float32:
         case ObjType::Float64:
-        case ObjType::Float:
+        case ObjType::Number:
         case ObjType::Complex:
         case ObjType::Complex32:
         case ObjType::Complex64:
@@ -1122,10 +1112,6 @@ std::string Obj::GetValueAsString() const {
         case ObjType::Function:
         case ObjType::PureFunc:
         case ObjType::EVAL_FUNCTION:
-        case ObjType::SimplePureFunc:
-        case ObjType::SimplePureAND:
-        case ObjType::SimplePureOR:
-        case ObjType::SimplePureXOR:
             return m_var_name + "={}";
 
         case ObjType::Class:
@@ -1204,7 +1190,7 @@ Obj::Obj(Context *ctx, const TermPtr term, bool as_value, Obj * local_vars) {
     }
 
     m_namespace = term->m_namespace;
-    m_is_reference = term->m_is_ref;
+    m_is_reference = !!term->m_ref;
     m_var_name = term->m_name.empty() ? term->m_text : term->m_name;
     m_var_type_current = ObjType::Dictionary;
     m_dimensions = nullptr;
@@ -1288,14 +1274,8 @@ ObjPtr Obj::Call(Context *ctx, Obj * args) {
             result = (*reinterpret_cast<TransparentType *> (at::get<void *>(m_var)))(ctx, *param.get()); // Непосредственно вызов функции
         } else if(m_var_type_current == ObjType::NativeFunc) {
             result = CallNative(ctx, *param.get());
-        } else if(m_var_type_current == ObjType::EVAL_FUNCTION || m_var_type_current == ObjType::SimplePureFunc) {
+        } else if(m_var_type_current == ObjType::EVAL_FUNCTION) {
             result = Context::CallBlock(ctx, m_sequence, param.get(), false);
-        } else if(m_var_type_current == ObjType::SimplePureAND) {
-            result = Context::EvalBlockAND(ctx, m_sequence, param.get());
-        } else if(m_var_type_current == ObjType::SimplePureOR) {
-            result = Context::EvalBlockOR(ctx, m_sequence, param.get());
-        } else if(m_var_type_current == ObjType::SimplePureXOR) {
-            result = Context::EvalBlockXOR(ctx, m_sequence, param.get());
         } else {
             LOG_RUNTIME("Call by name not implemted '%s'!", toString().c_str());
         }

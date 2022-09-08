@@ -332,49 +332,6 @@ TEST(Eval, Tensor) {
     ASSERT_STREQ("[0, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9,]:Float64", tt->GetValueAsString().c_str());
 }
 
-TEST(Eval, FuncSimple) {
-
-    Context ctx(RunTime::Init());
-
-    ObjPtr test_and = ctx.ExecStr("test_and(arg1, arg2) :&&= $arg1 == $arg2, $arg1");
-    ASSERT_TRUE(test_and);
-
-    //    EXPECT_FALSE((*test_and)(ctx, Obj::Arg(123, "arg1"),
-    //    Obj::Arg(555, "arg2"))->GetValueAsBoolean());
-    //    EXPECT_TRUE((*test_and)(ctx, Obj::Arg(123, "arg1"),
-    //    Obj::Arg(123, "arg2"))->GetValueAsBoolean());
-    //    EXPECT_TRUE((*test_and)(ctx, Obj::Arg(555, "arg1"),
-    //    Obj::Arg(555, "arg2"))->GetValueAsBoolean());
-    //    EXPECT_FALSE((*test_and)(ctx, Obj::Arg(0, "arg1"), Obj::Arg(0,
-    //    "arg2"))->GetValueAsBoolean());
-
-    ObjPtr test_or = ctx.ExecStr("test_or(arg1, arg2) :||= $arg1 == 555, $arg1");
-    ASSERT_TRUE(test_or);
-
-    //    EXPECT_TRUE(test_or->Call(ctx, Obj::Arg(123, "arg1"),
-    //    Obj::Arg(555, "arg2"))->GetValueAsBoolean());
-    //    EXPECT_TRUE(test_or->Call(ctx, Obj::Arg(555, "arg1"),
-    //    Obj::Arg(555, "arg2"))->GetValueAsBoolean());
-    //    EXPECT_TRUE(test_or->Call(ctx, Obj::Arg(123, "arg1"),
-    //    Obj::Arg(123, "arg2"))->GetValueAsBoolean());
-    //    EXPECT_TRUE(test_or->Call(ctx, Obj::Arg(555, "arg1"),
-    //    Obj::Arg(0, "arg2"))->GetValueAsBoolean());
-    //    EXPECT_FALSE(test_or->Call(ctx, Obj::Arg(0, "arg1"), Obj::Arg(0,
-    //    "arg2"))->GetValueAsBoolean());
-
-    ObjPtr test_xor = ctx.ExecStr("test_xor(arg1, arg2) :^^= $arg1 == $arg2, $arg1");
-    ASSERT_TRUE(test_xor);
-
-    //    EXPECT_TRUE(test_xor->Call(ctx, Obj::Arg(123, "arg1"),
-    //    Obj::Arg(555, "arg2"))->GetValueAsBoolean());
-    //    EXPECT_FALSE(test_xor->Call(ctx, Obj::Arg(555, "arg1"),
-    //    Obj::Arg(555, "arg2"))->GetValueAsBoolean());
-    //    EXPECT_FALSE(test_xor->Call(ctx, Obj::Arg(123, "arg1"),
-    //    Obj::Arg(123, "arg2"))->GetValueAsBoolean());
-    //    EXPECT_TRUE(test_xor->Call(ctx, Obj::Arg(0, "arg1"), Obj::Arg(0,
-    //    "arg2"))->GetValueAsBoolean());
-}
-
 TEST(Eval, TypesNative) {
 
     Context::Reset();
@@ -1199,10 +1156,14 @@ TEST(Eval, Iterator) {
     ASSERT_STREQ("3\\1", iter_test->m_iterator->m_iter_obj->m_iter_range_value->GetValueAsString().c_str()) << iter_test->m_iterator->m_iter_obj->m_iter_range_value->GetValueAsString().c_str();
     ASSERT_EQ(iter_test->getType(), ObjType::Iterator);
 
-    ObjPtr while_test = ctx.ExecStr("[iter_test]<->{--'EXIT'--}", nullptr, true);
+    ObjPtr while_test = ctx.ExecStr("[iter_test]<->{++'PLUS'++}", nullptr, true);
+    ASSERT_TRUE(while_test);
+    ASSERT_STREQ("PLUS", while_test->GetValueAsString().c_str()) << while_test->GetValueAsString().c_str();
+
+    while_test = ctx.ExecStr("[iter_test]<->{--'EXIT'--}", nullptr, true);
     ASSERT_TRUE(while_test);
     ASSERT_STREQ("EXIT", while_test->GetValueAsString().c_str()) << while_test->GetValueAsString().c_str();
-
+    
     iter_dict = ctx.ExecStr("@iter_dict := (1,2,3,)?", nullptr, true);
     ASSERT_TRUE(iter_dict);
     //    ASSERT_TRUE(iter_dict->m_iterator->m_iter_obj->m_iter_range_value);
@@ -1464,8 +1425,8 @@ TEST_F(EvalTester, Ops) {
 
     ASSERT_STREQ("", Test("\"\""));
     ASSERT_STREQ(" ", Test("\" \""));
-    ASSERT_STREQ("строка", Test("\"\"++\"строка\" "));
-    ASSERT_STREQ("строка 222", Test("\"строка \" ++ \"222\" "));
+    ASSERT_STREQ("строка", Test("\"\"+\"строка\" "));
+    ASSERT_STREQ("строка 222", Test("\"строка \" + \"222\" "));
     ASSERT_STREQ("строка строка строка ", Test("\"строка \" ** 3 "));
 
     ASSERT_STREQ("100", Test("var1:=100"));
@@ -1724,7 +1685,8 @@ TEST(EvalOp, InstanceName) {
         {"1 ~ :Int32", true},
         {"1 ~ :Bool", true},
         {"1 ~ :Integer", true},
-        {"1 ~ :Float", true},
+        {"1 ~ :Number", true},
+        {"1 ~ :Float32", true},
         {"1 ~ :Float64", true},
         {"10 ~ :Bool", false},
         {"10 !~ :Bool", true},

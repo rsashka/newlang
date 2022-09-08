@@ -466,7 +466,7 @@ TEST(Alg, Return) {
     try {
         result = ctx.ExecStr("--", nullptr, false);
     } catch (Interrupt &except) {
-        ASSERT_EQ(ObjType::Return, except.m_obj->getType());
+        ASSERT_EQ(ObjType::IntMinus, except.m_obj->getType()) << newlang::toString(except.m_obj->getType());
         ASSERT_EQ(1, except.m_obj->size());
         ASSERT_TRUE((*except.m_obj)[0].second->is_none_type());
     }
@@ -475,12 +475,32 @@ TEST(Alg, Return) {
     try {
         result = ctx.ExecStr("--100--", nullptr, false);
     } catch (Interrupt &except) {
-        ASSERT_EQ(ObjType::Return, except.m_obj->getType());
+        ASSERT_EQ(ObjType::IntMinus, except.m_obj->getType()) << newlang::toString(except.m_obj->getType());
         ASSERT_EQ(1, except.m_obj->size());
         ASSERT_STREQ("100", (*except.m_obj)[0].second->toString().c_str());
     }
     ASSERT_FALSE(result);
 
+    
+    try {
+        result = ctx.ExecStr("++", nullptr, false);
+    } catch (Interrupt &except) {
+        ASSERT_EQ(ObjType::IntPlus, except.m_obj->getType());
+        ASSERT_EQ(1, except.m_obj->size());
+        ASSERT_TRUE((*except.m_obj)[0].second->is_none_type());
+    }
+    ASSERT_FALSE(result);
+
+    try {
+        result = ctx.ExecStr("++100++", nullptr, false);
+    } catch (Interrupt &except) {
+        ASSERT_EQ(ObjType::IntPlus, except.m_obj->getType());
+        ASSERT_EQ(1, except.m_obj->size());
+        ASSERT_STREQ("100", (*except.m_obj)[0].second->toString().c_str());
+    }
+    ASSERT_FALSE(result);
+    
+    
     try {
         result = ctx.ExecStr("--'Тест'--", nullptr, false);
     } catch (Interrupt &except) {

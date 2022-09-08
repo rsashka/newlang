@@ -45,6 +45,8 @@ std::map<std::string, Context::FuncItem> Context::m_funcs;
 Parser::MacrosStore Context::m_macros;
 std::multimap<std::string, DocPtr> Docs::m_docs;
 
+const char * Interrupt::IntPlus = ":IntPlus";
+const char * Interrupt::IntMinus = ":IntMinus";
 const char * Interrupt::Return = ":Return";
 const char * Interrupt::Error = ":Error";
 const char * Interrupt::Parser = ":ErrorParser";
@@ -92,13 +94,21 @@ Context::Context(RuntimePtr global) : m_llvm_builder(LLVMCreateBuilder()) {
         VERIFY(RegisterTypeHierarchy(ObjType::Integer,{":Tensor"}));
         VERIFY(RegisterTypeHierarchy(ObjType::Bool,{":Integer"}));
         VERIFY(RegisterTypeHierarchy(ObjType::Int8,{":Integer"}));
+        VERIFY(RegisterTypeHierarchy(ObjType::Char,{":Integer"}));
+        VERIFY(RegisterTypeHierarchy(ObjType::Byte,{":Integer"}));
         VERIFY(RegisterTypeHierarchy(ObjType::Int16,{":Integer"}));
+        VERIFY(RegisterTypeHierarchy(ObjType::Word,{":Integer"}));
         VERIFY(RegisterTypeHierarchy(ObjType::Int32,{":Integer"}));
+        VERIFY(RegisterTypeHierarchy(ObjType::DWord,{":Integer"}));
         VERIFY(RegisterTypeHierarchy(ObjType::Int64,{":Integer"}));
+        VERIFY(RegisterTypeHierarchy(ObjType::DWord64,{":Integer"}));
 
-        VERIFY(RegisterTypeHierarchy(ObjType::Float,{":Tensor"}));
-        VERIFY(RegisterTypeHierarchy(ObjType::Float32,{":Float"}));
-        VERIFY(RegisterTypeHierarchy(ObjType::Float64,{":Float"}));
+        VERIFY(RegisterTypeHierarchy(ObjType::Number,{":Tensor"}));
+        VERIFY(RegisterTypeHierarchy(ObjType::Float16,{":Number"}));
+        VERIFY(RegisterTypeHierarchy(ObjType::Float32,{":Number"}));
+        VERIFY(RegisterTypeHierarchy(ObjType::Float64,{":Number"}));
+        VERIFY(RegisterTypeHierarchy(ObjType::Single,{":Number"}));
+        VERIFY(RegisterTypeHierarchy(ObjType::Double,{":Number"}));
 
         VERIFY(RegisterTypeHierarchy(ObjType::Complex,{":Tensor"}));
         VERIFY(RegisterTypeHierarchy(ObjType::Complex32,{":Complex"}));
@@ -132,10 +142,6 @@ Context::Context(RuntimePtr global) : m_llvm_builder(LLVMCreateBuilder()) {
         VERIFY(RegisterTypeHierarchy(ObjType::BLOCK_TRY,{":Eval"}));
 
         VERIFY(RegisterTypeHierarchy(ObjType::PureFunc,{":Function"}));
-        VERIFY(RegisterTypeHierarchy(ObjType::SimplePureFunc,{":PureFunc"}));
-        VERIFY(RegisterTypeHierarchy(ObjType::SimplePureOR,{":SimplePureFunc"}));
-        VERIFY(RegisterTypeHierarchy(ObjType::SimplePureXOR,{":SimplePureFunc"}));
-        VERIFY(RegisterTypeHierarchy(ObjType::SimplePureAND,{":SimplePureFunc"}));
 
         VERIFY(RegisterTypeHierarchy(ObjType::Type,{":Any"}));
         VERIFY(RegisterTypeHierarchy(ObjType::Return,{":Any"}));
@@ -659,9 +665,7 @@ ObjPtr Context::eval_APPEND(Context *ctx, const TermPtr &term, Obj * args) {
 }
 
 ObjPtr Context::eval_FUNCTION(Context *ctx, const TermPtr &term, Obj * args) {
-    ASSERT(term && (term->getTermID() == TermID::FUNCTION || term->getTermID() == TermID::PUREFUNC ||
-            term->getTermID() == TermID::SIMPLE_AND || term->getTermID() == TermID::SIMPLE_OR ||
-            term->getTermID() == TermID::SIMPLE_XOR));
+    ASSERT(term && (term->getTermID() == TermID::FUNCTION || term->getTermID() == TermID::PUREFUNC));
     ASSERT(term->Left());
     ASSERT(ctx);
 
@@ -684,14 +688,6 @@ ObjPtr Context::eval_FUNCTION(Context *ctx, const TermPtr &term, Obj * args) {
     } else {
         if(term->getTermID() == TermID::FUNCTION) {
             lval->m_var_type_current = ObjType::EVAL_FUNCTION;
-        } else if(term->getTermID() == TermID::PUREFUNC) {
-            lval->m_var_type_current = ObjType::SimplePureFunc;
-        } else if(term->getTermID() == TermID::SIMPLE_AND) {
-            lval->m_var_type_current = ObjType::SimplePureAND;
-        } else if(term->getTermID() == TermID::SIMPLE_OR) {
-            lval->m_var_type_current = ObjType::SimplePureOR;
-        } else if(term->getTermID() == TermID::SIMPLE_XOR) {
-            lval->m_var_type_current = ObjType::SimplePureXOR;
         } else {
 
             LOG_RUNTIME("Create function '%s' not implemented!", term->toString().c_str());
@@ -702,21 +698,6 @@ ObjPtr Context::eval_FUNCTION(Context *ctx, const TermPtr &term, Obj * args) {
     }
 
     return ctx->RegisterObject(lval);
-}
-
-ObjPtr Context::eval_SIMPLE_AND(Context *ctx, const TermPtr &term, Obj * args) {
-
-    return eval_FUNCTION(ctx, term, args);
-}
-
-ObjPtr Context::eval_SIMPLE_OR(Context *ctx, const TermPtr &term, Obj * args) {
-
-    return eval_FUNCTION(ctx, term, args);
-}
-
-ObjPtr Context::eval_SIMPLE_XOR(Context *ctx, const TermPtr &term, Obj * args) {
-
-    return eval_FUNCTION(ctx, term, args);
 }
 
 ObjPtr Context::eval_PUREFUNC(Context *ctx, const TermPtr &term, Obj * args) {
@@ -946,6 +927,11 @@ ObjPtr Context::eval_FIELD(Context *ctx, const TermPtr &term, Obj * args) {
 }
 
 ObjPtr Context::eval_DICT(Context *ctx, const TermPtr &term, Obj * args) {
+
+    return CreateRVal(ctx, term, args);
+}
+
+ObjPtr Context::eval_CLASS(Context *ctx, const TermPtr &term, Obj * args) {
 
     return CreateRVal(ctx, term, args);
 }
@@ -1326,24 +1312,21 @@ ObjPtr Context::op_SPACESHIP(Context *ctx, const TermPtr &term, Obj * args) {
  *
  */
 
-ObjPtr Context::eval_EXIT(Context *ctx, const TermPtr &term, Obj * args) {
+ObjPtr eval_int(Context *ctx, const TermPtr &term, Obj * args, ObjType type) {
 
-    ObjPtr ret = nullptr;
-    bool is_return_data = (bool)term->Right();
-
-    if(is_return_data) {
-        if(isType(term->Right()->GetFullName())) {
-            ret = CreateRVal(ctx, term->Right(), args, false);
-        } else {
-            ret = ctx->GetTypeFromString(Interrupt::Return);
-            ret = ret->Call(ctx, Obj::Arg(CreateRVal(ctx, term->Right(), args)));
-        }
-    } else {
-        ret = ctx->GetTypeFromString(Interrupt::Return);
-        ret = ret->Call(ctx, Obj::Arg(Obj::CreateNone()));
+    ObjPtr ret = Obj::CreateType(type, type, true);
+    if(term->Right()) {
+        ret->push_back(Obj::Arg(Context::CreateRVal(ctx, term->Right(), args, false)));
     }
     ASSERT(ret);
     throw Interrupt(ret);
+}
+
+ObjPtr Context::eval_INT_PLUS(Context *ctx, const TermPtr &term, Obj * args) {
+    return eval_int(ctx, term, args, ObjType::IntPlus);
+}
+ObjPtr Context::eval_INT_MINUS(Context *ctx, const TermPtr &term, Obj * args) {
+    return eval_int(ctx, term, args, ObjType::IntMinus);
 }
 
 ObjPtr Context::CallBlock(Context *ctx, const TermPtr &block, Obj * local_vars, bool int_catch) {
@@ -1380,65 +1363,6 @@ ObjPtr Context::CallBlock(Context *ctx, const TermPtr &block, Obj * local_vars, 
         result = obj.m_obj;
     }
     return result;
-}
-
-ObjPtr Context::EvalBlockAND(Context *ctx, const TermPtr &block, Obj * local_vars) {
-    ObjPtr result = nullptr;
-    if(block->GetTokenID() == TermID::BLOCK) {
-        for (size_t i = 0; i < block->m_block.size(); i++) {
-            result = Eval(ctx, block->m_block[i], local_vars, false);
-            if(!result || !result->GetValueAsBoolean()) {
-                return Obj::No();
-            }
-        }
-    } else {
-        result = Eval(ctx, block, local_vars, false);
-    }
-    if(!result || !result->GetValueAsBoolean()) {
-
-        return Obj::No();
-    }
-    return Obj::Yes();
-}
-
-ObjPtr Context::EvalBlockOR(Context *ctx, const TermPtr &block, Obj * local_vars) {
-    ObjPtr result = nullptr;
-    if(block->GetTokenID() == TermID::BLOCK) {
-        for (size_t i = 0; i < block->m_block.size(); i++) {
-            result = Eval(ctx, block->m_block[i], local_vars, false);
-            if(result && result->GetValueAsBoolean()) {
-                return Obj::Yes();
-            }
-        }
-    } else {
-        result = Eval(ctx, block, local_vars, false);
-    }
-    if(result && result->GetValueAsBoolean()) {
-
-        return Obj::Yes();
-    }
-    return Obj::No();
-}
-
-ObjPtr Context::EvalBlockXOR(Context *ctx, const TermPtr &block, Obj * local_vars) {
-    ObjPtr result;
-    size_t xor_counter = 0;
-    if(block->GetTokenID() == TermID::BLOCK) {
-        for (size_t i = 0; i < block->m_block.size(); i++) {
-            result = Eval(ctx, block->m_block[i], local_vars, false);
-            if(result && result->GetValueAsBoolean()) {
-                xor_counter++;
-            }
-        }
-    } else {
-        result = Eval(ctx, block, local_vars, false);
-        if(result && result->GetValueAsBoolean()) {
-
-            xor_counter++;
-        }
-    }
-    // Результат равен 0, если нет операндов, равных 1, либо их чётное количество.
-    return (xor_counter & 1) ? Obj::Yes() : Obj::No();
 }
 
 ObjPtr Context::CreateNative(const char *proto, const char *module, bool lazzy, const char *mangle_name) {
@@ -1942,7 +1866,7 @@ ObjPtr Context::CreateRVal(Context *ctx, TermPtr term, Obj * local_vars, bool in
     std::string full_name;
 
     result = Obj::CreateNone();
-    result->m_is_reference = term->m_is_ref;
+    result->m_is_reference = !!term->m_ref;
 
     int64_t val_int;
     double val_dbl;
@@ -2204,7 +2128,8 @@ ObjPtr Context::CreateRVal(Context *ctx, TermPtr term, Obj * local_vars, bool in
 
 
 
-        case TermID::EXIT:
+        case TermID::INT_PLUS:
+        case TermID::INT_MINUS:
         case TermID::CALL:
 
             temp = ctx->GetTerm(term->GetFullName().c_str(), term->isRef());
@@ -2216,7 +2141,7 @@ ObjPtr Context::CreateRVal(Context *ctx, TermPtr term, Obj * local_vars, bool in
             args = Obj::CreateDict();
             ctx->CreateArgs_(args, term, local_vars);
 
-            if(term->getTermID() == TermID::EXIT) {
+            if(term->getTermID() == TermID::INT_MINUS || term->getTermID() == TermID::INT_PLUS) {
                 return result;
             }
 

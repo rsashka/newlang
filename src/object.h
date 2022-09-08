@@ -656,7 +656,7 @@ namespace newlang {
 
         [[nodiscard]]
         inline bool is_return() const {
-            return m_var_type_current == ObjType::Return || m_var_type_fixed == ObjType::Return;
+            return m_var_type_current == ObjType::Return || m_var_type_fixed == ObjType::Return || m_var_type_current == ObjType::IntPlus || m_var_type_current == ObjType::IntMinus;
         }
 
         [[nodiscard]]
@@ -1386,24 +1386,29 @@ namespace newlang {
                         return *at::get<bool *>(m_var);
                     }
                 case ObjType::Int8:
+                case ObjType::Char:
+                case ObjType::Byte:
                     if (at::holds_alternative<int64_t>(m_var)) {
                         return at::get<int64_t>(m_var);
                     } else if (at::holds_alternative<int8_t *>(m_var)) {
                         return *at::get<int8_t *>(m_var);
                     }
                 case ObjType::Int16:
+                case ObjType::Word:
                     if (at::holds_alternative<int64_t>(m_var)) {
                         return at::get<int64_t>(m_var);
                     } else if (at::holds_alternative<int16_t *>(m_var)) {
                         return *at::get<int16_t *>(m_var);
                     }
                 case ObjType::Int32:
+                case ObjType::DWord:
                     if (at::holds_alternative<int64_t>(m_var)) {
                         return at::get<int64_t>(m_var);
                     } else if (at::holds_alternative<int32_t *>(m_var)) {
                         return *at::get<int32_t *>(m_var);
                     }
                 case ObjType::Int64:
+                case ObjType::DWord64:
                     if (at::holds_alternative<int64_t>(m_var)) {
                         return at::get<int64_t>(m_var);
                     } else if (at::holds_alternative<int64_t *>(m_var)) {
@@ -1416,9 +1421,10 @@ namespace newlang {
                     ASSERT(!is_scalar());
                     LOG_RUNTIME("Can`t convert tensor to scalar!");
 
+                case ObjType::Float16:
                 case ObjType::Float32:
                 case ObjType::Float64:
-                case ObjType::Float:
+                case ObjType::Number:
                     return static_cast<int64_t> (GetValueAsNumber());
 
                 case ObjType::Rational:
@@ -1465,7 +1471,7 @@ namespace newlang {
                     } else if (at::holds_alternative<double *>(m_var)) {
                         return *at::get<double *>(m_var);
                     }
-                case ObjType::Float:
+                case ObjType::Number:
                     if (at::holds_alternative<double>(m_var)) {
                         return at::get<double>(m_var);
                     }

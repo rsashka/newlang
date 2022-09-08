@@ -78,6 +78,7 @@
       <itemPath>parser.yy.cpp</itemPath>
       <itemPath>parser.yy.h</itemPath>
       <itemPath>pch.h.gch</itemPath>
+      <itemPath>pch.h.pch</itemPath>
       <itemPath>../docs/syntax.txt</itemPath>
       <itemPath>syntax_help.cpp</itemPath>
       <itemPath>version.cpp</itemPath>
@@ -354,6 +355,8 @@
         </customTool>
       </item>
       <item path="pch.h.gch" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="pch.h.pch" ex="false" tool="3" flavor2="0">
       </item>
       <item path="rational.h" ex="false" tool="3" flavor2="0">
       </item>
@@ -652,6 +655,8 @@
       </item>
       <item path="pch.h.gch" ex="false" tool="3" flavor2="0">
       </item>
+      <item path="pch.h.pch" ex="false" tool="3" flavor2="0">
+      </item>
       <item path="rational.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="syntax_help.cpp" ex="false" tool="1" flavor2="9">
@@ -872,6 +877,8 @@
       <item path="pch.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="pch.h.gch" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="pch.h.pch" ex="false" tool="3" flavor2="0">
       </item>
       <item path="rational.h" ex="false" tool="3" flavor2="0">
       </item>
@@ -1147,6 +1154,8 @@
       </item>
       <item path="pch.h.gch" ex="false" tool="3" flavor2="0">
       </item>
+      <item path="pch.h.pch" ex="false" tool="3" flavor2="0">
+      </item>
       <item path="rational.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="syntax_help.cpp" ex="false" tool="1" flavor2="0">
@@ -1259,20 +1268,19 @@
           <incDir>
             <pElem>.</pElem>
             <pElem>..</pElem>
-            <pElem>/usr/lib/llvm-13/lib/clang/13.0.1/include</pElem>
-            <pElem>/usr/include/llvm-c-13</pElem>
+            <pElem>/usr/lib/clang/15/include</pElem>
+            <pElem>/usr/include/llvm-c-15</pElem>
             <pElem>/usr/include/x86_64-linux-gnu/c++/10</pElem>
             <pElem>/usr/include/c++/10</pElem>
             <pElem>/usr/local/include</pElem>
             <pElem>/usr/include</pElem>
             <pElem>../contrib/googletest/googletest</pElem>
             <pElem>../contrib/googletest/googletest/include</pElem>
-            <pElem>../contrib/Tensorflow/bazel-bin/tensorflow/include</pElem>
             <pElem>../contrib/Lyra/include</pElem>
             <pElem>../contrib/libtorch/include/torch/csrc/api/include</pElem>
             <pElem>../contrib/libtorch/include</pElem>
           </incDir>
-          <commandLine>`llvm-config-13 --cxxflags` -std=c++17 -fexceptions -fcxx-exceptions -Wall -Wextra -Werror -Wfloat-equal -Wundef -Wcast-align -Wwrite-strings -Wmissing-declarations -Wredundant-decls -Wshadow -Woverloaded-virtual -Wno-trigraphs -Wno-invalid-source-encoding -stdlib=libstdc++ -Wno-error=unused-variable -Wno-error=unused-parameter -Wno-error=switch -fsanitize=undefined-trap -fsanitize-undefined-trap-on-error                                         -Wno-undefined-var-template -Wno-switch   -fvisibility=default              </commandLine>
+          <commandLine>`llvm-config-15 --cxxflags` -std=c++17 -fexceptions -fcxx-exceptions -Wall -Wextra -Werror -Wfloat-equal -Wundef -Wcast-align -Wwrite-strings -Wmissing-declarations -Wredundant-decls -Wshadow -Woverloaded-virtual -Wno-trigraphs -Wno-invalid-source-encoding -stdlib=libstdc++ -Wno-error=unused-variable -Wno-error=unused-parameter -Wno-error=switch -fsanitize=undefined-trap -fsanitize-undefined-trap-on-error                                         -Wno-undefined-var-template -Wno-switch  -fvisibility=default</commandLine>
           <preprocessorList>
             <Elem>DEBUG</Elem>
             <Elem>LOG_LEVEL_NORMAL=LOG_LEVEL_DEBUG</Elem>
@@ -1286,6 +1294,7 @@
           <linkerAddLib>
             <pElem>../contrib/libtorch/lib</pElem>
             <pElem>/usr/lib/x86_64-linux-gnu</pElem>
+            <pElem>/usr/lib/llvm-15/lib</pElem>
           </linkerAddLib>
           <linkerDynSerch>
             <pElem>.</pElem>
@@ -1298,8 +1307,9 @@
             <linkerLibLibItem>torch</linkerLibLibItem>
             <linkerLibLibItem>torch_cpu</linkerLibLibItem>
             <linkerLibLibItem>crypto</linkerLibLibItem>
+            <linkerLibStdlibItem>DynamicLinking</linkerLibStdlibItem>
           </linkerLibItems>
-          <commandLine>`llvm-config-13 --libs --ldflags` -fuse-ld=lld-13 -g</commandLine>
+          <commandLine>`llvm-config-15 --libs --ldflags` -fuse-ld=lld-15 -g -lclangTooling -lclangFrontendTool -lclangFrontend -lclangDriver -lclangSerialization -lclangCodeGen -lclangParse -lclangSema -lclangStaticAnalyzerFrontend -lclangStaticAnalyzerCheckers -lclangStaticAnalyzerCore -lclangAnalysis -lclangARCMigrate -lclangRewrite -lclangRewriteFrontend -lclangEdit -lclangAST -lclangLex -lclangBasic -lclang -lclangASTMatchers -lclangSupport -fvisibility=default -Wl,--export-dynamic</commandLine>
         </linkerTool>
       </compileType>
       <item path="../README.md" ex="false" tool="3" flavor2="0">
@@ -1451,11 +1461,13 @@
       </item>
       <item path="pch.h" ex="false" tool="3" flavor2="0">
         <customTool>
-          <customToolCommandline>clang++ `llvm-config-13 --cxxflags` -std=c++17 -fexceptions -fcxx-exceptions -Wall -Wextra -Werror -Wfloat-equal -Wundef -Wcast-align -Wwrite-strings -Wmissing-declarations -Wredundant-decls -Wshadow -Woverloaded-virtual -Wno-trigraphs -Wno-invalid-source-encoding -stdlib=libstdc++ -Wno-error=unused-variable -Wno-error=unused-parameter -Wno-error=switch -fsanitize=undefined-trap -fsanitize-undefined-trap-on-error                                         -Wno-undefined-var-template -Wno-switch   -fvisibility=default              -g -DDEBUG -DLOG_LEVEL_NORMAL=LOG_LEVEL_DEBUG -DPDC_WIDE -DUNITTEST -I. -I.. -I/usr/lib/llvm-13/lib/clang/13.0.1/include -I/usr/include/llvm-c-13 -I/usr/include/x86_64-linux-gnu/c++/10 -I/usr/include/c++/10 -I/usr/local/include -I/usr/include -I../contrib/googletest/googletest -I../contrib/googletest/googletest/include -I../contrib/Tensorflow/bazel-bin/tensorflow/include -I../contrib/Lyra/include -I../contrib/libtorch/include/torch/csrc/api/include -I../contrib/libtorch/include                 -x c++-header -o pch.h.pch pch.h -verify-pch -fpch-validate-input-files-content</customToolCommandline>
+          <customToolCommandline>clang++ `llvm-config-15 --cxxflags` -std=c++17 -fexceptions -fcxx-exceptions -Wall -Wextra -Werror -Wfloat-equal -Wundef -Wcast-align -Wwrite-strings -Wmissing-declarations -Wredundant-decls -Wshadow -Woverloaded-virtual -Wno-trigraphs -Wno-invalid-source-encoding -stdlib=libstdc++ -Wno-error=unused-variable -Wno-error=unused-parameter -Wno-error=switch -fsanitize=undefined-trap -fsanitize-undefined-trap-on-error                                         -Wno-undefined-var-template -Wno-switch   -fvisibility=default              -g -DDEBUG -DLOG_LEVEL_NORMAL=LOG_LEVEL_DEBUG -DPDC_WIDE -DUNITTEST -I. -I.. -I/usr/include/llvm-c-15 -I/usr/include/x86_64-linux-gnu/c++/10 -I/usr/include/c++/10 -I/usr/local/include -I/usr/include -I../contrib/googletest/googletest -I../contrib/googletest/googletest/include -I../contrib/Tensorflow/bazel-bin/tensorflow/include -I../contrib/Lyra/include -I../contrib/libtorch/include/torch/csrc/api/include -I../contrib/libtorch/include                 -x c++-header -o pch.h.pch pch.h -verify-pch -fpch-validate-input-files-content</customToolCommandline>
           <customToolOutputs>pch.h.pch</customToolOutputs>
         </customTool>
       </item>
       <item path="pch.h.gch" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="pch.h.pch" ex="false" tool="3" flavor2="0">
       </item>
       <item path="rational.h" ex="false" tool="3" flavor2="0">
       </item>
@@ -1733,6 +1745,8 @@
       </item>
       <item path="pch.h.gch" ex="false" tool="3" flavor2="0">
       </item>
+      <item path="pch.h.pch" ex="false" tool="3" flavor2="0">
+      </item>
       <item path="rational.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="syntax_help.cpp" ex="false" tool="1" flavor2="0">
@@ -1999,6 +2013,8 @@
       </item>
       <item path="pch.h.gch" ex="false" tool="3" flavor2="0">
       </item>
+      <item path="pch.h.pch" ex="false" tool="3" flavor2="0">
+      </item>
       <item path="rational.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="syntax_help.cpp" ex="false" tool="1" flavor2="0">
@@ -2260,6 +2276,8 @@
       <item path="pch.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="pch.h.gch" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="pch.h.pch" ex="false" tool="3" flavor2="0">
       </item>
       <item path="rational.h" ex="false" tool="3" flavor2="0">
       </item>
@@ -2546,6 +2564,8 @@
         </customTool>
       </item>
       <item path="pch.h.gch" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="pch.h.pch" ex="false" tool="3" flavor2="0">
       </item>
       <item path="rational.h" ex="false" tool="3" flavor2="0">
       </item>
@@ -2861,6 +2881,8 @@
         </customTool>
       </item>
       <item path="pch.h.gch" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="pch.h.pch" ex="false" tool="3" flavor2="0">
       </item>
       <item path="rational.h" ex="false" tool="3" flavor2="0">
       </item>
