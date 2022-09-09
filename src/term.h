@@ -265,9 +265,6 @@ namespace newlang {
         std::string toString(bool nested = false) {
             std::string result(m_ref ? "&" : "");
             result += m_name;
-            if (m_is_const) {
-                result += "^";
-            }
             if (Left()) {
                 if (!result.empty()) {
                     result += "=";
@@ -331,6 +328,9 @@ namespace newlang {
 
                     if (m_ref) {
                         result.insert(0, m_ref->m_text);
+                    }
+                    if (m_is_const) {
+                        result += "^";
                     }
                     if (!m_name.empty()) {
                         if (GetType()) {
