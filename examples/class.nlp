@@ -20,16 +20,16 @@ $test1 := "";
 
 $result = "";
 
-:class := :Class(arg1, arg2="default") {
+:class(arg1, arg2="default", ...) := :Class() {
     # Using $arg1, $arg2
 
     # Код выполняется однократно при создании типа класса :class
 
     $result += "Call CLASS constructor\n";
-    field := arg1;
-    counter := 0;
+    field ::= arg1;
+    counter ::= 0;
 
-    __class(arg1=$arg1, arg2=$arg2, arg3="construcor default")={
+    __class(arg1=$arg1, arg2=$arg2, arg3="construcor default") ::= {
 
         # Код выполняется многократно при создании каждого экземпляра класса :class
 
@@ -37,11 +37,11 @@ $result = "";
         $result += "Call OBJECT $1 constructor\n"($0->counter);
     };
 
-    method()={
+    method() ::= {
         $result += "Call method\n";
     };
 
-    _={
+    _ ::= {
         # Код выполняется многократно при удалении каждого экземпляра класса :class
         $0->counter -= 1;
         $result += "Call OBJECT $1 destructor\n"($0->counter);
