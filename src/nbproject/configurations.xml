@@ -16,6 +16,7 @@
                    projectFiles="true">
       <logicalFolder name="f3" displayName="examples" projectFiles="true">
         <itemPath>../examples/_run.sh</itemPath>
+        <itemPath>../examples/class.nlp</itemPath>
         <itemPath>../examples/dsl.nlp</itemPath>
         <itemPath>../examples/fact_1000.nlp</itemPath>
         <itemPath>../examples/fileio.nlp</itemPath>
@@ -222,6 +223,8 @@
       <item path="../docs/versions.md" ex="false" tool="3" flavor2="0">
       </item>
       <item path="../examples/_run.sh" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../examples/class.nlp" ex="false" tool="3" flavor2="0">
       </item>
       <item path="../examples/dsl.nlp" ex="false" tool="3" flavor2="0">
       </item>
@@ -542,6 +545,8 @@
       </item>
       <item path="../examples/_run.sh" ex="false" tool="3" flavor2="0">
       </item>
+      <item path="../examples/class.nlp" ex="false" tool="3" flavor2="0">
+      </item>
       <item path="../examples/dsl.nlp" ex="false" tool="3" flavor2="0">
       </item>
       <item path="../examples/fact_1000.nlp" ex="false" tool="3" flavor2="0">
@@ -801,6 +806,8 @@
       </item>
       <item path="../examples/_run.sh" ex="false" tool="3" flavor2="0">
       </item>
+      <item path="../examples/class.nlp" ex="false" tool="3" flavor2="0">
+      </item>
       <item path="../examples/dsl.nlp" ex="false" tool="3" flavor2="0">
       </item>
       <item path="../examples/fact_1000.nlp" ex="false" tool="3" flavor2="0">
@@ -1020,6 +1027,8 @@
       <item path="../docs/versions.md" ex="false" tool="3" flavor2="0">
       </item>
       <item path="../examples/_run.sh" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../examples/class.nlp" ex="false" tool="3" flavor2="0">
       </item>
       <item path="../examples/dsl.nlp" ex="false" tool="3" flavor2="0">
       </item>
@@ -1346,6 +1355,8 @@
       </item>
       <item path="../examples/_run.sh" ex="false" tool="3" flavor2="0">
       </item>
+      <item path="../examples/class.nlp" ex="false" tool="3" flavor2="0">
+      </item>
       <item path="../examples/dsl.nlp" ex="false" tool="3" flavor2="0">
       </item>
       <item path="../examples/fact_1000.nlp" ex="false" tool="3" flavor2="0">
@@ -1647,6 +1658,8 @@
       </item>
       <item path="../examples/_run.sh" ex="false" tool="3" flavor2="0">
       </item>
+      <item path="../examples/class.nlp" ex="false" tool="3" flavor2="0">
+      </item>
       <item path="../examples/dsl.nlp" ex="false" tool="3" flavor2="0">
       </item>
       <item path="../examples/fact_1000.nlp" ex="false" tool="3" flavor2="0">
@@ -1915,6 +1928,8 @@
       </item>
       <item path="../examples/_run.sh" ex="false" tool="3" flavor2="0">
       </item>
+      <item path="../examples/class.nlp" ex="false" tool="3" flavor2="0">
+      </item>
       <item path="../examples/dsl.nlp" ex="false" tool="3" flavor2="0">
       </item>
       <item path="../examples/fact_1000.nlp" ex="false" tool="3" flavor2="0">
@@ -2179,6 +2194,8 @@
       </item>
       <item path="../examples/_run.sh" ex="false" tool="3" flavor2="0">
       </item>
+      <item path="../examples/class.nlp" ex="false" tool="3" flavor2="0">
+      </item>
       <item path="../examples/dsl.nlp" ex="false" tool="3" flavor2="0">
       </item>
       <item path="../examples/fact_1000.nlp" ex="false" tool="3" flavor2="0">
@@ -2431,6 +2448,8 @@
       <item path="../docs/versions.md" ex="false" tool="3" flavor2="0">
       </item>
       <item path="../examples/_run.sh" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../examples/class.nlp" ex="false" tool="3" flavor2="0">
       </item>
       <item path="../examples/dsl.nlp" ex="false" tool="3" flavor2="0">
       </item>
@@ -2748,6 +2767,8 @@
       <item path="../docs/versions.md" ex="false" tool="3" flavor2="0">
       </item>
       <item path="../examples/_run.sh" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../examples/class.nlp" ex="false" tool="3" flavor2="0">
       </item>
       <item path="../examples/dsl.nlp" ex="false" tool="3" flavor2="0">
       </item>
