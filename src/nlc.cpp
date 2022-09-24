@@ -42,6 +42,7 @@ int main(int argc, char **argv) {
     // Чтобы убрать этот coredump вместо нормального завершения main вызываю _exit, чтобы 
     // все остальные функции освобождения памяти не вызывались при завершении процесса.
 
+//    return RUN_ALL_TESTS();
     _exit(RUN_ALL_TESTS());
 }
 
@@ -49,6 +50,7 @@ int main(int argc, char **argv) {
 
 int main(int argc, char** argv) {
     newlang::NLC nlc(argc, (const char **) argv);
+//    return nlc.Run();
     _exit(nlc.Run());
 }
 

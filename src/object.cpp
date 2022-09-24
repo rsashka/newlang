@@ -1080,11 +1080,20 @@ std::string Obj::GetValueAsString() const {
         case ObjType::Int16:
         case ObjType::Int32:
         case ObjType::Int64:
+        case ObjType::Char:
+        case ObjType::Byte:
+        case ObjType::Word:
+        case ObjType::DWord:
+        case ObjType::DWord64:
         case ObjType::Integer:
+        case ObjType::Float16:
         case ObjType::Float32:
         case ObjType::Float64:
+        case ObjType::Single:
+        case ObjType::Double:
         case ObjType::Number:
         case ObjType::Complex:
+        case ObjType::Complex16:
         case ObjType::Complex32:
         case ObjType::Complex64:
             if(is_scalar()) {

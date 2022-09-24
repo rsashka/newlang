@@ -36,6 +36,20 @@ namespace newlang {
 
 #define NLC_FILE_HISTORY ".nlc_history"
 
+//    
+//#include <stdio.h>
+//#include <wchar.h>
+//#include <stdlib.h>
+//#include <locale.h>
+//
+//int main() {
+//    int r;
+//    wchar_t myChar1 = L'Ω';
+//    setlocale(LC_CTYPE, "");
+//    r = wprintf(L"char is %lc (%x)\n", myChar1, myChar1);
+//}
+//
+
     class NLC {
     public:
 
@@ -246,7 +260,7 @@ namespace newlang {
             char buffer[100];
             fcntl(STDIN_FILENO, F_SETFL, fcntl(STDIN_FILENO, F_GETFL, 0) | O_NONBLOCK);
             while ((len = read(STDIN_FILENO, buffer, sizeof (buffer))) > 0) {
-                m_eval.append(buffer, len);
+//                m_eval.append(buffer, len);
             }
             fcntl(STDIN_FILENO, F_SETFL, fcntl(STDIN_FILENO, F_GETFL, 0) & ~O_NONBLOCK);
 #endif
@@ -429,7 +443,7 @@ namespace newlang {
                     // Print title with title color
                     clear_line();
                     color_print(title, title_color);
-                    printf(title_len != 0 ? " " : "");
+                    wprintf(title_len != 0 ? L" " : L"");
                     fflush(stdout);
 
                     // Get length of last word in input
@@ -600,9 +614,9 @@ namespace newlang {
                 }
 
 
-                std::string result;
+                std::wstring result;
                 if (buff.compare(L"--") == 0 || buff.compare(L"--;") == 0) {
-                    printf("\n");
+                    wprintf(L"\n");
                     break;
                 } else if (!buff.empty()) {
                     try {
@@ -611,9 +625,9 @@ namespace newlang {
                         //                    if (!term) {
                         //                        LOG_RUNTIME("Eval expression empty!");
                         //                    }
-                        std::string input = utf8_encode(buff);
+                        std::wstring input = buff;
 
-                        ObjPtr res = m_ctx.ExecStr(input, m_args.get(), true);
+                        ObjPtr res = m_ctx.ExecStr(utf8_encode(input), m_args.get(), true);
 
                         if (res) {
 
@@ -621,17 +635,17 @@ namespace newlang {
                                 m_local_vars[res.get()] = res;
                             }
 
-                            result = res->GetValueAsString();
+                            result = res->GetValueAsStringWide();
                         } else {
-                            result = "nullptr";
+                            result = L"nullptr";
                         }
 
                     } catch (std::exception &err) {
-                        result = err.what();
+                        result = utf8_decode(err.what());
                     }
                     buff.clear();
                 }
-                printf("\n%s\n", result.c_str());
+                wprintf(L"\n%s\n", result.c_str());
                 show_all = false;
             }
 

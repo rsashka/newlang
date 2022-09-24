@@ -5,9 +5,15 @@
       <itemPath>../docs/CNAME</itemPath>
       <itemPath>../docs/_config.yml</itemPath>
       <itemPath>../docs/index.md</itemPath>
-      <itemPath>../docs/iterators.md</itemPath>
       <itemPath>../docs/ops.md</itemPath>
       <itemPath>../docs/syntax.md</itemPath>
+      <itemPath>../docs/type_func.md</itemPath>
+      <itemPath>../docs/type_iter.md</itemPath>
+      <itemPath>../docs/type_native.md</itemPath>
+      <itemPath>../docs/type_nor.md</itemPath>
+      <itemPath>../docs/type_oop.md</itemPath>
+      <itemPath>../docs/type_other.md</itemPath>
+      <itemPath>../docs/type_str.md</itemPath>
       <itemPath>../docs/types.md</itemPath>
       <itemPath>../docs/versions.md</itemPath>
     </logicalFolder>
@@ -204,8 +210,6 @@
       </item>
       <item path="../docs/index.md" ex="false" tool="3" flavor2="0">
       </item>
-      <item path="../docs/iterators.md" ex="false" tool="3" flavor2="0">
-      </item>
       <item path="../docs/ops.md" ex="false" tool="3" flavor2="0">
       </item>
       <item path="../docs/syntax.md" ex="false" tool="3" flavor2="0">
@@ -216,6 +220,20 @@
         </customTool>
       </item>
       <item path="../docs/syntax.txt" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../docs/type_func.md" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../docs/type_iter.md" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../docs/type_native.md" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../docs/type_nor.md" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../docs/type_oop.md" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../docs/type_other.md" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../docs/type_str.md" ex="false" tool="3" flavor2="0">
       </item>
       <item path="../docs/types.md" ex="false" tool="3" flavor2="0">
       </item>
@@ -528,13 +546,25 @@
       </item>
       <item path="../docs/index.md" ex="false" tool="3" flavor2="0">
       </item>
-      <item path="../docs/iterators.md" ex="false" tool="3" flavor2="0">
-      </item>
       <item path="../docs/ops.md" ex="false" tool="3" flavor2="0">
       </item>
       <item path="../docs/syntax.md" ex="false" tool="3" flavor2="0">
       </item>
       <item path="../docs/syntax.txt" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../docs/type_func.md" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../docs/type_iter.md" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../docs/type_native.md" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../docs/type_nor.md" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../docs/type_oop.md" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../docs/type_other.md" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../docs/type_str.md" ex="false" tool="3" flavor2="0">
       </item>
       <item path="../docs/types.md" ex="false" tool="3" flavor2="0">
       </item>
@@ -787,13 +817,25 @@
       </item>
       <item path="../docs/index.md" ex="false" tool="3" flavor2="0">
       </item>
-      <item path="../docs/iterators.md" ex="false" tool="3" flavor2="0">
-      </item>
       <item path="../docs/ops.md" ex="false" tool="3" flavor2="0">
       </item>
       <item path="../docs/syntax.md" ex="false" tool="3" flavor2="0">
       </item>
       <item path="../docs/syntax.txt" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../docs/type_func.md" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../docs/type_iter.md" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../docs/type_native.md" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../docs/type_nor.md" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../docs/type_oop.md" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../docs/type_other.md" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../docs/type_str.md" ex="false" tool="3" flavor2="0">
       </item>
       <item path="../docs/types.md" ex="false" tool="3" flavor2="0">
       </item>
@@ -1003,8 +1045,6 @@
       </item>
       <item path="../docs/index.md" ex="false" tool="3" flavor2="0">
       </item>
-      <item path="../docs/iterators.md" ex="false" tool="3" flavor2="0">
-      </item>
       <item path="../docs/ops.md" ex="false" tool="3" flavor2="0">
       </item>
       <item path="../docs/syntax.md" ex="false" tool="3" flavor2="0">
@@ -1014,6 +1054,20 @@
           <customToolCommandline>../contrib/text2cpp/output/bin/text2cpp ../docs/syntax.txt  syntax_help.cpp syntax_help s</customToolCommandline>
           <customToolOutputs>syntax_help.cpp</customToolOutputs>
         </customTool>
+      </item>
+      <item path="../docs/type_func.md" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../docs/type_iter.md" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../docs/type_native.md" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../docs/type_nor.md" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../docs/type_oop.md" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../docs/type_other.md" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../docs/type_str.md" ex="false" tool="3" flavor2="0">
       </item>
       <item path="../docs/types.md" ex="false" tool="3" flavor2="0">
       </item>
@@ -1309,7 +1363,7 @@
             <linkerLibLibItem>crypto</linkerLibLibItem>
             <linkerLibStdlibItem>DynamicLinking</linkerLibStdlibItem>
           </linkerLibItems>
-          <commandLine>`llvm-config-15 --libs --ldflags` -fuse-ld=lld-15 -g -lclangTooling -lclangFrontendTool -lclangFrontend -lclangDriver -lclangSerialization -lclangCodeGen -lclangParse -lclangSema -lclangStaticAnalyzerFrontend -lclangStaticAnalyzerCheckers -lclangStaticAnalyzerCore -lclangAnalysis -lclangARCMigrate -lclangRewrite -lclangRewriteFrontend -lclangEdit -lclangAST -lclangLex -lclangBasic -lclang -lclangASTMatchers -lclangSupport -fvisibility=default -Wl,--export-dynamic</commandLine>
+          <commandLine>`llvm-config-15 --libs --ldflags` -fuse-ld=lld-15 -g -lclangTooling -lclangFrontendTool -lclangFrontend -lclangDriver -lclangSerialization -lclangCodeGen -lclangParse -lclangSema -lclangStaticAnalyzerFrontend -lclangStaticAnalyzerCheckers -lclangStaticAnalyzerCore -lclangAnalysis -lclangARCMigrate -lclangRewrite -lclangRewriteFrontend -lclangEdit -lclangAST -lclangLex -lclangBasic  -lclangASTMatchers -lclangSupport -fvisibility=default -Wl,--export-dynamic</commandLine>
         </linkerTool>
       </compileType>
       <item path="../README.md" ex="false" tool="3" flavor2="0">
@@ -1332,13 +1386,25 @@
       </item>
       <item path="../docs/index.md" ex="false" tool="3" flavor2="0">
       </item>
-      <item path="../docs/iterators.md" ex="false" tool="3" flavor2="0">
-      </item>
       <item path="../docs/ops.md" ex="false" tool="3" flavor2="0">
       </item>
       <item path="../docs/syntax.md" ex="false" tool="3" flavor2="0">
       </item>
       <item path="../docs/syntax.txt" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../docs/type_func.md" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../docs/type_iter.md" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../docs/type_native.md" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../docs/type_nor.md" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../docs/type_oop.md" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../docs/type_other.md" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../docs/type_str.md" ex="false" tool="3" flavor2="0">
       </item>
       <item path="../docs/types.md" ex="false" tool="3" flavor2="0">
       </item>
@@ -1633,13 +1699,25 @@
       </item>
       <item path="../docs/index.md" ex="false" tool="3" flavor2="0">
       </item>
-      <item path="../docs/iterators.md" ex="false" tool="3" flavor2="0">
-      </item>
       <item path="../docs/ops.md" ex="false" tool="3" flavor2="0">
       </item>
       <item path="../docs/syntax.md" ex="false" tool="3" flavor2="0">
       </item>
       <item path="../docs/syntax.txt" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../docs/type_func.md" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../docs/type_iter.md" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../docs/type_native.md" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../docs/type_nor.md" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../docs/type_oop.md" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../docs/type_other.md" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../docs/type_str.md" ex="false" tool="3" flavor2="0">
       </item>
       <item path="../docs/types.md" ex="false" tool="3" flavor2="0">
       </item>
@@ -1901,13 +1979,25 @@
       </item>
       <item path="../docs/index.md" ex="false" tool="3" flavor2="0">
       </item>
-      <item path="../docs/iterators.md" ex="false" tool="3" flavor2="0">
-      </item>
       <item path="../docs/ops.md" ex="false" tool="3" flavor2="0">
       </item>
       <item path="../docs/syntax.md" ex="false" tool="3" flavor2="0">
       </item>
       <item path="../docs/syntax.txt" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../docs/type_func.md" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../docs/type_iter.md" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../docs/type_native.md" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../docs/type_nor.md" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../docs/type_oop.md" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../docs/type_other.md" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../docs/type_str.md" ex="false" tool="3" flavor2="0">
       </item>
       <item path="../docs/types.md" ex="false" tool="3" flavor2="0">
       </item>
@@ -2165,13 +2255,25 @@
       </item>
       <item path="../docs/index.md" ex="false" tool="3" flavor2="0">
       </item>
-      <item path="../docs/iterators.md" ex="false" tool="3" flavor2="0">
-      </item>
       <item path="../docs/ops.md" ex="false" tool="3" flavor2="0">
       </item>
       <item path="../docs/syntax.md" ex="false" tool="3" flavor2="0">
       </item>
       <item path="../docs/syntax.txt" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../docs/type_func.md" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../docs/type_iter.md" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../docs/type_native.md" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../docs/type_nor.md" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../docs/type_oop.md" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../docs/type_other.md" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../docs/type_str.md" ex="false" tool="3" flavor2="0">
       </item>
       <item path="../docs/types.md" ex="false" tool="3" flavor2="0">
       </item>
@@ -2418,13 +2520,25 @@
       </item>
       <item path="../docs/index.md" ex="false" tool="3" flavor2="0">
       </item>
-      <item path="../docs/iterators.md" ex="false" tool="3" flavor2="0">
-      </item>
       <item path="../docs/ops.md" ex="false" tool="3" flavor2="0">
       </item>
       <item path="../docs/syntax.md" ex="false" tool="3" flavor2="0">
       </item>
       <item path="../docs/syntax.txt" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../docs/type_func.md" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../docs/type_iter.md" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../docs/type_native.md" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../docs/type_nor.md" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../docs/type_oop.md" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../docs/type_other.md" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../docs/type_str.md" ex="false" tool="3" flavor2="0">
       </item>
       <item path="../docs/types.md" ex="false" tool="3" flavor2="0">
       </item>
@@ -2735,13 +2849,25 @@
       </item>
       <item path="../docs/index.md" ex="false" tool="3" flavor2="0">
       </item>
-      <item path="../docs/iterators.md" ex="false" tool="3" flavor2="0">
-      </item>
       <item path="../docs/ops.md" ex="false" tool="3" flavor2="0">
       </item>
       <item path="../docs/syntax.md" ex="false" tool="3" flavor2="0">
       </item>
       <item path="../docs/syntax.txt" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../docs/type_func.md" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../docs/type_iter.md" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../docs/type_native.md" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../docs/type_nor.md" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../docs/type_oop.md" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../docs/type_other.md" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../docs/type_str.md" ex="false" tool="3" flavor2="0">
       </item>
       <item path="../docs/types.md" ex="false" tool="3" flavor2="0">
       </item>

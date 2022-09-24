@@ -64,6 +64,12 @@ class Interrupt : public std::exception {
     
 };
 
+class IntPlus: public Interrupt {
+};
+
+class IntMinus: public Interrupt {
+};
+
 void NewLangSignalHandler(int signal);
 
 
@@ -204,9 +210,13 @@ void ParserException(const char *msg, std::string &buffer, int row, int col);
     _(Dictionary, 105)      \
     _(Class, 106)           \
     _(Ellipsis, 107)        \
-    _(BLOCK, 108)           \
-    _(BLOCK_TRY, 109)       \
     _(EVAL_FUNCTION, 110)   \
+    \
+    _(BLOCK, 111)           \
+    _(BLOCK_TRY, 112)       \
+    _(BLOCK_PLUS, 113)       \
+    _(BLOCK_MINUS, 114)       \
+    _(BLOCK_FULL, 115)       \
     \
     _(Eval, 118)            \
     _(Other, 120)           \
@@ -418,11 +428,11 @@ void ParserException(const char *msg, std::string &buffer, int row, int col);
     }
 
     inline bool isFloatingType(ObjType t) {
-        return t == ObjType::Float16 || t == ObjType::Float32 || t == ObjType::Float64 || t == ObjType::Number;
+        return t == ObjType::Single || t == ObjType::Double || t == ObjType::Float16 || t == ObjType::Float32 || t == ObjType::Float64 || t == ObjType::Number;
     }
 
     inline bool isComplexType(ObjType t) {
-        return t == ObjType::Complex32 || t == ObjType::Complex64 || t == ObjType::Complex;
+        return t == ObjType::Complex16 || t == ObjType::Complex32 || t == ObjType::Complex64 || t == ObjType::Complex;
     }
 
     inline bool isTensor(ObjType t) {
@@ -484,12 +494,17 @@ void ParserException(const char *msg, std::string &buffer, int row, int col);
             case ObjType::Bool:
                 return at::ScalarType::Bool;
             case ObjType::Int8:
+            case ObjType::Byte:
+            case ObjType::Char:
                 return at::ScalarType::Char;
             case ObjType::Int16:
+            case ObjType::Word:
                 return at::ScalarType::Short;
             case ObjType::Int32:
+            case ObjType::DWord:
                 return at::ScalarType::Int;
             case ObjType::Int64:
+            case ObjType::DWord64:
             case ObjType::Integer:
                 return at::ScalarType::Long;
             case ObjType::Float32:
@@ -560,14 +575,14 @@ void ParserException(const char *msg, std::string &buffer, int row, int col);
         return type_default;
     }
 
-    inline ObjType typeFromLimit(double value, ObjType type_default = ObjType::Float32) {
+    inline ObjType typeFromLimit(double value, ObjType type_default = ObjType::Float64) {
         if (std::equal_to<double>()(value, 0)) {
             return type_default;
         }
         return ObjType::Float64;
     }
 
-    inline ObjType typeFromLimit(std::complex<double> value, ObjType type_default = ObjType::Complex32) {
+    inline ObjType typeFromLimit(std::complex<double> value, ObjType type_default = ObjType::Complex64) {
         LOG_RUNTIME("Not implemented!");
     }
 

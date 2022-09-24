@@ -57,15 +57,15 @@ const char * Interrupt::Abort = ":ErrorAbort";
 Context::Context(RuntimePtr global) : m_llvm_builder(LLVMCreateBuilder()) {
     m_runtime = global;
 
-    LLVMInitializeCore(LLVMGetGlobalPassRegistry());
-
-    /* program init */
-    LLVMInitializeNativeTarget();
-    LLVMInitializeNativeAsmPrinter();
-    LLVMInitializeNativeAsmParser();
-    LLVMLinkInMCJIT();
-    // Загружает символы исполняемого файла для поиска с помощью SearchForAddressOfSymbol
-    LLVMLoadLibraryPermanently(nullptr);
+//    LLVMInitializeCore(LLVMGetGlobalPassRegistry());
+//
+//    /* program init */
+//    LLVMInitializeNativeTarget();
+//    LLVMInitializeNativeAsmPrinter();
+//    LLVMInitializeNativeAsmParser();
+//    LLVMLinkInMCJIT();
+//    // Загружает символы исполняемого файла для поиска с помощью SearchForAddressOfSymbol
+//    LLVMLoadLibraryPermanently(nullptr);
 
     if(Context::m_funcs.empty()) {
 
@@ -337,9 +337,63 @@ ObjPtr Context::eval_BLOCK(Context *ctx, const TermPtr &term, Obj *args) {
     return obj;
 }
 
+ObjPtr Context::eval_LAMBDA(Context *ctx, const TermPtr &term, Obj *args) {
+    LOG_RUNTIME("Fail LAMBDA: '%s'", term->toString().c_str());
+
+//    ASSERT(term && term->getTermID() == TermID::LAMBDA);
+//    ObjPtr obj = Obj::CreateType(ObjType::LAMBDA);
+//    obj->m_sequence = term;
+//    obj->m_var_is_init = true;
+//
+//    if(term->size() && term->at(0).second->IsString()) {
+//        obj->m_help = Docs::Append(term->at(0).second->m_text);
+//    }
+//
+//    return obj;
+}
+
 ObjPtr Context::eval_BLOCK_TRY(Context *ctx, const TermPtr &term, Obj *args) {
     ASSERT(term && term->getTermID() == TermID::BLOCK_TRY);
     ObjPtr obj = Obj::CreateType(ObjType::BLOCK_TRY);
+    obj->m_sequence = term;
+    obj->m_var_is_init = true;
+
+    if(term->size() && term->at(0).second->IsString()) {
+        obj->m_help = Docs::Append(term->at(0).second->m_text);
+    }
+
+    return obj;
+}
+
+ObjPtr Context::eval_BLOCK_PLUS(Context *ctx, const TermPtr &term, Obj *args) {
+    ASSERT(term && term->getTermID() == TermID::BLOCK_PLUS);
+    ObjPtr obj = Obj::CreateType(ObjType::BLOCK_PLUS);
+    obj->m_sequence = term;
+    obj->m_var_is_init = true;
+
+    if(term->size() && term->at(0).second->IsString()) {
+        obj->m_help = Docs::Append(term->at(0).second->m_text);
+    }
+
+    return obj;
+}
+
+ObjPtr Context::eval_BLOCK_MINUS(Context *ctx, const TermPtr &term, Obj *args) {
+    ASSERT(term && term->getTermID() == TermID::BLOCK_MINUS);
+    ObjPtr obj = Obj::CreateType(ObjType::BLOCK_MINUS);
+    obj->m_sequence = term;
+    obj->m_var_is_init = true;
+
+    if(term->size() && term->at(0).second->IsString()) {
+        obj->m_help = Docs::Append(term->at(0).second->m_text);
+    }
+
+    return obj;
+}
+
+ObjPtr Context::eval_BLOCK_FULL(Context *ctx, const TermPtr &term, Obj *args) {
+    ASSERT(term && term->getTermID() == TermID::BLOCK_FULL);
+    ObjPtr obj = Obj::CreateType(ObjType::BLOCK_FULL);
     obj->m_sequence = term;
     obj->m_var_is_init = true;
 

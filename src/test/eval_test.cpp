@@ -77,7 +77,7 @@ TEST(Eval, Assign) {
     list = ctx.ExecStr("$");
     ASSERT_STREQ("$=('var_str',)", list->toString().c_str());
 
-    ObjPtr var_num = ctx.ExecStr("var_num := 123.456: Float");
+    ObjPtr var_num = ctx.ExecStr("var_num := 123.456: Single");
     ASSERT_TRUE(var_num);
     ASSERT_TRUE(var_num->is_arithmetic_type());
     ASSERT_TRUE(var_num->is_tensor_type());
@@ -1156,11 +1156,11 @@ TEST(Eval, Iterator) {
     ASSERT_STREQ("3\\1", iter_test->m_iterator->m_iter_obj->m_iter_range_value->GetValueAsString().c_str()) << iter_test->m_iterator->m_iter_obj->m_iter_range_value->GetValueAsString().c_str();
     ASSERT_EQ(iter_test->getType(), ObjType::Iterator);
 
-    ObjPtr while_test = ctx.ExecStr("[iter_test]<->{++'PLUS'++}", nullptr, true);
+    ObjPtr while_test = ctx.ExecStr("[iter_test]<->{ ++'PLUS'++ }", nullptr, true);
     ASSERT_TRUE(while_test);
     ASSERT_STREQ("PLUS", while_test->GetValueAsString().c_str()) << while_test->GetValueAsString().c_str();
 
-    while_test = ctx.ExecStr("[iter_test]<->{--'EXIT'--}", nullptr, true);
+    while_test = ctx.ExecStr("[iter_test]<->{ --'EXIT'-- }", nullptr, true);
     ASSERT_TRUE(while_test);
     ASSERT_STREQ("EXIT", while_test->GetValueAsString().c_str()) << while_test->GetValueAsString().c_str();
     
@@ -1170,7 +1170,7 @@ TEST(Eval, Iterator) {
     //    ASSERT_STREQ("3\\1", iter_dict->m_iterator->m_iter_obj->m_iter_range_value->GetValueAsString().c_str()) << iter_test->m_iterator->m_iter_obj->m_iter_range_value->GetValueAsString().c_str();
     ASSERT_EQ(iter_dict->getType(), ObjType::Iterator);
 
-    while_test = ctx.ExecStr("[iter_dict]<->{--'EXIT'--}", nullptr, true);
+    while_test = ctx.ExecStr("[iter_dict]<->{ --'EXIT'-- }", nullptr, true);
     ASSERT_TRUE(while_test);
     ASSERT_STREQ("EXIT", while_test->GetValueAsString().c_str()) << while_test->GetValueAsString().c_str();
 
@@ -1231,7 +1231,7 @@ TEST(Eval, Iterator) {
     ASSERT_STREQ(":IteratorEnd", item_val->IteratorData()->GetValueAsString().c_str());
     ASSERT_FALSE(item_val->IteratorNext(0)->GetValueAsBoolean());
 
-    while_test = ctx.ExecStr("[iter_test?!]<->{--'EXIT'--}", nullptr, true);
+    while_test = ctx.ExecStr("[iter_test?!]<->{ --'EXIT'-- }", nullptr, true);
     ASSERT_TRUE(while_test);
     ASSERT_STRNE("EXIT", while_test->GetValueAsString().c_str()) << while_test->GetValueAsString().c_str();
 

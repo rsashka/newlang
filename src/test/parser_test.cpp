@@ -945,8 +945,15 @@ TEST_F(ParserTest, AssignClass1) {
 }
 
 TEST_F(ParserTest, AssignClass2) {
-    ASSERT_TRUE(Parse(":class  :=  :class1(), :class2(),   :test(arg) {};"));
-    ASSERT_STREQ(":class := :class1(), :class2(), :test(arg){};", ast->toString().c_str());
+    ASSERT_TRUE(Parse(":class  :=  :class1(), :ns::class2(),   :test(arg) {};"));
+    ASSERT_STREQ(":class := :class1(), :ns::class2(), :test(arg){};", ast->toString().c_str());
+}
+
+TEST_F(ParserTest, Namespace) {
+    ASSERT_TRUE(Parse("name{ func() := {}  };"));
+    ASSERT_TRUE(Parse("name::space{ func() := {}  };"));
+    ASSERT_TRUE(Parse("::name::space{ func() := {}  };"));
+    ASSERT_TRUE(Parse("::{ func() := {}  };"));
 }
 
 TEST_F(ParserTest, AssignFullName2) {
@@ -1540,40 +1547,44 @@ TEST_F(ParserTest, Sequence) {
     ASSERT_NO_THROW(Parse("val();;;val();;;"));
 
     //    ASSERT_NO_THROW(Parse("(){};"));
-    ASSERT_NO_THROW(Parse("(){val;};"));
-    ASSERT_NO_THROW(Parse("(){val;val;};"));
+    ASSERT_NO_THROW(Parse("\\(){val;};"));
+    ASSERT_NO_THROW(Parse("\\(){val;val;};"));
 
-    ASSERT_NO_THROW(Parse("( ){val;;}; (){{fff;}};"));
-    ASSERT_NO_THROW(Parse("( ){val;;;};  (){{fff;}};;"));
-    ASSERT_NO_THROW(Parse("(){val;;;;val;(){(){fff;};};};;;;"));
-    ASSERT_NO_THROW(Parse("(){{val;;;;val;;;(123, 333){(){{fff;}}};(  ){fff;} }};;;;"));
+    ASSERT_NO_THROW(Parse("\\( ){val;;}; \\(){{fff;}};"));
+    ASSERT_NO_THROW(Parse("\\( ){val;;;};  \\(){{fff;}};;"));
+    ASSERT_NO_THROW(Parse("\\(){val;;;;val;\\(){\\(){fff;};};};;;;"));
+    ASSERT_NO_THROW(Parse("\\(){{val;;;;val;;;\\(123, 333){\\(){{fff;}};};\\(  ){fff;};}};;;;"));
 
-    ASSERT_NO_THROW(Parse("(){val();};"));
-    ASSERT_NO_THROW(Parse("(){val();val();};"));
-    ASSERT_NO_THROW(Parse("(){val();val();;};"));
+    ASSERT_NO_THROW(Parse("\\(){val();};"));
+    ASSERT_NO_THROW(Parse("\\(){val();val();};"));
+    ASSERT_NO_THROW(Parse("\\(){val();val();;};"));
 
-    ASSERT_NO_THROW(Parse("(){val();};"));
-    ASSERT_NO_THROW(Parse("(){val();;;};;;"));
-    ASSERT_NO_THROW(Parse("(){val();;;val();;;};;;"));
-    ASSERT_NO_THROW(Parse("(){val();;;val();;;};;;"));
+    ASSERT_NO_THROW(Parse("\\(){val();};"));
+    ASSERT_NO_THROW(Parse("\\(){val();;;};;;"));
+    ASSERT_NO_THROW(Parse("\\() {val();;;val();;;};;;"));
+    ASSERT_NO_THROW(Parse("\\() {val();;;\\(){val();};;;;};;;"));
 }
 
 TEST_F(ParserTest, BlockTry) {
-    ASSERT_TRUE(Parse("(){{1; 2;}}; 3;"));
+    ASSERT_TRUE(Parse("\\(){{1; 2; 3;}}; 4;"));
     ASSERT_EQ(2, ast->m_block.size());
     ASSERT_EQ(TermID::BLOCK, ast->getTermID()) << newlang::toString(ast->getTermID());
-    ASSERT_EQ(TermID::CALL_TRY, ast->m_block[0]->getTermID()) << newlang::toString(ast->getTermID());
-    ASSERT_EQ(TermID::INTEGER, ast->m_block[1]->getTermID()) << newlang::toString(ast->getTermID());
+    ASSERT_EQ(TermID::BLOCK_TRY, ast->m_block[0]->getTermID()) << newlang::toString(ast->m_block[0]->getTermID());
+    ASSERT_EQ(TermID::INTEGER, ast->m_block[1]->getTermID()) << newlang::toString(ast->m_block[1]->getTermID());
 
-    ASSERT_TRUE(Parse("(){{1; 2; 3; --4--; 5; 6;}};"));
+    ASSERT_TRUE(Parse("\\(){- 1; 2; 3; --4--; 5; 6;-}; 100;"));
+    ASSERT_EQ(2, ast->m_block.size());
+    ASSERT_EQ(TermID::BLOCK, ast->getTermID()) << newlang::toString(ast->getTermID());
+    ASSERT_EQ(TermID::BLOCK_MINUS, ast->m_block[0]->getTermID()) << newlang::toString(ast->m_block[0]->getTermID());
+
+    ASSERT_TRUE(Parse("\\() {+ 1; 2; 3; ++4++; 5; 6;+}; 100;"));
+    ASSERT_EQ(2, ast->m_block.size());
+    ASSERT_EQ(TermID::BLOCK, ast->getTermID()) << newlang::toString(ast->getTermID());
+    ASSERT_EQ(TermID::BLOCK_PLUS, ast->m_block[0]->getTermID()) << newlang::toString(ast->m_block[0]->getTermID());
+
+    ASSERT_TRUE(Parse("\\() {1; 2; 3; ++4++; 5; 6;};"));
     ASSERT_EQ(1, ast->m_block.size());
     ASSERT_EQ(TermID::BLOCK, ast->getTermID()) << newlang::toString(ast->getTermID());
-    ASSERT_EQ(TermID::CALL_TRY, ast->m_block[0]->getTermID()) << newlang::toString(ast->getTermID());
-
-    ASSERT_TRUE(Parse("(){{1; 2; 3; ++4++; 5; 6;}};"));
-    ASSERT_EQ(1, ast->m_block.size());
-    ASSERT_EQ(TermID::BLOCK, ast->getTermID()) << newlang::toString(ast->getTermID());
-    ASSERT_EQ(TermID::CALL_TRY, ast->m_block[0]->getTermID()) << newlang::toString(ast->getTermID());
 }
 
 TEST_F(ParserTest, Repeat) {
@@ -1599,34 +1610,71 @@ TEST_F(ParserTest, Repeat) {
     ASSERT_TRUE(Parse("[val()] <-> {val();val();};;"));
 }
 
+/*
+ * \while(1) {
+ * }
+ * \while(1) {+
+ *      ++; # break
+ * +}
+ * \while(1){-
+ *      --; # break
+ * -}
+ * \while(1) {{
+ *      ++; # break
+ *      --; # break
+ * }}
+ * 
+ * \(){
+ * }
+ * \(){+
+ * +}
+ * \(){-
+ * -}
+ * \(){{
+ *      ++; # break
+ *      --; # break
+ * }}
+ * 
+ */
+TEST_F(ParserTest, OperInt) {
+    ASSERT_TRUE(Parse("\\(){val * val}"));
+    ASSERT_TRUE(Parse("\\(){+val * val+}"));
+    ASSERT_TRUE(Parse("\\(){- val * val -}"));
+    ASSERT_TRUE(Parse("\\(){{val * val}}"));
+    ASSERT_TRUE(Parse("\\() {val * val}"));
+    ASSERT_TRUE(Parse("\\() {+val * val+}"));
+    ASSERT_TRUE(Parse("\\() {-val * val-}"));
+    ASSERT_TRUE(Parse("\\() {{val * val}}"));
+}
+
 TEST_F(ParserTest, Operators) {
     ASSERT_TRUE(Parse("val + val;"));
     ASSERT_TRUE(Parse("val - val;"));
-    ASSERT_TRUE(Parse("(){val * val;};"));
-    ASSERT_TRUE(Parse("(){val / val;};"));
-    ASSERT_TRUE(Parse("(){val ** val;};"));
-    ASSERT_TRUE(Parse("(){val**val;;};;"));
+    ASSERT_TRUE(Parse("\\(){val * val;};"));
+    ASSERT_TRUE(Parse("\\(){val / val;};"));
+    ASSERT_TRUE(Parse("\\(){val ** val;};"));
+    ASSERT_TRUE(Parse("\\() {val**val;;};;"));
 
     ASSERT_TRUE(Parse("val + val();"));
     ASSERT_TRUE(Parse("val - val();;"));
     ASSERT_TRUE(Parse("val * val();;"));
-    ASSERT_TRUE(Parse("(){val / val();};"));
-    ASSERT_TRUE(Parse("(){val ** val();};"));
-    ASSERT_TRUE(Parse("(){val ** val();};"));
+    ASSERT_TRUE(Parse("\\(){val / val();};"));
+    ASSERT_TRUE(Parse("\\(){val ** val();};"));
+    ASSERT_TRUE(Parse("\\() {val ** val();};"));
 
     ASSERT_TRUE(Parse("val + val();"));
     ASSERT_TRUE(Parse("val - val();; val - val();"));
     ASSERT_TRUE(Parse("val * val();; val - val();;"));
-    ASSERT_TRUE(Parse("(){val / val(); val - val()};;"));
-    ASSERT_TRUE(Parse("(){val ** val(); val - val();};"));
-    ASSERT_TRUE(Parse("(){val ** val(); val - val();};;"));
+    ASSERT_TRUE(Parse("\\(){val / val(); val - val()};;"));
+    ASSERT_TRUE(Parse("\\(){val ** val(); val - val();};"));
+    ASSERT_TRUE(Parse("\\() {val ** val(); val - val();};;"));
 
     ASSERT_TRUE(Parse("(val + val());"));
     ASSERT_TRUE(Parse("(val - val()) + (val - val());"));
     ASSERT_TRUE(Parse("(val * val()) - (val - val());"));
-    ASSERT_TRUE(Parse("(){val / val() + (val - val())};"));
-    ASSERT_TRUE(Parse("(){val ** val() / (val - val());};"));
-    ASSERT_TRUE(Parse("(){val ** val() / (val - val());};"));
+    ASSERT_TRUE(Parse("\\(){val / val() + (val - val())};"));
+    ASSERT_TRUE(Parse("\\(){val ** val() / (val - val());};"));
+    ASSERT_TRUE(Parse("\\() {val ** val() / (val - val());};"));
 }
 
 TEST_F(ParserTest, Repeat0) {
@@ -1792,10 +1840,10 @@ TEST_F(ParserTest, Interrupt) {
     ASSERT_TRUE(Parse("--  eval() --;;"));
     ASSERT_TRUE(Parse("--0--;"));
     ASSERT_TRUE(Parse("--0--;;"));
-    ASSERT_TRUE(Parse("--  0.1 --;"));
+    ASSERT_TRUE(Parse("++  0.1 ++;"));
     ASSERT_TRUE(Parse("--  0.1    --;;"));
     ASSERT_TRUE(Parse("--[0,]--;"));
-    ASSERT_TRUE(Parse("--(0,)--;;"));
+    ASSERT_TRUE(Parse("++(0,)++;;"));
     ASSERT_TRUE(Parse("--(0,1,2,3,):Class--;;"));
     ASSERT_TRUE(Parse("--(0,2,3,) :Class --;;"));
     ASSERT_TRUE(Parse("--(0,)--;;"));
@@ -1810,7 +1858,7 @@ TEST_F(ParserTest, Interrupt) {
     ASSERT_TRUE(Parse("--:class()--;"));
     ASSERT_TRUE(Parse("--:class()--;;"));
     ASSERT_TRUE(Parse("--:class(arg)--;"));
-    ASSERT_TRUE(Parse("--:class(arg)--;;"));
+    ASSERT_TRUE(Parse("++:class(arg)++;;"));
 
     ASSERT_TRUE(Parse("++;"));
     ASSERT_TRUE(Parse("++;;"));

@@ -182,7 +182,10 @@ public:
                         || name.compare("_Znam") == 0
                         || name.compare("_ZdlPv") == 0
                         || name.compare("_ZdaPv") == 0
+                        || name.rfind("SEOS_") != std::string::npos
+                        || name.rfind("SEOS0_") != std::string::npos  //name::ns_class::operator=(name::ns_class&&)
                         || name.rfind("SERKS_") != std::string::npos //class_body::operator=(class_body const&)
+                        || name.rfind("SERKS0_") != std::string::npos //name::ns_class::operator=(name::ns_class const&)
                         ) {
                     return;
                 }
@@ -252,8 +255,16 @@ const char * func_text = \
         "int func(int arg);\n"
         "class ns_class {"
         "  void method();"
+        "  virtual void method_v();"
+        "  virtual void method_v2()=0;"
+        "  static void method_static();"
         "};"
         "};\n";
+
+
+/*
+ * Импорт обычных и вирутальных 
+ */
 
 std::vector <const char *> mangle_name = {
     "_Z4funcicah",
@@ -274,6 +285,9 @@ std::vector <const char *> mangle_name = {
     "_ZN10class_body11static_callEP11header_only",
     "_ZN4name4funcEi",
     "_ZN4name8ns_class6methodEv",
+    "_ZN4name8ns_class8method_vEv",
+    "_ZN4name8ns_class9method_v2Ev",
+    "_ZN4name8ns_class13method_staticEv",
 };
 
 #define ATTR _GLIBCXX_VISIBILITY(default)
@@ -318,6 +332,23 @@ namespace n {
     ATTR int value;
 };
 
+class class_body {
+public:
+    int field;
+
+    class_body() {
+    }
+
+    virtual ~class_body() {
+    }
+
+    void method_body() {
+    }
+
+    static void method_static() {
+    }
+};
+
 /*
  * 
  */
@@ -337,6 +368,11 @@ std::vector <ImportType> import_names = {
     //    {(void *) &n::value_const, "::value_const: Int32^", "_ZN1nL11value_constE", ""}, //_ZN1nL11value_constE   value_const
     {(void *) &value_value, "value_value:Int32", "value_value", "signed int value_value;"},
     //    {(void *) &n::value, "::n::value:Int32", "_ZN1n5valueE", ""},
+//    {nullptr, "::class_body.field:Int32", "", ""},
+//    {nullptr, "::class_body::class_body()", "", ""},
+//    {nullptr, "::class_body.method_body()", "", ""},
+//    {(void *) &class_body::method_static, "::class_body::method_static():None", "", ""},
+
 };
 
 std::string toCXXProto(std::string name) {
@@ -406,7 +442,7 @@ std::vector<std::string> toMangledName(std::vector<std::string> names) {
     int argc = COUNT;
     const char *argv[COUNT] = {"", "fake.cpp", "--"};
 
-    static llvm::cl::OptionCategory MyToolCategory("my-tool options");
+    llvm::cl::OptionCategory MyToolCategory("my-tool options");
     auto OptionsParser = clang::tooling::CommonOptionsParser::create(argc, argv, MyToolCategory, llvm::cl::OneOrMore);
     if(!OptionsParser) {
         LOG_RUNTIME("Fail create OptionsParser!");
@@ -449,7 +485,7 @@ TEST(Compiler, MangleName) {
     int argc = COUNT;
     const char *argv[COUNT] = {"", "fake.cpp", "--"};
 
-    static llvm::cl::OptionCategory MyToolCategory("my-tool options");
+    llvm::cl::OptionCategory MyToolCategory("my-tool options");
     auto OptionsParser = clang::tooling::CommonOptionsParser::create(argc, argv, MyToolCategory, llvm::cl::OneOrMore);
     ASSERT_TRUE(!!OptionsParser);
 
@@ -473,7 +509,7 @@ TEST(Compiler, MangleName) {
 }
 
 TEST(Compiler, ParserNS) {
-    ASSERT_FALSE(LLVMSearchForAddressOfSymbol("value_c"));
+    //    ASSERT_FALSE(LLVMSearchForAddressOfSymbol("value_c"));
     ASSERT_EQ(0, LLVMLoadLibraryPermanently(nullptr));
     ASSERT_TRUE(LLVMSearchForAddressOfSymbol("value_c"));
     ASSERT_TRUE(LLVMSearchForAddressOfSymbol("_Z5func5xd"));

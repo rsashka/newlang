@@ -16,6 +16,9 @@ namespace newlang {
 #define NL_TERMS(_) \
         _(BLOCK) \
         _(BLOCK_TRY) \
+        _(BLOCK_PLUS) \
+        _(BLOCK_MINUS) \
+        _(BLOCK_FULL) \
         _(CALL_BLOCK) \
         _(CALL_TRY) \
         _(TERM) \
@@ -50,6 +53,7 @@ namespace newlang {
         \
         _(FUNCTION) \
         _(PUREFUNC) \
+        _(LAMBDA) \
         _(ITERATOR) \
         _(FOLLOW) \
         _(MATCHING) \
@@ -171,7 +175,7 @@ namespace newlang {
 
         inline const std::string GetFullName() {
             std::string result(m_text);
-            result.insert(0, m_namespace);
+            result.insert(isType(result) ? 1 : 0, m_namespace);
             return result;
         }
 
@@ -646,18 +650,21 @@ namespace newlang {
                     result.clear();
 
                     bool comma = false;
-                    TermPtr next = shared_from_this()->Right();
+                    TermPtr next = m_base;
                     while (next) {
                         if (comma) {
                             result += ", ";
                         } else {
                             comma = true;
                         }
-                        result += next->toString();
+                        result += next->GetFullName();
+                        result += "(";
+                        next->dump_items_(result);
+                        result += ")";
                         next = next->Right();
                     }
 
-                    result = "{";
+                    result += "{";
                     for (size_t i = 0; i < m_block.size(); i++) {
                         if (i) {
                             result += " ";
@@ -1045,12 +1052,12 @@ namespace newlang {
                         NL_PARSER(type, "Error cast '%s' to integer type '%s'", m_text.c_str(), m_type_name.c_str());
                     }
                 } else if (m_id == TermID::NUMBER) {
-                    ObjType type_val = typeFromLimit(parseDouble(m_text.c_str()), ObjType::Float32);
+                    ObjType type_val = typeFromLimit(parseDouble(m_text.c_str()), ObjType::Float64);
                     if (!canCastLimit(type_val, typeFromString(m_type_name))) {
                         NL_PARSER(type, "Error cast '%s' to numeric type '%s'", m_text.c_str(), m_type_name.c_str());
                     }
                 } else if (m_id == TermID::COMPLEX) {
-                    ObjType type_val = typeFromLimit(parseComplex(m_text.c_str()), ObjType::Complex32);
+                    ObjType type_val = typeFromLimit(parseComplex(m_text.c_str()), ObjType::Complex64);
                     if (!canCastLimit(type_val, typeFromString(m_type_name))) {
                         NL_PARSER(type, "Error cast '%s' to complex type '%s'", m_text.c_str(), m_type_name.c_str());
                     }
@@ -1063,9 +1070,9 @@ namespace newlang {
                 if (m_id == TermID::INTEGER) {
                     m_type_name = newlang::toString(typeFromLimit(parseInteger(m_text.c_str()), ObjType::Bool));
                 } else if (m_id == TermID::NUMBER) {
-                    m_type_name = newlang::toString(typeFromLimit(parseDouble(m_text.c_str()), ObjType::Float32));
+                    m_type_name = newlang::toString(typeFromLimit(parseDouble(m_text.c_str()), ObjType::Float64));
                 } else if (m_id == TermID::COMPLEX) {
-                    m_type_name = newlang::toString(typeFromLimit(parseComplex(m_text.c_str()), ObjType::Complex32));
+                    m_type_name = newlang::toString(typeFromLimit(parseComplex(m_text.c_str()), ObjType::Complex64));
                 } else if (m_id == TermID::STRCHAR) {
                     m_type_name = newlang::toString(ObjType::StrChar);
                 } else if (m_id == TermID::STRWIDE) {

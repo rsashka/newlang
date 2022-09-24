@@ -395,18 +395,18 @@ term    [$@%]({ualpha}|[_])?({name})?
 "::-"       YY_TOKEN(PUREFUNC);
 ":-"        YY_TOKEN(PUREFUNC);
 
-"){{"       YY_TOKEN_ONLY(MIDDLE_CALL_TRY);
-"){"        YY_TOKEN_ONLY(MIDDLE_CALL_BLOCK);
-
 "++"        YY_TOKEN(INT_PLUS);
 "--"        YY_TOKEN(INT_MINUS);
 
-"{{"        YY_TOKEN_ONLY(INT_ALL_BEGIN);
-"}}"        YY_TOKEN_ONLY(INT_ALL_END);
-"+{"        YY_TOKEN_ONLY(INT_PLUS_BEGIN);
-"+}"        YY_TOKEN_ONLY(INT_PLUS_END);
-"-{"        YY_TOKEN_ONLY(INT_MINUS_BEGIN);
-"-}"        YY_TOKEN_ONLY(INT_MINUS_END);
+"\\("       YY_TOKEN_ONLY(LAMBDA);
+"{{{"       YY_TOKEN_ONLY(TRY_FULL_BEGIN);
+"}}}"       YY_TOKEN_ONLY(TRY_FULL_END);
+"{{"        YY_TOKEN_ONLY(TRY_ALL_BEGIN);
+"}}"        YY_TOKEN_ONLY(TRY_ALL_END);
+"{+"        YY_TOKEN_ONLY(TRY_PLUS_BEGIN);
+"+}"        YY_TOKEN_ONLY(TRY_PLUS_END);
+"{-"        YY_TOKEN_ONLY(TRY_MINUS_BEGIN);
+"-}"        YY_TOKEN_ONLY(TRY_MINUS_END);
 
 
 "//"        YY_TOKEN_ONLY(OPERATOR_DIV);

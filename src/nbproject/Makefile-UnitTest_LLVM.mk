@@ -83,7 +83,7 @@ LDLIBSOPTIONS=-L../contrib/libtorch/lib -L/usr/lib/x86_64-linux-gnu -L/usr/lib/l
 
 ../output/nlc_test: ${OBJECTFILES}
 	${MKDIR} -p ../output
-	${LINK.cc} -o ../output/nlc_test ${OBJECTFILES} ${LDLIBSOPTIONS} `llvm-config-15 --libs --ldflags` -fuse-ld=lld-15 -g -lclangTooling -lclangFrontendTool -lclangFrontend -lclangDriver -lclangSerialization -lclangCodeGen -lclangParse -lclangSema -lclangStaticAnalyzerFrontend -lclangStaticAnalyzerCheckers -lclangStaticAnalyzerCore -lclangAnalysis -lclangARCMigrate -lclangRewrite -lclangRewriteFrontend -lclangEdit -lclangAST -lclangLex -lclangBasic -lclang -lclangASTMatchers -lclangSupport -fvisibility=default -Wl,--export-dynamic
+	${LINK.cc} -o ../output/nlc_test ${OBJECTFILES} ${LDLIBSOPTIONS} `llvm-config-15 --libs --ldflags` -fuse-ld=lld-15 -g -lclangTooling -lclangFrontendTool -lclangFrontend -lclangDriver -lclangSerialization -lclangCodeGen -lclangParse -lclangSema -lclangStaticAnalyzerFrontend -lclangStaticAnalyzerCheckers -lclangStaticAnalyzerCore -lclangAnalysis -lclangARCMigrate -lclangRewrite -lclangRewriteFrontend -lclangEdit -lclangAST -lclangLex -lclangBasic  -lclangASTMatchers -lclangSupport -fvisibility=default -Wl,--export-dynamic
 
 ${OBJECTDIR}/_ext/1e501df/gtest-all.o: ../contrib/googletest/googletest/src/gtest-all.cc
 	${MKDIR} -p ${OBJECTDIR}/_ext/1e501df

@@ -1424,6 +1424,8 @@ namespace newlang {
                 case ObjType::Float16:
                 case ObjType::Float32:
                 case ObjType::Float64:
+                case ObjType::Single:
+                case ObjType::Double:
                 case ObjType::Number:
                     return static_cast<int64_t> (GetValueAsNumber());
 
@@ -1459,12 +1461,15 @@ namespace newlang {
 
             switch (m_var_type_current) {
 
+                case ObjType::Single:
+                case ObjType::Float16:
                 case ObjType::Float32:
                     if (at::holds_alternative<double>(m_var)) {
                         return at::get<double>(m_var);
                     } else if (at::holds_alternative<float *>(m_var)) {
                         return *at::get<float *>(m_var);
                     }
+                case ObjType::Double:
                 case ObjType::Float64:
                     if (at::holds_alternative<double>(m_var)) {
                         return at::get<double>(m_var);

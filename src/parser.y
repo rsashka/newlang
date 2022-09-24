@@ -338,6 +338,7 @@ star_arg = [STAR] STAR ID
 %token           	STRWIDE		"StrWide"
 %token           	TEMPLATE	"Template"
 %token           	EVAL            "Eval"
+%token           	LAMBDA          "Lambda"
 
 %token			TERM            "Term"
 %token			SYMBOL          "Symbol"
@@ -359,14 +360,14 @@ star_arg = [STAR] STAR ID
 
 %token			INT_PLUS
 %token			INT_MINUS
-%token			INT_PLUS_BEGIN
-%token			INT_PLUS_END
-%token			INT_MINUS_BEGIN
-%token			INT_MINUS_END
-%token			INT_ALL_BEGIN
-%token			INT_ALL_END
-%token			MIDDLE_CALL_TRY
-%token			MIDDLE_CALL_BLOCK
+%token			TRY_PLUS_BEGIN
+%token			TRY_PLUS_END
+%token			TRY_MINUS_BEGIN
+%token			TRY_MINUS_END
+%token			TRY_ALL_BEGIN
+%token			TRY_ALL_END
+%token			TRY_FULL_BEGIN
+%token			TRY_FULL_END
 
 
 %token			FOLLOW
@@ -428,18 +429,49 @@ star_arg = [STAR] STAR ID
 %% /*** Grammar Rules ***/
 
 
-/*
-comment: COMMENT
+/* Незнаю, нужны ли теперь символы? Раньше планировалось с их помощью расширять синтаксис языковых конструкций, 
+ * но это относится к парсеру и не может изменяться динамически в зависимости от наличия существующий объектов и определений.
+ * Если относится к символам как к идентификаторам на других языках, то опять же это лучше делать на уровне лексера и парсера,
+ * чтобы еще при обработке исходников вместо создания неопределнных последовательностьей возникала ошибка времени компиляции,
+ * а не передача отдельных символов как не распознанных терминалов.
+ */
+symbols: SYMBOL
             {
-                $$ = $1;  
+                $$ = $1;
             }
-        | comment  COMMENT
+        | symbols  SYMBOL
             {
-                $$ = $1;  
-                $$->AppendSequenceTerm($2);
+                $$ = $1; 
+                $$->AppendText($2->getText());
             }
-*/
 
+fragment:  TERM
+            {
+                $$ = $1;
+                $$->TestConst();
+            }
+
+namespace:  fragment
+            {
+                $$ = $1;
+            }
+        | namespace  NAMESPACE  fragment
+            {
+                $$ = $3;
+                $$->m_namespace = $1->m_namespace;
+                $$->m_namespace += $1->m_text;
+                $$->m_namespace += "::";
+            }
+            
+name:  namespace
+            {
+                $$ = $1;
+            }
+        | NAMESPACE  namespace
+            {
+                $$ = $2;
+                $$->m_namespace.insert(0, "::");
+            }
 
 /* Фиксированная размерность тензоров для использования в типах данных */
 type_dim: INTEGER
@@ -467,7 +499,7 @@ type_dims: type_dim
             $$->AppendCommaTerm($3);
         }
 
-type_class:  ':'  TERM
+type_class:  ':'  name
             {
                 $$ = $2;
                 $$->m_text.insert(0, ":");
@@ -618,50 +650,6 @@ string: strtype
             $$->SetArgs($2);
         }
    
-/* Незнаю, нужны ли теперь символы? Раньше планировалось с их помощью расширять синтаксис языковых конструкций, 
- * но это относится к парсеру и не может изменяться динамически в зависимости от наличия существующий объектов и определений.
- * Если относится к символам как к идентификаторам на других языках, то опять же это лучше делать на уровне лексера и парсера,
- * чтобы еще при обработке исходников вместо создания неопределнных последовательностьей возникала ошибка времени компиляции,
- * а не передача отдельных символов как не распознанных терминалов.
- */
-symbols: SYMBOL
-            {
-                $$ = $1;
-            }
-        | symbols  SYMBOL
-            {
-                $$ = $1; 
-                $$->AppendText($2->getText());
-            }
-
-fragment:  TERM
-            {
-                $$ = $1;
-                $$->TestConst();
-            }
-
-namespace:  fragment
-            {
-                $$ = $1;
-            }
-        | namespace  NAMESPACE  fragment
-            {
-                $$ = $3;
-                $$->m_namespace = $1->m_namespace;
-                $$->m_namespace += $1->m_text;
-                $$->m_namespace += "::";
-            }
-            
-name:  namespace
-            {
-                $$ = $1;
-            }
-        | NAMESPACE  namespace
-            {
-                $$ = $2;
-                $$->m_namespace.insert(0, "::");
-            }
-
         
 /* Допустимые имена переменных и функций. Деструктор с ~ выявляеся на этапе анализа, а не парсинга, т.к. это обычный термин
 name:  TERM
@@ -742,6 +730,21 @@ lval:  assign_name
                 $3->SetArgs($call);
                 $$->Last()->Append($3);
             }
+        |  lval  '.'  TERM  type
+            {
+                $$ = $1; 
+                $3->SetTermID(TermID::FIELD);
+                $3->SetType($type);
+                $$->Last()->Append($3);
+            }
+        |  lval  '.'  TERM  call  type
+            {
+                $$ = $1; 
+                $3->SetTermID(TermID::FIELD);
+                $3->SetArgs($call);
+                $3->SetType($type);
+                $$->Last()->Append($3);
+            }
         |  type
             {   
                 $$ = $1; 
@@ -803,6 +806,15 @@ rval_range: rval_name
                 $$ = $1;
             }
             
+eval:  EVAL 
+        {
+            $$ = $1;
+        }
+/*    |  call   EVAL
+        {
+            $$ = $2;
+            $$->SetArgs(call);
+        }*/
         
 rval_var:  rval_range
             {
@@ -816,7 +828,7 @@ rval_var:  rval_range
             {
                 $$ = $1;
             }
-        |  EVAL 
+        |  eval 
             {   
                 $$ = $1;
             }
@@ -1023,16 +1035,6 @@ class_name: type_name
                 $$->SetArgs($2);
             }
 
-class_block: type_name   '('
-            {
-                $$ = $1;
-            }
-        | type_name   '('  arg
-            {
-                $$ = $1;
-                $$->SetArgs($arg);
-            }
-        
 class_base: class_name
             {
                 $$ = $1;
@@ -1040,7 +1042,7 @@ class_base: class_name
         | class_base  ','  class_name
             {
                 $$ = $1;
-                $$->Append($3, Term::RIGHT); 
+                $$->Last()->Append($3, Term::RIGHT); 
             }
 
 
@@ -1067,7 +1069,7 @@ class_def: class_base '{'  '}'
                 $$->m_base = $1;
                 $$->ConvertSequenceToBlock(TermID::CLASS);
             }
-        | class_block   MIDDLE_CALL_BLOCK  '}'
+/*        | class_block   MIDDLE_CALL_BLOCK  '}'
             {
                 $$ = $2;
                 $$->m_base = $1;
@@ -1093,7 +1095,7 @@ class_def: class_base '{'  '}'
                 $$->m_base->Append($class_block);
                 $$->ConvertSequenceToBlock(TermID::CLASS);
             }
-        
+*/        
         
         
 collection: array 
@@ -1197,8 +1199,20 @@ body:   rval
             {
                 $$ = $1;
             }
+        |  try
+            {
+                $$ = $1;
+            }
 
-        
+block_ns: NAMESPACE
+            {
+                $$ = $1;
+            }
+        | name
+            {
+                $$ = $1;
+            }
+            
             
 block:  '{'  '}'
             {
@@ -1215,41 +1229,154 @@ block:  '{'  '}'
                 $$ = $2; 
                 $$->ConvertSequenceToBlock(TermID::BLOCK);
             }
-        | try
+        | block_ns  '{'  sequence  '}'
             {
-                $$ = $1; 
+                $$ = $2; 
+                $$->ConvertSequenceToBlock(TermID::BLOCK);
+                $$->m_namespace = $1->GetFullName();
             }
-
+        | block_ns  '{'  sequence  separator  '}'
+            {
+                $$ = $2; 
+                $$->ConvertSequenceToBlock(TermID::BLOCK);
+                $$->m_namespace = $1->GetFullName();
+            }
         
-try:    INT_ALL_BEGIN  INT_ALL_END  type_class
+
+try: try_all
+        {
+            $$ = $1;
+        }
+    | try_plus
+        {
+            $$ = $1;
+        }
+    | try_minus
+        {
+            $$ = $1;
+        }
+    | try_full
+        {
+            $$ = $1;
+        }
+    
+        
+try_all: TRY_ALL_BEGIN  TRY_ALL_END  type_class
             {
                 $$ = $1; 
                 $$->ConvertSequenceToBlock(TermID::BLOCK_TRY);
                 $$->SetType($type_class);
             }
-        | INT_ALL_BEGIN  sequence  INT_ALL_END
+        | TRY_ALL_BEGIN  sequence  TRY_ALL_END
             {
                 $$ = $2; 
                 $$->ConvertSequenceToBlock(TermID::BLOCK_TRY);
             }
-        | INT_ALL_BEGIN  sequence  separator  INT_ALL_END
+        | TRY_ALL_BEGIN  sequence  separator  TRY_ALL_END
             {
                 $$ = $2; 
                 $$->ConvertSequenceToBlock(TermID::BLOCK_TRY);
             }
-        | INT_ALL_BEGIN  sequence  INT_ALL_END  type_class
+        | TRY_ALL_BEGIN  sequence  TRY_ALL_END  type_class
             {
                 $$ = $2; 
                 $$->ConvertSequenceToBlock(TermID::BLOCK_TRY);
                 $$->SetType($type_class);
             }
-        | INT_ALL_BEGIN  sequence  separator  INT_ALL_END  type_class
+        | TRY_ALL_BEGIN  sequence  separator  TRY_ALL_END  type_class
             {
                 $$ = $2; 
                 $$->ConvertSequenceToBlock(TermID::BLOCK_TRY);
                 $$->SetType($type_class);
             }
 
+try_full: TRY_FULL_BEGIN  TRY_FULL_END  type_class
+            {
+                $$ = $1; 
+                $$->ConvertSequenceToBlock(TermID::BLOCK_FULL);
+                $$->SetType($type_class);
+            }
+        | TRY_FULL_BEGIN  sequence  TRY_FULL_END
+            {
+                $$ = $2; 
+                $$->ConvertSequenceToBlock(TermID::BLOCK_FULL);
+            }
+        | TRY_FULL_BEGIN  sequence  separator  TRY_FULL_END
+            {
+                $$ = $2; 
+                $$->ConvertSequenceToBlock(TermID::BLOCK_FULL);
+            }
+        | TRY_FULL_BEGIN  sequence  TRY_FULL_END  type_class
+            {
+                $$ = $2; 
+                $$->ConvertSequenceToBlock(TermID::BLOCK_FULL);
+                $$->SetType($type_class);
+            }
+        | TRY_FULL_BEGIN  sequence  separator  TRY_FULL_END  type_class
+            {
+                $$ = $2; 
+                $$->ConvertSequenceToBlock(TermID::BLOCK_FULL);
+                $$->SetType($type_class);
+            }
+        
+try_plus: TRY_PLUS_BEGIN  TRY_PLUS_END  type_class
+            {
+                $$ = $1; 
+                $$->ConvertSequenceToBlock(TermID::BLOCK_PLUS);
+                $$->SetType($type_class);
+            }
+        | TRY_PLUS_BEGIN  sequence  TRY_PLUS_END
+            {
+                $$ = $2; 
+                $$->ConvertSequenceToBlock(TermID::BLOCK_PLUS);
+            }
+        | TRY_PLUS_BEGIN  sequence  separator  TRY_PLUS_END
+            {
+                $$ = $2; 
+                $$->ConvertSequenceToBlock(TermID::BLOCK_PLUS);
+            }
+        | TRY_PLUS_BEGIN  sequence  TRY_PLUS_END  type_class
+            {
+                $$ = $2; 
+                $$->ConvertSequenceToBlock(TermID::BLOCK_PLUS);
+                $$->SetType($type_class);
+            }
+        | TRY_PLUS_BEGIN  sequence  separator  TRY_PLUS_END  type_class
+            {
+                $$ = $2; 
+                $$->ConvertSequenceToBlock(TermID::BLOCK_PLUS);
+                $$->SetType($type_class);
+            }
+        
+try_minus: TRY_MINUS_BEGIN  TRY_MINUS_END  type_class
+            {
+                $$ = $1; 
+                $$->ConvertSequenceToBlock(TermID::BLOCK_MINUS);
+                $$->SetType($type_class);
+            }
+        | TRY_MINUS_BEGIN  sequence  TRY_MINUS_END
+            {
+                $$ = $2; 
+                $$->ConvertSequenceToBlock(TermID::BLOCK_MINUS);
+            }
+        | TRY_MINUS_BEGIN  sequence  separator  TRY_MINUS_END
+            {
+                $$ = $2; 
+                $$->ConvertSequenceToBlock(TermID::BLOCK_MINUS);
+            }
+        | TRY_MINUS_BEGIN  sequence  TRY_MINUS_END  type_class
+            {
+                $$ = $2; 
+                $$->ConvertSequenceToBlock(TermID::BLOCK_MINUS);
+                $$->SetType($type_class);
+            }
+        | TRY_MINUS_BEGIN  sequence  separator  TRY_MINUS_END  type_class
+            {
+                $$ = $2; 
+                $$->ConvertSequenceToBlock(TermID::BLOCK_MINUS);
+                $$->SetType($type_class);
+            }
+        
 
 try_else: try  ',' ELSE  FOLLOW  body
             {
@@ -1257,7 +1384,29 @@ try_else: try  ',' ELSE  FOLLOW  body
                 $$->AppendFollow($body); 
             }
 
-        
+
+lambda_body:  block
+            {
+                $$ = $1;
+            }
+        |  try
+            {
+                $$ = $1;
+            }
+
+lambda: LAMBDA ')' lambda_body
+            {
+                $$ = $lambda_body;
+//                $$->SetTermID(TermID::LAMBDA);
+            }
+        |  LAMBDA   args   ')'  lambda_body
+            {
+                $$ = $lambda_body;
+                $$->SetArgs($args);
+//                $$->SetTermID(TermID::LAMBDA);
+            }
+
+/*        
 block_call:  '('  MIDDLE_CALL_BLOCK  sequence  '}' 
             {
                 $$ = $sequence; 
@@ -1280,55 +1429,55 @@ block_call:  '('  MIDDLE_CALL_BLOCK  sequence  '}'
                 $$->SetArgs($args);
                 $$->ConvertSequenceToBlock(TermID::CALL_BLOCK);
             }
-        | '('  MIDDLE_CALL_TRY  sequence  INT_ALL_END
+        | '('  MIDDLE_CALL_TRY  sequence  TRY_ALL_END
             {
                 $$ = $sequence; 
                 $$->ConvertSequenceToBlock(TermID::CALL_TRY);
             }
-        | '('  MIDDLE_CALL_TRY  sequence  INT_ALL_END  type_class
-            {
-                $$ = $sequence; 
-                $$->ConvertSequenceToBlock(TermID::CALL_TRY);
-                $$->m_class_name = $type_class->m_text;
-            }
-        | '('  MIDDLE_CALL_TRY  sequence  separator  INT_ALL_END
-            {
-                $$ = $sequence; 
-                $$->ConvertSequenceToBlock(TermID::CALL_TRY);
-            }
-        | '('  MIDDLE_CALL_TRY  sequence  separator  INT_ALL_END  type_class
+        | '('  MIDDLE_CALL_TRY  sequence  TRY_ALL_END  type_class
             {
                 $$ = $sequence; 
                 $$->ConvertSequenceToBlock(TermID::CALL_TRY);
                 $$->m_class_name = $type_class->m_text;
             }
-        | '('  args  MIDDLE_CALL_TRY  sequence  INT_ALL_END
+        | '('  MIDDLE_CALL_TRY  sequence  separator  TRY_ALL_END
             {
                 $$ = $sequence; 
-                $$->SetArgs($args);
                 $$->ConvertSequenceToBlock(TermID::CALL_TRY);
             }
-        | '('  args  MIDDLE_CALL_TRY  sequence  INT_ALL_END  type_class
+        | '('  MIDDLE_CALL_TRY  sequence  separator  TRY_ALL_END  type_class
             {
                 $$ = $sequence; 
-                $$->SetArgs($args);
                 $$->ConvertSequenceToBlock(TermID::CALL_TRY);
                 $$->m_class_name = $type_class->m_text;
             }
-        | '('  args  MIDDLE_CALL_TRY  sequence  separator  INT_ALL_END
+        | '('  args  MIDDLE_CALL_TRY  sequence  TRY_ALL_END
             {
                 $$ = $sequence; 
                 $$->SetArgs($args);
                 $$->ConvertSequenceToBlock(TermID::CALL_TRY);
             }
-        | '('  args  MIDDLE_CALL_TRY  sequence  separator  INT_ALL_END  type_class
+        | '('  args  MIDDLE_CALL_TRY  sequence  TRY_ALL_END  type_class
             {
                 $$ = $sequence; 
                 $$->SetArgs($args);
                 $$->ConvertSequenceToBlock(TermID::CALL_TRY);
                 $$->m_class_name = $type_class->m_text;
             }
-
+        | '('  args  MIDDLE_CALL_TRY  sequence  separator  TRY_ALL_END
+            {
+                $$ = $sequence; 
+                $$->SetArgs($args);
+                $$->ConvertSequenceToBlock(TermID::CALL_TRY);
+            }
+        | '('  args  MIDDLE_CALL_TRY  sequence  separator  TRY_ALL_END  type_class
+            {
+                $$ = $sequence; 
+                $$->SetArgs($args);
+                $$->ConvertSequenceToBlock(TermID::CALL_TRY);
+                $$->m_class_name = $type_class->m_text;
+            }
+*/
         
 
 /* 
@@ -1647,12 +1796,20 @@ seq_item: condition
             {
                 $$ = $1;  // Их быть не должно, т.к. макросы должны раскрываться до парсинга синтаксиса
             }
+        | lambda 
+            {
+                $$ = $1;
+            }
+        | block
+            {
+                $$ = $1;
+            }
         
 sequence:  seq_item
             {
                 $$ = $1;  
             }
-        | block_call
+/*        | block_call
             {
                 $$ = $1;  
             }
@@ -1661,7 +1818,7 @@ sequence:  seq_item
                 $$ = $1;  
                 // Несколько команд подряд
                 $$->AppendSequenceTerm($block_call);
-            }
+            }*/
         | sequence  separator  seq_item
             {
                 $$ = $1;  
