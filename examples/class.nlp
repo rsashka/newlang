@@ -19,54 +19,33 @@ $test1 := "";
 \\error(msg) :StrWide($msg, " at line: ", %__LINE, " in file: ", %__FILE) \\\ 
 
 $result = "";
-\while($result == "") {
-    $result += "While";
-} \else {
-    $result += \error("Fail 1");
-}
+{}():IntPlus("arg");
 
-\while($result == "") {
-    $result += \error("Fail 2");
-} \else {
-    $result += " DONE!\n";
-}
+# Тип класса
+:class(arg1, arg2="default", ...) := :Class() {
+    # Using $arg1, $arg2
 
-$result += \try {+
-    ++ "Plus 1 Done!\n" ++;
-+} \else {
-    $result += \error("Fail plus");
-}
+    # Код выполняется однократно при создании типа класса :class
 
-\try {+
-    # No plus interrupt
-+} \else {
-    $result += "Plus 2 Done!\n";
-}
+    $result += "Call CLASS constructor\n";
+    field ::= arg1;
+    counter ::= 0;
 
+    
+    __class(arg1=$arg1, arg2=$arg2, arg3="construcor default") ::= {
+        "Конструктор экземпляра класса\n\nКод выполняется многократно при создании каждого экземпляра класса :class";
 
+        $0->counter += 1;
+        $result += "Call OBJECT $1 constructor\n"($0->counter);
+    };
 
-\try {-
+    method() ::= {
+        $result += "Call method\n";
+    };
 
--} \else {
-
-}
-
-\try {{
-
-}} \else {
-
-}
-
-\try {{{
-
-}}} \else {
-
-}
-
-
-# Удалить макросы
-\\while(...)\\\
-\\else\\\
-\\error\\\
-\\try\\\
-
+    _ ::= {
+        # Код выполняется многократно при удалении каждого экземпляра класса :class
+        $0->counter -= 1;
+        $result += "Call OBJECT $1 destructor\n"($0->counter);
+    };
+};
