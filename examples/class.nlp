@@ -19,7 +19,9 @@ $test1 := "";
 \\error(msg) :StrWide($msg, " at line: ", %__LINE, " in file: ", %__FILE) \\\ 
 
 $result = "";
+{}():IntPlus("arg");
 
+# Тип класса
 :class(arg1, arg2="default", ...) := :Class() {
     # Using $arg1, $arg2
 
@@ -29,9 +31,9 @@ $result = "";
     field ::= arg1;
     counter ::= 0;
 
+    
     __class(arg1=$arg1, arg2=$arg2, arg3="construcor default") ::= {
-
-        # Код выполняется многократно при создании каждого экземпляра класса :class
+        "Конструктор экземпляра класса\n\nКод выполняется многократно при создании каждого экземпляра класса :class";
 
         $0->counter += 1;
         $result += "Call OBJECT $1 constructor\n"($0->counter);
