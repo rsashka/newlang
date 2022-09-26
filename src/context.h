@@ -108,6 +108,14 @@ namespace newlang {
         static ObjPtr eval_END(Context *ctx, const TermPtr & term, Obj * args);
         static ObjPtr func_NOT_SUPPORT(Context *ctx, const TermPtr & term, Obj * args);
 
+        enum class CatchType {
+            CATCH_NONE = 0,
+            CATCH_PLUS,
+            CATCH_MINUS,
+            CATCH_ANY,
+            CATCH_ALL,
+        };
+
         enum class CreateMode {
             CREATE_ONLY,
             CREATE_OR_ASSIGN,
@@ -148,7 +156,7 @@ namespace newlang {
             Docs::m_docs.clear();
         }
 
-        inline ObjPtr ExecFile(const std::string &filename, Obj *args = nullptr, bool int_catch = true) {
+        inline ObjPtr ExecFile(const std::string &filename, Obj *args = nullptr, CatchType int_catch = CatchType::CATCH_ANY) {
             std::string source = ReadFile(filename.c_str());
             if (source.empty()) {
                 LOG_RUNTIME("Empty source or file '%s' not found!", filename.c_str());
@@ -156,7 +164,7 @@ namespace newlang {
             return ExecStr(source, args, int_catch);
         }
 
-        inline ObjPtr ExecStr(const std::string str, Obj *args = nullptr, bool int_catch = false) {
+        inline ObjPtr ExecStr(const std::string str, Obj *args = nullptr, CatchType int_catch = CatchType::CATCH_NONE) {
             TermPtr exec = Parser::ParseString(str, &m_macros);
             if (exec->m_id == TermID::BLOCK) {
                 exec->m_id = TermID::CALL_BLOCK;
@@ -171,7 +179,7 @@ namespace newlang {
             return Eval(this, exec, args, int_catch);
         }
 
-        static ObjPtr Eval(Context *ctx, TermPtr term, Obj *args, bool int_catch = false);
+        static ObjPtr Eval(Context *ctx, TermPtr term, Obj *args, CatchType int_catch = CatchType::CATCH_NONE);
 
         static ObjPtr ExpandAssign(Context *ctx, TermPtr lvar, TermPtr rval, Obj *args, CreateMode mode);
         static ObjPtr ExpandCreate(Context *ctx, TermPtr lvar, TermPtr rval, Obj * args);
@@ -188,19 +196,19 @@ namespace newlang {
             return CreateLVal(ctx, type, &args);
         }
 
-        inline static ObjPtr CreateRVal(Context *ctx, TermPtr term, bool int_catch = true) {
+        inline static ObjPtr CreateRVal(Context *ctx, TermPtr term, CatchType int_catch = CatchType::CATCH_ANY) {
             Obj args;
             return CreateRVal(ctx, term, &args, int_catch);
         }
 
-        inline static ObjPtr CreateRVal(Context *ctx, const char *source, bool int_catch = true) {
+        inline static ObjPtr CreateRVal(Context *ctx, const char *source, CatchType int_catch = CatchType::CATCH_ANY) {
             Obj args;
             return CreateRVal(ctx, source, &args, int_catch);
         }
 
         static ObjPtr CreateLVal(Context *ctx, TermPtr type, Obj * args);
-        static ObjPtr CreateRVal(Context *ctx, TermPtr term, Obj *args, bool int_catch = true);
-        static ObjPtr CreateRVal(Context *ctx, const char *source, Obj *args, bool int_catch = true);
+        static ObjPtr CreateRVal(Context *ctx, TermPtr term, Obj *args, CatchType int_catch = CatchType::CATCH_ANY);
+        static ObjPtr CreateRVal(Context *ctx, const char *source, Obj *args, CatchType int_catch = CatchType::CATCH_ANY);
         void CreateArgs_(ObjPtr &args, TermPtr &term, Obj * local_vars);
 
         static std::vector<Index> MakeIndex(Context *ctx, TermPtr term, Obj * local_vars);
@@ -289,8 +297,7 @@ namespace newlang {
             }
         }
 
-
-        static ObjPtr CallBlock(Context *ctx, const TermPtr &block, Obj *local_vars, bool int_catch);
+        static ObjPtr CallBlock(Context *ctx, const TermPtr &block, Obj *local_vars, CatchType catch_type);
 
         static ObjPtr EvalBlockAND(Context *ctx, const TermPtr &block, Obj * local_vars);
         static ObjPtr EvalBlockOR(Context *ctx, const TermPtr &block, Obj * local_vars);
@@ -499,7 +506,7 @@ namespace newlang {
                 }
                 LOG_RUNTIME("Type name '%s' not found!", type.c_str());
             }
-            
+
             auto result = m_types.find(type);
             if (result == m_types.end()) {
                 if (has_error) {

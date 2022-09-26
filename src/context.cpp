@@ -7,6 +7,7 @@
 #include <types.h>
 #include <filesystem>
 #include <stdbool.h>
+#include <c++/9/bits/exception.h>
 
 using namespace newlang;
 
@@ -47,6 +48,9 @@ std::multimap<std::string, DocPtr> Docs::m_docs;
 
 const char * Interrupt::IntPlus = ":IntPlus";
 const char * Interrupt::IntMinus = ":IntMinus";
+const char * Interrupt::IntParser = ":IntParser";
+const char * Interrupt::IntError = ":IntError";
+
 const char * Interrupt::Return = ":Return";
 const char * Interrupt::Error = ":Error";
 const char * Interrupt::Parser = ":ErrorParser";
@@ -57,15 +61,15 @@ const char * Interrupt::Abort = ":ErrorAbort";
 Context::Context(RuntimePtr global) : m_llvm_builder(LLVMCreateBuilder()) {
     m_runtime = global;
 
-//    LLVMInitializeCore(LLVMGetGlobalPassRegistry());
-//
-//    /* program init */
-//    LLVMInitializeNativeTarget();
-//    LLVMInitializeNativeAsmPrinter();
-//    LLVMInitializeNativeAsmParser();
-//    LLVMLinkInMCJIT();
-//    // Загружает символы исполняемого файла для поиска с помощью SearchForAddressOfSymbol
-//    LLVMLoadLibraryPermanently(nullptr);
+    //    LLVMInitializeCore(LLVMGetGlobalPassRegistry());
+    //
+    //    /* program init */
+    //    LLVMInitializeNativeTarget();
+    //    LLVMInitializeNativeAsmPrinter();
+    //    LLVMInitializeNativeAsmParser();
+    //    LLVMLinkInMCJIT();
+    //    // Загружает символы исполняемого файла для поиска с помощью SearchForAddressOfSymbol
+    //    LLVMLoadLibraryPermanently(nullptr);
 
     if(Context::m_funcs.empty()) {
 
@@ -247,63 +251,63 @@ ObjPtr Context::RegisterObject(ObjPtr var) {
     return var;
 }
 
-#ifndef _MSC_VER
-
-void newlang::NewLangSignalHandler(int signal) {
-    throw Interrupt("Signal SIGABRT received", Interrupt::Abort);
-}
-#endif
+//#ifndef _MSC_VER
+//
+//void newlang::NewLangSignalHandler(int signal) {
+//    throw Interrupt("Signal SIGABRT received", Interrupt::Abort);
+//}
+//#endif
 
 //#include "StdCapture.h"
 
-ObjPtr Context::Eval(Context *ctx, TermPtr term, Obj *args, bool int_catch) {
+ObjPtr Context::Eval(Context *ctx, TermPtr term, Obj *args, CatchType int_catch) {
 
     //    StdCapture Capture;
     //
     //    Capture.BeginCapture();
 
-#ifndef _MSC_VER
-    auto previous_handler = signal(SIGABRT, &NewLangSignalHandler);
-#endif
-    try {
+    //#ifndef _MSC_VER
+    //    auto previous_handler = signal(SIGABRT, &NewLangSignalHandler);
+    //#endif
+    //    try {
 
-        switch(term->m_id) {
-            case TermID::END:
-                return eval_END(ctx, term, args);
+    switch(term->m_id) {
+        case TermID::END:
+            return eval_END(ctx, term, args);
 
 #define DEFINE_CASE(name)                                                                                              \
     case TermID::name:                                                                                                 \
         return eval_##name(ctx, term, args);
 
-                NL_TERMS(DEFINE_CASE)
+            NL_TERMS(DEFINE_CASE)
 
 #undef DEFINE_CASE
 
-        }
-    } catch (Interrupt &obj) {
-
-#ifndef _MSC_VER
-        signal(SIGABRT, previous_handler);
-#endif        
-
-        ASSERT(obj.m_obj);
-
-        if(int_catch && obj.m_obj->getType() == ObjType::Return) {
-
-            ASSERT(obj.m_obj->size() == 1);
-            return (*obj.m_obj)[0].second; // Возврат данных
-
-        } else if(int_catch) {
-            ASSERT(obj.m_obj);
-            return obj.m_obj; // Прерывания анализуирются выше по уровню
-        }
-
-        throw; // Пробросить прерывание дальше
     }
-
-#ifndef _MSC_VER
-    signal(SIGABRT, previous_handler);
-#endif
+    //    } catch (Interrupt &obj) {
+    //
+    //#ifndef _MSC_VER
+    //        signal(SIGABRT, previous_handler);
+    //#endif        
+    //
+    //        ASSERT(obj.m_obj);
+    //
+    //        if(int_catch && obj.m_obj->getType() == ObjType::Return) {
+    //
+    //            ASSERT(obj.m_obj->size() == 1);
+    //            return (*obj.m_obj)[0].second; // Возврат данных
+    //
+    //        } else if(int_catch) {
+    //            ASSERT(obj.m_obj);
+    //            return obj.m_obj; // Прерывания анализуирются выше по уровню
+    //        }
+    //
+    //        throw; // Пробросить прерывание дальше
+    //    }
+    //
+    //#ifndef _MSC_VER
+    //    signal(SIGABRT, previous_handler);
+    //#endif
 
     return Obj::CreateNone();
 }
@@ -340,16 +344,16 @@ ObjPtr Context::eval_BLOCK(Context *ctx, const TermPtr &term, Obj *args) {
 ObjPtr Context::eval_LAMBDA(Context *ctx, const TermPtr &term, Obj *args) {
     LOG_RUNTIME("Fail LAMBDA: '%s'", term->toString().c_str());
 
-//    ASSERT(term && term->getTermID() == TermID::LAMBDA);
-//    ObjPtr obj = Obj::CreateType(ObjType::LAMBDA);
-//    obj->m_sequence = term;
-//    obj->m_var_is_init = true;
-//
-//    if(term->size() && term->at(0).second->IsString()) {
-//        obj->m_help = Docs::Append(term->at(0).second->m_text);
-//    }
-//
-//    return obj;
+    //    ASSERT(term && term->getTermID() == TermID::LAMBDA);
+    //    ObjPtr obj = Obj::CreateType(ObjType::LAMBDA);
+    //    obj->m_sequence = term;
+    //    obj->m_var_is_init = true;
+    //
+    //    if(term->size() && term->at(0).second->IsString()) {
+    //        obj->m_help = Docs::Append(term->at(0).second->m_text);
+    //    }
+    //
+    //    return obj;
 }
 
 ObjPtr Context::eval_BLOCK_TRY(Context *ctx, const TermPtr &term, Obj *args) {
@@ -407,13 +411,13 @@ ObjPtr Context::eval_BLOCK_FULL(Context *ctx, const TermPtr &term, Obj *args) {
 ObjPtr Context::eval_CALL_BLOCK(Context *ctx, const TermPtr &term, Obj *args) {
     ASSERT(term && term->getTermID() == TermID::CALL_BLOCK);
 
-    return CallBlock(ctx, term, args, false);
+    return CallBlock(ctx, term, args, CatchType::CATCH_NONE);
 }
 
 ObjPtr Context::eval_CALL_TRY(Context *ctx, const TermPtr &term, Obj *args) {
     ASSERT(term && term->getTermID() == TermID::CALL_TRY);
 
-    return CallBlock(ctx, term, args, true);
+    return CallBlock(ctx, term, args, CatchType::CATCH_ANY);
 }
 
 ObjPtr Context::eval_MACRO(Context *ctx, const TermPtr &term, Obj *args) {
@@ -624,9 +628,9 @@ ObjPtr Context::CREATE_OR_ASSIGN(Context *ctx, const TermPtr &term, Obj *local_v
     ObjPtr rval;
     if(term->Right()->getTermID() == TermID::ELLIPSIS) {
         ASSERT(term->Right()->Right());
-        rval = Eval(ctx, term->Right()->Right(), local_vars, false);
+        rval = Eval(ctx, term->Right()->Right(), local_vars, CatchType::CATCH_NONE);
     } else {
-        rval = Eval(ctx, term->Right(), local_vars, false);
+        rval = Eval(ctx, term->Right(), local_vars, CatchType::CATCH_NONE);
     }
     if(!rval) {
         NL_PARSER(term->Right(), "Object is missing or expression is not evaluated!");
@@ -800,15 +804,15 @@ ObjPtr Context::eval_WHILE(Context *ctx, const TermPtr &term, Obj * args) {
     ASSERT(term->Right());
 
     ObjPtr result = Obj::CreateNone();
-    ObjPtr cond = Eval(ctx, term->Left(), args, false);
+    ObjPtr cond = Eval(ctx, term->Left(), args, CatchType::CATCH_NONE);
     while(cond->GetValueAsBoolean()) {
 
         try {
 
-//            LOG_DEBUG("result %s", result->toString().c_str());
+            //            LOG_DEBUG("result %s", result->toString().c_str());
 
-            result = CreateRVal(ctx, term->Right(), args, false);
-            cond = Eval(ctx, term->Left(), args, false);
+            result = CreateRVal(ctx, term->Right(), args, CatchType::CATCH_NONE);
+            cond = Eval(ctx, term->Left(), args, CatchType::CATCH_NONE);
 
         } catch (Interrupt &obj) {
 
@@ -835,8 +839,8 @@ ObjPtr Context::eval_DOWHILE(Context *ctx, const TermPtr &term, Obj * args) {
     do {
         try {
 
-            result = CreateRVal(ctx, term->Left(), args, false);
-            cond = Eval(ctx, term->Right(), args, false);
+            result = CreateRVal(ctx, term->Left(), args, CatchType::CATCH_NONE);
+            cond = Eval(ctx, term->Right(), args, CatchType::CATCH_NONE);
 
         } catch (Interrupt &obj) {
 
@@ -867,11 +871,11 @@ ObjPtr Context::eval_FOLLOW(Context *ctx, const TermPtr &term, Obj * args) {
     for (int64_t i = 0; i < static_cast<int64_t> (term->m_follow.size()); i++) {
 
         ASSERT(term->m_follow[i]->Left());
-        ObjPtr cond = Eval(ctx, term->m_follow[i]->Left(), args, false);
+        ObjPtr cond = Eval(ctx, term->m_follow[i]->Left(), args, CatchType::CATCH_NONE);
 
         if(cond->GetValueAsBoolean() || (i + 1 == term->m_follow.size() && cond->is_none_type())) {
 
-            return CreateRVal(ctx, term->m_follow[i]->Right(), args, false);
+            return CreateRVal(ctx, term->m_follow[i]->Right(), args, CatchType::CATCH_NONE);
         }
     }
     return Obj::CreateNone();
@@ -1370,7 +1374,9 @@ ObjPtr eval_int(Context *ctx, const TermPtr &term, Obj * args, ObjType type) {
 
     ObjPtr ret = Obj::CreateType(type, type, true);
     if(term->Right()) {
-        ret->push_back(Obj::Arg(Context::CreateRVal(ctx, term->Right(), args, false)));
+        ret->push_back(Obj::Arg(Context::CreateRVal(ctx, term->Right(), args, Context::CatchType::CATCH_NONE)));
+    } else {
+        ret->push_back(Obj::CreateNone());
     }
     ASSERT(ret);
     throw Interrupt(ret);
@@ -1379,43 +1385,48 @@ ObjPtr eval_int(Context *ctx, const TermPtr &term, Obj * args, ObjType type) {
 ObjPtr Context::eval_INT_PLUS(Context *ctx, const TermPtr &term, Obj * args) {
     return eval_int(ctx, term, args, ObjType::IntPlus);
 }
+
 ObjPtr Context::eval_INT_MINUS(Context *ctx, const TermPtr &term, Obj * args) {
     return eval_int(ctx, term, args, ObjType::IntMinus);
 }
 
-ObjPtr Context::CallBlock(Context *ctx, const TermPtr &block, Obj * local_vars, bool int_catch) {
+ObjPtr Context::CallBlock(Context *ctx, const TermPtr &block, Obj * local_vars, CatchType type_catch) {
     ObjPtr result = Obj::CreateNone();
     std::string type_return(Interrupt::Return);
     try {
         if(!block->m_block.empty()) {
             for (size_t i = 0; i < block->m_block.size(); i++) {
-                result = Eval(ctx, block->m_block[i], local_vars, false);
+                result = Eval(ctx, block->m_block[i], local_vars, CatchType::CATCH_NONE);
             }
         } else {
-            result = Eval(ctx, block, local_vars, false);
+            result = Eval(ctx, block, local_vars, CatchType::CATCH_NONE);
         }
     } catch (Interrupt &obj) {
 
-        if(!int_catch) {
+        ASSERT(obj.m_obj);
+
+        if(type_catch == CatchType::CATCH_NONE) {
+            throw;
+        } else if(type_catch == CatchType::CATCH_PLUS && obj.m_obj->m_var_type_current == ObjType::IntPlus) {
+            ASSERT(obj.m_obj->size() == 1);
+            return (*obj.m_obj)[0].second;
+        } else if(type_catch == CatchType::CATCH_MINUS && obj.m_obj->m_var_type_current == ObjType::IntMinus) {
+            ASSERT(obj.m_obj->size() == 1);
+            return (*obj.m_obj)[0].second;
+        }
+
+        result = obj.m_obj;
+
+    } catch (std::exception &obj) {
+
+        if(type_catch == CatchType::CATCH_NONE) {
             throw;
         }
 
-        ASSERT(obj.m_obj);
-
-        if(!block->m_class_name.empty()) {
-            type_return = block->m_class_name;
-        }
-        if(obj.m_obj->op_class_test(type_return.c_str(), ctx)) {
-            if(block->m_class_name.empty()) {
-                // Только при возврате значения :Return
-                ASSERT(obj.m_obj->size() == 1);
-                return (*obj.m_obj)[0].second;
-            }
-        } else if(!block->m_class_name.empty()) {
-            throw; // Объект возврата не соответствует требуемому типу
-        }
-        result = obj.m_obj;
+        result = Obj::CreateType(ObjType::Error, ObjType::Error, true);
+        result->m_value = std::string(obj.what());
     }
+
     return result;
 }
 
@@ -1716,7 +1727,7 @@ ObjPtr Context::CreateLVal(Context *ctx, TermPtr term, Obj * args) {
     return result;
 }
 
-ObjPtr Context::CreateRVal(Context *ctx, const char *source, Obj * local_vars, bool no_catch) {
+ObjPtr Context::CreateRVal(Context *ctx, const char *source, Obj * local_vars, CatchType no_catch) {
     TermPtr ast;
     Parser parser(ast);
     parser.Parse(source);
@@ -1905,7 +1916,7 @@ std::vector<Index> Context::MakeIndex(Context *ctx, TermPtr term, Obj * local_va
     return result;
 }
 
-ObjPtr Context::CreateRVal(Context *ctx, TermPtr term, Obj * local_vars, bool int_catch) {
+ObjPtr Context::CreateRVal(Context *ctx, TermPtr term, Obj * local_vars, CatchType int_catch) {
 
     if(!term) {
         ASSERT(term);
@@ -2063,7 +2074,7 @@ ObjPtr Context::CreateRVal(Context *ctx, TermPtr term, Obj * local_vars, bool in
             return result;
 
         case TermID::EVAL:
-            return ctx->ExecStr(term->m_text.c_str(), local_vars, false);
+            return ctx->ExecStr(term->m_text.c_str(), local_vars, CatchType::CATCH_NONE);
 
 
         case TermID::TYPE:
@@ -2249,7 +2260,7 @@ ObjPtr Context::CreateRVal(Context *ctx, TermPtr term, Obj * local_vars, bool in
             LOG_RUNTIME("Argument '%s' not exist!", term->toString().c_str());
 
         case TermID::BLOCK:
-            return CallBlock(ctx, term, local_vars, false);
+            return CallBlock(ctx, term, local_vars, CatchType::CATCH_NONE);
 
         case TermID::BLOCK_TRY:
             return CallBlock(ctx, term, local_vars, int_catch);
@@ -2285,7 +2296,7 @@ ObjPtr Context::CreateRVal(Context *ctx, TermPtr term, Obj * local_vars, bool in
 
             ASSERT(term->Left());
 
-            temp = Eval(ctx, term->Left(), local_vars, false);
+            temp = Eval(ctx, term->Left(), local_vars, CatchType::CATCH_NONE);
             if(!temp) {
                 LOG_RUNTIME("Term '%s' not found!", term->Left()->GetFullName().c_str());
             }

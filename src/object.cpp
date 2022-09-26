@@ -869,6 +869,8 @@ std::string Obj::toString(bool deep) const {
             case ObjType::Union:
             case ObjType::Enum:
 
+            case ObjType::IntPlus:
+            case ObjType::IntMinus:
             case ObjType::Return:
             case ObjType::Error:
             case ObjType::ErrorParser:
@@ -1284,7 +1286,7 @@ ObjPtr Obj::Call(Context *ctx, Obj * args) {
         } else if(m_var_type_current == ObjType::NativeFunc) {
             result = CallNative(ctx, *param.get());
         } else if(m_var_type_current == ObjType::EVAL_FUNCTION) {
-            result = Context::CallBlock(ctx, m_sequence, param.get(), false);
+            result = Context::CallBlock(ctx, m_sequence, param.get(), Context::CatchType::CATCH_NONE);
         } else {
             LOG_RUNTIME("Call by name not implemted '%s'!", toString().c_str());
         }

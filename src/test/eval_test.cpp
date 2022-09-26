@@ -533,7 +533,7 @@ TEST(Eval, Fileio) {
     Context::Reset();
     Context ctx(RunTime::Init());
 
-    ASSERT_NO_THROW(ctx.ExecFile("../examples/fileio.nlp", nullptr, false));
+    ASSERT_NO_THROW(ctx.ExecFile("../examples/fileio.nlp"));
 
     ASSERT_TRUE(ctx.FindTerm("fopen"));
     ASSERT_TRUE(ctx.FindTerm("fputs"));
@@ -910,7 +910,7 @@ TEST(Eval, MacroDSL) {
             "}};"
             ;
 
-    ObjPtr result = ctx.ExecStr(run_raw, nullptr, true);
+    ObjPtr result = ctx.ExecStr(run_raw, nullptr, Context::CatchType::CATCH_ALL);
     ASSERT_TRUE(result);
     ASSERT_TRUE(result->is_integer());
     ASSERT_EQ(6, count->GetValueAsInteger());
@@ -928,7 +928,7 @@ TEST(Eval, MacroDSL) {
 
 
 
-    result = ctx.ExecStr(run_macro, nullptr, true);
+    result = ctx.ExecStr(run_macro, nullptr, Context::CatchType::CATCH_ALL);
     ASSERT_TRUE(result);
     ASSERT_TRUE(result->is_integer());
     ASSERT_EQ(6, count->GetValueAsInteger());
@@ -1120,7 +1120,7 @@ TEST(Eval, Iterator) {
 
 
 
-    ObjPtr range_test = ctx.ExecStr("1\\1..1..-1", nullptr, true);
+    ObjPtr range_test = ctx.ExecStr("1\\1..1..-1", nullptr, Context::CatchType::CATCH_ALL);
     ASSERT_TRUE(range_test);
     ASSERT_EQ(3, range_test->size());
     ASSERT_STREQ("1\\1", range_test->at(0).second->GetValueAsString().c_str());
@@ -1132,23 +1132,23 @@ TEST(Eval, Iterator) {
     //    ASSERT_TRUE(iter_test);
     //    ASSERT_STREQ("(1, 'sss', (,), 2, 3,)", iter_test->GetValueAsString().c_str());
 
-    ObjPtr iter_dict = ctx.ExecStr("1..1..(-1)??", nullptr, true);
+    ObjPtr iter_dict = ctx.ExecStr("1..1..(-1)??", nullptr);
     ASSERT_TRUE(iter_dict);
     ASSERT_STREQ("(,)", iter_dict->GetValueAsString().c_str());
 
-    iter_dict = ctx.ExecStr("2..1..(-1)??", nullptr, true);
+    iter_dict = ctx.ExecStr("2..1..(-1)??", nullptr);
     ASSERT_TRUE(iter_dict);
     ASSERT_STREQ("(2,)", iter_dict->GetValueAsString().c_str());
 
-    iter_dict = ctx.ExecStr("3..1..(-1)??", nullptr, true);
+    iter_dict = ctx.ExecStr("3..1..(-1)??", nullptr);
     ASSERT_TRUE(iter_dict);
     ASSERT_STREQ("(3, 2,)", iter_dict->GetValueAsString().c_str());
 
-    iter_dict = ctx.ExecStr("3\\1..1..(-1)??", nullptr, true);
+    iter_dict = ctx.ExecStr("3\\1..1..(-1)??", nullptr);
     ASSERT_TRUE(iter_dict);
     ASSERT_STREQ("(3\\1, 2\\1,)", iter_dict->GetValueAsString().c_str());
 
-    ObjPtr iter_test = ctx.ExecStr("&@iter_test := 3\\1..1..-1?", nullptr, true);
+    ObjPtr iter_test = ctx.ExecStr("&@iter_test := 3\\1..1..-1?", nullptr);
     ASSERT_TRUE(iter_test);
     ASSERT_TRUE(iter_test->m_iterator);
     ASSERT_TRUE(iter_test->m_iterator->m_iter_obj);
@@ -1156,37 +1156,37 @@ TEST(Eval, Iterator) {
     ASSERT_STREQ("3\\1", iter_test->m_iterator->m_iter_obj->m_iter_range_value->GetValueAsString().c_str()) << iter_test->m_iterator->m_iter_obj->m_iter_range_value->GetValueAsString().c_str();
     ASSERT_EQ(iter_test->getType(), ObjType::Iterator);
 
-    ObjPtr while_test = ctx.ExecStr("[iter_test]<->{ ++'PLUS'++ }", nullptr, true);
+    ObjPtr while_test = ctx.ExecStr("[iter_test]<->{ ++'PLUS'++ }", nullptr);
     ASSERT_TRUE(while_test);
     ASSERT_STREQ("PLUS", while_test->GetValueAsString().c_str()) << while_test->GetValueAsString().c_str();
 
-    while_test = ctx.ExecStr("[iter_test]<->{ --'EXIT'-- }", nullptr, true);
+    while_test = ctx.ExecStr("[iter_test]<->{ --'EXIT'-- }", nullptr, Context::CatchType::CATCH_MINUS);
     ASSERT_TRUE(while_test);
     ASSERT_STREQ("EXIT", while_test->GetValueAsString().c_str()) << while_test->GetValueAsString().c_str();
     
-    iter_dict = ctx.ExecStr("@iter_dict := (1,2,3,)?", nullptr, true);
+    iter_dict = ctx.ExecStr("@iter_dict := (1,2,3,)?", nullptr);
     ASSERT_TRUE(iter_dict);
     //    ASSERT_TRUE(iter_dict->m_iterator->m_iter_obj->m_iter_range_value);
     //    ASSERT_STREQ("3\\1", iter_dict->m_iterator->m_iter_obj->m_iter_range_value->GetValueAsString().c_str()) << iter_test->m_iterator->m_iter_obj->m_iter_range_value->GetValueAsString().c_str();
     ASSERT_EQ(iter_dict->getType(), ObjType::Iterator);
 
-    while_test = ctx.ExecStr("[iter_dict]<->{ --'EXIT'-- }", nullptr, true);
+    while_test = ctx.ExecStr("[iter_dict]<->{ ++'EXIT'++ }", nullptr, Context::CatchType::CATCH_PLUS);
     ASSERT_TRUE(while_test);
     ASSERT_STREQ("EXIT", while_test->GetValueAsString().c_str()) << while_test->GetValueAsString().c_str();
 
-    ObjPtr item_val = ctx.ExecStr("iter_test!?", nullptr, true);
+    ObjPtr item_val = ctx.ExecStr("iter_test!?", nullptr);
     ASSERT_TRUE(item_val);
     ASSERT_STREQ("3\\1", item_val->GetValueAsString().c_str());
 
-    item_val = ctx.ExecStr("iter_test!", nullptr, true);
+    item_val = ctx.ExecStr("iter_test!", nullptr);
     ASSERT_TRUE(item_val);
     ASSERT_STREQ("3\\1", item_val->GetValueAsString().c_str());
 
-    item_val = ctx.ExecStr("iter_test!?", nullptr, true);
+    item_val = ctx.ExecStr("iter_test!?", nullptr);
     ASSERT_TRUE(item_val);
     ASSERT_STREQ("2\\1", item_val->GetValueAsString().c_str());
 
-    item_val = ctx.ExecStr("iter_test?!", nullptr, true);
+    item_val = ctx.ExecStr("iter_test?!", nullptr);
     ASSERT_TRUE(item_val);
     ASSERT_STREQ("2\\1", item_val->GetValueAsString().c_str());
 
@@ -1196,7 +1196,7 @@ TEST(Eval, Iterator) {
     ASSERT_STREQ("2\\1", iter_test->m_iterator->m_iter_obj->m_iter_range_value->GetValueAsString().c_str());
     ASSERT_STREQ("3\\1..1..-1", iter_test->m_iterator->m_iter_obj->GetValueAsString().c_str());
 
-    item_val = ctx.ExecStr("iter_test!", nullptr, true);
+    item_val = ctx.ExecStr("iter_test!", nullptr);
     ASSERT_TRUE(item_val);
     ASSERT_STREQ("2\\1", item_val->GetValueAsString().c_str());
     ASSERT_TRUE(item_val->GetValueAsBoolean());
@@ -1207,7 +1207,7 @@ TEST(Eval, Iterator) {
     ASSERT_STREQ("1\\1", iter_test->m_iterator->m_iter_obj->m_iter_range_value->GetValueAsString().c_str());
     ASSERT_STREQ("3\\1..1..-1", iter_test->m_iterator->m_iter_obj->GetValueAsString().c_str());
 
-    item_val = ctx.ExecStr("iter_test!", nullptr, true);
+    item_val = ctx.ExecStr("iter_test!", nullptr);
     ASSERT_TRUE(item_val);
 
     ASSERT_STREQ(":Iterator", iter_test->GetValueAsString().c_str());
@@ -1224,14 +1224,14 @@ TEST(Eval, Iterator) {
     ASSERT_STREQ(":IteratorEnd", item_val->GetValueAsString().c_str());
     ASSERT_FALSE(item_val->GetValueAsBoolean());
 
-    item_val = ctx.ExecStr("iter_test", nullptr, true);
+    item_val = ctx.ExecStr("iter_test", nullptr);
     ASSERT_TRUE(item_val);
     ASSERT_STREQ(":Iterator", item_val->GetValueAsString().c_str());
 
     ASSERT_STREQ(":IteratorEnd", item_val->IteratorData()->GetValueAsString().c_str());
     ASSERT_FALSE(item_val->IteratorNext(0)->GetValueAsBoolean());
 
-    while_test = ctx.ExecStr("[iter_test?!]<->{ --'EXIT'-- }", nullptr, true);
+    while_test = ctx.ExecStr("[iter_test?!]<->{ --'EXIT'-- }", nullptr, Context::CatchType::CATCH_MINUS);
     ASSERT_TRUE(while_test);
     ASSERT_STRNE("EXIT", while_test->GetValueAsString().c_str()) << while_test->GetValueAsString().c_str();
 
@@ -1717,7 +1717,7 @@ TEST(EvalOp, InstanceName) {
 
     for (auto &elem : test_name) {
         res.reset();
-        ASSERT_NO_THROW(res = ctx.ExecStr(elem.first, nullptr, false)) << elem.first;
+        ASSERT_NO_THROW(res = ctx.ExecStr(elem.first)) << elem.first;
         EXPECT_TRUE(res) << elem.first;
         if(res) {
             EXPECT_TRUE(res->is_bool_type()) << elem.first;

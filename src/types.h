@@ -45,6 +45,8 @@ class Interrupt : public std::exception {
      
       static const char * IntPlus;
       static const char * IntMinus;
+      static const char * IntParser;
+      static const char * IntError;
       static const char * Return;
       static const char * Error;
       static const char * Parser;
@@ -62,12 +64,6 @@ class Interrupt : public std::exception {
     const ObjPtr m_obj;
     char m_buffer_message[1000];
     
-};
-
-class IntPlus: public Interrupt {
-};
-
-class IntMinus: public Interrupt {
 };
 
 void NewLangSignalHandler(int signal);
@@ -230,6 +226,9 @@ void ParserException(const char *msg, std::string &buffer, int row, int col);
     \
     _(IntPlus, 210)         \
     _(IntMinus, 211)        \
+    _(IntParser, 212)       \
+    _(IntError, 213)        \
+    \
     _(Return, 230)          \
     _(Break, 231)           \
     _(Continue, 232)        \

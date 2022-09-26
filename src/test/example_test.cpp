@@ -86,28 +86,28 @@ TEST(Example, SpeedNewLang) {
 
     ObjPtr test;
 
-    ObjPtr str = ctx.ExecStr("@str := 'ABCDEF\\n';", nullptr, true);
+    ObjPtr str = ctx.ExecStr("@str := 'ABCDEF\\n';", nullptr);
     ASSERT_TRUE(str);
     ASSERT_STREQ("ABCDEF\n", str->GetValueAsString().c_str());
 
-    test = ctx.ExecStr("@printf := :Pointer('printf(format:FmtChar, ...):Int32'); @str := 'ABCDEF\\n'; printf('%s', str)", nullptr, true);
+    test = ctx.ExecStr("@printf := :Pointer('printf(format:FmtChar, ...):Int32'); @str := 'ABCDEF\\n'; printf('%s', str)", nullptr);
     ASSERT_TRUE(test);
     ASSERT_STREQ("7", test->GetValueAsString().c_str());
 
-    test = ctx.ExecStr("str[1] = 32; str", nullptr, true);
+    test = ctx.ExecStr("str[1] = 32; str", nullptr);
     ASSERT_TRUE(test);
     ASSERT_STREQ("A CDEF\n", test->GetValueAsString().c_str());
 
 
     LLVMAddSymbol("convert", (void *) &convert);
-    ObjPtr test_convert = ctx.ExecStr("@test_convert := :Pointer('convert(sym:Int8):Int8')", nullptr, true);
+    ObjPtr test_convert = ctx.ExecStr("@test_convert := :Pointer('convert(sym:Int8):Int8')", nullptr);
     ASSERT_TRUE(test_convert);
 
-    test = ctx.ExecStr("test_convert('A')", nullptr, true);
+    test = ctx.ExecStr("test_convert('A')", nullptr);
     ASSERT_TRUE(test);
     ASSERT_STREQ("67", test->GetValueAsString().c_str());
 
-    test = ctx.ExecStr("str[1] = test_convert('A'); str", nullptr, true);
+    test = ctx.ExecStr("str[1] = test_convert('A'); str", nullptr);
     ASSERT_TRUE(test);
     ASSERT_STREQ("ACCDEF\n", test->GetValueAsString().c_str());
 
@@ -195,36 +195,36 @@ TEST(Example, Rational) {
     //    1;
     //};
 
-    ObjPtr str = ctx.ExecStr("@str := 'ABCDEF\\n';", nullptr, true);
+    ObjPtr str = ctx.ExecStr("@str := 'ABCDEF\\n';", nullptr);
     ASSERT_TRUE(str);
     ASSERT_STREQ("ABCDEF\n", str->GetValueAsString().c_str());
 
-    ObjPtr test_printf = ctx.ExecStr("@test_printf := :Pointer('printf(format:FmtChar, ...):Int32')", nullptr, true);
+    ObjPtr test_printf = ctx.ExecStr("@test_printf := :Pointer('printf(format:FmtChar, ...):Int32')", nullptr);
     ASSERT_TRUE(test_printf);
     ASSERT_STREQ("test_printf={}", test_printf->GetValueAsString().c_str());
 
-    ObjPtr iter = ctx.ExecStr("@iterator := (1, 5, 9999,)?", nullptr, true);
+    ObjPtr iter = ctx.ExecStr("@iterator := (1, 5, 9999,)?", nullptr);
     ASSERT_TRUE(iter);
     ASSERT_TRUE(iter->getType() == ObjType::Iterator);
     ASSERT_TRUE(iter->m_iterator);
     ASSERT_TRUE(*iter->m_iterator.get() == iter->m_iterator->begin());
     ASSERT_TRUE(*iter->m_iterator.get() != iter->m_iterator->end());
 
-    ObjPtr test_frac = ctx.ExecStr("@test_frac := 999\\123", nullptr, true);
+    ObjPtr test_frac = ctx.ExecStr("@test_frac := 999\\123", nullptr);
     ASSERT_TRUE(test_frac);
     ASSERT_TRUE(test_frac->getType() == ObjType::Rational);
     ASSERT_STREQ("999\\123", test_frac->GetValueAsString().c_str());
 
-    ObjPtr str_frac = ctx.ExecStr(":StrChar(test_frac)", nullptr, true);
+    ObjPtr str_frac = ctx.ExecStr(":StrChar(test_frac)", nullptr);
     ASSERT_TRUE(str_frac);
     ASSERT_TRUE(str_frac->getType() == ObjType::StrChar) << newlang::toString(str_frac->getType());
     ASSERT_STREQ("999\\123", str_frac->GetValueAsString().c_str()) << str_frac->GetValueAsString();
 
-    ObjPtr test_prn = ctx.ExecStr("test_printf('%s', :StrChar(test_frac))", nullptr, true);
+    ObjPtr test_prn = ctx.ExecStr("test_printf('%s', :StrChar(test_frac))", nullptr);
     ASSERT_TRUE(test_prn);
     ASSERT_STREQ("7", test_prn->GetValueAsString().c_str());
 
-    ObjPtr test_arg = ctx.ExecStr("@test_arg(arg:Rational) := {$arg}", nullptr, true);
+    ObjPtr test_arg = ctx.ExecStr("@test_arg(arg:Rational) := {$arg}", nullptr);
     ASSERT_TRUE(test_arg);
     ASSERT_TRUE(test_arg->is_function_type());
     ASSERT_FALSE(test_arg->is_none_type());
@@ -240,7 +240,7 @@ TEST(Example, Rational) {
     ASSERT_TRUE(frac_test);
     ASSERT_EQ(ObjType::Rational, frac_test->getType()) << newlang::toString(frac_test->getType());
 
-    frac_test = ctx.ExecStr("test_arg(1)", nullptr, true);
+    frac_test = ctx.ExecStr("test_arg(1)", nullptr);
     ASSERT_TRUE(frac_test);
     ASSERT_STREQ("1\\1", frac_test->GetValueAsString().c_str());
 

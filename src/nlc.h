@@ -343,7 +343,7 @@ namespace newlang {
                         }
                     }
 
-                    ObjPtr result = m_ctx.ExecStr(m_eval, m_args.get(), false);
+                    ObjPtr result = m_ctx.ExecStr(m_eval, m_args.get(), Context::CatchType::CATCH_NONE);
 
                     if (result && m_local_vars.find(result.get()) == m_local_vars.end()) {
                         m_local_vars[result.get()] = result;
@@ -627,7 +627,7 @@ namespace newlang {
                         //                    }
                         std::wstring input = buff;
 
-                        ObjPtr res = m_ctx.ExecStr(utf8_encode(input), m_args.get(), true);
+                        ObjPtr res = m_ctx.ExecStr(utf8_encode(input), m_args.get(), Context::CatchType::CATCH_ANY);
 
                         if (res) {
 

@@ -355,8 +355,22 @@ TEST(Alg, Foreach) {
 
 }
 
-TEST(Alg, Return) {
-    /* Проблема прерывания последовательности выполнения команд.
+TEST(Alg, Interrupt) {
+    /* Проблема прерывания последовательности выполнения команд, которая была описана вначале, 
+     * более не актуальна, так как обработка ошибков и прерываний решается следующим образом:
+     * 
+     * На уровне синтаксиса вводится два способа прервать поток команд, -- и ++ (управляемые прерывания).
+     * Их реализация полностью идентична и они отличаются только семантикой записи и соглашениями по использованию.
+     * Кроме этого добавялется блоки кода с разным типов перехвата прерываний.
+     * { } - без перехвата прерываний
+     * {+  +} - перехватывает прерывание ++ и извлекает возвращаемое значение, т.е. {+  ++100++  +} - вернет 100;
+     * {-  -} - перехватывает прерывание -- и извлекает возвращаемое значение
+     * {{  }} - перехватывает оба вида управляемых прерываний без извлечения возвращаемчх значений (но можно использовать 
+     * типизацию для точного указания перехватываемого типа, т.е. {{ ++100++ }}:IntPlus - перехватит прерывание :IntPlus(100), 
+     * но не извлекает данные как в {+  +}).
+     * {{{  }}} -  Аналогично предыдущему варинату + перехватывает не управяемые прерывания (системные исключения и ошибки парсинга).
+     * 
+     * Проблема прерывания последовательности выполнения команд.
      * 
      * Последовательность команд может прервываться из-за возврата значения (любого типа)
      * и из-за возникновения ошибки (которая тоже может содержать значение любого типа ???)
@@ -424,9 +438,16 @@ TEST(Alg, Return) {
      * 
      * 
      * {+      Подобное расширение синтаксиса ненравится !!!!!!!!!!!!!!!!!!!!!!!!!!
-     * --+"Ошибка"+--   --+:Fatal("Ошибка"+--
+     * --+"Ошибка"+--   --+:Fatal("Ошибка")+--
      * +}
      *  
+     * А вот такое вполне понятно и логично
+     * {-
+     * {+      
+     *   --"Ошибка"--   ++"Данные"++
+     * +} - тут return
+     * 
+     * -} - тут error
      */
 
     // :Tensor(1,2,3) - Создание экземпляра данных заданного типа
@@ -464,7 +485,7 @@ TEST(Alg, Return) {
     ObjPtr value = nullptr;
 
     try {
-        result = ctx.ExecStr("--", nullptr, false);
+        result = ctx.ExecStr("--");
     } catch (Interrupt &except) {
         ASSERT_EQ(ObjType::IntMinus, except.m_obj->getType()) << newlang::toString(except.m_obj->getType());
         ASSERT_EQ(1, except.m_obj->size());
@@ -473,7 +494,7 @@ TEST(Alg, Return) {
     ASSERT_FALSE(result);
 
     try {
-        result = ctx.ExecStr("--100--", nullptr, false);
+        result = ctx.ExecStr("--100--");
     } catch (Interrupt &except) {
         ASSERT_EQ(ObjType::IntMinus, except.m_obj->getType()) << newlang::toString(except.m_obj->getType());
         ASSERT_EQ(1, except.m_obj->size());
@@ -481,9 +502,9 @@ TEST(Alg, Return) {
     }
     ASSERT_FALSE(result);
 
-    
+
     try {
-        result = ctx.ExecStr("++", nullptr, false);
+        result = ctx.ExecStr("++");
     } catch (Interrupt &except) {
         ASSERT_EQ(ObjType::IntPlus, except.m_obj->getType());
         ASSERT_EQ(1, except.m_obj->size());
@@ -492,35 +513,36 @@ TEST(Alg, Return) {
     ASSERT_FALSE(result);
 
     try {
-        result = ctx.ExecStr("++100++", nullptr, false);
+        result = ctx.ExecStr("++100++");
     } catch (Interrupt &except) {
         ASSERT_EQ(ObjType::IntPlus, except.m_obj->getType());
         ASSERT_EQ(1, except.m_obj->size());
         ASSERT_STREQ("100", (*except.m_obj)[0].second->toString().c_str());
     }
     ASSERT_FALSE(result);
-    
-    
+
+
     try {
-        result = ctx.ExecStr("--'Тест'--", nullptr, false);
+        result = ctx.ExecStr("--'Тест'--");
     } catch (Interrupt &except) {
-        ASSERT_EQ(ObjType::Return, except.m_obj->getType());
+        ASSERT_EQ(ObjType::IntMinus, except.m_obj->getType());
         ASSERT_EQ(1, except.m_obj->size());
         ASSERT_STREQ("'Тест'", (*except.m_obj)[0].second->toString().c_str());
     }
     ASSERT_FALSE(result);
 
     try {
-        result = ctx.ExecStr("--:Int32--", nullptr, false);
+        result = ctx.ExecStr("--:Int32--");
     } catch (Interrupt &except) {
-        ASSERT_STREQ(":Int32", except.m_obj->m_class_name.c_str());
-        ASSERT_EQ(0, except.m_obj->size());
-        ASSERT_STREQ(":Int32", except.m_obj->toString().c_str());
+        ASSERT_EQ(ObjType::IntMinus, except.m_obj->getType());
+        ASSERT_EQ(1, except.m_obj->size());
+        ASSERT_EQ(ObjType::Type, (*except.m_obj)[0].second->getType()) << toString((*except.m_obj)[0].second->getType());
+        ASSERT_EQ(ObjType::Int32, (*except.m_obj)[0].second->m_var_type_fixed) << toString((*except.m_obj)[0].second->m_var_type_fixed);
     }
     ASSERT_FALSE(result);
 
     try {
-        result = ctx.ExecStr("--:Error()--", nullptr, false);
+        result = ctx.ExecStr("--:Error()--");
     } catch (Interrupt &except) {
         ASSERT_EQ(ObjType::Error, except.m_obj->getType());
         ASSERT_EQ(1, except.m_obj->size());
@@ -530,74 +552,74 @@ TEST(Alg, Return) {
 
 
     try {
-        result = ctx.ExecStr("--:Error('ТЕКСТ')--", nullptr, false);
+        result = ctx.ExecStr("--:Error('ТЕКСТ')--");
     } catch (Interrupt &except) {
-        ASSERT_EQ(ObjType::Error, except.m_obj->getType());
+        ASSERT_EQ(ObjType::IntMinus, except.m_obj->getType());
         ASSERT_EQ(1, except.m_obj->size());
-        ASSERT_STREQ(":Error('ТЕКСТ')", except.m_obj->toString().c_str());
-        ASSERT_STREQ("'ТЕКСТ'", (*except.m_obj)[0].second->toString().c_str());
+        ASSERT_STREQ(":IntMinus(:Error('ТЕКСТ'))", except.m_obj->toString().c_str());
+        ASSERT_STREQ(":Error('ТЕКСТ')", (*except.m_obj)[0].second->toString().c_str());
     }
     ASSERT_FALSE(result);
 
 
     result.reset();
-    ASSERT_NO_THROW(result = ctx.ExecStr("(){count := 1; count += 1; count += 1; count += 1; count += 1;};", nullptr, false););
+    ASSERT_NO_THROW(result = ctx.ExecStr("\\(){count := 1; count += 1; count += 1; count += 1; count += 1;};"););
     ASSERT_TRUE(result);
-    ASSERT_TRUE(result->is_integer());
+    ASSERT_TRUE(result->is_integer()) << result->toString().c_str();
     ASSERT_EQ(5, result->GetValueAsInteger());
 
     result.reset();
-    ASSERT_NO_THROW(result = ctx.ExecStr("(){count := 1; count += 1; count += 1; count += 1; count += 1;}; 99", nullptr, false););
+    ASSERT_NO_THROW(result = ctx.ExecStr("\\(){count := 1; count += 1; count += 1; count += 1; count += 1;}; 99"););
     ASSERT_TRUE(result);
-    ASSERT_TRUE(result->is_integer());
+    ASSERT_TRUE(result->is_integer()) << result->toString().c_str();
     ASSERT_EQ(99, result->GetValueAsInteger());
 
     result.reset();
-    ASSERT_ANY_THROW(result = ctx.ExecStr("(){count := 1; count += 1; count += 1; --55--; count += 1; count += 1;}; 5555", nullptr, false););
+    ASSERT_ANY_THROW(result = ctx.ExecStr("\\(){count := 1; count += 1; count += 1; --55--; count += 1; count += 1;}; 5555"););
     ASSERT_FALSE(result);
 
     result.reset();
-    ASSERT_NO_THROW(result = ctx.ExecStr("(){{count := 1; count += 1; count += 1; --77--; count += 1; count += 1;}}", nullptr, true););
+    ASSERT_NO_THROW(result = ctx.ExecStr("\\(){{count := 1; count += 1; count += 1; --77--; count += 1; count += 1;}}", nullptr, Context::CatchType::CATCH_ANY););
     ASSERT_TRUE(result);
-    ASSERT_TRUE(result->is_integer());
+    ASSERT_TRUE(result->is_integer()) << result->toString().c_str();
     ASSERT_EQ(77, result->GetValueAsInteger());
 
     result.reset();
-    ASSERT_NO_THROW(result = ctx.ExecStr("(){{count := 1; count += 1; count += 1; --77--; count += 1; count += 1;}}; 7777"););
+    ASSERT_NO_THROW(result = ctx.ExecStr("\\(){{count := 1; count += 1; count += 1; --77--; count += 1; count += 1;}}; 7777"););
     ASSERT_TRUE(result);
-    ASSERT_TRUE(result->is_integer());
+    ASSERT_TRUE(result->is_integer()) << result->toString().c_str();
     ASSERT_EQ(7777, result->GetValueAsInteger());
 
     result.reset();
-    ASSERT_ANY_THROW(result = ctx.ExecStr("(){ (){count := 1; count += 1; count += 1; --:Error(88)--; count += 1; count += 1};  8888; }", nullptr, false););
+    ASSERT_ANY_THROW(result = ctx.ExecStr("\\(){ \\(){count := 1; count += 1; count += 1; --:Error(88)--; count += 1; count += 1};  8888; }"););
     ASSERT_FALSE(result);
 
     result.reset();
-    ASSERT_NO_THROW(result = ctx.ExecStr("(){ (){{count := 1; count += 1; count += 1; --:Error(99)--; count += 1; count += 1}}; 888}", nullptr, false););
+    ASSERT_NO_THROW(result = ctx.ExecStr("\\(){ \\(){{count := 1; count += 1; count += 1; --:Error(99)--; count += 1; count += 1}}; 888}"););
     ASSERT_TRUE(result);
-    ASSERT_TRUE(result->is_integer());
+    ASSERT_TRUE(result->is_integer()) << result->toString().c_str();
     ASSERT_EQ(888, result->GetValueAsInteger());
 
     result.reset();
-    ASSERT_NO_THROW(result = ctx.ExecStr("(){ (){{count := 1; count += 1; count += 1; --:Error(99)--; count += 1; count += 1}}; }", nullptr, false););
+    ASSERT_NO_THROW(result = ctx.ExecStr("\\(){ \\(){{count := 1; count += 1; count += 1; --:Error(99)--; count += 1; count += 1}}; }"););
     ASSERT_TRUE(result);
-    ASSERT_EQ(1, result->size());
-    ASSERT_EQ(99, (*result)[0].second->GetValueAsInteger());
+    ASSERT_EQ(1, result->size()) << result->toString().c_str();
+    ASSERT_EQ(99, (*result)[0].second->GetValueAsInteger()) << result->toString().c_str();
 
     result.reset();
-    ASSERT_NO_THROW(result = ctx.ExecStr("(){ (){{count := 1; count += 1; count += 1; --:Error(33)--; count += 1; count += 1}};  }", nullptr, false););
+    ASSERT_NO_THROW(result = ctx.ExecStr("\\(){ \\(){{count := 1; count += 1; count += 1; --:Error(33)--; count += 1; count += 1}};  }"););
     ASSERT_TRUE(result);
-    ASSERT_EQ(1, result->size());
-    ASSERT_EQ(33, (*result)[0].second->GetValueAsInteger());
+    ASSERT_EQ(1, result->size()) << result->toString().c_str();
+    ASSERT_EQ(33, (*result)[0].second->GetValueAsInteger()) << result->toString().c_str();
 
     result.reset();
-    ASSERT_NO_THROW(result = ctx.ExecStr("(){ (){{count := 1; count += 1; count += 1; --:Error(44)--; count += 1; count += 1}};  9999; }", nullptr, false););
+    ASSERT_NO_THROW(result = ctx.ExecStr("\\(){ \\(){{count := 1; count += 1; count += 1; --:Error(44)--; count += 1; count += 1}};  9999; }"););
     ASSERT_TRUE(result);
-    ASSERT_EQ(9999, result->GetValueAsInteger());
+    ASSERT_EQ(9999, result->GetValueAsInteger()) << result->toString().c_str();
 
     result.reset();
     // Не должен перехватытвать другой класс объекта
-    ASSERT_ANY_THROW(result = ctx.ExecStr("(){ (){{count := 1; count += 1; count += 1; --:Error(55)--; count += 1; count += 1}}:ErrorRunTime;  }", nullptr, false););
+    ASSERT_ANY_THROW(result = ctx.ExecStr("\\(){ \\(){{count := 1; count += 1; count += 1; --:Error(55)--; count += 1; count += 1}}:ErrorRunTime;  }"););
     ASSERT_FALSE(result);
 
 
@@ -611,7 +633,7 @@ TEST(Alg, Return) {
 
     result.reset();
     // Не должен перехватытвать другой класс объекта, но его перехватывает внешний блок
-    ASSERT_NO_THROW(result = ctx.ExecStr("(){{ (){{count := 1; count += 1; count += 1; --:Error(66)--; count += 1; count += 1}}:ErrorRunTime;  777; }}", nullptr, false););
+    ASSERT_NO_THROW(result = ctx.ExecStr("\\(){{ \\(){{count := 1; count += 1; count += 1; --:Error(66)--; count += 1; count += 1}}:ErrorRunTime;  777; }}"););
     ASSERT_TRUE(result);
     ASSERT_TRUE(result->is_error());
     ASSERT_STREQ(":Error(66)", result->toString().c_str());
@@ -619,24 +641,24 @@ TEST(Alg, Return) {
 
     result.reset();
     // Должен перехватытвать прерывание и вернуть его как обычный объект без исключения из внешнего блока
-    ASSERT_NO_THROW(result = ctx.ExecStr("(){ (){{count := 1; count += 1; count += 1; --:ErrorRunTime(77)--; count += 1; count += 1}}:ErrorRunTime }", nullptr, false););
+    ASSERT_NO_THROW(result = ctx.ExecStr("\\(){ \\(){{count := 1; count += 1; count += 1; --:ErrorRunTime(77)--; count += 1; count += 1}}:ErrorRunTime }"););
     ASSERT_TRUE(result);
     ASSERT_EQ(1, result->size());
     ASSERT_EQ(77, (*result)[0].second->GetValueAsInteger());
 
     result.reset();
-    ASSERT_NO_THROW(result = ctx.ExecStr("(){ (){{count := 1; count += 1; count += 1; --:ErrorRunTime(88)--; count += 1; count += 1}}:ErrorRunTime;  9999; }", nullptr, false););
+    ASSERT_NO_THROW(result = ctx.ExecStr("\\(){ \\(){{count := 1; count += 1; count += 1; --:ErrorRunTime(88)--; count += 1; count += 1}}:ErrorRunTime;  9999; }"););
     ASSERT_TRUE(result);
     ASSERT_EQ(9999, result->GetValueAsInteger());
 
     result.reset();
-    ASSERT_NO_THROW(result = ctx.ExecStr("(){ (){{count := 1; count += 1; count += 1; --:ErrorRunTime(77)--; count += 1; count += 1}}:Error }", nullptr, false););
+    ASSERT_NO_THROW(result = ctx.ExecStr("\\(){ \\(){{count := 1; count += 1; count += 1; --:ErrorRunTime(77)--; count += 1; count += 1}}:Error }"););
     ASSERT_TRUE(result);
     ASSERT_EQ(1, result->size());
     ASSERT_EQ(77, (*result)[0].second->GetValueAsInteger());
 
     result.reset();
-    ASSERT_NO_THROW(result = ctx.ExecStr("(){ (){{count := 1; count += 1; count += 1; --:ErrorRunTime(88)--; count += 1; count += 1}}:Error;  9999; }", nullptr, false););
+    ASSERT_NO_THROW(result = ctx.ExecStr("\\(){ \\(){{count := 1; count += 1; count += 1; --:ErrorRunTime(88)--; count += 1; count += 1}}:Error;  9999; }"););
     ASSERT_TRUE(result);
     ASSERT_EQ(9999, result->GetValueAsInteger());
 }

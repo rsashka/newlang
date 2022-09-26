@@ -66,145 +66,23 @@
 %define api.value.type {TermPtr}
 
 /*
- * Термины в CamelCase соответствуют типам данных NewLang
- * БНФ лексики NewLang
+ * Проблема перегоузки функций разными типами аргументов специфична только для компилируемых языков со статической типизацией
+ * Для языков с динамической типизацией, перегразука функций не требуется, т.к. типы аргументов могут быть произвольными
+ * Но перегрузка фунций в языке со статической типизацие может еще использоваться и для замены одной реализациина функции 
+ * на другую, если типы аргументов различаются, что эквивалентно замене (добавлению) новой функции для другого типа аргументов.
  * 
- * Integer ::= целые числа | целые числа "_"  целые числа  (Bool, Int8, Int16, Int32, Int64  +  BigNum)
- * Float ::= с плавающей точкой  (Float32, Float64)
- * Complex ::= комплексные числа  (Complex32, Complex64)
- * Rational ::= Integer "\" Integer    (Представление BigNum / BigNum)
- * Currency ::= "`" Integer  | "`" Integer "."  Integer  (Представление Rational == BigNum / 10000)
+ * Как сделать замену одной реализации фнуции на другую для языка с динамиеческой типизацией без перегрузки функций?
+ * 1. Сохранять указатель на предыдущую функцию в новой реализации, тогда  нужнны локальные статические переменные и/или деструкторы.
+ * 2. Управлять именами функций средствами языка (не нужны локальные статические переменные и деструкторы, 
+ * но нужна лексическая контструкция чтобы указать предыдущую реализацию, а весь список функций можно вытащить итератором)
  * 
- * Ariphmetic ::= Integer  | Float | Complex | Rational
+ * Связанный вопрос - пересечения имен у переменный и функций и их уникальность в одной области видимости.
+ * Таготею к подходу в Эсперанто, где по струкутре слова можно понять часть речи и нет двойных смыслов
  * 
- * StrChar ::= "'" символы "'"
- * StrWide ::= "\"" символы "\""
- * RawChar ::= r"'" символы "'"  |  R"'" символы "'"
- * RawWide ::= r"\"" символы "\""  | R"\"" символы "\""
- * RawStr ::= RawChar | RawWide
- * TemplateChar::= "'''" символы "'''"
- * TemplateWide ::= "\"\"\"" символы  "\"\"\""
- * Template ::=  TemplateChar |  TemplateWide
+ * Для глобальных объектов - имена уникальны, но есть возможность добавлять несколько варинатов реализации одного и того же термина 
+ * (новый термин заменяет старый, но в новом термине остается возможност вызывать предыдущий вариант реализации).
  * 
- * String  ::= StrWide | StrChar | RawStr | Template
- * 
- * Literal := String | Ariphmetic
- * 
- * name ::= идентификатор (буквы, цифры(крмое первой), подчерк)
- * 
- * Term ::= [@$~]? name
- * Type ::=  :name
- *   ::=  :name
- * Call ::= Term( ... )
- * 
- * eval ::= Leteral | Term | Call
- * 
- * 
- * Exit ::= "--"
- * Error ::= "--" eval "--"
- * 
- * rval  ::= eval
- * lval 
- * 
- * ops ::= "+" | "-" ...
- * expression ::= rval  ops  rval
- * 
- * exec ::=  rval
- * block ::=  exec |  {  exec  } |  {  block  exec  }
- * 
- * setup ::=   "::=" | ":=" | "="
- * assign ::=  lval   setup  rval  
- *      |  lval   setup  execution
- * 
- * 
- * 
- * Константа нужна в сигнатуре константы/функции при её определении
- * Ссылка (адрес) нужен и при определнии и при вызове функции
- * func( & ref = default ):={}
- * %func( ref = &value );  func( &value );
- * func( %const = default ):={}
- * func( & %const_ref = default ):={}
- * const := 123; # Переменная
- * %const := 123; # Константа
- * %const := 123; # Константа
- * 
- * :class%const   определение констант снаружи класса
- * :class%const() а внури класса 
- * 
- * Один конструктор для классов (несколько конструкторов ненужно, т.к. есть именованые аргументы и произольноекол-во параметров)
- * 
- * :class (<аргументы конструктора>) := :base1(), :base2() {
- * 
- * 
- * 
- *   конструктор всегда статический (функция класса, т.к. объект отсутствует)
- *   ::class::class(<аргументы должны совпадать ???????  >) ::= <конструктор>;
- *   :class::class() ::= {<конструктор>};
- *   :class::class() ::= {{<конструктор>}};
- * 
- * # Инициализация для функции  demo
- * @::var = _;
- * @print := NewLang(import= «printf(format:FmtChar, ...):Int32» );
- * --;
- * 
- * %{   std::string demo(const char *arg) {; $var = arg;  %}
- *      (arg === _ ) --> {
- *                      @print(«Нет аргументов»);
- *                      %{ return std::string(«Нет аргументов»); %}
- *                  },
- *      _ --> {
- *              @print(«Передан %s», $var);
- *              %{ return static_cast<std::string>($var); %}                   
- *      }
- * %{ }  %}  # End demo func
- * 
- *   Для реализации DSL, единая точка входа переименованием аргументов
- *   NewLang(eval=_, import=_, exec=_, load=_, compile=_, file=_,) ::= {{
- *      $* ==> {  # Выполняется точное сравнение
- *          (,) --> help();
- *          (eval='',) --> %{ NewLang::eval(static_cast<const char *>($eval)); %};
- *          (import='',), (import="",) --> %{ NewLang::import(static_cast<const char *>($import)); %};
- *          (exec:String=,) --> %{ NewLang::exec(static_cast<const char *>($exec)); %};
- *          (compile:String=, file:String, ) --> %{ NewLang::compile(static_cast<const char *>($compile), static_cast<const char *>($file)); %};
- *      }
- *   }}
- *   NewLang("eval string");
- *   NewLang(import='class():class');
- *   NewLang(file="eval file name");
- *   NewLang(import="import object");
- *   NewLang(compile="import object");
- *   NewLang(load="module_name", init=1);
- * 
- *   __constructor1() := NewLang(import = 'class():class');
- *   __constructor2(arg) := NewLang(import = 'class(arg:Int32):class');
- *   __constructor3(arg) := NewLang(import = 'class(arg:StrChar):class');
- * 
- *   :class::class(arg=_) ::= {
- *      arg:? => { # Выполняется не точное сравнение c приведеним типов
- *          :None -> __constructor1();
- *          :Int32 -> __constructor2(arg);
- *          :String -> __constructor3(arg);
- *          _ -> -- "Неизвестный тип аргумента" --;
- *      }
- *  }
- * 
- * Проблема перегразки функций разными типами аргументов специфична только для компилируемых языков сос ставтической ьтипизацией
- * Для языков с динамической типизацией перегразука функций не требуется, т.к. типы аргументов могут быть произвольными
- * Но перегрузка фунций в языке со статической типизаице может еще исолпьзоваться и для замены одной реалихациина функции 
- * на другую если типы аргументов различаются, что эквивалентно замене (добавлению) новой функции для другого типа аргументов.
- * 
- * Как сделать замену одной реалихации фнуции на дургуо для языка с динамиечской типизацией без перегрузки функций?
- * 1. Сохранять предыдущую функцию в реализации (нужнны локальные статические переменные и/или деструкторы)
- * 2. Добавлять новую реализацию функции средствами языка (не нужны локальные статические переменные и деструкторы, 
- * но нужно перечисление списка функций чтобы вызвать предыдущую реализацию. Все функции можно вытащить итератором)
- * 
- * Связанный вопрос - пересечения имен у переменный и функций и их уникальности в одной области видимости.
- * Таготею к Эсперанто, по струкутре слова часто можно понять смысл и часть речи и нет двойных смыслов
- * 
- * Для глобальных объектов - имена уникальны, но есть возможност добавлять несколько варинатов реализации одного и того же термина 
- * (новый термин заменяет старый, но в новом есть возможност вызывать предыдущий вариант реализации).
- * 
- * Для локальных объектов - имена <перекрываются>, а объекты не "заменяются", а "перекрываются".
+ * Для локальных объектов - имена <перекрываются>, т.е. объекты не "заменяются", а "перекрываются".
  * Это получается из-за того, что к локальным объектам кроме имени можно обратить по <индексу>, а к глобальным только по имени.
  * Локальный объект добаляется в начало списка, а его имя ищется последовательно (потом можно будет прикрутить хешмап)
  * 
@@ -285,47 +163,6 @@
  *   }}; 
  *  
  * };
- * 
- * 
- * <условный оператор FOLLOW>  ::=  
- * 
- * <условный оператор if> ::= if <булево выражение> then <оператор> [else <оператор>]
- * <булево выражение> ::= "NOT" <булево выражение>
- *     | <булево выражение> <логическая операция> <булево выражение>
- *     | <выражение> <операция сравнения> <выражение>
- * <логическая операция> ::= "OR" | "AND"
- * <выражение> ::= <переменная> | <строка> | <символ>
- * <операция сравнения> ::= "=" | "<" | ">"
- * 
- * 
- * 
- * 
- * https://habr.com/ru/post/141756/
- * 
- * Для начала опишем нужную часть грамматики с помощью расширенной формы Бэкуса-Наура (РБНФ) (wiki).
-
-
-class_def = CLASS classname [inheritance] COLON suite
-classname = ID
-inheritance = LBRACE class_args_list RBRACE
-class_args_list = [class_arg]
-class_arg = dotted_name {COMMA dotted_name}
-dotted_name = ID {DOT ID}
-
-
-Здесь [X] — 0 или 1 вхождение X, {Y} — 0 и более вхождений Y.
-
-Для определения имени класса и его зависимостей вполне достаточно. Теперь для функций.
-
-
-func_def = DEF funcname LBRACE [func_args_list] RBRACE COLON suite
-funcname = ID
-func_args_list = [func_arg]
-func_arg = (dotted_name | star_arg) {OTHER | COMMA | dotted_name | star_arg | MESSAGE}
-star_arg = [STAR] STAR ID
-
-
-Кстати, предполагается, что код пользователя будет корректным (с точки зрения интерпретатора), иначе правила грамматики надо определять строже.
  * 
  */
 
@@ -1069,33 +906,6 @@ class_def: class_base '{'  '}'
                 $$->m_base = $1;
                 $$->ConvertSequenceToBlock(TermID::CLASS);
             }
-/*        | class_block   MIDDLE_CALL_BLOCK  '}'
-            {
-                $$ = $2;
-                $$->m_base = $1;
-                $$->SetTermID(TermID::CLASS);
-            }
-        | class_block   MIDDLE_CALL_BLOCK   class_props ';'  '}'
-            {
-                $$ = $2;
-                $$->m_base = $1;
-                $$->ConvertSequenceToBlock(TermID::CLASS);
-            }
-        | class_base  ','  class_block   MIDDLE_CALL_BLOCK  '}'
-            {
-                $$ = $MIDDLE_CALL_BLOCK;
-                $$->m_base = $class_base;
-                $$->m_base->Append($class_block);
-                $$->ConvertSequenceToBlock(TermID::CLASS);
-            }
-        | class_base  ','  class_block   MIDDLE_CALL_BLOCK   class_props ';'  '}'
-            {
-                $$ = $MIDDLE_CALL_BLOCK;
-                $$->m_base = $class_base;
-                $$->m_base->Append($class_block);
-                $$->ConvertSequenceToBlock(TermID::CLASS);
-            }
-*/        
         
         
 collection: array 
@@ -1260,7 +1070,19 @@ try: try_all
             $$ = $1;
         }
     
-        
+block_all: block 
+            {
+                $$ = $1;
+            }
+        | try_plus 
+            {
+                $$ = $1;
+            }
+        | try_minus
+            {
+                $$ = $1;
+            }
+
 try_all: TRY_ALL_BEGIN  TRY_ALL_END  type_class
             {
                 $$ = $1; 
@@ -1319,13 +1141,7 @@ try_full: TRY_FULL_BEGIN  TRY_FULL_END  type_class
                 $$->SetType($type_class);
             }
         
-try_plus: TRY_PLUS_BEGIN  TRY_PLUS_END  type_class
-            {
-                $$ = $1; 
-                $$->ConvertSequenceToBlock(TermID::BLOCK_PLUS);
-                $$->SetType($type_class);
-            }
-        | TRY_PLUS_BEGIN  sequence  TRY_PLUS_END
+try_plus: TRY_PLUS_BEGIN  sequence  TRY_PLUS_END
             {
                 $$ = $2; 
                 $$->ConvertSequenceToBlock(TermID::BLOCK_PLUS);
@@ -1334,6 +1150,12 @@ try_plus: TRY_PLUS_BEGIN  TRY_PLUS_END  type_class
             {
                 $$ = $2; 
                 $$->ConvertSequenceToBlock(TermID::BLOCK_PLUS);
+            }
+/*        | TRY_PLUS_BEGIN  TRY_PLUS_END  type_class
+            {
+                $$ = $1; 
+                $$->ConvertSequenceToBlock(TermID::BLOCK_PLUS);
+                $$->SetType($type_class);
             }
         | TRY_PLUS_BEGIN  sequence  TRY_PLUS_END  type_class
             {
@@ -1346,15 +1168,9 @@ try_plus: TRY_PLUS_BEGIN  TRY_PLUS_END  type_class
                 $$ = $2; 
                 $$->ConvertSequenceToBlock(TermID::BLOCK_PLUS);
                 $$->SetType($type_class);
-            }
+            } */
         
-try_minus: TRY_MINUS_BEGIN  TRY_MINUS_END  type_class
-            {
-                $$ = $1; 
-                $$->ConvertSequenceToBlock(TermID::BLOCK_MINUS);
-                $$->SetType($type_class);
-            }
-        | TRY_MINUS_BEGIN  sequence  TRY_MINUS_END
+try_minus: TRY_MINUS_BEGIN  sequence  TRY_MINUS_END
             {
                 $$ = $2; 
                 $$->ConvertSequenceToBlock(TermID::BLOCK_MINUS);
@@ -1363,6 +1179,12 @@ try_minus: TRY_MINUS_BEGIN  TRY_MINUS_END  type_class
             {
                 $$ = $2; 
                 $$->ConvertSequenceToBlock(TermID::BLOCK_MINUS);
+            }
+/*        | TRY_MINUS_BEGIN  TRY_MINUS_END  type_class
+            {
+                $$ = $1; 
+                $$->ConvertSequenceToBlock(TermID::BLOCK_MINUS);
+                $$->SetType($type_class);
             }
         | TRY_MINUS_BEGIN  sequence  TRY_MINUS_END  type_class
             {
@@ -1375,7 +1197,7 @@ try_minus: TRY_MINUS_BEGIN  TRY_MINUS_END  type_class
                 $$ = $2; 
                 $$->ConvertSequenceToBlock(TermID::BLOCK_MINUS);
                 $$->SetType($type_class);
-            }
+            } */
         
 
 try_else: try  ',' ELSE  FOLLOW  body
@@ -1405,80 +1227,6 @@ lambda: LAMBDA ')' lambda_body
                 $$->SetArgs($args);
 //                $$->SetTermID(TermID::LAMBDA);
             }
-
-/*        
-block_call:  '('  MIDDLE_CALL_BLOCK  sequence  '}' 
-            {
-                $$ = $sequence; 
-                $$->ConvertSequenceToBlock(TermID::CALL_BLOCK);
-            }
-        | '('  MIDDLE_CALL_BLOCK  sequence  separator '}' 
-            {
-                $$ = $sequence; 
-                $$->ConvertSequenceToBlock(TermID::CALL_BLOCK);
-            }
-        |  '('  args  MIDDLE_CALL_BLOCK  sequence  '}'
-            {
-                $$ = $sequence; 
-                $$->SetArgs($args);
-                $$->ConvertSequenceToBlock(TermID::CALL_BLOCK);
-            }
-        | '('  args  MIDDLE_CALL_BLOCK  sequence  separator  '}'
-            {
-                $$ = $sequence; 
-                $$->SetArgs($args);
-                $$->ConvertSequenceToBlock(TermID::CALL_BLOCK);
-            }
-        | '('  MIDDLE_CALL_TRY  sequence  TRY_ALL_END
-            {
-                $$ = $sequence; 
-                $$->ConvertSequenceToBlock(TermID::CALL_TRY);
-            }
-        | '('  MIDDLE_CALL_TRY  sequence  TRY_ALL_END  type_class
-            {
-                $$ = $sequence; 
-                $$->ConvertSequenceToBlock(TermID::CALL_TRY);
-                $$->m_class_name = $type_class->m_text;
-            }
-        | '('  MIDDLE_CALL_TRY  sequence  separator  TRY_ALL_END
-            {
-                $$ = $sequence; 
-                $$->ConvertSequenceToBlock(TermID::CALL_TRY);
-            }
-        | '('  MIDDLE_CALL_TRY  sequence  separator  TRY_ALL_END  type_class
-            {
-                $$ = $sequence; 
-                $$->ConvertSequenceToBlock(TermID::CALL_TRY);
-                $$->m_class_name = $type_class->m_text;
-            }
-        | '('  args  MIDDLE_CALL_TRY  sequence  TRY_ALL_END
-            {
-                $$ = $sequence; 
-                $$->SetArgs($args);
-                $$->ConvertSequenceToBlock(TermID::CALL_TRY);
-            }
-        | '('  args  MIDDLE_CALL_TRY  sequence  TRY_ALL_END  type_class
-            {
-                $$ = $sequence; 
-                $$->SetArgs($args);
-                $$->ConvertSequenceToBlock(TermID::CALL_TRY);
-                $$->m_class_name = $type_class->m_text;
-            }
-        | '('  args  MIDDLE_CALL_TRY  sequence  separator  TRY_ALL_END
-            {
-                $$ = $sequence; 
-                $$->SetArgs($args);
-                $$->ConvertSequenceToBlock(TermID::CALL_TRY);
-            }
-        | '('  args  MIDDLE_CALL_TRY  sequence  separator  TRY_ALL_END  type_class
-            {
-                $$ = $sequence; 
-                $$->SetArgs($args);
-                $$->ConvertSequenceToBlock(TermID::CALL_TRY);
-                $$->m_class_name = $type_class->m_text;
-            }
-*/
-        
 
 /* 
  * lvalue - объект в памяти, которому может быть присовено значение (может быть ссылкой и/или константой)
@@ -1732,7 +1480,7 @@ match:  match_cond   MATCHING  match_body
                 $$->Append($1, Term::LEFT); 
                 $$->Append($3, Term::RIGHT);
             }
-        |  block  MATCHING  match_body
+        |  block_all  MATCHING  match_body
             {
                 $$=$2;
                 $$->Append($1, Term::LEFT); 
@@ -1800,7 +1548,7 @@ seq_item: condition
             {
                 $$ = $1;
             }
-        | block
+        | block_all
             {
                 $$ = $1;
             }
@@ -1809,16 +1557,6 @@ sequence:  seq_item
             {
                 $$ = $1;  
             }
-/*        | block_call
-            {
-                $$ = $1;  
-            }
-        | sequence  separator  block_call 
-            {
-                $$ = $1;  
-                // Несколько команд подряд
-                $$->AppendSequenceTerm($block_call);
-            }*/
         | sequence  separator  seq_item
             {
                 $$ = $1;  
