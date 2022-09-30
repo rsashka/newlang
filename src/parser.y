@@ -1014,7 +1014,7 @@ body:   rval
                 $$ = $1;
             }
 
-block_ns: NAMESPACE
+ns: NAMESPACE
             {
                 $$ = $1;
             }
@@ -1039,13 +1039,14 @@ block:  '{'  '}'
                 $$ = $2; 
                 $$->ConvertSequenceToBlock(TermID::BLOCK);
             }
-        | block_ns  '{'  sequence  '}'
+
+block_ns:  ns  '{'  sequence  '}'
             {
                 $$ = $2; 
                 $$->ConvertSequenceToBlock(TermID::BLOCK);
                 $$->m_namespace = $1->GetFullName();
             }
-        | block_ns  '{'  sequence  separator  '}'
+        | ns  '{'  sequence  separator  '}'
             {
                 $$ = $2; 
                 $$->ConvertSequenceToBlock(TermID::BLOCK);
@@ -1071,6 +1072,10 @@ try: try_all
         }
     
 block_all: block 
+            {
+                $$ = $1;
+            }
+        | block_ns 
             {
                 $$ = $1;
             }
@@ -1151,24 +1156,6 @@ try_plus: TRY_PLUS_BEGIN  sequence  TRY_PLUS_END
                 $$ = $2; 
                 $$->ConvertSequenceToBlock(TermID::BLOCK_PLUS);
             }
-/*        | TRY_PLUS_BEGIN  TRY_PLUS_END  type_class
-            {
-                $$ = $1; 
-                $$->ConvertSequenceToBlock(TermID::BLOCK_PLUS);
-                $$->SetType($type_class);
-            }
-        | TRY_PLUS_BEGIN  sequence  TRY_PLUS_END  type_class
-            {
-                $$ = $2; 
-                $$->ConvertSequenceToBlock(TermID::BLOCK_PLUS);
-                $$->SetType($type_class);
-            }
-        | TRY_PLUS_BEGIN  sequence  separator  TRY_PLUS_END  type_class
-            {
-                $$ = $2; 
-                $$->ConvertSequenceToBlock(TermID::BLOCK_PLUS);
-                $$->SetType($type_class);
-            } */
         
 try_minus: TRY_MINUS_BEGIN  sequence  TRY_MINUS_END
             {
@@ -1180,25 +1167,7 @@ try_minus: TRY_MINUS_BEGIN  sequence  TRY_MINUS_END
                 $$ = $2; 
                 $$->ConvertSequenceToBlock(TermID::BLOCK_MINUS);
             }
-/*        | TRY_MINUS_BEGIN  TRY_MINUS_END  type_class
-            {
-                $$ = $1; 
-                $$->ConvertSequenceToBlock(TermID::BLOCK_MINUS);
-                $$->SetType($type_class);
-            }
-        | TRY_MINUS_BEGIN  sequence  TRY_MINUS_END  type_class
-            {
-                $$ = $2; 
-                $$->ConvertSequenceToBlock(TermID::BLOCK_MINUS);
-                $$->SetType($type_class);
-            }
-        | TRY_MINUS_BEGIN  sequence  separator  TRY_MINUS_END  type_class
-            {
-                $$ = $2; 
-                $$->ConvertSequenceToBlock(TermID::BLOCK_MINUS);
-                $$->SetType($type_class);
-            } */
-        
+       
 
 try_else: try  ',' ELSE  FOLLOW  body
             {
@@ -1211,7 +1180,7 @@ lambda_body:  block
             {
                 $$ = $1;
             }
-        |  try
+        |  try_else
             {
                 $$ = $1;
             }
