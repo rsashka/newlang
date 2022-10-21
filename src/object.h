@@ -2369,6 +2369,14 @@ namespace newlang {
                 //            m_var_type_current = save_type;
 
                 return;
+
+            } else if ((is_none_type() || m_var_type_current == ObjType::Pointer || m_var_type_current == ObjType::NativeFunc) && (value->m_var_type_current == ObjType::Pointer || value->m_var_type_fixed == ObjType::Pointer)) {
+
+                m_var_is_init = value->m_var_is_init;
+                ASSERT(at::holds_alternative<void *>(value->m_var));
+                m_var = at::get<void *>(value->m_var);
+                return;
+
             }
 
             LOG_RUNTIME("Set value type '%s' as '%s' not implemented!", newlang::toString(m_var_type_current), value->toString().c_str());

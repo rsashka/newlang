@@ -124,8 +124,8 @@ TEST(Example, DISABLED_SpeedNewLang) {
     ASSERT_STREQ("OK", result->GetValueAsString().c_str());
 
 
-    int sec = std::chrono::duration_cast<std::chrono::seconds>(end - begin).count();
-    int ms = std::chrono::duration_cast<std::chrono::microseconds>(end - begin).count() % 1000000;
+    int sec = (int) std::chrono::duration_cast<std::chrono::seconds>(end - begin).count();
+    int ms = (int) std::chrono::duration_cast<std::chrono::microseconds>(end - begin).count() % 1000000;
     LOG_INFO("Test speed complete at %d.%d sec", sec, ms);
 
     /*

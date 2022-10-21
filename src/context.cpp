@@ -63,6 +63,78 @@ const char * Return::Abort = ":ErrorAbort";
 Context::Context(RuntimePtr global) : m_llvm_builder(LLVMCreateBuilder()) {
     m_runtime = global;
 
+
+
+#ifdef _MSC_VER
+
+    std::wstring sys_file;
+    std::string sys_init;
+
+    //#define CYGWIN
+#ifdef CYGWIN
+    sys_file = L"cygwin1.dll";
+    sys_init = "cygwin_dll_init";
+    ffi_file = "cygffi-6.dll";
+#else
+    sys_file = L"msys-2.0.dll";
+    sys_init = "msys_dll_init";
+    ffi_file = "libffi-7.dll";
+#endif
+
+    m_msys = LoadLibrary(sys_file.c_str());
+    if(!m_msys) {
+        LOG_RUNTIME("Fail LoadLibrary %s: %s", sys_file.c_str(), RunTime::GetLastErrorMessage().c_str());
+    }
+
+    typedef void init_type();
+
+    init_type *init = (init_type *) GetProcAddress((HMODULE) m_msys, sys_init.c_str());
+    if(m_msys && !init) {
+        FreeLibrary((HMODULE) m_msys);
+        LOG_RUNTIME("Func %s not found! %s", sys_init.c_str(), RunTime::GetLastErrorMessage().c_str());
+        (*init)();
+    }
+    m_ffi_handle = LoadLibrary(utf8_decode(ffi_file).c_str());
+#else
+    //    std::string error;
+    if(LLVMLoadLibraryPermanently("libffi") == 0) {
+        LOG_RUNTIME("Fail load library libffi!");
+    }
+
+
+    //            ffi_file = "libffi.so";
+    //            m_ffi_handle = dlopen(ffi_file.c_str(), RTLD_NOW);
+#endif
+    //
+    //            if (!m_ffi_handle) {
+    //                LOG_RUNTIME("Fail load %s!", ffi_file.c_str());
+    //            }
+
+    m_ffi_type_void = static_cast<ffi_type *> (LLVMSearchForAddressOfSymbol("ffi_type_void"));
+    m_ffi_type_uint8 = static_cast<ffi_type *> (LLVMSearchForAddressOfSymbol("ffi_type_uint8"));
+    m_ffi_type_sint8 = static_cast<ffi_type *> (LLVMSearchForAddressOfSymbol("ffi_type_sint8"));
+    m_ffi_type_uint16 = static_cast<ffi_type *> (LLVMSearchForAddressOfSymbol("ffi_type_uint16"));
+    m_ffi_type_sint16 = static_cast<ffi_type *> (LLVMSearchForAddressOfSymbol("ffi_type_sint16"));
+    m_ffi_type_uint32 = static_cast<ffi_type *> (LLVMSearchForAddressOfSymbol("ffi_type_uint32"));
+    m_ffi_type_sint32 = static_cast<ffi_type *> (LLVMSearchForAddressOfSymbol("ffi_type_sint32"));
+    m_ffi_type_uint64 = static_cast<ffi_type *> (LLVMSearchForAddressOfSymbol("ffi_type_uint64"));
+    m_ffi_type_sint64 = static_cast<ffi_type *> (LLVMSearchForAddressOfSymbol("ffi_type_sint64"));
+    m_ffi_type_float = static_cast<ffi_type *> (LLVMSearchForAddressOfSymbol("ffi_type_float"));
+    m_ffi_type_double = static_cast<ffi_type *> (LLVMSearchForAddressOfSymbol("ffi_type_double"));
+    m_ffi_type_pointer = static_cast<ffi_type *> (LLVMSearchForAddressOfSymbol("ffi_type_pointer"));
+
+    m_ffi_prep_cif = reinterpret_cast<ffi_prep_cif_type *> (LLVMSearchForAddressOfSymbol("ffi_prep_cif"));
+    m_ffi_prep_cif_var = reinterpret_cast<ffi_prep_cif_var_type *> (LLVMSearchForAddressOfSymbol("ffi_prep_cif_var"));
+    m_ffi_call = reinterpret_cast<ffi_call_type *> (LLVMSearchForAddressOfSymbol("ffi_call"));
+
+    if(!(m_ffi_type_uint8 && m_ffi_type_sint8 && m_ffi_type_uint16 && m_ffi_type_sint16 &&
+            m_ffi_type_uint32 && m_ffi_type_sint32 && m_ffi_type_uint64 && m_ffi_type_sint64 &&
+            m_ffi_type_float && m_ffi_type_double && m_ffi_type_pointer && m_ffi_type_void &&
+            m_ffi_prep_cif && m_ffi_prep_cif_var && m_ffi_call)) {
+        LOG_RUNTIME("Fail init data from libffi!");
+    }
+
+
     //    LLVMInitializeCore(LLVMGetGlobalPassRegistry());
     //
     //    /* program init */
@@ -1509,14 +1581,14 @@ ObjPtr Context::CallBlock(Context *ctx, const TermPtr &block, Obj * local_vars, 
         //        }
         //        
         //        ASSERT(block->m_follow.size() == 1);
-  
+
         if(block->IsBlock()) {
             result = CallBlock(ctx, block->m_follow[0], local_vars, eval_block, CatchType::CATCH_AUTO, has_interrupt);
         } else {
             result = Eval(ctx, block->m_follow[0], local_vars, eval_block, CatchType::CATCH_NONE);
         }
 
-//        result = Eval(ctx, block->m_follow[0], local_vars, eval_block, CatchType::CATCH_AUTO);
+        //        result = Eval(ctx, block->m_follow[0], local_vars, eval_block, CatchType::CATCH_AUTO);
     }
 
     return result;

@@ -259,11 +259,12 @@
     <ClCompile Include="..\test\alg_test.cpp" />
     <ClCompile Include="..\test\compiler_test.cpp" />
     <ClCompile Include="..\test\eval_test.cpp" />
-    <ClCompile Include="..\test\fraction_test.cpp" />
+    <ClCompile Include="..\test\example_test.cpp" />
     <ClCompile Include="..\test\lexer_test.cpp" />
     <ClCompile Include="..\test\nlc_test.cpp" />
     <ClCompile Include="..\test\object_test.cpp" />
     <ClCompile Include="..\test\parser_test.cpp" />
+    <ClCompile Include="..\test\rational_test.cpp" />
     <ClCompile Include="..\variable.cpp" />
     <ClCompile Include="..\version.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='UnitTest|x64'">NotUsing</PrecompiledHeader>

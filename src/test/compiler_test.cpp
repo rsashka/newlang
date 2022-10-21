@@ -10,8 +10,6 @@
 
 #include <newlang.h>
 #include <builtin.h>
-#include <dlfcn.h>
-
 
 using namespace newlang;
 

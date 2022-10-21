@@ -4,6 +4,8 @@
 
 #include "pch.h"
 
+#include <ffi.h>
+
 #include <term.h>
 #include <object.h>
 
@@ -302,6 +304,33 @@ namespace newlang {
         ObjPtr CreateNative(TermPtr proto, const char *module = nullptr, bool lazzy = false, const char *mangle_name = nullptr);
         ObjPtr CreateNative(Obj args);
 
+
+        std::string ffi_file;
+
+        typedef ffi_status ffi_prep_cif_type(ffi_cif *cif, ffi_abi abi, unsigned int nargs, ffi_type *rtype, ffi_type **atypes);
+        typedef ffi_status ffi_prep_cif_var_type(ffi_cif *cif, ffi_abi abi, unsigned int nfixedargs, unsigned int ntotalargs, ffi_type *rtype, ffi_type **atypes);
+        typedef void ffi_call_type(ffi_cif *cif, void (*fn)(void), void *rvalue, void **avalue);
+        
+        ffi_type * m_ffi_type_void;
+        ffi_type * m_ffi_type_uint8;
+        ffi_type * m_ffi_type_sint8;
+        ffi_type * m_ffi_type_uint16;
+        ffi_type * m_ffi_type_sint16;
+        ffi_type * m_ffi_type_uint32;
+        ffi_type * m_ffi_type_sint32;
+        ffi_type * m_ffi_type_uint64;
+        ffi_type * m_ffi_type_sint64;
+        ffi_type * m_ffi_type_float;
+        ffi_type * m_ffi_type_double;
+        ffi_type * m_ffi_type_pointer;
+
+        ffi_prep_cif_type *m_ffi_prep_cif;
+        ffi_prep_cif_var_type * m_ffi_prep_cif_var;
+        ffi_call_type * m_ffi_call;
+//        m_func_abi
+
+        
+        
         static bool pred_compare(const std::string &find, const std::string &str) {
             size_t pos = 0;
             while (pos < find.size() && pos < str.size()) {
