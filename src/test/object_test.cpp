@@ -688,7 +688,7 @@ TEST(Args, All) {
 
 
     // Аргумент по умолчанию
-    ASSERT_TRUE(p.Parse("test(num=123) := {}"));
+    ASSERT_TRUE(p.Parse("test(num=123) := { }"));
     Obj proto123(&ctx, ast->Left(), false, &local);
     ASSERT_EQ(1, proto123.size());
     //    ASSERT_FALSE(proto123.m_is_ellipsis);
@@ -788,7 +788,7 @@ TEST(Types, FromLimit) {
     }
 
     ASSERT_EQ(ObjType::Float64, typeFromLimit(1.0));
-    ASSERT_EQ(ObjType::Float32, typeFromLimit(0.0));
+    ASSERT_EQ(ObjType::Float64, typeFromLimit(0.0));
 
 }
 

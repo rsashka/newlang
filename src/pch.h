@@ -62,7 +62,7 @@
 
 
 #undef LOG_RUNTIME
-#define LOG_RUNTIME(format, ...)  LOG_EXCEPT(newlang::Interrupt, format, ##__VA_ARGS__)
+#define LOG_RUNTIME(format, ...)  LOG_EXCEPT(newlang::Return, format, ##__VA_ARGS__)
 
 #include "types.h"
 

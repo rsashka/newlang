@@ -40,7 +40,7 @@ TEST(Eval, Assign) {
     list = ctx.ExecStr("$");
     ASSERT_STREQ("$=('var1',)", list->toString().c_str());
 
-    ASSERT_THROW(ctx.ExecStr("var1 ::= 123"), Interrupt);
+    ASSERT_THROW(ctx.ExecStr("var1 ::= 123"), Return);
 
     ASSERT_TRUE(ctx.ExecStr("var1 = 100:Int8"));
     ASSERT_EQ(var1->m_var_type_current, ObjType::Int8) << newlang::toString(var1->m_var_type_current);
@@ -111,7 +111,7 @@ TEST(Eval, Assign) {
     ASSERT_TRUE(func_export);
     ASSERT_TRUE(func_export->is_function_type()) << func_export;
     ASSERT_EQ(func_export->getType(), ObjType::NativeFunc);
-    ASSERT_STREQ("func_export=func_export(arg1:Int64, arg2:Int8=100):Int64{}", func_export->toString().c_str());
+    ASSERT_STREQ("func_export=func_export(arg1:Int64, arg2:Int8=100):Int64{ }", func_export->toString().c_str());
 
     ObjPtr result = func_export->Call(&ctx, Obj::Arg(200), Obj::Arg(10));
     ASSERT_TRUE(result);
@@ -293,11 +293,11 @@ TEST(Eval, Tensor) {
             tt->GetValueAsString().c_str());
 
     ObjPtr srand = ctx.ExecStr("srand := :Pointer('srand(seed:Int32):None')");
-    
+
     ObjPtr ret = srand->Call(&ctx, Obj::Arg(100));
     ASSERT_TRUE(ret);
     ASSERT_TRUE(ret->is_none_type());
-    
+
     ObjPtr rand = ctx.ExecStr("rand := :Pointer('rand():Int32')");
 
     // Может быть раскрытие словаря, который возвращает вызов функции
@@ -568,7 +568,7 @@ TEST(ExecStr, Funcs) {
     ASSERT_TRUE(p);
     ASSERT_TRUE(at::holds_alternative<void *>(p->m_var));
     ASSERT_TRUE(at::get<void *>(p->m_var));
-    ASSERT_STREQ("printf=printf(format:FmtChar, ...):Int32{}", p->toString().c_str());
+    ASSERT_STREQ("printf=printf(format:FmtChar, ...):Int32{ }", p->toString().c_str());
 
     typedef int (* printf_type)(const char *, ...);
 
@@ -870,12 +870,12 @@ TEST(Eval, MacroDSL) {
             "\\\\while(cond)    [\\$cond]<->\\\\\\"
             "\\\\dowhile(cond)  <->[\\$cond]\\\\\\"
             ""
-            "\\\\break      --:Break--\\\\\\"
-            "\\\\continue   --:Continue--\\\\\\"
+            "\\\\break      ++:Break++\\\\\\"
+            "\\\\continue   ++:Continue++\\\\\\"
             ""
-            "\\\\return         --\\\\\\"
-            "\\\\return(...)    --\\$*--\\\\\\"
-            "\\\\error(...)    --:Error(\\$*)--\\\\\\"
+            "\\\\return         ++\\\\\\"
+            "\\\\return(...)    ++\\$*++\\\\\\"
+            "\\\\error(...)     --\\$*--\\\\\\"
             ""
             "\\\\true 1\\\\\\"
             "\\\\yes 1\\\\\\"
@@ -902,12 +902,12 @@ TEST(Eval, MacroDSL) {
 
     const char * run_raw = ""
             "count:=5;"
-            "[count<10]<->{{"
-            "  [count>5]-->{"
-            "    --100--;"
-            "  }; "
+            "[count<10]<->{+"
+            "  [count>5]-->"
+            "    ++100++;"
+            "  ; "
             "  count+=1;"
-            "}};"
+            "+};"
             ;
 
     ObjPtr result = ctx.ExecStr(run_raw, nullptr, Context::CatchType::CATCH_ALL);
@@ -918,12 +918,12 @@ TEST(Eval, MacroDSL) {
 
     const char * run_macro = ""
             "count:=5;"
-            "\\while(count<10){{"
+            "\\while(count<10){+"
             "  \\if(count>5){"
             "    \\return(42);"
             "  };"
             "  count+=1;"
-            "}};"
+            "+};"
             "";
 
 
@@ -1156,21 +1156,21 @@ TEST(Eval, Iterator) {
     ASSERT_STREQ("3\\1", iter_test->m_iterator->m_iter_obj->m_iter_range_value->GetValueAsString().c_str()) << iter_test->m_iterator->m_iter_obj->m_iter_range_value->GetValueAsString().c_str();
     ASSERT_EQ(iter_test->getType(), ObjType::Iterator);
 
-    ObjPtr while_test = ctx.ExecStr("[iter_test]<->{ ++'PLUS'++ }", nullptr);
+    ObjPtr while_test = ctx.ExecStr("[iter_test]<->{+ ++'PLUS'++ +}");
     ASSERT_TRUE(while_test);
     ASSERT_STREQ("PLUS", while_test->GetValueAsString().c_str()) << while_test->GetValueAsString().c_str();
 
-    while_test = ctx.ExecStr("[iter_test]<->{ --'EXIT'-- }", nullptr, Context::CatchType::CATCH_MINUS);
+    while_test = ctx.ExecStr("[iter_test]<->{- --'EXIT'-- -}");
     ASSERT_TRUE(while_test);
     ASSERT_STREQ("EXIT", while_test->GetValueAsString().c_str()) << while_test->GetValueAsString().c_str();
-    
+
     iter_dict = ctx.ExecStr("@iter_dict := (1,2,3,)?", nullptr);
     ASSERT_TRUE(iter_dict);
     //    ASSERT_TRUE(iter_dict->m_iterator->m_iter_obj->m_iter_range_value);
     //    ASSERT_STREQ("3\\1", iter_dict->m_iterator->m_iter_obj->m_iter_range_value->GetValueAsString().c_str()) << iter_test->m_iterator->m_iter_obj->m_iter_range_value->GetValueAsString().c_str();
     ASSERT_EQ(iter_dict->getType(), ObjType::Iterator);
 
-    while_test = ctx.ExecStr("[iter_dict]<->{ ++'EXIT'++ }", nullptr, Context::CatchType::CATCH_PLUS);
+    while_test = ctx.ExecStr("[iter_dict]<->{+ ++'EXIT'++ +}");
     ASSERT_TRUE(while_test);
     ASSERT_STREQ("EXIT", while_test->GetValueAsString().c_str()) << while_test->GetValueAsString().c_str();
 

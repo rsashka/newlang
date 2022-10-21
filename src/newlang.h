@@ -48,6 +48,7 @@ namespace newlang {
     public:
 
         RunTime() {
+            LLVMLoadLibraryPermanently(nullptr);
         }
 
         virtual ~RunTime() {

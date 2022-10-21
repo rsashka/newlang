@@ -141,5 +141,5 @@ std::string newlang::ParserMessage(std::string &buffer, int row, int col, const 
 }
 
 void newlang::ParserException(const char *msg, std::string &buffer, int row, int col) {
-    throw Interrupt(ParserMessage(buffer, row, col, "%s", msg), Interrupt::Parser);
+    throw Return(ParserMessage(buffer, row, col, "%s", msg), Return::Parser);
 }

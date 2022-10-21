@@ -656,8 +656,14 @@ namespace newlang {
 
         [[nodiscard]]
         inline bool is_return() const {
-            return m_var_type_current == ObjType::Return || m_var_type_fixed == ObjType::Return || m_var_type_current == ObjType::IntPlus || m_var_type_current == ObjType::IntMinus;
+            return m_var_type_current == ObjType::Return || m_var_type_fixed == ObjType::Return || m_var_type_current == ObjType::RetPlus || m_var_type_current == ObjType::RetMinus;
         }
+
+        [[nodiscard]]
+        inline bool is_block() const {
+            return m_var_type_current == ObjType::BLOCK || m_var_type_current == ObjType::BLOCK_PLUS || m_var_type_current == ObjType::BLOCK_MINUS || m_var_type_current == ObjType::BLOCK_TRY;
+        }
+
 
         [[nodiscard]]
         inline bool is_defined_type() {
@@ -749,7 +755,7 @@ namespace newlang {
             return Call(ctx, &arg);
         }
 
-        ObjPtr Call(Context *ctx, Obj *args);
+        ObjPtr Call(Context *ctx, Obj *args, bool direct = false);
 
         /*
          * 
@@ -2347,7 +2353,7 @@ namespace newlang {
                 m_var_type_current = ObjType::Rational;
                 return;
 
-            } else if ((is_none_type() || m_var_type_current == ObjType::Function || m_var_type_current == ObjType::EVAL_FUNCTION) && (value->m_var_type_current == ObjType::BLOCK || value->m_var_type_current == ObjType::BLOCK_TRY)) {
+            } else if ((is_none_type() || m_var_type_current == ObjType::Function || m_var_type_current == ObjType::EVAL_FUNCTION) && value->is_block()) {
                 //@todo Check function type args !!!
 
                 //            std::string old_name = m_var_name;
@@ -2365,7 +2371,7 @@ namespace newlang {
                 return;
             }
 
-            LOG_RUNTIME("Set value type '%s' not implemented!", newlang::toString(m_var_type_current));
+            LOG_RUNTIME("Set value type '%s' as '%s' not implemented!", newlang::toString(m_var_type_current), value->toString().c_str());
         }
 
         static std::string format(std::string format, Obj * args);
@@ -2393,7 +2399,7 @@ namespace newlang {
             return m_prototype;
         }
 
-    SCOPE(protected):
+        SCOPE(protected) :
 
         void ConvertToArgs_(Obj *args, bool check_valid, Context *ctx = nullptr); // Обновить параметры для вызова функции или элементы у словаря при создании копии
 
@@ -2445,6 +2451,7 @@ namespace newlang {
         mutable ObjPtr m_iter_range_value;
         TermPtr m_sequence; ///< Последовательно распарсенных команд для выполнения
         const TermPtr m_prototype; ///< Описание прототипп функции (или данных)
+        ObjPtr m_return_obj;
 
         bool m_check_args; //< Проверять аргументы на корректность (для всех видов функций) @ref MakeArgs
 
@@ -2455,7 +2462,7 @@ namespace newlang {
 
         //    SCOPE(protected) :
         bool m_is_const; //< Признак константы (по умолчанию изменения разрешено)
-        bool m_is_reference; //< Признак ссылки на объект (mutable)
+        bool m_is_reference; //< Признак ссылки на объект
         DocPtr m_help;
 
 

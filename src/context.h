@@ -105,15 +105,15 @@ namespace newlang {
     class Context : public Variable<Obj, std::weak_ptr<Obj> > {
     public:
 
-        static ObjPtr eval_END(Context *ctx, const TermPtr & term, Obj * args);
-        static ObjPtr func_NOT_SUPPORT(Context *ctx, const TermPtr & term, Obj * args);
+        static ObjPtr eval_END(Context *ctx, const TermPtr & term, Obj * args, bool eval_block = false);
+        static ObjPtr func_NOT_SUPPORT(Context *ctx, const TermPtr & term, Obj * args, bool eval_block = false);
 
         enum class CatchType {
-            CATCH_NONE = 0,
-            CATCH_PLUS,
-            CATCH_MINUS,
-            CATCH_ANY,
-            CATCH_ALL,
+            CATCH_AUTO = 0,
+            CATCH_NONE, // {   }
+            CATCH_PLUS, // {+   +}
+            CATCH_MINUS, // {-   -}
+            CATCH_ALL, // {*   *}
         };
 
         enum class CreateMode {
@@ -124,21 +124,21 @@ namespace newlang {
         static ObjPtr CREATE_OR_ASSIGN(Context *ctx, const TermPtr & term, Obj *args, CreateMode mode);
 
 #define DEFINE_CASE(name) \
-    static ObjPtr eval_ ## name(Context *ctx, const TermPtr &term, Obj *args);
+    static ObjPtr eval_ ## name(Context *ctx, const TermPtr &term, Obj *args, bool eval_block = false);
 
         NL_TERMS(DEFINE_CASE);
 
 #undef DEFINE_CASE
 
 #define PROTO_OP(_, func) \
-    static ObjPtr op_ ## func(Context *ctx, const TermPtr &term, Obj *args);
+    static ObjPtr op_ ## func(Context *ctx, const TermPtr &term, Obj *args, bool eval_block = false);
 
         NL_OPS(PROTO_OP);
 
 #undef PROTO_OP
 
 
-        typedef ObjPtr(*EvalFunction)(Context *ctx, const TermPtr & term, Obj * args);
+        typedef ObjPtr(*EvalFunction)(Context *ctx, const TermPtr & term, Obj * args, bool eval_block);
 
         static std::map<std::string, Context::EvalFunction> m_ops;
         static std::map<std::string, Context::EvalFunction> m_builtin_calls;
@@ -156,7 +156,7 @@ namespace newlang {
             Docs::m_docs.clear();
         }
 
-        inline ObjPtr ExecFile(const std::string &filename, Obj *args = nullptr, CatchType int_catch = CatchType::CATCH_ANY) {
+        inline ObjPtr ExecFile(const std::string &filename, Obj *args = nullptr, CatchType int_catch = CatchType::CATCH_ALL) {
             std::string source = ReadFile(filename.c_str());
             if (source.empty()) {
                 LOG_RUNTIME("Empty source or file '%s' not found!", filename.c_str());
@@ -164,22 +164,17 @@ namespace newlang {
             return ExecStr(source, args, int_catch);
         }
 
-        inline ObjPtr ExecStr(const std::string str, Obj *args = nullptr, CatchType int_catch = CatchType::CATCH_NONE) {
+        inline ObjPtr ExecStr(const std::string str, Obj *args = nullptr, CatchType int_catch = CatchType::CATCH_AUTO) {
             TermPtr exec = Parser::ParseString(str, &m_macros);
-            if (exec->m_id == TermID::BLOCK) {
-                exec->m_id = TermID::CALL_BLOCK;
-            } else if (exec->m_id == TermID::BLOCK_TRY) {
-                exec->m_id = TermID::CALL_TRY;
-            }
             ObjPtr temp;
             if (args == nullptr) {
                 temp = Obj::CreateNone();
                 args = temp.get();
             }
-            return Eval(this, exec, args, int_catch);
+            return Eval(this, exec, args, true, int_catch);
         }
 
-        static ObjPtr Eval(Context *ctx, TermPtr term, Obj *args, CatchType int_catch = CatchType::CATCH_NONE);
+        static ObjPtr Eval(Context *ctx, TermPtr term, Obj *args, bool eval_block, CatchType int_catch = CatchType::CATCH_AUTO);
 
         static ObjPtr ExpandAssign(Context *ctx, TermPtr lvar, TermPtr rval, Obj *args, CreateMode mode);
         static ObjPtr ExpandCreate(Context *ctx, TermPtr lvar, TermPtr rval, Obj * args);
@@ -196,19 +191,19 @@ namespace newlang {
             return CreateLVal(ctx, type, &args);
         }
 
-        inline static ObjPtr CreateRVal(Context *ctx, TermPtr term, CatchType int_catch = CatchType::CATCH_ANY) {
+        inline static ObjPtr CreateRVal(Context *ctx, TermPtr term, bool eval_block = true, CatchType int_catch = CatchType::CATCH_ALL) {
             Obj args;
-            return CreateRVal(ctx, term, &args, int_catch);
+            return CreateRVal(ctx, term, &args, eval_block, int_catch);
         }
 
-        inline static ObjPtr CreateRVal(Context *ctx, const char *source, CatchType int_catch = CatchType::CATCH_ANY) {
+        inline static ObjPtr CreateRVal(Context *ctx, const char *source, bool eval_block = true, CatchType int_catch = CatchType::CATCH_ALL) {
             Obj args;
-            return CreateRVal(ctx, source, &args, int_catch);
+            return CreateRVal(ctx, source, &args, eval_block, int_catch);
         }
 
         static ObjPtr CreateLVal(Context *ctx, TermPtr type, Obj * args);
-        static ObjPtr CreateRVal(Context *ctx, TermPtr term, Obj *args, CatchType int_catch = CatchType::CATCH_ANY);
-        static ObjPtr CreateRVal(Context *ctx, const char *source, Obj *args, CatchType int_catch = CatchType::CATCH_ANY);
+        static ObjPtr CreateRVal(Context *ctx, TermPtr term, Obj *args, bool eval_block = true, CatchType int_catch = CatchType::CATCH_ALL);
+        static ObjPtr CreateRVal(Context *ctx, const char *source, Obj *args, bool eval_block = true, CatchType int_catch = CatchType::CATCH_ALL);
         void CreateArgs_(ObjPtr &args, TermPtr &term, Obj * local_vars);
 
         static std::vector<Index> MakeIndex(Context *ctx, TermPtr term, Obj * local_vars);
@@ -297,7 +292,7 @@ namespace newlang {
             }
         }
 
-        static ObjPtr CallBlock(Context *ctx, const TermPtr &block, Obj *local_vars, CatchType catch_type);
+        static ObjPtr CallBlock(Context *ctx, const TermPtr &block, Obj *local_vars, bool eval_block, CatchType catch_type, bool *has_interrupt);
 
         static ObjPtr EvalBlockAND(Context *ctx, const TermPtr &block, Obj * local_vars);
         static ObjPtr EvalBlockOR(Context *ctx, const TermPtr &block, Obj * local_vars);
@@ -431,7 +426,7 @@ namespace newlang {
             ASSERT(func);
 
             std::string func_dump(prototype);
-            func_dump += " := {};";
+            func_dump += " := { };";
 
             TermPtr proto = Parser::ParseString(func_dump, &m_macros);
             ObjPtr obj =

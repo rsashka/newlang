@@ -40,22 +40,25 @@ typedef std::shared_ptr<RunTime> RuntimePtr;
 typedef ObjPtr FunctionType(Context *ctx, Obj &in);
 typedef ObjPtr TransparentType(const Context *ctx, Obj &in);
 
-class Interrupt : public std::exception {
+class Return : public std::exception {
   public:
      
-      static const char * IntPlus;
-      static const char * IntMinus;
+      static const char * RetPlus;
+      static const char * RetMinus;
       static const char * IntParser;
       static const char * IntError;
-      static const char * Return;
+    
+      static const char * Break;
+      static const char * Continue;
+//      static const char * Return;
       static const char * Error;
       static const char * Parser;
       static const char * RunTime;
       static const char * Signal;
       static const char * Abort;
 
-    Interrupt(const ObjPtr obj);
-    Interrupt(const std::string message, const std::string error_name=Error);
+    Return(const ObjPtr obj);
+    Return(const std::string message, const std::string error_name=Error);
 
     virtual const char *what() const noexcept override;
     
@@ -117,13 +120,13 @@ void ParserException(const char *msg, std::string &buffer, int row, int col);
         std::string empty;                                                                                             \
         std::string message =                                                                                          \
             newlang::ParserMessage(term->m_source ? *term->m_source : empty, term->m_line, term->m_col, format, ##__VA_ARGS__); \
-        LOG_EXCEPT_LEVEL(Interrupt, LOG_LEVEL_INFO, "", "%s", message.c_str());                                 \
+        LOG_EXCEPT_LEVEL(Return, LOG_LEVEL_INFO, "", "%s", message.c_str());                                 \
     } while (0)
 
 #define NL_CHECK(cond, format, ...)                                                                                    \
     do {                                                                                                               \
         if (!(cond)) {                                                                                                 \
-            LOG_EXCEPT_LEVEL(Interrupt, LOG_LEVEL_INFO, "", format, ##__VA_ARGS__);                             \
+            LOG_EXCEPT_LEVEL(Return, LOG_LEVEL_INFO, "", format, ##__VA_ARGS__);                             \
         }                                                                                                              \
     } while (0)
 
@@ -136,7 +139,7 @@ void ParserException(const char *msg, std::string &buffer, int row, int col);
             message += newlang::toString(typeFromString(to));                                                          \
             message += "' (" __FILE__ ":" TO_STR(__LINE__) ")";                                                        \
             LOG_EXCEPT_LEVEL(                                                                                          \
-                Interrupt, LOG_LEVEL_INFO, "", "%s",                                                            \
+                Return, LOG_LEVEL_INFO, "", "%s",                                                            \
                 newlang::ParserMessage(*term->m_source, term->m_line, term->m_col, "%s", message.c_str()).c_str());             \
         }                                                                                                              \
     } while (0)
@@ -212,7 +215,6 @@ void ParserException(const char *msg, std::string &buffer, int row, int col);
     _(BLOCK_TRY, 112)       \
     _(BLOCK_PLUS, 113)       \
     _(BLOCK_MINUS, 114)       \
-    _(BLOCK_FULL, 115)       \
     \
     _(Eval, 118)            \
     _(Other, 120)           \
@@ -224,10 +226,11 @@ void ParserException(const char *msg, std::string &buffer, int row, int col);
     _(Any, 123)             \
     _(Type, 200)            \
     \
-    _(IntPlus, 210)         \
-    _(IntMinus, 211)        \
-    _(IntParser, 212)       \
-    _(IntError, 213)        \
+    _(RetPlus, 210)         \
+    _(RetMinus, 211)        \
+    _(IntRepeat, 212)        \
+    _(IntParser, 213)       \
+    _(IntError, 214)        \
     \
     _(Return, 230)          \
     _(Break, 231)           \

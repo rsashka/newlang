@@ -74,7 +74,7 @@ TEST(Example, SpeedCPP) {
 
 }
 
-TEST(Example, SpeedNewLang) {
+TEST(Example, DISABLED_SpeedNewLang) {
 
     Context::Reset();
     Context ctx(RunTime::Init());
@@ -178,7 +178,7 @@ TEST(Example, SpeedNewLang) {
      */
 }
 
-TEST(Example, Rational) {
+TEST(Example, DISABLED_Rational) {
 
     Context::Reset();
     Context ctx(RunTime::Init());
@@ -195,40 +195,40 @@ TEST(Example, Rational) {
     //    1;
     //};
 
-    ObjPtr str = ctx.ExecStr("@str := 'ABCDEF\\n';", nullptr);
+    ObjPtr str = ctx.ExecStr("@str := 'ABCDEF\\n';");
     ASSERT_TRUE(str);
     ASSERT_STREQ("ABCDEF\n", str->GetValueAsString().c_str());
 
-    ObjPtr test_printf = ctx.ExecStr("@test_printf := :Pointer('printf(format:FmtChar, ...):Int32')", nullptr);
+    ObjPtr test_printf = ctx.ExecStr("@test_printf := :Pointer('printf(format:FmtChar, ...):Int32')");
     ASSERT_TRUE(test_printf);
-    ASSERT_STREQ("test_printf={}", test_printf->GetValueAsString().c_str());
+    ASSERT_STREQ("test_printf={ }", test_printf->GetValueAsString().c_str());
 
-    ObjPtr iter = ctx.ExecStr("@iterator := (1, 5, 9999,)?", nullptr);
+    ObjPtr iter = ctx.ExecStr("@iterator := (1, 5, 9999,)?");
     ASSERT_TRUE(iter);
     ASSERT_TRUE(iter->getType() == ObjType::Iterator);
     ASSERT_TRUE(iter->m_iterator);
     ASSERT_TRUE(*iter->m_iterator.get() == iter->m_iterator->begin());
     ASSERT_TRUE(*iter->m_iterator.get() != iter->m_iterator->end());
 
-    ObjPtr test_frac = ctx.ExecStr("@test_frac := 999\\123", nullptr);
+    ObjPtr test_frac = ctx.ExecStr("@test_frac := 999\\123");
     ASSERT_TRUE(test_frac);
     ASSERT_TRUE(test_frac->getType() == ObjType::Rational);
     ASSERT_STREQ("999\\123", test_frac->GetValueAsString().c_str());
 
-    ObjPtr str_frac = ctx.ExecStr(":StrChar(test_frac)", nullptr);
+    ObjPtr str_frac = ctx.ExecStr(":StrChar(test_frac)");
     ASSERT_TRUE(str_frac);
     ASSERT_TRUE(str_frac->getType() == ObjType::StrChar) << newlang::toString(str_frac->getType());
     ASSERT_STREQ("999\\123", str_frac->GetValueAsString().c_str()) << str_frac->GetValueAsString();
 
-    ObjPtr test_prn = ctx.ExecStr("test_printf('%s', :StrChar(test_frac))", nullptr);
+    ObjPtr test_prn = ctx.ExecStr("test_printf('%s', :StrChar(test_frac))");
     ASSERT_TRUE(test_prn);
     ASSERT_STREQ("7", test_prn->GetValueAsString().c_str());
 
-    ObjPtr test_arg = ctx.ExecStr("@test_arg(arg:Rational) := {$arg}", nullptr);
+    ObjPtr test_arg = ctx.ExecStr("@test_arg(arg:Rational) := {$arg}");
     ASSERT_TRUE(test_arg);
     ASSERT_TRUE(test_arg->is_function_type());
     ASSERT_FALSE(test_arg->is_none_type());
-    ASSERT_STREQ("test_arg={}", test_arg->GetValueAsString().c_str());
+    ASSERT_STREQ("test_arg={ }", test_arg->GetValueAsString().c_str());
 
 
 

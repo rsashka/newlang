@@ -25,7 +25,7 @@ std::ostream &operator<<(std::ostream &out, newlang::ObjPtr var) {
     return out;
 }
 
-ObjPtr Interrupt::CreateErrorMessage(const std::string message, const std::string error_name) {
+ObjPtr Return::CreateErrorMessage(const std::string message, const std::string error_name) {
     bool has_error = false;
     ObjType type = typeFromString(error_name, nullptr, &has_error);
 
@@ -43,10 +43,10 @@ ObjPtr Interrupt::CreateErrorMessage(const std::string message, const std::strin
     return result;
 }
 
-Interrupt::Interrupt(const std::string error_message, const std::string type_name) : Interrupt(CreateErrorMessage(error_message, type_name)) {
+Return::Return(const std::string error_message, const std::string type_name) : Return(CreateErrorMessage(error_message, type_name)) {
 }
 
-Interrupt::Interrupt(ObjPtr obj) : m_obj(obj) {
+Return::Return(ObjPtr obj) : m_obj(obj) {
     std::string temp = m_obj->toString();
     size_t pos = temp.find("\n')");
     if(pos == temp.size() - 3) {
@@ -55,7 +55,7 @@ Interrupt::Interrupt(ObjPtr obj) : m_obj(obj) {
     snprintf(m_buffer_message, sizeof (m_buffer_message), "Interrupt%s%s%s!", temp.empty() ? "" : " data: \"", temp.empty() ? "" : temp.c_str(), temp.empty() ? "" : "\"");
 }
 
-const char* Interrupt::what() const noexcept {
+const char* Return::what() const noexcept {
     return &m_buffer_message[0];
 }
 
@@ -742,6 +742,7 @@ void Obj::CloneDataTo(Obj & clone) const {
         clone.m_var_name = m_var_name;
         clone.m_value = m_value;
         clone.m_string = m_string;
+        clone.m_return_obj = m_return_obj;
 
         clone.m_rational = *m_rational.clone();
         clone.m_iterator = m_iterator;
@@ -865,13 +866,24 @@ std::string Obj::toString(bool deep) const {
                 result += at("step").second->GetValueAsString();
                 return result;
 
+            case ObjType::Return:
+            case ObjType::RetPlus:
+            case ObjType::RetMinus:
+                if(m_class_name.empty()) {
+                    result += newlang::toString(m_var_type_current);
+                } else {
+                    result += m_class_name;
+                }
+                result += "(";
+                result += m_return_obj->toString();
+                result += ")";
+                return result;
+
+
             case ObjType::Struct:
             case ObjType::Union:
             case ObjType::Enum:
 
-            case ObjType::IntPlus:
-            case ObjType::IntMinus:
-            case ObjType::Return:
             case ObjType::Error:
             case ObjType::ErrorParser:
             case ObjType::ErrorRunTime:
@@ -937,11 +949,19 @@ std::string Obj::toString(bool deep) const {
                 }
 
             case ObjType::BLOCK:
-                result += "{}";
+                result += "{ }";
                 return result;
 
             case ObjType::BLOCK_TRY:
-                result += "{{}}";
+                result += "{* *}";
+                return result;
+
+            case ObjType::BLOCK_PLUS:
+                result += "{+ +}";
+                return result;
+
+            case ObjType::BLOCK_MINUS:
+                result += "{- -}";
                 return result;
 
             case ObjType::EVAL_FUNCTION: // name=>{function code}
@@ -1123,7 +1143,7 @@ std::string Obj::GetValueAsString() const {
         case ObjType::Function:
         case ObjType::PureFunc:
         case ObjType::EVAL_FUNCTION:
-            return m_var_name + "={}";
+            return m_var_name + "={ }";
 
         case ObjType::Class:
         case ObjType::Dictionary:
@@ -1255,12 +1275,12 @@ bool Obj::CheckArgs() const {
     return !has_error;
 }
 
-ObjPtr Obj::Call(Context *ctx, Obj * args) {
+ObjPtr Obj::Call(Context *ctx, Obj * args, bool direct) {
     if(is_string_type()) {
-        ObjPtr result = Clone();
+        ObjPtr result = direct ? shared() : Clone();
         result->m_value = format(result->m_value, args);
         return result;
-    } else if(is_function_type() || m_var_type_current == ObjType::Type) {
+    } else if(is_function_type() || is_block() || m_var_type_current == ObjType::Type) {
         Obj local;
         ObjPtr param;
         if(m_prototype) {
@@ -1285,8 +1305,8 @@ ObjPtr Obj::Call(Context *ctx, Obj * args) {
             result = (*reinterpret_cast<TransparentType *> (at::get<void *>(m_var)))(ctx, *param.get()); // Непосредственно вызов функции
         } else if(m_var_type_current == ObjType::NativeFunc) {
             result = CallNative(ctx, *param.get());
-        } else if(m_var_type_current == ObjType::EVAL_FUNCTION) {
-            result = Context::CallBlock(ctx, m_sequence, param.get(), Context::CatchType::CATCH_NONE);
+        } else if(m_var_type_current == ObjType::EVAL_FUNCTION || m_var_type_current == ObjType::BLOCK || m_var_type_current == ObjType::BLOCK_TRY || m_var_type_current == ObjType::BLOCK_PLUS || m_var_type_current == ObjType::BLOCK_MINUS) {
+            result = Context::CallBlock(ctx, m_sequence, param.get(), true, Context::CatchType::CATCH_AUTO, nullptr);
         } else {
             LOG_RUNTIME("Call by name not implemted '%s'!", toString().c_str());
         }
@@ -1368,7 +1388,7 @@ ObjPtr Obj::Call(Context *ctx, Obj * args) {
 
     } else if(is_dictionary_type()) {
 
-        ObjPtr result = Clone(); // Копия текущего объекта
+        ObjPtr result = direct ? shared() : Clone(); // Копия текущего объекта
         result->ConvertToArgs_(args, false, ctx); // С обновленными полями, переданными в аргументах
         result->m_class_parents.push_back(shared()); // Текущйи объект становится базовым классом для вновь создаваемого
         return result;
@@ -1376,7 +1396,7 @@ ObjPtr Obj::Call(Context *ctx, Obj * args) {
     } else if(args->size() > 1) {
         LOG_RUNTIME("Unsupported operation for data type %d '%s'", (int) m_var_type_current, toString().c_str());
     }
-    return Clone();
+    return direct ? shared() : Clone();
 }
 
 // Обновить параметры для вызова функции или элементы у словаря при создании копии
@@ -3044,7 +3064,7 @@ ObjPtr Obj::CreateBaseType(ObjType type) {
     std::string func_proto(result->m_class_name);
     func_proto += "(...)";
     func_proto += result->m_class_name;
-    func_proto += ":-{}";
+    func_proto += ":-{ }";
 
     TermPtr proto = Parser::ParseString(func_proto);
     ASSERT(proto->Left());
@@ -3357,10 +3377,6 @@ ObjPtr Obj::ConstructorError_(const Context *ctx, Obj & args) {
     ObjPtr result = ConstructorDictionary_(ctx, args);
     result->m_var_type_current = ObjType::Error;
     result->m_var_type_fixed = ObjType::Error;
-    if(!result->size()) {
-
-        LOG_RUNTIME("Argument for type ':Error' required!");
-    }
     return result;
 }
 

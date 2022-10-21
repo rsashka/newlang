@@ -150,17 +150,17 @@
  *   value_at_object := {  # Код инициализации во время создания экземпляра класса
  *      eval at create object
  *   };  
- *   value_at_object_no_error := {{ # Код инициализации во время создания экземпляра класса без ошибок
+ *   value_at_object_no_error := {* # Код инициализации во время создания экземпляра класса без ошибок
  *      eval at create object
- *   }};  
+ *   *};  
  * 
  *   func_at_class() := eval at create type;  # Тело функции формируется во время создания типа класса (может возвращаться другой функцией)
  *   func() := {  # Код функции для вызова с генерацией исключений
  *      eval at create object
  *   };  
- *   func_no_error() := {{ # Код функции для вызова без генерации исключений
+ *   func_no_error() := {* # Код функции для вызова без генерации исключений
  *      eval at create object
- *   }}; 
+ *   *}; 
  *  
  * };
  * 
@@ -175,7 +175,6 @@
 %token           	STRWIDE		"StrWide"
 %token           	TEMPLATE	"Template"
 %token           	EVAL            "Eval"
-%token           	LAMBDA          "Lambda"
 
 %token			TERM            "Term"
 %token			SYMBOL          "Symbol"
@@ -184,6 +183,7 @@
 %token			OPERATOR_DIV
 %token			OPERATOR_AND
 %token			OPERATOR_PTR
+%token			OPERATOR_ANGLE_EQ
 
 %token			NEWLANG		"@@"
 %token			PARENT		"$$"
@@ -197,14 +197,13 @@
 
 %token			INT_PLUS
 %token			INT_MINUS
+%token			INT_REPEAT
 %token			TRY_PLUS_BEGIN
 %token			TRY_PLUS_END
 %token			TRY_MINUS_BEGIN
 %token			TRY_MINUS_END
 %token			TRY_ALL_BEGIN
 %token			TRY_ALL_END
-%token			TRY_FULL_BEGIN
-%token			TRY_FULL_END
 
 
 %token			FOLLOW
@@ -225,6 +224,7 @@
 %token                  SOURCE
 %token			ITERATOR
 %token			ITERATOR_QQ
+%token			ELSE
 
 %token			PUREFUNC
 %token			OPERATOR
@@ -647,12 +647,12 @@ eval:  EVAL
         {
             $$ = $1;
         }
-/*    |  call   EVAL
+    |  EVAL  call
         {
-            $$ = $2;
-            $$->SetArgs(call);
-        }*/
-        
+            $$ = $1;
+            $$->SetArgs($call);
+        }
+    
 rval_var:  rval_range
             {
                 $$ = $1;
@@ -673,6 +673,10 @@ rval_var:  rval_range
         
         
 rval:   rval_var
+            {
+                $$ = $1;
+            }
+        |  assign_arg
             {
                 $$ = $1;
             }
@@ -883,14 +887,14 @@ class_base: class_name
             }
 
 
-class_props: assign 
+class_props: assign_arg 
             {
                 $$ = $1;
             }
-        | class_props   ';'   assign
+        | class_props   ';'   assign_arg
             {
                 $$ = $1;
-                $$->AppendSequenceTerm($assign);
+                $$->AppendSequenceTerm($3);
             }
             
             
@@ -944,14 +948,14 @@ assign_op:  /* '='
             }
 
 
-assign_expr:  block
+assign_expr:  body_all
                 {
                     $$ = $1;  
                 }
-            | condition
+/*            | condition
                 {
                     $$ = $1;  
-                }
+                } */
             | ELLIPSIS  rval
                 {
                     $$ = $1;  
@@ -972,11 +976,11 @@ assign_item:  lval
                     $$ = $1;
                 }
 
-assign_seq: assign_item
+assign_items: assign_item
                 {
                     $$ = $1;
                 }
-            |  assign_seq  ','  assign_item
+            |  assign_items  ','  assign_item
                 {
                     $$ = $1;
                     $$->AppendCommaTerm($3);
@@ -986,13 +990,27 @@ lval = rval;
 lval, lval, lval = rval;
 func() = rval;
 */
-assign:  assign_seq  assign_op  assign_expr
+assign_arg:  lval  assign_op  assign_expr
             {
                 $$ = $2;  
                 $$->Append($1, Term::LEFT); 
                 $$->Append($3, Term::RIGHT); 
             }
-        | assign_seq  '='  assign_expr
+        | lval  '='  assign_expr
+            {
+                $$ = $2;  
+                $$->SetTermID(TermID::ASSIGN);
+                $$->Append($1, Term::LEFT); 
+                $$->Append($3, Term::RIGHT); 
+            }
+
+assign_seq:  assign_items  assign_op  assign_expr
+            {
+                $$ = $2;  
+                $$->Append($1, Term::LEFT); 
+                $$->Append($3, Term::RIGHT); 
+            }
+        | assign_items  '='  assign_expr
             {
                 $$ = $2;  
                 $$->SetTermID(TermID::ASSIGN);
@@ -1001,19 +1019,6 @@ assign:  assign_seq  assign_op  assign_expr
             }
         
         
-body:   rval
-            {
-                $$ = $1;
-            }
-        |  block
-            {
-                $$ = $1;
-            }
-        |  try
-            {
-                $$ = $1;
-            }
-
 ns: NAMESPACE
             {
                 $$ = $1;
@@ -1023,7 +1028,7 @@ ns: NAMESPACE
                 $$ = $1;
             }
             
-            
+        
 block:  '{'  '}'
             {
                 $$ = $1; 
@@ -1040,61 +1045,60 @@ block:  '{'  '}'
                 $$->ConvertSequenceToBlock(TermID::BLOCK);
             }
 
-block_ns:  ns  '{'  sequence  '}'
+block_ns:   ns  '{'  '}'
+            {
+                $$ = $2; 
+                $$->m_namespace = $ns->GetFullName();
+                $$->SetTermID(TermID::BLOCK);
+            }
+        |  ns  '{'  sequence  '}'
             {
                 $$ = $2; 
                 $$->ConvertSequenceToBlock(TermID::BLOCK);
-                $$->m_namespace = $1->GetFullName();
+                $$->m_namespace = $ns->GetFullName();
             }
         | ns  '{'  sequence  separator  '}'
             {
                 $$ = $2; 
                 $$->ConvertSequenceToBlock(TermID::BLOCK);
-                $$->m_namespace = $1->GetFullName();
-            }
+                $$->m_namespace = $ns->GetFullName();
+            }        
         
-
-try: try_all
-        {
-            $$ = $1;
-        }
-    | try_plus
-        {
-            $$ = $1;
-        }
-    | try_minus
-        {
-            $$ = $1;
-        }
-    | try_full
-        {
-            $$ = $1;
-        }
-    
-block_all: block 
+        
+body:  condition
             {
                 $$ = $1;
             }
-        | block_ns 
+        |  block
             {
                 $$ = $1;
             }
-        | try_plus 
-            {
-                $$ = $1;
-            }
-        | try_minus
+        |  block_ns
             {
                 $$ = $1;
             }
 
-try_all: TRY_ALL_BEGIN  TRY_ALL_END  type_class
+body_all: body
             {
-                $$ = $1; 
-                $$->ConvertSequenceToBlock(TermID::BLOCK_TRY);
-                $$->SetType($type_class);
+                $$ = $1;
             }
-        | TRY_ALL_BEGIN  sequence  TRY_ALL_END
+        |  try_catch
+            {
+                $$ = $1;
+            }
+        |  exit
+            {
+                $$ = $1;
+            }
+
+        
+body_else: ',' else  FOLLOW  body_all
+            {
+                $$ = $4; 
+            }
+
+
+try_all: TRY_ALL_BEGIN  sequence  TRY_ALL_END
             {
                 $$ = $2; 
                 $$->ConvertSequenceToBlock(TermID::BLOCK_TRY);
@@ -1104,48 +1108,7 @@ try_all: TRY_ALL_BEGIN  TRY_ALL_END  type_class
                 $$ = $2; 
                 $$->ConvertSequenceToBlock(TermID::BLOCK_TRY);
             }
-        | TRY_ALL_BEGIN  sequence  TRY_ALL_END  type_class
-            {
-                $$ = $2; 
-                $$->ConvertSequenceToBlock(TermID::BLOCK_TRY);
-                $$->SetType($type_class);
-            }
-        | TRY_ALL_BEGIN  sequence  separator  TRY_ALL_END  type_class
-            {
-                $$ = $2; 
-                $$->ConvertSequenceToBlock(TermID::BLOCK_TRY);
-                $$->SetType($type_class);
-            }
 
-try_full: TRY_FULL_BEGIN  TRY_FULL_END  type_class
-            {
-                $$ = $1; 
-                $$->ConvertSequenceToBlock(TermID::BLOCK_FULL);
-                $$->SetType($type_class);
-            }
-        | TRY_FULL_BEGIN  sequence  TRY_FULL_END
-            {
-                $$ = $2; 
-                $$->ConvertSequenceToBlock(TermID::BLOCK_FULL);
-            }
-        | TRY_FULL_BEGIN  sequence  separator  TRY_FULL_END
-            {
-                $$ = $2; 
-                $$->ConvertSequenceToBlock(TermID::BLOCK_FULL);
-            }
-        | TRY_FULL_BEGIN  sequence  TRY_FULL_END  type_class
-            {
-                $$ = $2; 
-                $$->ConvertSequenceToBlock(TermID::BLOCK_FULL);
-                $$->SetType($type_class);
-            }
-        | TRY_FULL_BEGIN  sequence  separator  TRY_FULL_END  type_class
-            {
-                $$ = $2; 
-                $$->ConvertSequenceToBlock(TermID::BLOCK_FULL);
-                $$->SetType($type_class);
-            }
-        
 try_plus: TRY_PLUS_BEGIN  sequence  TRY_PLUS_END
             {
                 $$ = $2; 
@@ -1168,35 +1131,24 @@ try_minus: TRY_MINUS_BEGIN  sequence  TRY_MINUS_END
                 $$->ConvertSequenceToBlock(TermID::BLOCK_MINUS);
             }
        
-
-try_else: try  ',' ELSE  FOLLOW  body
-            {
-                $$ = $1; 
-                $$->AppendFollow($body); 
-            }
-
-
-lambda_body:  block
+try_catch:  try_plus 
             {
                 $$ = $1;
             }
-        |  try_else
+        | try_minus
             {
                 $$ = $1;
             }
-
-lambda: LAMBDA ')' lambda_body
+        | try_all
             {
-                $$ = $lambda_body;
-//                $$->SetTermID(TermID::LAMBDA);
+                $$ = $1;
             }
-        |  LAMBDA   args   ')'  lambda_body
+        | try_all  type_class
             {
-                $$ = $lambda_body;
-                $$->SetArgs($args);
-//                $$->SetTermID(TermID::LAMBDA);
+                $$ = $1;
+                $$->m_type_name = $type_class->m_text;
             }
-
+        
 /* 
  * lvalue - объект в памяти, которому может быть присовено значение (может быть ссылкой и/или константой)
  * rvalue - объект, которому <НЕ> может быть присвоено значение (литерал, итератор, вызов функции)
@@ -1223,6 +1175,11 @@ operator: OPERATOR
                 $$->SetTermID(TermID::OPERATOR);
             }
         |  OPERATOR_AND
+            {
+                $$ = $1;
+                $$->SetTermID(TermID::OPERATOR);
+            }
+        |  OPERATOR_ANGLE_EQ
             {
                 $$ = $1;
                 $$->SetTermID(TermID::OPERATOR);
@@ -1315,11 +1272,11 @@ source: SOURCE
             {
                 $$=$1;
             }
-        |  source  SOURCE
+/*        |  source  SOURCE
             {
                 $$=$1;
                 $$->Last()->Append($2); 
-            }
+            } */
         
 condition: source
             {
@@ -1355,9 +1312,13 @@ logical:  arithmetic
             }
         
         
-ELSE:   '['  '_'  ']' 
+else:   ELSE
             {
-                 $$ = $1;
+                 $$ = Term::Create(TermID::NONE, "_", 1, & @$);
+            }
+        |  '['  '_'  ']' 
+            {
+                 $$ = Term::Create(TermID::NONE, "_", 1, & @$);
             }
             
 
@@ -1365,8 +1326,12 @@ match_cond: '['   condition   ']'
             {
                 $$ = $condition;
             }
+        |  else
+            {
+                $$ = $else;
+            }
 
-if_then:  match_cond  FOLLOW  body
+if_then:  match_cond  FOLLOW  body_all
             {
                 $$=$2;
                 $$->Append($1, Term::LEFT); 
@@ -1385,27 +1350,27 @@ follow: if_then
             }
         
    
-repeat: body  REPEAT  match_cond
+repeat: body_all  REPEAT  match_cond
             {
                 $$=$2;
                 $$->SetTermID(TermID::DOWHILE);
-                $$->Append($body, Term::LEFT); 
+                $$->Append($body_all, Term::LEFT); 
                 $$->Append($match_cond, Term::RIGHT); 
             }
-        | match_cond  REPEAT  body
+        | match_cond  REPEAT  body_all
             {
                 $$=$2;
                 $$->SetTermID(TermID::WHILE);
                 $$->Append($match_cond, Term::LEFT); 
-                $$->Append($body, Term::RIGHT); 
+                $$->Append($body_all, Term::RIGHT); 
             }
-        | match_cond  REPEAT  body  ','  ELSE  FOLLOW  body
+        | match_cond  REPEAT  body_all  body_else
             {
                 $$=$2;
                 $$->SetTermID(TermID::WHILE);
                 $$->Append($match_cond, Term::LEFT); 
-                $$->Append($3, Term::RIGHT); 
-                $$->AppendFollow($7); 
+                $$->Append($body_all, Term::RIGHT); 
+                $$->AppendFollow($body_else); 
             }
 
 matches:  rval_name
@@ -1449,7 +1414,7 @@ match:  match_cond   MATCHING  match_body
                 $$->Append($1, Term::LEFT); 
                 $$->Append($3, Term::RIGHT);
             }
-        |  block_all  MATCHING  match_body
+        |  body_all  MATCHING  match_body
             {
                 $$=$2;
                 $$->Append($1, Term::LEFT); 
@@ -1475,17 +1440,14 @@ exit:  interrupt
             $$ = $1;
             $$->Append($2, Term::RIGHT); 
         }
-        
+    |  INT_REPEAT   rval   INT_REPEAT
+        {
+            $$ = $1;
+            $$->Append($2, Term::RIGHT); 
+        }
+
 /*  expression - одна операция или результат <ОДНОГО выражения без завершающей точки с запятой !!!!!> */
-seq_item: condition
-            {
-                $$=$1;
-            } 
-        | exit
-            {
-                $$=$1;
-            }
-        | assign
+seq_item: assign_seq
             {
                 $$ = $1;
             }
@@ -1501,10 +1463,6 @@ seq_item: condition
             {
                 $$ = $1; 
             }
-        | try_else
-            {
-                $$ = $1; 
-            }
         |  MACRO
             {
                 $$ = $1;  // Их быть не должно, т.к. макросы должны раскрываться до парсинга синтаксиса
@@ -1513,13 +1471,14 @@ seq_item: condition
             {
                 $$ = $1;  // Их быть не должно, т.к. макросы должны раскрываться до парсинга синтаксиса
             }
-        | lambda 
+        | body_all
             {
                 $$ = $1;
             }
-        | block_all
+        | try_catch  body_else
             {
-                $$ = $1;
+                $$ = $1; 
+                $$->AppendFollow($body_else); 
             }
         
 sequence:  seq_item

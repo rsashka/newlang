@@ -19,7 +19,7 @@ TEST(Compiler, EvalExample) {
 
     TermPtr p;
     Parser parser(p);
-    parser.Parse("newlang(cpp);\n#Simple example\n%{printf(\"Hello world!\");%}");
+    parser.Parse("newlang(cpp);\n#Simple example\n{%printf(\"Hello world!\");%}");
     ASSERT_EQ(2, p->BlockCode().size());
 
     TermPtr op = p->BlockCode()[0];
@@ -945,7 +945,7 @@ TEST(Compiler, DISABLED_FuncsTypes) {
     // Не соответствие типа функции в операторе
     parser.Parse(FUNC_ARG FUNC_RES "\n$res:Int8 := func_arg(100, 100); $res += func_res(100, 100);");
     sstr.str("");
-    ASSERT_THROW(NewLang::MakeCppFile(func, sstr, nullptr, &ctx), Interrupt) << sstr.str();
+    ASSERT_THROW(NewLang::MakeCppFile(func, sstr, nullptr, &ctx), Return) << sstr.str();
 
     // Компилится без ошибок
     parser.Parse(FUNC_ARG "\nfunc_arg(Int8(100), 100);");
@@ -955,17 +955,17 @@ TEST(Compiler, DISABLED_FuncsTypes) {
     // Не соответствие типа первого аргумента
     parser.Parse(FUNC_ARG "\nfunc_arg(1000, 100);");
     sstr.str("");
-    ASSERT_THROW(NewLang::MakeCppFile(func, sstr, nullptr, &ctx), Interrupt) << sstr.str();
+    ASSERT_THROW(NewLang::MakeCppFile(func, sstr, nullptr, &ctx), Return) << sstr.str();
 
     // Не соответствие типа функции
     parser.Parse(FUNC_ARG FUNC_RES "\n$res:Int8 := func_res(100, 1000);");
     sstr.str("");
-    ASSERT_THROW(NewLang::MakeCppFile(func, sstr, nullptr, &ctx), Interrupt) << sstr.str();
+    ASSERT_THROW(NewLang::MakeCppFile(func, sstr, nullptr, &ctx), Return) << sstr.str();
 
     // Не соответствие типа функции в операторе
     parser.Parse(FUNC_ARG FUNC_RES "\n$res:Int8 := func_arg(100, 100); $res += func_res(100, 100);");
     sstr.str("");
-    ASSERT_THROW(NewLang::MakeCppFile(func, sstr, nullptr, &ctx), Interrupt) << sstr.str();
+    ASSERT_THROW(NewLang::MakeCppFile(func, sstr, nullptr, &ctx), Return) << sstr.str();
 
     // Нет типа у $res как в предыдщем случае
     parser.Parse(FUNC_ARG FUNC_RES "\n$res := func_arg(100, 100); $res += func_res(100, 100);");

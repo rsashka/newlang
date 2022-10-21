@@ -144,7 +144,7 @@ term    [$@%]({ualpha}|[_])?({name})?
 }
 
 
-"%{"         {
+"{%"         {
                 BEGIN(state_SOURCE);
                 buffer.clear();
 }
@@ -152,11 +152,6 @@ term    [$@%]({ualpha}|[_])?({name})?
 <state_SOURCE>{
 .                   buffer.append(yytext, yyleng);
 "%}"            {
-                    BEGIN(INITIAL);
-                    *yylval = Term::Create(TermID::SOURCE, buffer.c_str(), buffer.size(), yylloc, source_string);
-                    return token::SOURCE;
-                }
-"}%"            {
                     BEGIN(INITIAL);
                     *yylval = Term::Create(TermID::SOURCE, buffer.c_str(), buffer.size(), yylloc, source_string);
                     return token::SOURCE;
@@ -358,6 +353,35 @@ term    [$@%]({ualpha}|[_])?({name})?
             YY_FATAL_ERROR("Unterminated eval string");
         }
 
+\\[0-7]{1,3}    {
+                    /* octal escape sequence */
+                    int result;
+
+                    (void) sscanf( yytext + 1, "%o", &result );
+                    if ( result > 0xff ) {
+                        YY_FATAL_ERROR("Octal constant is out-of-bounds");
+                    }
+                    char byte = (char)result;
+                    buffer.append(&byte, 1);
+                }
+
+\\[0-9]+ {
+            /* generate error - bad escape sequence; something
+            * like '\48' or '\0777777'
+            */
+            YY_FATAL_ERROR("Bad escape sequence");
+        }
+
+\\n         buffer.append("\n");
+\\t         buffer.append("\t");
+\\r         buffer.append("\r");
+\\b         buffer.append("\b");
+\\f         buffer.append("\f");
+\\s         buffer.append("\x20");
+
+\\(.|\n)    buffer.append(&yytext[1], 1);
+[^\\\n`]+  buffer.append(yytext, yyleng);
+
 .           buffer.append(yytext, yyleng);
             
 
@@ -370,17 +394,14 @@ term    [$@%]({ualpha}|[_])?({name})?
 -?{integer}     YY_TOKEN(INTEGER);
 {number}        YY_TOKEN(NUMBER);
 
-"::"        YY_TOKEN(NAMESPACE);
-"$*"        YY_TOKEN(ARGS);
-"$$"        YY_TOKEN(PARENT);
-"@@"        YY_TOKEN(NEWLANG);
+"[_]"       YY_TOKEN_ONLY(ELSE);
 
 "$"[0-9]+   YY_TOKEN(ARGUMENT);
 {term}      YY_TOKEN(TERM);
 {name}      YY_TOKEN(TERM);
 {macro}     YY_TOKEN(MACRO);
-".."        YY_TOKEN(RANGE);
 "..."       YY_TOKEN(ELLIPSIS);
+".."        YY_TOKEN(RANGE);
 "<->"       YY_TOKEN_ONLY(REPEAT);
 "-->"       YY_TOKEN(FOLLOW);
 "~>"        YY_TOKEN(MATCHING);
@@ -395,14 +416,20 @@ term    [$@%]({ualpha}|[_])?({name})?
 "::-"       YY_TOKEN(PUREFUNC);
 ":-"        YY_TOKEN(PUREFUNC);
 
+"::"        YY_TOKEN(NAMESPACE);
+"$*"        YY_TOKEN(ARGS);
+"$$"        YY_TOKEN(PARENT);
+"@@"        YY_TOKEN(NEWLANG);
+"@*"        YY_TOKEN(ARGS);
+
+
 "++"        YY_TOKEN(INT_PLUS);
 "--"        YY_TOKEN(INT_MINUS);
+"-+"        YY_TOKEN(INT_REPEAT);
+"+-"        YY_TOKEN(INT_REPEAT);
 
-"\\("       YY_TOKEN_ONLY(LAMBDA);
-"{{{"       YY_TOKEN_ONLY(TRY_FULL_BEGIN);
-"}}}"       YY_TOKEN_ONLY(TRY_FULL_END);
-"{{"        YY_TOKEN_ONLY(TRY_ALL_BEGIN);
-"}}"        YY_TOKEN_ONLY(TRY_ALL_END);
+"{*"        YY_TOKEN_ONLY(TRY_ALL_BEGIN);
+"*}"        YY_TOKEN_ONLY(TRY_ALL_END);
 "{+"        YY_TOKEN_ONLY(TRY_PLUS_BEGIN);
 "+}"        YY_TOKEN_ONLY(TRY_PLUS_END);
 "{-"        YY_TOKEN_ONLY(TRY_MINUS_BEGIN);
@@ -445,7 +472,7 @@ term    [$@%]({ualpha}|[_])?({name})?
 "!="        YY_TOKEN(OPERATOR);
 "<="        YY_TOKEN(OPERATOR);
 "<"         YY_TOKEN(OPERATOR);
-">="        YY_TOKEN(OPERATOR);
+">="        YY_TOKEN_ONLY(OPERATOR_ANGLE_EQ);
 ">"         YY_TOKEN(OPERATOR);
 
 

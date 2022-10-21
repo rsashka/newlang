@@ -343,7 +343,7 @@ namespace newlang {
                         }
                     }
 
-                    ObjPtr result = m_ctx.ExecStr(m_eval, m_args.get(), Context::CatchType::CATCH_NONE);
+                    ObjPtr result = m_ctx.ExecStr(m_eval, m_args.get(), Context::CatchType::CATCH_AUTO);
 
                     if (result && m_local_vars.find(result.get()) == m_local_vars.end()) {
                         m_local_vars[result.get()] = result;
@@ -370,7 +370,7 @@ namespace newlang {
                     Interative();
                 }
 
-            } catch (Interrupt &err) {
+            } catch (Return &err) {
                 // Вывод информации об ошибке синтаксиса при парсинге без информации о точке вызова макроса LOG_INFO
                 utils::Logger::LogLevelType save_level = utils::Logger::Instance()->GetLogLevel();
                 utils::Logger::Instance()->SetLogLevel(LOG_LEVEL_INFO);
@@ -627,7 +627,7 @@ namespace newlang {
                         //                    }
                         std::wstring input = buff;
 
-                        ObjPtr res = m_ctx.ExecStr(utf8_encode(input), m_args.get(), Context::CatchType::CATCH_ANY);
+                        ObjPtr res = m_ctx.ExecStr(utf8_encode(input), m_args.get(), Context::CatchType::CATCH_ALL);
 
                         if (res) {
 

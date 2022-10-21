@@ -248,13 +248,13 @@ TEST_F(Lexer, AssignEq) {
 }
 
 TEST_F(Lexer, CodeInner) {
-    ASSERT_EQ(3, Parse("%{if(){%}   %{}else{%}   %{} %}"));
+    ASSERT_EQ(3, Parse("{%if(){%}   {%}else{%}   {%} %}"));
     EXPECT_EQ(3, Count(TermID::SOURCE));
     EXPECT_STREQ("if(){", tokens[0]->getText().c_str()) << tokens[0]->getText().c_str();
     EXPECT_STREQ("}else{", tokens[1]->getText().c_str()) << tokens[1]->getText().c_str();
     EXPECT_STREQ("} ", tokens[2]->getText().c_str()) << tokens[2]->getText().c_str();
 
-    ASSERT_EQ(5, Parse("{ %{if(){%}   %{}else{%}   %{} %} }"));
+    ASSERT_EQ(5, Parse("{ {%if(){%}   {%}else{%}   {%} %} }"));
     EXPECT_EQ(2, Count(TermID::SYMBOL));
     EXPECT_EQ(3, Count(TermID::SOURCE));
     EXPECT_STREQ("{", tokens[0]->getText().c_str()) << tokens[0]->getText().c_str();
@@ -275,15 +275,11 @@ TEST_F(Lexer, Code) {
 }
 
 TEST_F(Lexer, CodeSource) {
-    ASSERT_EQ(1, Parse("%{%}"));
+    ASSERT_EQ(1, Parse("{%%}"));
     EXPECT_EQ(1, Count(TermID::SOURCE));
     EXPECT_STREQ("", tokens[0]->getText().c_str()) << tokens[0]->getText().c_str();
 
-    ASSERT_EQ(1, Parse("%{ % %}"));
-    ASSERT_EQ(1, Count(TermID::SOURCE));
-    ASSERT_STREQ(" % ", tokens[0]->getText().c_str()) << tokens[0]->getText().c_str();
-
-    ASSERT_EQ(1, Parse("%{ % }%"));
+    ASSERT_EQ(1, Parse("{% % %}"));
     ASSERT_EQ(1, Count(TermID::SOURCE));
     ASSERT_STREQ(" % ", tokens[0]->getText().c_str()) << tokens[0]->getText().c_str();
 }
