@@ -76,39 +76,55 @@ Context::Context(RuntimePtr global) : m_llvm_builder(LLVMCreateBuilder()) {
     sys_init = "cygwin_dll_init";
     ffi_file = "cygffi-6.dll";
 #else
-    sys_file = L"msys-2.0.dll";
-    sys_init = "msys_dll_init";
-    ffi_file = "libffi-7.dll";
+    //sys_file = L"msys-2.0.dll";
+    //sys_init = "msys_dll_init";
+    ffi_file = "libffi-6.dll";
 #endif
 
-    m_msys = LoadLibrary(sys_file.c_str());
-    if(!m_msys) {
-        LOG_RUNTIME("Fail LoadLibrary %s: %s", sys_file.c_str(), RunTime::GetLastErrorMessage().c_str());
+    //m_msys = LoadLibrary(sys_file.c_str());
+    //if(!m_msys) {
+    //    LOG_RUNTIME("Fail LoadLibrary %s: %s", sys_file.c_str(), RunTime::GetLastErrorMessage().c_str());
+    //}
+
+    //    typedef void init_type();
+    //    init_type *init = (init_type *) GetProcAddress((HMODULE) m_msys, sys_init.c_str());
+    //    if(m_msys && !init) {
+    //        FreeLibrary((HMODULE) m_msys);
+    //        LOG_RUNTIME("Func %s not found! %s", sys_init.c_str(), RunTime::GetLastErrorMessage().c_str());
+    //        (*init)();
+    //    }
+
+    static void * m_ffi_handle = nullptr;
+
+    if(!m_ffi_handle) {
+        m_ffi_handle = LoadLibrary(utf8_decode(ffi_file).c_str());
+    }
+    if (!m_ffi_handle) {
+        LOG_RUNTIME("Fail load %s!", ffi_file.c_str());
     }
 
-    typedef void init_type();
+    m_ffi_type_void = reinterpret_cast<ffi_type *>(GetProcAddress((HMODULE)m_ffi_handle, "ffi_type_void"));
+    m_ffi_type_uint8 = reinterpret_cast<ffi_type *>(GetProcAddress((HMODULE)m_ffi_handle, "ffi_type_uint8"));
+    m_ffi_type_sint8 = reinterpret_cast<ffi_type *>(GetProcAddress((HMODULE)m_ffi_handle, "ffi_type_sint8"));
+    m_ffi_type_uint16 = reinterpret_cast<ffi_type *>(GetProcAddress((HMODULE)m_ffi_handle, "ffi_type_uint16"));
+    m_ffi_type_sint16 = reinterpret_cast<ffi_type *>(GetProcAddress((HMODULE)m_ffi_handle, "ffi_type_sint16"));
+    m_ffi_type_uint32 = reinterpret_cast<ffi_type *>(GetProcAddress((HMODULE)m_ffi_handle, "ffi_type_uint32"));
+    m_ffi_type_sint32 = reinterpret_cast<ffi_type *>(GetProcAddress((HMODULE)m_ffi_handle, "ffi_type_sint32"));
+    m_ffi_type_uint64 = reinterpret_cast<ffi_type *>(GetProcAddress((HMODULE)m_ffi_handle, "ffi_type_uint64"));
+    m_ffi_type_sint64 = reinterpret_cast<ffi_type *>(GetProcAddress((HMODULE)m_ffi_handle, "ffi_type_sint64"));
+    m_ffi_type_float = reinterpret_cast<ffi_type *>(GetProcAddress((HMODULE)m_ffi_handle, "ffi_type_float"));
+    m_ffi_type_double = reinterpret_cast<ffi_type *>(GetProcAddress((HMODULE)m_ffi_handle, "ffi_type_double"));
+    m_ffi_type_pointer = reinterpret_cast<ffi_type *>(GetProcAddress((HMODULE)m_ffi_handle, "ffi_type_pointer"));
 
-    init_type *init = (init_type *) GetProcAddress((HMODULE) m_msys, sys_init.c_str());
-    if(m_msys && !init) {
-        FreeLibrary((HMODULE) m_msys);
-        LOG_RUNTIME("Func %s not found! %s", sys_init.c_str(), RunTime::GetLastErrorMessage().c_str());
-        (*init)();
-    }
-    m_ffi_handle = LoadLibrary(utf8_decode(ffi_file).c_str());
+    m_ffi_prep_cif = reinterpret_cast<ffi_prep_cif_type *>(GetProcAddress((HMODULE)m_ffi_handle, "ffi_prep_cif"));
+    m_ffi_prep_cif_var = reinterpret_cast<ffi_prep_cif_var_type *>(GetProcAddress((HMODULE)m_ffi_handle, "ffi_prep_cif_var"));
+    m_ffi_call = reinterpret_cast<ffi_call_type *>(GetProcAddress((HMODULE)m_ffi_handle, "ffi_call"));
+
 #else
     //    std::string error;
     if(LLVMLoadLibraryPermanently("libffi") == 0) {
         LOG_RUNTIME("Fail load library libffi!");
     }
-
-
-    //            ffi_file = "libffi.so";
-    //            m_ffi_handle = dlopen(ffi_file.c_str(), RTLD_NOW);
-#endif
-    //
-    //            if (!m_ffi_handle) {
-    //                LOG_RUNTIME("Fail load %s!", ffi_file.c_str());
-    //            }
 
     m_ffi_type_void = static_cast<ffi_type *> (LLVMSearchForAddressOfSymbol("ffi_type_void"));
     m_ffi_type_uint8 = static_cast<ffi_type *> (LLVMSearchForAddressOfSymbol("ffi_type_uint8"));
@@ -127,6 +143,8 @@ Context::Context(RuntimePtr global) : m_llvm_builder(LLVMCreateBuilder()) {
     m_ffi_prep_cif_var = reinterpret_cast<ffi_prep_cif_var_type *> (LLVMSearchForAddressOfSymbol("ffi_prep_cif_var"));
     m_ffi_call = reinterpret_cast<ffi_call_type *> (LLVMSearchForAddressOfSymbol("ffi_call"));
 
+#endif
+
     if(!(m_ffi_type_uint8 && m_ffi_type_sint8 && m_ffi_type_uint16 && m_ffi_type_sint16 &&
             m_ffi_type_uint32 && m_ffi_type_sint32 && m_ffi_type_uint64 && m_ffi_type_sint64 &&
             m_ffi_type_float && m_ffi_type_double && m_ffi_type_pointer && m_ffi_type_void &&
@@ -134,16 +152,6 @@ Context::Context(RuntimePtr global) : m_llvm_builder(LLVMCreateBuilder()) {
         LOG_RUNTIME("Fail init data from libffi!");
     }
 
-
-    //    LLVMInitializeCore(LLVMGetGlobalPassRegistry());
-    //
-    //    /* program init */
-    //    LLVMInitializeNativeTarget();
-    //    LLVMInitializeNativeAsmPrinter();
-    //    LLVMInitializeNativeAsmParser();
-    //    LLVMLinkInMCJIT();
-    //    // Загружает символы исполняемого файла для поиска с помощью SearchForAddressOfSymbol
-    //    LLVMLoadLibraryPermanently(nullptr);
 
     if(Context::m_funcs.empty()) {
 

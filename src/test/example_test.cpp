@@ -68,8 +68,8 @@ TEST(Example, SpeedCPP) {
     // You can uncomment the next line to see all k-mers.
     // cout << s << endl;
     std::chrono::steady_clock::time_point end = std::chrono::steady_clock::now();
-    int sec = std::chrono::duration_cast<std::chrono::seconds>(end - begin).count();
-    int ms = std::chrono::duration_cast<std::chrono::microseconds>(end - begin).count() % 1000000;
+    int sec = (int) std::chrono::duration_cast<std::chrono::seconds>(end - begin).count();
+    int ms = (int) std::chrono::duration_cast<std::chrono::microseconds>(end - begin).count() % 1000000;
     LOG_INFO("Float of generated k-mers: %d  at %d.%d sec", counter, sec, ms);
 
 }
@@ -259,8 +259,8 @@ TEST(Example, DISABLED_Rational) {
     ASSERT_STREQ("OK", result->GetValueAsString().c_str());
 
 
-    int sec = std::chrono::duration_cast<std::chrono::seconds>(end - begin).count();
-    int ms = std::chrono::duration_cast<std::chrono::microseconds>(end - begin).count() % 1000000;
+    int sec = (int) std::chrono::duration_cast<std::chrono::seconds>(end - begin).count();
+    int ms = (int) std::chrono::duration_cast<std::chrono::microseconds>(end - begin).count() % 1000000;
     LOG_INFO("Test rational complete at %d.%d sec", sec, ms);
 
     /*
