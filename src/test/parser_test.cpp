@@ -144,7 +144,7 @@ TEST_F(ParserTest, TermSimple) {
 
 TEST_F(ParserTest, TermName) {
     ASSERT_TRUE(Parse("term.filed();"));
-    ASSERT_EQ(TermID::TERM, ast->getTermID()) << newlang::toString(ast->getTermID());
+    ASSERT_EQ(TermID::NAME, ast->getTermID()) << newlang::toString(ast->getTermID());
     ASSERT_STREQ("term", ast->m_text.c_str());
     ASSERT_TRUE(ast->m_name.empty());
 }
@@ -155,7 +155,7 @@ TEST_F(ParserTest, Tensor1) {
     ASSERT_STREQ("[,]:Int8", ast->toString().c_str());
 
     ASSERT_TRUE(Parse("term[1];"));
-    ASSERT_EQ(TermID::TERM, ast->getTermID()) << newlang::toString(ast->getTermID());
+    ASSERT_EQ(TermID::NAME, ast->getTermID()) << newlang::toString(ast->getTermID());
     ASSERT_STREQ("term", ast->m_text.c_str());
     ASSERT_TRUE(ast->Right());
 
@@ -164,7 +164,7 @@ TEST_F(ParserTest, Tensor1) {
     ASSERT_STREQ("1", (*ast->Right())[0].second->getText().c_str());
 
     ASSERT_TRUE(Parse("term[1..2];"));
-    ASSERT_EQ(TermID::TERM, ast->getTermID()) << newlang::toString(ast->getTermID());
+    ASSERT_EQ(TermID::NAME, ast->getTermID()) << newlang::toString(ast->getTermID());
     ASSERT_STREQ("term[1..2]", ast->toString().c_str());
 
     //    ASSERT_TRUE(ast->Right());
@@ -176,7 +176,7 @@ TEST_F(ParserTest, Tensor1) {
 
 TEST_F(ParserTest, Tensor2) {
     ASSERT_TRUE(Parse("term[1, 2];"));
-    ASSERT_EQ(TermID::TERM, ast->getTermID()) << newlang::toString(ast->getTermID());
+    ASSERT_EQ(TermID::NAME, ast->getTermID()) << newlang::toString(ast->getTermID());
     ASSERT_STREQ("term", ast->m_text.c_str());
     ASSERT_TRUE(ast->Right());
 
@@ -989,7 +989,7 @@ TEST_F(ParserTest, FiledAssign2) {
     ASSERT_TRUE(ast->Left());
     ASSERT_TRUE(ast->Right());
 
-    ASSERT_EQ(TermID::TERM, ast->Left()->getTermID());
+    ASSERT_EQ(TermID::NAME, ast->Left()->getTermID());
     ASSERT_STREQ("term", ast->Left()->m_text.c_str());
     ASSERT_TRUE(ast->Left()->m_name.empty());
 
@@ -1030,7 +1030,7 @@ TEST_F(ParserTest, DISABLED_ArrayAssign2) {
     ASSERT_TRUE(ast->Left());
     ASSERT_TRUE(ast->Right());
 
-    ASSERT_EQ(TermID::TERM, ast->Left()->getTermID());
+    ASSERT_EQ(TermID::NAME, ast->Left()->getTermID());
     ASSERT_STREQ("term", ast->Left()->m_text.c_str());
     ASSERT_TRUE(ast->Left()->m_name.empty());
 
@@ -1754,8 +1754,8 @@ TEST_F(ParserTest, Repeat6) {
 }
 
 TEST_F(ParserTest, Repeat7) {
-    ASSERT_TRUE(Parse("[test[0].@field != $test!] <-> if_1;"));
-    ASSERT_STREQ("[test[0].@field != $test!]<->if_1;", ast->toString().c_str());
+    ASSERT_TRUE(Parse("[test[0].field != $test!] <-> if_1;"));
+    ASSERT_STREQ("[test[0].field != $test!]<->if_1;", ast->toString().c_str());
 }
 
 TEST_F(ParserTest, Range) {
@@ -2234,6 +2234,17 @@ TEST_F(ParserTest, MacroDSL) {
     ASSERT_EQ(7, macros.size());
 
 
+}
+
+TEST_F(ParserTest, Docs) {
+    ASSERT_TRUE(Parse("/** doc */ { }"));
+    ASSERT_TRUE(Parse("/// \n{ }"));
+    ASSERT_TRUE(Parse("{ ///< doc\n }"));
+
+    ASSERT_TRUE(Parse("/** doc\n\n */\n value := { };"));
+    ASSERT_TRUE(Parse("/// doc1 \n/// doc2\n value := { };"));
+    ASSERT_TRUE(Parse("value := 100; ///< doc"));
+    ASSERT_TRUE(Parse("value := 100; ///< doc\n"));
 }
 
 TEST_F(ParserTest, HelloWorld) {

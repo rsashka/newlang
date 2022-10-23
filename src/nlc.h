@@ -429,7 +429,9 @@ namespace newlang {
             color_print("NewLang", title_color);
             color_print(" syntax and commands or ", predict_color);
             color_print("--", main_color);
-            color_print("<Enter> to exit the program.\n", predict_color);
+            color_print("<Enter> (or ", predict_color);
+            color_print("++", main_color);
+            color_print("<Enter>) to exit the program.\n", predict_color);
 
             // Calculate title length
             int title_len = (short) strlen(title);
@@ -615,7 +617,7 @@ namespace newlang {
 
 
                 std::wstring result;
-                if (buff.compare(L"--") == 0 || buff.compare(L"--;") == 0) {
+                if (buff.compare(L"--") == 0 || buff.compare(L"--;") == 0 || buff.compare(L"++") == 0 || buff.compare(L"++;") == 0) {
                     wprintf(L"\n");
                     break;
                 } else if (!buff.empty()) {

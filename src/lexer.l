@@ -83,7 +83,11 @@ number  ({number1}|{number2})
 
 /* number  [-+]?{integer}[.]{integer}([eE][-+]?[0-9]+)? */
 
-term    [$@%]({ualpha}|[_])?({name})?
+/* term    [$@%]({ualpha}|[_])?({name}|{digit})? */
+
+local   $({ualpha}|[_])?({name}|{digit})?
+module  @({ualpha}|[_])?({name}|{digit})?
+native  %({ualpha}|[_])+({name}|{digit})?
 
 %x state_STRWIDE
 %x state_STRCHAR
@@ -91,6 +95,8 @@ term    [$@%]({ualpha}|[_])?({name})?
 %x state_STRCHAR_RAW
 %x state_TEMPLATE1
 %x state_TEMPLATE2
+%x state_DOC_BEFORE
+%x state_DOC_AFTER
 %x state_COMMENT
 %x state_SOURCE
 %x state_MACRO
@@ -105,6 +111,49 @@ term    [$@%]({ualpha}|[_])?({name})?
     // reset location
     yylloc->step();
 %}
+
+"///<"[^\n]* {
+        *yylval = Term::Create(TermID::DOC_AFTER, &yytext[5], yyleng-6, yylloc, source_string);
+        return token::DOC_AFTER;
+}
+
+"///"[^\n]* {
+        *yylval = Term::Create(TermID::DOC_BEFORE, &yytext[4], yyleng-5, yylloc, source_string);
+        return token::DOC_BEFORE;
+}
+
+
+"/**"           {
+                    yy_push_state(state_DOC_BEFORE);
+                    buffer.clear();
+                    buffer.append(yytext, yyleng);
+                }
+
+<state_DOC_BEFORE>{
+
+"/*"            {
+                    YY_FATAL_ERROR("Document comments cannot be nested!");
+                }
+
+\n              {
+                    buffer.append(yytext, yyleng);
+                    yylloc->lines(yyleng); 
+                    yylloc->step();
+                }
+
+"*/"            {
+                    yy_pop_state();
+                    buffer.append(yytext, yyleng);
+                    *yylval = Term::Create(TermID::DOC_BEFORE, buffer.c_str(), buffer.size(), yylloc, source_string);
+                    return token::DOC_BEFORE;
+                }
+
+.               {
+                    buffer.append(yytext, yyleng);
+                }
+
+} /* End of state_DOC_BEFORE state */
+
 
 "/*"            {
                     yy_push_state(state_COMMENT);
@@ -139,7 +188,7 @@ term    [$@%]({ualpha}|[_])?({name})?
 } /* End of state_COMMENT state */
 
 "#"[^\n]* {
-      //  *yylval = Term::Create(TermID::COMMENT, &yytext[2], yyleng-2, yylloc, source_string);
+        //  *yylval = Term::Create(TermID::COMMENT, &yytext[2], yyleng-2, yylloc, source_string);
         //return token::COMMENT;
 }
 
@@ -397,8 +446,10 @@ term    [$@%]({ualpha}|[_])?({name})?
 "[_]"       YY_TOKEN_ONLY(ELSE);
 
 "$"[0-9]+   YY_TOKEN(ARGUMENT);
-{term}      YY_TOKEN(TERM);
-{name}      YY_TOKEN(TERM);
+{name}      YY_TOKEN(NAME);
+{local}     YY_TOKEN(LOCAL);
+{module}    YY_TOKEN(MODULE);
+{native}    YY_TOKEN(NATIVE);
 {macro}     YY_TOKEN(MACRO);
 "..."       YY_TOKEN(ELLIPSIS);
 ".."        YY_TOKEN(RANGE);

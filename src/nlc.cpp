@@ -42,7 +42,6 @@
 #pragma comment(lib, "legacy_stdio_wide_specifiers.lib")
 #pragma comment(lib, "libcrypto_static.lib")
 
-//libcrypto_static.lib
 #endif
 
 #ifdef UNITTEST

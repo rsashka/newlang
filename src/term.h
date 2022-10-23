@@ -18,7 +18,10 @@ namespace newlang {
         _(BLOCK_TRY) \
         _(BLOCK_PLUS) \
         _(BLOCK_MINUS) \
-        _(TERM) \
+        _(NAME) \
+        _(LOCAL) \
+        _(MODULE) \
+        _(NATIVE) \
         _(TYPE) \
         _(CALL) \
         _(TYPE_CALL) \
@@ -29,7 +32,8 @@ namespace newlang {
         _(STRCHAR) \
         _(TEMPLATE) \
         _(EVAL) \
-        _(COMMENT) \
+        _(DOC_BEFORE) \
+        _(DOC_AFTER) \
         \
         _(RATIONAL) \
         \
@@ -178,7 +182,7 @@ namespace newlang {
 
         inline const std::string GetFullName() {
             std::string result(m_text);
-            result.insert(isType(result) ? 1 : 0, m_namespace);
+            //result.insert(isType(result) ? 1 : 0, m_ns_block);
             return result;
         }
 
@@ -229,7 +233,7 @@ namespace newlang {
                 case TermID::ARGUMENT:
                 case TermID::ARGS:
                 case TermID::CALL:
-                case TermID::TERM:
+                case TermID::NAME:
                 case TermID::CREATE:
                 case TermID::RANGE:
                 case TermID::TENSOR:
@@ -314,7 +318,7 @@ namespace newlang {
 
                 case TermID::NONE:
                 case TermID::CALL:
-                case TermID::TERM: // name=(1,second="two",3,<EMPTY>,5)
+                case TermID::NAME: // name=(1,second="two",3,<EMPTY>,5)
                     //                result(m_is_ref ? "&" : "");
                     result = "";
                     temp = shared_from_this();
@@ -334,7 +338,7 @@ namespace newlang {
                     }
 
                     result.insert(0, m_text);
-                    result.insert(0, m_namespace);
+                    //                    result.insert(0, m_namespace);
 
                     if (m_ref) {
                         result.insert(0, m_ref->m_text);
@@ -444,7 +448,7 @@ namespace newlang {
                 case TermID::PUREFUNC:
 
                     result += " " + m_text + " ";
-                    result.insert(0, m_namespace);
+                    //                    result.insert(0, m_namespace);
                     //                result += "{";
                     result += m_right->toString(true);
                     if (!result.empty() && result[result.size() - 1] != ';') {
@@ -604,6 +608,11 @@ namespace newlang {
                         result = "{-";
                     } else {
                         LOG_ABORT("Unknown block type %s (%d)", newlang::toString(m_id), static_cast<uint8_t> (m_id));
+                    }
+
+                    if (!m_ns_block.empty()) {
+                        result.insert(0, " ");
+                        result.insert(0, m_ns_block);
                     }
 
                     for (size_t i = 0; i < m_block.size(); i++) {
@@ -829,11 +838,32 @@ namespace newlang {
             if (args) {
                 args->SetSource(m_source);
             }
-            while (next && next->getTermID() != TermID::END) {
-                push_back(next, next->getName());
+            while (next) {
+                if (next->getTermID() != TermID::END) {
+                    push_back(next, next->getName());
+                }
                 prev = next;
                 next = next->m_comma_seq;
                 prev->m_comma_seq.reset();
+            }
+            return true;
+        }
+
+        inline bool SetDocs(TermPtr docs) {
+            TermPtr next = docs;
+            TermPtr prev;
+
+            //            m_docs.clear();
+            if (docs) {
+                docs->SetSource(m_source);
+            }
+            while (next) {
+                if (next->getTermID() != TermID::END) {
+                    m_docs.push_back(next);
+                }
+                prev = next;
+                next = next->m_right;
+                prev->m_right.reset();
             }
             return true;
         }
@@ -937,6 +967,7 @@ namespace newlang {
             m_block.clear();
             m_follow.clear();
             m_source.reset();
+            m_docs.clear();
         }
 
         inline TermPtr First() {
@@ -1032,7 +1063,7 @@ namespace newlang {
         }
 
         void MakeRef(TermPtr ref) {
-            if (m_id != TermID::TERM || Left() || Right()) {
+            if (m_id != TermID::NAME || Left() || Right()) {
                 LOG_RUNTIME("Cannon make referens value for %s!", toString().c_str());
             }
             m_ref = ref;
@@ -1137,8 +1168,9 @@ namespace newlang {
         std::string m_name;
         std::string m_text;
         std::string m_class_name;
-        std::string m_namespace;
+        std::string m_ns_block;
         std::vector<TermPtr> m_dims;
+        std::vector<TermPtr> m_docs;
 
         BlockType m_block;
         BlockType m_follow;

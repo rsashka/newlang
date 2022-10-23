@@ -72,9 +72,10 @@
  * на другую, если типы аргументов различаются, что эквивалентно замене (добавлению) новой функции для другого типа аргументов.
  * 
  * Как сделать замену одной реализации фнуции на другую для языка с динамиеческой типизацией без перегрузки функций?
- * 1. Сохранять указатель на предыдущую функцию в новой реализации, тогда  нужнны локальные статические переменные и/или деструкторы.
+ * 1. Сохранять указатель на предыдущую функцию в новой реализации, тогда  нужны локальные статические переменные и/или деструкторы.
  * 2. Управлять именами функций средствами языка (не нужны локальные статические переменные и деструкторы, 
- * но нужна лексическая контструкция чтобы указать предыдущую реализацию, а весь список функций можно вытащить итератором)
+ * но нужна лексическая контструкция чтобы обращаться к предыдущей реализации (что эквавалентно досутпу к родительсокму классу),
+ * а весь список функций можно вытащить итератором)
  * 
  * Связанный вопрос - пересечения имен у переменный и функций и их уникальность в одной области видимости.
  * Таготею к подходу в Эсперанто, где по струкутре слова можно понять часть речи и нет двойных смыслов
@@ -138,31 +139,7 @@
  *   var := 1; # публичное поле объекта
  *   _var := 1; # защиенное поле объекта
  *   __var := 1; # приватное поле объекта
- *   __var__ := 1; # Системное 
- *   var1, var2, var3:Int32 := _;  # Переменная объекта
- * 
- *   :class.var_class  - к статическому полю
- * 
- *   :class::base2.field  - к статическому полю
- *   class::base2.field  - к обычному полю
- * 
- *   value_at_class := eval at create type;  # Код инициализации во время создания типа класса
- *   value_at_object := {  # Код инициализации во время создания экземпляра класса
- *      eval at create object
- *   };  
- *   value_at_object_no_error := {* # Код инициализации во время создания экземпляра класса без ошибок
- *      eval at create object
- *   *};  
- * 
- *   func_at_class() := eval at create type;  # Тело функции формируется во время создания типа класса (может возвращаться другой функцией)
- *   func() := {  # Код функции для вызова с генерацией исключений
- *      eval at create object
- *   };  
- *   func_no_error() := {* # Код функции для вызова без генерации исключений
- *      eval at create object
- *   *}; 
- *  
- * };
+ *   __var__ := 1; # Дестурктор или системное поле
  * 
  */
 
@@ -176,8 +153,11 @@
 %token           	TEMPLATE	"Template"
 %token           	EVAL            "Eval"
 
-%token			TERM            "Term"
-%token			SYMBOL          "Symbol"
+%token			NAME
+%token			LOCAL
+%token			MODULE
+%token			NATIVE
+%token			SYMBOL
 
 %token			UNKNOWN		"Token ONLY UNKNOWN"
 %token			OPERATOR_DIV
@@ -228,40 +208,15 @@
 
 %token			PUREFUNC
 %token			OPERATOR
+%token			DOC_BEFORE
+%token			DOC_AFTER
 
 
-/* Есть предупреждения, связанные с выполняемым кодом
- * shift/reduce conflict on token '{'
- * shift/reduce conflict on token '%{'
- *  */
-//%expect 2
-/* Можно сделать проверку синтаксиса для чистых функций на уровне парсера, но придется делать два варианта основных операций 
- * (кода, выражений, логики и т.д.) только с разрешенными объектами */
-
-/*
-%left '+' '-'
-%left '*' '/'
-%nonassoc ABS NEG
+/* Есть предупреждения, parser.y: предупреждение: shift/reduce conflict on token ';' [-Wcounterexamples]
+  First example: assign_items '=' assign_expr • ';' doc_after "end of file"
+  Second example: assign_items '=' assign_expr • ';' "end of file"
 */
-
-/* %glr-parser */
-/*
-%right '='  CREATE  CREATE_OR_ASSIGN   APPEND
-%left  '-' '+'
-%left  '*' '/' '%'
-%left  NEG     
-%right CONCAT  POWER    // Exponentiation
-*/
-
-/*%left  '-' '+'
-%left  '*' '/' '%' */
-/*%left  '-' '+'
-%left  NEG */
-
 //%expect 2
-/* () - вызов без аргументов может быть rcall и lcall 
- * ; - разделители игнорируются в любом количестве
- */
 
 %% /*** Grammar Rules ***/
 
@@ -282,9 +237,27 @@ symbols: SYMBOL
                 $$->AppendText($2->getText());
             }
 
-fragment:  TERM
+fragment:  NAME  /* без модификатора */
             {
                 $$ = $1;
+                $$->TestConst();
+            }
+        |  LOCAL
+            {
+                $$ = $1;
+                $$->SetTermID(TermID::NAME);
+                $$->TestConst();
+            }
+        |  MODULE
+            {
+                $$ = $1;
+                $$->SetTermID(TermID::NAME);
+                $$->TestConst();
+            }
+        |  NATIVE
+            {
+                $$ = $1;
+                $$->SetTermID(TermID::NAME);
                 $$->TestConst();
             }
 
@@ -295,19 +268,27 @@ namespace:  fragment
         | namespace  NAMESPACE  fragment
             {
                 $$ = $3;
-                $$->m_namespace = $1->m_namespace;
-                $$->m_namespace += $1->m_text;
-                $$->m_namespace += "::";
+                $$->m_text.insert(0, "::");
+                $$->m_text.insert(0, $1->m_text);
+                //$$->m_namespace = $1->GetFullName();
+                //$$->m_namespace += "::";
+                //$$->m_namespace = $1->m_namespace;
+                //$$->m_namespace = $1->GetFullName();
+                //$$->m_namespace += "::";
             }
             
 name:  namespace
             {
                 $$ = $1;
             }
+        | NAMESPACE
+            {
+                $$ = $1;
+            }
         | NAMESPACE  namespace
             {
                 $$ = $2;
-                $$->m_namespace.insert(0, "::");
+                $$->m_text.insert(0, "::");
             }
 
 /* Фиксированная размерность тензоров для использования в типах данных */
@@ -365,14 +346,14 @@ type_name:  type_class
                 $$ = $1;
                 $$->SetDims($type_dims);
             }
-        | ':'  ptr  TERM
+        | ':'  ptr  NAME
             {
                 // Для функций, возвращаюющих ссылки
                 $$ = $3;
                 $$->m_text.insert(0, ":");
                 $$->MakeRef($ptr);
             }
-        | ':'   ptr   TERM   '['  type_dims   ']'
+        | ':'   ptr   NAME   '['  type_dims   ']'
             {
                 // Для функций, возвращаюющих ссылки
                 $$ = $3;
@@ -487,18 +468,27 @@ string: strtype
             $$->SetArgs($2);
         }
    
-        
-/* Допустимые имена переменных и функций. Деструктор с ~ выявляеся на этапе анализа, а не парсинга, т.к. это обычный термин
-name:  TERM
+
+doc_before: DOC_BEFORE 
             {
-                  $$ = $1;
-            }
-        |  namespace  TERM
+                $$ = $1;
+            }    
+        | doc_before  DOC_BEFORE 
             {
-                $$ = $2;  
-                $$->m_namespace.swap($1->m_namespace);
-            }
-*/
+                $$ = $1;
+                $$->Last()->Append($2);
+            }    
+    
+doc_after: DOC_AFTER
+            {
+                $$ = $1;
+            }    
+        | doc_after  DOC_AFTER
+            {
+                $$ = $1;
+                $$->Last()->Append($2);
+            }    
+
         
 arg_name: name 
         {
@@ -524,7 +514,7 @@ assign_name:  name
             |  namespace  symbols
                 {
                     $$ = $2;  
-                    $$->m_namespace.swap($1->m_namespace);
+                    $$->m_text.insert(0, $1->m_text);
                     $$->TestConst();
                 }
             | ARGUMENT  /* $123 */
@@ -554,27 +544,27 @@ lval:  assign_name
                 $2->SetArgs($args);
                 $$->Last()->Append($2);
             }
-        |  lval  '.'  TERM
+        |  lval  '.'  NAME
             {
                 $$ = $1; 
                 $3->SetTermID(TermID::FIELD);
                 $$->Last()->Append($3);
             }
-        |  lval  '.'  TERM  call
+        |  lval  '.'  NAME  call
             {
                 $$ = $1; 
                 $3->SetTermID(TermID::FIELD);
                 $3->SetArgs($call);
                 $$->Last()->Append($3);
             }
-        |  lval  '.'  TERM  type
+        |  lval  '.'  NAME  type
             {
                 $$ = $1; 
                 $3->SetTermID(TermID::FIELD);
                 $3->SetType($type);
                 $$->Last()->Append($3);
             }
-        |  lval  '.'  TERM  call  type
+        |  lval  '.'  NAME  call  type
             {
                 $$ = $1; 
                 $3->SetTermID(TermID::FIELD);
@@ -910,6 +900,20 @@ class_def: class_base '{'  '}'
                 $$->m_base = $1;
                 $$->ConvertSequenceToBlock(TermID::CLASS);
             }
+        | class_base '{' doc_after  '}'
+            {
+                $$ = $2;
+                $$->m_base = $1;
+                $$->SetTermID(TermID::CLASS);
+                $$->SetDocs($doc_after);
+            }
+        | class_base '{' doc_after  class_props  ';'  '}'
+            {
+                $$ = $class_props;
+                $$->m_base = $1;
+                $$->ConvertSequenceToBlock(TermID::CLASS);
+                $$->SetDocs($doc_after);
+            }
         
         
 collection: array 
@@ -1019,16 +1023,6 @@ assign_seq:  assign_items  assign_op  assign_expr
             }
         
         
-ns: NAMESPACE
-            {
-                $$ = $1;
-            }
-        | name
-            {
-                $$ = $1;
-            }
-            
-        
 block:  '{'  '}'
             {
                 $$ = $1; 
@@ -1036,32 +1030,71 @@ block:  '{'  '}'
             }
         | '{'  sequence  '}'
             {
-                $$ = $2; 
+                $$ = $sequence; 
                 $$->ConvertSequenceToBlock(TermID::BLOCK);
             }
         | '{'  sequence  separator  '}'
             {
-                $$ = $2; 
+                $$ = $sequence; 
                 $$->ConvertSequenceToBlock(TermID::BLOCK);
+            }
+        |  '{'  doc_after  '}'
+            {
+                $$ = $1; 
+                $$->SetTermID(TermID::BLOCK);
+                $$->SetDocs($doc_after);
+            }
+        | '{'  doc_after  sequence  '}'
+            {
+                $$ = $sequence; 
+                $$->ConvertSequenceToBlock(TermID::BLOCK);
+                $$->SetDocs($doc_after);
+            }
+        | '{'  doc_after  sequence  separator  '}'
+            {
+                $$ = $sequence; 
+                $$->ConvertSequenceToBlock(TermID::BLOCK);
+                $$->SetDocs($doc_after);
             }
 
-block_ns:   ns  '{'  '}'
+block_ns:  name  '{'  '}'
             {
                 $$ = $2; 
-                $$->m_namespace = $ns->GetFullName();
+                $$->m_ns_block = $name->GetFullName();
                 $$->SetTermID(TermID::BLOCK);
             }
-        |  ns  '{'  sequence  '}'
+        | name  '{'  sequence  '}'
             {
-                $$ = $2; 
+                $$ = $sequence; 
                 $$->ConvertSequenceToBlock(TermID::BLOCK);
-                $$->m_namespace = $ns->GetFullName();
+                $$->m_ns_block = $name->GetFullName();
             }
-        | ns  '{'  sequence  separator  '}'
+        | name  '{'  sequence  separator  '}'
+            {
+                $$ = $sequence; 
+                $$->ConvertSequenceToBlock(TermID::BLOCK);
+                $$->m_ns_block = $name->GetFullName();
+            }        
+        | name  '{' doc_after '}'
             {
                 $$ = $2; 
+                $$->SetTermID(TermID::BLOCK);
+                $$->m_ns_block = $name->GetFullName();
+                $$->SetDocs($doc_after);
+            }
+        |  name  '{'  doc_after  sequence  '}'
+            {
+                $$ = $sequence; 
                 $$->ConvertSequenceToBlock(TermID::BLOCK);
-                $$->m_namespace = $ns->GetFullName();
+                $$->m_ns_block = $name->GetFullName();
+                $$->SetDocs($doc_after);
+            }
+        | name  '{'  doc_after  sequence  separator  '}'
+            {
+                $$ = $sequence; 
+                $$->ConvertSequenceToBlock(TermID::BLOCK);
+                $$->m_ns_block = $name->GetFullName();
+                $$->SetDocs($doc_after);
             }        
         
         
@@ -1076,6 +1109,16 @@ body:  condition
         |  block_ns
             {
                 $$ = $1;
+            }
+        |  doc_before  block
+            {
+                $$ = $block;
+                $$->SetDocs($doc_before);
+            }
+        |  doc_before  block_ns
+            {
+                $$ = $block_ns;
+                $$->SetDocs($doc_before);
             }
 
 body_all: body
@@ -1451,6 +1494,16 @@ seq_item: assign_seq
             {
                 $$ = $1;
             }
+        | doc_before assign_seq
+            {
+                $$ = $assign_seq;
+                $$->SetDocs($doc_before);
+            }
+/*        | assign_seq  doc_after
+            {
+                $$ = $assign_seq;
+                $$->SetDocs($doc_after);
+            }*/
         | follow
             {
                 $$ = $1; 
@@ -1485,13 +1538,24 @@ sequence:  seq_item
             {
                 $$ = $1;  
             }
+        | seq_item  doc_after
+            {
+                $$ = $1;  
+                $$->SetDocs($doc_after);
+            }
         | sequence  separator  seq_item
             {
                 $$ = $1;  
                 // Несколько команд подряд
                 $$->AppendSequenceTerm($seq_item);
             }
-
+        | sequence  separator  doc_after  seq_item
+            {
+                $$ = $1;  
+                $$->SetDocs($doc_after);
+                // Несколько команд подряд
+                $$->AppendSequenceTerm($seq_item);
+            }
 
 separator: ';' | separator  ';'        
         
@@ -1500,15 +1564,20 @@ ast:    END
         | separator
         | sequence
             {
-               driver.AstAddTerm($1);
+                driver.AstAddTerm($1);
             }
         | sequence separator
             {
-               driver.AstAddTerm($1);
+                driver.AstAddTerm($1);
+            }
+        | sequence separator  doc_after
+            {
+                $1->SetDocs($doc_after);
+                driver.AstAddTerm($1);
             }
 /*        | comment     Комменатарии не добавляются в AST, т.к. в парсере они не нужны, а
                         их потенциальное использование - документирование кода, решается 
-                        в Python стиле (первый текстовый литерал в коде)
+                        элементами DOC_BEFORE и DOC_AFTER
 */
 
 start	:   ast

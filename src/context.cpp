@@ -7,7 +7,6 @@
 #include <types.h>
 #include <filesystem>
 #include <stdbool.h>
-//#include <c++/9/bits/exception.h>
 
 using namespace newlang;
 
@@ -99,26 +98,26 @@ Context::Context(RuntimePtr global) : m_llvm_builder(LLVMCreateBuilder()) {
     if(!m_ffi_handle) {
         m_ffi_handle = LoadLibrary(utf8_decode(ffi_file).c_str());
     }
-    if (!m_ffi_handle) {
+    if(!m_ffi_handle) {
         LOG_RUNTIME("Fail load %s!", ffi_file.c_str());
     }
 
-    m_ffi_type_void = reinterpret_cast<ffi_type *>(GetProcAddress((HMODULE)m_ffi_handle, "ffi_type_void"));
-    m_ffi_type_uint8 = reinterpret_cast<ffi_type *>(GetProcAddress((HMODULE)m_ffi_handle, "ffi_type_uint8"));
-    m_ffi_type_sint8 = reinterpret_cast<ffi_type *>(GetProcAddress((HMODULE)m_ffi_handle, "ffi_type_sint8"));
-    m_ffi_type_uint16 = reinterpret_cast<ffi_type *>(GetProcAddress((HMODULE)m_ffi_handle, "ffi_type_uint16"));
-    m_ffi_type_sint16 = reinterpret_cast<ffi_type *>(GetProcAddress((HMODULE)m_ffi_handle, "ffi_type_sint16"));
-    m_ffi_type_uint32 = reinterpret_cast<ffi_type *>(GetProcAddress((HMODULE)m_ffi_handle, "ffi_type_uint32"));
-    m_ffi_type_sint32 = reinterpret_cast<ffi_type *>(GetProcAddress((HMODULE)m_ffi_handle, "ffi_type_sint32"));
-    m_ffi_type_uint64 = reinterpret_cast<ffi_type *>(GetProcAddress((HMODULE)m_ffi_handle, "ffi_type_uint64"));
-    m_ffi_type_sint64 = reinterpret_cast<ffi_type *>(GetProcAddress((HMODULE)m_ffi_handle, "ffi_type_sint64"));
-    m_ffi_type_float = reinterpret_cast<ffi_type *>(GetProcAddress((HMODULE)m_ffi_handle, "ffi_type_float"));
-    m_ffi_type_double = reinterpret_cast<ffi_type *>(GetProcAddress((HMODULE)m_ffi_handle, "ffi_type_double"));
-    m_ffi_type_pointer = reinterpret_cast<ffi_type *>(GetProcAddress((HMODULE)m_ffi_handle, "ffi_type_pointer"));
+    m_ffi_type_void = reinterpret_cast<ffi_type *> (GetProcAddress((HMODULE) m_ffi_handle, "ffi_type_void"));
+    m_ffi_type_uint8 = reinterpret_cast<ffi_type *> (GetProcAddress((HMODULE) m_ffi_handle, "ffi_type_uint8"));
+    m_ffi_type_sint8 = reinterpret_cast<ffi_type *> (GetProcAddress((HMODULE) m_ffi_handle, "ffi_type_sint8"));
+    m_ffi_type_uint16 = reinterpret_cast<ffi_type *> (GetProcAddress((HMODULE) m_ffi_handle, "ffi_type_uint16"));
+    m_ffi_type_sint16 = reinterpret_cast<ffi_type *> (GetProcAddress((HMODULE) m_ffi_handle, "ffi_type_sint16"));
+    m_ffi_type_uint32 = reinterpret_cast<ffi_type *> (GetProcAddress((HMODULE) m_ffi_handle, "ffi_type_uint32"));
+    m_ffi_type_sint32 = reinterpret_cast<ffi_type *> (GetProcAddress((HMODULE) m_ffi_handle, "ffi_type_sint32"));
+    m_ffi_type_uint64 = reinterpret_cast<ffi_type *> (GetProcAddress((HMODULE) m_ffi_handle, "ffi_type_uint64"));
+    m_ffi_type_sint64 = reinterpret_cast<ffi_type *> (GetProcAddress((HMODULE) m_ffi_handle, "ffi_type_sint64"));
+    m_ffi_type_float = reinterpret_cast<ffi_type *> (GetProcAddress((HMODULE) m_ffi_handle, "ffi_type_float"));
+    m_ffi_type_double = reinterpret_cast<ffi_type *> (GetProcAddress((HMODULE) m_ffi_handle, "ffi_type_double"));
+    m_ffi_type_pointer = reinterpret_cast<ffi_type *> (GetProcAddress((HMODULE) m_ffi_handle, "ffi_type_pointer"));
 
-    m_ffi_prep_cif = reinterpret_cast<ffi_prep_cif_type *>(GetProcAddress((HMODULE)m_ffi_handle, "ffi_prep_cif"));
-    m_ffi_prep_cif_var = reinterpret_cast<ffi_prep_cif_var_type *>(GetProcAddress((HMODULE)m_ffi_handle, "ffi_prep_cif_var"));
-    m_ffi_call = reinterpret_cast<ffi_call_type *>(GetProcAddress((HMODULE)m_ffi_handle, "ffi_call"));
+    m_ffi_prep_cif = reinterpret_cast<ffi_prep_cif_type *> (GetProcAddress((HMODULE) m_ffi_handle, "ffi_prep_cif"));
+    m_ffi_prep_cif_var = reinterpret_cast<ffi_prep_cif_var_type *> (GetProcAddress((HMODULE) m_ffi_handle, "ffi_prep_cif_var"));
+    m_ffi_call = reinterpret_cast<ffi_call_type *> (GetProcAddress((HMODULE) m_ffi_handle, "ffi_call"));
 
 #else
     //    std::string error;
@@ -587,10 +586,23 @@ inline ObjPtr Context::eval_EMPTY(Context *ctx, const TermPtr &term, Obj *args, 
     return nullptr;
 }
 
-ObjPtr Context::eval_TERM(Context *ctx, const TermPtr &term, Obj *args, bool eval_block) {
-    ASSERT(term && term->m_id == TermID::TERM);
+ObjPtr Context::eval_NAME(Context *ctx, const TermPtr &term, Obj *args, bool eval_block) {
+    ASSERT(term && term->m_id == TermID::NAME);
 
     return CreateRVal(ctx, term, args);
+}
+
+ObjPtr Context::eval_LOCAL(Context *ctx, const TermPtr &term, Obj *args, bool eval_block) {
+    LOG_RUNTIME("LOCAL Not implemented!");
+    return nullptr;
+}
+ObjPtr Context::eval_MODULE(Context *ctx, const TermPtr &term, Obj *args, bool eval_block) {
+    LOG_RUNTIME("MODULE Not implemented!");
+    return nullptr;
+}
+ObjPtr Context::eval_NATIVE(Context *ctx, const TermPtr &term, Obj *args, bool eval_block) {
+    LOG_RUNTIME("NATIVE Not implemented!");
+    return nullptr;
 }
 
 ObjPtr Context::eval_CALL(Context *ctx, const TermPtr &term, Obj *args, bool eval_block) {
@@ -609,8 +621,14 @@ ObjPtr Context::eval_TEMPLATE(Context *ctx, const TermPtr &term, Obj *args, bool
     return nullptr;
 }
 
-ObjPtr Context::eval_COMMENT(Context *ctx, const TermPtr &term, Obj *args, bool eval_block) {
-    LOG_RUNTIME("COMMENT Not implemented!");
+ObjPtr Context::eval_DOC_BEFORE(Context *ctx, const TermPtr &term, Obj *args, bool eval_block) {
+    LOG_RUNTIME("DOC_BEFORE Not implemented!");
+
+    return nullptr;
+}
+
+ObjPtr Context::eval_DOC_AFTER(Context *ctx, const TermPtr &term, Obj *args, bool eval_block) {
+    LOG_RUNTIME("DOC_AFTER Not implemented!");
 
     return nullptr;
 }
@@ -678,9 +696,9 @@ ObjPtr Context::CREATE_OR_ASSIGN(Context *ctx, const TermPtr &term, Obj *local_v
         } else if(elem->getTermID() == TermID::NONE) {
             result = Obj::CreateNone();
         } else {
-            auto found = ctx->find(elem->m_text);
+            auto found = ctx->find(ctx->NamespaseFull(elem->GetFullName()));
             if(found == ctx->end() && mode == CreateMode::ASSIGN_ONLY) {
-                NL_PARSER(elem, "Variable '%s' not found!", elem->m_text.c_str());
+                NL_PARSER(elem, "Variable '%s' (%s) not found!", elem->m_text.c_str(), ctx->NamespaseFull(elem->GetFullName()).c_str());
             }
 
             if(found != ctx->end()) {
@@ -688,14 +706,14 @@ ObjPtr Context::CREATE_OR_ASSIGN(Context *ctx, const TermPtr &term, Obj *local_v
             }
 
             if(result && mode == CreateMode::CREATE_ONLY) {
-                NL_PARSER(elem, "Variable '%s' already exists!", elem->m_text.c_str());
+                NL_PARSER(elem, "Variable '%s' (%s) already exists!", elem->m_text.c_str(), ctx->NamespaseFull(elem->GetFullName()).c_str());
             }
 
             if(!term->Right()) { // Удаление глобальной переменной
                 ctx->ListType::erase(found);
             } else {
                 if(!result && (mode == CreateMode::ASSIGN_ONLY)) {
-                    NL_PARSER(term->Left(), "Object '%s' not found!", term->Left()->m_text.c_str());
+                    NL_PARSER(term->Left(), "Object '%s' (%s) not found!", term->Left()->m_text.c_str(), ctx->NamespaseFull(elem->GetFullName()).c_str());
                 }
                 if(!result) {
                     result = CreateLVal(ctx, elem, local_vars);
@@ -808,7 +826,7 @@ ObjPtr Context::eval_CREATE(Context *ctx, const TermPtr &term, Obj * local_vars,
 
 ObjPtr Context::eval_CREATE_OR_ASSIGN(Context *ctx, const TermPtr &term, Obj * args, bool eval_block) {
 
-    return CREATE_OR_ASSIGN(ctx, term, args, CreateMode::CREATE_OR_ASSIGN);
+    return CREATE_OR_ASSIGN(ctx, term, args, CreateMode::CREATE_AUTO);
 }
 
 ObjPtr Context::eval_APPEND(Context *ctx, const TermPtr &term, Obj * args, bool eval_block) {
@@ -1497,34 +1515,46 @@ ObjPtr Context::CallBlock(Context *ctx, const TermPtr &block, Obj * local_vars, 
         auto_type = block->GetTokenID();
     }
 
-    //    switch(auto_type) {
-    //        case TermID::INT_PLUS:
-    //            auto_type = TermID::BLOCK_PLUS;
-    //            break;
-    //        case TermID::INT_MINUS:
-    //            auto_type = TermID::BLOCK_MINUS;
-    //            break;
-    //    }
-
-
     try {
 
         if(!block->m_block.empty()) {
+
             for (size_t i = 0; i < block->m_block.size(); i++) {
-
-
-                //                result = Eval(ctx, block->m_block[i], local_vars, eval_block, CatchType::CATCH_NONE);
                 if(block->m_block[i]->IsBlock()) {
-                    result = CallBlock(ctx, block->m_block[i], local_vars, eval_block, CatchType::CATCH_AUTO, has_interrupt);
+                    LOG_DEBUG("NS %s (%d)", block->m_block[i]->m_ns_block.c_str(), (int)ctx->m_ns_stack.size());
+                    bool is_ns = ctx->NamespasePush(block->m_block[i]->m_ns_block);
+                    try {
+                        result = CallBlock(ctx, block->m_block[i], local_vars, eval_block, CatchType::CATCH_AUTO, has_interrupt);
+                    } catch (...) {
+                        if(is_ns) {
+                            ctx->NamespasePop();
+                        }
+                        throw;
+                    }
+                    if(is_ns) {
+                        ctx->NamespasePop();
+                    }
                 } else {
+                    //                    LOG_DEBUG("Eval: %s", block->m_block[i]->toString().c_str());
                     result = Eval(ctx, block->m_block[i], local_vars, eval_block, CatchType::CATCH_NONE);
                 }
-
             }
+
         } else {
-            //            result = Eval(ctx, block, local_vars, eval_block, CatchType::CATCH_NONE);
             if(block->IsBlock()) {
-                result = CallBlock(ctx, block, local_vars, eval_block, CatchType::CATCH_AUTO, has_interrupt);
+                LOG_DEBUG("NS %s (%d)", block->m_ns_block.c_str(), (int)ctx->m_ns_stack.size());
+                bool is_ns = ctx->NamespasePush(block->m_ns_block);
+                try {
+                    result = CallBlock(ctx, block, local_vars, eval_block, CatchType::CATCH_AUTO, has_interrupt);
+                } catch (...) {
+                    if(is_ns) {
+                        ctx->NamespasePop();
+                    }
+                    throw;
+                }
+                if(is_ns) {
+                    ctx->NamespasePop();
+                }
             } else {
                 result = Eval(ctx, block, local_vars, eval_block, CatchType::CATCH_NONE);
             }
@@ -1628,7 +1658,7 @@ ObjPtr Context::CreateNative(TermPtr proto, const char *module, bool lazzy, cons
 
     ObjPtr result;
     ObjType type = ObjType::None;
-    if(proto->GetTokenID() == TermID::TERM) {
+    if(proto->GetTokenID() == TermID::NAME) {
         if(proto->m_type_name.empty()) {
             LOG_RUNTIME("Cannot create native variable without specifying the type!");
         }
@@ -1849,7 +1879,7 @@ ObjPtr Context::CreateLVal(Context *ctx, TermPtr term, Obj * args) {
 
     ctx->CleanUp();
 
-    auto iter = ctx->find(term->m_text);
+    auto iter = ctx->find(ctx->NamespaseFull(term->GetFullName()));
 
     if(iter != ctx->end()) {
         ObjPtr obj = (*iter).second.lock();
@@ -1865,7 +1895,7 @@ ObjPtr Context::CreateLVal(Context *ctx, TermPtr term, Obj * args) {
 
     ObjPtr result = Obj::CreateNone();
     result->m_var_is_init = false;
-    result->m_var_name = term->m_text;
+    result->m_var_name = ctx->NamespaseFull(term->GetFullName());
 
     *const_cast<TermPtr *> (&result->m_prototype) = term;
 
@@ -1897,7 +1927,7 @@ ObjPtr Context::CreateLVal(Context *ctx, TermPtr term, Obj * args) {
             result->m_tensor = torch::empty(dims, toTorchType(result->m_var_type_current));
         }
     }
-    if(!isType(term->m_text)) {
+    if(!isType(term->GetFullName())) {
 
         ctx->RegisterObject(result);
     }
@@ -2170,7 +2200,7 @@ ObjPtr Context::CreateRVal(Context *ctx, TermPtr term, Obj * local_vars, bool ev
             result->m_var_is_init = false;
             return result;
 
-        case TermID::TERM:
+        case TermID::NAME:
             if(term->GetType()) {
 
                 result->m_var_type_current = typeFromString(term->GetType()->m_text, ctx);
@@ -2289,6 +2319,7 @@ ObjPtr Context::CreateRVal(Context *ctx, TermPtr term, Obj * local_vars, bool ev
 
 
                     ObjPtr expr = ctx->FindTerm((*term)[i].second->Right()->GetFullName());
+                    ASSERT(expr);
 
                     if((*term)[i].second->Right()->getTermID() != TermID::CALL) {
                         LOG_RUNTIME("Operator filling supported function call only!");

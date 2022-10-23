@@ -785,19 +785,6 @@ void Obj::ClonePropTo(Obj & clone) const {
     }
 }
 
-void Obj::SetTermProp(Term & term) {
-    m_namespace = term.m_namespace;
-}
-
-//void newlang::calcTensorDims(ObjPtr &obj, std::vector<int64_t> &dims) {
-//    if(obj->is_dictionary_type()) {
-//        dims.push_back(obj->size());
-//        if(obj->size()) {
-//            calcTensorDims(obj->at(0).second, dims);
-//        }
-//    }
-//}
-
 ObjPtr Obj::GetIndex(ObjPtr obj, TermPtr index_arg) {
     ASSERT(index_arg->size() == 1);
     TermPtr index = index_arg->at(0).second;
@@ -1220,7 +1207,6 @@ Obj::Obj(Context *ctx, const TermPtr term, bool as_value, Obj * local_vars) {
         NL_CHECK(term, "Fail term!");
     }
 
-    m_namespace = term->m_namespace;
     m_is_reference = !!term->m_ref;
     m_var_name = term->m_name.empty() ? term->m_text : term->m_name;
     m_var_type_current = ObjType::Dictionary;

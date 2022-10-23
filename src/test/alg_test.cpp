@@ -476,6 +476,45 @@ TEST(Alg, Blocks) {
 
 }
 
+TEST(Alg, BreakContinue) {
+//    Context::Reset();
+//    Context ctx(RunTime::Init());
+//
+//    const char * run_raw = ""
+//            "count:=5;"
+//            "[count<10]<->{+"
+//            "  [count>5]-->"
+//            "    ++100++;"
+//            "  ; "
+//            "  count+=1;"
+//            "+};"
+//            ;
+//
+//    ObjPtr result = ctx.ExecStr(run_raw, nullptr, Context::CatchType::CATCH_ALL);
+//    ASSERT_TRUE(result);
+//    ASSERT_TRUE(result->is_integer());
+//    ASSERT_EQ(6, count->GetValueAsInteger());
+//    ASSERT_EQ(100, result->GetValueAsInteger());
+//
+//    const char * run_macro = ""
+//            "count:=5;"
+//            "\\while(count<10){+"
+//            "  \\if(count>5){"
+//            "    \\return(42);"
+//            "  };"
+//            "  count+=1;"
+//            "+};"
+//            "";
+//
+//
+//
+//    result = ctx.ExecStr(run_macro, nullptr, Context::CatchType::CATCH_ALL);
+//    ASSERT_TRUE(result);
+//    ASSERT_TRUE(result->is_integer());
+//    ASSERT_EQ(6, count->GetValueAsInteger());
+//    ASSERT_EQ(42, result->GetValueAsInteger());
+}
+
 TEST(Alg, Else) {
 
     Context ctx(RunTime::Init());
@@ -956,11 +995,6 @@ TEST(Alg, Return) {
     ASSERT_NO_THROW(result = ctx.ExecStr("{{*count := 1; count += 1; count += 1; --:ErrorRunTime(88)--; count += 1; count += 1*}:Error;  9999; }"););
     ASSERT_TRUE(result);
     ASSERT_EQ(9999, result->GetValueAsInteger());
-}
-
-TEST(Alg, BreakContinue) {
-
-    //    !!!!!!!!!!!!!
 }
 
 #endif // UNITTEST

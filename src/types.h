@@ -723,19 +723,23 @@ void ParserException(const char *msg, std::string &buffer, int row, int col);
      *
      *
      */
-    inline bool isGlobal(const std::string name) {
+    inline bool isGlobal(const std::string &name) {
         return !name.empty() && name[0] == '@';
     }
 
-    inline bool isLocal(const std::string name) {
+    inline bool isLocal(const std::string &name) {
         return !name.empty() && name[0] == '$';
     }
 
-    inline bool isType(const std::string name) {
-        return !name.empty() && name[0] == ':';
+    inline bool isType(const std::string &name) {
+        return name.size() > 1 && name[0] == ':' && name[1] != ':';
     }
 
-    inline bool isMacro(const std::string name) {
+    inline bool isFullName(const std::string &name) {
+        return name.size() > 1 && name[0] == ':' && name[1] == ':';
+    }
+
+    inline bool isMacro(const std::string &name) {
         return !name.empty() && name[0] == '\\';
     }
 

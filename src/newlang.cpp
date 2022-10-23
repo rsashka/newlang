@@ -103,7 +103,7 @@ std::string NewLang::WriteFunctionCheckOp_(CompileInfo &ci, TermPtr &op, const c
 
     result = ci.GetIndent() + "if(static_cast<bool>(";
     TermID id = op->GetTokenID();
-    if(id == TermID::TERM || id == TermID::CALL) {
+    if(id == TermID::NAME || id == TermID::CALL) {
 
         GetImpl(ci, op, result);
         result += "->GetValueAsBoolean()";
@@ -137,7 +137,7 @@ std::string NewLang::WriteFunctionCheckOp_(CompileInfo &ci, TermPtr &op, const c
 }
 
 void NewLang::SelectTerms_(TermPtr &obj, std::vector<TermPtr> &terms) {
-    if(obj->getTermID() == TermID::TERM) {
+    if(obj->getTermID() == TermID::NAME) {
         terms.push_back(obj);
     }
     if(obj->Left()) {
@@ -1512,7 +1512,7 @@ std::string NewLang::GetImpl(CompileInfo &ci, TermPtr term, std::string &output)
             output += result;
             return result;
 
-        case TermID::TERM:
+        case TermID::NAME:
             ASSERT(!term->getName().empty() || !term->getText().empty());
 
             if(term->GetFullName().compare("_") == 0) {
