@@ -237,7 +237,37 @@ symbols: SYMBOL
                 $$->AppendText($2->getText());
             }
 
-fragment:  NAME  /* без модификатора */
+
+namespace:  NAME
+            {
+                $$ = $1;
+            }
+        | namespace  NAMESPACE  NAME
+            {
+                $$ = $3;
+                $$->m_text.insert(0, "::");
+                $$->m_text.insert(0, $1->m_text);
+                //$$->m_namespace = $1->GetFullName();
+                //$$->m_namespace += "::";
+                //$$->m_namespace = $1->m_namespace;
+                //$$->m_namespace = $1->GetFullName();
+                //$$->m_namespace += "::";
+            }
+            
+ns_name:  namespace
+            {
+                $$ = $1;
+            }
+        | NAMESPACE
+            {
+                $$ = $1;
+            }
+        | NAMESPACE  namespace
+            {
+                $$ = $2;
+                $$->m_text.insert(0, "::");
+            }
+name:  ns_name
             {
                 $$ = $1;
                 $$->TestConst();
@@ -259,36 +289,6 @@ fragment:  NAME  /* без модификатора */
                 $$ = $1;
                 $$->SetTermID(TermID::NAME);
                 $$->TestConst();
-            }
-
-namespace:  fragment
-            {
-                $$ = $1;
-            }
-        | namespace  NAMESPACE  fragment
-            {
-                $$ = $3;
-                $$->m_text.insert(0, "::");
-                $$->m_text.insert(0, $1->m_text);
-                //$$->m_namespace = $1->GetFullName();
-                //$$->m_namespace += "::";
-                //$$->m_namespace = $1->m_namespace;
-                //$$->m_namespace = $1->GetFullName();
-                //$$->m_namespace += "::";
-            }
-            
-name:  namespace
-            {
-                $$ = $1;
-            }
-        | NAMESPACE
-            {
-                $$ = $1;
-            }
-        | NAMESPACE  namespace
-            {
-                $$ = $2;
-                $$->m_text.insert(0, "::");
             }
 
 /* Фиксированная размерность тензоров для использования в типах данных */
@@ -852,7 +852,7 @@ class:  dictionary
             {
                 $$ = $1;
                 $$->m_text = $type_class->m_text;
-                $$->m_class_name = $type_class->m_text;
+                $$->m_class = $type_class->m_text;
             }
             
            
@@ -1060,40 +1060,40 @@ block:  '{'  '}'
 block_ns:  name  '{'  '}'
             {
                 $$ = $2; 
-                $$->m_ns_block = $name->GetFullName();
+                $$->m_class = $name->GetFullName();
                 $$->SetTermID(TermID::BLOCK);
             }
         | name  '{'  sequence  '}'
             {
                 $$ = $sequence; 
                 $$->ConvertSequenceToBlock(TermID::BLOCK);
-                $$->m_ns_block = $name->GetFullName();
+                $$->m_class = $name->GetFullName();
             }
         | name  '{'  sequence  separator  '}'
             {
                 $$ = $sequence; 
                 $$->ConvertSequenceToBlock(TermID::BLOCK);
-                $$->m_ns_block = $name->GetFullName();
+                $$->m_class = $name->GetFullName();
             }        
         | name  '{' doc_after '}'
             {
                 $$ = $2; 
                 $$->SetTermID(TermID::BLOCK);
-                $$->m_ns_block = $name->GetFullName();
+                $$->m_class = $name->GetFullName();
                 $$->SetDocs($doc_after);
             }
         |  name  '{'  doc_after  sequence  '}'
             {
                 $$ = $sequence; 
                 $$->ConvertSequenceToBlock(TermID::BLOCK);
-                $$->m_ns_block = $name->GetFullName();
+                $$->m_class = $name->GetFullName();
                 $$->SetDocs($doc_after);
             }
         | name  '{'  doc_after  sequence  separator  '}'
             {
                 $$ = $sequence; 
                 $$->ConvertSequenceToBlock(TermID::BLOCK);
-                $$->m_ns_block = $name->GetFullName();
+                $$->m_class = $name->GetFullName();
                 $$->SetDocs($doc_after);
             }        
         

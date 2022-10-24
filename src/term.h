@@ -484,8 +484,8 @@ namespace newlang {
                     dump_items_(result);
                     result += ",";
                     result += ")";
-                    if (!m_class_name.empty()) {
-                        result += m_class_name;
+                    if (!m_class.empty()) {
+                        result += m_class;
                     }
                     if (GetType()) {
                         result += GetType()->asTypeString();
@@ -610,9 +610,9 @@ namespace newlang {
                         LOG_ABORT("Unknown block type %s (%d)", newlang::toString(m_id), static_cast<uint8_t> (m_id));
                     }
 
-                    if (!m_ns_block.empty()) {
+                    if (!m_class.empty()) {
                         result.insert(0, " ");
-                        result.insert(0, m_ns_block);
+                        result.insert(0, m_class);
                     }
 
                     for (size_t i = 0; i < m_block.size(); i++) {
@@ -635,7 +635,7 @@ namespace newlang {
                         LOG_ABORT("Unknown block type %s (%d)", newlang::toString(m_id), (int) m_id);
                     }
 
-                    result += m_class_name;
+                    result += m_class;
                     return result;
 
                 case TermID::OPERATOR:
@@ -910,7 +910,7 @@ namespace newlang {
             m_is_call = true;
             m_block.clear();
             m_sequence.reset();
-            m_class_name.clear();
+            m_class.clear();
 
             while (next && next->getTermID() != TermID::END) {
                 m_block.push_back(next);
@@ -1167,8 +1167,7 @@ namespace newlang {
 
         std::string m_name;
         std::string m_text;
-        std::string m_class_name;
-        std::string m_ns_block;
+        std::string m_class;
         std::vector<TermPtr> m_dims;
         std::vector<TermPtr> m_docs;
 

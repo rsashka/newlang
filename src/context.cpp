@@ -1521,8 +1521,8 @@ ObjPtr Context::CallBlock(Context *ctx, const TermPtr &block, Obj * local_vars, 
 
             for (size_t i = 0; i < block->m_block.size(); i++) {
                 if(block->m_block[i]->IsBlock()) {
-                    LOG_DEBUG("NS %s (%d)", block->m_block[i]->m_ns_block.c_str(), (int)ctx->m_ns_stack.size());
-                    bool is_ns = ctx->NamespasePush(block->m_block[i]->m_ns_block);
+                    LOG_DEBUG("NS %s (%d)", block->m_block[i]->m_class.c_str(), (int)ctx->m_ns_stack.size());
+                    bool is_ns = ctx->NamespasePush(block->m_block[i]->m_class);
                     try {
                         result = CallBlock(ctx, block->m_block[i], local_vars, eval_block, CatchType::CATCH_AUTO, has_interrupt);
                     } catch (...) {
@@ -1542,8 +1542,8 @@ ObjPtr Context::CallBlock(Context *ctx, const TermPtr &block, Obj * local_vars, 
 
         } else {
             if(block->IsBlock()) {
-                LOG_DEBUG("NS %s (%d)", block->m_ns_block.c_str(), (int)ctx->m_ns_stack.size());
-                bool is_ns = ctx->NamespasePush(block->m_ns_block);
+                LOG_DEBUG("NS %s (%d)", block->m_class.c_str(), (int)ctx->m_ns_stack.size());
+                bool is_ns = ctx->NamespasePush(block->m_class);
                 try {
                     result = CallBlock(ctx, block, local_vars, eval_block, CatchType::CATCH_AUTO, has_interrupt);
                 } catch (...) {
@@ -2455,7 +2455,7 @@ ObjPtr Context::CreateRVal(Context *ctx, TermPtr term, Obj * local_vars, bool ev
                 //                result->resize(0, nullptr, "");
                 result->m_var_type_current = type;
             } else {
-                result->m_class_name = term->m_class_name;
+                result->m_class_name = term->m_class;
             }
             return result;
 

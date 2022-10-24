@@ -122,6 +122,15 @@ native  %({ualpha}|[_])+({name}|{digit})?
         return token::DOC_BEFORE;
 }
 
+"##<"[^\n]* {
+        *yylval = Term::Create(TermID::DOC_AFTER, &yytext[4], yyleng-5, yylloc, source_string);
+        return token::DOC_AFTER;
+}
+
+"##"[^\n]* {
+        *yylval = Term::Create(TermID::DOC_BEFORE, &yytext[3], yyleng-4, yylloc, source_string);
+        return token::DOC_BEFORE;
+}
 
 "/**"           {
                     yy_push_state(state_DOC_BEFORE);
