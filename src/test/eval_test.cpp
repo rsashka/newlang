@@ -77,7 +77,7 @@ TEST(Eval, Assign) {
     list = ctx.ExecStr("$");
     ASSERT_STREQ("$=('var_str',)", list->toString().c_str());
 
-    ObjPtr var_num = ctx.ExecStr("var_num := 123.456: Single");
+    ObjPtr var_num = ctx.ExecStr("$var_num := 123.456: Single");
     ASSERT_TRUE(var_num);
     ASSERT_TRUE(var_num->is_arithmetic_type());
     ASSERT_TRUE(var_num->is_tensor_type());
@@ -107,7 +107,7 @@ TEST(Eval, Assign) {
     list = ctx.ExecStr("$");
     ASSERT_STREQ("$=('var_str', 'var_num', 'var_export',)", list->toString().c_str());
 
-    ObjPtr func_export = ctx.ExecStr("func_export := :Pointer(\"func_export(arg1:Int64, arg2:Int8=100):Int64\")");
+    ObjPtr func_export = ctx.ExecStr("$func_export := :Pointer(\"func_export(arg1:Int64, arg2:Int8=100):Int64\")");
     ASSERT_TRUE(func_export);
     ASSERT_TRUE(func_export->is_function_type()) << func_export;
     ASSERT_EQ(func_export->getType(), ObjType::NativeFunc);
@@ -304,7 +304,7 @@ TEST(Eval, Tensor) {
     // и может быть многократный вызов одной и той функции
     // :Int32[3,2]( ... rand() ... )
     utils::Logger::LogLevelType save = utils::Logger::Instance()->SetLogLevel(LOG_LEVEL_INFO);
-    tt = ctx.ExecStr(":Int32[3,2]( ... rand() ... )");
+    tt = ctx.ExecStr(":Single[3,2]( 42, ... rand() ... )");
     utils::Logger::Instance()->SetLogLevel(save);
 
     ASSERT_TRUE(tt);
@@ -372,45 +372,45 @@ TEST(Eval, TypesNative) {
     ASSERT_TRUE(at::holds_alternative<void *>(fopen->m_var));
     ASSERT_TRUE(at::get<void *>(fopen->m_var));
 
-    ObjPtr fopen2 = ctx.ExecStr("@fopen2 ::= :Pointer('fopen(filename:StrChar, modes:StrChar):File')");
+    ObjPtr fopen2 = ctx.ExecStr("fopen2 ::= :Pointer('fopen(filename:StrChar, modes:StrChar):File')");
     ASSERT_TRUE(fopen2);
     ASSERT_TRUE(at::holds_alternative<void *>(fopen2->m_var));
     ASSERT_TRUE(at::get<void *>(fopen2->m_var));
     ASSERT_EQ(at::get<void *>(fopen->m_var), at::get<void *>(fopen2->m_var));
     ASSERT_TRUE(ctx.FindTerm("fopen2"));
-    auto iter = ctx.m_global_terms.find("fopen2");
-    ASSERT_NE(iter, ctx.m_global_terms.end());
+    auto iter = ctx.m_terms.find("fopen2");
+    ASSERT_NE(iter, ctx.m_terms.end());
 
-    ObjPtr fopen3 = ctx.ExecStr("@fopen3(filename:String, modes:String):File ::= "
+    ObjPtr fopen3 = ctx.ExecStr("fopen3(filename:String, modes:String):File ::= "
             ":Pointer('fopen(filename:StrChar, modes:StrChar):File')");
     ASSERT_TRUE(fopen3);
     ASSERT_TRUE(at::holds_alternative<void *>(fopen3->m_var));
     ASSERT_TRUE(at::get<void *>(fopen3->m_var));
     ASSERT_EQ(at::get<void *>(fopen->m_var), at::get<void *>(fopen3->m_var));
 
-    ObjPtr fclose = ctx.ExecStr("@fclose(stream:File):Int32 ::= :Pointer(\"fclose(stream:File):Int32\")");
+    ObjPtr fclose = ctx.ExecStr("fclose(stream:File):Int32 ::= :Pointer(\"fclose(stream:File):Int32\")");
     ASSERT_TRUE(at::holds_alternative<void *>(fclose->m_var));
     ASSERT_TRUE(at::get<void *>(fclose->m_var));
 
-    ObjPtr fremove = ctx.ExecStr("@fremove(filename:String):Int32 ::= "
+    ObjPtr fremove = ctx.ExecStr("fremove(filename:String):Int32 ::= "
             ":Pointer(\"remove(filename:StrChar):Int32\")");
     ASSERT_TRUE(fremove);
     ASSERT_TRUE(at::holds_alternative<void *>(fremove->m_var));
     ASSERT_TRUE(at::get<void *>(fremove->m_var));
 
-    ObjPtr frename = ctx.ExecStr("@rename(old:String, new:String):Int32 ::= "
+    ObjPtr frename = ctx.ExecStr("rename(old:String, new:String):Int32 ::= "
             ":Pointer('rename(old:StrChar, new:StrChar):Int32')");
     ASSERT_TRUE(frename);
     ASSERT_TRUE(at::holds_alternative<void *>(frename->m_var));
     ASSERT_TRUE(at::get<void *>(frename->m_var));
 
-    ObjPtr fprintf = ctx.ExecStr("@fprintf(stream:File, format:FmtChar, ...):Int32 ::= "
+    ObjPtr fprintf = ctx.ExecStr("fprintf(stream:File, format:FmtChar, ...):Int32 ::= "
             ":Pointer('fprintf(stream:File, format:FmtChar, ...):Int32')");
     ASSERT_TRUE(fremove);
-    ObjPtr fputc = ctx.ExecStr("@fputc(c:Int32, stream:File):Int32 ::= "
+    ObjPtr fputc = ctx.ExecStr("fputc(c:Int32, stream:File):Int32 ::= "
             ":Pointer('fputc(c:Int32, stream:File):Int32')");
     ASSERT_TRUE(fremove);
-    ObjPtr fputs = ctx.ExecStr("@fputs(s:String, stream:File):Int32 ::= "
+    ObjPtr fputs = ctx.ExecStr("fputs(s:String, stream:File):Int32 ::= "
             ":Pointer('fputs(s:StrChar, stream:File):Int32')");
     ASSERT_TRUE(fputs);
 
@@ -431,7 +431,7 @@ TEST(Eval, TypesNative) {
     // minkernel\crts\ucrt\src\appcrt\heap\debug_heap.cpp(904) : Assertion failed: _CrtIsValidHeapPointer(block)
     //ASSERT_TRUE(fclose->Call(&ctx, Obj::Arg(F)));
 
-    ObjPtr F2 = ctx.ExecStr("@F2 ::= fopen2('temp/ffile_eval.temp','w+')");
+    ObjPtr F2 = ctx.ExecStr("F2 ::= fopen2('temp/ffile_eval.temp','w+')");
     ASSERT_TRUE(F2);
     ObjPtr F_res = ctx.ExecStr("fputs('test from eval !!!!!!!!!!!!!!!!!!!!\\n', F2)");
     ASSERT_TRUE(F_res);
@@ -454,7 +454,7 @@ TEST(Eval, TypesNative) {
      * Seek.SET или $Seek.SET - статическое зачение у глобального типа
      */
 
-    ObjPtr SEEK1 = ctx.ExecStr("@SEEK1 ::= :Enum(SET:Int32=10, \"CUR\", END=20)");
+    ObjPtr SEEK1 = ctx.ExecStr("SEEK1 ::= :Enum(SET:Int32=10, \"CUR\", END=20)");
     ASSERT_TRUE(SEEK1);
 
     ASSERT_EQ(3, SEEK1->size());
@@ -477,7 +477,7 @@ TEST(Eval, TypesNative) {
     ASSERT_EQ(11, (*SEEK1)["CUR"].second->GetValueAsInteger());
     ASSERT_EQ(20, (*SEEK1)["END"].second->GetValueAsInteger());
 
-    ObjPtr SEEK2 = ctx.ExecStr("@SEEK2 ::= :Enum(SET=, CUR=, END=300)");
+    ObjPtr SEEK2 = ctx.ExecStr("SEEK2 ::= :Enum(SET=, CUR=, END=300)");
     ASSERT_TRUE(SEEK2);
     ASSERT_EQ(3, SEEK2->size());
     ASSERT_EQ(0, (*SEEK2)[0].second->GetValueAsInteger());
@@ -490,7 +490,7 @@ TEST(Eval, TypesNative) {
     ASSERT_EQ(1, (*SEEK2)["CUR"].second->GetValueAsInteger());
     ASSERT_EQ(300, (*SEEK2)["END"].second->GetValueAsInteger());
 
-    ObjPtr SEEK = ctx.ExecStr("@SEEK ::= :Enum(SET=0, CUR=1, END=2)");
+    ObjPtr SEEK = ctx.ExecStr("SEEK ::= :Enum(SET=0, CUR=1, END=2)");
     ASSERT_TRUE(SEEK);
 
     ASSERT_EQ(3, SEEK->size());
@@ -501,17 +501,17 @@ TEST(Eval, TypesNative) {
     ASSERT_EQ(1, (*SEEK)["CUR"].second->GetValueAsInteger());
     ASSERT_EQ(2, (*SEEK)["END"].second->GetValueAsInteger());
 
-    F_res = ctx.ExecStr("@SEEK.SET");
+    F_res = ctx.ExecStr("SEEK.SET");
     ASSERT_TRUE(F_res);
     ASSERT_EQ(0, F_res->GetValueAsInteger());
-    F_res = ctx.ExecStr("@SEEK.CUR");
+    F_res = ctx.ExecStr("SEEK.CUR");
     ASSERT_TRUE(F_res);
     ASSERT_EQ(1, F_res->GetValueAsInteger());
-    F_res = ctx.ExecStr("@SEEK.END");
+    F_res = ctx.ExecStr("SEEK.END");
     ASSERT_TRUE(F_res);
     ASSERT_EQ(2, F_res->GetValueAsInteger());
 
-    ObjPtr seek = ctx.ExecStr("@fseek(stream:File, offset:Int64, whence:Int32):Int32 ::= "
+    ObjPtr seek = ctx.ExecStr("fseek(stream:File, offset:Int64, whence:Int32):Int32 ::= "
             ":Pointer('fseek(stream:File, offset:Int64, whence:Int32):Int32')");
     ASSERT_TRUE(seek);
 
@@ -897,7 +897,7 @@ TEST(Eval, MacroDSL) {
     ObjPtr none = ctx.ExecStr(dsl);
     ASSERT_TRUE(Context::m_macros.size() > 10);
 
-    ObjPtr count = ctx.ExecStr("@count:=0;");
+    ObjPtr count = ctx.ExecStr("count:=0;");
     ASSERT_TRUE(count);
     ASSERT_EQ(0, count->GetValueAsInteger());
 
@@ -1149,7 +1149,7 @@ TEST(Eval, Iterator) {
     ASSERT_TRUE(iter_dict);
     ASSERT_STREQ("(3\\1, 2\\1,)", iter_dict->GetValueAsString().c_str());
 
-    ObjPtr iter_test = ctx.ExecStr("&@iter_test := 3\\1..1..-1?", nullptr);
+    ObjPtr iter_test = ctx.ExecStr("iter_test := 3\\1..1..-1?", nullptr);
     ASSERT_TRUE(iter_test);
     ASSERT_TRUE(iter_test->m_iterator);
     ASSERT_TRUE(iter_test->m_iterator->m_iter_obj);
@@ -1165,7 +1165,7 @@ TEST(Eval, Iterator) {
     ASSERT_TRUE(while_test);
     ASSERT_STREQ("EXIT", while_test->GetValueAsString().c_str()) << while_test->GetValueAsString().c_str();
 
-    iter_dict = ctx.ExecStr("@iter_dict := (1,2,3,)?", nullptr);
+    iter_dict = ctx.ExecStr("iter_dict := (1,2,3,)?", nullptr);
     ASSERT_TRUE(iter_dict);
     //    ASSERT_TRUE(iter_dict->m_iterator->m_iter_obj->m_iter_range_value);
     //    ASSERT_STREQ("3\\1", iter_dict->m_iterator->m_iter_obj->m_iter_range_value->GetValueAsString().c_str()) << iter_test->m_iterator->m_iter_obj->m_iter_range_value->GetValueAsString().c_str();
@@ -1430,7 +1430,7 @@ TEST_F(EvalTester, Ops) {
     ASSERT_STREQ("строка 222", Test("\"строка \" + \"222\" "));
     ASSERT_STREQ("строка строка строка ", Test("\"строка \" ** 3 "));
 
-    ASSERT_STREQ("100", Test("var1:=100"));
+    ASSERT_STREQ("100", Test("$var1:=100"));
     ObjPtr var1 = m_result;
     ASSERT_TRUE(var1);
     ASSERT_STREQ("$=('var1',)", Test("$"));
@@ -1442,7 +1442,7 @@ TEST_F(EvalTester, Ops) {
     ASSERT_NO_THROW(Test("$var1", vars.get()));
     ASSERT_STREQ("100", Test("$var1", vars.get()));
 
-    ASSERT_STREQ("20", Test("var2:=9+11"));
+    ASSERT_STREQ("20", Test("$var2:=9+11"));
     ObjPtr var2 = m_result;
     ASSERT_TRUE(var2);
     ASSERT_STREQ("$=('var1', 'var2',)", Test("$"));
@@ -1729,6 +1729,12 @@ TEST(EvalOp, InstanceName) {
             }
         }
     }
+
+}
+
+TEST(Eval, System) {
+
+    Context ctx(RunTime::Init());
 
 }
 

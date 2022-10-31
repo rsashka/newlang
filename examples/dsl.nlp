@@ -1,46 +1,59 @@
 #!../output/nlc --eval
 
-# Example implementation DSL — domain-specific language for english
-# Macros implementation name:"\name", body start: "\\", body end: "\\\", replace var_args \$*
-# \macro \\body macro no args\\\ # End body
-# \macro(arg1, arg2, ...) \\body macro form args as function call: $arg1 or ${arg1}${arg2}    \$* \\\
-# \macro arg1 arg2 ...\\body macro from args as sequence: $arg1  ${arg1}${arg2}    \$* \\\  ?????????????????????
+## An example of the implementation of DSL (domain-specific language) with keywords in English
+## Macro recording syntax: Macro name start: "\\name" body end: "\\\", substitution of one argument \$1 (or \$arg by name)
+## or all arguments at once \$*. Example:
+## \\name body macro no args\\\ # End macro body
+## \\macro(arg, ...) body macro form args as function call an use: \$arg or \$1 or \$* for all args \\\ # End macro body
 
-\false \\0:Bool\\\
-\true \\1:Bool\\\
 
-\self \\$0\\\
-\parent \\$$\\\
-\local \\$\\\
-\global \\@\\\
-?????????????  \int var\\${var}:Int32\\\  # Use: \int integer = 100;  ???????????????????????
+\\true 1:Bool\\\
+\\yes 1:Bool\\\
 
-\if(cond) \\ ($cond) -> \\\
+\\false 0:Bool\\\
+\\no 0:Bool\\\
 
-\then \\ {
- \\\
+\\main @@\\\ ///< Root of context - main module @@ or \\main.
 
-\elseif(cond) \\},
- ($cond) -> \\\
+/** Current module @$ or \\current. 
+Check current module of main:
+\code 
+[@$.__main__] --> { 
+    ... run code if this module main ... 
+}
+\endcode */
+Check first load of current module:
+\code
+[@$.__load__] --> { 
+    ... this code is executed once when the module is first loaded ... 
+}
+\endcode */
+\\current @$\\\ 
 
-\else \\,
- _ -> {\\\
+\\this $0\\\  ///< This object $0 or \\this
+\\parent $$\\\ ///< Parent object $$ or \\parent
 
-\endif \\
- }; \\\
+\\destructor() _____ ::= \\\ ///< Destructor of object or module ______(). Reserved system name 5 handwriting (handwriting between double handwriting)
 
-\while(cond) \\ ($cond) -->> {\\\
-\endwhile \\};\\\
+\\if(cond) [\$cond]-->\\\
+\\elif(cond) ,[\$cond]-->\\\
+\\else ,[_]-->\\\
 
-\until \\{\\\
-\enduntil(cond) \\} <<-- ($cond);\\\
+\\while(cond) [\$cond] <->\\\
+\\dowhile(cond) <->[\$cond]\\\
 
-\return  \\ -- \\\
-\return(...)  \\ -- \$*\\\
-\throw(...)  \\ -- :Error(\$*)\\\
+\\break+  ++:Break++\\\
+\\break-  --:Break--\\\
+\\continue+  ++:Continue++\\\
+\\continue-  --:Continue--\\\
 
-\match(val) \\($val)==>{\\
-\case(val) \\($val) -> {
-\endcase \\};
-\endmatch \\};\\\
+\\return ++\\\
+\\return(value) ++\$value++\\\
 
+\\error --\\\
+\\error(value) --\$value--\\\
+
+\\match(cond) [\$cond]\\\
+\\case(...) [\$*]-->\\\
+
+\\import(...) \$* {}\\\

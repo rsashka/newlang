@@ -385,7 +385,7 @@ std::string toCXXProto(std::string name) {
         }
 
         result = term->m_text;
-        if(result.find_first_of("::") == 0) {
+        if(result.find("::") == 0) {
             result.erase(0, 2);
         }
 

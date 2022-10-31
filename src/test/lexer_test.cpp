@@ -298,9 +298,17 @@ TEST_F(Lexer, Function) {
     EXPECT_EQ(1, Count(TermID::MODULE)) << toString(tokens[0]->getTermID());
     EXPECT_STREQ("@", tokens[0]->getText().c_str()) << tokens[0]->getText().c_str();
 
+    ASSERT_EQ(1, Parse("@name"));
+    EXPECT_EQ(1, Count(TermID::MODULE)) << toString(tokens[0]->getTermID());
+    EXPECT_STREQ("@name", tokens[0]->getText().c_str()) << tokens[0]->getText().c_str();
+
     ASSERT_EQ(1, Parse("$"));
     EXPECT_EQ(1, Count(TermID::LOCAL)) << toString(tokens[0]->getTermID());
     EXPECT_STREQ("$", tokens[0]->getText().c_str()) << tokens[0]->getText().c_str();
+
+    ASSERT_EQ(1, Parse("$name"));
+    EXPECT_EQ(1, Count(TermID::LOCAL)) << toString(tokens[0]->getTermID());
+    EXPECT_STREQ("$name", tokens[0]->getText().c_str()) << tokens[0]->getText().c_str();
 
     ASSERT_EQ(1, Parse("%native"));
     EXPECT_EQ(1, Count(TermID::NATIVE)) << toString(tokens[0]->getTermID());

@@ -1,13 +1,13 @@
 #!../output/nlc
 
-@printf := :Pointer('printf(format:FmtChar, ...):Int32');
+printf := :Pointer('printf(format:FmtChar, ...):Int32');
 
 printf('\nStart speed test NewLang\n');
 
-@convert := :Pointer('convert(sym:Int8):Int8');
+convert := :Pointer('convert(sym:Int8):Int8');
 
 /*
-@convert(c) := {{
+convert(c) := {{
     [c == 'A'] --> 'C',
     [c == 'C'] --> 'G',
     [c == 'G'] --> 'T',
@@ -18,16 +18,16 @@ printf('\nStart speed test NewLang\n');
 
 
 
-@opt := 'ACGT';
+opt := 'ACGT';
 
-@s := '';
-@s_last := '';
-@len_str := 5;
-@change_next := 0;
+s := '';
+s_last := '';
+len_str := 5;
+change_next := 0;
 
 i := 0;
 [i < len_str] <-> {
-    s += @opt[0];
+    s += opt[0];
     i += 1;
 };
 
@@ -39,7 +39,7 @@ i := 0;
 
 printf('From %s to %s\n', s, s_last );
 
-@counter := 1;
+counter := 1;
 
 [s != s_last] <-> {
     

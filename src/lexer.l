@@ -70,13 +70,6 @@ integer {digit}([_]?{digit}+)*
 name    ({ualpha}|[_])({ualpha}|{digit}|[_])*^?
 macro   \\({ualpha}|[_])?({name})?
 
-/* 
-type    :{name}  Не использовать термин тип в лексере, чтобы была возможность записывать типы с пробелами 
-между двоеточием и имененем "term: type" или "term : type", что более привычно при чтении, чем "term :type"
-Не использовать деструктов ~ в лексере, чтобы в парсере можно было проверять его место расположение (в функции или классе)
-Дестрокутор калсса - имя класса, котрое начинается на два подчерка
-Class __Class ????
-*/
 number1 -?{digit}+\.{digit}+([eE][-+]?{digit}+)?
 number2 (-?{digit}+\.([eE][-+]?)?)?-?{digit}+
 number  ({number1}|{number2})
@@ -451,6 +444,17 @@ native  %({ualpha}|[_])+({name}|{digit})?
 -?{integer}\\-?{integer} YY_TOKEN(RATIONAL);
 -?{integer}     YY_TOKEN(INTEGER);
 {number}        YY_TOKEN(NUMBER);
+
+"__NLC_VER__"       YY_TOKEN_ONLY(SYS_ENV_INT);
+"__LINE__"          YY_TOKEN_ONLY(SYS_ENV_INT);
+"__COUNTER__"       YY_TOKEN_ONLY(SYS_ENV_INT);
+
+"__FILE__"          YY_TOKEN_ONLY(SYS_ENV_STR);
+"__DATE__"          YY_TOKEN_ONLY(SYS_ENV_STR);
+"__TIMESTAMP__"     YY_TOKEN_ONLY(SYS_ENV_STR);
+"__SOURCE_GIT__"    YY_TOKEN_ONLY(SYS_ENV_STR);
+"__DATE_BUILD__"    YY_TOKEN_ONLY(SYS_ENV_STR);
+"__SOURCE_BUILD__"  YY_TOKEN_ONLY(SYS_ENV_STR);
 
 "[_]"       YY_TOKEN_ONLY(ELSE);
 

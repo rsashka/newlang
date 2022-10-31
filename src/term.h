@@ -10,6 +10,7 @@
 #include "warning_pop.h"
 
 #include "variable.h"
+#include "version.h"
 
 namespace newlang {
 
@@ -113,15 +114,16 @@ namespace newlang {
             return std::make_shared<Term>(term);
         }
 
-        static TermPtr Create(TermID id, const char *text, size_t len = std::string::npos, location *loc = nullptr, std::shared_ptr<std::string> source = nullptr) {
-            return std::make_shared<Term>(id, text, (len == std::string::npos ? strlen(text) : len), loc, source);
+        static TermPtr Create(TermID id, const char *text, size_t len = std::string::npos, location *loc = nullptr, std::shared_ptr<std::string> source = nullptr, Parser * parser = nullptr) {
+            return std::make_shared<Term>(id, text, (len == std::string::npos ? strlen(text) : len), loc, source, parser);
         }
 
         Term(Term *term) {
             *this = *term;
         }
 
-        Term(TermID id, const char *text, size_t len, location *loc, std::shared_ptr<std::string> source = nullptr) {
+        Term(TermID id, const char *text, size_t len, location *loc, std::shared_ptr<std::string> source = nullptr, Parser * parser = nullptr) {
+            m_parser = parser;
             m_ref.reset();
             if (text && len) {
                 m_text.assign(text, std::min(strlen(text), len));
@@ -252,6 +254,17 @@ namespace newlang {
                 case TermID::BLOCK_TRY:
                 case TermID::BLOCK_PLUS:
                 case TermID::BLOCK_MINUS:
+                    return true;
+            }
+            return false;
+        }
+
+        inline bool IsCreate() {
+            switch (m_id) {
+                case TermID::APPEND:
+                case TermID::CREATE:
+                case TermID::CREATE_OR_ASSIGN:
+                case TermID::ASSIGN:
                     return true;
             }
             return false;
@@ -680,18 +693,16 @@ namespace newlang {
                     result.clear();
 
                     bool comma = false;
-                    TermPtr next = m_base;
-                    while (next) {
+                    for (auto &elem : m_base) {
                         if (comma) {
                             result += ", ";
                         } else {
                             comma = true;
                         }
-                        result += next->GetFullName();
+                        result += elem->GetFullName();
                         result += "(";
-                        next->dump_items_(result);
+                        elem->dump_items_(result);
                         result += ")";
-                        next = next->Right();
                     }
 
                     result += "{";
@@ -812,20 +823,18 @@ namespace newlang {
             return true;
         }
 
-        inline bool SetDims(TermPtr args) {
+        static bool ListToVector(TermPtr &args, std::vector<TermPtr> &vect) {
             TermPtr next = args;
             TermPtr prev;
 
-            m_dims.clear();
-
-            args->SetSource(m_source);
+            vect.clear();
             while (next) {
                 if (next->getTermID() != TermID::END) {
-                    m_dims.push_back(next);
+                    vect.push_back(next);
                 }
                 prev = next;
-                next = next->m_comma_seq;
-                prev->m_comma_seq.reset();
+                next = next->m_list;
+                prev->m_list.reset();
             }
             return true;
         }
@@ -843,39 +852,20 @@ namespace newlang {
                     push_back(next, next->getName());
                 }
                 prev = next;
-                next = next->m_comma_seq;
-                prev->m_comma_seq.reset();
+                next = next->m_list;
+                prev->m_list.reset();
             }
             return true;
         }
 
-        inline bool SetDocs(TermPtr docs) {
-            TermPtr next = docs;
-            TermPtr prev;
-
-            //            m_docs.clear();
-            if (docs) {
-                docs->SetSource(m_source);
-            }
-            while (next) {
-                if (next->getTermID() != TermID::END) {
-                    m_docs.push_back(next);
-                }
-                prev = next;
-                next = next->m_right;
-                prev->m_right.reset();
-            }
-            return true;
-        }
-
-        inline TermPtr AppendCommaTerm(TermPtr item) {
+        inline TermPtr AppendList(TermPtr item) {
             TermPtr next = shared_from_this();
 
             while (true) {
-                if (next->m_comma_seq) {
-                    next = next->m_comma_seq;
+                if (next->m_list) {
+                    next = next->m_list;
                 } else {
-                    next->m_comma_seq = item;
+                    next->m_list = item;
                     break;
                 }
             }
@@ -1096,6 +1086,10 @@ namespace newlang {
 
         void SetType(TermPtr type) {
             if (type) {
+                ASSERT(!type->m_list);
+                ASSERT(type->m_type_allowed.empty());
+                ASSERT(m_type_allowed.empty());
+                m_type_allowed.push_back(type);
                 m_type = type;
                 m_type_name = m_type->asTypeString();
                 // Check type
@@ -1148,6 +1142,106 @@ namespace newlang {
             return m_is_const;
         }
 
+        static TermPtr GetEnvTerm(TermPtr term) {
+
+            /*
+                Встроенные системые атрибуты среды
+             */
+            static const char * NLC__VER__ = "__NLC_VER__";
+            static const char * NLC__FILE__ = "__FILE__";
+            static const char * NLC__LINE__ = "__LINE__";
+            static const char * NLC__DATE__ = "__DATE__";
+            static const char * NLC__COUNTER__ = "__COUNTER__"; // развертывается до целочисленного литерала, начинающегося с 0. 
+            //Значение увеличивается на 1 каждый раз, когда используется в файле исходного кода или во включенных заголовках файла исходного кода. 
+            static const char * NLC__TIMESTAMP__ = "__TIMESTAMP__"; // определяется как строковый литерал, содержащий дату и время последнего изменения текущего исходного файла 
+            //в сокращенной форме с постоянной длиной, которые возвращаются функцией asctime библиотеки CRT, 
+            //например: Fri 19 Aug 13:32:58 2016. Этот макрос определяется всегда.
+
+            static const char * NLC__SOURCE_GIT__ = "__SOURCE_GIT__";
+            static const char * NLC__DATE_BUILD__ = "__DATE_BUILD__";
+            static const char * NLC__SOURCE_BUILD__ = "__SOURCE_BUILD__";
+
+            static size_t counter = 0;
+            const TermID str_type = TermID::STRWIDE;
+
+            if (!term) {
+                LOG_RUNTIME("Environment variable not defined!");
+
+            } else if (term->m_text.compare(NLC__COUNTER__) == 0) {
+                term->m_id = TermID::INTEGER;
+                term->m_text = std::to_string(counter);
+                counter++;
+                return term;
+
+            } else if (term->m_text.compare(NLC__VER__) == 0) {
+                term->m_id = TermID::INTEGER;
+                term->m_text = std::to_string(VERSION);
+                return term;
+
+            } else if (term->m_text.compare(NLC__LINE__) == 0) {
+                term->m_id = TermID::INTEGER;
+                term->m_text = std::to_string(term->m_line);
+                return term;
+
+            } else if (term->m_text.compare(NLC__SOURCE_BUILD__) == 0) {
+                term->m_id = str_type;
+                term->m_text = SOURCE_FULL_ID;
+                return term;
+
+            } else if (term->m_text.compare(NLC__SOURCE_GIT__) == 0) {
+                term->m_id = str_type;
+                term->m_text = GIT_SOURCE;
+                return term;
+
+            } else if (term->m_text.compare(NLC__DATE_BUILD__) == 0) {
+                term->m_id = str_type;
+                term->m_text = DATE_BUILD_STR;
+                return term;
+
+            } else if (term->m_text.compare(NLC__FILE__) == 0) {
+
+                term->m_id = str_type;
+                if (term->m_parser) {
+                    term->m_text = term->m_parser->m_file_name;
+                } else {
+                    term->m_text = "File name undefined!!!";
+                }
+                return term;
+
+            } else if (term->m_text.compare(NLC__TIMESTAMP__) == 0) {
+
+                term->m_id = str_type;
+                if (term->m_parser) {
+                    term->m_text = term->m_parser->m_file_time;
+                } else {
+                    term->m_text = "??? ??? ?? ??:??:?? ????";
+                }
+                return term;
+
+            } else if (term->m_text.compare(NLC__DATE__) == 0) {
+
+                term->m_id = str_type;
+                if (term->m_parser) {
+                    term->m_text = term->m_parser->m_file_time;
+                } else {
+                    time_t rawtime;
+                    struct tm * timeinfo;
+                    time(&rawtime);
+                    timeinfo = localtime(&rawtime);
+                    term->m_text = asctime(timeinfo);
+                }
+                return term;
+
+
+            } else {
+                NL_PARSER(term, "Environment variable '%s' not defined!", term->m_text.c_str());
+            }
+        }
+
+
+
+
+
         //    SCOPE(protected) :
 
         TermID m_id;
@@ -1161,8 +1255,8 @@ namespace newlang {
 
         TermPtr m_left;
         TermPtr m_right;
-        TermPtr m_base;
-        TermPtr m_comma_seq;
+        std::vector<TermPtr> m_base;
+        TermPtr m_list;
         TermPtr m_sequence;
 
         std::string m_name;
@@ -1170,6 +1264,7 @@ namespace newlang {
         std::string m_class;
         std::vector<TermPtr> m_dims;
         std::vector<TermPtr> m_docs;
+        std::vector<TermPtr> m_type_allowed;
 
         BlockType m_block;
         BlockType m_follow;
@@ -1181,6 +1276,7 @@ namespace newlang {
         /// Символьное описание потребуется для работы с пользовательскими типами данных.
         /// Итоговый тип может отличаться от указанного в исходнике для совместимых типов.
         std::string m_type_name;
+        Parser *m_parser;
     private:
         /// Тип данных, который хранится в виде термина из исходного файла. 
         /// Нужен для отображения сообщений (позиция в исходнике)

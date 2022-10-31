@@ -30,9 +30,44 @@ namespace newlang {
         return name;
     }
 
+    inline std::string MakeConstructorName(std::string name) {
+        ASSERT(isType(name));
+        std::string result(name.substr(1));
+        result += ":";
+        result += name.substr(name.rfind(":"));
+        return result;
+    }
+
     inline std::string MakeLocalName(std::string name) {
         return MangleName(MakeName(name).c_str());
     }
+
+    inline std::string ExtractModuleName(std::string name) {
+        if (isModule(name)) {
+            size_t pos;
+            if ((pos = name.find("::")) != std::string::npos) {
+                return name.substr(0, pos);
+            }
+            return name;
+        }
+        return std::string();
+    }
+
+    inline std::string ExtractName(std::string name) {
+        size_t pos;
+        if ((pos = name.rfind("::")) != std::string::npos) {
+            name = name.substr(pos + 2);
+        }
+        if (isModule(name)) {
+            return std::string();
+        }
+        return name;
+    }
+
+    inline std::string GetDoc(std::string name) {
+        return "Help system not implemented!!!!!";
+    }
+
 
     /*
      * Класс контекст предназначен для хранения контекста среды выполнения при вызове функций.
@@ -104,8 +139,36 @@ namespace newlang {
         _("export", NOT_SUPPORT)\
         _("local", NOT_SUPPORT)
 
+    class Module : public Variable<Obj> {
+    public:
+
+        ObjPtr LoadModule(const char * path) {
+            return nullptr;
+        }
+
+        ObjPtr UnLoadModule(const char * path) {
+            return nullptr;
+        }
+
+    };
+
     class Context : public Variable<Obj, std::weak_ptr<Obj> > {
     public:
+
+
+
+        /*
+            Встроенные атрибуты у модуля
+         */
+        const char * SYS__MAIN__ = "__main__";
+        const char * SYS__LOAD__ = "__load__";
+        const char * SYS__UNLOAD__ = "__unload__";
+
+
+        const char * SYS__DESTRUCTOR__ = "_____";
+        //        const char * SYS__ATTACHE__ = "__attache__";
+        //        const char * SYS__DETACHE__ = "__detache__";
+
 
         static ObjPtr eval_END(Context *ctx, const TermPtr & term, Obj * args, bool eval_block = false);
         static ObjPtr func_NOT_SUPPORT(Context *ctx, const TermPtr & term, Obj * args, bool eval_block = false);
@@ -158,6 +221,12 @@ namespace newlang {
             Docs::m_docs.clear();
         }
 
+        void clear_() override {
+            Variable::clear_();
+            m_terms.clear_();
+            m_ns_stack.clear();
+        }
+
         inline ObjPtr ExecFile(const std::string &filename, Obj *args = nullptr, CatchType int_catch = CatchType::CATCH_ALL) {
             std::string source = ReadFile(filename.c_str());
             if (source.empty()) {
@@ -187,6 +256,8 @@ namespace newlang {
         static std::map<std::string, ObjPtr> m_types;
         typedef at::variant<ObjPtr, std::vector < ObjPtr> > FuncItem;
         static std::map<std::string, FuncItem> m_funcs; // Системный и встроенные функции 
+
+        ObjPtr CreateClass(std::string class_name, TermPtr type, Obj *args);
 
         inline static ObjPtr CreateLVal(Context *ctx, TermPtr type) {
             Obj args;
@@ -233,7 +304,7 @@ namespace newlang {
 
         ObjPtr GetObject(const std::string name) {
             std::string str(name);
-            if (str.size() && (str[0] == '$' || str[0] == '@')) {
+            if (str.size() && (str[0] == '$')) {
                 str = str.substr(1);
             }
             auto found = find(str);
@@ -252,11 +323,10 @@ namespace newlang {
         }
 
         RuntimePtr m_runtime; // Глобальный контекс, если к нему есть доступ
-        Variable<Obj> m_global_terms;
+        Variable<Obj> m_terms;
         std::vector<std::string> m_ns_stack;
 
         bool NamespasePush(const std::string &name) {
-            LOG_DEBUG("NamespasePush '%s'", name.c_str());
             if (name.empty()) {
                 return false;
             }
@@ -270,7 +340,7 @@ namespace newlang {
         }
 
         std::string NamespaseFull(std::string name = "") {
-            if (name.find_first_of("::") != 0) {
+            if (name.find("::") != 0) {
                 for (size_t i = m_ns_stack.size(); i > 0; i--) {
                     if (!name.empty()) {
                         name.insert(0, "::");
@@ -282,14 +352,14 @@ namespace newlang {
                         break;
                     }
                     name.insert(0, m_ns_stack[i - 1]);
-                    if (m_ns_stack[i - 1].find_first_of("::") == 0) {
+                    if (m_ns_stack[i - 1].find("::") == 0) {
                         break;
                     }
                 }
             }
-//            if (!isFullName(name)) {
-//                name.insert(0, "::");
-//            }
+            //            if (!isFullName(name)) {
+            //                name.insert(0, "::");
+            //            }
             return name;
         }
 
@@ -327,8 +397,8 @@ namespace newlang {
         ObjPtr FindGlobalTerm(TermPtr term);
 
         ObjPtr FindGlobalTerm(const std::string name) {
-            auto found = m_global_terms.find(MakeName(name));
-            if (found != m_global_terms.end()) {
+            auto found = m_terms.find(MakeName(name));
+            if (found != m_terms.end()) {
                 return found->second;
             }
             return GetObject(name);
@@ -411,7 +481,7 @@ namespace newlang {
 
             std::string prefix;
 
-            if (isGlobal(start)) {
+            if (isModule(start)) {
                 prefix = start[0];
                 start = start.substr(1);
                 find_global = true;
@@ -459,12 +529,12 @@ namespace newlang {
             }
 
             if (find_global) {
-                for (int i = 0; i < m_global_terms.size(); i++) {
-                    if (pred_compare(start, m_global_terms.at(i).first)) {
-                        if (m_global_terms.at(i).second->is_function_type()) {
-                            result.push_back(utf8_decode(prefix + m_global_terms.at(i).first) + L"(");
+                for (int i = 0; i < m_terms.size(); i++) {
+                    if (pred_compare(start, m_terms.at(i).first)) {
+                        if (m_terms.at(i).second->is_function_type()) {
+                            result.push_back(utf8_decode(prefix + m_terms.at(i).first) + L"(");
                         } else {
-                            result.push_back(utf8_decode(prefix + m_global_terms.at(i).first));
+                            result.push_back(utf8_decode(prefix + m_terms.at(i).first));
                         }
                         if (result.size() > overage_count + 1) {
                             break;
@@ -585,15 +655,26 @@ namespace newlang {
                 LOG_RUNTIME("Type name '%s' not found!", type.c_str());
             }
 
-            auto result = m_types.find(type);
-            if (result == m_types.end()) {
-                if (has_error) {
-                    *has_error = true;
-                    return nullptr;
-                }
-                LOG_RUNTIME("Type name '%s' not found!", type.c_str());
+            auto result_types = m_types.find(type);
+            if (result_types != m_types.end()) {
+                return result_types->second;
             }
-            return result->second;
+
+            auto result_terms = m_terms.find(type);
+            if (result_terms != m_terms.end()) {
+                return result_terms->second;
+            }
+
+            auto result_find = find(type);
+            if (result_find != end()) {
+                return result_find->second.lock();
+            }
+
+            if (has_error) {
+                *has_error = true;
+                return nullptr;
+            }
+            LOG_RUNTIME("Type name '%s' not found!", type.c_str());
         }
 
         enum class MatchMode {

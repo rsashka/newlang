@@ -64,11 +64,11 @@ TEST(Alg, Follow) {
     ASSERT_EQ(1000, result->GetValueAsInteger());
 
 
-    result = ctx.ExecStr("@cond := 100; [@cond]-->111,[_]-->1000");
+    result = ctx.ExecStr("cond := 100; [@cond]-->111,[_]-->1000");
     ASSERT_TRUE(result);
     ASSERT_EQ(111, result->GetValueAsInteger());
 
-    result = ctx.ExecStr("@cond2 := 0; [@cond2]-->111,[_]-->1000");
+    result = ctx.ExecStr("cond2 := 0; [@cond2]-->111,[_]-->1000");
     ASSERT_TRUE(result);
     ASSERT_EQ(1000, result->GetValueAsInteger());
 }

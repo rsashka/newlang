@@ -1563,7 +1563,7 @@ std::string NewLang::GetImpl(CompileInfo &ci, TermPtr term, std::string &output)
                 result = "in[\"" + MakeName(term->GetFullName()) + "\"]->Call(";
                 result += MakeCppFileCallArgs(ci, term, proto);
                 result += ")";
-            } else if(isLocal(term->getText().c_str()) || isGlobal(term->getText().c_str())) {
+            } else if(isLocal(term->getText().c_str()) || isModule(term->getText().c_str())) {
                 result = "Context::CallByName(ctx, \"";
                 result += term->GetFullName() + "\"";
                 temp = MakeCppFileCallArgs(ci, term, nullptr);
@@ -1681,7 +1681,7 @@ std::string NewLang::GetImpl(CompileInfo &ci, TermPtr term, std::string &output)
                 temp = "in[\"" + MakeName(term->Left()->GetFullName()) + "\"]->Call(";
                 temp += MakeIteratorCallArgs_(ci, term->Left(), iters);
                 temp += ")";
-            } else if(isLocal(term->Left()->getText().c_str()) || isGlobal(term->Left()->getText().c_str())) {
+            } else if(isLocal(term->Left()->getText().c_str()) || isModule(term->Left()->getText().c_str())) {
                 temp = "Context::CallByName(ctx, \"";
                 temp += term->GetFullName() + "\"";
                 temp2 = MakeIteratorCallArgs_(ci, term->Left(), iters);

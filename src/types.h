@@ -232,6 +232,7 @@ void ParserException(const char *msg, std::string &buffer, int row, int col);
     _(IntParser, 213)       \
     _(IntError, 214)        \
     \
+    _(Undefined, 229)          \
     _(Return, 230)          \
     _(Break, 231)           \
     _(Continue, 232)        \
@@ -407,7 +408,10 @@ void ParserException(const char *msg, std::string &buffer, int row, int col);
 
     inline bool isBaseType(ObjType t) {
         return t == ObjType::Bool || t == ObjType::Int8 || t == ObjType::Int16 || t == ObjType::Int32
-                || t == ObjType::Int64 || t == ObjType::Float32 || t == ObjType::Float64;
+                || t == ObjType::Int64 || t == ObjType::Float32 || t == ObjType::Float64
+                || t == ObjType::Char || t == ObjType::Byte || t == ObjType::Word
+                || t == ObjType::DWord || t == ObjType::DWord64
+                || t == ObjType::Single || t == ObjType::Double;
     }
 
     inline bool isFunction(ObjType t) {
@@ -487,6 +491,10 @@ void ParserException(const char *msg, std::string &buffer, int row, int col);
         return t == ObjType::Type;
     }
 
+    inline bool isIndexingType(ObjType curr, ObjType fix) {
+        return isTensor(curr) || isString(curr) || isDictionary(curr) || isClass(curr) || isFunction(curr) || (isTypeName(curr) && isIndexingType(fix, fix));
+    }
+
     inline bool isLocalType(ObjType t) {
         return false;
     }
@@ -510,9 +518,11 @@ void ParserException(const char *msg, std::string &buffer, int row, int col);
             case ObjType::Integer:
                 return at::ScalarType::Long;
             case ObjType::Float32:
+            case ObjType::Single:
             case ObjType::Tensor:
                 return at::ScalarType::Float;
             case ObjType::Float64:
+            case ObjType::Double:
             case ObjType::Number:
                 return at::ScalarType::Double;
             case ObjType::Complex16:
@@ -597,18 +607,25 @@ void ParserException(const char *msg, std::string &buffer, int row, int col);
             case ObjType::Bool:
                 return LLVMInt1Type();
             case ObjType::Int8:
+            case ObjType::Char:
+            case ObjType::Byte:
                 return LLVMInt8Type();
             case ObjType::Int16:
+            case ObjType::Word:
                 return LLVMInt16Type();
             case ObjType::Int32:
+            case ObjType::DWord:
                 return LLVMInt32Type();
             case ObjType::Int64:
+            case ObjType::DWord64:
             case ObjType::Integer:
                 return LLVMInt64Type();
             case ObjType::Float32:
+            case ObjType::Single:
             case ObjType::Tensor:
                 return LLVMFloatType();
             case ObjType::Float64:
+            case ObjType::Double:
             case ObjType::Number:
                 return LLVMDoubleType();
 
@@ -616,9 +633,17 @@ void ParserException(const char *msg, std::string &buffer, int row, int col);
             case ObjType::StrChar:
             case ObjType::FmtChar:
                 return LLVMPointerType(LLVMInt8Type(), 0);
+
+#ifdef _MSC_VER                
+            case ObjType::StrWide:
+            case ObjType::FmtWide:
+                return LLVMPointerType(LLVMInt16Type(), 0);
+#else
             case ObjType::StrWide:
             case ObjType::FmtWide:
                 return LLVMPointerType(LLVMInt32Type(), 0);
+#endif
+
         }
         LOG_RUNTIME("Can`t convert type '%s' to LLVM type!", toString(t));
     }
@@ -723,7 +748,7 @@ void ParserException(const char *msg, std::string &buffer, int row, int col);
      *
      *
      */
-    inline bool isGlobal(const std::string &name) {
+    inline bool isModule(const std::string &name) {
         return !name.empty() && name[0] == '@';
     }
 

@@ -1076,7 +1076,8 @@ std::string Obj::GetValueAsString() const {
     std::stringstream ss;
 
     if(!m_var_is_init) {
-        LOG_RUNTIME("Object not initialized '%s'!", toString().c_str());
+        LOG_RUNTIME("Object not initialized name:'%s' type:%s, fix:%s!",
+                m_var_name.c_str(), newlang::toString(m_var_type_current), newlang::toString(m_var_type_fixed));
     }
 
     switch(m_var_type_current) {
@@ -1188,6 +1189,22 @@ ObjPtr Obj::CreateFunc(std::string prototype, FunctionType *func_addr, ObjType t
     return result;
 }
 
+ObjPtr Obj::CreateFunc(std::string prototype, TransparentType *func_addr, ObjType type) {
+    ASSERT(func_addr);
+    ASSERT(type == ObjType::Function || type == ObjType::PureFunc);
+
+
+    TermPtr proto = Parser::ParseString(std::string(prototype + ":={}"));
+    proto = proto->Left();
+
+    ObjPtr result = Obj::CreateType(type, type);
+
+    * const_cast<TermPtr *> (&result->m_prototype) = proto;
+    result->m_var = (void *) func_addr;
+
+    return result;
+}
+
 ObjPtr Obj::CreateFunc(Context *ctx, TermPtr proto, ObjType type, const std::string var_name) {
     ASSERT(type == ObjType::Function || type == ObjType::PureFunc);
     ObjPtr result = std::make_shared<Obj>(type, var_name.c_str(), proto);
@@ -1261,7 +1278,7 @@ bool Obj::CheckArgs() const {
     return !has_error;
 }
 
-ObjPtr Obj::Call(Context *ctx, Obj * args, bool direct) {
+ObjPtr Obj::Call(Context *ctx, Obj * args, bool direct, ObjPtr self) {
     if(is_string_type()) {
         ObjPtr result = direct ? shared() : Clone();
         result->m_value = format(result->m_value, args);
@@ -1276,7 +1293,11 @@ ObjPtr Obj::Call(Context *ctx, Obj * args, bool direct) {
             param = Obj::CreateDict();
         }
         param->ConvertToArgs_(args, true, ctx);
-        param->push_front(pair(shared(), "$0")); // Self
+        if(self == nullptr) {
+            param->push_front(pair(shared(), "$0")); // Self
+        } else {
+            param->push_front(pair(self, "$0")); // Self
+        }
 
         if(ctx) {
             ctx->RegisterInContext(param);
@@ -1287,7 +1308,10 @@ ObjPtr Obj::Call(Context *ctx, Obj * args, bool direct) {
             ASSERT(at::holds_alternative<void *>(m_var));
             result = (*reinterpret_cast<FunctionType *> (at::get<void *>(m_var)))(ctx, *param.get()); // Непосредственно вызов функции
         } else if(m_var_type_current == ObjType::PureFunc || (m_var_type_current == ObjType::Type)) {
+            //            if(!at::holds_alternative<void *>(m_var)) {
+            //                LOG_DEBUG("%s", toString().c_str());
             ASSERT(at::holds_alternative<void *>(m_var));
+            //            }
             result = (*reinterpret_cast<TransparentType *> (at::get<void *>(m_var)))(ctx, *param.get()); // Непосредственно вызов функции
         } else if(m_var_type_current == ObjType::NativeFunc) {
             result = CallNative(ctx, *param.get());
@@ -2391,7 +2415,6 @@ ObjPtr Obj::CallNative(Context *ctx, Obj args) {
     //    return result;
 }
 
-
 bool newlang::ParsePrintfFormat(Obj *args, int start) {
 
     if(!args) {
@@ -2424,7 +2447,7 @@ bool newlang::ParsePrintfFormat(Obj *args, int start) {
 
     size_t pos = 0;
     while(pos < format.length()) {
-        pos = format.find_first_of('%', pos);
+        pos = format.find('%', pos);
         if(pos == format.npos) {
             break;
         }
@@ -3170,29 +3193,63 @@ ObjPtr Obj::ConstructorNative_(const Context *ctx_const, Obj & args) {
     return ctx->CreateNative(args.at(1).second->GetValueAsString().c_str());
 }
 
+ObjPtr Obj::ConstructorStub_(const Context *ctx, Obj & args) {
+    return Obj::CreateClass(":Class");
+}
+
 /*
  * <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
  * Различие между классом и словарям в том, что элементы словаря могут добавлятся и удаляться динамически,
  * а у класса состав полей фиуксируется при определении и в последствии они не могут быть добалвены или удалены.
  * Это нужно для возможности работы синтаксического анализатора на этапе компиляции программы.
  * >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
- *          
+ * 
+ * Данный конструктор используется для создания классов литералов без дополнительных 
+ * вызовов базовых классов и/или дектрукторов
+ *
  */
-
 ObjPtr Obj::ConstructorClass_(const Context *ctx, Obj & args) {
-    ObjPtr result = ConstructorDictionary_(ctx, args);
-    result->m_var_type_fixed = ObjType::Class;
-    result->m_var_is_init = true;
-    for (int i = 1; i < result->size(); i++) {
-        if(result->name(i).empty()) {
+
+    bool is_check = false;
+    ObjPtr result = nullptr;
+    ObjPtr constructor = nullptr;
+    if(args.size() && !args.at(0).first.empty() && args.at(0).second) {
+        //LOG_DEBUG("'%s' %s", args.at(0).first.c_str(), args.at(0).second->toString().c_str());
+        result = args.at(0).second;
+        is_check = true;
+
+        std::string name = MakeConstructorName(args.at(0).second->m_class_name);
+        constructor = const_cast<Context *> (ctx)->FindTerm(name);
+
+    } else {
+        result = Obj::CreateType(ObjType::Class, ObjType::Class, true);
+
+        ASSERT(args.size() == 0);
+        args.push_back(result);
+    }
+
+    for (int i = 1; i < args.size(); i++) {
+        if(args.name(i).empty()) {
             LOG_RUNTIME("Field pos %d has no name!", i);
         }
         for (int pos = 0; pos < i; pos++) {
-            if(result->name(pos).compare(result->name(i)) == 0) {
-                LOG_RUNTIME("Field name '%s' at index %d already exists!", result->name(i).c_str(), i);
+            if(args.name(pos).compare(args.name(i)) == 0) {
+                LOG_RUNTIME("Field name '%s' at index %d already exists!", args.name(i).c_str(), i);
             }
         }
+        if(result->find(args.name(i)) != result->end()) {
+            result->find(args.name(i))->second->SetValue_(args.at(i).second);
+        } else if(is_check) {
+            LOG_RUNTIME("Property '%s' not found!", args.name(i).c_str());
+        } else {
+            result->push_back(args.at(i).second, args.name(i));
+        }
     }
+
+    if(constructor) {
+        //        result = constructor->Call(const_cast<Context *> (ctx), &args, true, result);
+    }
+
     return result;
 }
 
@@ -3566,8 +3623,53 @@ ObjPtr Obj::IteratorNext(int64_t count) {
     return m_iterator->read_and_next(count);
 }
 
-//void Obj::SetHelp(const std::string &help) {
-//    Context::HelpInfo help_info = Context::;
-//    std::shared_ptr<std::string> m_help = help;
-//}
+ObjPtr newlang::CheckSystemField(const Obj *obj, std::string name) {
+    /*
+        Встроенные атрибуты у каждого объекта
+     */
+
+    static const char * SYS__NAME__ = "__name__";
+    static const char * SYS__FULL_NAME__ = "__full_name__";
+    static const char * SYS__TYPE__ = "__type__";
+    static const char * SYS__TYPE_FIXED__ = "__type_fixed__";
+    static const char * SYS__MOULE__ = "__module__";
+    static const char * SYS__CLASS__ = "__class__";
+    static const char * SYS__BASE__ = "__base__";
+
+    static const char * SYS__DOC__ = "__doc__";
+    static const char * SYS__STR__ = "__str__";
+
+    if(!isInternalName(name)) {
+        return nullptr;
+    } else if(!obj || !obj->is_init()) {
+        return Obj::CreateString(":Undefined");
+    } else if(name.compare(SYS__FULL_NAME__) == 0) {
+        return Obj::CreateString(obj->m_var_name);
+    } else if(name.compare(SYS__NAME__) == 0) {
+        return Obj::CreateString(ExtractName(obj->m_var_name));
+    } else if(name.compare(SYS__MOULE__) == 0) {
+        return Obj::CreateString(ExtractModuleName(obj->m_var_name));
+    } else if(name.compare(SYS__TYPE__) == 0) {
+        return Obj::CreateString(newlang::toString(obj->m_var_type_current));
+    } else if(name.compare(SYS__TYPE_FIXED__) == 0) {
+        return Obj::CreateString(newlang::toString(obj->m_var_type_fixed));
+    } else if(name.compare(SYS__CLASS__) == 0) {
+        return Obj::CreateString(obj->m_class_name);
+    } else if(name.compare(SYS__BASE__) == 0) {
+        return Obj::CreateDict(obj->m_class_parents);
+    } else if(name.compare(SYS__MOULE__) == 0) {
+        return Obj::CreateString(obj->m_var_name);
+    } else if(name.compare(SYS__DOC__) == 0) {
+        return Obj::CreateString(GetDoc(obj->m_var_name));
+    } else if(name.compare(SYS__STR__) == 0) {
+        return Obj::CreateString(obj->toString());
+    } else {
+        std::string message("Internal field '");
+        message += name;
+        message += "' not exist!";
+        return Obj::CreateString(message);
+    }
+    return nullptr;
+}
+
 

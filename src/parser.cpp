@@ -12,10 +12,17 @@ const std::string Parser::MACROS_END = "\\\\\\";
 
 Parser::Parser(TermPtr &ast) : m_ast(ast) {
     m_ast = Term::Create(TermID::END, "");
+    m_ast->m_parser = this;
 }
 
 bool Parser::parse_stream(std::istream& in, const std::string sname) {
     streamname = sname;
+
+    time_t rawtime;
+    struct tm * timeinfo;
+    time(&rawtime);
+    timeinfo = localtime(&rawtime);
+    m_time = asctime(timeinfo);
 
     Scanner scanner(&in);
     this->lexer = &scanner;
@@ -25,8 +32,28 @@ bool Parser::parse_stream(std::istream& in, const std::string sname) {
     return (parser.parse() == 0);
 }
 
+template <typename TP>
+std::time_t to_time_t(TP tp) {
+    using namespace std::chrono;
+    auto sctp = time_point_cast<system_clock::duration>(tp - TP::clock::now()
+            + system_clock::now());
+    return system_clock::to_time_t(sctp);
+}
+
 bool Parser::parse_file(const std::string filename) {
     std::ifstream in(filename);
+
+    m_file_name = filename;
+    std::error_code ec;
+    std::filesystem::file_time_type ftime = std::filesystem::last_write_time(filename, ec);
+    if(ec) {
+        m_file_time = "??? ??? ?? ??:??:?? ????";
+    } else {
+        time_t temp = to_time_t(ftime);
+        struct tm * timeinfo;
+        timeinfo = localtime(&temp);
+        m_file_time = asctime(timeinfo);
+    }
     if(!in.good()) return false;
     return parse_stream(in, filename.c_str());
 }
@@ -38,10 +65,17 @@ bool Parser::parse_string(const std::string input, const std::string sname) {
 
 TermPtr Parser::Parse(const std::string input, MacrosStore *store) {
 
+    time_t rawtime;
+    struct tm * timeinfo;
+    time(&rawtime);
+    timeinfo = localtime(&rawtime);
+    m_time = asctime(timeinfo);
+
     std::string parse_string = ParseAllMacros(input, store);
 
     m_ast = Term::Create(TermID::END, "");
     m_ast->SetSource(std::make_shared<std::string>(input));
+    m_ast->m_parser = this;
     m_stream.str(parse_string);
     Scanner scanner(&m_stream, &std::cout, m_ast->m_source);
     lexer = &scanner;
@@ -79,6 +113,7 @@ void newlang::parser::error(const parser::location_type& l, const std::string& m
 void Parser::AstAddTerm(TermPtr &term) {
     ASSERT(m_ast);
     ASSERT(m_ast->m_source);
+    term->m_parser = this;
     term->m_source = m_ast->m_source;
     if(m_ast->m_id == TermID::END) {
         m_ast = term;

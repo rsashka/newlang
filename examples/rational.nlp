@@ -1,8 +1,8 @@
 #!../output/nlc --eval
 
-@printf := :Pointer('printf(format:FmtChar, ...):Int32');
+printf := :Pointer('printf(format:FmtChar, ...):Int32');
 
-@fact_int(n:Int32) := {
+fact_int(n:Int32) := {
     [n > 1] --> {
         n *= fact_int(n-1);
     }, [n==1] --> {
@@ -13,8 +13,8 @@
  };
 
 printf('Recursive factorial with integer overflow at most 13!:\n');
-@item := (1, 2, 3, 4, 5, 10, 11, 12, 13,)?;
-@fact := 0;
+item := (1, 2, 3, 4, 5, 10, 11, 12, 13,)?;
+fact := 0;
 [ item ] <-> {
     fact := fact_int(item?!);
     printf('%d! -> %d\n', item?!, fact); #479001600
@@ -24,7 +24,7 @@ printf('Recursive factorial with integer overflow at most 13!:\n');
 
 
 
-@fact_range(n:Rational) := {
+fact_range(n:Rational) := {
     [n > 2] --> {
         iter := (n-1)..1..-1?; # Итератор для множителей
         [iter?!] <-> {
@@ -35,8 +35,8 @@ printf('Recursive factorial with integer overflow at most 13!:\n');
  };
 
 printf('Recursive factorial without overflow with rationalal value:\n');
-@big := (1, 2, 3, 4, 5, 10, 11, 12, 13, 20, 30, 100, 1000,)?;
-@frac := 0\1;   # rational value support bigint
+big := (1, 2, 3, 4, 5, 10, 11, 12, 13, 20, 30, 100, 1000,)?;
+frac := 0\1;   # rational value support bigint
 
 [ big ] <-> {
     printf('%s! -> ', :StrChar(big?!));

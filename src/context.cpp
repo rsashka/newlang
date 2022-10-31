@@ -10,33 +10,6 @@
 
 using namespace newlang;
 
-/*
- Идентификатором объектов является его имя, причем у сессионных и глобальных
-объектов оно присваивается автоматически даже для переменных литералов. Имена
-локальных объектов перекрывают сессионные и глобальные, а сессионный объкт
-перекрывает глобальный. Дубли локальных объектов не допускаются, т.к. имена
-локальных переменных должны быть уникальные на уровне языка реализации. Дубли
-сессионных объектов для текущей сессии не допускаются, но можно перекрывать
-сессионные объекты более высокого уровня. Дубли глобальных объектов допускаются
-без ограничений, а при создании дубля выводится предупреждение.
-
-При наличии переменных с одним именем, но разным временем жизни, приоритет
-доступпа будет следующим. обращение по имени объекта - доступ только к
-локальному объекту (разрешение имени происходит во время компиляции) или будет
-ошибка если объект отсутствует. обращение как к сессионному обекту (префикс $) -
-если есть локальный объект, вернется локальный, иначе вернется сессионный или
-будет ошибка если объект отсутствует. обращение как к глобальному обекту
-(префикс @) - если есть локальный, вернется локальный, иначе вернется
-сессионный, иначе вернется глобальный или будет ошибка если объект отсутствует.
-
-Можно всегда указывать глобальный идентификатор объекта, то доступ будет в
-зависимости от наличия локальных или сессионных переменных/объектов.
-
-$.obj прямое обращения к сессионному объекту при наличии локального
-@.obj прямое обращения к глобальному объекту при наличии локального или
-сессионного
-
- */
 
 std::map<std::string, Context::EvalFunction> Context::m_ops;
 std::map<std::string, Context::EvalFunction> Context::m_builtin_calls;
@@ -318,14 +291,12 @@ ObjPtr Context::RegisterObject(ObjPtr var) {
     if(!var || var->getName().empty()) {
         LOG_RUNTIME("Empty object name %s", var ? var->toString().c_str() : "");
     }
-    ASSERT(var->m_namespace.empty());
+    //    ASSERT(var->m_namespace.empty());
 
-    if(isGlobal(var->getName())) {
-        var->getName() = var->getName().substr(1);
-        m_global_terms.push_back(var, var->getName());
-    }
     if(isLocal(var->getName())) {
         var->getName() = var->getName().substr(1);
+    } else {
+        m_terms.push_back(var, var->getName());
     }
     push_back(var, var->getName());
 
@@ -415,10 +386,6 @@ ObjPtr Context::eval_BLOCK(Context *ctx, const TermPtr &term, Obj *args, bool ev
     obj->m_sequence = term;
     obj->m_var_is_init = true;
 
-    if(term->size() && term->at(0).second->IsString()) {
-        obj->m_help = Docs::Append(term->at(0).second->m_text);
-    }
-
     if(eval_block) {
         return CallBlock(ctx, term, args, eval_block, CatchType::CATCH_AUTO, nullptr);
     }
@@ -447,10 +414,6 @@ ObjPtr Context::eval_BLOCK_TRY(Context *ctx, const TermPtr &term, Obj *args, boo
     obj->m_sequence = term;
     obj->m_var_is_init = true;
 
-    if(term->size() && term->at(0).second->IsString()) {
-        obj->m_help = Docs::Append(term->at(0).second->m_text);
-    }
-
     if(eval_block) {
         return CallBlock(ctx, term, args, eval_block, CatchType::CATCH_ALL, nullptr);
     }
@@ -463,10 +426,6 @@ ObjPtr Context::eval_BLOCK_PLUS(Context *ctx, const TermPtr &term, Obj *args, bo
     ObjPtr obj = Obj::CreateType(ObjType::BLOCK_PLUS);
     obj->m_sequence = term;
     obj->m_var_is_init = true;
-
-    if(term->size() && term->at(0).second->IsString()) {
-        obj->m_help = Docs::Append(term->at(0).second->m_text);
-    }
 
     if(eval_block) {
         return CallBlock(ctx, term, args, eval_block, CatchType::CATCH_PLUS, nullptr);
@@ -481,10 +440,6 @@ ObjPtr Context::eval_BLOCK_MINUS(Context *ctx, const TermPtr &term, Obj *args, b
     obj->m_sequence = term;
     obj->m_var_is_init = true;
 
-    if(term->size() && term->at(0).second->IsString()) {
-        obj->m_help = Docs::Append(term->at(0).second->m_text);
-    }
-
     if(eval_block) {
         return CallBlock(ctx, term, args, eval_block, CatchType::CATCH_MINUS, nullptr);
     }
@@ -492,17 +447,6 @@ ObjPtr Context::eval_BLOCK_MINUS(Context *ctx, const TermPtr &term, Obj *args, b
     return obj;
 }
 
-//ObjPtr Context::eval_CALL_BLOCK(Context *ctx, const TermPtr &term, Obj *args, bool eval_block) {
-//    ASSERT(term && term->getTermID() == TermID::CALL_BLOCK);
-//
-//    return CallBlock(ctx, term, args, CatchType::CATCH_NONE);
-//}
-//
-//ObjPtr Context::eval_CALL_TRY(Context *ctx, const TermPtr &term, Obj *args, bool eval_block) {
-//    ASSERT(term && term->getTermID() == TermID::CALL_TRY);
-//
-//    return CallBlock(ctx, term, args, CatchType::CATCH_ANY);
-//}
 
 ObjPtr Context::eval_MACRO(Context *ctx, const TermPtr &term, Obj *args, bool eval_block) {
     LOG_ERROR("Macro %s not found!", term->toString().c_str());
@@ -596,10 +540,12 @@ ObjPtr Context::eval_LOCAL(Context *ctx, const TermPtr &term, Obj *args, bool ev
     LOG_RUNTIME("LOCAL Not implemented!");
     return nullptr;
 }
+
 ObjPtr Context::eval_MODULE(Context *ctx, const TermPtr &term, Obj *args, bool eval_block) {
     LOG_RUNTIME("MODULE Not implemented!");
     return nullptr;
 }
+
 ObjPtr Context::eval_NATIVE(Context *ctx, const TermPtr &term, Obj *args, bool eval_block) {
     LOG_RUNTIME("NATIVE Not implemented!");
     return nullptr;
@@ -671,7 +617,7 @@ ObjPtr Context::CREATE_OR_ASSIGN(Context *ctx, const TermPtr &term, Obj *local_v
             is_eval_block = false;
         }
         list_term.push_back(next);
-        next = next->m_comma_seq;
+        next = next->m_list;
     }
 
     if(!is_eval_block && list_term.size() > 1) {
@@ -696,9 +642,10 @@ ObjPtr Context::CREATE_OR_ASSIGN(Context *ctx, const TermPtr &term, Obj *local_v
         } else if(elem->getTermID() == TermID::NONE) {
             result = Obj::CreateNone();
         } else {
+            // LOG_DEBUG("find: %s", ctx->NamespaseFull(elem->GetFullName()).c_str());
             auto found = ctx->find(ctx->NamespaseFull(elem->GetFullName()));
             if(found == ctx->end() && mode == CreateMode::ASSIGN_ONLY) {
-                NL_PARSER(elem, "Variable '%s' (%s) not found!", elem->m_text.c_str(), ctx->NamespaseFull(elem->GetFullName()).c_str());
+                NL_PARSER(elem, "Object '%s' (%s) not found!", elem->m_text.c_str(), ctx->NamespaseFull(elem->GetFullName()).c_str());
             }
 
             if(found != ctx->end()) {
@@ -706,7 +653,7 @@ ObjPtr Context::CREATE_OR_ASSIGN(Context *ctx, const TermPtr &term, Obj *local_v
             }
 
             if(result && mode == CreateMode::CREATE_ONLY) {
-                NL_PARSER(elem, "Variable '%s' (%s) already exists!", elem->m_text.c_str(), ctx->NamespaseFull(elem->GetFullName()).c_str());
+                NL_PARSER(elem, "Object '%s' (%s) already exists!", elem->m_text.c_str(), ctx->NamespaseFull(elem->GetFullName()).c_str());
             }
 
             if(!term->Right()) { // Удаление глобальной переменной
@@ -734,7 +681,7 @@ ObjPtr Context::CREATE_OR_ASSIGN(Context *ctx, const TermPtr &term, Obj *local_v
     // Что присваиваем (правая часть выражения) - пока единичный объект
     // @todo В будущем можно будет сделать сахар для обмена значениями при одинаковом кол-ве объектов у оператора присваивания
     // a, b = b, a;   a, b, c = c, b, a; и т.д.
-    if(term->Right() && term->Right()->getTermID() != TermID::ELLIPSIS && term->Right()->m_comma_seq) {
+    if(term->Right() && term->Right()->getTermID() != TermID::ELLIPSIS && term->Right()->m_list) {
         NL_PARSER(term->Right()->Right(), "Multiple assignments not implemented!");
     }
 
@@ -742,6 +689,10 @@ ObjPtr Context::CREATE_OR_ASSIGN(Context *ctx, const TermPtr &term, Obj *local_v
     if(term->Right()->getTermID() == TermID::ELLIPSIS) {
         ASSERT(term->Right()->Right());
         rval = Eval(ctx, term->Right()->Right(), local_vars, is_eval_block, CatchType::CATCH_AUTO);
+    } else if(term->Right()->getTermID() == TermID::CLASS) {
+        ASSERT(list_obj.size() == 1);
+        // Имя класса появляется только при операции присвоения в левой части оператора
+        rval = ctx->CreateClass(term->Left()->GetFullName(), term->Right(), local_vars);
     } else {
         rval = Eval(ctx, term->Right(), local_vars, is_eval_block, CatchType::CATCH_AUTO);
     }
@@ -1095,8 +1046,9 @@ ObjPtr Context::eval_DICT(Context *ctx, const TermPtr &term, Obj * args, bool ev
 }
 
 ObjPtr Context::eval_CLASS(Context *ctx, const TermPtr &term, Obj * args, bool eval_block) {
+    LOG_RUNTIME("CLASS Not implemented!");
 
-    return CreateRVal(ctx, term, args);
+    return nullptr;
 }
 
 ObjPtr Context::eval_SOURCE(Context *ctx, const TermPtr &term, Obj * args, bool eval_block) {
@@ -1521,7 +1473,7 @@ ObjPtr Context::CallBlock(Context *ctx, const TermPtr &block, Obj * local_vars, 
 
             for (size_t i = 0; i < block->m_block.size(); i++) {
                 if(block->m_block[i]->IsBlock()) {
-                    LOG_DEBUG("NS %s (%d)", block->m_block[i]->m_class.c_str(), (int)ctx->m_ns_stack.size());
+                    //                    LOG_DEBUG("NS %s (%d)", block->m_block[i]->m_class.c_str(), (int)ctx->m_ns_stack.size());
                     bool is_ns = ctx->NamespasePush(block->m_block[i]->m_class);
                     try {
                         result = CallBlock(ctx, block->m_block[i], local_vars, eval_block, CatchType::CATCH_AUTO, has_interrupt);
@@ -1535,14 +1487,13 @@ ObjPtr Context::CallBlock(Context *ctx, const TermPtr &block, Obj * local_vars, 
                         ctx->NamespasePop();
                     }
                 } else {
-                    //                    LOG_DEBUG("Eval: %s", block->m_block[i]->toString().c_str());
                     result = Eval(ctx, block->m_block[i], local_vars, eval_block, CatchType::CATCH_NONE);
                 }
             }
 
         } else {
             if(block->IsBlock()) {
-                LOG_DEBUG("NS %s (%d)", block->m_class.c_str(), (int)ctx->m_ns_stack.size());
+                //                LOG_DEBUG("NS %s (%d)", block->m_class.c_str(), (int)ctx->m_ns_stack.size());
                 bool is_ns = ctx->NamespasePush(block->m_class);
                 try {
                     result = CallBlock(ctx, block, local_vars, eval_block, CatchType::CATCH_AUTO, has_interrupt);
@@ -1586,9 +1537,16 @@ ObjPtr Context::CallBlock(Context *ctx, const TermPtr &block, Obj * local_vars, 
             throw;
         } else if((type_catch == CatchType::CATCH_ALL ||
                 (type_catch == CatchType::CATCH_AUTO && auto_type == TermID::BLOCK_TRY))
-                && !block->m_type_name.empty()) { // Если есть фильтр для типа
+                && !block->m_type_allowed.empty()) { // Если есть фильтр для типа
             // Тип данных при возврате не соответствует фильтру, пробросить исключение дальше
-            if(!obj.m_obj->m_return_obj->op_class_test(block->m_type_name.c_str(), ctx)) {
+            bool is_return = false;
+            for (size_t i = 0; i < block->m_type_allowed.size(); i++) {
+                if(obj.m_obj->m_return_obj->op_class_test(block->m_type_allowed[i]->getText().c_str(), ctx)) {
+                    is_return = true;
+                    break;
+                }
+            }
+            if(!is_return) {
                 throw;
             }
         }
@@ -1667,11 +1625,18 @@ ObjPtr Context::CreateNative(TermPtr proto, const char *module, bool lazzy, cons
         switch(type) {
             case ObjType::Bool:
             case ObjType::Int8:
+            case ObjType::Char:
+            case ObjType::Byte:
             case ObjType::Int16:
+            case ObjType::Word:
             case ObjType::Int32:
+            case ObjType::DWord:
             case ObjType::Int64:
+            case ObjType::DWord64:
             case ObjType::Float32:
             case ObjType::Float64:
+            case ObjType::Single:
+            case ObjType::Double:
             case ObjType::Pointer:
                 break;
             default:
@@ -1708,21 +1673,28 @@ ObjPtr Context::CreateNative(TermPtr proto, const char *module, bool lazzy, cons
                 result->m_var = static_cast<bool *> (ptr);
                 break;
             case ObjType::Int8:
+            case ObjType::Char:
+            case ObjType::Byte:
                 result->m_var = static_cast<int8_t *> (ptr);
                 break;
             case ObjType::Int16:
+            case ObjType::Word:
                 result->m_var = static_cast<int16_t *> (ptr);
                 break;
             case ObjType::Int32:
+            case ObjType::DWord:
                 result->m_var = static_cast<int32_t *> (ptr);
                 break;
             case ObjType::Int64:
+            case ObjType::DWord64:
                 result->m_var = static_cast<int64_t *> (ptr);
                 break;
             case ObjType::Float32:
+            case ObjType::Single:
                 result->m_var = static_cast<float *> (ptr);
                 break;
             case ObjType::Float64:
+            case ObjType::Double:
                 result->m_var = static_cast<double *> (ptr);
                 break;
 
@@ -1958,14 +1930,21 @@ void Context::ItemTensorEval_(torch::Tensor &tensor, c10::IntArrayRef shape, std
 
             switch(type) {
                 case ObjType::Int8:
+                case ObjType::Char:
+                case ObjType::Byte:
                 case ObjType::Int16:
+                case ObjType::Word:
                 case ObjType::Int32:
+                case ObjType::DWord:
                 case ObjType::Int64:
+                case ObjType::DWord64:
                     value = at::Scalar(obj->Call(this)->GetValueAsInteger()); // args
                     tensor.index_put_(ind, value);
                     break;
                 case ObjType::Float32:
                 case ObjType::Float64:
+                case ObjType::Single:
+                case ObjType::Double:
                     value = at::Scalar(obj->Call(this)->GetValueAsNumber()); // args
                     tensor.index_put_(ind, value);
 
@@ -2264,9 +2243,39 @@ ObjPtr Context::CreateRVal(Context *ctx, TermPtr term, Obj * local_vars, bool ev
             field = term->m_right;
             if(field && field->getTermID() == TermID::FIELD) {
                 while(field) {
-                    result = result->at(field->getText()).second;
+                    if(field->m_is_call) {
+
+                        if(result->m_class_name.empty()) {
+                            NL_PARSER(term, "Object '%s' not a class! %s", term->GetFullName().c_str(), result->m_class_name.c_str());
+                        }
+
+                        full_name = result->m_class_name;
+                        if(isType(full_name)) {
+                            full_name = full_name.substr(1);
+                        }
+                        full_name += "::";
+                        full_name += field->getText();
+
+                        temp = ctx->GetTerm(full_name, true);
+                        if(!temp) {
+                            LOG_RUNTIME("Function '%s' not found!", full_name.c_str());
+                        }
+
+                        args = Obj::CreateDict();
+                        for (size_t i = 0; i < field->size(); i++) {
+                            if(field->name(i).empty()) {
+                                args->push_back(CreateRVal(ctx, (*field)[i].second, local_vars));
+                            } else {
+                                args->push_back(CreateRVal(ctx, (*field)[i].second, local_vars), field->name(i).c_str());
+                            }
+                        }
+
+                        result = temp->Call(ctx, args.get(), true, result);
+
+                    } else {
+                        result = result->at(field->getText()).second;
+                    }
                     field = field->m_right;
-                    ASSERT(!field); // Нужно выполнять, а не просто получать значение поля
                 }
             } else if(field && field->getTermID() == TermID::INDEX) {
                 while(field) {
@@ -2352,7 +2361,7 @@ ObjPtr Context::CreateRVal(Context *ctx, TermPtr term, Obj * local_vars, bool ev
                         LOG_RUNTIME("Argument in function for filling not implemented!");
                     }
 
-                    for (int64_t dim_index = result->size(); dim_index < full_size; dim_index++) {
+                    for (int64_t dim_index = args->size(); dim_index < full_size; dim_index++) {
                         args->push_back(expr->Call(ctx));
                     }
 
@@ -2594,3 +2603,164 @@ void Context::CreateArgs_(ObjPtr &args, TermPtr &term, Obj * local_vars) {
         }
     }
 }
+
+ObjPtr Context::CreateClass(std::string class_name, TermPtr body, Obj * local_vars) {
+
+    ASSERT(body->GetTokenID() == TermID::CLASS);
+    ASSERT(body->m_base.size());
+
+    ObjPtr new_class = Obj::CreateBaseType(ObjType::Class);
+    new_class->m_var_name = class_name;
+    std::string constructor = MakeConstructorName(class_name);
+
+    // LOG_DEBUG("\nCreate class: '%s', constructor %s", class_name.c_str(), constructor.c_str());
+
+
+    if(class_name.find(":") == 0) {
+        class_name.erase(0, 1);
+    }
+
+    // Пройтись по всем базовым классам
+    for (int i = 0; i < body->m_base.size(); i++) {
+
+        ObjPtr base = GetTerm(body->m_base[i]->GetFullName().c_str(), false);
+
+        // LOG_DEBUG("Base %s: '%s' %d", body->m_base[i]->GetFullName().c_str(), base->toString().c_str(), (int) base->size());
+
+        bool has_error = false;
+        ObjType type = typeFromString(body->m_base[i]->GetFullName(), this, &has_error);
+        if(has_error) {
+            LOG_RUNTIME("Type name '%s' undefined!", body->m_base[i]->GetFullName().c_str());
+        }
+        ASSERT(base);
+        ASSERT(base->m_var_type_fixed == type);
+        ASSERT(base->m_class_name.compare(body->m_base[i]->GetFullName()) == 0);
+        ASSERT(!base->m_dimensions);
+
+        // Клонировать все методы (функции) базового класса с новыми именами
+        std::set<std::string> methods;
+        std::string base_constructor = MakeConstructorName(base->m_class_name);
+        // LOG_DEBUG("base_constructor %s", base_constructor.c_str());
+
+
+        std::string find_substr = base->m_class_name.substr(1);
+        find_substr += "::";
+
+        auto iter = m_terms.begin();
+        while(iter != m_terms.end()) {
+            if(iter->first.find(find_substr) == 0) {
+                if(base_constructor.compare(iter->first) != 0) {
+                    methods.insert(iter->first);
+                }
+            }
+            iter++;
+        }
+
+
+        std::string replace(base->m_class_name.substr(1));
+        replace += "::";
+
+        std::set<Variable<Obj>::PairType *> rollback;
+
+
+        try {
+
+            ObjPtr obj;
+
+            if(i == 0) {
+                // Только один конструктор у класса
+                obj = Obj::CreateFunc(constructor, &Obj::ConstructorStub_, ObjType::PureFunc);
+                push_back(obj, constructor); // weak_ptr
+                rollback.insert(&m_terms.push_back(obj, constructor));
+            }
+
+            for (auto &elem : methods) {
+
+                // LOG_DEBUG("Func: %s  Replace: %s", elem.c_str(), replace.c_str());
+
+                auto iter = m_terms.find(elem);
+                ASSERT(iter != m_terms.end());
+
+                obj = iter->second; //.lock();
+                ASSERT(obj);
+
+                std::string name(elem);
+                size_t pos = name.find(replace);
+
+                ASSERT(pos != name.npos);
+                ASSERT(pos == 0 || name[pos - 1] == ':');
+
+                name.erase(pos, replace.size() - 2);
+                name.insert(pos, class_name);
+
+                if(m_terms.find(name) == m_terms.end()) {
+                    // LOG_DEBUG("new name %s", name.c_str());
+                    push_back(obj, name); // weak_ptr
+                    rollback.insert(&m_terms.push_back(obj, name));
+                }
+            }
+
+            base->ClonePropTo(*new_class);
+
+
+            // Выполнить тело конструктора типа для создания новых полей и методов у создаваемого типа класса
+            bool is_pop_ns = NamespasePush(class_name);
+            try {
+                for (int i = 0; i < body->m_block.size(); i++) {
+                    if(body->m_block[i]->IsCreate()) {
+                        ASSERT(body->m_block[i]->Left());
+                        if(body->m_block[i]->Left()->IsFunction() || body->m_block[i]->Left()->getTermID() == TermID::CALL) {
+                            Eval(this, body->m_block[i], local_vars, true);
+                        } else {
+
+                            std::string name = body->m_block[i]->Left()->getText();
+                            bool is_exists = (new_class->find(name) != new_class->end());
+
+                            if(body->m_block[i]->getText().compare("::=") == 0) {
+                                if(is_exists) {
+                                    LOG_RUNTIME("Dublicate property name '%s' in class '%s'!", name.c_str(), class_name.c_str());
+                                }
+                                new_class->push_back(nullptr, name);
+                            } else if(body->m_block[i]->getText().compare("=") == 0) {
+                                if(!is_exists) {
+                                    LOG_RUNTIME("Property name '%s' not found on base classes '%s'!", name.c_str(), class_name.c_str());
+                                }
+                            } else if(!is_exists) {
+                                new_class->push_back(nullptr, name);
+                            }
+
+                            new_class->at(name).second = CreateRVal(this, body->m_block[i]->Right(), local_vars, true);
+                        }
+                    } else {
+                        LOG_RUNTIME("Only create or assignment operators allowed! %s", body->m_block[i]->toString().c_str());
+                    }
+                }
+
+                if(is_pop_ns) {
+                    NamespasePop();
+                }
+            } catch (...) {
+                if(is_pop_ns) {
+                    NamespasePop();
+                }
+                throw;
+            }
+
+
+        } catch (...) {
+
+
+            for (auto &elem : rollback) {
+                // LOG_DEBUG("Rollback: '%s'", elem->first.c_str());
+                // remove(find(elem.first)); // weak_ptr
+                m_terms.remove(*elem);
+            }
+
+            throw;
+        }
+
+    }
+    new_class->m_var_is_init = true;
+    return new_class;
+}
+

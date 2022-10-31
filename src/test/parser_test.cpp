@@ -8,6 +8,7 @@
 
 #include <parser.h>
 #include <term.h>
+#include "version.h"
 #include "newlang.h"
 #include "nlc.h"
 
@@ -259,8 +260,8 @@ TEST_F(ParserTest, Tensor4) {
     ASSERT_TRUE(Parse(":range( 0..100  )"));
     ASSERT_STREQ(":range(0..100)", ast->toString().c_str());
 
-    ASSERT_TRUE(Parse(":range(  0 .. 100 .. 0.1 )"));
-    ASSERT_STREQ(":range(0..100..0.1)", ast->toString().c_str());
+    ASSERT_TRUE(Parse("range(  0 .. 100 .. 0.1 )"));
+    ASSERT_STREQ("range(0..100..0.1)", ast->toString().c_str());
 }
 
 /*
@@ -945,8 +946,8 @@ TEST_F(ParserTest, AssignClass1) {
 }
 
 TEST_F(ParserTest, AssignClass2) {
-    ASSERT_TRUE(Parse(":class  :=  :class1(), :ns::class2(),   :test(arg) {};"));
-    ASSERT_STREQ(":class := :class1(), :ns::class2(), :test(arg){};", ast->toString().c_str());
+    ASSERT_TRUE(Parse(":class  :=  ::ns::func(arg1, arg2=\"\") {};"));
+    ASSERT_STREQ(":class := ::ns::func(arg1, arg2=\"\"){};", ast->toString().c_str());
 }
 
 TEST_F(ParserTest, Namespace) {
@@ -954,6 +955,13 @@ TEST_F(ParserTest, Namespace) {
     ASSERT_TRUE(Parse("name::space{ func() := {}  };"));
     ASSERT_TRUE(Parse("::name::space{ func() := {}  };"));
     ASSERT_TRUE(Parse("::{ func() := {}  };"));
+}
+
+TEST_F(ParserTest, DISABLED_Namespace2) {
+    ASSERT_TRUE(Parse("name, name2 { func() := {}  };"));
+    ASSERT_TRUE(Parse("name::space, ns::name2{ func() := {}  };"));
+    ASSERT_TRUE(Parse("::name::space, ::name2 { func() := {}  };"));
+    ASSERT_TRUE(Parse("::, ::name2  { func() := {}  };"));
 }
 
 TEST_F(ParserTest, AssignFullName2) {
@@ -1224,7 +1232,7 @@ TEST_F(ParserTest, FunctionTrans4) {
 TEST_F(ParserTest, FunctionTrans5) {
     ASSERT_TRUE(Parse("func(arg1, arg2 = 5) :- { [$arg1<$arg2] --> {% return $arg1; %}, [_] --> {% return $arg2; %}; };"));
     ASSERT_STREQ("func(arg1, arg2=5) :- {[$arg1 < $arg2]-->{% return $arg1; %},\n [_]-->{% return $arg2; %};;};", ast->toString().c_str());
-//                  func(arg1, arg2=5) :- {[$arg1 < $arg2]-->{% return $arg1; %},\n [_]-->{% return $arg2; %};;};
+    //                  func(arg1, arg2=5) :- {[$arg1 < $arg2]-->{% return $arg1; %},\n [_]-->{% return $arg2; %};;};
 }
 
 TEST_F(ParserTest, FunctionRussian1) {
@@ -1627,6 +1635,7 @@ TEST_F(ParserTest, Else) {
     ASSERT_TRUE(Parse("{+ expr +}, [_]-->{+ else +}"));
     ASSERT_TRUE(Parse("{* expr *}, [_]-->{* else *}"));
 }
+
 /*
  * \while(1) {
  * }
@@ -2248,20 +2257,57 @@ TEST_F(ParserTest, Docs) {
 }
 
 TEST_F(ParserTest, HelloWorld) {
-    ASSERT_TRUE(Parse("hello(str=\"\") := { printf(format:FmtChar, ...):Int32 := :Pointer('printf'); printf('%s', $1); $str;};"));
+    ASSERT_TRUE(Parse("hello(str=\"\") := { printf(format:FmtChar, ...):Int32 := Pointer('printf'); printf('%s', $1); $str;};"));
     //    ASSERT_STREQ("!!!!!!!!!!!!!!", ast->toString().c_str());
+}
+
+TEST_F(ParserTest, SysEnv) {
+    ASSERT_TRUE(Parse("__NLC_VER__"));
+    ASSERT_STREQ(std::to_string(VERSION).c_str(), ast->toString().c_str());
+
+    ASSERT_TRUE(Parse("__LINE__"));
+    ASSERT_STREQ(std::to_string(1).c_str(), ast->toString().c_str());
+    ASSERT_TRUE(Parse("\n__LINE__"));
+    ASSERT_STREQ(std::to_string(2).c_str(), ast->toString().c_str());
+    ASSERT_TRUE(Parse("\n\n__LINE__"));
+    ASSERT_STREQ(std::to_string(3).c_str(), ast->toString().c_str());
+
+    ASSERT_TRUE(Parse("__COUNTER__"));
+    ASSERT_STREQ("0", ast->toString().c_str());
+    ASSERT_TRUE(Parse("__COUNTER__"));
+    ASSERT_STREQ("1", ast->toString().c_str());
+    ASSERT_TRUE(Parse("__COUNTER__"));
+    ASSERT_STREQ("2", ast->toString().c_str());
+
+    ASSERT_TRUE(Parse("__FILE__"));
+    ASSERT_STREQ("\"File name undefined!!!\"", ast->toString().c_str());
+
+    ASSERT_TRUE(Parse("__DATE__"));
+    ASSERT_EQ(27, ast->toString().size()) << ast->toString();
+
+    ASSERT_TRUE(Parse("__TIMESTAMP__"));
+    ASSERT_EQ(26, ast->toString().size()) << ast->toString();
+
+    ASSERT_TRUE(Parse("__SOURCE_GIT__"));
+    ASSERT_STREQ("\"" VERSION_GIT_SOURCE "\"", ast->toString().c_str());
+
+    ASSERT_TRUE(Parse("__DATE_BUILD__"));
+    ASSERT_STREQ("\"" VERSION_DATE_BUILD_STR "\"", ast->toString().c_str());
+
+    ASSERT_TRUE(Parse("__SOURCE_BUILD__"));
+    ASSERT_STREQ("\"" VERSION_SOURCE_FULL_ID "\"", ast->toString().c_str());
 }
 
 TEST_F(ParserTest, Class) {
     EXPECT_TRUE(Parse(":Name := :Class(){};"));
-    EXPECT_TRUE(Parse(":Name := :Class(){ filed1 = 1; };"));
-    EXPECT_TRUE(Parse(":Name := :Class(){ filed1 := 1; filed1 ::= 2; };"));
-    EXPECT_TRUE(Parse(":Name := :Class(){ func = {};};"));
+    EXPECT_TRUE(Parse(":Name := :_(){ filed1 = 1; };"));
+    EXPECT_TRUE(Parse(":Name := ns::Class(){ filed1 := 1; filed1 ::= 2; };"));
+    EXPECT_TRUE(Parse(":Name := ::(){ func = {};};"));
     EXPECT_TRUE(Parse(":Name := :Class(){ func1 := {}; func2 ::= {};};"));
-    EXPECT_TRUE(Parse(":Name := :Class(){ func() = {};};"));
-    EXPECT_TRUE(Parse(":Name := :Class(){ func1() := {}; func2(arg) ::= {};};"));
-    EXPECT_TRUE(Parse(":Name := :Class1(), :Class2(){ func() = {};};"));
-    EXPECT_TRUE(Parse(":Name := :Class(), :Class2(args) { func1() := {}; func2(arg) ::= {};};"));
+    EXPECT_TRUE(Parse("Name := Class(){ func() = {};};"));
+    EXPECT_TRUE(Parse("::Name() := ::Func(){ func1() := {}; func2(arg) ::= {};};"));
+    EXPECT_TRUE(Parse(":Name := ::Class(){ func() = {};};"));
+    EXPECT_TRUE(Parse(":Name := :Class(args) { func1() := {}; func2(arg) ::= {};};"));
 }
 
 TEST_F(ParserTest, DISABLED_Convert) {

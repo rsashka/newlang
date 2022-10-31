@@ -153,6 +153,8 @@
 %token           	TEMPLATE	"Template"
 %token           	EVAL            "Eval"
 
+%token			SYS_ENV_STR
+%token			SYS_ENV_INT
 %token			NAME
 %token			LOCAL
 %token			MODULE
@@ -238,23 +240,18 @@ symbols: SYMBOL
             }
 
 
-namespace:  NAME
+ns:     NAME
             {
                 $$ = $1;
             }
-        | namespace  NAMESPACE  NAME
+        | ns  NAMESPACE  NAME
             {
                 $$ = $3;
                 $$->m_text.insert(0, "::");
                 $$->m_text.insert(0, $1->m_text);
-                //$$->m_namespace = $1->GetFullName();
-                //$$->m_namespace += "::";
-                //$$->m_namespace = $1->m_namespace;
-                //$$->m_namespace = $1->GetFullName();
-                //$$->m_namespace += "::";
             }
             
-ns_name:  namespace
+ns_name:  ns
             {
                 $$ = $1;
             }
@@ -262,23 +259,44 @@ ns_name:  namespace
             {
                 $$ = $1;
             }
-        | NAMESPACE  namespace
+        | NAMESPACE  ns
             {
                 $$ = $2;
                 $$->m_text.insert(0, "::");
             }
+
+local:  '$'
+            {
+                $$ = $1;
+                $$->SetTermID(TermID::LOCAL);
+            }
+        | LOCAL
+            {
+                $$ = $1;
+            }
+
+module:  '@'
+            {
+                $$ = $1;
+                $$->SetTermID(TermID::MODULE);
+            }
+        | MODULE
+            {
+                $$ = $1;
+            }
+        
 name:  ns_name
             {
                 $$ = $1;
                 $$->TestConst();
             }
-        |  LOCAL
+        |  local
             {
                 $$ = $1;
                 $$->SetTermID(TermID::NAME);
                 $$->TestConst();
             }
-        |  MODULE
+        |  module
             {
                 $$ = $1;
                 $$->SetTermID(TermID::NAME);
@@ -314,7 +332,7 @@ type_dims: type_dim
     | type_dims  ','  type_dim
         {
             $$ = $1;
-            $$->AppendCommaTerm($3);
+            $$->AppendList($3);
         }
 
 type_class:  ':'  name
@@ -325,7 +343,7 @@ type_class:  ':'  name
 
 ptr: '&' 
         {
-            $$ = Term::Create(TermID::SYMBOL, "&", 1, & @$);
+            $$ = $1;
         }
     | OPERATOR_AND
         {
@@ -344,7 +362,7 @@ type_name:  type_class
         |  type_class   '['  type_dims   ']'
             {
                 $$ = $1;
-                $$->SetDims($type_dims);
+                Term::ListToVector($type_dims, $$->m_dims);
             }
         | ':'  ptr  NAME
             {
@@ -353,30 +371,35 @@ type_name:  type_class
                 $$->m_text.insert(0, ":");
                 $$->MakeRef($ptr);
             }
-        | ':'   ptr   NAME   '['  type_dims   ']'
+        | ':'  ptr  NAME   '['  type_dims   ']'
             {
                 // Для функций, возвращаюющих ссылки
                 $$ = $3;
                 $$->m_text.insert(0, ":");
-                $$->SetDims($type_dims);
+                Term::ListToVector($type_dims, $$->m_dims);
                 $$->MakeRef($ptr);
             }
 
 
-type:  type_name
-            {
-                $$ = $1;
-                $$->SetTermID(TermID::TYPE);
-                $$->TestConst();
-            }
-        | type_name   call
+type_call: type_name   call
             {
                 $$ = $1;
                 $$->SetArgs($2);
                 $$->SetTermID(TermID::TYPE_CALL);
                 $$->TestConst();
             }
-        | ':'  strtype 
+        
+type_item:  type_name
+            {
+                $$ = $1;
+                $$->SetTermID(TermID::TYPE);
+                $$->TestConst();
+            }
+        | type_call
+            {
+                $$ = $1;
+            }
+        | ':'  eval
             {
                 // Если тип еще не определён и/или его ненужно проверять во время компиляции, то имя типа можно взять в кавычки.
                 $$ = $2;
@@ -384,6 +407,21 @@ type:  type_name
                 $$->m_text.insert(0, ":");
             }
 
+type_items:  type_item
+            {
+                $$ = $1;
+            }
+        | type_items   ','   type_item
+            {
+                $$ = $1;
+                $$->AppendList($3);
+            }
+
+        
+type_list:  '<'  type_items  '>'
+            {
+                $$ = $type_items;
+            }
         
         
 
@@ -407,15 +445,19 @@ digits_literal: INTEGER
                 $$ = $1;
                 $$->SetType(nullptr);
             }
+        | SYS_ENV_INT
+            {
+                $$ = Term::GetEnvTerm($1);
+            }
         
 digits:  digits_literal
             {
                 $$ = $1;
             }
-        | digits_literal  type
+        | digits_literal  type_item
             {
                 $$ = $1;
-                $$->SetType($2);
+                $$->SetType($type_item);
             }
 
         
@@ -462,6 +504,10 @@ string: strtype
         {
             $$ = $1;
         }
+    | SYS_ENV_STR
+        {
+            $$ = Term::GetEnvTerm($1);
+        }
     | strtype  call
         {
             $$ = $1;
@@ -476,7 +522,7 @@ doc_before: DOC_BEFORE
         | doc_before  DOC_BEFORE 
             {
                 $$ = $1;
-                $$->Last()->Append($2);
+                $$->AppendList($2);
             }    
     
 doc_after: DOC_AFTER
@@ -486,7 +532,7 @@ doc_after: DOC_AFTER
         | doc_after  DOC_AFTER
             {
                 $$ = $1;
-                $$->Last()->Append($2);
+                $$->AppendList($2);
             }    
 
         
@@ -511,10 +557,11 @@ assign_name:  name
                     $$ = $1;  
                     $$->TestConst();
                 }
-            |  namespace  symbols
+            |  ns  NAMESPACE  symbols
                 {
                     $$ = $2;  
-                    $$->m_text.insert(0, $1->m_text);
+                    $$->m_text.insert(0, "::");
+                    $$->m_text.insert(0, $ns->m_text);
                     $$->TestConst();
                 }
             | ARGUMENT  /* $123 */
@@ -557,34 +604,42 @@ lval:  assign_name
                 $3->SetArgs($call);
                 $$->Last()->Append($3);
             }
-        |  lval  '.'  NAME  type
+        |  lval  '.'  NAME  type_item
             {
                 $$ = $1; 
                 $3->SetTermID(TermID::FIELD);
-                $3->SetType($type);
+                $3->SetType($type_item);
                 $$->Last()->Append($3);
             }
-        |  lval  '.'  NAME  call  type
+        |  lval  '.'  NAME  call  type_item
             {
                 $$ = $1; 
                 $3->SetTermID(TermID::FIELD);
                 $3->SetArgs($call);
-                $3->SetType($type);
+                $3->SetType($type_item);
                 $$->Last()->Append($3);
             }
-        |  type
-            {   
+        |  lval  '.'  NAME  call  type_list
+            {
                 $$ = $1; 
+                $3->SetTermID(TermID::FIELD);
+                $3->SetArgs($call);
+                $$->Last()->Append($3);
+                Term::ListToVector($type_list, $$->m_type_allowed);
             }
-        |  type  type
+        |  type_item
+            {   
+                $$ = $type_item; 
+            }
+        |  type_item  type_item
             {   
                 $$ = $1; 
                 $$->SetType($2);
             }
-        |  name  type
+        |  name  type_item
             {   
                 $$ = $1; 
-                $$->SetType($type);
+                $$->SetType($type_item);
             }
         |  name  call
             {   
@@ -592,12 +647,19 @@ lval:  assign_name
                 $$->SetTermID(TermID::CALL);
                 $$->SetArgs($call);
             }
-        |  name  call  type
+        |  name  call  type_item
             {   
                 $$ = $name; 
                 $$->SetTermID(TermID::CALL);
                 $$->SetArgs($call);
-                $$->SetType($type);
+                $$->SetType($type_item);
+            }
+        |  name  call  type_list
+            {   
+                $$ = $name; 
+                $$->SetTermID(TermID::CALL);
+                $$->SetArgs($call);
+                Term::ListToVector($type_list, $$->m_type_allowed);
             }
 
 rval_name: lval
@@ -733,10 +795,10 @@ arg: arg_name  '='
             $$->m_name.swap($1->m_text);
             $$->SetTermID(TermID::EMPTY);
         }
-    | name  type  '='
+    | name  type_item  '='
         { // Именованный аргумент
             $$ = $3;
-            $$->SetType($type);
+            $$->SetType($type_item);
             $$->m_name.swap($1->m_text);
             $$->SetTermID(TermID::EMPTY);
         }
@@ -745,10 +807,16 @@ arg: arg_name  '='
             $$ = $3;
             $$->SetName($1->getText());
         }
-    | name  type  '='  logical
+    | name  type_item  '='  logical
         { // Именованный аргумент
             $$ = $4;
-            $$->SetType($type);
+            $$->SetType($type_item);
+            $$->SetName($1->getText());
+        }
+    | name  type_list  '='  logical
+        { // Именованный аргумент
+            $$ = $4;
+            Term::ListToVector($type_list, $$->m_type_allowed);
             $$->SetName($1->getText());
         }
     | logical
@@ -789,7 +857,7 @@ args: arg
         | args  ','  arg
             {
                 $$ = $1;
-                $$->AppendCommaTerm($3);
+                $$->AppendList($3);
             }
         
         
@@ -811,21 +879,21 @@ array: '['  args  ','  ']'
                 $$->SetTermID(TermID::TENSOR);
                 $$->SetArgs($args);
             }
-        | '['  args  ','  ']'  type
+        | '['  args  ','  ']'  type_item
             {
                 $$ = $1;
                 $$->m_text.clear();
                 $$->SetTermID(TermID::TENSOR);
                 $$->SetArgs($args);
-                $$->SetType($type);
+                $$->SetType($type_item);
             }
-        | '['  ','  ']'  type
+        | '['  ','  ']'  type_item
             {
                 // Не инициализированый тензор должен быть с конкретным типом 
                 $$ = $1;
                 $$->m_text.clear();
                 $$->SetTermID(TermID::TENSOR);
-                $$->SetType($type);
+                $$->SetType($type_item);
             }
 
             
@@ -848,35 +916,21 @@ class:  dictionary
             {
                 $$ = $1;
             }
-        | dictionary   type_class
+        | dictionary   type_class        
             {
                 $$ = $1;
                 $$->m_text = $type_class->m_text;
                 $$->m_class = $type_class->m_text;
             }
-            
-           
-class_name: type_name
-            {
-                $$ = $1;
-            }
-        | type_name   call
-            {
-                $$ = $1;
-                $$->SetArgs($2);
-            }
 
-class_base: class_name
+collection: array 
             {
                 $$ = $1;
             }
-        | class_base  ','  class_name
+        | class
             {
                 $$ = $1;
-                $$->Last()->Append($3, Term::RIGHT); 
             }
-
-
 class_props: assign_arg 
             {
                 $$ = $1;
@@ -886,48 +940,99 @@ class_props: assign_arg
                 $$ = $1;
                 $$->AppendSequenceTerm($3);
             }
-            
-            
-class_def: class_base '{'  '}'
+
+class_item:  type_item
+            {
+                $$ = $1;
+            }
+        | name  call
+            {
+                $$ = $1;
+                $$->SetArgs($call);
+            }
+
+class_base: class_item
+            {
+                $$ = $1;
+            }
+        | class_base   ','   class_item
+            {
+                $$ = $1;
+                $$->AppendList($3);
+            }
+
+        
+class_def:  class_base  '{'  '}'
             {
                 $$ = $2;
-                $$->m_base = $1;
+                Term::ListToVector($class_base, $$->m_base);
                 $$->SetTermID(TermID::CLASS);
             }
         | class_base '{' class_props  ';'  '}'
             {
                 $$ = $class_props;
-                $$->m_base = $1;
+                Term::ListToVector($class_base, $$->m_base);
                 $$->ConvertSequenceToBlock(TermID::CLASS);
             }
         | class_base '{' doc_after  '}'
             {
                 $$ = $2;
-                $$->m_base = $1;
                 $$->SetTermID(TermID::CLASS);
-                $$->SetDocs($doc_after);
+                Term::ListToVector($class_base, $$->m_base);
+                Term::ListToVector($doc_after, $$->m_docs);
             }
         | class_base '{' doc_after  class_props  ';'  '}'
             {
                 $$ = $class_props;
-                $$->m_base = $1;
                 $$->ConvertSequenceToBlock(TermID::CLASS);
-                $$->SetDocs($doc_after);
+                Term::ListToVector($class_base, $$->m_base);
+                Term::ListToVector($doc_after, $$->m_docs);
             }
         
         
-collection: array 
+       
+block_ns:  ns_name  '{'  '}'
             {
-                $$ = $1;
+                $$ = $2; 
+                $$->SetTermID(TermID::BLOCK);
+                $$->m_class = $1->m_text;
             }
-        | class
+        | ns_name  '{'  sequence  '}'
             {
-                $$ = $1;
+                $$ = $sequence; 
+                $$->ConvertSequenceToBlock(TermID::BLOCK);
+                $$->m_class = $1->m_text;
             }
+        | ns_name  '{'  sequence  separator  '}'
+            {
+                $$ = $sequence; 
+                $$->ConvertSequenceToBlock(TermID::BLOCK);
+                $$->m_class = $1->m_text;
+            }        
+        | ns_name  '{' doc_after '}'
+            {
+                $$ = $2; 
+                $$->SetTermID(TermID::BLOCK);
+                Term::ListToVector($doc_after, $$->m_docs);
+                $$->m_class = $1->m_text;
+            }
+        | ns_name  '{'  doc_after  sequence  '}'
+            {
+                $$ = $sequence; 
+                $$->ConvertSequenceToBlock(TermID::BLOCK);
+                Term::ListToVector($doc_after, $$->m_docs);
+                $$->m_class = $1->m_text;
+            }
+        | ns_name  '{'  doc_after  sequence  separator  '}'
+            {
+                $$ = $sequence; 
+                $$->ConvertSequenceToBlock(TermID::BLOCK);
+                Term::ListToVector($doc_after, $$->m_docs);
+                $$->m_class = $1->m_text;
+            }        
 
-
-      
-           
+        
+        
 assign_op:  /* '='  
             {
                 // ASSIGN
@@ -987,7 +1092,7 @@ assign_items: assign_item
             |  assign_items  ','  assign_item
                 {
                     $$ = $1;
-                    $$->AppendCommaTerm($3);
+                    $$->AppendList($3);
                 }
 /*
 lval = rval;
@@ -1042,61 +1147,22 @@ block:  '{'  '}'
             {
                 $$ = $1; 
                 $$->SetTermID(TermID::BLOCK);
-                $$->SetDocs($doc_after);
+                Term::ListToVector($doc_after, $$->m_docs);
             }
         | '{'  doc_after  sequence  '}'
             {
                 $$ = $sequence; 
                 $$->ConvertSequenceToBlock(TermID::BLOCK);
-                $$->SetDocs($doc_after);
+                Term::ListToVector($doc_after, $$->m_docs);
             }
         | '{'  doc_after  sequence  separator  '}'
             {
                 $$ = $sequence; 
                 $$->ConvertSequenceToBlock(TermID::BLOCK);
-                $$->SetDocs($doc_after);
+                Term::ListToVector($doc_after, $$->m_docs);
             }
 
-block_ns:  name  '{'  '}'
-            {
-                $$ = $2; 
-                $$->m_class = $name->GetFullName();
-                $$->SetTermID(TermID::BLOCK);
-            }
-        | name  '{'  sequence  '}'
-            {
-                $$ = $sequence; 
-                $$->ConvertSequenceToBlock(TermID::BLOCK);
-                $$->m_class = $name->GetFullName();
-            }
-        | name  '{'  sequence  separator  '}'
-            {
-                $$ = $sequence; 
-                $$->ConvertSequenceToBlock(TermID::BLOCK);
-                $$->m_class = $name->GetFullName();
-            }        
-        | name  '{' doc_after '}'
-            {
-                $$ = $2; 
-                $$->SetTermID(TermID::BLOCK);
-                $$->m_class = $name->GetFullName();
-                $$->SetDocs($doc_after);
-            }
-        |  name  '{'  doc_after  sequence  '}'
-            {
-                $$ = $sequence; 
-                $$->ConvertSequenceToBlock(TermID::BLOCK);
-                $$->m_class = $name->GetFullName();
-                $$->SetDocs($doc_after);
-            }
-        | name  '{'  doc_after  sequence  separator  '}'
-            {
-                $$ = $sequence; 
-                $$->ConvertSequenceToBlock(TermID::BLOCK);
-                $$->m_class = $name->GetFullName();
-                $$->SetDocs($doc_after);
-            }        
-        
+     
         
 body:  condition
             {
@@ -1113,12 +1179,12 @@ body:  condition
         |  doc_before  block
             {
                 $$ = $block;
-                $$->SetDocs($doc_before);
+                Term::ListToVector($doc_before, $$->m_docs);
             }
         |  doc_before  block_ns
             {
                 $$ = $block_ns;
-                $$->SetDocs($doc_before);
+                Term::ListToVector($doc_before, $$->m_docs);
             }
 
 body_all: body
@@ -1173,7 +1239,7 @@ try_minus: TRY_MINUS_BEGIN  sequence  TRY_MINUS_END
                 $$ = $2; 
                 $$->ConvertSequenceToBlock(TermID::BLOCK_MINUS);
             }
-       
+
 try_catch:  try_plus 
             {
                 $$ = $1;
@@ -1186,10 +1252,15 @@ try_catch:  try_plus
             {
                 $$ = $1;
             }
-        | try_all  type_class
+        | try_all  type_name
             {
                 $$ = $1;
-                $$->m_type_name = $type_class->m_text;
+                $$->m_type_allowed.push_back($type_name);
+            }
+        | try_all  type_list
+            {
+                $$ = $1;
+                Term::ListToVector($type_list, $$->m_type_allowed);
             }
         
 /* 
@@ -1497,13 +1568,8 @@ seq_item: assign_seq
         | doc_before assign_seq
             {
                 $$ = $assign_seq;
-                $$->SetDocs($doc_before);
+                Term::ListToVector($doc_before, $$->m_docs);
             }
-/*        | assign_seq  doc_after
-            {
-                $$ = $assign_seq;
-                $$->SetDocs($doc_after);
-            }*/
         | follow
             {
                 $$ = $1; 
@@ -1541,7 +1607,7 @@ sequence:  seq_item
         | seq_item  doc_after
             {
                 $$ = $1;  
-                $$->SetDocs($doc_after);
+                Term::ListToVector($doc_after, $$->m_docs);
             }
         | sequence  separator  seq_item
             {
@@ -1552,7 +1618,7 @@ sequence:  seq_item
         | sequence  separator  doc_after  seq_item
             {
                 $$ = $1;  
-                $$->SetDocs($doc_after);
+                Term::ListToVector($doc_after, $$->m_docs);
                 // Несколько команд подряд
                 $$->AppendSequenceTerm($seq_item);
             }
@@ -1572,7 +1638,7 @@ ast:    END
             }
         | sequence separator  doc_after
             {
-                $1->SetDocs($doc_after);
+                Term::ListToVector($doc_after, $1->m_docs);
                 driver.AstAddTerm($1);
             }
 /*        | comment     Комменатарии не добавляются в AST, т.к. в парсере они не нужны, а
