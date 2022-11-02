@@ -42,10 +42,11 @@ namespace newlang {
         return MangleName(MakeName(name).c_str());
     }
 
-    inline std::string ExtractModuleName(std::string name) {
+    inline std::string ExtractModuleName(const char *str) {
+        std::string name(str);
         if (isModule(name)) {
-            size_t pos;
-            if ((pos = name.find("::")) != std::string::npos) {
+            size_t pos = name.find("::");
+            if (pos != std::string::npos) {
                 return name.substr(0, pos);
             }
             return name;
@@ -54,8 +55,8 @@ namespace newlang {
     }
 
     inline std::string ExtractName(std::string name) {
-        size_t pos;
-        if ((pos = name.rfind("::")) != std::string::npos) {
+        size_t pos = name.rfind("::");
+        if (pos != std::string::npos) {
             name = name.substr(pos + 2);
         }
         if (isModule(name)) {
@@ -140,16 +141,38 @@ namespace newlang {
         _("local", NOT_SUPPORT)
 
     class Module : public Variable<Obj> {
+        SCOPE(protected) :
+        std::string m_name;
+        std::string m_file;
+        std::string m_source;
+
     public:
 
-        ObjPtr LoadModule(const char * path) {
-            return nullptr;
+        Module() {
         }
 
-        ObjPtr UnLoadModule(const char * path) {
-            return nullptr;
+        bool Load(Context & ctx, const char * path) {
+            m_file = path;
+            m_name = ExtractModuleName(path);
+            auto file = llvm::sys::fs::openNativeFileForRead(path);
+            if (!file) {
+                LOG_ERROR("Error open module '%s' from file %s!", m_name.c_str(), path);
+                return false;
+            }
+
+            uint8_t buffer[1024];
+            size_t size;
+            while ((size = read(*file, buffer, sizeof (buffer)))) {
+                m_source.append((const char *)buffer, size);
+            }
+
+            llvm::sys::fs::closeFile(*file);
+            return true;
         }
 
+        virtual ~Module() {
+
+        }
     };
 
     class Context : public Variable<Obj, std::weak_ptr<Obj> > {
@@ -212,6 +235,31 @@ namespace newlang {
 
         LLVMBuilderRef m_llvm_builder;
 
+        std::map<std::string, std::shared_ptr<Module>> m_modules;
+
+        static std::vector<std::string> SplitString(const char * str, const char *delim) {
+
+            std::vector<std::string> result;
+            std::string s(str);
+
+            size_t pos;
+            s.erase(0, s.find_first_not_of(delim));
+            while (!s.empty()) {
+                pos = s.find(delim);
+                if (pos == std::string::npos) {
+                    result.push_back(s);
+                    break;
+                } else {
+                    result.push_back(s.substr(0, pos));
+                    s.erase(0, pos);
+                }
+                s.erase(0, s.find_first_not_of(delim));
+            }
+            return result;
+        }
+
+        bool CheckOrLoadModule(std::string name);
+
         static void Reset() {
             m_types.clear();
             m_funcs.clear();
@@ -223,7 +271,8 @@ namespace newlang {
 
         void clear_() override {
             Variable::clear_();
-            m_terms.clear_();
+            ASSERT(m_terms);
+            m_terms->clear_();
             m_ns_stack.clear();
         }
 
@@ -323,7 +372,9 @@ namespace newlang {
         }
 
         RuntimePtr m_runtime; // Глобальный контекс, если к нему есть доступ
-        Variable<Obj> m_terms;
+
+        std::shared_ptr<Module> m_main_module;
+        Module * m_terms;
         std::vector<std::string> m_ns_stack;
 
         bool NamespasePush(const std::string &name) {
@@ -397,8 +448,8 @@ namespace newlang {
         ObjPtr FindGlobalTerm(TermPtr term);
 
         ObjPtr FindGlobalTerm(const std::string name) {
-            auto found = m_terms.find(MakeName(name));
-            if (found != m_terms.end()) {
+            auto found = m_terms->find(MakeName(name));
+            if (found != m_terms->end()) {
                 return found->second;
             }
             return GetObject(name);
@@ -529,12 +580,12 @@ namespace newlang {
             }
 
             if (find_global) {
-                for (int i = 0; i < m_terms.size(); i++) {
-                    if (pred_compare(start, m_terms.at(i).first)) {
-                        if (m_terms.at(i).second->is_function_type()) {
-                            result.push_back(utf8_decode(prefix + m_terms.at(i).first) + L"(");
+                for (int i = 0; i < m_terms->size(); i++) {
+                    if (pred_compare(start, m_terms->at(i).first)) {
+                        if (m_terms->at(i).second->is_function_type()) {
+                            result.push_back(utf8_decode(prefix + m_terms->at(i).first) + L"(");
                         } else {
-                            result.push_back(utf8_decode(prefix + m_terms.at(i).first));
+                            result.push_back(utf8_decode(prefix + m_terms->at(i).first));
                         }
                         if (result.size() > overage_count + 1) {
                             break;
@@ -660,8 +711,8 @@ namespace newlang {
                 return result_types->second;
             }
 
-            auto result_terms = m_terms.find(type);
-            if (result_terms != m_terms.end()) {
+            auto result_terms = m_terms->find(type);
+            if (result_terms != m_terms->end()) {
                 return result_terms->second;
             }
 

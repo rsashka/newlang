@@ -535,9 +535,7 @@ native  %({ualpha}|[_])+({name}|{digit})?
 "!=="       YY_TOKEN(OPERATOR);
 "!="        YY_TOKEN(OPERATOR);
 "<="        YY_TOKEN(OPERATOR);
-"<"         YY_TOKEN(OPERATOR);
 ">="        YY_TOKEN_ONLY(OPERATOR_ANGLE_EQ);
-">"         YY_TOKEN(OPERATOR);
 
 
 "!!"        YY_TOKEN(ITERATOR);

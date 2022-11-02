@@ -39,6 +39,7 @@
         <itemPath>test/eval_test.cpp</itemPath>
         <itemPath>test/example_test.cpp</itemPath>
         <itemPath>test/lexer_test.cpp</itemPath>
+        <itemPath>test/module_test.cpp</itemPath>
         <itemPath>test/nlc_test.cpp</itemPath>
         <itemPath>test/object_test.cpp</itemPath>
         <itemPath>test/oop_test.cpp</itemPath>
@@ -412,6 +413,12 @@
           <additionalDep>pch.h.pch</additionalDep>
         </ccTool>
       </item>
+      <item path="test/module_test.cpp" ex="true" tool="1" flavor2="9">
+        <ccTool>
+          <commandLine>-include-pch pch.h.pch</commandLine>
+          <additionalDep>pch.h.pch</additionalDep>
+        </ccTool>
+      </item>
       <item path="test/nlc_test.cpp" ex="true" tool="1" flavor2="9">
         <ccTool>
           <commandLine>-include-pch pch.h.pch</commandLine>
@@ -753,6 +760,12 @@
           <additionalDep>pch.h.pch</additionalDep>
         </ccTool>
       </item>
+      <item path="test/module_test.cpp" ex="false" tool="1" flavor2="0">
+        <ccTool>
+          <commandLine>-include-pch pch.h.pch</commandLine>
+          <additionalDep>pch.h.pch</additionalDep>
+        </ccTool>
+      </item>
       <item path="test/nlc_test.cpp" ex="false" tool="1" flavor2="0">
         <ccTool>
           <commandLine>-include-pch pch.h.pch</commandLine>
@@ -1029,6 +1042,8 @@
       <item path="test/example_test.cpp" ex="false" tool="1" flavor2="9">
       </item>
       <item path="test/lexer_test.cpp" ex="false" tool="1" flavor2="9">
+      </item>
+      <item path="test/module_test.cpp" ex="false" tool="1" flavor2="9">
       </item>
       <item path="test/nlc_test.cpp" ex="false" tool="1" flavor2="9">
       </item>
@@ -1345,6 +1360,11 @@
         </ccTool>
       </item>
       <item path="test/lexer_test.cpp" ex="false" tool="1" flavor2="9">
+        <ccTool>
+          <additionalDep>pch.h.gch</additionalDep>
+        </ccTool>
+      </item>
+      <item path="test/module_test.cpp" ex="false" tool="1" flavor2="9">
         <ccTool>
           <additionalDep>pch.h.gch</additionalDep>
         </ccTool>
@@ -1681,6 +1701,11 @@
         </ccTool>
       </item>
       <item path="test/lexer_test.cpp" ex="false" tool="1" flavor2="9">
+        <ccTool>
+          <additionalDep>pch.h.gch</additionalDep>
+        </ccTool>
+      </item>
+      <item path="test/module_test.cpp" ex="false" tool="1" flavor2="9">
         <ccTool>
           <additionalDep>pch.h.gch</additionalDep>
         </ccTool>

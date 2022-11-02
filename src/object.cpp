@@ -3648,7 +3648,7 @@ ObjPtr newlang::CheckSystemField(const Obj *obj, std::string name) {
     } else if(name.compare(SYS__NAME__) == 0) {
         return Obj::CreateString(ExtractName(obj->m_var_name));
     } else if(name.compare(SYS__MOULE__) == 0) {
-        return Obj::CreateString(ExtractModuleName(obj->m_var_name));
+        return Obj::CreateString(ExtractModuleName(obj->m_var_name.c_str()));
     } else if(name.compare(SYS__TYPE__) == 0) {
         return Obj::CreateString(newlang::toString(obj->m_var_type_current));
     } else if(name.compare(SYS__TYPE_FIXED__) == 0) {

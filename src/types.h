@@ -29,7 +29,7 @@ typedef at::IntArrayRef Dimension;
 class Term;
 class Obj;
 class Context;
-class NewLang;
+class Compiler;
 class RunTime;
 
 typedef std::shared_ptr<Term> TermPtr;
@@ -793,6 +793,13 @@ void ParserException(const char *msg, std::string &buffer, int row, int col);
 
     inline bool isHidenName(const std::string name) {
         return !isPrivateName(name) && name.find("_") == 0;
+    }
+
+    inline bool isVariableName(const std::string name) {
+        if (isModule(name)) {
+            return name.find("::") != name.npos;
+        }
+        return !isType(name);
     }
 
     inline bool isConst(const std::string name) {

@@ -378,8 +378,8 @@ TEST(Eval, TypesNative) {
     ASSERT_TRUE(at::get<void *>(fopen2->m_var));
     ASSERT_EQ(at::get<void *>(fopen->m_var), at::get<void *>(fopen2->m_var));
     ASSERT_TRUE(ctx.FindTerm("fopen2"));
-    auto iter = ctx.m_terms.find("fopen2");
-    ASSERT_NE(iter, ctx.m_terms.end());
+    auto iter = ctx.m_terms->find("fopen2");
+    ASSERT_NE(iter, ctx.m_terms->end());
 
     ObjPtr fopen3 = ctx.ExecStr("fopen3(filename:String, modes:String):File ::= "
             ":Pointer('fopen(filename:StrChar, modes:StrChar):File')");
@@ -450,7 +450,7 @@ TEST(Eval, TypesNative) {
      * (One:Int32=1, Two=_, Three=10,):Enum(thread, gpu) использовать тип значения в имени поля вместо общего типа ----- Enum(One, Two=2, Three=3):Int32  ------
      * [[ One, Two=2, Three=3 ]]:Enum(thread, gpu)
      * 
-     * :Seek::SET или @Seek::SET - статическое зачение у глобального типа
+     * :Seek::SET или Seek::SET - статическое зачение у глобального типа
      * Seek.SET или $Seek.SET - статическое зачение у глобального типа
      */
 
@@ -515,7 +515,7 @@ TEST(Eval, TypesNative) {
             ":Pointer('fseek(stream:File, offset:Int64, whence:Int32):Int32')");
     ASSERT_TRUE(seek);
 
-    F_res = ctx.ExecStr("fseek(F2, 10, @SEEK.SET)");
+    F_res = ctx.ExecStr("fseek(F2, 10, SEEK.SET)");
     ASSERT_TRUE(F_res);
     ASSERT_EQ(0, F_res->GetValueAsInteger());
 
@@ -550,7 +550,7 @@ TEST(Eval, Fileio) {
     file_res = ctx.ExecStr("fclose(file)");
     ASSERT_TRUE(file_res);
 
-    //@todo try and catch segfault
+    //@todo try and catch segfault  (free(): double free detected in tcache 2)
     //    ASSERT_ANY_THROW(
     //            // Float64 free
     //            file_res = ctx.ExecStr("fclose(file)"););

@@ -116,7 +116,7 @@ namespace newlang {
         }
 
         NLC(const char * str) : NLC() {
-            std::vector<std::string> split = SplitString(str, " ");
+            std::vector<std::string> split = Context::SplitString(str, " ");
             std::vector<const char *> argv;
             for (size_t i = 0; i < split.size(); i++) {
                 argv.push_back(split[i].data());
@@ -126,27 +126,6 @@ namespace newlang {
 
         virtual ~NLC() {
             utils::Logger::Instance()->SetCallback(m_log_callback_save, m_log_callback_arg_save);
-        }
-
-        static std::vector<std::string> SplitString(const char * str, const char *delim) {
-
-            std::vector<std::string> result;
-            std::string s(str);
-
-            size_t pos;
-            s.erase(0, s.find_first_not_of(delim));
-            while (!s.empty()) {
-                pos = s.find(delim);
-                if (pos == std::string::npos) {
-                    result.push_back(s);
-                    break;
-                } else {
-                    result.push_back(s.substr(0, pos));
-                    s.erase(0, pos);
-                }
-                s.erase(0, s.find_first_not_of(delim));
-            }
-            return result;
         }
 
         static void LoggerCallback(void *param, utils::Logger::LogLevelType level, const char * str, bool flush) {
@@ -172,7 +151,7 @@ namespace newlang {
 
             m_args = Obj::CreateDict();
             for (int i = 0; i < argc; i++) {
-                std::vector<std::string> split = SplitString(argv[i], "=");
+                std::vector<std::string> split = Context::SplitString(argv[i], "=");
                 if (split.size() > 1) {
                     m_args->push_back(Obj::CreateString(split[0]), &argv[i][split[0].size() + 1]);
                 } else {
@@ -250,8 +229,8 @@ namespace newlang {
                 return true;
             }
 
-            m_modules = SplitString(load_list.c_str(), ",");
-            m_load_only = SplitString(load_only.c_str(), ",");
+            m_modules = Context::SplitString(load_list.c_str(), ",");
+            m_load_only = Context::SplitString(load_only.c_str(), ",");
 
 #ifdef _WIN32
 

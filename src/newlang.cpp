@@ -72,7 +72,7 @@ bool CompileInfo::isLocalAccess(TermPtr term) {
     return variables.find(name) != variables.end() || consts.find(name) != consts.end();
 }
 
-void NewLang::WriteDeclarationFunctions_(CompileInfo &ci, TermPtr &func, std::ostream & out, std::vector<std::string> &func_list) {
+void Compiler::WriteDeclarationFunctions_(CompileInfo &ci, TermPtr &func, std::ostream & out, std::vector<std::string> &func_list) {
     if(func->IsFunction()) {
         ASSERT(func->Left());
         ci.functions.insert(std::pair<std::string, TermPtr>(func->Left()->GetFullName().c_str(), func->Left()));
@@ -94,7 +94,7 @@ void NewLang::WriteDeclarationFunctions_(CompileInfo &ci, TermPtr &func, std::os
     }
 }
 
-std::string NewLang::WriteFunctionCheckOp_(CompileInfo &ci, TermPtr &op, const char *check_true, const char *check_false) {
+std::string Compiler::WriteFunctionCheckOp_(CompileInfo &ci, TermPtr &op, const char *check_true, const char *check_false) {
     std::string str;
 
     std::string result;
@@ -136,7 +136,7 @@ std::string NewLang::WriteFunctionCheckOp_(CompileInfo &ci, TermPtr &op, const c
     return result;
 }
 
-void NewLang::SelectTerms_(TermPtr &obj, std::vector<TermPtr> &terms) {
+void Compiler::SelectTerms_(TermPtr &obj, std::vector<TermPtr> &terms) {
     if(obj->getTermID() == TermID::NAME) {
         terms.push_back(obj);
     }
@@ -149,20 +149,20 @@ void NewLang::SelectTerms_(TermPtr &obj, std::vector<TermPtr> &terms) {
     }
 }
 
-bool NewLang::WriteFunctionName_(TermPtr &func, std::ostream & out, bool is_transparent) {
+bool Compiler::WriteFunctionName_(TermPtr &func, std::ostream & out, bool is_transparent) {
     out << "extern \"C\" " NEWLANG_NS "::ObjPtr " << MangleName(func->Left()->GetFullName().c_str()) << "(" NEWLANG_NS "::Context " << (is_transparent ? "const" : "") << " *ctx, " NEWLANG_NS "::Object &in)";
 
     return true;
 }
 
-std::string NewLang::MakeCommentLine(std::string comment) {
+std::string Compiler::MakeCommentLine(std::string comment) {
     comment = std::regex_replace(comment, std::regex("\n"), "\\n");
     comment = std::regex_replace(comment, std::regex("\""), "\\\"");
 
     return "// " + comment + "\n";
 }
 
-std::string NewLang::WriteSimpleBody_(CompileInfo &ci, TermPtr &func) {
+std::string Compiler::WriteSimpleBody_(CompileInfo &ci, TermPtr &func) {
     ASSERT(!"Not implemented");
     //    auto indent = ci.NewIndent();
     //    WriteFunctionOp *func_op;
@@ -403,7 +403,7 @@ std::string newlang::MangleName(const char * name) {
     return converter.to_bytes(result);
 }
 
-bool NewLang::MakeFunctionCpp(CompileInfo &ci, std::string func_name, TermPtr &func_define, std::ostream &out) {
+bool Compiler::MakeFunctionCpp(CompileInfo &ci, std::string func_name, TermPtr &func_define, std::ostream &out) {
     LOG_RUNTIME("MakeFunctionCpp Not implemeneted!");
     //    if(!func_define->IsFunction()) {
     //        LOG_RUNTIME("No function name");
@@ -484,7 +484,7 @@ bool NewLang::MakeFunctionCpp(CompileInfo &ci, std::string func_name, TermPtr &f
 
 }
 
-void NewLang::MakeCppFileFunctions(CompileInfo &ci, TermPtr ast, std::ostream &out) {
+void Compiler::MakeCppFileFunctions(CompileInfo &ci, TermPtr ast, std::ostream &out) {
     if(ast->getTermID() == TermID::BLOCK) {
         for (TermPtr &elem : ast->BlockCode()) {
             MakeCppFileFunctions(ci, elem, out);
@@ -495,7 +495,7 @@ void NewLang::MakeCppFileFunctions(CompileInfo &ci, TermPtr ast, std::ostream &o
     }
 }
 
-void NewLang::MakeCppFileConstants(CompileInfo &ci, TermPtr ast, std::ostream &out) {
+void Compiler::MakeCppFileConstants(CompileInfo &ci, TermPtr ast, std::ostream &out) {
     //    if(ast->getTermID() == TermID::BLOCK) {
     //        for (TermPtr &elem : ast->BlockCode()) {
     //            MakeCppFileConstants(ci, elem, out);
@@ -517,7 +517,7 @@ void NewLang::MakeCppFileConstants(CompileInfo &ci, TermPtr ast, std::ostream &o
     //    }
 }
 
-std::string NewLang::MakeFunctionBodyCpp(CompileInfo &ci, TermPtr ast) {
+std::string Compiler::MakeFunctionBodyCpp(CompileInfo &ci, TermPtr ast) {
     std::string result;
     if(ast->getTermID() == TermID::BLOCK) {
         for (size_t i = 0; i < ast->BlockCode().size(); i++) {
@@ -533,7 +533,7 @@ std::string NewLang::MakeFunctionBodyCpp(CompileInfo &ci, TermPtr ast) {
     return result;
 }
 
-std::string NewLang::MakeSequenceOpsCpp(CompileInfo &ci, TermPtr ast, bool top_level) {
+std::string Compiler::MakeSequenceOpsCpp(CompileInfo &ci, TermPtr ast, bool top_level) {
 
     //    auto indent = ci.NewIndent();
     //    std::ostringstream ostr;
@@ -589,7 +589,7 @@ std::string NewLang::MakeSequenceOpsCpp(CompileInfo &ci, TermPtr ast, bool top_l
     return result;
 }
 
-std::string NewLang::MakeCppFileVariable(CompileInfo &ci, TermPtr &var, std::ostream &out) {
+std::string Compiler::MakeCppFileVariable(CompileInfo &ci, TermPtr &var, std::ostream &out) {
     ASSERT(var->Left());
     ASSERT(var->Right());
     std::string local_name = MakeName(var->Left()->GetFullName());
@@ -636,7 +636,7 @@ std::string NewLang::MakeCppFileVariable(CompileInfo &ci, TermPtr &var, std::ost
     return impl_name;
 }
 
-std::string NewLang::MakeCppFileCallArgs(CompileInfo &ci, TermPtr &args, TermPtr proto) {
+std::string Compiler::MakeCppFileCallArgs(CompileInfo &ci, TermPtr &args, TermPtr proto) {
     std::string result;
     for (int i = 0; i < args->size(); i++) {
         if(i) {
@@ -666,7 +666,7 @@ std::string NewLang::MakeCppFileCallArgs(CompileInfo &ci, TermPtr &args, TermPtr
     return result;
 }
 
-std::string NewLang::EncodeNonAsciiCharacters(const char * in) {
+std::string Compiler::EncodeNonAsciiCharacters(const char * in) {
     std::string text(in);
     text = std::regex_replace(text, std::regex("\""), "\\\"");
     text = std::regex_replace(text, std::regex("\n"), "\\x0A\" \"");
@@ -685,7 +685,7 @@ std::string NewLang::EncodeNonAsciiCharacters(const char * in) {
     return src;
 }
 
-bool NewLang::MakeCppFile(TermPtr ast, std::ostream &out, const char * source, Context *ctx) {
+bool Compiler::MakeCppFile(TermPtr ast, std::ostream &out, const char * source, Context *ctx) {
 
     CompileInfo ci(RunTime::Init());
 
@@ -732,7 +732,7 @@ bool NewLang::MakeCppFile(TermPtr ast, std::ostream &out, const char * source, C
     return true;
 }
 
-bool NewLang::Execute(const char *exec, std::string *out, int *exit_code) {
+bool Compiler::Execute(const char *exec, std::string *out, int *exit_code) {
     //    int status;
     //    pid_t pid;
     //
@@ -854,7 +854,7 @@ bool NewLang::Execute(const char *exec, std::string *out, int *exit_code) {
 //    return m_jit->CompileModule(source, opts);
 //}
 
-bool NewLang::CompileModule(const char* filename, const char* output) {
+bool Compiler::CompileModule(const char* filename, const char* output) {
 
     std::string in_data = ReadFile(filename);
     if(in_data.empty()) {
@@ -884,7 +884,7 @@ bool NewLang::CompileModule(const char* filename, const char* output) {
     file << sstr.str();
     file.close();
 
-    return NewLang::GccMakeModule(file_name.c_str(), output);
+    return Compiler::GccMakeModule(file_name.c_str(), output);
 }
 
 
@@ -973,7 +973,7 @@ bool NewLang::CompileModule(const char* filename, const char* output) {
 //    return result;
 //}
 
-bool NewLang::GccMakeModule(const char * in_file, const char * module, const char * opts, std::string *out, int *exit_code) {
+bool Compiler::GccMakeModule(const char * in_file, const char * module, const char * opts, std::string *out, int *exit_code) {
 
     //char temp[MAXPATHLEN];
     //if(!getcwd(temp, sizeof (temp))) {
@@ -1034,7 +1034,7 @@ bool NewLang::GccMakeModule(const char * in_file, const char * module, const cha
     return false;
 }
 
-NewLang::NewLang(RuntimePtr rt) : m_runtime(rt) {
+Compiler::Compiler(RuntimePtr rt) : m_runtime(rt) {
     if(!m_runtime) {
         m_runtime = RunTime::Init();
     }
@@ -1253,8 +1253,72 @@ NewLang::NewLang(RuntimePtr rt) : m_runtime(rt) {
 //    }
 //}
 
-bool RunTime::LoadModule(const char *name_str, bool init, Context *ctx, const char *module_name) {
-    ASSERT(!"Not impelmented");
+std::shared_ptr<Module> RunTime::LoadModule(Context &ctx, const char *term, bool init) {
+    ASSERT(term);
+
+
+    std::string name = ExtractModuleName(term);
+    std::vector<std::string> split = Context::SplitString(name.substr(1).c_str(), ".");
+
+    std::string path;
+    for (auto &elem : split) {
+        if(!path.empty()) {
+            path += llvm::sys::path::get_separator();
+        }
+        path += elem;
+    }
+
+    path += ".nlp";
+
+
+    llvm::SmallString<1024> search_file;
+    if(llvm::sys::path::is_relative(path)) {
+        for (int i = 0; i < m_search_dir.size(); i++) {
+
+            search_file = m_search_dir[i];
+            llvm::sys::path::append(search_file, path);
+
+            std::string full_path = search_file.c_str();
+            if(llvm::sys::path::is_relative(full_path)) {
+                full_path.insert(0, llvm::sys::path::get_separator());
+                full_path.insert(0, m_work_dir);
+            }
+
+            //            LOG_DEBUG("Check '%s' in file %s", name_str, full_path.c_str());
+
+            if(llvm::sys::fs::exists(full_path)) {
+                LOG_DEBUG("Module '%s' load from file '%s'!", term, full_path.c_str());
+
+                std::shared_ptr<Module> module = std::make_shared<Module>();
+                if(module->Load(ctx, full_path.c_str())) {
+
+                    ctx.m_terms = module.get();
+                    ctx.ExecStr(module->m_source);
+                    ctx.m_terms = ctx.m_main_module.get();
+
+                    for (int i = 0; i < module->size(); i++) {
+                        if(!isModule(module->at(i).first)) {
+                            if(module->at(i).first.compare("::") != 0) {
+                                module->at(i).first.insert(0, "::");
+                            }
+                            module->at(i).first.insert(0, name);
+                        }
+                    }
+
+                    return module;
+                }
+            }
+
+
+        }
+    }
+
+    LOG_ERROR("Module name '%s' or file '%s' not found!", term, search_file.c_str());
+
+    return nullptr;
+
+
+    //    ASSERT(!"Not impelmented");
     //    std::string name(module_name ? module_name : name_str);
     //    try {
     //        m_modules.insert(std::pair<std::string, Module *>(name, new Module(name_str)));
@@ -1312,33 +1376,33 @@ bool RunTime::LoadModule(const char *name_str, bool init, Context *ctx, const ch
     //
     //        LOG_ERROR("%s", e.what());
     //    }
-    return false;
+    return nullptr;
 }
 
-bool RunTime::UnLoadModule(Context *ctx, const char* name, bool deinit) {
+bool RunTime::UnLoadModule(Context &ctx, const char *name_str, bool deinit) {
     bool result = false;
     bool is_error = false;
-//    auto it = m_modules.begin();
-//    while(it != m_modules.end()) {
-//        if(name == nullptr || it->first.compare(name) == 0) {
-//
-//            for (auto &elem : it->second->Funcs()) {
-//                if(!ctx->RemoveObject(elem.first.c_str())) {
-//                    LOG_ERROR("Fail unregister func '%s' from module '%s'.", elem.first.c_str(), it->first.c_str());
-//                    is_error = true;
-//                }
-//            }
-//            LOG_DEBUG("UnLoad module '%s'.", it->first.c_str());
-//
-//            //@todo call deinit module
-//            delete it->second;
-//            it = m_modules.erase(it);
-//            result = true;
-//        } else {
-//
-//            it++;
-//        }
-//    }
+    //    auto it = m_modules.begin();
+    //    while(it != m_modules.end()) {
+    //        if(name == nullptr || it->first.compare(name) == 0) {
+    //
+    //            for (auto &elem : it->second->Funcs()) {
+    //                if(!ctx->RemoveObject(elem.first.c_str())) {
+    //                    LOG_ERROR("Fail unregister func '%s' from module '%s'.", elem.first.c_str(), it->first.c_str());
+    //                    is_error = true;
+    //                }
+    //            }
+    //            LOG_DEBUG("UnLoad module '%s'.", it->first.c_str());
+    //
+    //            //@todo call deinit module
+    //            delete it->second;
+    //            it = m_modules.erase(it);
+    //            result = true;
+    //        } else {
+    //
+    //            it++;
+    //        }
+    //    }
     return result && !is_error;
 }
 
@@ -1428,7 +1492,7 @@ ObjPtr RunTime::ExecModule(const char *mod, const char *output, bool cached, Con
     return nullptr;
 }
 
-void NewLang::ReplaceSourceVariable(CompileInfo &ci, size_t count, std::string &body) {
+void Compiler::ReplaceSourceVariable(CompileInfo &ci, size_t count, std::string &body) {
     std::string arg_name;
     std::string arg_place;
 
@@ -1448,7 +1512,7 @@ void NewLang::ReplaceSourceVariable(CompileInfo &ci, size_t count, std::string &
     }
 }
 
-std::string NewLang::GetImpl(CompileInfo &ci, TermPtr term, std::string &output) {
+std::string Compiler::GetImpl(CompileInfo &ci, TermPtr term, std::string &output) {
     ASSERT(term);
     std::string result;
 
@@ -1590,10 +1654,10 @@ std::string NewLang::GetImpl(CompileInfo &ci, TermPtr term, std::string &output)
             output += result;
             return result;
 
-            
+
         case TermID::INT_PLUS:
         case TermID::INT_MINUS:
-            
+
             if(term->m_right) {
                 GetImpl(ci, term->m_right, temp);
                 output += "return " + temp;
@@ -1776,7 +1840,7 @@ std::string NewLang::GetImpl(CompileInfo &ci, TermPtr term, std::string &output)
     LOG_RUNTIME("Can`t term type '%s' implementation '%s'!", newlang::toString(term->getTermID()), term->toString().c_str());
 }
 
-std::string NewLang::MakeIteratorCallArgs_(CompileInfo &ci, TermPtr args, std::vector<std::string> &iters) {
+std::string Compiler::MakeIteratorCallArgs_(CompileInfo &ci, TermPtr args, std::vector<std::string> &iters) {
     std::string result;
     size_t iter_pos = 0;
 
@@ -1817,7 +1881,7 @@ std::string NewLang::MakeIteratorCallArgs_(CompileInfo &ci, TermPtr args, std::v
     return result;
 }
 
-std::string NewLang::BeginIterators(CompileInfo &ci, TermPtr args, std::string &output, std::vector<std::string> &iters) {
+std::string Compiler::BeginIterators(CompileInfo &ci, TermPtr args, std::string &output, std::vector<std::string> &iters) {
 
     std::string summary = "summary";
     output += ci.GetIndent() + "ObjPtr " + summary + "=Obj::CreateArray();\n";

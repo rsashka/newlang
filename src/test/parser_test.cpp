@@ -2310,6 +2310,31 @@ TEST_F(ParserTest, Class) {
     EXPECT_TRUE(Parse(":Name := :Class(args) { func1() := {}; func2(arg) ::= {};};"));
 }
 
+TEST_F(ParserTest, Module) {
+    ASSERT_TRUE(Parse("@module(func)"));
+    ASSERT_TRUE(Parse("@dir.module(func)"));
+    ASSERT_TRUE(Parse("@dir.dir.module(func)"));
+
+//    ASSERT_TRUE(Parse("@module (*)"));
+//    ASSERT_TRUE(Parse("@dir.module (*)"));
+//    ASSERT_TRUE(Parse("@dir.dir.module (*)"));
+//
+//    ASSERT_TRUE(Parse("@module (func, func2)"));
+//    ASSERT_TRUE(Parse("@dir.module (func, *)"));
+//    ASSERT_TRUE(Parse("@dir.dir.module (func, _)"));
+//
+//    ASSERT_TRUE(Parse("@module (func, ::func2)"));
+//    ASSERT_TRUE(Parse("@dir.module (ns::func, *)"));
+//    ASSERT_TRUE(Parse("@dir.dir.module (::ns::func, _)"));
+
+    ASSERT_TRUE(Parse("@module (name=func, name=func2, name=::func3)"));
+    ASSERT_TRUE(Parse("@dir.module (name=ns::func, name='')"));
+    ASSERT_TRUE(Parse("@dir.dir.module (name=::ns::func, name=_)"));
+
+//    ASSERT_TRUE(Parse("@module (name=func, name=::name::*)"));
+//    ASSERT_TRUE(Parse("@dir.module (name=ns::name::*, name=*)"));
+}
+
 TEST_F(ParserTest, DISABLED_Convert) {
     std::vector<const char *> list = {
         "brother(human!, human!)?;",

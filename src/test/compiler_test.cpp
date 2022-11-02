@@ -914,7 +914,7 @@ TEST(Compiler, DISABLED_Function) {
 
 
     std::ostringstream sstr;
-    ASSERT_TRUE(NewLang::MakeCppFile(funcs, sstr)); // << sstr.str();
+    ASSERT_TRUE(Compiler::MakeCppFile(funcs, sstr)); // << sstr.str();
 
 
     std::filesystem::create_directories("temp");
@@ -946,37 +946,37 @@ TEST(Compiler, DISABLED_FuncsTypes) {
     // Не соответствие типа функции в операторе
     parser.Parse(FUNC_ARG FUNC_RES "\n$res:Int8 := func_arg(100, 100); $res += func_res(100, 100);");
     sstr.str("");
-    ASSERT_THROW(NewLang::MakeCppFile(func, sstr, nullptr, &ctx), Return) << sstr.str();
+    ASSERT_THROW(Compiler::MakeCppFile(func, sstr, nullptr, &ctx), Return) << sstr.str();
 
     // Компилится без ошибок
     parser.Parse(FUNC_ARG "\nfunc_arg(Int8(100), 100);");
     sstr.str("");
-    ASSERT_NO_THROW(NewLang::MakeCppFile(func, sstr, nullptr, &ctx)) << sstr.str();
+    ASSERT_NO_THROW(Compiler::MakeCppFile(func, sstr, nullptr, &ctx)) << sstr.str();
 
     // Не соответствие типа первого аргумента
     parser.Parse(FUNC_ARG "\nfunc_arg(1000, 100);");
     sstr.str("");
-    ASSERT_THROW(NewLang::MakeCppFile(func, sstr, nullptr, &ctx), Return) << sstr.str();
+    ASSERT_THROW(Compiler::MakeCppFile(func, sstr, nullptr, &ctx), Return) << sstr.str();
 
     // Не соответствие типа функции
     parser.Parse(FUNC_ARG FUNC_RES "\n$res:Int8 := func_res(100, 1000);");
     sstr.str("");
-    ASSERT_THROW(NewLang::MakeCppFile(func, sstr, nullptr, &ctx), Return) << sstr.str();
+    ASSERT_THROW(Compiler::MakeCppFile(func, sstr, nullptr, &ctx), Return) << sstr.str();
 
     // Не соответствие типа функции в операторе
     parser.Parse(FUNC_ARG FUNC_RES "\n$res:Int8 := func_arg(100, 100); $res += func_res(100, 100);");
     sstr.str("");
-    ASSERT_THROW(NewLang::MakeCppFile(func, sstr, nullptr, &ctx), Return) << sstr.str();
+    ASSERT_THROW(Compiler::MakeCppFile(func, sstr, nullptr, &ctx), Return) << sstr.str();
 
     // Нет типа у $res как в предыдщем случае
     parser.Parse(FUNC_ARG FUNC_RES "\n$res := func_arg(100, 100); $res += func_res(100, 100);");
     sstr.str("");
-    ASSERT_NO_THROW(NewLang::MakeCppFile(func, sstr, nullptr, &ctx)) << sstr.str();
+    ASSERT_NO_THROW(Compiler::MakeCppFile(func, sstr, nullptr, &ctx)) << sstr.str();
 
     // Тип есть, но делается каст возвращаемого типа у функции
     parser.Parse(FUNC_ARG FUNC_RES "\n$res: Int8 := func_arg(100, 100); $res += Int8(func_res(100, 100));");
     sstr.str("");
-    ASSERT_NO_THROW(NewLang::MakeCppFile(func, sstr, nullptr, &ctx)) << sstr.str();
+    ASSERT_NO_THROW(Compiler::MakeCppFile(func, sstr, nullptr, &ctx)) << sstr.str();
 
 
     std::filesystem::create_directories("temp");
@@ -989,12 +989,12 @@ TEST(Compiler, DISABLED_FuncsTypes) {
 
     std::string out;
     int exit_code;
-    ASSERT_TRUE(NewLang::GccMakeModule("temp/call_types.temp.cpp",
+    ASSERT_TRUE(Compiler::GccMakeModule("temp/call_types.temp.cpp",
             "temp/call_types.temp.nlm", nullptr,
             &out, &exit_code))
             << exit_code << " " << out;
 
-    ASSERT_TRUE(ctx.m_runtime->LoadModule("call_types.temp.nlm", false, &ctx));
+    ASSERT_TRUE(ctx.m_runtime->LoadModule(ctx, "call_types.temp.nlm", false));
 
     // Переполнение байтовой переменной $res во время выполнения последнего оператора "+="
     //    Obj args;

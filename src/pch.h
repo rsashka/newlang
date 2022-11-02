@@ -54,6 +54,9 @@
 #include <llvm-c/Analysis.h>
 #include <llvm-c/Support.h>
 
+#include "llvm/Support/FileSystem.h"
+#include "llvm/Support/Path.h"
+
 #include <torch/torch.h>
 #include <ATen/ATen.h>
 

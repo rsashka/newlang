@@ -2421,6 +2421,10 @@ namespace newlang {
 
     public:
 
+        void remove(const Variable::PairType & value) {
+            Variable::remove(value);
+        }
+
         ObjType m_var_type_current; ///< Текущий тип значения объекта
         ObjType m_var_type_fixed; ///< Максимальный размер для арифметических типов, который задается разработчиком
         bool m_var_is_init; ///< Содержит ли объект корректное значение ???

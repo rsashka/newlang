@@ -418,12 +418,12 @@ type_items:  type_item
             }
 
         
-type_list:  '<'  type_items  '>'
+type_list:  ':'  '<'  type_items  '>'
             {
                 $$ = $type_items;
             }
         
-        
+
 
 digits_literal: INTEGER
             {
@@ -1284,6 +1284,16 @@ operator: OPERATOR
                 $$ = $1;
             }
         | '~'
+            {
+                $$ = $1;
+                $$->SetTermID(TermID::OPERATOR);
+            }
+        | '>'
+            {
+                $$ = $1;
+                $$->SetTermID(TermID::OPERATOR);
+            }
+        | '<'
             {
                 $$ = $1;
                 $$->SetTermID(TermID::OPERATOR);
