@@ -23,7 +23,8 @@ TEST(Compiler, EvalExample) {
     TermPtr op = p->BlockCode()[0];
     ASSERT_TRUE(op);
 
-    ASSERT_EQ(TermID::CALL, op->GetTokenID());
+    ASSERT_EQ(TermID::NAME, op->GetTokenID());
+    ASSERT_TRUE(op->isCall());
     ASSERT_STREQ("newlang", op->getText().c_str());
     ASSERT_EQ(1, op->size());
     ASSERT_STREQ("cpp", (*op)[0].second->getText().c_str());

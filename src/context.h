@@ -140,33 +140,60 @@ namespace newlang {
         _("export", NOT_SUPPORT)\
         _("local", NOT_SUPPORT)
 
-    class Module : public Variable<Obj> {
+    class Module : public Obj {
         SCOPE(protected) :
-        std::string m_name;
+//        std::string m_name;
         std::string m_file;
         std::string m_source;
+        std::string m_md5;
+        std::string m_timestamp;
+        bool m_is_main;
 
     public:
 
-        Module() {
+        Module(): Obj(ObjType::Module) {
+            m_var_is_init = true;
+            
         }
 
-        bool Load(Context & ctx, const char * path) {
+        bool Load(Context & ctx, const char * path, bool is_main) {
+            m_is_main = is_main;
             m_file = path;
-            m_name = ExtractModuleName(path);
+            m_var_name = ExtractModuleName(path);
             auto file = llvm::sys::fs::openNativeFileForRead(path);
             if (!file) {
-                LOG_ERROR("Error open module '%s' from file %s!", m_name.c_str(), path);
+                LOG_ERROR("Error open module '%s' from file %s!", m_var_name.c_str(), path);
                 return false;
             }
 
             uint8_t buffer[1024];
             size_t size;
             while ((size = read(*file, buffer, sizeof (buffer)))) {
-                m_source.append((const char *)buffer, size);
+                m_source.append((const char *) buffer, size);
             }
 
+            llvm::sys::fs::file_status fs;
+            std::error_code ec = llvm::sys::fs::status(*file, fs);
+            if (ec) {
+                m_timestamp = "??? ??? ?? ??:??:?? ????";
+            } else {
+                time_t temp = std::chrono::system_clock::to_time_t(fs.getLastModificationTime());
+                struct tm * timeinfo;
+                timeinfo = localtime(&temp);
+                m_timestamp = asctime(timeinfo);
+            }
+
+            auto md5 = llvm::sys::fs::md5_contents(*file);
+            if (!md5) {
+                m_md5 = "????????????????????????????????";
+            } else {
+                llvm::SmallString<32> hash;
+                llvm::MD5::stringifyResult(*md5, hash);
+                m_md5 = hash.c_str();
+            }
             llvm::sys::fs::closeFile(*file);
+            
+            m_var_is_init = true;
             return true;
         }
 
@@ -177,16 +204,6 @@ namespace newlang {
 
     class Context : public Variable<Obj, std::weak_ptr<Obj> > {
     public:
-
-
-
-        /*
-            Встроенные атрибуты у модуля
-         */
-        const char * SYS__MAIN__ = "__main__";
-        const char * SYS__LOAD__ = "__load__";
-        const char * SYS__UNLOAD__ = "__unload__";
-
 
         const char * SYS__DESTRUCTOR__ = "_____";
         //        const char * SYS__ATTACHE__ = "__attache__";
@@ -271,8 +288,14 @@ namespace newlang {
 
         void clear_() override {
             Variable::clear_();
+
+            m_modules.clear();
+            
             ASSERT(m_terms);
             m_terms->clear_();
+            m_terms->m_var_is_init = true;
+            m_terms->m_var_type_current = ObjType::Module;
+            
             m_ns_stack.clear();
         }
 

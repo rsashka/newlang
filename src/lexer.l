@@ -78,8 +78,11 @@ number  ({number1}|{number2})
 
 /* term    [$@%]({ualpha}|[_])?({name}|{digit})? */
 
+
+field   \.({name}|{digit})+
+
 local   $({ualpha}|[_])?({name}|{digit})?
-module  @({ualpha}|[_])?({name}|{digit})?
+module  @({ualpha}|[_]|{digit})+({field})*
 native  %({ualpha}|[_])+({name}|{digit})?
 
 %x state_STRWIDE
@@ -455,6 +458,7 @@ native  %({ualpha}|[_])+({name}|{digit})?
 "__SOURCE_GIT__"    YY_TOKEN_ONLY(SYS_ENV_STR);
 "__DATE_BUILD__"    YY_TOKEN_ONLY(SYS_ENV_STR);
 "__SOURCE_BUILD__"  YY_TOKEN_ONLY(SYS_ENV_STR);
+"__MD5__"           YY_TOKEN_ONLY(SYS_ENV_STR);
 
 "[_]"       YY_TOKEN_ONLY(ELSE);
 

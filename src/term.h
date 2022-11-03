@@ -24,8 +24,6 @@ namespace newlang {
         _(MODULE) \
         _(NATIVE) \
         _(TYPE) \
-        _(CALL) \
-        _(TYPE_CALL) \
         _(INTEGER) \
         _(NUMBER) \
         _(COMPLEX) \
@@ -182,6 +180,14 @@ namespace newlang {
             return !!m_ref;
         }
 
+        inline bool isCall() {
+            return m_is_call;
+        }
+
+        inline bool isReturn() {
+            return m_id == TermID::INT_PLUS || m_id == TermID::INT_MINUS;
+        }
+        
         inline const std::string GetFullName() {
             std::string result(m_text);
             //result.insert(isType(result) ? 1 : 0, m_ns_block);
@@ -234,7 +240,6 @@ namespace newlang {
             switch (m_id) {
                 case TermID::ARGUMENT:
                 case TermID::ARGS:
-                case TermID::CALL:
                 case TermID::NAME:
                 case TermID::CREATE:
                 case TermID::RANGE:
@@ -244,7 +249,7 @@ namespace newlang {
                 case TermID::EVAL:
                     return true;
                 default:
-                    return IsLiteral() || IsVariable() || IsFunction();
+                    return IsLiteral() || IsVariable() || IsFunction() || isCall();
             }
         }
 
@@ -330,9 +335,10 @@ namespace newlang {
 
 
                 case TermID::NONE:
-                case TermID::CALL:
                 case TermID::NAME: // name=(1,second="two",3,<EMPTY>,5)
                     //                result(m_is_ref ? "&" : "");
+                    ASSERT(m_dims.empty());
+                    
                     result = "";
                     temp = shared_from_this();
                     if (temp->Left()) {
@@ -370,7 +376,7 @@ namespace newlang {
                         result += "(";
                         dump_items_(result);
                         result += ")";
-                    } else if (m_id == TermID::CALL) {
+                    } else if (m_is_call) {
                         result += "()";
                     }
                     if (m_name.empty() && GetType()) {
@@ -506,7 +512,6 @@ namespace newlang {
                     return result;
 
                 case TermID::TYPE:
-                case TermID::TYPE_CALL:
                     result += m_text;
                     if (m_dims.size()) {
                         result += "[";
@@ -520,7 +525,7 @@ namespace newlang {
                     }
 
 
-                    if (m_id == TermID::TYPE_CALL) {
+                    if (m_is_call) {
                         result += "(";
                         dump_items_(result);
                         result += ")";
@@ -1149,6 +1154,7 @@ namespace newlang {
              */
             static const char * NLC__VER__ = "__NLC_VER__";
             static const char * NLC__FILE__ = "__FILE__";
+            static const char * NLC__MD5__ = "__MD5__";
             static const char * NLC__LINE__ = "__LINE__";
             static const char * NLC__DATE__ = "__DATE__";
             static const char * NLC__COUNTER__ = "__COUNTER__"; // развертывается до целочисленного литерала, начинающегося с 0. 
@@ -1232,6 +1238,15 @@ namespace newlang {
                 }
                 return term;
 
+            } else if (term->m_text.compare(NLC__MD5__) == 0) {
+
+                term->m_id = str_type;
+                if (term->m_parser) {
+                    term->m_text = term->m_parser->m_md5;
+                } else {
+                    term->m_text = "?????????????????????????????????";
+                }
+                return term;
 
             } else {
                 NL_PARSER(term, "Environment variable '%s' not defined!", term->m_text.c_str());

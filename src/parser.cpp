@@ -44,16 +44,28 @@ bool Parser::parse_file(const std::string filename) {
     std::ifstream in(filename);
 
     m_file_name = filename;
-    std::error_code ec;
-    std::filesystem::file_time_type ftime = std::filesystem::last_write_time(filename, ec);
+
+
+    llvm::sys::fs::file_status fs;
+    std::error_code ec = llvm::sys::fs::status(filename, fs);
     if(ec) {
         m_file_time = "??? ??? ?? ??:??:?? ????";
     } else {
-        time_t temp = to_time_t(ftime);
+        time_t temp = std::chrono::system_clock::to_time_t(fs.getLastModificationTime());
         struct tm * timeinfo;
         timeinfo = localtime(&temp);
         m_file_time = asctime(timeinfo);
     }
+
+    auto md5 = llvm::sys::fs::md5_contents(filename);
+    if(!md5) {
+        m_md5 = "??????????????????????????????";
+    } else {
+        llvm::SmallString<32> hash;
+        llvm::MD5::stringifyResult(*md5, hash);
+        m_md5 = hash.c_str();
+    }
+
     if(!in.good()) return false;
     return parse_stream(in, filename.c_str());
 }

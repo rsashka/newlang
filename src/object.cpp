@@ -1425,7 +1425,7 @@ void Obj::ConvertToArgs_(Obj *in, bool check_valid, Context * ctx) {
     }
     for (int i = 0; i < in->size(); i++) {
 
-        if(isInternalName(in->name(i))) {
+        if(isSystemName(in->name(i))) {
             continue;
         }
 
@@ -1860,7 +1860,7 @@ std::string Obj::format(std::string format, Obj * args) {
         std::wstring wname;
         for (int i = 0; i < args->size(); i++) {
 
-            if(isInternalName(args->name(i))) {
+            if(isSystemName(args->name(i))) {
                 continue;
             }
 
@@ -3635,11 +3635,18 @@ ObjPtr newlang::CheckSystemField(const Obj *obj, std::string name) {
     static const char * SYS__MOULE__ = "__module__";
     static const char * SYS__CLASS__ = "__class__";
     static const char * SYS__BASE__ = "__base__";
+    static const char * SYS__SIZE__ = "__size__";
 
     static const char * SYS__DOC__ = "__doc__";
     static const char * SYS__STR__ = "__str__";
 
-    if(!isInternalName(name)) {
+    static const char * MODULE__MD5__ = "__md5__";
+    static const char * MODULE__FILE__ = "__file__";
+    static const char * MODULE__TIMESTAMP__ = "__timestamp__";
+    static const char * MODULE__MAIN__ = "__main__";
+    static const char * MODULE__SOURCE__ = "__source__";
+
+    if(!isSystemName(name)) {
         return nullptr;
     } else if(!obj || !obj->is_init()) {
         return Obj::CreateString(":Undefined");
@@ -3663,7 +3670,26 @@ ObjPtr newlang::CheckSystemField(const Obj *obj, std::string name) {
         return Obj::CreateString(GetDoc(obj->m_var_name));
     } else if(name.compare(SYS__STR__) == 0) {
         return Obj::CreateString(obj->toString());
+    } else if(name.compare(SYS__SIZE__) == 0) {
+        return Obj::CreateValue(obj->size());
     } else {
+
+        if(obj->m_var_type_current == ObjType::Module) {
+            const Module *mod = static_cast<const Module *> (obj);
+
+            if(name.compare(MODULE__MD5__) == 0) {
+                return Obj::CreateString(mod->m_md5);
+            } else if(name.compare(MODULE__FILE__) == 0) {
+                return Obj::CreateString(mod->m_file);
+            } else if(name.compare(MODULE__TIMESTAMP__) == 0) {
+                return Obj::CreateString(mod->m_timestamp);
+            } else if(name.compare(MODULE__MAIN__) == 0) {
+                return Obj::CreateBool(mod->m_is_main);
+            } else if(name.compare(MODULE__SOURCE__) == 0) {
+                return Obj::CreateString(mod->m_source);
+            }
+        }
+
         std::string message("Internal field '");
         message += name;
         message += "' not exist!";

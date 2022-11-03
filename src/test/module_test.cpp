@@ -166,6 +166,8 @@ TEST(Module, Load) {
 
     const char *args[1] = {"-nlc-search=../example;../src"};
 
+    Context::Reset();
+
     RuntimePtr env = RunTime::Init(1, args);
     Context ctx(env);
 
@@ -181,14 +183,14 @@ TEST(Module, Load) {
     file << "ns3::ns4::module_var4 := 4;\n";
     file.close();
 
-    ASSERT_FALSE(ctx.FindTerm("module_var1"));
-    ASSERT_FALSE(ctx.FindTerm("ns::module_var2"));
-    ASSERT_FALSE(ctx.FindTerm("ns::ns2::module_var3"));
-    ASSERT_FALSE(ctx.FindTerm("ns3::ns4::module_var4"));
+    EXPECT_FALSE(ctx.FindTerm("module_var1"));
+    EXPECT_FALSE(ctx.FindTerm("ns::module_var2"));
+    EXPECT_FALSE(ctx.FindTerm("ns::ns2::module_var3"));
+    EXPECT_FALSE(ctx.FindTerm("ns3::ns4::module_var4"));
 
-    ASSERT_ANY_THROW(
+    EXPECT_ANY_THROW(
             ctx.ExecStr("@temp.module_test::module_var1");
-            );
+            ) << ctx.Dump("; ");
 
     // Загрузить модуль и импортировать все объекты
     ASSERT_STREQ("@temp.module_test", ExtractModuleName("@temp.module_test").c_str());
@@ -199,7 +201,7 @@ TEST(Module, Load) {
     ASSERT_EQ(4, result->GetValueAsInteger()) << ctx.Dump("; ");
 
 
-    result= ctx.FindTerm("module_var1");
+    result = ctx.FindTerm("module_var1");
     ASSERT_TRUE(result) << ctx.Dump("; ");
     ASSERT_EQ(1, result->GetValueAsInteger());
 
@@ -217,14 +219,14 @@ TEST(Module, Load) {
 
 
     ASSERT_TRUE(ctx.m_modules.find("@temp.module_test") != ctx.m_modules.end());
-    
+
     // Выгрузить модуль
     result = ctx.ExecStr("@temp.module_test(_)");
     ASSERT_TRUE(result);
 
     ASSERT_TRUE(ctx.m_modules.find("@temp.module_test") == ctx.m_modules.end());
 
-    
+
     result = ctx.FindTerm("module_var1");
     ASSERT_FALSE(result) << ctx.Dump("; ");
     result = ctx.FindTerm("ns::module_var2");
@@ -234,9 +236,9 @@ TEST(Module, Load) {
     result = ctx.FindTerm("ns3::ns4::module_var4");
     ASSERT_FALSE(result) << ctx.Dump("; ");
 
-    ASSERT_ANY_THROW(
+    EXPECT_ANY_THROW(
             ctx.ExecStr("@temp.module_test::module_var1");
-            );
+            ) << ctx.Dump("; ");
 
     // Импортировать по маске
     result = ctx.ExecStr("@temp.module_test('*')");
@@ -254,9 +256,9 @@ TEST(Module, Load) {
     ASSERT_TRUE(ctx.FindTerm("module_var1")) << ctx.Dump("; ");
     ASSERT_TRUE(ctx.FindTerm("@temp.module_test::ns3::ns4::module_var4"));
 
-    
+
     ASSERT_TRUE(ctx.m_modules.find("@temp.module_test") != ctx.m_modules.end());
-    
+
     // Выгрузить модуль
     result = ctx.ExecStr("@temp.module_test(_)");
     ASSERT_TRUE(result);
@@ -264,23 +266,82 @@ TEST(Module, Load) {
     ASSERT_TRUE(ctx.m_modules.find("@temp.module_test") == ctx.m_modules.end());
 
 
-//    // Импортировать по маске
-//    result = ctx.ExecStr("@temp.module_test('ns::*')");
-//    ASSERT_TRUE(result);
-//    ASSERT_EQ(4, result->GetValueAsInteger()) << ctx.Dump("; ");
-//
-//    result = ctx.FindTerm("ns::module_var2");
-//    ASSERT_TRUE(result) << ctx.Dump("; ");
-//    ASSERT_EQ(2, result->GetValueAsInteger()) << ctx.Dump("; ");
-//
-//    result = ctx.FindTerm("@temp.module_test::ns::ns2::module_var3");
-//    ASSERT_TRUE(result) << ctx.Dump("; ");
-//    ASSERT_EQ(3, result->GetValueAsInteger()) << ctx.Dump("; ");
-//
-//    ASSERT_FALSE(ctx.FindTerm("module_var1")) << ctx.Dump("; ");
-//    ASSERT_FALSE(ctx.FindTerm("@temp.module_test::ns3::ns4::module_var4"));
-    
+    //    // Импортировать по маске
+    //    result = ctx.ExecStr("@temp.module_test('ns::*')");
+    //    ASSERT_TRUE(result);
+    //    ASSERT_EQ(4, result->GetValueAsInteger()) << ctx.Dump("; ");
+    //
+    //    result = ctx.FindTerm("ns::module_var2");
+    //    ASSERT_TRUE(result) << ctx.Dump("; ");
+    //    ASSERT_EQ(2, result->GetValueAsInteger()) << ctx.Dump("; ");
+    //
+    //    result = ctx.FindTerm("@temp.module_test::ns::ns2::module_var3");
+    //    ASSERT_TRUE(result) << ctx.Dump("; ");
+    //    ASSERT_EQ(3, result->GetValueAsInteger()) << ctx.Dump("; ");
+    //
+    //    ASSERT_FALSE(ctx.FindTerm("module_var1")) << ctx.Dump("; ");
+    //    ASSERT_FALSE(ctx.FindTerm("@temp.module_test::ns3::ns4::module_var4"));
+
 }
 
+TEST(Module, SysEnv) {
+
+    const char *args[1] = {"-nlc-search=../example;../src"};
+
+    Context::Reset();
+
+    RuntimePtr env = RunTime::Init(1, args);
+    Context ctx(env);
+
+
+    std::filesystem::create_directories("temp");
+    ASSERT_TRUE(std::filesystem::is_directory("temp"));
+
+    std::ofstream file("temp/module_test.nlp");
+    file << "module_var1 := 1;\n";
+    file << "ns { module_var2 := 2;\n";
+    file << "   ns2 { module_var3 := 3;};\n";
+    file << "};\n";
+    file << "ns3::ns4::module_var4 := 4;\n";
+    file.close();
+
+    EXPECT_FALSE(ctx.FindTerm("module_var1"));
+    EXPECT_FALSE(ctx.FindTerm("ns::module_var2"));
+    EXPECT_FALSE(ctx.FindTerm("ns::ns2::module_var3"));
+    EXPECT_FALSE(ctx.FindTerm("ns3::ns4::module_var4"));
+
+    EXPECT_ANY_THROW(
+            ctx.ExecStr("@temp.module_test::module_var1");
+            ) << ctx.Dump("; ");
+
+    // Загрузить модуль и импортировать все объекты
+    ASSERT_STREQ("@temp.module_test", ExtractModuleName("@temp.module_test").c_str());
+
+    ObjPtr result;
+    result = ctx.ExecStr("@temp.module_test()");
+    ASSERT_TRUE(result);
+    ASSERT_EQ(4, result->GetValueAsInteger()) << ctx.Dump("; ");
+
+    result = ctx.ExecStr("@temp.module_test::module_var1");
+    ASSERT_TRUE(result);
+    ASSERT_STREQ("1", result->GetValueAsString().c_str());
+
+    result = ctx.ExecStr("@temp.module_test::__md5__");
+    ASSERT_TRUE(result);
+    ASSERT_EQ(32, result->GetValueAsString().size()) << result->GetValueAsString();
+
+    result = ctx.ExecStr("@temp.module_test::__timestamp__");
+    ASSERT_TRUE(result);
+    ASSERT_EQ(25, result->GetValueAsString().size()) << result->GetValueAsString();
+
+    result = ctx.ExecStr("@temp.module_test::__file__");
+    ASSERT_TRUE(result);
+    ASSERT_TRUE(result->GetValueAsString().find("output/temp/module_test.nlp") != std::string::npos) << result->GetValueAsString();
+
+
+    result = ctx.ExecStr("@temp.module_test::__main__");
+    ASSERT_TRUE(result);
+    ASSERT_STREQ("0", result->GetValueAsString().c_str()) << result->GetValueAsString();
+}
 
 #endif // UNITTEST

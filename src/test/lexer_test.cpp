@@ -295,7 +295,7 @@ TEST_F(Lexer, Assign) {
 
 TEST_F(Lexer, Function) {
     ASSERT_EQ(1, Parse("@"));
-    EXPECT_EQ(1, Count(TermID::MODULE)) << toString(tokens[0]->getTermID());
+    EXPECT_EQ(1, Count(TermID::SYMBOL)) << toString(tokens[0]->getTermID());
     EXPECT_STREQ("@", tokens[0]->getText().c_str()) << tokens[0]->getText().c_str();
 
     ASSERT_EQ(1, Parse("@name"));
@@ -374,6 +374,17 @@ TEST_F(Lexer, Paren) {
     EXPECT_EQ(1, Count(TermID::NATIVE));
     EXPECT_EQ(2, Count(TermID::SYMBOL));
 
+}
+
+TEST_F(Lexer, Module) {
+    ASSERT_EQ(1, Parse("@name"));
+    EXPECT_EQ(1, Count(TermID::MODULE));
+
+    ASSERT_EQ(1, Parse("@dir.module"));
+    EXPECT_EQ(1, Count(TermID::MODULE));
+
+    ASSERT_EQ(1, Parse("@dir.dir.module"));
+    EXPECT_EQ(1, Count(TermID::MODULE));
 }
 
 TEST_F(Lexer, Arg) {

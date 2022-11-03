@@ -232,6 +232,8 @@ void ParserException(const char *msg, std::string &buffer, int row, int col);
     _(IntParser, 213)       \
     _(IntError, 214)        \
     \
+    _(Context, 227)          \
+    _(Module, 228)          \
     _(Undefined, 229)          \
     _(Return, 230)          \
     _(Break, 231)           \
@@ -491,8 +493,12 @@ void ParserException(const char *msg, std::string &buffer, int row, int col);
         return t == ObjType::Type;
     }
 
+    inline bool isModule(ObjType t) {
+        return t == ObjType::Module;
+    }
+
     inline bool isIndexingType(ObjType curr, ObjType fix) {
-        return isTensor(curr) || isString(curr) || isDictionary(curr) || isClass(curr) || isFunction(curr) || (isTypeName(curr) && isIndexingType(fix, fix));
+        return isTensor(curr) || isString(curr) || isDictionary(curr) || isClass(curr) || isFunction(curr) || isModule(curr) || (isTypeName(curr) && isIndexingType(fix, fix));
     }
 
     inline bool isLocalType(ObjType t) {
@@ -777,7 +783,7 @@ void ParserException(const char *msg, std::string &buffer, int row, int col);
         return name.size() > 1 && name[name.size() - 1] == '_' && name[name.size() - 2] != '_';
     }
 
-    inline bool isInternalName(const std::string name) {
+    inline bool isSystemName(const std::string name) {
         if (name.empty()) {
             return false;
         }
@@ -796,6 +802,7 @@ void ParserException(const char *msg, std::string &buffer, int row, int col);
     }
 
     inline bool isVariableName(const std::string name) {
+        LOG_DEBUG("%s", name.c_str());
         if (isModule(name)) {
             return name.find("::") != name.npos;
         }
