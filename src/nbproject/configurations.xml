@@ -5,8 +5,10 @@
       <itemPath>../docs/CNAME</itemPath>
       <itemPath>../docs/_config.yml</itemPath>
       <itemPath>../docs/index.md</itemPath>
+      <itemPath>../docs/newlang_doc.md</itemPath>
       <itemPath>../docs/ops.md</itemPath>
       <itemPath>../docs/syntax.md</itemPath>
+      <itemPath>../docs/syntax_dsl.md</itemPath>
       <itemPath>../docs/type_func.md</itemPath>
       <itemPath>../docs/type_iter.md</itemPath>
       <itemPath>../docs/type_native.md</itemPath>
@@ -217,11 +219,15 @@
       </item>
       <item path="../docs/index.md" ex="false" tool="3" flavor2="0">
       </item>
+      <item path="../docs/newlang_doc.md" ex="false" tool="3" flavor2="0">
+      </item>
       <item path="../docs/ops.md" ex="false" tool="3" flavor2="0">
       </item>
       <item path="../docs/syntax.md" ex="false" tool="3" flavor2="0">
       </item>
       <item path="../docs/syntax.txt" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../docs/syntax_dsl.md" ex="false" tool="3" flavor2="0">
       </item>
       <item path="../docs/type_func.md" ex="false" tool="3" flavor2="0">
       </item>
@@ -564,11 +570,15 @@
       </item>
       <item path="../docs/index.md" ex="false" tool="3" flavor2="0">
       </item>
+      <item path="../docs/newlang_doc.md" ex="false" tool="3" flavor2="0">
+      </item>
       <item path="../docs/ops.md" ex="false" tool="3" flavor2="0">
       </item>
       <item path="../docs/syntax.md" ex="false" tool="3" flavor2="0">
       </item>
       <item path="../docs/syntax.txt" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../docs/syntax_dsl.md" ex="false" tool="3" flavor2="0">
       </item>
       <item path="../docs/type_func.md" ex="false" tool="3" flavor2="0">
       </item>
@@ -891,11 +901,15 @@
       </item>
       <item path="../docs/index.md" ex="false" tool="3" flavor2="0">
       </item>
+      <item path="../docs/newlang_doc.md" ex="false" tool="3" flavor2="0">
+      </item>
       <item path="../docs/ops.md" ex="false" tool="3" flavor2="0">
       </item>
       <item path="../docs/syntax.md" ex="false" tool="3" flavor2="0">
       </item>
       <item path="../docs/syntax.txt" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../docs/syntax_dsl.md" ex="false" tool="3" flavor2="0">
       </item>
       <item path="../docs/type_func.md" ex="false" tool="3" flavor2="0">
       </item>
@@ -1162,11 +1176,15 @@
       </item>
       <item path="../docs/index.md" ex="false" tool="3" flavor2="0">
       </item>
+      <item path="../docs/newlang_doc.md" ex="false" tool="3" flavor2="0">
+      </item>
       <item path="../docs/ops.md" ex="false" tool="3" flavor2="0">
       </item>
       <item path="../docs/syntax.md" ex="false" tool="3" flavor2="0">
       </item>
       <item path="../docs/syntax.txt" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../docs/syntax_dsl.md" ex="false" tool="3" flavor2="0">
       </item>
       <item path="../docs/type_func.md" ex="false" tool="3" flavor2="0">
       </item>
@@ -1503,11 +1521,15 @@
       </item>
       <item path="../docs/index.md" ex="false" tool="3" flavor2="0">
       </item>
+      <item path="../docs/newlang_doc.md" ex="false" tool="3" flavor2="0">
+      </item>
       <item path="../docs/ops.md" ex="false" tool="3" flavor2="0">
       </item>
       <item path="../docs/syntax.md" ex="false" tool="3" flavor2="0">
       </item>
       <item path="../docs/syntax.txt" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../docs/syntax_dsl.md" ex="false" tool="3" flavor2="0">
       </item>
       <item path="../docs/type_func.md" ex="false" tool="3" flavor2="0">
       </item>

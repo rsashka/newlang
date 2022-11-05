@@ -13,30 +13,19 @@
 \\false 0:Bool\\\
 \\no 0:Bool\\\
 
-\\main @@\\\ ///< Root of context - main module @@ or \\main.
-
-/** Current module @$ or \\current. 
-Check current module of main:
-\code 
-[@$.__main__] --> { 
-    ... run code if this module main ... 
-}
-\endcode */
-Check first load of current module:
-\code
-[@$.__load__] --> { 
-    ... this code is executed once when the module is first loaded ... 
-}
-\endcode */
-\\current @$\\\ 
-
 \\this $0\\\  ///< This object $0 or \\this
 \\parent $$\\\ ///< Parent object $$ or \\parent
 
+\\args $\*\\\
+\\sys @@\\\
+\\current @$\\\
+\\cmd @*\\\
+
 \\destructor() _____ ::= \\\ ///< Destructor of object or module ______(). Reserved system name 5 handwriting (handwriting between double handwriting)
 
-\\if(cond) [\$cond]-->\\\
-\\elif(cond) ,[\$cond]-->\\\
+\\match(cond) [\$cond]\\\
+\\if(...) [\$*]-->\\\
+\\elif(...) ,[\$*]-->\\\
 \\else ,[_]-->\\\
 
 \\while(cond) [\$cond] <->\\\
@@ -52,8 +41,3 @@ Check first load of current module:
 
 \\error --\\\
 \\error(value) --\$value--\\\
-
-\\match(cond) [\$cond]\\\
-\\case(...) [\$*]-->\\\
-
-\\import(...) \$* {}\\\

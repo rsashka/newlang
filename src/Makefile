@@ -71,71 +71,95 @@ build: .build-post
 #	@if [ ! -d "temp" ]; then \
 #	    @mkdir temp; \
 #	fi
-#	pandoc -t plain ../docs/syntax.md > ../docs/syntax.txt
-#	../contrib/text2cpp/output/bin/text2cpp ../docs/syntax.txt  syntax_help.cpp newlang_syntax_help c
-#	
-#
-#	@if [ "$(GIT_TAG_VERSION)" != "v$(VERSION_MAJOR).$(VERSION_MINOR).$(VERSION_PATCH)" ]; then \
-#	    echo "Git TAG $(GIT_TAG_VERSION) differ version v$(VERSION_MAJOR).$(VERSION_MINOR).$(VERSION_PATCH)"; \
-#	    exit 1; \
-#	fi
-#	@if [ -z $(GIT_SHORT_HASH) ]; then \
-#	    echo Undefined version for build; \
-#	    exit 1; \
-#	fi
-#	@if [ -f $(VERSION_HEADER) ]; then \
-#	    rm $(VERSION_HEADER); \
-#	fi
-#
-#	@echo "/** @file $(VERSION_HEADER)" > $(VERSION_HEADER)
-#	@echo "* Auto generate file for identification current build" >> $(VERSION_HEADER)
-#	@echo "* Date build $(DATE_BUILD)" >> $(VERSION_HEADER)
-#	@echo "*/"  >> $(VERSION_HEADER)
-#	@echo ""  >> $(VERSION_HEADER)
-#
-#	@echo "#include <stdint.h>"  >> $(VERSION_HEADER)
-#
-#	@echo "extern const uint8_t VERSION_MAJOR;"  >> $(VERSION_HEADER)
-#	@echo "extern const uint8_t VERSION_MINOR;"  >> $(VERSION_HEADER)
-#	@echo "extern const uint8_t VERSION_PATCH;"  >> $(VERSION_HEADER)
-#	@echo "extern const uint16_t VERSION_BUILD;"  >> $(VERSION_HEADER)
-#	@echo ""  >> $(VERSION_HEADER)
-#
-#	@echo "#define VERSION ($(VERSION_MAJOR) << 4 | $(VERSION_MINOR))"  >> $(VERSION_HEADER)
-#	@echo "#define VERSION_GIT_SOURCE \"$(GIT_SOURCE_ID)\""  >> $(VERSION_HEADER)
-#	@echo "#define VERSION_DATE_BUILD_STR \"$(DATE_BUILD)\""  >> $(VERSION_HEADER)
-#	@echo "#define VERSION_SOURCE_FULL_ID \"$(GIT_SOURCE_ID) $(DATE_BUILD)\""  >> $(VERSION_HEADER)
-#	@echo ""  >> $(VERSION_HEADER)
-#
-#	@echo "extern const char * GIT_SOURCE;"  >> $(VERSION_HEADER)
-#	@echo "extern const char * DATE_BUILD_STR;"  >> $(VERSION_HEADER)
-#	@echo "extern const char * SOURCE_FULL_ID; "  >> $(VERSION_HEADER)
-#	@echo ""  >> $(VERSION_HEADER)
-#
-#	@if [ -f $(VERSION_FILE) ]; then \
-#	    rm $(VERSION_FILE); \
-#	fi
-#
-#	@echo "/** @file $(VERSION_FILE)" > $(VERSION_FILE)
-#	@echo "* Auto generate file for identification current build" >> $(VERSION_FILE)
-#	@echo "* Date build $(DATE_BUILD)" >> $(VERSION_FILE)
-#	@echo "*/"  >> $(VERSION_FILE)
-#	@echo ""  >> $(VERSION_FILE)
-#	
-#	@echo "#include \"version.h\""  >> $(VERSION_FILE)
-#	@echo ""  >> $(VERSION_FILE)
-#	
-#	@echo "const uint8_t VERSION_MAJOR=$(VERSION_MAJOR);"  >> $(VERSION_FILE)
-#	@echo "const uint8_t VERSION_MINOR=$(VERSION_MINOR);"  >> $(VERSION_FILE)
-#	@echo "const uint8_t VERSION_PATCH=$(VERSION_PATCH);"  >> $(VERSION_FILE)
-#	@echo ""  >> $(VERSION_FILE)
-#	
-#	@echo "const char * GIT_SOURCE = VERSION_GIT_SOURCE;"  >> $(VERSION_FILE)
-#	@echo "const char * DATE_BUILD_STR = VERSION_DATE_BUILD_STR;"  >> $(VERSION_FILE)
-#	@echo "const char * SOURCE_FULL_ID = VERSION_SOURCE_FULL_ID;"  >> $(VERSION_FILE)
-#	@echo ""  >> $(VERSION_FILE)
-#
-#	@echo Mark version $(GIT_SOURCE_ID) $(DATE_BUILD)
+
+	cat ../docs/syntax.md > ../docs/newlang_doc.md
+	echo "---\nsyntax.md\n\n" >> ../docs/newlang_doc.md
+	cat ../docs/types.md >> ../docs/newlang_doc.md
+	echo "---\ntypes.md\n\n" >> ../docs/newlang_doc.md
+	cat ../docs/type_nor.md >> ../docs/newlang_doc.md
+	echo "---\ntype_nor.md\n\n" >> ../docs/newlang_doc.md
+	cat ../docs/type_str.md >> ../docs/newlang_doc.md
+	echo "---\ntype_str.md\n\n" >> ../docs/newlang_doc.md
+	cat ../docs/type_func.md >> ../docs/newlang_doc.md
+	echo "---\ntype_func.md\n\n" >> ../docs/newlang_doc.md
+	cat ../docs/type_oop.md >> ../docs/newlang_doc.md
+	echo "---\ntype_oop.md\n\n" >> ../docs/newlang_doc.md
+	cat ../docs/type_native.md >> ../docs/newlang_doc.md
+	echo "---\ntype_native.md\n\n" >> ../docs/newlang_doc.md
+	cat ../docs/type_iter.md >> ../docs/newlang_doc.md
+	echo "---\ntype_iter.md\n\n" >> ../docs/newlang_doc.md
+	cat ../docs/type_other.md >> ../docs/newlang_doc.md
+	echo "---\ntype_other.md\n\n" >> ../docs/newlang_doc.md
+	cat ../docs/ops.md >> ../docs/newlang_doc.md
+	echo "---\nops.md\n\n" >> ../docs/newlang_doc.md
+	cat ../docs/syntax_dsl.md >> ../docs/newlang_doc.md
+	echo "---\nsyntax_dsl.md\n\n" >> ../docs/newlang_doc.md
+	
+#	pandoc -t plain ../docs/newlang_doc.md > ../docs/newlang_doc.txt
+	../contrib/text2cpp/output/bin/text2cpp ../docs/newlang_doc.md  syntax_help.cpp newlang_syntax_help c
+	
+
+	@if [ "$(GIT_TAG_VERSION)" != "v$(VERSION_MAJOR).$(VERSION_MINOR).$(VERSION_PATCH)" ]; then \
+	    echo "Git TAG $(GIT_TAG_VERSION) differ version v$(VERSION_MAJOR).$(VERSION_MINOR).$(VERSION_PATCH)"; \
+	    exit 1; \
+	fi
+	@if [ -z $(GIT_SHORT_HASH) ]; then \
+	    echo Undefined version for build; \
+	    exit 1; \
+	fi
+	@if [ -f $(VERSION_HEADER) ]; then \
+	    rm $(VERSION_HEADER); \
+	fi
+
+	@echo "/** @file $(VERSION_HEADER)" > $(VERSION_HEADER)
+	@echo "* Auto generate file for identification current build" >> $(VERSION_HEADER)
+	@echo "* Date build $(DATE_BUILD)" >> $(VERSION_HEADER)
+	@echo "*/"  >> $(VERSION_HEADER)
+	@echo ""  >> $(VERSION_HEADER)
+
+	@echo "#include <stdint.h>"  >> $(VERSION_HEADER)
+
+	@echo "extern const uint8_t VERSION_MAJOR;"  >> $(VERSION_HEADER)
+	@echo "extern const uint8_t VERSION_MINOR;"  >> $(VERSION_HEADER)
+	@echo "extern const uint8_t VERSION_PATCH;"  >> $(VERSION_HEADER)
+	@echo "extern const uint16_t VERSION_BUILD;"  >> $(VERSION_HEADER)
+	@echo ""  >> $(VERSION_HEADER)
+
+	@echo "#define VERSION ($(VERSION_MAJOR) << 4 | $(VERSION_MINOR))"  >> $(VERSION_HEADER)
+	@echo "#define VERSION_GIT_SOURCE \"$(GIT_SOURCE_ID)\""  >> $(VERSION_HEADER)
+	@echo "#define VERSION_DATE_BUILD_STR \"$(DATE_BUILD)\""  >> $(VERSION_HEADER)
+	@echo "#define VERSION_SOURCE_FULL_ID \"$(GIT_SOURCE_ID) $(DATE_BUILD)\""  >> $(VERSION_HEADER)
+	@echo ""  >> $(VERSION_HEADER)
+
+	@echo "extern const char * GIT_SOURCE;"  >> $(VERSION_HEADER)
+	@echo "extern const char * DATE_BUILD_STR;"  >> $(VERSION_HEADER)
+	@echo "extern const char * SOURCE_FULL_ID; "  >> $(VERSION_HEADER)
+	@echo ""  >> $(VERSION_HEADER)
+
+	@if [ -f $(VERSION_FILE) ]; then \
+	    rm $(VERSION_FILE); \
+	fi
+
+	@echo "/** @file $(VERSION_FILE)" > $(VERSION_FILE)
+	@echo "* Auto generate file for identification current build" >> $(VERSION_FILE)
+	@echo "* Date build $(DATE_BUILD)" >> $(VERSION_FILE)
+	@echo "*/"  >> $(VERSION_FILE)
+	@echo ""  >> $(VERSION_FILE)
+	
+	@echo "#include \"version.h\""  >> $(VERSION_FILE)
+	@echo ""  >> $(VERSION_FILE)
+	
+	@echo "const uint8_t VERSION_MAJOR=$(VERSION_MAJOR);"  >> $(VERSION_FILE)
+	@echo "const uint8_t VERSION_MINOR=$(VERSION_MINOR);"  >> $(VERSION_FILE)
+	@echo "const uint8_t VERSION_PATCH=$(VERSION_PATCH);"  >> $(VERSION_FILE)
+	@echo ""  >> $(VERSION_FILE)
+	
+	@echo "const char * GIT_SOURCE = VERSION_GIT_SOURCE;"  >> $(VERSION_FILE)
+	@echo "const char * DATE_BUILD_STR = VERSION_DATE_BUILD_STR;"  >> $(VERSION_FILE)
+	@echo "const char * SOURCE_FULL_ID = VERSION_SOURCE_FULL_ID;"  >> $(VERSION_FILE)
+	@echo ""  >> $(VERSION_FILE)
+
+	@echo Mark version $(GIT_SOURCE_ID) $(DATE_BUILD)
 
 
 .build-post: .build-impl

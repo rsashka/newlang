@@ -141,8 +141,7 @@ namespace newlang {
         _("local", NOT_SUPPORT)
 
     class Module : public Obj {
-        SCOPE(protected) :
-//        std::string m_name;
+    public:
         std::string m_file;
         std::string m_source;
         std::string m_md5;

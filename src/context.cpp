@@ -40,7 +40,7 @@ Context::Context(RuntimePtr global) : m_llvm_builder(LLVMCreateBuilder()) {
     ASSERT(m_main_module->m_var_type_current == ObjType::Module);
     m_main_module->m_var_is_init = true;
     m_main_module->m_is_main = true;
-    
+
     m_terms = m_main_module.get();
 
 
@@ -2456,7 +2456,7 @@ ObjPtr Context::CreateRVal(Context *ctx, TermPtr term, Obj * local_vars, bool ev
             return result;
 
 
-            
+
         case TermID::TYPE:
 
             result = ctx->GetTerm(term->GetFullName().c_str(), term->isRef());
@@ -2469,6 +2469,11 @@ ObjPtr Context::CreateRVal(Context *ctx, TermPtr term, Obj * local_vars, bool ev
             }
             ASSERT(result);
             ASSERT(result->m_var_type_fixed == type);
+
+            if(result->m_var_type_fixed == ObjType::Class) {
+                ASSERT(!"Check virtual methods!");
+
+            }
 
             // Размерность, если указана
             result->m_dimensions = Obj::CreateType(ObjType::Dictionary, ObjType::Dictionary, true);
@@ -2852,7 +2857,12 @@ ObjPtr Context::CreateClass(std::string class_name, TermPtr body, Obj * local_va
                     if(body->m_block[i]->IsCreate()) {
                         ASSERT(body->m_block[i]->Left());
                         if(body->m_block[i]->Left()->IsFunction() || body->m_block[i]->Left()->isCall()) {
-                            Eval(this, body->m_block[i], local_vars, true);
+                            ObjPtr func = Eval(this, body->m_block[i], local_vars, true);
+
+                            if(body->m_block[i]->Right()->GetTokenID() == TermID::NONE) {
+                                func->m_var_type_current = ObjType::Virtual;
+                            }
+
                         } else {
 
                             std::string name = body->m_block[i]->Left()->getText();

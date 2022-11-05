@@ -216,6 +216,7 @@ void ParserException(const char *msg, std::string &buffer, int row, int col);
     _(BLOCK_PLUS, 113)       \
     _(BLOCK_MINUS, 114)       \
     \
+    _(Virtual, 119)            \
     _(Eval, 118)            \
     _(Other, 120)           \
     _(Plain, 121)           \
@@ -418,7 +419,7 @@ void ParserException(const char *msg, std::string &buffer, int row, int col);
 
     inline bool isFunction(ObjType t) {
         return t == ObjType::PureFunc || t == ObjType::Function || t == ObjType::NativeFunc ||
-                t == ObjType::EVAL_FUNCTION || t == ObjType::PureFunc;
+                t == ObjType::EVAL_FUNCTION || t == ObjType::PureFunc || t == ObjType::Virtual;
     }
 
     inline bool isEval(ObjType t) {

@@ -177,7 +177,8 @@
 %token			MATCHING
 %token			REPEAT
 
-%token			ARGUMENT		
+%token			ARGUMENT
+%token			MODULES
 
 
 %token			RANGE           ".."
@@ -556,6 +557,11 @@ assign_name:  name
                 {
                     $$ = $1; 
                 }
+            |  NEWLANG  /* @@ - rval */
+                {
+                    $$ = $1; 
+                }
+            
        
 /* Допустимые lvalue объекты */
 lval:  assign_name
@@ -653,19 +659,10 @@ rval_name: lval
             {
                 $$ = $1; 
             }
-        | NEWLANG  call /* @@ - rval */
-            {
-                $$ = $1; 
-                $$->SetArgs($2);
-            }
-        | ARGS /* $* - rval */
+        | ARGS /* $* и @* - rval */
             {
                 $$ = $1;
             }
-/*        | GLOBAL  @*  - rval
-            {
-                $$ = $1;
-            } */
 
         
 rval_range: rval_name

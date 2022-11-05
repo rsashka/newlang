@@ -1317,6 +1317,8 @@ ObjPtr Obj::Call(Context *ctx, Obj * args, bool direct, ObjPtr self) {
             result = CallNative(ctx, *param.get());
         } else if(m_var_type_current == ObjType::EVAL_FUNCTION || m_var_type_current == ObjType::BLOCK || m_var_type_current == ObjType::BLOCK_TRY || m_var_type_current == ObjType::BLOCK_PLUS || m_var_type_current == ObjType::BLOCK_MINUS) {
             result = Context::CallBlock(ctx, m_sequence, param.get(), true, Context::CatchType::CATCH_AUTO, nullptr);
+        } else if(m_var_type_current == ObjType::Virtual) {
+            LOG_RUNTIME("Call virtual function '%s' not allowed!", toString().c_str());
         } else {
             LOG_RUNTIME("Call by name not implemted '%s'!", toString().c_str());
         }
