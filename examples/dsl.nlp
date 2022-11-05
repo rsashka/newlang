@@ -1,46 +1,43 @@
 #!../output/nlc --eval
 
-# Example implementation DSL — domain-specific language for english
-# Macros implementation name:"\name", body start: "\\", body end: "\\\", replace var_args \$*
-# \macro \\body macro no args\\\ # End body
-# \macro(arg1, arg2, ...) \\body macro form args as function call: $arg1 or ${arg1}${arg2}    \$* \\\
-# \macro arg1 arg2 ...\\body macro from args as sequence: $arg1  ${arg1}${arg2}    \$* \\\  ?????????????????????
+## An example of the implementation of DSL (domain-specific language) with keywords in English
+## Macro recording syntax: Macro name start: "\\name" body end: "\\\", substitution of one argument \$1 (or \$arg by name)
+## or all arguments at once \$*. Example:
+## \\name body macro no args\\\ # End macro body
+## \\macro(arg, ...) body macro form args as function call an use: \$arg or \$1 or \$* for all args \\\ # End macro body
 
-\false \\0:Bool\\\
-\true \\1:Bool\\\
 
-\self \\$0\\\
-\parent \\$$\\\
-\local \\$\\\
-\global \\@\\\
-?????????????  \int var\\${var}:Int32\\\  # Use: \int integer = 100;  ???????????????????????
+\\true 1:Bool\\\
+\\yes 1:Bool\\\
 
-\if(cond) \\ ($cond) -> \\\
+\\false 0:Bool\\\
+\\no 0:Bool\\\
 
-\then \\ {
- \\\
+\\this $0\\\  ///< This object $0 or \\this
+\\parent $$\\\ ///< Parent object $$ or \\parent
 
-\elseif(cond) \\},
- ($cond) -> \\\
+\\args $\*\\\
+\\sys @@\\\
+\\current @$\\\
+\\cmd @*\\\
 
-\else \\,
- _ -> {\\\
+\\destructor() _____ ::= \\\ ///< Destructor of object or module ______(). Reserved system name 5 handwriting (handwriting between double handwriting)
 
-\endif \\
- }; \\\
+\\match(cond) [\$cond]\\\
+\\if(...) [\$*]-->\\\
+\\elif(...) ,[\$*]-->\\\
+\\else ,[_]-->\\\
 
-\while(cond) \\ ($cond) -->> {\\\
-\endwhile \\};\\\
+\\while(cond) [\$cond] <->\\\
+\\dowhile(cond) <->[\$cond]\\\
 
-\until \\{\\\
-\enduntil(cond) \\} <<-- ($cond);\\\
+\\break+  ++:Break++\\\
+\\break-  --:Break--\\\
+\\continue+  ++:Continue++\\\
+\\continue-  --:Continue--\\\
 
-\return  \\ -- \\\
-\return(...)  \\ -- \$*\\\
-\throw(...)  \\ -- :Error(\$*)\\\
+\\return ++\\\
+\\return(value) ++\$value++\\\
 
-\match(val) \\($val)==>{\\
-\case(val) \\($val) -> {
-\endcase \\};
-\endmatch \\};\\\
-
+\\error --\\\
+\\error(value) --\$value--\\\

@@ -37,6 +37,8 @@ namespace newlang {
     //    at::DimnameList ConvertToDimnameList(const Obj *obj);
     bool ParsePrintfFormat(Obj *args, int start = 1);
 
+    ObjPtr CheckSystemField(const Obj *obj, const std::string name);
+
     enum class ConcatMode : uint8_t {
         Error = 0,
         Append = 1,
@@ -484,41 +486,6 @@ namespace newlang {
             return m_var_name;
         }
 
-        /*
-     Встроенные атрибуты класса
-
-    Объекты класса — дочерние элементы по отношению к атрибутам самого языка Python. Таким образом они заимствуют некоторые атрибуты:
-    Атрибут 	Описание
-    __dict__ 	Предоставляет данные о классе коротко и доступно, в виде словаря
-    __doc__ 	Возвращает строку с описанием класса, или None, если значение не определено
-    __class__ 	Возвращает объект, содержащий информацию о классе с массой полезных атрибутов, включая атрибут __name__
-    __module__ 	Возвращает имя «модуля» класса или __main__, если класс определен в выполняемом модуле.
-
-    class Customer:
-        'Это класс Customer'
-        def __init__(self, name, phone, address):        
-            self.name = name
-            self.phone = phone
-            self.address = address
- 
-  
-    john = Customer("John",1234567, "USA")
- 
-    print ("john.__dict__ = ", john.__dict__)
-    print ("john.__doc__ = ", john.__doc__)
-    print ("john.__class__ = ", john.__class__)
-    print ("john.__class__.__name__ = ", john.__class__.__name__) 
-    print ("john.__module__ = ", john.__module__)  
-
-    Вывод:
-
-    john.__dict__ =  {'name': 'John', 'phone': 1234567, 'address': 'USA'}
-    john.__doc__ =  Это класс Customer
-    john.__class__ =  <class '__main__.Customer'>
-    john.__class__.__name__ =  Customer
-    john.__module__ =  __main__
-
-         */
         void SetClassName(std::string &name) {
             m_class_name = name;
         }
@@ -626,7 +593,7 @@ namespace newlang {
 
         [[nodiscard]]
         inline bool is_indexing() const {
-            return is_tensor_type() || is_string_type() || is_dictionary_type() || is_class_type() || is_error() || is_return() || is_function_type();
+            return isIndexingType(m_var_type_current, m_var_type_fixed) || is_error() || is_return();
         }
 
         [[nodiscard]]
@@ -651,13 +618,19 @@ namespace newlang {
 
         [[nodiscard]]
         inline bool is_error() const {
-            return m_var_type_current == ObjType::Error || m_var_type_fixed == ObjType::Error;
+            return m_var_type_current == ObjType::Error || m_var_type_fixed == ObjType::Error || m_var_type_current == ObjType::ErrorParser || m_var_type_current == ObjType::ErrorRunTime || m_var_type_current == ObjType::ErrorSignal;
         }
 
         [[nodiscard]]
         inline bool is_return() const {
-            return m_var_type_current == ObjType::Return || m_var_type_fixed == ObjType::Return;
+            return m_var_type_current == ObjType::Return || m_var_type_fixed == ObjType::Return || m_var_type_current == ObjType::RetPlus || m_var_type_current == ObjType::RetMinus;
         }
+
+        [[nodiscard]]
+        inline bool is_block() const {
+            return m_var_type_current == ObjType::BLOCK || m_var_type_current == ObjType::BLOCK_PLUS || m_var_type_current == ObjType::BLOCK_MINUS || m_var_type_current == ObjType::BLOCK_TRY;
+        }
+
 
         [[nodiscard]]
         inline bool is_defined_type() {
@@ -687,10 +660,22 @@ namespace newlang {
 
         Variable<Obj>::PairType & at(const std::string name) const {
             Obj * const obj = (Obj * const) this;
+            ObjPtr sys = CheckSystemField(this, name.c_str());
+            if (!!sys) {
+                m_str_pair.first = name;
+                m_str_pair.second = sys;
+                return m_str_pair;
+            }
             return obj->Variable<Obj>::at(name);
         }
 
         Variable<Obj>::PairType & at(const std::string name) override {
+            ObjPtr sys = CheckSystemField(this, name.c_str());
+            if (!!sys) {
+                m_str_pair.first = name;
+                m_str_pair.second = sys;
+                return m_str_pair;
+            }
             return Variable<Obj>::at(name);
         }
 
@@ -749,7 +734,7 @@ namespace newlang {
             return Call(ctx, &arg);
         }
 
-        ObjPtr Call(Context *ctx, Obj *args);
+        ObjPtr Call(Context *ctx, Obj *args, bool direct = false, ObjPtr self = nullptr);
 
         /*
          * 
@@ -1386,24 +1371,29 @@ namespace newlang {
                         return *at::get<bool *>(m_var);
                     }
                 case ObjType::Int8:
+                case ObjType::Char:
+                case ObjType::Byte:
                     if (at::holds_alternative<int64_t>(m_var)) {
                         return at::get<int64_t>(m_var);
                     } else if (at::holds_alternative<int8_t *>(m_var)) {
                         return *at::get<int8_t *>(m_var);
                     }
                 case ObjType::Int16:
+                case ObjType::Word:
                     if (at::holds_alternative<int64_t>(m_var)) {
                         return at::get<int64_t>(m_var);
                     } else if (at::holds_alternative<int16_t *>(m_var)) {
                         return *at::get<int16_t *>(m_var);
                     }
                 case ObjType::Int32:
+                case ObjType::DWord:
                     if (at::holds_alternative<int64_t>(m_var)) {
                         return at::get<int64_t>(m_var);
                     } else if (at::holds_alternative<int32_t *>(m_var)) {
                         return *at::get<int32_t *>(m_var);
                     }
                 case ObjType::Int64:
+                case ObjType::DWord64:
                     if (at::holds_alternative<int64_t>(m_var)) {
                         return at::get<int64_t>(m_var);
                     } else if (at::holds_alternative<int64_t *>(m_var)) {
@@ -1416,9 +1406,12 @@ namespace newlang {
                     ASSERT(!is_scalar());
                     LOG_RUNTIME("Can`t convert tensor to scalar!");
 
+                case ObjType::Float16:
                 case ObjType::Float32:
                 case ObjType::Float64:
-                case ObjType::Float:
+                case ObjType::Single:
+                case ObjType::Double:
+                case ObjType::Number:
                     return static_cast<int64_t> (GetValueAsNumber());
 
                 case ObjType::Rational:
@@ -1453,19 +1446,22 @@ namespace newlang {
 
             switch (m_var_type_current) {
 
+                case ObjType::Single:
+                case ObjType::Float16:
                 case ObjType::Float32:
                     if (at::holds_alternative<double>(m_var)) {
                         return at::get<double>(m_var);
                     } else if (at::holds_alternative<float *>(m_var)) {
                         return *at::get<float *>(m_var);
                     }
+                case ObjType::Double:
                 case ObjType::Float64:
                     if (at::holds_alternative<double>(m_var)) {
                         return at::get<double>(m_var);
                     } else if (at::holds_alternative<double *>(m_var)) {
                         return *at::get<double *>(m_var);
                     }
-                case ObjType::Float:
+                case ObjType::Number:
                     if (at::holds_alternative<double>(m_var)) {
                         return at::get<double>(m_var);
                     }
@@ -1645,6 +1641,7 @@ namespace newlang {
         static ObjPtr ConstructorSimpleType_(const Context *ctx, Obj & args);
         static ObjPtr ConstructorDictionary_(const Context *ctx, Obj & args);
         static ObjPtr ConstructorNative_(const Context *ctx, Obj & args);
+        static ObjPtr ConstructorStub_(const Context *ctx, Obj & args);
         static ObjPtr ConstructorClass_(const Context *ctx, Obj & args);
         static ObjPtr ConstructorStruct_(const Context *ctx, Obj & args);
         static ObjPtr ConstructorEnum_(const Context *ctx, Obj & args);
@@ -1902,7 +1899,6 @@ namespace newlang {
         }
 
         inline static ObjPtr CreateDict() {
-
             return Obj::CreateType(ObjType::Dictionary);
         }
 
@@ -1916,6 +1912,14 @@ namespace newlang {
             }
             result->m_var_is_init = true;
 
+            return result;
+        }
+
+        inline static ObjPtr CreateDict(const std::vector<ObjPtr> & arr) {
+            ObjPtr result = Obj::CreateType(ObjType::Dictionary, ObjType::None, true);
+            for (int i = 0; i < arr.size(); i++) {
+                result->push_back(arr[i]);
+            }
             return result;
         }
 
@@ -2152,6 +2156,19 @@ namespace newlang {
             if (value->is_none_type()) {
                 clear_();
                 return;
+            } else if ((is_none_type() || is_class_type()) && (value->is_class_type() || (value->is_type_name() && isClass(value->m_var_type_fixed)))) {
+                if (is_class_type() && m_class_name.compare(value->m_class_name) != 0) {
+                    ASSERT(!value->m_class_name.empty());
+                    LOG_RUNTIME("Fail set value class '%s' as class '%s'!", m_class_name.c_str(), value->m_class_name.c_str());
+                }
+
+                std::string old_name = m_var_name;
+                value->CloneDataTo(*this);
+                value->ClonePropTo(*this);
+                m_var_name.swap(old_name);
+                m_var_is_init = true;
+                return;
+
             } else if ((is_none_type() || is_tensor_type()) && value->is_tensor_type()) {
 
                 if (value->empty()) {
@@ -2200,6 +2217,8 @@ namespace newlang {
                                 }
                                 break;
                             case ObjType::Int8:
+                            case ObjType::Char:
+                            case ObjType::Byte:
                                 if (at::holds_alternative<int64_t>(m_var)) {
                                     m_var = value->GetValueAsInteger();
                                 } else if (at::holds_alternative<int8_t *>(m_var)) {
@@ -2208,6 +2227,7 @@ namespace newlang {
                                 }
                                 break;
                             case ObjType::Int16:
+                            case ObjType::Word:
                                 if (at::holds_alternative<int64_t>(m_var)) {
                                     m_var = value->GetValueAsInteger();
                                 } else if (at::holds_alternative<int16_t *>(m_var)) {
@@ -2216,6 +2236,7 @@ namespace newlang {
                                 }
                                 break;
                             case ObjType::Int32:
+                            case ObjType::DWord:
                                 if (at::holds_alternative<int64_t>(m_var)) {
                                     m_var = value->GetValueAsInteger();
                                 } else if (at::holds_alternative<int32_t *>(m_var)) {
@@ -2224,6 +2245,7 @@ namespace newlang {
                                 }
                                 break;
                             case ObjType::Int64:
+                            case ObjType::DWord64:
                                 if (at::holds_alternative<int64_t>(m_var)) {
                                     m_var = value->GetValueAsInteger();
                                 } else if (at::holds_alternative<int64_t *>(m_var)) {
@@ -2232,6 +2254,7 @@ namespace newlang {
                                 }
                                 break;
                             case ObjType::Float32:
+                            case ObjType::Single:
                                 if (at::holds_alternative<double>(m_var)) {
                                     m_var = value->GetValueAsNumber();
                                 } else if (at::holds_alternative<float *>(m_var)) {
@@ -2240,6 +2263,7 @@ namespace newlang {
                                 }
                                 break;
                             case ObjType::Float64:
+                            case ObjType::Double:
                                 if (at::holds_alternative<double>(m_var)) {
                                     m_var = value->GetValueAsNumber();
                                 } else if (at::holds_alternative<double *>(m_var)) {
@@ -2336,7 +2360,7 @@ namespace newlang {
                 m_var_type_current = ObjType::Rational;
                 return;
 
-            } else if ((is_none_type() || m_var_type_current == ObjType::Function || m_var_type_current == ObjType::EVAL_FUNCTION) && (value->m_var_type_current == ObjType::BLOCK || value->m_var_type_current == ObjType::BLOCK_TRY)) {
+            } else if ((is_none_type() || m_var_type_current == ObjType::Function || m_var_type_current == ObjType::EVAL_FUNCTION) && value->is_block()) {
                 //@todo Check function type args !!!
 
                 //            std::string old_name = m_var_name;
@@ -2352,9 +2376,17 @@ namespace newlang {
                 //            m_var_type_current = save_type;
 
                 return;
+
+            } else if ((is_none_type() || m_var_type_current == ObjType::Pointer || m_var_type_current == ObjType::NativeFunc) && (value->m_var_type_current == ObjType::Pointer || value->m_var_type_fixed == ObjType::Pointer)) {
+
+                m_var_is_init = value->m_var_is_init;
+                ASSERT(at::holds_alternative<void *>(value->m_var));
+                m_var = at::get<void *>(value->m_var);
+                return;
+
             }
 
-            LOG_RUNTIME("Set value type '%s' not implemented!", newlang::toString(m_var_type_current));
+            LOG_RUNTIME("Set value type '%s' as '%s' not implemented!", newlang::toString(m_var_type_current), value->toString().c_str());
         }
 
         static std::string format(std::string format, Obj * args);
@@ -2366,6 +2398,7 @@ namespace newlang {
 
         static ObjPtr CreateFunc(Context *ctx, TermPtr proto, ObjType type, const std::string var_name = "");
         static ObjPtr CreateFunc(std::string proto, FunctionType *func_addr, ObjType type = ObjType::Function);
+        static ObjPtr CreateFunc(std::string proto, TransparentType *func_addr, ObjType type = ObjType::PureFunc);
 
         ObjPtr ConvertToArgs(Obj *args, bool check_valid, Context * ctx) const {
             ObjPtr result = Clone();
@@ -2382,18 +2415,22 @@ namespace newlang {
             return m_prototype;
         }
 
-    SCOPE(protected):
+        SCOPE(protected) :
 
         void ConvertToArgs_(Obj *args, bool check_valid, Context *ctx = nullptr); // Обновить параметры для вызова функции или элементы у словаря при создании копии
 
     public:
+
+        void remove(const Variable::PairType & value) {
+            Variable::remove(value);
+        }
 
         ObjType m_var_type_current; ///< Текущий тип значения объекта
         ObjType m_var_type_fixed; ///< Максимальный размер для арифметических типов, который задается разработчиком
         bool m_var_is_init; ///< Содержит ли объект корректное значение ???
 
 
-        std::string m_namespace;
+        //        std::string m_namespace;
         std::string m_var_name; ///< Имя переменной, в которой хранится объект
 
         ObjPtr m_dimensions; ///< Размерности для ObjType::Type
@@ -2434,6 +2471,7 @@ namespace newlang {
         mutable ObjPtr m_iter_range_value;
         TermPtr m_sequence; ///< Последовательно распарсенных команд для выполнения
         const TermPtr m_prototype; ///< Описание прототипп функции (или данных)
+        ObjPtr m_return_obj;
 
         bool m_check_args; //< Проверять аргументы на корректность (для всех видов функций) @ref MakeArgs
 
@@ -2444,10 +2482,7 @@ namespace newlang {
 
         //    SCOPE(protected) :
         bool m_is_const; //< Признак константы (по умолчанию изменения разрешено)
-        bool m_is_reference; //< Признак ссылки на объект (mutable)
-        DocPtr m_help;
-
-
+        bool m_is_reference; //< Признак ссылки на объект
     };
 
 } // namespace newlang

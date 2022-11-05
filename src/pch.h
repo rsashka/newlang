@@ -54,6 +54,9 @@
 #include <llvm-c/Analysis.h>
 #include <llvm-c/Support.h>
 
+#include "llvm/Support/FileSystem.h"
+#include "llvm/Support/Path.h"
+
 #include <torch/torch.h>
 #include <ATen/ATen.h>
 
@@ -62,7 +65,7 @@
 
 
 #undef LOG_RUNTIME
-#define LOG_RUNTIME(format, ...)  LOG_EXCEPT(newlang::Interrupt, format, ##__VA_ARGS__)
+#define LOG_RUNTIME(format, ...)  LOG_EXCEPT(newlang::Return, format, ##__VA_ARGS__)
 
 #include "types.h"
 

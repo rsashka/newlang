@@ -14,18 +14,6 @@
 
 using namespace newlang;
 
-//To clarify a few things; it's not the compiler (Clang) itself that produces import libraries, but the linker, and the object file format plays a large role in the process.
-//Adjusting which symbols are exported via __attribute__((visibility(default)))
-//(when either marking other symbols as hidden with __attribute__((visibility(hidden)))
-//, or setting the default with something like -fvisibility=hidden
-//, works with both GCC and Clang when building ELF object files. COFF doesn't have a similar per-symbol visibility flag.
-//When linking a DLL with MS link.exe, or LLVM's lld-link (which mimics link.exe's behaviour), only symbols either marked with __declspec(dllexport)
-//, or listed in a def file that is passed to the linker, are exported.
-//Within the MinGW ecosystem (which brings a bit more of unix-like behaviours), the default is to export all global symbols (with some amount of logic to avoid exporting things that belong to the mingw base libraries themselves) if no symbols are explicitly chosen to be exported.
-//If linking with lld-link instead of MS link.exe (either by calling lld-link instead of link, if calling the linker directly, or by adding -fuse-ld=lld
-//if invoking the linker via the clang-cl frontend), you can opt in to this behaviour by adding the lld specific option -lldmingw
-//, which enables a number of MinGW-specific behaviours in lld.
-
 int64_t var_long = 987654321;
 
 int64_t func_export(int64_t arg_long, uint8_t arg_byte) {
@@ -52,7 +40,7 @@ TEST(Eval, Assign) {
     list = ctx.ExecStr("$");
     ASSERT_STREQ("$=('var1',)", list->toString().c_str());
 
-    ASSERT_THROW(ctx.ExecStr("var1 ::= 123"), Interrupt);
+    ASSERT_THROW(ctx.ExecStr("var1 ::= 123"), Return);
 
     ASSERT_TRUE(ctx.ExecStr("var1 = 100:Int8"));
     ASSERT_EQ(var1->m_var_type_current, ObjType::Int8) << newlang::toString(var1->m_var_type_current);
@@ -89,7 +77,7 @@ TEST(Eval, Assign) {
     list = ctx.ExecStr("$");
     ASSERT_STREQ("$=('var_str',)", list->toString().c_str());
 
-    ObjPtr var_num = ctx.ExecStr("var_num := 123.456: Float");
+    ObjPtr var_num = ctx.ExecStr("$var_num := 123.456: Single");
     ASSERT_TRUE(var_num);
     ASSERT_TRUE(var_num->is_arithmetic_type());
     ASSERT_TRUE(var_num->is_tensor_type());
@@ -119,11 +107,11 @@ TEST(Eval, Assign) {
     list = ctx.ExecStr("$");
     ASSERT_STREQ("$=('var_str', 'var_num', 'var_export',)", list->toString().c_str());
 
-    ObjPtr func_export = ctx.ExecStr("func_export := :Pointer(\"func_export(arg1:Int64, arg2:Int8=100):Int64\")");
+    ObjPtr func_export = ctx.ExecStr("$func_export := :Pointer(\"func_export(arg1:Int64, arg2:Int8=100):Int64\")");
     ASSERT_TRUE(func_export);
     ASSERT_TRUE(func_export->is_function_type()) << func_export;
     ASSERT_EQ(func_export->getType(), ObjType::NativeFunc);
-    ASSERT_STREQ("func_export=func_export(arg1:Int64, arg2:Int8=100):Int64{}", func_export->toString().c_str());
+    ASSERT_STREQ("func_export=func_export(arg1:Int64, arg2:Int8=100):Int64{ }", func_export->toString().c_str());
 
     ObjPtr result = func_export->Call(&ctx, Obj::Arg(200), Obj::Arg(10));
     ASSERT_TRUE(result);
@@ -305,18 +293,18 @@ TEST(Eval, Tensor) {
             tt->GetValueAsString().c_str());
 
     ObjPtr srand = ctx.ExecStr("srand := :Pointer('srand(seed:Int32):None')");
-    
+
     ObjPtr ret = srand->Call(&ctx, Obj::Arg(100));
     ASSERT_TRUE(ret);
     ASSERT_TRUE(ret->is_none_type());
-    
+
     ObjPtr rand = ctx.ExecStr("rand := :Pointer('rand():Int32')");
 
     // Может быть раскрытие словаря, который возвращает вызов функции
     // и может быть многократный вызов одной и той функции
     // :Int32[3,2]( ... rand() ... )
     utils::Logger::LogLevelType save = utils::Logger::Instance()->SetLogLevel(LOG_LEVEL_INFO);
-    tt = ctx.ExecStr(":Int32[3,2]( ... rand() ... )");
+    tt = ctx.ExecStr(":Single[3,2]( 42, ... rand() ... )");
     utils::Logger::Instance()->SetLogLevel(save);
 
     ASSERT_TRUE(tt);
@@ -342,49 +330,6 @@ TEST(Eval, Tensor) {
     tt = ctx.ExecStr(":Tensor( 0..0.99..0.1 )");
     ASSERT_TRUE(tt);
     ASSERT_STREQ("[0, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9,]:Float64", tt->GetValueAsString().c_str());
-}
-
-TEST(Eval, FuncSimple) {
-
-    Context ctx(RunTime::Init());
-
-    ObjPtr test_and = ctx.ExecStr("test_and(arg1, arg2) :&&= $arg1 == $arg2, $arg1");
-    ASSERT_TRUE(test_and);
-
-    //    EXPECT_FALSE((*test_and)(ctx, Obj::Arg(123, "arg1"),
-    //    Obj::Arg(555, "arg2"))->GetValueAsBoolean());
-    //    EXPECT_TRUE((*test_and)(ctx, Obj::Arg(123, "arg1"),
-    //    Obj::Arg(123, "arg2"))->GetValueAsBoolean());
-    //    EXPECT_TRUE((*test_and)(ctx, Obj::Arg(555, "arg1"),
-    //    Obj::Arg(555, "arg2"))->GetValueAsBoolean());
-    //    EXPECT_FALSE((*test_and)(ctx, Obj::Arg(0, "arg1"), Obj::Arg(0,
-    //    "arg2"))->GetValueAsBoolean());
-
-    ObjPtr test_or = ctx.ExecStr("test_or(arg1, arg2) :||= $arg1 == 555, $arg1");
-    ASSERT_TRUE(test_or);
-
-    //    EXPECT_TRUE(test_or->Call(ctx, Obj::Arg(123, "arg1"),
-    //    Obj::Arg(555, "arg2"))->GetValueAsBoolean());
-    //    EXPECT_TRUE(test_or->Call(ctx, Obj::Arg(555, "arg1"),
-    //    Obj::Arg(555, "arg2"))->GetValueAsBoolean());
-    //    EXPECT_TRUE(test_or->Call(ctx, Obj::Arg(123, "arg1"),
-    //    Obj::Arg(123, "arg2"))->GetValueAsBoolean());
-    //    EXPECT_TRUE(test_or->Call(ctx, Obj::Arg(555, "arg1"),
-    //    Obj::Arg(0, "arg2"))->GetValueAsBoolean());
-    //    EXPECT_FALSE(test_or->Call(ctx, Obj::Arg(0, "arg1"), Obj::Arg(0,
-    //    "arg2"))->GetValueAsBoolean());
-
-    ObjPtr test_xor = ctx.ExecStr("test_xor(arg1, arg2) :^^= $arg1 == $arg2, $arg1");
-    ASSERT_TRUE(test_xor);
-
-    //    EXPECT_TRUE(test_xor->Call(ctx, Obj::Arg(123, "arg1"),
-    //    Obj::Arg(555, "arg2"))->GetValueAsBoolean());
-    //    EXPECT_FALSE(test_xor->Call(ctx, Obj::Arg(555, "arg1"),
-    //    Obj::Arg(555, "arg2"))->GetValueAsBoolean());
-    //    EXPECT_FALSE(test_xor->Call(ctx, Obj::Arg(123, "arg1"),
-    //    Obj::Arg(123, "arg2"))->GetValueAsBoolean());
-    //    EXPECT_TRUE(test_xor->Call(ctx, Obj::Arg(0, "arg1"), Obj::Arg(0,
-    //    "arg2"))->GetValueAsBoolean());
 }
 
 TEST(Eval, TypesNative) {
@@ -427,45 +372,45 @@ TEST(Eval, TypesNative) {
     ASSERT_TRUE(at::holds_alternative<void *>(fopen->m_var));
     ASSERT_TRUE(at::get<void *>(fopen->m_var));
 
-    ObjPtr fopen2 = ctx.ExecStr("@fopen2 ::= :Pointer('fopen(filename:StrChar, modes:StrChar):File')");
+    ObjPtr fopen2 = ctx.ExecStr("fopen2 ::= :Pointer('fopen(filename:StrChar, modes:StrChar):File')");
     ASSERT_TRUE(fopen2);
     ASSERT_TRUE(at::holds_alternative<void *>(fopen2->m_var));
     ASSERT_TRUE(at::get<void *>(fopen2->m_var));
     ASSERT_EQ(at::get<void *>(fopen->m_var), at::get<void *>(fopen2->m_var));
     ASSERT_TRUE(ctx.FindTerm("fopen2"));
-    auto iter = ctx.m_global_terms.find("fopen2");
-    ASSERT_NE(iter, ctx.m_global_terms.end());
+    auto iter = ctx.m_terms->find("fopen2");
+    ASSERT_NE(iter, ctx.m_terms->end());
 
-    ObjPtr fopen3 = ctx.ExecStr("@fopen3(filename:String, modes:String):File ::= "
+    ObjPtr fopen3 = ctx.ExecStr("fopen3(filename:String, modes:String):File ::= "
             ":Pointer('fopen(filename:StrChar, modes:StrChar):File')");
     ASSERT_TRUE(fopen3);
     ASSERT_TRUE(at::holds_alternative<void *>(fopen3->m_var));
     ASSERT_TRUE(at::get<void *>(fopen3->m_var));
     ASSERT_EQ(at::get<void *>(fopen->m_var), at::get<void *>(fopen3->m_var));
 
-    ObjPtr fclose = ctx.ExecStr("@fclose(stream:File):Int32 ::= :Pointer(\"fclose(stream:File):Int32\")");
+    ObjPtr fclose = ctx.ExecStr("fclose(stream:File):Int32 ::= :Pointer(\"fclose(stream:File):Int32\")");
     ASSERT_TRUE(at::holds_alternative<void *>(fclose->m_var));
     ASSERT_TRUE(at::get<void *>(fclose->m_var));
 
-    ObjPtr fremove = ctx.ExecStr("@fremove(filename:String):Int32 ::= "
+    ObjPtr fremove = ctx.ExecStr("fremove(filename:String):Int32 ::= "
             ":Pointer(\"remove(filename:StrChar):Int32\")");
     ASSERT_TRUE(fremove);
     ASSERT_TRUE(at::holds_alternative<void *>(fremove->m_var));
     ASSERT_TRUE(at::get<void *>(fremove->m_var));
 
-    ObjPtr frename = ctx.ExecStr("@rename(old:String, new:String):Int32 ::= "
+    ObjPtr frename = ctx.ExecStr("rename(old:String, new:String):Int32 ::= "
             ":Pointer('rename(old:StrChar, new:StrChar):Int32')");
     ASSERT_TRUE(frename);
     ASSERT_TRUE(at::holds_alternative<void *>(frename->m_var));
     ASSERT_TRUE(at::get<void *>(frename->m_var));
 
-    ObjPtr fprintf = ctx.ExecStr("@fprintf(stream:File, format:FmtChar, ...):Int32 ::= "
+    ObjPtr fprintf = ctx.ExecStr("fprintf(stream:File, format:FmtChar, ...):Int32 ::= "
             ":Pointer('fprintf(stream:File, format:FmtChar, ...):Int32')");
     ASSERT_TRUE(fremove);
-    ObjPtr fputc = ctx.ExecStr("@fputc(c:Int32, stream:File):Int32 ::= "
+    ObjPtr fputc = ctx.ExecStr("fputc(c:Int32, stream:File):Int32 ::= "
             ":Pointer('fputc(c:Int32, stream:File):Int32')");
     ASSERT_TRUE(fremove);
-    ObjPtr fputs = ctx.ExecStr("@fputs(s:String, stream:File):Int32 ::= "
+    ObjPtr fputs = ctx.ExecStr("fputs(s:String, stream:File):Int32 ::= "
             ":Pointer('fputs(s:StrChar, stream:File):Int32')");
     ASSERT_TRUE(fputs);
 
@@ -483,9 +428,10 @@ TEST(Eval, TypesNative) {
     oss << std::put_time(&tm, "%d-%m-%Y %H-%M-%S");
     ASSERT_TRUE(fprintf->Call(&ctx, Obj::Arg(F), Obj::Arg("%s"), Obj::Arg(oss.str())));
 
-    ASSERT_TRUE(fclose->Call(&ctx, Obj::Arg(F)));
+    // minkernel\crts\ucrt\src\appcrt\heap\debug_heap.cpp(904) : Assertion failed: _CrtIsValidHeapPointer(block)
+    //ASSERT_TRUE(fclose->Call(&ctx, Obj::Arg(F)));
 
-    ObjPtr F2 = ctx.ExecStr("@F2 ::= fopen2('temp/ffile_eval.temp','w+')");
+    ObjPtr F2 = ctx.ExecStr("F2 ::= fopen2('temp/ffile_eval.temp','w+')");
     ASSERT_TRUE(F2);
     ObjPtr F_res = ctx.ExecStr("fputs('test from eval !!!!!!!!!!!!!!!!!!!!\\n', F2)");
     ASSERT_TRUE(F_res);
@@ -504,11 +450,11 @@ TEST(Eval, TypesNative) {
      * (One:Int32=1, Two=_, Three=10,):Enum(thread, gpu) использовать тип значения в имени поля вместо общего типа ----- Enum(One, Two=2, Three=3):Int32  ------
      * [[ One, Two=2, Three=3 ]]:Enum(thread, gpu)
      * 
-     * :Seek::SET или @Seek::SET - статическое зачение у глобального типа
+     * :Seek::SET или Seek::SET - статическое зачение у глобального типа
      * Seek.SET или $Seek.SET - статическое зачение у глобального типа
      */
 
-    ObjPtr SEEK1 = ctx.ExecStr("@SEEK1 ::= :Enum(SET:Int32=10, \"CUR\", END=20)");
+    ObjPtr SEEK1 = ctx.ExecStr("SEEK1 ::= :Enum(SET:Int32=10, \"CUR\", END=20)");
     ASSERT_TRUE(SEEK1);
 
     ASSERT_EQ(3, SEEK1->size());
@@ -531,7 +477,7 @@ TEST(Eval, TypesNative) {
     ASSERT_EQ(11, (*SEEK1)["CUR"].second->GetValueAsInteger());
     ASSERT_EQ(20, (*SEEK1)["END"].second->GetValueAsInteger());
 
-    ObjPtr SEEK2 = ctx.ExecStr("@SEEK2 ::= :Enum(SET=, CUR=, END=300)");
+    ObjPtr SEEK2 = ctx.ExecStr("SEEK2 ::= :Enum(SET=, CUR=, END=300)");
     ASSERT_TRUE(SEEK2);
     ASSERT_EQ(3, SEEK2->size());
     ASSERT_EQ(0, (*SEEK2)[0].second->GetValueAsInteger());
@@ -544,7 +490,7 @@ TEST(Eval, TypesNative) {
     ASSERT_EQ(1, (*SEEK2)["CUR"].second->GetValueAsInteger());
     ASSERT_EQ(300, (*SEEK2)["END"].second->GetValueAsInteger());
 
-    ObjPtr SEEK = ctx.ExecStr("@SEEK ::= :Enum(SET=0, CUR=1, END=2)");
+    ObjPtr SEEK = ctx.ExecStr("SEEK ::= :Enum(SET=0, CUR=1, END=2)");
     ASSERT_TRUE(SEEK);
 
     ASSERT_EQ(3, SEEK->size());
@@ -555,21 +501,21 @@ TEST(Eval, TypesNative) {
     ASSERT_EQ(1, (*SEEK)["CUR"].second->GetValueAsInteger());
     ASSERT_EQ(2, (*SEEK)["END"].second->GetValueAsInteger());
 
-    F_res = ctx.ExecStr("@SEEK.SET");
+    F_res = ctx.ExecStr("SEEK.SET");
     ASSERT_TRUE(F_res);
     ASSERT_EQ(0, F_res->GetValueAsInteger());
-    F_res = ctx.ExecStr("@SEEK.CUR");
+    F_res = ctx.ExecStr("SEEK.CUR");
     ASSERT_TRUE(F_res);
     ASSERT_EQ(1, F_res->GetValueAsInteger());
-    F_res = ctx.ExecStr("@SEEK.END");
+    F_res = ctx.ExecStr("SEEK.END");
     ASSERT_TRUE(F_res);
     ASSERT_EQ(2, F_res->GetValueAsInteger());
 
-    ObjPtr seek = ctx.ExecStr("@fseek(stream:File, offset:Int64, whence:Int32):Int32 ::= "
+    ObjPtr seek = ctx.ExecStr("fseek(stream:File, offset:Int64, whence:Int32):Int32 ::= "
             ":Pointer('fseek(stream:File, offset:Int64, whence:Int32):Int32')");
     ASSERT_TRUE(seek);
 
-    F_res = ctx.ExecStr("fseek(F2, 10, @SEEK.SET)");
+    F_res = ctx.ExecStr("fseek(F2, 10, SEEK.SET)");
     ASSERT_TRUE(F_res);
     ASSERT_EQ(0, F_res->GetValueAsInteger());
 
@@ -588,7 +534,7 @@ TEST(Eval, Fileio) {
     Context::Reset();
     Context ctx(RunTime::Init());
 
-    ASSERT_NO_THROW(ctx.ExecFile("../examples/fileio.nlp", nullptr, false));
+    ASSERT_NO_THROW(ctx.ExecFile("../examples/fileio.nlp"));
 
     ASSERT_TRUE(ctx.FindTerm("fopen"));
     ASSERT_TRUE(ctx.FindTerm("fputs"));
@@ -604,7 +550,7 @@ TEST(Eval, Fileio) {
     file_res = ctx.ExecStr("fclose(file)");
     ASSERT_TRUE(file_res);
 
-    //@todo try and catch segfault
+    //@todo try and catch segfault  (free(): double free detected in tcache 2)
     //    ASSERT_ANY_THROW(
     //            // Float64 free
     //            file_res = ctx.ExecStr("fclose(file)"););
@@ -623,7 +569,7 @@ TEST(ExecStr, Funcs) {
     ASSERT_TRUE(p);
     ASSERT_TRUE(at::holds_alternative<void *>(p->m_var));
     ASSERT_TRUE(at::get<void *>(p->m_var));
-    ASSERT_STREQ("printf=printf(format:FmtChar, ...):Int32{}", p->toString().c_str());
+    ASSERT_STREQ("printf=printf(format:FmtChar, ...):Int32{ }", p->toString().c_str());
 
     typedef int (* printf_type)(const char *, ...);
 
@@ -922,15 +868,15 @@ TEST(Eval, MacroDSL) {
             "\\\\elif(cond)     ,[\\$cond]-->\\\\\\"
             "\\\\else           ,[_]-->\\\\\\"
             ""
-            "\\\\while(cond)    [\\$cond]<<-->>\\\\\\"
-            "\\\\dowhile(cond)  <<-->>[\\$cond]\\\\\\"
+            "\\\\while(cond)    [\\$cond]<->\\\\\\"
+            "\\\\dowhile(cond)  <->[\\$cond]\\\\\\"
             ""
-            "\\\\break      --:Break--\\\\\\"
-            "\\\\continue   --:Continue--\\\\\\"
+            "\\\\break      ++:Break++\\\\\\"
+            "\\\\continue   ++:Continue++\\\\\\"
             ""
-            "\\\\return         --\\\\\\"
-            "\\\\return(...)    --\\$*--\\\\\\"
-            "\\\\error(...)    --:Error(\\$*)--\\\\\\"
+            "\\\\return         ++\\\\\\"
+            "\\\\return(...)    ++\\$*++\\\\\\"
+            "\\\\error(...)     --\\$*--\\\\\\"
             ""
             "\\\\true 1\\\\\\"
             "\\\\yes 1\\\\\\"
@@ -951,21 +897,21 @@ TEST(Eval, MacroDSL) {
     ObjPtr none = ctx.ExecStr(dsl);
     ASSERT_TRUE(Context::m_macros.size() > 10);
 
-    ObjPtr count = ctx.ExecStr("@count:=0;");
+    ObjPtr count = ctx.ExecStr("count:=0;");
     ASSERT_TRUE(count);
     ASSERT_EQ(0, count->GetValueAsInteger());
 
     const char * run_raw = ""
             "count:=5;"
-            "[count<10]<<-->>{{"
-            "  [count>5]-->{"
-            "    --100--;"
-            "  }; "
+            "[count<10]<->{+"
+            "  [count>5]-->"
+            "    ++100++;"
+            "  ; "
             "  count+=1;"
-            "}};"
+            "+};"
             ;
 
-    ObjPtr result = ctx.ExecStr(run_raw, nullptr, true);
+    ObjPtr result = ctx.ExecStr(run_raw, nullptr, Context::CatchType::CATCH_ALL);
     ASSERT_TRUE(result);
     ASSERT_TRUE(result->is_integer());
     ASSERT_EQ(6, count->GetValueAsInteger());
@@ -973,17 +919,17 @@ TEST(Eval, MacroDSL) {
 
     const char * run_macro = ""
             "count:=5;"
-            "\\while(count<10){{"
+            "\\while(count<10){+"
             "  \\if(count>5){"
             "    \\return(42);"
             "  };"
             "  count+=1;"
-            "}};"
+            "+};"
             "";
 
 
 
-    result = ctx.ExecStr(run_macro, nullptr, true);
+    result = ctx.ExecStr(run_macro, nullptr, Context::CatchType::CATCH_ALL);
     ASSERT_TRUE(result);
     ASSERT_TRUE(result->is_integer());
     ASSERT_EQ(6, count->GetValueAsInteger());
@@ -1175,7 +1121,7 @@ TEST(Eval, Iterator) {
 
 
 
-    ObjPtr range_test = ctx.ExecStr("1\\1..1..-1", nullptr, true);
+    ObjPtr range_test = ctx.ExecStr("1\\1..1..-1", nullptr, Context::CatchType::CATCH_ALL);
     ASSERT_TRUE(range_test);
     ASSERT_EQ(3, range_test->size());
     ASSERT_STREQ("1\\1", range_test->at(0).second->GetValueAsString().c_str());
@@ -1187,23 +1133,23 @@ TEST(Eval, Iterator) {
     //    ASSERT_TRUE(iter_test);
     //    ASSERT_STREQ("(1, 'sss', (,), 2, 3,)", iter_test->GetValueAsString().c_str());
 
-    ObjPtr iter_dict = ctx.ExecStr("1..1..(-1)??", nullptr, true);
+    ObjPtr iter_dict = ctx.ExecStr("1..1..(-1)??", nullptr);
     ASSERT_TRUE(iter_dict);
     ASSERT_STREQ("(,)", iter_dict->GetValueAsString().c_str());
 
-    iter_dict = ctx.ExecStr("2..1..(-1)??", nullptr, true);
+    iter_dict = ctx.ExecStr("2..1..(-1)??", nullptr);
     ASSERT_TRUE(iter_dict);
     ASSERT_STREQ("(2,)", iter_dict->GetValueAsString().c_str());
 
-    iter_dict = ctx.ExecStr("3..1..(-1)??", nullptr, true);
+    iter_dict = ctx.ExecStr("3..1..(-1)??", nullptr);
     ASSERT_TRUE(iter_dict);
     ASSERT_STREQ("(3, 2,)", iter_dict->GetValueAsString().c_str());
 
-    iter_dict = ctx.ExecStr("3\\1..1..(-1)??", nullptr, true);
+    iter_dict = ctx.ExecStr("3\\1..1..(-1)??", nullptr);
     ASSERT_TRUE(iter_dict);
     ASSERT_STREQ("(3\\1, 2\\1,)", iter_dict->GetValueAsString().c_str());
 
-    ObjPtr iter_test = ctx.ExecStr("&@iter_test := 3\\1..1..-1?", nullptr, true);
+    ObjPtr iter_test = ctx.ExecStr("iter_test := 3\\1..1..-1?", nullptr);
     ASSERT_TRUE(iter_test);
     ASSERT_TRUE(iter_test->m_iterator);
     ASSERT_TRUE(iter_test->m_iterator->m_iter_obj);
@@ -1211,33 +1157,37 @@ TEST(Eval, Iterator) {
     ASSERT_STREQ("3\\1", iter_test->m_iterator->m_iter_obj->m_iter_range_value->GetValueAsString().c_str()) << iter_test->m_iterator->m_iter_obj->m_iter_range_value->GetValueAsString().c_str();
     ASSERT_EQ(iter_test->getType(), ObjType::Iterator);
 
-    ObjPtr while_test = ctx.ExecStr("[iter_test]<<-->>{--'EXIT'--}", nullptr, true);
+    ObjPtr while_test = ctx.ExecStr("[iter_test]<->{+ ++'PLUS'++ +}");
+    ASSERT_TRUE(while_test);
+    ASSERT_STREQ("PLUS", while_test->GetValueAsString().c_str()) << while_test->GetValueAsString().c_str();
+
+    while_test = ctx.ExecStr("[iter_test]<->{- --'EXIT'-- -}");
     ASSERT_TRUE(while_test);
     ASSERT_STREQ("EXIT", while_test->GetValueAsString().c_str()) << while_test->GetValueAsString().c_str();
 
-    iter_dict = ctx.ExecStr("@iter_dict := (1,2,3,)?", nullptr, true);
+    iter_dict = ctx.ExecStr("iter_dict := (1,2,3,)?", nullptr);
     ASSERT_TRUE(iter_dict);
     //    ASSERT_TRUE(iter_dict->m_iterator->m_iter_obj->m_iter_range_value);
     //    ASSERT_STREQ("3\\1", iter_dict->m_iterator->m_iter_obj->m_iter_range_value->GetValueAsString().c_str()) << iter_test->m_iterator->m_iter_obj->m_iter_range_value->GetValueAsString().c_str();
     ASSERT_EQ(iter_dict->getType(), ObjType::Iterator);
 
-    while_test = ctx.ExecStr("[iter_dict]<<-->>{--'EXIT'--}", nullptr, true);
+    while_test = ctx.ExecStr("[iter_dict]<->{+ ++'EXIT'++ +}");
     ASSERT_TRUE(while_test);
     ASSERT_STREQ("EXIT", while_test->GetValueAsString().c_str()) << while_test->GetValueAsString().c_str();
 
-    ObjPtr item_val = ctx.ExecStr("iter_test!?", nullptr, true);
+    ObjPtr item_val = ctx.ExecStr("iter_test!?", nullptr);
     ASSERT_TRUE(item_val);
     ASSERT_STREQ("3\\1", item_val->GetValueAsString().c_str());
 
-    item_val = ctx.ExecStr("iter_test!", nullptr, true);
+    item_val = ctx.ExecStr("iter_test!", nullptr);
     ASSERT_TRUE(item_val);
     ASSERT_STREQ("3\\1", item_val->GetValueAsString().c_str());
 
-    item_val = ctx.ExecStr("iter_test!?", nullptr, true);
+    item_val = ctx.ExecStr("iter_test!?", nullptr);
     ASSERT_TRUE(item_val);
     ASSERT_STREQ("2\\1", item_val->GetValueAsString().c_str());
 
-    item_val = ctx.ExecStr("iter_test?!", nullptr, true);
+    item_val = ctx.ExecStr("iter_test?!", nullptr);
     ASSERT_TRUE(item_val);
     ASSERT_STREQ("2\\1", item_val->GetValueAsString().c_str());
 
@@ -1247,7 +1197,7 @@ TEST(Eval, Iterator) {
     ASSERT_STREQ("2\\1", iter_test->m_iterator->m_iter_obj->m_iter_range_value->GetValueAsString().c_str());
     ASSERT_STREQ("3\\1..1..-1", iter_test->m_iterator->m_iter_obj->GetValueAsString().c_str());
 
-    item_val = ctx.ExecStr("iter_test!", nullptr, true);
+    item_val = ctx.ExecStr("iter_test!", nullptr);
     ASSERT_TRUE(item_val);
     ASSERT_STREQ("2\\1", item_val->GetValueAsString().c_str());
     ASSERT_TRUE(item_val->GetValueAsBoolean());
@@ -1258,7 +1208,7 @@ TEST(Eval, Iterator) {
     ASSERT_STREQ("1\\1", iter_test->m_iterator->m_iter_obj->m_iter_range_value->GetValueAsString().c_str());
     ASSERT_STREQ("3\\1..1..-1", iter_test->m_iterator->m_iter_obj->GetValueAsString().c_str());
 
-    item_val = ctx.ExecStr("iter_test!", nullptr, true);
+    item_val = ctx.ExecStr("iter_test!", nullptr);
     ASSERT_TRUE(item_val);
 
     ASSERT_STREQ(":Iterator", iter_test->GetValueAsString().c_str());
@@ -1275,14 +1225,14 @@ TEST(Eval, Iterator) {
     ASSERT_STREQ(":IteratorEnd", item_val->GetValueAsString().c_str());
     ASSERT_FALSE(item_val->GetValueAsBoolean());
 
-    item_val = ctx.ExecStr("iter_test", nullptr, true);
+    item_val = ctx.ExecStr("iter_test", nullptr);
     ASSERT_TRUE(item_val);
     ASSERT_STREQ(":Iterator", item_val->GetValueAsString().c_str());
 
     ASSERT_STREQ(":IteratorEnd", item_val->IteratorData()->GetValueAsString().c_str());
     ASSERT_FALSE(item_val->IteratorNext(0)->GetValueAsBoolean());
 
-    while_test = ctx.ExecStr("[iter_test?!]<<-->>{--'EXIT'--}", nullptr, true);
+    while_test = ctx.ExecStr("[iter_test?!]<->{ --'EXIT'-- }", nullptr, Context::CatchType::CATCH_MINUS);
     ASSERT_TRUE(while_test);
     ASSERT_STRNE("EXIT", while_test->GetValueAsString().c_str()) << while_test->GetValueAsString().c_str();
 
@@ -1304,9 +1254,9 @@ TEST(Eval, Iterator) {
 //     * printf := :Native("printf(format:FmtChar, ...):Int32"); 
 //     * 
 //     * h1 := $?;
-//     * [ h1 ] <<-->> {
+//     * [ h1 ] <-> {
 //     *      h2 := $?;
-//     *      [ h2 ] <<-->> {
+//     *      [ h2 ] <-> {
 //     *          [ Brother(h1!, h2!) ] --> { 
 //     *              printf("%s brother %s", ""(h1), `h2`);
 //     *          }
@@ -1476,11 +1426,11 @@ TEST_F(EvalTester, Ops) {
 
     ASSERT_STREQ("", Test("\"\""));
     ASSERT_STREQ(" ", Test("\" \""));
-    ASSERT_STREQ("строка", Test("\"\"++\"строка\" "));
-    ASSERT_STREQ("строка 222", Test("\"строка \" ++ \"222\" "));
+    ASSERT_STREQ("строка", Test("\"\"+\"строка\" "));
+    ASSERT_STREQ("строка 222", Test("\"строка \" + \"222\" "));
     ASSERT_STREQ("строка строка строка ", Test("\"строка \" ** 3 "));
 
-    ASSERT_STREQ("100", Test("var1:=100"));
+    ASSERT_STREQ("100", Test("$var1:=100"));
     ObjPtr var1 = m_result;
     ASSERT_TRUE(var1);
     ASSERT_STREQ("$=('var1',)", Test("$"));
@@ -1492,7 +1442,7 @@ TEST_F(EvalTester, Ops) {
     ASSERT_NO_THROW(Test("$var1", vars.get()));
     ASSERT_STREQ("100", Test("$var1", vars.get()));
 
-    ASSERT_STREQ("20", Test("var2:=9+11"));
+    ASSERT_STREQ("20", Test("$var2:=9+11"));
     ObjPtr var2 = m_result;
     ASSERT_TRUE(var2);
     ASSERT_STREQ("$=('var1', 'var2',)", Test("$"));
@@ -1548,13 +1498,6 @@ TEST(EvalOp, InstanceName) {
 
     RuntimePtr opts = RunTime::Init();
     Context ctx(opts);
-
-    /*
-     * Реализация системы типов сделана следующим образом:
-     * Каждый объект содержит одно из перечисления ObjType + символьное наименование класса
-     * 
-     *      
-     */
 
     ObjPtr obj_bool = Obj::CreateBool(true);
     ObjPtr obj_char = Obj::CreateValue(20); // ObjType::Int8
@@ -1743,7 +1686,8 @@ TEST(EvalOp, InstanceName) {
         {"1 ~ :Int32", true},
         {"1 ~ :Bool", true},
         {"1 ~ :Integer", true},
-        {"1 ~ :Float", true},
+        {"1 ~ :Number", true},
+        {"1 ~ :Float32", true},
         {"1 ~ :Float64", true},
         {"10 ~ :Bool", false},
         {"10 !~ :Bool", true},
@@ -1774,7 +1718,7 @@ TEST(EvalOp, InstanceName) {
 
     for (auto &elem : test_name) {
         res.reset();
-        ASSERT_NO_THROW(res = ctx.ExecStr(elem.first, nullptr, false)) << elem.first;
+        ASSERT_NO_THROW(res = ctx.ExecStr(elem.first)) << elem.first;
         EXPECT_TRUE(res) << elem.first;
         if(res) {
             EXPECT_TRUE(res->is_bool_type()) << elem.first;
@@ -1785,6 +1729,12 @@ TEST(EvalOp, InstanceName) {
             }
         }
     }
+
+}
+
+TEST(Eval, System) {
+
+    Context ctx(RunTime::Init());
 
 }
 

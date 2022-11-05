@@ -10,18 +10,20 @@
 #include "warning_pop.h"
 
 #include "variable.h"
+#include "version.h"
 
 namespace newlang {
 
 #define NL_TERMS(_) \
         _(BLOCK) \
         _(BLOCK_TRY) \
-        _(CALL_BLOCK) \
-        _(CALL_TRY) \
-        _(TERM) \
+        _(BLOCK_PLUS) \
+        _(BLOCK_MINUS) \
+        _(NAME) \
+        _(LOCAL) \
+        _(MODULE) \
+        _(NATIVE) \
         _(TYPE) \
-        _(CALL) \
-        _(TYPE_CALL) \
         _(INTEGER) \
         _(NUMBER) \
         _(COMPLEX) \
@@ -29,7 +31,8 @@ namespace newlang {
         _(STRCHAR) \
         _(TEMPLATE) \
         _(EVAL) \
-        _(COMMENT) \
+        _(DOC_BEFORE) \
+        _(DOC_AFTER) \
         \
         _(RATIONAL) \
         \
@@ -49,10 +52,8 @@ namespace newlang {
         _(APPEND) \
         \
         _(FUNCTION) \
-        _(SIMPLE_AND) \
-        _(SIMPLE_OR) \
-        _(SIMPLE_XOR) \
         _(PUREFUNC) \
+        _(LAMBDA) \
         _(ITERATOR) \
         _(FOLLOW) \
         _(MATCHING) \
@@ -64,13 +65,16 @@ namespace newlang {
         _(FILLING) \
         _(ARGUMENT) \
         _(ARGS) \
-        _(EXIT) \
+        _(INT_PLUS) \
+        _(INT_MINUS) \
+        _(INT_REPEAT) \
         \
         _(INDEX) \
         _(FIELD) \
         \
         _(TENSOR) \
         _(DICT) \
+        _(CLASS) \
         _(OPERATOR) \
         _(SOURCE)
 
@@ -108,16 +112,17 @@ namespace newlang {
             return std::make_shared<Term>(term);
         }
 
-        static TermPtr Create(TermID id, const char *text, size_t len = std::string::npos, location *loc = nullptr, std::shared_ptr<std::string> source = nullptr) {
-            return std::make_shared<Term>(id, text, (len == std::string::npos ? strlen(text) : len), loc, source);
+        static TermPtr Create(TermID id, const char *text, size_t len = std::string::npos, location *loc = nullptr, std::shared_ptr<std::string> source = nullptr, Parser * parser = nullptr) {
+            return std::make_shared<Term>(id, text, (len == std::string::npos ? strlen(text) : len), loc, source, parser);
         }
 
         Term(Term *term) {
             *this = *term;
         }
 
-        Term(TermID id, const char *text, size_t len, location *loc, std::shared_ptr<std::string> source = nullptr) : m_id(id) {
-            m_is_ref = false;
+        Term(TermID id, const char *text, size_t len, location *loc, std::shared_ptr<std::string> source = nullptr, Parser * parser = nullptr) {
+            m_parser = parser;
+            m_ref.reset();
             if (text && len) {
                 m_text.assign(text, std::min(strlen(text), len));
             }
@@ -129,6 +134,9 @@ namespace newlang {
                 m_col = 0;
             }
             m_source = source;
+            m_is_call = false;
+            m_is_const = false;
+            SetTermID(id);
         }
 
         virtual ~Term() {
@@ -142,6 +150,10 @@ namespace newlang {
 
         inline void SetTermID(TermID id) {
             m_id = id;
+            if (m_id == TermID::BLOCK || m_id == TermID::BLOCK_TRY ||
+                    m_id == TermID::BLOCK_PLUS || m_id == TermID::BLOCK_MINUS) {
+                m_is_call = true;
+            }
         }
 
         inline std::string & getName() {
@@ -165,17 +177,25 @@ namespace newlang {
         }
 
         inline bool isRef() {
-            return m_is_ref;
+            return !!m_ref;
         }
 
+        inline bool isCall() {
+            return m_is_call;
+        }
+
+        inline bool isReturn() {
+            return m_id == TermID::INT_PLUS || m_id == TermID::INT_MINUS;
+        }
+        
         inline const std::string GetFullName() {
             std::string result(m_text);
-            result.insert(0, m_namespace);
+            //result.insert(isType(result) ? 1 : 0, m_ns_block);
             return result;
         }
 
         inline bool IsFunction() {
-            return m_id == TermID::FUNCTION || m_id == TermID::PUREFUNC || m_id == TermID::SIMPLE_AND || m_id == TermID::SIMPLE_OR || m_id == TermID::SIMPLE_XOR;
+            return m_id == TermID::FUNCTION || m_id == TermID::PUREFUNC;
         }
 
         inline bool IsVariable() {
@@ -220,8 +240,7 @@ namespace newlang {
             switch (m_id) {
                 case TermID::ARGUMENT:
                 case TermID::ARGS:
-                case TermID::CALL:
-                case TermID::TERM:
+                case TermID::NAME:
                 case TermID::CREATE:
                 case TermID::RANGE:
                 case TermID::TENSOR:
@@ -230,7 +249,7 @@ namespace newlang {
                 case TermID::EVAL:
                     return true;
                 default:
-                    return IsLiteral() || IsVariable() || IsFunction();
+                    return IsLiteral() || IsVariable() || IsFunction() || isCall();
             }
         }
 
@@ -238,8 +257,19 @@ namespace newlang {
             switch (m_id) {
                 case TermID::BLOCK:
                 case TermID::BLOCK_TRY:
-                case TermID::CALL_BLOCK:
-                case TermID::CALL_TRY:
+                case TermID::BLOCK_PLUS:
+                case TermID::BLOCK_MINUS:
+                    return true;
+            }
+            return false;
+        }
+
+        inline bool IsCreate() {
+            switch (m_id) {
+                case TermID::APPEND:
+                case TermID::CREATE:
+                case TermID::CREATE_OR_ASSIGN:
+                case TermID::ASSIGN:
                     return true;
             }
             return false;
@@ -262,7 +292,7 @@ namespace newlang {
         }
 
         std::string toString(bool nested = false) {
-            std::string result(m_is_ref ? "&" : "");
+            std::string result(m_ref ? "&" : "");
             result += m_name;
             if (Left()) {
                 if (!result.empty()) {
@@ -283,7 +313,8 @@ namespace newlang {
                 case TermID::ARGUMENT:
                     return m_text;
 
-                case TermID::EXIT:
+                case TermID::INT_PLUS:
+                case TermID::INT_MINUS:
                     result = m_text;
                     if (Right()) {
                         result += " ";
@@ -301,9 +332,13 @@ namespace newlang {
                         result += "]";
                     }
                     return result;
-                case TermID::CALL:
-                case TermID::TERM: // name=(1,second="two",3,<EMPTY>,5)
+
+
+                case TermID::NONE:
+                case TermID::NAME: // name=(1,second="two",3,<EMPTY>,5)
                     //                result(m_is_ref ? "&" : "");
+                    ASSERT(m_dims.empty());
+                    
                     result = "";
                     temp = shared_from_this();
                     if (temp->Left()) {
@@ -322,10 +357,13 @@ namespace newlang {
                     }
 
                     result.insert(0, m_text);
-                    result.insert(0, m_namespace);
+                    //                    result.insert(0, m_namespace);
 
-                    if (m_is_ref) {
-                        result.insert(0, "&");
+                    if (m_ref) {
+                        result.insert(0, m_ref->m_text);
+                    }
+                    if (m_is_const) {
+                        result += "^";
                     }
                     if (!m_name.empty()) {
                         if (GetType()) {
@@ -338,7 +376,7 @@ namespace newlang {
                         result += "(";
                         dump_items_(result);
                         result += ")";
-                    } else if (m_id == TermID::CALL) {
+                    } else if (m_is_call) {
                         result += "()";
                     }
                     if (m_name.empty() && GetType()) {
@@ -429,34 +467,16 @@ namespace newlang {
                 case TermID::PUREFUNC:
 
                     result += " " + m_text + " ";
-                    result.insert(0, m_namespace);
+                    //                    result.insert(0, m_namespace);
                     //                result += "{";
                     result += m_right->toString(true);
-                    if (m_right->GetTokenID() != TermID::SOURCE && !result.empty() && result[result.size() - 1] != ';') {
+                    if (!result.empty() && result[result.size() - 1] != ';') {
                         result += ";";
                     }
                     for (int i = 0; i < m_right->size(); i++) {
                         result += m_right->at(i).second->toString();
                     }
                     //                result += "};";
-                    return result;
-
-                case TermID::SIMPLE_AND:
-                case TermID::SIMPLE_OR:
-                case TermID::SIMPLE_XOR:
-                    result += " " + m_text + " ";
-                    result.insert(0, m_namespace);
-                    if (m_right->GetTokenID() == TermID::BLOCK) {
-                        for (size_t i = 0; i < m_right->m_block.size(); i++) {
-                            if (i) {
-                                result += ", ";
-                            }
-                            result += m_right->m_block[i]->toString();
-                        }
-                    } else {
-                        result += m_right->toString();
-                        result += ";";
-                    }
                     return result;
 
                 case TermID::ITERATOR:
@@ -483,8 +503,8 @@ namespace newlang {
                     dump_items_(result);
                     result += ",";
                     result += ")";
-                    if (!m_class_name.empty()) {
-                        result += m_class_name;
+                    if (!m_class.empty()) {
+                        result += m_class;
                     }
                     if (GetType()) {
                         result += GetType()->asTypeString();
@@ -492,7 +512,6 @@ namespace newlang {
                     return result;
 
                 case TermID::TYPE:
-                case TermID::TYPE_CALL:
                     result += m_text;
                     if (m_dims.size()) {
                         result += "[";
@@ -506,14 +525,14 @@ namespace newlang {
                     }
 
 
-                    if (m_id == TermID::TYPE_CALL) {
+                    if (m_is_call) {
                         result += "(";
                         dump_items_(result);
                         result += ")";
                     }
                     return result;
-                case TermID::SOURCE: // name:={{function code}}
-                    result += "%{";
+                case TermID::SOURCE: // name:={% function code %}
+                    result += "{%";
                     result += m_text;
                     result += "%}";
                     if (m_right) {
@@ -540,12 +559,12 @@ namespace newlang {
 
                     if (m_follow.empty()) {
                         result.insert(0, "[");
-                        result += "]->{";
+                        result += "]-->{";
                         ASSERT(m_right);
                         result += m_right->toString();
                         result += "}";
                         if (m_right->m_right) {
-                            result += "->";
+                            result += "-->";
                             result += m_right->m_right->toString();
                         }
                     } else {
@@ -562,18 +581,18 @@ namespace newlang {
                                 result += " ";
                             }
                             if (m_follow[i]->m_right) {
-                                result += "->";
+                                result += "-->";
                                 result += m_follow[i]->m_right->toString();
-                                if (m_follow[i]->m_right->getTermID() != TermID::BLOCK) {
+                                if (!(m_follow[i]->IsBlock() || m_follow[i]->getTermID() == TermID::SOURCE)) {
                                     result += ";";
                                 }
                                 //                            result += "}";
                             } else {
                                 if (nested || (!nested && m_follow[i]->m_left)) {
-                                    result += "->";
+                                    result += "-->";
                                 }
                                 result += m_follow[i]->toString(true);
-                                if (m_follow[i]->getTermID() != TermID::BLOCK) {
+                                if (!(m_follow[i]->IsBlock() || m_follow[i]->getTermID() == TermID::SOURCE)) {
                                     result += ";";
                                 }
                                 if (nested || (!nested && m_follow[i]->m_left)) {
@@ -589,32 +608,52 @@ namespace newlang {
                     return result;
                 case TermID::BLOCK:
                 case TermID::BLOCK_TRY:
-                case TermID::CALL_BLOCK:
-                case TermID::CALL_TRY:
+                case TermID::BLOCK_PLUS:
+                case TermID::BLOCK_MINUS:
                     result.clear();
-                    if (m_id == TermID::CALL_BLOCK || m_id == TermID::CALL_TRY) {
-                        result += "(";
-                        dump_items_(result);
-                        result += ")";
+                    //                    if (m_id == TermID::CALL_BLOCK || m_id == TermID::CALL_TRY) {
+                    //                        result += "(";
+                    //                        dump_items_(result);
+                    //                        result += ")";
+                    //                    }
+                    if (m_id == TermID::BLOCK) {
+                        result = "{";
+                    } else if (m_id == TermID::BLOCK_TRY) {
+                        result = "{*";
+                    } else if (m_id == TermID::BLOCK_PLUS) {
+                        result = "{+";
+                    } else if (m_id == TermID::BLOCK_MINUS) {
+                        result = "{-";
+                    } else {
+                        LOG_ABORT("Unknown block type %s (%d)", newlang::toString(m_id), static_cast<uint8_t> (m_id));
                     }
-                    result = "{";
-                    if (m_id == TermID::BLOCK_TRY) {
-                        result += "{";
+
+                    if (!m_class.empty()) {
+                        result.insert(0, " ");
+                        result.insert(0, m_class);
                     }
+
                     for (size_t i = 0; i < m_block.size(); i++) {
                         if (i) {
                             result += " ";
                         }
                         result += m_block[i]->toString(true);
-                        if (m_block[i]->GetTokenID() != TermID::SOURCE) {
-                            result += ";";
-                        }
+                        result += ";";
                     }
-                    result += "}";
-                    if (m_id == TermID::BLOCK_TRY) {
+
+                    if (m_id == TermID::BLOCK) {
                         result += "}";
+                    } else if (m_id == TermID::BLOCK_TRY) {
+                        result += "*}";
+                    } else if (m_id == TermID::BLOCK_PLUS) {
+                        result += "+}";
+                    } else if (m_id == TermID::BLOCK_MINUS) {
+                        result += "-}";
+                    } else {
+                        LOG_ABORT("Unknown block type %s (%d)", newlang::toString(m_id), (int) m_id);
                     }
-                    result += m_class_name;
+
+                    result += m_class;
                     return result;
 
                 case TermID::OPERATOR:
@@ -653,6 +692,37 @@ namespace newlang {
 
                 case TermID::EMPTY:
                     return result + "=";
+
+
+                case TermID::CLASS:
+                    result.clear();
+
+                    bool comma = false;
+                    for (auto &elem : m_base) {
+                        if (comma) {
+                            result += ", ";
+                        } else {
+                            comma = true;
+                        }
+                        result += elem->GetFullName();
+                        result += "(";
+                        elem->dump_items_(result);
+                        result += ")";
+                    }
+
+                    result += "{";
+                    for (size_t i = 0; i < m_block.size(); i++) {
+                        if (i) {
+                            result += " ";
+                        }
+                        result += m_block[i]->toString(true);
+                        //                        if (m_block[i]->GetTokenID() != TermID::SOURCE) {
+                        //                            result += ";";
+                        //                        }
+                    }
+                    result += "}";
+
+                    return result;
 
             }
             LOG_RUNTIME("Fail toString() type %s, text:'%s'", newlang::toString(m_id), m_text.c_str());
@@ -758,20 +828,18 @@ namespace newlang {
             return true;
         }
 
-        inline bool SetDims(TermPtr args) {
+        static bool ListToVector(TermPtr &args, std::vector<TermPtr> &vect) {
             TermPtr next = args;
             TermPtr prev;
 
-            m_dims.clear();
-
-            args->SetSource(m_source);
+            vect.clear();
             while (next) {
                 if (next->getTermID() != TermID::END) {
-                    m_dims.push_back(next);
+                    vect.push_back(next);
                 }
                 prev = next;
-                next = next->m_comma_seq;
-                prev->m_comma_seq.reset();
+                next = next->m_list;
+                prev->m_list.reset();
             }
             return true;
         }
@@ -779,27 +847,30 @@ namespace newlang {
         inline bool SetArgs(TermPtr args) {
             TermPtr next = args;
             TermPtr prev;
+            m_is_call = true;
 
             if (args) {
                 args->SetSource(m_source);
             }
-            while (next && next->getTermID() != TermID::END) {
-                push_back(next, next->getName());
+            while (next) {
+                if (next->getTermID() != TermID::END) {
+                    push_back(next, next->getName());
+                }
                 prev = next;
-                next = next->m_comma_seq;
-                prev->m_comma_seq.reset();
+                next = next->m_list;
+                prev->m_list.reset();
             }
             return true;
         }
 
-        inline TermPtr AppendCommaTerm(TermPtr item) {
+        inline TermPtr AppendList(TermPtr item) {
             TermPtr next = shared_from_this();
 
             while (true) {
-                if (next->m_comma_seq) {
-                    next = next->m_comma_seq;
+                if (next->m_list) {
+                    next = next->m_list;
                 } else {
-                    next->m_comma_seq = item;
+                    next->m_list = item;
                     break;
                 }
             }
@@ -831,9 +902,10 @@ namespace newlang {
 
             next = Term::Create(this);
             m_id = id;
+            m_is_call = true;
             m_block.clear();
             m_sequence.reset();
-            m_class_name.clear();
+            m_class.clear();
 
             while (next && next->getTermID() != TermID::END) {
                 m_block.push_back(next);
@@ -890,6 +962,7 @@ namespace newlang {
             m_block.clear();
             m_follow.clear();
             m_source.reset();
+            m_docs.clear();
         }
 
         inline TermPtr First() {
@@ -984,17 +1057,17 @@ namespace newlang {
             m_follow.push_back(term);
         }
 
-        void MakeRef() {
-            if (m_id != TermID::TERM || Left() || Right()) {
+        void MakeRef(TermPtr ref) {
+            if (m_id != TermID::NAME || Left() || Right()) {
                 LOG_RUNTIME("Cannon make referens value for %s!", toString().c_str());
             }
-            m_is_ref = true;
+            m_ref = ref;
         }
 
         std::string asTypeString() const {
             std::string result = m_text;
-            if (m_is_ref) {
-                result.insert(1, "&");
+            if (m_ref) {
+                result.insert(1, m_ref->m_text);
             }
             if (size()) {
                 result += "(";
@@ -1018,6 +1091,10 @@ namespace newlang {
 
         void SetType(TermPtr type) {
             if (type) {
+                ASSERT(!type->m_list);
+                ASSERT(type->m_type_allowed.empty());
+                ASSERT(m_type_allowed.empty());
+                m_type_allowed.push_back(type);
                 m_type = type;
                 m_type_name = m_type->asTypeString();
                 // Check type
@@ -1027,12 +1104,12 @@ namespace newlang {
                         NL_PARSER(type, "Error cast '%s' to integer type '%s'", m_text.c_str(), m_type_name.c_str());
                     }
                 } else if (m_id == TermID::NUMBER) {
-                    ObjType type_val = typeFromLimit(parseDouble(m_text.c_str()), ObjType::Float32);
+                    ObjType type_val = typeFromLimit(parseDouble(m_text.c_str()), ObjType::Float64);
                     if (!canCastLimit(type_val, typeFromString(m_type_name))) {
                         NL_PARSER(type, "Error cast '%s' to numeric type '%s'", m_text.c_str(), m_type_name.c_str());
                     }
                 } else if (m_id == TermID::COMPLEX) {
-                    ObjType type_val = typeFromLimit(parseComplex(m_text.c_str()), ObjType::Complex32);
+                    ObjType type_val = typeFromLimit(parseComplex(m_text.c_str()), ObjType::Complex64);
                     if (!canCastLimit(type_val, typeFromString(m_type_name))) {
                         NL_PARSER(type, "Error cast '%s' to complex type '%s'", m_text.c_str(), m_type_name.c_str());
                     }
@@ -1045,9 +1122,9 @@ namespace newlang {
                 if (m_id == TermID::INTEGER) {
                     m_type_name = newlang::toString(typeFromLimit(parseInteger(m_text.c_str()), ObjType::Bool));
                 } else if (m_id == TermID::NUMBER) {
-                    m_type_name = newlang::toString(typeFromLimit(parseDouble(m_text.c_str()), ObjType::Float32));
+                    m_type_name = newlang::toString(typeFromLimit(parseDouble(m_text.c_str()), ObjType::Float64));
                 } else if (m_id == TermID::COMPLEX) {
-                    m_type_name = newlang::toString(typeFromLimit(parseComplex(m_text.c_str()), ObjType::Complex32));
+                    m_type_name = newlang::toString(typeFromLimit(parseComplex(m_text.c_str()), ObjType::Complex64));
                 } else if (m_id == TermID::STRCHAR) {
                     m_type_name = newlang::toString(ObjType::StrChar);
                 } else if (m_id == TermID::STRWIDE) {
@@ -1062,6 +1139,124 @@ namespace newlang {
             return m_type;
         }
 
+        inline bool TestConst() {
+            if (isConst(m_text)) {
+                m_text.resize(m_text.size() - 1);
+                m_is_const = true;
+            }
+            return m_is_const;
+        }
+
+        static TermPtr GetEnvTerm(TermPtr term) {
+
+            /*
+                Встроенные системые атрибуты среды
+             */
+            static const char * NLC__VER__ = "__NLC_VER__";
+            static const char * NLC__FILE__ = "__FILE__";
+            static const char * NLC__MD5__ = "__MD5__";
+            static const char * NLC__LINE__ = "__LINE__";
+            static const char * NLC__DATE__ = "__DATE__";
+            static const char * NLC__COUNTER__ = "__COUNTER__"; // развертывается до целочисленного литерала, начинающегося с 0. 
+            //Значение увеличивается на 1 каждый раз, когда используется в файле исходного кода или во включенных заголовках файла исходного кода. 
+            static const char * NLC__TIMESTAMP__ = "__TIMESTAMP__"; // определяется как строковый литерал, содержащий дату и время последнего изменения текущего исходного файла 
+            //в сокращенной форме с постоянной длиной, которые возвращаются функцией asctime библиотеки CRT, 
+            //например: Fri 19 Aug 13:32:58 2016. Этот макрос определяется всегда.
+
+            static const char * NLC__SOURCE_GIT__ = "__SOURCE_GIT__";
+            static const char * NLC__DATE_BUILD__ = "__DATE_BUILD__";
+            static const char * NLC__SOURCE_BUILD__ = "__SOURCE_BUILD__";
+
+            static size_t counter = 0;
+            const TermID str_type = TermID::STRWIDE;
+
+            if (!term) {
+                LOG_RUNTIME("Environment variable not defined!");
+
+            } else if (term->m_text.compare(NLC__COUNTER__) == 0) {
+                term->m_id = TermID::INTEGER;
+                term->m_text = std::to_string(counter);
+                counter++;
+                return term;
+
+            } else if (term->m_text.compare(NLC__VER__) == 0) {
+                term->m_id = TermID::INTEGER;
+                term->m_text = std::to_string(VERSION);
+                return term;
+
+            } else if (term->m_text.compare(NLC__LINE__) == 0) {
+                term->m_id = TermID::INTEGER;
+                term->m_text = std::to_string(term->m_line);
+                return term;
+
+            } else if (term->m_text.compare(NLC__SOURCE_BUILD__) == 0) {
+                term->m_id = str_type;
+                term->m_text = SOURCE_FULL_ID;
+                return term;
+
+            } else if (term->m_text.compare(NLC__SOURCE_GIT__) == 0) {
+                term->m_id = str_type;
+                term->m_text = GIT_SOURCE;
+                return term;
+
+            } else if (term->m_text.compare(NLC__DATE_BUILD__) == 0) {
+                term->m_id = str_type;
+                term->m_text = DATE_BUILD_STR;
+                return term;
+
+            } else if (term->m_text.compare(NLC__FILE__) == 0) {
+
+                term->m_id = str_type;
+                if (term->m_parser) {
+                    term->m_text = term->m_parser->m_file_name;
+                } else {
+                    term->m_text = "File name undefined!!!";
+                }
+                return term;
+
+            } else if (term->m_text.compare(NLC__TIMESTAMP__) == 0) {
+
+                term->m_id = str_type;
+                if (term->m_parser) {
+                    term->m_text = term->m_parser->m_file_time;
+                } else {
+                    term->m_text = "??? ??? ?? ??:??:?? ????";
+                }
+                return term;
+
+            } else if (term->m_text.compare(NLC__DATE__) == 0) {
+
+                term->m_id = str_type;
+                if (term->m_parser) {
+                    term->m_text = term->m_parser->m_file_time;
+                } else {
+                    time_t rawtime;
+                    struct tm * timeinfo;
+                    time(&rawtime);
+                    timeinfo = localtime(&rawtime);
+                    term->m_text = asctime(timeinfo);
+                }
+                return term;
+
+            } else if (term->m_text.compare(NLC__MD5__) == 0) {
+
+                term->m_id = str_type;
+                if (term->m_parser) {
+                    term->m_text = term->m_parser->m_md5;
+                } else {
+                    term->m_text = "?????????????????????????????????";
+                }
+                return term;
+
+            } else {
+                NL_PARSER(term, "Environment variable '%s' not defined!", term->m_text.c_str());
+            }
+        }
+
+
+
+
+
         //    SCOPE(protected) :
 
         TermID m_id;
@@ -1075,24 +1270,28 @@ namespace newlang {
 
         TermPtr m_left;
         TermPtr m_right;
-        TermPtr m_base;
-        TermPtr m_comma_seq;
+        std::vector<TermPtr> m_base;
+        TermPtr m_list;
         TermPtr m_sequence;
 
         std::string m_name;
         std::string m_text;
-        std::string m_class_name;
-        std::string m_namespace;
+        std::string m_class;
         std::vector<TermPtr> m_dims;
+        std::vector<TermPtr> m_docs;
+        std::vector<TermPtr> m_type_allowed;
 
         BlockType m_block;
         BlockType m_follow;
 
-        bool m_is_ref;
+        TermPtr m_ref;
+        bool m_is_call;
+        bool m_is_const;
 
         /// Символьное описание потребуется для работы с пользовательскими типами данных.
         /// Итоговый тип может отличаться от указанного в исходнике для совместимых типов.
         std::string m_type_name;
+        Parser *m_parser;
     private:
         /// Тип данных, который хранится в виде термина из исходного файла. 
         /// Нужен для отображения сообщений (позиция в исходнике)

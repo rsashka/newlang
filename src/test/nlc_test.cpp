@@ -141,7 +141,7 @@ TEST(NLC, EvalHelloWorld) {
     out.close();
 
     NLC run;
-    ObjPtr result = run.m_ctx.ExecStr(cmd, nullptr, true);
+    ObjPtr result = run.m_ctx.ExecStr(cmd, nullptr, Context::CatchType::CATCH_ALL);
     ASSERT_TRUE(result);
     ASSERT_STREQ("Привет, мир!\n", result->GetValueAsString().c_str());
 }

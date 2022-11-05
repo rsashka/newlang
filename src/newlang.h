@@ -48,6 +48,7 @@ namespace newlang {
     public:
 
         RunTime() {
+            LLVMLoadLibraryPermanently(nullptr);
         }
 
         virtual ~RunTime() {
@@ -56,7 +57,9 @@ namespace newlang {
 
         static RuntimePtr Init(int argc = 0, const char** argv = nullptr, bool ignore_error = true) {
             RuntimePtr rt = std::make_shared<RunTime>();
-
+            if (!rt->ParseArgs(argc, argv)) {
+                LOG_RUNTIME("Fail parse args!");
+            }
             return rt;
         }
 
@@ -65,15 +68,59 @@ namespace newlang {
         }
 
 
-        bool LoadModule(const char *name, bool init = true, Context *ctx = nullptr, const char *module_name = nullptr);
-        bool UnLoadModule(Context *ctx, const char *name = nullptr, bool deinit = true);
+        std::shared_ptr<Module> LoadModule(Context &ctx, const char *name_str, bool init);
+        bool UnLoadModule(Context &ctx, const char *name_str, bool deinit);
         ObjPtr ExecModule(const char *module, const char *output, bool cached, Context * ctx);
 
         void * GetNativeAddr(const char * name, const char *module = nullptr);
 
         static std::string GetLastErrorMessage();
 
+        std::string m_work_dir;
+        std::string m_exec_dir;
+        std::vector<std::string> m_search_dir;
+
     protected:
+
+        /*
+         * -nlc-search=sss;sss;sss;sss
+         */
+        bool ParseArgs(int argc, const char** argv) {
+
+            for (int i = 0; i < argc; i++) {
+                if (strstr(argv[i], "-nlc-") == argv[i]) {
+                    if (strstr(argv[i], "-nlc-search=") == argv[i]) {
+                        std::string list(argv[i]);
+                        list = list.substr(strlen("-nlc-search="));
+                        m_search_dir = Context::SplitString(list.c_str(), ";");
+                    } else if (strstr(argv[i], "-nlc-search=") == argv[i]) {
+                    } else {
+                        LOG_RUNTIME("System arg '%s' not found!", argv[i]);
+                    }
+                }
+            }
+
+
+            llvm::SmallString<1024> path;
+            auto error = llvm::sys::fs::current_path(path);
+            if (error) {
+                LOG_RUNTIME("%s", error.message().c_str());
+            }
+            m_work_dir = path.c_str();
+            // LOG_DEBUG("work_dir: %s", m_work_dir.c_str());
+
+            path = llvm::sys::fs::getMainExecutable(nullptr, nullptr);
+            // LOG_DEBUG("%s", path.c_str());
+
+            llvm::sys::path::remove_filename(path);
+            m_exec_dir = path.c_str();
+            // LOG_DEBUG("exec_dir: %s", m_exec_dir.c_str());
+
+            m_search_dir.push_back(m_work_dir);
+            m_search_dir.push_back(m_exec_dir);
+
+            return true;
+        }
 
         //SCOPE(private) :
     public:
@@ -147,18 +194,17 @@ namespace newlang {
         //    Context * m_ctx;
     };
 
-    class NewLang : public Variable<Obj> {
+    class Compiler {
     public:
 
-        ObjPtr Run(const char *source, void *context);
-
-        ObjPtr RunFile(const char *filename) {
-
-            return Obj::CreateNone();
-        }
-
-        void Free();
-
+        //        ObjPtr Run(const char *source, void *context);
+        //
+        //        ObjPtr RunFile(const char *filename) {
+        //
+        //            return Obj::CreateNone();
+        //        }
+        //
+        //        void Free();
 
         /*
          *  
@@ -210,9 +256,9 @@ namespace newlang {
 
         static bool StringTemplate(std::string &format, Context * ctx);
 
-        NewLang(RuntimePtr rt);
+        Compiler(RuntimePtr rt);
 
-        virtual ~NewLang() {
+        virtual ~Compiler() {
 
         }
 

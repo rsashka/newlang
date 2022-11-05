@@ -306,7 +306,6 @@ TEST(ObjTest, Eq) {
     ASSERT_TRUE(var_empty->op_accurate(var_empty2));
 }
 
-
 TEST(ObjTest, Ops) {
 
     ObjPtr var_zero = Obj::CreateValue(0, ObjType::None);
@@ -318,34 +317,34 @@ TEST(ObjTest, Ops) {
     ASSERT_TRUE(var_bool->is_bool_type());
     ASSERT_TRUE(var_bool->is_arithmetic_type());
     ASSERT_EQ(ObjType::Bool, var_bool->m_var_type_current);
-    
+
     ObjPtr var_char = Obj::CreateValue(100);
     ASSERT_TRUE(var_char->is_arithmetic_type());
     ASSERT_EQ(ObjType::Int8, var_char->m_var_type_current);
 
     ObjPtr var_int = Obj::CreateValue(100000);
     ASSERT_TRUE(var_int->is_arithmetic_type());
-    ASSERT_EQ(ObjType::Int32, var_int->m_var_type_current) <<  newlang::toString(var_char->m_var_type_current);
-    
+    ASSERT_EQ(ObjType::Int32, var_int->m_var_type_current) << newlang::toString(var_char->m_var_type_current);
+
     ObjPtr var_float = Obj::CreateValue(1.0);
     ASSERT_TRUE(var_float->is_arithmetic_type());
-    ASSERT_EQ(ObjType::Float64, var_float->m_var_type_current) <<  newlang::toString(var_char->m_var_type_current);
-    
+    ASSERT_EQ(ObjType::Float64, var_float->m_var_type_current) << newlang::toString(var_char->m_var_type_current);
+
     ObjPtr var_tensor = Obj::CreateRange(0, 10)->toType(ObjType::Int32);
     ASSERT_TRUE(var_tensor->is_arithmetic_type());
-    ASSERT_EQ(ObjType::Int32, var_tensor->m_var_type_current) <<  newlang::toString(var_char->m_var_type_current);
-    
-    var_tensor->operator *=(var_bool);
+    ASSERT_EQ(ObjType::Int32, var_tensor->m_var_type_current) << newlang::toString(var_char->m_var_type_current);
+
+    var_tensor->operator*=(var_bool);
     ASSERT_TRUE(var_tensor->is_arithmetic_type());
-    EXPECT_EQ(ObjType::Int32, var_tensor->m_var_type_current) <<  newlang::toString(var_char->m_var_type_current);
-    
-    var_tensor->operator *=(var_int);
+    EXPECT_EQ(ObjType::Int32, var_tensor->m_var_type_current) << newlang::toString(var_char->m_var_type_current);
+
+    var_tensor->operator*=(var_int);
     ASSERT_TRUE(var_tensor->is_arithmetic_type());
-    EXPECT_EQ(ObjType::Int32, var_tensor->m_var_type_current) <<  newlang::toString(var_char->m_var_type_current);
-    
-    var_tensor->operator *=(var_float);
+    EXPECT_EQ(ObjType::Int32, var_tensor->m_var_type_current) << newlang::toString(var_char->m_var_type_current);
+
+    var_tensor->operator*=(var_float);
     ASSERT_TRUE(var_tensor->is_arithmetic_type());
-    EXPECT_EQ(ObjType::Float64, var_tensor->m_var_type_current) <<  newlang::toString(var_char->m_var_type_current);
+    EXPECT_EQ(ObjType::Float64, var_tensor->m_var_type_current) << newlang::toString(var_char->m_var_type_current);
 }
 
 TEST(ObjTest, Exist) {
@@ -688,7 +687,7 @@ TEST(Args, All) {
 
 
     // Аргумент по умолчанию
-    ASSERT_TRUE(p.Parse("test(num=123) := {}"));
+    ASSERT_TRUE(p.Parse("test(num=123) := { }"));
     Obj proto123(&ctx, ast->Left(), false, &local);
     ASSERT_EQ(1, proto123.size());
     //    ASSERT_FALSE(proto123.m_is_ellipsis);
@@ -732,7 +731,7 @@ TEST(Args, All) {
     ASSERT_TRUE(any->at(1).second);
     ASSERT_STREQ("\"СТРОКА\"", (*any)[1].second->toString().c_str());
 
-    
+
     ASSERT_TRUE(p.Parse("func(arg) := {}"));
     Obj proto_func(&ctx, ast->Left(), false, &local);
     //    ASSERT_TRUE(proto_any.m_is_ellipsis);
@@ -741,14 +740,14 @@ TEST(Args, All) {
     ASSERT_EQ(nullptr, proto_func.at(0).second);
 
     ObjPtr arg_str2 = Obj::CreateDict(Obj::Arg("STRING"));
-    
+
     proto_func.ConvertToArgs_(arg_str2.get(), true, nullptr);
     ASSERT_EQ(1, proto_func.size());
     ASSERT_STREQ("arg", proto_func.at(0).first.c_str());
     ASSERT_TRUE(proto_func.at(0).second);
     ASSERT_STREQ("'STRING'", proto_func[0].second->toString().c_str());
     ASSERT_EQ(ObjType::StrChar, proto_func[0].second->getType());
-    
+
     //
     ASSERT_TRUE(p.Parse("min(arg, ...) := {}"));
     Obj min_proto(&ctx, ast->Left(), false, &local);
@@ -788,18 +787,9 @@ TEST(Types, FromLimit) {
     }
 
     ASSERT_EQ(ObjType::Float64, typeFromLimit(1.0));
-    ASSERT_EQ(ObjType::Float32, typeFromLimit(0.0));
+    ASSERT_EQ(ObjType::Float64, typeFromLimit(0.0));
 
 }
-
-/*
- * - создание и инициализация тензоров
- * - использование диапазонов при инициализации значений у словарей и тензоров
- * - встроенные функции и операторы у тензоров ?
- * - встроеные функции преобразования составных типов данных !
- * - использование диапазонов при индексации значений (срезы)
- * - использование многоточия при индексации значений у тензоров (для словарей не имеет значения, т.к. размерность только одна)
- */
 
 TEST(ObjTest, Tensor) {
 
@@ -934,7 +924,7 @@ TEST(ObjTest, Iterator) {
 
     ASSERT_EQ(dict->size(), copy->size());
 
-    
+
     ASSERT_TRUE(iter == iter.begin());
 
     ObjPtr one = iter.read_and_next(0);
@@ -1056,6 +1046,123 @@ TEST(ObjTest, Iterator) {
 
     //    ObjPtr iter1 = dict->MakeIterator();
 
+}
+
+TEST(ObjTest, System) {
+
+    ASSERT_STREQ("name", ExtractName("name").c_str());
+    ASSERT_STREQ("name", ExtractName("::name").c_str());
+    ASSERT_STREQ("name", ExtractName("ns::name").c_str());
+    ASSERT_STREQ("", ExtractName("@file").c_str());
+    ASSERT_STREQ("", ExtractName("@dir.file").c_str());
+    ASSERT_STREQ("var", ExtractName("@dir.file::var").c_str());
+    ASSERT_STREQ("var.field", ExtractName("@dir.file::var.field").c_str());
+
+
+    ASSERT_STREQ("@file", ExtractModuleName("@file").c_str());
+    ASSERT_STREQ("@dir.file", ExtractModuleName("@dir.file").c_str());
+    ASSERT_STREQ("@dir.file", ExtractModuleName("@dir.file::var").c_str());
+    ASSERT_STREQ("@dir.file", ExtractModuleName("@dir.file::var.field").c_str());
+
+
+    ObjPtr none = Obj::CreateNone();
+
+    ASSERT_TRUE(none->at("__error_field_name__").second);
+    ASSERT_STREQ("Internal field '__error_field_name__' not exist!", none->at("__error_field_name__").second->GetValueAsString().c_str());
+
+    ASSERT_TRUE(none->at("__type__").second);
+    ASSERT_STREQ(":None", none->at("__type__").second->GetValueAsString().c_str());
+
+    ASSERT_TRUE(none->at("__type_fixed__").second);
+    ASSERT_STREQ(":None", none->at("__type_fixed__").second->GetValueAsString().c_str());
+
+    ASSERT_TRUE(none->at("__name__").second);
+    ASSERT_STREQ("", none->at("__name__").second->GetValueAsString().c_str());
+
+    ASSERT_TRUE(none->at("__full_name__").second);
+    ASSERT_STREQ("", none->at("__full_name__").second->GetValueAsString().c_str());
+
+    ASSERT_TRUE(none->at("__module__").second);
+    ASSERT_STREQ("", none->at("__module__").second->GetValueAsString().c_str());
+
+    ASSERT_TRUE(none->at("__class__").second);
+    ASSERT_STREQ("", none->at("__class__").second->GetValueAsString().c_str());
+
+    ASSERT_TRUE(none->at("__base__").second);
+    ASSERT_STREQ("(,)", none->at("__base__").second->GetValueAsString().c_str());
+
+    ASSERT_TRUE(none->at("__doc__").second);
+    ASSERT_STREQ("Help system not implemented!!!!!", none->at("__doc__").second->GetValueAsString().c_str());
+
+    ASSERT_TRUE(none->at("__str__").second);
+    ASSERT_STREQ("_", none->at("__str__").second->GetValueAsString().c_str());
+
+    none->m_var_is_init = false;
+    ASSERT_TRUE(none->at("__error_field_name__").second);
+    ASSERT_STREQ(":Undefined", none->at("__error_field_name__").second->GetValueAsString().c_str());
+
+
+    ObjPtr str = Obj::CreateString("str");
+    str->m_var_name = "name";
+
+    ASSERT_TRUE(str->at("__type__").second);
+    ASSERT_STREQ(":StrChar", str->at("__type__").second->GetValueAsString().c_str());
+
+    ASSERT_TRUE(str->at("__type_fixed__").second);
+    ASSERT_STREQ(":String", str->at("__type_fixed__").second->GetValueAsString().c_str());
+
+    ASSERT_TRUE(str->at("__name__").second);
+    ASSERT_STREQ("name", str->at("__name__").second->GetValueAsString().c_str());
+
+    ASSERT_TRUE(str->at("__full_name__").second);
+    ASSERT_STREQ("name", str->at("__full_name__").second->GetValueAsString().c_str());
+
+    ASSERT_TRUE(str->at("__module__").second);
+    ASSERT_STREQ("", str->at("__module__").second->GetValueAsString().c_str());
+
+    ASSERT_TRUE(str->at("__class__").second);
+    ASSERT_STREQ("", str->at("__class__").second->GetValueAsString().c_str());
+
+    ASSERT_TRUE(str->at("__base__").second);
+    ASSERT_STREQ("(,)", str->at("__base__").second->GetValueAsString().c_str());
+
+    ASSERT_TRUE(str->at("__doc__").second);
+    ASSERT_STREQ("Help system not implemented!!!!!", str->at("__doc__").second->GetValueAsString().c_str());
+
+    ASSERT_TRUE(str->at("__str__").second);
+    ASSERT_STREQ("name='str'", str->at("__str__").second->GetValueAsString().c_str());
+
+
+    ObjPtr cls = Obj::CreateClass("class");
+    cls->m_var_name = "::ns::name";
+    cls->push_back(Obj::CreateRange(0, 10, 3), "filed");
+
+    ASSERT_TRUE(cls->at("__type__").second);
+    ASSERT_STREQ(":Class", cls->at("__type__").second->GetValueAsString().c_str());
+
+    ASSERT_TRUE(cls->at("__type_fixed__").second);
+    ASSERT_STREQ(":None", cls->at("__type_fixed__").second->GetValueAsString().c_str());
+
+    ASSERT_TRUE(cls->at("__name__").second);
+    ASSERT_STREQ("name", cls->at("__name__").second->GetValueAsString().c_str());
+
+    ASSERT_TRUE(cls->at("__full_name__").second);
+    ASSERT_STREQ("::ns::name", cls->at("__full_name__").second->GetValueAsString().c_str());
+
+    ASSERT_TRUE(cls->at("__module__").second);
+    ASSERT_STREQ("", cls->at("__module__").second->GetValueAsString().c_str());
+
+    ASSERT_TRUE(cls->at("__class__").second);
+    ASSERT_STREQ("class", cls->at("__class__").second->GetValueAsString().c_str());
+
+    ASSERT_TRUE(cls->at("__base__").second);
+    ASSERT_STREQ("(,)", cls->at("__base__").second->GetValueAsString().c_str());
+
+    ASSERT_TRUE(cls->at("__doc__").second);
+    ASSERT_STREQ("Help system not implemented!!!!!", cls->at("__doc__").second->GetValueAsString().c_str());
+
+    ASSERT_TRUE(cls->at("__str__").second);
+    ASSERT_STREQ("::ns::name=class(filed=0..10..3)", cls->at("__str__").second->GetValueAsString().c_str());
 }
 
 #endif // UNITTEST

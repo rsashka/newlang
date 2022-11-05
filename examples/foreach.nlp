@@ -1,97 +1,72 @@
 #!../output/nlc --eval
 
-:File ::= :Pointer;
+$test1 := "";
+%__NLC_VER
+%__FILE
+%__LINE
+%__DATE
+%__NAME (имя функции или класса)
+%__FULL_NAME (имя функции или класса включая namespace)
+%__COUNTER  развертывается до целочисленного литерала, начинающегося с 0. 
+Значение увеличивается на 1 каждый раз, когда используется в файле исходного кода или во включенных заголовках файла исходного кода. 
+\__COUNTER запоминает свое состояние при использовании предкомпилированных заголовков.
+%__TIMESTAMP — определяется как строковый литерал, содержащий дату и время последнего изменения текущего исходного файла в сокращенной форме с постоянной длиной, которые возвращаются функцией asctime библиотеки CRT, например: Fri 19 Aug 13:32:58 2016. Этот макрос определяется всегда.
 
-#@stdin:File ::= :Pointer("stdin:File");
-#@stdout:File ::= :Pointer("stdout:File");
-#@stderr:File ::= :Pointer("stderr:File");
+#Определить макросы для тестов
+\\while(...) [\$*] --> \\\
+\\else ,[_] --> \\\
+\\try \() \\\
+\\error(msg) :StrWide($msg, " at line: ", %__LINE, " in file: ", %__FILE) \\\ 
 
-@fopen(filename:String, modes:String):File ::= :Pointer("fopen(filename:StrChar, modes:StrChar):File");;
-@fopen64(filename:String, modes:String):File ::= :Pointer("fopen(filename:StrChar, modes:StrChar):File");;
+$result = "";
+\while($result == "") {
+    $result += "While";
+} \else {
+    $result += \error("Fail 1");
+}
 
-@freopen(filename:String, modes:String):File ::= :Pointer("freopen(filename:StrChar, modes:StrChar, stream:File):File");;
-@freopen64(filename:String, modes:String):File ::= :Pointer("freopen64(filename:StrChar, modes:StrChar, stream:File):File");;
+\while($result == "") {
+    $result += \error("Fail 2");
+} \else {
+    $result += " DONE!\n";
+}
 
-#extern FILE *fdopen (int __fd, const char *__modes) __THROW __wur;
+$result += \try {+
+    ++ "Plus 1 Done!\n" ++;
++} \else {
+    $result += \error("Fail plus");
+}
 
-@fclose(stream:File):Int32 ::= :Pointer("fclose(stream:File):Int32");;
-@fcloseall():Int32 ::= :Pointer("fcloseall():Int32");;
-
-@fflush(stream:File):Int32 ::= :Pointer("fflush(stream:File):Int32");;
-@fflush_unlocked(stream:File):Int32 ::= :Pointer("fflush_unlocked(stream:File):Int32");;
-
-@fremove(filename:String):Int32 ::= :Pointer("remove(filename:StrChar):Int32");;
-
-@frename(old:String, new:String):Int32 ::= :Pointer("rename(old:StrChar, new:StrChar):Int32");;
-
-@ftmpfile():File ::= :Pointer("tmpfile():File");;
-@ftmpfile64():File ::= :Pointer("tmpfile64():File");;
-
-@ftmpnam(template:String):StrChar ::= :Pointer("tmpnam(template:StrChar):StrChar");;
-@ftmpnam_r(template:String):StrChar ::= :Pointer("tmpnam(template:StrChar):StrChar");;
-
-@ftempnam(dir:String, prefix:String):StrChar ::= :Pointer("tempnam(dir:StrChar, prefix:StrChar):StrChar");;
-
-
-
-@fprintf(stream:File, format:Format, ...):Int32 ::= :Pointer("fprintf(stream:File, format:Format, ...):Int32");;
-@fscanf(stream:File, format:Format, ...):Int32 ::= :Pointer("fscanf(stream:File, format:Format, ...):Int32");;       
-        
-@fgetc(stream:File):Int32 ::= :Pointer("fgetc(stream:File):Int32");;
-
-@fgetc_unlocked(stream:File):Int32 ::= :Pointer("fgetc_unlocked(stream:File):Int32");;
-
-@fungetc(c:Int32, stream:File):Int32 ::= :Pointer("ungetc(c:Int32, stream:File):Int32");;
-
-@fputc(c:Int32, stream:File):Int32 ::= :Pointer("fputc(c:Int32, stream:File):Int32");;
-@fputs(string:String, stream:File):Int32 ::= :Pointer("fputs(c:StrChar, stream:File):Int32");;
+\try {+
+    # No plus interrupt
++} \else {
+    $result += "Plus 2 Done!\n";
+}
 
 
-#extern size_t fread (void *__restrict __ptr, size_t __size,
-#		     size_t __n, FILE *__restrict __stream) __wur;
-#
-#extern size_t fwrite (const void *__restrict __ptr, size_t __size,
-#		      size_t __n, FILE *__restrict __s);
-        
-        
-#extern size_t fread_unlocked (void *__restrict __ptr, size_t __size,
-#			      size_t __n, FILE *__restrict __stream) __wur;
-#extern size_t fwrite_unlocked (const void *__restrict __ptr, size_t __size,
-#			       size_t __n, FILE *__restrict __stream);
-#
-SEEK ::= :Enum(SET=0, CUR=1, END=2);
-@fseek(stream:File, offset:Int64, whence:Int32):Int32 ::= :Pointer("fseek(stream:File, offset:Int64, whence:Int32):Int32");;
+
+\try {-
+
+-} \else {
+
+}
+
+\try {{
+
+}} \else {
+
+}
+
+\try {{{
+
+}}} \else {
+
+}
 
 
-#extern long int ftell (FILE *__stream) __wur;
-#extern void rewind (FILE *__stream);
-#extern int fseeko (FILE *__stream, __off_t __off, int __whence);
-#extern __off_t ftello (FILE *__stream) __wur;
+# Удалить макросы
+\\while(...)\\\
+\\else\\\
+\\error\\\
+\\try\\\
 
-        
-        
-#extern int fgetpos (FILE *__restrict __stream, fpos_t *__restrict __pos);
-#extern int fsetpos (FILE *__stream, const fpos_t *__pos);
-
-#extern int fseeko64 (FILE *__stream, __off64_t __off, int __whence);
-#extern __off64_t ftello64 (FILE *__stream) __wur;
-#extern int fgetpos64 (FILE *__restrict __stream, fpos64_t *__restrict __pos);
-#extern int fsetpos64 (FILE *__stream, const fpos64_t *__pos);
-#extern void clearerr (FILE *__stream) __THROW;
-#extern int feof (FILE *__stream) __THROW __wur;
-#extern int ferror (FILE *__stream) __THROW __wur;
-
-#extern void clearerr_unlocked (FILE *__stream) __THROW;
-#extern int feof_unlocked (FILE *__stream) __THROW __wur;
-#extern int ferror_unlocked (FILE *__stream) __THROW __wur;
-
-#extern void perror (const char *__s);
-       
-#extern int fileno (FILE *__stream) __THROW __wur;
-#extern int fileno_unlocked (FILE *__stream) __THROW __wur;        
-        
-#extern void flockfile (FILE *__stream) __THROW;
-#extern int ftrylockfile (FILE *__stream) __THROW __wur;
-#extern void funlockfile (FILE *__stream) __THROW;
-
-"OK";

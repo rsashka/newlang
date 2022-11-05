@@ -36,6 +36,20 @@ namespace newlang {
 
 #define NLC_FILE_HISTORY ".nlc_history"
 
+//    
+//#include <stdio.h>
+//#include <wchar.h>
+//#include <stdlib.h>
+//#include <locale.h>
+//
+//int main() {
+//    int r;
+//    wchar_t myChar1 = L'Ω';
+//    setlocale(LC_CTYPE, "");
+//    r = wprintf(L"char is %lc (%x)\n", myChar1, myChar1);
+//}
+//
+
     class NLC {
     public:
 
@@ -102,7 +116,7 @@ namespace newlang {
         }
 
         NLC(const char * str) : NLC() {
-            std::vector<std::string> split = SplitString(str, " ");
+            std::vector<std::string> split = Context::SplitString(str, " ");
             std::vector<const char *> argv;
             for (size_t i = 0; i < split.size(); i++) {
                 argv.push_back(split[i].data());
@@ -112,27 +126,6 @@ namespace newlang {
 
         virtual ~NLC() {
             utils::Logger::Instance()->SetCallback(m_log_callback_save, m_log_callback_arg_save);
-        }
-
-        static std::vector<std::string> SplitString(const char * str, const char *delim) {
-
-            std::vector<std::string> result;
-            std::string s(str);
-
-            size_t pos;
-            s.erase(0, s.find_first_not_of(delim));
-            while (!s.empty()) {
-                pos = s.find(delim);
-                if (pos == std::string::npos) {
-                    result.push_back(s);
-                    break;
-                } else {
-                    result.push_back(s.substr(0, pos));
-                    s.erase(0, pos);
-                }
-                s.erase(0, s.find_first_not_of(delim));
-            }
-            return result;
         }
 
         static void LoggerCallback(void *param, utils::Logger::LogLevelType level, const char * str, bool flush) {
@@ -158,7 +151,7 @@ namespace newlang {
 
             m_args = Obj::CreateDict();
             for (int i = 0; i < argc; i++) {
-                std::vector<std::string> split = SplitString(argv[i], "=");
+                std::vector<std::string> split = Context::SplitString(argv[i], "=");
                 if (split.size() > 1) {
                     m_args->push_back(Obj::CreateString(split[0]), &argv[i][split[0].size() + 1]);
                 } else {
@@ -236,8 +229,8 @@ namespace newlang {
                 return true;
             }
 
-            m_modules = SplitString(load_list.c_str(), ",");
-            m_load_only = SplitString(load_only.c_str(), ",");
+            m_modules = Context::SplitString(load_list.c_str(), ",");
+            m_load_only = Context::SplitString(load_only.c_str(), ",");
 
 #ifdef _WIN32
 
@@ -246,7 +239,7 @@ namespace newlang {
             char buffer[100];
             fcntl(STDIN_FILENO, F_SETFL, fcntl(STDIN_FILENO, F_GETFL, 0) | O_NONBLOCK);
             while ((len = read(STDIN_FILENO, buffer, sizeof (buffer))) > 0) {
-                m_eval.append(buffer, len);
+//                m_eval.append(buffer, len);
             }
             fcntl(STDIN_FILENO, F_SETFL, fcntl(STDIN_FILENO, F_GETFL, 0) & ~O_NONBLOCK);
 #endif
@@ -329,7 +322,7 @@ namespace newlang {
                         }
                     }
 
-                    ObjPtr result = m_ctx.ExecStr(m_eval, m_args.get(), false);
+                    ObjPtr result = m_ctx.ExecStr(m_eval, m_args.get(), Context::CatchType::CATCH_AUTO);
 
                     if (result && m_local_vars.find(result.get()) == m_local_vars.end()) {
                         m_local_vars[result.get()] = result;
@@ -356,7 +349,7 @@ namespace newlang {
                     Interative();
                 }
 
-            } catch (Interrupt &err) {
+            } catch (Return &err) {
                 // Вывод информации об ошибке синтаксиса при парсинге без информации о точке вызова макроса LOG_INFO
                 utils::Logger::LogLevelType save_level = utils::Logger::Instance()->GetLogLevel();
                 utils::Logger::Instance()->SetLogLevel(LOG_LEVEL_INFO);
@@ -415,7 +408,9 @@ namespace newlang {
             color_print("NewLang", title_color);
             color_print(" syntax and commands or ", predict_color);
             color_print("--", main_color);
-            color_print("<Enter> to exit the program.\n", predict_color);
+            color_print("<Enter> (or ", predict_color);
+            color_print("++", main_color);
+            color_print("<Enter>) to exit the program.\n", predict_color);
 
             // Calculate title length
             int title_len = (short) strlen(title);
@@ -429,7 +424,7 @@ namespace newlang {
                     // Print title with title color
                     clear_line();
                     color_print(title, title_color);
-                    printf(title_len != 0 ? " " : "");
+                    wprintf(title_len != 0 ? L" " : L"");
                     fflush(stdout);
 
                     // Get length of last word in input
@@ -600,9 +595,9 @@ namespace newlang {
                 }
 
 
-                std::string result;
-                if (buff.compare(L"--") == 0 || buff.compare(L"--;") == 0) {
-                    printf("\n");
+                std::wstring result;
+                if (buff.compare(L"--") == 0 || buff.compare(L"--;") == 0 || buff.compare(L"++") == 0 || buff.compare(L"++;") == 0) {
+                    wprintf(L"\n");
                     break;
                 } else if (!buff.empty()) {
                     try {
@@ -611,9 +606,9 @@ namespace newlang {
                         //                    if (!term) {
                         //                        LOG_RUNTIME("Eval expression empty!");
                         //                    }
-                        std::string input = utf8_encode(buff);
+                        std::wstring input = buff;
 
-                        ObjPtr res = m_ctx.ExecStr(input, m_args.get(), true);
+                        ObjPtr res = m_ctx.ExecStr(utf8_encode(input), m_args.get(), Context::CatchType::CATCH_ALL);
 
                         if (res) {
 
@@ -621,17 +616,17 @@ namespace newlang {
                                 m_local_vars[res.get()] = res;
                             }
 
-                            result = res->GetValueAsString();
+                            result = res->GetValueAsStringWide();
                         } else {
-                            result = "nullptr";
+                            result = L"nullptr";
                         }
 
                     } catch (std::exception &err) {
-                        result = err.what();
+                        result = utf8_decode(err.what());
                     }
                     buff.clear();
                 }
-                printf("\n%s\n", result.c_str());
+                wprintf(L"\n%s\n", result.c_str());
                 show_all = false;
             }
 

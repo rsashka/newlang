@@ -1,25 +1,33 @@
 #!../output/nlc --eval
 
-@printf := :Pointer('printf(format:FmtChar, ...):Int32');
+# Import native C function for print messages
+printf := :Pointer('printf(format:FmtChar, ...):Int32');
 
-@tensor := :Tensor[5,5](1, -2, 3, 4, 5, 6, 42, ...);
+# Create a tensor and fill it with values. 
+# The last value is repeated up to the required tensor size
+tensor := :Single[5,5](1, -2, 3, 4, 5, 6, 42, ...);
 printf('%s\n', :StrChar(tensor));
 
-@mult := tensor * 100;
-printf('*=2 -> %s\n', :StrChar(mult));
+mult := tensor * 10;
+printf('*=10 -> %s\n', :StrChar(mult));
 
 mult += 11;
 printf('+= 11 -> %s\n', :StrChar(mult));
 
-@srand := :Pointer('srand(seed:Int32):None');
+# Import srand function and init random generator
+srand := :Pointer('srand(seed:Int32):None');
 srand(100);
-@rand := :Pointer('rand():Int32');
-@matrix := :Tensor[10,10]( ... rand() ...);
+
+# Import rand function to get random values
+rand := :Pointer('rand():Int32');
+
+# Create a tensor where the rand function is called for every element except the first
+matrix := :Tensor[10,10]( 42, ... rand() ...);
 printf('rand -> %s\n', :StrChar(matrix));
 
-@matrix *= 1;
+matrix %= 2;
 printf('rand -> %s\n', :StrChar(matrix));
 
 
 # Check factorial 1000!
-[ matrix ] -> "OK";
+[ matrix ] --> "OK";
