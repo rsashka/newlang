@@ -2471,7 +2471,7 @@ ObjPtr Context::CreateRVal(Context *ctx, TermPtr term, Obj * local_vars, bool ev
             ASSERT(result->m_var_type_fixed == type);
 
             if(result->m_var_type_fixed == ObjType::Class) {
-                ASSERT(!"Check virtual methods!");
+                //@todo Virtual
 
             }
 

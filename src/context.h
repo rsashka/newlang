@@ -150,9 +150,9 @@ namespace newlang {
 
     public:
 
-        Module(): Obj(ObjType::Module) {
+        Module() : Obj(ObjType::Module) {
             m_var_is_init = true;
-            
+
         }
 
         bool Load(Context & ctx, const char * path, bool is_main) {
@@ -165,33 +165,42 @@ namespace newlang {
                 return false;
             }
 
-            uint8_t buffer[1024];
-            size_t size;
-            while ((size = read(*file, buffer, sizeof (buffer)))) {
-                m_source.append((const char *) buffer, size);
-            }
+
+            char buffer[llvm::sys::fs::DefaultReadChunkSize];
+            llvm::MutableArrayRef<char> Buf(buffer, llvm::sys::fs::DefaultReadChunkSize);
+
+            llvm::Expected<size_t> readed(0);
+            do {
+                readed = llvm::sys::fs::readNativeFile(*file, Buf);
+                if (!readed) {
+                    LOG_ERROR("Error read module '%s' from file %s!", m_var_name.c_str(), path);
+                    return false;
+                }
+                m_source.append(Buf.data(), *readed);
+            } while (*readed);
 
             llvm::sys::fs::file_status fs;
             std::error_code ec = llvm::sys::fs::status(*file, fs);
             if (ec) {
                 m_timestamp = "??? ??? ?? ??:??:?? ????";
             } else {
-                time_t temp = std::chrono::system_clock::to_time_t(fs.getLastModificationTime());
+                //                auto tp = fs.getLastModificationTime();
+                time_t temp = llvm::sys::toTimeT(fs.getLastModificationTime());
                 struct tm * timeinfo;
                 timeinfo = localtime(&temp);
                 m_timestamp = asctime(timeinfo);
             }
 
-            auto md5 = llvm::sys::fs::md5_contents(*file);
+            llvm::ErrorOr<llvm::MD5::MD5Result> md5 = llvm::sys::fs::md5_contents((int)*file);
             if (!md5) {
                 m_md5 = "????????????????????????????????";
             } else {
                 llvm::SmallString<32> hash;
-                llvm::MD5::stringifyResult(*md5, hash);
+                llvm::MD5::stringifyResult((*md5), hash);
                 m_md5 = hash.c_str();
             }
             llvm::sys::fs::closeFile(*file);
-            
+
             m_var_is_init = true;
             return true;
         }
@@ -289,12 +298,12 @@ namespace newlang {
             Variable::clear_();
 
             m_modules.clear();
-            
+
             ASSERT(m_terms);
             m_terms->clear_();
             m_terms->m_var_is_init = true;
             m_terms->m_var_type_current = ObjType::Module;
-            
+
             m_ns_stack.clear();
         }
 

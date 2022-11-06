@@ -69,7 +69,10 @@
 #define KEY_DOWN 80
 #define KEY_DEL 83
 #define CTRL_C 3
-#define SPECIAL_SEQ_1 0
+#define KEY_HOME 71
+#define KEY_END 70
+#define KEY_ESC 27
+#define SPECIAL_SEQ 0
 #define SPECIAL_SEQ_2 224
 #define COLOR_TYPE uint16_t
 #define DEFAULT_TITLE_COLOR 160
@@ -83,8 +86,11 @@
 #define KEY_UP 65
 #define KEY_DOWN 66
 #define KEY_DEL 51
+#define KEY_HOME 72
+#define KEY_END 70
 #define KEY_DEL_AFTER 126
-#define SPECIAL_SEQ_1 27
+#define KEY_ESC 27
+#define SPECIAL_SEQ 27
 #define SPECIAL_SEQ_2 91
 #define COLOR_TYPE const char *
 #define DEFAULT_TITLE_COLOR "0;30;102"
@@ -210,29 +216,30 @@ inline void color_print(const char* text, COLOR_TYPE color) {
         exit(1);
     }
 
-    CONSOLE_SCREEN_BUFFER_INFO console_info;
-    COLOR_TYPE backup;
-
-    // Save current attributes
-    if (GetConsoleScreenBufferInfo(h_console, &console_info) == 0) {
-        fprintf(stderr, "[ERROR] Couldn't get terminal info\n");
-        exit(1);
-    }
-    backup = console_info.wAttributes;
-
-    // Print colored text
-    if (SetConsoleTextAttribute(h_console, color) == 0) {
-        fprintf(stderr, "[ERROR] Couldn't set terminal color\n");
-        exit(1);
-    }
+//    CONSOLE_SCREEN_BUFFER_INFO console_info;
+//    COLOR_TYPE backup;
+//
+//    // Save current attributes
+//    if (GetConsoleScreenBufferInfo(h_console, &console_info) == 0) {
+//        fprintf(stderr, "[ERROR] Couldn't get terminal info\n");
+//        exit(1);
+//    }
+//    backup = console_info.wAttributes;
+//
+//    // Print colored text
+//    if (SetConsoleTextAttribute(h_console, color) == 0) {
+//        fprintf(stderr, "[ERROR] Couldn't set terminal color\n");
+//        exit(1);
+//    }
 
     printf("%s", text);
 
-    // Restore original color
-    if (SetConsoleTextAttribute(h_console, backup) == 0) {
-        fprintf(stderr, "[ERROR] Couldn't reset terminal color\n");
-        exit(1);
-    }
+//    // Restore original color
+//    if (SetConsoleTextAttribute(h_console, backup) == 0) {
+//        fprintf(stderr, "[ERROR] Couldn't reset terminal color\n");
+//        exit(1);
+//    }
+    _flushall();
 #elif defined(OS_UNIX)
     //Set new terminal color
     printf("\033[");
@@ -244,6 +251,7 @@ inline void color_print(const char* text, COLOR_TYPE color) {
 
     //Resets the text to default color
     printf("\033[0m");
+    fflush(stdout);
 #endif
 }
 
@@ -274,6 +282,8 @@ inline int _getch() {
 
     // Get input character
     character = getchar();
+    
+//    LOG_DEBUG("%d", character);
 
     // Restore terminal attributes
     if (tcsetattr(STDIN_FILENO, TCSANOW, &old_attr) == -1) {

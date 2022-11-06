@@ -36,19 +36,19 @@ namespace newlang {
 
 #define NLC_FILE_HISTORY ".nlc_history"
 
-//    
-//#include <stdio.h>
-//#include <wchar.h>
-//#include <stdlib.h>
-//#include <locale.h>
-//
-//int main() {
-//    int r;
-//    wchar_t myChar1 = L'Ω';
-//    setlocale(LC_CTYPE, "");
-//    r = wprintf(L"char is %lc (%x)\n", myChar1, myChar1);
-//}
-//
+    //    
+    //#include <stdio.h>
+    //#include <wchar.h>
+    //#include <stdlib.h>
+    //#include <locale.h>
+    //
+    //int main() {
+    //    int r;
+    //    wchar_t myChar1 = L'Ω';
+    //    setlocale(LC_CTYPE, "");
+    //    r = wprintf(L"char is %lc (%x)\n", myChar1, myChar1);
+    //}
+    //
 
     class NLC {
     public:
@@ -239,7 +239,7 @@ namespace newlang {
             char buffer[100];
             fcntl(STDIN_FILENO, F_SETFL, fcntl(STDIN_FILENO, F_GETFL, 0) | O_NONBLOCK);
             while ((len = read(STDIN_FILENO, buffer, sizeof (buffer))) > 0) {
-//                m_eval.append(buffer, len);
+                //                m_eval.append(buffer, len);
             }
             fcntl(STDIN_FILENO, F_SETFL, fcntl(STDIN_FILENO, F_GETFL, 0) & ~O_NONBLOCK);
 #endif
@@ -424,8 +424,9 @@ namespace newlang {
                     // Print title with title color
                     clear_line();
                     color_print(title, title_color);
-                    wprintf(title_len != 0 ? L" " : L"");
-                    fflush(stdout);
+                    if (title_len) {
+                        printf(" ");
+                    }
 
                     // Get length of last word in input
                     short space_offset = 0;
@@ -435,7 +436,6 @@ namespace newlang {
 
                     // Print current buffer
                     color_print(utf8_encode(buff).c_str(), main_color);
-                    fflush(stdout);
 
                     std::vector<std::wstring> predict;
 
@@ -474,41 +474,58 @@ namespace newlang {
                         }
                     }
 
-                    // Move cursor to buffer end
-                    short x = (short) (buff.size() + title_len + (title_len != 0) + 1 - offset);
-                    set_cursor_x(x);
+                    // Move cursor to edit position
+                    set_cursor_x(offset + title_len + 2);
 
                     // Read character from console
                     int ch = _getch();
 
-                    // Wait next symbol if character in ignore keys
-                    if (is_ignore_key(ch)) {
+                    //                    LOG_DEBUG("_getch() %d", ch);
+
+                    int w_ch = 0;
+
+                    if ((ch & 0x80) && (ch != SPECIAL_SEQ_2)) {
+
+                        // двухбайтовые UTF8
+                        if ((ch & 0xE0) == 0xC0) {
+                            w_ch = ch & 0x1F;
+                            w_ch <<= 6;
+                            ch = _getch();
+                            w_ch |= (ch & 0x3F);
+                        } else {
+                            LOG_ERROR("Unsupported char %d", ch);
+                            w_ch = 0;
+                        }
+                        //                        continue;
+
+                    } else if (is_ignore_key(ch)) { // Wait next symbol if character in ignore keys
+
                         continue;
-                    }// Return buffer if ENTER was pressed
-                    else if (ch == KEY_ENTER) {
+
+                    } else if (ch == KEY_ENTER) { // Return buffer if ENTER was pressed
+
                         if (!buff.empty() && (history.size() == 0 || (history.size() && history[history.size() - 1].compare(utf8_encode(buff)) != 0))) {
                             history.push_back(utf8_encode(buff));
                             filehistory << utf8_encode(buff) << "\n";
                             filehistory.flush();
                         }
                         break;
+
                     }// Keyboard interrupt handler for Windows
-                        //#if defined(OS_WINDOWS)
-                        //                    else if (ch == CTRL_C) {
-                        //                        predictions_free(pred);
-                        //                        tree_free(rules);
-                        //                        free(buff);
-                        //                        exit(0);
-                        //                    }
-                        //#endif
+#if defined(_MSC_VER)
+                    else if (ch == CTRL_C) {
+                        goto done;
+                    }
+#endif
                         // Edit buffer like backspace if BACKSPACE was pressed
-                    else if (ch == KEY_BACKSPACE) {
-                        if (buff.size() && buff.size() - offset >= 1) {
+                    else if (ch == KEY_BACKSPACE || ch == 8) {
+                        if (buff.size() && offset) {
                             // Delete character from buffer
-                            for (unsigned i = (unsigned int) (buff.size() - offset - 1); i < buff.size() - 1; i++) {
+                            for (unsigned i = offset - 1; i < buff.size(); i++) {
                                 buff[i] = buff[i + 1];
                             }
                             buff.resize(buff.size() - 1);
+                            offset--;
                         }
                         // Apply prediction if TAB was pressed
                     } else if (ch == KEY_TAB) {
@@ -521,25 +538,45 @@ namespace newlang {
                         } else {
                             show_all = true;
                         }
+                        offset = buff.size();
 
                     }// Arrows and Delete keys handler
                     else if (
-                            ch == SPECIAL_SEQ_1
+                            ch == SPECIAL_SEQ
 #if defined(OS_WINDOWS)
-                            || ch
+                            || ch == SPECIAL_SEQ_2 || ch == KEY_ESC
 #elif defined(OS_UNIX)
-                            && _getch()
+                            //&& _getch()
 #endif
-                            == SPECIAL_SEQ_2
+                            //== SPECIAL_SEQ_2
                             ) {
-                        switch (_getch()) {
+
+                        ch = _getch();
+#if defined(OS_UNIX)
+                        if (ch == SPECIAL_SEQ_2) {
+                            ch = _getch(); // Skip next code
+                        } else if (ch != SPECIAL_SEQ) {
+                            continue;
+                        }
+#endif
+
+                        switch (ch) {
+                            case KEY_ESC:
+                                buff.clear();
+                                offset = 0;
+                                break;
+                            case KEY_HOME:
+                                offset = 0;
+                                break;
+                            case KEY_END:
+                                offset = buff.size();
+                                break;
                             case KEY_LEFT:
-                                // Increase offset from the end of the buffer if left key pressed
-                                offset = (offset < static_cast<int64_t> (buff.size())) ? (offset + 1) : buff.size();
+                                offset = (offset > 0) ? offset - 1 : 0;
                                 break;
                             case KEY_RIGHT:
                                 // Decrease offset from the end of the buffer if left key pressed
-                                offset = (offset > 0) ? offset - 1 : 0;
+                                offset = (offset < static_cast<int64_t> (buff.size())) ? (offset + 1) : buff.size();
                                 break;
                             case KEY_UP:
                                 if (!history.empty() && history_pos > 0) {
@@ -547,6 +584,7 @@ namespace newlang {
                                     history_pos--;
                                     buff = utf8_decode(history[history_pos]);
                                 }
+                                offset = buff.size();
                                 break;
                             case KEY_DOWN:
                                 if (!history.empty() && history_pos + 1 < static_cast<int64_t> (history.size())) {
@@ -554,58 +592,44 @@ namespace newlang {
                                     history_pos++;
                                     buff = utf8_decode(history[history_pos]);
                                 }
+                                offset = buff.size();
                                 break;
                             case KEY_DEL: // Edit buffer like DELETE key
 #if defined(OS_UNIX)
                                 if (_getch() == KEY_DEL_AFTER)
 #endif
                                 {
-                                    if (buff.size() && offset != 0) {
+                                    if (buff.size() && offset < buff.size()) {
                                         // Delete character from buffer
-                                        for (unsigned i = (unsigned int) (buff.size() - offset); i < buff.size() - 1; i++) {
+                                        for (unsigned i = offset; i < buff.size() - 1; i++) {
                                             buff[i] = buff[i + 1];
                                         }
                                         buff.resize(buff.size() - 1);
-                                        offset -= 1;
                                     }
                                 }
                                 break;
                             default:
                                 break;
                         }
-                    }// Add character to buffer considering
-                        // offset if any key was pressed
-                    else {
 
-                        int w_ch;
-                        if (!(ch & 0x80)) {
-                            w_ch = ch;
-                        } else if ((ch & 0xE0) == 0xC0) { // двухбайтовые UTF8
-                            w_ch = ch & 0x1F;
-                            w_ch <<= 6;
-                            ch = _getch();
-                            w_ch |= (ch & 0x3F);
-                        } else {
-                            LOG_ERROR("Unsupported char %d", ch);
-                            w_ch = 0;
-                        }
+                    } else {
+                        // Ascii char
+                        w_ch = ch;
+                    }
 
-                        buff += w_ch;
+                    if (w_ch) {
+                        buff.insert(offset, 1, w_ch);
+                        offset++;
                     }
                 }
 
 
                 std::wstring result;
                 if (buff.compare(L"--") == 0 || buff.compare(L"--;") == 0 || buff.compare(L"++") == 0 || buff.compare(L"++;") == 0) {
-                    wprintf(L"\n");
+                    printf("\n");
                     break;
                 } else if (!buff.empty()) {
                     try {
-                        //                    TermPtr term = m_ctx.ExecStr(utf8_encode(buff));
-                        //
-                        //                    if (!term) {
-                        //                        LOG_RUNTIME("Eval expression empty!");
-                        //                    }
                         std::wstring input = buff;
 
                         ObjPtr res = m_ctx.ExecStr(utf8_encode(input), m_args.get(), Context::CatchType::CATCH_ALL);
@@ -626,9 +650,14 @@ namespace newlang {
                     }
                     buff.clear();
                 }
-                wprintf(L"\n%s\n", result.c_str());
+                printf("\n%ls\n", result.c_str());
                 show_all = false;
+                offset = 0;
             }
+
+#if defined(_MSC_VER)
+done:
+#endif
 
             filehistory.close();
             return 0;

@@ -33,7 +33,7 @@
 */
 
 
-//#pragma comment(lib, "LLVMSupport.lib")
+#pragma comment(lib, "LLVMSupport.lib")
 
 #pragma comment(lib, "LLVM-C.lib")
 
