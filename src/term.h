@@ -310,6 +310,8 @@ namespace newlang {
                     return result;
 
                 case TermID::ARGS:
+                case TermID::PARENT:
+                case TermID::MODULE:
                 case TermID::ARGUMENT:
                     return m_text;
 

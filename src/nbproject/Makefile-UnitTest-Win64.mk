@@ -39,6 +39,7 @@ OBJECTFILES= \
 	${OBJECTDIR}/_ext/e16507f5/logger.o \
 	${OBJECTDIR}/builtin.o \
 	${OBJECTDIR}/context.o \
+	${OBJECTDIR}/dsl.o \
 	${OBJECTDIR}/lexer.o \
 	${OBJECTDIR}/lexer.yy.o \
 	${OBJECTDIR}/newlang.o \
@@ -115,6 +116,11 @@ ${OBJECTDIR}/context.o: context.cpp parser.h parser.yy.h pch.h.gch location.hh
 : context.h pch.h.gch
 	@echo Выполнение шага пользовательского сборки
 	
+
+${OBJECTDIR}/dsl.o: dsl.cpp
+	${MKDIR} -p ${OBJECTDIR}
+	${RM} "$@.d"
+	$(COMPILE.cc) -g -DDEBUG -DLOG_LEVEL_NORMAL=LOG_LEVEL_DEBUG -DPDC_WIDE -DUNITTEST -I.. -I../contrib/googletest/googletest -I../contrib/googletest/googletest/include -I../contrib/Lyra/include -I../contrib/libtorch-win/include/torch/csrc/api/include -I../contrib/libtorch-win/include -I../contrib/tensorboard_logger/include -I/usr/share/mingw-w64/include/ -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/dsl.o dsl.cpp
 
 ${OBJECTDIR}/lexer.o: lexer.cpp location.hh
 	${MKDIR} -p ${OBJECTDIR}

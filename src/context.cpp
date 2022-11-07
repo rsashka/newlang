@@ -8,6 +8,8 @@
 #include <filesystem>
 #include <stdbool.h>
 
+#include "dsl.cpp"
+
 using namespace newlang;
 
 
@@ -134,13 +136,13 @@ Context::Context(RuntimePtr global) : m_llvm_builder(LLVMCreateBuilder()) {
 
     if(Context::m_funcs.empty()) {
 
-        VERIFY(CreateBuiltin("min(arg, ...)", (void *) &min, ObjType::PureFunc));
-        VERIFY(CreateBuiltin("мин(arg, ...)", (void *) &min, ObjType::PureFunc));
-        VERIFY(CreateBuiltin("max(arg, ...)", (void *) &max, ObjType::PureFunc));
-        VERIFY(CreateBuiltin("макс(arg, ...)", (void *) &max, ObjType::PureFunc));
-
-
-        VERIFY(CreateBuiltin("help(...)", (void *) &help, ObjType::PureFunc));
+//        VERIFY(CreateBuiltin("min(arg, ...)", (void *) &min, ObjType::PureFunc));
+//        VERIFY(CreateBuiltin("мин(arg, ...)", (void *) &min, ObjType::PureFunc));
+//        VERIFY(CreateBuiltin("max(arg, ...)", (void *) &max, ObjType::PureFunc));
+//        VERIFY(CreateBuiltin("макс(arg, ...)", (void *) &max, ObjType::PureFunc));
+//
+//
+//        VERIFY(CreateBuiltin("help(...)", (void *) &help, ObjType::PureFunc));
 
     }
 
@@ -462,15 +464,11 @@ ObjPtr Context::eval_MACRO_BODY(Context *ctx, const TermPtr &term, Obj *args, bo
 }
 
 ObjPtr Context::eval_PARENT(Context *ctx, const TermPtr &term, Obj *args, bool eval_block) {
-    LOG_RUNTIME("eval_PARENT: %s", term->toString().c_str());
-
-    return nullptr;
+    return CreateRVal(ctx, term, args, eval_block);
 }
 
 ObjPtr Context::eval_NEWLANG(Context *ctx, const TermPtr &term, Obj *args, bool eval_block) {
-    LOG_RUNTIME("eval_NEWLANG: %s", term->toString().c_str());
-
-    return nullptr;
+    return CreateRVal(ctx, term, args, eval_block);
 }
 
 ObjPtr Context::eval_TYPE(Context *ctx, const TermPtr &term, Obj *local_vars, bool eval_block) {
@@ -540,8 +538,7 @@ ObjPtr Context::eval_LOCAL(Context *ctx, const TermPtr &term, Obj *args, bool ev
 }
 
 ObjPtr Context::eval_MODULE(Context *ctx, const TermPtr &term, Obj *args, bool eval_block) {
-    LOG_RUNTIME("MODULE Not implemented!");
-    return nullptr;
+    return CreateRVal(ctx, term, args, eval_block);
 }
 
 ObjPtr Context::eval_NATIVE(Context *ctx, const TermPtr &term, Obj *args, bool eval_block) {
@@ -870,7 +867,7 @@ ObjPtr Context::eval_WHILE(Context *ctx, const TermPtr &term, Obj * args, bool e
     } else {
         while(cond->GetValueAsBoolean()) {
 
-            LOG_DEBUG("result %s", result->toString().c_str());
+//            LOG_DEBUG("result %s", result->toString().c_str());
             result = CallBlock(ctx, term->Right(), args, eval_block, CatchType::CATCH_AUTO, &is_interrupt);
 
             if(is_interrupt || result->op_class_test(Return::Break, ctx)) {
@@ -1847,6 +1844,10 @@ std::string newlang::ReadFile(const char *fileName) {
     std::ifstream f(fileName);
     std::stringstream ss;
     ss << f.rdbuf();
+    //    if(f.fail()) {
+    //        std::cout << "Current path is " << std::filesystem::current_path() << '\n';
+    //        std::cerr << strerror(errno);
+    //    }
     f.close();
 
     return ss.str();
@@ -2189,6 +2190,9 @@ ObjPtr Context::CreateRVal(Context *ctx, TermPtr term, Obj * local_vars, bool ev
             return result;
 
         case TermID::NAME:
+        case TermID::PARENT:
+        case TermID::MODULE:
+        case TermID::ARGS:
         case TermID::INT_PLUS:
         case TermID::INT_MINUS:
 
@@ -2226,13 +2230,23 @@ ObjPtr Context::CreateRVal(Context *ctx, TermPtr term, Obj * local_vars, bool ev
 
                 return result;
             }
+
+            //- **\this** - Текущий объект (**$0**)
+            //- **\sys** - Системный контекст запущенной программы (**@@**)
+            //- **\current** - Текущий модуль (**@$**)
+            //- **\cmd** - Все аргументы выполняющегося приложения из командной строки (**@\***)
+
             if(term->m_text.compare("_") == 0) {
+
                 result->m_var_type_current = ObjType::None;
                 return result;
-            } else if(term->m_text.compare("$") == 0) {
+
+            } else if(term->m_text.compare("$$") == 0) {
+
+                //- **\parent** - Родительский объект (**$$**)
 
                 result->m_var_type_current = ObjType::Dictionary;
-                result->m_var_name = "$";
+                result->m_var_name = "$$";
 
                 ASSERT(ctx);
 
@@ -2248,8 +2262,51 @@ ObjPtr Context::CreateRVal(Context *ctx, TermPtr term, Obj * local_vars, bool ev
 
                 result->m_var_is_init = true;
                 return result;
-            } else if(term->m_text.compare("@") == 0) {
-            } else if(term->m_text.compare("%") == 0) {
+
+            } else if(term->m_text.compare("$*") == 0) {
+
+                //- **\args** - Все аргументы функции (**$\***)
+
+                result->m_var_type_current = ObjType::Dictionary;
+                result->m_var_name = "$*";
+                result->m_var_is_init = true;
+
+                for (int i = 0; i < term->size(); i++) {
+                    if(term->name(i).empty()) {
+                        result->push_back(Context::CreateRVal(ctx, (*term)[i].second, local_vars));
+                    } else {
+                        result->push_back(Context::CreateRVal(ctx, (*term)[i].second, local_vars), term->name(i));
+                    }
+                }
+
+                return result;
+
+            } else if(term->m_text.compare("@@") == 0) {
+
+                if(term->m_is_call) {
+
+                    Obj args(ctx, term, true, local_vars);
+
+                    if(args.size() == 0 || !args.at(0).second->is_string_type()) {
+                        LOG_RUNTIME("Requires a filename in the first argument! %s", args.toString().c_str());
+                    }
+
+                    return ctx->ExecFile(args.at(0).second->GetValueAsString().c_str(), &args);
+
+                } else {
+                    return ctx->m_main_module->shared();
+                }
+
+            } else if(term->m_text.compare("@$") == 0) {
+
+                return ctx->m_terms->shared();
+
+            } else if(term->m_text.compare("@*") == 0) {
+                if(ctx->m_runtime) {
+                    return ctx->m_runtime->m_args;
+                } else {
+                    return Obj::CreateType(ObjType::Dictionary, ObjType::Dictionary, true);
+                }
             }
 
 
@@ -2281,7 +2338,30 @@ ObjPtr Context::CreateRVal(Context *ctx, TermPtr term, Obj * local_vars, bool ev
                      * @module(\true) - убедиться, что модуль загружен. Если модуль не загружен, создать ошибку
                      * @module(\false) - проверить, загружен ли модуль без его реальной загрузки и вернуть значение
                      * @module(_) -  Выгрузка модуля
+                     * 
+                     * @dsl() -  Единственный встроенный модуль
                      */
+
+                    if(term->GetFullName().compare("@dsl")==0) {
+                        std::string str;
+
+                        for (int i = 0; i < ::newlang_dsl_size; i++) {
+                            str += ::newlang_dsl_arr[i];
+                            str += "\n";
+                        }
+
+                        m_macros.clear();
+                        Parser::ParseAllMacros(str, &m_macros);
+
+                        result->m_var_type_current = ObjType::Dictionary;
+                        result->m_var_is_init = true;
+
+                        for (auto &elem : m_macros) {
+                            result->push_back(Obj::CreateString(elem.first));
+                        }
+                        return result;
+                    }
+
                     if(term->size() > 1) {
                         NL_PARSER(term, "Only one argument can be specified for a load module!");
                     }

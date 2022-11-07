@@ -263,9 +263,17 @@ TEST(Example, DISABLED_Rational) {
     int ms = (int) std::chrono::duration_cast<std::chrono::microseconds>(end - begin).count() % 1000000;
     LOG_INFO("Test rational complete at %d.%d sec", sec, ms);
 
-    /*
-     * 
-     */
+    save = utils::Logger::Instance()->SetLogLevel(LOG_LEVEL_INFO);
+    begin = std::chrono::steady_clock::now();
+    result = ctx.ExecFile("@@('../examples/rational.nlp')");
+    end = std::chrono::steady_clock::now();
+    utils::Logger::Instance()->SetLogLevel(save);
+
+
+    ASSERT_TRUE(result);
+    ASSERT_TRUE(result->is_string_type()) << result->toString();
+    ASSERT_STREQ("OK", result->GetValueAsString().c_str());
+
 }
 
 TEST(Example, Tensor) {
@@ -288,6 +296,18 @@ TEST(Example, Tensor) {
     ASSERT_TRUE(result);
     ASSERT_TRUE(result->is_string_type()) << result->toString();
     ASSERT_STREQ("OK", result->GetValueAsString().c_str());
+    
+    
+    save = utils::Logger::Instance()->SetLogLevel(LOG_LEVEL_INFO);
+    begin = std::chrono::steady_clock::now();
+    result = ctx.ExecStr("@@('../examples/tensor.nlp')");
+    end = std::chrono::steady_clock::now();
+    utils::Logger::Instance()->SetLogLevel(save);
+
+    ASSERT_TRUE(result);
+    ASSERT_TRUE(result->is_string_type()) << result->toString();
+    ASSERT_STREQ("OK", result->GetValueAsString().c_str());
+    
 }
 
 TEST(Example, Hello) {
@@ -332,7 +352,20 @@ TEST(Example, Hello) {
 
     ASSERT_TRUE(result);
     ASSERT_TRUE(result->is_string_type()) << result->toString();
-    ASSERT_STREQ("Привет, мир!", result->GetValueAsString().c_str());
+    ASSERT_STREQ("OK", result->GetValueAsString().c_str());
+    
+    
+    save = utils::Logger::Instance()->SetLogLevel(LOG_LEVEL_INFO);
+    begin = std::chrono::steady_clock::now();
+    result = ctx.ExecStr("@@('../examples/hello.nlp')");
+    end = std::chrono::steady_clock::now();
+    utils::Logger::Instance()->SetLogLevel(save);
+
+
+    ASSERT_TRUE(result);
+    ASSERT_TRUE(result->is_string_type()) << result->toString();
+    ASSERT_STREQ("OK", result->GetValueAsString().c_str());
+    
 }
 
 

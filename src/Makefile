@@ -105,6 +105,16 @@ build: .build-post
 	    echo Make file syntax_help.cpp for version $(GIT_SOURCE_ID) $(DATE_BUILD_TEMP); \
 	fi
 	
+	../contrib/text2cpp/output/bin/text2cpp ../examples/dsl.nlp  dsl.cpp.temp newlang_dsl c
+
+	@if cmp -s dsl.cpp.temp dsl.cpp; then \
+	    rm dsl.cpp.temp; \
+	    echo Use file dsl.cpp for current build; \
+	else \
+	    rm dsl.cpp; \
+	    mv dsl.cpp.temp  dsl.cpp; \
+	    echo Make file dsl.cpp for version $(GIT_SOURCE_ID) $(DATE_BUILD_TEMP); \
+	fi
 
 	@if [ "$(GIT_TAG_VERSION)" != "v$(VERSION_MAJOR).$(VERSION_MINOR).$(VERSION_PATCH)" ]; then \
 	    echo "Git TAG $(GIT_TAG_VERSION) differ version v$(VERSION_MAJOR).$(VERSION_MINOR).$(VERSION_PATCH)"; \

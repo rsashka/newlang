@@ -81,7 +81,7 @@ fact # Вывести итоговый результат
 ### Загрузка бинарных сборок
 - [Бинарная сборка и тесты под Windows](https://github.com/rsashka/newlang/releases/download/v0.3.0/nlc_win_64.tar.zip) 
 - [Бинарная сборка и тесты под Ubuntu](https://github.com/rsashka/newlang/releases/download/v0.3.0/nlc_lin_64.tar.xz) 
-- Для запуска бинарных сборок потребуются разделяемые библиотеки libLLVM-15 и libtorch ([архив с библиотеками для Windows](https://github.com/rsashka/newlang/releases/download/v0.3.0/nlc_dll.tar.xz)), ([архив с библиотеками для Ubuntu](https://github.com/rsashka/newlang/releases/download/v0.3.0/nlc_so.tar.xz)).
+- Для запуска бинарных сборок потребуются разделяемые библиотеки libLLVM-15 и libtorch ([архив с библиотеками для Windows](https://github.com/rsashka/newlang/releases/download/v0.3.0/nlc_dll.zip)), ([архив с библиотеками для Ubuntu](https://github.com/rsashka/newlang/releases/download/v0.3.0/nlc_so.tar.xz)).
 
 ## Сборка проекта из исходников
 ### Подготовка репозитория

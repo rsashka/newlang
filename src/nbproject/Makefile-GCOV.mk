@@ -39,6 +39,7 @@ OBJECTFILES= \
 	${OBJECTDIR}/_ext/e16507f5/logger.o \
 	${OBJECTDIR}/builtin.o \
 	${OBJECTDIR}/context.o \
+	${OBJECTDIR}/dsl.o \
 	${OBJECTDIR}/lexer.o \
 	${OBJECTDIR}/lexer.yy.o \
 	${OBJECTDIR}/newlang.o \
@@ -108,6 +109,11 @@ ${OBJECTDIR}/context.o: context.cpp parser.h parser.yy.h
 	${MKDIR} -p ${OBJECTDIR}
 	${RM} "$@.d"
 	$(COMPILE.cc) -g -DDEBUG -DLOG_LEVEL_NORMAL=LOG_LEVEL_DEBUG -DPDC_WIDE -DUNITTEST -I.. -I../contrib/googletest/googletest -I../contrib/googletest/googletest/include -I../contrib/Tensorflow/bazel-bin/tensorflow/include -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/context.o context.cpp
+
+${OBJECTDIR}/dsl.o: dsl.cpp
+	${MKDIR} -p ${OBJECTDIR}
+	${RM} "$@.d"
+	$(COMPILE.cc) -g -DDEBUG -DLOG_LEVEL_NORMAL=LOG_LEVEL_DEBUG -DPDC_WIDE -DUNITTEST -I.. -I../contrib/googletest/googletest -I../contrib/googletest/googletest/include -I../contrib/Tensorflow/bazel-bin/tensorflow/include -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/dsl.o dsl.cpp
 
 ${OBJECTDIR}/lexer.o: lexer.cpp parser.yy.h parser.yy.cpp location.hh
 	${MKDIR} -p ${OBJECTDIR}

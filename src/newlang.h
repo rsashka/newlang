@@ -48,6 +48,7 @@ namespace newlang {
     public:
 
         RunTime() {
+            m_args = Obj::CreateType(ObjType::Dictionary, ObjType::Dictionary, true);
             LLVMLoadLibraryPermanently(nullptr);
         }
 
@@ -79,6 +80,7 @@ namespace newlang {
         std::string m_work_dir;
         std::string m_exec_dir;
         std::vector<std::string> m_search_dir;
+        ObjPtr m_args;
 
     protected:
 
@@ -88,6 +90,9 @@ namespace newlang {
         bool ParseArgs(int argc, const char** argv) {
 
             for (int i = 0; i < argc; i++) {
+
+                m_args->push_back(Obj::CreateString(argv[i]));
+
                 if (strstr(argv[i], "-nlc-") == argv[i]) {
                     if (strstr(argv[i], "-nlc-search=") == argv[i]) {
                         std::string list(argv[i]);

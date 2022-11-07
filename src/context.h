@@ -210,7 +210,7 @@ namespace newlang {
         }
     };
 
-    class Context : public Variable<Obj, std::weak_ptr<Obj> > {
+    class Context : public Variable<Obj, std::weak_ptr<Obj> >, public std::enable_shared_from_this<Context> {
     public:
 
         const char * SYS__DESTRUCTOR__ = "_____";

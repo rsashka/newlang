@@ -293,6 +293,16 @@ name:  ns_name
                 $$->SetTermID(TermID::NAME);
                 $$->TestConst();
             }
+        |  PARENT  /* $$ - rval */
+            {
+                $$ = $1;
+                $$->SetTermID(TermID::NAME);
+            }
+        |  NEWLANG  /* @@ - rval */
+            {
+                $$ = $1;
+                $$->SetTermID(TermID::NAME);
+            }
 
 /* Фиксированная размерность тензоров для использования в типах данных */
 type_dim: INTEGER
@@ -552,14 +562,6 @@ assign_name:  name
             | ARGUMENT  /* $123 */
                 {
                     $$ = $1;
-                }
-            |  PARENT  /* $$ - rval */
-                {
-                    $$ = $1; 
-                }
-            |  NEWLANG  /* @@ - rval */
-                {
-                    $$ = $1; 
                 }
             
        

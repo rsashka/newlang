@@ -247,7 +247,7 @@ namespace newlang {
             cnt += !compile.empty();
             cnt += !exec.empty();
             cnt += !m_ifile.empty();
-            cnt += !m_eval.empty();
+            //            cnt += !m_eval.empty();
 
             if (cnt > 1) {
                 m_mode = Mode::ModeError;
@@ -313,16 +313,38 @@ namespace newlang {
                     //                        break;
                     //                }
                 } else if (m_mode == Mode::ModeEval) {
-                    if (!m_eval.empty() && !m_ifile.empty()) {
-                        LOG_RUNTIME("Error at the same time specified a source file '%s' and an expression '%s' !", m_ifile.c_str(), m_eval.c_str());
-                    } else if (!m_ifile.empty()) {
-                        m_eval = ReadFile(m_ifile.c_str());
-                        if (m_eval.empty()) {
+
+                    Obj *arg_ptr = nullptr;
+                    ObjPtr dict = Obj::CreateType(ObjType::Dictionary, ObjType::Dictionary, true);
+                    std::string source;
+                    if (!m_ifile.empty()) {
+                        source = ReadFile(m_ifile.c_str());
+                        if (source.empty()) {
                             LOG_RUNTIME("Fail read or empty source file '%s'!", m_ifile.c_str());
                         }
+
+                        if (!m_eval.empty()) {
+                            std::vector<std::string > a = Context::SplitString(m_eval.c_str(), " ");
+
+                            for (int i = 0; i < a.size(); i++) {
+                                std::vector<std::string> split = Context::SplitString(a[i].c_str(), "=");
+                                if (split.size() > 1) {
+                                    dict->push_back(Obj::CreateString(split[0]), &a[i][split[0].size() + 1]);
+                                } else {
+                                    dict->push_back(Obj::CreateString(a[i]));
+                                }
+                            }
+                        }
+                        arg_ptr = dict.get();
+
+                    } else {
+                        source = m_eval;
+                        arg_ptr = m_args.get();
                     }
 
-                    ObjPtr result = m_ctx.ExecStr(m_eval, m_args.get(), Context::CatchType::CATCH_AUTO);
+
+
+                    ObjPtr result = m_ctx.ExecStr(source, arg_ptr, Context::CatchType::CATCH_AUTO);
 
                     if (result && m_local_vars.find(result.get()) == m_local_vars.end()) {
                         m_local_vars[result.get()] = result;
@@ -403,14 +425,14 @@ namespace newlang {
             int64_t offset = 0;
 
             color_print("Type ", predict_color);
-            color_print("help()", main_color);
-            color_print("<Enter> for help about ", predict_color);
-            color_print("NewLang", title_color);
-            color_print(" syntax and commands or ", predict_color);
+//            color_print("help()", main_color);
+//            color_print("<Enter> for help about ", predict_color);
+//            color_print("NewLang", title_color);
+//            color_print(" syntax and commands or ", predict_color);
             color_print("--", main_color);
             color_print("<Enter> (or ", predict_color);
             color_print("++", main_color);
-            color_print("<Enter>) to exit the program.\n", predict_color);
+            color_print("<Enter>) for exit the program.\n", predict_color);
 
             // Calculate title length
             int title_len = (short) strlen(title);

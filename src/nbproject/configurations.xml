@@ -80,6 +80,7 @@
     <logicalFolder name="ResourceFiles"
                    displayName="Файлы ресурсов"
                    projectFiles="true">
+      <itemPath>dsl.cpp</itemPath>
       <itemPath>../contrib/googletest/googletest/src/gtest-all.cc</itemPath>
       <itemPath>lexer.yy.cpp</itemPath>
       <itemPath>lexer.yy.h</itemPath>
@@ -286,6 +287,8 @@
         </ccTool>
       </item>
       <item path="context.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="dsl.cpp" ex="false" tool="1" flavor2="0">
       </item>
       <item path="lexer.cpp" ex="false" tool="1" flavor2="9">
         <ccTool>
@@ -638,6 +641,8 @@
       </item>
       <item path="context.h" ex="false" tool="3" flavor2="0">
       </item>
+      <item path="dsl.cpp" ex="false" tool="1" flavor2="0">
+      </item>
       <item path="lexer.cpp" ex="false" tool="1" flavor2="0">
         <ccTool>
           <commandLine>-include-pch pch.h.pch</commandLine>
@@ -964,6 +969,8 @@
       </item>
       <item path="context.h" ex="false" tool="3" flavor2="0">
       </item>
+      <item path="dsl.cpp" ex="false" tool="1" flavor2="0">
+      </item>
       <item path="lexer.cpp" ex="false" tool="1" flavor2="9">
         <ccTool>
           <additionalDep>parser.yy.h parser.yy.cpp location.hh</additionalDep>
@@ -1248,6 +1255,8 @@
         <customTool>
           <customToolAdditionalDep>pch.h.gch</customToolAdditionalDep>
         </customTool>
+      </item>
+      <item path="dsl.cpp" ex="false" tool="1" flavor2="0">
       </item>
       <item path="lexer.cpp" ex="false" tool="1" flavor2="9">
         <ccTool>
@@ -1593,6 +1602,8 @@
         <customTool>
           <customToolAdditionalDep>pch.h.gch</customToolAdditionalDep>
         </customTool>
+      </item>
+      <item path="dsl.cpp" ex="false" tool="1" flavor2="0">
       </item>
       <item path="lexer.cpp" ex="false" tool="1" flavor2="9">
         <ccTool>

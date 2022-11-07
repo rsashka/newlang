@@ -1,27 +1,23 @@
 #!../output/nlc --eval
 
-## An example of the implementation of DSL (domain-specific language) with keywords in English
-## Macro recording syntax: Macro name start: "\\name" body end: "\\\", substitution of one argument \$1 (or \$arg by name)
-## or all arguments at once \$*. Example:
-## \\name body macro no args\\\ # End macro body
-## \\macro(arg, ...) body macro form args as function call an use: \$arg or \$1 or \$* for all args \\\ # End macro body
-
-
 \\true 1:Bool\\\
 \\yes 1:Bool\\\
 
 \\false 0:Bool\\\
 \\no 0:Bool\\\
 
-\\this $0\\\  ///< This object $0 or \\this
-\\parent $$\\\ ///< Parent object $$ or \\parent
+\\this $0\\\  
 
-\\args $\*\\\
+\\parent $$\\\ 
+
+\\args \$*\\\
 \\sys @@\\\
 \\current @$\\\
 \\cmd @*\\\
 
-\\destructor() _____ ::= \\\ ///< Destructor of object or module ______(). Reserved system name 5 handwriting (handwriting between double handwriting)
+\\run(...) @@(\$*)\\\
+\\ifmain [@$.$0]-->\\\
+\\ifload [@$.__load__]-->\\\
 
 \\match(cond) [\$cond]\\\
 \\if(...) [\$*]-->\\\
@@ -41,3 +37,5 @@
 
 \\error --\\\
 \\error(value) --\$value--\\\
+
+'OK'
