@@ -1,6 +1,6 @@
 #ifndef __LIST2CPP_newlang_dsl
 #define __LIST2CPP_newlang_dsl
-inline constexpr unsigned long newlang_dsl_size = 41;
+inline constexpr unsigned long newlang_dsl_size = 48;
 
 inline const char *newlang_dsl_arr[newlang_dsl_size] = {
 "#!../output/nlc --eval",
@@ -31,6 +31,13 @@ inline const char *newlang_dsl_arr[newlang_dsl_size] = {
 "",
 "\\\\while(cond) [\\$cond] <->\\\\\\",
 "\\\\dowhile(cond) <->[\\$cond]\\\\\\",
+"",
+"\\\\iter(obj, ... ) \\$obj ? (\\$*) \\\\\\",
+"\\\\next(obj, ... ) \\$obj ! (\\$*) \\\\\\",
+"\\\\curr(obj, ... ) \\$obj !? (\\$*) \\\\\\",
+"\\\\first(obj) \\$obj !! \\\\\\",
+"\\\\all(obj)   \\$obj ?? \\\\\\",
+"",
 "",
 "\\\\break+  ++:Break++\\\\\\",
 "\\\\break-  --:Break--\\\\\\",

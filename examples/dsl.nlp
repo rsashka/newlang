@@ -27,6 +27,13 @@
 \\while(cond) [\$cond] <->\\\
 \\dowhile(cond) <->[\$cond]\\\
 
+\\iter(obj, ... ) \$obj ? (\$*) \\\
+\\next(obj, ... ) \$obj ! (\$*) \\\
+\\curr(obj, ... ) \$obj !? (\$*) \\\
+\\first(obj) \$obj !! \\\
+\\all(obj)   \$obj ?? \\\
+
+
 \\break+  ++:Break++\\\
 \\break-  --:Break--\\\
 \\continue+  ++:Continue++\\\
