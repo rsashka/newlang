@@ -887,6 +887,7 @@ std::string Obj::toString(bool deep) const {
                 result += ")";
                 return result;
 
+            case ObjType::Module:
             case ObjType::Dictionary: // name:=(1,second="two",3,<EMPTY>,5)
                 result += "(";
                 dump_dict_(result);
@@ -1004,6 +1005,26 @@ std::string Obj::toString(bool deep) const {
             case ObjType::Iterator:
             case ObjType::IteratorEnd:
                 return newlang::toString(m_var_type_current);
+
+            case ObjType::Context:
+            {
+                Context * ctx = (Context *)this;
+
+                ObjPtr temp = Obj::CreateType(ObjType::Dictionary, ObjType::Dictionary, true);
+                temp->m_var_name = "$$";
+
+                auto iter = ctx->begin();
+                while(iter != ctx->end()) {
+                    if(!iter->second.expired()) {
+                        temp->push_back(Obj::CreateString(iter->first));
+                        iter++;
+                    } else {
+                        iter = ctx->ListType::erase(iter);
+                    }
+                }
+
+                return temp->toString();
+            }
         }
     }
     LOG_RUNTIME("Unknown type '%s' (%d)", newlang::toString(m_var_type_current), (int) m_var_type_current);
@@ -1306,11 +1327,13 @@ ObjPtr Obj::Call(Context *ctx, Obj * args, bool direct, ObjPtr self) {
         ObjPtr result;
         if(m_var_type_current == ObjType::Function) {
             ASSERT(at::holds_alternative<void *>(m_var));
+            ASSERT(at::get<void *>(m_var));
             result = (*reinterpret_cast<FunctionType *> (at::get<void *>(m_var)))(ctx, *param.get()); // Непосредственно вызов функции
         } else if(m_var_type_current == ObjType::PureFunc || (m_var_type_current == ObjType::Type)) {
             //            if(!at::holds_alternative<void *>(m_var)) {
             //                LOG_DEBUG("%s", toString().c_str());
             ASSERT(at::holds_alternative<void *>(m_var));
+            ASSERT(at::get<void *>(m_var));
             //            }
             result = (*reinterpret_cast<TransparentType *> (at::get<void *>(m_var)))(ctx, *param.get()); // Непосредственно вызов функции
         } else if(m_var_type_current == ObjType::NativeFunc) {
@@ -1481,7 +1504,7 @@ void Obj::ConvertToArgs_(Obj *in, bool check_valid, Context * ctx) {
                     }
                 }
 
-                LOG_DEBUG("%s", (*in)[i].second->toString().c_str());
+//                LOG_DEBUG("%s", (*in)[i].second->toString().c_str());
 
                 at(i).second->op_assign((*in)[i].second->toType(base_type));
             } else {
@@ -3641,12 +3664,12 @@ ObjPtr newlang::CheckSystemField(const Obj *obj, std::string name) {
 
     static const char * SYS__DOC__ = "__doc__";
     static const char * SYS__STR__ = "__str__";
+    static const char * SYS__SOURCE__ = "__source__";
 
     static const char * MODULE__MD5__ = "__md5__";
     static const char * MODULE__FILE__ = "__file__";
     static const char * MODULE__TIMESTAMP__ = "__timestamp__";
     static const char * MODULE__MAIN__ = "__main__";
-    static const char * MODULE__SOURCE__ = "__source__";
 
     if(!isSystemName(name)) {
         return nullptr;
@@ -3668,12 +3691,15 @@ ObjPtr newlang::CheckSystemField(const Obj *obj, std::string name) {
         return Obj::CreateDict(obj->m_class_parents);
     } else if(name.compare(SYS__MOULE__) == 0) {
         return Obj::CreateString(obj->m_var_name);
+    } else if(name.compare(SYS__SIZE__) == 0) {
+        return Obj::CreateValue(obj->size());
     } else if(name.compare(SYS__DOC__) == 0) {
         return Obj::CreateString(GetDoc(obj->m_var_name));
     } else if(name.compare(SYS__STR__) == 0) {
         return Obj::CreateString(obj->toString());
-    } else if(name.compare(SYS__SIZE__) == 0) {
-        return Obj::CreateValue(obj->size());
+    } else if(name.compare(SYS__SOURCE__) == 0 && obj->m_var_type_current != ObjType::Module) {
+        // @todo Тут должен возвращаться код для создания аналогичного объекта
+        return Obj::CreateString(obj->toString());
     } else {
 
         if(obj->m_var_type_current == ObjType::Module) {
@@ -3687,7 +3713,7 @@ ObjPtr newlang::CheckSystemField(const Obj *obj, std::string name) {
                 return Obj::CreateString(mod->m_timestamp);
             } else if(name.compare(MODULE__MAIN__) == 0) {
                 return Obj::CreateBool(mod->m_is_main);
-            } else if(name.compare(MODULE__SOURCE__) == 0) {
+            } else if(name.compare(SYS__SOURCE__) == 0) {
                 return Obj::CreateString(mod->m_source);
             }
         }

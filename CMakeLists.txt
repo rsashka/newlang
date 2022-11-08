@@ -16,6 +16,7 @@ get_directory_property(IS_SUBPROJECT PARENT_DIRECTORY)
 # cmake -DBUILD_TEST=O
 
 
+
 option(MYLIB_TESTING "Включить модульное тестирование" ON)
 option(MYLIB_COVERAGE "Включить измерение покрытия кода тестами" OFF)
 
@@ -107,7 +108,7 @@ link_libraries(
     torch 
     torch_cpu 
     crypto
-    LLVM-13
+    LLVM-15
     )
 
 set(EXECUTABLE_OUTPUT_PATH ${CMAKE_SOURCE_DIR})
@@ -122,7 +123,7 @@ target_sources(newlang-unit-tests PRIVATE ${TEST_SRC})
 
 
 ADD_DEFINITIONS(-DLOG_LEVEL_NORMAL=LOG_LEVEL_DEBUG)
-ADD_DEFINITIONS(-DPDC_WIDE)
+# ADD_DEFINITIONS(-DPDC_WIDE)
 ADD_DEFINITIONS(-DDEBUG)
 
 target_compile_options(newlang-unit-tests PRIVATE -DUNITTEST)
@@ -156,7 +157,7 @@ endif()
 target_sources(newlang-unit-tests PRIVATE contrib/googletest/googletest/src/gtest_main.cc)
 target_sources(newlang-unit-tests PRIVATE contrib/googletest/googletest/src/gtest-all.cc)
 
-target_include_directories(newlang-unit-tests PUBLIC contrib/libffi/win64/include)
+# target_include_directories(newlang-unit-tests PUBLIC contrib/libffi/win64/include)
 
 target_include_directories(newlang-unit-tests PUBLIC contrib/googletest/googletest)
 target_include_directories(newlang-unit-tests PUBLIC contrib/googletest/googletest/include)
@@ -167,6 +168,7 @@ include_directories(
     contrib/libtorch/include/torch/csrc/api/include
     contrib/libtorch/include
     contrib/tensorboard_logger/include
+    /usr/include
     # /usr/lib/llvm-13/include
     )
 

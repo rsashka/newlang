@@ -30,10 +30,10 @@
 #pragma comment(lib, "clangAST.lib")
 #pragma comment(lib, "clangLex.lib")
 #pragma comment(lib, "clangBasic.lib")
-*/
+ */
 
 
-//#pragma comment(lib, "LLVMSupport.lib")
+#pragma comment(lib, "LLVMSupport.lib")
 
 #pragma comment(lib, "LLVM-C.lib")
 
@@ -72,15 +72,27 @@ int main(int argc, char **argv) {
     // Чтобы убрать этот coredump вместо нормального завершения main вызываю _exit, чтобы 
     // все остальные функции освобождения памяти не вызывались при завершении процесса.
 
-//    return RUN_ALL_TESTS();
+    //    return RUN_ALL_TESTS();
     _exit(RUN_ALL_TESTS());
 }
 
 #else
 
+// Для теста 
+char convert(char c) {
+    if(c == 'A') return 'C';
+    if(c == 'C') return 'G';
+    if(c == 'G') return 'T';
+    if(c == 'T') return 'A';
+    return ' ';
+}
+
 int main(int argc, char** argv) {
+
+    LLVMAddSymbol("convert", (void *) &convert);
+
     newlang::NLC nlc(argc, (const char **) argv);
-//    return nlc.Run();
+    //    return nlc.Run();
     _exit(nlc.Run());
 }
 

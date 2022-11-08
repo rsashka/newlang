@@ -1,71 +1,20 @@
 {
-    // Используйте IntelliSense, чтобы узнать о возможных атрибутах.
-    // Наведите указатель мыши, чтобы просмотреть описания существующих атрибутов.
-    // Для получения дополнительной информации посетите: https://go.microsoft.com/fwlink/?linkid=830387
+    // Use IntelliSense to learn about possible attributes.
+    // Hover to view descriptions of existing attributes.
+    // For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
     "version": "0.2.0",
     "configurations": [
-        
-        // {
-        //     "type": "gdb",
-        //     "request": "launch",
-        //     "name": "Launch UnitTest",
-        //     "target": "${workspaceFolder}/newlang-unit-tests",
-        //     "cwd": "${workspaceRoot}",
-        //     "valuesFormatting": "parseText"
-        // },
-        // "configurations": [
-        // {
-        //     "name": "clang++ - Build and debug active file",
-        //     "type": "cppdbg",
-        //     "request": "launch",
-        //     "program": "${fileDirname}/${fileBasenameNoExtension}",
-        //     "args": [],
-        //     "stopAtEntry": false,
-        //     "cwd": "${workspaceFolder}",
-        //     "environment": [],
-        //     "externalConsole": false,
-        //     "MIMode": "lldb",
-        //     "setupCommands": [
-        //         {
-        //             "description": "Enable pretty-printing for gdb",
-        //             "text": "-enable-pretty-printing",
-        //             "ignoreFailures": true
-        //         }
-        //     ],
-        //     "preLaunchTask": "C/C++: clang++ build active file",
-        //     "miDebuggerPath": "/usr/bin/lldb-mi"
-        // },
         {
-            "type": "lldb",
+            "name": "clang++ - Build and debug active file",
+            "type": "cppdbg",
             "request": "launch",
-            "name": "Debug",
-            "program": "${workspaceFolder}/newlang-unit-tests",
-            "args": [
-                "--gtest_shuffle",
-                "--gtest_filter=Types.Convert:Eval.Tensor:Eval.Assign:ParserTest.Tensor1",
-            ],
-            "cwd": "${workspaceFolder}/src",
+            "program": "${fileDirname}/${fileBasenameNoExtension}",
+            "args": [],
             "stopAtEntry": false,
-            "environment": [
-                // {"name":"LD_LIBRARY_PATH","value": "$LD_LIBRARY_PATH;${workspaceFolder}/contrib/libtorch/lib"},
-            ],
-            "externalConsole": true,
-            "preLaunchTask": "Build Debug",
-            // "linux": {
-            //     "MIMode": "lldb",
-            //     "stopAtEntry": false,
-            //     "stopAtConnect": false,
-            // },
-            // "symbolSearchPath": "${workspaceFolder}/contrib/libtorch/lib",
-            // "additionalSOLibSearchPath":"${workspaceFolder}/contrib/libtorch/lib",
-            // "logging": {
-            //     "moduleLoad": false,
-            //     "trace": true
-            // },
-            // "sourceFileMap": {
-            //     "${workspaceFolder}/src": "${workspaceFolder}/src",
-            //     "/build/gcc-4.8-fNUjSI/gcc-4.8-4.8.4/build/i686-linux-gnu/libstdc++-v3/include": "/usr/include/c++/4.8"
-            // },
+            "cwd": "${workspaceFolder}",
+            "environment": [],
+            "externalConsole": false,
+            "MIMode": "lldb",
             "setupCommands": [
                 {
                     "description": "Enable pretty-printing for gdb",
@@ -73,7 +22,89 @@
                     "ignoreFailures": true
                 }
             ],
-            // "preLaunchTask": "C/C++: clang++.exe build active file"
+            "preLaunchTask": "C/C++: clang++ build active file",
+            "miDebuggerPath": "/usr/bin/lldb-mi"
         }
     ]
 }
+
+// {
+//     // Используйте IntelliSense, чтобы узнать о возможных атрибутах.
+//     // Наведите указатель мыши, чтобы просмотреть описания существующих атрибутов.
+//     // Для получения дополнительной информации посетите: https://go.microsoft.com/fwlink/?linkid=830387
+//     "version": "0.2.0",
+//     "configurations": [
+        
+//         // {
+//         //     "type": "gdb",
+//         //     "request": "launch",
+//         //     "name": "Launch UnitTest",
+//         //     "target": "${workspaceFolder}/newlang-unit-tests",
+//         //     "cwd": "${workspaceRoot}",
+//         //     "valuesFormatting": "parseText"
+//         // },
+//         // "configurations": [
+//         // {
+//         //     "name": "clang++ - Build and debug active file",
+//         //     "type": "cppdbg",
+//         //     "request": "launch",
+//         //     "program": "${fileDirname}/${fileBasenameNoExtension}",
+//         //     "args": [],
+//         //     "stopAtEntry": false,
+//         //     "cwd": "${workspaceFolder}",
+//         //     "environment": [],
+//         //     "externalConsole": false,
+//         //     "MIMode": "lldb",
+//         //     "setupCommands": [
+//         //         {
+//         //             "description": "Enable pretty-printing for gdb",
+//         //             "text": "-enable-pretty-printing",
+//         //             "ignoreFailures": true
+//         //         }
+//         //     ],
+//         //     "preLaunchTask": "C/C++: clang++ build active file",
+//         //     "miDebuggerPath": "/usr/bin/lldb-mi"
+//         // },
+//         {
+//             "type": "lldb",
+//             "request": "launch",
+//             "name": "Debug",
+//             "program": "${workspaceFolder}/newlang-unit-tests",
+//             "args": [
+//                 "--gtest_shuffle",
+//                 "--gtest_filter=Types.Convert:Eval.Tensor:Eval.Assign:ParserTest.Tensor1",
+//             ],
+//             "cwd": "${workspaceFolder}/src",
+//             "stopAtEntry": false,
+//             "environment": [
+//                 // {"name":"LD_LIBRARY_PATH","value": "$LD_LIBRARY_PATH;${workspaceFolder}/contrib/libtorch/lib"},
+//             ],
+//             "externalConsole": true,
+//             "preLaunchTask": "Build Debug",
+//             // "linux": {
+//             //     "MIMode": "lldb",
+//             //     "stopAtEntry": false,
+//             //     "stopAtConnect": false,
+//             // },
+//             // "symbolSearchPath": "${workspaceFolder}/contrib/libtorch/lib",
+//             // "additionalSOLibSearchPath":"${workspaceFolder}/contrib/libtorch/lib",
+//             // "logging": {
+//             //     "moduleLoad": false,
+//             //     "trace": true
+//             // },
+//             // "sourceFileMap": {
+//             //     "${workspaceFolder}/src": "${workspaceFolder}/src",
+//             //     "/build/gcc-4.8-fNUjSI/gcc-4.8-4.8.4/build/i686-linux-gnu/libstdc++-v3/include": "/usr/include/c++/4.8"
+//             // },
+//             "setupCommands": [
+//                 {
+//                     "description": "Enable pretty-printing for gdb",
+//                     "text": "-enable-pretty-printing",
+//                     "ignoreFailures": true
+//                 }
+//             ],
+//             // "preLaunchTask": "C/C++: clang++.exe build active file"
+//         }
+//     ]
+// }
+

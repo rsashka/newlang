@@ -24,8 +24,8 @@ TEST(Eval, Assign) {
 
     Context ctx(RunTime::Init());
 
-    ObjPtr list = ctx.ExecStr("$");
-    ASSERT_STREQ("$=(,)", list->toString().c_str());
+    ObjPtr list = ctx.ExecStr("$$");
+    ASSERT_STREQ("$$=(,)", list->toString().c_str());
 
     ObjPtr var1 = ctx.ExecStr("var1 ::= 123");
     ASSERT_TRUE(var1);
@@ -37,8 +37,8 @@ TEST(Eval, Assign) {
     ASSERT_STREQ("var1=123", var1->toString().c_str());
     ASSERT_FALSE(ctx.find("var1") == ctx.end());
 
-    list = ctx.ExecStr("$");
-    ASSERT_STREQ("$=('var1',)", list->toString().c_str());
+    list = ctx.ExecStr("$$");
+    ASSERT_STREQ("$$=('var1',)", list->toString().c_str());
 
     ASSERT_THROW(ctx.ExecStr("var1 ::= 123"), Return);
 
@@ -56,15 +56,15 @@ TEST(Eval, Assign) {
     ASSERT_STREQ("var1=_", var1->toString().c_str());
     ASSERT_FALSE(ctx.find("var1") == ctx.end());
 
-    list = ctx.ExecStr("$");
-    ASSERT_STREQ("$=('var1',)", list->toString().c_str());
+    list = ctx.ExecStr("$$");
+    ASSERT_STREQ("$$=('var1',)", list->toString().c_str());
 
     //    ASSERT_TRUE(ctx.ExecStr("var1 = "));
     //    ASSERT_TRUE(ctx.select("var1").complete());
     ctx.clear_();
 
-    list = ctx.ExecStr("$");
-    ASSERT_STREQ("$=(,)", list->toString().c_str());
+    list = ctx.ExecStr("$$");
+    ASSERT_STREQ("$$=(,)", list->toString().c_str());
 
     ObjPtr var_str = ctx.ExecStr("var_str := 'Строка'");
     ASSERT_TRUE(var_str);
@@ -74,8 +74,8 @@ TEST(Eval, Assign) {
     ASSERT_STREQ("var_str='Строка'", var_str->toString().c_str());
     ASSERT_FALSE(ctx.find("var_str") == ctx.end());
 
-    list = ctx.ExecStr("$");
-    ASSERT_STREQ("$=('var_str',)", list->toString().c_str());
+    list = ctx.ExecStr("$$");
+    ASSERT_STREQ("$$=('var_str',)", list->toString().c_str());
 
     ObjPtr var_num = ctx.ExecStr("$var_num := 123.456: Single");
     ASSERT_TRUE(var_num);
@@ -85,8 +85,8 @@ TEST(Eval, Assign) {
     //    ASSERT_EQ(var_num->m_var_type_fixed, ObjType::Float);
     ASSERT_STREQ("var_num=123.456", var_num->toString().c_str());
 
-    list = ctx.ExecStr("$");
-    ASSERT_STREQ("$=('var_str', 'var_num',)", list->toString().c_str());
+    list = ctx.ExecStr("$$");
+    ASSERT_STREQ("$$=('var_str', 'var_num',)", list->toString().c_str());
 
 
     LLVMAddSymbol("var_long", &var_long);
@@ -104,8 +104,8 @@ TEST(Eval, Assign) {
     var_export->SetValue_(Obj::CreateValue(59875, ObjType::None));
     ASSERT_EQ(59875, var_long);
 
-    list = ctx.ExecStr("$");
-    ASSERT_STREQ("$=('var_str', 'var_num', 'var_export',)", list->toString().c_str());
+    list = ctx.ExecStr("$$");
+    ASSERT_STREQ("$$=('var_str', 'var_num', 'var_export',)", list->toString().c_str());
 
     ObjPtr func_export = ctx.ExecStr("$func_export := :Pointer(\"func_export(arg1:Int64, arg2:Int8=100):Int64\")");
     ASSERT_TRUE(func_export);
@@ -128,28 +128,28 @@ TEST(Eval, Assign) {
     // Переполнение второго аргумента
     ASSERT_ANY_THROW(func_export->Call(&ctx, Obj::Arg(1000), Obj::Arg(1000)));
 
-    list = ctx.ExecStr("$");
-    ASSERT_STREQ("$=('var_str', 'var_num', 'var_export', 'func_export',)", list->toString().c_str());
+    list = ctx.ExecStr("$$");
+    ASSERT_STREQ("$$=('var_str', 'var_num', 'var_export', 'func_export',)", list->toString().c_str());
 
     var_num.reset();
     func_export.reset();
 
-    list = ctx.ExecStr("$");
-    ASSERT_STREQ("$=('var_str', 'var_export',)", list->toString().c_str());
+    list = ctx.ExecStr("$$");
+    ASSERT_STREQ("$$=('var_str', 'var_export',)", list->toString().c_str());
 
     // Функция возвращает словарь с именами объектов в текущем контексте
-    ObjPtr func_eval = ctx.ExecStr("func_eval(arg1, arg2) := {$;}");
+    ObjPtr func_eval = ctx.ExecStr("func_eval(arg1, arg2) := {$$;}");
     ASSERT_TRUE(func_eval);
     ASSERT_TRUE(func_eval->is_function_type()) << func_eval;
     ASSERT_EQ(func_eval->getType(), ObjType::EVAL_FUNCTION) << toString(func_eval->getType());
-    ASSERT_STREQ("func_eval=func_eval(arg1, arg2):={$;}", func_eval->toString().c_str());
+    ASSERT_STREQ("func_eval=func_eval(arg1, arg2):={$$;}", func_eval->toString().c_str());
 
     ObjPtr result_eval = func_eval->Call(&ctx, Obj::Arg(200), Obj::Arg(10));
     ASSERT_TRUE(result_eval);
-    ASSERT_STREQ("$=('$0', 'arg1', 'arg2', 'var_str', 'var_export', 'func_eval',)", result_eval->toString().c_str());
+    ASSERT_STREQ("$$=('$0', 'arg1', 'arg2', 'var_str', 'var_export', 'func_eval',)", result_eval->toString().c_str());
 
-    list = ctx.ExecStr("$");
-    ASSERT_STREQ("$=('var_str', 'var_export', 'func_eval',)", list->toString().c_str());
+    list = ctx.ExecStr("$$");
+    ASSERT_STREQ("$$=('var_str', 'var_export', 'func_eval',)", list->toString().c_str());
 
 
     ObjPtr dict1 = ctx.ExecStr("(10, 2,  3,   4,   )");
@@ -1433,7 +1433,7 @@ TEST_F(EvalTester, Ops) {
     ASSERT_STREQ("100", Test("$var1:=100"));
     ObjPtr var1 = m_result;
     ASSERT_TRUE(var1);
-    ASSERT_STREQ("$=('var1',)", Test("$"));
+    ASSERT_STREQ("$$=('var1',)", Test("$$"));
     ASSERT_STREQ("100", Test("var1"));
 
     ObjPtr vars = Obj::CreateDict(Obj::Arg(var1, "var1"));
@@ -1445,7 +1445,7 @@ TEST_F(EvalTester, Ops) {
     ASSERT_STREQ("20", Test("$var2:=9+11"));
     ObjPtr var2 = m_result;
     ASSERT_TRUE(var2);
-    ASSERT_STREQ("$=('var1', 'var2',)", Test("$"));
+    ASSERT_STREQ("$$=('var1', 'var2',)", Test("$$"));
     ASSERT_STREQ("20", Test("var2"));
 
     ASSERT_ANY_THROW(Test("$var2"));
@@ -1457,7 +1457,7 @@ TEST_F(EvalTester, Ops) {
 
     ASSERT_STREQ("100", Test("var1"));
     ASSERT_STREQ("120", Test("var1+=var2"));
-    ASSERT_STREQ("$=('var1', 'var2',)", Test("$"));
+    ASSERT_STREQ("$$=('var1', 'var2',)", Test("$$"));
 
     ASSERT_ANY_THROW(Test("$var1"));
     ASSERT_NO_THROW(Test("$var1", vars.get()));
@@ -1466,9 +1466,9 @@ TEST_F(EvalTester, Ops) {
     vars->clear_();
     m_result.reset();
     var1.reset();
-    ASSERT_STREQ("$=('var2',)", Test("$"));
+    ASSERT_STREQ("$$=('var2',)", Test("$$"));
     var2.reset();
-    ASSERT_STREQ("$=(,)", Test("$"));
+    ASSERT_STREQ("$$=(,)", Test("$$"));
 }
 
 TEST(EvalOp, InstanceName) {

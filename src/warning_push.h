@@ -65,6 +65,7 @@
 #pragma warning(disable : 4014)
 #pragma warning(disable : 4067)
 #pragma warning(disable : 4005)
+#pragma warning(disable : 4146)
 
 #endif
 

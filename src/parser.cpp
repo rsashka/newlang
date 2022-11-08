@@ -51,7 +51,7 @@ bool Parser::parse_file(const std::string filename) {
     if(ec) {
         m_file_time = "??? ??? ?? ??:??:?? ????";
     } else {
-        time_t temp = std::chrono::system_clock::to_time_t(fs.getLastModificationTime());
+        time_t temp = llvm::sys::toTimeT(fs.getLastModificationTime());
         struct tm * timeinfo;
         timeinfo = localtime(&temp);
         m_file_time = asctime(timeinfo);

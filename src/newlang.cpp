@@ -1280,7 +1280,7 @@ std::shared_ptr<Module> RunTime::LoadModule(Context &ctx, const char *term, bool
 
             std::string full_path = search_file.c_str();
             if(llvm::sys::path::is_relative(full_path)) {
-                full_path.insert(0, llvm::sys::path::get_separator());
+                full_path.insert(0, llvm::sys::path::get_separator().str());
                 full_path.insert(0, m_work_dir);
             }
 
