@@ -11,6 +11,56 @@
 
 namespace newlang {
 
+    struct LexerToken {
+        parser::token_type type;
+        TermPtr term;
+        parser::location_type loc;
+    };
+
+    typedef std::deque<LexerToken> LexerTokenType;
+
+    struct MacroToken {
+        size_t level;
+        TermPtr term;
+    };
+
+    //    typedef std::map<std::string, MacroToken> MacroTokenType;
+
+    class MacroBuffer : SCOPE(protected) std::map<std::string, MacroToken> {
+    public:
+
+        static std::string toHash(const TermPtr &term);
+
+        void Append(const TermPtr &term, size_t level);
+        bool Remove(const TermPtr &term);
+
+        void Clear(size_t level) {
+            auto iter = begin();
+            while (iter != end()) {
+                if (iter->second.level >= level) {
+                    iter = erase(iter);
+                } else {
+                    iter++;
+                }
+            }
+        }
+
+        std::string Dump();
+
+        std::string Convert(LexerTokenType &buffer);
+
+        bool isExist(const std::string &str) {
+            return find(str) != end();
+        }
+
+        bool isExist(const TermPtr &term) {
+            return find(toHash(term)) != end();
+        }
+
+        //        SCOPE(private) :
+        //        MacroTokenType m_store;
+    };
+
     /** The Driver class brings together all components. It creates an instance of
      * the Parser and Scanner classes and connects them. Then the input stream is
      * fed into the scanner object and the parser gets it's token
@@ -78,15 +128,40 @@ namespace newlang {
         void AstAddTerm(TermPtr &term);
 
 
+        LexerTokenType m_prep_buff;
+
+        parser::token_type NewToken(TermPtr * yylval, parser::location_type* yylloc);
+        void MacroLevelBegin(TermPtr &term);
+        void MacroLevelEnd(TermPtr &term);
+        void MacroTerm(TermPtr &term);
+        void Warning(TermPtr &term, const char *id, const char *message);
+
         typedef std::vector<std::string> MacrosArgs;
         typedef std::map<std::string, std::string, std::greater<std::string>> MacrosStore;
+
+        void Init(MacroBuffer *macro) {
+            time_t rawtime;
+            struct tm * timeinfo;
+            time(&rawtime);
+            timeinfo = localtime(&rawtime);
+            m_time = asctime(timeinfo);
+
+            m_is_runing = false;
+            m_is_done = false;
+            m_macro_level = 0;
+
+            m_file_name = "";
+            m_file_time = "??? ??? ?? ??:??:?? ????";
+            m_md5 = "??????????????????????????????";
+            m_macro = macro;
+        }
 
         static const std::string MACROS_START;
         static const std::string MACROS_END;
 
 
-        TermPtr Parse(const std::string str, MacrosStore *store = nullptr);
-        static TermPtr ParseString(const std::string str, MacrosStore *store = nullptr);
+        TermPtr Parse(const std::string str, MacrosStore *store = nullptr, MacroBuffer *macro = nullptr);
+        static TermPtr ParseString(const std::string str, MacrosStore *store = nullptr, MacroBuffer *macro = nullptr);
 
         static inline std::string ParseMacroName(const std::string &body) {
             // имя макроса должно быть в самом начале строки без пробелов и начинаться на один слешь
@@ -320,6 +395,10 @@ namespace newlang {
 
     private:
         TermPtr &m_ast;
+        bool m_is_runing;
+        bool m_is_done;
+        size_t m_macro_level;
+        MacroBuffer *m_macro;
 
     };
 

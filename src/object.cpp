@@ -3670,6 +3670,7 @@ ObjPtr newlang::CheckSystemField(const Obj *obj, std::string name) {
     static const char * MODULE__FILE__ = "__file__";
     static const char * MODULE__TIMESTAMP__ = "__timestamp__";
     static const char * MODULE__MAIN__ = "__main__";
+    static const char * MODULE__VERSION__ = "__version__";
 
     if(!isSystemName(name)) {
         return nullptr;
@@ -3711,6 +3712,8 @@ ObjPtr newlang::CheckSystemField(const Obj *obj, std::string name) {
                 return Obj::CreateString(mod->m_file);
             } else if(name.compare(MODULE__TIMESTAMP__) == 0) {
                 return Obj::CreateString(mod->m_timestamp);
+            } else if(name.compare(MODULE__VERSION__) == 0) {
+                return Obj::CreateString(mod->m_version);
             } else if(name.compare(MODULE__MAIN__) == 0) {
                 return Obj::CreateBool(mod->m_is_main);
             } else if(name.compare(SYS__SOURCE__) == 0) {

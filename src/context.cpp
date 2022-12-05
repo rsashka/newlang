@@ -452,6 +452,11 @@ ObjPtr Context::eval_BLOCK_MINUS(Context *ctx, const TermPtr &term, Obj *args, b
     return obj;
 }
 
+ObjPtr Context::eval_ALIAS(Context *ctx, const TermPtr &term, Obj *args, bool eval_block) {
+    LOG_ERROR("ALIAS %s not found!", term->toString().c_str());
+    return Obj::CreateNone();
+}
+
 ObjPtr Context::eval_MACRO(Context *ctx, const TermPtr &term, Obj *args, bool eval_block) {
     LOG_ERROR("Macro %s not found!", term->toString().c_str());
     return Obj::CreateNone();
@@ -461,6 +466,11 @@ ObjPtr Context::eval_MACRO_BODY(Context *ctx, const TermPtr &term, Obj *args, bo
     LOG_RUNTIME("eval_MACRO_BODY: %s", term->toString().c_str());
 
     return nullptr;
+}
+
+ObjPtr Context::eval_MACRO_DEL(Context *ctx, const TermPtr &term, Obj *args, bool eval_block) {
+    LOG_ERROR("Macro DEL %s not found!", term->toString().c_str());
+    return Obj::CreateNone();
 }
 
 ObjPtr Context::eval_PARENT(Context *ctx, const TermPtr &term, Obj *args, bool eval_block) {

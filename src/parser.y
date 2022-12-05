@@ -13,8 +13,9 @@
  * object. it defines the yylex() function call to pull the next token from the
  * current lexer object of the driver context. */
 #undef yylex
-#define yylex driver.lexer->lex
-    
+#define yylex driver.NewToken
+    //driver.lexer->lex
+
 #define YYDEBUG 1
     
 %}
@@ -155,8 +156,11 @@
 %token			NEWLANG		"@@"
 %token			PARENT		"$$"
 %token			ARGS		"$*"
+%token			ALIAS		"Alias"
 %token			MACRO		"Macro"
 %token			MACRO_BODY      "Macro body"
+%token			MACRO_DEL       "Macro del"
+
 
 %token			CREATE		"::="
 %token			CREATE_OR_ASSIGN ":="
@@ -171,6 +175,8 @@
 %token			TRY_MINUS_END
 %token			TRY_ALL_BEGIN
 %token			TRY_ALL_END
+%token                  MACRO_LEVEL_BEGIN
+%token                  MACRO_LEVEL_END
 
 
 %token			FOLLOW
@@ -955,23 +961,29 @@ class_def:  class_base  '{'  '}'
             }
         | class_base '{' class_props  ';'  '}'
             {
+                driver.MacroLevelBegin( $2 );
                 $$ = $class_props;
                 Term::ListToVector($class_base, $$->m_base);
                 $$->ConvertSequenceToBlock(TermID::CLASS);
+                driver.MacroLevelEnd( $5 );
             }
         | class_base '{' doc_after  '}'
             {
+                driver.MacroLevelBegin( $2 );
                 $$ = $2;
                 $$->SetTermID(TermID::CLASS);
                 Term::ListToVector($class_base, $$->m_base);
                 Term::ListToVector($doc_after, $$->m_docs);
+                driver.MacroLevelEnd( $4 );
             }
         | class_base '{' doc_after  class_props  ';'  '}'
             {
+                driver.MacroLevelBegin( $2 );
                 $$ = $class_props;
                 $$->ConvertSequenceToBlock(TermID::CLASS);
                 Term::ListToVector($class_base, $$->m_base);
                 Term::ListToVector($doc_after, $$->m_docs);
+                driver.MacroLevelEnd( $6 );
             }
         
         
@@ -984,36 +996,46 @@ block_ns:  ns_name  '{'  '}'
             }
         | ns_name  '{'  sequence  '}'
             {
+                driver.MacroLevelBegin( $2 );
                 $$ = $sequence; 
                 $$->ConvertSequenceToBlock(TermID::BLOCK);
                 $$->m_class = $1->m_text;
+                driver.MacroLevelEnd( $4 );
             }
         | ns_name  '{'  sequence  separator  '}'
             {
+                driver.MacroLevelBegin( $2 );
                 $$ = $sequence; 
                 $$->ConvertSequenceToBlock(TermID::BLOCK);
                 $$->m_class = $1->m_text;
+                driver.MacroLevelEnd( $5 );
             }        
         | ns_name  '{' doc_after '}'
             {
+                driver.MacroLevelBegin( $2 );
                 $$ = $2; 
                 $$->SetTermID(TermID::BLOCK);
                 Term::ListToVector($doc_after, $$->m_docs);
                 $$->m_class = $1->m_text;
+                driver.MacroLevelEnd( $4 );
             }
         | ns_name  '{'  doc_after  sequence  '}'
             {
+                driver.MacroLevelBegin( $2 );
                 $$ = $sequence; 
                 $$->ConvertSequenceToBlock(TermID::BLOCK);
                 Term::ListToVector($doc_after, $$->m_docs);
                 $$->m_class = $1->m_text;
+                driver.MacroLevelEnd( $5 );
             }
         | ns_name  '{'  doc_after  sequence  separator  '}'
             {
+                driver.MacroLevelBegin( $2 );
                 $$ = $sequence; 
                 $$->ConvertSequenceToBlock(TermID::BLOCK);
                 Term::ListToVector($doc_after, $$->m_docs);
                 $$->m_class = $1->m_text;
+                driver.MacroLevelEnd( $6 );
             }        
 
         
@@ -1086,6 +1108,7 @@ assign_arg:  lval  assign_op  assign_expr
                 $$->SetTermID(TermID::ASSIGN);
                 $$->Append($1, Term::LEFT); 
                 $$->Append($3, Term::RIGHT); 
+                Term::CheckSetEnv($$);
             }
 
 assign_seq:  assign_items  assign_op  assign_expr
@@ -1110,31 +1133,41 @@ block:  '{'  '}'
             }
         | '{'  sequence  '}'
             {
+                driver.MacroLevelBegin( $1 );
                 $$ = $sequence; 
                 $$->ConvertSequenceToBlock(TermID::BLOCK);
+                driver.MacroLevelEnd( $3 );
             }
         | '{'  sequence  separator  '}'
             {
+                driver.MacroLevelBegin( $1 );
                 $$ = $sequence; 
                 $$->ConvertSequenceToBlock(TermID::BLOCK);
+                driver.MacroLevelEnd( $4 );
             }
         |  '{'  doc_after  '}'
             {
+                driver.MacroLevelBegin( $1 );
                 $$ = $1; 
                 $$->SetTermID(TermID::BLOCK);
                 Term::ListToVector($doc_after, $$->m_docs);
+                driver.MacroLevelEnd( $3 );
             }
         | '{'  doc_after  sequence  '}'
             {
+                driver.MacroLevelBegin( $1 );
                 $$ = $sequence; 
                 $$->ConvertSequenceToBlock(TermID::BLOCK);
                 Term::ListToVector($doc_after, $$->m_docs);
+                driver.MacroLevelEnd( $4 );
             }
         | '{'  doc_after  sequence  separator  '}'
             {
+                driver.MacroLevelBegin( $1 );
                 $$ = $sequence; 
                 $$->ConvertSequenceToBlock(TermID::BLOCK);
                 Term::ListToVector($doc_after, $$->m_docs);
+                driver.MacroLevelEnd( $5 );
             }
 
      
@@ -1184,35 +1217,47 @@ body_else: ',' else  FOLLOW  body_all
 
 try_all: TRY_ALL_BEGIN  sequence  TRY_ALL_END
             {
+                driver.MacroLevelBegin( $1 );
                 $$ = $2; 
                 $$->ConvertSequenceToBlock(TermID::BLOCK_TRY);
+                driver.MacroLevelEnd( $3 );
             }
         | TRY_ALL_BEGIN  sequence  separator  TRY_ALL_END
             {
+                driver.MacroLevelBegin( $1 );
                 $$ = $2; 
                 $$->ConvertSequenceToBlock(TermID::BLOCK_TRY);
+                driver.MacroLevelEnd( $4 );
             }
 
 try_plus: TRY_PLUS_BEGIN  sequence  TRY_PLUS_END
             {
+                driver.MacroLevelBegin( $1 );
                 $$ = $2; 
                 $$->ConvertSequenceToBlock(TermID::BLOCK_PLUS);
+                driver.MacroLevelEnd( $3 );
             }
         | TRY_PLUS_BEGIN  sequence  separator  TRY_PLUS_END
             {
+                driver.MacroLevelBegin( $1 );
                 $$ = $2; 
                 $$->ConvertSequenceToBlock(TermID::BLOCK_PLUS);
+                driver.MacroLevelEnd( $4 );
             }
         
 try_minus: TRY_MINUS_BEGIN  sequence  TRY_MINUS_END
             {
+                driver.MacroLevelBegin( $1 );
                 $$ = $2; 
                 $$->ConvertSequenceToBlock(TermID::BLOCK_MINUS);
+                driver.MacroLevelEnd( $3 );
             }
         | TRY_MINUS_BEGIN  sequence  separator  TRY_MINUS_END
             {
+                driver.MacroLevelBegin( $1 );
                 $$ = $2; 
                 $$->ConvertSequenceToBlock(TermID::BLOCK_MINUS);
+                driver.MacroLevelEnd( $4 );
             }
 
 try_catch:  try_plus 
@@ -1492,8 +1537,10 @@ match_items:  match_item
         
 match_body:  '{'  match_items  '}'
             {
+                driver.MacroLevelBegin( $1 );
                 $$ = $2;
                 $$->ConvertSequenceToBlock(TermID::BLOCK);
+                driver.MacroLevelEnd( $3 );
             }
 
 
@@ -1536,6 +1583,90 @@ exit:  interrupt
             $$->Append($2, Term::RIGHT); 
         }
 
+
+alias_item: NAME
+            {
+                $$ = $1; 
+            }
+        | SYMBOL
+            {
+                $$ = $1; 
+            }
+        | OPERATOR
+            {
+                $$ = $1; 
+            }
+        | OPERATOR_DIV
+            {
+                $$ = $1; 
+            }
+        | OPERATOR_AND
+            {
+                $$ = $1; 
+            }
+        | OPERATOR_PTR
+            {
+                $$ = $1; 
+            }
+        | OPERATOR_ANGLE_EQ
+            {
+                $$ = $1; 
+            }
+        | ITERATOR
+            {
+                $$ = $1; 
+            }
+        | ITERATOR_QQ
+            {
+                $$ = $1; 
+            }
+
+        
+alias_name: alias_item
+            {
+                $$ = $1; 
+                $$->AppendFollow($1);
+            }
+        | alias_item  call
+            {
+                $$ = $1; 
+                $$->SetArgs($call);
+                $$->AppendFollow($1);
+            }
+
+macro_name: alias_name
+            {
+                $$ = $1; 
+            }
+        | macro_name  alias_name
+            {
+                $$ = $1; 
+                $$->AppendFollow($2);
+            }
+
+    
+macros:  MACRO   alias_name   MACRO     alias_name   MACRO
+            {
+                $$ = $2; 
+                $$->SetTermID(TermID::ALIAS);
+                $$->Append($4, Term::RIGHT);
+                driver.MacroTerm($$);
+            }
+        |  MACRO   macro_name   MACRO_BODY
+            {
+                $$ = $2; 
+                $$->SetTermID(TermID::MACRO);
+                $$->Append($3, Term::RIGHT);
+                driver.MacroTerm($$);
+            }
+        |  MACRO   macro_name   MACRO_DEL
+            {
+                $$ = $2; 
+                $$->SetTermID(TermID::MACRO_DEL);
+                driver.MacroTerm($$);
+            }
+        
+    
 /*  expression - одна операция или результат <ОДНОГО выражения без завершающей точки с запятой !!!!!> */
 seq_item: assign_seq
             {
@@ -1558,13 +1689,9 @@ seq_item: assign_seq
             {
                 $$ = $1; 
             }
-        |  MACRO
+        |  macros
             {
-                $$ = $1;  // Их быть не должно, т.к. макросы должны раскрываться до парсинга синтаксиса
-            }
-        |  MACRO_BODY
-            {
-                $$ = $1;  // Их быть не должно, т.к. макросы должны раскрываться до парсинга синтаксиса
+                $$ = $1;
             }
         | body_all
             {

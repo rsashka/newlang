@@ -146,6 +146,7 @@ namespace newlang {
         std::string m_source;
         std::string m_md5;
         std::string m_timestamp;
+        std::string m_version;
         bool m_is_main;
 
     public:

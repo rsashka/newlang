@@ -414,29 +414,58 @@ TEST_F(Lexer, ELLIPSIS) {
     EXPECT_EQ(2, Count(TermID::ELLIPSIS));
 }
 
-TEST_F(Lexer, MACRO) {
-    ASSERT_EQ(1, Parse("\\\\123 ... 456\\\\\\"));
-    EXPECT_EQ(1, Count(TermID::MACRO_BODY));
+TEST_F(Lexer, Alias) {
+    ASSERT_EQ(5, Parse("+>:<-")) << Dump();
+    EXPECT_EQ(5, Count(TermID::SYMBOL))<< Dump();
 
-    ASSERT_EQ(2, Parse("\\macro       \\\\123 ... 456\\\\\\"));
-    EXPECT_EQ(1, Count(TermID::MACRO));
-    EXPECT_EQ(1, Count(TermID::MACRO_BODY));
-    EXPECT_STREQ("\\macro", tokens[0]->m_text.c_str());
-    EXPECT_STREQ("123 ... 456", tokens[1]->m_text.c_str());
+    ASSERT_EQ(5, Parse("\\alias\\ALIAS\\")) << Dump();
+    EXPECT_EQ(3, Count(TermID::MACRO));
+    EXPECT_EQ(2, Count(TermID::NAME));
+
+    ASSERT_EQ(7, Parse("/** Comment */\\   alias2   \\      ALIAS2\\///< Комментарий")) << Dump();
+    EXPECT_EQ(1, Count(TermID::DOC_BEFORE));
+    EXPECT_EQ(1, Count(TermID::DOC_AFTER));
+    EXPECT_EQ(2, Count(TermID::NAME));
     EXPECT_EQ(1, tokens[0]->m_line);
     EXPECT_EQ(1, tokens[0]->m_col);
     EXPECT_EQ(1, tokens[1]->m_line);
-    EXPECT_EQ(14, tokens[1]->m_col);
+    EXPECT_EQ(15, tokens[1]->m_col);
+    
+    ASSERT_EQ(2, Parse("/** Русские символы */name")) << Dump();
+    EXPECT_EQ(1, Count(TermID::DOC_BEFORE));
+    EXPECT_EQ(1, Count(TermID::NAME));
+    EXPECT_EQ(1, tokens[0]->m_line);
+    EXPECT_EQ(1, tokens[0]->m_col);
+    EXPECT_EQ(1, tokens[1]->m_line);
+    EXPECT_EQ(23+14, tokens[1]->m_col);
+}
 
-    ASSERT_EQ(5, Parse(" \\macro (name)      \\\\123 \n \n ... 456\\\\\\ # Комментарий"));
-    EXPECT_EQ(1, Count(TermID::MACRO));
+TEST_F(Lexer, Macro) {
+    ASSERT_EQ(1, Parse("\\\\123 ... 456\\\\"));
     EXPECT_EQ(1, Count(TermID::MACRO_BODY));
-    EXPECT_STREQ("\\macro", tokens[0]->m_text.c_str());
-    EXPECT_STREQ("123 \n \n ... 456", tokens[4]->m_text.c_str());
+
+    ASSERT_EQ(3, Parse("\\macro       \\\\123 ... 456\\\\"));
+    EXPECT_EQ(1, Count(TermID::MACRO));
+    EXPECT_EQ(1, Count(TermID::NAME));
+    EXPECT_EQ(1, Count(TermID::MACRO_BODY));
+    EXPECT_STREQ("macro", tokens[1]->m_text.c_str());
+    EXPECT_STREQ("123 ... 456", tokens[2]->m_text.c_str());
+    EXPECT_EQ(1, tokens[0]->m_line);
+    EXPECT_EQ(1, tokens[0]->m_col);
+    EXPECT_EQ(1, tokens[2]->m_line);
+    EXPECT_EQ(14, tokens[2]->m_col);
+
+    ASSERT_EQ(6, Parse(" \\macro (name)      \\\\123 \n \n ... 456\\\\ # Комментарий"));
+    EXPECT_EQ(1, Count(TermID::MACRO));
+    EXPECT_EQ(2, Count(TermID::SYMBOL));
+    EXPECT_EQ(2, Count(TermID::NAME));
+    EXPECT_EQ(1, Count(TermID::MACRO_BODY));
+    EXPECT_STREQ("macro", tokens[1]->m_text.c_str());
+    EXPECT_STREQ("123 \n \n ... 456", tokens[5]->m_text.c_str());
     EXPECT_EQ(1, tokens[0]->m_line);
     EXPECT_EQ(2, tokens[0]->m_col);
-    EXPECT_EQ(3, tokens[4]->m_line);
-    EXPECT_EQ(1, tokens[4]->m_col);
+    EXPECT_EQ(3, tokens[5]->m_line);
+    EXPECT_EQ(1, tokens[5]->m_col);
 }
 
 #endif // UNITTEST

@@ -43,8 +43,10 @@ namespace newlang {
         _(SYMBOL) \
         _(NAMESPACE) \
         _(PARENT) \
+        _(ALIAS) \
         _(MACRO) \
         _(MACRO_BODY) \
+        _(MACRO_DEL) \
         _(NEWLANG) \
         _(ASSIGN) \
         _(CREATE) \
@@ -184,10 +186,14 @@ namespace newlang {
             return m_is_call;
         }
 
+        inline bool isMacro() {
+            return m_id == TermID::ALIAS || m_id == TermID::MACRO || m_id == TermID::MACRO_DEL;
+        }
+
         inline bool isReturn() {
             return m_id == TermID::INT_PLUS || m_id == TermID::INT_MINUS;
         }
-        
+
         inline const std::string GetFullName() {
             std::string result(m_text);
             //result.insert(isType(result) ? 1 : 0, m_ns_block);
@@ -340,7 +346,7 @@ namespace newlang {
                 case TermID::NAME: // name=(1,second="two",3,<EMPTY>,5)
                     //                result(m_is_ref ? "&" : "");
                     ASSERT(m_dims.empty());
-                    
+
                     result = "";
                     temp = shared_from_this();
                     if (temp->Left()) {
@@ -686,10 +692,14 @@ namespace newlang {
                     result += "...";
                     return result;
 
+                case TermID::ALIAS:
+                case TermID::MACRO:
+                case TermID::MACRO_DEL:
+                    return MacroBuffer::toHash(shared_from_this());
+
                 case TermID::SYMBOL:
                 case TermID::RATIONAL:
                 case TermID::COMPLEX:
-                case TermID::MACRO:
                     return m_text;
 
                 case TermID::EMPTY:
@@ -1149,6 +1159,10 @@ namespace newlang {
             return m_is_const;
         }
 
+        static void CheckSetEnv(TermPtr &term) {
+
+        }
+
         static TermPtr GetEnvTerm(TermPtr term) {
 
             /*
@@ -1164,6 +1178,7 @@ namespace newlang {
             static const char * NLC__TIMESTAMP__ = "__TIMESTAMP__"; // определяется как строковый литерал, содержащий дату и время последнего изменения текущего исходного файла 
             //в сокращенной форме с постоянной длиной, которые возвращаются функцией asctime библиотеки CRT, 
             //например: Fri 19 Aug 13:32:58 2016. Этот макрос определяется всегда.
+            static const char * NLC__PRAGMA__ = "__PRAGMA__";
 
             static const char * NLC__SOURCE_GIT__ = "__SOURCE_GIT__";
             static const char * NLC__DATE_BUILD__ = "__DATE_BUILD__";
