@@ -854,38 +854,38 @@ bool Compiler::Execute(const char *exec, std::string *out, int *exit_code) {
 //    return m_jit->CompileModule(source, opts);
 //}
 
-bool Compiler::CompileModule(const char* filename, const char* output) {
-
-    std::string in_data = ReadFile(filename);
-    if(in_data.empty()) {
-        LOG_DEBUG("Not found or empty file '%s'", filename);
-        return false;
-    }
-
-    TermPtr term;
-    Parser p(term);
-    p.Parse(in_data.c_str());
-    if(!term) {
-        LOG_DEBUG("Fail parsing file '%s'", filename);
-        return false;
-    }
-
-    std::string temp_name(filename);
-    temp_name.append(".temp");
-
-    std::ostringstream sstr;
-    Context ctx(RunTime::Init());
-    MakeCppFile(term, sstr, in_data.c_str(), &ctx);
-
-    std::string file_name(temp_name);
-    file_name.append(".cpp");
-
-    std::ofstream file(file_name);
-    file << sstr.str();
-    file.close();
-
-    return Compiler::GccMakeModule(file_name.c_str(), output);
-}
+//bool Compiler::CompileModule(const char* filename, const char* output) {
+//
+//    std::string in_data = ReadFile(filename);
+//    if(in_data.empty()) {
+//        LOG_DEBUG("Not found or empty file '%s'", filename);
+//        return false;
+//    }
+//
+//    TermPtr term;
+//    Parser p(term);
+//    p.Parse(in_data.c_str());
+//    if(!term) {
+//        LOG_DEBUG("Fail parsing file '%s'", filename);
+//        return false;
+//    }
+//
+//    std::string temp_name(filename);
+//    temp_name.append(".temp");
+//
+//    std::ostringstream sstr;
+//    Context ctx(RunTime::Init());
+//    MakeCppFile(term, sstr, in_data.c_str(), &ctx);
+//
+//    std::string file_name(temp_name);
+//    file_name.append(".cpp");
+//
+//    std::ofstream file(file_name);
+//    file << sstr.str();
+//    file.close();
+//
+//    return Compiler::GccMakeModule(file_name.c_str(), output);
+//}
 
 
 //std::string NewLang::MakeFunctionsHeaderSourceForJIT(TermPtr asg);

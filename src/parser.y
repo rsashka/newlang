@@ -157,8 +157,10 @@
 %token			PARENT		"$$"
 %token			ARGS		"$*"
 %token			ALIAS		"Alias"
-%token			MACRO		"Macro"
+%token			MACRO
+%token			MACRO_DEF
 %token			MACRO_BODY      "Macro body"
+%token			MACRO_STR       "Macro str"
 %token			MACRO_DEL       "Macro del"
 
 
@@ -308,6 +310,10 @@ name:  ns_name
             {
                 $$ = $1;
                 $$->SetTermID(TermID::NAME);
+            }
+        | MACRO
+            {
+                $$ = $1;
             }
 
 /* Фиксированная размерность тензоров для использования в типах данных */
@@ -840,6 +846,14 @@ arg: arg_name  '='
             $$->SetTermID(TermID::FILLING);
             $$->Append($2, Term::RIGHT); 
         }
+/*    |  operator
+       {            
+            $$ = $1;
+       }
+    |  op_factor
+       {            
+            $$ = $1;
+       } */
 
 args: arg
             {
@@ -1350,7 +1364,7 @@ arithmetic:  arithmetic '+' addition
                         NL_PARSER($digits, "Missing operator!");
                     }
                     //@todo location
-                    $$ = Term::Create(TermID::OPERATOR, $2->m_text.c_str(), 1, & @$);
+                    $$ = Term::Create(token::OPERATOR, TermID::OPERATOR, $2->m_text.c_str(), 1, & @$);
                     $$->Append($1, Term::LEFT); 
                     $2->m_text = $2->m_text.substr(1);
                     $$->Append($2, Term::RIGHT); 
@@ -1402,7 +1416,7 @@ factor:   rval_var
             }
         | '-'  factor
             { 
-                $$ = Term::Create(TermID::OPERATOR, "-", 1,  & @$);
+                $$ = Term::Create(token::OPERATOR, TermID::OPERATOR, "-", 1,  & @$);
                 $$->Append($2, Term::RIGHT); 
             }
         | '('  arithmetic  ')'
@@ -1449,11 +1463,11 @@ logical:  arithmetic
         
 else:   ELSE
             {
-                 $$ = Term::Create(TermID::NONE, "_", 1, & @$);
+                 $$ = Term::Create(token::SYMBOL, TermID::NONE, "_", 1, & @$);
             }
         |  '['  '_'  ']' 
             {
-                 $$ = Term::Create(TermID::NONE, "_", 1, & @$);
+                 $$ = Term::Create(token::SYMBOL, TermID::NONE, "_", 1, & @$);
             }
             
 
@@ -1592,45 +1606,45 @@ alias_item: NAME
             {
                 $$ = $1; 
             }
-        | OPERATOR
-            {
-                $$ = $1; 
-            }
-        | OPERATOR_DIV
-            {
-                $$ = $1; 
-            }
-        | OPERATOR_AND
-            {
-                $$ = $1; 
-            }
-        | OPERATOR_PTR
-            {
-                $$ = $1; 
-            }
-        | OPERATOR_ANGLE_EQ
-            {
-                $$ = $1; 
-            }
-        | ITERATOR
-            {
-                $$ = $1; 
-            }
-        | ITERATOR_QQ
-            {
-                $$ = $1; 
-            }
+//        | OPERATOR
+//            {
+//                $$ = $1; 
+//            }
+//        | OPERATOR_DIV
+//            {
+//                $$ = $1; 
+//            }
+//        | OPERATOR_AND
+//            {
+//                $$ = $1; 
+//            }
+//        | OPERATOR_PTR
+//            {
+//                $$ = $1; 
+//            }
+//        | OPERATOR_ANGLE_EQ
+//            {
+//                $$ = $1; 
+//            }
+//        | ITERATOR
+//            {
+//                $$ = $1; 
+//            }
+//        | ITERATOR_QQ
+//            {
+//                $$ = $1; 
+//            }
 
         
 alias_name: alias_item
             {
-                $$ = $1; 
+                $$ = $1->Clone(); 
                 $$->AppendFollow($1);
             }
         | alias_item  call
             {
-                $$ = $1; 
-                $$->SetArgs($call);
+                $1->SetArgs($call);
+                $$ = $1->Clone();
                 $$->AppendFollow($1);
             }
 
@@ -1644,22 +1658,42 @@ macro_name: alias_name
                 $$->AppendFollow($2);
             }
 
+/*
+ * Последовательность токенов в теле макроса может быть совершенно произвольной, например,
+ * при использовании нескольких макросов при записи одной синтаксической конструкции (match), из-за чего 
+ * возможные последовательности символов в теле макроса нельзя описать в парсере без конфликтов грамматики.
+ * 
+ * Поэтому макросы формируются непосредственно в лексере и в анализатор грамматики передаются одним корректным объектом.
+ * 
+ * Первый MACRO_DEF запрещает раскрытие макросов
+ * Второй MACRO_DEF начинает формировать последовательность терминов для тела макроса.
+ * Третий MACRO_DEF создает MACRO_BODY, передает его в анализатор и разрешает раскрытие макросов.
+ * 
+ * Макросы двух видов, первый AST с парсером терминов, второй как строка (С/C++ препроцессор).
+ */        
     
-macros:  MACRO   alias_name   MACRO     alias_name   MACRO
+macros:  /* MACRO_DEF   macro_name   MACRO_DEF     seq_item   MACRO_DEF
             {
                 $$ = $2; 
                 $$->SetTermID(TermID::ALIAS);
                 $$->Append($4, Term::RIGHT);
                 driver.MacroTerm($$);
             }
-        |  MACRO   macro_name   MACRO_BODY
+        |  */ MACRO_DEF   macro_name   MACRO_BODY
             {
                 $$ = $2; 
-                $$->SetTermID(TermID::MACRO);
+                $$->SetTermID(TermID::MACRO_DEF);
                 $$->Append($3, Term::RIGHT);
                 driver.MacroTerm($$);
             }
-        |  MACRO   macro_name   MACRO_DEL
+        |  MACRO_DEF   macro_name   MACRO_STR
+            {
+                $$ = $2; 
+                $$->SetTermID(TermID::MACRO_STR);
+                $$->Append($3, Term::RIGHT);
+                driver.MacroTerm($$);
+            }
+        |  MACRO_DEF   macro_name   MACRO_DEL
             {
                 $$ = $2; 
                 $$->SetTermID(TermID::MACRO_DEL);

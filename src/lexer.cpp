@@ -4,7 +4,7 @@
 namespace newlang {
 
     Scanner::Scanner(std::istream* in, std::ostream* out, std::shared_ptr<std::string> source)
-    : NewLangFlexLexer(in, out), source_string(source), m_is_macro(false) {
+    : NewLangFlexLexer(in, out), source_base(source), source_string(source), m_macro_count(0) {
 //        yy_flex_debug = true;
     }
 

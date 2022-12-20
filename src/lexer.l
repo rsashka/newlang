@@ -51,8 +51,8 @@ typedef newlang::parser::token_type token_type;
  * yylex is invoked, the begin position is moved onto the end position. */
 #define YY_USER_ACTION  yylloc->columns(yyleng);
 
-#define YY_TOKEN(tok) *yylval = Term::Create(TermID:: tok, yytext, yyleng, yylloc, source_string);  return token:: tok
-#define YY_TOKEN_ONLY(tok) *yylval = Term::Create(TermID::UNKNOWN, yytext, yyleng, yylloc, source_string);  return token:: tok
+#define YY_TOKEN(tok) *yylval = Term::Create(token:: tok, TermID:: tok, yytext, yyleng, yylloc, source_string);  return token:: tok
+#define YY_TOKEN_ONLY(tok) *yylval = Term::Create(token:: tok, TermID::UNKNOWN, yytext, yyleng, yylloc, source_string);  return token:: tok
 
 %}
 
@@ -68,7 +68,7 @@ ualpha  {alpha}|{U2}{U1}|{U3}{U1}{U1}|{U4}{U1}{U1}{U1}
 digit   [0-9]
 integer {digit}([_]?{digit}+)*
 name    ({ualpha}|[_])({ualpha}|{digit}|[_])*^?
-/* macro   \\({ualpha}|[_])?({name})? */
+macro   \\({ualpha}|[_])?({name})?
 
 number1 -?{digit}+\.{digit}+([eE][-+]?{digit}+)?
 number2 (-?{digit}+\.([eE][-+]?)?)?-?{digit}+
@@ -95,7 +95,7 @@ native  %({ualpha}|[_])+({name}|{digit})?
 %x state_DOC_AFTER
 %x state_COMMENT
 %x state_SOURCE
-%x state_MACRO
+%x state_MACRO_STR
 %x state_EVAL
 
 
@@ -109,22 +109,22 @@ native  %({ualpha}|[_])+({name}|{digit})?
 %}
 
 "///<"[^\n]* {
-        *yylval = Term::Create(TermID::DOC_AFTER, &yytext[5], yyleng-6, yylloc, source_string);
+        *yylval = Term::Create(token::DOC_AFTER, TermID::DOC_AFTER, &yytext[5], yyleng-6, yylloc, source_string);
         return token::DOC_AFTER;
 }
 
 "///"[^\n]* {
-        *yylval = Term::Create(TermID::DOC_BEFORE, &yytext[4], yyleng-5, yylloc, source_string);
+        *yylval = Term::Create(token::DOC_BEFORE, TermID::DOC_BEFORE, &yytext[4], yyleng-5, yylloc, source_string);
         return token::DOC_BEFORE;
 }
 
 "##<"[^\n]* {
-        *yylval = Term::Create(TermID::DOC_AFTER, &yytext[4], yyleng-5, yylloc, source_string);
+        *yylval = Term::Create(token::DOC_AFTER, TermID::DOC_AFTER, &yytext[4], yyleng-5, yylloc, source_string);
         return token::DOC_AFTER;
 }
 
 "##"[^\n]* {
-        *yylval = Term::Create(TermID::DOC_BEFORE, &yytext[3], yyleng-4, yylloc, source_string);
+        *yylval = Term::Create(token::DOC_BEFORE, TermID::DOC_BEFORE, &yytext[3], yyleng-4, yylloc, source_string);
         return token::DOC_BEFORE;
 }
 
@@ -149,7 +149,7 @@ native  %({ualpha}|[_])+({name}|{digit})?
 "*/"            {
                     yy_pop_state();
                     buffer.append(yytext, yyleng);
-                    *yylval = Term::Create(TermID::DOC_BEFORE, buffer.c_str(), buffer.size(), yylloc, source_string);
+                    *yylval = Term::Create(token::DOC_BEFORE, TermID::DOC_BEFORE, buffer.c_str(), buffer.size(), yylloc, source_string);
                     return token::DOC_BEFORE;
                 }
 
@@ -197,28 +197,28 @@ native  %({ualpha}|[_])+({name}|{digit})?
 .                   buffer.append(yytext, yyleng);
 "%}"            {
                     BEGIN(INITIAL);
-                    *yylval = Term::Create(TermID::SOURCE, buffer.c_str(), buffer.size(), yylloc, source_string);
+                    *yylval = Term::Create(token::SOURCE, TermID::SOURCE, buffer.c_str(), buffer.size(), yylloc, source_string);
                     return token::SOURCE;
                 }
 } /* End of state_SOURCE state */
 
 
-"\\\\\\\\" {
-        *yylval = Term::Create(TermID::MACRO_DEL, &yytext[6], yyleng-7, yylloc, source_string);
+"\\\\\\\\\\" {
+        *yylval = Term::Create(token::MACRO_DEL, TermID::MACRO_DEL, &yytext[6], yyleng-7, yylloc, source_string);
         return token::MACRO_DEL;
 }
 
-"\\\\\\" {
-        *yylval = Term::Create(TermID::MACRO_DEL, &yytext[5], yyleng-6, yylloc, source_string);
-        return token::MACRO_DEL;
-}
+"\\\\\\\\"      {
+                    *yylval = Term::Create(token::MACRO_DEL, TermID::MACRO_DEL, &yytext[5], yyleng-6, yylloc, source_string);
+                    return token::MACRO_DEL;
+                }
 
-"\\\\"         {
-                BEGIN(state_MACRO);
-                buffer.clear();
-}
+"\\\\\\"        {
+                    BEGIN(state_MACRO_STR);
+                    buffer.clear();
+                }
 
-<state_MACRO>{
+<state_MACRO_STR>{
 
 \n              {
                     buffer.append(yytext, yyleng);
@@ -228,13 +228,14 @@ native  %({ualpha}|[_])+({name}|{digit})?
 
 [^\\^\n]*       buffer.append(yytext, yyleng);
 "\\"[^\\^\n]*   buffer.append(yytext, yyleng);
+"\\\\"[^\\^\n]* buffer.append(yytext, yyleng);
 
-"\\\\"          {
+"\\\\\\"        {
                     BEGIN(INITIAL);
-                    *yylval = Term::Create(TermID::MACRO_BODY, buffer.c_str(), buffer.size(), yylloc, source_string);
-                    return token::MACRO_BODY;
+                    *yylval = Term::Create(token::MACRO_STR, TermID::MACRO_STR, buffer.c_str(), buffer.size(), yylloc, source_string);
+                    return token::MACRO_STR;
                 }
-} /* End of state_MARCO state */
+} /* End of state_MACRO_STR state */
 
 
 "'''"       {
@@ -246,7 +247,7 @@ native  %({ualpha}|[_])+({name}|{digit})?
 .           buffer.append(yytext, yyleng);
 "'''"       {
                 BEGIN(INITIAL);
-                *yylval = Term::Create(TermID::TEMPLATE, buffer.c_str(), buffer.size(), yylloc, source_string);
+                *yylval = Term::Create(token::TEMPLATE, TermID::TEMPLATE, buffer.c_str(), buffer.size(), yylloc, source_string);
                 return token::TEMPLATE;
             }
 } /* End of state_TEMPLATE1 state */
@@ -262,7 +263,7 @@ native  %({ualpha}|[_])+({name}|{digit})?
 .                   buffer.append(yytext, yyleng);
 "\"\"\""        {
                     BEGIN(INITIAL);
-                    *yylval = Term::Create(TermID::TEMPLATE, buffer.c_str(), buffer.size(), yylloc, source_string);
+                    *yylval = Term::Create(token::TEMPLATE, TermID::TEMPLATE, buffer.c_str(), buffer.size(), yylloc, source_string);
                     return token::TEMPLATE;
                 }
 } /* End of state_TEMPLATE2 state */
@@ -286,7 +287,7 @@ native  %({ualpha}|[_])+({name}|{digit})?
 
 \"      { /* saw closing quote - all done */
             BEGIN(INITIAL);
-            *yylval = Term::Create(TermID::STRWIDE, buffer.c_str(), buffer.size(), yylloc, source_string);
+            *yylval = Term::Create(token::STRWIDE, TermID::STRWIDE, buffer.c_str(), buffer.size(), yylloc, source_string);
             return token::STRWIDE;
         }
 
@@ -347,7 +348,7 @@ native  %({ualpha}|[_])+({name}|{digit})?
 
 '      { /* saw closing quote - all done */
             BEGIN(INITIAL);
-            *yylval = Term::Create(TermID::STRCHAR, buffer.c_str(), buffer.size(), yylloc, source_string);
+            *yylval = Term::Create(token::STRCHAR, TermID::STRCHAR, buffer.c_str(), buffer.size(), yylloc, source_string);
             return token::STRCHAR;
         }
 
@@ -398,7 +399,7 @@ native  %({ualpha}|[_])+({name}|{digit})?
 
 "`"     {
             BEGIN(INITIAL);
-            *yylval = Term::Create(TermID::EVAL, buffer.c_str(), buffer.size(), yylloc, source_string);
+            *yylval = Term::Create(token::EVAL, TermID::EVAL, buffer.c_str(), buffer.size(), yylloc, source_string);
             return token::EVAL;
         }
 
@@ -460,11 +461,18 @@ native  %({ualpha}|[_])+({name}|{digit})?
 "__SOURCE_BUILD__"  YY_TOKEN_ONLY(SYS_ENV_STR);
 "__MD5__"           YY_TOKEN_ONLY(SYS_ENV_STR);
 "__VERSION__"       YY_TOKEN_ONLY(SYS_ENV_STR);
+"__TERM_TEXT__"     YY_TOKEN_ONLY(SYS_ENV_STR);
+"__TERM_GEN__"      YY_TOKEN_ONLY(SYS_ENV_STR);
 
 "[_]"       YY_TOKEN_ONLY(ELSE);
-"\\"        { m_is_macro = true; *yylval = Term::Create(TermID::MACRO, yytext, yyleng, yylloc, source_string);  return token::MACRO; }
+"\\\\"      { m_macro_count++; *yylval = Term::Create(token::MACRO_DEF, TermID::MACRO_DEF, yytext, yyleng, yylloc, source_string);  return token::MACRO_DEF; }
 
 "$"[0-9]+   YY_TOKEN(ARGUMENT);
+"\\$"[0-9]+ YY_TOKEN(ARGUMENT);
+"\\$*"      YY_TOKEN(ARGUMENT);
+"\\$"{name} YY_TOKEN(ARGUMENT);
+
+{macro}     YY_TOKEN(MACRO);
 {name}      YY_TOKEN(NAME);
 {local}     YY_TOKEN(LOCAL);
 {module}    YY_TOKEN(MODULE);
@@ -563,7 +571,7 @@ native  %({ualpha}|[_])+({name}|{digit})?
 
     /* Нужно для работы парсера */
 
-    *yylval = Term::Create(TermID::SYMBOL, yytext, yyleng, yylloc, source_string);
+    *yylval = Term::Create(static_cast<token_type>(*yytext), TermID::SYMBOL, yytext, yyleng, yylloc, source_string);
     return static_cast<token_type>(*yytext);
 }
 

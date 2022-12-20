@@ -25,7 +25,7 @@ protected:
     void TearDown() {
     }
 
-    int64_t Parse(const char *str) {
+    int64_t TokenParse(const char *str) {
         std::istringstream strstr(str);
 
         Scanner lexer(&strstr);
@@ -52,6 +52,8 @@ protected:
         std::string result;
         for (int i = 0; i < tokens.size(); i++) {
             result += tokens[i]->m_text;
+            result += ":";
+            result += toString(tokens[i]->m_id);
             result += " ";
         }
         return result;
@@ -60,17 +62,17 @@ protected:
 };
 
 TEST_F(Lexer, Word) {
-    ASSERT_EQ(1, Parse("alpha  "));
+    ASSERT_EQ(1, TokenParse("alpha  "));
     EXPECT_EQ(1, Count(TermID::NAME));
     EXPECT_STREQ("alpha", tokens[0]->getText().c_str());
 
 
-    ASSERT_EQ(2, Parse("буквы    ещёЁ_99"));
+    ASSERT_EQ(2, TokenParse("буквы    ещёЁ_99"));
     EXPECT_EQ(2, Count(TermID::NAME));
     EXPECT_STREQ("буквы", tokens[0]->getText().c_str());
     EXPECT_STREQ("ещёЁ_99", tokens[1]->getText().c_str());
 
-    ASSERT_EQ(3, Parse("one two \t three"));
+    ASSERT_EQ(3, TokenParse("one two \t three"));
     EXPECT_EQ(3, Count(TermID::NAME));
 
     EXPECT_STREQ("one", tokens[0]->getText().c_str()) << tokens[0]->getText().c_str();
@@ -98,68 +100,68 @@ TEST_F(Lexer, Word) {
 //}
 
 TEST_F(Lexer, Template) {
-    ASSERT_EQ(1, Parse("\"\"\"\"\"\""));
+    ASSERT_EQ(1, TokenParse("\"\"\"\"\"\""));
     EXPECT_EQ(1, Count(TermID::TEMPLATE));
     EXPECT_STREQ("", tokens[0]->getText().c_str()) << tokens[0]->getText();
 }
 
 TEST_F(Lexer, DISABLED_Template2) {
-    ASSERT_EQ(1, Parse("\"\"\" ${123} \n \"\"\""));
+    ASSERT_EQ(1, TokenParse("\"\"\" ${123} \n \"\"\""));
     EXPECT_EQ(1, Count(TermID::TEMPLATE));
     EXPECT_STREQ(" ${123} \n ", tokens[0]->getText().c_str()) << tokens[0]->getText();
 }
 
 TEST_F(Lexer, DISABLED_Template3) {
-    ASSERT_EQ(1, Parse("''' ${123} \n\t '''"));
+    ASSERT_EQ(1, TokenParse("''' ${123} \n\t '''"));
     EXPECT_EQ(1, Count(TermID::TEMPLATE));
     EXPECT_STREQ(" ${123} \n\t ", tokens[0]->getText().c_str()) << tokens[0]->getText();
 }
 
 TEST_F(Lexer, StringEmpty) {
-    ASSERT_EQ(0, Parse(""));
-    ASSERT_EQ(1, Parse("''"));
+    ASSERT_EQ(0, TokenParse(""));
+    ASSERT_EQ(1, TokenParse("''"));
     EXPECT_EQ(1, Count(TermID::STRCHAR));
     EXPECT_STREQ("", tokens[0]->getText().c_str()) << tokens[0]->getText();
 }
 
 TEST_F(Lexer, StringEmpty2) {
-    ASSERT_EQ(0, Parse(""));
-    ASSERT_EQ(1, Parse("\"\""));
+    ASSERT_EQ(0, TokenParse(""));
+    ASSERT_EQ(1, TokenParse("\"\""));
     EXPECT_EQ(1, Count(TermID::STRWIDE));
     EXPECT_STREQ("", tokens[0]->getText().c_str()) << tokens[0]->getText();
 }
 
 TEST_F(Lexer, StringSimple) {
-    ASSERT_EQ(1, Parse("' '"));
+    ASSERT_EQ(1, TokenParse("' '"));
     EXPECT_EQ(1, Count(TermID::STRCHAR));
     EXPECT_STREQ(" ", tokens[0]->getText().c_str()) << tokens[0]->getText();
 }
 
 TEST_F(Lexer, StringSimple2) {
-    ASSERT_EQ(1, Parse("\" \""));
+    ASSERT_EQ(1, TokenParse("\" \""));
     EXPECT_EQ(1, Count(TermID::STRWIDE));
     EXPECT_STREQ(" ", tokens[0]->getText().c_str()) << tokens[0]->getText();
 }
 
 TEST_F(Lexer, FullString) {
-    ASSERT_EQ(1, Parse("'  \t \xFF\r\\''"));
+    ASSERT_EQ(1, TokenParse("'  \t \xFF\r\\''"));
     EXPECT_EQ(1, Count(TermID::STRCHAR));
     EXPECT_STREQ("  \t \xFF\r'", tokens[0]->getText().c_str()) << tokens[0]->getText();
 }
 
 TEST_F(Lexer, FullString2) {
-    ASSERT_EQ(1, Parse("\"  \t \xFF\r\\\"\""));
+    ASSERT_EQ(1, TokenParse("\"  \t \xFF\r\\\"\""));
     EXPECT_EQ(1, Count(TermID::STRWIDE));
     EXPECT_STREQ("  \t \xFF\r\"", tokens[0]->getText().c_str()) << tokens[0]->getText();
 }
 
 TEST_F(Lexer, Integer) {
-    ASSERT_EQ(1, Parse("123456"));
+    ASSERT_EQ(1, TokenParse("123456"));
     EXPECT_EQ(1, Count(TermID::INTEGER)) << newlang::toString(tokens[0]->GetTokenID());
 
     EXPECT_STREQ("123456", tokens[0]->getText().c_str());
 
-    ASSERT_EQ(3, Parse("123456**123"));
+    ASSERT_EQ(3, TokenParse("123456**123"));
     EXPECT_EQ(1, Count(TermID::OPERATOR));
     EXPECT_EQ(2, Count(TermID::INTEGER));
 
@@ -169,7 +171,7 @@ TEST_F(Lexer, Integer) {
 }
 
 TEST_F(Lexer, Float) {
-    ASSERT_EQ(1, Parse("1.e10"));
+    ASSERT_EQ(1, TokenParse("1.e10"));
     EXPECT_EQ(1, Count(TermID::NUMBER));
     EXPECT_STREQ("1.e10", tokens[0]->getText().c_str());
 }
@@ -198,7 +200,7 @@ TEST_F(Lexer, Float) {
 
 TEST_F(Lexer, Term) {
 
-    if(1 != Parse("$alpha  ")) {
+    if(1 != TokenParse("$alpha  ")) {
         for (auto elem : tokens) {
             std::cout << newlang::toString(elem->m_id) << " " << elem->m_text << "\n";
         }
@@ -209,12 +211,12 @@ TEST_F(Lexer, Term) {
     EXPECT_STREQ("$alpha", tokens[0]->getText().c_str());
 
 
-    ASSERT_EQ(2, Parse("буквы    ещёЁ_99"));
+    ASSERT_EQ(2, TokenParse("буквы    ещёЁ_99"));
     EXPECT_EQ(2, Count(TermID::NAME));
     EXPECT_STREQ("буквы", tokens[0]->getText().c_str());
     EXPECT_STREQ("ещёЁ_99", tokens[1]->getText().c_str());
 
-    ASSERT_EQ(3, Parse("one @two \t $three"));
+    ASSERT_EQ(3, TokenParse("one @two \t $three"));
     EXPECT_EQ(1, Count(TermID::NAME));
     EXPECT_EQ(1, Count(TermID::MODULE));
     EXPECT_EQ(1, Count(TermID::LOCAL));
@@ -225,14 +227,14 @@ TEST_F(Lexer, Term) {
 }
 
 TEST_F(Lexer, AssignEq) {
-    ASSERT_EQ(3, Parse("token=ssssssss"));
+    ASSERT_EQ(3, TokenParse("token=ssssssss"));
     EXPECT_EQ(2, Count(TermID::NAME));
     EXPECT_EQ(1, Count(TermID::SYMBOL));
 
     EXPECT_STREQ("token", tokens[0]->getText().c_str()) << tokens[0]->getText();
     EXPECT_STREQ("ssssssss", tokens[2]->getText().c_str()) << tokens[2]->getText();
 
-    ASSERT_EQ(3, Parse("token:=\"ssssssss\""));
+    ASSERT_EQ(3, TokenParse("token:=\"ssssssss\""));
     EXPECT_EQ(1, Count(TermID::NAME));
     EXPECT_EQ(1, Count(TermID::CREATE_OR_ASSIGN));
     EXPECT_EQ(1, Count(TermID::STRWIDE));
@@ -240,7 +242,7 @@ TEST_F(Lexer, AssignEq) {
     EXPECT_STREQ("token", tokens[0]->getText().c_str()) << tokens[0]->getText();
     EXPECT_STREQ("ssssssss", tokens[2]->getText().c_str()) << tokens[2]->getText();
 
-    ASSERT_EQ(3, Parse("    token   \t  ::=   'ssssssss'       "));
+    ASSERT_EQ(3, TokenParse("    token   \t  ::=   'ssssssss'       "));
     EXPECT_EQ(1, Count(TermID::NAME));
     EXPECT_EQ(1, Count(TermID::CREATE));
     EXPECT_EQ(1, Count(TermID::STRCHAR));
@@ -250,13 +252,13 @@ TEST_F(Lexer, AssignEq) {
 }
 
 TEST_F(Lexer, CodeInner) {
-    ASSERT_EQ(3, Parse("{%if(){%}   {%}else{%}   {%} %}"));
+    ASSERT_EQ(3, TokenParse("{%if(){%}   {%}else{%}   {%} %}"));
     EXPECT_EQ(3, Count(TermID::SOURCE));
     EXPECT_STREQ("if(){", tokens[0]->getText().c_str()) << tokens[0]->getText().c_str();
     EXPECT_STREQ("}else{", tokens[1]->getText().c_str()) << tokens[1]->getText().c_str();
     EXPECT_STREQ("} ", tokens[2]->getText().c_str()) << tokens[2]->getText().c_str();
 
-    ASSERT_EQ(5, Parse("{ {%if(){%}   {%}else{%}   {%} %} }"));
+    ASSERT_EQ(5, TokenParse("{ {%if(){%}   {%}else{%}   {%} %} }"));
     EXPECT_EQ(2, Count(TermID::SYMBOL));
     EXPECT_EQ(3, Count(TermID::SOURCE));
     EXPECT_STREQ("{", tokens[0]->getText().c_str()) << tokens[0]->getText().c_str();
@@ -267,93 +269,93 @@ TEST_F(Lexer, CodeInner) {
 }
 
 TEST_F(Lexer, Code) {
-    ASSERT_EQ(2, Parse("{            }"));
+    ASSERT_EQ(2, TokenParse("{            }"));
     EXPECT_EQ(2, Count(TermID::SYMBOL));
     EXPECT_STREQ("{", tokens[0]->getText().c_str()) << tokens[0]->getText().c_str();
     EXPECT_STREQ("}", tokens[1]->getText().c_str()) << tokens[1]->getText().c_str();
 
-    ASSERT_EQ(4, Parse("{ { } }"));
+    ASSERT_EQ(4, TokenParse("{ { } }"));
     EXPECT_EQ(4, Count(TermID::SYMBOL));
 }
 
 TEST_F(Lexer, CodeSource) {
-    ASSERT_EQ(1, Parse("{%%}"));
+    ASSERT_EQ(1, TokenParse("{%%}"));
     EXPECT_EQ(1, Count(TermID::SOURCE));
     EXPECT_STREQ("", tokens[0]->getText().c_str()) << tokens[0]->getText().c_str();
 
-    ASSERT_EQ(1, Parse("{% % %}"));
+    ASSERT_EQ(1, TokenParse("{% % %}"));
     ASSERT_EQ(1, Count(TermID::SOURCE));
     ASSERT_STREQ(" % ", tokens[0]->getText().c_str()) << tokens[0]->getText().c_str();
 }
 
 TEST_F(Lexer, Assign) {
-    ASSERT_EQ(5, Parse(":= :- ::= ::- ="));
+    ASSERT_EQ(5, TokenParse(":= :- ::= ::- ="));
     EXPECT_EQ(1, Count(TermID::CREATE));
     EXPECT_EQ(1, Count(TermID::CREATE_OR_ASSIGN));
     EXPECT_EQ(2, Count(TermID::PUREFUNC));
 }
 
 TEST_F(Lexer, Function) {
-    ASSERT_EQ(1, Parse("@"));
+    ASSERT_EQ(1, TokenParse("@"));
     EXPECT_EQ(1, Count(TermID::SYMBOL)) << toString(tokens[0]->getTermID());
     EXPECT_STREQ("@", tokens[0]->getText().c_str()) << tokens[0]->getText().c_str();
 
-    ASSERT_EQ(1, Parse("@name"));
+    ASSERT_EQ(1, TokenParse("@name"));
     EXPECT_EQ(1, Count(TermID::MODULE)) << toString(tokens[0]->getTermID());
     EXPECT_STREQ("@name", tokens[0]->getText().c_str()) << tokens[0]->getText().c_str();
 
-    ASSERT_EQ(1, Parse("$"));
+    ASSERT_EQ(1, TokenParse("$"));
     EXPECT_EQ(1, Count(TermID::LOCAL)) << toString(tokens[0]->getTermID());
     EXPECT_STREQ("$", tokens[0]->getText().c_str()) << tokens[0]->getText().c_str();
 
-    ASSERT_EQ(1, Parse("$name"));
+    ASSERT_EQ(1, TokenParse("$name"));
     EXPECT_EQ(1, Count(TermID::LOCAL)) << toString(tokens[0]->getTermID());
     EXPECT_STREQ("$name", tokens[0]->getText().c_str()) << tokens[0]->getText().c_str();
 
-    ASSERT_EQ(1, Parse("%native"));
+    ASSERT_EQ(1, TokenParse("%native"));
     EXPECT_EQ(1, Count(TermID::NATIVE)) << toString(tokens[0]->getTermID());
     EXPECT_STREQ("%native", tokens[0]->getText().c_str()) << tokens[0]->getText().c_str();
 
-    ASSERT_EQ(1, Parse("@name"));
+    ASSERT_EQ(1, TokenParse("@name"));
     EXPECT_EQ(1, Count(TermID::MODULE));
     EXPECT_STREQ("@name", tokens[0]->getText().c_str()) << tokens[0]->getText().c_str();
 
-    ASSERT_EQ(1, Parse("@функция_alpha_ёЁ"));
+    ASSERT_EQ(1, TokenParse("@функция_alpha_ёЁ"));
     EXPECT_EQ(1, Count(TermID::MODULE));
     EXPECT_STREQ("@функция_alpha_ёЁ", tokens[0]->getText().c_str()) << tokens[0]->getText().c_str();
 }
 
 TEST_F(Lexer, Sentence) {
-    ASSERT_EQ(2, Parse("token."));
+    ASSERT_EQ(2, TokenParse("token."));
     EXPECT_EQ(1, Count(TermID::NAME));
-    ASSERT_EQ(2, Parse("token;"));
+    ASSERT_EQ(2, TokenParse("token;"));
     EXPECT_EQ(1, Count(TermID::NAME));
 }
 
 TEST_F(Lexer, Comment) {
-    ASSERT_EQ(0, Parse("# lskdafj ldsjf ldkjfa l;sdj fl;k"));
-    ASSERT_EQ(0, Parse("#! lskdafj ldsjf ldkjfa l;sdj fl;k\n          "));
+    ASSERT_EQ(0, TokenParse("# lskdafj ldsjf ldkjfa l;sdj fl;k"));
+    ASSERT_EQ(0, TokenParse("#! lskdafj ldsjf ldkjfa l;sdj fl;k\n          "));
 
-    ASSERT_EQ(1, Parse("/***** lskdafj\n\n\n\n ldsjf ldkjfa l;sdj fl;k*****/    "));
+    ASSERT_EQ(1, TokenParse("/***** lskdafj\n\n\n\n ldsjf ldkjfa l;sdj fl;k*****/    "));
     EXPECT_EQ(1, Count(TermID::DOC_BEFORE));
 
-    ASSERT_EQ(1, Parse("/// lskdafj"));
+    ASSERT_EQ(1, TokenParse("/// lskdafj"));
     EXPECT_EQ(1, Count(TermID::DOC_BEFORE));
-    ASSERT_EQ(1, Parse("/// lskdafj\n"));
+    ASSERT_EQ(1, TokenParse("/// lskdafj\n"));
     EXPECT_EQ(1, Count(TermID::DOC_BEFORE));
-    ASSERT_EQ(1, Parse("///< lskdafj"));
+    ASSERT_EQ(1, TokenParse("///< lskdafj"));
     EXPECT_EQ(1, Count(TermID::DOC_AFTER));
-    ASSERT_EQ(1, Parse("///< lskdafj\n"));
+    ASSERT_EQ(1, TokenParse("///< lskdafj\n"));
     EXPECT_EQ(1, Count(TermID::DOC_AFTER));
 }
 
 TEST_F(Lexer, Comment2) {
-    ASSERT_EQ(2, Parse("#!22\n#1\nterm;\n"));
+    ASSERT_EQ(2, TokenParse("#!22\n#1\nterm;\n"));
     //    EXPECT_EQ(2, Count(TermID::COMMENT));
     EXPECT_EQ(1, Count(TermID::SYMBOL));
     EXPECT_EQ(1, Count(TermID::NAME));
 
-    ASSERT_EQ(1, Parse("\n\n/* \n\n*/\n\n  term"));
+    ASSERT_EQ(1, TokenParse("\n\n/* \n\n*/\n\n  term"));
     //    EXPECT_EQ(1, Count(TermID::COMMENT));
     EXPECT_EQ(1, Count(TermID::NAME));
     //    EXPECT_STREQ(" \n\n", tokens[0]->getText().c_str()) << tokens[0]->getText().c_str();
@@ -365,36 +367,36 @@ TEST_F(Lexer, Comment2) {
 }
 
 TEST_F(Lexer, Paren) {
-    ASSERT_EQ(3, Parse("@name()"));
+    ASSERT_EQ(3, TokenParse("@name()"));
     EXPECT_EQ(1, Count(TermID::MODULE));
     EXPECT_EQ(2, Count(TermID::SYMBOL));
 
 
-    ASSERT_EQ(3, Parse("%функция_alpha_ёЁ ()"));
+    ASSERT_EQ(3, TokenParse("%функция_alpha_ёЁ ()"));
     EXPECT_EQ(1, Count(TermID::NATIVE));
     EXPECT_EQ(2, Count(TermID::SYMBOL));
 
 }
 
 TEST_F(Lexer, Module) {
-    ASSERT_EQ(1, Parse("@name"));
+    ASSERT_EQ(1, TokenParse("@name"));
     EXPECT_EQ(1, Count(TermID::MODULE));
 
-    ASSERT_EQ(1, Parse("@dir.module"));
+    ASSERT_EQ(1, TokenParse("@dir.module"));
     EXPECT_EQ(1, Count(TermID::MODULE));
 
-    ASSERT_EQ(1, Parse("@dir.dir.module"));
+    ASSERT_EQ(1, TokenParse("@dir.dir.module"));
     EXPECT_EQ(1, Count(TermID::MODULE));
 }
 
 TEST_F(Lexer, Arg) {
-    ASSERT_EQ(7, Parse("term(name=value);"));
+    ASSERT_EQ(7, TokenParse("term(name=value);"));
     EXPECT_EQ(3, Count(TermID::NAME));
     EXPECT_EQ(4, Count(TermID::SYMBOL));
 }
 
 TEST_F(Lexer, Args) {
-    ASSERT_EQ(10, Parse("$0 $1 $22 $333 $4sss $sss1 -- ++ $*   ")) << Dump();
+    ASSERT_EQ(10, TokenParse("$0 $1 $22 $333 $4sss $sss1 -- ++ $*   ")) << Dump();
     EXPECT_EQ(5, Count(TermID::ARGUMENT));
     EXPECT_EQ(1, Count(TermID::ARGS));
     EXPECT_EQ(1, Count(TermID::INT_PLUS));
@@ -404,25 +406,25 @@ TEST_F(Lexer, Args) {
 }
 
 TEST_F(Lexer, UTF8) {
-    ASSERT_EQ(7, Parse("термин(имя=значение);"));
+    ASSERT_EQ(7, TokenParse("термин(имя=значение);"));
     EXPECT_EQ(3, Count(TermID::NAME));
     EXPECT_EQ(4, Count(TermID::SYMBOL));
 }
 
 TEST_F(Lexer, ELLIPSIS) {
-    ASSERT_EQ(2, Parse("... ..."));
+    ASSERT_EQ(2, TokenParse("... ..."));
     EXPECT_EQ(2, Count(TermID::ELLIPSIS));
 }
 
 TEST_F(Lexer, Alias) {
-    ASSERT_EQ(5, Parse("+>:<-")) << Dump();
-    EXPECT_EQ(5, Count(TermID::SYMBOL))<< Dump();
+    ASSERT_EQ(5, TokenParse("+>:<-")) << Dump();
+    EXPECT_EQ(5, Count(TermID::SYMBOL)) << Dump();
 
-    ASSERT_EQ(5, Parse("\\alias\\ALIAS\\")) << Dump();
-    EXPECT_EQ(3, Count(TermID::MACRO));
-    EXPECT_EQ(2, Count(TermID::NAME));
+    ASSERT_EQ(5, TokenParse("\\\\alias\\\\ALIAS\\\\")) << Dump();
+    EXPECT_EQ(3, Count(TermID::MACRO_DEF)) << Dump();
+    EXPECT_EQ(2, Count(TermID::NAME)) << Dump();
 
-    ASSERT_EQ(7, Parse("/** Comment */\\   alias2   \\      ALIAS2\\///< Комментарий")) << Dump();
+    ASSERT_EQ(7, TokenParse("/** Comment */\\\\   alias2   \\\\      ALIAS2\\\\///< Комментарий")) << Dump();
     EXPECT_EQ(1, Count(TermID::DOC_BEFORE));
     EXPECT_EQ(1, Count(TermID::DOC_AFTER));
     EXPECT_EQ(2, Count(TermID::NAME));
@@ -430,40 +432,44 @@ TEST_F(Lexer, Alias) {
     EXPECT_EQ(1, tokens[0]->m_col);
     EXPECT_EQ(1, tokens[1]->m_line);
     EXPECT_EQ(15, tokens[1]->m_col);
-    
-    ASSERT_EQ(2, Parse("/** Русские символы */name")) << Dump();
+
+    ASSERT_EQ(2, TokenParse("/** Русские символы */name")) << Dump();
     EXPECT_EQ(1, Count(TermID::DOC_BEFORE));
     EXPECT_EQ(1, Count(TermID::NAME));
     EXPECT_EQ(1, tokens[0]->m_line);
     EXPECT_EQ(1, tokens[0]->m_col);
     EXPECT_EQ(1, tokens[1]->m_line);
-    EXPECT_EQ(23+14, tokens[1]->m_col);
+    EXPECT_EQ(23 + 14, tokens[1]->m_col);
 }
 
 TEST_F(Lexer, Macro) {
-    ASSERT_EQ(1, Parse("\\\\123 ... 456\\\\"));
-    EXPECT_EQ(1, Count(TermID::MACRO_BODY));
+    ASSERT_EQ(1, TokenParse("\\$1")) << Dump();
+    ASSERT_EQ(1, TokenParse("\\$*")) << Dump();
+    ASSERT_EQ(1, TokenParse("\\$args")) << Dump();
 
-    ASSERT_EQ(3, Parse("\\macro       \\\\123 ... 456\\\\"));
-    EXPECT_EQ(1, Count(TermID::MACRO));
+    ASSERT_EQ(7, TokenParse("\\\\macro       \\\\123 ... 456\\\\")) << Dump();
+    EXPECT_EQ(3, Count(TermID::MACRO_DEF)) << Dump();
+    
+    ASSERT_EQ(3, TokenParse("\\\\macro       \\\\\\123 ... 456\\\\\\"));
+    EXPECT_EQ(1, Count(TermID::MACRO_DEF));
     EXPECT_EQ(1, Count(TermID::NAME));
-    EXPECT_EQ(1, Count(TermID::MACRO_BODY));
+    EXPECT_EQ(1, Count(TermID::MACRO_STR));
     EXPECT_STREQ("macro", tokens[1]->m_text.c_str());
     EXPECT_STREQ("123 ... 456", tokens[2]->m_text.c_str());
     EXPECT_EQ(1, tokens[0]->m_line);
     EXPECT_EQ(1, tokens[0]->m_col);
     EXPECT_EQ(1, tokens[2]->m_line);
-    EXPECT_EQ(14, tokens[2]->m_col);
+    EXPECT_EQ(15, tokens[2]->m_col);
 
-    ASSERT_EQ(6, Parse(" \\macro (name)      \\\\123 \n \n ... 456\\\\ # Комментарий"));
-    EXPECT_EQ(1, Count(TermID::MACRO));
+    ASSERT_EQ(6, TokenParse("\\\\macro (name)      \\\\\\123 \n \n ... 456\\\\\\ # Комментарий"));
+    EXPECT_EQ(1, Count(TermID::MACRO_DEF));
     EXPECT_EQ(2, Count(TermID::SYMBOL));
     EXPECT_EQ(2, Count(TermID::NAME));
-    EXPECT_EQ(1, Count(TermID::MACRO_BODY));
+    EXPECT_EQ(1, Count(TermID::MACRO_STR));
     EXPECT_STREQ("macro", tokens[1]->m_text.c_str());
     EXPECT_STREQ("123 \n \n ... 456", tokens[5]->m_text.c_str());
     EXPECT_EQ(1, tokens[0]->m_line);
-    EXPECT_EQ(2, tokens[0]->m_col);
+    EXPECT_EQ(1, tokens[0]->m_col);
     EXPECT_EQ(3, tokens[5]->m_line);
     EXPECT_EQ(1, tokens[5]->m_col);
 }

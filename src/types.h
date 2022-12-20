@@ -776,7 +776,7 @@ void ParserException(const char *msg, std::string &buffer, int row, int col);
     }
 
     inline bool isLocalAny(const char *name) {
-        return name && !(name[0] == '$' || name[0] == '@' || name[0] == ':' || name[0] == '%' || name[0] == '\\');
+        return name && (name[0] == '$' || name[0] == '@' || name[0] == ':' || name[0] == '%' || name[0] == '\\');
     }
 
     inline bool isMutableName(const std::string name) {

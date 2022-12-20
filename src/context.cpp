@@ -17,7 +17,7 @@ std::map<std::string, Context::EvalFunction> Context::m_ops;
 std::map<std::string, Context::EvalFunction> Context::m_builtin_calls;
 std::map<std::string, ObjPtr> Context::m_types;
 std::map<std::string, Context::FuncItem> Context::m_funcs;
-Parser::MacrosStore Context::m_macros;
+MacroBuffer Context::m_macros;
 std::multimap<std::string, DocPtr> Docs::m_docs;
 
 const char * Return::RetPlus = ":IntPlus";
@@ -136,13 +136,13 @@ Context::Context(RuntimePtr global) : m_llvm_builder(LLVMCreateBuilder()) {
 
     if(Context::m_funcs.empty()) {
 
-//        VERIFY(CreateBuiltin("min(arg, ...)", (void *) &min, ObjType::PureFunc));
-//        VERIFY(CreateBuiltin("мин(arg, ...)", (void *) &min, ObjType::PureFunc));
-//        VERIFY(CreateBuiltin("max(arg, ...)", (void *) &max, ObjType::PureFunc));
-//        VERIFY(CreateBuiltin("макс(arg, ...)", (void *) &max, ObjType::PureFunc));
-//
-//
-//        VERIFY(CreateBuiltin("help(...)", (void *) &help, ObjType::PureFunc));
+        //        VERIFY(CreateBuiltin("min(arg, ...)", (void *) &min, ObjType::PureFunc));
+        //        VERIFY(CreateBuiltin("мин(arg, ...)", (void *) &min, ObjType::PureFunc));
+        //        VERIFY(CreateBuiltin("max(arg, ...)", (void *) &max, ObjType::PureFunc));
+        //        VERIFY(CreateBuiltin("макс(arg, ...)", (void *) &max, ObjType::PureFunc));
+        //
+        //
+        //        VERIFY(CreateBuiltin("help(...)", (void *) &help, ObjType::PureFunc));
 
     }
 
@@ -453,23 +453,34 @@ ObjPtr Context::eval_BLOCK_MINUS(Context *ctx, const TermPtr &term, Obj *args, b
 }
 
 ObjPtr Context::eval_ALIAS(Context *ctx, const TermPtr &term, Obj *args, bool eval_block) {
-    LOG_ERROR("ALIAS %s not found!", term->toString().c_str());
+    LOG_RUNTIME("ALIAS %s not found!", term->toString().c_str());
     return Obj::CreateNone();
 }
 
 ObjPtr Context::eval_MACRO(Context *ctx, const TermPtr &term, Obj *args, bool eval_block) {
-    LOG_ERROR("Macro %s not found!", term->toString().c_str());
+//    LOG_RUNTIME("Macro '%s' not found!", term->toString().c_str());
+    return Obj::CreateNone();
+}
+
+ObjPtr Context::eval_MACRO_DEF(Context *ctx, const TermPtr &term, Obj *args, bool eval_block) {
+    
+//    LOG_RUNTIME("eval_MACRO_DEF: %s", term->toString().c_str());
     return Obj::CreateNone();
 }
 
 ObjPtr Context::eval_MACRO_BODY(Context *ctx, const TermPtr &term, Obj *args, bool eval_block) {
-    LOG_RUNTIME("eval_MACRO_BODY: %s", term->toString().c_str());
+    
+//    LOG_RUNTIME("eval_MACRO_BODY: %s", term->toString().c_str());
+    return Obj::CreateNone();
+}
 
-    return nullptr;
+ObjPtr Context::eval_MACRO_STR(Context *ctx, const TermPtr &term, Obj *args, bool eval_block) {
+//    LOG_RUNTIME("eval_MACRO_STR: %s", term->toString().c_str());
+    return Obj::CreateNone();
 }
 
 ObjPtr Context::eval_MACRO_DEL(Context *ctx, const TermPtr &term, Obj *args, bool eval_block) {
-    LOG_ERROR("Macro DEL %s not found!", term->toString().c_str());
+//    LOG_RUNTIME("Macro DEL %s not found!", term->toString().c_str());
     return Obj::CreateNone();
 }
 
@@ -877,7 +888,7 @@ ObjPtr Context::eval_WHILE(Context *ctx, const TermPtr &term, Obj * args, bool e
     } else {
         while(cond->GetValueAsBoolean()) {
 
-//            LOG_DEBUG("result %s", result->toString().c_str());
+            //            LOG_DEBUG("result %s", result->toString().c_str());
             result = CallBlock(ctx, term->Right(), args, eval_block, CatchType::CATCH_AUTO, &is_interrupt);
 
             if(is_interrupt || result->op_class_test(Return::Break, ctx)) {
@@ -1927,11 +1938,10 @@ ObjPtr Context::CreateLVal(Context *ctx, TermPtr term, Obj * args) {
 }
 
 ObjPtr Context::CreateRVal(Context *ctx, const char *source, Obj * local_vars, bool eval_block, CatchType no_catch) {
-    TermPtr ast;
-    Parser parser(ast);
-    parser.Parse(source);
+    Parser parser;
+    parser.Parse(source, &m_macros);
 
-    return CreateRVal(ctx, ast, local_vars, eval_block, no_catch);
+    return CreateRVal(ctx, parser.GetAst(), local_vars, eval_block, no_catch);
 }
 
 void Context::ItemTensorEval_(torch::Tensor &tensor, c10::IntArrayRef shape, std::vector<Index> &ind, const int64_t pos,
@@ -2352,25 +2362,25 @@ ObjPtr Context::CreateRVal(Context *ctx, TermPtr term, Obj * local_vars, bool ev
                      * @dsl() -  Единственный встроенный модуль
                      */
 
-                    if(term->GetFullName().compare("@dsl")==0) {
-                        std::string str;
-
-                        for (int i = 0; i < ::newlang_dsl_size; i++) {
-                            str += ::newlang_dsl_arr[i];
-                            str += "\n";
-                        }
-
-                        m_macros.clear();
-                        Parser::ParseAllMacros(str, &m_macros);
-
-                        result->m_var_type_current = ObjType::Dictionary;
-                        result->m_var_is_init = true;
-
-                        for (auto &elem : m_macros) {
-                            result->push_back(Obj::CreateString(elem.first));
-                        }
-                        return result;
-                    }
+                    //                    if(term->GetFullName().compare("@dsl")==0) {
+                    //                        std::string str;
+                    //
+                    //                        for (int i = 0; i < ::newlang_dsl_size; i++) {
+                    //                            str += ::newlang_dsl_arr[i];
+                    //                            str += "\n";
+                    //                        }
+                    //
+                    //                        m_macros.clear();
+                    //                        Parser::ParseAllMacros(str, &m_macros);
+                    //
+                    //                        result->m_var_type_current = ObjType::Dictionary;
+                    //                        result->m_var_is_init = true;
+                    //
+                    //                        for (auto &elem : m_macros) {
+                    //                            result->push_back(Obj::CreateString(elem.first));
+                    //                        }
+                    //                        return result;
+                    //                    }
 
                     if(term->size() > 1) {
                         NL_PARSER(term, "Only one argument can be specified for a load module!");

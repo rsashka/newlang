@@ -256,8 +256,8 @@ namespace newlang {
 
         static std::map<std::string, Context::EvalFunction> m_ops;
         static std::map<std::string, Context::EvalFunction> m_builtin_calls;
-        static Parser::MacrosStore m_macros; ///< Хотя макросы и могут обработываться в рантайме, но доступны они только для парсера
-
+//        static Parser::MacrosStore m_macros; ///< Хотя макросы и могут обработываться в рантайме, но доступны они только для парсера
+        static MacroBuffer m_macros;
 
         LLVMBuilderRef m_llvm_builder;
 

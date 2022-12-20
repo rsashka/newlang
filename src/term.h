@@ -45,7 +45,9 @@ namespace newlang {
         _(PARENT) \
         _(ALIAS) \
         _(MACRO) \
+        _(MACRO_DEF) \
         _(MACRO_BODY) \
+        _(MACRO_STR) \
         _(MACRO_DEL) \
         _(NEWLANG) \
         _(ASSIGN) \
@@ -107,6 +109,13 @@ namespace newlang {
     size_t IndexArg(TermPtr term);
     std::string ParserMessage(std::string &buffer, int row, int col, const char *format, ...);
 
+    inline bool IsMacroTermID(TermID id) {
+        if (id == TermID::MACRO || id == TermID::NAME || id == TermID::ARGUMENT || id == TermID::ARGS) {
+            return true;
+        }
+        return false;
+    }
+
     class Term : public Variable<Term>, public std::enable_shared_from_this<Term> {
     public:
 
@@ -114,16 +123,23 @@ namespace newlang {
             return std::make_shared<Term>(term);
         }
 
-        static TermPtr Create(TermID id, const char *text, size_t len = std::string::npos, location *loc = nullptr, std::shared_ptr<std::string> source = nullptr, Parser * parser = nullptr) {
-            return std::make_shared<Term>(id, text, (len == std::string::npos ? strlen(text) : len), loc, source, parser);
+        static TermPtr Create(parser::token_type lex_type, TermID id, const char *text, size_t len = std::string::npos, location *loc = nullptr, std::shared_ptr<std::string> source = nullptr, Parser * parser = nullptr) {
+            return std::make_shared<Term>(lex_type, id, text, (len == std::string::npos ? strlen(text) : len), loc, source, parser);
+        }
+
+        TermPtr Clone() {
+            TermPtr result = Term::Create(m_lexer_type, m_id, m_text.c_str());
+            *result.get() = *this;
+            return result;
         }
 
         Term(Term *term) {
             *this = *term;
         }
 
-        Term(TermID id, const char *text, size_t len, location *loc, std::shared_ptr<std::string> source = nullptr, Parser * parser = nullptr) {
+        Term(parser::token_type lex_type, TermID id, const char *text, size_t len, location *loc, std::shared_ptr<std::string> source = nullptr, Parser * parser = nullptr) {
             m_parser = parser;
+            m_lexer_type = lex_type;
             m_ref.reset();
             if (text && len) {
                 m_text.assign(text, std::min(strlen(text), len));
@@ -187,7 +203,7 @@ namespace newlang {
         }
 
         inline bool isMacro() {
-            return m_id == TermID::ALIAS || m_id == TermID::MACRO || m_id == TermID::MACRO_DEL;
+            return m_id == TermID::ALIAS || m_id == TermID::MACRO || m_id == TermID::MACRO_DEF || m_id == TermID::MACRO_DEL || m_id == TermID::MACRO_BODY || m_id == TermID::MACRO_STR;
         }
 
         inline bool isReturn() {
@@ -694,8 +710,11 @@ namespace newlang {
 
                 case TermID::ALIAS:
                 case TermID::MACRO:
+                case TermID::MACRO_DEF:
                 case TermID::MACRO_DEL:
-                    return MacroBuffer::toHash(shared_from_this());
+                case TermID::MACRO_STR:
+                case TermID::MACRO_BODY:
+                    return m_text;
 
                 case TermID::SYMBOL:
                 case TermID::RATIONAL:
@@ -738,6 +757,24 @@ namespace newlang {
 
             }
             LOG_RUNTIME("Fail toString() type %s, text:'%s'", newlang::toString(m_id), m_text.c_str());
+        }
+
+        std::vector<std::string> GetMacroId() {
+            if (m_id == TermID::NAME || m_id == TermID::MACRO || m_id == TermID::MACRO_DEF || m_id == TermID::BLOCK || m_id == TermID::MACRO_BODY || m_id == TermID::MACRO_STR || m_id == TermID::MACRO_DEL) {
+                std::vector<std::string> result;
+                result.push_back(m_text);
+                if (m_is_call) {
+                    result.push_back("(");
+                }
+                for (int i = 1; i < m_follow.size(); i++) {
+                    result.push_back(m_follow[i]->m_text);
+                    if (m_follow[i]->isCall()) {
+                        result.push_back("(");
+                    }
+                }
+                return result;
+            }
+            LOG_RUNTIME("Term id '%s' fail for GetMacroID!", newlang::toString(m_id));
         }
 
         inline std::ostream & Print(std::ostream &out = std::cout, const char *delimiter = nullptr) {
@@ -912,9 +949,9 @@ namespace newlang {
             TermPtr next = shared_from_this();
             TermPtr prev;
 
-            next = Term::Create(this);
+            next = Clone();
             m_id = id;
-            m_is_call = true;
+            //            m_is_call = force;
             m_block.clear();
             m_sequence.reset();
             m_class.clear();
@@ -1053,8 +1090,6 @@ namespace newlang {
             return m_col;
         }
 
-        typedef std::vector<TermPtr> BlockType;
-
         inline BlockType & BlockCode() {
             return m_block;
         }
@@ -1179,6 +1214,7 @@ namespace newlang {
             //в сокращенной форме с постоянной длиной, которые возвращаются функцией asctime библиотеки CRT, 
             //например: Fri 19 Aug 13:32:58 2016. Этот макрос определяется всегда.
             static const char * NLC__PRAGMA__ = "__PRAGMA__";
+            static const char * NLC__TERM_TEXT__ = "__TERM_TEXT__";
 
             static const char * NLC__SOURCE_GIT__ = "__SOURCE_GIT__";
             static const char * NLC__DATE_BUILD__ = "__DATE_BUILD__";
@@ -1265,6 +1301,18 @@ namespace newlang {
                 }
                 return term;
 
+            } else if (term->m_text.compare(NLC__TERM_TEXT__) == 0) {
+
+                ASSERT(term->isCall());
+                if (term->size() != 1) {
+                    NL_PARSER(term, "Prop '%s' support single term only!", NLC__TERM_TEXT__);
+                }
+
+                term->m_id = str_type;
+                term->m_text = term->at(0).second->m_text;
+                term->Variable::clear_();
+                return term;
+
             } else {
                 NL_PARSER(term, "Environment variable '%s' not defined!", term->m_text.c_str());
             }
@@ -1277,9 +1325,11 @@ namespace newlang {
         //    SCOPE(protected) :
 
         TermID m_id;
-        std::shared_ptr<std::string> m_source;
+        SourceType m_source;
         int m_line;
         int m_col;
+        parser::token_type m_lexer_type;
+        parser::location_type m_lexer_loc;
 
         // Связи для связаного списка
         static const int LEFT = -1;

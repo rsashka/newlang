@@ -1199,7 +1199,7 @@ ObjPtr Obj::CreateFunc(std::string prototype, FunctionType *func_addr, ObjType t
     ASSERT(type == ObjType::Function || type == ObjType::PureFunc);
 
 
-    TermPtr proto = Parser::ParseString(std::string(prototype + ":={}"));
+    TermPtr proto = Parser::ParseString(std::string(prototype + ":={}"), nullptr);
     proto = proto->Left();
 
     ObjPtr result = Obj::CreateType(type, type);
@@ -1215,7 +1215,7 @@ ObjPtr Obj::CreateFunc(std::string prototype, TransparentType *func_addr, ObjTyp
     ASSERT(type == ObjType::Function || type == ObjType::PureFunc);
 
 
-    TermPtr proto = Parser::ParseString(std::string(prototype + ":={}"));
+    TermPtr proto = Parser::ParseString(std::string(prototype + ":={}"), nullptr);
     proto = proto->Left();
 
     ObjPtr result = Obj::CreateType(type, type);
@@ -3004,7 +3004,7 @@ ObjPtr Obj::CreateBaseType(ObjType type) {
     func_proto += result->m_class_name;
     func_proto += ":-{ }";
 
-    TermPtr proto = Parser::ParseString(func_proto);
+    TermPtr proto = Parser::ParseString(func_proto, nullptr);
     ASSERT(proto->Left());
     * const_cast<TermPtr *> (&result->m_prototype) = proto->Left();
 
