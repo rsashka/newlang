@@ -336,7 +336,7 @@ TEST(Module, SysEnv) {
 
     result = ctx.ExecStr("@temp.module_test::__file__");
     ASSERT_TRUE(result);
-    ASSERT_TRUE(result->GetValueAsString().find("output/temp/module_test.nlp") != std::string::npos) << result->GetValueAsString();
+    ASSERT_TRUE(result->GetValueAsString().find("src/temp/module_test.nlp") != std::string::npos) << result->GetValueAsString();
 
 
     result = ctx.ExecStr("@temp.module_test::__main__");
