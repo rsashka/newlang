@@ -18,11 +18,13 @@ Makefile
 **/*.vcxproj.user
 
 **/syntax_help.cpp
+**/newlang_doc.txt
 **/version.*
 docs/syntax.txt
 output
 **/*temp*
 **/.vs
+.history
 
 
 # Binaries

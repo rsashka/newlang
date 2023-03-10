@@ -3,7 +3,7 @@
     <type>org.netbeans.modules.cnd.makeproject</type>
     <configuration>
         <data xmlns="http://www.netbeans.org/ns/make-project/1">
-            <name>NewLang</name>
+            <name>NewLang (I-am-Esma)</name>
             <c-extensions/>
             <cpp-extensions>cc,cpp</cpp-extensions>
             <header-extensions>h,hh,y</header-extensions>
