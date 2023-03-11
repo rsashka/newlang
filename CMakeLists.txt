@@ -47,23 +47,7 @@ endif()
 project(NewLang VERSION ${VERSION} HOMEPAGE_URL "https://newlang.net" LANGUAGES CXX)
 message(STATUS "Used git source ${GIT_SOURCE_ID}")
 
-execute_process(COMMAND ${CMD} "echo -n \"\" > ${CMAKE_SOURCE_DIR}/docs/newlang_doc.md")
-foreach(DOC_FILE 
-        syntax.md
-        types.md
-        type_nor.md
-        type_str.md
-        type_func.md
-        type_oop.md
-        type_native.md
-        type_iter.md
-        type_other.md
-        ops.md
-        syntax_dsl.md
-    )
-    execute_process(COMMAND ${CMD} "cat ${CMAKE_SOURCE_DIR}/docs/${DOC_FILE} >> ${CMAKE_SOURCE_DIR}/docs/newlang_doc.md")
-    execute_process(COMMAND ${CMD} "echo \"-------\n${DOC_FILE}\n\n\" >> ../docs/newlang_doc.md")
-endforeach()
+
 
 
 function(CHECK_NEW_FILE  name  skip)
@@ -91,10 +75,42 @@ function(CHECK_NEW_FILE  name  skip)
 endfunction()
 
 
-execute_process(COMMAND ${CMD} "pandoc -t plain ${CMAKE_SOURCE_DIR}/docs/newlang_doc.md > ${CMAKE_SOURCE_DIR}/docs/newlang_doc.txt")
+function(CREATE_DOC  dir  suffix)
 
-execute_process(COMMAND ${CMD} "${CMAKE_SOURCE_DIR}/contrib/text2cpp/output/bin/text2cpp ${CMAKE_SOURCE_DIR}/docs/newlang_doc.md  ${CMAKE_SOURCE_DIR}/src/syntax_help.cpp.temp  newlang_syntax_help  c")
-cmake_language(CALL CHECK_NEW_FILE  "${CMAKE_SOURCE_DIR}/src/syntax_help.cpp" 0)
+    if(NOT ${suffix} STREQUAL "")
+        set(dir "${dir}/${suffix}")
+        set(suffix "_${suffix}")
+    endif()
+
+    execute_process(COMMAND ${CMD} "echo -n \"\" > ${dir}/newlang_doc.md")
+    foreach(DOC_FILE 
+            syntax.md
+            types.md
+            type_nor.md
+            type_str.md
+            type_func.md
+            type_oop.md
+            type_native.md
+            type_iter.md
+            type_other.md
+            ops.md
+            syntax_dsl.md
+        )
+        execute_process(COMMAND ${CMD} "cat ${dir}/${DOC_FILE} >> ${dir}/newlang_doc.md")
+        execute_process(COMMAND ${CMD} "echo \"---;\n${DOC_FILE}\n\n\" >> ${dir}/newlang_doc.md")
+    endforeach()
+
+    execute_process(COMMAND ${CMD} "pandoc -t plain ${dir}/newlang_doc.md > ${dir}/newlang_doc.txt")
+
+    execute_process(COMMAND ${CMD} "${CMAKE_SOURCE_DIR}/contrib/text2cpp/output/bin/text2cpp ${dir}/newlang_doc.md  ${CMAKE_SOURCE_DIR}/src/syntax_help${suffix}.cpp.temp  newlang_syntax_help${suffix}  c")
+    cmake_language(CALL CHECK_NEW_FILE  "${CMAKE_SOURCE_DIR}/src/syntax_help${suffix}.cpp" 0)
+    
+endfunction()
+
+cmake_language(CALL CREATE_DOC  "${CMAKE_SOURCE_DIR}/docs" "")
+cmake_language(CALL CREATE_DOC  "${CMAKE_SOURCE_DIR}/docs" "ru")
+
+
 
 execute_process(COMMAND ${CMD} "${CMAKE_SOURCE_DIR}/contrib/text2cpp/output/bin/text2cpp  ${CMAKE_SOURCE_DIR}/examples/dsl.nlp  ${CMAKE_SOURCE_DIR}/src/dsl.cpp.temp  newlang_dsl  c")
 cmake_language(CALL CHECK_NEW_FILE  "${CMAKE_SOURCE_DIR}/src/dsl.cpp" 0)
