@@ -97,7 +97,7 @@ function(CREATE_DOC  dir  suffix)
             syntax_dsl.md
         )
         execute_process(COMMAND ${CMD} "cat ${dir}/${DOC_FILE} >> ${dir}/newlang_doc.md")
-        execute_process(COMMAND ${CMD} "echo \"---;\n${DOC_FILE}\n\n\" >> ${dir}/newlang_doc.md")
+        execute_process(COMMAND ${CMD} "echo \"------\n${DOC_FILE}\n\n\" >> ${dir}/newlang_doc.md")
     endforeach()
 
     execute_process(COMMAND ${CMD} "pandoc -t plain ${dir}/newlang_doc.md > ${dir}/newlang_doc.txt")

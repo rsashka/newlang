@@ -6,11 +6,11 @@
 - Translation of documentation into English
 - Initial build support with cmake and development with VSCode
 
----;
+------
 
 ### Miscellaneous in Release 0.4
 
----;
+------
 
 ## [Release 0.3 (07.11.2022) - current version](https://github.com/rsashka/newlang/releases/tag/v0.3.0)
 
@@ -29,7 +29,7 @@
 - Released function calls with libffi
 - Fully supported for Windows
 
----;
+------
 
 ## [Release 0.2 (11.08.2022)](https://github.com/rsashka/newlang/releases/tag/v0.2.0)
 
@@ -46,6 +46,8 @@
 - Changed to clang instead of using gcc, and replaced libffi with a JIT compile call for native functions
 - Linux binaries added to the release
 - Starting to port code to Windows
+
+------
 
 ## [Release 0.1 (24.06.2022) - first public version](https://github.com/rsashka/newlang/releases/tag/v0.1.0)
 
