@@ -17,7 +17,7 @@ Makefile
 **/*.vcxproj.filters
 **/*.vcxproj.user
 
-**/syntax_help.cpp
+**/syntax_help*.cpp
 **/newlang_doc.txt
 **/version.*
 docs/syntax.txt
