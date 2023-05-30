@@ -47,7 +47,8 @@ OBJECTFILES= \
 	${OBJECTDIR}/object.o \
 	${OBJECTDIR}/parser.o \
 	${OBJECTDIR}/parser.yy.o \
-	${OBJECTDIR}/syntax_help.o \
+	${OBJECTDIR}/syntax_help_en.o \
+	${OBJECTDIR}/syntax_help_ru.o \
 	${OBJECTDIR}/term.o \
 	${OBJECTDIR}/test/alg_test.o \
 	${OBJECTDIR}/test/compiler_test.o \
@@ -195,10 +196,15 @@ pch.h.gch: pch.h
 	@echo Выполнение шага пользовательского сборки
 	g++ -o pch.h.gch -c pch.h -g -I.. -I../contrib/libtorch/include/torch/csrc/api/include -I../contrib/libtorch/include --no-gnu-unique -Wno-trigraphs -Winvalid-pch -Werror=return-type -Wmaybe-uninitialized -Wuninitialized -Wformat -Wmaybe-uninitialized -g -DDEBUG -DLOG_LEVEL_NORMAL=LOG_LEVEL_DEBUG -DPDC_WIDE -DUNITTEST -I../contrib/googletest/googletest -I../contrib/googletest/googletest/include -I../contrib/Lyra/include -I../contrib/libtorch/include/torch/csrc/api/include -I../contrib/libtorch/include -I.. -I../contrib/tensorboard_logger/include -I/usr/lib/llvm-13/include -std=c++17
 
-${OBJECTDIR}/syntax_help.o: syntax_help.cpp
+${OBJECTDIR}/syntax_help_en.o: syntax_help_en.cpp
 	${MKDIR} -p ${OBJECTDIR}
 	${RM} "$@.d"
-	$(COMPILE.cc) -g -DDEBUG -DLOG_LEVEL_NORMAL=LOG_LEVEL_DEBUG -DPDC_WIDE -DUNITTEST -I.. -I../contrib/googletest/googletest -I../contrib/googletest/googletest/include -I../contrib/Lyra/include -I../contrib/libtorch/include/torch/csrc/api/include -I../contrib/libtorch/include -I../contrib/tensorboard_logger/include -I/usr/lib/llvm-13/include -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/syntax_help.o syntax_help.cpp
+	$(COMPILE.cc) -g -DDEBUG -DLOG_LEVEL_NORMAL=LOG_LEVEL_DEBUG -DPDC_WIDE -DUNITTEST -I.. -I../contrib/googletest/googletest -I../contrib/googletest/googletest/include -I../contrib/Lyra/include -I../contrib/libtorch/include/torch/csrc/api/include -I../contrib/libtorch/include -I../contrib/tensorboard_logger/include -I/usr/lib/llvm-13/include -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/syntax_help_en.o syntax_help_en.cpp
+
+${OBJECTDIR}/syntax_help_ru.o: syntax_help_ru.cpp
+	${MKDIR} -p ${OBJECTDIR}
+	${RM} "$@.d"
+	$(COMPILE.cc) -g -DDEBUG -DLOG_LEVEL_NORMAL=LOG_LEVEL_DEBUG -DPDC_WIDE -DUNITTEST -I.. -I../contrib/googletest/googletest -I../contrib/googletest/googletest/include -I../contrib/Lyra/include -I../contrib/libtorch/include/torch/csrc/api/include -I../contrib/libtorch/include -I../contrib/tensorboard_logger/include -I/usr/lib/llvm-13/include -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/syntax_help_ru.o syntax_help_ru.cpp
 
 ${OBJECTDIR}/term.o: term.cpp parser.h parser.yy.h pch.h.gch location.hh
 	${MKDIR} -p ${OBJECTDIR}

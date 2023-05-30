@@ -2,22 +2,44 @@
 <configurationDescriptor version="100">
   <logicalFolder name="root" displayName="root" projectFiles="true" kind="ROOT">
     <logicalFolder name="f1" displayName="docs" projectFiles="true">
+      <logicalFolder name="f2" displayName="en" projectFiles="true">
+        <itemPath>../docs/en/index.md</itemPath>
+        <itemPath>../docs/en/newlang_doc.md</itemPath>
+        <itemPath>../docs/en/newlang_doc.txt</itemPath>
+        <itemPath>../docs/en/ops.md</itemPath>
+        <itemPath>../docs/en/syntax.md</itemPath>
+        <itemPath>../docs/en/syntax_dsl.md</itemPath>
+        <itemPath>../docs/en/syntax_macro.md</itemPath>
+        <itemPath>../docs/en/type_func.md</itemPath>
+        <itemPath>../docs/en/type_iter.md</itemPath>
+        <itemPath>../docs/en/type_native.md</itemPath>
+        <itemPath>../docs/en/type_nor.md</itemPath>
+        <itemPath>../docs/en/type_oop.md</itemPath>
+        <itemPath>../docs/en/type_other.md</itemPath>
+        <itemPath>../docs/en/type_str.md</itemPath>
+        <itemPath>../docs/en/types.md</itemPath>
+        <itemPath>../docs/en/versions.md</itemPath>
+      </logicalFolder>
+      <logicalFolder name="f1" displayName="ru" projectFiles="true">
+        <itemPath>../docs/ru/index.md</itemPath>
+        <itemPath>../docs/ru/newlang_doc.md</itemPath>
+        <itemPath>../docs/ru/newlang_doc.txt</itemPath>
+        <itemPath>../docs/ru/ops.md</itemPath>
+        <itemPath>../docs/ru/syntax.md</itemPath>
+        <itemPath>../docs/ru/syntax_dsl.md</itemPath>
+        <itemPath>../docs/ru/syntax_macro.md</itemPath>
+        <itemPath>../docs/ru/type_func.md</itemPath>
+        <itemPath>../docs/ru/type_iter.md</itemPath>
+        <itemPath>../docs/ru/type_native.md</itemPath>
+        <itemPath>../docs/ru/type_nor.md</itemPath>
+        <itemPath>../docs/ru/type_oop.md</itemPath>
+        <itemPath>../docs/ru/type_other.md</itemPath>
+        <itemPath>../docs/ru/type_str.md</itemPath>
+        <itemPath>../docs/ru/types.md</itemPath>
+        <itemPath>../docs/ru/versions.md</itemPath>
+      </logicalFolder>
       <itemPath>../docs/CNAME</itemPath>
       <itemPath>../docs/_config.yml</itemPath>
-      <itemPath>../docs/index.md</itemPath>
-      <itemPath>../docs/newlang_doc.md</itemPath>
-      <itemPath>../docs/ops.md</itemPath>
-      <itemPath>../docs/syntax.md</itemPath>
-      <itemPath>../docs/syntax_dsl.md</itemPath>
-      <itemPath>../docs/type_func.md</itemPath>
-      <itemPath>../docs/type_iter.md</itemPath>
-      <itemPath>../docs/type_native.md</itemPath>
-      <itemPath>../docs/type_nor.md</itemPath>
-      <itemPath>../docs/type_oop.md</itemPath>
-      <itemPath>../docs/type_other.md</itemPath>
-      <itemPath>../docs/type_str.md</itemPath>
-      <itemPath>../docs/types.md</itemPath>
-      <itemPath>../docs/versions.md</itemPath>
     </logicalFolder>
     <logicalFolder name="SourceFiles"
                    displayName="Исходные файлы"
@@ -91,8 +113,8 @@
       <itemPath>parser.yy.h</itemPath>
       <itemPath>pch.h.gch</itemPath>
       <itemPath>pch.h.pch</itemPath>
-      <itemPath>../docs/syntax.txt</itemPath>
-      <itemPath>syntax_help.cpp</itemPath>
+      <itemPath>syntax_help_en.cpp</itemPath>
+      <itemPath>syntax_help_ru.cpp</itemPath>
       <itemPath>version.cpp</itemPath>
       <itemPath>version.h</itemPath>
     </logicalFolder>
@@ -108,30 +130,16 @@
       <itemPath>../.clang-format</itemPath>
       <itemPath>../.gitignore</itemPath>
       <itemPath>../.gitmodules</itemPath>
+      <itemPath>../CMakeLists.txt</itemPath>
       <itemPath>../LICENSE</itemPath>
       <itemPath>Makefile</itemPath>
-    </logicalFolder>
-    <logicalFolder name="TestFiles"
-                   displayName="Файлы тестов"
-                   projectFiles="false"
-                   kind="TEST_LOGICAL_FOLDER">
-    </logicalFolder>
-    <logicalFolder name="ExternalFiles"
-                   displayName="Важные файлы"
-                   projectFiles="false"
-                   kind="IMPORTANT_FILES_FOLDER">
-      <itemPath>../.clang-format</itemPath>
-      <itemPath>../.gitignore</itemPath>
-      <itemPath>../.gitmodules</itemPath>
-      <itemPath>../LICENSE</itemPath>
-      <itemPath>Makefile</itemPath>
+      <itemPath>../build_doc.sh</itemPath>
     </logicalFolder>
     <itemPath>../README.md</itemPath>
     <itemPath>lexer.l</itemPath>
     <itemPath>parser.y</itemPath>
   </logicalFolder>
   <sourceRootList>
-    <Elem>/home/rsashka/SOURCE/PUBLIC/NewLang/newlang/test</Elem>
     <Elem>/home/rsashka/SOURCE/PUBLIC/NewLang/newlang/test</Elem>
   </sourceRootList>
   <projectmakefile>Makefile</projectmakefile>
@@ -218,35 +226,69 @@
       </item>
       <item path="../docs/_config.yml" ex="false" tool="3" flavor2="0">
       </item>
-      <item path="../docs/index.md" ex="false" tool="3" flavor2="0">
+      <item path="../docs/en/index.md" ex="false" tool="3" flavor2="0">
       </item>
-      <item path="../docs/newlang_doc.md" ex="false" tool="3" flavor2="0">
+      <item path="../docs/en/newlang_doc.md" ex="false" tool="3" flavor2="0">
       </item>
-      <item path="../docs/ops.md" ex="false" tool="3" flavor2="0">
+      <item path="../docs/en/newlang_doc.txt" ex="false" tool="3" flavor2="0">
       </item>
-      <item path="../docs/syntax.md" ex="false" tool="3" flavor2="0">
+      <item path="../docs/en/ops.md" ex="false" tool="3" flavor2="0">
       </item>
-      <item path="../docs/syntax.txt" ex="false" tool="3" flavor2="0">
+      <item path="../docs/en/syntax.md" ex="false" tool="3" flavor2="0">
       </item>
-      <item path="../docs/syntax_dsl.md" ex="false" tool="3" flavor2="0">
+      <item path="../docs/en/syntax_dsl.md" ex="false" tool="3" flavor2="0">
       </item>
-      <item path="../docs/type_func.md" ex="false" tool="3" flavor2="0">
+      <item path="../docs/en/syntax_macro.md" ex="false" tool="3" flavor2="0">
       </item>
-      <item path="../docs/type_iter.md" ex="false" tool="3" flavor2="0">
+      <item path="../docs/en/type_func.md" ex="false" tool="3" flavor2="0">
       </item>
-      <item path="../docs/type_native.md" ex="false" tool="3" flavor2="0">
+      <item path="../docs/en/type_iter.md" ex="false" tool="3" flavor2="0">
       </item>
-      <item path="../docs/type_nor.md" ex="false" tool="3" flavor2="0">
+      <item path="../docs/en/type_native.md" ex="false" tool="3" flavor2="0">
       </item>
-      <item path="../docs/type_oop.md" ex="false" tool="3" flavor2="0">
+      <item path="../docs/en/type_nor.md" ex="false" tool="3" flavor2="0">
       </item>
-      <item path="../docs/type_other.md" ex="false" tool="3" flavor2="0">
+      <item path="../docs/en/type_oop.md" ex="false" tool="3" flavor2="0">
       </item>
-      <item path="../docs/type_str.md" ex="false" tool="3" flavor2="0">
+      <item path="../docs/en/type_other.md" ex="false" tool="3" flavor2="0">
       </item>
-      <item path="../docs/types.md" ex="false" tool="3" flavor2="0">
+      <item path="../docs/en/type_str.md" ex="false" tool="3" flavor2="0">
       </item>
-      <item path="../docs/versions.md" ex="false" tool="3" flavor2="0">
+      <item path="../docs/en/types.md" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../docs/en/versions.md" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../docs/ru/index.md" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../docs/ru/newlang_doc.md" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../docs/ru/newlang_doc.txt" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../docs/ru/ops.md" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../docs/ru/syntax.md" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../docs/ru/syntax_dsl.md" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../docs/ru/syntax_macro.md" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../docs/ru/type_func.md" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../docs/ru/type_iter.md" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../docs/ru/type_native.md" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../docs/ru/type_nor.md" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../docs/ru/type_oop.md" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../docs/ru/type_other.md" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../docs/ru/type_str.md" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../docs/ru/types.md" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../docs/ru/versions.md" ex="false" tool="3" flavor2="0">
       </item>
       <item path="../examples/_run.sh" ex="false" tool="3" flavor2="0">
       </item>
@@ -379,7 +421,9 @@
       </item>
       <item path="rational.h" ex="false" tool="3" flavor2="0">
       </item>
-      <item path="syntax_help.cpp" ex="false" tool="1" flavor2="9">
+      <item path="syntax_help_en.cpp" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="syntax_help_ru.cpp" ex="false" tool="1" flavor2="0">
       </item>
       <item path="term.cpp" ex="false" tool="1" flavor2="9">
         <ccTool>
@@ -509,8 +553,9 @@
           <incDir>
             <pElem>.</pElem>
             <pElem>..</pElem>
-            <pElem>/usr/lib/clang/15/include</pElem>
-            <pElem>/usr/include/llvm-c-15</pElem>
+            <pElem>/usr/lib/clang/16/include</pElem>
+            <pElem>/usr/include/llvm-16</pElem>
+            <pElem>/usr/include/llvm-c-16</pElem>
             <pElem>/usr/include/x86_64-linux-gnu/c++/10</pElem>
             <pElem>/usr/include/c++/10</pElem>
             <pElem>/usr/local/include</pElem>
@@ -521,7 +566,7 @@
             <pElem>../contrib/libtorch/include/torch/csrc/api/include</pElem>
             <pElem>../contrib/libtorch/include</pElem>
           </incDir>
-          <commandLine>`llvm-config-15 --cxxflags` -std=c++17 -fexceptions -fcxx-exceptions -Wall -Wextra -Werror -Wfloat-equal -Wundef -Wcast-align -Wwrite-strings -Wmissing-declarations -Wredundant-decls -Wshadow -Woverloaded-virtual -Wno-trigraphs -Wno-invalid-source-encoding -stdlib=libstdc++ -Wno-error=unused-variable -Wno-error=unused-parameter -Wno-error=switch -fsanitize=undefined-trap -fsanitize-undefined-trap-on-error                                         -Wno-undefined-var-template -Wno-switch  -fvisibility=default</commandLine>
+          <commandLine>`llvm-config-16 --cxxflags` -std=c++17 -fexceptions -fcxx-exceptions -Wall -Wextra -Werror -Wfloat-equal -Wundef -Wcast-align -Wwrite-strings -Wmissing-declarations -Wredundant-decls -Wshadow -Woverloaded-virtual -Wno-trigraphs -Wno-invalid-source-encoding -stdlib=libstdc++ -Wno-error=unused-variable -Wno-error=unused-parameter -Wno-error=switch -fsanitize=undefined-trap -fsanitize-undefined-trap-on-error             -gdwarf-4                            -Wno-undefined-var-template -Wno-switch  -fvisibility=default  -g -O0</commandLine>
           <preprocessorList>
             <Elem>DEBUG</Elem>
             <Elem>LOG_LEVEL_NORMAL=LOG_LEVEL_DEBUG</Elem>
@@ -535,7 +580,7 @@
           <linkerAddLib>
             <pElem>../contrib/libtorch/lib</pElem>
             <pElem>/usr/lib/x86_64-linux-gnu</pElem>
-            <pElem>/usr/lib/llvm-15/lib</pElem>
+            <pElem>/usr/lib/llvm-16/lib</pElem>
           </linkerAddLib>
           <linkerDynSerch>
             <pElem>.</pElem>
@@ -550,7 +595,7 @@
             <linkerLibLibItem>crypto</linkerLibLibItem>
             <linkerLibStdlibItem>DynamicLinking</linkerLibStdlibItem>
           </linkerLibItems>
-          <commandLine>`llvm-config-15 --libs --ldflags` -fuse-ld=lld-15 -g -lclangTooling -lclangFrontendTool -lclangFrontend -lclangDriver -lclangSerialization -lclangCodeGen -lclangParse -lclangSema -lclangStaticAnalyzerFrontend -lclangStaticAnalyzerCheckers -lclangStaticAnalyzerCore -lclangAnalysis -lclangARCMigrate -lclangRewrite -lclangRewriteFrontend -lclangEdit -lclangAST -lclangLex -lclangBasic  -lclangASTMatchers -lclangSupport -fvisibility=default -Wl,--export-dynamic</commandLine>
+          <commandLine>`llvm-config-16 --libs --ldflags` -fuse-ld=lld-16 -g -lclangTooling -lclangFrontendTool -lclangFrontend -lclangDriver -lclangSerialization -lclangCodeGen -lclangParse -lclangSema -lclangStaticAnalyzerFrontend -lclangStaticAnalyzerCheckers -lclangStaticAnalyzerCore -lclangAnalysis -lclangARCMigrate -lclangRewrite -lclangRewriteFrontend -lclangEdit -lclangAST -lclangLex -lclangBasic  -lclangASTMatchers -lclangSupport -fvisibility=default -Wl,--export-dynamic</commandLine>
         </linkerTool>
       </compileType>
       <item path="../README.md" ex="false" tool="3" flavor2="0">
@@ -571,35 +616,69 @@
       </item>
       <item path="../docs/_config.yml" ex="false" tool="3" flavor2="0">
       </item>
-      <item path="../docs/index.md" ex="false" tool="3" flavor2="0">
+      <item path="../docs/en/index.md" ex="false" tool="3" flavor2="0">
       </item>
-      <item path="../docs/newlang_doc.md" ex="false" tool="3" flavor2="0">
+      <item path="../docs/en/newlang_doc.md" ex="false" tool="3" flavor2="0">
       </item>
-      <item path="../docs/ops.md" ex="false" tool="3" flavor2="0">
+      <item path="../docs/en/newlang_doc.txt" ex="false" tool="3" flavor2="0">
       </item>
-      <item path="../docs/syntax.md" ex="false" tool="3" flavor2="0">
+      <item path="../docs/en/ops.md" ex="false" tool="3" flavor2="0">
       </item>
-      <item path="../docs/syntax.txt" ex="false" tool="3" flavor2="0">
+      <item path="../docs/en/syntax.md" ex="false" tool="3" flavor2="0">
       </item>
-      <item path="../docs/syntax_dsl.md" ex="false" tool="3" flavor2="0">
+      <item path="../docs/en/syntax_dsl.md" ex="false" tool="3" flavor2="0">
       </item>
-      <item path="../docs/type_func.md" ex="false" tool="3" flavor2="0">
+      <item path="../docs/en/syntax_macro.md" ex="false" tool="3" flavor2="0">
       </item>
-      <item path="../docs/type_iter.md" ex="false" tool="3" flavor2="0">
+      <item path="../docs/en/type_func.md" ex="false" tool="3" flavor2="0">
       </item>
-      <item path="../docs/type_native.md" ex="false" tool="3" flavor2="0">
+      <item path="../docs/en/type_iter.md" ex="false" tool="3" flavor2="0">
       </item>
-      <item path="../docs/type_nor.md" ex="false" tool="3" flavor2="0">
+      <item path="../docs/en/type_native.md" ex="false" tool="3" flavor2="0">
       </item>
-      <item path="../docs/type_oop.md" ex="false" tool="3" flavor2="0">
+      <item path="../docs/en/type_nor.md" ex="false" tool="3" flavor2="0">
       </item>
-      <item path="../docs/type_other.md" ex="false" tool="3" flavor2="0">
+      <item path="../docs/en/type_oop.md" ex="false" tool="3" flavor2="0">
       </item>
-      <item path="../docs/type_str.md" ex="false" tool="3" flavor2="0">
+      <item path="../docs/en/type_other.md" ex="false" tool="3" flavor2="0">
       </item>
-      <item path="../docs/types.md" ex="false" tool="3" flavor2="0">
+      <item path="../docs/en/type_str.md" ex="false" tool="3" flavor2="0">
       </item>
-      <item path="../docs/versions.md" ex="false" tool="3" flavor2="0">
+      <item path="../docs/en/types.md" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../docs/en/versions.md" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../docs/ru/index.md" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../docs/ru/newlang_doc.md" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../docs/ru/newlang_doc.txt" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../docs/ru/ops.md" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../docs/ru/syntax.md" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../docs/ru/syntax_dsl.md" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../docs/ru/syntax_macro.md" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../docs/ru/type_func.md" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../docs/ru/type_iter.md" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../docs/ru/type_native.md" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../docs/ru/type_nor.md" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../docs/ru/type_oop.md" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../docs/ru/type_other.md" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../docs/ru/type_str.md" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../docs/ru/types.md" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../docs/ru/versions.md" ex="false" tool="3" flavor2="0">
       </item>
       <item path="../examples/_run.sh" ex="false" tool="3" flavor2="0">
       </item>
@@ -722,7 +801,7 @@
       </item>
       <item path="pch.h" ex="false" tool="3" flavor2="0">
         <customTool>
-          <customToolCommandline>clang++ `llvm-config-15 --cxxflags` -std=c++17 -fexceptions -fcxx-exceptions -Wall -Wextra -Werror -Wfloat-equal -Wundef -Wcast-align -Wwrite-strings -Wmissing-declarations -Wredundant-decls -Wshadow -Woverloaded-virtual -Wno-trigraphs -Wno-invalid-source-encoding -stdlib=libstdc++ -Wno-error=unused-variable -Wno-error=unused-parameter -Wno-error=switch -fsanitize=undefined-trap -fsanitize-undefined-trap-on-error                                         -Wno-undefined-var-template -Wno-switch   -fvisibility=default              -g -DDEBUG -DLOG_LEVEL_NORMAL=LOG_LEVEL_DEBUG -DPDC_WIDE -DUNITTEST -I. -I.. -I/usr/include/llvm-c-15 -I/usr/include/x86_64-linux-gnu/c++/10 -I/usr/include/c++/10 -I/usr/local/include -I/usr/include -I../contrib/googletest/googletest -I../contrib/googletest/googletest/include -I../contrib/Tensorflow/bazel-bin/tensorflow/include -I../contrib/Lyra/include -I../contrib/libtorch/include/torch/csrc/api/include -I../contrib/libtorch/include                 -x c++-header -o pch.h.pch pch.h -verify-pch -fpch-validate-input-files-content</customToolCommandline>
+          <customToolCommandline>clang++ `llvm-config-16 --cxxflags` -std=c++17 -fexceptions -fcxx-exceptions -Wall -Wextra -Werror -Wfloat-equal -Wundef -Wcast-align -Wwrite-strings -Wmissing-declarations -Wredundant-decls -Wshadow -Woverloaded-virtual -Wno-trigraphs -Wno-invalid-source-encoding -stdlib=libstdc++ -Wno-error=unused-variable -Wno-error=unused-parameter -Wno-error=switch -fsanitize=undefined-trap -fsanitize-undefined-trap-on-error                                         -Wno-undefined-var-template -Wno-switch   -fvisibility=default              -g -DDEBUG -DLOG_LEVEL_NORMAL=LOG_LEVEL_DEBUG -DPDC_WIDE -DUNITTEST -I. -I.. -I/usr/include/llvm-c-16 -I/usr/include/x86_64-linux-gnu/c++/10 -I/usr/include/c++/10 -I/usr/local/include -I/usr/include -I../contrib/googletest/googletest -I../contrib/googletest/googletest/include -I../contrib/Tensorflow/bazel-bin/tensorflow/include -I../contrib/Lyra/include -I../contrib/libtorch/include/torch/csrc/api/include -I../contrib/libtorch/include                 -x c++-header -o pch.h.pch pch.h -verify-pch -fpch-validate-input-files-content</customToolCommandline>
           <customToolOutputs>pch.h.pch</customToolOutputs>
         </customTool>
       </item>
@@ -732,7 +811,9 @@
       </item>
       <item path="rational.h" ex="false" tool="3" flavor2="0">
       </item>
-      <item path="syntax_help.cpp" ex="false" tool="1" flavor2="0">
+      <item path="syntax_help_en.cpp" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="syntax_help_ru.cpp" ex="false" tool="1" flavor2="0">
       </item>
       <item path="term.cpp" ex="false" tool="1" flavor2="0">
         <ccTool>
@@ -904,35 +985,69 @@
       </item>
       <item path="../docs/_config.yml" ex="false" tool="3" flavor2="0">
       </item>
-      <item path="../docs/index.md" ex="false" tool="3" flavor2="0">
+      <item path="../docs/en/index.md" ex="false" tool="3" flavor2="0">
       </item>
-      <item path="../docs/newlang_doc.md" ex="false" tool="3" flavor2="0">
+      <item path="../docs/en/newlang_doc.md" ex="false" tool="3" flavor2="0">
       </item>
-      <item path="../docs/ops.md" ex="false" tool="3" flavor2="0">
+      <item path="../docs/en/newlang_doc.txt" ex="false" tool="3" flavor2="0">
       </item>
-      <item path="../docs/syntax.md" ex="false" tool="3" flavor2="0">
+      <item path="../docs/en/ops.md" ex="false" tool="3" flavor2="0">
       </item>
-      <item path="../docs/syntax.txt" ex="false" tool="3" flavor2="0">
+      <item path="../docs/en/syntax.md" ex="false" tool="3" flavor2="0">
       </item>
-      <item path="../docs/syntax_dsl.md" ex="false" tool="3" flavor2="0">
+      <item path="../docs/en/syntax_dsl.md" ex="false" tool="3" flavor2="0">
       </item>
-      <item path="../docs/type_func.md" ex="false" tool="3" flavor2="0">
+      <item path="../docs/en/syntax_macro.md" ex="false" tool="3" flavor2="0">
       </item>
-      <item path="../docs/type_iter.md" ex="false" tool="3" flavor2="0">
+      <item path="../docs/en/type_func.md" ex="false" tool="3" flavor2="0">
       </item>
-      <item path="../docs/type_native.md" ex="false" tool="3" flavor2="0">
+      <item path="../docs/en/type_iter.md" ex="false" tool="3" flavor2="0">
       </item>
-      <item path="../docs/type_nor.md" ex="false" tool="3" flavor2="0">
+      <item path="../docs/en/type_native.md" ex="false" tool="3" flavor2="0">
       </item>
-      <item path="../docs/type_oop.md" ex="false" tool="3" flavor2="0">
+      <item path="../docs/en/type_nor.md" ex="false" tool="3" flavor2="0">
       </item>
-      <item path="../docs/type_other.md" ex="false" tool="3" flavor2="0">
+      <item path="../docs/en/type_oop.md" ex="false" tool="3" flavor2="0">
       </item>
-      <item path="../docs/type_str.md" ex="false" tool="3" flavor2="0">
+      <item path="../docs/en/type_other.md" ex="false" tool="3" flavor2="0">
       </item>
-      <item path="../docs/types.md" ex="false" tool="3" flavor2="0">
+      <item path="../docs/en/type_str.md" ex="false" tool="3" flavor2="0">
       </item>
-      <item path="../docs/versions.md" ex="false" tool="3" flavor2="0">
+      <item path="../docs/en/types.md" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../docs/en/versions.md" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../docs/ru/index.md" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../docs/ru/newlang_doc.md" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../docs/ru/newlang_doc.txt" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../docs/ru/ops.md" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../docs/ru/syntax.md" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../docs/ru/syntax_dsl.md" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../docs/ru/syntax_macro.md" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../docs/ru/type_func.md" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../docs/ru/type_iter.md" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../docs/ru/type_native.md" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../docs/ru/type_nor.md" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../docs/ru/type_oop.md" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../docs/ru/type_other.md" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../docs/ru/type_str.md" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../docs/ru/types.md" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../docs/ru/versions.md" ex="false" tool="3" flavor2="0">
       </item>
       <item path="../examples/_run.sh" ex="false" tool="3" flavor2="0">
       </item>
@@ -1042,7 +1157,9 @@
       </item>
       <item path="rational.h" ex="false" tool="3" flavor2="0">
       </item>
-      <item path="syntax_help.cpp" ex="false" tool="1" flavor2="0">
+      <item path="syntax_help_en.cpp" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="syntax_help_ru.cpp" ex="false" tool="1" flavor2="0">
       </item>
       <item path="term.cpp" ex="false" tool="1" flavor2="9">
         <ccTool>
@@ -1181,35 +1298,69 @@
       </item>
       <item path="../docs/_config.yml" ex="false" tool="3" flavor2="0">
       </item>
-      <item path="../docs/index.md" ex="false" tool="3" flavor2="0">
+      <item path="../docs/en/index.md" ex="false" tool="3" flavor2="0">
       </item>
-      <item path="../docs/newlang_doc.md" ex="false" tool="3" flavor2="0">
+      <item path="../docs/en/newlang_doc.md" ex="false" tool="3" flavor2="0">
       </item>
-      <item path="../docs/ops.md" ex="false" tool="3" flavor2="0">
+      <item path="../docs/en/newlang_doc.txt" ex="false" tool="3" flavor2="0">
       </item>
-      <item path="../docs/syntax.md" ex="false" tool="3" flavor2="0">
+      <item path="../docs/en/ops.md" ex="false" tool="3" flavor2="0">
       </item>
-      <item path="../docs/syntax.txt" ex="false" tool="3" flavor2="0">
+      <item path="../docs/en/syntax.md" ex="false" tool="3" flavor2="0">
       </item>
-      <item path="../docs/syntax_dsl.md" ex="false" tool="3" flavor2="0">
+      <item path="../docs/en/syntax_dsl.md" ex="false" tool="3" flavor2="0">
       </item>
-      <item path="../docs/type_func.md" ex="false" tool="3" flavor2="0">
+      <item path="../docs/en/syntax_macro.md" ex="false" tool="3" flavor2="0">
       </item>
-      <item path="../docs/type_iter.md" ex="false" tool="3" flavor2="0">
+      <item path="../docs/en/type_func.md" ex="false" tool="3" flavor2="0">
       </item>
-      <item path="../docs/type_native.md" ex="false" tool="3" flavor2="0">
+      <item path="../docs/en/type_iter.md" ex="false" tool="3" flavor2="0">
       </item>
-      <item path="../docs/type_nor.md" ex="false" tool="3" flavor2="0">
+      <item path="../docs/en/type_native.md" ex="false" tool="3" flavor2="0">
       </item>
-      <item path="../docs/type_oop.md" ex="false" tool="3" flavor2="0">
+      <item path="../docs/en/type_nor.md" ex="false" tool="3" flavor2="0">
       </item>
-      <item path="../docs/type_other.md" ex="false" tool="3" flavor2="0">
+      <item path="../docs/en/type_oop.md" ex="false" tool="3" flavor2="0">
       </item>
-      <item path="../docs/type_str.md" ex="false" tool="3" flavor2="0">
+      <item path="../docs/en/type_other.md" ex="false" tool="3" flavor2="0">
       </item>
-      <item path="../docs/types.md" ex="false" tool="3" flavor2="0">
+      <item path="../docs/en/type_str.md" ex="false" tool="3" flavor2="0">
       </item>
-      <item path="../docs/versions.md" ex="false" tool="3" flavor2="0">
+      <item path="../docs/en/types.md" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../docs/en/versions.md" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../docs/ru/index.md" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../docs/ru/newlang_doc.md" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../docs/ru/newlang_doc.txt" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../docs/ru/ops.md" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../docs/ru/syntax.md" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../docs/ru/syntax_dsl.md" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../docs/ru/syntax_macro.md" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../docs/ru/type_func.md" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../docs/ru/type_iter.md" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../docs/ru/type_native.md" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../docs/ru/type_nor.md" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../docs/ru/type_oop.md" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../docs/ru/type_other.md" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../docs/ru/type_str.md" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../docs/ru/types.md" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../docs/ru/versions.md" ex="false" tool="3" flavor2="0">
       </item>
       <item path="../examples/_run.sh" ex="false" tool="3" flavor2="0">
       </item>
@@ -1354,7 +1505,9 @@
       </item>
       <item path="rational.h" ex="false" tool="3" flavor2="0">
       </item>
-      <item path="syntax_help.cpp" ex="false" tool="1" flavor2="9">
+      <item path="syntax_help_en.cpp" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="syntax_help_ru.cpp" ex="false" tool="1" flavor2="0">
       </item>
       <item path="term.cpp" ex="false" tool="1" flavor2="9">
         <ccTool>
@@ -1528,35 +1681,69 @@
       </item>
       <item path="../docs/_config.yml" ex="false" tool="3" flavor2="0">
       </item>
-      <item path="../docs/index.md" ex="false" tool="3" flavor2="0">
+      <item path="../docs/en/index.md" ex="false" tool="3" flavor2="0">
       </item>
-      <item path="../docs/newlang_doc.md" ex="false" tool="3" flavor2="0">
+      <item path="../docs/en/newlang_doc.md" ex="false" tool="3" flavor2="0">
       </item>
-      <item path="../docs/ops.md" ex="false" tool="3" flavor2="0">
+      <item path="../docs/en/newlang_doc.txt" ex="false" tool="3" flavor2="0">
       </item>
-      <item path="../docs/syntax.md" ex="false" tool="3" flavor2="0">
+      <item path="../docs/en/ops.md" ex="false" tool="3" flavor2="0">
       </item>
-      <item path="../docs/syntax.txt" ex="false" tool="3" flavor2="0">
+      <item path="../docs/en/syntax.md" ex="false" tool="3" flavor2="0">
       </item>
-      <item path="../docs/syntax_dsl.md" ex="false" tool="3" flavor2="0">
+      <item path="../docs/en/syntax_dsl.md" ex="false" tool="3" flavor2="0">
       </item>
-      <item path="../docs/type_func.md" ex="false" tool="3" flavor2="0">
+      <item path="../docs/en/syntax_macro.md" ex="false" tool="3" flavor2="0">
       </item>
-      <item path="../docs/type_iter.md" ex="false" tool="3" flavor2="0">
+      <item path="../docs/en/type_func.md" ex="false" tool="3" flavor2="0">
       </item>
-      <item path="../docs/type_native.md" ex="false" tool="3" flavor2="0">
+      <item path="../docs/en/type_iter.md" ex="false" tool="3" flavor2="0">
       </item>
-      <item path="../docs/type_nor.md" ex="false" tool="3" flavor2="0">
+      <item path="../docs/en/type_native.md" ex="false" tool="3" flavor2="0">
       </item>
-      <item path="../docs/type_oop.md" ex="false" tool="3" flavor2="0">
+      <item path="../docs/en/type_nor.md" ex="false" tool="3" flavor2="0">
       </item>
-      <item path="../docs/type_other.md" ex="false" tool="3" flavor2="0">
+      <item path="../docs/en/type_oop.md" ex="false" tool="3" flavor2="0">
       </item>
-      <item path="../docs/type_str.md" ex="false" tool="3" flavor2="0">
+      <item path="../docs/en/type_other.md" ex="false" tool="3" flavor2="0">
       </item>
-      <item path="../docs/types.md" ex="false" tool="3" flavor2="0">
+      <item path="../docs/en/type_str.md" ex="false" tool="3" flavor2="0">
       </item>
-      <item path="../docs/versions.md" ex="false" tool="3" flavor2="0">
+      <item path="../docs/en/types.md" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../docs/en/versions.md" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../docs/ru/index.md" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../docs/ru/newlang_doc.md" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../docs/ru/newlang_doc.txt" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../docs/ru/ops.md" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../docs/ru/syntax.md" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../docs/ru/syntax_dsl.md" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../docs/ru/syntax_macro.md" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../docs/ru/type_func.md" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../docs/ru/type_iter.md" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../docs/ru/type_native.md" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../docs/ru/type_nor.md" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../docs/ru/type_oop.md" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../docs/ru/type_other.md" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../docs/ru/type_str.md" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../docs/ru/types.md" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../docs/ru/versions.md" ex="false" tool="3" flavor2="0">
       </item>
       <item path="../examples/_run.sh" ex="false" tool="3" flavor2="0">
       </item>
@@ -1701,7 +1888,9 @@
       </item>
       <item path="rational.h" ex="false" tool="3" flavor2="0">
       </item>
-      <item path="syntax_help.cpp" ex="false" tool="1" flavor2="9">
+      <item path="syntax_help_en.cpp" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="syntax_help_ru.cpp" ex="false" tool="1" flavor2="0">
       </item>
       <item path="term.cpp" ex="false" tool="1" flavor2="9">
         <ccTool>

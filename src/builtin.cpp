@@ -1,6 +1,6 @@
 #include "pch.h"
 
-#include <syntax_help.cpp>
+#include <syntax_help_en.cpp>
 
 #include <builtin.h>
 #include <newlang.h>
@@ -84,8 +84,8 @@ namespace newlang {
     NEWLANG_TRANSPARENT(help) {
 
         std::string help_str;
-        for (int i = 0; i < newlang_syntax_help_size; i++) {
-            help_str.append(newlang_syntax_help_arr[i]);
+        for (int i = 0; i < newlang_syntax_help_en_size; i++) {
+            help_str.append(newlang_syntax_help_en_arr[i]);
             help_str.append("\n\r");
         }
         return Obj::CreateString(help_str);

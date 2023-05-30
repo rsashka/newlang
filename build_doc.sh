@@ -1,6 +1,11 @@
 #!/bin/bash
 
-echo Build documentation
+root="."
+if [ ! -z $1 ]; then
+    root="$1"
+fi
+
+echo Build documentation on $root
 
 lang="
     en
@@ -45,7 +50,7 @@ function check_new_file() {
 }
 
 for flang in $lang; do
-    fdir="docs/$flang"
+    fdir="$root/docs/$flang"
 
     echo -n '' > $fdir/newlang_doc.md
     header=""
@@ -69,9 +74,9 @@ for flang in $lang; do
 
     pandoc -f gfm -t plain $fdir/newlang_doc.md > $fdir/newlang_doc.txt
 
-    contrib/text2cpp/output/bin/text2cpp $fdir/newlang_doc.md  src/syntax_help_$flang.cpp.temp  newlang_syntax_help_$flang c
+    $root/contrib/text2cpp/output/bin/text2cpp $fdir/newlang_doc.md  $root/src/syntax_help_$flang.cpp.temp  newlang_syntax_help_$flang c
 
-    check_new_file   src/syntax_help_$flang.cpp
+    check_new_file   $root/src/syntax_help_$flang.cpp
 
 done
 
@@ -80,10 +85,10 @@ done
 VERSION_MAJOR=0
 VERSION_MINOR=3
 VERSION_PATCH=0
-VERSION_HEADER="src/version.h"
-VERSION_FILE="src/version.cpp"
-VERSION_HEADER_TEMP="src/version.h.temp"
-VERSION_FILE_TEMP="src/version.cpp.temp"
+VERSION_HEADER="$root/src/version.h"
+VERSION_FILE="$root/src/version.cpp"
+VERSION_HEADER_TEMP="$root/src/version.h.temp"
+VERSION_FILE_TEMP="$root/src/version.cpp.temp"
 
 
 GIT_TAG_VERSION=`git describe --abbrev=0 --tags`

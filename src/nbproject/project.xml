@@ -3,14 +3,13 @@
     <type>org.netbeans.modules.cnd.makeproject</type>
     <configuration>
         <data xmlns="http://www.netbeans.org/ns/make-project/1">
-            <name>NewLang (I-am-Esma)</name>
+            <name>NewLang</name>
             <c-extensions/>
             <cpp-extensions>cc,cpp</cpp-extensions>
             <header-extensions>h,hh,y</header-extensions>
             <sourceEncoding>UTF-8</sourceEncoding>
             <make-dep-projects/>
             <sourceRootList>
-                <sourceRootElem>/home/rsashka/SOURCE/PUBLIC/NewLang/newlang/test</sourceRootElem>
                 <sourceRootElem>/home/rsashka/SOURCE/PUBLIC/NewLang/newlang/test</sourceRootElem>
             </sourceRootList>
             <confList>
