@@ -7,24 +7,17 @@ fi
 
 echo Build documentation on $root
 
+alldoc="newlang_doc"
+
 lang="
     en
     ru
     "
 
 list="
-    syntax.md
-    syntax_macro.md
-    types.md
-    type_nor.md
-    type_str.md
-    type_func.md
-    type_oop.md
-    type_native.md
-    type_iter.md
-    type_other.md
-    ops.md
-    syntax_dsl.md
+    about
+    syntax
+    types
     "
 
 
@@ -52,34 +45,43 @@ function check_new_file() {
 for flang in $lang; do
     fdir="$root/docs/$flang"
 
-    echo -n '' > $fdir/newlang_doc.md
+    echo -n '' > $fdir/$alldoc.md
     header=""
 
     for ffile in $list; do
 
-        fpath="$fdir/$ffile"
+        fpath="$fdir/$ffile.md"
         if [ ! -f "$fpath" ]; then
             echo "File '$fpath' not found!"
             exit 1
         fi
 
         #All headings must be second level except the first 
-        echo -n "$header" >> $fdir/newlang_doc.md
+        echo -n "$header" >> $fdir/$alldoc.md
         header="#"
 
-        cat $fpath >> $fdir/newlang_doc.md
-        echo -e "------\n$ffile\n\n" >> $fdir/newlang_doc.md
+        cat $fpath >> $fdir/$alldoc.md
+        echo -e "------\n$ffile\n\n" >> $fdir/$alldoc.md
+
+#        cp  $fpath  $root/output/site/$ffile.$flang.md
 
     done
 
-    pandoc -f gfm -t plain $fdir/newlang_doc.md > $fdir/newlang_doc.txt
+    pandoc -f gfm -t plain $fdir/$alldoc.md > $fdir/$alldoc.txt
 
-    $root/contrib/text2cpp/output/bin/text2cpp $fdir/newlang_doc.md  $root/src/syntax_help_$flang.cpp.temp  newlang_syntax_help_$flang c
+    $root/contrib/text2cpp/output/bin/text2cpp $fdir/$alldoc.md  $root/src/syntax_help_$flang.cpp.temp  newlang_syntax_help_$flang c
+
+    rm $fdir/$alldoc.md
 
     check_new_file   $root/src/syntax_help_$flang.cpp
 
 done
 
+#mkdir $root/output
+#mkdir $root/output/site
+#cp -R $root/docs/* $root/output/site/
+#mv $root/output/site/en/* $root/output/site/
+#rm -d $root/output/site/en
 
 
 VERSION_MAJOR=0

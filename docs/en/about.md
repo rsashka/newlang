@@ -1,8 +1,8 @@
-# The *NewLang* project
+# About *NewLang* project
 
 *NewLang* is a universal high-level programming language. The main feature of the language is a simple, logical and consistent syntax, based on a strict system of grammar rules. With the help of macros the language syntax can be easily extended to a more familiar form based on keywords. Tensor calculations and rational numbers of unlimited precision are supported at the level of language syntax and basic data types without the use of additional libraries.
 
-Current version 0.3 of 07.11.2022 ([New in current version and release history](https://newlang.net/versions.html))
+Current version 0.3 of 07.11.2022 ([New in current version and release history](/en/versions.html))
 
 ## Main properties and features of the language:
 
@@ -21,13 +21,10 @@ Current version 0.3 of 07.11.2022 ([New in current version and release history](
 *) This feature is planned to be implemented when creating the compiler.
 
 ---
-[Language syntax](https://newlang.net/syntax.html)
+[Language syntax](/en/syntax.html)
 
-[Detailed description of the type system](https://newlang.net/types.html)
+[Detailed description of the type system](/en/types.html)
 
-[Operators and controls](https://newlang.net/ops.html)
-
-[All documentation on one page](https://newlang.net/newlang_doc.html)
 
 ### Example of "Hello world!" script in NewLang language
 
@@ -59,7 +56,7 @@ But it is also a serious problem because with release of versions new keywords a
 
 With *NewLang* the complexity of language constructions is naturally limited by dividing the language syntax into two parts - this makes it easier to learn and use.
 
-*Base Syntax* - for writing programs in object-oriented (imperative) and declarative styles, which is based not on reserved keywords, but on a system of strict [grammar rules](https://newlang.net/syntax.html). It is possible to extend the basic syntax by using macros. *Expanded syntax* - program inserts in the implementation language (C/C++) when the basic syntax becomes insufficient.
+*Base Syntax* - for writing programs in object-oriented (imperative) and declarative styles, which is based not on reserved keywords, but on a system of strict [grammar rules](/en/syntax.html). It is possible to extend the basic syntax by using macros. *Expanded syntax* - program inserts in the implementation language (C/C++) when the basic syntax becomes insufficient.
 
 Another inconvenience of modern languages is that most of them were created before the era of machine learning, so tensor calculations in them are implemented as separate libraries. The same applies to calculations with unlimited precision, which also require additional library functions.
 

@@ -1,6 +1,6 @@
-# NewLang version history
+# Version history
 
-## [Release 0.4 (in development)](https://github.com/rsashka/newlang/releases/tag/v0.4.0)
+## [Release v0.4 (in development)](https://github.com/rsashka/newlang/releases/tag/v0.4.0)
 
 - An unscheduled version with a new version of the parser which can change the input directly during parsing of the source code. This was required to expose macros and support new syntax features: [Examples of defining and using new macros](https://newlang.net)
 - Translation of documentation into English
@@ -12,9 +12,9 @@
 
 ------
 
-## [Release 0.3 (07.11.2022) - current version](https://github.com/rsashka/newlang/releases/tag/v0.3.0)
+## [Release v0.3 (07.11.2022) - current version](https://github.com/rsashka/newlang/releases/tag/v0.3.0)
 
-### New features and changes in NewLang 0.3 syntax
+### New features and changes in NewLang v0.3 syntax
 
 - Simple pure functions removed.
 - The syntax of the [condition](https://newlang.net/ru/ops.html#условный-оператор) and [loops](https://newlang.net/ru/ops.html#операторы-циклов) check operators has been fixed. 
