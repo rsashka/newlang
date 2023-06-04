@@ -68,7 +68,7 @@ ualpha  {alpha}|{U2}{U1}|{U3}{U1}{U1}|{U4}{U1}{U1}{U1}
 digit   [0-9]
 integer {digit}([_]?{digit}+)*
 name    ({ualpha}|[_])({ualpha}|{digit}|[_])*^?
-macro   \\({ualpha}|[_])?({name})?
+macro   @({ualpha}|[_])?({name})?
 
 number1 -?{digit}+\.{digit}+([eE][-+]?{digit}+)?
 number2 (-?{digit}+\.([eE][-+]?)?)?-?{digit}+
@@ -76,13 +76,10 @@ number  ({number1}|{number2})
 
 /* number  [-+]?{integer}[.]{integer}([eE][-+]?[0-9]+)? */
 
-/* term    [$@%]({ualpha}|[_])?({name}|{digit})? */
-
-
 field   \.({name}|{digit})+
 
 local   $({ualpha}|[_])?({name}|{digit})?
-module  @({ualpha}|[_]|{digit})+({field})*
+module  \\?\\({ualpha}|[_]|{digit})+({field})*
 native  %({ualpha}|[_])+({name}|{digit})?
 
 %x state_STRWIDE
@@ -117,6 +114,34 @@ native  %({ualpha}|[_])+({name}|{digit})?
         *yylval = Term::Create(token::DOC_BEFORE, TermID::DOC_BEFORE, &yytext[4], yyleng-5, yylloc, source_string);
         return token::DOC_BEFORE;
 }
+
+"@##"          YY_TOKEN(MACRO_CONCAT);
+"@#"           YY_TOKEN(MACRO_TOSTR);
+
+"@$"{name}     YY_TOKEN(MACRO_ARGUMENT);
+
+    /* Может быть несколько типов скобок, например, если указывать типы аргументов или тип возвращаемого значения
+
+    "@$(*)"    YY_TOKEN(MACRO_ARGUMENT);
+    "@$[*]"    YY_TOKEN(MACRO_ARGUMENT);
+    "@$<*>"    YY_TOKEN(MACRO_ARGUMENT);
+
+    "@$(#)"    YY_TOKEN(MACRO_ARGCOUNT);
+    "@$[#]"    YY_TOKEN(MACRO_ARGCOUNT);
+    "@$<#>"    YY_TOKEN(MACRO_ARGCOUNT);
+    */
+
+"@$"{name}"(...)"    YY_TOKEN(MACRO_ARGUMENT);
+"@$"{name}"[...]"    YY_TOKEN(MACRO_ARGUMENT);
+"@$"{name}"<...>"    YY_TOKEN(MACRO_ARGUMENT);
+
+"@$"{name}"(*)"    YY_TOKEN(MACRO_ARGUMENT);
+"@$"{name}"[*]"    YY_TOKEN(MACRO_ARGUMENT);
+"@$"{name}"<*>"    YY_TOKEN(MACRO_ARGUMENT);
+
+"@$"{name}"(#)"    YY_TOKEN(MACRO_ARGCOUNT);
+"@$"{name}"[#]"    YY_TOKEN(MACRO_ARGCOUNT);
+"@$"{name}"<#>"    YY_TOKEN(MACRO_ARGCOUNT);
 
 "##<"[^\n]* {
         *yylval = Term::Create(token::DOC_AFTER, TermID::DOC_AFTER, &yytext[4], yyleng-5, yylloc, source_string);
@@ -203,20 +228,22 @@ native  %({ualpha}|[_])+({name}|{digit})?
 } /* End of state_SOURCE state */
 
 
-"\\\\\\\\\\" {
-        *yylval = Term::Create(token::MACRO_DEL, TermID::MACRO_DEL, &yytext[6], yyleng-7, yylloc, source_string);
-        return token::MACRO_DEL;
-}
+"@@@@"      {
+                m_macro_del++; 
+                *yylval = Term::Create(token::MACRO_DEL, TermID::MACRO_DEL, yytext, yyleng, yylloc, source_string);
+                return token::MACRO_DEL;
+            }
 
-"\\\\\\\\"      {
-                    *yylval = Term::Create(token::MACRO_DEL, TermID::MACRO_DEL, &yytext[5], yyleng-6, yylloc, source_string);
-                    return token::MACRO_DEL;
-                }
+"@@@"       {
+                BEGIN(state_MACRO_STR);
+                buffer.clear();
+            }
 
-"\\\\\\"        {
-                    BEGIN(state_MACRO_STR);
-                    buffer.clear();
-                }
+"@@"        { 
+                m_macro_count++; 
+                *yylval = Term::Create(token::MACRO_SEQ, TermID::MACRO_SEQ, yytext, yyleng, yylloc, source_string);  
+                return token::MACRO_SEQ; 
+            }
 
 <state_MACRO_STR>{
 
@@ -226,11 +253,11 @@ native  %({ualpha}|[_])+({name}|{digit})?
                     yylloc->step();
                 }
 
-[^\\^\n]*       buffer.append(yytext, yyleng);
-"\\"[^\\^\n]*   buffer.append(yytext, yyleng);
-"\\\\"[^\\^\n]* buffer.append(yytext, yyleng);
+[^@^\n]*        buffer.append(yytext, yyleng);
+"@"[^@^\n]*     buffer.append(yytext, yyleng);
+"@@"[^@^\n]*    buffer.append(yytext, yyleng);
 
-"\\\\\\"        {
+"@@@"           {
                     BEGIN(INITIAL);
                     *yylval = Term::Create(token::MACRO_STR, TermID::MACRO_STR, buffer.c_str(), buffer.size(), yylloc, source_string);
                     return token::MACRO_STR;
@@ -296,7 +323,7 @@ native  %({ualpha}|[_])+({name}|{digit})?
             YY_FATAL_ERROR("Unterminated string constant");
         }
 
-\\[0-7]{1,3}    {
+@[0-7]{1,3}    {
                     /* octal escape sequence */
                     int result;
 
@@ -461,16 +488,14 @@ native  %({ualpha}|[_])+({name}|{digit})?
 "__SOURCE_BUILD__"  YY_TOKEN_ONLY(SYS_ENV_STR);
 "__MD5__"           YY_TOKEN_ONLY(SYS_ENV_STR);
 "__VERSION__"       YY_TOKEN_ONLY(SYS_ENV_STR);
+
 "__TERM_TEXT__"     YY_TOKEN_ONLY(SYS_ENV_STR);
 "__TERM_GEN__"      YY_TOKEN_ONLY(SYS_ENV_STR);
+"__TERM_EXPECTED__" YY_TOKEN_ONLY(SYS_ENV_STR);
 
 "[_]"       YY_TOKEN_ONLY(ELSE);
-"\\\\"      { m_macro_count++; *yylval = Term::Create(token::MACRO_DEF, TermID::MACRO_DEF, yytext, yyleng, yylloc, source_string);  return token::MACRO_DEF; }
 
 "$"[0-9]+   YY_TOKEN(ARGUMENT);
-"\\$"[0-9]+ YY_TOKEN(ARGUMENT);
-"\\$*"      YY_TOKEN(ARGUMENT);
-"\\$"{name} YY_TOKEN(ARGUMENT);
 
 {macro}     YY_TOKEN(MACRO);
 {name}      YY_TOKEN(NAME);
@@ -487,17 +512,21 @@ native  %({ualpha}|[_])+({name}|{digit})?
 "==>"       YY_TOKEN(MATCHING);
 "===>"      YY_TOKEN(MATCHING);
 
+    /* 
+    "=>"       YY_TOKEN(RIGHT_ASSIGN);
+    ":=>"      YY_TOKEN(RIGHT_CREATE_OR_ASSIGN);
+    "::=>"     YY_TOKEN(RIGHT_CREATE);
+    */
+
 "::="       YY_TOKEN(CREATE);
 ":="        YY_TOKEN(CREATE_OR_ASSIGN);
 "[]="       YY_TOKEN(APPEND);
-"::-"       YY_TOKEN(PUREFUNC);
+"::-"       YY_TOKEN(PURE_CREATE);
 ":-"        YY_TOKEN(PUREFUNC);
 
 "::"        YY_TOKEN(NAMESPACE);
 "$*"        YY_TOKEN(ARGS);
 "$$"        YY_TOKEN(PARENT);
-"@@"        YY_TOKEN(NEWLANG);
-"@*"        YY_TOKEN(ARGS);
 
 
 "++"        YY_TOKEN(INT_PLUS);
