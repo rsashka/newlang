@@ -184,7 +184,8 @@ Context::Context(RuntimePtr global) : m_llvm_builder(LLVMCreateBuilder()) {
         VERIFY(RegisterTypeHierarchy(ObjType::FmtChar,{":String"}));
 
         VERIFY(RegisterTypeHierarchy(ObjType::Dictionary,{":Any"}));
-        VERIFY(RegisterTypeHierarchy(ObjType::Class,{":Dictionary"}));
+        VERIFY(RegisterTypeHierarchy(ObjType::Interface,{":Any"}));
+        VERIFY(RegisterTypeHierarchy(ObjType::Class,{":Dictionary", ":Interface"}));
 
         VERIFY(RegisterTypeHierarchy(ObjType::Pointer,{":Any"})); // Указатели на машиннозависимую реализауию объектов
 
@@ -398,21 +399,6 @@ ObjPtr Context::eval_BLOCK(Context *ctx, const TermPtr &term, Obj *args, bool ev
     return obj;
 }
 
-ObjPtr Context::eval_LAMBDA(Context *ctx, const TermPtr &term, Obj *args, bool eval_block) {
-    LOG_RUNTIME("Fail LAMBDA: '%s'", term->toString().c_str());
-
-    //    ASSERT(term && term->getTermID() == TermID::LAMBDA);
-    //    ObjPtr obj = Obj::CreateType(ObjType::LAMBDA);
-    //    obj->m_sequence = term;
-    //    obj->m_var_is_init = true;
-    //
-    //    if(term->size() && term->at(0).second->IsString()) {
-    //        obj->m_help = Docs::Append(term->at(0).second->m_text);
-    //    }
-    //
-    //    return obj;
-}
-
 ObjPtr Context::eval_BLOCK_TRY(Context *ctx, const TermPtr &term, Obj *args, bool eval_block) {
     ASSERT(term && term->getTermID() == TermID::BLOCK_TRY);
     ObjPtr obj = Obj::CreateType(ObjType::BLOCK_TRY);
@@ -452,25 +438,14 @@ ObjPtr Context::eval_BLOCK_MINUS(Context *ctx, const TermPtr &term, Obj *args, b
     return obj;
 }
 
-ObjPtr Context::eval_ALIAS(Context *ctx, const TermPtr &term, Obj *args, bool eval_block) {
-    LOG_RUNTIME("ALIAS %s not found!", term->toString().c_str());
-    return Obj::CreateNone();
-}
-
 ObjPtr Context::eval_MACRO(Context *ctx, const TermPtr &term, Obj *args, bool eval_block) {
 //    LOG_RUNTIME("Macro '%s' not found!", term->toString().c_str());
     return Obj::CreateNone();
 }
 
-ObjPtr Context::eval_MACRO_DEF(Context *ctx, const TermPtr &term, Obj *args, bool eval_block) {
+ObjPtr Context::eval_MACRO_SEQ(Context *ctx, const TermPtr &term, Obj *args, bool eval_block) {
     
-//    LOG_RUNTIME("eval_MACRO_DEF: %s", term->toString().c_str());
-    return Obj::CreateNone();
-}
-
-ObjPtr Context::eval_MACRO_BODY(Context *ctx, const TermPtr &term, Obj *args, bool eval_block) {
-    
-//    LOG_RUNTIME("eval_MACRO_BODY: %s", term->toString().c_str());
+//    LOG_RUNTIME("eval_MACRO_SEQ: %s", term->toString().c_str());
     return Obj::CreateNone();
 }
 
@@ -483,6 +458,48 @@ ObjPtr Context::eval_MACRO_DEL(Context *ctx, const TermPtr &term, Obj *args, boo
 //    LOG_RUNTIME("Macro DEL %s not found!", term->toString().c_str());
     return Obj::CreateNone();
 }
+
+ObjPtr Context::eval_MACRO_TOSTR(Context *ctx, const TermPtr &term, Obj *args, bool eval_block) {
+//    LOG_RUNTIME("Macro TOSTR %s not found!", term->toString().c_str());
+    return Obj::CreateNone();
+}
+ObjPtr Context::eval_MACRO_CONCAT(Context *ctx, const TermPtr &term, Obj *args, bool eval_block) {
+//    LOG_RUNTIME("Macro CONCAT %s not found!", term->toString().c_str());
+    return Obj::CreateNone();
+}
+ObjPtr Context::eval_MACRO_ARGUMENT(Context *ctx, const TermPtr &term, Obj *args, bool eval_block) {
+//    LOG_RUNTIME("Macro ARGUMENT %s not found!", term->toString().c_str());
+    return Obj::CreateNone();
+}
+ObjPtr Context::eval_MACRO_ARGCOUNT(Context *ctx, const TermPtr &term, Obj *args, bool eval_block) {
+//    LOG_RUNTIME("Macro ARGCOUNT %s not found!", term->toString().c_str());
+    return Obj::CreateNone();
+}
+
+
+ObjPtr Context::eval_SPACE(Context *ctx, const TermPtr &term, Obj *args, bool eval_block) {
+    LOG_RUNTIME("SPACE Not implemented!");
+    return nullptr;
+}
+ObjPtr Context::eval_COMMENT(Context *ctx, const TermPtr &term, Obj *args, bool eval_block) {
+    LOG_RUNTIME("COMMENT Not implemented!");
+    return nullptr;
+}
+ObjPtr Context::eval_INDENT(Context *ctx, const TermPtr &term, Obj *args, bool eval_block) {
+    LOG_RUNTIME("INDENT Not implemented!");
+    return nullptr;
+}
+ObjPtr Context::eval_CRLF(Context *ctx, const TermPtr &term, Obj *args, bool eval_block) {
+    LOG_RUNTIME("CRLF Not implemented!");
+    return nullptr;
+}
+ObjPtr Context::eval_ESCAPE(Context *ctx, const TermPtr &term, Obj *args, bool eval_block) {
+    LOG_RUNTIME("ESCAPE Not implemented!");
+    return nullptr;
+}
+
+
+
 
 ObjPtr Context::eval_PARENT(Context *ctx, const TermPtr &term, Obj *args, bool eval_block) {
     return CreateRVal(ctx, term, args, eval_block);
@@ -761,7 +778,7 @@ ObjPtr Context::CREATE_OR_ASSIGN(Context *ctx, const TermPtr &term, Obj *local_v
                 // Skip
             } else {
                 if(list_term[i]->Right()) {
-                    ASSERT(list_term[i]->Right()->GetTokenID() == TermID::INDEX);
+                    ASSERT(list_term[i]->Right()->getTermID() == TermID::INDEX);
                     list_obj[i]->index_set_(MakeIndex(ctx, list_term[i]->Right(), local_vars), rval);
                 } else {
                     list_obj[i]->SetValue_(rval);
@@ -789,6 +806,11 @@ ObjPtr Context::eval_CREATE(Context *ctx, const TermPtr &term, Obj * local_vars,
 ObjPtr Context::eval_CREATE_OR_ASSIGN(Context *ctx, const TermPtr &term, Obj * args, bool eval_block) {
 
     return CREATE_OR_ASSIGN(ctx, term, args, CreateMode::CREATE_AUTO);
+}
+
+ObjPtr Context::eval_PURE_CREATE(Context *ctx, const TermPtr &term, Obj * local_vars, bool eval_block) {
+
+    return CREATE_OR_ASSIGN(ctx, term, local_vars, CreateMode::CREATE_ONLY);
 }
 
 ObjPtr Context::eval_APPEND(Context *ctx, const TermPtr &term, Obj * args, bool eval_block) {
@@ -1474,7 +1496,7 @@ ObjPtr Context::CallBlock(Context *ctx, const TermPtr &block, Obj * local_vars, 
     TermID auto_type = TermID::NONE;
 
     if(block->IsBlock()) {
-        auto_type = block->GetTokenID();
+        auto_type = block->getTermID();
     }
 
     try {
@@ -1628,7 +1650,7 @@ ObjPtr Context::CreateNative(TermPtr proto, const char *module, bool lazzy, cons
     ObjType type = ObjType::None;
     if(proto->isCall()) {
         type = ObjType::NativeFunc;
-    } else if(proto->GetTokenID() == TermID::NAME) {
+    } else if(proto->getTermID() == TermID::NAME) {
         if(proto->m_type_name.empty()) {
             LOG_RUNTIME("Cannot create native variable without specifying the type!");
         }
@@ -1938,10 +1960,7 @@ ObjPtr Context::CreateLVal(Context *ctx, TermPtr term, Obj * args) {
 }
 
 ObjPtr Context::CreateRVal(Context *ctx, const char *source, Obj * local_vars, bool eval_block, CatchType no_catch) {
-    Parser parser;
-    parser.Parse(source, &m_macros);
-
-    return CreateRVal(ctx, parser.GetAst(), local_vars, eval_block, no_catch);
+    return CreateRVal(ctx, MacroBuffer::ParseTerm(source, &m_macros), local_vars, eval_block, no_catch);
 }
 
 void Context::ItemTensorEval_(torch::Tensor &tensor, c10::IntArrayRef shape, std::vector<Index> &ind, const int64_t pos,
@@ -2444,8 +2463,8 @@ ObjPtr Context::CreateRVal(Context *ctx, TermPtr term, Obj * local_vars, bool ev
                                 //                            }
                                 //                            elem.insert(0, term->getText());
 
-                                elem = std::regex_replace(elem, std::regex("\\."), "\\\\.");
-                                elem = std::regex_replace(elem, std::regex("\\*"), "(.)*");
+                                elem = std::regex_replace(elem, std::regex("@."), "@@.");
+                                elem = std::regex_replace(elem, std::regex("@*"), "(.)*");
                                 //                            LOG_DEBUG("To: %s", elem.c_str());
                                 regs.push_back(std::regex(elem));
                             } catch (const std::regex_error &err) {
@@ -2493,7 +2512,7 @@ ObjPtr Context::CreateRVal(Context *ctx, TermPtr term, Obj * local_vars, bool ev
                 result = ctx->GetTerm(term->GetFullName().c_str(), term->isRef());
 
                 // Типы данных обрабатываются тут, а не в вызовах функций (TermID::CALL)
-
+                ASSERT(result);
                 if(term->size()) {
                     Obj args(ctx, term, true, local_vars);
                     result = result->Call(ctx, &args);
@@ -2585,7 +2604,7 @@ ObjPtr Context::CreateRVal(Context *ctx, TermPtr term, Obj * local_vars, bool ev
             for (int64_t i = 0; i < static_cast<int64_t> (term->size()); i++) {
 
 
-                if((*term)[i].second->GetTokenID() == TermID::FILLING) {
+                if((*term)[i].second->getTermID() == TermID::FILLING) {
 
                     // Заполнение значений вызовом функции
                     // :Type(1, 2, 3, ... rand() ... );
@@ -2635,7 +2654,7 @@ ObjPtr Context::CreateRVal(Context *ctx, TermPtr term, Obj * local_vars, bool ev
 
                     break;
 
-                } else if((*term)[i].second->GetTokenID() == TermID::ELLIPSIS) {
+                } else if((*term)[i].second->getTermID() == TermID::ELLIPSIS) {
 
                     if(!term->name(i).empty()) {
                         LOG_RUNTIME("Named ellipsys not implemented!");
@@ -2853,7 +2872,7 @@ void Context::CreateArgs_(ObjPtr &args, TermPtr &term, Obj * local_vars) {
 
 ObjPtr Context::CreateClass(std::string class_name, TermPtr body, Obj * local_vars) {
 
-    ASSERT(body->GetTokenID() == TermID::CLASS);
+    ASSERT(body->getTermID() == TermID::CLASS);
     ASSERT(body->m_base.size());
 
     ObjPtr new_class = Obj::CreateBaseType(ObjType::Class);
@@ -2959,7 +2978,7 @@ ObjPtr Context::CreateClass(std::string class_name, TermPtr body, Obj * local_va
                         if(body->m_block[i]->Left()->IsFunction() || body->m_block[i]->Left()->isCall()) {
                             ObjPtr func = Eval(this, body->m_block[i], local_vars, true);
 
-                            if(body->m_block[i]->Right()->GetTokenID() == TermID::NONE) {
+                            if(body->m_block[i]->Right()->getTermID() == TermID::NONE) {
                                 func->m_var_type_current = ObjType::Virtual;
                             }
 

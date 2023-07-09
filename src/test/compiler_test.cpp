@@ -23,14 +23,14 @@
 //    TermPtr op = p->BlockCode()[0];
 //    ASSERT_TRUE(op);
 //
-//    ASSERT_EQ(TermID::NAME, op->GetTokenID());
+//    ASSERT_EQ(TermID::NAME, op->getTermID());
 //    ASSERT_TRUE(op->isCall());
 //    ASSERT_STREQ("newlang", op->getText().c_str());
 //    ASSERT_EQ(1, op->size());
 //    ASSERT_STREQ("cpp", (*op)[0].second->getText().c_str());
 //
 //    op = p->BlockCode()[1];
-//    ASSERT_EQ(TermID::SOURCE, op->GetTokenID());
+//    ASSERT_EQ(TermID::SOURCE, op->getTermID());
 //    ASSERT_STREQ("printf(\"Hello world!\");", op->getText().c_str());
 //    ASSERT_EQ(0, op->size());
 //}
@@ -801,7 +801,7 @@
 ////#include <stdio.h>\n\
 ////#include <string.h>\n\
 ////extern \"C\" int jit_print(const char *str) {\n\
-////    printf(\"%s\\n\", str);\n\
+////    printf(\"%s@n\", str);\n\
 ////    return strlen(str);\n\
 ////}\n";
 ////
@@ -842,7 +842,7 @@
 ////     //    EXPECT_STREQ("", opts->Eval(&ctx,
 ////     "@native(\"\")")->GetValueAsString().c_str());
 ////     //    EXPECT_STREQ("Hello, world!\n", opts->Eval(&ctx, "@native(\"Hello,
-////     world!\\n\")")->GetValueAsString().c_str());
+////     world!@n\")")->GetValueAsString().c_str());
 //// }
 //
 //TEST(Compiler, DISABLED_Function) {
@@ -856,12 +856,12 @@
 //
 //    parser.Parse(func_text);
 //    ASSERT_TRUE(funcs);
-//    ASSERT_EQ(TermID::BLOCK, funcs->GetTokenID());
+//    ASSERT_EQ(TermID::BLOCK, funcs->getTermID());
 //    ASSERT_EQ(2, funcs->BlockCode().size());
 //
 //    TermPtr func1 = funcs->BlockCode()[0];
 //
-//    ASSERT_EQ(TermID::PUREFUNC, func1->GetTokenID());
+//    ASSERT_EQ(TermID::PUREFUNC, func1->getTermID());
 //    ASSERT_TRUE(func1->Left());
 //    ASSERT_EQ(2, func1->Left()->size());
 //
@@ -888,7 +888,7 @@
 //
 //    TermPtr func2 = funcs->BlockCode()[1];
 //
-//    ASSERT_EQ(TermID::PUREFUNC, func2->GetTokenID());
+//    ASSERT_EQ(TermID::PUREFUNC, func2->getTermID());
 //    ASSERT_TRUE(func2->Left());
 //    ASSERT_EQ(2, func2->Left()->size());
 //

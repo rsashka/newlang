@@ -17,8 +17,38 @@ using namespace newlang;
 class ParserTest : public ::testing::Test {
 protected:
 
-    TermPtr Parse(std::string str, MacroBuffer *buffer = nullptr) {
-        ast = Parser::ParseString(str, buffer);
+
+
+    std::vector<std::string> m_postlex;
+
+    utils::Logger::FuncCallback *m_log_callback_save;
+    void *m_log_callback_arg_save;
+    std::string m_output;
+
+    static void LoggerCallback(void *param, utils::Logger::LogLevelType level, const char * str, bool flush) {
+        ParserTest *p = static_cast<ParserTest *> (param);
+        fprintf(stdout, "%s", str);
+        if(flush) {
+            fflush(stdout);
+        }
+        if(p) {
+            p->m_output += str;
+        }
+    }
+
+    void SetUp() {
+        utils::Logger::Instance()->SaveCallback(m_log_callback_save, m_log_callback_arg_save);
+        utils::Logger::Instance()->Clear();
+        utils::Logger::Instance()->SetCallback(&LoggerCallback, this);
+    }
+
+    void TearDown() {
+        utils::Logger::Instance()->SetCallback(m_log_callback_save, m_log_callback_arg_save);
+    }
+
+    TermPtr Parse(std::string str, MacroBuffer *buffer = nullptr, DiagPtr diag = nullptr) {
+        m_postlex.clear();
+        ast = Parser::ParseString(str, buffer, &m_postlex, diag);
         return ast;
     }
 
@@ -29,6 +59,18 @@ protected:
                 result++;
             }
         }
+        return result;
+    }
+
+    std::string LexOut() {
+        std::string result;
+        for (int i = 0; i < m_postlex.size(); i++) {
+            if(!result.empty()) {
+                result += " ";
+            }
+            result += m_postlex[i];
+        }
+        trim(result);
         return result;
     }
 
@@ -451,8 +493,8 @@ TEST_F(ParserTest, DictType) {
     ASSERT_TRUE(Parse("(1, arg=2, '',)"));
     ASSERT_STREQ("(1, arg=2, '',)", ast->toString().c_str());
 
-    ASSERT_TRUE(Parse("(arg1=22, arg2=, arg3=,):Enum"));
-    ASSERT_STREQ("(arg1=22, arg2=, arg3=,):Enum", ast->toString().c_str());
+//    ASSERT_TRUE(Parse("(arg1=, arg2=22, arg3=,):Enum"));
+//    ASSERT_STREQ("(arg1=, arg2=22, arg3=,):Enum", ast->toString().c_str());
 
     ASSERT_TRUE(Parse("(1, arg=2, '',):Class"));
     ASSERT_STREQ("(1, arg=2, '',):Class", ast->toString().c_str());
@@ -511,7 +553,7 @@ TEST_F(ParserTest, TermFullName9) {
 
 TEST_F(ParserTest, FuncNoArg) {
     ASSERT_TRUE(Parse("@term();"));
-    ASSERT_EQ(TermID::NAME, ast->getTermID()) << newlang::toString(ast->getTermID());
+    ASSERT_EQ(TermID::MACRO, ast->getTermID()) << newlang::toString(ast->getTermID());
     ASSERT_STREQ("@term", ast->m_text.c_str());
 }
 
@@ -613,6 +655,11 @@ TEST_F(ParserTest, ArgsType) {
     ASSERT_TRUE(Parse("term(bool:Bool=term(100), int:Int32=100, long:Int64=@term()):Float64:={long;};"));
     ASSERT_EQ(TermID::CREATE_OR_ASSIGN, ast->getTermID()) << newlang::toString(ast->getTermID());
     ASSERT_STREQ("term(bool:Bool=term(100), int:Int32=100, long:Int64=@term()):Float64 := {long;};", ast->toString().c_str());
+}
+
+TEST_F(ParserTest, ArgsType1) {
+    ASSERT_TRUE(Parse("term(long:Int64=@term());"));
+    ASSERT_STREQ("term(long:Int64=@term())", ast->toString().c_str());
 }
 
 TEST_F(ParserTest, TermCall) {
@@ -1083,7 +1130,12 @@ TEST_F(ParserTest, AssignSimpleNamedArg) {
     ASSERT_STREQ("term := $term2(arg=arg2);", ast->toString().c_str());
 }
 
-TEST_F(ParserTest, AssignNamedArgs) {
+TEST_F(ParserTest, AssignNamedArgs0) {
+    ASSERT_TRUE(Parse("\t term   :=   \\term2( arg, arg1 = arg2  )  ;  \n"));
+    ASSERT_STREQ("term := \\term2(arg, arg1=arg2);", ast->toString().c_str());
+}
+
+TEST_F(ParserTest, AssignNamedArgs1) {
     ASSERT_TRUE(Parse("\t term   :=   @term2( arg, arg1 = arg2  )  ;  \n"));
     ASSERT_STREQ("term := @term2(arg, arg1=arg2);", ast->toString().c_str());
 }
@@ -1094,11 +1146,21 @@ TEST_F(ParserTest, AssignNamedArgs2) {
 }
 
 TEST_F(ParserTest, AssignNamedArgs3) {
-    ASSERT_TRUE(Parse("\t $term   :=   term2( @arg, arg1 = 123  )  ;  \n"));
-    ASSERT_STREQ("$term := term2(@arg, arg1=123);", ast->toString().c_str());
+    ASSERT_TRUE(Parse("\t $term   :=   term2( \\arg, arg1 = 123  )  ;  \n"));
+    ASSERT_STREQ("$term := term2(\\arg, arg1=123);", ast->toString().c_str());
 }
 
 TEST_F(ParserTest, AssignNamedArgs4) {
+    ASSERT_TRUE(Parse("\t %term   :=   term2( arg, arg1 = \\arg2($arg3))  ;  \n"));
+    ASSERT_STREQ("%term := term2(arg, arg1=\\arg2($arg3));", ast->toString().c_str());
+}
+
+TEST_F(ParserTest, AssignNamedArgs5) {
+    ASSERT_TRUE(Parse("\t %term   :=   term2( arg, arg1 = \\\\arg2($arg3))  ;  \n"));
+    ASSERT_STREQ("%term := term2(arg, arg1=\\\\arg2($arg3));", ast->toString().c_str());
+}
+
+TEST_F(ParserTest, AssignNamedArgs6) {
     ASSERT_TRUE(Parse("\t %term   :=   term2( arg, arg1 = @arg2($arg3))  ;  \n"));
     ASSERT_STREQ("%term := term2(arg, arg1=@arg2($arg3));", ast->toString().c_str());
 }
@@ -1358,21 +1420,21 @@ TEST_F(ParserTest, DISABLED_Ellipsis1) {
 //}
 //
 //TEST_F(ParserTest, Rational) {
-//    ASSERT_TRUE(Parse("1\\1"));
+//    ASSERT_TRUE(Parse("1@1"));
 //    ASSERT_EQ(TermID::RATIONAL, ast->getTermID()) << newlang::toString(ast->getTermID());
-//    ASSERT_STREQ("1\\1;", ast->toString().c_str());
+//    ASSERT_STREQ("1@1;", ast->toString().c_str());
 //}
 //
 //TEST_F(ParserTest, Rational2) {
-//    ASSERT_TRUE(Parse("1\\-20"));
+//    ASSERT_TRUE(Parse("1@-20"));
 //    ASSERT_EQ(TermID::RATIONAL, ast->getTermID()) << newlang::toString(ast->getTermID());
-//    ASSERT_STREQ("1\\-20;", ast->toString().c_str());
+//    ASSERT_STREQ("1@-20;", ast->toString().c_str());
 //}
 //
 //TEST_F(ParserTest, Rational3) {
-//    ASSERT_TRUE(Parse("-3\\+11"));
+//    ASSERT_TRUE(Parse("-3@+11"));
 //    ASSERT_EQ(TermID::RATIONAL, ast->getTermID()) << newlang::toString(ast->getTermID());
-//    ASSERT_STREQ("-3\\+11;", ast->toString().c_str());
+//    ASSERT_STREQ("-3@+11;", ast->toString().c_str());
 //}
 //
 //TEST_F(ParserTest, ArrayAdd9) {
@@ -1431,7 +1493,7 @@ TEST_F(ParserTest, Comment3) {
             "#!/bin/nlc;\n"
             "\n"
             "\n"
-            "# @print(\"Привет, мир!\\n\");\n";
+            "# @print(\"Привет, мир!@n\");\n";
     ASSERT_TRUE(Parse(str));
     ASSERT_EQ(TermID::CREATE_OR_ASSIGN, ast->getTermID()) << newlang::toString(ast->getTermID());
     //    ASSERT_EQ(3, ast->m_block.size());
@@ -1444,7 +1506,7 @@ TEST_F(ParserTest, Comment4) {
     const char *str = "#!/bin/nlc;\n"
             "print1(str=\"\") := {%  %};\n"
             "print2(str=\"\") := {%  %};\n"
-            "# @print(\"Привет, мир!\\n\");\n";
+            "# @print(\"Привет, мир!@n\");\n";
     ASSERT_TRUE(Parse(str));
     ASSERT_EQ(TermID::BLOCK, ast->getTermID()) << newlang::toString(ast->getTermID());
     ASSERT_EQ(2, ast->m_block.size());
@@ -1459,7 +1521,7 @@ TEST_F(ParserTest, Comment5) {
             "print1(str=\"\") := {%  %};\n"
             "print2(str=\"\") := { {%  %} };\n\n"
             "print3(str=\"\") := {%  %};\n\n\n"
-            "# @print(\"Привет, мир!\\n\");\n";
+            "# @print(\"Привет, мир!@n\");\n";
     ASSERT_TRUE(Parse(str));
     ASSERT_EQ(TermID::BLOCK, ast->getTermID()) << newlang::toString(ast->getTermID());
     ASSERT_EQ(4, ast->m_block.size());
@@ -1471,24 +1533,24 @@ TEST_F(ParserTest, Comment5) {
 }
 
 TEST_F(ParserTest, Comment6) {
-    ASSERT_TRUE(Parse("# \\\\macro \\\\\\"));
+    ASSERT_TRUE(Parse("# @@macro @@@"));
     ASSERT_FALSE(ast->size());
-    ASSERT_TRUE(Parse("# \\\\macro \\\\\\\n"));
+    ASSERT_TRUE(Parse("# @@macro @@@\n"));
     ASSERT_FALSE(ast->size());
-    ASSERT_TRUE(Parse("/* \\\\macro \\\\\\ */"));
+    ASSERT_TRUE(Parse("/* @@macro @@@ */"));
     ASSERT_FALSE(ast->size());
-    ASSERT_TRUE(Parse("/* \\\\macro \\\\\\\n*/"));
+    ASSERT_TRUE(Parse("/* @@macro @@@\n*/"));
     ASSERT_FALSE(ast->size());
-    ASSERT_TRUE(Parse("/* \\\\macro \\\\\\\n\n*/"));
+    ASSERT_TRUE(Parse("/* @@macro @@@\n\n*/"));
     ASSERT_FALSE(ast->size());
-    ASSERT_TRUE(Parse("/*/* \\\\macro \\\\\\\n\n*/*/"));
+    ASSERT_TRUE(Parse("/*/* @@macro @@@\n\n*/*/"));
     ASSERT_FALSE(ast->size());
 }
 
 TEST_F(ParserTest, CommentIncluded) {
     //    const char *str = "/* !!!!!!! \n"
-    //            "@print(\"Привет, мир!\\n\");\n*/";
-    //    "# @print(\"Привет, мир!\\n\");\n";
+    //            "@print(\"Привет, мир!@n\");\n*/";
+    //    "# @print(\"Привет, мир!@n\");\n";
     //    ASSERT_TRUE(Parse(str));
 
     const char *str2 = "/* /* /* /* term();\n"
@@ -1496,7 +1558,7 @@ TEST_F(ParserTest, CommentIncluded) {
             "print2(str=\"\") ::= term();\n\n */ "
             "print3( */ str=\"\") ::= term();\n\n\n"
             "ddd  */  "
-            "# @print(\"Привет, мир!\\n\");\n";
+            "# @print(\"Привет, мир!@n\");\n";
     ASSERT_TRUE(Parse(str2));
 }
 
@@ -1591,7 +1653,7 @@ TEST_F(ParserTest, BlockTry) {
     ASSERT_TRUE(Parse("_()::-{+ 1; 2; 3; ++4++; 5; 6;+}; 100;"));
     ASSERT_EQ(2, ast->m_block.size());
     ASSERT_EQ(TermID::BLOCK, ast->getTermID()) << newlang::toString(ast->getTermID());
-    ASSERT_EQ(TermID::PUREFUNC, ast->m_block[0]->getTermID()) << newlang::toString(ast->m_block[0]->getTermID());
+    ASSERT_EQ(TermID::PURE_CREATE, ast->m_block[0]->getTermID()) << newlang::toString(ast->m_block[0]->getTermID());
 
     ASSERT_TRUE(Parse("_():- {1; 2; 3; ++4++; 5; 6;};"));
     ASSERT_EQ(0, ast->m_block.size());
@@ -1857,6 +1919,76 @@ TEST_F(ParserTest, DISABLED_Follow7) {
     //    ASSERT_STREQ("(test.field[0].field2>iter!!)->{if_1;};", ast->toString().c_str());
 }
 
+/*
+    try:
+        a = float(input("Введите число: ")
+        print (100 / a)
+    except ValueError:
+        print ("Это не число!")
+    except ZeroDivisionError:
+        print ("На ноль делить нельзя!")
+    except:
+        print ("Неожиданная ошибка.")
+    else:
+        print ("Код выполнился без ошибок")
+    finally:
+        print ("Я выполняюсь в любом случае!")
+
+ 
+    {*   # try:
+        a = float(input("Введите число: ");
+        print (100 / a);
+ *} ~> {
+
+        [:ValueError] --> print ("Это не число!"),                  # except ValueError:
+        [:ZeroDivisionError] --> print ("На ноль делить нельзя!"),  # except ZeroDivisionError
+        [:IntMinus] --> print ("Неожиданная ошибка."),              # except:
+        [_] --> print ("Код выполнился без ошибок");                # else:
+
+        print ("Я выполняюсь в любом случае!");                     # finally:
+    };
+ */
+
+TEST_F(ParserTest, Match1) {
+    ASSERT_TRUE(Parse("[1]==>{[1]-->first}"));
+}
+
+TEST_F(ParserTest, Match1_0) {
+    ASSERT_TRUE(Parse("[1]==>{[1]-->first;}"));
+}
+
+TEST_F(ParserTest, Match2) {
+    ASSERT_TRUE(Parse("[1]==>{[1]-->first,[2]-->second()}"));
+}
+
+TEST_F(ParserTest, Match2_0) {
+    ASSERT_TRUE(Parse("[1]==>{[1]-->first,[2]-->second();}"));
+}
+
+TEST_F(ParserTest, Match3) {
+    ASSERT_TRUE(Parse("[1]==>{[1]-->first,[2]-->second(),[_]-->end()}"));
+}
+
+TEST_F(ParserTest, Match3_0) {
+    ASSERT_TRUE(Parse("[1]==>{[1]-->first,[2]-->second(),[_]-->end();}"));
+}
+
+//TEST_F(ParserTest, Match4) {
+//    ASSERT_TRUE(Parse("[1]==>{[1]-->first,[2]-->second(),[_]-->end(); on_exit}"));
+//}
+//
+//TEST_F(ParserTest, Match5) {
+//    ASSERT_TRUE(Parse("[1]==>{[1]-->first,[2]-->second(),[_]-->end(); on_exit()}"));
+//}
+//
+//TEST_F(ParserTest, Match6) {
+//    ASSERT_TRUE(Parse("[1]==>{[1]-->first,[2]-->second(),[_]-->end(); on_exit();}"));
+//}
+//
+//TEST_F(ParserTest, Match7) {
+//    ASSERT_TRUE(Parse("[1]==>{[1]-->first,[2]-->second(),[_]-->end();;; on_exit(name=args); name; 1;}"));
+//}
+
 TEST_F(ParserTest, Return) {
     ASSERT_TRUE(Parse("--;"));
     ASSERT_TRUE(Parse("--;;"));
@@ -1920,683 +2052,7 @@ TEST_F(ParserTest, Return) {
 
 }
 
-/*
- * \\ alias \\ alias::name \\
- * \\ alias(arg, ...) \\ alias::name(\$arg, \$*) \\
- * alias
- * alias(...)
- * 
- * \\ if(cond)   \\ [ \$cond ] --> \\
- * \\ elif(cond) \\ ,[ \$cond ] --> \\
- * \\ else       \\ ,[_] --> \\
- * 
- * if(cond) {
- *      ...
- * } elif(cond) {
- *      ...
- * } else {
- *      ...
- * };
- * 
- * \\while(cond)\\ [\$cond] <-> \\
- * while(cond) {
- *      ...
- * };
- * 
- * \\dowhile(cond) \\ <->[\$cond]\\
- * {
- *      ...
- * } dowhile(cond);
- * 
- * \\return\\  --\\
- * \\return(...)\\  --\$*--\\
- * return;
- * return(...);
- * 
- * \\match(val, op)\\\  [\$val] \$op>\\\   Требуется передача операторов как аргументов? Нет, не требуется, так как до парсера не дойдет
- * \\match(val) op \\\ [\$val] \$op>\\\
- * \\case(...)\\ [\$*]--> \\
- * \\default\\ [_]-->\\
- * 
- * match(val, ~) {
- *      case(val) {
- *          ...
- *      };
- *      case(val2, val3) {
- *          ...
- *      };
- *      default {
- *          ...
- *      };
- * }; 
- * 
- */
-TEST_F(ParserTest, MacroBuffer) {
-    TermPtr term = Term::Create(parser::token_type::NAME, TermID::NAME, "name");
-    term->AppendFollow(term);
-    ASSERT_STREQ("name", term->m_text.c_str());
 
-    TermPtr term2 = Term::Create(parser::token_type::NAME, TermID::NAME, "name2");
-    term->AppendFollow(term2);
-    ASSERT_STREQ("name", term->m_text.c_str());
-
-
-    MacroBuffer macro;
-    ASSERT_EQ(0, macro.size());
-
-    ASSERT_TRUE(Parse("\\\\alias\\\\alias_name\\\\", &macro));
-
-    ASSERT_EQ(1, macro.GetCount());
-    ASSERT_TRUE(macro.find({"alias"}));
-
-    ASSERT_ANY_THROW(Parse("\\\\ alias \\\\ alias_name2 \\\\", &macro));
-    ASSERT_EQ(1, macro.GetCount()) << macro.Dump();
-    ASSERT_TRUE(macro.find({"alias"}));
-
-    ASSERT_ANY_THROW(Parse("\\\\alias+alias\\\\alias_name;aaaaaaaaaa\\\\", &macro));
-    ASSERT_EQ(1, macro.GetCount());
-
-    ASSERT_TRUE(Parse("{ \\\\alias_alias\\\\alias_alias2\\\\ }", &macro));
-    ASSERT_FALSE(macro.find({"alias_alias"}));
-
-    ASSERT_TRUE(Parse("{* \\\\alias_alias0\\\\alias_alias2\\\\ *}", &macro));
-    ASSERT_FALSE(macro.find({"alias_alias0"}));
-
-    ASSERT_TRUE(Parse("{- \\\\alias_alias1\\\\alias_alias2\\\\ -}", &macro));
-    ASSERT_FALSE(macro.find({"alias_alias1"}));
-
-    ASSERT_TRUE(Parse("{+ \\\\alias_alias2\\\\alias_alias2\\\\ +}", &macro));
-    ASSERT_FALSE(macro.find({"alias_alias2"}));
-
-    ASSERT_TRUE(Parse("{{ \\\\alias_alias3\\\\alias_alias2\\\\ }}", &macro));
-    ASSERT_FALSE(macro.find({"alias_alias3"}));
-
-    ASSERT_TRUE(Parse("\\\\alias\\\\\\\\\\", &macro));
-    ASSERT_EQ(0, macro.GetCount());
-
-
-    ASSERT_TRUE(Parse("\\\\if(args) \\\\ [\\$args] --> \\\\", &macro));
-
-    ASSERT_EQ(1, macro.size());
-    ASSERT_TRUE(macro.find({"if", "("})) << macro.Dump();
-    ASSERT_TRUE(macro.find({"if", "("}));
-    ASSERT_TRUE(macro.find({"if", "("})->Right());
-    ASSERT_EQ(4, macro.find({"if", "("})->Right()->m_follow.size());
-
-    ASSERT_TRUE(Parse("\\\\if2(...) \\\\\\ [ ... ] --> \\\\\\", &macro));
-
-    ASSERT_EQ(2, macro.size());
-    ASSERT_TRUE(macro.find({"if2", "("}));
-    ASSERT_TRUE(macro.find({"if2", "("}));
-    ASSERT_TRUE(macro.find({"if2", "("})->Right());
-    ASSERT_STREQ(" [ ... ] --> ", macro.find({"if2", "("})->Right()->m_text.c_str());
-
-}
-
-TEST_F(ParserTest, MacroAlias) {
-    MacroBuffer macro;
-    ASSERT_EQ(0, macro.size());
-
-    ASSERT_TRUE(Parse("\\\\alias\\\\replace\\\\", &macro));
-    ASSERT_TRUE(Parse("\\\\alias2\\\\alias\\\\", &macro));
-    ASSERT_TRUE(Parse("\\\\fail\\\\fail\\\\", &macro));
-
-    ASSERT_EQ(3, macro.size());
-    ASSERT_TRUE(macro.find({"alias"}));
-    TermPtr macro_alias = macro.find({"alias"});
-    ASSERT_STREQ("replace", macro_alias->Right()->m_follow[0]->m_text.c_str());
-
-    ASSERT_TRUE(macro.find({"alias2"}));
-    TermPtr macro_alias2 = macro.find({"alias2"});
-    ASSERT_STREQ("alias", macro_alias2->Right()->m_follow[0]->m_text.c_str());
-
-    ASSERT_TRUE(macro.find({"fail"}));
-    TermPtr macro_fail = macro.find({"fail"});
-    ASSERT_STREQ("fail", macro_fail->Right()->m_follow[0]->m_text.c_str());
-
-
-
-    TermPtr term = Term::Create(parser::token_type::NAME, TermID::NAME, "alias");
-
-    ASSERT_TRUE(macro.map::find(term->m_text) != macro.end());
-
-    std::vector<MacroToken> vals = macro.map::find(term->m_text)->second;
-    ASSERT_EQ(1, vals.size());
-
-    LexerTokenType buff;
-    ASSERT_EQ(MacroBuffer::CompareResult::NEXT_NAME, MacroBuffer::CompareMacro(buff, macro_alias));
-    ASSERT_EQ(MacroBuffer::CompareResult::NEXT_NAME, MacroBuffer::CompareMacro(buff, macro_alias2));
-    ASSERT_EQ(MacroBuffer::CompareResult::NEXT_NAME, MacroBuffer::CompareMacro(buff, macro_fail));
-
-
-    buff.push_back(term);
-
-    ASSERT_EQ(MacroBuffer::CompareResult::DONE, MacroBuffer::CompareMacro(buff, macro_alias));
-    ASSERT_EQ(MacroBuffer::CompareResult::NOT_EQ, MacroBuffer::CompareMacro(buff, macro_alias2));
-    ASSERT_EQ(MacroBuffer::CompareResult::NOT_EQ, MacroBuffer::CompareMacro(buff, macro_fail));
-
-
-    term = Term::Create(parser::token_type::NAME, TermID::NAME, "alias");
-    buff.push_back(term);
-
-
-    ASSERT_EQ(MacroBuffer::CompareResult::DONE, MacroBuffer::CompareMacro(buff, macro_alias));
-    ASSERT_EQ(MacroBuffer::CompareResult::NOT_EQ, MacroBuffer::CompareMacro(buff, macro_alias2));
-    ASSERT_EQ(MacroBuffer::CompareResult::NOT_EQ, MacroBuffer::CompareMacro(buff, macro_fail));
-
-
-    MacroBuffer::MacroArgsType macro_args;
-
-    ASSERT_EQ(1, MacroBuffer::ExtractArgs(buff, macro_alias, macro_args));
-    ASSERT_EQ(0, macro_args.size());
-
-    //    ASSERT_ANY_THROW(MacroBuffer::ExtractArgs(buff, macro_alias2, macro_args));
-    //    ASSERT_ANY_THROW(MacroBuffer::ExtractArgs(buff, macro_fail, macro_args));
-
-    ASSERT_ANY_THROW(MacroBuffer::ExpandString(macro_alias, macro_args));
-
-    BlockType block;
-    block = MacroBuffer::ExpandMacros(macro_alias, macro_args);
-    ASSERT_EQ(1, block.size());
-    ASSERT_TRUE(block[0]);
-    ASSERT_STREQ("replace", block[0]->m_text.c_str());
-
-
-
-    ASSERT_EQ(3, macro.size());
-    for (auto &elem : macro) {
-        LOG_DEBUG("Hash: %s", elem.first.c_str());
-    }
-
-    ASSERT_TRUE(Parse("alias", &macro));
-    ASSERT_EQ(TermID::NAME, ast->getTermID()) << newlang::toString(ast->getTermID());
-    ASSERT_STREQ("replace", ast->toString().c_str());
-
-    ASSERT_TRUE(Parse("alias2", &macro));
-    ASSERT_EQ(TermID::NAME, ast->getTermID()) << newlang::toString(ast->getTermID());
-    ASSERT_STREQ("replace", ast->toString().c_str());
-
-    //    ASSERT_ANY_THROW(Parse("fail", &macro));
-}
-
-TEST_F(ParserTest, MacroMacro) {
-    MacroBuffer macro;
-    ASSERT_EQ(0, macro.size());
-
-    ASSERT_TRUE(Parse("\\\\alias replace\\\\replace\\\\", &macro));
-    ASSERT_EQ(1, macro.GetCount()) << macro.Dump();
-    ASSERT_TRUE(Parse("\\\\alias second\\\\second\\\\", &macro));
-    ASSERT_EQ(2, macro.GetCount()) << macro.Dump();
-    ASSERT_TRUE(Parse("\\\\text\\\\\\text;\n text\\\\\\", &macro));
-    ASSERT_EQ(3, macro.GetCount()) << macro.Dump();
-    ASSERT_TRUE(Parse("\\\\dsl\\\\\\ \\\\m1\\\\mm\\\\;\n  \\\\m2\\\\mm\\\\;\n\\\\\\", &macro));
-
-    ASSERT_EQ(4, macro.GetCount()) << macro.Dump();
-    ASSERT_TRUE(macro.find({"alias", "replace"}));
-    TermPtr macro_replace = macro.find({"alias", "replace"});
-    ASSERT_TRUE(macro.find({"alias", "second"}));
-    TermPtr macro_second = macro.find({"alias", "second"});
-    ASSERT_TRUE(macro.find({"text"}));
-    TermPtr macro_text = macro.find({"text"});
-    ASSERT_TRUE(macro.find({"dsl"}));
-    TermPtr macro_dsl = macro.find({"dsl"});
-
-
-    TermPtr term = Term::Create(parser::token_type::NAME, TermID::NAME, "alias");
-
-    ASSERT_TRUE(macro.find({"alias", "replace"}));
-    ASSERT_TRUE(macro.find({"alias", "second"}));
-
-
-    LexerTokenType buff;
-    ASSERT_EQ(MacroBuffer::CompareResult::NEXT_NAME, MacroBuffer::CompareMacro(buff, macro_replace));
-    ASSERT_EQ(MacroBuffer::CompareResult::NEXT_NAME, MacroBuffer::CompareMacro(buff, macro_second));
-    ASSERT_EQ(MacroBuffer::CompareResult::NEXT_NAME, MacroBuffer::CompareMacro(buff, macro_text));
-    ASSERT_EQ(MacroBuffer::CompareResult::NEXT_NAME, MacroBuffer::CompareMacro(buff, macro_dsl));
-
-
-    buff.push_back(term);
-
-    ASSERT_EQ(MacroBuffer::CompareResult::NEXT_NAME, MacroBuffer::CompareMacro(buff, macro_replace));
-    ASSERT_EQ(MacroBuffer::CompareResult::NEXT_NAME, MacroBuffer::CompareMacro(buff, macro_second));
-    ASSERT_EQ(MacroBuffer::CompareResult::NOT_EQ, MacroBuffer::CompareMacro(buff, macro_text));
-    ASSERT_EQ(MacroBuffer::CompareResult::NOT_EQ, MacroBuffer::CompareMacro(buff, macro_dsl));
-
-    buff.push_back(term);
-
-    ASSERT_EQ(MacroBuffer::CompareResult::NOT_EQ, MacroBuffer::CompareMacro(buff, macro_replace));
-    ASSERT_EQ(MacroBuffer::CompareResult::NOT_EQ, MacroBuffer::CompareMacro(buff, macro_second));
-    ASSERT_EQ(MacroBuffer::CompareResult::NOT_EQ, MacroBuffer::CompareMacro(buff, macro_text));
-    ASSERT_EQ(MacroBuffer::CompareResult::NOT_EQ, MacroBuffer::CompareMacro(buff, macro_dsl));
-
-    buff.push_back(Term::Create(parser::token_type::NAME, TermID::NAME, "second"));
-
-    ASSERT_EQ(MacroBuffer::CompareResult::NOT_EQ, MacroBuffer::CompareMacro(buff, macro_replace));
-    ASSERT_EQ(MacroBuffer::CompareResult::NOT_EQ, MacroBuffer::CompareMacro(buff, macro_second));
-    ASSERT_EQ(MacroBuffer::CompareResult::NOT_EQ, MacroBuffer::CompareMacro(buff, macro_text));
-    ASSERT_EQ(MacroBuffer::CompareResult::NOT_EQ, MacroBuffer::CompareMacro(buff, macro_dsl));
-
-    buff.pop_front();
-
-    ASSERT_EQ(MacroBuffer::CompareResult::NOT_EQ, MacroBuffer::CompareMacro(buff, macro_replace));
-    ASSERT_EQ(MacroBuffer::CompareResult::DONE, MacroBuffer::CompareMacro(buff, macro_second));
-    ASSERT_EQ(MacroBuffer::CompareResult::NOT_EQ, MacroBuffer::CompareMacro(buff, macro_text));
-    ASSERT_EQ(MacroBuffer::CompareResult::NOT_EQ, MacroBuffer::CompareMacro(buff, macro_dsl));
-
-
-
-    ASSERT_TRUE(Parse("alias", &macro));
-    ASSERT_EQ(TermID::NAME, ast->getTermID()) << newlang::toString(ast->getTermID());
-    ASSERT_STREQ("alias", ast->toString().c_str());
-
-    ASSERT_TRUE(Parse("alias replace", &macro));
-    ASSERT_EQ(TermID::NAME, ast->getTermID()) << newlang::toString(ast->getTermID());
-    ASSERT_STREQ("replace", ast->m_text.c_str());
-
-    ASSERT_TRUE(Parse("alias second", &macro));
-    ASSERT_EQ(TermID::NAME, ast->getTermID()) << newlang::toString(ast->getTermID());
-    ASSERT_STREQ("second", ast->m_text.c_str());
-
-
-
-    ASSERT_EQ(4, macro.GetCount());
-    ASSERT_FALSE(macro.find({"m1"})) << macro.Dump();
-    ASSERT_FALSE(macro.find({"m2"})) << macro.Dump();
-
-    ASSERT_TRUE(Parse("dsl", &macro));
-
-    ASSERT_EQ(6, macro.GetCount());
-    ASSERT_TRUE(macro.find({"m1"})) << macro.Dump();
-    ASSERT_TRUE(macro.find({"m2"})) << macro.Dump();
-}
-
-TEST_F(ParserTest, MacroArgs) {
-
-
-    MacroBuffer macro;
-    std::vector<MacroToken> vect;
-    MacroBuffer::iterator iter;
-    TermPtr macro_alias1;
-    //    
-    //    ASSERT_TRUE(Parse("\\\\alias\\\\replace1\\\\;\\\\alias2\\\\replace2\\\\", &macro));
-    //    ASSERT_EQ(2, macro.GetCount());
-    //
-    //    iter = macro.map::find("alias");
-    //    ASSERT_TRUE(iter != macro.end());
-    //
-    // vect = iter->second;
-    //
-    //    ASSERT_EQ(1, vect.size()) << macro.Dump();
-    //
-    //    macro_alias1 = vect[0].macro;
-    //    ASSERT_TRUE(macro_alias1);
-    //    ASSERT_STREQ("alias", macro_alias1->m_text.c_str());
-    //    ASSERT_FALSE(macro_alias1->isCall()) << macro_alias1->toString().c_str();
-    //    ASSERT_TRUE(macro_alias1->GetTokenID() == TermID::MACRO_DEF) << macro_alias1->toString().c_str();
-    //    ASSERT_TRUE(macro_alias1->Right());
-    //    ASSERT_EQ(1, macro_alias1->Right()->m_follow.size());
-    //    ASSERT_STREQ("replace1", macro_alias1->Right()->m_follow[0]->m_text.c_str());
-
-
-    macro.clear();
-    ASSERT_EQ(0, macro.GetCount());
-
-    ASSERT_TRUE(Parse("\\\\alias\\\\replace1\\\\", &macro));
-    ASSERT_TRUE(Parse("\\\\alias($arg)\\\\ replace2(\\$arg) \\\\", &macro));
-    ASSERT_ANY_THROW(Parse("\\\\alias(...)\\\\replace3\\\\", &macro));
-//    ASSERT_TRUE(Parse("\\\\alias($arg) second\\\\replace3(\\$*)\\\\;\n \\\\macro($arg)\\\\\\ 3*\\$arg \\\\\\", &macro));
-    ASSERT_TRUE(Parse("\\\\alias($arg) second\\\\replace3(\\$*)\\\\;", &macro));
-    ASSERT_TRUE(Parse("\\\\macro($arg)\\\\\\ 3*\\$arg \\\\\\", &macro));
-
-    ASSERT_EQ(4, macro.GetCount());
-
-    iter = macro.map::find("alias");
-    ASSERT_TRUE(iter != macro.end());
-
-    vect = iter->second;
-
-    ASSERT_EQ(3, vect.size());
-
-    macro_alias1 = vect[0].macro;
-    ASSERT_TRUE(macro_alias1);
-    ASSERT_STREQ("alias", macro_alias1->m_text.c_str());
-    ASSERT_FALSE(macro_alias1->isCall());
-    ASSERT_TRUE(macro_alias1->GetTokenID() == TermID::MACRO_DEF) << macro_alias1->toString().c_str();
-    ASSERT_TRUE(macro_alias1->Right());
-    ASSERT_EQ(1, macro_alias1->Right()->m_follow.size());
-    ASSERT_STREQ("replace1", macro_alias1->Right()->m_follow[0]->m_text.c_str());
-
-
-    TermPtr macro_alias2 = vect[1].macro;
-    ASSERT_TRUE(macro_alias2);
-    ASSERT_STREQ("alias", macro_alias2->m_text.c_str());
-    ASSERT_TRUE(macro_alias2->GetTokenID() == TermID::MACRO_DEF) << macro_alias2->toString().c_str();
-    ASSERT_TRUE(macro_alias2->isCall());
-    ASSERT_TRUE(macro_alias2->Right());
-    ASSERT_EQ(4, macro_alias2->Right()->m_follow.size());
-    ASSERT_STREQ("replace2", macro_alias2->Right()->m_follow[0]->m_text.c_str());
-    ASSERT_STREQ("(", macro_alias2->Right()->m_follow[1]->m_text.c_str());
-    ASSERT_STREQ("\\$arg", macro_alias2->Right()->m_follow[2]->m_text.c_str());
-    ASSERT_STREQ(")", macro_alias2->Right()->m_follow[3]->m_text.c_str());
-
-    TermPtr macro_alias3 = vect[2].macro;
-    ASSERT_TRUE(macro_alias3);
-    ASSERT_STREQ("alias", macro_alias3->m_text.c_str());
-    ASSERT_TRUE(macro_alias3->GetTokenID() == TermID::MACRO_DEF) << macro_alias3->toString().c_str();
-    ASSERT_TRUE(macro_alias3->isCall());
-    ASSERT_EQ(1, macro_alias3->size());
-    ASSERT_TRUE(macro_alias3->Right());
-    ASSERT_EQ(4, macro_alias3->Right()->m_follow.size());
-    ASSERT_STREQ("replace3", macro_alias3->Right()->m_follow[0]->m_text.c_str());
-    ASSERT_STREQ("(", macro_alias3->Right()->m_follow[1]->m_text.c_str());
-    ASSERT_STREQ("\\$*", macro_alias3->Right()->m_follow[2]->m_text.c_str());
-    ASSERT_STREQ(")", macro_alias3->Right()->m_follow[3]->m_text.c_str());
-
-    ASSERT_EQ(macro_alias1.get(), macro.find({"alias"}).get());
-    ASSERT_EQ(macro_alias2.get(), macro.find({"alias", "("}).get());
-    ASSERT_EQ(macro_alias3.get(), macro.find({"alias", "(", "second"}).get());
-
-
-    iter = macro.map::find("macro");
-    ASSERT_TRUE(iter != macro.end());
-
-    vect = iter->second;
-    ASSERT_EQ(1, vect.size());
-    TermPtr macro_macro1 = vect[0].macro;
-    ASSERT_TRUE(macro_macro1);
-    ASSERT_STREQ("macro", macro_macro1->m_text.c_str());
-    ASSERT_EQ(macro_macro1.get(), macro.find({"macro", "("}).get());
-    ASSERT_TRUE(macro_macro1->GetTokenID() == TermID::MACRO_STR) << macro_macro1->toString().c_str();
-
-
-    LexerTokenType buff;
-    MacroBuffer::MacroArgsType macro_args;
-
-    ASSERT_ANY_THROW(MacroBuffer::ExtractArgs(buff, macro_alias1, macro_args));
-    ASSERT_ANY_THROW(MacroBuffer::ExtractArgs(buff, macro_alias2, macro_args));
-    ASSERT_ANY_THROW(MacroBuffer::ExtractArgs(buff, macro_alias3, macro_args));
-    ASSERT_ANY_THROW(MacroBuffer::ExtractArgs(buff, macro_macro1, macro_args));
-
-    buff.push_back(Term::Create(parser::token_type::NAME, TermID::NAME, "alias"));
-
-    ASSERT_EQ(1, MacroBuffer::ExtractArgs(buff, macro_alias1, macro_args));
-    ASSERT_EQ(0, macro_args.size()) << MacroBuffer::Dump(macro_args);
-
-    ASSERT_ANY_THROW(MacroBuffer::ExtractArgs(buff, macro_alias2, macro_args));
-    ASSERT_ANY_THROW(MacroBuffer::ExtractArgs(buff, macro_alias3, macro_args));
-    ASSERT_ANY_THROW(MacroBuffer::ExtractArgs(buff, macro_macro1, macro_args));
-
-
-    buff.push_back(Term::Create(parser::token_type::SYMBOL, TermID::SYMBOL, "("));
-
-    ASSERT_EQ(1, MacroBuffer::ExtractArgs(buff, macro_alias1, macro_args));
-    ASSERT_EQ(0, macro_args.size()) << MacroBuffer::Dump(macro_args);
-
-    ASSERT_ANY_THROW(MacroBuffer::ExtractArgs(buff, macro_alias2, macro_args));
-    ASSERT_ANY_THROW(MacroBuffer::ExtractArgs(buff, macro_alias3, macro_args));
-    ASSERT_ANY_THROW(MacroBuffer::ExtractArgs(buff, macro_macro1, macro_args));
-
-    buff.push_back(Term::Create(parser::token_type::NAME, TermID::NAME, "value"));
-
-
-    ASSERT_EQ(1, MacroBuffer::ExtractArgs(buff, macro_alias1, macro_args));
-    ASSERT_EQ(0, macro_args.size()) << MacroBuffer::Dump(macro_args);
-
-    ASSERT_ANY_THROW(MacroBuffer::ExtractArgs(buff, macro_alias2, macro_args));
-    ASSERT_ANY_THROW(MacroBuffer::ExtractArgs(buff, macro_alias3, macro_args));
-    ASSERT_ANY_THROW(MacroBuffer::ExtractArgs(buff, macro_macro1, macro_args));
-
-
-    buff.push_back(Term::Create(parser::token_type::SYMBOL, TermID::SYMBOL, ","));
-
-
-    ASSERT_EQ(1, MacroBuffer::ExtractArgs(buff, macro_alias1, macro_args));
-    ASSERT_EQ(0, macro_args.size()) << MacroBuffer::Dump(macro_args);
-
-    ASSERT_ANY_THROW(MacroBuffer::ExtractArgs(buff, macro_alias2, macro_args));
-    ASSERT_ANY_THROW(MacroBuffer::ExtractArgs(buff, macro_alias3, macro_args));
-    ASSERT_ANY_THROW(MacroBuffer::ExtractArgs(buff, macro_macro1, macro_args));
-
-
-    buff.push_back(Term::Create(parser::token_type::NAME, TermID::NAME, "value2"));
-
-    buff.push_back(Term::Create(parser::token_type::NAME, TermID::NAME, "value3"));
-
-
-    ASSERT_EQ(1, MacroBuffer::ExtractArgs(buff, macro_alias1, macro_args));
-    ASSERT_EQ(0, macro_args.size()) << MacroBuffer::Dump(macro_args);
-
-    ASSERT_ANY_THROW(MacroBuffer::ExtractArgs(buff, macro_alias2, macro_args));
-    ASSERT_ANY_THROW(MacroBuffer::ExtractArgs(buff, macro_alias3, macro_args));
-    ASSERT_ANY_THROW(MacroBuffer::ExtractArgs(buff, macro_macro1, macro_args));
-
-
-
-    buff.push_back(Term::Create(parser::token_type::SYMBOL, TermID::SYMBOL, ")"));
-
-
-    ASSERT_EQ(1, MacroBuffer::ExtractArgs(buff, macro_alias1, macro_args));
-    ASSERT_EQ(0, macro_args.size()) << MacroBuffer::Dump(macro_args);
-
-    ASSERT_EQ(7, MacroBuffer::ExtractArgs(buff, macro_alias2, macro_args));
-    ASSERT_EQ(4, macro_args.size()) << MacroBuffer::Dump(macro_args);
-
-    ASSERT_EQ(7, MacroBuffer::ExtractArgs(buff, macro_macro1, macro_args));
-    ASSERT_EQ(4, macro_args.size()) << MacroBuffer::Dump(macro_args);
-
-    ASSERT_ANY_THROW(MacroBuffer::ExtractArgs(buff, macro_alias3, macro_args));
-
-
-    buff.push_back(Term::Create(parser::token_type::NAME, TermID::NAME, "last_term"));
-
-    ASSERT_EQ(1, MacroBuffer::ExtractArgs(buff, macro_alias1, macro_args));
-    ASSERT_EQ(0, macro_args.size()) << MacroBuffer::Dump(macro_args);
-
-    BlockType res = MacroBuffer::ExpandMacros(macro_alias1, macro_args);
-    ASSERT_EQ(1, res.size());
-    ASSERT_STREQ("replace1", res[0]->m_text.c_str());
-
-
-    ASSERT_EQ(7, MacroBuffer::ExtractArgs(buff, macro_alias2, macro_args));
-    ASSERT_EQ(4, macro_args.size()) << MacroBuffer::Dump(macro_args);
-
-    res = MacroBuffer::ExpandMacros(macro_alias2, macro_args);
-    ASSERT_EQ(4, res.size());
-    ASSERT_STREQ("replace2", res[0]->m_text.c_str());
-    ASSERT_STREQ("(", res[1]->m_text.c_str());
-    ASSERT_STREQ("value", res[2]->m_text.c_str()) << MacroBuffer::Dump(macro_args);
-    ASSERT_STREQ(")", res[3]->m_text.c_str());
-
-    // Нет анализаи на соотеветстви макроса, только извлечение значений шаблона
-    ASSERT_EQ(8, MacroBuffer::ExtractArgs(buff, macro_alias3, macro_args));
-    ASSERT_EQ(4, macro_args.size()) << MacroBuffer::Dump(macro_args);
-
-    res = MacroBuffer::ExpandMacros(macro_alias3, macro_args);
-    ASSERT_EQ(7, res.size());
-    ASSERT_STREQ("replace3", res[0]->m_text.c_str());
-    ASSERT_STREQ("(", res[1]->m_text.c_str());
-    ASSERT_STREQ("value", res[2]->m_text.c_str()) << MacroBuffer::Dump(macro_args);
-    ASSERT_STREQ(",", res[3]->m_text.c_str()) << MacroBuffer::Dump(macro_args);
-    ASSERT_STREQ("value2", res[4]->m_text.c_str()) << MacroBuffer::Dump(macro_args);
-    ASSERT_STREQ("value3", res[5]->m_text.c_str()) << MacroBuffer::Dump(macro_args);
-    ASSERT_STREQ(")", res[6]->m_text.c_str());
-
-
-    buff.clear();
-    buff.push_back(Term::Create(parser::token_type::NAME, TermID::NAME, "macro"));
-    buff.push_back(Term::Create(parser::token_type::SYMBOL, TermID::SYMBOL, "("));
-    buff.push_back(Term::Create(parser::token_type::NUMBER, TermID::NUMBER, "5"));
-    buff.push_back(Term::Create(parser::token_type::SYMBOL, TermID::SYMBOL, ")"));
-
-    TermPtr macro_macro = macro.find({"macro", "("});
-    ASSERT_TRUE(macro_macro);
-    ASSERT_EQ(macro_macro.get(), macro.find({"macro", "("}).get());
-
-    ASSERT_EQ(4, MacroBuffer::ExtractArgs(buff, macro_macro, macro_args));
-    ASSERT_EQ(3, macro_args.size()) << MacroBuffer::Dump(macro_args);
-
-    std::string str = MacroBuffer::ExpandString(macro_macro, macro_args);
-    ASSERT_STREQ(" 3*5  ", str.c_str());
-
-    //    body = "\\macro(11, ...)";
-    //    args = Parser::ParseMacroArgs(body);
-    //    ASSERT_EQ(2, args.size());
-    //    ASSERT_STREQ("11", args[0].c_str());
-    //    ASSERT_STREQ("...", args[1].c_str());
-    //
-    //    body = "\\return(...)    --\\$*--";
-    //    args = Parser::ParseMacroArgs(body);
-    //    ASSERT_EQ(1, args.size());
-    //    ASSERT_STREQ("...", args[0].c_str());
-    //
-    //    ASSERT_ANY_THROW(
-    //            body = "\\macro(,)";
-    //            args = Parser::ParseMacroArgs(body);
-    //            );
-    //    ASSERT_ANY_THROW(
-    //            body = "\\macro( , )";
-    //            args = Parser::ParseMacroArgs(body);
-    //            );
-    //    ASSERT_ANY_THROW(
-    //            body = "\\macro(,,)";
-    //            args = Parser::ParseMacroArgs(body);
-    //            );
-    //
-    //    body = "\\macro)";
-    //    args = Parser::ParseMacroArgs(body);
-    //    ASSERT_EQ(0, args.size());
-    //
-    //    body = "\\macro\n";
-    //    args = Parser::ParseMacroArgs(body);
-    //    ASSERT_EQ(0, args.size());
-    //
-    //    body = "\\macro)";
-    //    args = Parser::ParseMacroArgs(body);
-    //    ASSERT_EQ(0, args.size());
-    //
-    //    body = "\\\\macro()";
-    //    args = Parser::ParseMacroArgs(body);
-    //    ASSERT_EQ(0, args.size());
-    //
-    //    body = "macro";
-    //    args = Parser::ParseMacroArgs(body);
-    //    ASSERT_EQ(0, args.size());
-    //
-    //    body = "";
-    //    args = Parser::ParseMacroArgs(body);
-    //    ASSERT_EQ(0, args.size());
-}
-
-//TEST_F(ParserTest, MacroExpand) {
-//
-//    std::string macro = "\\macro 12345";
-//    std::string body = "\\macro";
-//    std::string result = Parser::ExpandMacro(macro, body);
-//    ASSERT_STREQ("12345", result.c_str());
-//
-//    body = "\\macro \\macro";
-//    result = Parser::ExpandMacro(macro, body);
-//    ASSERT_STREQ("12345 12345", result.c_str());
-//
-//    body = "\\macro \\macro \\macro";
-//    result = Parser::ExpandMacro(macro, body);
-//    ASSERT_STREQ("12345 12345 12345", result.c_str());
-//
-//    macro = "\\macro() 12345";
-//    body = "\\macro \\macro \\macro";
-//    result = Parser::ExpandMacro(macro, body);
-//    ASSERT_STREQ("\\macro \\macro \\macro", result.c_str());
-//
-//    macro = "\\macro()12345";
-//    body = "\\macro() \\macro() \\macro";
-//    result = Parser::ExpandMacro(macro, body);
-//    ASSERT_STREQ("12345 12345 \\macro", result.c_str());
-//
-//    macro = "\\macro()12345";
-//    body = "\\macro(88) \\macro(99) \\macro";
-//    result = Parser::ExpandMacro(macro, body);
-//    ASSERT_STREQ("12345 12345 \\macro", result.c_str());
-//
-//
-//    macro = "\\macro(arg)\\$arg";
-//    body = "\\macro(88)";
-//    result = Parser::ExpandMacro(macro, body);
-//    ASSERT_STREQ("88", result.c_str());
-//
-//    macro = "\\macro(arg)no arg \\$arg";
-//    body = "\\macro(99)";
-//    result = Parser::ExpandMacro(macro, body);
-//    ASSERT_STREQ("no arg 99", result.c_str());
-//
-//    macro = "\\macro(arg)  no arg \\$arg no arg";
-//    body = "\\macro(88) \\macro(99)";
-//    result = Parser::ExpandMacro(macro, body);
-//    ASSERT_STREQ("  no arg 88 no arg   no arg 99 no arg", result.c_str());
-//
-//    macro = "\\macro(arg1,arg2)  \\$arg1 arg \\$arg2 \\$arg2";
-//    body = "\\macro(88,99)";
-//    result = Parser::ExpandMacro(macro, body);
-//    ASSERT_STREQ("  88 arg 99 99", result.c_str());
-//
-//    macro = "\\macro(arg1,arg2)  \\$arg1 \\$arg2 \\$arg2";
-//    body = "\\macro(1,2) \\macro(3,44)";
-//    result = Parser::ExpandMacro(macro, body);
-//    ASSERT_STREQ("  1 2 2   3 44 44", result.c_str());
-//
-//    macro = "\\macro(arg1,arg2)  \\$1 \\$2 \\$1";
-//    body = "\\macro(1,2) \\macro(3,44)";
-//    result = Parser::ExpandMacro(macro, body);
-//    ASSERT_STREQ("  1 2 1   3 44 3", result.c_str());
-//
-//    macro = "\\macro(arg1,arg2)\\$*";
-//    body = "\\macro(1,2)";
-//    result = Parser::ExpandMacro(macro, body);
-//    ASSERT_STREQ("1,2", result.c_str());
-//
-//    macro = "\\macro(arg1,arg2)\\$* \\$1 \\$arg2\\$*";
-//    body = "\\macro(1,2)";
-//    result = Parser::ExpandMacro(macro, body);
-//    ASSERT_STREQ("1,2 1 21,2", result.c_str());
-//
-//    macro = "\\macro(arg1,arg2)\\$* \\$1 \\$arg2\\$*";
-//    body = "\\macro(1,2)\\macro(1,2)";
-//    result = Parser::ExpandMacro(macro, body);
-//    ASSERT_STREQ("1,2 1 21,21,2 1 21,2", result.c_str());
-//
-//    macro = "\\\\return    --\\\\\\";
-//    body = "\\return(100);";
-//    result = Parser::ExpandMacro(macro, body);
-//    ASSERT_STREQ("\\return(100);", result.c_str());
-//
-//    macro = "\\return(...)--\\$*--";
-//    body = "\\return(100);";
-//    result = Parser::ExpandMacro(macro, body);
-//    ASSERT_STREQ("--100--;", result.c_str());
-//
-//}
-
-//TEST_F(ParserTest, MacroDSL) {
-//
-//    Parser::MacrosStore macros;
-//    std::string dsl = ""
-//            "\\if(cond)\\\\      [$cond]-->\\\\"
-//            "\\elseif(cond)\\\\ ,[$cond]-->\\\\"
-//            "\\else\\\\         ,[_]-->\\\\"
-//            ""
-//            "\\while(cond)\\\\  [$cond]<->\\\\"
-//            "\\dowhile(cond)\\\\<->[$cond]\\\\"
-//            "\\return\\         --\\"
-//            "\\return(...)\\    --$...--\\"
-//            "\\dowhile(cond)\\\\\\"
-//            "\\\\\\"
-//            "";
-//
-//    while(Parser::ExtractMacros(dsl, macros))
-//        ;
-//    ASSERT_EQ(7, macros.size());
-//
-//
-//}
 
 TEST_F(ParserTest, Docs) {
     ASSERT_TRUE(Parse("/** doc */ { }"));
@@ -2614,46 +2070,6 @@ TEST_F(ParserTest, HelloWorld) {
     //    ASSERT_STREQ("!!!!!!!!!!!!!!", ast->toString().c_str());
 }
 
-TEST_F(ParserTest, SysEnv) {
-    ASSERT_TRUE(Parse("__NLC_VER__"));
-    ASSERT_STREQ(std::to_string(VERSION).c_str(), ast->toString().c_str());
-
-    ASSERT_TRUE(Parse("__LINE__"));
-    ASSERT_STREQ(std::to_string(1).c_str(), ast->toString().c_str());
-    ASSERT_TRUE(Parse("\n__LINE__"));
-    ASSERT_STREQ(std::to_string(2).c_str(), ast->toString().c_str());
-    ASSERT_TRUE(Parse("\n\n__LINE__"));
-    ASSERT_STREQ(std::to_string(3).c_str(), ast->toString().c_str());
-
-    ASSERT_TRUE(Parse("__COUNTER__"));
-    ASSERT_STREQ("0", ast->toString().c_str());
-    ASSERT_TRUE(Parse("__COUNTER__"));
-    ASSERT_STREQ("1", ast->toString().c_str());
-    ASSERT_TRUE(Parse("__COUNTER__"));
-    ASSERT_STREQ("2", ast->toString().c_str());
-
-    ASSERT_TRUE(Parse("__FILE__"));
-    ASSERT_STREQ("\"File name undefined!!!\"", ast->toString().c_str());
-
-    ASSERT_TRUE(Parse("__DATE__"));
-    ASSERT_EQ(27, ast->toString().size()) << ast->toString();
-
-    ASSERT_TRUE(Parse("__TIMESTAMP__"));
-    ASSERT_EQ(26, ast->toString().size()) << ast->toString();
-
-    ASSERT_TRUE(Parse("__MD5__"));
-    ASSERT_TRUE(ast->toString().size() > 30) << ast->toString();
-
-    ASSERT_TRUE(Parse("__SOURCE_GIT__"));
-    ASSERT_STREQ("\"" VERSION_GIT_SOURCE "\"", ast->toString().c_str());
-
-    ASSERT_TRUE(Parse("__DATE_BUILD__"));
-    ASSERT_STREQ("\"" VERSION_DATE_BUILD_STR "\"", ast->toString().c_str());
-
-    ASSERT_TRUE(Parse("__SOURCE_BUILD__"));
-    ASSERT_STREQ("\"" VERSION_SOURCE_FULL_ID "\"", ast->toString().c_str());
-}
-
 TEST_F(ParserTest, Class) {
     EXPECT_TRUE(Parse(":Name := :Class(){};"));
     EXPECT_TRUE(Parse(":Name := :_(){ filed1 = 1; };"));
@@ -2667,36 +2083,36 @@ TEST_F(ParserTest, Class) {
 }
 
 TEST_F(ParserTest, Module) {
-    ASSERT_TRUE(Parse("@module(func)"));
-    ASSERT_TRUE(Parse("@dir.module(func)"));
-    ASSERT_TRUE(Parse("@dir.dir.module(func)"));
+    ASSERT_TRUE(Parse("\\module(func)"));
+    ASSERT_TRUE(Parse("\\\\dir.module(func)"));
+    ASSERT_TRUE(Parse("\\dir.dir.module(func)"));
 
-    //    ASSERT_TRUE(Parse("@module (*)"));
-    //    ASSERT_TRUE(Parse("@dir.module (*)"));
-    //    ASSERT_TRUE(Parse("@dir.dir.module (*)"));
+    //    ASSERT_TRUE(Parse("\\module (*)"));
+    //    ASSERT_TRUE(Parse("\\dir.module (*)"));
+    //    ASSERT_TRUE(Parse("\\\\dir.dir.module (*)"));
     //
-    //    ASSERT_TRUE(Parse("@module (func, func2)"));
-    //    ASSERT_TRUE(Parse("@dir.module (func, *)"));
-    //    ASSERT_TRUE(Parse("@dir.dir.module (func, _)"));
+    //    ASSERT_TRUE(Parse("\\\\module (func, func2)"));
+    //    ASSERT_TRUE(Parse("\\dir.module (func, *)"));
+    //    ASSERT_TRUE(Parse("\\dir.dir.module (func, _)"));
     //
-    //    ASSERT_TRUE(Parse("@module (func, ::func2)"));
-    //    ASSERT_TRUE(Parse("@dir.module (ns::func, *)"));
-    //    ASSERT_TRUE(Parse("@dir.dir.module (::ns::func, _)"));
+    //    ASSERT_TRUE(Parse("\\module (func, ::func2)"));
+    //    ASSERT_TRUE(Parse("\\dir.module (ns::func, *)"));
+    //    ASSERT_TRUE(Parse("\\dir.dir.module (::ns::func, _)"));
 
-    ASSERT_TRUE(Parse("@module (name=func, name=func2, name=::func3)"));
-    ASSERT_TRUE(Parse("@dir.module (name=ns::func, name='')"));
-    ASSERT_TRUE(Parse("@dir.dir.module (name=::ns::func, name=_)"));
+    ASSERT_TRUE(Parse("\\module (name=func, name=func2, name=::func3)"));
+    ASSERT_TRUE(Parse("\\\\dir.module (name=ns::func, name='')"));
+    ASSERT_TRUE(Parse("\\dir.dir.module (name=::ns::func, name=_)"));
 
-    ASSERT_TRUE(Parse("@module::var"));
-    ASSERT_TRUE(Parse("@module::ns::var"));
-    ASSERT_TRUE(Parse("@module::ns::func()"));
+    ASSERT_TRUE(Parse("\\module::var"));
+    ASSERT_TRUE(Parse("\\module::ns::var"));
+    ASSERT_TRUE(Parse("\\\\module::ns::func()"));
 
-    ASSERT_TRUE(Parse("@dir.module::var"));
-    ASSERT_TRUE(Parse("@dir.dir.module::ns::var"));
-    ASSERT_TRUE(Parse("@dir.dir.dir.module::ns::func()"));
+    ASSERT_TRUE(Parse("\\\\dir.module::var"));
+    ASSERT_TRUE(Parse("\\dir.dir.module::ns::var"));
+    ASSERT_TRUE(Parse("\\dir.dir.dir.module::ns::func()"));
 
-    //    ASSERT_TRUE(Parse("@module (name=func, name=::name::*)"));
-    //    ASSERT_TRUE(Parse("@dir.module (name=ns::name::*, name=*)"));
+    //    ASSERT_TRUE(Parse("\\module (name=func, name=::name::*)"));
+    //    ASSERT_TRUE(Parse("\\dir.module (name=ns::name::*, name=*)"));
 }
 
 TEST_F(ParserTest, DISABLED_Convert) {
@@ -2708,11 +2124,11 @@ TEST_F(ParserTest, DISABLED_Convert) {
     Parser parser;
     for (size_t i = 0; i < list.size(); i++) {
         ASSERT_NO_THROW(
-                parser.Parse(list[i], nullptr);
+                parser.Parse(list[i]);
                 ) << "FROM: " << list[i];
         std::string to_str = parser.GetAst()->toString() + ";";
         ASSERT_NO_THROW(
-                parser.Parse(to_str, nullptr);
+                parser.Parse(to_str);
                 ) << "CONVERT: " << to_str;
     }
 }

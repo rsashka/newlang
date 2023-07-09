@@ -71,7 +71,7 @@ namespace newlang {
         typedef PTR Type;
         typedef std::pair<std::string, Type> PairType;
         typedef std::list<PairType> ListType;
-        
+
         friend class Context;
 
         template <typename I>
@@ -125,9 +125,9 @@ namespace newlang {
             return ListType::end();
         }
 
-//        typename ListType::const_iterator find(const std::string_view name) const {
-//            return find(name);
-//        }
+        //        typename ListType::const_iterator find(const std::string_view name) const {
+        //            return find(name);
+        //        }
 
         virtual PairType & at(const std::string name) {
             auto iter = find(name);

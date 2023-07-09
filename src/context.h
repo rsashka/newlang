@@ -190,9 +190,11 @@ namespace newlang {
                 struct tm * timeinfo;
                 timeinfo = localtime(&temp);
                 m_timestamp = asctime(timeinfo);
+                m_timestamp = m_timestamp.substr(0, 24); // Remove \n on the end line
+
             }
 
-            llvm::ErrorOr<llvm::MD5::MD5Result> md5 = llvm::sys::fs::md5_contents((int)*file);
+            llvm::ErrorOr<llvm::MD5::MD5Result> md5 = llvm::sys::fs::md5_contents((int) *file);
             if (!md5) {
                 m_md5 = "????????????????????????????????";
             } else {
@@ -256,7 +258,7 @@ namespace newlang {
 
         static std::map<std::string, Context::EvalFunction> m_ops;
         static std::map<std::string, Context::EvalFunction> m_builtin_calls;
-//        static Parser::MacrosStore m_macros; ///< Хотя макросы и могут обработываться в рантайме, но доступны они только для парсера
+        //        static Parser::MacrosStore m_macros; ///< Хотя макросы и могут обработываться в рантайме, но доступны они только для парсера
         static MacroBuffer m_macros;
 
         LLVMBuilderRef m_llvm_builder;

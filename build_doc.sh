@@ -16,6 +16,7 @@ lang="
 
 list="
     about
+    roadmap
     syntax
     types
     "
@@ -117,7 +118,7 @@ echo "* Date build $DATE_BUILD" >> $VERSION_HEADER_TEMP
 echo "*/"  >> $VERSION_HEADER_TEMP
 echo ""  >> $VERSION_HEADER_TEMP
 
-echo "#define VERSION_DATE_BUILD_STR \"$DATE_BUILD)\""  >> $VERSION_HEADER_TEMP
+echo "#define VERSION_DATE_BUILD_STR \"$DATE_BUILD\""  >> $VERSION_HEADER_TEMP
 echo "#define VERSION_SOURCE_FULL_ID \"$GIT_SOURCE_ID $DATE_BUILD\""  >> $VERSION_HEADER_TEMP
 echo ""  >> $VERSION_HEADER_TEMP
 

@@ -85,6 +85,7 @@ function(CREATE_DOC  dir  suffix)
     execute_process(COMMAND ${CMD} "echo -n \"\" > ${dir}/newlang_doc.md")
     foreach(DOC_FILE 
             syntax.md
+            syntax_macro.md
             types.md
             type_nor.md
             type_str.md
@@ -96,6 +97,11 @@ function(CREATE_DOC  dir  suffix)
             ops.md
             syntax_dsl.md
         )
+
+        if(NOT EXISTS "${dir}/${DOC_FILE}")
+            message(FATAL_ERROR "File name '${dir}/${DOC_FILE}' not found!")
+        endif()
+
         execute_process(COMMAND ${CMD} "cat ${dir}/${DOC_FILE} >> ${dir}/newlang_doc.md")
         execute_process(COMMAND ${CMD} "echo \"------\n${DOC_FILE}\n\n\" >> ${dir}/newlang_doc.md")
     endforeach()
@@ -107,10 +113,15 @@ function(CREATE_DOC  dir  suffix)
     
 endfunction()
 
-cmake_language(CALL CREATE_DOC  "${CMAKE_SOURCE_DIR}/docs" "")
-cmake_language(CALL CREATE_DOC  "${CMAKE_SOURCE_DIR}/docs" "ru")
+#cmake_language(CALL CREATE_DOC  "${CMAKE_SOURCE_DIR}/docs" "en")
+#cmake_language(CALL CREATE_DOC  "${CMAKE_SOURCE_DIR}/docs" "ru")
 
 
+add_custom_target(doc ALL
+#  cmake_language(CALL CREATE_DOC  "${CMAKE_SOURCE_DIR}/docs" "en")
+  COMMAND ${CMD} "${CMAKE_SOURCE_DIR}/build_doc.sh"
+  #COMMAND CREATE_DOC  "${CMAKE_SOURCE_DIR}/docs" "ru"
+)
 
 execute_process(COMMAND ${CMD} "${CMAKE_SOURCE_DIR}/contrib/text2cpp/output/bin/text2cpp  ${CMAKE_SOURCE_DIR}/examples/dsl.nlp  ${CMAKE_SOURCE_DIR}/src/dsl.cpp.temp  newlang_dsl  c")
 cmake_language(CALL CHECK_NEW_FILE  "${CMAKE_SOURCE_DIR}/src/dsl.cpp" 0)

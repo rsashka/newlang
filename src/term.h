@@ -15,63 +15,79 @@
 namespace newlang {
 
 #define NL_TERMS(_) \
+        _(NONE) \
+        \
+        _(SPACE) \
+        _(INDENT) \
+        _(COMMENT) \
+        _(CRLF) \
+        \
+        _(DOC_BEFORE) \
+        _(DOC_AFTER) \
+        \
         _(BLOCK) \
         _(BLOCK_TRY) \
         _(BLOCK_PLUS) \
         _(BLOCK_MINUS) \
+        \
+        _(INT_PLUS) \
+        _(INT_MINUS) \
+        _(INT_REPEAT) \
+        \
         _(NAME) \
         _(LOCAL) \
         _(MODULE) \
         _(NATIVE) \
+        \
         _(TYPE) \
         _(INTEGER) \
         _(NUMBER) \
         _(COMPLEX) \
+        _(RATIONAL) \
+        \
         _(STRWIDE) \
         _(STRCHAR) \
         _(TEMPLATE) \
         _(EVAL) \
-        _(DOC_BEFORE) \
-        _(DOC_AFTER) \
         \
-        _(RATIONAL) \
-        \
-        _(NONE) \
         _(EMPTY) \
+        _(ARGS) \
+        _(ARGUMENT) \
+        _(NEWLANG) \
         _(TYPENAME) \
         _(UNKNOWN) \
         _(SYMBOL) \
         _(NAMESPACE) \
         _(PARENT) \
-        _(ALIAS) \
+        _(ESCAPE) \
+        \
         _(MACRO) \
-        _(MACRO_DEF) \
-        _(MACRO_BODY) \
+        _(MACRO_SEQ) \
         _(MACRO_STR) \
         _(MACRO_DEL) \
-        _(NEWLANG) \
-        _(ASSIGN) \
+        _(MACRO_TOSTR) \
+        _(MACRO_CONCAT) \
+        _(MACRO_ARGUMENT) \
+        _(MACRO_ARGCOUNT) \
+        \
         _(CREATE) \
         _(CREATE_OR_ASSIGN) \
+        _(ASSIGN) \
+        _(PUREFUNC) \
+        _(PURE_CREATE) \
         _(APPEND) \
         \
         _(FUNCTION) \
-        _(PUREFUNC) \
-        _(LAMBDA) \
         _(ITERATOR) \
+        \
         _(FOLLOW) \
-        _(MATCHING) \
         _(WHILE) \
         _(DOWHILE) \
+        _(MATCHING) \
         \
         _(RANGE) \
         _(ELLIPSIS) \
         _(FILLING) \
-        _(ARGUMENT) \
-        _(ARGS) \
-        _(INT_PLUS) \
-        _(INT_MINUS) \
-        _(INT_REPEAT) \
         \
         _(INDEX) \
         _(FIELD) \
@@ -109,11 +125,8 @@ namespace newlang {
     size_t IndexArg(TermPtr term);
     std::string ParserMessage(std::string &buffer, int row, int col, const char *format, ...);
 
-    inline bool IsMacroTermID(TermID id) {
-        if (id == TermID::MACRO || id == TermID::NAME || id == TermID::ARGUMENT || id == TermID::ARGS) {
-            return true;
-        }
-        return false;
+    inline static bool IsAnyCreate(TermID id) {
+        return id == TermID::CREATE || id == TermID::CREATE_OR_ASSIGN || id == TermID::ASSIGN || id == TermID::PUREFUNC || id == TermID::PURE_CREATE;
     }
 
     class Term : public Variable<Term>, public std::enable_shared_from_this<Term> {
@@ -123,8 +136,8 @@ namespace newlang {
             return std::make_shared<Term>(term);
         }
 
-        static TermPtr Create(parser::token_type lex_type, TermID id, const char *text, size_t len = std::string::npos, location *loc = nullptr, std::shared_ptr<std::string> source = nullptr, Parser * parser = nullptr) {
-            return std::make_shared<Term>(lex_type, id, text, (len == std::string::npos ? strlen(text) : len), loc, source, parser);
+        static TermPtr Create(parser::token_type lex_type, TermID id, const char *text, size_t len = std::string::npos, location *loc = nullptr, std::shared_ptr<std::string> source = nullptr) {
+            return std::make_shared<Term>(lex_type, id, text, (len == std::string::npos ? strlen(text) : len), loc, source);
         }
 
         TermPtr Clone() {
@@ -137,8 +150,7 @@ namespace newlang {
             *this = *term;
         }
 
-        Term(parser::token_type lex_type, TermID id, const char *text, size_t len, location *loc, std::shared_ptr<std::string> source = nullptr, Parser * parser = nullptr) {
-            m_parser = parser;
+        Term(parser::token_type lex_type, TermID id, const char *text, size_t len, location *loc, std::shared_ptr<std::string> source = nullptr) {
             m_lexer_type = lex_type;
             m_ref.reset();
             if (text && len) {
@@ -203,7 +215,7 @@ namespace newlang {
         }
 
         inline bool isMacro() {
-            return m_id == TermID::ALIAS || m_id == TermID::MACRO || m_id == TermID::MACRO_DEF || m_id == TermID::MACRO_DEL || m_id == TermID::MACRO_BODY || m_id == TermID::MACRO_STR;
+            return m_id == TermID::MACRO || m_id == TermID::MACRO_SEQ || m_id == TermID::MACRO_DEL || m_id == TermID::MACRO_STR;
         }
 
         inline bool isReturn() {
@@ -309,6 +321,16 @@ namespace newlang {
                 } else {
                     str.append(", ");
                 }
+                if (!elem.first.empty()) {
+                    str.append(elem.first);
+
+                    if (elem.second->GetType()) {
+                        str += elem.second->GetType()->asTypeString();
+                    }
+
+                    str.append("=");
+                }
+//                LOG_DEBUG("%s %s", newlang::toString(elem.second->getTermID()), elem.second->m_text.c_str());
                 str.append(elem.second->toString(true));
             }
         }
@@ -331,11 +353,29 @@ namespace newlang {
                     result += "<END>";
                     return result;
 
-                case TermID::ARGS:
-                case TermID::PARENT:
-                case TermID::MODULE:
-                case TermID::ARGUMENT:
+                case TermID::SPACE:
+                case TermID::INDENT:
+                case TermID::COMMENT:
+                case TermID::CRLF:
                     return m_text;
+
+                case TermID::MACRO_STR:
+                    result = "@@@";
+                    result += m_text;
+                    result += "@@@";
+                    return result;
+
+
+                case TermID::ARGS:
+                case TermID::ARGUMENT:
+                case TermID::ITERATOR:
+                    result += m_text;
+                    if (size()) {
+                        result += "(";
+                        dump_items_(result);
+                        result += ")";
+                    }
+                    return result;
 
                 case TermID::INT_PLUS:
                 case TermID::INT_MINUS:
@@ -359,6 +399,11 @@ namespace newlang {
 
 
                 case TermID::NONE:
+                case TermID::MACRO:
+                case TermID::PARENT:
+                case TermID::LOCAL:
+                case TermID::MODULE:
+                case TermID::NEWLANG:
                 case TermID::NAME: // name=(1,second="two",3,<EMPTY>,5)
                     //                result(m_is_ref ? "&" : "");
                     ASSERT(m_dims.empty());
@@ -389,13 +434,14 @@ namespace newlang {
                     if (m_is_const) {
                         result += "^";
                     }
-                    if (!m_name.empty()) {
-                        if (GetType()) {
-                            result = m_name + GetType()->asTypeString() + "=" + result;
-                        } else {
-                            result = m_name + "=" + result;
-                        }
-                    }
+                    //                    if (!m_name.empty()) {
+                    //                        if (GetType()) {
+                    //                            result = m_name + GetType()->asTypeString() + "=" + result;
+                    //                            //                        } else {
+                    //                            //                            result = m_name + "=" + result;
+                    //                        }
+                    //                    }
+                    //                    LOG_DEBUG("3 %s", result.c_str());
                     if (size()) {
                         result += "(";
                         dump_items_(result);
@@ -410,10 +456,10 @@ namespace newlang {
 
                 case TermID::STRCHAR:// name:="string"
                 case TermID::STRWIDE:// name:="string"
-                    if (!result.empty()) {
-                        result += "=";
-                    }
-                    result += m_id == TermID::STRWIDE ? "\"" : "'";
+                    //                    if (!result.empty()) {
+                    //                        result += "=";
+                    //                    }
+                    result = m_id == TermID::STRWIDE ? "\"" : "'";
                     result += m_text;
                     result += m_id == TermID::STRWIDE ? "\"" : "'";
                     if (size()) {
@@ -424,24 +470,24 @@ namespace newlang {
                     return result;
 
                 case TermID::EVAL:
-                    if (!result.empty()) {
-                        result += "=";
-                    }
-                    result += "`";
+                    //                    if (!result.empty()) {
+                    //                        result += "=";
+                    //                    }
+                    result = "`";
                     result += m_text;
                     result += "`";
                     return result;
 
                 case TermID::INTEGER:// name:=123
                 case TermID::NUMBER: // name:=123.0
-                    test = result.empty();
-                    if (GetType() && !m_name.empty()) {
-                        result += GetType()->asTypeString();
-                    }
-                    if (!test) {
-                        result += "=";
-                    }
-                    result += m_text;
+                    //                    test = result.empty();
+                    //                    if (GetType() && !m_name.empty()) {
+                    //                        result += GetType()->asTypeString();
+                    //                    }
+                    //                    if (!test) {
+                    //                        result += "=";
+                    //                    }
+                    result = m_text;
                     if (GetType() && m_name.empty()) {
                         result += GetType()->asTypeString();
                     }
@@ -450,6 +496,7 @@ namespace newlang {
                 case TermID::ASSIGN:
                 case TermID::CREATE:
                 case TermID::CREATE_OR_ASSIGN:
+                case TermID::PURE_CREATE:
                     //            case TermID::APPEND:
                     if (m_id == TermID::ASSIGN) {
                         result += m_text;
@@ -501,15 +548,6 @@ namespace newlang {
                         result += m_right->at(i).second->toString();
                     }
                     //                result += "};";
-                    return result;
-
-                case TermID::ITERATOR:
-                    result += m_text;
-                    if (size()) {
-                        result += "(";
-                        dump_items_(result);
-                        result += ")";
-                    }
                     return result;
 
                 case TermID::TENSOR:
@@ -708,18 +746,32 @@ namespace newlang {
                     result += "...";
                     return result;
 
-                case TermID::ALIAS:
-                case TermID::MACRO:
-                case TermID::MACRO_DEF:
                 case TermID::MACRO_DEL:
-                case TermID::MACRO_STR:
-                case TermID::MACRO_BODY:
-                    return m_text;
+                case TermID::MACRO_SEQ:
+                    for (size_t i = 0; i < m_follow.size(); i++) {
+                        if (i) {
+                            result += " ";
+                        }
+                        if (m_follow[i]->getTermID() == TermID::NAME) {
+                            result += m_follow[i]->toString();
+                        } else {
+                            result += m_follow[i]->m_text;
+                        }
+                    }
+                    return result;
 
                 case TermID::SYMBOL:
+                case TermID::UNKNOWN:
                 case TermID::RATIONAL:
                 case TermID::COMPLEX:
+                case TermID::MACRO_ARGCOUNT:
+                case TermID::MACRO_ARGUMENT:
                     return m_text;
+
+                case TermID::ESCAPE:
+                    result = "@\\";
+                    result += m_text;
+                    return result;
 
                 case TermID::EMPTY:
                     return result + "=";
@@ -747,7 +799,7 @@ namespace newlang {
                             result += " ";
                         }
                         result += m_block[i]->toString(true);
-                        //                        if (m_block[i]->GetTokenID() != TermID::SOURCE) {
+                        //                        if (m_block[i]->getTermID() != TermID::SOURCE) {
                         //                            result += ";";
                         //                        }
                     }
@@ -757,24 +809,6 @@ namespace newlang {
 
             }
             LOG_RUNTIME("Fail toString() type %s, text:'%s'", newlang::toString(m_id), m_text.c_str());
-        }
-
-        std::vector<std::string> GetMacroId() {
-            if (m_id == TermID::NAME || m_id == TermID::MACRO || m_id == TermID::MACRO_DEF || m_id == TermID::BLOCK || m_id == TermID::MACRO_BODY || m_id == TermID::MACRO_STR || m_id == TermID::MACRO_DEL) {
-                std::vector<std::string> result;
-                result.push_back(m_text);
-                if (m_is_call) {
-                    result.push_back("(");
-                }
-                for (int i = 1; i < m_follow.size(); i++) {
-                    result.push_back(m_follow[i]->m_text);
-                    if (m_follow[i]->isCall()) {
-                        result.push_back("(");
-                    }
-                }
-                return result;
-            }
-            LOG_RUNTIME("Term id '%s' fail for GetMacroID!", newlang::toString(m_id));
         }
 
         inline std::ostream & Print(std::ostream &out = std::cout, const char *delimiter = nullptr) {
@@ -826,6 +860,9 @@ namespace newlang {
         }
 
         void SetSource(std::shared_ptr<std::string> source) {
+            if (m_source == source) {
+                return;
+            }
             m_source = source;
             if (m_type && m_type.get() != this) {
                 m_type->SetSource(source);
@@ -840,12 +877,13 @@ namespace newlang {
             }
 
             TermPtr next = shared_from_this()->Right();
-            while (next) {
+            while (next && !m_source) {
                 next->SetSource(m_source);
                 next = next->Right();
             }
             next = shared_from_this()->Left();
-            while (next) {
+            while (next && !m_source) {
+
                 next->SetSource(m_source);
                 next = next->Left();
             }
@@ -920,6 +958,7 @@ namespace newlang {
                     next = next->m_list;
                 } else {
                     next->m_list = item;
+
                     break;
                 }
             }
@@ -1016,6 +1055,7 @@ namespace newlang {
 
         inline TermPtr First() {
             if (m_left) {
+
                 return m_left->First();
             }
             return shared_from_this();
@@ -1026,10 +1066,6 @@ namespace newlang {
                 return m_right->Last();
             }
             return shared_from_this();
-        }
-
-        inline TermID GetTokenID() {
-            return m_id;
         }
 
         inline size_t Count(int direction = RIGHT, TermID tok = TermID::END, const char *text = nullptr) {
@@ -1194,133 +1230,7 @@ namespace newlang {
             return m_is_const;
         }
 
-        static void CheckSetEnv(TermPtr &term) {
-
-        }
-
-        static TermPtr GetEnvTerm(TermPtr term) {
-
-            /*
-                Встроенные системые атрибуты среды
-             */
-            static const char * NLC__VER__ = "__NLC_VER__";
-            static const char * NLC__FILE__ = "__FILE__";
-            static const char * NLC__MD5__ = "__MD5__";
-            static const char * NLC__LINE__ = "__LINE__";
-            static const char * NLC__DATE__ = "__DATE__";
-            static const char * NLC__COUNTER__ = "__COUNTER__"; // развертывается до целочисленного литерала, начинающегося с 0. 
-            //Значение увеличивается на 1 каждый раз, когда используется в файле исходного кода или во включенных заголовках файла исходного кода. 
-            static const char * NLC__TIMESTAMP__ = "__TIMESTAMP__"; // определяется как строковый литерал, содержащий дату и время последнего изменения текущего исходного файла 
-            //в сокращенной форме с постоянной длиной, которые возвращаются функцией asctime библиотеки CRT, 
-            //например: Fri 19 Aug 13:32:58 2016. Этот макрос определяется всегда.
-            static const char * NLC__PRAGMA__ = "__PRAGMA__";
-            static const char * NLC__TERM_TEXT__ = "__TERM_TEXT__";
-
-            static const char * NLC__SOURCE_GIT__ = "__SOURCE_GIT__";
-            static const char * NLC__DATE_BUILD__ = "__DATE_BUILD__";
-            static const char * NLC__SOURCE_BUILD__ = "__SOURCE_BUILD__";
-
-            static size_t counter = 0;
-            const TermID str_type = TermID::STRWIDE;
-
-            if (!term) {
-                LOG_RUNTIME("Environment variable not defined!");
-
-            } else if (term->m_text.compare(NLC__COUNTER__) == 0) {
-                term->m_id = TermID::INTEGER;
-                term->m_text = std::to_string(counter);
-                counter++;
-                return term;
-
-            } else if (term->m_text.compare(NLC__VER__) == 0) {
-                term->m_id = TermID::INTEGER;
-                term->m_text = std::to_string(VERSION);
-                return term;
-
-            } else if (term->m_text.compare(NLC__LINE__) == 0) {
-                term->m_id = TermID::INTEGER;
-                term->m_text = std::to_string(term->m_line);
-                return term;
-
-            } else if (term->m_text.compare(NLC__SOURCE_BUILD__) == 0) {
-                term->m_id = str_type;
-                term->m_text = SOURCE_FULL_ID;
-                return term;
-
-            } else if (term->m_text.compare(NLC__SOURCE_GIT__) == 0) {
-                term->m_id = str_type;
-                term->m_text = GIT_SOURCE;
-                return term;
-
-            } else if (term->m_text.compare(NLC__DATE_BUILD__) == 0) {
-                term->m_id = str_type;
-                term->m_text = DATE_BUILD_STR;
-                return term;
-
-            } else if (term->m_text.compare(NLC__FILE__) == 0) {
-
-                term->m_id = str_type;
-                if (term->m_parser) {
-                    term->m_text = term->m_parser->m_file_name;
-                } else {
-                    term->m_text = "File name undefined!!!";
-                }
-                return term;
-
-            } else if (term->m_text.compare(NLC__TIMESTAMP__) == 0) {
-
-                term->m_id = str_type;
-                if (term->m_parser) {
-                    term->m_text = term->m_parser->m_file_time;
-                } else {
-                    term->m_text = "??? ??? ?? ??:??:?? ????";
-                }
-                return term;
-
-            } else if (term->m_text.compare(NLC__DATE__) == 0) {
-
-                term->m_id = str_type;
-                if (term->m_parser) {
-                    term->m_text = term->m_parser->m_file_time;
-                } else {
-                    time_t rawtime;
-                    struct tm * timeinfo;
-                    time(&rawtime);
-                    timeinfo = localtime(&rawtime);
-                    term->m_text = asctime(timeinfo);
-                }
-                return term;
-
-            } else if (term->m_text.compare(NLC__MD5__) == 0) {
-
-                term->m_id = str_type;
-                if (term->m_parser) {
-                    term->m_text = term->m_parser->m_md5;
-                } else {
-                    term->m_text = "?????????????????????????????????";
-                }
-                return term;
-
-            } else if (term->m_text.compare(NLC__TERM_TEXT__) == 0) {
-
-                ASSERT(term->isCall());
-                if (term->size() != 1) {
-                    NL_PARSER(term, "Prop '%s' support single term only!", NLC__TERM_TEXT__);
-                }
-
-                term->m_id = str_type;
-                term->m_text = term->at(0).second->m_text;
-                term->Variable::clear_();
-                return term;
-
-            } else {
-                NL_PARSER(term, "Environment variable '%s' not defined!", term->m_text.c_str());
-            }
-        }
-
-
-
-
+        BlockType GetMacroId();
 
         //    SCOPE(protected) :
 
@@ -1337,16 +1247,16 @@ namespace newlang {
 
         TermPtr m_left;
         TermPtr m_right;
-        std::vector<TermPtr> m_base;
+        BlockType m_base;
         TermPtr m_list;
         TermPtr m_sequence;
 
         std::string m_name;
         std::string m_text;
         std::string m_class;
-        std::vector<TermPtr> m_dims;
-        std::vector<TermPtr> m_docs;
-        std::vector<TermPtr> m_type_allowed;
+        BlockType m_dims;
+        BlockType m_docs;
+        BlockType m_type_allowed;
 
         BlockType m_block;
         BlockType m_follow;
@@ -1358,8 +1268,10 @@ namespace newlang {
         /// Символьное описание потребуется для работы с пользовательскими типами данных.
         /// Итоговый тип может отличаться от указанного в исходнике для совместимых типов.
         std::string m_type_name;
-        Parser *m_parser;
-    private:
+
+    SCOPE(private):
+        BlockType m_macro_id;
+        
         /// Тип данных, который хранится в виде термина из исходного файла. 
         /// Нужен для отображения сообщений (позиция в исходнике)
         /// Приватная область видимости для использовая SetType для проверки совместимости типов

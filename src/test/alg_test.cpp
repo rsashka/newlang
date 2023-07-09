@@ -469,7 +469,7 @@ TEST(Alg, Blocks) {
     //    ASSERT_TRUE(result->is_integer()) << result->toString().c_str();
     //    ASSERT_EQ(1, result->GetValueAsInteger());
     //
-    //    result = ctx.ExecStr("\\(){count := 1};");
+    //    result = ctx.ExecStr("@(){count := 1};");
     //    ASSERT_TRUE(result);
     //    ASSERT_TRUE(result->is_integer()) << result->toString().c_str();
     //    ASSERT_EQ(1, result->GetValueAsInteger());
@@ -498,9 +498,9 @@ TEST(Alg, BreakContinue) {
 //
 //    const char * run_macro = ""
 //            "count:=5;"
-//            "\\while(count<10){+"
-//            "  \\if(count>5){"
-//            "    \\return(42);"
+//            "@while(count<10){+"
+//            "  @if(count>5){"
+//            "    @return(42);"
 //            "  };"
 //            "  count+=1;"
 //            "+};"
@@ -627,10 +627,10 @@ TEST(Alg, Return) {
      * так как это будет воспринимать как ошибка!!! Хотя в этом случае можно поместить тип в переменную и потом возвращать саму переменную.
      * или еще варинат - вернуть тип в обертке типа возврата, т.е. :Return(:Type), а это будет ужен не ошибкой, т.к. тип указан явно.
      * Тогда в этом случае, возможность не указывать тип :Return будет являться синтаксическим сахаром для упрощения записи.
-     * А вот в макросах лучше указать в явном виде т.е. \return(value) \\ --:Return($value)-- \\\
+     * А вот в макросах лучше указать в явном виде т.е. \return(value) @ --:Return($value)-- @\
      * 
      * 
-     * \Break \\ --:Break-- \\\   \Break(label) \\ --:Break($label)-- \\\
+     * \Break @ --:Break-- @\   \Break(label) @ --:Break($label)-- @\
      * 
      * :Break := :Return;
      * {{

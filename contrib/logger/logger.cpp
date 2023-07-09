@@ -311,7 +311,7 @@ inline const char * get_basename(const char * str) {
     if(str) {
         size_t pos = strlen(str);
         while(pos) {
-            if(str[pos] == '\\' || str[pos] == '/') {
+            if(str[pos] == '@' || str[pos] == '/') {
                 return &str[pos + 1];
             }
             pos--;

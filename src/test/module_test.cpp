@@ -86,7 +86,7 @@ using namespace newlang;
  * @dir.module2 <func1, func2=::module2::ns::name::func2>;  # Импорт только конкретных функций + переименование
  * @dir.module2 <_>; # Выгрузить модуль?????
  * 
- * \\ns ::name::space::long\\\
+ * @ns ::name::space::long@\
  * \ns::name;
  * 
  * @dsl{}; # Загрузка модуля с определниями макросов для DSL в самом начале любой программы?

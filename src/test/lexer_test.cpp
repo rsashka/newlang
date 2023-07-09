@@ -25,10 +25,16 @@ protected:
     void TearDown() {
     }
 
-    int64_t TokenParse(const char *str) {
+    int64_t TokenParse(const char *str, bool ignore_space = true, bool ignore_indent = true, bool ignore_comment = true, bool ignore_crlf = true) {
         std::istringstream strstr(str);
 
         Scanner lexer(&strstr);
+
+        lexer.m_ignore_indent = ignore_indent;
+        lexer.m_ignore_space = ignore_space;
+        lexer.m_ignore_comment = ignore_comment;
+        lexer.m_ignore_crlf = ignore_crlf;
+
         tokens.clear();
         TermPtr tok;
         parser::location_type loc;
@@ -41,7 +47,7 @@ protected:
     int Count(TermID token_id) {
         int result = 0;
         for (size_t i = 0; i < tokens.size(); i++) {
-            if(tokens[i]->GetTokenID() == token_id) {
+            if(tokens[i]->getTermID() == token_id) {
                 result++;
             }
         }
@@ -157,7 +163,7 @@ TEST_F(Lexer, FullString2) {
 
 TEST_F(Lexer, Integer) {
     ASSERT_EQ(1, TokenParse("123456"));
-    EXPECT_EQ(1, Count(TermID::INTEGER)) << newlang::toString(tokens[0]->GetTokenID());
+    EXPECT_EQ(1, Count(TermID::INTEGER)) << newlang::toString(tokens[0]->getTermID());
 
     EXPECT_STREQ("123456", tokens[0]->getText().c_str());
 
@@ -450,26 +456,38 @@ TEST_F(Lexer, Macro) {
     ASSERT_EQ(1, TokenParse("@$arg")) << Dump();
     EXPECT_EQ(1, Count(TermID::MACRO_ARGUMENT));
 
-    ASSERT_EQ(1, TokenParse("@$name(*)")) << Dump();
-    EXPECT_EQ(1, Count(TermID::MACRO_ARGUMENT));
-    ASSERT_EQ(1, TokenParse("@$name[*]")) << Dump();
-    EXPECT_EQ(1, Count(TermID::MACRO_ARGUMENT));
-    ASSERT_EQ(1, TokenParse("@$name<*>")) << Dump();
-    EXPECT_EQ(1, Count(TermID::MACRO_ARGUMENT));
-
-    ASSERT_EQ(1, TokenParse("@$name(#)")) << Dump();
-    EXPECT_EQ(1, Count(TermID::MACRO_ARGCOUNT));
-    ASSERT_EQ(1, TokenParse("@$name[#]")) << Dump();
-    EXPECT_EQ(1, Count(TermID::MACRO_ARGCOUNT));
-    ASSERT_EQ(1, TokenParse("@$name<#>")) << Dump();
-    EXPECT_EQ(1, Count(TermID::MACRO_ARGCOUNT));
+//    ASSERT_EQ(1, TokenParse("@$name(*)")) << Dump();
+//    EXPECT_EQ(1, Count(TermID::MACRO_ARGUMENT));
+//    ASSERT_EQ(1, TokenParse("@$name[*]")) << Dump();
+//    EXPECT_EQ(1, Count(TermID::MACRO_ARGUMENT));
+//    ASSERT_EQ(1, TokenParse("@$name<*>")) << Dump();
+//    EXPECT_EQ(1, Count(TermID::MACRO_ARGUMENT));
+//
+//    ASSERT_EQ(1, TokenParse("@$name(#)")) << Dump();
+//    EXPECT_EQ(1, Count(TermID::MACRO_ARGCOUNT));
+//    ASSERT_EQ(1, TokenParse("@$name[#]")) << Dump();
+//    EXPECT_EQ(1, Count(TermID::MACRO_ARGCOUNT));
+//    ASSERT_EQ(1, TokenParse("@$name<#>")) << Dump();
+//    EXPECT_EQ(1, Count(TermID::MACRO_ARGCOUNT));
 
 
     ASSERT_EQ(1, TokenParse("@#")) << Dump();
     EXPECT_EQ(1, Count(TermID::MACRO_TOSTR));
 
+    ASSERT_EQ(1, TokenParse("@#'")) << Dump();
+    EXPECT_EQ(1, Count(TermID::MACRO_TOSTR));
+    ASSERT_EQ(1, TokenParse("@#\"")) << Dump();
+    EXPECT_EQ(1, Count(TermID::MACRO_TOSTR));
+
     ASSERT_EQ(1, TokenParse("@##")) << Dump();
     EXPECT_EQ(1, Count(TermID::MACRO_CONCAT));
+
+    ASSERT_EQ(1, TokenParse("@$...")) << Dump();
+    EXPECT_EQ(1, Count(TermID::MACRO_ARGUMENT));
+    ASSERT_EQ(1, TokenParse("@$*")) << Dump();
+    EXPECT_EQ(1, Count(TermID::MACRO_ARGUMENT));
+    ASSERT_EQ(1, TokenParse("@$#")) << Dump();
+    EXPECT_EQ(1, Count(TermID::MACRO_ARGCOUNT));
 
     ASSERT_EQ(7, TokenParse("@macro := @@123 ... 456@@")) << Dump();
     EXPECT_EQ(1, Count(TermID::MACRO));
@@ -505,6 +523,53 @@ TEST_F(Lexer, Macro) {
     EXPECT_EQ(2, Count(TermID::MACRO_SEQ));
     EXPECT_EQ(1, Count(TermID::FOLLOW));
     EXPECT_EQ(1, Count(TermID::MACRO_ARGUMENT)) << Dump();
+}
+
+TEST_F(Lexer, Ignore) {
+    ASSERT_EQ(1, TokenParse("\\\\ ")) << Dump();
+    ASSERT_EQ(1, Count(TermID::NEWLANG));
+    EXPECT_STREQ("\\\\", tokens[0]->m_text.c_str());
+
+    ASSERT_EQ(2, TokenParse("\\\\ ", false)) << Dump();
+    ASSERT_EQ(1, Count(TermID::NEWLANG));
+    ASSERT_EQ(1, Count(TermID::SPACE));
+    EXPECT_STREQ("\\\\", tokens[0]->m_text.c_str());
+    EXPECT_STREQ(" ", tokens[1]->m_text.c_str());
+
+    ASSERT_EQ(2, TokenParse("\\\\ \t  ", false)) << Dump();
+    ASSERT_EQ(1, Count(TermID::NEWLANG));
+    ASSERT_EQ(1, Count(TermID::SPACE));
+    EXPECT_STREQ("\\\\", tokens[0]->m_text.c_str());
+    EXPECT_STREQ(" \t  ", tokens[1]->m_text.c_str());
+
+
+    ASSERT_EQ(2, TokenParse("  \\\\ \t  \n", false)) << Dump();
+    ASSERT_EQ(1, Count(TermID::NEWLANG));
+    ASSERT_EQ(1, Count(TermID::SPACE));
+    EXPECT_STREQ("\\\\", tokens[0]->m_text.c_str());
+    EXPECT_STREQ(" \t  ", tokens[1]->m_text.c_str());
+
+
+    ASSERT_EQ(5, TokenParse("  \\\\ \t  \n\t\t", false, false, false, false)) << Dump();
+    ASSERT_EQ(1, Count(TermID::NEWLANG));
+    ASSERT_EQ(1, Count(TermID::SPACE));
+    ASSERT_EQ(2, Count(TermID::INDENT));
+    ASSERT_EQ(1, Count(TermID::CRLF));
+    EXPECT_STREQ("  ", tokens[0]->m_text.c_str());
+    EXPECT_STREQ("\\\\", tokens[1]->m_text.c_str());
+    EXPECT_STREQ(" \t  ", tokens[2]->m_text.c_str());
+    EXPECT_STREQ("\n", tokens[3]->m_text.c_str());
+    EXPECT_STREQ("\t\t", tokens[4]->m_text.c_str());
+
+    ASSERT_EQ(4, TokenParse("/* /* */ */    #  \n", false, false, false, false)) << Dump();
+    ASSERT_EQ(1, Count(TermID::SPACE));
+    ASSERT_EQ(2, Count(TermID::COMMENT));
+    ASSERT_EQ(1, Count(TermID::CRLF));
+    EXPECT_STREQ("/* /* */ */", tokens[0]->m_text.c_str());
+    EXPECT_STREQ("    ", tokens[1]->m_text.c_str());
+    EXPECT_STREQ("#  ", tokens[2]->m_text.c_str());
+    EXPECT_STREQ("\n", tokens[3]->m_text.c_str());
+
 }
 
 #endif // UNITTEST

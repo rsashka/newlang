@@ -39,9 +39,11 @@ OBJECTFILES= \
 	${OBJECTDIR}/_ext/e16507f5/logger.o \
 	${OBJECTDIR}/builtin.o \
 	${OBJECTDIR}/context.o \
+	${OBJECTDIR}/diag.o \
 	${OBJECTDIR}/dsl.o \
 	${OBJECTDIR}/lexer.o \
 	${OBJECTDIR}/lexer.yy.o \
+	${OBJECTDIR}/macro.o \
 	${OBJECTDIR}/newlang.o \
 	${OBJECTDIR}/nlc.o \
 	${OBJECTDIR}/object.o \
@@ -52,9 +54,11 @@ OBJECTFILES= \
 	${OBJECTDIR}/term.o \
 	${OBJECTDIR}/test/alg_test.o \
 	${OBJECTDIR}/test/compiler_test.o \
+	${OBJECTDIR}/test/diag_test.o \
 	${OBJECTDIR}/test/eval_test.o \
 	${OBJECTDIR}/test/example_test.o \
 	${OBJECTDIR}/test/lexer_test.o \
+	${OBJECTDIR}/test/macro_test.o \
 	${OBJECTDIR}/test/module_test.o \
 	${OBJECTDIR}/test/nlc_test.o \
 	${OBJECTDIR}/test/object_test.o \
@@ -118,6 +122,15 @@ ${OBJECTDIR}/context.o: context.cpp parser.h parser.yy.h pch.h.gch location.hh
 	@echo Выполнение шага пользовательского сборки
 	
 
+${OBJECTDIR}/diag.o: diag.cpp parser.h parser.yy.h pch.h.gch location.hh
+	${MKDIR} -p ${OBJECTDIR}
+	${RM} "$@.d"
+	$(COMPILE.cc) -g -DDEBUG -DLOG_LEVEL_NORMAL=LOG_LEVEL_DEBUG -DPDC_WIDE -DUNITTEST -I.. -I../contrib/googletest/googletest -I../contrib/googletest/googletest/include -I../contrib/Lyra/include -I../contrib/libtorch-win/include/torch/csrc/api/include -I../contrib/libtorch-win/include -I../contrib/tensorboard_logger/include -I/usr/share/mingw-w64/include/ -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/diag.o diag.cpp
+
+: diag.h pch.h.gch
+	@echo Выполнение шага пользовательского сборки
+	
+
 ${OBJECTDIR}/dsl.o: dsl.cpp
 	${MKDIR} -p ${OBJECTDIR}
 	${RM} "$@.d"
@@ -143,6 +156,15 @@ ${OBJECTDIR}/lexer.yy.o: lexer.yy.cpp parser.y parser.yy.h parser.yy.cpp locatio
 	$(COMPILE.cc) -g -DDEBUG -DLOG_LEVEL_NORMAL=LOG_LEVEL_DEBUG -DPDC_WIDE -DUNITTEST -I.. -I../contrib/googletest/googletest -I../contrib/googletest/googletest/include -I../contrib/Lyra/include -I../contrib/libtorch-win/include/torch/csrc/api/include -I../contrib/libtorch-win/include -I../contrib/tensorboard_logger/include -I/usr/share/mingw-w64/include/ -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/lexer.yy.o lexer.yy.cpp
 
 : lexer.yy.h pch.h.gch
+	@echo Выполнение шага пользовательского сборки
+	
+
+${OBJECTDIR}/macro.o: macro.cpp parser.h parser.yy.h pch.h.gch location.hh
+	${MKDIR} -p ${OBJECTDIR}
+	${RM} "$@.d"
+	$(COMPILE.cc) -g -DDEBUG -DLOG_LEVEL_NORMAL=LOG_LEVEL_DEBUG -DPDC_WIDE -DUNITTEST -I.. -I../contrib/googletest/googletest -I../contrib/googletest/googletest/include -I../contrib/Lyra/include -I../contrib/libtorch-win/include/torch/csrc/api/include -I../contrib/libtorch-win/include -I../contrib/tensorboard_logger/include -I/usr/share/mingw-w64/include/ -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/macro.o macro.cpp
+
+: macro.h pch.h.gch
 	@echo Выполнение шага пользовательского сборки
 	
 
@@ -225,6 +247,11 @@ ${OBJECTDIR}/test/compiler_test.o: test/compiler_test.cpp pch.h.gch
 	${RM} "$@.d"
 	$(COMPILE.cc) -g -DDEBUG -DLOG_LEVEL_NORMAL=LOG_LEVEL_DEBUG -DPDC_WIDE -DUNITTEST -I.. -I../contrib/googletest/googletest -I../contrib/googletest/googletest/include -I../contrib/Lyra/include -I../contrib/libtorch-win/include/torch/csrc/api/include -I../contrib/libtorch-win/include -I../contrib/tensorboard_logger/include -I/usr/share/mingw-w64/include/ -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/test/compiler_test.o test/compiler_test.cpp
 
+${OBJECTDIR}/test/diag_test.o: test/diag_test.cpp pch.h.gch
+	${MKDIR} -p ${OBJECTDIR}/test
+	${RM} "$@.d"
+	$(COMPILE.cc) -g -DDEBUG -DLOG_LEVEL_NORMAL=LOG_LEVEL_DEBUG -DPDC_WIDE -DUNITTEST -I.. -I../contrib/googletest/googletest -I../contrib/googletest/googletest/include -I../contrib/Lyra/include -I../contrib/libtorch-win/include/torch/csrc/api/include -I../contrib/libtorch-win/include -I../contrib/tensorboard_logger/include -I/usr/share/mingw-w64/include/ -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/test/diag_test.o test/diag_test.cpp
+
 ${OBJECTDIR}/test/eval_test.o: test/eval_test.cpp pch.h.gch
 	${MKDIR} -p ${OBJECTDIR}/test
 	${RM} "$@.d"
@@ -239,6 +266,11 @@ ${OBJECTDIR}/test/lexer_test.o: test/lexer_test.cpp pch.h.gch
 	${MKDIR} -p ${OBJECTDIR}/test
 	${RM} "$@.d"
 	$(COMPILE.cc) -g -DDEBUG -DLOG_LEVEL_NORMAL=LOG_LEVEL_DEBUG -DPDC_WIDE -DUNITTEST -I.. -I../contrib/googletest/googletest -I../contrib/googletest/googletest/include -I../contrib/Lyra/include -I../contrib/libtorch-win/include/torch/csrc/api/include -I../contrib/libtorch-win/include -I../contrib/tensorboard_logger/include -I/usr/share/mingw-w64/include/ -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/test/lexer_test.o test/lexer_test.cpp
+
+${OBJECTDIR}/test/macro_test.o: test/macro_test.cpp pch.h.gch
+	${MKDIR} -p ${OBJECTDIR}/test
+	${RM} "$@.d"
+	$(COMPILE.cc) -g -DDEBUG -DLOG_LEVEL_NORMAL=LOG_LEVEL_DEBUG -DPDC_WIDE -DUNITTEST -I.. -I../contrib/googletest/googletest -I../contrib/googletest/googletest/include -I../contrib/Lyra/include -I../contrib/libtorch-win/include/torch/csrc/api/include -I../contrib/libtorch-win/include -I../contrib/tensorboard_logger/include -I/usr/share/mingw-w64/include/ -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/test/macro_test.o test/macro_test.cpp
 
 ${OBJECTDIR}/test/module_test.o: test/module_test.cpp pch.h.gch
 	${MKDIR} -p ${OBJECTDIR}/test
@@ -305,7 +337,9 @@ ${OBJECTDIR}/version.o: version.cpp
 	${RM} 
 	${RM} 
 	${RM} 
+	${RM} 
 	${RM} lexer.yy.cpp lexer.yy.h
+	${RM} 
 	${RM} 
 	${RM} 
 	${RM} 

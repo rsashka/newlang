@@ -567,45 +567,45 @@ TEST(ObjTest, CreateFromRational) {
 
     Context ctx(RunTime::Init());
 
-    ObjPtr var = Context::CreateRVal(&ctx, Parser::ParseString("123\\1", nullptr));
+    ObjPtr var = Context::CreateRVal(&ctx, Parser::ParseString("123@1", nullptr));
     ASSERT_TRUE(var);
     ASSERT_EQ(ObjType::Rational, var->getType()) << toString(var->getType());
     ASSERT_EQ(123, var->GetValueAsInteger());
     ASSERT_DOUBLE_EQ(123.0, var->GetValueAsNumber());
 
-    ObjPtr var2 = ctx.ExecStr("123\\1");
+    ObjPtr var2 = ctx.ExecStr("123@1");
     ASSERT_TRUE(var2);
     ASSERT_EQ(ObjType::Rational, var2->getType()) << toString(var2->getType());
     ASSERT_EQ(123, var2->GetValueAsInteger());
     ASSERT_DOUBLE_EQ(123, var2->GetValueAsNumber());
 
-    var = Context::CreateRVal(&ctx, Parser::ParseString("-123\\1", nullptr));
+    var = Context::CreateRVal(&ctx, Parser::ParseString("-123@1", nullptr));
     ASSERT_TRUE(var);
     ASSERT_EQ(ObjType::Rational, var->getType()) << toString(var->getType());
     ASSERT_EQ(-123, var->GetValueAsInteger());
     ASSERT_DOUBLE_EQ(-123.0, var->GetValueAsNumber());
 
-    var2 = ctx.ExecStr("-123\\1");
+    var2 = ctx.ExecStr("-123@1");
     ASSERT_TRUE(var2);
     ASSERT_EQ(ObjType::Rational, var2->getType()) << toString(var2->getType());
     ASSERT_EQ(-123, var2->GetValueAsInteger());
     ASSERT_DOUBLE_EQ(-123, var2->GetValueAsNumber());
 
-    ASSERT_ANY_THROW(Context::CreateRVal(&ctx, Term::Create(parser::token_type::RATIONAL, TermID::RATIONAL, "1\\0")));
-    ASSERT_ANY_THROW(Context::CreateRVal(&ctx, Term::Create(parser::token_type::RATIONAL, TermID::RATIONAL, "1\\")));
+    ASSERT_ANY_THROW(Context::CreateRVal(&ctx, Term::Create(parser::token_type::RATIONAL, TermID::RATIONAL, "1@0")));
+    ASSERT_ANY_THROW(Context::CreateRVal(&ctx, Term::Create(parser::token_type::RATIONAL, TermID::RATIONAL, "1@")));
     ASSERT_ANY_THROW(Context::CreateRVal(&ctx, Term::Create(parser::token_type::RATIONAL, TermID::RATIONAL, "")));
     ASSERT_ANY_THROW(Context::CreateRVal(&ctx, Term::Create(parser::token_type::RATIONAL, TermID::RATIONAL, "asdsdff")));
-    ASSERT_ANY_THROW(Context::CreateRVal(&ctx, Term::Create(parser::token_type::RATIONAL, TermID::RATIONAL, "asdsdff\\dddddd")));
-    ASSERT_ANY_THROW(Context::CreateRVal(&ctx, Term::Create(parser::token_type::RATIONAL, TermID::RATIONAL, "123asdsdff\\dddddd")));
-    ASSERT_ANY_THROW(Context::CreateRVal(&ctx, Term::Create(parser::token_type::RATIONAL, TermID::RATIONAL, "123\\111dddddd")));
-    ASSERT_ANY_THROW(Context::CreateRVal(&ctx, Term::Create(parser::token_type::RATIONAL, TermID::RATIONAL, "123wwwww\\111")));
+    ASSERT_ANY_THROW(Context::CreateRVal(&ctx, Term::Create(parser::token_type::RATIONAL, TermID::RATIONAL, "asdsdff@dddddd")));
+    ASSERT_ANY_THROW(Context::CreateRVal(&ctx, Term::Create(parser::token_type::RATIONAL, TermID::RATIONAL, "123asdsdff@dddddd")));
+    ASSERT_ANY_THROW(Context::CreateRVal(&ctx, Term::Create(parser::token_type::RATIONAL, TermID::RATIONAL, "123@111dddddd")));
+    ASSERT_ANY_THROW(Context::CreateRVal(&ctx, Term::Create(parser::token_type::RATIONAL, TermID::RATIONAL, "123wwwww@111")));
 }
 
 TEST(Args, All) {
     Context ctx(RunTime::Init());
     Parser p;
 
-    ASSERT_TRUE(p.Parse("test()", nullptr));
+    ASSERT_TRUE(p.Parse("test()"));
     Obj local;
     Obj proto1(&ctx, p.GetAst(), false, &local); // Функция с принимаемыми аргументами (нет аргументов)
     ASSERT_EQ(0, proto1.size());
@@ -633,7 +633,7 @@ TEST(Args, All) {
     ASSERT_ANY_THROW(proto1.ConvertToArgs(arg_empty_named.get(), true, nullptr)); // Прототип не принимает именованных аргументов
 
 
-    ASSERT_TRUE(p.Parse("test(arg1)", nullptr));
+    ASSERT_TRUE(p.Parse("test(arg1)"));
     const Obj proto2(&ctx, p.GetAst(), false, &local);
     ASSERT_EQ(1, proto2.size());
     //    ASSERT_FALSE(proto2.m_is_ellipsis);
@@ -653,7 +653,7 @@ TEST(Args, All) {
 
 
     // Нормальный вызов
-    ASSERT_TRUE(p.Parse("test(empty=_, ...) := {}", nullptr));
+    ASSERT_TRUE(p.Parse("test(empty=_, ...) := {}"));
     const Obj proto3(&ctx, p.GetAst()->Left(), false, &local);
     ASSERT_EQ(2, proto3.size());
     //    ASSERT_TRUE(proto3.m_is_ellipsis);
@@ -686,7 +686,7 @@ TEST(Args, All) {
 
 
     // Аргумент по умолчанию
-    ASSERT_TRUE(p.Parse("test(num=123) := { }", nullptr));
+    ASSERT_TRUE(p.Parse("test(num=123) := { }"));
     Obj proto123(&ctx, p.GetAst()->Left(), false, &local);
     ASSERT_EQ(1, proto123.size());
     //    ASSERT_FALSE(proto123.m_is_ellipsis);
@@ -696,7 +696,7 @@ TEST(Args, All) {
 
 
     // Изменен порядок
-    ASSERT_TRUE(p.Parse("test(arg1, str=\"string\") := {}", nullptr));
+    ASSERT_TRUE(p.Parse("test(arg1, str=\"string\") := {}"));
     Obj proto_str(&ctx, p.GetAst()->Left(), false, &local);
     ASSERT_EQ(2, proto_str.size());
     //    ASSERT_FALSE(proto_str.m_is_ellipsis);
@@ -714,7 +714,7 @@ TEST(Args, All) {
     ASSERT_STREQ("\"СТРОКА\"", (*proto_str_arg)[1].second->toString().c_str());
 
 
-    ASSERT_TRUE(p.Parse("test(arg1, ...) := {}", nullptr));
+    ASSERT_TRUE(p.Parse("test(arg1, ...) := {}"));
     Obj proto_any(&ctx, p.GetAst()->Left(), false, &local);
     //    ASSERT_TRUE(proto_any.m_is_ellipsis);
     ASSERT_EQ(2, proto_any.size());
@@ -731,7 +731,7 @@ TEST(Args, All) {
     ASSERT_STREQ("\"СТРОКА\"", (*any)[1].second->toString().c_str());
 
 
-    ASSERT_TRUE(p.Parse("func(arg) := {}", nullptr));
+    ASSERT_TRUE(p.Parse("func(arg) := {}"));
     Obj proto_func(&ctx, p.GetAst()->Left(), false, &local);
     //    ASSERT_TRUE(proto_any.m_is_ellipsis);
     ASSERT_EQ(1, proto_func.size());
@@ -748,7 +748,7 @@ TEST(Args, All) {
     ASSERT_EQ(ObjType::StrChar, proto_func[0].second->getType());
 
     //
-    ASSERT_TRUE(p.Parse("min(arg, ...) := {}", nullptr));
+    ASSERT_TRUE(p.Parse("min(arg, ...) := {}"));
     Obj min_proto(&ctx, p.GetAst()->Left(), false, &local);
     ObjPtr min_args = Obj::CreateDict(Obj::Arg(200), Obj::Arg(100), Obj::Arg(300));
     ObjPtr min_arg = min_proto.ConvertToArgs(min_args.get(), true, nullptr);
@@ -758,7 +758,7 @@ TEST(Args, All) {
     ASSERT_STREQ("100", (*min_arg)[1].second->toString().c_str());
     ASSERT_STREQ("300", (*min_arg)[2].second->toString().c_str());
 
-    ASSERT_TRUE(p.Parse("min(200, 100, 300)", nullptr));
+    ASSERT_TRUE(p.Parse("min(200, 100, 300)"));
     Obj args_term(&ctx, p.GetAst(), true, &local);
     ASSERT_STREQ("200", args_term[0].second->toString().c_str());
     ASSERT_STREQ("100", args_term[1].second->toString().c_str());
@@ -899,13 +899,13 @@ TEST(ObjTest, Iterator) {
 
     ASSERT_EQ(5, dict->size());
 
-    auto all = std::regex("(.|\\n)*");
+    auto all = std::regex("(.|@n)*");
     ASSERT_TRUE(std::regex_match("1", all));
     ASSERT_TRUE(std::regex_match("22", all));
     ASSERT_TRUE(std::regex_match("333", all));
     ASSERT_TRUE(std::regex_match("", all));
     ASSERT_TRUE(std::regex_match("\n", all));
-    ASSERT_TRUE(std::regex_match("\n\n\\n", all));
+    ASSERT_TRUE(std::regex_match("\n\n@n", all));
 
 
     Iterator <Obj> iter(dict);

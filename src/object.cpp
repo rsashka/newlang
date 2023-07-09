@@ -1504,7 +1504,7 @@ void Obj::ConvertToArgs_(Obj *in, bool check_valid, Context * ctx) {
                     }
                 }
 
-//                LOG_DEBUG("%s", (*in)[i].second->toString().c_str());
+                //                LOG_DEBUG("%s", (*in)[i].second->toString().c_str());
 
                 at(i).second->op_assign((*in)[i].second->toType(base_type));
             } else {
@@ -1890,7 +1890,7 @@ std::string Obj::format(std::string format, Obj * args) {
             }
 
             // Заменить номер аргумента
-            name = "\\$" + std::to_string(i + 1);
+            name = "@$" + std::to_string(i + 1);
             place = (*args)[i].second->GetValueAsString();
             format = std::regex_replace(format, std::regex(name), place);
 
@@ -1899,10 +1899,10 @@ std::string Obj::format(std::string format, Obj * args) {
                 std::wstring wplace = utf8_decode(place);
                 std::wstring temp = utf8_decode(format);
 
-                wname = L"\\$\\{" + utf8_decode(args->name(i)) + L"\\}";
+                wname = L"@$@{" + utf8_decode(args->name(i)) + L"@}";
                 temp = std::regex_replace(temp, std::wregex(wname), wplace);
 
-                wname = L"\\$" + utf8_decode(args->name(i)); // + L"\\b"; // Иначе перестает работать UTF8
+                wname = L"@$" + utf8_decode(args->name(i)); // + L"@b"; // Иначе перестает работать UTF8
                 temp = std::regex_replace(temp, std::wregex(wname), wplace);
 
                 format = utf8_encode(temp);

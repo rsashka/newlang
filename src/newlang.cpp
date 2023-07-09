@@ -102,7 +102,7 @@ std::string Compiler::WriteFunctionCheckOp_(CompileInfo &ci, TermPtr &op, const 
     auto indent = ci.NewIndent();
 
     result = ci.GetIndent() + "if(static_cast<bool>(";
-    TermID id = op->GetTokenID();
+    TermID id = op->getTermID();
     if(id == TermID::NAME || op->isCall()) {
 
         GetImpl(ci, op, result);
@@ -156,8 +156,8 @@ bool Compiler::WriteFunctionName_(TermPtr &func, std::ostream & out, bool is_tra
 }
 
 std::string Compiler::MakeCommentLine(std::string comment) {
-    comment = std::regex_replace(comment, std::regex("\n"), "\\n");
-    comment = std::regex_replace(comment, std::regex("\""), "\\\"");
+    comment = std::regex_replace(comment, std::regex("\n"), "@n");
+    comment = std::regex_replace(comment, std::regex("\""), "@\"");
 
     return "// " + comment + "\n";
 }
@@ -413,12 +413,12 @@ bool Compiler::MakeFunctionCpp(CompileInfo &ci, std::string func_name, TermPtr &
     //    }
     //
     //    std::string text = func_define->toString();
-    //    text = std::regex_replace(text, std::regex("\""), "\\\"");
-    //    text = std::regex_replace(text, std::regex("\n"), "\\n");
-    //    text = std::regex_replace(text, std::regex("\t"), "\\t");
-    //    text = std::regex_replace(text, std::regex("\r"), "\\r");
-    //    text = std::regex_replace(text, std::regex("\b"), "\\b");
-    //    text = std::regex_replace(text, std::regex("\f"), "\\f");
+    //    text = std::regex_replace(text, std::regex("\""), "@\"");
+    //    text = std::regex_replace(text, std::regex("\n"), "@n");
+    //    text = std::regex_replace(text, std::regex("\t"), "@t");
+    //    text = std::regex_replace(text, std::regex("\r"), "@r");
+    //    text = std::regex_replace(text, std::regex("\b"), "@b");
+    //    text = std::regex_replace(text, std::regex("\f"), "@f");
     //    out << "const char * " << MangleName(func_define->Left()->GetFullName().c_str()) << "_text";
     //    out << "=\"" << text << "\";\n";
     //
@@ -465,7 +465,7 @@ bool Compiler::MakeFunctionCpp(CompileInfo &ci, std::string func_name, TermPtr &
     //    }
     //
     //    std::string body;
-    //    if(func_define->GetTokenID() == TermID::SIMPLE) {
+    //    if(func_define->getTermID() == TermID::SIMPLE) {
     //        body = WriteSimpleBody_(ci, func_define);
     //    } else {
     //        body = MakeFunctionBodyCpp(ci, func_define->Right());
@@ -668,14 +668,14 @@ std::string Compiler::MakeCppFileCallArgs(CompileInfo &ci, TermPtr &args, TermPt
 
 std::string Compiler::EncodeNonAsciiCharacters(const char * in) {
     std::string text(in);
-    text = std::regex_replace(text, std::regex("\""), "\\\"");
-    text = std::regex_replace(text, std::regex("\n"), "\\x0A\" \"");
-    text = std::regex_replace(text, std::regex("\\\\n"), "\\\\n");
+    text = std::regex_replace(text, std::regex("\""), "@\"");
+    text = std::regex_replace(text, std::regex("\n"), "@x0A\" \"");
+    text = std::regex_replace(text, std::regex("@@n"), "@@n");
 
     std::string src;
     for (size_t i = 0; i < text.length(); i++) {
         if(static_cast<unsigned char> (text[i]) > 127) {
-            src += "\\x";
+            src += "@x";
             src += BinToHex((const uint8_t *) &text[i], 1);
         } else {
 
@@ -826,12 +826,12 @@ bool Compiler::Execute(const char *exec, std::string *out, int *exit_code) {
 //        file << "\n\n#include <stdio.h>\n\
 //#include <string.h>\n\
 //int nv_add(int a, int b) {\n\
-//    printf(\"call nv_add(%d, %d)\\n\", a, b);\n\
+//    printf(\"call nv_add(%d, %d)@n\", a, b);\n\
 //    return a + b;\n\
 //}\n\
 //\n\
 //int nv_sub(int a, int b) {\n\
-//    printf(\"call nv_sub(%d, %d)\\n\", a, b);\n\
+//    printf(\"call nv_sub(%d, %d)@n\", a, b);\n\
 //    return a - b;\n\
 //}\n\
 //";
@@ -1498,7 +1498,7 @@ void Compiler::ReplaceSourceVariable(CompileInfo &ci, size_t count, std::string 
 
     for (size_t i = 0; i < count; i++) {
         // Заменить номер аргумента
-        arg_name = "\\$" + std::to_string(i);
+        arg_name = "@$" + std::to_string(i);
         arg_place = "in[" + std::to_string(i) + "]";
         body = std::regex_replace(body, std::regex(arg_name), arg_place);
     }
@@ -1507,7 +1507,7 @@ void Compiler::ReplaceSourceVariable(CompileInfo &ci, size_t count, std::string 
         // Заменить имя аргумента
         arg_name = MakeName(elem.first);
         arg_place = "in[\"" + arg_name + "\"]";
-        arg_name = "\\$" + arg_name;
+        arg_name = "@$" + arg_name;
         body = std::regex_replace(body, std::regex(arg_name), arg_place);
     }
 }
@@ -1539,8 +1539,8 @@ std::string Compiler::GetImpl(CompileInfo &ci, TermPtr term, std::string &output
 //        case TermID::STRWIDE:
 //            // Экранировать спецсимволы в символьных литералах
 //            //Obj::CreateValue("string");
-//            temp = std::regex_replace(term->getText(), std::regex("\n"), "\\n");
-//            temp = std::regex_replace(temp, std::regex("\""), "\\\"");
+//            temp = std::regex_replace(term->getText(), std::regex("\n"), "@n");
+//            temp = std::regex_replace(temp, std::regex("\""), "@\"");
 //            result += "Obj::CreateString(";
 //            if(term->getTermID() == TermID::STRWIDE) {
 //                result += "L";
@@ -1854,7 +1854,7 @@ std::string Compiler::MakeIteratorCallArgs_(CompileInfo &ci, TermPtr args, std::
             result += ", ";
         }
 
-        if(args->at(i).second->GetTokenID() == TermID::ITERATOR) {
+        if(args->at(i).second->getTermID() == TermID::ITERATOR) {
             ASSERT(args->at(i).second->Left());
             if(args->at(i).second->getText().compare("!") == 0) {
                 ASSERT(iter_pos < iters.size());
@@ -1892,7 +1892,7 @@ std::string Compiler::BeginIterators(CompileInfo &ci, TermPtr args, std::string 
     // Аргументы функции с локальным доступом по имени или ииндексу
     if(args->size()) {
         for (int i = 0; i < args->size(); i++) {
-            if((*args)[i].second->GetTokenID() == TermID::ITERATOR) {
+            if((*args)[i].second->getTermID() == TermID::ITERATOR) {
                 std::string name;
                 if((*args)[i].second->getText().compare("!") == 0) {
 

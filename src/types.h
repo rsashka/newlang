@@ -31,11 +31,14 @@ class Obj;
 class Context;
 class Compiler;
 class RunTime;
+class Diag;
 
 typedef std::shared_ptr<Term> TermPtr;
+typedef std::vector<TermPtr> BlockType;
 typedef std::shared_ptr<Obj> ObjPtr;
 typedef std::shared_ptr<const Obj> ObjPtrConst;
 typedef std::shared_ptr<RunTime> RuntimePtr;
+typedef std::shared_ptr<Diag> DiagPtr;
 
 typedef ObjPtr FunctionType(Context *ctx, Obj &in);
 typedef ObjPtr TransparentType(const Context *ctx, Obj &in);
@@ -207,25 +210,28 @@ void ParserException(const char *msg, std::string &buffer, int row, int col);
     \
     _(Range, 104)           \
     _(Dictionary, 105)      \
-    _(Class, 106)           \
-    _(Ellipsis, 107)        \
+    _(Interface, 106)      \
+    _(Class, 107)           \
+    _(Ellipsis, 108)        \
     _(EVAL_FUNCTION, 110)   \
     \
     _(BLOCK, 111)           \
     _(BLOCK_TRY, 112)       \
     _(BLOCK_PLUS, 113)       \
     _(BLOCK_MINUS, 114)       \
+    _(Macro, 115)       \
     \
     _(Virtual, 119)            \
     _(Eval, 118)            \
     _(Other, 120)           \
     _(Plain, 121)           \
+    _(Object, 122)          \
+    _(Any, 123)             \
+    \
+    _(Type, 200)            \
     _(Struct, 201)          \
     _(Union, 202)           \
     _(Enum, 203)            \
-    _(Object, 122)          \
-    _(Any, 123)             \
-    _(Type, 200)            \
     \
     _(RetPlus, 210)         \
     _(RetMinus, 211)        \
@@ -406,7 +412,7 @@ void ParserException(const char *msg, std::string &buffer, int row, int col);
     }
 
     inline bool isObjectType(ObjType t) {
-        return t == ObjType::Dictionary || t == ObjType::Class;
+        return t == ObjType::Dictionary || t == ObjType::Interface || t == ObjType::Class;
     }
 
     inline bool isBaseType(ObjType t) {
@@ -475,11 +481,11 @@ void ParserException(const char *msg, std::string &buffer, int row, int col);
     }
 
     inline bool isDictionary(ObjType t) {
-        return t == ObjType::Dictionary || t == ObjType::Class;
+        return t == ObjType::Dictionary || t == ObjType::Class; // ObjType::Interface - не имеет полей данных, т.е. не словарь
     }
 
     inline bool isClass(ObjType t) {
-        return t == ObjType::Class;
+        return t == ObjType::Class || t == ObjType::Interface;
     }
 
     inline bool isEllipsis(ObjType t) {
@@ -499,7 +505,7 @@ void ParserException(const char *msg, std::string &buffer, int row, int col);
     }
 
     inline bool isIndexingType(ObjType curr, ObjType fix) {
-        return isTensor(curr) || isString(curr) || isDictionary(curr) || isClass(curr) || isFunction(curr) || isModule(curr) || (isTypeName(curr) && isIndexingType(fix, fix));
+        return isTensor(curr) || isString(curr) || isDictionary(curr) || isFunction(curr) || isModule(curr) || (isTypeName(curr) && isIndexingType(fix, fix));
     }
 
     inline bool isLocalType(ObjType t) {
@@ -756,7 +762,7 @@ void ParserException(const char *msg, std::string &buffer, int row, int col);
      *
      */
     inline bool isModule(const std::string &name) {
-        return !name.empty() && name[0] == '@';
+        return !name.empty() && name[0] == '\\';
     }
 
     inline bool isLocal(const std::string &name) {
@@ -772,7 +778,7 @@ void ParserException(const char *msg, std::string &buffer, int row, int col);
     }
 
     inline bool isMacro(const std::string &name) {
-        return !name.empty() && name[0] == '\\';
+        return !name.empty() && name[0] == '@';
     }
 
     inline bool isLocalAny(const char *name) {
@@ -853,7 +859,7 @@ void ParserException(const char *msg, std::string &buffer, int row, int col);
             case ObjType::String: // Строка любого типа
                 return isString(type);
             case ObjType::Object: // Любой объект (Class или Dictionary)
-                return type == ObjType::Dictionary || type == ObjType::Class;
+                return type == ObjType::Dictionary || type == ObjType::Interface || type == ObjType::Class;
             case ObjType::Plain: // Любой тип для машинного представления
                 return isPlainDataType(type);
             case ObjType::Other: // Специальные типы (многоточие, диапазон)

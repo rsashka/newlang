@@ -116,32 +116,33 @@ native  %({ualpha}|[_])+({name}|{digit})?
 }
 
 "@##"          YY_TOKEN(MACRO_CONCAT);
+"@#'"          YY_TOKEN(MACRO_TOSTR);
+"@#\""         YY_TOKEN(MACRO_TOSTR);
 "@#"           YY_TOKEN(MACRO_TOSTR);
 
 "@$"{name}     YY_TOKEN(MACRO_ARGUMENT);
 
-    /* Может быть несколько типов скобок, например, если указывать типы аргументов или тип возвращаемого значения
-
-    "@$(*)"    YY_TOKEN(MACRO_ARGUMENT);
-    "@$[*]"    YY_TOKEN(MACRO_ARGUMENT);
-    "@$<*>"    YY_TOKEN(MACRO_ARGUMENT);
-
-    "@$(#)"    YY_TOKEN(MACRO_ARGCOUNT);
-    "@$[#]"    YY_TOKEN(MACRO_ARGCOUNT);
-    "@$<#>"    YY_TOKEN(MACRO_ARGCOUNT);
+"@$..."             YY_TOKEN(MACRO_ARGUMENT);
+    
+    /* 
+    "@$"{name}"(...)"   YY_TOKEN(MACRO_ARGUMENT);
+    "@$"{name}"[...]"   YY_TOKEN(MACRO_ARGUMENT);
+    "@$"{name}"<...>"   YY_TOKEN(MACRO_ARGUMENT);
     */
 
-"@$"{name}"(...)"    YY_TOKEN(MACRO_ARGUMENT);
-"@$"{name}"[...]"    YY_TOKEN(MACRO_ARGUMENT);
-"@$"{name}"<...>"    YY_TOKEN(MACRO_ARGUMENT);
+"@$*"               YY_TOKEN(MACRO_ARGUMENT);
+    /* 
+    "@$"{name}"(*)"     YY_TOKEN(MACRO_ARGUMENT);
+    "@$"{name}"[*]"     YY_TOKEN(MACRO_ARGUMENT);
+    "@$"{name}"<*>"     YY_TOKEN(MACRO_ARGUMENT);
+    */
 
-"@$"{name}"(*)"    YY_TOKEN(MACRO_ARGUMENT);
-"@$"{name}"[*]"    YY_TOKEN(MACRO_ARGUMENT);
-"@$"{name}"<*>"    YY_TOKEN(MACRO_ARGUMENT);
-
-"@$"{name}"(#)"    YY_TOKEN(MACRO_ARGCOUNT);
-"@$"{name}"[#]"    YY_TOKEN(MACRO_ARGCOUNT);
-"@$"{name}"<#>"    YY_TOKEN(MACRO_ARGCOUNT);
+"@$#"               YY_TOKEN(MACRO_ARGCOUNT);
+    /* 
+    "@$"{name}"(#)"     YY_TOKEN(MACRO_ARGCOUNT);
+    "@$"{name}"[#]"     YY_TOKEN(MACRO_ARGCOUNT);
+    "@$"{name}"<#>"     YY_TOKEN(MACRO_ARGCOUNT);
+    */
 
 "##<"[^\n]* {
         *yylval = Term::Create(token::DOC_AFTER, TermID::DOC_AFTER, &yytext[4], yyleng-5, yylloc, source_string);
@@ -187,29 +188,43 @@ native  %({ualpha}|[_])+({name}|{digit})?
 
 "/*"            {
                     yy_push_state(state_COMMENT);
+                    buffer.clear();
+                    buffer.append(yytext, yyleng);
                 }
 
 <state_COMMENT>{
 
 "/*"            {
                     yy_push_state(state_COMMENT);
+                    buffer.append(yytext, yyleng);
                 }
 
 \n              {
+                    buffer.append(yytext, yyleng);
                     yylloc->lines(yyleng); 
                     yylloc->step();
                 }
 
 "*/"            {
                     yy_pop_state();
+                    buffer.append(yytext, yyleng);
+                    if(!m_ignore_comment && yy_start_stack_ptr == 0){
+                        *yylval = Term::Create(token::COMMENT, TermID::COMMENT, buffer.c_str(), buffer.size(), yylloc, source_string);
+                        return token::COMMENT;
+                    }
                 }
 
 .               {
+                    buffer.append(yytext, yyleng);
                 }
 
 } /* End of state_COMMENT state */
 
-"#"[^\n]* {
+"#"[^\n]*   {
+                if(!m_ignore_comment){
+                    *yylval = Term::Create(token::COMMENT, TermID::COMMENT, yytext, yyleng, yylloc, source_string);  
+                    return token::COMMENT;
+                }
 }
 
 
@@ -476,22 +491,6 @@ native  %({ualpha}|[_])+({name}|{digit})?
 -?{integer}     YY_TOKEN(INTEGER);
 {number}        YY_TOKEN(NUMBER);
 
-"__NLC_VER__"       YY_TOKEN_ONLY(SYS_ENV_INT);
-"__LINE__"          YY_TOKEN_ONLY(SYS_ENV_INT);
-"__COUNTER__"       YY_TOKEN_ONLY(SYS_ENV_INT);
-
-"__FILE__"          YY_TOKEN_ONLY(SYS_ENV_STR);
-"__DATE__"          YY_TOKEN_ONLY(SYS_ENV_STR);
-"__TIMESTAMP__"     YY_TOKEN_ONLY(SYS_ENV_STR);
-"__SOURCE_GIT__"    YY_TOKEN_ONLY(SYS_ENV_STR);
-"__DATE_BUILD__"    YY_TOKEN_ONLY(SYS_ENV_STR);
-"__SOURCE_BUILD__"  YY_TOKEN_ONLY(SYS_ENV_STR);
-"__MD5__"           YY_TOKEN_ONLY(SYS_ENV_STR);
-"__VERSION__"       YY_TOKEN_ONLY(SYS_ENV_STR);
-
-"__TERM_TEXT__"     YY_TOKEN_ONLY(SYS_ENV_STR);
-"__TERM_GEN__"      YY_TOKEN_ONLY(SYS_ENV_STR);
-"__TERM_EXPECTED__" YY_TOKEN_ONLY(SYS_ENV_STR);
 
 "[_]"       YY_TOKEN_ONLY(ELSE);
 
@@ -527,6 +526,26 @@ native  %({ualpha}|[_])+({name}|{digit})?
 "::"        YY_TOKEN(NAMESPACE);
 "$*"        YY_TOKEN(ARGS);
 "$$"        YY_TOKEN(PARENT);
+"\\\\"      YY_TOKEN(NEWLANG);
+
+"@\\"     YY_TOKEN(ESCAPE);
+
+       /* "@\\)"
+
+          "@\\,"
+          "@\\;"
+          "@\\:"
+
+          "@\\s"
+          "@\\t"
+          "@\\n"
+          "@\\r"
+          "@\\b"
+          "@\\f"
+
+          "@\\#"
+          "@\\##"
+        */
 
 
 "++"        YY_TOKEN(INT_PLUS);
@@ -586,14 +605,28 @@ native  %({ualpha}|[_])+({name}|{digit})?
 "!?"        YY_TOKEN_ONLY(ITERATOR_QQ);
 
 
- /* gobble up white-spaces */
-[ \t\r]+ {
+^[ \t\r]+ {
     yylloc->step();
+    if(!m_ignore_indent){
+        *yylval = Term::Create(token::INDENT, TermID::INDENT, yytext, yyleng, yylloc, source_string);
+        return token::INDENT;
+    }
 }
 
- /* gobble up end-of-lines */
+[ \t\r]+ {
+    yylloc->step();
+    if(!m_ignore_space){
+        *yylval = Term::Create(token::SPACE, TermID::SPACE, yytext, yyleng, yylloc, source_string);
+        return token::SPACE;
+    }
+}
+
 \n {
     yylloc->lines(yyleng); yylloc->step();
+    if(!m_ignore_crlf){
+        *yylval = Term::Create(token::CRLF, TermID::CRLF, yytext, yyleng, yylloc, source_string);
+        return token::CRLF;
+    }
 }
 
 . {
@@ -604,7 +637,10 @@ native  %({ualpha}|[_])+({name}|{digit})?
     return static_cast<token_type>(*yytext);
 }
 
-<<EOF>>     return token::END;
+<<EOF>>     {
+        *yylval = Term::Create(token::END, TermID::END, yytext, yyleng, yylloc, source_string);
+        return token::END;
+}
 
 %% /*** Additional Code ***/
 

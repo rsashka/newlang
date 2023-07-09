@@ -25,6 +25,8 @@
 #include <regex>
 #include <filesystem>
 #include <utility>
+#include <cstdlib>
+#include <ctime>
 
 #include <sstream>
 #include <iostream>

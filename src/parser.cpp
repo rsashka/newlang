@@ -2,42 +2,48 @@
 
 #include "parser.h"
 #include "lexer.h"
+#include "builtin.h"
 
 #include <term.h>
 
 using namespace newlang;
 
-Parser::Parser() {
-    m_ast = Term::Create(parser::token_type::END, TermID::END, "");
-    m_ast->m_parser = this;
-    m_macro = nullptr;
+Parser::Parser(MacroBuffer *macro, PostLexerType *postlex, DiagPtr diag, bool pragma_enable) {
+    char *source_date_epoch = std::getenv("SOURCE_DATE_EPOCH");
+    if(source_date_epoch) {
+        std::istringstream iss(source_date_epoch);
+        iss >> m_timestamp;
+        if(iss.fail() || !iss.eof()) {
+            LOG_RUNTIME("Error: Cannot parse SOURCE_DATE_EPOCH (%s) as integer", source_date_epoch);
+        }
+    } else {
+        m_timestamp = std::time(NULL);
+    }
+
+    m_is_runing = false;
+    m_is_lexer_complete = false;
+
+    m_file_name = "";
+    m_file_time = "??? ??? ?? ??:??:?? ????";
+    m_file_md5 = "??????????????????????????????";
+    m_macro = macro;
+    m_postlex = postlex;
+    m_diag = diag ? diag : Diag::Init();
+    m_annotation = Term::Create(parser::token_type::ARGS, TermID::ARGS, "");
+    m_no_macro = false;
+    m_enable_pragma = pragma_enable;
+
+    m_ast = nullptr;
 }
 
-bool Parser::parse_stream(std::istream& in, const std::string sname) {
-    streamname = sname;
+TermPtr Parser::ParseFile(const std::string filename) {
 
-    Init(m_macro);
-
-    Scanner scanner(&in);
-    this->lexer = &scanner;
-
-    parser parser(*this);
-    parser.set_debug_level(trace_parsing);
-    return (parser.parse() == 0);
-}
-
-template <typename TP>
-std::time_t to_time_t(TP tp) {
-    using namespace std::chrono;
-    auto sctp = time_point_cast<system_clock::duration>(tp - TP::clock::now()
-            + system_clock::now());
-    return system_clock::to_time_t(sctp);
-}
-
-bool Parser::parse_file(const std::string filename) {
-    std::ifstream in(filename);
-
-    m_file_name = filename;
+    llvm::SmallVector<char> path;
+    if(!llvm::sys::fs::real_path(filename, path)) {
+        m_file_name = llvm::StringRef(path.data(), path.size());
+    } else {
+        m_file_name = filename;
+    }
 
     llvm::sys::fs::file_status fs;
     std::error_code ec = llvm::sys::fs::status(filename, fs);
@@ -46,35 +52,41 @@ bool Parser::parse_file(const std::string filename) {
         struct tm * timeinfo;
         timeinfo = localtime(&temp);
         m_file_time = asctime(timeinfo);
+        m_file_time = m_file_time.substr(0, 24); // Remove \n on the end line
     }
 
     auto md5 = llvm::sys::fs::md5_contents(filename);
     if(md5) {
         llvm::SmallString<32> hash;
         llvm::MD5::stringifyResult(*md5, hash);
-        m_md5 = hash.c_str();
+        m_file_md5 = hash.c_str();
     }
 
-    if(!in.good()) return false;
-    return parse_stream(in, filename.c_str());
+    int fd = open(filename.c_str(), O_RDONLY);
+    if(fd < 0) {
+        LOG_RUNTIME("Error open file '%s'", filename.c_str());
+    }
+
+    struct stat sb;
+    fstat(fd, &sb);
+
+    std::string data;
+    data.resize(sb.st_size);
+
+    read(fd, const_cast<char*> (data.data()), sb.st_size);
+    close(fd);
+
+    return Parse(data);
 }
 
-bool Parser::parse_string(const std::string input, const std::string sname) {
-    std::istringstream iss(input.c_str());
-    return parse_stream(iss, sname.c_str());
-}
-
-TermPtr Parser::Parse(const std::string input, MacroBuffer *macro) {
-
-    Init(macro);
-
-    //    std::string parse_string = ParseAllMacros(input, store);
+TermPtr Parser::Parse(const std::string input) {
 
     m_ast = Term::Create(parser::token_type::END, TermID::END, "");
     //    m_ast->SetSource(std::make_shared<std::string>(input));
-    m_ast->m_parser = this;
     m_stream.str(input);
     Scanner scanner(&m_stream, &std::cout, std::make_shared<std::string>(input));
+    scanner.ApplyDiags(m_diag);
+
     lexer = &scanner;
 
     parser parser(*this);
@@ -88,9 +100,9 @@ TermPtr Parser::Parse(const std::string input, MacroBuffer *macro) {
     return m_ast;
 }
 
-TermPtr Parser::ParseString(const std::string str, MacroBuffer *macro) {
-    Parser p;
-    return p.Parse(str, macro);
+TermPtr Parser::ParseString(const std::string str, MacroBuffer *macro, PostLexerType *postlex, DiagPtr diag) {
+    Parser p(macro, postlex, diag);
+    return p.Parse(str);
 }
 
 void Parser::error(const class location& l, const std::string& m) {
@@ -115,7 +127,6 @@ TermPtr Parser::GetAst() {
 
 void Parser::AstAddTerm(TermPtr &term) {
     ASSERT(m_ast);
-    term->m_parser = this;
     term->m_source = lexer->source_string;
     if(m_ast->m_id == TermID::END) {
         m_ast = term;
@@ -128,685 +139,258 @@ void Parser::AstAddTerm(TermPtr &term) {
     }
 }
 
-void Parser::MacroLevelBegin(TermPtr &term) {
-    m_macro_level++;
-}
+TermPtr Parser::MacroEval(const TermPtr &term) {
 
-void Parser::MacroLevelEnd(TermPtr &term) {
-    ASSERT(m_macro_level);
-    m_macro_level--;
-    if(m_macro) {
-        m_macro->Clear(m_macro_level);
-    }
-}
-
-void Parser::MacroTerm(TermPtr &term) {
     if(!m_macro) {
-        Warning(term, "MacroBufferEmpty", "Buffer for macros not initialized!");
-        return;
+        m_diag->Emit(Diag::DIAG_MACRO_NOT_FOUND, term);
+        return term;
     }
 
-    if(term->GetTokenID() == TermID::MACRO_DEL) {
-        if(term->m_text.compare("_") == 0) {
-            m_macro->Clear(0);
-        } else if(!m_macro->Remove(term)) {
-            Warning(term, "MacroNotFound", "Macros not found!");
-        }
-        return;
-    } else if(m_macro->find(term->GetMacroId())) {
-        NL_PARSER(term, "Macros '%s' duplicate!", term->toString().c_str());
-        //        Warning(term, "MacroDuplicate", "Macros duplicate!");
-        return;
-    }
+    TermPtr result = m_macro->EvalOpMacros(term);
 
-    LOG_DEBUG("!! Append macros %s %s", term->toString().c_str(), m_macro->Dump().c_str());
-
-    m_macro->Append(term, m_macro_level);
-    ASSERT(lexer->m_macro_count == 1);
-    lexer->m_macro_count = 0;
-
-    LOG_DEBUG("Macro Dump: %s", m_macro->Dump().c_str());
+    return result;
 }
 
-void Parser::Warning(TermPtr &term, const char *id, const char *message) {
-    std::string empty;
-    std::string str = newlang::ParserMessage(term->m_source ? *term->m_source : empty, term->m_line, term->m_col, "%s", message);
-
-    utils::Logger::LogLevelType save = utils::Logger::Instance()->GetLogLevel();
-    utils::Logger::Instance()->SetLogLevel(LOG_LEVEL_INFO);
-    LOG_INFO("%s", str.c_str());
-    utils::Logger::Instance()->SetLogLevel(save);
-}
-
-void MacroBuffer::Append(const TermPtr &term, size_t level) {
-    MacroToken item;
-    item.level = level;
-    item.macro = term;
-
-    if(find(term->GetMacroId())) {
-        LOG_RUNTIME("Macros dublicate %s!", term->toString().c_str());
-    }
-
-    //    std::string str;
-    //    for (auto &elem : term->GetMacroId()) {
-    //        if(!str.empty()) {
-    //            str += " ";
-    //        }
-    //        str += elem;
-    //    }
-    //    LOG_DEBUG("Append '%s'    %s", str.c_str(), Dump().c_str());
-
-    iterator iter = map::find(term->m_text);
-    if(iter == end()) {
-        std::vector<MacroToken> vect{item};
-        insert(std::make_pair(term->m_text, vect));
-    } else {
-        iter->second.push_back(item);
-    }
-    //    std::cout << "   " << size() << "\n";
-}
-
-bool MacroBuffer::Remove(const TermPtr &term) {
-
-    std::vector<std::string> list = term->GetMacroId();
-    ASSERT(!list.empty());
-
-    iterator found = map::find(list[0]);
-
-    if(found != end()) {
-        for (auto iter = found->second.begin(); iter != found->second.end(); ++iter) {
-
-            std::vector<std::string> names = iter->macro->GetMacroId();
-
-            //        for (auto &elem : names) {
-            //            LOG_DEBUG("%s ", elem.c_str());
-            //        }
-
-
-            if(names.size() != list.size()) {
-                continue;
-            }
-
-            for (int pos = 0; pos < list.size(); pos++) {
-                if(!CompareTermName(list[pos].c_str(), names[pos].c_str())) {
-                    goto skip_remove;
-                }
-            }
-
-            found->second.erase(iter);
-
-            if(found->second.empty()) {
-                erase(list[0].c_str());
-            }
-
-            return true;
-
-skip_remove:
-            ;
-        }
+bool Parser::PragmaCheck(const TermPtr& term) {
+    if(term && term->m_text.size() > 5
+            && term->m_text.find("@__") == 0
+            && term->m_text.rfind("__") == term->m_text.size() - 2) {
+        return true;
     }
     return false;
 }
 
-std::string MacroBuffer::Dump() {
-    std::string result;
-    auto iter = begin();
-    while(iter != end()) {
-        if(!result.empty()) {
-            result += ", ";
-        }
+bool Parser::PragmaEval(const TermPtr &term, BlockType &buffer) {
+    /*
+     * 
+     * https://javarush.com/groups/posts/1896-java-annotacii-chto-ehto-i-kak-ehtim-poljhzovatjhsja
+     * 
+        @__PRAGMA_DIAG__(push)
+        @__PRAGMA_DIAG__(ignored, "-Wundef")
+        @__PRAGMA_DIAG__(warning, "-Wformat" , "-Wundef", "-Wuninitialized")
+        @__PRAGMA_DIAG__(error, "-Wuninitialized")
+        @__PRAGMA_DIAG__(pop)
 
-        int pos = 0;
-        for (int pos = 0; pos < iter->second.size(); pos++) {
+     @__PRAGMA_DIAG__(once, "-Wuninitialized") ??????????????
 
-            std::string str;
-            for (auto &elem : iter->second[pos].macro->GetMacroId()) {
-                if(!str.empty()) {
-                    str += " ";
-                }
-                str += elem;
-            }
-            result += iter->first + "->'" + str + "'";
-        }
+        #pragma message "Compiling " __FILE__ "..."
+        @__PRAGMA_MESSAGE__("Compiling ", __FILE__, "...")
 
 
-        iter++;
-    }
-    return result;
-}
+    #define DO_PRAGMA(x) _Pragma (#x)
+    #define TODO(x) DO_PRAGMA(message ("TODO - " #x))
 
-std::string MacroBuffer::Dump(MacroArgsType &var) {
-    std::string result;
-    auto iter = var.begin();
-    while(iter != var.end()) {
-        if(!result.empty()) {
-            result += ", ";
-        }
+    @@TODO( ... )@@ := @__PRAGMA_MESSAGE__("TODO - ", @#...)
 
-        int pos = 0;
-        std::string str;
-        for (int pos = 0; pos < iter->second.size(); pos++) {
-            if(!str.empty()) {
-                str += " ";
-            }
-            str += iter->second[pos]->m_text;
-        }
+    @TODO(Remember to fix this)  # note: TODO - Remember to fix this
 
-        result += iter->first + "->'" + str + "'";
-        iter++;
-    }
-    return result;
-}
+    \\.__lexer__ignore_space__ = 1;
+    \\.__lexer__ignore_indent__ = 1;
+    \\.__lexer__ignore_comment__ = 1;
+    \\.__lexer__ignore_crlf__ = 1;
+     * 
+     *  @__PRAGMA_MACRO__(push)
+     *  @__PRAGMA_MACRO__(push, if, this)
+     *  @__PRAGMA_MACRO__(pop)
+     *  @__PRAGMA_MACRO__(pop, if, this)
+     * 
+     *  @__PRAGMA_MACRO_COND__(ndef, if)  @__PRAGMA_ERROR__("Macro if not defined!")
+     *  @__PRAGMA_MACRO_COND__(lt, __VERSION__, 0.5)  @__PRAGMA_ERROR__("This functional supported since version 0.5 only!")
+     */
 
-bool MacroBuffer::CompareTermName(const std::string & term_name, const std::string & macro_name) {
-    if(isLocal(macro_name)) {
-        // Шаблон соответствует любому термину входного буфера
-        return true;
-    }
-    if(isMacro(term_name)) {
-        // Если термин в буфере - имя макроса
-        if(isMacro(macro_name)) {
-            return macro_name.compare(term_name) == 0;
-        }
-        // Префикс макроса не учавтствует в сравнении
-        return macro_name.compare(&term_name.c_str()[1]) == 0;
+    static const char * __PRAGMA_DIAG__ = "@__PRAGMA_DIAG__";
+    static const char * __PRAGMA_IGNORE__ = "@__PRAGMA_IGNORE__";
+    static const char * __PRAGMA_MACRO__ = "@__PRAGMA_MACRO__";
+    static const char * __PRAGMA_MACRO_COND__ = "@__PRAGMA_MACRO_COND__";
 
-    } else if(isLocalAny(term_name.c_str())) {
-        // Любой другой термин не подходит
-        return false;
-    }
-    // Без префиксов оба термина
-    return term_name.compare(macro_name) == 0;
-}
+    static const char * __PRAGMA_MESSAGE__ = "@__PRAGMA_MESSAGE__";
+    static const char * __PRAGMA_WARNING__ = "@__PRAGMA_WARNING__";
+    static const char * __PRAGMA_ERROR__ = "@__PRAGMA_ERROR__";
 
-MacroBuffer::CompareResult MacroBuffer::CompareMacro(LexerTokenType &buffer, const TermPtr &macro) {
+    static const char * __PRAGMA_EXPECTED__ = "@__PRAGMA_EXPECTED__";
+    static const char * __PRAGMA_UNEXPECTED__ = "@__PRAGMA_UNEXPECTED__";
+    static const char * __PRAGMA_FINALIZE__ = "@__PRAGMA_FINALIZE__";
 
-    ASSERT(macro);
-    ASSERT(macro->m_follow.size());
+    static const char * __PRAGMA_NO_MACRO__ = "@__PRAGMA_NO_MACRO__";
+    static const char * __PRAGMA_INDENT_BLOCK__ = "@__PRAGMA_INDENT_BLOCK__";
 
-    if(buffer.size() < macro->m_follow.size()) {
-        return CompareResult::NEXT_NAME;
-    }
-
-    int buff_offset = 0;
-    int macro_offset = 0;
-    while(macro_offset < macro->m_follow.size() && buff_offset < buffer.size()) {
-
-        //        LOG_DEBUG("TermID: %s, '%s'  '%s'", toString(buffer[buff_offset]->getTermID()),
-        //                buffer[buff_offset]->m_text.c_str(), macro->m_follow[macro_offset]->m_text.c_str());
-        // Текст термина сравнивается только для опредленных терминов
-        if(!IsMacroTermID(buffer[buff_offset]->getTermID()) ||
-                !CompareTermName(buffer[buff_offset]->m_text, macro->m_follow[macro_offset]->m_text)) {
-            return CompareResult::NOT_EQ;
-        }
-
-        if(macro->m_follow[macro_offset]->isCall()) {
-            // Пропускаем скобки и все что в них находится
-            buff_offset++;
-            if(buff_offset >= buffer.size()) {
-                // Нет открывающей скобки, но запросим лексемы до закрывающей скобки включительно
-                return CompareResult::NEXT_BRAKET;
-            }
-
-            if(buffer[buff_offset]->getTermID() != TermID::SYMBOL || buffer[buff_offset]->m_text.compare("(") != 0) {
-                return CompareResult::NOT_EQ;
-            }
-
-            size_t braket_level = 1;
-            buff_offset++;
-            while(braket_level && buff_offset < buffer.size()) {
-                if(buffer[buff_offset]->getTermID() == TermID::SYMBOL && buffer[buff_offset]->m_text.compare("(") == 0) {
-                    braket_level++;
-                } else if(buffer[buff_offset]->getTermID() == TermID::SYMBOL && buffer[buff_offset]->m_text.compare(")") == 0) {
-                    braket_level--;
-                }
-                buff_offset++;
-            }
-            if(braket_level && buff_offset >= buffer.size()) {
-                // Нет закрывающий скобки
-                return CompareResult::NEXT_BRAKET;
-            }
-        }
-
-        macro_offset++;
-
-        if(macro_offset == macro->m_follow.size()) {
-            LOG_DEBUG("Macro '%s' done for %d lexem!", macro->toString().c_str(), buff_offset);
-            return CompareResult::DONE;
-        }
-
-        buff_offset++;
-    }
-    // Нужен следующий термин для сопоставления
-    return CompareResult::NEXT_NAME;
-}
-
-/*
- * $var macros -> $var
- * macros($var) -> $var $*
- * macros($var) second -> $var $*
- * first macros($var) second -> $var $*
- * first macros($var, $var2) $second -> $var $var2 $* $second
- * $first macros($var) $second -> $first $var $* $second
- */
-void MacroBuffer::InsertArg_(MacroArgsType & args, std::string name, LexerTokenType &buffer, size_t pos) {
-    if(pos >= buffer.size()) {
-        LOG_RUNTIME("Empty data input buffer!");
-    }
-    if(args.find(name) != args.end()) {
-        LOG_RUNTIME("Duplicate arg %s!", name.c_str());
-    }
-    BlockType vect;
-    vect.push_back(buffer[pos]);
-    args.insert(std::make_pair(name, vect));
-}
-
-void MacroBuffer::InsertArg_(MacroArgsType & args, std::string name, BlockType &data) {
-    if(args.find(name) != args.end()) {
-        LOG_RUNTIME("Duplicate arg %s!", name.c_str());
-    }
-    args.insert(std::make_pair(name, data));
-}
-
-BlockType MacroBuffer::SymbolSeparateArg_(LexerTokenType &buffer, size_t &pos, std::vector<std::string> name, std::string &error) {
-    error.clear();
-    BlockType result;
-    while(pos < buffer.size()) {
-        if(buffer[pos]->GetTokenID() == TermID::SYMBOL) {
-            for (auto &elem : name) {
-                if(buffer[pos]->m_text.compare(elem) == 0) {
-                    return result;
-                }
-            }
-
-        }
-        result.push_back(buffer[pos]);
-        pos++;
-    }
-
-    for (auto &elem : name) {
-        if(!error.empty()) {
-            error += " or ";
-        }
-        error += "'";
-        error += elem;
-        error += "'";
-    }
-
-    error.insert(0, "Expected symbol ");
-    error += "!";
-    return result;
-}
-
-size_t MacroBuffer::ExtractArgs(LexerTokenType &buffer, const TermPtr &term, MacroArgsType &args) {
+    static const char * __ANNOTATION_SET__ = "@__ANNOTATION_SET__";
+    static const char * __ANNOTATION_IIF__ = "@__ANNOTATION_IIF__";
 
     ASSERT(term);
-
-    if(!((term->getTermID() == TermID::MACRO || term->getTermID() == TermID::MACRO_BODY ||
-            term->getTermID() == TermID::MACRO_DEF || term->getTermID() == TermID::MACRO_STR || term->getTermID() == TermID::MACRO_DEL))) {
-
-        LOG_RUNTIME("Term is not a macro! '%s'", term->toString().c_str());
-
-    }
-
-    args.clear();
-
-    size_t pos = 0; //Позиция во входном буфере
-    BlockType all_args;
-    bool all_args_done = false;
-    for (int i = 0; i < term->m_follow.size(); i++) {
-        TermPtr macro = term->m_follow[i];
-
-        if(isLocal(macro->m_text)) {
-            InsertArg_(args, macro->m_text, buffer, pos);
+    if(term->m_text.compare(__PRAGMA_DIAG__) == 0) {
+        if(term->size() == 0) {
+            NL_PARSER(term, "Expected argument in pragma '%s'", term->toString().c_str());
         }
 
-        if(macro->isCall()) {
-            if(pos + 1 >= buffer.size()) {
-                LOG_RUNTIME("No data input buffer!");
-            }
-            pos++;
-            if(buffer[pos]->GetTokenID() != TermID::SYMBOL || buffer[pos]->m_text.compare("(") != 0) {
-                LOG_RUNTIME("Expected open bracket!");
-            }
-            pos++;
+        Diag::State state;
+        if(term->at(0).second->m_text.compare("push") == 0) {
 
-            if(all_args_done) {
-                LOG_RUNTIME("Support single term call only!");
-            }
-            all_args_done = true;
-            for (int arg_pos = pos; arg_pos < buffer.size(); arg_pos++) {
-                if(buffer[arg_pos]->m_text == ")") {
-                    break;
-                }
-                all_args.push_back(buffer[arg_pos]);
-            }
+            m_diag->Push(term);
+            return true;
 
-            size_t num_arg = 1;
-            std::string arg_name;
-            BlockType next;
-            while(1) {
-                next = SymbolSeparateArg_(buffer, pos,{")", ","}, arg_name);
+        } else if(term->at(0).second->m_text.compare("pop") == 0) {
 
-                if(!arg_name.empty()) {
-                    LOG_RUNTIME("%s", arg_name.c_str());
-                }
+            m_diag->Pop(term);
+            return true;
 
-                if(!next.empty()) {
-                    arg_name = "\\$";
-                    arg_name += std::to_string(num_arg);
-                    InsertArg_(args, arg_name, next);
-
-                    if(num_arg - 1 < macro->size()) {
-                        arg_name = macro->at(num_arg - 1).second->m_text;
-                        if(arg_name.find("$") == 0) {
-                            arg_name.insert(0, "\\");
-                        } else {
-                            arg_name.insert(0, "\\$");
-                        }
-                        InsertArg_(args, arg_name, next);
-                    }
-                    num_arg++;
-
-                } else if(buffer[pos]->m_text == ",") {
-                    pos++;
-                } else if(buffer[pos]->m_text == ")") {
-                    arg_name = "\\$*";
-                    InsertArg_(args, arg_name, all_args);
-                    break;
-                } else {
-                    LOG_RUNTIME(" %s ,,,,,, ?????????", buffer[pos]->m_text.c_str());
-                }
-            }
-        }
-
-        if((i + 1) == term->m_follow.size() && pos < buffer.size()) {
-            ASSERT(pos <= buffer.size());
-            return pos + 1;
-        }
-        pos++;
-    }
-
-    LOG_RUNTIME("Input buffer empty for extract args macros %s!", term->toString().c_str());
-}
-
-BlockType MacroBuffer::ExpandMacros(const TermPtr &macro, MacroArgsType &args) {
-    ASSERT(macro);
-    if(macro->m_id != TermID::MACRO_DEF) {
-        LOG_RUNTIME("Fail convert term type %s as macros!", toString(macro->m_id));
-    }
-    ASSERT(macro->Right());
-
-    BlockType result;
-    for (int i = 0; i < macro->Right()->m_follow.size(); i++) {
-        TermPtr check = macro->Right()->m_follow[i];
-
-        if(check->m_text.find("\\$") == 0) {
-
-            auto iter = args.find(check->m_text);
-            if(iter == args.end()) {
-                LOG_RUNTIME("Name %s not found!", check->m_text.c_str());
-            }
-            result.insert(result.end(), iter->second.begin(), iter->second.end());
-
+        } else if(term->at(0).second->m_text.compare(Diag::toString(Diag::State::ignored)) == 0) {
+            state = Diag::State::ignored;
+        } else if(term->at(0).second->m_text.compare(Diag::toString(Diag::State::warning)) == 0) {
+            state = Diag::State::warning;
+        } else if(term->at(0).second->m_text.compare(Diag::toString(Diag::State::error)) == 0) {
+            state = Diag::State::error;
         } else {
-            result.push_back(check);
+            NL_PARSER(term, "Pragma '%s' not recognized!", term->toString().c_str());
         }
-    }
-    return result;
-}
 
-std::string MacroBuffer::ExpandString(const TermPtr &macro, MacroArgsType & args) {
-    ASSERT(macro);
-    if(macro->m_id != TermID::MACRO_STR) {
-        LOG_RUNTIME("Fail convert term type %s as macros string!", toString(macro->m_id));
-    }
-    ASSERT(macro->Right());
+        for (int i = 1; i < term->size(); i++) {
+            m_diag->Apply(term->at(i).second->m_text.c_str(), state, term);
+        }
 
-    LOG_DEBUG("\"%s\"", macro->Right()->m_text.c_str());
 
-    std::string body(macro->Right()->m_text);
+    } else if(term->m_text.compare(__PRAGMA_MESSAGE__) == 0
+            || term->m_text.compare(__PRAGMA_WARNING__) == 0
+            || term->m_text.compare(__PRAGMA_ERROR__) == 0) {
 
-    for (auto &elem : args) {
+        std::string message;
+        for (int i = 0; i < term->size(); i++) {
+            message += term->at(i).second->m_text;
+        }
 
-        std::string name;
-        if(elem.first.find("\\$*") == 0) {
-            name = "\\\\\\$\\*";
-        } else if(elem.first.find("\\$") == 0) {
-            name = "\\\\";
-            name += elem.first;
+        utils::Logger::LogLevelType save = utils::Logger::Instance()->GetLogLevel();
+        utils::Logger::Instance()->SetLogLevel(LOG_LEVEL_INFO);
+        if(term->m_text.compare(__PRAGMA_MESSAGE__) == 0) {
+            LOG_INFO("note: %s", message.c_str());
+        } else if(term->m_text.compare(__PRAGMA_WARNING__) == 0) {
+            LOG_WARNING("warn: %s", message.c_str());
         } else {
-            ASSERT(elem.first.find("$") == 0);
-            name = "\\\\\\";
-            name += elem.first;
+            ASSERT(term->m_text.compare(__PRAGMA_ERROR__) == 0);
+            LOG_RUNTIME("error: %s", message.c_str());
+        }
+        utils::Logger::Instance()->SetLogLevel(save);
+
+    } else if(term->m_text.compare(__PRAGMA_IGNORE__) == 0) {
+
+        LOG_RUNTIME("Pragma @__PRAGMA_IGNORE__ not implemented!");
+
+        static const char * ignore_space = "space";
+        static const char * ignore_indent = "indent";
+        static const char * ignore_comment = "comment";
+        static const char * ignore_crlf = "crlf";
+
+    } else if(term->m_text.compare(__PRAGMA_MACRO__) == 0) {
+
+        if(term->size() == 0) {
+            NL_PARSER(term, "Expected argument in pragma macro '%s'", term->toString().c_str());
         }
 
-        std::string text;
-        for (auto &lex : elem.second) {
-            text += lex->toString();
-            text += " ";
+        Diag::State state;
+        if(term->at(0).second->m_text.compare("push") == 0) {
+
+            m_macro->Push(term);
+            return true;
+
+        } else if(term->at(0).second->m_text.compare("pop") == 0) {
+
+            m_macro->Pop(term);
+            return true;
+
+            //        } else if(term->at(0).second->m_text.compare(Diag::toString(Diag::State::ignored)) == 0) {
+            //            state = Diag::State::ignored;
+            //        } else if(term->at(0).second->m_text.compare(Diag::toString(Diag::State::warning)) == 0) {
+            //            state = Diag::State::warning;
+            //        } else if(term->at(0).second->m_text.compare(Diag::toString(Diag::State::error)) == 0) {
+            //            state = Diag::State::error;
+        } else {
+            NL_PARSER(term, "Pragma macro '%s' not recognized!", term->toString().c_str());
         }
 
-        LOG_DEBUG("Regex: '%s' -> '%s' in \"%s\"", name.c_str(), text.c_str(), body.c_str());
-        body = std::regex_replace(body, std::regex(name), text);
-    }
+        //        for (int i = 1; i < term->size(); i++) {
+        //            m_diag->Apply(term->at(i).second->m_text.c_str(), state, term);
+        //        }
+    } else if(term->m_text.compare(__PRAGMA_MACRO_COND__) == 0) {
 
-    return body;
-}
-
-TermPtr MacroBuffer::find(std::vector<std::string> list) {
-    if(list.empty()) {
-        return nullptr;
-    }
-    iterator found = map::find(list[0]);
-
-    if(found != end()) {
-        for (auto iter = found->second.begin(); iter != found->second.end(); ++iter) {
-
-            std::vector<std::string> names = iter->macro->GetMacroId();
-
-            //        for (auto &elem : names) {
-            //            LOG_DEBUG("%s ", elem.c_str());
-            //        }
-
-
-            if(names.size() != list.size()) {
-                continue;
-            }
-
-            for (int pos = 0; pos < list.size(); pos++) {
-                if(!CompareTermName(list[pos].c_str(), names[pos].c_str())) {
-                    goto skip_step;
-                }
-            }
-            return iter->macro;
-skip_step:
-            ;
+        if(term->size() == 0) {
+            NL_PARSER(term, "Expected argument in pragma macro '%s'", term->toString().c_str());
         }
-    }
-    return nullptr;
-}
 
-parser::token_type Parser::NewToken(TermPtr * yylval, parser::location_type * yylloc) {
-
-    parser::token_type result;
-
-    ASSERT(yylval);
-    ASSERT(yylloc);
+        LOG_RUNTIME("Pragma @__PRAGMA_MACRO_COND__ not implemented!");
 
 
-    MacroBuffer::CompareResult compare_res = MacroBuffer::CompareResult::NEXT_NAME;
+    } else if(term->m_text.compare(__PRAGMA_INDENT_BLOCK__) == 0) {
 
-    size_t max_count = 20;
+        LOG_RUNTIME("Pragma @__PRAGMA_INDENT_BLOCK__ not implemented!");
 
-    size_t counter = 0;
+    } else if(term->m_text.compare(__PRAGMA_EXPECTED__) == 0) {
 
-    if(!m_is_lexer_complete) {
+        m_expected = term;
 
-        m_is_runing = true;
+    } else if(term->m_text.compare(__PRAGMA_UNEXPECTED__) == 0) {
 
-        TermPtr term;
-        while(1) {
+        m_unexpected = term;
 
-            parser::location_type loc;
+    } else if(term->m_text.compare(__PRAGMA_FINALIZE__) == 0) {
 
-            term = Term::Create(parser::token_type::END, TermID::END, "", 0);
-            parser::token_type type = lexer->lex(&term, &loc);
-            term->m_lexer_loc = loc;
+        if(m_finalize || m_finalize_counter) {
+            LOG_RUNTIME("Nested definitions of pragma @__PRAGMA_FINALIZE__ not implemented!");
+        }
 
-            ASSERT(type == term->m_lexer_type);
+        m_finalize = term;
+        m_finalize_counter = 0;
 
-            if(lexer->m_macro_count == 3) {
+    } else if(term->m_text.compare(__PRAGMA_NO_MACRO__) == 0) {
 
-                ASSERT(type == parser::token_type::MACRO_DEF);
-                lexer->m_macro_count = 1;
-                term = lexer->m_macro_body;
-                type = parser::token_type::MACRO_BODY;
+        ASSERT(term->size() == 0);
 
-            } else if(lexer->m_macro_count == 2) {
+        m_no_macro = true;
 
-                if(type == parser::token_type::MACRO_DEF) {
-                    lexer->m_macro_body = term;
-                    lexer->m_macro_body->SetTermID(TermID::MACRO_BODY);
-                    lexer->m_macro_body->m_lexer_type = parser::token_type::MACRO_BODY;
-                } else {
-                    ASSERT(lexer->m_macro_body);
-                    lexer->m_macro_body->m_follow.push_back(term);
-                }
-                continue;
+    } else if(term->m_text.compare(__ANNOTATION_SET__) == 0) {
 
-            } else if(type == parser::token_type::END) {
+        if(term->size() == 1) {
+            // Set `name` = 1;
+            std::string name = term->at(0).second->m_text;
+            LOG_DEBUG("NAME: %s", name.c_str());
 
-                if(lexer->m_data.empty()) {
-                    m_is_lexer_complete = true;
-                } else {
-                    lexer->yypop_buffer_state();
-                    *lexer->m_loc = lexer->m_data[lexer->m_data.size() - 1].loc;
-
-                    delete lexer->m_data[lexer->m_data.size() - 1].iss;
-                    lexer->m_data.pop_back();
-
-                    if(lexer->m_data.empty()) {
-                        lexer->source_string = lexer->source_base;
-                    } else {
-                        lexer->source_string = lexer->m_data[lexer->m_data.size() - 1].data;
-                    }
-                    continue;
-                }
-            }
-
-            m_prep_buff.push_back(term);
-
-            if(type != parser::token_type::END && compare_res == MacroBuffer::CompareResult::NEXT_BRAKET) {
-                if(term->getTermID() == TermID::SYMBOL && term->m_text.compare(")") == 0) {
-                    compare_res = MacroBuffer::CompareResult::NEXT_NAME;
-                } else {
-                    continue;
-                }
-            }
-
-            if(m_macro && lexer->m_macro_count == 0 &&
-                    IsMacroTermID(m_prep_buff.front()->GetTokenID()) &&
-                    compare_res == MacroBuffer::CompareResult::NEXT_NAME) {
-
-                // Раскрывать макросы если нет других макров и ищется имя для идентификации
-
-
-                bool expand_complete = false;
-
-                LOG_DEBUG("Hash: %s", m_prep_buff[0]->m_text.c_str());
-
-                TermPtr macro_done = nullptr;
-
-                // Найти макрос, который может соответствовать текущему буферу (по первому термину буфера)
-                MacroBuffer::iterator found = m_macro->map::find(m_prep_buff[0]->m_text);
-                for (auto iter = found->second.begin(); found != m_macro->end() && iter != found->second.end(); ++iter) {
-
-                    compare_res = MacroBuffer::CompareMacro(m_prep_buff, iter->macro);
-
-                    if(compare_res == MacroBuffer::CompareResult::NEXT_NAME || compare_res == MacroBuffer::CompareResult::NEXT_BRAKET) {
-                        macro_done.reset();
-                        break;
-                    } else if(compare_res == MacroBuffer::CompareResult::DONE) {
-                        macro_done = iter->macro;
-                    }
-                }
-
-                if(macro_done) {
-
-                    compare_res = MacroBuffer::CompareResult::NEXT_NAME; // Раскрывать макросы в теле раскрытого макроса
-
-                    ASSERT(macro_done);
-                    ASSERT(m_prep_buff.size() >= macro_done->m_follow.size());
-                    ASSERT(macro_done->Right());
-
-                    MacroBuffer::MacroArgsType macro_args;
-                    size_t size_remove = MacroBuffer::ExtractArgs(m_prep_buff, macro_done, macro_args);
-
-                    ASSERT(size_remove);
-                    ASSERT(size_remove <= m_prep_buff.size());
-
-                    m_prep_buff.erase(m_prep_buff.begin(), m_prep_buff.begin() + size_remove);
-
-                    if(macro_done->GetTokenID() == TermID::MACRO_DEF) {
-
-                        ASSERT(macro_done->Right());
-
-                        BlockType macro_block = MacroBuffer::ExpandMacros(macro_done, macro_args);
-                        for (int i = macro_block.size(); i > 0; i--) {
-                            m_prep_buff.insert(m_prep_buff.begin(), macro_block[i - 1]);
-                        }
-
-                    } else {
-
-                        LOG_DEBUG("%s", toString(macro_done->GetTokenID()));
-                        ASSERT(macro_done->GetTokenID() == TermID::MACRO_STR);
-                        ASSERT(m_prep_buff.size() == 0);
-
-                        if(lexer->m_data.size() > 100) {
-                            LOG_RUNTIME("Macro expansion '%s' stack overflow?", macro_done->toString().c_str());
-                        }
-
-                        std::string macro_str = MacroBuffer::ExpandString(macro_done, macro_args);
-                        lexer->source_string = std::make_shared<std::string>(MacroBuffer::ExpandString(macro_done, macro_args));
-                        lexer->m_data.push_back({lexer->source_string, new std::istringstream(*lexer->source_string), *lexer->m_loc});
-                        lexer->m_loc->initialize();
-                        lexer->yypush_buffer_state(lexer->yy_create_buffer(lexer->m_data[lexer->m_data.size() - 1].iss, lexer->source_string->size()));
-
-                    }
-                }
-
+            auto iter = m_annotation->find(term->at(0).second->m_text);
+            if(iter == m_annotation->end()) {
+                m_annotation->push_back(Term::Create(parser::token_type::INTEGER, TermID::INTEGER, "1", 1, &term->m_lexer_loc, term->m_source), name);
             } else {
-                break;
+                //                iter->second =
+                m_annotation->push_back(Term::Create(parser::token_type::INTEGER, TermID::INTEGER, "1", 1, &term->m_lexer_loc, term->m_source), name);
             }
 
-            if(m_is_lexer_complete || compare_res == MacroBuffer::CompareResult::NOT_EQ) {
-                break;
-            }
+
+        } else if(term->size() == 2) {
+            // Set `name` = value;
+            m_annotation->push_back(term->at(1).second, term->at(0).second->m_text);
+        } else {
+            NL_PARSER(term, "Annotation args in '%s' not recognized!", term->toString().c_str());
         }
 
-        //LOG_DEBUG("LexerToken count %d", (int) m_prep_buff.size());
+//        LOG_DEBUG("ANNOT: %s", m_annotation->toString().c_str());
 
+    } else if(term->m_text.compare(__ANNOTATION_IIF__) == 0) {
+
+        ASSERT(m_annotation);
+
+        if(term->size() != 3) {
+            NL_PARSER(term, "Annotation IIF must have three arguments!");
+        }
+
+//        LOG_DEBUG("Annot %s %d", m_annotation->toString().c_str(), (int) m_annotation->size());
+
+        auto iter = m_annotation->find(term->at(0).second->m_text);
+        if(iter == m_annotation->end() || iter->second->m_text.empty() || iter->second->m_text.compare("0") == 0) {
+            buffer.insert(buffer.begin(), term->at(2).second);
+        } else {
+            buffer.insert(buffer.begin(), term->at(1).second);
+        }
+
+    } else {
+        NL_PARSER(term, "Uknown pragma '%s'", term->toString().c_str());
     }
-
-
-    if(!m_prep_buff.empty()) {
-
-        //        LOG_DEBUG("%d  %s", (int)m_prep_buff.at(0)->m_lexer_type, m_prep_buff.at(0)->m_text.c_str());
-
-        *yylval = m_prep_buff.at(0);
-        *yylloc = m_prep_buff.at(0)->m_lexer_loc;
-        result = m_prep_buff.at(0)->m_lexer_type;
-
-        //        LOG_DEBUG("Token (%d): %s", result, (*yylval)->m_text.c_str());
-
-        m_prep_buff.pop_front();
-        return result;
-    }
-
-    *yylval = nullptr;
-
-    return parser::token_type::END;
+    return true;
 }
 
 std::string newlang::ParserMessage(std::string &buffer, int row, int col, const char *format, ...) {

@@ -433,7 +433,7 @@ TEST(Eval, TypesNative) {
 
     ObjPtr F2 = ctx.ExecStr("F2 ::= fopen2('temp/ffile_eval.temp','w+')");
     ASSERT_TRUE(F2);
-    ObjPtr F_res = ctx.ExecStr("fputs('test from eval !!!!!!!!!!!!!!!!!!!!\\n', F2)");
+    ObjPtr F_res = ctx.ExecStr("fputs('test from eval !!!!!!!!!!!!!!!!!!!!@n', F2)");
     ASSERT_TRUE(F_res);
 
     /*
@@ -545,7 +545,7 @@ TEST(Eval, Fileio) {
 
     ObjPtr file = ctx.ExecStr("file ::= fopen('temp/ffile_eval2.temp','w+')");
     ASSERT_TRUE(file);
-    ObjPtr file_res = ctx.ExecStr("fputs('test 222 from eval !!!!!!!!!!!!!!!!!!!!\\n', file)");
+    ObjPtr file_res = ctx.ExecStr("fputs('test 222 from eval !!!!!!!!!!!!!!!!!!!!@n', file)");
     ASSERT_TRUE(file_res);
     file_res = ctx.ExecStr("fclose(file)");
     ASSERT_TRUE(file_res);
@@ -596,11 +596,11 @@ TEST(ExecStr, Funcs) {
     ASSERT_TRUE(hello);
     ASSERT_STREQ("hello=hello(str=''):={printf('%s', $str); $str;}", hello->toString().c_str());
 
-    ObjPtr result = ctx.ExecStr("printf('%s%d\\n', 'Привет, мир!', 2);");
+    ObjPtr result = ctx.ExecStr("printf('%s%d@n', 'Привет, мир!', 2);");
     ASSERT_TRUE(result);
     ASSERT_TRUE(result->GetValueAsInteger() >= 23);
 
-    result = ctx.ExecStr("hello('Привет, мир2!\\n');");
+    result = ctx.ExecStr("hello('Привет, мир2!@n');");
     ASSERT_TRUE(result);
     ASSERT_STREQ("Привет, мир2!\n", result->GetValueAsString().c_str());
 }
@@ -766,23 +766,23 @@ TEST(Eval, Convert) {
 
 
 
-    ObjPtr frac_0 = ctx.ExecStr("0\\1");
+    ObjPtr frac_0 = ctx.ExecStr("0@1");
     ASSERT_TRUE(frac_0);
     ASSERT_EQ(ObjType::Rational, frac_0->getType());
     ASSERT_EQ(ObjType::None, frac_0->m_var_type_fixed);
-    ASSERT_STREQ("0\\1", frac_0->GetValueAsString().c_str());
+    ASSERT_STREQ("0@1", frac_0->GetValueAsString().c_str());
 
-    ObjPtr frac_1 = ctx.ExecStr("1\\1");
+    ObjPtr frac_1 = ctx.ExecStr("1@1");
     ASSERT_TRUE(frac_1);
     ASSERT_EQ(ObjType::Rational, frac_1->getType());
     ASSERT_EQ(ObjType::None, frac_1->m_var_type_fixed);
-    ASSERT_STREQ("1\\1", frac_1->GetValueAsString().c_str());
+    ASSERT_STREQ("1@1", frac_1->GetValueAsString().c_str());
 
-    ObjPtr frac_2 = ctx.ExecStr("222_222_222_222222_222_222_222\\1_1_1_1");
+    ObjPtr frac_2 = ctx.ExecStr("222_222_222_222222_222_222_222@1_1_1_1");
     ASSERT_TRUE(frac_2);
     ASSERT_EQ(ObjType::Rational, frac_2->getType());
     ASSERT_EQ(ObjType::None, frac_2->m_var_type_fixed);
-    ASSERT_STREQ("222222222222222222222222\\1111", frac_2->GetValueAsString().c_str());
+    ASSERT_STREQ("222222222222222222222222@1111", frac_2->GetValueAsString().c_str());
 
     ObjPtr obj_frac = ctx.ExecStr(":Rational(0)");
     ASSERT_TRUE(obj_frac);
@@ -791,7 +791,7 @@ TEST(Eval, Convert) {
     ASSERT_EQ(ObjType::Rational, obj_frac->getType()) << toString(obj_frac->m_var_type_current);
 
     ASSERT_TRUE(obj_frac->m_var_is_init);
-    ASSERT_STREQ("0\\1", obj_frac->GetValueAsString().c_str());
+    ASSERT_STREQ("0@1", obj_frac->GetValueAsString().c_str());
     ASSERT_EQ(0, obj_frac->GetValueAsInteger());
 
 
@@ -806,18 +806,26 @@ TEST(Eval, Macros) {
     Context ctx(RunTime::Init());
 
     ASSERT_EQ(0, Context::m_macros.size());
-    ObjPtr none = ctx.ExecStr("\\\\macro\\\\_\\\\");
+    ObjPtr none = ctx.ExecStr("@@macro@@ := _");
 
     ASSERT_EQ(1, Context::m_macros.size());
-    none = ctx.ExecStr("\\\\macro2 \\\\ 2 \\\\");
+    none = ctx.ExecStr("@@macro2 @@ := 2");
     ASSERT_EQ(2, Context::m_macros.size());
 
-    none = ctx.ExecStr("\\\\macro3() \\\\ 3 \\\\");
+    none = ctx.ExecStr("@@macro3() @@ := 3");
     ASSERT_EQ(3, Context::m_macros.size());
 
-    none = ctx.ExecStr("\\\\macro4(...) \\\\\\$...\\\\\\");
-    ASSERT_EQ(4, Context::m_macros.size());
+    none = ctx.ExecStr("@macro4(...):= @@@ @$* @@@");
+    ASSERT_EQ(4, Context::m_macros.size()) << Context::m_macros.Dump();
 
+    none = ctx.ExecStr("@@macro5(...)@@:= @@@ @$* @@@");
+    ASSERT_EQ(5, Context::m_macros.size()) << Context::m_macros.Dump();
+
+    none = ctx.ExecStr("@if(...) := @@ [ @$* ] --> @@");
+    ASSERT_EQ(6, Context::m_macros.size()) << Context::m_macros.Dump();
+
+    none = ctx.ExecStr("@else := @@ ,[_] --> @@");
+    ASSERT_EQ(7, Context::m_macros.size()) << Context::m_macros.Dump();
 
     ObjPtr result = ctx.ExecStr("macro");
     ASSERT_TRUE(result);
@@ -833,16 +841,37 @@ TEST(Eval, Macros) {
     ASSERT_TRUE(result->is_integer());
     ASSERT_EQ(3, result->GetValueAsInteger());
 
-    //    result = ctx.ExecStr("macro4(999)");
-    //    ASSERT_TRUE(result);
-    //    ASSERT_TRUE(result->is_integer());
-    //    ASSERT_EQ(999, result->GetValueAsInteger());
-    //
-    //    result = ctx.ExecStr("macro4(999);macro;macro4(42)");
-    //    ASSERT_TRUE(result);
-    //    ASSERT_TRUE(result->is_integer());
-    //    ASSERT_EQ(42, result->GetValueAsInteger());
+    ASSERT_NO_THROW(result = ctx.ExecStr("macro4(999)")) << Context::m_macros.Dump();
+    ASSERT_TRUE(result);
+    ASSERT_TRUE(result->is_integer()) << result->toString();
+    ASSERT_EQ(999, result->GetValueAsInteger()) << result->toString();
 
+    ASSERT_NO_THROW(result = ctx.ExecStr("macro4(999);macro;macro4(42)")) << Context::m_macros.Dump();
+    ASSERT_TRUE(result);
+    ASSERT_TRUE(result->is_integer());
+    ASSERT_EQ(42, result->GetValueAsInteger());
+
+
+    ASSERT_NO_THROW(result = ctx.ExecStr("macro5(100)")) << Context::m_macros.Dump();
+    ASSERT_TRUE(result);
+    ASSERT_TRUE(result->is_integer()) << result->toString();
+    ASSERT_EQ(100, result->GetValueAsInteger()) << result->toString();
+
+    ASSERT_NO_THROW(result = ctx.ExecStr("macro5(999);macro;macro5(42)")) << Context::m_macros.Dump();
+    ASSERT_TRUE(result);
+    ASSERT_TRUE(result->is_integer());
+    ASSERT_EQ(42, result->GetValueAsInteger());
+
+    ASSERT_NO_THROW(result = ctx.ExecStr("if(1<10){99}else{100}")) << Context::m_macros.Dump();
+    ASSERT_TRUE(result);
+    ASSERT_TRUE(result->is_integer());
+    ASSERT_EQ(99, result->GetValueAsInteger());
+
+    ASSERT_NO_THROW(result = ctx.ExecStr("@if(0){* 99 *}@else{+100+}")) << Context::m_macros.Dump();
+    ASSERT_TRUE(result);
+    ASSERT_TRUE(result->is_integer());
+    ASSERT_EQ(100, result->GetValueAsInteger());
+    
 }
 
 TEST(Eval, MacroDSL) {
@@ -864,36 +893,30 @@ TEST(Eval, MacroDSL) {
      */
 
     const char * dsl = ""
-            "\\\\if($args)      \\\\ [\\$*]-->  \\\\;\n"
-//            "\\\\elif($args)    \\\\ ,[\\$*]--> \\\\;\n"
-//            "\\\\else           \\\\ ,[_]--> \\\\;\n"
-//            ""
-//            "\\\\while($args)   \\\\ [\\$*]<-> \\\\;\n"
-//            "\\\\dowhile($args) \\\\ <->[\\$*] \\\\;\n"
-//            ""
-//            "\\\\break          \\\\++:Break++\\\\;\n"
-//            "\\\\continue       \\\\++:Continue++\\\\;\n"
-//            ""
-//            "\\\\return         \\\\ ++ \\\\;\n"
-//            "\\\\return($args)  \\\\ ++ \\$args ++ \\\\;\n"
-//            "\\\\error($args)   \\\\ -- \\$args -- \\\\;\n"
-//            ""
-//            "\\\\ true \\\\ 1 \\\\;\n"
-//            "\\\\ yes  \\\\ 1 \\\\;\n"
-//            "\\\\ false \\\\ 0 \\\\;\n"
-            "\\\\ no    \\\\ 0 \\\\;\n"
-//            ""
-            //            "\\\\iquery(...) \\$var?(\\$*)\\\\\\"
-            //            "\\\\inext(var) \\$var!\\\\\\"
-            //            "\\\\inext(var, count) \\$var!(\\$count)\\\\\\"
-            //            "\\ireset(var) \\$var??\\\\\\"
-            //            "\\iselect(var) \\$var?!\\\\\\"
-            //            "\\iselect(var, ...) \\$var?!(\\$*)\\\\\\"
+            "@if(...)      := @@ [@$*]-->  @@;\n"
+            "@elif(...)    := @@ ,[@$*]--> @@;\n"
+            "@else         := @@ ,[_]--> @@;\n"
+            ""
+            "@while(...)   := @@ [@$*]<-> @@;\n"
+            "@dowhile(...) := @@ <->[@$*] @@;\n"
+            ""
+            "@break        := ++ :Break ++ ;\n"
+            "@continue     := ++:Continue++;\n"
+            ""
+//            "@return       := ++;\n"
+            "@return(...)  := @@ ++ @$* ++ @@;\n"
+            "@error(...)   := @@ -- @$* -- @@;\n"
+            ""
+            "@true     := 1;\n"
+            "@false    := 0;\n"
+            ""
+            "@yes      := 1;\n"
+            "@no       := 0;\n"
             "";
 
-    ASSERT_EQ(0, Context::m_macros.size());
+    ASSERT_EQ(0, Context::m_macros.size()) << Context::m_macros.Dump();
     ObjPtr none = ctx.ExecStr(dsl);
-    ASSERT_TRUE(Context::m_macros.size() > 10);
+    ASSERT_TRUE(Context::m_macros.size() > 10) << Context::m_macros.Dump();
 
     ObjPtr count = ctx.ExecStr("count:=0;");
     ASSERT_TRUE(count);
@@ -908,30 +931,33 @@ TEST(Eval, MacroDSL) {
             "  count+=1;"
             "+};"
             ;
+    ASSERT_TRUE(Context::m_macros.size() > 10) << Context::m_macros.Dump();
+    ObjPtr result = ctx.ExecStr(run_raw, nullptr, Context::CatchType::CATCH_ALL);
+    ASSERT_TRUE(Context::m_macros.size() > 10) << Context::m_macros.Dump();
 
-    //    ObjPtr result = ctx.ExecStr(run_raw, nullptr, Context::CatchType::CATCH_ALL);
-    //    ASSERT_TRUE(result);
-    //    ASSERT_TRUE(result->is_integer());
-    //    ASSERT_EQ(6, count->GetValueAsInteger());
-    //    ASSERT_EQ(100, result->GetValueAsInteger());
-    //
-    //    const char * run_macro = ""
-    //            "count:=5;"
-    //            "while(count<10){+"
-    //            "  if(count>5){"
-    //            "    return(42);"
-    //            "  };"
-    //            "  count+=1;"
-    //            "+};"
-    //            "";
-    //
-    //
-    //
-    //    result = ctx.ExecStr(run_macro, nullptr, Context::CatchType::CATCH_ALL);
-    //    ASSERT_TRUE(result);
-    //    ASSERT_TRUE(result->is_integer());
-    //    ASSERT_EQ(6, count->GetValueAsInteger());
-    //    ASSERT_EQ(42, result->GetValueAsInteger());
+    ASSERT_TRUE(result);
+    ASSERT_TRUE(result->is_integer());
+    ASSERT_EQ(6, count->GetValueAsInteger());
+    ASSERT_EQ(100, result->GetValueAsInteger());
+    ASSERT_TRUE(Context::m_macros.size() > 10) << Context::m_macros.Dump();
+
+    const char * run_macro = ""
+//            "count := 5;"
+//            "while( count<10 ) {+"
+            "  if(10>5 ) {+"
+            "    return(42);"
+            "  +};"
+//            "  count += 1;"
+//            "+};"
+            "";
+
+
+    ASSERT_TRUE(Context::m_macros.size() > 10) << Context::m_macros.Dump();
+    ASSERT_NO_THROW(result = ctx.ExecStr(run_macro, nullptr, Context::CatchType::CATCH_ALL)) << Context::m_macros.Dump();
+    ASSERT_TRUE(result);
+    ASSERT_TRUE(result->is_integer());
+    ASSERT_EQ(42, result->GetValueAsInteger());
+    ASSERT_EQ(6, count->GetValueAsInteger());
 }
 
 TEST(Eval, Iterator) {
@@ -1119,13 +1145,13 @@ TEST(Eval, Iterator) {
 
 
 
-    ObjPtr range_test = ctx.ExecStr("1\\1..1..-1", nullptr, Context::CatchType::CATCH_ALL);
+    ObjPtr range_test = ctx.ExecStr("1@1..1..-1", nullptr, Context::CatchType::CATCH_ALL);
     ASSERT_TRUE(range_test);
     ASSERT_EQ(3, range_test->size());
-    ASSERT_STREQ("1\\1", range_test->at(0).second->GetValueAsString().c_str());
+    ASSERT_STREQ("1@1", range_test->at(0).second->GetValueAsString().c_str());
     ASSERT_STREQ("1", range_test->at(1).second->GetValueAsString().c_str());
     ASSERT_STREQ("-1", range_test->at(2).second->GetValueAsString().c_str());
-    ASSERT_STREQ("1\\1..1..-1", range_test->GetValueAsString().c_str());
+    ASSERT_STREQ("1@1..1..-1", range_test->GetValueAsString().c_str());
 
     //    ObjPtr iter_test = ctx.ExecStr("(1,'sss',(,),2,3,)??", nullptr, true);
     //    ASSERT_TRUE(iter_test);
@@ -1143,16 +1169,16 @@ TEST(Eval, Iterator) {
     ASSERT_TRUE(iter_dict);
     ASSERT_STREQ("(3, 2,)", iter_dict->GetValueAsString().c_str());
 
-    iter_dict = ctx.ExecStr("3\\1..1..(-1)??", nullptr);
+    iter_dict = ctx.ExecStr("3@1..1..(-1)??", nullptr);
     ASSERT_TRUE(iter_dict);
-    ASSERT_STREQ("(3\\1, 2\\1,)", iter_dict->GetValueAsString().c_str());
+    ASSERT_STREQ("(3@1, 2@1,)", iter_dict->GetValueAsString().c_str());
 
-    ObjPtr iter_test = ctx.ExecStr("iter_test := 3\\1..1..-1?", nullptr);
+    ObjPtr iter_test = ctx.ExecStr("iter_test := 3@1..1..-1?", nullptr);
     ASSERT_TRUE(iter_test);
     ASSERT_TRUE(iter_test->m_iterator);
     ASSERT_TRUE(iter_test->m_iterator->m_iter_obj);
     ASSERT_TRUE(iter_test->m_iterator->m_iter_obj->m_iter_range_value);
-    ASSERT_STREQ("3\\1", iter_test->m_iterator->m_iter_obj->m_iter_range_value->GetValueAsString().c_str()) << iter_test->m_iterator->m_iter_obj->m_iter_range_value->GetValueAsString().c_str();
+    ASSERT_STREQ("3@1", iter_test->m_iterator->m_iter_obj->m_iter_range_value->GetValueAsString().c_str()) << iter_test->m_iterator->m_iter_obj->m_iter_range_value->GetValueAsString().c_str();
     ASSERT_EQ(iter_test->getType(), ObjType::Iterator);
 
     ObjPtr while_test = ctx.ExecStr("[iter_test]<->{+ ++'PLUS'++ +}");
@@ -1166,7 +1192,7 @@ TEST(Eval, Iterator) {
     iter_dict = ctx.ExecStr("iter_dict := (1,2,3,)?", nullptr);
     ASSERT_TRUE(iter_dict);
     //    ASSERT_TRUE(iter_dict->m_iterator->m_iter_obj->m_iter_range_value);
-    //    ASSERT_STREQ("3\\1", iter_dict->m_iterator->m_iter_obj->m_iter_range_value->GetValueAsString().c_str()) << iter_test->m_iterator->m_iter_obj->m_iter_range_value->GetValueAsString().c_str();
+    //    ASSERT_STREQ("3@1", iter_dict->m_iterator->m_iter_obj->m_iter_range_value->GetValueAsString().c_str()) << iter_test->m_iterator->m_iter_obj->m_iter_range_value->GetValueAsString().c_str();
     ASSERT_EQ(iter_dict->getType(), ObjType::Iterator);
 
     while_test = ctx.ExecStr("[iter_dict]<->{+ ++'EXIT'++ +}");
@@ -1175,36 +1201,36 @@ TEST(Eval, Iterator) {
 
     ObjPtr item_val = ctx.ExecStr("iter_test!?", nullptr);
     ASSERT_TRUE(item_val);
-    ASSERT_STREQ("3\\1", item_val->GetValueAsString().c_str());
+    ASSERT_STREQ("3@1", item_val->GetValueAsString().c_str());
 
     item_val = ctx.ExecStr("iter_test!", nullptr);
     ASSERT_TRUE(item_val);
-    ASSERT_STREQ("3\\1", item_val->GetValueAsString().c_str());
+    ASSERT_STREQ("3@1", item_val->GetValueAsString().c_str());
 
     item_val = ctx.ExecStr("iter_test!?", nullptr);
     ASSERT_TRUE(item_val);
-    ASSERT_STREQ("2\\1", item_val->GetValueAsString().c_str());
+    ASSERT_STREQ("2@1", item_val->GetValueAsString().c_str());
 
     item_val = ctx.ExecStr("iter_test?!", nullptr);
     ASSERT_TRUE(item_val);
-    ASSERT_STREQ("2\\1", item_val->GetValueAsString().c_str());
+    ASSERT_STREQ("2@1", item_val->GetValueAsString().c_str());
 
     ASSERT_STREQ(":Iterator", iter_test->GetValueAsString().c_str());
     ASSERT_TRUE(iter_test->m_iterator);
     ASSERT_TRUE(iter_test->m_iterator->m_iter_obj);
-    ASSERT_STREQ("2\\1", iter_test->m_iterator->m_iter_obj->m_iter_range_value->GetValueAsString().c_str());
-    ASSERT_STREQ("3\\1..1..-1", iter_test->m_iterator->m_iter_obj->GetValueAsString().c_str());
+    ASSERT_STREQ("2@1", iter_test->m_iterator->m_iter_obj->m_iter_range_value->GetValueAsString().c_str());
+    ASSERT_STREQ("3@1..1..-1", iter_test->m_iterator->m_iter_obj->GetValueAsString().c_str());
 
     item_val = ctx.ExecStr("iter_test!", nullptr);
     ASSERT_TRUE(item_val);
-    ASSERT_STREQ("2\\1", item_val->GetValueAsString().c_str());
+    ASSERT_STREQ("2@1", item_val->GetValueAsString().c_str());
     ASSERT_TRUE(item_val->GetValueAsBoolean());
 
     ASSERT_STREQ(":Iterator", iter_test->GetValueAsString().c_str());
     ASSERT_TRUE(iter_test->m_iterator);
     ASSERT_TRUE(iter_test->m_iterator->m_iter_obj);
-    ASSERT_STREQ("1\\1", iter_test->m_iterator->m_iter_obj->m_iter_range_value->GetValueAsString().c_str());
-    ASSERT_STREQ("3\\1..1..-1", iter_test->m_iterator->m_iter_obj->GetValueAsString().c_str());
+    ASSERT_STREQ("1@1", iter_test->m_iterator->m_iter_obj->m_iter_range_value->GetValueAsString().c_str());
+    ASSERT_STREQ("3@1..1..-1", iter_test->m_iterator->m_iter_obj->GetValueAsString().c_str());
 
     item_val = ctx.ExecStr("iter_test!", nullptr);
     ASSERT_TRUE(item_val);
@@ -1212,13 +1238,13 @@ TEST(Eval, Iterator) {
     ASSERT_STREQ(":Iterator", iter_test->GetValueAsString().c_str());
     ASSERT_TRUE(iter_test->m_iterator);
     ASSERT_TRUE(iter_test->m_iterator->m_iter_obj);
-    ASSERT_STREQ("1\\1", iter_test->m_iterator->m_iter_obj->m_iter_range_value->GetValueAsString().c_str());
-    ASSERT_STREQ("3\\1..1..-1", iter_test->m_iterator->m_iter_obj->GetValueAsString().c_str());
+    ASSERT_STREQ("1@1", iter_test->m_iterator->m_iter_obj->m_iter_range_value->GetValueAsString().c_str());
+    ASSERT_STREQ("3@1..1..-1", iter_test->m_iterator->m_iter_obj->GetValueAsString().c_str());
 
 
 
     ASSERT_TRUE(iter_test->m_iterator->m_iter_obj);
-    ASSERT_STREQ("3\\1..1..-1", iter_test->m_iterator->m_iter_obj->GetValueAsString().c_str());
+    ASSERT_STREQ("3@1..1..-1", iter_test->m_iterator->m_iter_obj->GetValueAsString().c_str());
 
     ASSERT_STREQ(":IteratorEnd", item_val->GetValueAsString().c_str());
     ASSERT_FALSE(item_val->GetValueAsBoolean());
@@ -1380,34 +1406,34 @@ TEST_F(EvalTester, Ops) {
     ASSERT_STREQ("5.1", Test("1.1+4"));
     ASSERT_STREQ("5.5", Test("1+4.5"));
 
-    ASSERT_STREQ("10\\1", Test("10\\1"));
-    ASSERT_STREQ("32\\1", Test("10\\1+22\\1"));
-    ASSERT_STREQ("5\\1", Test("4\\5 + 42\\10"));
-    ASSERT_STREQ("11\\1", Test("10\\1 + 1"));
-    ASSERT_STREQ("4\\3", Test("1\\3 + 1"));
+    ASSERT_STREQ("10@1", Test("10@1"));
+    ASSERT_STREQ("32@1", Test("10@1+22@1"));
+    ASSERT_STREQ("5@1", Test("4@5 + 42@10"));
+    ASSERT_STREQ("11@1", Test("10@1 + 1"));
+    ASSERT_STREQ("4@3", Test("1@3 + 1"));
 
     ASSERT_STREQ("-12", Test("10 - 22"));
     ASSERT_STREQ("-2.9", Test("1.1 - 4"));
     ASSERT_STREQ("-3.5", Test("1 - 4.5"));
-    ASSERT_STREQ("-17\\5", Test("4\\5 - 42\\10"));
-    ASSERT_STREQ("-9\\10", Test("1\\10 - 1"));
-    ASSERT_STREQ("-2\\3", Test("1\\3 - 1"));
+    ASSERT_STREQ("-17@5", Test("4@5 - 42@10"));
+    ASSERT_STREQ("-9@10", Test("1@10 - 1"));
+    ASSERT_STREQ("-2@3", Test("1@3 - 1"));
 
     ASSERT_STREQ("66", Test("2 * 33"));
     ASSERT_STREQ("-5.5", Test("1.1 * -5"));
     ASSERT_STREQ("180", Test("10 * 18"));
-    ASSERT_STREQ("66\\1", Test("2\\1 * 66\\2"));
-    ASSERT_STREQ("-15\\1", Test("3\\1 * -5"));
-    ASSERT_STREQ("9\\5", Test("18\\100 * 10"));
+    ASSERT_STREQ("66@1", Test("2@1 * 66@2"));
+    ASSERT_STREQ("-15@1", Test("3@1 * -5"));
+    ASSERT_STREQ("9@5", Test("18@100 * 10"));
 
     ASSERT_STREQ("5", Test("10/2"));
     ASSERT_STREQ("5.05", Test("10.1 / 2"));
     ASSERT_STREQ("0.1", Test("1 / 10"));
     ASSERT_STREQ("0.1", Test("1.0 / 10"));
 
-    ASSERT_STREQ("4\\3", Test("12\\3 / 3"));
-    ASSERT_STREQ("1\\1", Test("5\\10 / 1\\2"));
-    ASSERT_STREQ("1\\100", Test("1\\10 / 10"));
+    ASSERT_STREQ("4@3", Test("12@3 / 3"));
+    ASSERT_STREQ("1@1", Test("5@10 / 1@2"));
+    ASSERT_STREQ("1@100", Test("1@10 / 10"));
 
     ASSERT_STREQ("5", Test("10//2"));
     ASSERT_STREQ("5", Test("10.0 // 2"));

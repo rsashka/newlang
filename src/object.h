@@ -219,7 +219,7 @@ namespace newlang {
          * @param obj
          * @param find_key
          */
-        explicit Iterator(std::shared_ptr<T> obj, const char * find_key = "(.|\\n)*") :
+        explicit Iterator(std::shared_ptr<T> obj, const char * find_key = "(.|@n)*") :
         Iterator(obj, &CompareFuncDefault, reinterpret_cast<T *> (const_cast<char *> (find_key)), static_cast<void *> (this)) {
         }
 
@@ -1611,7 +1611,7 @@ namespace newlang {
             ObjPtr obj = Obj::CreateType(ObjType::Rational);
 
             // Ищем разделитель дроби
-            size_t pos = str.find("\\");
+            size_t pos = str.find("@");
 
             // Если символ не найден - то вся строка является числом 
             if (pos == std::string::npos) {
