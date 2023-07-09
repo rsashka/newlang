@@ -801,7 +801,7 @@
 ////#include <stdio.h>\n\
 ////#include <string.h>\n\
 ////extern \"C\" int jit_print(const char *str) {\n\
-////    printf(\"%s@n\", str);\n\
+////    printf(\"%s\\n\", str);\n\
 ////    return strlen(str);\n\
 ////}\n";
 ////
@@ -836,13 +836,13 @@
 ////     //    EXPECT_STREQ("default arg", opts->Eval(&ctx,
 ////     "native()")->GetValueAsString().c_str());
 ////     //    EXPECT_STREQ("default arg", opts->Eval(&ctx,
-////     "@native()")->GetValueAsString().c_str());
+////     "\\native()")->GetValueAsString().c_str());
 ////     //    EXPECT_STREQ("default arg", opts->Eval(&ctx,
-////     "@native()")->GetValueAsString().c_str());
+////     "\\native()")->GetValueAsString().c_str());
 ////     //    EXPECT_STREQ("", opts->Eval(&ctx,
-////     "@native(\"\")")->GetValueAsString().c_str());
-////     //    EXPECT_STREQ("Hello, world!\n", opts->Eval(&ctx, "@native(\"Hello,
-////     world!@n\")")->GetValueAsString().c_str());
+////     "\\native(\"\")")->GetValueAsString().c_str());
+////     //    EXPECT_STREQ("Hello, world!\n", opts->Eval(&ctx, "\\native(\"Hello,
+////     world!\\n\")")->GetValueAsString().c_str());
 //// }
 //
 //TEST(Compiler, DISABLED_Function) {

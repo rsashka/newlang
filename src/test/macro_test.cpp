@@ -117,11 +117,11 @@ protected:
  * macro -> ignore_bracket;
  * 
  * 
- * @name -> name или name (...), hash: name
- * но @name(...) -> name(...), а name - ошибка !!!!  hash: name
+ * \\name -> name или name (...), hash: name
+ * но \\name(...) -> name(...), а name - ошибка !!!!  hash: name
  * 
  * Или все же следует различать макросы со скобками и без скобок как два разных объекта???
- * @name := name2;  и @name(...) := name2(...); будут разными объектами
+ * \\name := name2;  и \\name(...) := name2(...); будут разными объектами
  * 
  * Или добавить макросы-алиасы без аргументов только для переименования отдельных терминов?
  * @alias :- name2; но как их отличать от обычных макросов в операции удаления?
@@ -988,9 +988,9 @@ TEST_F(MacroTest, Simple) {
     ASSERT_NO_THROW(Parse("@@second@@ := @@second2(@$#, @$...)@@", &macro));
     ASSERT_EQ(2, macro.GetCount()) << macro.Dump();
 
-    ASSERT_NO_THROW(Parse("@@text(...)@@ := @@@text1(@$#, @$...);\n text1@@@", &macro));
+    ASSERT_NO_THROW(Parse("@@text(...)@@ := @@text1(@$#, @$*)@@", &macro));
     ASSERT_EQ(3, macro.GetCount()) << macro.Dump();
-    ASSERT_NO_THROW(Parse("@@dsl@@ := @@@ @@m1@@ := @@mm@@;\n  @@m2@@ := @@mm@@;\n@@@", &macro));
+    ASSERT_NO_THROW(Parse("@@dsl@@ := @@@\n @@m1@@ := @@mm@@;\n @@m2@@ := @@mm@@;\n@@@", &macro));
 
     ASSERT_EQ(4, macro.GetCount()) << macro.Dump();
     ASSERT_TRUE(macro.GetMacro({"alias"}));
@@ -1089,7 +1089,7 @@ TEST_F(MacroTest, Simple) {
     ASSERT_EQ(TermID::NAME, ast->getTermID()) << newlang::toString(ast->getTermID());
     ASSERT_STREQ("second2", ast->m_text.c_str());
 
-   
+
     ASSERT_NO_THROW(Parse("second(123)", &macro));
     ASSERT_EQ(TermID::NAME, ast->getTermID()) << newlang::toString(ast->getTermID());
     ASSERT_EQ(2, ast->size()) << LexOut();
@@ -1102,18 +1102,33 @@ TEST_F(MacroTest, Simple) {
     ASSERT_ANY_THROW(Parse("second", &macro));
     ASSERT_ANY_THROW(Parse("@second", &macro));
 
+//    ASSERT_ANY_THROW(Parse("text", &macro));
+//    ASSERT_NO_THROW(Parse("text()", &macro));
+//    ASSERT_EQ(TermID::NAME, ast->getTermID()) << newlang::toString(ast->getTermID());
+//    ASSERT_STREQ("text1(0, (,))", ast->toString().c_str());
+//    
+//    ASSERT_NO_THROW(Parse("text(123)", &macro));
+//    ASSERT_EQ(TermID::NAME, ast->getTermID()) << newlang::toString(ast->getTermID());
+//    ASSERT_STREQ("text1(1, (123,) )", ast->toString().c_str());
+//
+//    ASSERT_NO_THROW(Parse("text(123, 456)", &macro));
+//    ASSERT_EQ(TermID::NAME, ast->getTermID()) << newlang::toString(ast->getTermID());
+//    ASSERT_STREQ("text1(2, (123, 456,))", ast->toString().c_str());
 
     ASSERT_EQ(4, macro.GetCount());
     ASSERT_FALSE(macro.GetMacro({"m1"})) << macro.Dump();
     ASSERT_FALSE(macro.GetMacro({"m2"})) << macro.Dump();
 
     //@todo Bug: https://github.com/rsashka/newlang/issues/22
-    //    ASSERT_TRUE(Parse("dsl", &macro));
-    //
-    //
-    //    ASSERT_EQ(6, macro.GetCount());
-    //    ASSERT_TRUE(macro.GetMacro({"m1"})) << macro.Dump();
-    //    ASSERT_TRUE(macro.GetMacro({"m2"})) << macro.Dump();
+
+//    ASSERT_NO_THROW(
+//            ASSERT_TRUE(Parse("dsl", &macro));
+//            );
+//
+//
+//    ASSERT_EQ(6, macro.GetCount());
+//    ASSERT_TRUE(macro.GetMacro({"m1"})) << macro.Dump();
+//    ASSERT_TRUE(macro.GetMacro({"m2"})) << macro.Dump();
 }
 
 
@@ -1321,6 +1336,7 @@ TEST_F(MacroTest, MacroAlias) {
 
     ASSERT_EQ(3, macro.size());
     for (auto &elem : macro) {
+
         LOG_DEBUG("Hash: %s", elem.first.c_str());
     }
 
@@ -1336,7 +1352,6 @@ TEST_F(MacroTest, MacroAlias) {
 }
 
 TEST_F(MacroTest, MacroArgs) {
-
 
     MacroBuffer macro;
     BlockType buffer;

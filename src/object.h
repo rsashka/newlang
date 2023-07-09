@@ -219,7 +219,7 @@ namespace newlang {
          * @param obj
          * @param find_key
          */
-        explicit Iterator(std::shared_ptr<T> obj, const char * find_key = "(.|@n)*") :
+        explicit Iterator(std::shared_ptr<T> obj, const char * find_key = "(.|\\n)*") :
         Iterator(obj, &CompareFuncDefault, reinterpret_cast<T *> (const_cast<char *> (find_key)), static_cast<void *> (this)) {
         }
 
@@ -249,7 +249,7 @@ namespace newlang {
         mutable typename Variable<T>::iterator m_found;
         const char * m_base_filter;
 
-        static const IterPairType m_interator_end;
+        static const IterPairType m_Iterator_end;
 
         static IterCmp CompareFuncDefault(const IterPairType &pair, const T *filter, void *extra) {
             const char * str_filter = reinterpret_cast<const char *> (filter);
@@ -298,7 +298,7 @@ namespace newlang {
 
         inline const IterPairType &data() {
             if (m_found == m_iter_obj->end()) {
-                return m_interator_end;
+                return m_Iterator_end;
             }
             return *m_found;
         }
@@ -309,7 +309,7 @@ namespace newlang {
 
         inline const IterPairType &data() const {
             if (m_found == m_iter_obj->end()) {
-                return m_interator_end;
+                return m_Iterator_end;
             }
             return *m_found;
         }
@@ -771,28 +771,28 @@ namespace newlang {
             if (is_indexing() || m_var_type_current == ObjType::Range) {
                 return Variable::begin();
             }
-            LOG_RUNTIME("Interator for object type %s not implemented!", newlang::toString(m_var_type_current));
+            LOG_RUNTIME("Iterator for object type %s not implemented!", newlang::toString(m_var_type_current));
         }
 
         Obj::iterator end() {
             if (is_indexing() || m_var_type_current == ObjType::Range) {
                 return Variable::end();
             }
-            LOG_RUNTIME("Interator for object type %s not implemented!", newlang::toString(m_var_type_current));
+            LOG_RUNTIME("Iterator for object type %s not implemented!", newlang::toString(m_var_type_current));
         }
 
         Obj::const_iterator begin() const {
             if (is_indexing() || m_var_type_current == ObjType::Range) {
                 return Variable::begin();
             }
-            LOG_RUNTIME("Interator for object type %s not implemented!", newlang::toString(m_var_type_current));
+            LOG_RUNTIME("Iterator for object type %s not implemented!", newlang::toString(m_var_type_current));
         }
 
         Obj::const_iterator end() const {
             if (is_indexing() || m_var_type_current == ObjType::Range) {
                 return Variable::end();
             }
-            LOG_RUNTIME("Interator for object type %s not implemented!", newlang::toString(m_var_type_current));
+            LOG_RUNTIME("Iterator for object type %s not implemented!", newlang::toString(m_var_type_current));
         }
 
         PairType & push_back(const PairType & p) {
@@ -1611,8 +1611,8 @@ namespace newlang {
             ObjPtr obj = Obj::CreateType(ObjType::Rational);
 
             // Ищем разделитель дроби
-            size_t pos = str.find("@");
-
+            size_t pos = str.find("\\");
+            
             // Если символ не найден - то вся строка является числом 
             if (pos == std::string::npos) {
                 obj->m_rational.set_(0);

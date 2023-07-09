@@ -1890,7 +1890,7 @@ std::string Obj::format(std::string format, Obj * args) {
             }
 
             // Заменить номер аргумента
-            name = "@$" + std::to_string(i + 1);
+            name = "\\$" + std::to_string(i + 1);
             place = (*args)[i].second->GetValueAsString();
             format = std::regex_replace(format, std::regex(name), place);
 
@@ -1899,10 +1899,10 @@ std::string Obj::format(std::string format, Obj * args) {
                 std::wstring wplace = utf8_decode(place);
                 std::wstring temp = utf8_decode(format);
 
-                wname = L"@$@{" + utf8_decode(args->name(i)) + L"@}";
+                wname = L"\\$\\{" + utf8_decode(args->name(i)) + L"\\}";
                 temp = std::regex_replace(temp, std::wregex(wname), wplace);
 
-                wname = L"@$" + utf8_decode(args->name(i)); // + L"@b"; // Иначе перестает работать UTF8
+                wname = L"\\$" + utf8_decode(args->name(i)); // + L"\\b"; // Иначе перестает работать UTF8
                 temp = std::regex_replace(temp, std::wregex(wname), wplace);
 
                 format = utf8_encode(temp);
@@ -3377,7 +3377,7 @@ ObjPtr Obj::ConstructorInterraption_(const Context* ctx, Obj& args, ObjType type
 }
 
 template<>
-const Iterator<Obj>::IterPairType Iterator<Obj>::m_interator_end = IterObj::pair(Obj::CreateType(ObjType::IteratorEnd, ObjType::IteratorEnd, true));
+const Iterator<Obj>::IterPairType Iterator<Obj>::m_Iterator_end = IterObj::pair(Obj::CreateType(ObjType::IteratorEnd, ObjType::IteratorEnd, true));
 static const ObjPtr zero = Obj::CreateValue(0);
 
 template<>
@@ -3421,7 +3421,7 @@ ObjPtr Iterator<Obj>::read_and_next(int64_t count) {
             result = (*(*this)).second;
             (*this)++;
         } else {
-            LOG_RUNTIME("Interator to type %s not implemented!", newlang::toString(m_iter_obj->m_var_type_current));
+            LOG_RUNTIME("Iterator to type %s not implemented!", newlang::toString(m_iter_obj->m_var_type_current));
         }
     } else if(count < 0) {
 
@@ -3480,7 +3480,7 @@ ObjPtr Iterator<Obj>::read_and_next(int64_t count) {
             }
 
         } else {
-            LOG_RUNTIME("Interator to type %s not implemented!", newlang::toString(m_iter_obj->m_var_type_current));
+            LOG_RUNTIME("Iterator to type %s not implemented!", newlang::toString(m_iter_obj->m_var_type_current));
         }
 
     } else {
@@ -3522,7 +3522,7 @@ ObjPtr Iterator<Obj>::read_and_next(int64_t count) {
                 (*this)++;
             }
         } else {
-            LOG_RUNTIME("Interator to type %s not implemented!", newlang::toString(m_iter_obj->m_var_type_current));
+            LOG_RUNTIME("Iterator to type %s not implemented!", newlang::toString(m_iter_obj->m_var_type_current));
         }
     }
 
@@ -3584,7 +3584,7 @@ ObjPtr Obj::IteratorData() {
     }
 
     if(m_var_type_current == ObjType::IteratorEnd) {
-        return Iterator<Obj>::m_interator_end.second;
+        return Iterator<Obj>::m_Iterator_end.second;
     }
 
     ASSERT(m_iterator);
@@ -3615,7 +3615,7 @@ ObjPtr Obj::IteratorData() {
             }
         }
 
-        return Iterator<Obj>::m_interator_end.second;
+        return Iterator<Obj>::m_Iterator_end.second;
 
     } else if(m_iterator->m_iter_obj->is_indexing()) {
         return m_iterator->data().second;

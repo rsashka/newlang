@@ -79,7 +79,10 @@ number  ({number1}|{number2})
 field   \.({name}|{digit})+
 
 local   $({ualpha}|[_])?({name}|{digit})?
-module  \\?\\({ualpha}|[_]|{digit})+({field})*
+
+module_name  \\({ualpha}|[_]|{digit})+
+module  \\?{module_name}+
+
 native  %({ualpha}|[_])+({name}|{digit})?
 
 %x state_STRWIDE

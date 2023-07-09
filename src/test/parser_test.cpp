@@ -1444,9 +1444,9 @@ TEST_F(ParserTest, DISABLED_Ellipsis1) {
 //}
 
 TEST_F(ParserTest, Ellipsis2) {
-    ASSERT_TRUE(Parse("@name  :=  term2(   ...   arg);"));
+    ASSERT_TRUE(Parse("\\name  :=  term2(   ...   arg);"));
     ASSERT_EQ(TermID::CREATE_OR_ASSIGN, ast->getTermID()) << newlang::toString(ast->getTermID());
-    ASSERT_STREQ("@name := term2(...arg);", ast->toString().c_str());
+    ASSERT_STREQ("\\name := term2(...arg);", ast->toString().c_str());
 }
 
 TEST_F(ParserTest, Func1) {
@@ -1493,7 +1493,7 @@ TEST_F(ParserTest, Comment3) {
             "#!/bin/nlc;\n"
             "\n"
             "\n"
-            "# @print(\"Привет, мир!@n\");\n";
+            "# @print(\"Привет, мир!\\n\");\n";
     ASSERT_TRUE(Parse(str));
     ASSERT_EQ(TermID::CREATE_OR_ASSIGN, ast->getTermID()) << newlang::toString(ast->getTermID());
     //    ASSERT_EQ(3, ast->m_block.size());
@@ -1506,7 +1506,7 @@ TEST_F(ParserTest, Comment4) {
     const char *str = "#!/bin/nlc;\n"
             "print1(str=\"\") := {%  %};\n"
             "print2(str=\"\") := {%  %};\n"
-            "# @print(\"Привет, мир!@n\");\n";
+            "# @print(\"Привет, мир!\\n\");\n";
     ASSERT_TRUE(Parse(str));
     ASSERT_EQ(TermID::BLOCK, ast->getTermID()) << newlang::toString(ast->getTermID());
     ASSERT_EQ(2, ast->m_block.size());
@@ -1521,7 +1521,7 @@ TEST_F(ParserTest, Comment5) {
             "print1(str=\"\") := {%  %};\n"
             "print2(str=\"\") := { {%  %} };\n\n"
             "print3(str=\"\") := {%  %};\n\n\n"
-            "# @print(\"Привет, мир!@n\");\n";
+            "# @print(\"Привет, мир!\\n\");\n";
     ASSERT_TRUE(Parse(str));
     ASSERT_EQ(TermID::BLOCK, ast->getTermID()) << newlang::toString(ast->getTermID());
     ASSERT_EQ(4, ast->m_block.size());
@@ -1549,8 +1549,8 @@ TEST_F(ParserTest, Comment6) {
 
 TEST_F(ParserTest, CommentIncluded) {
     //    const char *str = "/* !!!!!!! \n"
-    //            "@print(\"Привет, мир!@n\");\n*/";
-    //    "# @print(\"Привет, мир!@n\");\n";
+    //            "@print(\"Привет, мир!\\n\");\n*/";
+    //    "# @print(\"Привет, мир!\\n\");\n";
     //    ASSERT_TRUE(Parse(str));
 
     const char *str2 = "/* /* /* /* term();\n"
@@ -1558,7 +1558,7 @@ TEST_F(ParserTest, CommentIncluded) {
             "print2(str=\"\") ::= term();\n\n */ "
             "print3( */ str=\"\") ::= term();\n\n\n"
             "ddd  */  "
-            "# @print(\"Привет, мир!@n\");\n";
+            "# @print(\"Привет, мир!\\n\");\n";
     ASSERT_TRUE(Parse(str2));
 }
 
@@ -2084,32 +2084,32 @@ TEST_F(ParserTest, Class) {
 
 TEST_F(ParserTest, Module) {
     ASSERT_TRUE(Parse("\\module(func)"));
-    ASSERT_TRUE(Parse("\\\\dir.module(func)"));
-    ASSERT_TRUE(Parse("\\dir.dir.module(func)"));
+    ASSERT_TRUE(Parse("\\\\dir\\module(func)"));
+    ASSERT_TRUE(Parse("\\dir\\dir\\module(func)"));
 
     //    ASSERT_TRUE(Parse("\\module (*)"));
-    //    ASSERT_TRUE(Parse("\\dir.module (*)"));
-    //    ASSERT_TRUE(Parse("\\\\dir.dir.module (*)"));
+    //    ASSERT_TRUE(Parse("\\dir\\module (*)"));
+    //    ASSERT_TRUE(Parse("\\\\dir\\dir\\module (*)"));
     //
     //    ASSERT_TRUE(Parse("\\\\module (func, func2)"));
-    //    ASSERT_TRUE(Parse("\\dir.module (func, *)"));
-    //    ASSERT_TRUE(Parse("\\dir.dir.module (func, _)"));
+    //    ASSERT_TRUE(Parse("\\dir\\module (func, *)"));
+    //    ASSERT_TRUE(Parse("\\dir\\dir\\module (func, _)"));
     //
     //    ASSERT_TRUE(Parse("\\module (func, ::func2)"));
-    //    ASSERT_TRUE(Parse("\\dir.module (ns::func, *)"));
-    //    ASSERT_TRUE(Parse("\\dir.dir.module (::ns::func, _)"));
+    //    ASSERT_TRUE(Parse("\\dir\\module (ns::func, *)"));
+    //    ASSERT_TRUE(Parse("\\dir\\dir\\module (::ns::func, _)"));
 
     ASSERT_TRUE(Parse("\\module (name=func, name=func2, name=::func3)"));
-    ASSERT_TRUE(Parse("\\\\dir.module (name=ns::func, name='')"));
-    ASSERT_TRUE(Parse("\\dir.dir.module (name=::ns::func, name=_)"));
+    ASSERT_TRUE(Parse("\\\\dir\\module (name=ns::func, name='')"));
+    ASSERT_TRUE(Parse("\\dir\\dir\\module (name=::ns::func, name=_)"));
 
     ASSERT_TRUE(Parse("\\module::var"));
     ASSERT_TRUE(Parse("\\module::ns::var"));
     ASSERT_TRUE(Parse("\\\\module::ns::func()"));
 
-    ASSERT_TRUE(Parse("\\\\dir.module::var"));
-    ASSERT_TRUE(Parse("\\dir.dir.module::ns::var"));
-    ASSERT_TRUE(Parse("\\dir.dir.dir.module::ns::func()"));
+    ASSERT_TRUE(Parse("\\\\dir\\module::var"));
+    ASSERT_TRUE(Parse("\\dir\\dir\\module::ns::var"));
+    ASSERT_TRUE(Parse("\\dir\\dir\\dir\\module::ns::func()"));
 
     //    ASSERT_TRUE(Parse("\\module (name=func, name=::name::*)"));
     //    ASSERT_TRUE(Parse("\\dir.module (name=ns::name::*, name=*)"));

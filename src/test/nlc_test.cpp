@@ -130,7 +130,7 @@ TEST(NLC, EvalHelloWorld) {
     std::string cmd;
     cmd += "#!./dist/Debug/GNU-Linux/nlc --eval\n";
     cmd += "hello(str='') := { printf := :Pointer('printf(format:FmtChar, ...):Int32'); printf('%s', $str); $str;};\n";
-    cmd += "hello('Привет, мир!@n');";
+    cmd += "hello('Привет, мир!\\n');";
 
     std::filesystem::create_directories("temp");
     ASSERT_TRUE(std::filesystem::is_directory("temp"));
@@ -161,7 +161,7 @@ TEST(NLC, EvalHelloWorld) {
 //    std::ofstream out("temp/hello.temp.sh");
 //    out << "#!./dist/Debug/GNU-Linux/nlc --exec\n";
 //    out << "hello(str=\"\") := { %{ printf(\"%s\", static_cast<char *>(*$1));
-//    return $str; %} };\n"; out << "hello(\"Привет, мир!@n\");"; out.close();
+//    return $str; %} };\n"; out << "hello(\"Привет, мир!\\n\");"; out.close();
 //
 //    NLC run;
 //    ObjPtr result = RunTime::Init()->ExecModule("temp/hello.temp.sh",
@@ -578,12 +578,12 @@ TEST(NLC, EvalHelloWorld) {
 /// ASSERT_TRUE(opts->LoadModule("temp/brother.temp.sh.nlm")); /    // /    //
 /// EXPECT_STREQ("default arg", opts->Eval(&ctx,
 ///"native()")->GetValueAsString().c_str()); /    //    EXPECT_STREQ("default
-/// arg", opts->Eval(&ctx, "@native()")->GetValueAsString().c_str()); /    //
+/// arg", opts->Eval(&ctx, "\\native()")->GetValueAsString().c_str()); /    //
 /// EXPECT_STREQ("default arg", opts->Eval(&ctx,
-///"@native()")->GetValueAsString().c_str()); /    //    EXPECT_STREQ("",
-/// opts->Eval(&ctx, "@native(\"\")")->GetValueAsString().c_str()); /    //
-/// EXPECT_STREQ("Hello, world!\n", opts->Eval(&ctx, "@native(\"Hello,
-/// world!@n\")")->GetValueAsString().c_str());
+///"\\native()")->GetValueAsString().c_str()); /    //    EXPECT_STREQ("",
+/// opts->Eval(&ctx, "\\native(\"\")")->GetValueAsString().c_str()); /    //
+/// EXPECT_STREQ("Hello, world!\n", opts->Eval(&ctx, "\\native(\"Hello,
+/// world!\\n\")")->GetValueAsString().c_str());
 ////
 ////    NLC run;
 ////    ObjPtr result = RunTime::Instance()->ExecModule("temp/brother.temp.sh",
@@ -704,7 +704,7 @@ TEST(NLC, EvalHelloWorld) {
 //    //    out << "#!./dist/Debug/GNU-Linux/nlc --exec\n";
 //    //    out << "print(str=\"\") := { %{ $$=$str; printf(\"%s\",
 //    static_cast<char *>($str)); %} };\n";
-//    //    out << cp1251_to_utf8("@print(\"Привет, мир!@n\");\n");
+//    //    out << cp1251_to_utf8("@print(\"Привет, мир!\\n\");\n");
 //    //    out.close();
 //    //
 //    //    NLC run;
@@ -725,28 +725,28 @@ TEST(NLC, EvalHelloWorld) {
 //    std::ofstream out("temp/native.temp.nlp");
 //    out << "#!/bin/nlc\n";
 //    out << "native(str=\"first\") := { %{ printf(\"%s\", static_cast<char
-//    *>(*$str)); return $str; %} };\n"; out << "@native(\"Привет,
-//    мир!@n\");\n"; out.close();
+//    *>(*$str)); return $str; %} };\n"; out << "\\native(\"Привет,
+//    мир!\\n\");\n"; out.close();
 //
 //    ASSERT_TRUE(opts->CompileModule("temp/native.temp.nlp", "temp/native.temp.nlm"));
 //    ASSERT_TRUE(RunTime::Instance()->LoadModule("temp/native.temp.nlm"));
 //
 ////    EXPECT_STREQ("first", opts->Eval(&ctx,
 ///"native()")->GetValueAsString().c_str()); /    EXPECT_STREQ("first",
-///opts->Eval(&ctx, "@native()")->GetValueAsString().c_str()); /
+///opts->Eval(&ctx, "\\native()")->GetValueAsString().c_str()); /
 ///EXPECT_STREQ("first", opts->Eval(&ctx,
 ///"native()")->GetValueAsString().c_str()); /    EXPECT_STREQ("",
-///opts->Eval(&ctx, "@native(\"\")")->GetValueAsString().c_str()); /
-///EXPECT_STREQ("Hello, world!\n", opts->Eval(&ctx, "@native(\"Hello,
-///world!@n\")")->GetValueAsString().c_str());
+///opts->Eval(&ctx, "\\native(\"\")")->GetValueAsString().c_str()); /
+///EXPECT_STREQ("Hello, world!\n", opts->Eval(&ctx, "\\native(\"Hello,
+///world!\\n\")")->GetValueAsString().c_str());
 //
 //
 //
 //    std::ofstream out2("temp/native.temp.nlp");
 //    out2 << "#!/bin/nlc\n";
 //    out2 << "native(str=\"second\") := { %{ printf(\"%s\", static_cast<char
-//    *>(*$str)); return $str; %} };\n"; out2 << "//@native(\"Привет,
-//    мир!@n\");\n"; out2.close();
+//    *>(*$str)); return $str; %} };\n"; out2 << "//\\native(\"Привет,
+//    мир!\\n\");\n"; out2.close();
 //
 //    NLC compile2("/bin/nlc --compile=temp/native.temp.nlp");
 //    ASSERT_STREQ("native.temp.nlp", compile2.m_ifile.c_str());
@@ -781,10 +781,10 @@ TEST(NLC, EvalHelloWorld) {
 ////
 ////    EXPECT_STREQ("second", opts2->Eval(&ctx2,
 ///"native()")->GetValueAsString().c_str()); /    EXPECT_STREQ("second",
-///opts2->Eval(&ctx2, "@native()")->GetValueAsString().c_str()); /
+///opts2->Eval(&ctx2, "\\native()")->GetValueAsString().c_str()); /
 ///EXPECT_STREQ("second", opts2->Eval(&ctx2,
 ///"native()")->GetValueAsString().c_str()); /    EXPECT_STREQ("",
-///opts2->Eval(&ctx2, "@native(\"\")")->GetValueAsString().c_str());
+///opts2->Eval(&ctx2, "\\native(\"\")")->GetValueAsString().c_str());
 ////
 ////
 ////    NLC exec1("/bin/nlc --load=temp/native.temp.nlm native(\"print_test\")");

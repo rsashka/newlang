@@ -1246,6 +1246,10 @@ body:  condition
                 $$ = $block_ns;
                 Term::ListToVector($doc_before, $$->m_docs);
             }
+        |  exit
+            {
+                $$ = $1;
+            }
 
 body_all: body
             {
@@ -1704,10 +1708,6 @@ seq_item: assign_seq
             {
                 $$ = $1; 
                 $$->AppendFollow($body_else); 
-            }
-        | exit
-            {
-                $$ = $1;
             }
         |  ESCAPE /* for pragma terms */
             {            

@@ -392,10 +392,10 @@ TEST_F(Lexer, Module) {
     ASSERT_EQ(1, TokenParse("\\name")) << Dump();
     EXPECT_EQ(1, Count(TermID::MODULE));
 
-    ASSERT_EQ(1, TokenParse("\\\\dir.module"));
+    ASSERT_EQ(1, TokenParse("\\\\dir\\module"));
     EXPECT_EQ(1, Count(TermID::MODULE));
 
-    ASSERT_EQ(1, TokenParse("\\dir.dir.module"));
+    ASSERT_EQ(1, TokenParse("\\dir\\dir\\module"));
     EXPECT_EQ(1, Count(TermID::MODULE));
 }
 

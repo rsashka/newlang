@@ -327,7 +327,7 @@ with message_writer.open_file() as my_file:
     # Обычные макросы (тело макроса корректное выражение)
     @macro@        := replace();
     @macro2(arg)@  := { call(\$arg); call()};
-    @name1 name2@  := replace();
+    \\name1 name2@  := replace();
 
     # Тело макросов из последовательности лексем
     @if(...)@    := @ [ \$if(*) ]--> @; # Выражение может быть не полным

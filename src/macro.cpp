@@ -150,7 +150,7 @@ size_t MacroBuffer::ParseTerm(TermPtr &result, const BlockType &buffer, size_t o
             offset += (skip + 1);
         }
     }
-//    LOG_DEBUG("ParseTerm: '%s' - %d", source.c_str(), (int) offset);
+    //    LOG_DEBUG("ParseTerm: '%s' - %d", source.c_str(), (int) offset);
     result = ParseTerm(source.c_str(), nullptr, pragma_enable);
     return offset;
 }
@@ -679,7 +679,7 @@ bool MacroBuffer::CompareTermName(const std::string & term_name, const std::stri
  * }; 
  *  
  * @override
- * @nothrow
+ * \\nothrow
  * func name() { # ->   name() = {*
  * *}; 
  * 
@@ -794,11 +794,11 @@ BlockType MacroBuffer::SymbolSeparateArg_(const BlockType &buffer, size_t pos, s
 
         skip = SkipBrackets(buffer, pos);
         for (int i = 0; skip && i < skip - 1; i++) {
-            result.push_back(buffer[pos]);
+            result.push_back(buffer[pos]->Clone());
             pos++;
         }
 
-        result.push_back(buffer[pos]);
+        result.push_back(buffer[pos]->Clone());
         pos++;
     }
 
@@ -961,7 +961,7 @@ size_t MacroBuffer::ExtractArgs(BlockType &buffer, const TermPtr &term, MacroArg
         }
         ttt += MacroBuffer::toHashTermName(term->GetMacroId()[j]->m_text);
     }
-//    LOG_DEBUG("m_macro_id: '%s'  args: %s", ttt.c_str(), Dump(args).c_str());
+    //    LOG_DEBUG("m_macro_id: '%s'  args: %s", ttt.c_str(), Dump(args).c_str());
 
 
     if(((term->getTermID() == TermID::MACRO && pos_id == term->GetMacroId().size())
@@ -1065,7 +1065,7 @@ std::string MacroBuffer::ExpandString(const TermPtr &macro, MacroArgsType & args
             text += " ";
         }
 
-//        LOG_DEBUG("Replace: '%s' -> '%s' in \"%s\"", elem.first.c_str(), text.c_str(), body.c_str());
+        //        LOG_DEBUG("Replace: '%s' -> '%s' in \"%s\"", elem.first.c_str(), text.c_str(), body.c_str());
         body = ReplaceAll(body, elem.first, text);
     }
 
@@ -1290,9 +1290,9 @@ next_escape_token:
             }
 
             if(term->m_lexer_loc.begin.filename) {
-                LOG_ERROR("Incomplete syntax near '%s' in file %s!", bag_position->m_text.c_str(), term->m_lexer_loc.begin.filename->c_str());
+                NL_PARSER(bag_position, "Incomplete syntax near '%s' in file %s!", bag_position->m_text.c_str(), term->m_lexer_loc.begin.filename->c_str());
             } else {
-                LOG_ERROR("Incomplete syntax near '%s'!", bag_position->m_text.c_str());
+                NL_PARSER(bag_position, "Incomplete syntax near '%s'!", bag_position->m_text.c_str());
             }
         }
     }
@@ -1410,7 +1410,7 @@ next_escape_token:
                 MacroBuffer::MacroArgsType macro_args;
                 size_t size_remove = MacroBuffer::ExtractArgs(m_macro_analisys_buff, macro_done, macro_args);
 
-//                LOG_DEBUG("buffer '%s' DumpArgs: %s", MacroBuffer::Dump(m_macro_analisys_buff).c_str(), MacroBuffer::Dump(macro_args).c_str());
+                //                LOG_DEBUG("buffer '%s' DumpArgs: %s", MacroBuffer::Dump(m_macro_analisys_buff).c_str(), MacroBuffer::Dump(macro_args).c_str());
 
 
                 ASSERT(size_remove);
@@ -1423,7 +1423,7 @@ next_escape_token:
                     }
                     temp += elem->m_text;
                 }
-//                LOG_DEBUG("From: %s (remove %d)", temp.c_str(), (int) size_remove);
+                //                LOG_DEBUG("From: %s (remove %d)", temp.c_str(), (int) size_remove);
 
                 m_macro_analisys_buff.erase(m_macro_analisys_buff.begin(), m_macro_analisys_buff.begin() + size_remove);
 
@@ -1462,7 +1462,7 @@ next_escape_token:
                         }
                         temp += elem->m_text;
                     }
-//                    LOG_DEBUG("To: %s", temp.c_str());
+                    //                    LOG_DEBUG("To: %s", temp.c_str());
                 }
 
                 continue;

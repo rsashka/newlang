@@ -156,7 +156,7 @@ bool Compiler::WriteFunctionName_(TermPtr &func, std::ostream & out, bool is_tra
 }
 
 std::string Compiler::MakeCommentLine(std::string comment) {
-    comment = std::regex_replace(comment, std::regex("\n"), "@n");
+    comment = std::regex_replace(comment, std::regex("\n"), "\\n");
     comment = std::regex_replace(comment, std::regex("\""), "@\"");
 
     return "// " + comment + "\n";
@@ -414,7 +414,7 @@ bool Compiler::MakeFunctionCpp(CompileInfo &ci, std::string func_name, TermPtr &
     //
     //    std::string text = func_define->toString();
     //    text = std::regex_replace(text, std::regex("\""), "@\"");
-    //    text = std::regex_replace(text, std::regex("\n"), "@n");
+    //    text = std::regex_replace(text, std::regex("\n"), "\\n");
     //    text = std::regex_replace(text, std::regex("\t"), "@t");
     //    text = std::regex_replace(text, std::regex("\r"), "@r");
     //    text = std::regex_replace(text, std::regex("\b"), "@b");
@@ -670,7 +670,7 @@ std::string Compiler::EncodeNonAsciiCharacters(const char * in) {
     std::string text(in);
     text = std::regex_replace(text, std::regex("\""), "@\"");
     text = std::regex_replace(text, std::regex("\n"), "@x0A\" \"");
-    text = std::regex_replace(text, std::regex("@@n"), "@@n");
+    text = std::regex_replace(text, std::regex("@\\n"), "@\\n");
 
     std::string src;
     for (size_t i = 0; i < text.length(); i++) {
@@ -826,12 +826,12 @@ bool Compiler::Execute(const char *exec, std::string *out, int *exit_code) {
 //        file << "\n\n#include <stdio.h>\n\
 //#include <string.h>\n\
 //int nv_add(int a, int b) {\n\
-//    printf(\"call nv_add(%d, %d)@n\", a, b);\n\
+//    printf(\"call nv_add(%d, %d)\\n\", a, b);\n\
 //    return a + b;\n\
 //}\n\
 //\n\
 //int nv_sub(int a, int b) {\n\
-//    printf(\"call nv_sub(%d, %d)@n\", a, b);\n\
+//    printf(\"call nv_sub(%d, %d)\\n\", a, b);\n\
 //    return a - b;\n\
 //}\n\
 //";
@@ -1258,7 +1258,12 @@ std::shared_ptr<Module> RunTime::LoadModule(Context &ctx, const char *term, bool
 
 
     std::string name = ExtractModuleName(term);
-    std::vector<std::string> split = Context::SplitString(name.substr(1).c_str(), ".");
+    bool is_root = (name.find("\\\\") == 0);
+    if(is_root) {
+        LOG_WARNING("Load module from root not implemented! '%s'", name.c_str());
+        name = name.substr(1); // remove root marker (double back slash) i.e. \\root\dir\module
+    }
+    std::vector<std::string> split = Context::SplitString(name.substr(1).c_str(), "\\");
 
     std::string path;
     for (auto &elem : split) {
@@ -1514,331 +1519,331 @@ void Compiler::ReplaceSourceVariable(CompileInfo &ci, size_t count, std::string 
 
 std::string Compiler::GetImpl(CompileInfo &ci, TermPtr term, std::string &output) {
     ASSERT(0);
-    
-//    ASSERT(term);
-//    std::string result;
-//
-//    std::ostringstream ostr;
-//    std::string temp;
-//
-//    std::string temp2;
-//    std::vector<std::string> iters;
-//    TermPtr proto;
-//    TermPtr proto2;
-//
-//    ci.last_type.clear();
-//
-//    switch(term->getTermID()) {
-//        case TermID::NUMBER:
-//        case TermID::INTEGER:
-//            result = "Obj::CreateValue(" + term->getText() + ")";
-//            output += result;
-//            return result;
-//
-//        case TermID::STRCHAR:
-//        case TermID::STRWIDE:
-//            // Экранировать спецсимволы в символьных литералах
-//            //Obj::CreateValue("string");
-//            temp = std::regex_replace(term->getText(), std::regex("\n"), "@n");
-//            temp = std::regex_replace(temp, std::regex("\""), "@\"");
-//            result += "Obj::CreateString(";
-//            if(term->getTermID() == TermID::STRWIDE) {
-//                result += "L";
-//            }
-//            result += "\"" + temp + "\")";
-//            output += result;
-//            return result;
-//
-//        case TermID::CREATE:
-//            ostr.str("");
-//            result = MakeCppFileVariable(ci, term, ostr);
-//            output += ostr.str();
-//            return result;
-//
-//        case TermID::ARGUMENT:
-//            result = "in[" + std::to_string(IndexArg(term)) + "]";
-//            output += result;
-//            return result;
-//
-//        case TermID::DICT:
-//            temp = "";
-//            for (int i = 0; i < term->size(); i++) {
-//                if(!temp.empty()) {
-//                    temp += ", ";
-//                }
-//                temp2.clear();
-//                GetImpl(ci, (*term)[i].second, temp2);
-//                temp += "Obj::Arg(" + temp2;
-//                if(!term->name(i).empty()) {
-//                    temp += ", \"" + term->name(i) + "\"";
-//                }
-//                temp += ")";
-//            }
-//            result = "Obj::CreateDict(" + temp + ")";
-//            output += result;
-//            return result;
-//
-//        case TermID::NAME:
-//            ASSERT(!term->getName().empty() || !term->getText().empty());
-//
-//            if(term->isCall()) {
-//                if((proto = ci.isArgument(term))) {
-//                    result = "in[\"" + MakeName(term->GetFullName()) + "\"]->Call(";
-//                    result += MakeCppFileCallArgs(ci, term, proto);
-//                    result += ")";
-//                } else if(isLocal(term->getText().c_str()) || isModule(term->getText().c_str())) {
-//                    result = "Context::CallByName(ctx, \"";
-//                    result += term->GetFullName() + "\"";
-//                    temp = MakeCppFileCallArgs(ci, term, nullptr);
-//                    if(!temp.empty()) {
-//                        result += ", " + temp;
-//                    }
-//                    result += ")";
-//                } else if((proto = ci.isFunction(term))) {
-//                    //Непосредственный вызов - разрешение имени во время компиляции
-//                    result = MakeLocalName(term->getText().c_str()) + "(ctx, ";
-//                    result += "Obj::CreateDict(Obj::Arg()";
-//                    temp = MakeCppFileCallArgs(ci, term, proto);
-//                    if(!temp.empty()) {
-//                        result += ", " + temp;
-//                    }
-//                    result += "))";
-//                } else {
-//                    //Клонирование переменной - разрешение имени во время компиляции
-//                    result = MakeLocalName(term->getText().c_str()) + "->Call(";
-//                    result += MakeCppFileCallArgs(ci, term, nullptr);
-//                    result += ")";
-//                }
-//
-//                output += result;
-//                return result;
-//            }
-//
-//
-//            if(term->GetFullName().compare("_") == 0) {
-//                //Пустой объект
-//                ci.last_type = "_";
-//                result = "Obj::CreateNone()";
-//            } else if(ci.isLocalAccess(term)) {
-//                //Доступ по имени - разрешение имени во время компиляции
-//                result = MakeLocalName(term->GetFullName().c_str());
-//            } else if(ci.isArgument(term)) {
-//
-//                result = "in[\"" + MakeName(term->GetFullName()) + "\"]";
-//
-//            } else if(!term->GetFullName().empty()) {
-//                //Вызов по имении переменной (создание копии объекта) - разрешение имени во время компиляции
-//                result = "Context::CallByName(ctx,\"" + term->GetFullName() + "\")";
-//            } else {
-//                //Вызов по имении переменной (создание копии объекта) - разрешение имени во время компиляции
-//                result = "Obj::CreateNone()";
-//            }
-//
-//            if(term->Right()) {
-//                GetImpl(ci, term->Right(), result);
-//            }
-//
-//            output += result;
-//            return result;
-//
-//            //        case TermID::FIELD:
-//            //            ASSERT(!term->getName().empty() || !term->getText().empty());
-//            //            ASSERT(!term->Right());
-//            //
-//            //            if(!ci.m_builtin_direct->CheckDirect(ci, term, output)) {
-//            //                output.insert(0, "(*");
-//            //                output += ")[\"" + term->getText() + "\"]";
-//            //            }
-//            //            result = output;
-//            //            return result;
-//
-//        case TermID::SOURCE:
-//            temp = term->getText();
-//            ReplaceSourceVariable(ci, ci.arguments.size() + 1, temp);
-//            output += temp;
-//            return "";
-//
-//        case TermID::INT_PLUS:
-//        case TermID::INT_MINUS:
-//
-//            if(term->m_right) {
-//                GetImpl(ci, term->m_right, temp);
-//                output += "return " + temp;
-//
-//            } else {
-//                output += "return Obj::CreateNone()";
-//            }
-//            return "";
-//
-//        case TermID::ARGS:
-//            result = "in";
-//            output += result;
-//            return result;
-//
-//        case TermID::ASSIGN:
-//            GetImpl(ci, term->Left(), result);
-//            output += "(*" + result + ")=";
-//            GetImpl(ci, term->Right(), temp);
-//            output += temp;
-//            return result;
-//
-//        case TermID::APPEND:
-//            GetImpl(ci, term->Left(), result);
-//            result = result + "->push_back(";
-//            GetImpl(ci, term->Right(), temp);
-//            result += temp;
-//            if(!term->m_name.empty()) {
-//                result += ", \"" + term->m_name + "\"";
-//            }
-//            result += ")";
-//            output += result;
-//            return result;
-//
-//        case TermID::OPERATOR:
-//            proto = ci.findObject(term->Left()->GetFullName());
-//            if(!proto) {
-//                proto = term->Left();
-//            }
-//            proto2 = ci.findObject(term->Right()->GetFullName());
-//            if(!proto2) {
-//                proto2 = term->Right();
-//            }
-//            NL_TYPECHECK(term, proto2->m_type_name, proto->m_type_name);
-//
-//            GetImpl(ci, term->Left(), temp2);
-//            result = "(*" + temp2 + ")" + term->getText();
-//            GetImpl(ci, term->Right(), temp);
-//            result += temp + ", " + temp2;
-//            output += result;
-//            return result;
-//
-//        case TermID::BLOCK:
-//            for (size_t i = 0; i < term->m_block.size(); i++) {
-//                temp.clear();
-//                GetImpl(ci, term->m_block[i], temp);
-//                output += ci.GetIndent() + temp + ";\n";
-//            }
-//            return "";
-//
-//        case TermID::WHILE:
-//            result += ci.GetIndent(-1) + "while(";
-//
-//            temp.clear();
-//            GetImpl(ci, term->Left(), temp);
-//            result += temp + "->GetValueAsBoolean()) {\n";
-//
-//            temp.clear();
-//            GetImpl(ci, term->Right(), temp);
-//            result += temp;
-//
-//            result += ci.GetIndent(-1) + "}";
-//            output += result;
-//            return "";
-//
-//        case TermID::ITERATOR:
-//            ASSERT(term->Left());
-//            result = BeginIterators(ci, term->Left(), output, iters);
-//
-//            for (int i = 0; i < iters.size(); i++) {
-//                output += ci.GetIndent(i) + "while(!" + iters[i] + ".complete()) {\n";
-//            }
-//
-//
-//            if(ci.isArgument(term->Left())) {
-//                temp = "in[\"" + MakeName(term->Left()->GetFullName()) + "\"]->Call(";
-//                temp += MakeIteratorCallArgs_(ci, term->Left(), iters);
-//                temp += ")";
-//            } else if(isLocal(term->Left()->getText().c_str()) || isModule(term->Left()->getText().c_str())) {
-//                temp = "Context::CallByName(ctx, \"";
-//                temp += term->GetFullName() + "\"";
-//                temp2 = MakeIteratorCallArgs_(ci, term->Left(), iters);
-//                if(!temp2.empty()) {
-//                    temp += ", " + temp2;
-//                }
-//                temp += ")";
-//            } else if(ci.isFunction(term->Left())) {
-//                //Непосредственный вызов - разрешение имени во время компиляции
-//                temp = MakeLocalName(term->Left()->getText().c_str()) + "(ctx, ";
-//                temp += "Obj::CreateDict(Obj::Arg()";
-//                temp2 = MakeIteratorCallArgs_(ci, term->Left(), iters);
-//                if(!temp2.empty()) {
-//                    temp += ", " + temp2;
-//                }
-//                temp += "))";
-//            } else {
-//                //Клонирование переменной - разрешение имени во время компиляции
-//                temp = MakeLocalName(term->Left()->getText().c_str()) + "->Call(";
-//                temp += MakeIteratorCallArgs_(ci, term->Left(), iters);
-//                temp += ")";
-//            }
-//
-//            output += ci.GetIndent(iters.size()) + "ObjPtr " + result + "_eval";
-//            output += "=" + temp + ";\n";
-//
-//            output += ci.GetIndent(iters.size()) + "if(" + result + "_eval->GetValueAsBoolean()){\n";
-//
-//            for (size_t i = 0; i < iters.size(); i++) {
-//                // (*humans)->RefInc();
-//                output += ci.GetIndent(iters.size()) + "(*" + iters[i] + ")->RefInc();\n";
-//            }
-//            // output += ci.GetIndent(iters.size()) + result + "->push_back(Obj::CreateArray(*" + iters[0] + ", *" + iters[1] + "));\n";
-//            output += ci.GetIndent(iters.size() + 1) + result + "->push_back(Obj::CreateArray(";
-//            for (size_t i = 0; i < iters.size(); i++) {
-//                if(i) {
-//                    output += ", ";
-//                }
-//                output += "*" + iters[i];
-//            }
-//            output += "));\n";
-//
-//            output += ci.GetIndent(iters.size()) + "}\n";
-//
-//
-//            for (size_t i = iters.size() - 1; i > 0; i--) {
-//                output += ci.GetIndent(i + 1) + iters[i] + "++;\n";
-//                output += ci.GetIndent(i) + "}\n";
-//                if(i) {
-//                    output += ci.GetIndent(i) + iters[i] + ".reset();\n";
-//                    output += ci.GetIndent(i) + iters[i - 1] + "++;\n";
-//                }
-//            }
-//            output += ci.GetIndent() + "}";
-//
-//            return result;
-//
-//    }
-//    if(term->getTermID() == TermID::FOLLOW) {
-//        bool else_if = false;
-//        for (size_t i = 0; i < term->m_follow.size(); i++) {
-//
-//            if(else_if && term->m_follow[i]->Left()) {
-//                result += " else ";
-//            } else {
-//                else_if = true;
-//            }
-//
-//            if(term->m_follow[i]->Left()) {
-//                temp.clear();
-//                GetImpl(ci, term->m_follow[i]->Left(), temp);
-//                result += ci.GetIndent() + "if((" + temp + ")->GetValueAsBoolean()) {";
-//            } else {
-//                if(i == 0 || i != term->m_follow.size() - 1) {
-//                    LOG_RUNTIME("Bad logic follow '%s'", term->toString().c_str());
-//                }
-//                result += " else {";
-//            }
-//            if(term->m_follow[i]->Right()) {
-//                temp.clear();
-//                GetImpl(ci, term->m_follow[i]->Right(), temp);
-//                result += "\n" NEWLANG_INDENT_OP + ci.GetIndent() + temp + ";\n" + ci.GetIndent() + "}";
-//            } else {
-//                LOG_RUNTIME("Bad logic follow '%s'", term->toString().c_str());
-//            }
-//        }
-//        result += "\n";
-//        output += result;
-//        return "";
-//    }
+
+    //    ASSERT(term);
+    //    std::string result;
+    //
+    //    std::ostringstream ostr;
+    //    std::string temp;
+    //
+    //    std::string temp2;
+    //    std::vector<std::string> iters;
+    //    TermPtr proto;
+    //    TermPtr proto2;
+    //
+    //    ci.last_type.clear();
+    //
+    //    switch(term->getTermID()) {
+    //        case TermID::NUMBER:
+    //        case TermID::INTEGER:
+    //            result = "Obj::CreateValue(" + term->getText() + ")";
+    //            output += result;
+    //            return result;
+    //
+    //        case TermID::STRCHAR:
+    //        case TermID::STRWIDE:
+    //            // Экранировать спецсимволы в символьных литералах
+    //            //Obj::CreateValue("string");
+    //            temp = std::regex_replace(term->getText(), std::regex("\n"), "\\n");
+    //            temp = std::regex_replace(temp, std::regex("\""), "@\"");
+    //            result += "Obj::CreateString(";
+    //            if(term->getTermID() == TermID::STRWIDE) {
+    //                result += "L";
+    //            }
+    //            result += "\"" + temp + "\")";
+    //            output += result;
+    //            return result;
+    //
+    //        case TermID::CREATE:
+    //            ostr.str("");
+    //            result = MakeCppFileVariable(ci, term, ostr);
+    //            output += ostr.str();
+    //            return result;
+    //
+    //        case TermID::ARGUMENT:
+    //            result = "in[" + std::to_string(IndexArg(term)) + "]";
+    //            output += result;
+    //            return result;
+    //
+    //        case TermID::DICT:
+    //            temp = "";
+    //            for (int i = 0; i < term->size(); i++) {
+    //                if(!temp.empty()) {
+    //                    temp += ", ";
+    //                }
+    //                temp2.clear();
+    //                GetImpl(ci, (*term)[i].second, temp2);
+    //                temp += "Obj::Arg(" + temp2;
+    //                if(!term->name(i).empty()) {
+    //                    temp += ", \"" + term->name(i) + "\"";
+    //                }
+    //                temp += ")";
+    //            }
+    //            result = "Obj::CreateDict(" + temp + ")";
+    //            output += result;
+    //            return result;
+    //
+    //        case TermID::NAME:
+    //            ASSERT(!term->getName().empty() || !term->getText().empty());
+    //
+    //            if(term->isCall()) {
+    //                if((proto = ci.isArgument(term))) {
+    //                    result = "in[\"" + MakeName(term->GetFullName()) + "\"]->Call(";
+    //                    result += MakeCppFileCallArgs(ci, term, proto);
+    //                    result += ")";
+    //                } else if(isLocal(term->getText().c_str()) || isModule(term->getText().c_str())) {
+    //                    result = "Context::CallByName(ctx, \"";
+    //                    result += term->GetFullName() + "\"";
+    //                    temp = MakeCppFileCallArgs(ci, term, nullptr);
+    //                    if(!temp.empty()) {
+    //                        result += ", " + temp;
+    //                    }
+    //                    result += ")";
+    //                } else if((proto = ci.isFunction(term))) {
+    //                    //Непосредственный вызов - разрешение имени во время компиляции
+    //                    result = MakeLocalName(term->getText().c_str()) + "(ctx, ";
+    //                    result += "Obj::CreateDict(Obj::Arg()";
+    //                    temp = MakeCppFileCallArgs(ci, term, proto);
+    //                    if(!temp.empty()) {
+    //                        result += ", " + temp;
+    //                    }
+    //                    result += "))";
+    //                } else {
+    //                    //Клонирование переменной - разрешение имени во время компиляции
+    //                    result = MakeLocalName(term->getText().c_str()) + "->Call(";
+    //                    result += MakeCppFileCallArgs(ci, term, nullptr);
+    //                    result += ")";
+    //                }
+    //
+    //                output += result;
+    //                return result;
+    //            }
+    //
+    //
+    //            if(term->GetFullName().compare("_") == 0) {
+    //                //Пустой объект
+    //                ci.last_type = "_";
+    //                result = "Obj::CreateNone()";
+    //            } else if(ci.isLocalAccess(term)) {
+    //                //Доступ по имени - разрешение имени во время компиляции
+    //                result = MakeLocalName(term->GetFullName().c_str());
+    //            } else if(ci.isArgument(term)) {
+    //
+    //                result = "in[\"" + MakeName(term->GetFullName()) + "\"]";
+    //
+    //            } else if(!term->GetFullName().empty()) {
+    //                //Вызов по имении переменной (создание копии объекта) - разрешение имени во время компиляции
+    //                result = "Context::CallByName(ctx,\"" + term->GetFullName() + "\")";
+    //            } else {
+    //                //Вызов по имении переменной (создание копии объекта) - разрешение имени во время компиляции
+    //                result = "Obj::CreateNone()";
+    //            }
+    //
+    //            if(term->Right()) {
+    //                GetImpl(ci, term->Right(), result);
+    //            }
+    //
+    //            output += result;
+    //            return result;
+    //
+    //            //        case TermID::FIELD:
+    //            //            ASSERT(!term->getName().empty() || !term->getText().empty());
+    //            //            ASSERT(!term->Right());
+    //            //
+    //            //            if(!ci.m_builtin_direct->CheckDirect(ci, term, output)) {
+    //            //                output.insert(0, "(*");
+    //            //                output += ")[\"" + term->getText() + "\"]";
+    //            //            }
+    //            //            result = output;
+    //            //            return result;
+    //
+    //        case TermID::SOURCE:
+    //            temp = term->getText();
+    //            ReplaceSourceVariable(ci, ci.arguments.size() + 1, temp);
+    //            output += temp;
+    //            return "";
+    //
+    //        case TermID::INT_PLUS:
+    //        case TermID::INT_MINUS:
+    //
+    //            if(term->m_right) {
+    //                GetImpl(ci, term->m_right, temp);
+    //                output += "return " + temp;
+    //
+    //            } else {
+    //                output += "return Obj::CreateNone()";
+    //            }
+    //            return "";
+    //
+    //        case TermID::ARGS:
+    //            result = "in";
+    //            output += result;
+    //            return result;
+    //
+    //        case TermID::ASSIGN:
+    //            GetImpl(ci, term->Left(), result);
+    //            output += "(*" + result + ")=";
+    //            GetImpl(ci, term->Right(), temp);
+    //            output += temp;
+    //            return result;
+    //
+    //        case TermID::APPEND:
+    //            GetImpl(ci, term->Left(), result);
+    //            result = result + "->push_back(";
+    //            GetImpl(ci, term->Right(), temp);
+    //            result += temp;
+    //            if(!term->m_name.empty()) {
+    //                result += ", \"" + term->m_name + "\"";
+    //            }
+    //            result += ")";
+    //            output += result;
+    //            return result;
+    //
+    //        case TermID::OPERATOR:
+    //            proto = ci.findObject(term->Left()->GetFullName());
+    //            if(!proto) {
+    //                proto = term->Left();
+    //            }
+    //            proto2 = ci.findObject(term->Right()->GetFullName());
+    //            if(!proto2) {
+    //                proto2 = term->Right();
+    //            }
+    //            NL_TYPECHECK(term, proto2->m_type_name, proto->m_type_name);
+    //
+    //            GetImpl(ci, term->Left(), temp2);
+    //            result = "(*" + temp2 + ")" + term->getText();
+    //            GetImpl(ci, term->Right(), temp);
+    //            result += temp + ", " + temp2;
+    //            output += result;
+    //            return result;
+    //
+    //        case TermID::BLOCK:
+    //            for (size_t i = 0; i < term->m_block.size(); i++) {
+    //                temp.clear();
+    //                GetImpl(ci, term->m_block[i], temp);
+    //                output += ci.GetIndent() + temp + ";\n";
+    //            }
+    //            return "";
+    //
+    //        case TermID::WHILE:
+    //            result += ci.GetIndent(-1) + "while(";
+    //
+    //            temp.clear();
+    //            GetImpl(ci, term->Left(), temp);
+    //            result += temp + "->GetValueAsBoolean()) {\n";
+    //
+    //            temp.clear();
+    //            GetImpl(ci, term->Right(), temp);
+    //            result += temp;
+    //
+    //            result += ci.GetIndent(-1) + "}";
+    //            output += result;
+    //            return "";
+    //
+    //        case TermID::ITERATOR:
+    //            ASSERT(term->Left());
+    //            result = BeginIterators(ci, term->Left(), output, iters);
+    //
+    //            for (int i = 0; i < iters.size(); i++) {
+    //                output += ci.GetIndent(i) + "while(!" + iters[i] + ".complete()) {\n";
+    //            }
+    //
+    //
+    //            if(ci.isArgument(term->Left())) {
+    //                temp = "in[\"" + MakeName(term->Left()->GetFullName()) + "\"]->Call(";
+    //                temp += MakeIteratorCallArgs_(ci, term->Left(), iters);
+    //                temp += ")";
+    //            } else if(isLocal(term->Left()->getText().c_str()) || isModule(term->Left()->getText().c_str())) {
+    //                temp = "Context::CallByName(ctx, \"";
+    //                temp += term->GetFullName() + "\"";
+    //                temp2 = MakeIteratorCallArgs_(ci, term->Left(), iters);
+    //                if(!temp2.empty()) {
+    //                    temp += ", " + temp2;
+    //                }
+    //                temp += ")";
+    //            } else if(ci.isFunction(term->Left())) {
+    //                //Непосредственный вызов - разрешение имени во время компиляции
+    //                temp = MakeLocalName(term->Left()->getText().c_str()) + "(ctx, ";
+    //                temp += "Obj::CreateDict(Obj::Arg()";
+    //                temp2 = MakeIteratorCallArgs_(ci, term->Left(), iters);
+    //                if(!temp2.empty()) {
+    //                    temp += ", " + temp2;
+    //                }
+    //                temp += "))";
+    //            } else {
+    //                //Клонирование переменной - разрешение имени во время компиляции
+    //                temp = MakeLocalName(term->Left()->getText().c_str()) + "->Call(";
+    //                temp += MakeIteratorCallArgs_(ci, term->Left(), iters);
+    //                temp += ")";
+    //            }
+    //
+    //            output += ci.GetIndent(iters.size()) + "ObjPtr " + result + "_eval";
+    //            output += "=" + temp + ";\n";
+    //
+    //            output += ci.GetIndent(iters.size()) + "if(" + result + "_eval->GetValueAsBoolean()){\n";
+    //
+    //            for (size_t i = 0; i < iters.size(); i++) {
+    //                // (*humans)->RefInc();
+    //                output += ci.GetIndent(iters.size()) + "(*" + iters[i] + ")->RefInc();\n";
+    //            }
+    //            // output += ci.GetIndent(iters.size()) + result + "->push_back(Obj::CreateArray(*" + iters[0] + ", *" + iters[1] + "));\n";
+    //            output += ci.GetIndent(iters.size() + 1) + result + "->push_back(Obj::CreateArray(";
+    //            for (size_t i = 0; i < iters.size(); i++) {
+    //                if(i) {
+    //                    output += ", ";
+    //                }
+    //                output += "*" + iters[i];
+    //            }
+    //            output += "));\n";
+    //
+    //            output += ci.GetIndent(iters.size()) + "}\n";
+    //
+    //
+    //            for (size_t i = iters.size() - 1; i > 0; i--) {
+    //                output += ci.GetIndent(i + 1) + iters[i] + "++;\n";
+    //                output += ci.GetIndent(i) + "}\n";
+    //                if(i) {
+    //                    output += ci.GetIndent(i) + iters[i] + ".reset();\n";
+    //                    output += ci.GetIndent(i) + iters[i - 1] + "++;\n";
+    //                }
+    //            }
+    //            output += ci.GetIndent() + "}";
+    //
+    //            return result;
+    //
+    //    }
+    //    if(term->getTermID() == TermID::FOLLOW) {
+    //        bool else_if = false;
+    //        for (size_t i = 0; i < term->m_follow.size(); i++) {
+    //
+    //            if(else_if && term->m_follow[i]->Left()) {
+    //                result += " else ";
+    //            } else {
+    //                else_if = true;
+    //            }
+    //
+    //            if(term->m_follow[i]->Left()) {
+    //                temp.clear();
+    //                GetImpl(ci, term->m_follow[i]->Left(), temp);
+    //                result += ci.GetIndent() + "if((" + temp + ")->GetValueAsBoolean()) {";
+    //            } else {
+    //                if(i == 0 || i != term->m_follow.size() - 1) {
+    //                    LOG_RUNTIME("Bad logic follow '%s'", term->toString().c_str());
+    //                }
+    //                result += " else {";
+    //            }
+    //            if(term->m_follow[i]->Right()) {
+    //                temp.clear();
+    //                GetImpl(ci, term->m_follow[i]->Right(), temp);
+    //                result += "\n" NEWLANG_INDENT_OP + ci.GetIndent() + temp + ";\n" + ci.GetIndent() + "}";
+    //            } else {
+    //                LOG_RUNTIME("Bad logic follow '%s'", term->toString().c_str());
+    //            }
+    //        }
+    //        result += "\n";
+    //        output += result;
+    //        return "";
+    //    }
 
     LOG_RUNTIME("Can`t term type '%s' implementation '%s'!", newlang::toString(term->getTermID()), term->toString().c_str());
 }

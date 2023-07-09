@@ -869,7 +869,7 @@ TEST(Alg, Return) {
         result = ctx.ExecStr("[1]--> ++100++");
     } catch (Return &except) {
         ASSERT_TRUE(except.m_obj);
-        ASSERT_EQ(ObjType::RetPlus, except.m_obj->getType());
+        ASSERT_EQ(ObjType::RetPlus, except.m_obj->getType()) << toString(except.m_obj->getType());
         ASSERT_TRUE(except.m_obj->m_return_obj);
         ASSERT_STREQ("100", except.m_obj->m_return_obj->toString().c_str());
     }

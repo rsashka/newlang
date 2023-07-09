@@ -21,10 +21,10 @@ using namespace newlang;
  * но можно ли совместить и использовтаь namespace и дектораторы одновременно?
  * 
  * $local; @global;
- * $name::local; @name::global;
+ * $name::local; \\name::global;
  * но ns {
  *   $name::local;  # Будет $ns::name::local
- *   @name::global; # Все равно @name::global или тоже @ns::name::global ????
+ *   \\name::global; # Все равно \\name::global или тоже \\ns::name::global ????
  * }
  * тогда без указания области видимости (без начального символа "::", т.е. name::var - объект выбирается автоматически,
  * т.е. сперва ищется локальный объект с таким именем, потом глобальный)
@@ -37,19 +37,19 @@ using namespace newlang;
  *      $var := 1; # ::name::var
  *      $func() := {11}; # локальная с именем - ::name::func
  *      @func() := {111}; # глобальная с именем - @func
- *      @name::func() := {1111}; # глобальная @name::func и тоже самое, что и локальная $func() !!!
+ *      \\name::func() := {1111}; # глобальная \\name::func и тоже самое, что и локальная $func() !!!
  *      name {
- *          var := 2;  # ::name::name::var или $var или @name::name::var
+ *          var := 2;  # ::name::name::var или $var или \\name::name::var
  *          @var := 2;  # ::var
- *          @name::name::var := 2;  # ::name::name::var или @name::name::var
- *          func() := {2}; # ::name::name::func или @name::name::func - 2
+ *          \\name::name::var := 2;  # ::name::name::var или \\name::name::var
+ *          func() := {2}; # ::name::name::func или \\name::name::func - 2
  *          name3 {
  *              var := 3;           # ::name::name::name3::var или $name::name::name3::var - 3
- *              func() := {3};      # ::name::name::name3::func или @name::name::name3::func() - 3
+ *              func() := {3};      # ::name::name::name3::func или \\name::name::name3::func() - 3
  * 
  *              var??;              # name::name::name3::var или $name::name::name3::var - 3
- *              name::var??;        # name::name::var или @name::name::var - 2
- *              name::name::var??;  # name::var или @name::name::var - 2
+ *              name::var??;        # name::name::var или \\name::name::var - 2
+ *              name::name::var??;  # name::var или \\name::name::var - 2
  *              ::name::var??;      # name::var или $name::var - 1
  *              ::var??;            # ::var или $var - 0
  *          }
@@ -64,7 +64,7 @@ using namespace newlang;
  * @@() - вызов переопределенной функции текущего класса или области видимости
  * @func() []= {@@() + 10}; # @func - 10
  * ::name::name@func
- * @name::name::func - такая запись ненравится, но будет самой правильной и логичной, так как все остальные еще хуже для понимания и разбора
+ * \\name::name::func - такая запись ненравится, но будет самой правильной и логичной, так как все остальные еще хуже для понимания и разбора
  * @::name::name::func
  * @::name::name@func
  * ::name::name::func@@
@@ -86,7 +86,7 @@ using namespace newlang;
  * @dir.module2 <func1, func2=::module2::ns::name::func2>;  # Импорт только конкретных функций + переименование
  * @dir.module2 <_>; # Выгрузить модуль?????
  * 
- * @ns ::name::space::long@\
+ * \\ns ::name::space::long@\
  * \ns::name;
  * 
  * @dsl{}; # Загрузка модуля с определниями макросов для DSL в самом начале любой программы?

@@ -86,11 +86,11 @@ TEST(Example, DISABLED_SpeedNewLang) {
 
     ObjPtr test;
 
-    ObjPtr str = ctx.ExecStr("@str := 'ABCDEF@n';", nullptr);
+    ObjPtr str = ctx.ExecStr("@str := 'ABCDEF\\n';", nullptr);
     ASSERT_TRUE(str);
     ASSERT_STREQ("ABCDEF\n", str->GetValueAsString().c_str());
 
-    test = ctx.ExecStr("@printf := :Pointer('printf(format:FmtChar, ...):Int32'); @str := 'ABCDEF@n'; printf('%s', str)", nullptr);
+    test = ctx.ExecStr("@printf := :Pointer('printf(format:FmtChar, ...):Int32'); @str := 'ABCDEF\\n'; printf('%s', str)", nullptr);
     ASSERT_TRUE(test);
     ASSERT_STREQ("7", test->GetValueAsString().c_str());
 
@@ -195,7 +195,7 @@ TEST(Example, DISABLED_Rational) {
     //    1;
     //};
 
-    ObjPtr str = ctx.ExecStr("@str := 'ABCDEF@n';");
+    ObjPtr str = ctx.ExecStr("@str := 'ABCDEF\\n';");
     ASSERT_TRUE(str);
     ASSERT_STREQ("ABCDEF\n", str->GetValueAsString().c_str());
 
