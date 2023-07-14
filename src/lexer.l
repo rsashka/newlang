@@ -66,9 +66,10 @@ ualpha  {alpha}|{U2}{U1}|{U3}{U1}{U1}|{U4}{U1}{U1}{U1}
 /* запрет использования U+202A, U+202B, U+202C, U+202D, U+202E, U+2066, U+2067, U+2068, U+2069, U+061C, U+200E и U+200F */
 
 digit   [0-9]
+/* In numbers, it is allowed to separate digits using a handwriting symbol... */
 integer {digit}([_]?{digit}+)*
 name    ({ualpha}|[_])({ualpha}|{digit}|[_])*^?
-macro   @({ualpha}|[_])?({name})?
+/* macro   @({ualpha}|[_])?({name})? */
 
 number1 -?{digit}+\.{digit}+([eE][-+]?{digit}+)?
 number2 (-?{digit}+\.([eE][-+]?)?)?-?{digit}+
@@ -76,10 +77,11 @@ number  ({number1}|{number2})
 
 /* number  [-+]?{integer}[.]{integer}([eE][-+]?[0-9]+)? */
 
-field   \.({name}|{digit})+
+/* field   \.({name}|{digit})+ */
 
-local   $({ualpha}|[_])?({name}|{digit})?
+/* local   $({ualpha}|[_])?({name}|{digit})? */
 
+/* The first digit character is allowed in module names because they are filenames... */
 module_name  \\({ualpha}|[_]|{digit})+
 module  \\?{module_name}+
 
@@ -118,34 +120,16 @@ native  %({ualpha}|[_])+({name}|{digit})?
         return token::DOC_BEFORE;
 }
 
-"@##"          YY_TOKEN(MACRO_CONCAT);
-"@#'"          YY_TOKEN(MACRO_TOSTR);
-"@#\""         YY_TOKEN(MACRO_TOSTR);
-"@#"           YY_TOKEN(MACRO_TOSTR);
+"@##"           YY_TOKEN(MACRO_CONCAT);
+"@#'"           YY_TOKEN(MACRO_TOSTR);
+"@#\""          YY_TOKEN(MACRO_TOSTR);
+"@#"            YY_TOKEN(MACRO_TOSTR);
 
-"@$"{name}     YY_TOKEN(MACRO_ARGUMENT);
+"@$"{name}      YY_TOKEN(MACRO_ARGUMENT);
 
-"@$..."             YY_TOKEN(MACRO_ARGUMENT);
-    
-    /* 
-    "@$"{name}"(...)"   YY_TOKEN(MACRO_ARGUMENT);
-    "@$"{name}"[...]"   YY_TOKEN(MACRO_ARGUMENT);
-    "@$"{name}"<...>"   YY_TOKEN(MACRO_ARGUMENT);
-    */
-
-"@$*"               YY_TOKEN(MACRO_ARGUMENT);
-    /* 
-    "@$"{name}"(*)"     YY_TOKEN(MACRO_ARGUMENT);
-    "@$"{name}"[*]"     YY_TOKEN(MACRO_ARGUMENT);
-    "@$"{name}"<*>"     YY_TOKEN(MACRO_ARGUMENT);
-    */
-
-"@$#"               YY_TOKEN(MACRO_ARGCOUNT);
-    /* 
-    "@$"{name}"(#)"     YY_TOKEN(MACRO_ARGCOUNT);
-    "@$"{name}"[#]"     YY_TOKEN(MACRO_ARGCOUNT);
-    "@$"{name}"<#>"     YY_TOKEN(MACRO_ARGCOUNT);
-    */
+"@$..."         YY_TOKEN(MACRO_ARGUMENT);
+"@$*"           YY_TOKEN(MACRO_ARGUMENT);
+"@$#"           YY_TOKEN(MACRO_ARGCOUNT);
 
 "##<"[^\n]* {
         *yylval = Term::Create(token::DOC_AFTER, TermID::DOC_AFTER, &yytext[4], yyleng-5, yylloc, source_string);
@@ -499,9 +483,13 @@ native  %({ualpha}|[_])+({name}|{digit})?
 
 "$"[0-9]+   YY_TOKEN(ARGUMENT);
 
-{macro}     YY_TOKEN(MACRO);
 {name}      YY_TOKEN(NAME);
-{local}     YY_TOKEN(LOCAL);
+@{name}     YY_TOKEN(NAME);
+${name}     YY_TOKEN(NAME);
+    /*  
+        {local}     YY_TOKEN(LOCAL); 
+        {macro}     YY_TOKEN(MACRO);
+    */
 {module}    YY_TOKEN(MODULE);
 {native}    YY_TOKEN(NATIVE);
 "..."       YY_TOKEN(ELLIPSIS);
@@ -528,12 +516,19 @@ native  %({ualpha}|[_])+({name}|{digit})?
 
 "::"        YY_TOKEN(NAMESPACE);
 "$*"        YY_TOKEN(ARGS);
-"$$"        YY_TOKEN(PARENT);
+"$$"        YY_TOKEN(NAME);
 "\\\\"      YY_TOKEN(NEWLANG);
+"\\\\$"     YY_TOKEN(NEWLANG);
+"\\$"       YY_TOKEN(NEWLANG);
 
-"@\\"     YY_TOKEN(ESCAPE);
-
-       /* "@\\)"
+"@\\"       YY_TOKEN(ESCAPE);
+       /* 
+    "$..."     YY_TOKEN(ESCAPE);
+    "@$..."     YY_TOKEN(ESCAPE);
+    "$,,,"     YY_TOKEN(ESCAPE);
+    "@$,,,"     YY_TOKEN(ESCAPE);
+    "@\\:"      YY_TOKEN(ESCAPE);
+          "@\\)"
 
           "@\\,"
           "@\\;"
@@ -576,9 +571,9 @@ native  %({ualpha}|[_])+({name}|{digit})?
 "~="        YY_TOKEN(OPERATOR);
 
 "||"        YY_TOKEN(OPERATOR);
-"&&"        YY_TOKEN_ONLY(OPERATOR_AND);
 "^^"        YY_TOKEN(OPERATOR);
 "&&&"       YY_TOKEN_ONLY(OPERATOR_PTR);
+"&&"        YY_TOKEN_ONLY(OPERATOR_AND);
 
 ".>."        YY_TOKEN(OPERATOR);
 ".<."        YY_TOKEN(OPERATOR);
@@ -608,7 +603,7 @@ native  %({ualpha}|[_])+({name}|{digit})?
 "!?"        YY_TOKEN_ONLY(ITERATOR_QQ);
 
 
-^[ \t\r]+ {
+^[ \t]+ {
     yylloc->step();
     if(!m_ignore_indent){
         *yylval = Term::Create(token::INDENT, TermID::INDENT, yytext, yyleng, yylloc, source_string);
@@ -616,7 +611,7 @@ native  %({ualpha}|[_])+({name}|{digit})?
     }
 }
 
-[ \t\r]+ {
+[ \t]+ {
     yylloc->step();
     if(!m_ignore_space){
         *yylval = Term::Create(token::SPACE, TermID::SPACE, yytext, yyleng, yylloc, source_string);
@@ -641,7 +636,7 @@ native  %({ualpha}|[_])+({name}|{digit})?
 }
 
 <<EOF>>     {
-        *yylval = Term::Create(token::END, TermID::END, yytext, yyleng, yylloc, source_string);
+        //  *yylval = Term::Create(token::END, TermID::END, yytext, yyleng, yylloc, source_string);
         return token::END;
 }
 

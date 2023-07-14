@@ -213,6 +213,7 @@ bool Parser::PragmaEval(const TermPtr &term, BlockType &buffer) {
 
     static const char * __PRAGMA_NO_MACRO__ = "@__PRAGMA_NO_MACRO__";
     static const char * __PRAGMA_INDENT_BLOCK__ = "@__PRAGMA_INDENT_BLOCK__";
+    static const char * __PRAGMA_PROTOTYPE__ = "@__PRAGMA_PROTOTYPE__";
 
     static const char * __ANNOTATION_SET__ = "@__ANNOTATION_SET__";
     static const char * __ANNOTATION_IIF__ = "@__ANNOTATION_IIF__";

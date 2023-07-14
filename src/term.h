@@ -35,7 +35,6 @@ namespace newlang {
         _(INT_REPEAT) \
         \
         _(NAME) \
-        _(LOCAL) \
         _(MODULE) \
         _(NATIVE) \
         \
@@ -61,7 +60,6 @@ namespace newlang {
         _(PARENT) \
         _(ESCAPE) \
         \
-        _(MACRO) \
         _(MACRO_SEQ) \
         _(MACRO_STR) \
         _(MACRO_DEL) \
@@ -214,8 +212,21 @@ namespace newlang {
             return m_is_call;
         }
 
+        inline bool IsCreate() {
+            switch (m_id) {
+                case TermID::APPEND:
+                case TermID::CREATE:
+                case TermID::CREATE_OR_ASSIGN:
+                case TermID::ASSIGN:
+                case TermID::PUREFUNC:
+                case TermID::PURE_CREATE:
+                    return true;
+            }
+            return false;
+        }
+
         inline bool isMacro() {
-            return m_id == TermID::MACRO || m_id == TermID::MACRO_SEQ || m_id == TermID::MACRO_DEL || m_id == TermID::MACRO_STR;
+            return m_id == TermID::MACRO_DEL || (IsCreate() && m_left && m_left->m_id == TermID::MACRO_SEQ);
         }
 
         inline bool isReturn() {
@@ -298,17 +309,6 @@ namespace newlang {
             return false;
         }
 
-        inline bool IsCreate() {
-            switch (m_id) {
-                case TermID::APPEND:
-                case TermID::CREATE:
-                case TermID::CREATE_OR_ASSIGN:
-                case TermID::ASSIGN:
-                    return true;
-            }
-            return false;
-        }
-
         bool is_variable_args() {
             return size() && at(size() - 1).second && at(size() - 1).second->getTermID() == TermID::ELLIPSIS;
         }
@@ -330,7 +330,7 @@ namespace newlang {
 
                     str.append("=");
                 }
-//                LOG_DEBUG("%s %s", newlang::toString(elem.second->getTermID()), elem.second->m_text.c_str());
+                //                LOG_DEBUG("%s %s", newlang::toString(elem.second->getTermID()), elem.second->m_text.c_str());
                 str.append(elem.second->toString(true));
             }
         }
@@ -399,11 +399,10 @@ namespace newlang {
 
 
                 case TermID::NONE:
-                case TermID::MACRO:
                 case TermID::PARENT:
-                case TermID::LOCAL:
                 case TermID::MODULE:
                 case TermID::NEWLANG:
+                case TermID::NATIVE:
                 case TermID::NAME: // name=(1,second="two",3,<EMPTY>,5)
                     //                result(m_is_ref ? "&" : "");
                     ASSERT(m_dims.empty());
@@ -748,16 +747,21 @@ namespace newlang {
 
                 case TermID::MACRO_DEL:
                 case TermID::MACRO_SEQ:
-                    for (size_t i = 0; i < m_follow.size(); i++) {
+                    result = m_text;
+                    result += " ";
+
+                    for (size_t i = 0; i < m_macro_seq.size(); i++) {
                         if (i) {
                             result += " ";
                         }
-                        if (m_follow[i]->getTermID() == TermID::NAME) {
-                            result += m_follow[i]->toString();
+                        if (m_macro_seq[i]->getTermID() == TermID::NAME) {
+                            result += m_macro_seq[i]->toString();
                         } else {
-                            result += m_follow[i]->m_text;
+                            result += m_macro_seq[i]->m_text;
                         }
                     }
+                    result += " ";
+                    result += m_text;
                     return result;
 
                 case TermID::SYMBOL:
@@ -1051,6 +1055,8 @@ namespace newlang {
             m_follow.clear();
             m_source.reset();
             m_docs.clear();
+            m_macro_id.clear();
+            m_macro_seq.clear();
         }
 
         inline TermPtr First() {
@@ -1233,6 +1239,7 @@ namespace newlang {
         BlockType GetMacroId();
 
         //    SCOPE(protected) :
+        static BlockType MakeMacroId(const BlockType &seq);
 
         TermID m_id;
         SourceType m_source;
@@ -1260,6 +1267,8 @@ namespace newlang {
 
         BlockType m_block;
         BlockType m_follow;
+        BlockType m_macro_id;
+        BlockType m_macro_seq;
 
         TermPtr m_ref;
         bool m_is_call;
@@ -1269,9 +1278,8 @@ namespace newlang {
         /// Итоговый тип может отличаться от указанного в исходнике для совместимых типов.
         std::string m_type_name;
 
-    SCOPE(private):
-        BlockType m_macro_id;
-        
+        SCOPE(private) :
+
         /// Тип данных, который хранится в виде термина из исходного файла. 
         /// Нужен для отображения сообщений (позиция в исходнике)
         /// Приватная область видимости для использовая SetType для проверки совместимости типов

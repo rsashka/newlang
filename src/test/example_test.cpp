@@ -86,11 +86,11 @@ TEST(Example, DISABLED_SpeedNewLang) {
 
     ObjPtr test;
 
-    ObjPtr str = ctx.ExecStr("@str := 'ABCDEF\\n';", nullptr);
+    ObjPtr str = ctx.ExecStr("str := 'ABCDEF\\n';", nullptr);
     ASSERT_TRUE(str);
     ASSERT_STREQ("ABCDEF\n", str->GetValueAsString().c_str());
 
-    test = ctx.ExecStr("@printf := :Pointer('printf(format:FmtChar, ...):Int32'); @str := 'ABCDEF\\n'; printf('%s', str)", nullptr);
+    test = ctx.ExecStr("printf := :Pointer('printf(format:FmtChar, ...):Int32'); str := 'ABCDEF\\n'; printf('%s', str)", nullptr);
     ASSERT_TRUE(test);
     ASSERT_STREQ("7", test->GetValueAsString().c_str());
 
@@ -100,7 +100,7 @@ TEST(Example, DISABLED_SpeedNewLang) {
 
 
     LLVMAddSymbol("convert", (void *) &convert);
-    ObjPtr test_convert = ctx.ExecStr("@test_convert := :Pointer('convert(sym:Int8):Int8')", nullptr);
+    ObjPtr test_convert = ctx.ExecStr("test_convert := :Pointer('convert(sym:Int8):Int8')", nullptr);
     ASSERT_TRUE(test_convert);
 
     test = ctx.ExecStr("test_convert('A')", nullptr);
@@ -141,7 +141,7 @@ TEST(Example, DISABLED_SpeedNewLang) {
      * Float of generated k-mers: 67108864
      * Test complete at  ????????????????????
      * 
-     * Своя функция @convert 
+     * Своя функция convert 
      * 5 символов - 1.3 сек (с вывоводм строк) 0.491895 sec - без вывода строк
      * 6 символов - 14.789793 sec (с вывоводм строк) 1.898168 sec - без вывода строк
      * 7 символов без вывода строк - 7.671152 sec
@@ -154,7 +154,7 @@ TEST(Example, DISABLED_SpeedNewLang) {
      * 8 символов без вывода строк - 32.154832 sec
      * 
      * После переделки способа хранения скаляров в нативном виде, а не в тензорах
-     * Своя функция @convert 
+     * Своя функция convert 
      * 5 символов - 1.255214 сек (с вывоводм строк) 0.306725 sec - без вывода строк
      * 6 символов - 15.995722 sec (с вывоводм строк) 1.253190 sec - без вывода строк
      * 7 символов без вывода строк - 5.12946 sec
@@ -188,43 +188,43 @@ TEST(Example, DISABLED_Rational) {
     setvbuf(stderr, nullptr, _IONBF, 0);
 
     ObjPtr test;
-    //@fact_recur(n:Integer) := {
+    //fact_recur(n:Integer) := {
     //    [n > 1] --> {
     //        -- n * fact_recur(n-1) --;
     //    };
     //    1;
     //};
 
-    ObjPtr str = ctx.ExecStr("@str := 'ABCDEF\\n';");
+    ObjPtr str = ctx.ExecStr("str := 'ABCDEF\\n';");
     ASSERT_TRUE(str);
     ASSERT_STREQ("ABCDEF\n", str->GetValueAsString().c_str());
 
-    ObjPtr test_printf = ctx.ExecStr("@test_printf := :Pointer('printf(format:FmtChar, ...):Int32')");
+    ObjPtr test_printf = ctx.ExecStr("test_printf := :Pointer('printf(format:FmtChar, ...):Int32')");
     ASSERT_TRUE(test_printf);
     ASSERT_STREQ("test_printf={ }", test_printf->GetValueAsString().c_str());
 
-    ObjPtr iter = ctx.ExecStr("@iterator := (1, 5, 9999,)?");
+    ObjPtr iter = ctx.ExecStr("iterator := (1, 5, 9999,)?");
     ASSERT_TRUE(iter);
     ASSERT_TRUE(iter->getType() == ObjType::Iterator);
     ASSERT_TRUE(iter->m_iterator);
     ASSERT_TRUE(*iter->m_iterator.get() == iter->m_iterator->begin());
     ASSERT_TRUE(*iter->m_iterator.get() != iter->m_iterator->end());
 
-    ObjPtr test_frac = ctx.ExecStr("@test_frac := 999@123");
+    ObjPtr test_frac = ctx.ExecStr("test_frac := 999\\123");
     ASSERT_TRUE(test_frac);
     ASSERT_TRUE(test_frac->getType() == ObjType::Rational);
-    ASSERT_STREQ("999@123", test_frac->GetValueAsString().c_str());
+    ASSERT_STREQ("999\\123", test_frac->GetValueAsString().c_str());
 
     ObjPtr str_frac = ctx.ExecStr(":StrChar(test_frac)");
     ASSERT_TRUE(str_frac);
     ASSERT_TRUE(str_frac->getType() == ObjType::StrChar) << newlang::toString(str_frac->getType());
-    ASSERT_STREQ("999@123", str_frac->GetValueAsString().c_str()) << str_frac->GetValueAsString();
+    ASSERT_STREQ("999\\123", str_frac->GetValueAsString().c_str()) << str_frac->GetValueAsString();
 
     ObjPtr test_prn = ctx.ExecStr("test_printf('%s', :StrChar(test_frac))");
     ASSERT_TRUE(test_prn);
     ASSERT_STREQ("7", test_prn->GetValueAsString().c_str());
 
-    ObjPtr test_arg = ctx.ExecStr("@test_arg(arg:Rational) := {$arg}");
+    ObjPtr test_arg = ctx.ExecStr("test_arg(arg:Rational) := {$arg}");
     ASSERT_TRUE(test_arg);
     ASSERT_TRUE(test_arg->is_function_type());
     ASSERT_FALSE(test_arg->is_none_type());
@@ -242,7 +242,7 @@ TEST(Example, DISABLED_Rational) {
 
     frac_test = ctx.ExecStr("test_arg(1)", nullptr);
     ASSERT_TRUE(frac_test);
-    ASSERT_STREQ("1@1", frac_test->GetValueAsString().c_str());
+    ASSERT_STREQ("1\\1", frac_test->GetValueAsString().c_str());
 
 
 
@@ -265,7 +265,7 @@ TEST(Example, DISABLED_Rational) {
 
     save = utils::Logger::Instance()->SetLogLevel(LOG_LEVEL_INFO);
     begin = std::chrono::steady_clock::now();
-    result = ctx.ExecFile("@@('../examples/rational.nlp')");
+    result = ctx.ExecFile("\\\\('../examples/rational.nlp')");
     end = std::chrono::steady_clock::now();
     utils::Logger::Instance()->SetLogLevel(save);
 
@@ -300,7 +300,7 @@ TEST(Example, Tensor) {
     
     save = utils::Logger::Instance()->SetLogLevel(LOG_LEVEL_INFO);
     begin = std::chrono::steady_clock::now();
-    result = ctx.ExecStr("@@('../examples/tensor.nlp')");
+    result = ctx.ExecStr("\\\\('../examples/tensor.nlp')");
     end = std::chrono::steady_clock::now();
     utils::Logger::Instance()->SetLogLevel(save);
 
@@ -316,7 +316,7 @@ TEST(Example, Hello) {
     Context ctx(RunTime::Init());
 
 
-    ObjPtr prn = ctx.ExecStr("@prn := :Pointer('printf(format:FmtChar, ...):Int32')");
+    ObjPtr prn = ctx.ExecStr("prn := :Pointer('printf(format:FmtChar, ...):Int32')");
     ASSERT_TRUE(prn);
 
     ObjPtr res = prn->Call(&ctx, Obj::Arg(Obj::CreateString("Привет, мир!\n")));
@@ -324,7 +324,7 @@ TEST(Example, Hello) {
     ASSERT_TRUE(res->is_integer()) << res->toString();
     ASSERT_STREQ("22", res->GetValueAsString().c_str());
 
-    ObjPtr func = ctx.ExecStr("@func(arg) := {$arg}");
+    ObjPtr func = ctx.ExecStr("func(arg) := {$arg}");
     ASSERT_TRUE(func);
 
     res = func->Call(&ctx, Obj::Arg(Obj::CreateString("TEST")));
@@ -357,7 +357,7 @@ TEST(Example, Hello) {
     
     save = utils::Logger::Instance()->SetLogLevel(LOG_LEVEL_INFO);
     begin = std::chrono::steady_clock::now();
-    result = ctx.ExecStr("@@('../examples/hello.nlp')");
+    result = ctx.ExecStr("\\\\('../examples/hello.nlp')");
     end = std::chrono::steady_clock::now();
     utils::Logger::Instance()->SetLogLevel(save);
 
@@ -365,6 +365,20 @@ TEST(Example, Hello) {
     ASSERT_TRUE(result);
     ASSERT_TRUE(result->is_string_type()) << result->toString();
     ASSERT_STREQ("OK", result->GetValueAsString().c_str());
+    
+}
+
+
+TEST(Example, Exec) {
+
+    Context::Reset();
+    Context ctx(RunTime::Init());
+
+
+    ObjPtr exec = ctx.ExecStr("exec := `ls `");
+    ASSERT_TRUE(exec);
+    ASSERT_TRUE(exec->is_string_char_type()) << exec->toString();
+    ASSERT_STREQ("nlc_test\ntemp\n", exec->GetValueAsString().c_str());
     
 }
 

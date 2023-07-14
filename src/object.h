@@ -1612,7 +1612,7 @@ namespace newlang {
 
             // Ищем разделитель дроби
             size_t pos = str.find("\\");
-            
+
             // Если символ не найден - то вся строка является числом 
             if (pos == std::string::npos) {
                 obj->m_rational.set_(0);

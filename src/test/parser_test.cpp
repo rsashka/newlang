@@ -28,10 +28,10 @@ protected:
     static void LoggerCallback(void *param, utils::Logger::LogLevelType level, const char * str, bool flush) {
         ParserTest *p = static_cast<ParserTest *> (param);
         fprintf(stdout, "%s", str);
-        if(flush) {
+        if (flush) {
             fflush(stdout);
         }
-        if(p) {
+        if (p) {
             p->m_output += str;
         }
     }
@@ -55,7 +55,7 @@ protected:
     int Count(TermID token_id) {
         int result = 0;
         for (int c = 0; c < ast->size(); c++) {
-            if((*ast)[c].second->m_id == token_id) {
+            if ((*ast)[c].second->m_id == token_id) {
                 result++;
             }
         }
@@ -65,7 +65,7 @@ protected:
     std::string LexOut() {
         std::string result;
         for (int i = 0; i < m_postlex.size(); i++) {
-            if(!result.empty()) {
+            if (!result.empty()) {
                 result += " ";
             }
             result += m_postlex[i];
@@ -493,8 +493,8 @@ TEST_F(ParserTest, DictType) {
     ASSERT_TRUE(Parse("(1, arg=2, '',)"));
     ASSERT_STREQ("(1, arg=2, '',)", ast->toString().c_str());
 
-//    ASSERT_TRUE(Parse("(arg1=, arg2=22, arg3=,):Enum"));
-//    ASSERT_STREQ("(arg1=, arg2=22, arg3=,):Enum", ast->toString().c_str());
+    //    ASSERT_TRUE(Parse("(arg1=, arg2=22, arg3=,):Enum"));
+    //    ASSERT_STREQ("(arg1=, arg2=22, arg3=,):Enum", ast->toString().c_str());
 
     ASSERT_TRUE(Parse("(1, arg=2, '',):Class"));
     ASSERT_STREQ("(1, arg=2, '',):Class", ast->toString().c_str());
@@ -553,7 +553,7 @@ TEST_F(ParserTest, TermFullName9) {
 
 TEST_F(ParserTest, FuncNoArg) {
     ASSERT_TRUE(Parse("@term();"));
-    ASSERT_EQ(TermID::MACRO, ast->getTermID()) << newlang::toString(ast->getTermID());
+    ASSERT_EQ(TermID::NAME, ast->getTermID()) << newlang::toString(ast->getTermID());
     ASSERT_STREQ("@term", ast->m_text.c_str());
 }
 
@@ -1958,36 +1958,20 @@ TEST_F(ParserTest, Match1_0) {
 }
 
 TEST_F(ParserTest, Match2) {
-    ASSERT_TRUE(Parse("[1]==>{[1]-->first,[2]-->second()}"));
+    ASSERT_TRUE(Parse("[1]==>{[1]-->first;[2]-->second()}"));
 }
 
 TEST_F(ParserTest, Match2_0) {
-    ASSERT_TRUE(Parse("[1]==>{[1]-->first,[2]-->second();}"));
+    ASSERT_TRUE(Parse("[1]==>{[1]-->first;[2]-->second();}"));
 }
 
 TEST_F(ParserTest, Match3) {
-    ASSERT_TRUE(Parse("[1]==>{[1]-->first,[2]-->second(),[_]-->end()}"));
+    ASSERT_TRUE(Parse("[1]==>{[1]-->first;;[2]-->second();[_]-->end()}"));
 }
 
 TEST_F(ParserTest, Match3_0) {
-    ASSERT_TRUE(Parse("[1]==>{[1]-->first,[2]-->second(),[_]-->end();}"));
+    ASSERT_TRUE(Parse("[1]==>{[1]-->first;[2]-->second();;;[_]-->end();;;}"));
 }
-
-//TEST_F(ParserTest, Match4) {
-//    ASSERT_TRUE(Parse("[1]==>{[1]-->first,[2]-->second(),[_]-->end(); on_exit}"));
-//}
-//
-//TEST_F(ParserTest, Match5) {
-//    ASSERT_TRUE(Parse("[1]==>{[1]-->first,[2]-->second(),[_]-->end(); on_exit()}"));
-//}
-//
-//TEST_F(ParserTest, Match6) {
-//    ASSERT_TRUE(Parse("[1]==>{[1]-->first,[2]-->second(),[_]-->end(); on_exit();}"));
-//}
-//
-//TEST_F(ParserTest, Match7) {
-//    ASSERT_TRUE(Parse("[1]==>{[1]-->first,[2]-->second(),[_]-->end();;; on_exit(name=args); name; 1;}"));
-//}
 
 TEST_F(ParserTest, Return) {
     ASSERT_TRUE(Parse("--;"));
@@ -2051,8 +2035,6 @@ TEST_F(ParserTest, Return) {
     ASSERT_TRUE(Parse("++:class(arg)++;;"));
 
 }
-
-
 
 TEST_F(ParserTest, Docs) {
     ASSERT_TRUE(Parse("/** doc */ { }"));

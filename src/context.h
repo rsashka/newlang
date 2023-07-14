@@ -346,7 +346,9 @@ namespace newlang {
             Obj args;
             return CreateLVal(ctx, type, &args);
         }
-
+        
+        static ObjPtr Exec(Context *ctx, const char * cmd, ObjPtr opts);
+        
         inline static ObjPtr CreateRVal(Context *ctx, TermPtr term, bool eval_block = true, CatchType int_catch = CatchType::CATCH_ALL) {
             Obj args;
             return CreateRVal(ctx, term, &args, eval_block, int_catch);

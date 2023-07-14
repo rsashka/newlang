@@ -145,9 +145,9 @@ namespace newlang {
          * @param term - оператор для проверки
          * @return Истина, если оператор содержит оператор создания или удаления макроса
          */
-        static bool CheckOpMacros(const TermPtr & term);
-
-        static TermPtr CreateMacroFromOp(const TermPtr & term);
+//        static bool CheckOpMacros(const TermPtr & term);
+//
+//        static TermPtr CreateMacroFromOp(const TermPtr & term);
 
         //        static bool CheckAndConvertMacros(TermPtr &term);
         /**

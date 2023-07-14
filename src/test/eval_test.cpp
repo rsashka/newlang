@@ -894,19 +894,19 @@ TEST(Eval, MacroDSL) {
      */
 
     const char * dsl = ""
-            "@@if(...)     @@ := @@ [@$*]-->  @@;\n"
-            "@@elif(...)   @@ := @@ ,[@$*]--> @@;\n"
+            "@@if(...)     @@ := @@ [@$...]-->  @@;\n"
+            "@@elif(...)   @@ := @@ ,[@$...]--> @@;\n"
             "@@else        @@ := @@ ,[_]--> @@;\n"
             ""
-            "@@while(...)  @@ := @@ [@$*]<-> @@;\n"
-            "@@dowhile(...)@@ := @@ <->[@$*] @@;\n"
+            "@@while(...)  @@ := @@ [@$...]<-> @@;\n"
+            "@@dowhile(...)@@ := @@ <->[@$...] @@;\n"
             ""
             "@@break       @@ := ++ :Break ++ ;\n"
             "@@continue    @@ := ++:Continue++;\n"
             ""
-//            "@return       := ++;\n"
-            "@@return(...) @@ := @@ ++ @$* ++ @@;\n"
-            "@@error(...)  @@ := @@ -- @$* -- @@;\n"
+//            "@@return     @@  := ++;\n"
+            "@@return(...) @@ := @@ ++ @$... ++ @@;\n"
+            "@@error(...)  @@ := @@ -- @$... -- @@;\n"
             ""
             "@@true    @@ := 1;\n"
             "@@false   @@ := 0;\n"
@@ -915,9 +915,9 @@ TEST(Eval, MacroDSL) {
             "@@no      @@ := 0;\n"
             "";
 
-    ASSERT_EQ(0, Context::m_macros.size()) << Context::m_macros.Dump();
+    EXPECT_EQ(0, Context::m_macros.size()) << Context::m_macros.Dump();
     ObjPtr none = ctx.ExecStr(dsl);
-    ASSERT_TRUE(Context::m_macros.size() > 10) << Context::m_macros.Dump();
+    EXPECT_TRUE(Context::m_macros.size() > 100) << Context::m_macros.Dump();
 
     ObjPtr count = ctx.ExecStr("count:=0;");
     ASSERT_TRUE(count);
@@ -932,9 +932,9 @@ TEST(Eval, MacroDSL) {
             "  count+=1;"
             "+};"
             ;
-    ASSERT_TRUE(Context::m_macros.size() > 10) << Context::m_macros.Dump();
+    EXPECT_TRUE(Context::m_macros.size() > 100) << Context::m_macros.Dump();
     ObjPtr result = ctx.ExecStr(run_raw, nullptr, Context::CatchType::CATCH_ALL);
-    ASSERT_TRUE(Context::m_macros.size() > 10) << Context::m_macros.Dump();
+    EXPECT_TRUE(Context::m_macros.size() > 100) << Context::m_macros.Dump();
 
     ASSERT_TRUE(result);
     ASSERT_TRUE(result->is_integer());

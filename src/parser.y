@@ -140,7 +140,7 @@
 %token           	EVAL            "Eval"
 
 %token			NAME
-%token			LOCAL
+//%token			LOCAL
 %token			MODULE
 %token			NATIVE
 %token			SYMBOL
@@ -161,7 +161,7 @@
 %token			PARENT		"$$"
 %token			ARGS		"$*"
 
-%token			MACRO           "Macro"
+//%token			MACRO           "Macro"
 %token			MACRO_SEQ
 %token			MACRO_STR       "Macro str"
 %token			MACRO_DEL       "Macro del"
@@ -272,6 +272,7 @@ ns_name:  ns
                 $$->m_text.insert(0, "::");
             }
 
+/*
 local:  '$'
             {
                 $$ = $1;
@@ -281,7 +282,7 @@ local:  '$'
             {
                 $$ = $1;
             }
-
+*/
 
 
 name:  ns_name
@@ -289,7 +290,7 @@ name:  ns_name
                 $$ = $1;
                 $$->TestConst();
             }
-        |  local
+        | '$'
             {
                 $$ = $1;
                 $$->SetTermID(TermID::NAME);
@@ -311,7 +312,7 @@ name:  ns_name
         |  NATIVE
             {
                 $$ = $1;
-                $$->SetTermID(TermID::NAME);
+//                $$->SetTermID(TermID::NAME);
                 $$->TestConst();
             }
         |  PARENT  /* $$ - rval */
@@ -322,12 +323,12 @@ name:  ns_name
         |  NEWLANG  /* \\ - rval */
             {
                 $$ = $1;
-                $$->SetTermID(TermID::NAME);
+//                $$->SetTermID(TermID::NAME);
             }
-        | MACRO
+/*        | MACRO
             {
                 $$ = $1;
-            }
+            } */
         | MACRO_ARGUMENT
             {
                 $$ = $1;
@@ -1167,7 +1168,7 @@ assign_seq:  assign_items  assign_op  assign_expr
                 $$->Append($1, Term::LEFT); 
                 $$->Append($3, Term::RIGHT); 
 
-                if(MacroBuffer::CheckOpMacros($$)){
+                if($$->isMacro()){
                     $$ = driver.MacroEval($$);
                 }
             }
@@ -1178,7 +1179,7 @@ assign_seq:  assign_items  assign_op  assign_expr
                 $$->Append($1, Term::LEFT); 
                 $$->Append($3, Term::RIGHT); 
 
-                if(MacroBuffer::CheckOpMacros($$)){
+                if($$->isMacro()){
                     $$ = driver.MacroEval($$);
                 }
             }
@@ -1590,7 +1591,7 @@ match_items:  match_item
             {
                 $$ = $1;
             }
-        | match_items  ','  match_item
+        | match_items  separator  match_item
             {
                 $$ = $1;
                 $$->AppendSequenceTerm($match_item);
