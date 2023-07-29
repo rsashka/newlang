@@ -2455,7 +2455,7 @@ namespace newlang {
 
         at::variant < at::monostate, int64_t, double, void *, // None, скаляры и ссылки на функции (нужно различать чистые, обычные и нативные???)
         bool *, int8_t *, int16_t *, int32_t *, int64_t *, float *, double *, NativeData, // Ссылки на нативные скаляры и данные
-        Rational, torch::Tensor, std::string, std::wstring, TermPtr, Iterator < Obj>> m_var;
+        torch::Tensor, std::string, std::wstring, TermPtr, ModulePtr, Iterator < Obj>> m_var; //Rational,
 
         //        union {
         //            int64_t m_integer;

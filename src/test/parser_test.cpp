@@ -46,7 +46,7 @@ protected:
         utils::Logger::Instance()->SetCallback(m_log_callback_save, m_log_callback_arg_save);
     }
 
-    TermPtr Parse(std::string str, MacroBuffer *buffer = nullptr, DiagPtr diag = nullptr) {
+    TermPtr Parse(std::string str, NamedPtr buffer = nullptr, DiagPtr diag = nullptr) {
         m_postlex.clear();
         ast = Parser::ParseString(str, buffer, &m_postlex, diag);
         return ast;
@@ -2095,6 +2095,60 @@ TEST_F(ParserTest, Module) {
 
     //    ASSERT_TRUE(Parse("\\module (name=func, name=::name::*)"));
     //    ASSERT_TRUE(Parse("\\dir.module (name=ns::name::*, name=*)"));
+}
+
+TEST_F(ParserTest, SkipBrackets) {
+
+
+    Named macro;
+    BlockType buffer;
+
+    ASSERT_EQ(0, Parser::SkipBrackets(buffer, 0));
+    ASSERT_EQ(0, Parser::SkipBrackets(buffer, 1));
+
+    buffer.push_back(Term::Create(parser::token_type::NAME, TermID::NAME, "name"));
+
+    ASSERT_EQ(0, Parser::SkipBrackets(buffer, 0));
+    ASSERT_EQ(0, Parser::SkipBrackets(buffer, 1));
+
+    buffer.push_back(Term::Create(parser::token_type::SYMBOL, TermID::SYMBOL, "("));
+    ASSERT_EQ(0, Parser::SkipBrackets(buffer, 0));
+    ASSERT_ANY_THROW(Parser::SkipBrackets(buffer, 1));
+
+    buffer.push_back(Term::Create(parser::token_type::SYMBOL, TermID::SYMBOL, ")"));
+    ASSERT_EQ(0, Parser::SkipBrackets(buffer, 0));
+    ASSERT_EQ(2, Parser::SkipBrackets(buffer, 1));
+    ASSERT_EQ(0, Parser::SkipBrackets(buffer, 2));
+
+
+    buffer.insert(buffer.begin(), Term::Create(parser::token_type::NAME, TermID::NAME, "first")); // first name ( )
+
+    ASSERT_EQ(0, Parser::SkipBrackets(buffer, 0));
+    ASSERT_EQ(0, Parser::SkipBrackets(buffer, 1));
+
+    ASSERT_EQ(0, Parser::SkipBrackets(buffer, 0));
+    ASSERT_EQ(0, Parser::SkipBrackets(buffer, 1));
+    ASSERT_EQ(2, Parser::SkipBrackets(buffer, 2));
+    ASSERT_EQ(0, Parser::SkipBrackets(buffer, 3));
+
+
+    buffer.insert(buffer.end() - 1, Term::Create(parser::token_type::SYMBOL, TermID::SYMBOL, "..."));
+    ASSERT_EQ(0, Parser::SkipBrackets(buffer, 0));
+    ASSERT_EQ(0, Parser::SkipBrackets(buffer, 1));
+    ASSERT_EQ(3, Parser::SkipBrackets(buffer, 2));
+    ASSERT_EQ(0, Parser::SkipBrackets(buffer, 3));
+    ASSERT_EQ(0, Parser::SkipBrackets(buffer, 4));
+    ASSERT_EQ(0, Parser::SkipBrackets(buffer, 5));
+
+    buffer.insert(buffer.end() - 1, Term::Create(parser::token_type::NAME, TermID::NAME, "name"));
+    ASSERT_EQ(0, Parser::SkipBrackets(buffer, 0));
+    ASSERT_EQ(0, Parser::SkipBrackets(buffer, 1));
+    ASSERT_EQ(4, Parser::SkipBrackets(buffer, 2));
+    ASSERT_EQ(0, Parser::SkipBrackets(buffer, 3));
+    ASSERT_EQ(0, Parser::SkipBrackets(buffer, 4));
+    ASSERT_EQ(0, Parser::SkipBrackets(buffer, 5));
+    ASSERT_EQ(0, Parser::SkipBrackets(buffer, 6));
+
 }
 
 TEST_F(ParserTest, DISABLED_Convert) {

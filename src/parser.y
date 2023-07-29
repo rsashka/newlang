@@ -1679,6 +1679,53 @@ exit:  interrupt
         }
 
     
+with_arg: name  '='  rval_name
+        { // Именованный аргумент
+            $$ = $3;
+            $$->SetName($1->getText());
+        }
+
+with_args: with_arg
+        {
+            $$ = $1;
+        }
+    |  with_args  ','  with_arg
+        {
+            $$ = $1;
+            $$->Append($2, Term::RIGHT); 
+        }
+        
+with:   '*'  '('  rval_name  ')'   try_catch
+        {
+                $$ = $1; 
+                $$->SetTermID(TermID::WITH);
+                $$->Append($3, Term::LEFT); 
+                $$->Append($5, Term::RIGHT); 
+        }
+    | '*'  '('  with_args  ')'  try_catch
+        {
+                $$ = $1; 
+                $$->SetTermID(TermID::WITH);
+                $$->Append($3, Term::LEFT); 
+                $$->Append($5, Term::RIGHT); 
+        }
+    |  '*'  '('  rval_name  ')'   try_catch  body_else
+        {
+                $$ = $1; 
+                $$->SetTermID(TermID::WITH);
+                $$->Append($3, Term::LEFT); 
+                $$->Append($5, Term::RIGHT); 
+                $$->AppendFollow($body_else); 
+        }
+    |  '*'  '('  with_args  ')'  try_catch  body_else
+        {
+                $$ = $1; 
+                $$->SetTermID(TermID::WITH);
+                $$->Append($3, Term::LEFT); 
+                $$->Append($5, Term::RIGHT); 
+                $$->AppendFollow($body_else); 
+        }
+
 /*  expression - одна операция или результат <ОДНОГО выражения без завершающей точки с запятой !!!!!> */
 seq_item: assign_seq
             {
@@ -1709,6 +1756,10 @@ seq_item: assign_seq
             {
                 $$ = $1; 
                 $$->AppendFollow($body_else); 
+            }
+        |  with
+            {            
+                $$ = $1;
             }
         |  ESCAPE /* for pragma terms */
             {            

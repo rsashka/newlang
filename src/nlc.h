@@ -116,7 +116,7 @@ namespace newlang {
         }
 
         NLC(const char * str) : NLC() {
-            std::vector<std::string> split = Context::SplitString(str, " ");
+            std::vector<std::string> split = Named::SplitString(str, " ");
             std::vector<const char *> argv;
             for (size_t i = 0; i < split.size(); i++) {
                 argv.push_back(split[i].data());
@@ -151,7 +151,7 @@ namespace newlang {
 
             m_args = Obj::CreateDict();
             for (int i = 0; i < argc; i++) {
-                std::vector<std::string> split = Context::SplitString(argv[i], "=");
+                std::vector<std::string> split = Named::SplitString(argv[i], "=");
                 if (split.size() > 1) {
                     m_args->push_back(Obj::CreateString(split[0]), &argv[i][split[0].size() + 1]);
                 } else {
@@ -229,8 +229,8 @@ namespace newlang {
                 return true;
             }
 
-            m_modules = Context::SplitString(load_list.c_str(), ",");
-            m_load_only = Context::SplitString(load_only.c_str(), ",");
+            m_modules = Named::SplitString(load_list.c_str(), ",");
+            m_load_only = Named::SplitString(load_only.c_str(), ",");
 
 #ifdef _WIN32
 
@@ -324,10 +324,10 @@ namespace newlang {
                         }
 
                         if (!m_eval.empty()) {
-                            std::vector<std::string > a = Context::SplitString(m_eval.c_str(), " ");
+                            std::vector<std::string > a = Named::SplitString(m_eval.c_str(), " ");
 
                             for (int i = 0; i < a.size(); i++) {
-                                std::vector<std::string> split = Context::SplitString(a[i].c_str(), "=");
+                                std::vector<std::string> split = Named::SplitString(a[i].c_str(), "=");
                                 if (split.size() > 1) {
                                     dict->push_back(Obj::CreateString(split[0]), &a[i][split[0].size() + 1]);
                                 } else {
@@ -465,7 +465,7 @@ namespace newlang {
                     if (space_offset) {
                         size_t overflow = 5;
 
-                        predict = m_ctx.SelectPredict(&buff[buff.size() - space_offset], overflow); // Не более 5 примеров продолжения
+                        predict = m_ctx.m_named->SelectPredict(&buff[buff.size() - space_offset], overflow); // Не более 5 примеров продолжения
 
                         if (predict.size()) {
                             if (show_all) {

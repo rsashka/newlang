@@ -7,17 +7,17 @@
 #include <types.h>
 #include <filesystem>
 #include <stdbool.h>
+#include <named.h>
 
 #include "dsl.cpp"
 
 using namespace newlang;
 
 
-std::map<std::string, Context::EvalFunction> Context::m_ops;
-std::map<std::string, Context::EvalFunction> Context::m_builtin_calls;
-std::map<std::string, ObjPtr> Context::m_types;
-std::map<std::string, Context::FuncItem> Context::m_funcs;
-MacroBuffer Context::m_macros;
+std::map<std::string, EvalFunction> Context::m_ops;
+//std::map<std::string, Context::EvalFunction> Context::m_builtin_calls;
+//std::map<std::string, ObjPtr> Context::m_types;
+//std::map<std::string, FuncItem> Context::m_funcs;
 std::multimap<std::string, DocPtr> Docs::m_docs;
 
 const char * Return::RetPlus = ":IntPlus";
@@ -44,6 +44,7 @@ Context::Context(RuntimePtr global) : m_llvm_builder(LLVMCreateBuilder()) {
     m_main_module->m_is_main = true;
 
     m_terms = m_main_module.get();
+    m_named = std::make_shared<Named>();
 
 
 #ifdef _MSC_VER
@@ -134,7 +135,7 @@ Context::Context(RuntimePtr global) : m_llvm_builder(LLVMCreateBuilder()) {
     }
 
 
-    if (Context::m_funcs.empty()) {
+    if (m_named->m_funcs.empty()) {
 
         //        VERIFY(CreateBuiltin("min(arg, ...)", (void *) &min, ObjType::PureFunc));
         //        VERIFY(CreateBuiltin("мин(arg, ...)", (void *) &min, ObjType::PureFunc));
@@ -146,7 +147,7 @@ Context::Context(RuntimePtr global) : m_llvm_builder(LLVMCreateBuilder()) {
 
     }
 
-    if (Context::m_types.empty()) {
+    if (m_named->m_types.empty()) {
 
         VERIFY(RegisterTypeHierarchy(ObjType::None,{}));
         VERIFY(RegisterTypeHierarchy(ObjType::Any,{}));
@@ -222,15 +223,15 @@ Context::Context(RuntimePtr global) : m_llvm_builder(LLVMCreateBuilder()) {
 
     }
 
-    if (Context::m_builtin_calls.empty()) {
-#define REGISTER_FUNC(name, func)                                                                                      \
-    ASSERT(Context::m_builtin_calls.find(name) == Context::m_builtin_calls.end());                                     \
-    Context::m_builtin_calls[name] = &Context::func_##func;
-
-        NL_BUILTIN(REGISTER_FUNC);
-
-#undef REGISTER_FUNC
-    }
+//    if (m_named->m_builtin_calls.empty()) {
+//#define REGISTER_FUNC(name, func)                                                                                      \
+//    ASSERT(m_named->m_builtin_calls.find(name) == m_named->m_builtin_calls.end());                                     \
+//    m_named->m_builtin_calls[name] = &Context::func_##func;
+//
+//        NL_BUILTIN(REGISTER_FUNC);
+//
+//#undef REGISTER_FUNC
+//    }
 
     if (Context::m_ops.empty()) {
 #define REGISTER_OP(op, func)                                                                                          \
@@ -243,29 +244,29 @@ Context::Context(RuntimePtr global) : m_llvm_builder(LLVMCreateBuilder()) {
     }
 }
 
-bool Context::CreateBuiltin(const char *prototype, void *func, ObjType type) {
-    ASSERT(prototype);
-    ASSERT(func);
-
-    std::string func_dump(prototype);
-    func_dump += " := {};";
-
-    TermPtr proto = Parser::ParseString(func_dump, &m_macros);
-    ASSERT(proto->Left() && !proto->Left()->getText().empty());
-    ObjPtr obj = Obj::CreateFunc(this, proto->Left(), type, proto->Left()->getText());
-
-    obj->m_var = func;
-    obj->m_var_is_init = true;
-
-    auto found = m_funcs.find(proto->Left()->getText());
-    if (found != m_funcs.end()) {
-        LOG_DEBUG("Buildin function %s already exists!", proto->Left()->toString().c_str());
-        return false;
-    }
-
-    Context::m_funcs[proto->Left()->getText()] = obj;
-    return true;
-}
+//bool Context::CreateBuiltin(const char *prototype, void *func, ObjType type) {
+//    ASSERT(prototype);
+//    ASSERT(func);
+//
+//    std::string func_dump(prototype);
+//    func_dump += " := {};";
+//
+//    TermPtr proto = Parser::ParseString(func_dump, m_named);
+//    ASSERT(proto->Left() && !proto->Left()->getText().empty());
+//    ObjPtr obj = Obj::CreateFunc(this, proto->Left(), type, proto->Left()->getText());
+//
+//    obj->m_var = func;
+//    obj->m_var_is_init = true;
+//
+//    auto found = m_named->m_funcs.find(proto->Left()->getText());
+//    if (found != m_named->m_funcs.end()) {
+//        LOG_DEBUG("Buildin function %s already exists!", proto->Left()->toString().c_str());
+//        return false;
+//    }
+//
+//    m_named->m_funcs[proto->Left()->getText()] = obj;
+//    return true;
+//}
 
 inline ObjType newlang::typeFromString(const std::string type, Context *ctx, bool *has_error) {
 
@@ -664,9 +665,9 @@ ObjPtr Context::CREATE_OR_ASSIGN(Context *ctx, const TermPtr &term, Obj *local_v
             result = Obj::CreateNone();
         } else {
             // LOG_DEBUG("find: %s", ctx->NamespaseFull(elem->GetFullName()).c_str());
-            auto found = ctx->find(ctx->NamespaseFull(elem->GetFullName()));
+            auto found = ctx->find(ctx->m_named->NamespaseFull(elem->GetFullName()));
             if (found == ctx->end() && mode == CreateMode::ASSIGN_ONLY) {
-                NL_PARSER(elem, "Object '%s' (%s) not found!", elem->m_text.c_str(), ctx->NamespaseFull(elem->GetFullName()).c_str());
+                NL_PARSER(elem, "Object '%s' (%s) not found!", elem->m_text.c_str(), ctx->m_named->NamespaseFull(elem->GetFullName()).c_str());
             }
 
             if (found != ctx->end()) {
@@ -674,14 +675,14 @@ ObjPtr Context::CREATE_OR_ASSIGN(Context *ctx, const TermPtr &term, Obj *local_v
             }
 
             if (result && mode == CreateMode::CREATE_ONLY) {
-                NL_PARSER(elem, "Object '%s' (%s) already exists!", elem->m_text.c_str(), ctx->NamespaseFull(elem->GetFullName()).c_str());
+                NL_PARSER(elem, "Object '%s' (%s) already exists!", elem->m_text.c_str(), ctx->m_named->NamespaseFull(elem->GetFullName()).c_str());
             }
 
             if (!term->Right()) { // Удаление глобальной переменной
                 ctx->ListType::erase(found);
             } else {
                 if (!result && (mode == CreateMode::ASSIGN_ONLY)) {
-                    NL_PARSER(term->Left(), "Object '%s' (%s) not found!", term->Left()->m_text.c_str(), ctx->NamespaseFull(elem->GetFullName()).c_str());
+                    NL_PARSER(term->Left(), "Object '%s' (%s) not found!", term->Left()->m_text.c_str(), ctx->m_named->NamespaseFull(elem->GetFullName()).c_str());
                 }
                 if (!result) {
                     result = CreateLVal(ctx, elem, local_vars);
@@ -757,7 +758,7 @@ ObjPtr Context::CREATE_OR_ASSIGN(Context *ctx, const TermPtr &term, Obj *local_v
             if (isType(list_term[i]->m_text)) {
 
                 // Новый тип
-                if (ctx->m_types.find(list_term[i]->m_text) != ctx->m_types.end()) {
+                if (ctx->m_named->m_types.find(list_term[i]->m_text) != ctx->m_named->m_types.end()) {
                     LOG_RUNTIME("Type name '%s' already exists!", list_term[i]->m_text.c_str());
                 }
 
@@ -765,7 +766,7 @@ ObjPtr Context::CREATE_OR_ASSIGN(Context *ctx, const TermPtr &term, Obj *local_v
                 result->m_class_name = list_term[i]->m_text;
                 result->m_class_parents.push_back(rval);
 
-                ctx->m_types[list_term[i]->m_text] = result;
+                ctx->m_named->m_types[list_term[i]->m_text] = result;
 
             } else if (list_term[i]->getTermID() == TermID::NONE) {
                 // Skip
@@ -940,6 +941,12 @@ ObjPtr Context::eval_DOWHILE(Context *ctx, const TermPtr &term, Obj * args, bool
 
     return result;
 }
+
+ObjPtr Context::eval_WITH(Context *ctx, const TermPtr &term, Obj *args, bool eval_block) {
+    LOG_RUNTIME("WITH Not implemented!");
+    return nullptr;
+}
+
 
 ObjPtr Context::eval_FOLLOW(Context *ctx, const TermPtr &term, Obj * args, bool eval_block) {
 
@@ -1499,17 +1506,17 @@ ObjPtr Context::CallBlock(Context *ctx, const TermPtr &block, Obj * local_vars, 
             for (size_t i = 0; i < block->m_block.size(); i++) {
                 if (block->m_block[i]->IsBlock()) {
                     //                    LOG_DEBUG("NS %s (%d)", block->m_block[i]->m_class.c_str(), (int)ctx->m_ns_stack.size());
-                    bool is_ns = ctx->NamespasePush(block->m_block[i]->m_class);
+                    bool is_ns = ctx->m_named->NamespasePush(block->m_block[i]->m_class);
                     try {
                         result = CallBlock(ctx, block->m_block[i], local_vars, eval_block, CatchType::CATCH_AUTO, has_interrupt);
                     } catch (...) {
                         if (is_ns) {
-                            ctx->NamespasePop();
+                            ctx->m_named->NamespasePop();
                         }
                         throw;
                     }
                     if (is_ns) {
-                        ctx->NamespasePop();
+                        ctx->m_named->NamespasePop();
                     }
                 } else {
                     result = Eval(ctx, block->m_block[i], local_vars, eval_block, CatchType::CATCH_NONE);
@@ -1519,17 +1526,17 @@ ObjPtr Context::CallBlock(Context *ctx, const TermPtr &block, Obj * local_vars, 
         } else {
             if (block->IsBlock()) {
                 //                LOG_DEBUG("NS %s (%d)", block->m_class.c_str(), (int)ctx->m_ns_stack.size());
-                bool is_ns = ctx->NamespasePush(block->m_class);
+                bool is_ns = ctx->m_named->NamespasePush(block->m_class);
                 try {
                     result = CallBlock(ctx, block, local_vars, eval_block, CatchType::CATCH_AUTO, has_interrupt);
                 } catch (...) {
                     if (is_ns) {
-                        ctx->NamespasePop();
+                        ctx->m_named->NamespasePop();
                     }
                     throw;
                 }
                 if (is_ns) {
-                    ctx->NamespasePop();
+                    ctx->m_named->NamespasePop();
                 }
             } else {
                 result = Eval(ctx, block, local_vars, eval_block, CatchType::CATCH_NONE);
@@ -1619,12 +1626,12 @@ ObjPtr Context::CreateNative(const char *proto, const char *module, bool lazzy, 
     TermPtr term;
     try {
         // Термин или термин + тип парсятся без ошибок
-        term = Parser::ParseString(proto, &m_macros);
+        term = Parser::ParseString(proto, m_named);
     } catch (std::exception &) {
         try {
             std::string func(proto);
             func += ":={}";
-            term = Parser::ParseString(func, &m_macros)->Left();
+            term = Parser::ParseString(func, m_named)->Left();
         } catch (std::exception &e) {
 
             LOG_RUNTIME("Fail parsing prototype '%s'!", e.what());
@@ -1825,7 +1832,7 @@ bool Context::CheckOrLoadModule(std::string str) {
     std::string name = ExtractModuleName(str.c_str());
     if (m_modules.find(name) == m_modules.end()) {
 
-        std::shared_ptr<Module> module = m_runtime->LoadModule(*this, str.c_str(), true);
+        ModulePtr module = m_runtime->LoadModule(*this, str.c_str(), true);
         if (module) {
             m_modules[name] = std::move(module);
         }
@@ -1897,7 +1904,7 @@ ObjPtr Context::CreateLVal(Context *ctx, TermPtr term, Obj * args) {
 
     ctx->CleanUp();
 
-    auto iter = ctx->find(ctx->NamespaseFull(term->GetFullName()));
+    auto iter = ctx->find(ctx->m_named->NamespaseFull(term->GetFullName()));
 
     if (iter != ctx->end()) {
         ObjPtr obj = (*iter).second.lock();
@@ -1913,7 +1920,7 @@ ObjPtr Context::CreateLVal(Context *ctx, TermPtr term, Obj * args) {
 
     ObjPtr result = Obj::CreateNone();
     result->m_var_is_init = false;
-    result->m_var_name = ctx->NamespaseFull(term->GetFullName());
+    result->m_var_name = ctx->m_named->NamespaseFull(term->GetFullName());
 
     *const_cast<TermPtr *> (&result->m_prototype) = term;
 
@@ -1953,7 +1960,7 @@ ObjPtr Context::CreateLVal(Context *ctx, TermPtr term, Obj * args) {
 }
 
 ObjPtr Context::CreateRVal(Context *ctx, const char *source, Obj * local_vars, bool eval_block, CatchType no_catch) {
-    return CreateRVal(ctx, MacroBuffer::ParseTerm(source, &m_macros), local_vars, eval_block, no_catch);
+    return CreateRVal(ctx, Parser::ParseTerm(source, ctx->m_named), local_vars, eval_block, no_catch);
 }
 
 void Context::ItemTensorEval_(torch::Tensor &tensor, c10::IntArrayRef shape, std::vector<Index> &ind, const int64_t pos,
@@ -2216,7 +2223,7 @@ ObjPtr Context::CreateRVal(Context *ctx, TermPtr term, Obj * local_vars, bool ev
              * pipesize = -1, process_group = None)¶
              */
 
-            
+
 
             result = Obj::CreateType(ObjType::Eval, ObjType::Eval, true);
             result->m_value = term->getText();
@@ -2247,13 +2254,153 @@ ObjPtr Context::CreateRVal(Context *ctx, TermPtr term, Obj * local_vars, bool ev
             result->m_var_is_init = false;
             return result;
 
-        case TermID::NAME:
-        case TermID::PARENT:
+
+
+        case TermID::NEWLANG:
         case TermID::MODULE:
+            /* Prototype \\(file=_, filter='*', load=@true, source=_)
+             * Required argument $file or $source can be only one
+             * 
+             * \\('name') - dynamic load module
+             * \\dir\name() - load module and 
+             * \\dir\name::func() - call function from module
+             * module := \\('name', @false) - Check module is loaded and don't load it
+             * 
+             */
+
+            if (term->isCall() && ExtractName(term->getText()).empty()) {
+                // Load module
+
+                return nullptr;
+            }
+
+            if (isModule(term->GetFullName())) {
+                if (term->isCall()) {
+                    /*
+                     * Операцию с модулем можно конкреттизировать с помощью аргумента
+                     * \module() -  загрузка модуля и импорт всех его объектов
+                     * \module("filter*") -  загрузка модуля и импорт всех его объектов по заданной маске в переданой строке
+                     * \module("func;ns::*;ns2::*") -  несколько масок записываются через точку с запятой
+                     * \module(@true) - убедиться, что модуль загружен. Если модуль не загружен, создать ошибку
+                     * \module(@false) - проверить, загружен ли модуль без его реальной загрузки и вернуть значение
+                     * \module(_) -  Выгрузка модуля
+                     * 
+                     * \\dsl() -  Единственный встроенный модуль
+                     */
+
+                    if (term->size() > 1) {
+                        NL_PARSER(term, "Only one argument can be specified for a load module!");
+                    }
+
+                    std::vector<std::string> filter;
+                    if (term->size()) {
+                        ASSERT(term->size() == 1);
+                        args = CreateRVal(ctx, term->at(0).second, local_vars);
+                        ASSERT(args);
+
+                        auto found = ctx->m_modules.find(term->getText());
+                        if (args->is_bool_type()) {
+
+                            if (args->GetValueAsBoolean() && found == ctx->m_modules.end()) {
+                                NL_PARSER(term, "Module %s not loaded!", term->getText().c_str());
+                            }
+                            return found == ctx->m_modules.end() ? Obj::Yes() : Obj::No();
+
+                        } else if (args->is_none_type()) {
+
+                            result = (found == ctx->m_modules.end() ? Obj::Yes() : Obj::No());
+                            if (found != ctx->m_modules.end()) {
+                                ctx->m_modules.erase(found);
+                            }
+
+                            ctx->CleanUp();
+
+                            return result;
+
+                        } else if (args->is_string_type()) {
+                            filter = Named::SplitString(args->GetValueAsString().c_str(), ";");
+                        }
+                    }
+
+
+                    if (!ctx->CheckOrLoadModule(term->GetFullName())) {
+                        LOG_RUNTIME("Fail load module %s!", ExtractModuleName(term->GetFullName().c_str()).c_str());
+                    }
+
+
+                    size_t count = 0;
+                    auto module = ctx->m_modules[term->getText()];
+
+                    if (filter.empty()) {
+                        for (size_t i = 0; i < module->size(); i++) {
+                            ctx->push_front(module->at(i));
+                            count++;
+                        }
+                    } else {
+
+                        LOG_WARNING("Import of objects by mask does not work correctly!");
+
+                        std::vector<std::regex> regs;
+                        for (auto &elem : filter) {
+                            try {
+                                //                            LOG_DEBUG("From: %s", elem.c_str());
+
+                                //                            if(elem.rfind("::") != 0) {
+                                //                                elem.insert(0, "::");
+                                //                            }
+                                //                            elem.insert(0, term->getText());
+
+                                elem = std::regex_replace(elem, std::regex("@."), "@@.");
+                                elem = std::regex_replace(elem, std::regex("@*"), "(.)*");
+                                //                            LOG_DEBUG("To: %s", elem.c_str());
+                                regs.push_back(std::regex(elem));
+                            } catch (const std::regex_error &err) {
+                                LOG_RUNTIME("Regular expression for '%s' error '%s'!", elem.c_str(), err.what());
+                            }
+
+                        }
+
+                        for (size_t i = 0; i < module->size(); i++) {
+                            for (auto &elem : regs) {
+                                //                            LOG_DEBUG("Test: %s", module->at(i).first.c_str());
+                                if (std::regex_match(module->at(i).first, elem)) {
+                                    //                                LOG_DEBUG("Mask: %s", module->at(i).first.c_str());
+                                    ctx->push_front(module->at(i));
+                                    count++;
+                                    break;
+                                }
+                            }
+                        }
+                    }
+
+                    return Obj::CreateValue(count, ObjType::Integer);
+
+                } else {
+                    std::string name = ExtractName(term->GetFullName());
+                    if (isSystemName(name)) {
+                        std::string module = ExtractModuleName(term->GetFullName().c_str());
+                        auto found = ctx->m_modules.find(module);
+                        if (found != ctx->m_modules.end()) {
+                            return CheckSystemField(found->second.get(), name);
+                        } else {
+                            NL_PARSER(term, "Module %s not loaded!", name.c_str());
+                        }
+                    }
+                }
+            }
+
+            NL_PARSER(term, "Term '%s' !!!!!!!!!!!!!!!!!!!!!!!!!", term->GetFullName().c_str());
+
+            //            if (var_name.empty() && isModule(term->GetFullName()) && term->isCall()) {
+            //
+            //            }
+
+        case TermID::NAME:
         case TermID::ARGS:
+        case TermID::PARENT:
         case TermID::INT_PLUS:
         case TermID::INT_MINUS:
-        case TermID::NEWLANG:
+
 
             if (!isModule(term->GetFullName()) && (term->isCall() || term->isReturn())) {
                 temp = ctx->GetTerm(term->GetFullName().c_str(), term->isRef());
@@ -2369,158 +2516,158 @@ ObjPtr Context::CreateRVal(Context *ctx, TermPtr term, Obj * local_vars, bool ev
             }
 
 
-            if (isModule(term->GetFullName()) && term->m_right) {
-                bool is_call = term->m_is_call;
-                std::string name = term->m_text;
-                TermPtr field = term->m_right;
-                while (field) {
-                    if (name.compare(term->m_text) == 0) {
-                        name += "::";
-                    } else {
-                        name += ".";
-                    }
-                    name += field->m_text;
-                    term = field;
-                    field = field->m_right;
-                }
-                term->m_text = name;
-                term->m_is_call = is_call;
-            }
-
-            if (isModule(term->GetFullName())) { // !isVariableName(term->GetFullName())
-                if (term->isCall()) {
-                    /*
-                     * Операцию с модулем можно конкреттизировать с помощью аргумента
-                     * @module() -  загрузка модуля и импорт всех его объектов
-                     * @module("filter*") -  загрузка модуля и импорт всех его объектов по заданной маске в переданой строке
-                     * @module("func;ns::*;ns2::*") -  несколько масок записываются через точку с запятой
-                     * @module(\true) - убедиться, что модуль загружен. Если модуль не загружен, создать ошибку
-                     * @module(\false) - проверить, загружен ли модуль без его реальной загрузки и вернуть значение
-                     * @module(_) -  Выгрузка модуля
-                     * 
-                     * @dsl() -  Единственный встроенный модуль
-                     */
-
-                    //                    if(term->GetFullName().compare("@dsl")==0) {
-                    //                        std::string str;
-                    //
-                    //                        for (int i = 0; i < ::newlang_dsl_size; i++) {
-                    //                            str += ::newlang_dsl_arr[i];
-                    //                            str += "\n";
-                    //                        }
-                    //
-                    //                        m_macros.clear();
-                    //                        Parser::ParseAllMacros(str, &m_macros);
-                    //
-                    //                        result->m_var_type_current = ObjType::Dictionary;
-                    //                        result->m_var_is_init = true;
-                    //
-                    //                        for (auto &elem : m_macros) {
-                    //                            result->push_back(Obj::CreateString(elem.first));
-                    //                        }
-                    //                        return result;
-                    //                    }
-
-                    if (term->size() > 1) {
-                        NL_PARSER(term, "Only one argument can be specified for a load module!");
-                    }
-
-                    std::vector<std::string> filter;
-                    if (term->size()) {
-                        ASSERT(term->size() == 1);
-                        args = CreateRVal(ctx, term->at(0).second, local_vars);
-                        ASSERT(args);
-
-                        auto found = ctx->m_modules.find(term->getText());
-                        if (args->is_bool_type()) {
-
-                            if (args->GetValueAsBoolean() && found == ctx->m_modules.end()) {
-                                NL_PARSER(term, "Module %s not loaded!", term->getText().c_str());
-                            }
-                            return found == ctx->m_modules.end() ? Obj::Yes() : Obj::No();
-
-                        } else if (args->is_none_type()) {
-
-                            result = (found == ctx->m_modules.end() ? Obj::Yes() : Obj::No());
-                            if (found != ctx->m_modules.end()) {
-                                ctx->m_modules.erase(found);
-                            }
-
-                            ctx->CleanUp();
-
-                            return result;
-
-                        } else if (args->is_string_type()) {
-                            filter = SplitString(args->GetValueAsString().c_str(), ";");
-                        }
-                    }
-
-
-                    if (!ctx->CheckOrLoadModule(term->GetFullName())) {
-                        LOG_RUNTIME("Fail load module %s!", ExtractModuleName(term->GetFullName().c_str()).c_str());
-                    }
-
-
-                    size_t count = 0;
-                    auto module = ctx->m_modules[term->getText()];
-
-                    if (filter.empty()) {
-                        for (size_t i = 0; i < module->size(); i++) {
-                            ctx->push_front(module->at(i));
-                            count++;
-                        }
-                    } else {
-
-                        LOG_WARNING("Import of objects by mask does not work correctly!");
-
-                        std::vector<std::regex> regs;
-                        for (auto &elem : filter) {
-                            try {
-                                //                            LOG_DEBUG("From: %s", elem.c_str());
-
-                                //                            if(elem.rfind("::") != 0) {
-                                //                                elem.insert(0, "::");
-                                //                            }
-                                //                            elem.insert(0, term->getText());
-
-                                elem = std::regex_replace(elem, std::regex("@."), "@@.");
-                                elem = std::regex_replace(elem, std::regex("@*"), "(.)*");
-                                //                            LOG_DEBUG("To: %s", elem.c_str());
-                                regs.push_back(std::regex(elem));
-                            } catch (const std::regex_error &err) {
-                                LOG_RUNTIME("Regular expression for '%s' error '%s'!", elem.c_str(), err.what());
-                            }
-
-                        }
-
-                        for (size_t i = 0; i < module->size(); i++) {
-                            for (auto &elem : regs) {
-                                //                            LOG_DEBUG("Test: %s", module->at(i).first.c_str());
-                                if (std::regex_match(module->at(i).first, elem)) {
-                                    //                                LOG_DEBUG("Mask: %s", module->at(i).first.c_str());
-                                    ctx->push_front(module->at(i));
-                                    count++;
-                                    break;
-                                }
-                            }
-                        }
-                    }
-
-                    return Obj::CreateValue(count, ObjType::Integer);
-
-                } else {
-                    std::string name = ExtractName(term->GetFullName());
-                    if (isSystemName(name)) {
-                        std::string module = ExtractModuleName(term->GetFullName().c_str());
-                        auto found = ctx->m_modules.find(module);
-                        if (found != ctx->m_modules.end()) {
-                            return CheckSystemField(found->second.get(), name);
-                        } else {
-                            NL_PARSER(term, "Module %s not loaded!", name.c_str());
-                        }
-                    }
-                }
-            }
+            //            if (isModule(term->GetFullName()) && term->m_right) {
+            //                bool is_call = term->m_is_call;
+            //                std::string name = term->m_text;
+            //                TermPtr field = term->m_right;
+            //                while (field) {
+            //                    if (name.compare(term->m_text) == 0) {
+            //                        name += "::";
+            //                    } else {
+            //                        name += ".";
+            //                    }
+            //                    name += field->m_text;
+            //                    term = field;
+            //                    field = field->m_right;
+            //                }
+            //                term->m_text = name;
+            //                term->m_is_call = is_call;
+            //            }
+            //
+            //            if (isModule(term->GetFullName())) { // !isVariableName(term->GetFullName())
+            //                if (term->isCall()) {
+            //                    /*
+            //                     * Операцию с модулем можно конкреттизировать с помощью аргумента
+            //                     * @module() -  загрузка модуля и импорт всех его объектов
+            //                     * @module("filter*") -  загрузка модуля и импорт всех его объектов по заданной маске в переданой строке
+            //                     * @module("func;ns::*;ns2::*") -  несколько масок записываются через точку с запятой
+            //                     * @module(\true) - убедиться, что модуль загружен. Если модуль не загружен, создать ошибку
+            //                     * @module(\false) - проверить, загружен ли модуль без его реальной загрузки и вернуть значение
+            //                     * @module(_) -  Выгрузка модуля
+            //                     * 
+            //                     * @dsl() -  Единственный встроенный модуль
+            //                     */
+            //
+            //                    //                    if(term->GetFullName().compare("@dsl")==0) {
+            //                    //                        std::string str;
+            //                    //
+            //                    //                        for (int i = 0; i < ::newlang_dsl_size; i++) {
+            //                    //                            str += ::newlang_dsl_arr[i];
+            //                    //                            str += "\n";
+            //                    //                        }
+            //                    //
+            //                    //                        m_macros.clear();
+            //                    //                        Parser::ParseAllMacros(str, &m_macros);
+            //                    //
+            //                    //                        result->m_var_type_current = ObjType::Dictionary;
+            //                    //                        result->m_var_is_init = true;
+            //                    //
+            //                    //                        for (auto &elem : m_macros) {
+            //                    //                            result->push_back(Obj::CreateString(elem.first));
+            //                    //                        }
+            //                    //                        return result;
+            //                    //                    }
+            //
+            //                    if (term->size() > 1) {
+            //                        NL_PARSER(term, "Only one argument can be specified for a load module!");
+            //                    }
+            //
+            //                    std::vector<std::string> filter;
+            //                    if (term->size()) {
+            //                        ASSERT(term->size() == 1);
+            //                        args = CreateRVal(ctx, term->at(0).second, local_vars);
+            //                        ASSERT(args);
+            //
+            //                        auto found = ctx->m_modules.find(term->getText());
+            //                        if (args->is_bool_type()) {
+            //
+            //                            if (args->GetValueAsBoolean() && found == ctx->m_modules.end()) {
+            //                                NL_PARSER(term, "Module %s not loaded!", term->getText().c_str());
+            //                            }
+            //                            return found == ctx->m_modules.end() ? Obj::Yes() : Obj::No();
+            //
+            //                        } else if (args->is_none_type()) {
+            //
+            //                            result = (found == ctx->m_modules.end() ? Obj::Yes() : Obj::No());
+            //                            if (found != ctx->m_modules.end()) {
+            //                                ctx->m_modules.erase(found);
+            //                            }
+            //
+            //                            ctx->CleanUp();
+            //
+            //                            return result;
+            //
+            //                        } else if (args->is_string_type()) {
+            //                            filter = SplitString(args->GetValueAsString().c_str(), ";");
+            //                        }
+            //                    }
+            //
+            //
+            //                    if (!ctx->CheckOrLoadModule(term->GetFullName())) {
+            //                        LOG_RUNTIME("Fail load module %s!", ExtractModuleName(term->GetFullName().c_str()).c_str());
+            //                    }
+            //
+            //
+            //                    size_t count = 0;
+            //                    auto module = ctx->m_modules[term->getText()];
+            //
+            //                    if (filter.empty()) {
+            //                        for (size_t i = 0; i < module->size(); i++) {
+            //                            ctx->push_front(module->at(i));
+            //                            count++;
+            //                        }
+            //                    } else {
+            //
+            //                        LOG_WARNING("Import of objects by mask does not work correctly!");
+            //
+            //                        std::vector<std::regex> regs;
+            //                        for (auto &elem : filter) {
+            //                            try {
+            //                                //                            LOG_DEBUG("From: %s", elem.c_str());
+            //
+            //                                //                            if(elem.rfind("::") != 0) {
+            //                                //                                elem.insert(0, "::");
+            //                                //                            }
+            //                                //                            elem.insert(0, term->getText());
+            //
+            //                                elem = std::regex_replace(elem, std::regex("@."), "@@.");
+            //                                elem = std::regex_replace(elem, std::regex("@*"), "(.)*");
+            //                                //                            LOG_DEBUG("To: %s", elem.c_str());
+            //                                regs.push_back(std::regex(elem));
+            //                            } catch (const std::regex_error &err) {
+            //                                LOG_RUNTIME("Regular expression for '%s' error '%s'!", elem.c_str(), err.what());
+            //                            }
+            //
+            //                        }
+            //
+            //                        for (size_t i = 0; i < module->size(); i++) {
+            //                            for (auto &elem : regs) {
+            //                                //                            LOG_DEBUG("Test: %s", module->at(i).first.c_str());
+            //                                if (std::regex_match(module->at(i).first, elem)) {
+            //                                    //                                LOG_DEBUG("Mask: %s", module->at(i).first.c_str());
+            //                                    ctx->push_front(module->at(i));
+            //                                    count++;
+            //                                    break;
+            //                                }
+            //                            }
+            //                        }
+            //                    }
+            //
+            //                    return Obj::CreateValue(count, ObjType::Integer);
+            //
+            //                } else {
+            //                    std::string name = ExtractName(term->GetFullName());
+            //                    if (isSystemName(name)) {
+            //                        std::string module = ExtractModuleName(term->GetFullName().c_str());
+            //                        auto found = ctx->m_modules.find(module);
+            //                        if (found != ctx->m_modules.end()) {
+            //                            return CheckSystemField(found->second.get(), name);
+            //                        } else {
+            //                            NL_PARSER(term, "Module %s not loaded!", name.c_str());
+            //                        }
+            //                    }
+            //                }
+            //            }
 
 
 
@@ -2532,7 +2679,9 @@ ObjPtr Context::CreateRVal(Context *ctx, TermPtr term, Obj * local_vars, bool ev
                 result = ctx->GetTerm(term->GetFullName().c_str(), term->isRef());
 
                 // Типы данных обрабатываются тут, а не в вызовах функций (TermID::CALL)
-                ASSERT(result);
+                if (!result) {
+                    NL_PARSER(term, "Object '%s' not exist!", term->toString().c_str());
+                }
                 if (term->size()) {
                     Obj args(ctx, term, true, local_vars);
                     result = result->Call(ctx, &args);
@@ -2988,7 +3137,7 @@ ObjPtr Context::CreateClass(std::string class_name, TermPtr body, Obj * local_va
 
 
             // Выполнить тело конструктора типа для создания новых полей и методов у создаваемого типа класса
-            bool is_pop_ns = NamespasePush(class_name);
+            bool is_pop_ns = m_named->NamespasePush(class_name);
             try {
                 for (int i = 0; i < body->m_block.size(); i++) {
                     if (body->m_block[i]->IsCreate()) {
@@ -3026,11 +3175,11 @@ ObjPtr Context::CreateClass(std::string class_name, TermPtr body, Obj * local_va
                 }
 
                 if (is_pop_ns) {
-                    NamespasePop();
+                    m_named->NamespasePop();
                 }
             } catch (...) {
                 if (is_pop_ns) {
-                    NamespasePop();
+                    m_named->NamespasePop();
                 }
                 throw;
             }
@@ -3050,6 +3199,7 @@ ObjPtr Context::CreateClass(std::string class_name, TermPtr body, Obj * local_va
 
     }
     new_class->m_var_is_init = true;
+
     return new_class;
 }
 

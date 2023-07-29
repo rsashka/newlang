@@ -3,27 +3,29 @@
 #include "lexer.h"
 #include "builtin.h"
 
-#include <term.h>
+#include <named.h>
 
 using namespace newlang;
 
-int MacroBuffer::m_counter = 0;
-const std::string MacroBuffer::deny_chars_from_macro(";@:&^#?!{}+-%*~`\"',/|\\()[]<>");
+const std::string Named::deny_chars_from_macro(";@:&^#?!{}+-%*~`\"',/|\\()[]<>");
 
-std::string MacroBuffer::toHash(const TermPtr &term) {
-    if (term->isMacro()) {
-        ASSERT(!term->GetMacroId().empty());
-        return toHashTermName(term->GetMacroId()[0]->m_text);
-    }
-    return toHashTermName(term->m_text);
+Named::Named() {
 }
 
-void MacroBuffer::Push(const TermPtr term) {
+std::string Named::toMacroHash(const TermPtr &term) {
+    if (term->isMacro()) {
+        ASSERT(!term->GetMacroId().empty());
+        return toMacroHashName(term->GetMacroId()[0]->m_text);
+    }
+    return toMacroHashName(term->m_text);
+}
+
+void Named::Push(const TermPtr term) {
     //    ASSERT(!m_diag_stack.empty());
     //    m_diag_stack.push_back(m_diag_stack[m_diag_stack.size() - 1]);
 }
 
-void MacroBuffer::Pop(const TermPtr term) {
+void Named::Pop(const TermPtr term) {
     //    if(m_diag_stack.empty()) {
     //        if(term) {
     //            NL_PARSER(term, "Empty stack diags at '%s'!", term->toString().c_str());
@@ -34,133 +36,14 @@ void MacroBuffer::Pop(const TermPtr term) {
     //    m_diag_stack.pop_back();
 }
 
-TermPtr MacroBuffer::ParseTerm(const char *proto, MacroBuffer *macro, bool pragma_enable) {
-    try {
-        // Термин или термин + тип парсятся без ошибок
-        Parser p(macro, nullptr, nullptr, pragma_enable);
-        return p.Parse(proto);
-    } catch (std::exception &) {
-        std::string func(proto);
-        try {
-            func += ":={}";
-            Parser p(macro, nullptr, nullptr, pragma_enable);
-            return p.Parse(func)->Left();
-        } catch (std::exception &e) {
-            LOG_RUNTIME("Fail parsing prototype '%s' as '%s'!", func.c_str(), e.what());
-        }
-    }
-}
-
-size_t MacroBuffer::SkipBrackets(const BlockType& buffer, const size_t offset) {
-
-    if (offset >= buffer.size()) {
-        return 0;
-    }
-
-    std::string br_end;
-    if (buffer[offset]->m_text.compare("(") == 0) {
-        br_end = ")";
-    } else if (buffer[offset]->m_text.compare("<") == 0) {
-        br_end = ">";
-    } else if (buffer[offset]->m_text.compare("[") == 0) {
-        br_end = "]";
-    } else {
-        return 0;
-    }
-
-    size_t shift = 1;
-    int count = 1;
-    while (offset + shift < buffer.size()) {
-        if (buffer[offset]->m_text.compare(buffer[offset + shift]->m_text) == 0) {
-            count++; // Next level bracket
-        } else if (br_end.compare(buffer[offset + shift]->m_text) == 0) {
-            count--; // // Leave level bracket
-            if (count == 0) {
-                return shift + 1;
-            }
-        }
-        shift++;
-    }
-    NL_PARSER(buffer[offset], "Closed bracket '%s' not found!", br_end.c_str());
-}
-
-size_t MacroBuffer::ParseTerm(TermPtr &result, const BlockType &buffer, size_t offset, bool pragma_enable) {
-
-    if (offset >= buffer.size()) {
-        LOG_RUNTIME("Fail skip count %d or buffer size %d!", (int) offset, (int) buffer.size());
-    }
-
-    /* term
-     * func()
-     * 
-     * term: type
-     * func(): type
-     * 
-     * term: type[]
-     * func(): type[]
-     *      
-     */
-
-    std::string source = buffer[offset]->toString();
-    offset++;
-    size_t skip = SkipBrackets(buffer, offset);
-
-    if (skip) {
-        /* 
-         * term
-         * func()
-         */
-        for (size_t i = 0; i < skip; i++) {
-            if (buffer[offset + i]) {
-                source += buffer[offset + i]->toString();
-            }
-        }
-        offset += skip;
-    }
-
-    if (offset + 1 < buffer.size() && buffer[offset + 1]->m_text.compare(":") == 0) {
-        offset++;
-        source += buffer[offset]->toString();
-
-        /* 
-         * term: type
-         * func(): type
-         */
-
-        if (offset + 1 >= buffer.size()) {
-            NL_PARSER(buffer[offset + 1], "Typename missing!");
-        }
-
-        offset++;
-        source += buffer[offset]->toString();
-
-        skip = SkipBrackets(buffer, offset + 1);
-        if (skip) {
-            /* 
-             * term: type[]
-             * func(): type[]
-             *      
-             */
-            for (size_t i = 0; i < skip; i++) {
-                source += buffer[offset + i]->toString();
-            }
-
-            offset += (skip + 1);
-        }
-    }
-    //    LOG_DEBUG("ParseTerm: '%s' - %d", source.c_str(), (int) offset);
-    result = ParseTerm(source.c_str(), nullptr, pragma_enable);
-    return offset;
-}
-
-std::string MacroBuffer::GetMacroMaping(const std::string str, const char *separator) {
+std::string Named::GetMacroMaping(const std::string str, const char *separator) {
 
     std::string result;
 
     // Итератор для списка макросов, один из которых может соответствовать текущему буферу (по первому термину буфера)
     iterator found = this->map::find(str);
 
-    for (auto iter = found->second.begin(); found != end() && iter != found->second.end(); ++iter) {
+    for (auto iter = found->second.proto.begin(); found != end() && iter != found->second.proto.end(); ++iter) {
 
         if (!result.empty() && separator) {
             result += separator;
@@ -171,187 +54,187 @@ std::string MacroBuffer::GetMacroMaping(const std::string str, const char *separ
     return result;
 }
 
-bool MacroBuffer::RegisterPredefMacro(const char * name, const char * desc) {
-    if (m_predef_macro.find(name) != m_predef_macro.end()) {
-        LOG_ERROR("Predef macro '%s' redefined!", name);
-        return false;
-    }
-    m_predef_macro.insert({name, desc});
-    return true;
-}
-
-parser::token_type MacroBuffer::ExpandPredefMacro(TermPtr & term, Parser * parser) {
-
-    if (m_predef_macro.empty()) {
-
-        VERIFY(RegisterPredefMacro("__NLC_VER__", "Version NewLang Compiler."));
-        VERIFY(RegisterPredefMacro("__NLC_SOURCE_GIT__", "Git source code identifier of the current compiler version."));
-        VERIFY(RegisterPredefMacro("__NLC_DATE_BUILD__", "Date build of the current compiler version."));
-        VERIFY(RegisterPredefMacro("__NLC_SOURCE_BUILD__", "Git source code identifier and date build of the current compiler version."));
-
-        VERIFY(RegisterPredefMacro("__FILE__", "Current file name"));
-        VERIFY(RegisterPredefMacro("__FILE_NAME__", "Current file name"));
-
-        VERIFY(RegisterPredefMacro("__LINE__", "Line number in current file"));
-        VERIFY(RegisterPredefMacro("__FILE_LINE__", "Line number in current file"));
-
-        VERIFY(RegisterPredefMacro("__FILE_MD5__", "MD5 hash for current file"));
-        VERIFY(RegisterPredefMacro("__FILE_TIMESTAMP__", "Timestamp current file"));
-
-        VERIFY(RegisterPredefMacro("__DATE__", "Current date"));
-        VERIFY(RegisterPredefMacro("__TIME__", "Current time"));
-        // определяется как строковый литерал, содержащий дату и время последнего изменения текущего исходного файла 
-        //в сокращенной форме с постоянной длиной, которые возвращаются функцией asctime библиотеки CRT, 
-        //например: Fri 19 Aug 13:32:58 2016. Этот макрос определяется всегда.
-        VERIFY(RegisterPredefMacro("__TIMESTAMP__", "Current timestamp"));
-        VERIFY(RegisterPredefMacro("__TIMESTAMP_ISO__", "Current timestamp as ISO format")); // 2013-07-06T00:50:06Z
-
-        //Развертывается до целочисленного литерала, начинающегося с 0. 
-        //Значение увеличивается на 1 каждый раз, когда используется в файле исходного кода или во включенных заголовках файла исходного кода. 
-        VERIFY(RegisterPredefMacro("__COUNTER__", "Monotonically increasing counter from zero"));
-    }
-
-
-    if (!term) {
-        LOG_RUNTIME("Environment variable not defined!");
-    }
-    if (term->m_id != TermID::NAME) {
-        return term->m_lexer_type;
-    }
-
-    std::string_view text = term->m_text;
-    if (text.find("@") == 0) {
-        text.remove_prefix(1);
-    }
-
-    ASSERT(!m_predef_macro.empty());
-    if (m_predef_macro.find(text.begin()) == m_predef_macro.end()) {
-        return term->m_lexer_type;
-    }
-
-
-    const TermID str_type = TermID::STRWIDE;
-    const parser::token_type str_token = parser::token_type::STRWIDE;
-
-    if (text.compare("__COUNTER__") == 0) {
-
-        term->m_id = TermID::INTEGER;
-        term->m_text = std::to_string(m_counter);
-        m_counter++;
-        return parser::token_type::INTEGER;
-
-    } else if (text.compare("__NLC_VER__") == 0) {
-
-        term->m_id = TermID::INTEGER;
-        term->m_text = std::to_string(VERSION);
-        return parser::token_type::INTEGER;
-
-    } else if (text.compare("__NLC_SOURCE_GIT__") == 0) {
-        term->m_text = GIT_SOURCE;
-        term->m_id = str_type;
-        return str_token;
-
-    } else if (text.compare("__NLC_DATE_BUILD__") == 0) {
-        term->m_text = DATE_BUILD_STR;
-        term->m_id = str_type;
-        return str_token;
-
-    } else if (text.compare("__NLC_SOURCE_BUILD__") == 0) {
-        term->m_text = SOURCE_FULL_ID;
-        term->m_id = str_type;
-        return str_token;
-
-    } else if (text.compare("__LINE__") == 0 || text.compare("__FILE_LINE__") == 0) {
-
-        term->m_id = TermID::INTEGER;
-        term->m_text = std::to_string(term->m_line);
-        return parser::token_type::INTEGER;
-
-    } else if (text.compare("__FILE__") == 0 || text.compare("__FILE_NAME__") == 0) {
-
-        term->m_id = str_type;
-        if (parser && !parser->m_file_name.empty()) {
-            term->m_text = parser->m_file_name;
-        } else {
-            term->m_text = "File name undefined!!!";
-        }
-        return str_token;
-
-    } else if (text.compare("__FILE_TIMESTAMP__") == 0) {
-
-        term->m_id = str_type;
-        if (parser && !parser->m_file_time.empty()) {
-            term->m_text = parser->m_file_time;
-        } else {
-            term->m_text = "??? ??? ?? ??:??:?? ????";
-        }
-        return str_token;
-
-    } else if (text.compare("__FILE_MD5__") == 0) {
-
-        term->m_id = str_type;
-        if (parser && !parser->m_file_md5.empty()) {
-            term->m_text = parser->m_file_md5;
-        } else {
-            term->m_text = "?????????????????????????????????";
-        }
-        return str_token;
-
-
-
-    } else if (text.compare("__DATE__") == 0) {
-
-        time_t t = std::time(NULL);
-        if (parser) {
-            t = parser->m_timestamp;
-        }
-        char buf[sizeof "Jul 27 2012"];
-        strftime(buf, sizeof buf, "%b %e %Y", localtime(&t));
-
-        term->m_text = buf;
-        term->m_id = str_type;
-        return str_token;
-
-    } else if (text.compare("__TIME__") == 0) {
-
-        time_t t = std::time(NULL);
-        if (parser) {
-            t = parser->m_timestamp;
-        }
-        char buf[sizeof "07:07:09"];
-        strftime(buf, sizeof buf, "%T", localtime(&t));
-
-        term->m_text = buf;
-        term->m_id = str_type;
-        return str_token;
-
-    } else if (text.compare("__TIMESTAMP__") == 0) {
-
-        time_t t = std::time(NULL);
-        if (parser) {
-            t = parser->m_timestamp;
-        }
-        term->m_text = asctime(localtime(&t));
-        term->m_text = term->m_text.substr(0, 24); // Remove \n on the end line
-        term->m_id = str_type;
-        return str_token;
-
-    } else if (text.compare("__TIMESTAMP_ISO__") == 0) {
-
-        time_t t = std::time(NULL);
-        if (parser) {
-            t = parser->m_timestamp;
-        }
-        char buf[sizeof "2011-10-08T07:07:09Z"];
-        strftime(buf, sizeof buf, "%FT%TZ", localtime(&t));
-
-        term->m_text = buf;
-        term->m_id = str_type;
-        return str_token;
-    }
-
-    NL_PARSER(term, "Predef macro '%s' not implemented!", term->toString().c_str());
-}
+//bool MacroBuffer::RegisterPredefMacro(const char * name, const char * desc) {
+//    if (m_predef_macro.find(name) != m_predef_macro.end()) {
+//        LOG_ERROR("Predef macro '%s' redefined!", name);
+//        return false;
+//    }
+//    m_predef_macro.insert({name, desc});
+//    return true;
+//}
+//
+//parser::token_type MacroBuffer::ExpandPredefMacro(TermPtr & term, Parser * parser) {
+//
+//    if (m_predef_macro.empty()) {
+//
+//        VERIFY(RegisterPredefMacro("__NLC_VER__", "Version NewLang Compiler."));
+//        VERIFY(RegisterPredefMacro("__NLC_SOURCE_GIT__", "Git source code identifier of the current compiler version."));
+//        VERIFY(RegisterPredefMacro("__NLC_DATE_BUILD__", "Date build of the current compiler version."));
+//        VERIFY(RegisterPredefMacro("__NLC_SOURCE_BUILD__", "Git source code identifier and date build of the current compiler version."));
+//
+//        VERIFY(RegisterPredefMacro("__FILE__", "Current file name"));
+//        VERIFY(RegisterPredefMacro("__FILE_NAME__", "Current file name"));
+//
+//        VERIFY(RegisterPredefMacro("__LINE__", "Line number in current file"));
+//        VERIFY(RegisterPredefMacro("__FILE_LINE__", "Line number in current file"));
+//
+//        VERIFY(RegisterPredefMacro("__FILE_MD5__", "MD5 hash for current file"));
+//        VERIFY(RegisterPredefMacro("__FILE_TIMESTAMP__", "Timestamp current file"));
+//
+//        VERIFY(RegisterPredefMacro("__DATE__", "Current date"));
+//        VERIFY(RegisterPredefMacro("__TIME__", "Current time"));
+//        // определяется как строковый литерал, содержащий дату и время последнего изменения текущего исходного файла 
+//        //в сокращенной форме с постоянной длиной, которые возвращаются функцией asctime библиотеки CRT, 
+//        //например: Fri 19 Aug 13:32:58 2016. Этот макрос определяется всегда.
+//        VERIFY(RegisterPredefMacro("__TIMESTAMP__", "Current timestamp"));
+//        VERIFY(RegisterPredefMacro("__TIMESTAMP_ISO__", "Current timestamp as ISO format")); // 2013-07-06T00:50:06Z
+//
+//        //Развертывается до целочисленного литерала, начинающегося с 0. 
+//        //Значение увеличивается на 1 каждый раз, когда используется в файле исходного кода или во включенных заголовках файла исходного кода. 
+//        VERIFY(RegisterPredefMacro("__COUNTER__", "Monotonically increasing counter from zero"));
+//    }
+//
+//
+//    if (!term) {
+//        LOG_RUNTIME("Environment variable not defined!");
+//    }
+//    if (term->m_id != TermID::NAME) {
+//        return term->m_lexer_type;
+//    }
+//
+//    std::string_view text = term->m_text;
+//    if (text.find("@") == 0) {
+//        text.remove_prefix(1);
+//    }
+//
+//    ASSERT(!m_predef_macro.empty());
+//    if (m_predef_macro.find(text.begin()) == m_predef_macro.end()) {
+//        return term->m_lexer_type;
+//    }
+//
+//
+//    const TermID str_type = TermID::STRWIDE;
+//    const parser::token_type str_token = parser::token_type::STRWIDE;
+//
+//    if (text.compare("__COUNTER__") == 0) {
+//
+//        term->m_id = TermID::INTEGER;
+//        term->m_text = std::to_string(m_counter);
+//        m_counter++;
+//        return parser::token_type::INTEGER;
+//
+//    } else if (text.compare("__NLC_VER__") == 0) {
+//
+//        term->m_id = TermID::INTEGER;
+//        term->m_text = std::to_string(VERSION);
+//        return parser::token_type::INTEGER;
+//
+//    } else if (text.compare("__NLC_SOURCE_GIT__") == 0) {
+//        term->m_text = GIT_SOURCE;
+//        term->m_id = str_type;
+//        return str_token;
+//
+//    } else if (text.compare("__NLC_DATE_BUILD__") == 0) {
+//        term->m_text = DATE_BUILD_STR;
+//        term->m_id = str_type;
+//        return str_token;
+//
+//    } else if (text.compare("__NLC_SOURCE_BUILD__") == 0) {
+//        term->m_text = SOURCE_FULL_ID;
+//        term->m_id = str_type;
+//        return str_token;
+//
+//    } else if (text.compare("__LINE__") == 0 || text.compare("__FILE_LINE__") == 0) {
+//
+//        term->m_id = TermID::INTEGER;
+//        term->m_text = std::to_string(term->m_line);
+//        return parser::token_type::INTEGER;
+//
+//    } else if (text.compare("__FILE__") == 0 || text.compare("__FILE_NAME__") == 0) {
+//
+//        term->m_id = str_type;
+//        if (parser && !parser->m_file_name.empty()) {
+//            term->m_text = parser->m_file_name;
+//        } else {
+//            term->m_text = "File name undefined!!!";
+//        }
+//        return str_token;
+//
+//    } else if (text.compare("__FILE_TIMESTAMP__") == 0) {
+//
+//        term->m_id = str_type;
+//        if (parser && !parser->m_file_time.empty()) {
+//            term->m_text = parser->m_file_time;
+//        } else {
+//            term->m_text = "??? ??? ?? ??:??:?? ????";
+//        }
+//        return str_token;
+//
+//    } else if (text.compare("__FILE_MD5__") == 0) {
+//
+//        term->m_id = str_type;
+//        if (parser && !parser->m_file_md5.empty()) {
+//            term->m_text = parser->m_file_md5;
+//        } else {
+//            term->m_text = "?????????????????????????????????";
+//        }
+//        return str_token;
+//
+//
+//
+//    } else if (text.compare("__DATE__") == 0) {
+//
+//        time_t t = std::time(NULL);
+//        if (parser) {
+//            t = parser->m_timestamp;
+//        }
+//        char buf[sizeof "Jul 27 2012"];
+//        strftime(buf, sizeof buf, "%b %e %Y", localtime(&t));
+//
+//        term->m_text = buf;
+//        term->m_id = str_type;
+//        return str_token;
+//
+//    } else if (text.compare("__TIME__") == 0) {
+//
+//        time_t t = std::time(NULL);
+//        if (parser) {
+//            t = parser->m_timestamp;
+//        }
+//        char buf[sizeof "07:07:09"];
+//        strftime(buf, sizeof buf, "%T", localtime(&t));
+//
+//        term->m_text = buf;
+//        term->m_id = str_type;
+//        return str_token;
+//
+//    } else if (text.compare("__TIMESTAMP__") == 0) {
+//
+//        time_t t = std::time(NULL);
+//        if (parser) {
+//            t = parser->m_timestamp;
+//        }
+//        term->m_text = asctime(localtime(&t));
+//        term->m_text = term->m_text.substr(0, 24); // Remove \n on the end line
+//        term->m_id = str_type;
+//        return str_token;
+//
+//    } else if (text.compare("__TIMESTAMP_ISO__") == 0) {
+//
+//        time_t t = std::time(NULL);
+//        if (parser) {
+//            t = parser->m_timestamp;
+//        }
+//        char buf[sizeof "2011-10-08T07:07:09Z"];
+//        strftime(buf, sizeof buf, "%FT%TZ", localtime(&t));
+//
+//        term->m_text = buf;
+//        term->m_id = str_type;
+//        return str_token;
+//    }
+//
+//    NL_PARSER(term, "Predef macro '%s' not implemented!", term->toString().c_str());
+//}
 
 //bool MacroBuffer::CheckOpMacros(const TermPtr & term) {
 //    if (term && (term->getTermID() == TermID::MACRO_DEL)) {
@@ -394,13 +277,13 @@ parser::token_type MacroBuffer::ExpandPredefMacro(TermPtr & term, Parser * parse
 //    return result;
 //}
 
-TermPtr MacroBuffer::EvalOpMacros(const TermPtr & term) {
+TermPtr Named::EvalOpMacros(const TermPtr & term) {
 
     ASSERT(term);
 
     if (term->getTermID() == TermID::MACRO_DEL) {
-        if (!Remove(term)) {
-            LOG_WARNING("Macro '%s' not found!", toHash(term).c_str());
+        if (!RemoveMacro(term)) {
+            LOG_WARNING("Macro '%s' not found!", toMacroHash(term).c_str());
         }
         return term;
     }
@@ -426,16 +309,16 @@ TermPtr MacroBuffer::EvalOpMacros(const TermPtr & term) {
         }
 
         // Итератор для списка макросов, один из которых может соответствовать текущему буферу (по первому термину буфера)
-        MacroBuffer::iterator found = map::find(toHash(term));
-        for (auto iter = found->second.begin(); found != end() && iter != found->second.end(); ++iter) {
-            if (MacroBuffer::IdentityMacro(term->GetMacroId(), *iter) || MacroBuffer::IdentityMacro(iter->get()->GetMacroId(), term)) {
+        Named::iterator found = map::find(toMacroHash(term));
+        for (auto iter = found->second.proto.begin(); found != end() && iter != found->second.proto.end(); ++iter) {
+            if (Named::IdentityMacro(term->GetMacroId(), *iter) || Named::IdentityMacro(iter->get()->GetMacroId(), term)) {
 
                 if (term->getTermID() == TermID::CREATE || term->getTermID() == TermID::PURE_CREATE || (iter->get() != macro.get())) {
                     LOG_RUNTIME("Macro duplication '%s' and '%s'!", term->Left()->toString().c_str(), (*iter)->toString().c_str());
                 }
             }
         }
-        
+
         macro->m_right = term->Right();
 
     } else {
@@ -445,21 +328,23 @@ TermPtr MacroBuffer::EvalOpMacros(const TermPtr & term) {
         }
 
         // Итератор для списка макросов, один из которых может соответствовать текущему буферу (по первому термину буфера)
-        MacroBuffer::iterator found = map::find(toHash(term->Left()));
-        for (auto iter = found->second.begin(); found != end() && iter != found->second.end(); ++iter) {
-            if (MacroBuffer::IdentityMacro(term->GetMacroId(), *iter) || MacroBuffer::IdentityMacro(iter->get()->GetMacroId(), term)) {
+        Named::iterator found = map::find(toMacroHash(term->Left()));
+        for (auto iter = found->second.proto.begin(); found != end() && iter != found->second.proto.end(); ++iter) {
+            if (Named::IdentityMacro(term->GetMacroId(), *iter) || Named::IdentityMacro(iter->get()->GetMacroId(), term)) {
                 LOG_RUNTIME("Macro duplication '%s' and '%s'!", term->Left()->toString().c_str(), (*iter)->toString().c_str());
             }
         }
 
         macro = term;
 
-        iterator iter = map::find(toHash(macro));
+        iterator iter = map::find(toMacroHash(macro));
         if (iter == end()) {
-            BlockType vect{macro};
-            insert(std::make_pair(toHash(macro), vect));
+            insert(std::make_pair(toMacroHash(macro), NamedItem{
+                {macro},
+                {nullptr}
+            }));
         } else {
-            iter->second.push_back(macro);
+            iter->second.proto.push_back(macro);
         }
     }
 
@@ -467,7 +352,7 @@ TermPtr MacroBuffer::EvalOpMacros(const TermPtr & term) {
     return macro;
 }
 
-bool MacroBuffer::Remove(const TermPtr & term) {
+bool Named::RemoveMacro(const TermPtr & term) {
 
     BlockType list = term->GetMacroId();
     ASSERT(!list.empty());
@@ -478,10 +363,10 @@ bool MacroBuffer::Remove(const TermPtr & term) {
         return true;
     }
 
-    iterator found = map::find(toHash(term));
+    iterator found = map::find(toMacroHash(term));
 
     if (found != end()) {
-        for (BlockType::iterator iter = found->second.begin(); iter != found->second.end(); ++iter) {
+        for (BlockType::iterator iter = found->second.proto.begin(); iter != found->second.proto.end(); ++iter) {
 
             BlockType names = (*iter)->GetMacroId();
 
@@ -495,14 +380,14 @@ bool MacroBuffer::Remove(const TermPtr & term) {
             }
 
             for (int pos = 0; pos < list.size(); pos++) {
-                if (!CompareTermName(list[pos]->m_text.c_str(), names[pos]->m_text.c_str())) {
+                if (!CompareMacroName(list[pos]->m_text.c_str(), names[pos]->m_text.c_str())) {
                     goto skip_remove;
                 }
             }
 
-            found->second.erase(iter);
+            found->second.proto.erase(iter);
 
-            if (found->second.empty()) {
+            if (found->second.proto.empty()) {
                 erase(list[0]->m_text.c_str());
             }
 
@@ -515,7 +400,7 @@ skip_remove:
     return false;
 }
 
-std::string MacroBuffer::Dump() {
+std::string Named::Dump() {
     std::string result;
     auto iter = begin();
     while (iter != end()) {
@@ -523,20 +408,20 @@ std::string MacroBuffer::Dump() {
             result += ", ";
         }
 
-        for (int pos = 0; pos < iter->second.size(); pos++) {
+        for (int pos = 0; pos < iter->second.proto.size(); pos++) {
 
             std::string str;
-            for (auto &elem : iter->second[pos]->GetMacroId()) {
+            for (auto &elem : iter->second.proto[pos]->GetMacroId()) {
                 if (!str.empty()) {
                     str += " ";
                 }
                 str += elem->m_text;
-                if (iter->second[pos]->isCall()) {
+                if (iter->second.proto[pos]->isCall()) {
                     str += "(";
                 }
             }
             result += iter->first + "->'" + str + "'";
-            if (pos + 1 < iter->second.size()) {
+            if (pos + 1 < iter->second.proto.size()) {
                 result += "; ";
             }
         }
@@ -546,7 +431,7 @@ std::string MacroBuffer::Dump() {
     return result;
 }
 
-std::string MacroBuffer::Dump(const MacroArgsType & var) {
+std::string Named::Dump(const MacroArgsType & var) {
     std::string result;
     auto iter = var.begin();
     while (iter != var.end()) {
@@ -568,7 +453,7 @@ std::string MacroBuffer::Dump(const MacroArgsType & var) {
     return result;
 }
 
-std::string MacroBuffer::Dump(const BlockType & arr) {
+std::string Named::Dump(const BlockType & arr) {
     std::string result;
     auto iter = arr.begin();
     while (iter != arr.end()) {
@@ -581,7 +466,7 @@ std::string MacroBuffer::Dump(const BlockType & arr) {
     return result;
 }
 
-bool MacroBuffer::CompareTermName(const std::string & term_name, const std::string & macro_name) {
+bool Named::CompareMacroName(const std::string & term_name, const std::string & macro_name) {
     //    LOG_DEBUG("%s == %s", term_name.c_str(), macro_name.c_str());
     if (isLocal(macro_name)) {
         // Шаблон соответствует любому термину входного буфера
@@ -707,7 +592,7 @@ bool MacroBuffer::CompareTermName(const std::string & term_name, const std::stri
  * @__PRAGMA_PROP_TEST__(const, ^)
  * 
  */
-bool MacroBuffer::IdentityMacro(const BlockType &buffer, const TermPtr & macro) {
+bool Named::IdentityMacro(const BlockType &buffer, const TermPtr & macro) {
 
     if (!macro || !macro->isMacro()) {// || buffer.size() < macro->m_macro_id.size()) {
         return false;
@@ -725,7 +610,7 @@ bool MacroBuffer::IdentityMacro(const BlockType &buffer, const TermPtr & macro) 
         //        LOG_DEBUG("TermID: %s, '%s'  '%s'", toString(buffer[buff_offset]->getTermID()),
         //                buffer[buff_offset]->m_text.c_str(), macro->m_macro_id[macro_offset]->m_text.c_str());
         // Текст термина сравнивается только для опредленных терминов
-        if (!CompareTermName(buffer[buff_offset]->m_text, macro->GetMacroId()[macro_offset]->m_text)) {
+        if (!CompareMacroName(buffer[buff_offset]->m_text, macro->GetMacroId()[macro_offset]->m_text)) {
             return false;
         } else {
 
@@ -733,7 +618,7 @@ bool MacroBuffer::IdentityMacro(const BlockType &buffer, const TermPtr & macro) 
 
             if (macro->GetMacroId()[macro_offset]->isCall()) {
                 // Пропускаем скобки и все что находится между ними
-                size_t skip = SkipBrackets(buffer, buff_offset);
+                size_t skip = Parser::SkipBrackets(buffer, buff_offset);
                 if (!skip) {
                     return false;
                 }
@@ -755,7 +640,7 @@ bool MacroBuffer::IdentityMacro(const BlockType &buffer, const TermPtr & macro) 
     return false;
 }
 
-void MacroBuffer::InsertArg_(MacroArgsType & args, std::string name, BlockType & buffer, size_t pos) {
+void Named::InsertArg_(MacroArgsType & args, std::string name, BlockType & buffer, size_t pos) {
 
     if (args.find(name) != args.end()) {
         LOG_RUNTIME("Duplicate arg %s!", name.c_str());
@@ -775,7 +660,7 @@ void MacroBuffer::InsertArg_(MacroArgsType & args, std::string name, BlockType &
     args.insert(std::make_pair(name, vect));
 }
 
-BlockType MacroBuffer::SymbolSeparateArg_(const BlockType &buffer, size_t pos, std::vector<std::string> sym, std::string & error) {
+BlockType Named::SymbolSeparateArg_(const BlockType &buffer, size_t pos, std::vector<std::string> sym, std::string & error) {
     error.clear();
     BlockType result;
     size_t skip;
@@ -789,7 +674,7 @@ BlockType MacroBuffer::SymbolSeparateArg_(const BlockType &buffer, size_t pos, s
 
         }
 
-        skip = SkipBrackets(buffer, pos);
+        skip = Parser::SkipBrackets(buffer, pos);
         for (int i = 0; skip && i < skip - 1; i++) {
             result.push_back(buffer[pos]->Clone());
             pos++;
@@ -814,7 +699,7 @@ BlockType MacroBuffer::SymbolSeparateArg_(const BlockType &buffer, size_t pos, s
     return result;
 }
 
-size_t MacroBuffer::ExtractArgs(BlockType &buffer, const TermPtr &term, MacroArgsType & args) {
+size_t Named::ExtractArgs(BlockType &buffer, const TermPtr &term, MacroArgsType & args) {
 
     ASSERT(term);
 
@@ -953,7 +838,7 @@ size_t MacroBuffer::ExtractArgs(BlockType &buffer, const TermPtr &term, MacroArg
         if (j) {
             ttt += " ";
         }
-        ttt += MacroBuffer::toHashTermName(term->GetMacroId()[j]->m_text);
+        ttt += Named::toMacroHashName(term->GetMacroId()[j]->m_text);
     }
     //    LOG_DEBUG("m_macro_id: '%s'  args: %s", ttt.c_str(), Dump(args).c_str());
 
@@ -969,7 +854,7 @@ size_t MacroBuffer::ExtractArgs(BlockType &buffer, const TermPtr &term, MacroArg
     NL_PARSER(buffer[0], "Input buffer empty for extract args macros %s (%d+%d)=%d!", term->toString().c_str(), (int) pos_buf, (int) arg_offset, (int) buffer.size());
 }
 
-BlockType MacroBuffer::ExpandMacros(const TermPtr &macro, MacroArgsType & args) {
+BlockType Named::ExpandMacros(const TermPtr &macro, MacroArgsType & args) {
     ASSERT(macro);
     ASSERT(macro->Right());
 
@@ -1041,7 +926,7 @@ std::string ReplaceAll(std::string str, const std::string& from, const std::stri
     return str;
 }
 
-std::string MacroBuffer::ExpandString(const TermPtr &macro, MacroArgsType & args) {
+std::string Named::ExpandString(const TermPtr &macro, MacroArgsType & args) {
     ASSERT(macro);
     ASSERT(macro->Right());
     if (macro->Right()->m_id != TermID::MACRO_STR) {
@@ -1066,7 +951,7 @@ std::string MacroBuffer::ExpandString(const TermPtr &macro, MacroArgsType & args
     return body;
 }
 
-TermPtr MacroBuffer::GetMacroById(const BlockType block) {
+TermPtr Named::GetMacroById(const BlockType block) {
     std::vector<std::string> list;
     for (auto &elem : block) {
         list.push_back(elem->m_text);
@@ -1074,14 +959,14 @@ TermPtr MacroBuffer::GetMacroById(const BlockType block) {
     return GetMacro(list);
 }
 
-TermPtr MacroBuffer::GetMacro(std::vector<std::string> list) {
+TermPtr Named::GetMacro(std::vector<std::string> list) {
     if (list.empty()) {
         return nullptr;
     }
-    iterator found = map::find(toHashTermName(list[0]));
+    iterator found = map::find(toMacroHashName(list[0]));
 
     if (found != end()) {
-        for (BlockType::iterator iter = found->second.begin(); iter != found->second.end(); ++iter) {
+        for (BlockType::iterator iter = found->second.proto.begin(); iter != found->second.proto.end(); ++iter) {
 
             BlockType names = (*iter)->GetMacroId();
 
@@ -1095,7 +980,7 @@ TermPtr MacroBuffer::GetMacro(std::vector<std::string> list) {
             }
 
             for (int pos = 0; pos < list.size(); pos++) {
-                if (!CompareTermName(list[pos].c_str(), names[pos]->m_text.c_str())) {
+                if (!CompareMacroName(list[pos].c_str(), names[pos]->m_text.c_str())) {
 
                     goto skip_step;
                 }
@@ -1126,7 +1011,6 @@ parser::token_type Parser::GetNextToken(TermPtr * yylval, parser::location_type 
      * После обработки всего буфера его элеменеты передаются в парсер для обработки.
      */
 
-    parser::location_type loc;
     parser::token_type type;
     bool lexer_complete;
 
@@ -1147,8 +1031,8 @@ go_parse_string:
 next_escape_token:
 
             term = Term::Create(parser::token_type::END, TermID::END, "", 0);
-            type = lexer->lex(&term, &loc);
-            term->m_lexer_loc = loc;
+            type = lexer->lex(&term, &m_location);
+            term->m_lexer_loc = m_location;
 
             ASSERT(type == term->m_lexer_type);
 
@@ -1167,11 +1051,6 @@ next_escape_token:
                 is_escape = true;
                 goto next_escape_token;
             }
-
-            if (m_macro) {
-                type = m_macro->ExpandPredefMacro(term, this);
-            }
-
 
             if (type == parser::token_type::END) {
 
@@ -1303,14 +1182,17 @@ next_escape_token:
         if (m_enable_pragma && PragmaCheck(m_macro_analisys_buff[0])) {
 
             size_t size;
-            size = MacroBuffer::ParseTerm(pragma, m_macro_analisys_buff, 0, false);
+            size = Parser::ParseTerm(pragma, m_macro_analisys_buff, 0, false);
 
             ASSERT(size);
             ASSERT(pragma);
 
+            LOG_DEBUG("Pragma '%s' size %d", pragma->toString().c_str(), (int) size);
+
             m_macro_analisys_buff.erase(m_macro_analisys_buff.begin(), m_macro_analisys_buff.begin() + size);
 
-            while (!m_macro_analisys_buff.empty() && m_macro_analisys_buff[0]->m_text.compare(";") == 0) {
+            while (!m_macro_analisys_buff.empty() && (m_macro_analisys_buff[0]->m_text.compare(";") == 0 || m_macro_analisys_buff[0]->m_id == TermID::END)) {
+                LOG_DEBUG("Erase '%s' !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!", m_macro_analisys_buff[0]->toString().c_str());
                 m_macro_analisys_buff.erase(m_macro_analisys_buff.begin());
             }
 
@@ -1366,7 +1248,7 @@ next_escape_token:
             TermPtr macro_done = nullptr;
 
             // Итератор для списка макросов, один из которых может соответствовать текущему буферу (по первому термину буфера)
-            MacroBuffer::iterator found = m_macro->map::find(MacroBuffer::toHash(m_macro_analisys_buff[0]));
+            Named::iterator found = m_macro->map::find(Named::toMacroHash(m_macro_analisys_buff[0]));
 
             if (found == m_macro->end()) {
 
@@ -1380,9 +1262,9 @@ next_escape_token:
 
             macro_done.reset();
             // Перебрать все макросы и сравнить с буфером
-            for (auto iter = found->second.begin(); iter != found->second.end(); ++iter) {
+            for (auto iter = found->second.proto.begin(); iter != found->second.proto.end(); ++iter) {
 
-                if (MacroBuffer::IdentityMacro(m_macro_analisys_buff, *iter)) {
+                if (Named::IdentityMacro(m_macro_analisys_buff, *iter)) {
 
                     if (macro_done) {
                         LOG_RUNTIME("Macro duplication %s and '%s'!", macro_done->toString().c_str(), (*iter)->toString().c_str());
@@ -1405,8 +1287,8 @@ next_escape_token:
                 ASSERT(m_macro_analisys_buff.size() >= macro_done->m_macro_seq.size());
                 ASSERT(macro_done->Right());
 
-                MacroBuffer::MacroArgsType macro_args;
-                size_t size_remove = MacroBuffer::ExtractArgs(m_macro_analisys_buff, macro_done, macro_args);
+                Named::MacroArgsType macro_args;
+                size_t size_remove = Named::ExtractArgs(m_macro_analisys_buff, macro_done, macro_args);
 
                 //                LOG_DEBUG("buffer '%s' DumpArgs: %s", MacroBuffer::Dump(m_macro_analisys_buff).c_str(), MacroBuffer::Dump(macro_args).c_str());
 
@@ -1427,8 +1309,8 @@ next_escape_token:
 
                 if (macro_done->Right()->getTermID() == TermID::MACRO_STR) {
 
-                    std::string macro_str = MacroBuffer::ExpandString(macro_done, macro_args);
-                    lexer->source_string = std::make_shared<std::string>(MacroBuffer::ExpandString(macro_done, macro_args));
+                    std::string macro_str = Named::ExpandString(macro_done, macro_args);
+                    lexer->source_string = std::make_shared<std::string>(Named::ExpandString(macro_done, macro_args));
                     lexer->m_macro_iss = new std::istringstream(*lexer->source_string);
                     lexer->m_macro_loc = *lexer->m_loc; // save
                     lexer->m_loc->initialize();
@@ -1450,7 +1332,7 @@ next_escape_token:
                 } else {
 
                     ASSERT(macro_done->Right());
-                    BlockType macro_block = MacroBuffer::ExpandMacros(macro_done, macro_args);
+                    BlockType macro_block = Named::ExpandMacros(macro_done, macro_args);
                     m_macro_analisys_buff.insert(m_macro_analisys_buff.begin(), macro_block.begin(), macro_block.end());
 
                     std::string temp = "";
@@ -1470,7 +1352,7 @@ next_escape_token:
 
                 LOG_RUNTIME("Macro mapping '%s' not found!\nThe following macro mapping are available:\n%s",
                         m_macro_analisys_buff[0]->toString().c_str(),
-                        m_macro->GetMacroMaping(MacroBuffer::toHash(m_macro_analisys_buff[0]), "\n").c_str());
+                        m_macro->GetMacroMaping(Named::toMacroHash(m_macro_analisys_buff[0]), "\n").c_str());
 
                 //                }
             }
@@ -1484,7 +1366,16 @@ next_escape_token:
 
     if (!m_macro_analisys_buff.empty()) {
 
+        //        if (m_macro_analisys_buff[0]->m_id == TermID::END) {
+        //            *yylval = nullptr;
+        //            return parser::token_type::END;
+        //        }
+
+        //        if (m_macro_analisys_buff.at(0)->m_id) {
         //        LOG_DEBUG("%d  %s", (int)m_prep_buff.at(0)->m_lexer_type, m_prep_buff.at(0)->m_text.c_str());
+        if (m_enable_pragma) {
+            ExpandPredefMacro(m_macro_analisys_buff[0]);
+        }
 
         *yylval = m_macro_analisys_buff.at(0);
         *yylloc = m_macro_analisys_buff.at(0)->m_lexer_loc;
@@ -1505,6 +1396,7 @@ next_escape_token:
             }
 
         }
+        //        }
 
         m_macro_analisys_buff.erase(m_macro_analisys_buff.begin());
         return result;
@@ -1514,3 +1406,223 @@ next_escape_token:
     return parser::token_type::END;
 }
 
+/**
+ * Функция для организации встроенных типов в иерархию наследования.
+ * Другие функции: CreateBaseType - создает базовые типы данных (для расширения классов требуется контекст)
+ * и BaseTypeConstructor - функция обратного вызова при создании нового объекта базового типа данных
+ * @param type - Базовый тип данных \ref ObjType
+ * @param parents - Список сторок с именами родительских типов
+ * @return - Успешность регистрации базовго типа в иерархии
+ */
+//bool Named::RegisterTypeHierarchy(ObjType type, std::vector<std::string> parents) {
+//    //            std::array < std::string, sizeof...(parents) > list = {parents...};
+//
+//    std::string type_name(toString(type));
+//    auto base = m_types.find(type_name);
+//    if (base != m_types.end()) {
+//        return false;
+//    }
+//
+//    ObjPtr result = Obj::CreateBaseType(type);
+//    ASSERT(result->m_var_type_fixed == type);
+//    ASSERT(result->m_var_type_current == ObjType::Type);
+//    ASSERT(!type_name.empty() && result->m_class_name.compare(type_name) == 0);
+//    ASSERT(result->m_class_parents.empty());
+//
+//    for (auto &parent : parents) {
+//        auto iter = m_types.find(parent);
+//        if (iter == m_types.end()) {
+//            LOG_DEBUG("Parent type '%s' not found!", parent.c_str());
+//            return false;
+//        }
+//        for (auto &elem : result->m_class_parents) {
+//            ASSERT(elem);
+//            if (!elem->m_class_name.empty() && elem->m_class_name.compare(parent) == 0) {
+//                LOG_DEBUG("The type '%s' already exists in the parents of '%s'!", parent.c_str(), type_name.c_str());
+//                return false;
+//            }
+//        }
+//        ASSERT(iter->first.compare(parent) == 0);
+//        result->m_class_parents.push_back(iter->second);
+//    }
+//    m_types[type_name] = result;
+//    return true;
+//}
+//
+//ObjType Named::BaseTypeFromString(const std::string & type, bool *has_error = nullptr) {
+//    ObjPtr obj_type = GetTypeFromString(type, has_error);
+//
+//    if (obj_type == nullptr) {
+//        if (has_error) {
+//            *has_error = true;
+//            return ObjType::None;
+//        }
+//        LOG_RUNTIME("Type name '%s' not found!", type.c_str());
+//    }
+//    return obj_type->m_var_type_fixed;
+//}
+//
+//ObjPtr Named::GetTypeFromString(const std::string & type, bool *has_error = nullptr) {
+//    if (type.empty()) {
+//        if (has_error) {
+//            *has_error = true;
+//            return Obj::CreateNone();
+//        }
+//        LOG_RUNTIME("Type name '%s' not found!", type.c_str());
+//    }
+//
+//    auto result_types = m_types.find(type);
+//    if (result_types != m_types.end()) {
+//        return result_types->second;
+//    }
+//
+//    auto result_terms = m_terms->find(type);
+//    if (result_terms != m_terms->end()) {
+//        return result_terms->second;
+//    }
+//
+//    auto result_find = find(type);
+//    if (result_find != end()) {
+//        return result_find->second.lock();
+//    }
+//
+//    if (has_error) {
+//        *has_error = true;
+//        return nullptr;
+//    }
+//    LOG_RUNTIME("Type name '%s' not found!", type.c_str());
+//}
+
+
+std::vector<std::wstring> Named::SelectPredict(std::string start, size_t overage_count) {
+
+    std::vector<std::wstring> result;
+
+    bool find_local = false;
+    bool find_global = false;
+    bool find_types = false;
+    bool find_macro = false;
+
+    std::string prefix;
+
+    if (isModule(start)) {
+        prefix = start[0];
+        start = start.substr(1);
+        find_global = true;
+    } else if (isLocal(start)) {
+        prefix = start[0];
+        start = start.substr(1);
+        find_local = true;
+    } else if (isMacro(start)) {
+        find_macro = true;
+    } else if (isType(start)) {
+        find_types = true;
+    } else {
+        find_local = true;
+        find_global = true;
+        find_types = true;
+        find_macro = true;
+    }
+
+
+    if (find_macro) {
+        for (auto &elem : * this) {
+            if (pred_compare(start, elem.first)) {
+                result.push_back(utf8_decode(prefix + elem.first));
+                if (result.size() > overage_count + 1) {
+                    break;
+                }
+            }
+        }
+    }
+
+    if (find_local) {
+        //        for (int i = 0; i < size(); i++) {
+        //            if (pred_compare(start, at(i).first)) {
+        //                ObjPtr object = at(i).second.lock();
+        //                if (object && object->is_function_type()) {
+        //                    result.push_back(utf8_decode(prefix + at(i).first) + L"(");
+        //                } else if (object) {
+        //                    result.push_back(utf8_decode(prefix + at(i).first));
+        //                }
+        //                if (result.size() > overage_count + 1) {
+        //                    break;
+        //                }
+        //            }
+        //        }
+    }
+
+    if (find_global) {
+        //        for (int i = 0; i < m_terms->size(); i++) {
+        //            if (pred_compare(start, m_terms->at(i).first)) {
+        //                if (m_terms->at(i).second->is_function_type()) {
+        //                    result.push_back(utf8_decode(prefix + m_terms->at(i).first) + L"(");
+        //                } else {
+        //                    result.push_back(utf8_decode(prefix + m_terms->at(i).first));
+        //                }
+        //                if (result.size() > overage_count + 1) {
+        //                    break;
+        //                }
+        //            }
+        //        }
+
+        for (auto &elem : m_funcs) {
+
+            if (pred_compare(start, elem.first)) {
+                result.push_back(utf8_decode(prefix + elem.first) + L"(");
+                if (result.size() > overage_count + 1) {
+                    break;
+                }
+            }
+        }
+    }
+
+    if (find_types) {
+        for (auto &elem : m_types) {
+            if (pred_compare(start, elem.first)) {
+                result.push_back(utf8_decode(elem.first));
+                if (result.size() > overage_count + 1) {
+                    break;
+                }
+            }
+        }
+    }
+    return result;
+
+}
+
+TermPtr Named::FindTerm(std::string_view name) {//, bool *has_error = nullptr) {
+    if (name.empty()) {
+        LOG_RUNTIME("Empty term name!");
+    }
+
+    //    auto found = map::find(name);
+    //    if (found == end()) {
+    //        return nullptr;
+    //    }
+    //    
+    //    return found->second.proto
+    //    
+    //    
+    //
+    //    auto result_types = m_types.find(type);
+    //    if (result_types != m_types.end()) {
+    //        return result_types->second;
+    //    }
+    //
+    //    auto result_terms = m_terms->find(type);
+    //    if (result_terms != m_terms->end()) {
+    //        return result_terms->second;
+    //    }
+    //
+    //    auto result_find = find(type);
+    //    if (result_find != end()) {
+    //        return result_find->second.lock();
+    //    }
+    //
+    //    if (has_error) {
+    //        *has_error = true;
+    //        return nullptr;
+    //    }
+    LOG_RUNTIME("Type name '%s' not found!", name.begin());
+}

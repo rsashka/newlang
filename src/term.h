@@ -82,6 +82,7 @@ namespace newlang {
         _(WHILE) \
         _(DOWHILE) \
         _(MATCHING) \
+        _(WITH) \
         \
         _(RANGE) \
         _(ELLIPSIS) \
@@ -1277,6 +1278,8 @@ namespace newlang {
         /// Символьное описание потребуется для работы с пользовательскими типами данных.
         /// Итоговый тип может отличаться от указанного в исходнике для совместимых типов.
         std::string m_type_name;
+        
+        std::weak_ptr<Obj> m_obj;
 
         SCOPE(private) :
 

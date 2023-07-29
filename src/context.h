@@ -23,13 +23,6 @@ namespace newlang {
     std::string MangaledFuncCPP(const char *name, const char *space = nullptr);
     std::string MangaledFunc(const std::string name);
 
-    inline std::string MakeName(std::string name) {
-        if (!name.empty() && (name[0] == '$' || name[0] == '@' || name[0] == '%')) {
-            return name.substr(1);
-        }
-        return name;
-    }
-
     inline std::string MakeConstructorName(std::string name) {
         ASSERT(isType(name));
         std::string result(name.substr(1));
@@ -40,29 +33,6 @@ namespace newlang {
 
     inline std::string MakeLocalName(std::string name) {
         return MangleName(MakeName(name).c_str());
-    }
-
-    inline std::string ExtractModuleName(const char *str) {
-        std::string name(str);
-        if (isModule(name)) {
-            size_t pos = name.find("::");
-            if (pos != std::string::npos) {
-                return name.substr(0, pos);
-            }
-            return name;
-        }
-        return std::string();
-    }
-
-    inline std::string ExtractName(std::string name) {
-        size_t pos = name.rfind("::");
-        if (pos != std::string::npos) {
-            name = name.substr(pos + 2);
-        }
-        if (isModule(name)) {
-            return std::string();
-        }
-        return name;
     }
 
     inline std::string GetDoc(std::string name) {
@@ -136,9 +106,9 @@ namespace newlang {
         _(">>>=", RRSHIFT_)\
         _("<=>", SPACESHIP)
 
-#define NL_BUILTIN(_) \
-        _("export", NOT_SUPPORT)\
-        _("local", NOT_SUPPORT)
+//#define NL_BUILTIN(_) \
+//        _("export", NOT_SUPPORT)\
+//        _("local", NOT_SUPPORT)
 
     class Module : public Obj {
     public:
@@ -254,46 +224,24 @@ namespace newlang {
 #undef PROTO_OP
 
 
-        typedef ObjPtr(*EvalFunction)(Context *ctx, const TermPtr & term, Obj * args, bool eval_block);
+//        typedef ObjPtr(*EvalFunction)(Context *ctx, const TermPtr & term, Obj * args, bool eval_block);
 
-        static std::map<std::string, Context::EvalFunction> m_ops;
-        static std::map<std::string, Context::EvalFunction> m_builtin_calls;
+        static std::map<std::string, EvalFunction> m_ops;
+//        static std::map<std::string, Context::EvalFunction> m_builtin_calls;
         //        static Parser::MacrosStore m_macros; ///< Хотя макросы и могут обработываться в рантайме, но доступны они только для парсера
-        static MacroBuffer m_macros;
+        NamedPtr m_named;
 
         LLVMBuilderRef m_llvm_builder;
 
-        std::map<std::string, std::shared_ptr<Module>> m_modules;
-
-        static std::vector<std::string> SplitString(const char * str, const char *delim) {
-
-            std::vector<std::string> result;
-            std::string s(str);
-
-            size_t pos;
-            s.erase(0, s.find_first_not_of(delim));
-            while (!s.empty()) {
-                pos = s.find(delim);
-                if (pos == std::string::npos) {
-                    result.push_back(s);
-                    break;
-                } else {
-                    result.push_back(s.substr(0, pos));
-                    s.erase(0, pos);
-                }
-                s.erase(0, s.find_first_not_of(delim));
-            }
-            return result;
-        }
+        std::map<std::string, ModulePtr> m_modules;
 
         bool CheckOrLoadModule(std::string name);
 
         static void Reset() {
-            m_types.clear();
-            m_funcs.clear();
-            m_macros.clear();
+//            m_types.clear();
+//            m_funcs.clear();
             m_ops.clear();
-            m_builtin_calls.clear();
+//            m_builtin_calls.clear();
             Docs::m_docs.clear();
         }
 
@@ -306,8 +254,6 @@ namespace newlang {
             m_terms->clear_();
             m_terms->m_var_is_init = true;
             m_terms->m_var_type_current = ObjType::Module;
-
-            m_ns_stack.clear();
         }
 
         inline ObjPtr ExecFile(const std::string &filename, Obj *args = nullptr, CatchType int_catch = CatchType::CATCH_ALL) {
@@ -319,7 +265,7 @@ namespace newlang {
         }
 
         inline ObjPtr ExecStr(const std::string str, Obj *args = nullptr, CatchType int_catch = CatchType::CATCH_AUTO) {
-            TermPtr exec = Parser::ParseString(str, &m_macros);
+            TermPtr exec = Parser::ParseString(str, m_named);
             ObjPtr temp;
             if (args == nullptr) {
                 temp = Obj::CreateNone();
@@ -336,9 +282,9 @@ namespace newlang {
         Context(RuntimePtr global);
 
 
-        static std::map<std::string, ObjPtr> m_types;
-        typedef at::variant<ObjPtr, std::vector < ObjPtr> > FuncItem;
-        static std::map<std::string, FuncItem> m_funcs; // Системный и встроенные функции 
+//        static std::map<std::string, ObjPtr> m_types;
+//        typedef at::variant<ObjPtr, std::vector < ObjPtr> > FuncItem;
+//        static std::map<std::string, FuncItem> m_funcs; // Системный и встроенные функции 
 
         ObjPtr CreateClass(std::string class_name, TermPtr type, Obj *args);
 
@@ -369,9 +315,9 @@ namespace newlang {
         void ItemTensorEval_(torch::Tensor &tensor, c10::IntArrayRef shape, std::vector<Index> &ind, const int64_t pos, ObjPtr & obj, ObjPtr & args);
         void ItemTensorEval(torch::Tensor &tensor, ObjPtr obj, ObjPtr args);
 
-        void ReadBuiltInProto(ProtoType & proto);
+//        void ReadBuiltInProto(ProtoType & proto);
 
-        bool CreateBuiltin(const char * prototype, void * func, ObjType type);
+//        bool CreateBuiltin(const char * prototype, void * func, ObjType type);
         ObjPtr RegisterObject(ObjPtr var);
 
         ObjPtr RemoveObject(const char * name) {
@@ -396,8 +342,8 @@ namespace newlang {
             if (found != end()) {
                 return found->second.lock();
             }
-            auto func = m_funcs.find(str);
-            if (func != m_funcs.end()) {
+            auto func = m_named->m_funcs.find(str);
+            if (func != m_named->m_funcs.end()) {
                 if (at::holds_alternative<ObjPtr>(func->second)) {
                     return at::get<ObjPtr>(func->second);
                 }
@@ -409,46 +355,8 @@ namespace newlang {
 
         RuntimePtr m_runtime; // Глобальный контекс, если к нему есть доступ
 
-        std::shared_ptr<Module> m_main_module;
+        ModulePtr m_main_module;
         Module * m_terms;
-        std::vector<std::string> m_ns_stack;
-
-        bool NamespasePush(const std::string &name) {
-            if (name.empty()) {
-                return false;
-            }
-            m_ns_stack.push_back(name);
-            return true;
-        }
-
-        void NamespasePop() {
-            ASSERT(!m_ns_stack.empty());
-            m_ns_stack.pop_back();
-        }
-
-        std::string NamespaseFull(std::string name = "") {
-            if (name.find("::") != 0) {
-                for (size_t i = m_ns_stack.size(); i > 0; i--) {
-                    if (!name.empty()) {
-                        name.insert(0, "::");
-                    }
-                    if (m_ns_stack[i - 1].compare("::") == 0) {
-                        if (name.empty()) {
-                            name = "::";
-                        }
-                        break;
-                    }
-                    name.insert(0, m_ns_stack[i - 1]);
-                    if (m_ns_stack[i - 1].find("::") == 0) {
-                        break;
-                    }
-                }
-            }
-            //            if (!isFullName(name)) {
-            //                name.insert(0, "::");
-            //            }
-            return name;
-        }
 
         std::string Dump(const char *separator = "") {
             std::string result;
@@ -542,117 +450,117 @@ namespace newlang {
         ffi_call_type * m_ffi_call;
         //        m_func_abi
 
-        static bool pred_compare(const std::string &find, const std::string &str) {
-            size_t pos = 0;
-            while (pos < find.size() && pos < str.size()) {
-                if (find[pos] != str[pos]) {
-                    return false;
-                }
-                pos++;
-            }
-            return find.empty() || (pos && find.size() == pos);
-        }
-
-        std::vector<std::wstring> SelectPredict(std::wstring wstart, size_t overage_count = 0) {
-            return SelectPredict(utf8_encode(wstart), overage_count);
-        }
-
-        std::vector<std::wstring> SelectPredict(std::string start, size_t overage_count = 0) {
-
-            std::vector<std::wstring> result;
-
-            bool find_local = false;
-            bool find_global = false;
-            bool find_types = false;
-            bool find_macro = false;
-
-            std::string prefix;
-
-            if (isModule(start)) {
-                prefix = start[0];
-                start = start.substr(1);
-                find_global = true;
-            } else if (isLocal(start)) {
-                prefix = start[0];
-                start = start.substr(1);
-                find_local = true;
-            } else if (isMacro(start)) {
-                find_macro = true;
-            } else if (isType(start)) {
-                find_types = true;
-            } else {
-                find_local = true;
-                find_global = true;
-                find_types = true;
-                find_macro = true;
-            }
-
-
-            if (find_macro) {
-                for (auto &elem : m_macros) {
-                    if (pred_compare(start, elem.first)) {
-                        result.push_back(utf8_decode(prefix + elem.first));
-                        if (result.size() > overage_count + 1) {
-                            break;
-                        }
-                    }
-                }
-            }
-
-            if (find_local) {
-                for (int i = 0; i < size(); i++) {
-                    if (pred_compare(start, at(i).first)) {
-                        ObjPtr object = at(i).second.lock();
-                        if (object && object->is_function_type()) {
-                            result.push_back(utf8_decode(prefix + at(i).first) + L"(");
-                        } else if (object) {
-                            result.push_back(utf8_decode(prefix + at(i).first));
-                        }
-                        if (result.size() > overage_count + 1) {
-                            break;
-                        }
-                    }
-                }
-            }
-
-            if (find_global) {
-                for (int i = 0; i < m_terms->size(); i++) {
-                    if (pred_compare(start, m_terms->at(i).first)) {
-                        if (m_terms->at(i).second->is_function_type()) {
-                            result.push_back(utf8_decode(prefix + m_terms->at(i).first) + L"(");
-                        } else {
-                            result.push_back(utf8_decode(prefix + m_terms->at(i).first));
-                        }
-                        if (result.size() > overage_count + 1) {
-                            break;
-                        }
-                    }
-                }
-
-                for (auto &elem : m_funcs) {
-
-                    if (pred_compare(start, elem.first)) {
-                        result.push_back(utf8_decode(prefix + elem.first) + L"(");
-                        if (result.size() > overage_count + 1) {
-                            break;
-                        }
-                    }
-                }
-            }
-
-            if (find_types) {
-                for (auto &elem : m_types) {
-                    if (pred_compare(start, elem.first)) {
-                        result.push_back(utf8_decode(elem.first));
-                        if (result.size() > overage_count + 1) {
-                            break;
-                        }
-                    }
-                }
-            }
-            return result;
-
-        }
+//        static bool pred_compare(const std::string &find, const std::string &str) {
+//            size_t pos = 0;
+//            while (pos < find.size() && pos < str.size()) {
+//                if (find[pos] != str[pos]) {
+//                    return false;
+//                }
+//                pos++;
+//            }
+//            return find.empty() || (pos && find.size() == pos);
+//        }
+//
+//        std::vector<std::wstring> SelectPredict(std::wstring wstart, size_t overage_count = 0) {
+//            return SelectPredict(utf8_encode(wstart), overage_count);
+//        }
+//
+//        std::vector<std::wstring> SelectPredict(std::string start, size_t overage_count = 0) {
+//
+//            std::vector<std::wstring> result;
+//
+//            bool find_local = false;
+//            bool find_global = false;
+//            bool find_types = false;
+//            bool find_macro = false;
+//
+//            std::string prefix;
+//
+//            if (isModule(start)) {
+//                prefix = start[0];
+//                start = start.substr(1);
+//                find_global = true;
+//            } else if (isLocal(start)) {
+//                prefix = start[0];
+//                start = start.substr(1);
+//                find_local = true;
+//            } else if (isMacro(start)) {
+//                find_macro = true;
+//            } else if (isType(start)) {
+//                find_types = true;
+//            } else {
+//                find_local = true;
+//                find_global = true;
+//                find_types = true;
+//                find_macro = true;
+//            }
+//
+//
+//            if (find_macro) {
+//                for (auto &elem : *m_named) {
+//                    if (pred_compare(start, elem.first)) {
+//                        result.push_back(utf8_decode(prefix + elem.first));
+//                        if (result.size() > overage_count + 1) {
+//                            break;
+//                        }
+//                    }
+//                }
+//            }
+//
+//            if (find_local) {
+//                for (int i = 0; i < size(); i++) {
+//                    if (pred_compare(start, at(i).first)) {
+//                        ObjPtr object = at(i).second.lock();
+//                        if (object && object->is_function_type()) {
+//                            result.push_back(utf8_decode(prefix + at(i).first) + L"(");
+//                        } else if (object) {
+//                            result.push_back(utf8_decode(prefix + at(i).first));
+//                        }
+//                        if (result.size() > overage_count + 1) {
+//                            break;
+//                        }
+//                    }
+//                }
+//            }
+//
+//            if (find_global) {
+//                for (int i = 0; i < m_terms->size(); i++) {
+//                    if (pred_compare(start, m_terms->at(i).first)) {
+//                        if (m_terms->at(i).second->is_function_type()) {
+//                            result.push_back(utf8_decode(prefix + m_terms->at(i).first) + L"(");
+//                        } else {
+//                            result.push_back(utf8_decode(prefix + m_terms->at(i).first));
+//                        }
+//                        if (result.size() > overage_count + 1) {
+//                            break;
+//                        }
+//                    }
+//                }
+//
+//                for (auto &elem : m_named->m_funcs) {
+//
+//                    if (pred_compare(start, elem.first)) {
+//                        result.push_back(utf8_decode(prefix + elem.first) + L"(");
+//                        if (result.size() > overage_count + 1) {
+//                            break;
+//                        }
+//                    }
+//                }
+//            }
+//
+//            if (find_types) {
+//                for (auto &elem : m_named->m_types) {
+//                    if (pred_compare(start, elem.first)) {
+//                        result.push_back(utf8_decode(elem.first));
+//                        if (result.size() > overage_count + 1) {
+//                            break;
+//                        }
+//                    }
+//                }
+//            }
+//            return result;
+//
+//        }
 
         inline ObjPtr ConvertType(const ObjType type, const Dimension *dims, ObjPtr obj, const ObjPtr obj2 = nullptr) {
             ObjPtr result = obj->Clone();
@@ -668,7 +576,7 @@ namespace newlang {
             std::string func_dump(prototype);
             func_dump += " := { };";
 
-            TermPtr proto = Parser::ParseString(func_dump, &m_macros);
+            TermPtr proto = Parser::ParseString(func_dump, m_named);
             ObjPtr obj =
                     Obj::CreateFunc(this, proto->Left(), type,
                     proto->Left()->getName().empty() ? proto->Left()->getText() : proto->Left()->getName());
@@ -689,8 +597,8 @@ namespace newlang {
             //            std::array < std::string, sizeof...(parents) > list = {parents...};
 
             std::string type_name(toString(type));
-            auto base = m_types.find(type_name);
-            if (base != m_types.end()) {
+            auto base = m_named->m_types.find(type_name);
+            if (base != m_named->m_types.end()) {
                 return false;
             }
 
@@ -701,8 +609,8 @@ namespace newlang {
             ASSERT(result->m_class_parents.empty());
 
             for (auto &parent : parents) {
-                auto iter = m_types.find(parent);
-                if (iter == m_types.end()) {
+                auto iter = m_named->m_types.find(parent);
+                if (iter == m_named->m_types.end()) {
                     LOG_DEBUG("Parent type '%s' not found!", parent.c_str());
                     return false;
                 }
@@ -716,7 +624,7 @@ namespace newlang {
                 ASSERT(iter->first.compare(parent) == 0);
                 result->m_class_parents.push_back(iter->second);
             }
-            m_types[type_name] = result;
+            m_named->m_types[type_name] = result;
             return true;
         }
 
@@ -742,8 +650,8 @@ namespace newlang {
                 LOG_RUNTIME("Type name '%s' not found!", type.c_str());
             }
 
-            auto result_types = m_types.find(type);
-            if (result_types != m_types.end()) {
+            auto result_types = m_named->m_types.find(type);
+            if (result_types != m_named->m_types.end()) {
                 return result_types->second;
             }
 

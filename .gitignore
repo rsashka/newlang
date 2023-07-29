@@ -1,4 +1,5 @@
 TEMP
+doxygen/*
 **/*.pt
 contrib/*
 **/.obsidian

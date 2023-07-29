@@ -8,12 +8,14 @@
 
 using namespace newlang;
 
-Parser::Parser(MacroBuffer *macro, PostLexerType *postlex, DiagPtr diag, bool pragma_enable) {
+int Parser::m_counter = 0;
+
+Parser::Parser(NamedPtr macro, PostLexerType *postlex, DiagPtr diag, bool pragma_enable) {
     char *source_date_epoch = std::getenv("SOURCE_DATE_EPOCH");
-    if(source_date_epoch) {
+    if (source_date_epoch) {
         std::istringstream iss(source_date_epoch);
         iss >> m_timestamp;
-        if(iss.fail() || !iss.eof()) {
+        if (iss.fail() || !iss.eof()) {
             LOG_RUNTIME("Error: Cannot parse SOURCE_DATE_EPOCH (%s) as integer", source_date_epoch);
         }
     } else {
@@ -39,7 +41,7 @@ Parser::Parser(MacroBuffer *macro, PostLexerType *postlex, DiagPtr diag, bool pr
 TermPtr Parser::ParseFile(const std::string filename) {
 
     llvm::SmallVector<char> path;
-    if(!llvm::sys::fs::real_path(filename, path)) {
+    if (!llvm::sys::fs::real_path(filename, path)) {
         m_file_name = llvm::StringRef(path.data(), path.size());
     } else {
         m_file_name = filename;
@@ -47,7 +49,7 @@ TermPtr Parser::ParseFile(const std::string filename) {
 
     llvm::sys::fs::file_status fs;
     std::error_code ec = llvm::sys::fs::status(filename, fs);
-    if(!ec) {
+    if (!ec) {
         time_t temp = llvm::sys::toTimeT(fs.getLastModificationTime());
         struct tm * timeinfo;
         timeinfo = localtime(&temp);
@@ -56,14 +58,14 @@ TermPtr Parser::ParseFile(const std::string filename) {
     }
 
     auto md5 = llvm::sys::fs::md5_contents(filename);
-    if(md5) {
+    if (md5) {
         llvm::SmallString<32> hash;
         llvm::MD5::stringifyResult(*md5, hash);
         m_file_md5 = hash.c_str();
     }
 
     int fd = open(filename.c_str(), O_RDONLY);
-    if(fd < 0) {
+    if (fd < 0) {
         LOG_RUNTIME("Error open file '%s'", filename.c_str());
     }
 
@@ -90,7 +92,7 @@ TermPtr Parser::Parse(const std::string input) {
     lexer = &scanner;
 
     parser parser(*this);
-    if(parser.parse() != 0) {
+    if (parser.parse() != 0) {
         return m_ast;
     }
 
@@ -100,7 +102,7 @@ TermPtr Parser::Parse(const std::string input) {
     return m_ast;
 }
 
-TermPtr Parser::ParseString(const std::string str, MacroBuffer *macro, PostLexerType *postlex, DiagPtr diag) {
+TermPtr Parser::ParseString(const std::string str, NamedPtr macro, PostLexerType *postlex, DiagPtr diag) {
     Parser p(macro, postlex, diag);
     return p.Parse(str);
 }
@@ -128,10 +130,10 @@ TermPtr Parser::GetAst() {
 void Parser::AstAddTerm(TermPtr &term) {
     ASSERT(m_ast);
     term->m_source = lexer->source_string;
-    if(m_ast->m_id == TermID::END) {
+    if (m_ast->m_id == TermID::END) {
         m_ast = term;
         m_ast->ConvertSequenceToBlock(TermID::BLOCK, false);
-    } else if(!m_ast->IsBlock()) {
+    } else if (!m_ast->IsBlock()) {
         m_ast->ConvertSequenceToBlock(TermID::BLOCK, true);
     } else {
         ASSERT(m_ast->IsBlock());
@@ -141,7 +143,7 @@ void Parser::AstAddTerm(TermPtr &term) {
 
 TermPtr Parser::MacroEval(const TermPtr &term) {
 
-    if(!m_macro) {
+    if (!m_macro) {
         m_diag->Emit(Diag::DIAG_MACRO_NOT_FOUND, term);
         return term;
     }
@@ -152,10 +154,10 @@ TermPtr Parser::MacroEval(const TermPtr &term) {
 }
 
 bool Parser::PragmaCheck(const TermPtr& term) {
-    if(term && term->m_text.size() > 5
+    if (term && term->m_text.size() > 5
             && term->m_text.find("@__") == 0
             && term->m_text.rfind("__") == term->m_text.size() - 2) {
-        return true;
+        return !CheckPredefMacro(term);
     }
     return false;
 }
@@ -213,33 +215,35 @@ bool Parser::PragmaEval(const TermPtr &term, BlockType &buffer) {
 
     static const char * __PRAGMA_NO_MACRO__ = "@__PRAGMA_NO_MACRO__";
     static const char * __PRAGMA_INDENT_BLOCK__ = "@__PRAGMA_INDENT_BLOCK__";
+
     static const char * __PRAGMA_PROTOTYPE__ = "@__PRAGMA_PROTOTYPE__";
+    static const char * __PRAGMA_LOCATION__ = "@__PRAGMA_LOCATION__";
 
     static const char * __ANNOTATION_SET__ = "@__ANNOTATION_SET__";
     static const char * __ANNOTATION_IIF__ = "@__ANNOTATION_IIF__";
 
     ASSERT(term);
-    if(term->m_text.compare(__PRAGMA_DIAG__) == 0) {
-        if(term->size() == 0) {
+    if (term->m_text.compare(__PRAGMA_DIAG__) == 0) {
+        if (term->size() == 0) {
             NL_PARSER(term, "Expected argument in pragma '%s'", term->toString().c_str());
         }
 
         Diag::State state;
-        if(term->at(0).second->m_text.compare("push") == 0) {
+        if (term->at(0).second->m_text.compare("push") == 0) {
 
             m_diag->Push(term);
             return true;
 
-        } else if(term->at(0).second->m_text.compare("pop") == 0) {
+        } else if (term->at(0).second->m_text.compare("pop") == 0) {
 
             m_diag->Pop(term);
             return true;
 
-        } else if(term->at(0).second->m_text.compare(Diag::toString(Diag::State::ignored)) == 0) {
+        } else if (term->at(0).second->m_text.compare(Diag::toString(Diag::State::ignored)) == 0) {
             state = Diag::State::ignored;
-        } else if(term->at(0).second->m_text.compare(Diag::toString(Diag::State::warning)) == 0) {
+        } else if (term->at(0).second->m_text.compare(Diag::toString(Diag::State::warning)) == 0) {
             state = Diag::State::warning;
-        } else if(term->at(0).second->m_text.compare(Diag::toString(Diag::State::error)) == 0) {
+        } else if (term->at(0).second->m_text.compare(Diag::toString(Diag::State::error)) == 0) {
             state = Diag::State::error;
         } else {
             NL_PARSER(term, "Pragma '%s' not recognized!", term->toString().c_str());
@@ -250,7 +254,7 @@ bool Parser::PragmaEval(const TermPtr &term, BlockType &buffer) {
         }
 
 
-    } else if(term->m_text.compare(__PRAGMA_MESSAGE__) == 0
+    } else if (term->m_text.compare(__PRAGMA_MESSAGE__) == 0
             || term->m_text.compare(__PRAGMA_WARNING__) == 0
             || term->m_text.compare(__PRAGMA_ERROR__) == 0) {
 
@@ -261,9 +265,9 @@ bool Parser::PragmaEval(const TermPtr &term, BlockType &buffer) {
 
         utils::Logger::LogLevelType save = utils::Logger::Instance()->GetLogLevel();
         utils::Logger::Instance()->SetLogLevel(LOG_LEVEL_INFO);
-        if(term->m_text.compare(__PRAGMA_MESSAGE__) == 0) {
+        if (term->m_text.compare(__PRAGMA_MESSAGE__) == 0) {
             LOG_INFO("note: %s", message.c_str());
-        } else if(term->m_text.compare(__PRAGMA_WARNING__) == 0) {
+        } else if (term->m_text.compare(__PRAGMA_WARNING__) == 0) {
             LOG_WARNING("warn: %s", message.c_str());
         } else {
             ASSERT(term->m_text.compare(__PRAGMA_ERROR__) == 0);
@@ -271,7 +275,7 @@ bool Parser::PragmaEval(const TermPtr &term, BlockType &buffer) {
         }
         utils::Logger::Instance()->SetLogLevel(save);
 
-    } else if(term->m_text.compare(__PRAGMA_IGNORE__) == 0) {
+    } else if (term->m_text.compare(__PRAGMA_IGNORE__) == 0) {
 
         LOG_RUNTIME("Pragma @__PRAGMA_IGNORE__ not implemented!");
 
@@ -280,19 +284,19 @@ bool Parser::PragmaEval(const TermPtr &term, BlockType &buffer) {
         static const char * ignore_comment = "comment";
         static const char * ignore_crlf = "crlf";
 
-    } else if(term->m_text.compare(__PRAGMA_MACRO__) == 0) {
+    } else if (term->m_text.compare(__PRAGMA_MACRO__) == 0) {
 
-        if(term->size() == 0) {
+        if (term->size() == 0) {
             NL_PARSER(term, "Expected argument in pragma macro '%s'", term->toString().c_str());
         }
 
         Diag::State state;
-        if(term->at(0).second->m_text.compare("push") == 0) {
+        if (term->at(0).second->m_text.compare("push") == 0) {
 
             m_macro->Push(term);
             return true;
 
-        } else if(term->at(0).second->m_text.compare("pop") == 0) {
+        } else if (term->at(0).second->m_text.compare("pop") == 0) {
 
             m_macro->Pop(term);
             return true;
@@ -310,51 +314,104 @@ bool Parser::PragmaEval(const TermPtr &term, BlockType &buffer) {
         //        for (int i = 1; i < term->size(); i++) {
         //            m_diag->Apply(term->at(i).second->m_text.c_str(), state, term);
         //        }
-    } else if(term->m_text.compare(__PRAGMA_MACRO_COND__) == 0) {
+    } else if (term->m_text.compare(__PRAGMA_MACRO_COND__) == 0) {
 
-        if(term->size() == 0) {
+        if (term->size() == 0) {
             NL_PARSER(term, "Expected argument in pragma macro '%s'", term->toString().c_str());
         }
 
         LOG_RUNTIME("Pragma @__PRAGMA_MACRO_COND__ not implemented!");
 
 
-    } else if(term->m_text.compare(__PRAGMA_INDENT_BLOCK__) == 0) {
+    } else if (term->m_text.compare(__PRAGMA_INDENT_BLOCK__) == 0) {
 
         LOG_RUNTIME("Pragma @__PRAGMA_INDENT_BLOCK__ not implemented!");
 
-    } else if(term->m_text.compare(__PRAGMA_EXPECTED__) == 0) {
+    } else if (term->m_text.compare(__PRAGMA_EXPECTED__) == 0) {
 
         m_expected = term;
 
-    } else if(term->m_text.compare(__PRAGMA_UNEXPECTED__) == 0) {
+    } else if (term->m_text.compare(__PRAGMA_UNEXPECTED__) == 0) {
 
         m_unexpected = term;
 
-    } else if(term->m_text.compare(__PRAGMA_FINALIZE__) == 0) {
+    } else if (term->m_text.compare(__PRAGMA_FINALIZE__) == 0) {
 
-        if(m_finalize || m_finalize_counter) {
+        if (m_finalize || m_finalize_counter) {
             LOG_RUNTIME("Nested definitions of pragma @__PRAGMA_FINALIZE__ not implemented!");
         }
 
         m_finalize = term;
         m_finalize_counter = 0;
 
-    } else if(term->m_text.compare(__PRAGMA_NO_MACRO__) == 0) {
+    } else if (term->m_text.compare(__PRAGMA_NO_MACRO__) == 0) {
 
         ASSERT(term->size() == 0);
 
         m_no_macro = true;
 
-    } else if(term->m_text.compare(__ANNOTATION_SET__) == 0) {
+    } else if (term->m_text.compare(__PRAGMA_PROTOTYPE__) == 0) {
 
-        if(term->size() == 1) {
+        LOG_RUNTIME("Pragma @__PRAGMA_PROTOTYPE__ not implemented!");
+
+    } else if (term->m_text.compare(__PRAGMA_LOCATION__) == 0) {
+
+        // #line 303 "location.hh"
+        // Prototype - @__PRAGMA_LOCATION__( pop )
+        // Prototype - @__PRAGMA_LOCATION__( push ) or @__PRAGMA_LOCATION__( push, 'filename') or @__PRAGMA_LOCATION__( push, 'filename', line)
+        // Prototype - @__PRAGMA_LOCATION__( line ) or @__PRAGMA_LOCATION__( line, 'filename')
+        if (term->size() == 1 && term->at(0).first.empty() && term->at(0).second->m_text.compare("pop") == 0) {
+
+            if (m_loc_stack.empty()) {
+                NL_PARSER(term, "Empty stack location!");
+            }
+            m_location = m_loc_stack[m_loc_stack.size() - 1];
+            m_loc_stack.pop_back();
+            return true;
+
+        } else if (term->size() >= 1 && term->at(0).first.empty() && term->at(0).second->m_text.compare("push") == 0) {
+
+            if (term->size() == 1) {
+                m_loc_stack.push_back(m_location);
+                return true;
+            } else if (term->size() >= 2 && term->at(1).first.empty() && term->at(1).second->IsString()) {
+
+                m_loc_stack.push_back(m_location);
+                streamname = term->at(1).second->getText();
+
+                if (term->size() == 2) {
+                    return true;
+                } else if (term->size() == 3 && term->at(2).first.empty() && term->at(2).second->getTermID() == TermID::INTEGER) {
+                    m_location.begin.line = std::stoi(term->at(0).second->getText().c_str());
+                    m_location.end.line = m_location.begin.line;
+                    return true;
+                }
+            }
+
+        } else if (term->size() >= 1 && term->at(0).first.empty() && term->at(0).second->getTermID() == TermID::INTEGER) {
+
+            m_location.begin.line = std::stoi(term->at(0).second->getText().c_str());
+            m_location.end.line = m_location.begin.line;
+            if (term->size() == 1) {
+                return true;
+            } else if (term->size() == 2 && term->at(1).first.empty() && term->at(1).second->IsString()) {
+                m_loc_stack.push_back(m_location);
+                streamname = term->at(1).second->getText();
+                return true;
+            }
+        }
+        NL_PARSER(term, "See @__PRAGMA_LOCATION__ for usage and syntax help.");
+
+
+    } else if (term->m_text.compare(__ANNOTATION_SET__) == 0) {
+
+        if (term->size() == 1) {
             // Set `name` = 1;
             std::string name = term->at(0).second->m_text;
             LOG_DEBUG("NAME: %s", name.c_str());
 
             auto iter = m_annotation->find(term->at(0).second->m_text);
-            if(iter == m_annotation->end()) {
+            if (iter == m_annotation->end()) {
                 m_annotation->push_back(Term::Create(parser::token_type::INTEGER, TermID::INTEGER, "1", 1, &term->m_lexer_loc, term->m_source), name);
             } else {
                 //                iter->second =
@@ -362,27 +419,27 @@ bool Parser::PragmaEval(const TermPtr &term, BlockType &buffer) {
             }
 
 
-        } else if(term->size() == 2) {
+        } else if (term->size() == 2) {
             // Set `name` = value;
             m_annotation->push_back(term->at(1).second, term->at(0).second->m_text);
         } else {
             NL_PARSER(term, "Annotation args in '%s' not recognized!", term->toString().c_str());
         }
 
-//        LOG_DEBUG("ANNOT: %s", m_annotation->toString().c_str());
+        //        LOG_DEBUG("ANNOT: %s", m_annotation->toString().c_str());
 
-    } else if(term->m_text.compare(__ANNOTATION_IIF__) == 0) {
+    } else if (term->m_text.compare(__ANNOTATION_IIF__) == 0) {
 
         ASSERT(m_annotation);
 
-        if(term->size() != 3) {
+        if (term->size() != 3) {
             NL_PARSER(term, "Annotation IIF must have three arguments!");
         }
 
-//        LOG_DEBUG("Annot %s %d", m_annotation->toString().c_str(), (int) m_annotation->size());
+        //        LOG_DEBUG("Annot %s %d", m_annotation->toString().c_str(), (int) m_annotation->size());
 
         auto iter = m_annotation->find(term->at(0).second->m_text);
-        if(iter == m_annotation->end() || iter->second->m_text.empty() || iter->second->m_text.compare("0") == 0) {
+        if (iter == m_annotation->end() || iter->second->m_text.empty() || iter->second->m_text.compare("0") == 0) {
             buffer.insert(buffer.begin(), term->at(2).second);
         } else {
             buffer.insert(buffer.begin(), term->at(1).second);
@@ -405,7 +462,7 @@ std::string newlang::ParserMessage(std::string &buffer, int row, int col, const 
 
     std::string message(va_buffer);
 
-    if(row) { // Если переданы координаты ошибки
+    if (row) { // Если переданы координаты ошибки
         message += " at line ";
         message += std::to_string(row);
         message += " col ";
@@ -415,9 +472,9 @@ std::string newlang::ParserMessage(std::string &buffer, int row, int col, const 
 
     // Ищем нужную строку
     size_t pos = 0;
-    if(buffer.find("\n") != std::string::npos) {
+    if (buffer.find("\n") != std::string::npos) {
         int count = 1;
-        while(count < row) {
+        while (count < row) {
             pos = buffer.find("\n", pos + 1);
             count++;
         }
@@ -426,7 +483,7 @@ std::string newlang::ParserMessage(std::string &buffer, int row, int col, const 
     std::string tmp = buffer.substr((pos ? pos + 1 : pos), buffer.find("\n", pos + 1));
     tmp = tmp.substr(0, tmp.find("\n", col));
 
-    if(row) { // Если переданы координаты ошибки, показываем место
+    if (row) { // Если переданы координаты ошибки, показываем место
 
         // Лексер обрабатывает строки в байтах, а вывод в UTF8
         // поэтому позиция ошибки лексера може не совпадать для многобайтных символов
@@ -447,4 +504,319 @@ std::string newlang::ParserMessage(std::string &buffer, int row, int col, const 
 
 void newlang::ParserException(const char *msg, std::string &buffer, int row, int col) {
     throw Return(ParserMessage(buffer, row, col, "%s", msg), Return::Parser);
+}
+
+bool Parser::RegisterPredefMacro(const char * name, const char * desc) {
+    if (m_predef_macro.find(name) != m_predef_macro.end()) {
+        LOG_ERROR("Predef macro '%s' redefined!", name);
+        return false;
+    }
+    m_predef_macro.insert({name, desc});
+    return true;
+}
+
+void Parser::InitPredefMacro() {
+    if (m_predef_macro.empty()) {
+
+        VERIFY(RegisterPredefMacro("__NLC_VER__", "Version NewLang Compiler."));
+        VERIFY(RegisterPredefMacro("__NLC_SOURCE_GIT__", "Git source code identifier of the current compiler version."));
+        VERIFY(RegisterPredefMacro("__NLC_DATE_BUILD__", "Date build of the current compiler version."));
+        VERIFY(RegisterPredefMacro("__NLC_SOURCE_BUILD__", "Git source code identifier and date build of the current compiler version."));
+
+        VERIFY(RegisterPredefMacro("__FILE__", "Current file name"));
+        VERIFY(RegisterPredefMacro("__FILE_NAME__", "Current file name"));
+
+        VERIFY(RegisterPredefMacro("__LINE__", "Line number in current file"));
+        VERIFY(RegisterPredefMacro("__FILE_LINE__", "Line number in current file"));
+
+        VERIFY(RegisterPredefMacro("__FILE_MD5__", "MD5 hash for current file"));
+        VERIFY(RegisterPredefMacro("__FILE_TIMESTAMP__", "Timestamp current file"));
+
+        VERIFY(RegisterPredefMacro("__DATE__", "Current date"));
+        VERIFY(RegisterPredefMacro("__TIME__", "Current time"));
+        // определяется как строковый литерал, содержащий дату и время последнего изменения текущего исходного файла 
+        //в сокращенной форме с постоянной длиной, которые возвращаются функцией asctime библиотеки CRT, 
+        //например: Fri 19 Aug 13:32:58 2016. Этот макрос определяется всегда.
+        VERIFY(RegisterPredefMacro("__TIMESTAMP__", "Current timestamp"));
+        VERIFY(RegisterPredefMacro("__TIMESTAMP_ISO__", "Current timestamp as ISO format")); // 2013-07-06T00:50:06Z
+
+        //Развертывается до целочисленного литерала, начинающегося с 0. 
+        //Значение увеличивается на 1 каждый раз, когда используется в файле исходного кода или во включенных заголовках файла исходного кода. 
+        VERIFY(RegisterPredefMacro("__COUNTER__", "Monotonically increasing counter from zero"));
+    }
+}
+
+bool Parser::CheckPredefMacro(const TermPtr & term) {
+    if (term->m_id != TermID::NAME) {
+        return false;
+    }
+
+    std::string_view text = term->m_text;
+    if (text.find("@") == 0) {
+        text.remove_prefix(1);
+    }
+
+    InitPredefMacro();
+    return m_predef_macro.find(text.begin()) != m_predef_macro.end();
+}
+
+parser::token_type Parser::ExpandPredefMacro(TermPtr & term) {
+
+    InitPredefMacro();
+
+    if (!term) {
+        LOG_RUNTIME("Environment variable not defined!");
+    }
+    if (term->m_id != TermID::NAME) {
+        return term->m_lexer_type;
+    }
+
+    std::string_view text = term->m_text;
+    if (text.find("@") == 0) {
+        text.remove_prefix(1);
+    }
+
+    ASSERT(!m_predef_macro.empty());
+    if (m_predef_macro.find(text.begin()) == m_predef_macro.end()) {
+        return term->m_lexer_type;
+    }
+
+
+    const TermID str_type = TermID::STRWIDE;
+    const parser::token_type str_token = parser::token_type::STRWIDE;
+
+    if (text.compare("__COUNTER__") == 0) {
+
+        term->m_id = TermID::INTEGER;
+        term->m_text = std::to_string(m_counter);
+        m_counter++;
+        term->m_lexer_type = parser::token_type::INTEGER;
+        return term->m_lexer_type;
+
+    } else if (text.compare("__NLC_VER__") == 0) {
+
+        term->m_id = TermID::INTEGER;
+        term->m_text = std::to_string(VERSION);
+        term->m_lexer_type = parser::token_type::INTEGER;
+        return term->m_lexer_type;
+
+    } else if (text.compare("__NLC_SOURCE_GIT__") == 0) {
+        term->m_text = GIT_SOURCE;
+        term->m_id = str_type;
+        term->m_lexer_type = str_token;
+        return term->m_lexer_type;
+
+    } else if (text.compare("__NLC_DATE_BUILD__") == 0) {
+        term->m_text = DATE_BUILD_STR;
+        term->m_id = str_type;
+        term->m_lexer_type = str_token;
+        return term->m_lexer_type;
+
+    } else if (text.compare("__NLC_SOURCE_BUILD__") == 0) {
+        term->m_text = SOURCE_FULL_ID;
+        term->m_id = str_type;
+        term->m_lexer_type = str_token;
+        return term->m_lexer_type;
+
+    } else if (text.compare("__LINE__") == 0 || text.compare("__FILE_LINE__") == 0) {
+
+        term->m_id = TermID::INTEGER;
+        term->m_text = std::to_string(term->m_line);
+        term->m_lexer_type = parser::token_type::INTEGER;
+        return term->m_lexer_type;
+
+    } else if (text.compare("__FILE__") == 0 || text.compare("__FILE_NAME__") == 0) {
+
+        term->m_id = str_type;
+        if (!m_file_name.empty()) {
+            term->m_text = m_file_name;
+        } else {
+            term->m_text = "File name undefined!!!";
+        }
+        term->m_lexer_type = str_token;
+        return term->m_lexer_type;
+
+    } else if (text.compare("__FILE_TIMESTAMP__") == 0) {
+
+        term->m_id = str_type;
+        if (!m_file_time.empty()) {
+            term->m_text = m_file_time;
+        } else {
+            term->m_text = "??? ??? ?? ??:??:?? ????";
+        }
+        term->m_lexer_type = str_token;
+        return term->m_lexer_type;
+
+    } else if (text.compare("__FILE_MD5__") == 0) {
+
+        term->m_id = str_type;
+        if (!m_file_md5.empty()) {
+            term->m_text = m_file_md5;
+        } else {
+            term->m_text = "?????????????????????????????????";
+        }
+        term->m_lexer_type = str_token;
+        return term->m_lexer_type;
+
+
+    } else if (text.compare("__DATE__") == 0) {
+
+        char buf[sizeof "Jul 27 2012"];
+        strftime(buf, sizeof buf, "%b %e %Y", localtime(&m_timestamp));
+
+        term->m_text = buf;
+        term->m_id = str_type;
+        term->m_lexer_type = str_token;
+        return term->m_lexer_type;
+
+    } else if (text.compare("__TIME__") == 0) {
+
+        char buf[sizeof "07:07:09"];
+        strftime(buf, sizeof buf, "%T", localtime(&m_timestamp));
+
+        term->m_text = buf;
+        term->m_id = str_type;
+        term->m_lexer_type = str_token;
+        return term->m_lexer_type;
+
+    } else if (text.compare("__TIMESTAMP__") == 0) {
+
+        term->m_text = asctime(localtime(&m_timestamp));
+        term->m_text = term->m_text.substr(0, 24); // Remove \n on the end line
+        term->m_id = str_type;
+        term->m_lexer_type = str_token;
+        return term->m_lexer_type;
+
+    } else if (text.compare("__TIMESTAMP_ISO__") == 0) {
+
+        char buf[sizeof "2011-10-08T07:07:09Z"];
+        strftime(buf, sizeof buf, "%FT%TZ", localtime(&m_timestamp));
+
+        term->m_text = buf;
+        term->m_id = str_type;
+        term->m_lexer_type = str_token;
+        return term->m_lexer_type;
+    }
+
+    NL_PARSER(term, "Predef macro '%s' not implemented!", term->toString().c_str());
+}
+
+
+TermPtr Parser::ParseTerm(const char *proto, NamedPtr macro, bool pragma_enable) {
+    try {
+        // Термин или термин + тип парсятся без ошибок
+        Parser p(macro, nullptr, nullptr, pragma_enable);
+        return p.Parse(proto);
+    } catch (std::exception &) {
+        std::string func(proto);
+        try {
+            func += ":={}";
+            Parser p(macro, nullptr, nullptr, pragma_enable);
+            return p.Parse(func)->Left();
+        } catch (std::exception &e) {
+            LOG_RUNTIME("Fail parsing prototype '%s' as '%s'!", func.c_str(), e.what());
+        }
+    }
+}
+
+size_t Parser::SkipBrackets(const BlockType& buffer, const size_t offset) {
+
+    if (offset >= buffer.size()) {
+        return 0;
+    }
+
+    std::string br_end;
+    if (buffer[offset]->m_text.compare("(") == 0) {
+        br_end = ")";
+    } else if (buffer[offset]->m_text.compare("<") == 0) {
+        br_end = ">";
+    } else if (buffer[offset]->m_text.compare("[") == 0) {
+        br_end = "]";
+    } else {
+        return 0;
+    }
+
+    size_t shift = 1;
+    int count = 1;
+    while (offset + shift < buffer.size()) {
+        if (buffer[offset]->m_text.compare(buffer[offset + shift]->m_text) == 0) {
+            count++; // Next level bracket
+        } else if (br_end.compare(buffer[offset + shift]->m_text) == 0) {
+            count--; // // Leave level bracket
+            if (count == 0) {
+                return shift + 1;
+            }
+        }
+        shift++;
+    }
+    NL_PARSER(buffer[offset], "Closed bracket '%s' not found!", br_end.c_str());
+}
+
+size_t Parser::ParseTerm(TermPtr &result, const BlockType &buffer, size_t offset, bool pragma_enable) {
+
+    if (offset >= buffer.size()) {
+        LOG_RUNTIME("Fail skip count %d or buffer size %d!", (int) offset, (int) buffer.size());
+    }
+
+    /* term
+     * func()
+     * 
+     * term: type
+     * func(): type
+     * 
+     * term: type[]
+     * func(): type[]
+     *      
+     */
+
+    std::string source = buffer[offset]->toString();
+    offset++;
+    size_t skip = SkipBrackets(buffer, offset);
+
+    if (skip) {
+        /* 
+         * term
+         * func()
+         */
+        for (size_t i = 0; i < skip; i++) {
+            if (buffer[offset + i]) {
+                source += buffer[offset + i]->toString();
+            }
+        }
+        offset += skip;
+    }
+
+    if (offset + 1 < buffer.size() && buffer[offset + 1]->m_text.compare(":") == 0) {
+        offset++;
+        source += buffer[offset]->toString();
+
+        /* 
+         * term: type
+         * func(): type
+         */
+
+        if (offset + 1 >= buffer.size()) {
+            NL_PARSER(buffer[offset + 1], "Typename missing!");
+        }
+
+        offset++;
+        source += buffer[offset]->toString();
+
+        skip = SkipBrackets(buffer, offset + 1);
+        if (skip) {
+            /* 
+             * term: type[]
+             * func(): type[]
+             *      
+             */
+            for (size_t i = 0; i < skip; i++) {
+                source += buffer[offset + i]->toString();
+            }
+
+            offset += (skip + 1);
+        }
+    }
+    LOG_DEBUG("ParseTerm: '%s' - %d", source.c_str(), (int) offset);
+    result = ParseTerm(source.c_str(), nullptr, pragma_enable);
+    return offset;
 }

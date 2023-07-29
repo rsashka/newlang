@@ -69,7 +69,7 @@ namespace newlang {
         }
 
 
-        std::shared_ptr<Module> LoadModule(Context &ctx, const char *name_str, bool init);
+        ModulePtr LoadModule(Context &ctx, const char *name_str, bool init);
         bool UnLoadModule(Context &ctx, const char *name_str, bool deinit);
         ObjPtr ExecModule(const char *module, const char *output, bool cached, Context * ctx);
 
@@ -97,7 +97,7 @@ namespace newlang {
                     if (strstr(argv[i], "-nlc-search=") == argv[i]) {
                         std::string list(argv[i]);
                         list = list.substr(strlen("-nlc-search="));
-                        m_search_dir = Context::SplitString(list.c_str(), ";");
+                        m_search_dir = Named::SplitString(list.c_str(), ";");
                     } else if (strstr(argv[i], "-nlc-search=") == argv[i]) {
                     } else {
                         LOG_RUNTIME("System arg '%s' not found!", argv[i]);

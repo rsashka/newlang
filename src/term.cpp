@@ -24,11 +24,11 @@ BlockType Term::MakeMacroId(const BlockType &seq) {
 
     while (pos < seq.size()) {
 
-        if (MacroBuffer::deny_chars_from_macro.find(seq[pos]->m_text[0]) != std::string::npos) {
+        if (Named::deny_chars_from_macro.find(seq[pos]->m_text[0]) != std::string::npos) {
             NL_PARSER(seq[pos], "Symbol '%c' in lexem sequence not allowed!", seq[pos]->m_text[0]);
         }
 
-        done = MacroBuffer::ParseTerm(term, seq, pos);
+        done = Parser::ParseTerm(term, seq, pos);
         if (done) {
             result.push_back(term);
             pos += done;

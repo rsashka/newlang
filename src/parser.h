@@ -5,7 +5,7 @@
 
 #include <variable.h>
 #include <diag.h>
-#include <macro.h>
+#include <named.h>
 
 #include <warning_push.h>
 #include "parser.yy.h"
@@ -22,7 +22,7 @@ namespace newlang {
     class Parser {
     public:
 
-        Parser(MacroBuffer *macro = nullptr, PostLexerType *postlex = nullptr, DiagPtr diag = nullptr, bool pragma_enable=true);
+        Parser(NamedPtr macro = nullptr, PostLexerType *postlex = nullptr, DiagPtr diag = nullptr, bool pragma_enable = true);
 
         /// enable debug output in the flex scanner
         bool trace_scanning;
@@ -32,8 +32,20 @@ namespace newlang {
 
         /// stream name (file or input stream) used for error messages.
         std::string streamname;
+        parser::location_type m_location;
+        std::vector<parser::location_type> m_loc_stack;
 
         std::istringstream m_stream;
+
+
+        parser::token_type ExpandPredefMacro(TermPtr &term);
+
+        static int m_counter;
+        std::map<std::string, std::string> m_predef_macro;
+        bool RegisterPredefMacro(const char * name, const char * desc);
+        void InitPredefMacro();
+        bool CheckPredefMacro(const TermPtr & term);
+
 
         // To demonstrate pure handling of parse errors, instead of
         // simply dumping them on the standard error output, we will pass
@@ -83,9 +95,18 @@ namespace newlang {
         bool PragmaEval(const TermPtr &term, BlockType &buffer);
 
         TermPtr Parse(const std::string str);
-        static TermPtr ParseString(const std::string str, MacroBuffer *macro, PostLexerType *postlex = nullptr, DiagPtr diag = nullptr);
+        static TermPtr ParseString(const std::string str, NamedPtr macro, PostLexerType *postlex = nullptr, DiagPtr diag = nullptr);
         TermPtr ParseFile(const std::string str);
 
+        // Собирает термин из последовательности лексем и удаялет их из входного буфера
+        static size_t ParseTerm(TermPtr &term, const BlockType &buffer, const size_t skip = 0, bool pragma_enable = true);
+        static TermPtr ParseTerm(const char *proto, NamedPtr macro = nullptr, bool pragma_enable = true);
+
+        inline static bool IsBracket(const std::string_view str) {
+            return str.size() > 0 && (str[0] == '(' || str[0] == '[' || str[0] == '<');
+        }
+
+        static size_t SkipBrackets(const BlockType& buffer, size_t offset);
 
         time_t m_timestamp;
 
@@ -97,7 +118,7 @@ namespace newlang {
         TermPtr m_ast;
         bool m_is_runing;
         bool m_is_lexer_complete;
-        MacroBuffer *m_macro;
+        NamedPtr m_macro;
         PostLexerType *m_postlex;
         DiagPtr m_diag;
 

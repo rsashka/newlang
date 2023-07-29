@@ -1,10 +1,11 @@
-#ifndef NEWLANG_MACRO_H_
-#define NEWLANG_MACRO_H_
+#ifndef NEWLANG_NAMED_H_
+#define NEWLANG_NAMED_H_
 
 #include "pch.h"
 
 #include <variable.h>
 #include <diag.h>
+#include <object.h>
 
 #include <warning_push.h>
 #include "parser.yy.h"
@@ -15,7 +16,70 @@ namespace newlang {
     typedef std::shared_ptr<std::string> SourceType;
     typedef std::vector<std::string> PostLexerType;
 
-    class MacroBuffer : SCOPE(protected) std::map<std::string, BlockType > {
+    inline std::string MakeName(std::string name) {
+        if (!name.empty() && (name[0] == '\\' || name[0] == '$' || name[0] == '@' || name[0] == '%')) {
+            return name.find("\\\\") == 0 ? name.substr(2) : name.substr(1);
+        }
+        return name;
+    }
+
+    inline std::string ExtractModuleName(const char *str) {
+        std::string name(str);
+        if (isModule(name)) {
+            size_t pos = name.find("::");
+            if (pos != std::string::npos) {
+
+                return name.substr(0, pos);
+            }
+            return name;
+        }
+        return std::string();
+    }
+
+    inline std::string ExtractName(std::string name) {
+        size_t pos = name.rfind("::");
+        if (pos != std::string::npos) {
+            name = name.substr(pos + 2);
+        }
+        if (isModule(name)) {
+
+            return std::string();
+        }
+        return name;
+    }
+
+    /**
+     * Единица хранения информации об именованнм объекте
+     * 
+     */
+    struct NamedItem {
+        /** 
+         * Определение прототипа, включая макросы и предварительные определения с помощью @__PRAGMA_PROTOTYPE__
+         * Должне быть определн всегда, так как именно по этому объекту производится сранение типов у переменных и проверка параметров у функций.
+         * Создается для любого именнованного объекта системы (макрос, модуля, тип, функция или переменная) во время парсинга
+         */
+        BlockType proto;
+        /**
+         * Термин с определением (инициализацией) объекта в исходном коде (включает в себя место определения в файле в @ref Term::m_lexer_loc)
+         * Создается при инициалиазции (загрузке) модуля или определнии (создании) класса, функции или перемной.
+         * Не создется для маросов и прототипов (@__PRAGMA_PROTOTYPE__)
+         * Заполняется во время парсинга или анализа???
+         * 
+         * Реально созданный объект хранится в поле @ref Term::m_obj
+         * Он создается при выполнении программы (инициалиазции (загрузке) модуля, определении (создании) класса, функции или перемной).
+         * @ref Term::m_obj - слабая ссылка (std::weak_ptr<Obj>), чтобы память объекта не держалась в таблице символов
+         */
+        BlockType term;
+        //        /**
+        //         * Реально созданный объект.
+        //         * Создается при выполнении программы (инициалиазции (загрузке) модуля, определении (создании) класса, функции или перемной).
+        //         * Заполняется для модулей и типов - во время парсинга/анализа
+        //         * для функций и перемных - во время компиляции и выполнения
+        //         */
+        //        FuncItem obj;
+    };
+
+    class Named : SCOPE(protected) std::map<std::string, NamedItem>, public std::enable_shared_from_this<Named> {
     public:
 
         /*
@@ -107,16 +171,23 @@ namespace newlang {
          */
 
 
-        static std::string toHash(const TermPtr &term);
+        Named();
 
-        inline static bool IsBracket(const std::string_view str) {
-            return str.size() > 0 && (str[0] == '(' || str[0] == '[' || str[0] == '<');
+        virtual ~Named() {
         }
 
-        static size_t SkipBrackets(const BlockType& buffer, size_t offset);
-        //        static std::vector<std::string> GetMacroId(const TermPtr & term);
+        typedef at::variant<ObjPtr, std::vector < ObjPtr> > FuncItem;
 
-        inline static std::string toHashTermName(const std::string str) {
+        std::map<std::string, ObjPtr> m_types;
+        std::map<std::string, FuncItem> m_funcs;
+        //        std::map<std::string, EvalFunction> m_builtin_calls;
+
+        static const std::string deny_chars_from_macro;
+        std::vector<std::string> m_ns_stack;
+
+        static std::string toMacroHash(const TermPtr &term);
+
+        inline static std::string toMacroHashName(const std::string str) {
             if (isLocal(str)) {
                 return "$"; // Template
             } else if (isMacro(str)) {
@@ -130,13 +201,12 @@ namespace newlang {
         void Push(const TermPtr term);
         void Pop(const TermPtr term);
 
-        parser::token_type ExpandPredefMacro(TermPtr &term, Parser * parser);
+        //        parser::token_type ExpandPredefMacro(TermPtr &term, Parser * parser);
+        //
+        //        static int m_counter;
+        //        std::map<std::string, std::string> m_predef_macro;
+        //        bool RegisterPredefMacro(const char * name, const char * desc);
 
-        static int m_counter;
-        std::map<std::string, std::string> m_predef_macro;
-        bool RegisterPredefMacro(const char * name, const char * desc);
-
-        static const std::string deny_chars_from_macro;
 
 
 
@@ -145,9 +215,9 @@ namespace newlang {
          * @param term - оператор для проверки
          * @return Истина, если оператор содержит оператор создания или удаления макроса
          */
-//        static bool CheckOpMacros(const TermPtr & term);
-//
-//        static TermPtr CreateMacroFromOp(const TermPtr & term);
+        //        static bool CheckOpMacros(const TermPtr & term);
+        //
+        //        static TermPtr CreateMacroFromOp(const TermPtr & term);
 
         //        static bool CheckAndConvertMacros(TermPtr &term);
         /**
@@ -156,28 +226,23 @@ namespace newlang {
          */
         TermPtr EvalOpMacros(const TermPtr &term);
 
-        //        size_t ParseBuffer(BlockType &buffer);
-        // Собирает термин из последовательности лексем и удаялет их из входного буфера
-        static size_t ParseTerm(TermPtr &term, const BlockType &buffer, const size_t skip = 0, bool pragma_enable = true);
-        static TermPtr ParseTerm(const char *proto, MacroBuffer *macro = nullptr, bool pragma_enable = true);
-
-        bool Remove(const TermPtr & term);
+        bool RemoveMacro(const TermPtr & term);
 
         size_t GetCount() {
             size_t count = 0;
             auto iter = begin();
             while (iter != end()) {
-                count += iter->second.size();
+                count += iter->second.proto.size();
                 iter++;
             }
             return count;
         }
 
-        void Clear(size_t level);
+        //        void Clear(size_t level);
 
         TermPtr GetMacroById(const BlockType block);
         TermPtr GetMacro(std::vector<std::string> list);
-        bool isExist(const TermPtr & term);
+        //        bool isExist(const TermPtr & term);
 
         /**
          * Идентифицирует входной буфер с макросом. 
@@ -190,7 +255,7 @@ namespace newlang {
          */
         //        static bool IdentityAlias(BlockType &buffer, const TermPtr & term);
         static bool IdentityMacro(const BlockType &buffer, const TermPtr & term);
-        static bool CompareTermName(const std::string & term_name, const std::string & macro_name);
+        static bool CompareMacroName(const std::string & term_name, const std::string & macro_name);
 
         /**
          * Коллекция аргументов макроса
@@ -222,10 +287,169 @@ namespace newlang {
         static std::string Dump(const MacroArgsType & var);
         static std::string Dump(const BlockType & arr);
 
+        static std::vector<std::string> SplitString(const char * str, const char *delim) {
+
+            std::vector<std::string> result;
+            std::string s(str);
+
+            size_t pos;
+            s.erase(0, s.find_first_not_of(delim));
+            while (!s.empty()) {
+                pos = s.find(delim);
+                if (pos == std::string::npos) {
+                    result.push_back(s);
+                    break;
+                } else {
+                    result.push_back(s.substr(0, pos));
+                    s.erase(0, pos);
+                }
+                s.erase(0, s.find_first_not_of(delim));
+            }
+            return result;
+        }
+
+
+
+        bool TestName(std::string_view name);
+
+        std::string CreateFullName(std::string_view name);
+        //        std::string CreateFullName(TermPtr term) {
+        //            ASSERT(term);
+        //
+        //            return CreateFullName(term->m_text);
+        //        }
+
+        /**
+         * Зарегистрировать новый прототип.
+         * Используется для макросов и прототипов в @__PRAGMA_PROTOTYPE__
+         * Заполняется только поле @ref NamedItem::proto, а остальные остаются не инициалмизированными.
+         * Требуется только для парсера при раскрытии макросов и при проверке используемых имен
+         * @param term - новый прототип для регистрации
+         * @param gen_exception - возвращать false или генерировать исключение 
+         * @return true - если новый прототип зарегистрирован, иначе false (если gen_exception=false) или создать исключение
+         */
+        bool RegisterProto(TermPtr term, bool gen_exception = true);
+        /**
+         * Зарегистрировать новый термин и его прототип.
+         * Используется при определении объектов или загрузке модулей
+         * Заполняется поле @ref NamedItem::term и @ref NamedItem::proto - если оно не заполнено.
+         * Требуется для парсера при проверке используемых имен
+         * @param term - новый термин для регистрации
+         * @param gen_exception - возвращать false или генерировать исключение 
+         * @return true - если новый термин зарегистрирован, иначе false (если gen_exception=false) или создать исключение
+         */
+        bool RegisterTerm(TermPtr term);
+        /**
+         * Зарегистрировать объект.
+         * Заполняется поле @ref NamedItem::obj. Поля @ref NamedItem::term и @ref NamedItem::proto должны присутствовать.
+         * @param term - термин
+         * @param obj - Объект
+         * @param gen_exception - возвращать false или генерировать исключение 
+         * @return true - если объект зарегистрирован, иначе false (если gen_exception=false) или создать исключение
+         */
+        bool RegisterObj(TermPtr term, ObjPtr obj);
+
+        void ApplyDiags(DiagPtr diag) {
+        }
+
+        DiagPtr m_diag;
+
+        bool NamespasePush(const std::string &name) {
+            if (name.empty()) {
+                return false;
+            }
+            m_ns_stack.push_back(name);
+            return true;
+        }
+
+        void NamespasePop() {
+            ASSERT(!m_ns_stack.empty());
+            m_ns_stack.pop_back();
+        }
+
+        std::string NamespaseFull(std::string name = "") {
+            if (name.find("::") != 0) {
+                for (size_t i = m_ns_stack.size(); i > 0; i--) {
+                    if (!name.empty()) {
+                        name.insert(0, "::");
+                    }
+                    if (m_ns_stack[i - 1].compare("::") == 0) {
+                        if (name.empty()) {
+                            name = "::";
+                        }
+                        break;
+                    }
+                    name.insert(0, m_ns_stack[i - 1]);
+                    if (m_ns_stack[i - 1].find("::") == 0) {
+                        break;
+                    }
+                }
+            }
+            //            if (!isFullName(name)) {
+            //                name.insert(0, "::");
+            //            }
+            return name;
+        }
+
+
+        TermPtr FindTerm(std::string_view name);
+
+        inline TermPtr GetTerm(std::string_view name) {
+            TermPtr term = FindTerm(name);
+            if (!term) {
+
+                LOG_RUNTIME("Term '%s' not found!", name.begin());
+            }
+            return term;
+        }
+
+        ObjPtr FindObj(std::string_view name);
+
+        inline ObjPtr GetObj(std::string_view name) {
+            ObjPtr obj = FindObj(name);
+            if (!obj) {
+
+                LOG_RUNTIME("Object '%s' not found!", name.begin());
+            }
+            return obj;
+        }
+
+
+        /**
+         * Функция для организации встроенных типов в иерархию наследования.
+         * Другие функции: @ref CreateBaseType - создает базовые типы данных (для расширения классов требуется контекст)
+         * и @ref BaseTypeConstructor - функция обратного вызова при создании нового объекта базового типа данных
+         * @param type - Базовый тип данных @ref ObjType
+         * @param parents - Список сторок с именами родительских типов
+         * @return - Успешность регистрации базовго типа в иерархии
+         */
+        bool RegisterTypeHierarchy(ObjType type, std::vector<std::string> parents);
+
+        ObjType BaseTypeFromString(const std::string & type, bool *has_error = nullptr);
+
+        ObjPtr GetTypeFromString(const std::string & type, bool *has_error = nullptr);
+
+        static bool pred_compare(const std::string &find, const std::string &str) {
+            size_t pos = 0;
+            while (pos < find.size() && pos < str.size()) {
+                if (find[pos] != str[pos]) {
+                    return false;
+                }
+                pos++;
+            }
+            return find.empty() || (pos && find.size() == pos);
+        }
+
+        std::vector<std::wstring> SelectPredict(std::wstring wstart, size_t overage_count = 0) {
+            return SelectPredict(utf8_encode(wstart), overage_count);
+        }
+        std::vector<std::wstring> SelectPredict(std::string start, size_t overage_count = 0);
+
+
         //        SCOPE(private) :
         //        MacroTokenType m_store;
     };
 
 } // namespace example
 
-#endif // NEWLANG_MACRO_H_
+#endif // NEWLANG_NAMED_H_

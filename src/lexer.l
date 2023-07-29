@@ -572,8 +572,9 @@ ${name}     YY_TOKEN(NAME);
 
 "||"        YY_TOKEN(OPERATOR);
 "^^"        YY_TOKEN(OPERATOR);
-"&&&"       YY_TOKEN_ONLY(OPERATOR_PTR);
 "&&"        YY_TOKEN_ONLY(OPERATOR_AND);
+"&^"       YY_TOKEN_ONLY(OPERATOR_PTR);
+"&&^"       YY_TOKEN_ONLY(OPERATOR_PTR);
 
 ".>."        YY_TOKEN(OPERATOR);
 ".<."        YY_TOKEN(OPERATOR);
@@ -636,7 +637,7 @@ ${name}     YY_TOKEN(NAME);
 }
 
 <<EOF>>     {
-        //  *yylval = Term::Create(token::END, TermID::END, yytext, yyleng, yylloc, source_string);
+        *yylval = Term::Create(token::END, TermID::END, yytext, yyleng, yylloc, source_string);
         return token::END;
 }
 

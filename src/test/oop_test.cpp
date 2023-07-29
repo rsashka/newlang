@@ -159,81 +159,81 @@ TEST(Oop, Namespace) {
     Context::Reset();
     Context ctx(RunTime::Init());
 
-    ASSERT_EQ(0, ctx.m_ns_stack.size());
-    ASSERT_STREQ("name", ctx.NamespaseFull("name").c_str());
+    ASSERT_EQ(0, ctx.m_named->m_ns_stack.size());
+    ASSERT_STREQ("name", ctx.m_named->NamespaseFull("name").c_str());
 
-    ASSERT_TRUE(ctx.NamespasePush("name"));
-    ASSERT_EQ(1, ctx.m_ns_stack.size());
-    ASSERT_STREQ("name", ctx.NamespaseFull().c_str());
+    ASSERT_TRUE(ctx.m_named->NamespasePush("name"));
+    ASSERT_EQ(1, ctx.m_named->m_ns_stack.size());
+    ASSERT_STREQ("name", ctx.m_named->NamespaseFull().c_str());
 
-    ASSERT_FALSE(ctx.NamespasePush(""));
-    ASSERT_EQ(1, ctx.m_ns_stack.size());
+    ASSERT_FALSE(ctx.m_named->NamespasePush(""));
+    ASSERT_EQ(1, ctx.m_named->m_ns_stack.size());
 
-    ASSERT_TRUE(ctx.NamespasePush("name2"));
-    ASSERT_EQ(2, ctx.m_ns_stack.size());
-    ASSERT_STREQ("name::name2", ctx.NamespaseFull().c_str());
+    ASSERT_TRUE(ctx.m_named->NamespasePush("name2"));
+    ASSERT_EQ(2, ctx.m_named->m_ns_stack.size());
+    ASSERT_STREQ("name::name2", ctx.m_named->NamespaseFull().c_str());
 
-    ASSERT_TRUE(ctx.NamespasePush("name3::name4"));
-    ASSERT_EQ(3, ctx.m_ns_stack.size());
-    ASSERT_STREQ("name::name2::name3::name4", ctx.NamespaseFull().c_str());
+    ASSERT_TRUE(ctx.m_named->NamespasePush("name3::name4"));
+    ASSERT_EQ(3, ctx.m_named->m_ns_stack.size());
+    ASSERT_STREQ("name::name2::name3::name4", ctx.m_named->NamespaseFull().c_str());
 
-    ASSERT_TRUE(ctx.NamespasePush("::"));
-    ASSERT_EQ(4, ctx.m_ns_stack.size());
-    ASSERT_STREQ("::", ctx.NamespaseFull().c_str());
+    ASSERT_TRUE(ctx.m_named->NamespasePush("::"));
+    ASSERT_EQ(4, ctx.m_named->m_ns_stack.size());
+    ASSERT_STREQ("::", ctx.m_named->NamespaseFull().c_str());
 
-    ASSERT_FALSE(ctx.NamespasePush(""));
-    ASSERT_EQ(4, ctx.m_ns_stack.size());
+    ASSERT_FALSE(ctx.m_named->NamespasePush(""));
+    ASSERT_EQ(4, ctx.m_named->m_ns_stack.size());
 
-    ASSERT_STREQ("::ns", ctx.NamespaseFull("::ns").c_str());
+    ASSERT_STREQ("::ns", ctx.m_named->NamespaseFull("::ns").c_str());
 
-    ASSERT_TRUE(ctx.NamespasePush("::name5::name6"));
-    ASSERT_EQ(5, ctx.m_ns_stack.size());
-    ASSERT_STREQ("::name5::name6", ctx.NamespaseFull().c_str());
+    ASSERT_TRUE(ctx.m_named->NamespasePush("::name5::name6"));
+    ASSERT_EQ(5, ctx.m_named->m_ns_stack.size());
+    ASSERT_STREQ("::name5::name6", ctx.m_named->NamespaseFull().c_str());
 
-    ASSERT_STREQ("::ns", ctx.NamespaseFull("::ns").c_str());
+    ASSERT_STREQ("::ns", ctx.m_named->NamespaseFull("::ns").c_str());
 
-    ASSERT_TRUE(ctx.NamespasePush("name7"));
-    ASSERT_EQ(6, ctx.m_ns_stack.size());
-    ASSERT_STREQ("::name5::name6::name7", ctx.NamespaseFull().c_str());
+    ASSERT_TRUE(ctx.m_named->NamespasePush("name7"));
+    ASSERT_EQ(6, ctx.m_named->m_ns_stack.size());
+    ASSERT_STREQ("::name5::name6::name7", ctx.m_named->NamespaseFull().c_str());
 
-    ctx.NamespasePop();
-    ASSERT_EQ(5, ctx.m_ns_stack.size());
-    ASSERT_STREQ("::name5::name6", ctx.NamespaseFull().c_str());
+    ctx.m_named->NamespasePop();
+    ASSERT_EQ(5, ctx.m_named->m_ns_stack.size());
+    ASSERT_STREQ("::name5::name6", ctx.m_named->NamespaseFull().c_str());
 
-    ctx.NamespasePop();
-    ASSERT_EQ(4, ctx.m_ns_stack.size());
-    ASSERT_STREQ("::", ctx.NamespaseFull().c_str());
+    ctx.m_named->NamespasePop();
+    ASSERT_EQ(4, ctx.m_named->m_ns_stack.size());
+    ASSERT_STREQ("::", ctx.m_named->NamespaseFull().c_str());
 
-    ctx.NamespasePop();
-    ASSERT_EQ(3, ctx.m_ns_stack.size());
-    ASSERT_STREQ("name::name2::name3::name4", ctx.NamespaseFull().c_str());
-    ASSERT_STREQ("::ns", ctx.NamespaseFull("::ns").c_str());
+    ctx.m_named->NamespasePop();
+    ASSERT_EQ(3, ctx.m_named->m_ns_stack.size());
+    ASSERT_STREQ("name::name2::name3::name4", ctx.m_named->NamespaseFull().c_str());
+    ASSERT_STREQ("::ns", ctx.m_named->NamespaseFull("::ns").c_str());
 
-    ctx.NamespasePop();
-    ASSERT_EQ(2, ctx.m_ns_stack.size());
-    ASSERT_STREQ("name::name2", ctx.NamespaseFull().c_str());
+    ctx.m_named->NamespasePop();
+    ASSERT_EQ(2, ctx.m_named->m_ns_stack.size());
+    ASSERT_STREQ("name::name2", ctx.m_named->NamespaseFull().c_str());
 
-    ctx.NamespasePop();
-    ASSERT_EQ(1, ctx.m_ns_stack.size());
-    ASSERT_STREQ("name", ctx.NamespaseFull().c_str());
+    ctx.m_named->NamespasePop();
+    ASSERT_EQ(1, ctx.m_named->m_ns_stack.size());
+    ASSERT_STREQ("name", ctx.m_named->NamespaseFull().c_str());
 
-    ctx.NamespasePop();
-    ASSERT_EQ(0, ctx.m_ns_stack.size());
-    ASSERT_STREQ("", ctx.NamespaseFull().c_str());
-
-
-    ASSERT_TRUE(ctx.NamespasePush("ns::name"));
-    ASSERT_EQ(1, ctx.m_ns_stack.size());
-    ASSERT_STREQ("ns::name::var6", ctx.NamespaseFull("var6").c_str());
+    ctx.m_named->NamespasePop();
+    ASSERT_EQ(0, ctx.m_named->m_ns_stack.size());
+    ASSERT_STREQ("", ctx.m_named->NamespaseFull().c_str());
 
 
-    ASSERT_TRUE(ctx.NamespasePush("::"));
-    ASSERT_EQ(2, ctx.m_ns_stack.size());
-    ASSERT_STREQ("::var6", ctx.NamespaseFull("var6").c_str());
+    ASSERT_TRUE(ctx.m_named->NamespasePush("ns::name"));
+    ASSERT_EQ(1, ctx.m_named->m_ns_stack.size());
+    ASSERT_STREQ("ns::name::var6", ctx.m_named->NamespaseFull("var6").c_str());
 
-    ctx.NamespasePop();
-    ctx.NamespasePop();
-    ASSERT_EQ(0, ctx.m_ns_stack.size());
+
+    ASSERT_TRUE(ctx.m_named->NamespasePush("::"));
+    ASSERT_EQ(2, ctx.m_named->m_ns_stack.size());
+    ASSERT_STREQ("::var6", ctx.m_named->NamespaseFull("var6").c_str());
+
+    ctx.m_named->NamespasePop();
+    ctx.m_named->NamespasePop();
+    ASSERT_EQ(0, ctx.m_named->m_ns_stack.size());
 
 
 
@@ -276,7 +276,7 @@ TEST(Oop, Namespace) {
     ASSERT_EQ(5, ctx.m_terms->size());
 
     ObjPtr var6 = ctx.ExecStr("ns6::name { { ::var6 := 6;} }");
-    ASSERT_EQ(0, ctx.m_ns_stack.size());
+    ASSERT_EQ(0, ctx.m_named->m_ns_stack.size());
 
     ASSERT_TRUE(var6);
     ASSERT_EQ(6, var6->GetValueAsInteger());
@@ -285,7 +285,7 @@ TEST(Oop, Namespace) {
     ASSERT_EQ(6, ctx.m_terms->size());
 
     ObjPtr var7 = ctx.ExecStr("ns7::name { :: { var7 := 7;} }");
-    ASSERT_EQ(0, ctx.m_ns_stack.size());
+    ASSERT_EQ(0, ctx.m_named->m_ns_stack.size());
 
     ASSERT_TRUE(var7);
     ASSERT_EQ(7, var7->GetValueAsInteger());
@@ -305,7 +305,7 @@ TEST(Oop, Namespace) {
     Context::Reset();
     ctx.clear_();
 
-    ASSERT_EQ(0, ctx.m_ns_stack.size());
+    ASSERT_EQ(0, ctx.m_named->m_ns_stack.size());
     ASSERT_EQ(0, ctx.size());
     ASSERT_EQ(0, ctx.m_terms->size());
 
@@ -347,7 +347,7 @@ TEST(Oop, Namespace) {
     ASSERT_EQ(5, ctx.m_terms->size());
 
     ObjPtr func6 = ctx.ExecStr("ns6::name { { ::func6() := {6};} }");
-    ASSERT_EQ(0, ctx.m_ns_stack.size());
+    ASSERT_EQ(0, ctx.m_named->m_ns_stack.size());
 
     ASSERT_TRUE(func6);
     ASSERT_EQ(6, func6->Call(&ctx)->GetValueAsInteger());
@@ -356,7 +356,7 @@ TEST(Oop, Namespace) {
     ASSERT_EQ(6, ctx.m_terms->size());
 
     ObjPtr func7 = ctx.ExecStr("ns7::name { :: { func7() := {7};} }");
-    ASSERT_EQ(0, ctx.m_ns_stack.size());
+    ASSERT_EQ(0, ctx.m_named->m_ns_stack.size());
 
     ASSERT_TRUE(func7);
     ASSERT_EQ(7, func7->Call(&ctx)->GetValueAsInteger());
@@ -377,7 +377,7 @@ TEST(Oop, ClassFunc) {
     Context::Reset();
     Context ctx(RunTime::Init());
 
-    ASSERT_EQ(0, ctx.m_ns_stack.size());
+    ASSERT_EQ(0, ctx.m_named->m_ns_stack.size());
     ASSERT_EQ(0, ctx.size());
     ASSERT_EQ(0, ctx.m_terms->size());
 
@@ -520,7 +520,7 @@ TEST(Oop, ClassProp) {
     Context::Reset();
     Context ctx(RunTime::Init());
 
-    ASSERT_EQ(0, ctx.m_ns_stack.size());
+    ASSERT_EQ(0, ctx.m_named->m_ns_stack.size());
     ASSERT_EQ(0, ctx.size());
     ASSERT_EQ(0, ctx.m_terms->size());
 

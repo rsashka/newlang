@@ -1253,7 +1253,7 @@ Compiler::Compiler(RuntimePtr rt) : m_runtime(rt) {
 //    }
 //}
 
-std::shared_ptr<Module> RunTime::LoadModule(Context &ctx, const char *term, bool init) {
+ModulePtr RunTime::LoadModule(Context &ctx, const char *term, bool init) {
     ASSERT(term);
 
 
@@ -1263,7 +1263,7 @@ std::shared_ptr<Module> RunTime::LoadModule(Context &ctx, const char *term, bool
         LOG_WARNING("Load module from root not implemented! '%s'", name.c_str());
         name = name.substr(1); // remove root marker (double back slash) i.e. \\root\dir\module
     }
-    std::vector<std::string> split = Context::SplitString(name.substr(1).c_str(), "\\");
+    std::vector<std::string> split = Named::SplitString(name.substr(1).c_str(), "\\");
 
     std::string path;
     for (auto &elem : split) {
@@ -1294,7 +1294,7 @@ std::shared_ptr<Module> RunTime::LoadModule(Context &ctx, const char *term, bool
             if(llvm::sys::fs::exists(full_path)) {
                 LOG_DEBUG("Module '%s' load from file '%s'!", term, full_path.c_str());
 
-                std::shared_ptr<Module> module = std::make_shared<Module>();
+                ModulePtr module = std::make_shared<Module>();
                 if(module->Load(ctx, full_path.c_str(), false)) {
 
                     ctx.m_terms = module.get();

@@ -43,7 +43,7 @@ OBJECTFILES= \
 	${OBJECTDIR}/dsl.o \
 	${OBJECTDIR}/lexer.o \
 	${OBJECTDIR}/lexer.yy.o \
-	${OBJECTDIR}/macro.o \
+	${OBJECTDIR}/named.o \
 	${OBJECTDIR}/newlang.o \
 	${OBJECTDIR}/nlc.o \
 	${OBJECTDIR}/object.o \
@@ -58,8 +58,8 @@ OBJECTFILES= \
 	${OBJECTDIR}/test/eval_test.o \
 	${OBJECTDIR}/test/example_test.o \
 	${OBJECTDIR}/test/lexer_test.o \
-	${OBJECTDIR}/test/macro_test.o \
 	${OBJECTDIR}/test/module_test.o \
+	${OBJECTDIR}/test/named_test.o \
 	${OBJECTDIR}/test/nlc_test.o \
 	${OBJECTDIR}/test/object_test.o \
 	${OBJECTDIR}/test/oop_test.o \
@@ -142,10 +142,10 @@ ${OBJECTDIR}/lexer.yy.o: lexer.yy.cpp parser.y parser.yy.h parser.yy.cpp locatio
 	${RM} "$@.d"
 	$(COMPILE.cc) -g -DDEBUG -DLOG_LEVEL_NORMAL=LOG_LEVEL_DEBUG -DPDC_WIDE -DUNITTEST -I. -I.. -I/usr/lib/clang/16/include -I/usr/include/llvm-16 -I/usr/include/llvm-c-16 -I/usr/include/x86_64-linux-gnu/c++/10 -I/usr/include/c++/10 -I/usr/local/include -I/usr/include -I../contrib/googletest/googletest -I../contrib/googletest/googletest/include -I../contrib/Lyra/include -I../contrib/libtorch/include/torch/csrc/api/include -I../contrib/libtorch/include -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/lexer.yy.o lexer.yy.cpp
 
-${OBJECTDIR}/macro.o: macro.cpp pch.h.pch
+${OBJECTDIR}/named.o: named.cpp pch.h.pch
 	${MKDIR} -p ${OBJECTDIR}
 	${RM} "$@.d"
-	$(COMPILE.cc) -g -DDEBUG -DLOG_LEVEL_NORMAL=LOG_LEVEL_DEBUG -DPDC_WIDE -DUNITTEST -I. -I.. -I/usr/lib/clang/16/include -I/usr/include/llvm-16 -I/usr/include/llvm-c-16 -I/usr/include/x86_64-linux-gnu/c++/10 -I/usr/include/c++/10 -I/usr/local/include -I/usr/include -I../contrib/googletest/googletest -I../contrib/googletest/googletest/include -I../contrib/Lyra/include -I../contrib/libtorch/include/torch/csrc/api/include -I../contrib/libtorch/include -include-pch pch.h.pch -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/macro.o macro.cpp
+	$(COMPILE.cc) -g -DDEBUG -DLOG_LEVEL_NORMAL=LOG_LEVEL_DEBUG -DPDC_WIDE -DUNITTEST -I. -I.. -I/usr/lib/clang/16/include -I/usr/include/llvm-16 -I/usr/include/llvm-c-16 -I/usr/include/x86_64-linux-gnu/c++/10 -I/usr/include/c++/10 -I/usr/local/include -I/usr/include -I../contrib/googletest/googletest -I../contrib/googletest/googletest/include -I../contrib/Lyra/include -I../contrib/libtorch/include/torch/csrc/api/include -I../contrib/libtorch/include -include-pch pch.h.pch -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/named.o named.cpp
 
 ${OBJECTDIR}/newlang.o: newlang.cpp pch.h.pch
 	${MKDIR} -p ${OBJECTDIR}
@@ -234,15 +234,15 @@ ${OBJECTDIR}/test/lexer_test.o: test/lexer_test.cpp pch.h.pch
 	${RM} "$@.d"
 	$(COMPILE.cc) -g -DDEBUG -DLOG_LEVEL_NORMAL=LOG_LEVEL_DEBUG -DPDC_WIDE -DUNITTEST -I. -I.. -I/usr/lib/clang/16/include -I/usr/include/llvm-16 -I/usr/include/llvm-c-16 -I/usr/include/x86_64-linux-gnu/c++/10 -I/usr/include/c++/10 -I/usr/local/include -I/usr/include -I../contrib/googletest/googletest -I../contrib/googletest/googletest/include -I../contrib/Lyra/include -I../contrib/libtorch/include/torch/csrc/api/include -I../contrib/libtorch/include -include-pch pch.h.pch -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/test/lexer_test.o test/lexer_test.cpp
 
-${OBJECTDIR}/test/macro_test.o: test/macro_test.cpp pch.h.pch
-	${MKDIR} -p ${OBJECTDIR}/test
-	${RM} "$@.d"
-	$(COMPILE.cc) -g -DDEBUG -DLOG_LEVEL_NORMAL=LOG_LEVEL_DEBUG -DPDC_WIDE -DUNITTEST -I. -I.. -I/usr/lib/clang/16/include -I/usr/include/llvm-16 -I/usr/include/llvm-c-16 -I/usr/include/x86_64-linux-gnu/c++/10 -I/usr/include/c++/10 -I/usr/local/include -I/usr/include -I../contrib/googletest/googletest -I../contrib/googletest/googletest/include -I../contrib/Lyra/include -I../contrib/libtorch/include/torch/csrc/api/include -I../contrib/libtorch/include -include-pch pch.h.pch -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/test/macro_test.o test/macro_test.cpp
-
 ${OBJECTDIR}/test/module_test.o: test/module_test.cpp pch.h.pch
 	${MKDIR} -p ${OBJECTDIR}/test
 	${RM} "$@.d"
 	$(COMPILE.cc) -g -DDEBUG -DLOG_LEVEL_NORMAL=LOG_LEVEL_DEBUG -DPDC_WIDE -DUNITTEST -I. -I.. -I/usr/lib/clang/16/include -I/usr/include/llvm-16 -I/usr/include/llvm-c-16 -I/usr/include/x86_64-linux-gnu/c++/10 -I/usr/include/c++/10 -I/usr/local/include -I/usr/include -I../contrib/googletest/googletest -I../contrib/googletest/googletest/include -I../contrib/Lyra/include -I../contrib/libtorch/include/torch/csrc/api/include -I../contrib/libtorch/include -include-pch pch.h.pch -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/test/module_test.o test/module_test.cpp
+
+${OBJECTDIR}/test/named_test.o: test/named_test.cpp pch.h.pch
+	${MKDIR} -p ${OBJECTDIR}/test
+	${RM} "$@.d"
+	$(COMPILE.cc) -g -DDEBUG -DLOG_LEVEL_NORMAL=LOG_LEVEL_DEBUG -DPDC_WIDE -DUNITTEST -I. -I.. -I/usr/lib/clang/16/include -I/usr/include/llvm-16 -I/usr/include/llvm-c-16 -I/usr/include/x86_64-linux-gnu/c++/10 -I/usr/include/c++/10 -I/usr/local/include -I/usr/include -I../contrib/googletest/googletest -I../contrib/googletest/googletest/include -I../contrib/Lyra/include -I../contrib/libtorch/include/torch/csrc/api/include -I../contrib/libtorch/include -include-pch pch.h.pch -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/test/named_test.o test/named_test.cpp
 
 ${OBJECTDIR}/test/nlc_test.o: test/nlc_test.cpp pch.h.pch
 	${MKDIR} -p ${OBJECTDIR}/test

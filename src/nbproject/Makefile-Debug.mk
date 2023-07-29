@@ -42,7 +42,7 @@ OBJECTFILES= \
 	${OBJECTDIR}/dsl.o \
 	${OBJECTDIR}/lexer.o \
 	${OBJECTDIR}/lexer.yy.o \
-	${OBJECTDIR}/macro.o \
+	${OBJECTDIR}/named.o \
 	${OBJECTDIR}/newlang.o \
 	${OBJECTDIR}/nlc.o \
 	${OBJECTDIR}/object.o \
@@ -123,10 +123,10 @@ ${OBJECTDIR}/lexer.yy.o: lexer.yy.cpp parser.y parser.yy.h parser.yy.cpp locatio
 	${RM} "$@.d"
 	$(COMPILE.cc) -g -DDEBUG -DLOG_LEVEL_NORMAL=LOG_LEVEL_DEBUG -DPDC_WIDE -I. -I.. -I/usr/lib/clang/15/include -I/usr/include/llvm-c-15 -I/usr/include/x86_64-linux-gnu/c++/10 -I/usr/include/c++/10 -I/usr/local/include -I/usr/include -I../contrib/Lyra/include -I../contrib/libtorch/include/torch/csrc/api/include -I../contrib/libtorch/include -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/lexer.yy.o lexer.yy.cpp
 
-${OBJECTDIR}/macro.o: macro.cpp pch.h.pch
+${OBJECTDIR}/named.o: named.cpp pch.h.pch
 	${MKDIR} -p ${OBJECTDIR}
 	${RM} "$@.d"
-	$(COMPILE.cc) -g -DDEBUG -DLOG_LEVEL_NORMAL=LOG_LEVEL_DEBUG -DPDC_WIDE -I. -I.. -I/usr/lib/clang/15/include -I/usr/include/llvm-c-15 -I/usr/include/x86_64-linux-gnu/c++/10 -I/usr/include/c++/10 -I/usr/local/include -I/usr/include -I../contrib/Lyra/include -I../contrib/libtorch/include/torch/csrc/api/include -I../contrib/libtorch/include -include-pch pch.h.pch -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/macro.o macro.cpp
+	$(COMPILE.cc) -g -DDEBUG -DLOG_LEVEL_NORMAL=LOG_LEVEL_DEBUG -DPDC_WIDE -I. -I.. -I/usr/lib/clang/15/include -I/usr/include/llvm-c-15 -I/usr/include/x86_64-linux-gnu/c++/10 -I/usr/include/c++/10 -I/usr/local/include -I/usr/include -I../contrib/Lyra/include -I../contrib/libtorch/include/torch/csrc/api/include -I../contrib/libtorch/include -include-pch pch.h.pch -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/named.o named.cpp
 
 ${OBJECTDIR}/newlang.o: newlang.cpp pch.h.pch
 	${MKDIR} -p ${OBJECTDIR}

@@ -29,19 +29,28 @@ typedef at::IntArrayRef Dimension;
 class Term;
 class Obj;
 class Context;
+class Module;
+class Named;
 class Compiler;
 class RunTime;
 class Diag;
 
 typedef std::shared_ptr<Term> TermPtr;
+typedef std::shared_ptr<Module> ModulePtr;
+
 typedef std::vector<TermPtr> BlockType;
 typedef std::shared_ptr<Obj> ObjPtr;
 typedef std::shared_ptr<const Obj> ObjPtrConst;
 typedef std::shared_ptr<RunTime> RuntimePtr;
 typedef std::shared_ptr<Diag> DiagPtr;
+typedef std::shared_ptr<Named> NamedPtr;
 
 typedef ObjPtr FunctionType(Context *ctx, Obj &in);
 typedef ObjPtr TransparentType(const Context *ctx, Obj &in);
+//typedef at::variant<ObjPtr, std::vector < ObjPtr> > FuncItem;
+
+typedef ObjPtr(*EvalFunction)(Context *ctx, const TermPtr & term, Obj * args, bool eval_block);
+
 
 class Return : public std::exception {
   public:
