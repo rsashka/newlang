@@ -1,16 +1,21 @@
 ---
 title: Релиз языка программрования NewLang 0.2
 date: 2022-08-12
-description: >
-  A short lead description about this content page. Text here can also be
-  **bold** or _italic_ and can even be split over multiple paragraphs.
 ---
 
-https://habr.com/ru/articles/681960/
+
+![КДПВ](/ru/blog/langs.jpeg)
 
 
+{{% pageinfo %}}
 
-![image](https://habrastorage.org/r/w1560/webt/pl/j2/ho/plj2ho0lszvbxr2p1rtgz3ojocc.jpeg)
+Внимание!!!
+
+Данная статья содержит описание синтаксиса NewLnag предыдущей версии.
+
+Актуальную версию синтаксиса языка можно посмотреть [тут](/ru/docs/).
+
+{{% /pageinfo %}}
 
 
 *NewLang* - это язык программирования высокого уровня в котором можно сочетать стандартные алгоритмические конструкции с декларативным программированием и тензорными вычислениями для задач машинного обучения.
@@ -19,7 +24,6 @@ https://habr.com/ru/articles/681960/
 
 *NewLang* находится в процессе активного развития и это второй публичный релиз в котором добавлены существенные новые возможности и произошли некоторые изменения по сравнению с [предыдущей версией](https://habr.com/ru/company/timeweb/blog/673176/).
 
-<cut />
 
 ## Особенности языка:
 - Возможность работы как в режиме интерпретатора, так и компилятора*.

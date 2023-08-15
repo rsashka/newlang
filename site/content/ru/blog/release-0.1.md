@@ -1,13 +1,21 @@
 ---
 title: Релиз языка программрования NewLang
 date: 2022-06-24
-description: >
-  A short lead description about this content page. Text here can also be
-  **bold** or _italic_ and can even be split over multiple paragraphs.
 ---
 
-https://habr.com/ru/companies/timeweb/articles/673176/
-![КДПВ](https://habrastorage.org/r/w1560/webt/pl/j2/ho/plj2ho0lszvbxr2p1rtgz3ojocc.jpeg)
+![КДПВ](/ru/blog/langs.jpeg)
+
+
+{{% pageinfo %}}
+
+Внимание!!!
+
+Данная статья содержит описание синтаксиса NewLnag предыдущей версии.
+
+Актуальную версию синтаксиса языка можно посмотреть [тут](/ru/docs/).
+
+{{% /pageinfo %}}
+
 
 **NewLang** - это язык программирования высокого уровня, в котором можно сочетать стандартные алгоритмические конструкции с декларативным программированием и тензорными вычислениями для задач машинного обучения.
 
@@ -490,5 +498,3 @@ $result := (){{     # начало аналога блока try
 - Восстановить работоспособность компилятора для генерации исполняемых файлов;
 - Сделать очередную большую чистку кода;
 - Переработать и задокументировать получившуюся семантику языка с учетом всех возможностей и выпустить первую полнофункциональную версию NewLang.
-
-<a href=" https://cloud.timeweb.com/vds-promo-10-rub?utm_source=habr&utm_medium=banner&utm_campaign=vds-promo-10-rub"><img src="https://habrastorage.org/webt/co/e2/kh/coe2kha8u8_pypip-2k3wk3ppa0.png" /></a>
