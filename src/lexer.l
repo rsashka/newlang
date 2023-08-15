@@ -516,6 +516,7 @@ ${name}     YY_TOKEN(NAME);
 
 "::"        YY_TOKEN(NAMESPACE);
 "$*"        YY_TOKEN(ARGS);
+"$^"        YY_TOKEN(ARGS);
 "$$"        YY_TOKEN(NAME);
 "\\\\"      YY_TOKEN(NEWLANG);
 "\\\\$"     YY_TOKEN(NEWLANG);

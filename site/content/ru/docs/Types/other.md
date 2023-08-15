@@ -3,6 +3,7 @@ title: Другие типы данных
 # linkTitle: Docs
 # menu: {main: {weight: 20}}
 weight: 60
+tags: [типы данных]
 ---
 
 ### Пусто (:None)

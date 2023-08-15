@@ -19,6 +19,9 @@
       <itemPath>../docs/CNAME</itemPath>
       <itemPath>../docs/_config.yml</itemPath>
     </logicalFolder>
+    <logicalFolder name="f2" displayName="SITE" projectFiles="true" kind="ROOT">
+      <itemPath>../site/content</itemPath>
+    </logicalFolder>
     <logicalFolder name="SourceFiles"
                    displayName="Исходные файлы"
                    projectFiles="true">
@@ -251,6 +254,8 @@
       <item path="../examples/speed_test.py" ex="false" tool="3" flavor2="0">
       </item>
       <item path="../examples/tensor.nlp" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../site/content" ex="false" tool="3" flavor2="0">
       </item>
       <item path="autocomplete.h" ex="false" tool="3" flavor2="0">
       </item>
@@ -626,6 +631,8 @@
       </item>
       <item path="../examples/tensor.nlp" ex="false" tool="3" flavor2="0">
       </item>
+      <item path="../site/content" ex="false" tool="3" flavor2="0">
+      </item>
       <item path="autocomplete.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="builtin.cpp" ex="false" tool="1" flavor2="0">
@@ -979,6 +986,8 @@
       </item>
       <item path="../examples/tensor.nlp" ex="false" tool="3" flavor2="0">
       </item>
+      <item path="../site/content" ex="false" tool="3" flavor2="0">
+      </item>
       <item path="autocomplete.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="builtin.cpp" ex="false" tool="1" flavor2="9">
@@ -1259,6 +1268,8 @@
       <item path="../examples/speed_test.py" ex="false" tool="3" flavor2="0">
       </item>
       <item path="../examples/tensor.nlp" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../site/content" ex="false" tool="3" flavor2="0">
       </item>
       <item path="autocomplete.h" ex="false" tool="3" flavor2="0">
       </item>
@@ -1628,6 +1639,8 @@
       <item path="../examples/speed_test.py" ex="false" tool="3" flavor2="0">
       </item>
       <item path="../examples/tensor.nlp" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../site/content" ex="false" tool="3" flavor2="0">
       </item>
       <item path="autocomplete.h" ex="false" tool="3" flavor2="0">
       </item>

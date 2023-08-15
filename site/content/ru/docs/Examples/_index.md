@@ -4,6 +4,7 @@ weight: 4
 #date: 2017-01-05
 #description: See your project in action!
 
+simple_list: false
 categories: [Examples, Placeholders]
 tags: [test, docs]
 ---

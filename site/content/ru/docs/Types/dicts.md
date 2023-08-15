@@ -3,6 +3,7 @@ title: Словари
 # linkTitle: Docs
 # menu: {main: {weight: 20}}
 weight: 30
+tags: [типы данных, ООП, коллекции]
 ---
 
 

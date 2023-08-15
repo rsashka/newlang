@@ -1,8 +1,9 @@
 ---
-title: Строки
+title: Символьные строки
 # linkTitle: Docs
 # menu: {main: {weight: 20}}
 weight: 20
+tags: [типы данных, строки]
 ---
 
 ## Символьные строки

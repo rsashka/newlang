@@ -3,6 +3,7 @@ title: Функции
 # linkTitle: Docs
 # menu: {main: {weight: 20}}
 weight: 40
+tags: [типы данных, функции]
 ---
 
 

@@ -43,6 +43,8 @@ function check_new_file() {
     fi
 }
 
+mkdir $root/output/site
+
 for flang in $lang; do
     fdir="$root/docs/$flang"
 
@@ -64,7 +66,7 @@ for flang in $lang; do
         cat $fpath >> $fdir/$alldoc.md
         echo -e "------\n$ffile\n\n" >> $fdir/$alldoc.md
 
-#        cp  $fpath  $root/output/site/$ffile.$flang.md
+        cp  $fpath  $root/output/site/$ffile.$flang.md
 
     done
 

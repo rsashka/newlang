@@ -1,8 +1,9 @@
 ---
-title: Числа
+title: Числа (тензоры)
 # linkTitle: Docs
 # menu: {main: {weight: 20}}
 weight: 10
+tags: [типы данных, простые типы]
 ---
 
 ## Числовые типы данных

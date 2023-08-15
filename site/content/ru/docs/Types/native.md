@@ -3,6 +3,7 @@ title: Нативные типы
 # linkTitle: Docs
 # menu: {main: {weight: 20}}
 weight: 70
+tags: [типы данных, системые типы, коллекции]
 ---
 
 
