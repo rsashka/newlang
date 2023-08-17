@@ -2,7 +2,7 @@
 title: Keyword syntax
 # description:  Правила синтаксиса языка
 # date: 2017-01-05
-weight: 60
+weight: 200
 ---
 
 

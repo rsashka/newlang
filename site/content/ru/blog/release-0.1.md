@@ -1,4 +1,5 @@
 ---
+slug: release-v0.1
 title: Релиз языка программрования NewLang
 date: 2022-06-24
 ---

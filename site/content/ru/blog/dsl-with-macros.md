@@ -1,4 +1,5 @@
 ---
+slug: dsl-with-macros
 title: Вариант реализации DSL (domain-specific language) с помощью макросов
 date: 2023-03-01
 ---

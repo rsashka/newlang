@@ -1,77 +1,170 @@
 ---
-title: Goldydocs
+title: NewLang
 ---
 
-{{< blocks/cover title="Welcome to Goldydocs: A Docsy Example Project!" image_anchor="top" height="full" >}}
-<a class="btn btn-lg btn-primary me-3 mb-4" href="/docs/">
-  Learn More <i class="fas fa-arrow-alt-circle-right ms-2"></i>
+{{< blocks/cover title="Добро пожаловать на сайт проекта NewLang!" image_anchor="top" height="auto" >}}
+
+<a class="btn btn-lg btn-primary me-3 mb-4" href="/ru/docs/">
+  Документация <i class="fas fa-arrow-alt-circle-right ms-2"></i>
 </a>
-<a class="btn btn-lg btn-secondary me-3 mb-4" href="https://github.com/google/docsy-example">
-  Download <i class="fab fa-github ms-2 "></i>
+
+<a class="btn btn-lg btn-secondary me-3 mb-4" href="/ru/blog/">
+  Статьи <i class="fas fa-arrow-alt-circle-right ms-2 "></i>
 </a>
-<p class="lead mt-5">Porridge temperature assessment &mdash; in the cloud!</p>
+
+<a class="btn btn-lg btn-secondary me-3 mb-4" href="https://github.com/rsashka/newlang/">
+  GitHub <i class="fab fa-github ms-2 "></i>
+</a>
+
 {{< blocks/link-down color="info" >}}
 {{< /blocks/cover >}}
 
 
-{{% blocks/lead color="primary" %}}
-Goldydocs provides a single web UI providing visibility into porridge
-temperature, chair size, and bed softness metrics! You can even find out who's
-been eating **your** porridge.
+{{% blocks/lead %}}
 
-(Sadly, Goldydocs isn't a real project, but you can use this site as an example
-to create your own real websites with [Docsy](https://docsy.dev))
+<p class="lead">NewLang - язык программирования высокого уровня общего назначения с синтаксисом на строгой системе грамматических правил.
+<br>Но помощью макросов препроцесора, синтаксис превращается в DSL на основе ключевых слов.</p>
+
+<p class="lead mt-5">Тензорные вычисления и рациональные числа не ограниченной точности поддерживаются на уровне синтаксиса языка и базовых типов данных без использования дополнительных библиотек.</p>
+
 {{% /blocks/lead %}}
 
 
-{{% blocks/section color="dark" type="row" %}}
-{{% blocks/feature icon="fa-lightbulb" title="New chair metrics!" %}}
-The Goldydocs UI now shows chair size metrics by default.
-
-Please follow this space for updates!
-{{% /blocks/feature %}}
+{{% blocks/section %}}
 
 
-{{% blocks/feature icon="fab fa-github" title="Contributions welcome!" url="https://github.com/google/docsy-example" %}}
-We do a [Pull Request](https://github.com/google/docsy-example/pulls) contributions workflow on **GitHub**. New users are always welcome!
-{{% /blocks/feature %}}
+## Основные свойства и особенности языка:
 
+- возможность работы как в режиме интерпретатора, так и компилятора*
+- динамическая и статическая типизация с возможностью указания типов в явном виде
+- статическая типизация является условно-строгой (автоматическое приведение типов отсутствует, но допускается преобразование между некоторыми типами данных. Например, целое число может быть автоматически преобразовано в вещественное или рациональное, но не наоборот)
+- автоматическое управление памятью
+- ООП в виде явного наследования классов и «утиная типизация»
+- на уровне синтаксиса поддерживается несколько типов функций (обычные и чистые функции без побочных эффектов)
+- необязательные и именованные параметры функций
+- возможны вставки кода на языке реализации (С/С++)*
+- простая интеграция с уже существующими программными библиотеками (в том числе импорт нативных переменных, функций и классов* из С/С++.)
+- имеется REPL [read-eval-print loop — «цикл: чтение — вычисление — вывод»](https://ru.wikipedia.org/wiki/REPL)
 
-{{% blocks/feature icon="fab fa-twitter" title="Follow us on Twitter!" url="https://twitter.com/docsydocs" %}}
-For announcement of latest features etc.
-{{% /blocks/feature %}}
-
+---
+*Данные возможности запланированы к реализации при создании компилятора
 
 {{% /blocks/section %}}
-
 
 {{% blocks/section %}}
-This is the second section
-{.h1 .text-center}
+
+## Зачем нужен *NewLang*?
+
+У всех современных языков программирования происходит постоянное [развитие (усложнение) синтаксиса](/ru/blog/complex-prog/) по мере выхода новых версий. 
+Это является своего рода платой за появление новых возможностей и воспринимается пользователями как естественное явление.
+
+Но одновременно является и серьезной проблемой, так как с выходом версий добавляются новые ключевые слова и синтаксические конструкции, 
+что неизбежно повышает порог входа для новых пользователей. 
+Еще одним следствием этого процесса становится постоянное повышение сложности разработки и поддержки уже созданных программных продуктов, 
+когда старый код дорабатывается с применением уже новых стандартов.
+
+У *NewLang* сложность языковых конструкций ограничена естественным образом за счет разделения синтаксиса языка на две части, что упрощает его изучение и использование.
+
+*Основной синтаксис* — для написания программ в объектно-ориентированном (императивном) и декларативном стилях, 
+который основан не на зарезервированных ключевых словах, а на системе строгих [грамматических правил](/ru/docs/syntax/). 
+Имеется возможность расширения основного синтаксиса за счет использования макросов. 
+*Расширенный синтаксис* — программные вставки на языке реализации (С/С++), когда основного синтаксиса становится недостаточно.
+
+Еще одно неудобство современных языков в том, что большинство из них были созданы до начала эпохи машинного обучения, 
+поэтому тензорные вычисления у них выполнены в виде отдельных библиотек. 
+Это же касается и вычислений с неограниченной точностью, которые так же требуют применения дополнительных библиотечных функций.
+
+У *NewLang* тензорные вычисления и рациональные числа неограниченной точности доступны «из коробки». 
+Они поддерживаются на уровне синтаксиса для записи литералов соответствующих типов, 
+а простые арифметические типы данных являются скалярами (тензорами нулевой размерности). 
+Реализация тензорных вычислений сделана на базе библиотеки [libtorch](https://pytorch.org/), 
+а рациональные числа с использованием [OpenSSL](https://github.com/openssl/openssl/blob/master/crypto/bn/README.pod).
+
+
+{.text-center}
+
 {{% /blocks/section %}}
-
-
-{{% blocks/section type="row" %}}
-
-{{% blocks/feature icon="fab fa-app-store-ios" title="Download **from AppStore**" %}}
-Get the Goldydocs app!
-{{% /blocks/feature %}}
-
-{{% blocks/feature icon="fab fa-github" title="Contributions welcome!"
-    url="https://github.com/google/docsy-example" %}}
-We do a [Pull Request](https://github.com/google/docsy-example/pulls)
-contributions workflow on **GitHub**. New users are always welcome!
-{{% /blocks/feature %}}
-
-{{% blocks/feature icon="fab fa-twitter" title="Follow us on Twitter!"
-    url="https://twitter.com/GoHugoIO" %}}
-For announcement of latest features etc.
-{{% /blocks/feature %}}
-
-{{% /blocks/section %}}
-
 
 {{% blocks/section %}}
-This is the another section !!!!!!!!!!!!!! !!!!!!!!!!!!!!!!! !!!!!!!!!!!!!!!!!!!!!!!!!!!!
-{.h1 .text-center}
+
+## Загрузка бинарных сборок
+
+- [Бинарная сборка и тесты под Windows](https://github.com/rsashka/newlang/releases/download/v0.4.0/nlc_win_64.zip)
+- [Бинарная сборка и тесты под Ubuntu](https://github.com/rsashka/newlang/releases/download/v0.4.0/nlc_lin_64.tar.xz)
+- Для запуска бинарных сборок потребуются разделяемые библиотеки libLLVM-16 и libtorch ([архив с библиотеками для Windows](https://github.com/rsashka/newlang/r
+eleases/download/v0.3.0/nlc_dll.zip)), ([архив с библиотеками для Ubuntu](https://github.com/rsashka/newlang/releases/download/v0.4.0/nlc_so.tar.xz)).
+
+
+## Сборка проекта из исходников
+
+### Подготовка репозитория
+
+- Скачать исходники [https://github.com/rsashka/newlang](https://github.com/rsashka/newlang)
+- Скачать и развернуть архив [libtorch](https://pytorch.org/) в каталоге *contrib* (PyTorch Build: Stable (1.13.*) -> Your OS: Linux -> Package: LibTorch -> La
+nguage: C++ / Java -> Compute Platform: CPU -> Download here (cxx11 ABI):
+[libtorch-shared-with-deps-1.13+cpu.zip](https://download.pytorch.org/libtorch/cpu/libtorch-shared-with-deps-1.13.0%2Bcpu.zip)
+- Активировать и скачать исходники субмодулей (`git submodule init && git submodule update`)
+- В каталоге *contrib* запустить файл `build.sh`
+- В каталоге *src* запустить файл `compile_syntax.sh` для генерации файлов парсера и лексического анализатора. Также может потребоваться установка утилит *flex
+* и *bison* (flex 2.6.4 и bison (GNU Bison) 3.7.4)
+
+### Сборка
+
+- Юнит-тесты (nlc_test): в каталоге *src* выполнить команду `make CONF=UnitTest`
+- Интерпретатор (nlc): в каталоге *src* выполнить команду `make CONF=Debug`
+
+---
+
+Сборка проекта выполняется обычной утилитой make, но сборочные файлы генерируются автоматически в Apache NetBeans
+c подключенным плагином С/С++ от версии 8.2, т.к. это единственная универсальная среда разработки с поддержкой Makefile «из коробки».
+Начал постепенный переход на использование редактора VSCodium (аналога VSCode, в котором вычищена телеметрия от Microsoft)
+и генерацию скиптов сборки с помощью сmake, но этот процесс пока не завершен.
+
+## Обратная связь
+Если у вас появятся предложения по развитию или улучшению NewLang, [пишите](https://github.com/rsashka/newlang/discussions).
+
 {{% /blocks/section %}}
+
+{{% blocks/section %}}
+{.text-center}
+
+### Пример скрипта Hello world! на NewLang
+
+```cpp
+    #!../output/nlc --eval
+
+    hello(str) := {
+        # Импорт и вызов стандартной функции printf
+        printf := :Pointer('printf(format:FmtChar, ...):Int32');
+        printf('call: %s', $str);
+        $str;
+    };
+    hello('Привет, мир!');
+```
+Вывод:   
+```cpp
+    call: Привет, мир!
+    Привет, мир!
+```
+
+### Пример вычисления факториала 40 на NewLang
+
+```cpp
+    #!../output/nlc --eval
+
+    fact := 1\1; # Рациональное число без ограничений точности
+    mult := 40..1..-1?; # Создать итератор из диапазона для множителей от 40 до 2
+    [mult ?!] <-> { # Цикл, пока не закончатся данные итератора
+        fact *= mult !; # Получить текущий множитель и перейти на следующий элемент итератора
+    };
+
+    fact # Вывести итоговый результат
+```
+Вывод:
+```cpp
+    815915283247897734345611269596115894272000000000\1
+```
+
+
+{{% /blocks/lead %}}
+
