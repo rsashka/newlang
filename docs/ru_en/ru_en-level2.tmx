@@ -1,0 +1,65 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE tmx SYSTEM "tmx14.dtd">
+<tmx version="1.4">
+  <header creationtool="OmegaT" o-tmf="OmegaT TMX" adminlang="EN-US" datatype="plaintext" creationtoolversion="6.0.0_0_1bf1729c" segtype="sentence" srclang="ru-RU"/>
+  <body>
+<!-- Default translations -->
+    <tu>
+      <tuv xml:lang="ru-RU">
+        <seg>--- title: NewLang --- {{&lt; blocks/cover title="Добро пожаловать на сайт проекта NewLang!" image_anchor="top" height="auto" &gt;}} <bpt i="0" x="0">&lt;a0&gt;</bpt> Документация <bpt i="1" x="1">&lt;i1&gt;</bpt><ept i="1">&lt;/i1&gt;</ept> <ept i="0">&lt;/a0&gt;</ept> <bpt i="2" x="2">&lt;a2&gt;</bpt> Статьи <bpt i="3" x="3">&lt;i3&gt;</bpt><ept i="3">&lt;/i3&gt;</ept> <ept i="2">&lt;/a2&gt;</ept> <bpt i="4" x="4">&lt;a4&gt;</bpt> GitHub <bpt i="5" x="5">&lt;i5&gt;</bpt><ept i="5">&lt;/i5&gt;</ept> <ept i="4">&lt;/a4&gt;</ept> {{&lt; blocks/link-down color="info" &gt;}} {{&lt; /blocks/cover &gt;}} {{% blocks/lead %}}</seg>
+      </tuv>
+      <tuv xml:lang="en-US" changeid="rsashka" changedate="20230819T211511Z" creationid="rsashka" creationdate="20230819T211332Z">
+        <seg>--- title: NewLang --- {{&lt; blocks/cover title="Welcome NewLang!" image_anchor="top" height="auto" &gt;}} <bpt i="0" x="0">&lt;a0&gt;</bpt> Documents <bpt i="1" x="1">&lt;i1&gt;</bpt><ept i="1">&lt;/i1&gt;</ept> <ept i="0">&lt;/a0&gt;</ept> <bpt i="2" x="2">&lt;a2&gt;</bpt>Articles<bpt i="3" x="3">&lt;i3&gt;</bpt><ept i="3">&lt;/i3&gt;</ept> <ept i="2">&lt;/a2&gt;</ept> <bpt i="4" x="4">&lt;a4&gt;</bpt> GitHub <bpt i="5" x="5">&lt;i5&gt;</bpt><ept i="5">&lt;/i5&gt;</ept> <ept i="4">&lt;/a4&gt;</ept> {{&lt; blocks/link-down color="info" &gt;}} {{&lt; /blocks/cover &gt;}} {{% blocks/lead %}}</seg>
+      </tuv>
+    </tu>
+    <tu>
+      <tuv xml:lang="ru-RU">
+        <seg>/ru/blog/</seg>
+      </tuv>
+      <tuv xml:lang="en-US" changeid="rsashka" changedate="20230819T211139Z" creationid="rsashka" creationdate="20230819T211139Z">
+        <seg>/blog/</seg>
+      </tuv>
+    </tu>
+    <tu>
+      <tuv xml:lang="ru-RU">
+        <seg>/ru/docs/</seg>
+      </tuv>
+      <tuv xml:lang="en-US" changeid="rsashka" changedate="20230819T211147Z" creationid="rsashka" creationdate="20230819T211147Z">
+        <seg>/docs/</seg>
+      </tuv>
+    </tu>
+    <tu>
+      <tuv xml:lang="ru-RU">
+        <seg>NewLang - язык программирования высокого уровня общего назначения с синтаксисом на строгой системе грамматических правил.</seg>
+      </tuv>
+      <tuv xml:lang="en-US" changeid="rsashka" changedate="20230819T175854Z" creationid="rsashka" creationdate="20230819T175854Z">
+        <seg>NewLang - is a general-purpose high-level programming language with a syntax based on a strict system of grammatical rules.</seg>
+      </tuv>
+    </tu>
+    <tu>
+      <tuv xml:lang="ru-RU">
+        <seg>Но помощью макросов препроцесора, синтаксис превращается в DSL на основе ключевых слов.</seg>
+      </tuv>
+      <tuv xml:lang="en-US" changeid="rsashka" changedate="20230819T211534Z" creationid="rsashka" creationdate="20230819T211534Z">
+        <seg>But with the help of preprocessor macros, the syntax turns into DSL based on keywords.</seg>
+      </tuv>
+    </tu>
+    <tu>
+      <tuv xml:lang="ru-RU">
+        <seg>Основные свойства и особенности языка:</seg>
+      </tuv>
+      <tuv xml:lang="en-US" changeid="rsashka" changedate="20230819T180206Z" creationid="rsashka" creationdate="20230819T180206Z">
+        <seg>The main properties and features of the language:</seg>
+      </tuv>
+    </tu>
+    <tu>
+      <tuv xml:lang="ru-RU">
+        <seg>Тензорные вычисления и рациональные числа не ограниченной точности поддерживаются на уровне синтаксиса языка и базовых типов данных без использования дополнительных библиотек.</seg>
+      </tuv>
+      <tuv xml:lang="en-US" changeid="rsashka" changedate="20230819T180100Z" creationid="rsashka" creationdate="20230819T180100Z">
+        <seg>Tensor calculations and rationals of unlimited precision are supported at the level of language syntax and basic data types without the use of additional libraries.</seg>
+      </tuv>
+    </tu>
+<!-- Alternative translations -->
+  </body>
+</tmx>

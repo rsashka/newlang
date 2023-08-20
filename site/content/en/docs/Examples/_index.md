@@ -1,9 +1,15 @@
 ---
-title: Examples
-weight: 3
-date: 2017-01-05
-description: See your project in action!
+title: Примеры
+weight: 4
+description: >
+    Примеры кода и простых программ для демонстрации возможностей языка
+
+simple_list: false
+categories: [Examples, Placeholders]
+tags: [test, docs]
 ---
+
+Примеры программ на NewLang
 
 {{% pageinfo %}}
 This is a placeholder page that shows you how to use this template site.

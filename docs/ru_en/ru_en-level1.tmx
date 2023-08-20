@@ -1,0 +1,65 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE tmx SYSTEM "tmx11.dtd">
+<tmx version="1.1">
+  <header creationtool="OmegaT" o-tmf="OmegaT TMX" adminlang="EN-US" datatype="plaintext" creationtoolversion="6.0.0_0_1bf1729c" segtype="sentence" srclang="ru-RU"/>
+  <body>
+<!-- Default translations -->
+    <tu>
+      <tuv lang="ru-RU">
+        <seg>--- title: NewLang --- {{&lt; blocks/cover title="Добро пожаловать на сайт проекта NewLang!" image_anchor="top" height="auto" &gt;}}  Документация    Статьи    GitHub   {{&lt; blocks/link-down color="info" &gt;}} {{&lt; /blocks/cover &gt;}} {{% blocks/lead %}}</seg>
+      </tuv>
+      <tuv lang="en-US" changeid="rsashka" changedate="20230819T211511Z" creationid="rsashka" creationdate="20230819T211332Z">
+        <seg>--- title: NewLang --- {{&lt; blocks/cover title="Welcome NewLang!" image_anchor="top" height="auto" &gt;}}  Documents   Articles   GitHub   {{&lt; blocks/link-down color="info" &gt;}} {{&lt; /blocks/cover &gt;}} {{% blocks/lead %}}</seg>
+      </tuv>
+    </tu>
+    <tu>
+      <tuv lang="ru-RU">
+        <seg>/ru/blog/</seg>
+      </tuv>
+      <tuv lang="en-US" changeid="rsashka" changedate="20230819T211139Z" creationid="rsashka" creationdate="20230819T211139Z">
+        <seg>/blog/</seg>
+      </tuv>
+    </tu>
+    <tu>
+      <tuv lang="ru-RU">
+        <seg>/ru/docs/</seg>
+      </tuv>
+      <tuv lang="en-US" changeid="rsashka" changedate="20230819T211147Z" creationid="rsashka" creationdate="20230819T211147Z">
+        <seg>/docs/</seg>
+      </tuv>
+    </tu>
+    <tu>
+      <tuv lang="ru-RU">
+        <seg>NewLang - язык программирования высокого уровня общего назначения с синтаксисом на строгой системе грамматических правил.</seg>
+      </tuv>
+      <tuv lang="en-US" changeid="rsashka" changedate="20230819T175854Z" creationid="rsashka" creationdate="20230819T175854Z">
+        <seg>NewLang - is a general-purpose high-level programming language with a syntax based on a strict system of grammatical rules.</seg>
+      </tuv>
+    </tu>
+    <tu>
+      <tuv lang="ru-RU">
+        <seg>Но помощью макросов препроцесора, синтаксис превращается в DSL на основе ключевых слов.</seg>
+      </tuv>
+      <tuv lang="en-US" changeid="rsashka" changedate="20230819T211534Z" creationid="rsashka" creationdate="20230819T211534Z">
+        <seg>But with the help of preprocessor macros, the syntax turns into DSL based on keywords.</seg>
+      </tuv>
+    </tu>
+    <tu>
+      <tuv lang="ru-RU">
+        <seg>Основные свойства и особенности языка:</seg>
+      </tuv>
+      <tuv lang="en-US" changeid="rsashka" changedate="20230819T180206Z" creationid="rsashka" creationdate="20230819T180206Z">
+        <seg>The main properties and features of the language:</seg>
+      </tuv>
+    </tu>
+    <tu>
+      <tuv lang="ru-RU">
+        <seg>Тензорные вычисления и рациональные числа не ограниченной точности поддерживаются на уровне синтаксиса языка и базовых типов данных без использования дополнительных библиотек.</seg>
+      </tuv>
+      <tuv lang="en-US" changeid="rsashka" changedate="20230819T180100Z" creationid="rsashka" creationdate="20230819T180100Z">
+        <seg>Tensor calculations and rationals of unlimited precision are supported at the level of language syntax and basic data types without the use of additional libraries.</seg>
+      </tuv>
+    </tu>
+<!-- Alternative translations -->
+  </body>
+</tmx>

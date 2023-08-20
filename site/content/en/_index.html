@@ -1,0 +1,176 @@
+---
+title: NewLang
+---
+
+{{< blocks/cover title="Welcome to the NewLang project site!" image_anchor="top" height="auto" >}}
+
+<a class="btn btn-lg btn-primary me-3 mb-4" href="/docs/">
+  Documentation <i class="fas fa-arrow-alt-circle-right ms-2"></i>
+</a>
+
+<a class="btn btn-lg btn-secondary me-3 mb-4" href="/blog/">
+  Articles <i class="fas fa-arrow-alt-circle-right ms-2 "></i>
+</a>
+
+<a class="btn btn-lg btn-secondary me-3 mb-4" href="https://github.com/rsashka/newlang/">
+  GitHub <i class="fab fa-github ms-2 "></i>
+</a>
+
+{{< blocks/link-down color="info" >}}
+{{< /blocks/cover >}}
+
+
+{{% blocks/lead %}}
+
+<p class="lead">NewLang is a general-purpose high-level programming language with a syntax based on a strict system of grammatical rules.
+<br>But with the help of preprocessor macros, the syntax is turned into DSL based on keywords.</p>
+
+<p class="lead mt-5">Tensor calculations and rationals of unlimited precision are supported at the level of language syntax and basic data types without the use of additional libraries.</p>
+
+{{% /blocks/lead %}}
+
+
+{{% blocks/section %}}
+
+<h3>
+The main properties and features:
+</h3>
+
+<ul>
+<li>the ability to work both in interpreter and compiler mode<b>*</b>
+</li>
+
+<li>dynamic and static typing with the ability to specify types explicitly
+</li>
+
+<li>static typing is conditionally strong (there is no automatic type casting, but conversion between some data types is allowed. For example, an integer can be automatically converted to real or rational, but not vice versa)
+</li>
+
+<li>automatic memory management without garbage collector
+</li>
+
+<li>bject-oriented programming in the form of explicit class inheritance and "duck typing"
+</li>
+
+<li>several types of functions (regular and pure functions without side effects) are supported at the syntax level of the language
+</li>
+
+<li>optional and named function arguments
+</li>
+
+<li>direct insertion of C/C++ code is possible<b>*</b>
+</li>
+
+<li>easy integration with existing software libraries (including import of native variables, functions and classes* from C/C++).
+</li>
+
+<li>there is a <a href="https://en.wikipedia.org/wiki/REPL">REPL (read-eval-print loop)</a>
+</li>
+</ul>
+
+<hr>
+<b>*</b>) These features are planned for implementation when the compiler is created.
+
+
+{{% /blocks/section %}}
+
+{{% blocks/section %}}
+
+<h2>Why do we need <em>NewLang</em>?
+</h2>
+
+<p>
+All modern programming languages have a constant <a href="/blog/complex-prog/">development (complication) of syntax</a> as new versions are released.<br>
+This is a kind of payment for the emergence of new features and is perceived by users as a natural process.
+<p>
+    
+<p>
+But at the same time it is also a serious problem, since with the release of versions new keywords and syntactic constructions are added,
+which inevitably raises the entry threshold for new users.
+</p>    
+
+<p>
+Another consequence of this process is the constant increase in the complexity of developing and supporting already created software products,
+when the old code is being finalized using the already new standards.
+</p>
+
+<p>
+<em>NewLang</em> naturally limits the complexity of language constructs by splitting the syntax of the language into two parts, making it easier to learn and use.
+</p>
+
+<p>
+<em>Basic syntax</em> - for writing programs in object-oriented (imperative) and declarative styles,
+which is based not on reserved keywords, but on a system of strict <a href="/docs/syntax/">grammar rules</a>.
+It is possible to extend the basic syntax through the use of macros.<br>
+
+<em>Extended syntax</em> - program inserts in the implementation language (C / C ++), when the main syntax becomes insufficient.
+</p>
+    
+<p>
+Another disadvantage of modern languages is that most of them were created before the era of machine learning,
+therefore, tensor calculations are performed in the form of separate libraries.<br>
+The same applies to calculations with unlimited precision, which also require the use of additional library functions.
+</p>
+
+<p>
+<em>NewLang</em> has tensor calculus and unlimited-precision rationals out of the box.<br>
+
+They are supported at the syntax level for writing literals of the corresponding types,
+and simple arithmetic data types are scalars (tensors of dimension zero).<br>
+
+The implementation of tensor calculations is based on the library <a href="https://pytorch.org/">libtorch</a>,
+and rational numbers using <a href="https://github.com/openssl/openssl/blob/master/crypto/bn/README.pod">OpenSSL</a>.
+</p>
+
+
+{{% /blocks/section %}}
+
+{{% blocks/section %}}
+
+<h4>Hello world script example in NewLang</h4>
+
+<br>
+<pre>
+<code>
+    #!../output/nlc --eval
+
+    hello(str) := {
+        # Import and call the standard printf function
+        printf := :Pointer('printf(format:FmtChar, ...):Int32');
+        printf('call: %s', $str);
+        $str;
+    };
+    hello('Hello, world!');
+</code>
+</pre>
+
+Output:   
+<pre><code>
+    call: Hello, world!
+    Hello, world!
+</code></pre>
+
+
+<h4>An example of calculating factorial 40 on NewLang</h4>
+
+<br>
+<pre><code>
+    #!../output/nlc --eval
+
+    fact := 1\1;            # Rational number without precision restrictions
+    mult := 40..1..-1?;     # Create an iterator from a range for factors from 40 to 2
+    [mult?!] <-> {          # Loop until iterator data runs out
+         fact *= mult !;    # Get the current multiplier and go to the next element of the iterator
+    };
+
+    fact                    # Print the final result
+</code></pre>
+
+Output:   
+<pre><code>
+    815915283247897734345611269596115894272000000000\1
+</code></pre>
+
+
+{{% /blocks/lead %}}
+

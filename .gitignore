@@ -24,6 +24,7 @@ Makefile
 docs/syntax.txt
 output
 **/*temp*
+**/tmp
 **/.vs
 .history
 
