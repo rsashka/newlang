@@ -335,7 +335,8 @@ TEST(Eval, Tensor) {
 TEST(Eval, TypesNative) {
 
     Context::Reset();
-    Context ctx(RunTime::Init());
+    RuntimePtr rt = RunTime::Init();
+    Context ctx(rt);
 
     //    ASSERT_EQ(41, ctx.m_types.size());
 
@@ -367,7 +368,7 @@ TEST(Eval, TypesNative) {
     //    ASSERT_EQ(f_stdout->m_func_ptr, f2_stdout->m_func_ptr);
     //    //    ASSERT_EQ(f_stdout->m_func_ptr, (void *)stdout);
 
-    ObjPtr fopen = ctx.CreateNative("fopen(filename:StrChar, modes:StrChar):File");
+    ObjPtr fopen = rt->CreateNative("fopen(filename:StrChar, modes:StrChar):File");
     ASSERT_TRUE(fopen);
     ASSERT_TRUE(at::holds_alternative<void *>(fopen->m_var));
     ASSERT_TRUE(at::get<void *>(fopen->m_var));
@@ -872,7 +873,7 @@ TEST(Eval, Macros) {
     ASSERT_TRUE(result);
     ASSERT_TRUE(result->is_integer());
     ASSERT_EQ(100, result->GetValueAsInteger());
-    
+
 }
 
 TEST(Eval, MacroDSL) {
@@ -904,7 +905,7 @@ TEST(Eval, MacroDSL) {
             "@@break       @@ := ++ :Break ++ ;\n"
             "@@continue    @@ := ++:Continue++;\n"
             ""
-//            "@@return     @@  := ++;\n"
+            //            "@@return     @@  := ++;\n"
             "@@return(...) @@ := @@ ++ @$... ++ @@;\n"
             "@@error(...)  @@ := @@ -- @$... -- @@;\n"
             ""
@@ -943,13 +944,13 @@ TEST(Eval, MacroDSL) {
     ASSERT_TRUE(ctx.m_named->size() > 10) << ctx.m_named->Dump();
 
     const char * run_macro = ""
-//            "count := 5;"
-//            "while( count<10 ) {+"
+            //            "count := 5;"
+            //            "while( count<10 ) {+"
             "  if(10>5 ) {+"
             "    return(42);"
             "  +};"
-//            "  count += 1;"
-//            "+};"
+            //            "  count += 1;"
+            //            "+};"
             "";
 
 
@@ -1384,7 +1385,7 @@ protected:
     const char *Test(std::string eval, Obj *vars) {
         eval += ";";
         m_result = m_ctx.ExecStr(eval, vars);
-        if(m_result) {
+        if (m_result) {
             m_string = m_result->GetValueAsString();
             return m_string.c_str();
         }
@@ -1745,9 +1746,9 @@ TEST(EvalOp, InstanceName) {
         res.reset();
         ASSERT_NO_THROW(res = ctx.ExecStr(elem.first)) << elem.first;
         EXPECT_TRUE(res) << elem.first;
-        if(res) {
+        if (res) {
             EXPECT_TRUE(res->is_bool_type()) << elem.first;
-            if(elem.second) {
+            if (elem.second) {
                 EXPECT_TRUE(res->GetValueAsBoolean()) << elem.first;
             } else {
                 EXPECT_FALSE(res->GetValueAsBoolean()) << elem.first;

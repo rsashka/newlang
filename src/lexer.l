@@ -484,12 +484,8 @@ native  %({ualpha}|[_])+({name}|{digit})?
 "$"[0-9]+   YY_TOKEN(ARGUMENT);
 
 {name}      YY_TOKEN(NAME);
-@{name}     YY_TOKEN(NAME);
-${name}     YY_TOKEN(NAME);
-    /*  
-        {local}     YY_TOKEN(LOCAL); 
-        {macro}     YY_TOKEN(MACRO);
-    */
+@{name}     YY_TOKEN(MACRO);
+${name}     YY_TOKEN(LOCAL);
 {module}    YY_TOKEN(MODULE);
 {native}    YY_TOKEN(NATIVE);
 "..."       YY_TOKEN(ELLIPSIS);
@@ -513,12 +509,13 @@ ${name}     YY_TOKEN(NAME);
 "[]="       YY_TOKEN(APPEND);
 "::-"       YY_TOKEN(PURE_CREATE);
 ":-"        YY_TOKEN(PUREFUNC);
+":=:"       YY_TOKEN(SWAP);
 
 "::"        YY_TOKEN(NAMESPACE);
 "$*"        YY_TOKEN(ARGS);
 "$^"        YY_TOKEN(ARGS);
 "$$"        YY_TOKEN(NAME);
-"\\\\"      YY_TOKEN(NEWLANG);
+"\\\\"      YY_TOKEN(MODULE);
 "\\\\$"     YY_TOKEN(NEWLANG);
 "\\$"       YY_TOKEN(NEWLANG);
 
@@ -585,7 +582,7 @@ ${name}     YY_TOKEN(NAME);
 ".^."        YY_TOKEN(OPERATOR);
 ".~."        YY_TOKEN(OPERATOR);
 
-"**"        YY_TOKEN(OPERATOR);
+"**"        YY_TOKEN(WITH);
 "!~~~"      YY_TOKEN(OPERATOR);
 "~~~"       YY_TOKEN(OPERATOR);
 "!~~"       YY_TOKEN(OPERATOR);

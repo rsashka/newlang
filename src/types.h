@@ -230,8 +230,11 @@ void ParserException(const char *msg, std::string &buffer, int row, int col);
     \
     _(Pointer, 64)          \
     _(NativeFunc, 65)       \
-    _(Function, 100)        \
-    _(PureFunc, 101)        \
+    _(Function, 70)        \
+    _(PureFunc, 71)        \
+    \
+    _(Thread, 80)        \
+    _(System, 85)        \
     \
     _(Range, 104)           \
     _(Dictionary, 105)      \
@@ -254,9 +257,10 @@ void ParserException(const char *msg, std::string &buffer, int row, int col);
     _(Any, 123)             \
     \
     _(Type, 200)            \
-    _(Struct, 201)          \
-    _(Union, 202)           \
-    _(Enum, 203)            \
+/*    _(Void, 201)          */\
+    _(Struct, 202)          \
+    _(Union, 203)           \
+    _(Enum, 204)            \
     \
     _(RetPlus, 210)         \
     _(RetMinus, 211)        \
@@ -405,6 +409,37 @@ void ParserException(const char *msg, std::string &buffer, int row, int col);
         LOG_RUNTIME("NewLang type '%s'(%d) can't be represented by C++ type!", toString(type), static_cast<int> (type));
     }
 
+#define NL_REFS(_)      \
+    _(NoRef, 0)         \
+    _(Single, 0x01)        \
+    _(Mono, 0x02)          \
+    _(Multi, 0x03)         \
+    _(SingleConst, 0x11)   \
+    _(MonoConst, 0x12)     \
+    _(MultiConst, 0x13)              
+
+    enum class RefType : uint8_t {
+#define DEFINE_ENUM(name, value) name = static_cast<uint8_t>(value),
+        NL_REFS(DEFINE_ENUM)
+#undef DEFINE_ENUM
+        _NumOptions
+    };
+
+    constexpr uint16_t NumRefTypes = static_cast<uint16_t> (RefType::_NumOptions);
+
+    inline const char *toString(RefType type) {
+#define DEFINE_CASE(name, _)                                                                                           \
+    case RefType::name:                                                                                                \
+        return TO_STR(#name);
+
+        switch (type) {
+                NL_REFS(DEFINE_CASE)
+            default:
+                LOG_RUNTIME("UNKNOWN ref type code %d", static_cast<int> (type));
+        }
+#undef DEFINE_CASE
+    }
+
     inline const char *toCXXRef(std::string &ref) {
         if (ref.compare("&") == 0) {
             return "*";
@@ -430,6 +465,35 @@ void ParserException(const char *msg, std::string &buffer, int row, int col);
             case ObjType::Plain: // Любой тип для машинного представления (Flat Raw ?)
             case ObjType::Other: // Специальные типы (многоточие, диапазон)
             case ObjType::Eval: // Код для выполнения ?????
+                return true;
+            default:
+                return false;
+        }
+    }
+
+    inline bool isNativeType(ObjType t) {
+        switch (t) {
+            case ObjType::Bool:
+            case ObjType::Int8:
+            case ObjType::Char:
+            case ObjType::Byte:
+            case ObjType::Int16:
+            case ObjType::Word:
+            case ObjType::Int32:
+            case ObjType::DWord:
+            case ObjType::Int64:
+            case ObjType::DWord64:
+            case ObjType::Float32:
+            case ObjType::Float64:
+            case ObjType::Single:
+            case ObjType::Double:
+            case ObjType::Pointer:
+
+//            case ObjType::String:
+            case ObjType::StrChar:
+            case ObjType::FmtChar:
+            case ObjType::StrWide:
+            case ObjType::FmtWide:
                 return true;
             default:
                 return false;

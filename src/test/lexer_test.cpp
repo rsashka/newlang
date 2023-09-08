@@ -413,7 +413,7 @@ TEST_F(Lexer, Arg) {
 }
 
 TEST_F(Lexer, Args) {
-    ASSERT_EQ(10, TokenParse("$0 $1 $22 $333 $4sss $sss1 -- ++ $* $^  ")) << Dump();
+    ASSERT_EQ(11, TokenParse("$0 $1 $22 $333 $4sss $sss1 -- ++ $* $^  ")) << Dump();
     EXPECT_EQ(5, Count(TermID::ARGUMENT));
     EXPECT_EQ(2, Count(TermID::ARGS));
     EXPECT_EQ(1, Count(TermID::INT_PLUS));

@@ -12,9 +12,18 @@ fi
 
 for i in $(find $root -name \*.md); do # Not recommended, will break on whitespace
   echo "$i"
+
   sed -e 's/\/ru\//\//g' "$i"  >  "$i.temp"
-#  rm "$i"
-#  cp "$i.temp" "$i"
+  rm "$i"
+  mv "$i.temp" "$i"
+
+  sed -e 's/Документация/Documentation/g' "$i"  >  "$i.temp"
+  rm "$i"
+  mv "$i.temp" "$i"
+
+  sed -e 's/Статьи/Articles/g' "$i"  >  "$i.temp"
+  rm "$i"
+  mv "$i.temp" "$i"
 done
 
 

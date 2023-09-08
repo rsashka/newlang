@@ -140,7 +140,7 @@
 %token           	EVAL            "Eval"
 
 %token			NAME
-//%token			LOCAL
+%token			LOCAL
 %token			MODULE
 %token			NATIVE
 %token			SYMBOL
@@ -161,7 +161,7 @@
 %token			PARENT		"$$"
 %token			ARGS		"$*"
 
-//%token			MACRO           "Macro"
+%token			MACRO           "Macro"
 %token			MACRO_SEQ
 %token			MACRO_STR       "Macro str"
 %token			MACRO_DEL       "Macro del"
@@ -174,6 +174,8 @@
 %token			CREATE                  "::="
 %token			CREATE_OR_ASSIGN        ":="
 %token			APPEND                  "[]="
+%token			SWAP
+
 /*
 %token			RIGHT_ASSIGN            "=>"
 %token			RIGHT_CREATE_OR_ASSIGN  ":=>"
@@ -194,6 +196,7 @@
 %token			FOLLOW
 %token			MATCHING
 %token			REPEAT
+%token			WITH
 
 %token			ARGUMENT
 %token			MODULES
@@ -256,6 +259,7 @@ ns:     NAME
                 $$ = $3;
                 $$->m_text.insert(0, "::");
                 $$->m_text.insert(0, $1->m_text);
+                $$->SetTermID(TermID::GLOBAL);
             }
             
 ns_name:  ns
@@ -265,11 +269,13 @@ ns_name:  ns
         | NAMESPACE
             {
                 $$ = $1;
+                $$->SetTermID(TermID::GLOBAL);
             }
         | NAMESPACE  ns
             {
                 $$ = $2;
                 $$->m_text.insert(0, "::");
+                $$->SetTermID(TermID::GLOBAL);
             }
 
 /*
@@ -290,29 +296,42 @@ name:  ns_name
                 $$ = $1;
                 $$->TestConst();
             }
+        |  LOCAL
+            {
+                $$ = $1;
+            }
         | '$'
             {
                 $$ = $1;
-                $$->SetTermID(TermID::NAME);
+                $$->SetTermID(TermID::LOCAL);
                 $$->TestConst();
             }
         |  MODULE
             {
                 $$ = $1;
-                $$->SetTermID(TermID::NAME);
+                $$->TestConst();
+            }
+        |  '\\'
+            {
+                $$ = $1;
+                $$->SetTermID(TermID::MODULE);
                 $$->TestConst();
             }
         |  MODULE   NAMESPACE   assign_name
             {
                 $$ = $1;
-                $$->SetTermID(TermID::NAME);
                 $$->Last()->Append($3);
                 $$->TestConst();
             }
         |  NATIVE
             {
                 $$ = $1;
-//                $$->SetTermID(TermID::NAME);
+                $$->TestConst();
+            }
+        |  '%'
+            {
+                $$ = $1;
+                $$->SetTermID(TermID::NATIVE);
                 $$->TestConst();
             }
         |  PARENT  /* $$ - rval */
@@ -325,10 +344,15 @@ name:  ns_name
                 $$ = $1;
 //                $$->SetTermID(TermID::NAME);
             }
-/*        | MACRO
+        | MACRO
             {
                 $$ = $1;
-            } */
+            }
+        | '@'
+            {
+                $$ = $1;
+                $$->SetTermID(TermID::MACRO);
+            }
         | MACRO_ARGUMENT
             {
                 $$ = $1;
@@ -610,6 +634,42 @@ assign_name:  name
                     $$ = $1;
                 }
             
+field:  '.'  NAME
+            {
+                $$ = $1; 
+                $NAME->SetTermID(TermID::FIELD);
+                $$->Last()->Append($NAME);
+            }
+        |  '.'  NAME  call
+            {
+                $$ = $1; 
+                $NAME->SetTermID(TermID::FIELD);
+                $NAME->SetArgs($call);
+                $$->Last()->Append($NAME);
+            }
+        |  '.'  NAME  type_item
+            {
+                $$ = $1; 
+                $NAME->SetTermID(TermID::FIELD);
+                $NAME->SetType($type_item);
+                $$->Last()->Append($NAME);
+            }
+        |  '.'  NAME  call  type_item
+            {
+                $$ = $1; 
+                $NAME->SetTermID(TermID::FIELD);
+                $NAME->SetArgs($call);
+                $NAME->SetType($type_item);
+                $$->Last()->Append($NAME);
+            }
+        |  '.'  NAME  call  type_list
+            {
+                $$ = $1; 
+                $NAME->SetTermID(TermID::FIELD);
+                $NAME->SetArgs($call);
+                $$->Last()->Append($NAME);
+                Term::ListToVector($type_list, $$->m_type_allowed);
+            }
        
 /* Допустимые lvalue объекты */
 lval:  assign_name
@@ -635,41 +695,14 @@ lval:  assign_name
                 $2->SetArgs($args);
                 $$->Last()->Append($2);
             }
-        |  lval  '.'  NAME
+        | field 
             {
                 $$ = $1; 
-                $3->SetTermID(TermID::FIELD);
-                $$->Last()->Append($3);
             }
-        |  lval  '.'  NAME  call
+        |  lval  field
             {
                 $$ = $1; 
-                $3->SetTermID(TermID::FIELD);
-                $3->SetArgs($call);
-                $$->Last()->Append($3);
-            }
-        |  lval  '.'  NAME  type_item
-            {
-                $$ = $1; 
-                $3->SetTermID(TermID::FIELD);
-                $3->SetType($type_item);
-                $$->Last()->Append($3);
-            }
-        |  lval  '.'  NAME  call  type_item
-            {
-                $$ = $1; 
-                $3->SetTermID(TermID::FIELD);
-                $3->SetArgs($call);
-                $3->SetType($type_item);
-                $$->Last()->Append($3);
-            }
-        |  lval  '.'  NAME  call  type_list
-            {
-                $$ = $1; 
-                $3->SetTermID(TermID::FIELD);
-                $3->SetArgs($call);
-                $$->Last()->Append($3);
-                Term::ListToVector($type_list, $$->m_type_allowed);
+                $$->Last()->Append($field);
             }
         |  type_item
             {   
@@ -1120,7 +1153,12 @@ assign_expr:  body_all
                 {
                     $$ = $1;
                 }
-            
+            | '('  ')'  body_all 
+                {
+                // Короутина?
+                    $$ = $3;  
+                }
+
             
 assign_item:  lval
                 {
@@ -1678,7 +1716,17 @@ exit:  interrupt
             $$->Append($2, Term::RIGHT); 
         }
 
-    
+
+with_op:   '*' 
+        {
+            $$ = $1;
+            $$->SetTermID(TermID::WITH);
+        }
+    | WITH
+        {
+            $$ = $1;
+        }
+
 with_arg: name  '='  rval_name
         { // Именованный аргумент
             $$ = $3;
@@ -1695,37 +1743,51 @@ with_args: with_arg
             $$->Append($2, Term::RIGHT); 
         }
         
-with:   '*'  '('  rval_name  ')'   try_catch
+    
+with: with_op  assign_name
         {
                 $$ = $1; 
-                $$->SetTermID(TermID::WITH);
+                $$->Append($assign_name, Term::RIGHT); 
+        }
+    |  with_op  '('  ')' assign_name
+        {
+                $$ = $1; 
+                $$->Append($assign_name, Term::RIGHT); 
+        }
+    | with_op  '('  rval_name  ')'   body
+        {
+                $$ = $1; 
                 $$->Append($3, Term::LEFT); 
                 $$->Append($5, Term::RIGHT); 
         }
-    | '*'  '('  with_args  ')'  try_catch
+    | with_op  '('  with_args  ')'  body
         {
                 $$ = $1; 
-                $$->SetTermID(TermID::WITH);
                 $$->Append($3, Term::LEFT); 
                 $$->Append($5, Term::RIGHT); 
         }
-    |  '*'  '('  rval_name  ')'   try_catch  body_else
+    |  with_op  '('  rval_name  ')'  body  body_else
         {
                 $$ = $1; 
-                $$->SetTermID(TermID::WITH);
                 $$->Append($3, Term::LEFT); 
                 $$->Append($5, Term::RIGHT); 
                 $$->AppendFollow($body_else); 
         }
-    |  '*'  '('  with_args  ')'  try_catch  body_else
+    |  with_op  '('  with_args  ')'  body  body_else
         {
                 $$ = $1; 
-                $$->SetTermID(TermID::WITH);
                 $$->Append($3, Term::LEFT); 
                 $$->Append($5, Term::RIGHT); 
                 $$->AppendFollow($body_else); 
         }
 
+swap:  assign_name  SWAP assign_name
+        {
+            $$ = $2; 
+            $$->Append($1, Term::LEFT); 
+            $$->Append($3, Term::RIGHT); 
+        }
+    
 /*  expression - одна операция или результат <ОДНОГО выражения без завершающей точки с запятой !!!!!> */
 seq_item: assign_seq
             {
@@ -1761,11 +1823,15 @@ seq_item: assign_seq
             {            
                 $$ = $1;
             }
+        |  swap
+            {            
+                $$ = $1;
+            }
         |  ESCAPE /* for pragma terms */
             {            
                 $$ = $1;
             }
-        
+       
 sequence:  seq_item
             {
                 $$ = $1;  

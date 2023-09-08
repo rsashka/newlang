@@ -1,5 +1,5 @@
 ---
-title: Keyword syntax
+title: Keyword syntax (DSL)
 # description:  Правила синтаксиса языка
 # date: 2017-01-05
 weight: 200

@@ -1648,12 +1648,13 @@ namespace newlang {
 
         static ObjPtr ConstructorError_(const Context *ctx, Obj & args);
         static ObjPtr ConstructorReturn_(const Context *ctx, Obj & args);
+        static ObjPtr ConstructorThread_(const Context *ctx, Obj & args);
+        static ObjPtr ConstructorSystem_(const Context *ctx, Obj & args);
         static ObjPtr ConstructorInterraption_(const Context *ctx, Obj & args, ObjType type);
 
         static ObjPtr CreateBaseType(ObjType type);
 
         static ObjPtr CreateNone() {
-
             return CreateType(ObjType::None, ObjType::None, true);
         }
 
@@ -2399,6 +2400,7 @@ namespace newlang {
         static ObjPtr CreateFunc(Context *ctx, TermPtr proto, ObjType type, const std::string var_name = "");
         static ObjPtr CreateFunc(std::string proto, FunctionType *func_addr, ObjType type = ObjType::Function);
         static ObjPtr CreateFunc(std::string proto, TransparentType *func_addr, ObjType type = ObjType::PureFunc);
+        static ObjPtr CreateFunc(TermPtr proto, void *addr, ObjType type);
 
         ObjPtr ConvertToArgs(Obj *args, bool check_valid, Context * ctx) const {
             ObjPtr result = Clone();
@@ -2455,7 +2457,7 @@ namespace newlang {
 
         at::variant < at::monostate, int64_t, double, void *, // None, скаляры и ссылки на функции (нужно различать чистые, обычные и нативные???)
         bool *, int8_t *, int16_t *, int32_t *, int64_t *, float *, double *, NativeData, // Ссылки на нативные скаляры и данные
-        torch::Tensor, std::string, std::wstring, TermPtr, ModulePtr, Iterator < Obj>> m_var; //Rational,
+        torch::Tensor, std::string, TermPtr, ModulePtr, Iterator < Obj>> m_var; //Rational,
 
         //        union {
         //            int64_t m_integer;

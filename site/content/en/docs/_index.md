@@ -1,10 +1,10 @@
 ---
-title: Документация
-linkTitle: Документация
+title: Documentation
+linkTitle: Documentation
 menu: {main: {weight: 20}}
 weight: 20
 ---
 
-Основные материалы по языку программирования NewLang.
+Basic materials on the NewLang programming language.
 
-Описание акутально для текущей версии 4.0
+The description is relevant for the current version 4.0

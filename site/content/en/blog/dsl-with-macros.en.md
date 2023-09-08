@@ -1,9 +1,7 @@
 ---
+slug: dsl-with-macros
 title: DSL (domain-specific language) implementation with macros
 date: 2023-03-01
-description: >
-  A short lead description about this content page. Text here can also be
-  **bold** or _italic_ and can even be split over multiple paragraphs.
 ---
 
 

@@ -7,9 +7,6 @@
 
 using namespace newlang;
 
-#define NEWLANG_FUNCTION(NAME)  newlang::ObjPtr NAME(newlang::Context *ctx, newlang::Obj &in) 
-#define NEWLANG_TRANSPARENT(NAME)  newlang::ObjPtr NAME(const newlang::Context *ctx, const newlang::Obj &in) 
-
 namespace newlang {
 
     NEWLANG_TRANSPARENT(min) {

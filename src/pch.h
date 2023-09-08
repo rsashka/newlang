@@ -47,6 +47,8 @@
 #include <wait.h>
 #include <dlfcn.h>
 #include <sys/param.h>
+#include <sys/utsname.h>
+#include <unistd.h>
 
 #endif
 

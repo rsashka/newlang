@@ -223,15 +223,15 @@ Context::Context(RuntimePtr global) : m_llvm_builder(LLVMCreateBuilder()) {
 
     }
 
-//    if (m_named->m_builtin_calls.empty()) {
-//#define REGISTER_FUNC(name, func)                                                                                      \
+    //    if (m_named->m_builtin_calls.empty()) {
+    //#define REGISTER_FUNC(name, func)                                                                                      \
 //    ASSERT(m_named->m_builtin_calls.find(name) == m_named->m_builtin_calls.end());                                     \
 //    m_named->m_builtin_calls[name] = &Context::func_##func;
-//
-//        NL_BUILTIN(REGISTER_FUNC);
-//
-//#undef REGISTER_FUNC
-//    }
+    //
+    //        NL_BUILTIN(REGISTER_FUNC);
+    //
+    //#undef REGISTER_FUNC
+    //    }
 
     if (Context::m_ops.empty()) {
 #define REGISTER_OP(op, func)                                                                                          \
@@ -437,6 +437,24 @@ ObjPtr Context::eval_BLOCK_MINUS(Context *ctx, const TermPtr &term, Obj *args, b
     }
 
     return obj;
+}
+
+ObjPtr Context::eval_LOCAL(Context *ctx, const TermPtr &term, Obj *args, bool eval_block) {
+
+    //    LOG_RUNTIME("eval_MACRO_SEQ: %s", term->toString().c_str());
+    return Obj::CreateNone();
+}
+
+ObjPtr Context::eval_GLOBAL(Context *ctx, const TermPtr &term, Obj *args, bool eval_block) {
+
+    //    LOG_RUNTIME("eval_GLOBAL: %s", term->toString().c_str());
+    return Obj::CreateNone();
+}
+
+ObjPtr Context::eval_MACRO(Context *ctx, const TermPtr &term, Obj *args, bool eval_block) {
+
+    //    LOG_RUNTIME("eval_MACRO_SEQ: %s", term->toString().c_str());
+    return Obj::CreateNone();
 }
 
 ObjPtr Context::eval_MACRO_SEQ(Context *ctx, const TermPtr &term, Obj *args, bool eval_block) {
@@ -715,6 +733,34 @@ ObjPtr Context::CREATE_OR_ASSIGN(Context *ctx, const TermPtr &term, Obj *local_v
         ASSERT(list_obj.size() == 1);
         // Имя класса появляется только при операции присвоения в левой части оператора
         rval = ctx->CreateClass(term->Left()->GetFullName(), term->Right(), local_vars);
+    } else if (term->Right()->getTermID() == TermID::NATIVE) {
+        // Нативное имя допустимо только в правой части части оператора присвоения
+        ASSERT(list_obj.size() == 1);
+
+        if (term->Left()->isCall() != term->Right()->isCall()) {
+            // Нативная функция с частичным прототипом
+            TermPtr from;
+            TermPtr to;
+            if (term->Left()->isCall()) {
+                from = term->Left();
+                to = term->Right();
+            } else {
+                ASSERT(term->Right()->isCall());
+                from = term->Right();
+                to = term->Left();
+            }
+            for (int i = 0; i < from->size(); i++) {
+                to->push_back((*from)[i]);
+            }
+            to->m_is_call = from->m_is_call;
+            to->m_type = from->m_type;
+            to->m_type_name = from->m_type_name;
+            
+        } else if (term->Left()->isCall() && term->Right()->isCall()) {
+            LOG_RUNTIME("Check args in native func not implemented!");
+        }
+        rval = ctx->m_runtime->CreateNative(term->Right(), nullptr, false, term->Right()->m_text.substr(1).c_str());
+
     } else {
         rval = Eval(ctx, term->Right(), local_vars, is_eval_block, CatchType::CATCH_AUTO);
     }
@@ -810,6 +856,11 @@ ObjPtr Context::eval_PURE_CREATE(Context *ctx, const TermPtr &term, Obj * local_
 ObjPtr Context::eval_APPEND(Context *ctx, const TermPtr &term, Obj * args, bool eval_block) {
     LOG_RUNTIME("APPEND Not implemented!");
 
+    return nullptr;
+}
+
+ObjPtr Context::eval_SWAP(Context *ctx, const TermPtr &term, Obj *args, bool eval_block) {
+    LOG_RUNTIME("SWAP Not implemented!");
     return nullptr;
 }
 
@@ -946,7 +997,6 @@ ObjPtr Context::eval_WITH(Context *ctx, const TermPtr &term, Obj *args, bool eva
     LOG_RUNTIME("WITH Not implemented!");
     return nullptr;
 }
-
 
 ObjPtr Context::eval_FOLLOW(Context *ctx, const TermPtr &term, Obj * args, bool eval_block) {
 
@@ -1622,135 +1672,6 @@ ObjPtr Context::CallBlock(Context *ctx, const TermPtr &block, Obj * local_vars, 
     return result;
 }
 
-ObjPtr Context::CreateNative(const char *proto, const char *module, bool lazzy, const char *mangle_name) {
-    TermPtr term;
-    try {
-        // Термин или термин + тип парсятся без ошибок
-        term = Parser::ParseString(proto, m_named);
-    } catch (std::exception &) {
-        try {
-            std::string func(proto);
-            func += ":={}";
-            term = Parser::ParseString(func, m_named)->Left();
-        } catch (std::exception &e) {
-
-            LOG_RUNTIME("Fail parsing prototype '%s'!", e.what());
-        }
-    }
-    return CreateNative(term, module, lazzy, mangle_name);
-}
-
-ObjPtr Context::CreateNative(TermPtr proto, const char *module, bool lazzy, const char *mangle_name) {
-
-    NL_CHECK(proto, "Fail prototype native function!");
-    NL_CHECK((module == nullptr || (module && *module == '\0')) || m_runtime,
-            "You cannot load a module '%s' without access to the runtime context!", module);
-
-    ObjPtr result;
-    ObjType type = ObjType::None;
-    if (proto->isCall()) {
-        type = ObjType::NativeFunc;
-    } else if (proto->getTermID() == TermID::NAME) {
-        if (proto->m_type_name.empty()) {
-            LOG_RUNTIME("Cannot create native variable without specifying the type!");
-        }
-
-        type = typeFromString(proto->m_type_name, this);
-        switch (type) {
-            case ObjType::Bool:
-            case ObjType::Int8:
-            case ObjType::Char:
-            case ObjType::Byte:
-            case ObjType::Int16:
-            case ObjType::Word:
-            case ObjType::Int32:
-            case ObjType::DWord:
-            case ObjType::Int64:
-            case ObjType::DWord64:
-            case ObjType::Float32:
-            case ObjType::Float64:
-            case ObjType::Single:
-            case ObjType::Double:
-            case ObjType::Pointer:
-                break;
-            default:
-                LOG_RUNTIME("Creating a variable with type '%s' is not supported!", proto->m_type_name.c_str());
-        }
-    } else {
-        LOG_RUNTIME("Native type arg undefined! '%s'", proto->toString().c_str());
-    }
-
-    result = Obj::CreateType(type);
-    result->m_var_type_fixed = ObjType::Pointer; // Тип определен и не может измениться в дальнейшем
-
-    *const_cast<TermPtr *> (&result->m_prototype) = proto;
-    //    result->m_func_abi = abi;
-
-    if (mangle_name) {
-        result->m_func_mangle_name = mangle_name;
-    }
-    if (module) {
-        result->m_module_name = module;
-    }
-    void * ptr = nullptr;
-    if (lazzy) {
-        result->m_var = static_cast<void *> (nullptr);
-    } else {
-        ASSERT(at::holds_alternative<at::monostate>(result->m_var));
-
-        ptr = m_runtime->GetNativeAddr(result->m_func_mangle_name.empty() ? proto->m_text.c_str() : result->m_func_mangle_name.c_str(), module);
-
-        switch (type) {
-            case ObjType::Bool:
-                result->m_var = static_cast<bool *> (ptr);
-                break;
-            case ObjType::Int8:
-            case ObjType::Char:
-            case ObjType::Byte:
-                result->m_var = static_cast<int8_t *> (ptr);
-                break;
-            case ObjType::Int16:
-            case ObjType::Word:
-                result->m_var = static_cast<int16_t *> (ptr);
-                break;
-            case ObjType::Int32:
-            case ObjType::DWord:
-                result->m_var = static_cast<int32_t *> (ptr);
-                break;
-            case ObjType::Int64:
-            case ObjType::DWord64:
-                result->m_var = static_cast<int64_t *> (ptr);
-                break;
-            case ObjType::Float32:
-            case ObjType::Single:
-                result->m_var = static_cast<float *> (ptr);
-                break;
-            case ObjType::Float64:
-            case ObjType::Double:
-                result->m_var = static_cast<double *> (ptr);
-                break;
-
-            case ObjType::NativeFunc:
-            default:
-                result->m_var = ptr;
-        }
-        //        result->m_var = m_runtime->GetNativeAddr(
-        //                result->m_func_mangle_name.empty() ? proto->m_text.c_str() : result->m_func_mangle_name.c_str(), module);
-
-        if (result->is_function_type() || type == ObjType::Pointer) {
-            NL_CHECK(at::get<void *>(result->m_var), "Error getting address '%s' from '%s'!", proto->toString().c_str(), module);
-        } else if (ptr && result->is_tensor_type()) {
-            //            result->m_tensor = torch::from_blob(at::get<void *>(result->m_var),{
-            //            }, toTorchType(type));
-            result->m_var_is_init = true;
-        } else {
-
-            LOG_RUNTIME("Fail CreateNative for object %s", proto->toString().c_str());
-        }
-    }
-    return result;
-}
-
 std::string RunTime::GetLastErrorMessage() {
 #ifndef _MSC_VER
     return std::string(strerror(errno));
@@ -2225,12 +2146,12 @@ ObjPtr Context::CreateRVal(Context *ctx, TermPtr term, Obj * local_vars, bool ev
 
 
 
-            result = Obj::CreateType(ObjType::Eval, ObjType::Eval, true);
-            result->m_value = term->getText();
-            if (term->isCall()) {
-                LOG_RUNTIME("Not implemented!!!");
-            }
-            return Exec(ctx, term->getText().c_str(), nullptr);
+            //            result = Obj::CreateType(ObjType::Eval, ObjType::Eval, true);
+            //            result->m_value = term->getText();
+            //            if (term->isCall()) {
+            LOG_RUNTIME("Not implemented!!!");
+            //            }
+            //            return Exec(ctx, term->getText().c_str(), nullptr);
 
             /*        case TermID::FIELD:
                         if(module && module->HasFunc(term->GetFullName().c_str())) {
@@ -3203,22 +3124,19 @@ ObjPtr Context::CreateClass(std::string class_name, TermPtr body, Obj * local_va
     return new_class;
 }
 
-ObjPtr Context::Exec(Context *ctx, const char * cmd, ObjPtr opts) {
+ObjPtr Context::Run(TermPtr term, Obj *args) {
+    ASSERT(term);
+    switch (term->getTermID()) {
+        case TermID::LOCAL:
+        case TermID::MACRO:
 
-    // we use std::array rather than a C-style array to get all the
-    // C++ array convenience functions
-    std::array<char, 128> buffer;
-    std::string result;
+        case TermID::NAME:
+        case TermID::TYPE:
+        case TermID::NATIVE:
 
-    // popen() receives the command and parameter "r" for read,
-    // since we want to read from a stream.
-    // by using unique_ptr, the pipe object is automatically cleaned
-    // from memory once we've read all the data from the pipe.
-    std::unique_ptr<FILE, decltype(&pclose) > pipe(popen(cmd, "r"), pclose);
-
-    while (fgets(buffer.data(), buffer.size(), pipe.get()) != nullptr) {
-        result += buffer.data();
+            return Obj::CreateValue(42);
+        default:
+            LOG_RUNTIME("Term '%s' not recognized!", term->toString().c_str());
     }
-
-    return Obj::CreateString(result);
+    return Obj::CreateNone();
 }

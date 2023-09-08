@@ -793,6 +793,9 @@ TEST_F(NamedTest, Buffer) {
     ASSERT_TRUE(macro->GetMacro({"if"})->Right());
     ASSERT_EQ(4, macro->GetMacro({"if"})->Right()->m_macro_seq.size()) << macro->GetMacro({"if"})->Right()->toString().c_str();
 
+        ASSERT_TRUE(term = Parse("@@if2(...)@@ := @@@ [ __LINE__ ] --> @@@", macro));
+    ASSERT_STREQ("@@ if2 ( ... ) @@ :=  [ __LINE__ ] -->", LexOut().c_str());
+
     ASSERT_TRUE(term = Parse("@@if2(...)@@ := @@ [ __LINE__ ] --> @@", macro));
     ASSERT_STREQ("@@ if2 ( ... ) @@ := @@ [ 1 ] --> @@", LexOut().c_str());
 

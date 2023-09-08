@@ -44,13 +44,44 @@ namespace newlang {
     //    class Context;
     struct CompileInfo;
 
-    class RunTime {
+    struct GlobNameInfo {
+        TermPtr proto;
+        std::weak_ptr<Obj> obj;
+    };
+
+    typedef std::shared_ptr<GlobNameInfo> GlobNamePtr;
+
+    class RunTime : public Variable<GlobNameInfo>, public std::enable_shared_from_this<RunTime> {
     public:
 
-        RunTime() {
-            m_args = Obj::CreateType(ObjType::Dictionary, ObjType::Dictionary, true);
-            LLVMLoadLibraryPermanently(nullptr);
+        RunTime();
+
+        GlobNamePtr FindObject(const char *name);
+
+        GlobNamePtr GetObject(const char *name) {
+            GlobNamePtr ret = FindObject(name);
+            if (!ret) {
+                LOG_RUNTIME("Object '%s' not found!", name);
+            }
+            return ret;
         }
+
+        bool RegisterNativeObj(TermPtr term) {
+            ASSERT(term);
+            ASSERT(term->getTermID() == TermID::NATIVE);
+            return RegisterSystemObj(CreateNative(term));
+        }
+
+        bool RegisterSystemObj(ObjPtr obj);
+        std::vector<ObjPtr> m_sys_obj;
+
+        bool NameAnalisysItem_(TermPtr lval, TermPtr rval);
+        bool NameAnalisys_(TermPtr ast);
+        bool NameAnalisys(TermPtr ast);
+
+        static ObjPtr CreateNative(const char *proto, const char *module = nullptr, bool lazzy = false, const char *mangle_name = nullptr);
+        static ObjPtr CreateNative(TermPtr proto, const char *module = nullptr, bool lazzy = false, const char *mangle_name = nullptr);
+        static ObjPtr CreateNative(TermPtr proto, void *addr);
 
         virtual ~RunTime() {
             //LLVMShutdown();
@@ -73,7 +104,7 @@ namespace newlang {
         bool UnLoadModule(Context &ctx, const char *name_str, bool deinit);
         ObjPtr ExecModule(const char *module, const char *output, bool cached, Context * ctx);
 
-        void * GetNativeAddr(const char * name, const char *module = nullptr);
+        static void * GetNativeAddr(const char * name, const char *module = nullptr);
 
         static std::string GetLastErrorMessage();
 

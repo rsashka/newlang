@@ -50,8 +50,8 @@ OBJECTFILES= \
 	${OBJECTDIR}/parser.yy.o \
 	${OBJECTDIR}/syntax_help_en.o \
 	${OBJECTDIR}/syntax_help_ru.o \
+	${OBJECTDIR}/system.o \
 	${OBJECTDIR}/term.o \
-	${OBJECTDIR}/variable.o \
 	${OBJECTDIR}/version.o
 
 
@@ -176,6 +176,11 @@ ${OBJECTDIR}/syntax_help_ru.o: syntax_help_ru.cpp
 	${RM} "$@.d"
 	$(COMPILE.cc) -g -DDEBUG -DLOG_LEVEL_NORMAL=LOG_LEVEL_DEBUG -DPDC_WIDE -I. -I.. -I/usr/lib/clang/15/include -I/usr/include/llvm-c-15 -I/usr/include/x86_64-linux-gnu/c++/10 -I/usr/include/c++/10 -I/usr/local/include -I/usr/include -I../contrib/Lyra/include -I../contrib/libtorch/include/torch/csrc/api/include -I../contrib/libtorch/include -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/syntax_help_ru.o syntax_help_ru.cpp
 
+${OBJECTDIR}/system.o: system.cpp pch.h.pch
+	${MKDIR} -p ${OBJECTDIR}
+	${RM} "$@.d"
+	$(COMPILE.cc) -g -DDEBUG -DLOG_LEVEL_NORMAL=LOG_LEVEL_DEBUG -DPDC_WIDE -I. -I.. -I/usr/lib/clang/15/include -I/usr/include/llvm-c-15 -I/usr/include/x86_64-linux-gnu/c++/10 -I/usr/include/c++/10 -I/usr/local/include -I/usr/include -I../contrib/Lyra/include -I../contrib/libtorch/include/torch/csrc/api/include -I../contrib/libtorch/include -include-pch pch.h.pch -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/system.o system.cpp
+
 ${OBJECTDIR}/term.o: term.cpp pch.h.pch
 	${MKDIR} -p ${OBJECTDIR}
 	${RM} "$@.d"
@@ -184,11 +189,6 @@ ${OBJECTDIR}/term.o: term.cpp pch.h.pch
 : term.h parser.yy.cpp location.hh
 	@echo Выполнение шага пользовательского сборки
 	
-
-${OBJECTDIR}/variable.o: variable.cpp pch.h.pch
-	${MKDIR} -p ${OBJECTDIR}
-	${RM} "$@.d"
-	$(COMPILE.cc) -g -DDEBUG -DLOG_LEVEL_NORMAL=LOG_LEVEL_DEBUG -DPDC_WIDE -I. -I.. -I/usr/lib/clang/15/include -I/usr/include/llvm-c-15 -I/usr/include/x86_64-linux-gnu/c++/10 -I/usr/include/c++/10 -I/usr/local/include -I/usr/include -I../contrib/Lyra/include -I../contrib/libtorch/include/torch/csrc/api/include -I../contrib/libtorch/include -include-pch pch.h.pch -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/variable.o variable.cpp
 
 ${OBJECTDIR}/version.o: version.cpp
 	${MKDIR} -p ${OBJECTDIR}

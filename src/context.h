@@ -274,6 +274,8 @@ namespace newlang {
             return Eval(this, exec, args, true, int_catch);
         }
 
+        ObjPtr Run(TermPtr term, Obj *args);
+
         static ObjPtr Eval(Context *ctx, TermPtr term, Obj *args, bool eval_block, CatchType int_catch = CatchType::CATCH_AUTO);
 
         static ObjPtr ExpandAssign(Context *ctx, TermPtr lvar, TermPtr rval, Obj *args, CreateMode mode);
@@ -293,7 +295,7 @@ namespace newlang {
             return CreateLVal(ctx, type, &args);
         }
         
-        static ObjPtr Exec(Context *ctx, const char * cmd, ObjPtr opts);
+//        static ObjPtr Exec(Context *ctx, const char * cmd, ObjPtr opts);
         
         inline static ObjPtr CreateRVal(Context *ctx, TermPtr term, bool eval_block = true, CatchType int_catch = CatchType::CATCH_ALL) {
             Obj args;
@@ -421,9 +423,9 @@ namespace newlang {
         static ObjPtr EvalBlockOR(Context *ctx, const TermPtr &block, Obj * local_vars);
         static ObjPtr EvalBlockXOR(Context *ctx, const TermPtr &block, Obj * local_vars);
 
-        ObjPtr CreateNative(const char *proto, const char *module = nullptr, bool lazzy = false, const char *mangle_name = nullptr);
-        ObjPtr CreateNative(TermPtr proto, const char *module = nullptr, bool lazzy = false, const char *mangle_name = nullptr);
-        ObjPtr CreateNative(Obj args);
+//        ObjPtr CreateNative(const char *proto, const char *module = nullptr, bool lazzy = false, const char *mangle_name = nullptr);
+//        ObjPtr CreateNative(TermPtr proto, const char *module = nullptr, bool lazzy = false, const char *mangle_name = nullptr);
+//        ObjPtr CreateNative(Obj args);
 
 
         std::string ffi_file;

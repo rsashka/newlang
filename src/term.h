@@ -35,6 +35,9 @@ namespace newlang {
         _(INT_REPEAT) \
         \
         _(NAME) \
+        _(LOCAL) \
+        _(GLOBAL) \
+        _(MACRO) \
         _(MODULE) \
         _(NATIVE) \
         \
@@ -74,6 +77,7 @@ namespace newlang {
         _(PUREFUNC) \
         _(PURE_CREATE) \
         _(APPEND) \
+        _(SWAP) \
         \
         _(FUNCTION) \
         _(ITERATOR) \

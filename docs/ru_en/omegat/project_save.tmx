@@ -30,6 +30,22 @@
     </tu>
     <tu>
       <tuv lang="ru-RU">
+        <seg>&lt;g1&gt;DSL&lt;/g1&gt; (Предметно-ориентированный язык) - язык программирования, специализированный для конкретной области применения.</seg>
+      </tuv>
+      <tuv lang="en-US" changeid="rsashka" changedate="20230821T185535Z" creationid="rsashka" creationdate="20230821T185424Z">
+        <seg>[&lt;g1&gt;DSL&lt;/g1&gt;](https://en.wikipedia.org/wiki/Domain-specific_language) (Subject Oriented Language) is a programming language specialized for a specific application area.</seg>
+      </tuv>
+    </tu>
+    <tu>
+      <tuv lang="ru-RU">
+        <seg>&lt;g1&gt;В этом случае под термином "DSL" будет скрываться просто набор специфических терминов предметной области, переопределенных макросов и/или операторов, но использование которых будет ограничено грамматикой языка реализации.&lt;/g1&gt;</seg>
+      </tuv>
+      <tuv lang="en-US" changeid="rsashka" changedate="20230821T185929Z" creationid="rsashka" creationdate="20230821T185929Z">
+        <seg>&lt;g1&gt;In this case, the term "DSL" will simply be a set of domain-specific terms, overridden macros and/or operators, but the use of which will be restricted by the implementation language grammar.&lt;/g1&gt;</seg>
+      </tuv>
+    </tu>
+    <tu>
+      <tuv lang="ru-RU">
         <seg>&lt;x1/&gt;Но помощью макросов препроцесора, синтаксис превращается в DSL на основе ключевых слов.</seg>
       </tuv>
       <tuv lang="en-US" changeid="rsashka" changedate="20230819T175913Z" creationid="rsashka" creationdate="20230819T175913Z">
@@ -63,11 +79,133 @@
     </tu>
     <tu>
       <tuv lang="ru-RU">
+        <seg>«Нет в мире совершенства», и после выпуска релиза &lt;g1&gt;NewLang 0.2&lt;/g1&gt; я получил много отзывов (по большей части негативных),
+по поводу первого варианта &lt;g2&gt;реализации макросов&lt;/g2&gt; и &lt;g3&gt;DSL на их основе&lt;/g3&gt;.</seg>
+      </tuv>
+      <tuv lang="en-US" changeid="rsashka" changedate="20230821T190250Z" creationid="rsashka" creationdate="20230821T190250Z">
+        <seg>"There is no perfection in the world", and after the release of **NewLang 0.2**, I received a lot of feedback (mostly negative), about the first version of [macro implementation](https://github.com/rsashka/newlang/blob/v0.3.0/docs/syntax.md#макросы) and [DSL based on it](https://github.com/rsashka/newlang/blob/v0.3.0/docs/syntax_dsl.md).</seg>
+      </tuv>
+    </tu>
+    <tu>
+      <tuv lang="ru-RU">
+        <seg>Вплоть до того, что «для каждого нового проекта придется изучать новый язык… ».</seg>
+      </tuv>
+      <tuv lang="en-US" changeid="rsashka" changedate="20230821T190045Z" creationid="rsashka" creationdate="20230821T190045Z">
+        <seg>Up to the point that "for every new project you will have to learn a new language...".</seg>
+      </tuv>
+    </tu>
+    <tu>
+      <tuv lang="ru-RU">
+        <seg>Главная особенность макросов в том, что они позволяют изменять выражения еще до их вычисления во время выполнения.</seg>
+      </tuv>
+      <tuv lang="en-US" changeid="rsashka" changedate="20230821T190414Z" creationid="rsashka" creationdate="20230821T190414Z">
+        <seg>That's why if you don't specify a modifier before the **NewLang** object name (**\**macros, **$**local_variable or **@**module), the program will first search among macros, then among local variables and finally among modules (object from module).</seg>
+      </tuv>
+    </tu>
+    <tu>
+      <tuv lang="ru-RU">
+        <seg>Далее речь пойдет о втором варианте, а именно, о реализации DSL на базе языков (метаязыков) общего назначения и новом варианте реализации макросов в &lt;g1&gt;NewLang&lt;/g1&gt; как основы для разработки DSL.</seg>
+      </tuv>
+      <tuv lang="en-US" changeid="rsashka" changedate="20230821T185731Z" creationid="rsashka" creationdate="20230821T185731Z">
+        <seg>We will talk about the second option, namely the implementation of DSL on the basis of general-purpose languages (metalanguages) and the new implementation of macros in &lt;g1&gt;NewLang&lt;/g1&gt; as the basis for DSL development.</seg>
+      </tuv>
+    </tu>
+    <tu>
+      <tuv lang="ru-RU">
+        <seg>Две крайности</seg>
+      </tuv>
+      <tuv lang="en-US" changeid="rsashka" changedate="20230821T185740Z" creationid="rsashka" creationdate="20230821T185740Z">
+        <seg>Two extremes</seg>
+      </tuv>
+    </tu>
+    <tu>
+      <tuv lang="ru-RU">
+        <seg>Для обсуждения предлагается следующая реализация макросов</seg>
+      </tuv>
+      <tuv lang="en-US" changeid="rsashka" changedate="20230821T190238Z" creationid="rsashka" creationdate="20230821T190238Z">
+        <seg>The following implementation of macros is offered for discussion</seg>
+      </tuv>
+    </tu>
+    <tu>
+      <tuv lang="ru-RU">
         <seg>Документация &lt;g2&gt;&lt;/g2&gt;
 &lt;/g1&gt;</seg>
       </tuv>
       <tuv lang="en-US" changeid="rsashka" changedate="20230819T191737Z" creationid="rsashka" creationdate="20230819T093433Z">
         <seg>Docs</seg>
+      </tuv>
+    </tu>
+    <tu>
+      <tuv lang="ru-RU">
+        <seg>Если же язык (метаязык) позволяет модифицировать собственную грамматику (например на уровне &lt;g1&gt;AST&lt;/g1&gt;), то DSL уже не будет жестко огранен синтаксисом базового языка программирования, и в результате его грамматика может быть какой угодно.</seg>
+      </tuv>
+      <tuv lang="en-US" changeid="rsashka" changedate="20230821T190031Z" creationid="rsashka" creationdate="20230821T190031Z">
+        <seg>If a language (metalanguage) allows you to modify its own grammar (for example at the level of [AST](https://en.wikipedia.org/wiki/Abstract_syntax_tree)), then DSL will no longer be strictly bounded by the syntax of the underlying programming language, and as a result its grammar can be whatever you want.</seg>
+      </tuv>
+    </tu>
+    <tu>
+      <tuv lang="ru-RU">
+        <seg>Если язык программирования ограничен собственной фиксированной грамматикой и не допускает её расширения,
+то при реализации DSL разработчик будет вынужден использовать уже существующую грамматику, правила записи операций и вообще весь синтаксис будет оставаться такими же, как в языке реализации.</seg>
+      </tuv>
+      <tuv lang="en-US" changeid="rsashka" changedate="20230821T185910Z" creationid="rsashka" creationdate="20230821T185810Z">
+        <seg>If a programming language is limited to its own fixed grammar and does not allow for its expansion, when implementing DSL the developer will be forced to use the existing grammar, the rules for recording operations and generally all syntax will remain the same as in the implementation language.</seg>
+      </tuv>
+    </tu>
+    <tu>
+      <tuv lang="ru-RU">
+        <seg>И если положить руку на сердце, эта критика часто была обоснованной.</seg>
+      </tuv>
+      <tuv lang="en-US" changeid="rsashka" changedate="20230821T190302Z" creationid="rsashka" creationdate="20230821T190302Z">
+        <seg>And those criticisms were often valid.</seg>
+      </tuv>
+    </tu>
+    <tu>
+      <tuv lang="ru-RU">
+        <seg>Используемая терминология</seg>
+      </tuv>
+      <tuv lang="en-US" changeid="rsashka" changedate="20230821T190325Z" creationid="rsashka" creationdate="20230821T190325Z">
+        <seg>Terminology Used</seg>
+      </tuv>
+    </tu>
+    <tu>
+      <tuv lang="ru-RU">
+        <seg>Макросы в &lt;g1&gt;NewLang&lt;/g1&gt;, это один или несколько терминов, которые заменяются на другой термин или на целую синтаксическую конструкцию (последовательность лексем).</seg>
+      </tuv>
+      <tuv lang="en-US" changeid="rsashka" changedate="20230821T190339Z" creationid="rsashka" creationdate="20230821T190339Z">
+        <seg>Macros in *NewLang*, are one or more terms that are replaced by another term or by an entire lexical construct (a sequence of tokens). Macros are both an extension of basic language syntax, when implementing DSL's own dialects, and a syntax sugar.</seg>
+      </tuv>
+    </tu>
+    <tu>
+      <tuv lang="ru-RU">
+        <seg>Макросы являются одновременно и расширением базового синтаксиса языка, при реализации собственных диалектов DSL, и синтаксическим сахаром.</seg>
+      </tuv>
+      <tuv lang="en-US" changeid="rsashka" changedate="20230821T190351Z" creationid="rsashka" creationdate="20230821T190351Z">
+        <seg>The main feature of macros is that they allow expressions to be changed before they are evaluated at runtime. Macros are expanded at runtime **lexer**, which allows you to substitute any other terms with them and even modify the language syntax itself.</seg>
+      </tuv>
+    </tu>
+    <tu>
+      <tuv lang="ru-RU">
+        <seg>Наверно имеет смысл начать с описания о двух крайностях при реализации DSL на базе языка (метаязыка) общего назначения:</seg>
+      </tuv>
+      <tuv lang="en-US" changeid="rsashka" changedate="20230821T185748Z" creationid="rsashka" creationdate="20230821T185748Z">
+        <seg>It probably makes sense to start by describing two extremes in the implementation of a DSL based on a general-purpose language (metalanguage):</seg>
+      </tuv>
+    </tu>
+    <tu>
+      <tuv lang="ru-RU">
+        <seg>Например, при использовании в качестве базового языка С/С++ или применении различных библиотек и фреймворков в других языках программирования общего назначения.</seg>
+      </tuv>
+      <tuv lang="en-US" changeid="rsashka" changedate="20230821T185845Z" creationid="rsashka" creationdate="20230821T185845Z">
+        <seg>For example, when using C/C++ as a base language, or using various libraries and frameworks in other general-purpose programming languages.</seg>
+      </tuv>
+    </tu>
+    <tu>
+      <tuv lang="ru-RU">
+        <seg>Неограниченная грамматика</seg>
+      </tuv>
+      <tuv lang="en-US" changeid="rsashka" changedate="20230821T185939Z" creationid="rsashka" creationdate="20230821T185939Z">
+        <seg>Unrestricted grammar</seg>
       </tuv>
     </tu>
     <tu>
@@ -80,10 +218,74 @@
     </tu>
     <tu>
       <tuv lang="ru-RU">
+        <seg>О чем идет речь?</seg>
+      </tuv>
+      <tuv lang="en-US" changeid="rsashka" changedate="20230821T185548Z" creationid="rsashka" creationdate="20230821T185548Z">
+        <seg>What is it about?</seg>
+      </tuv>
+    </tu>
+    <tu>
+      <tuv lang="ru-RU">
+        <seg>Ограниченная грамматика</seg>
+      </tuv>
+      <tuv lang="en-US" changeid="rsashka" changedate="20230821T185757Z" creationid="rsashka" creationdate="20230821T185757Z">
+        <seg>Limited grammar</seg>
+      </tuv>
+    </tu>
+    <tu>
+      <tuv lang="ru-RU">
+        <seg>Описание акутально для текущей версии 4.0</seg>
+      </tuv>
+      <tuv lang="en-US" changeid="rsashka" changedate="20230820T134909Z" creationid="rsashka" creationdate="20230820T134909Z">
+        <seg>The description is relevant for the current version 4.0</seg>
+      </tuv>
+    </tu>
+    <tu>
+      <tuv lang="ru-RU">
+        <seg>Основные материалы по языку программирования NewLang.</seg>
+      </tuv>
+      <tuv lang="en-US" changeid="rsashka" changedate="20230820T134841Z" creationid="rsashka" creationdate="20230820T134841Z">
+        <seg>Basic materials on the NewLang programming language.</seg>
+      </tuv>
+    </tu>
+    <tu>
+      <tuv lang="ru-RU">
         <seg>Основные свойства и особенности языка:</seg>
       </tuv>
       <tuv lang="en-US" changeid="rsashka" changedate="20230819T180206Z" creationid="rsashka" creationdate="20230819T180206Z">
         <seg>The main properties and features of the language:</seg>
+      </tuv>
+    </tu>
+    <tu>
+      <tuv lang="ru-RU">
+        <seg>Очень рекомендую прочитать о метапрограммровании великолепную статью @NeoCode &lt;g1&gt;Метапрограммирование: какое оно есть и каким должно быть&lt;/g1&gt;.</seg>
+      </tuv>
+      <tuv lang="en-US" changeid="rsashka" changedate="20230821T190217Z" creationid="rsashka" creationdate="20230821T190147Z">
+        <seg>I strongly recommend you to read an excellent article on metaprogramming by @NeoCode [&lt;g1&gt;Metaprogramming: what it is and what it should be&lt;/g1&gt; (written in Russian)] (https://habr.com/post/258667/).</seg>
+      </tuv>
+    </tu>
+    <tu>
+      <tuv lang="ru-RU">
+        <seg>Поэтому я решил попробовать немного переделать макросы, в надежде получить «золотую середину» между двумя описанными выше крайностями при описании DSL.</seg>
+      </tuv>
+      <tuv lang="en-US" changeid="rsashka" changedate="20230821T190323Z" creationid="rsashka" creationdate="20230821T190323Z">
+        <seg>So I decided to try to redesign the macros a bit, in hopes of getting a "middle ground" between the two extremes described above when describing the DSL.</seg>
+      </tuv>
+    </tu>
+    <tu>
+      <tuv lang="ru-RU">
+        <seg>Разработка или встраивание диалекта DSL на языке (метаязыке) общего назначения, в том числе за счет применения различных библиотек или специальных парсеров / препроцессоров.</seg>
+      </tuv>
+      <tuv lang="en-US" changeid="rsashka" changedate="20230821T185626Z" creationid="rsashka" creationdate="20230821T185626Z">
+        <seg>Development or integration of the DSL dialect into a general-purpose language (metalanguage), including the use of various libraries or special parsers / preprocessors.</seg>
+      </tuv>
+    </tu>
+    <tu>
+      <tuv lang="ru-RU">
+        <seg>Разработка независимых трансляторов синтаксиса с помощью генераторов лексеров и парсеров для определения грамматики целевого языка посредством БНФ и регулярных выражений (Lex, Yacc, ANTLR и т. д.) и последующей компиляцией полученной грамматики в машинный код.</seg>
+      </tuv>
+      <tuv lang="en-US" changeid="rsashka" changedate="20230821T185624Z" creationid="rsashka" creationdate="20230821T185624Z">
+        <seg>Development of independent syntax translators using lexer and parser generators to define the grammar of the target language through BNF (Backus–Naur form) and regular expressions (Lex, Yacc, ANTLR, etc.) and then compiling the resulting grammar into machine code.</seg>
       </tuv>
     </tu>
     <tu>
@@ -97,10 +299,34 @@
     </tu>
     <tu>
       <tuv lang="ru-RU">
+        <seg>Считается, что использование DSL существенно повышает уровень абстрактности кода, а это позволяет вести разработку более быстро и эффективно и существенно упрощает решение многих задач.</seg>
+      </tuv>
+      <tuv lang="en-US" changeid="rsashka" changedate="20230821T185514Z" creationid="rsashka" creationdate="20230821T185514Z">
+        <seg>It is believed that the use of DSL significantly increases the level of abstractness of the code, and this allows to develop more quickly and efficiently and greatly simplifies the solution of many problems.</seg>
+      </tuv>
+    </tu>
+    <tu>
+      <tuv lang="ru-RU">
         <seg>Тензорные вычисления и рациональные числа не ограниченной точности поддерживаются на уровне синтаксиса языка и базовых типов данных без использования дополнительных библиотек.</seg>
       </tuv>
       <tuv lang="en-US" changeid="rsashka" changedate="20230819T180100Z" creationid="rsashka" creationdate="20230819T180100Z">
         <seg>Tensor calculations and rationals of unlimited precision are supported at the level of language syntax and basic data types without the use of additional libraries.</seg>
+      </tuv>
+    </tu>
+    <tu>
+      <tuv lang="ru-RU">
+        <seg>Условно, можно выделить два подхода к реализации DSL:</seg>
+      </tuv>
+      <tuv lang="en-US" changeid="rsashka" changedate="20230821T185607Z" creationid="rsashka" creationdate="20230821T185607Z">
+        <seg>Conditionally, we can distinguish two approaches to DSL implementation:</seg>
+      </tuv>
+    </tu>
+    <tu>
+      <tuv lang="ru-RU">
+        <seg>Это можно сделать с помощью использования специализированных метаязыков (Lisp, ML, Haskell, Nemerle, Forth, Tcl, Rebol и пр.)</seg>
+      </tuv>
+      <tuv lang="en-US" changeid="rsashka" changedate="20230821T190100Z" creationid="rsashka" creationdate="20230821T190100Z">
+        <seg>This can be done by using specialized metalanguages (Lisp, ML, Haskell, Nemerle, Forth, Tcl, Rebol, etc.)</seg>
       </tuv>
     </tu>
 <!-- Alternative translations -->
