@@ -31,9 +31,15 @@ namespace newlang {
         bool trace_parsing;
 
         /// stream name (file or input stream) used for error messages.
-        std::string streamname;
+        std::string m_filename;
         parser::location_type m_location;
-        std::vector<parser::location_type> m_loc_stack;
+
+        struct ParserLocation {
+            std::string filename;
+            parser::location_type location;
+        };
+
+        std::vector<ParserLocation> m_loc_stack;
 
         std::istringstream m_stream;
 
@@ -110,7 +116,7 @@ namespace newlang {
 
         time_t m_timestamp;
 
-        std::string m_file_name;
+        //        std::string m_file_name;
         std::string m_file_time;
         std::string m_file_md5;
 

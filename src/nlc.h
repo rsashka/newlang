@@ -465,7 +465,7 @@ namespace newlang {
                     if (space_offset) {
                         size_t overflow = 5;
 
-                        predict = m_ctx.m_named->SelectPredict(&buff[buff.size() - space_offset], overflow); // Не более 5 примеров продолжения
+                        predict = m_ctx.m_runtime->m_named->SelectPredict(&buff[buff.size() - space_offset], overflow); // Не более 5 примеров продолжения
 
                         if (predict.size()) {
                             if (show_all) {

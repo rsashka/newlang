@@ -898,8 +898,8 @@ std::string Obj::toString(bool deep) const {
             case ObjType::Pointer:
                 if (at::holds_alternative<void *>(m_var)) {
                     ss << at::get<void *>(m_var);
-                } else if (m_var_type_fixed == ObjType::None || m_var_type_current == ObjType::None) {
-                    ss << "nullptr";
+//                } else if (m_var_type_fixed == ObjType::None || m_var_type_current == ObjType::None) {
+//                    ss << "nullptr";
                 } else {
                     LOG_RUNTIME("Fail convert object to pointer!");
                 }
@@ -2158,7 +2158,6 @@ ObjPtr Obj::CallNative(Context *ctx, Obj args) {
                 m_args_val.push_back(temp);
                 break;
 
-            case ObjType::None:
             case ObjType::Pointer:
                 if (pind < check_count) {
                     NL_CHECK(!(*m_prototype)[pind].second->m_type_name.empty(), "Undefined type arg '%s'", (*m_prototype)[pind].second->toString().c_str());
@@ -2169,8 +2168,8 @@ ObjPtr Obj::CallNative(Context *ctx, Obj args) {
 
                 if (at::holds_alternative<void *>(args[i].second->m_var)) {
                     temp.ptr = at::get<void *>(args[i].second->m_var);
-                } else if (args[i].second->m_var_type_fixed == ObjType::None || args[i].second->m_var_type_current == ObjType::None ) {
-                    temp.ptr = nullptr;
+//                } else if (args[i].second->m_var_type_fixed == ObjType::None || args[i].second->m_var_type_current == ObjType::None ) {
+//                    temp.ptr = nullptr;
                 } else {
                     LOG_RUNTIME("Fail convert arg '%s' to pointer!", args[i].second->toString().c_str());
                 }

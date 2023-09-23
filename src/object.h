@@ -399,7 +399,7 @@ namespace newlang {
 
         [[nodiscard]]
         static inline PairType ArgNull(const std::string name = "") {
-            return pair(nullptr, name);
+            return pair(Obj::CreateNil(), name);
         }
 
         [[nodiscard]]
@@ -1656,6 +1656,12 @@ namespace newlang {
 
         static ObjPtr CreateNone() {
             return CreateType(ObjType::None, ObjType::None, true);
+        }
+
+        static ObjPtr CreateNil() {
+            ObjPtr obj = CreateType(ObjType::Pointer, ObjType::Pointer, true);
+            obj->m_var = (void *) nullptr;
+            return obj;
         }
 
         template <typename T1, typename T2, typename T3>

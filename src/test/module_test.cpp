@@ -154,12 +154,12 @@ TEST(Module, Env) {
     const char *args[1] = {"-nlc-search=../example;../src"};
 
     RuntimePtr env = RunTime::Init(1, args);
-    Context ctx(env);
+//    Context ctx(env);
 
-    ctx.CheckOrLoadModule("\\file");
-    ctx.CheckOrLoadModule("\\dir\\file");
-    ctx.CheckOrLoadModule("\\dir\\file::var");
-    ctx.CheckOrLoadModule("\\dir\\file::var.ddd");
+    env->CheckOrLoadModule("\\file");
+    env->CheckOrLoadModule("\\dir\\file");
+    env->CheckOrLoadModule("\\dir\\file::var");
+    env->CheckOrLoadModule("\\dir\\file::var.ddd");
 }
 
 TEST(Module, Load) {
@@ -218,13 +218,13 @@ TEST(Module, Load) {
     ASSERT_EQ(4, result->GetValueAsInteger());
 
 
-    ASSERT_TRUE(ctx.m_modules.find("\\temp\\module_test") != ctx.m_modules.end());
+    ASSERT_TRUE(env->m_modules.find("\\temp\\module_test") != env->m_modules.end());
 
     // Выгрузить модуль
     result = ctx.ExecStr("\\temp\\module_test(_)");
     ASSERT_TRUE(result);
 
-    ASSERT_TRUE(ctx.m_modules.find("\\temp\\module_test") == ctx.m_modules.end());
+    ASSERT_TRUE(env->m_modules.find("\\temp\\module_test") == env->m_modules.end());
 
 
     result = ctx.FindTerm("module_var1");
@@ -257,13 +257,13 @@ TEST(Module, Load) {
     ASSERT_TRUE(ctx.FindTerm("\\temp\\module_test::ns3::ns4::module_var4"));
 
 
-    ASSERT_TRUE(ctx.m_modules.find("\\temp\\module_test") != ctx.m_modules.end());
+    ASSERT_TRUE(env->m_modules.find("\\temp\\module_test") != env->m_modules.end());
 
     // Выгрузить модуль
     result = ctx.ExecStr("\\temp\\module_test(_)");
     ASSERT_TRUE(result);
 
-    ASSERT_TRUE(ctx.m_modules.find("\\temp\\module_test") == ctx.m_modules.end());
+    ASSERT_TRUE(env->m_modules.find("\\temp\\module_test") == env->m_modules.end());
 
 
     //    // Импортировать по маске

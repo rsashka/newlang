@@ -25,7 +25,7 @@ Parser::Parser(NamedPtr macro, PostLexerType *postlex, DiagPtr diag, bool pragma
     m_is_runing = false;
     m_is_lexer_complete = false;
 
-    m_file_name = "";
+    m_filename = "";
     m_file_time = "??? ??? ?? ??:??:?? ????";
     m_file_md5 = "??????????????????????????????";
     m_macro = macro;
@@ -42,9 +42,9 @@ TermPtr Parser::ParseFile(const std::string filename) {
 
     llvm::SmallVector<char> path;
     if (!llvm::sys::fs::real_path(filename, path)) {
-        m_file_name = llvm::StringRef(path.data(), path.size());
+        m_filename = llvm::StringRef(path.data(), path.size());
     } else {
-        m_file_name = filename;
+        m_filename = filename;
     }
 
     llvm::sys::fs::file_status fs;
@@ -146,6 +146,10 @@ TermPtr Parser::MacroEval(const TermPtr &term) {
     if (!m_macro) {
         m_diag->Emit(Diag::DIAG_MACRO_NOT_FOUND, term);
         return term;
+    }
+
+    if (term->m_bracket_depth) {
+        NL_PARSER(term, "Macro definitions allowed at the top level only, not inside conditions, namespace or any brackets!");
     }
 
     TermPtr result = m_macro->EvalOpMacros(term);
@@ -365,19 +369,20 @@ bool Parser::PragmaEval(const TermPtr &term, BlockType &buffer) {
             if (m_loc_stack.empty()) {
                 NL_PARSER(term, "Empty stack location!");
             }
-            m_location = m_loc_stack[m_loc_stack.size() - 1];
+            m_filename = m_loc_stack[m_loc_stack.size() - 1].filename;
+            m_location = m_loc_stack[m_loc_stack.size() - 1].location;
             m_loc_stack.pop_back();
             return true;
 
         } else if (term->size() >= 1 && term->at(0).first.empty() && term->at(0).second->m_text.compare("push") == 0) {
 
             if (term->size() == 1) {
-                m_loc_stack.push_back(m_location);
+                m_loc_stack.push_back({m_filename, m_location});
                 return true;
             } else if (term->size() >= 2 && term->at(1).first.empty() && term->at(1).second->IsString()) {
 
-                m_loc_stack.push_back(m_location);
-                streamname = term->at(1).second->getText();
+                m_loc_stack.push_back({m_filename, m_location});
+                m_filename = term->at(1).second->getText();
 
                 if (term->size() == 2) {
                     return true;
@@ -395,8 +400,9 @@ bool Parser::PragmaEval(const TermPtr &term, BlockType &buffer) {
             if (term->size() == 1) {
                 return true;
             } else if (term->size() == 2 && term->at(1).first.empty() && term->at(1).second->IsString()) {
-                m_loc_stack.push_back(m_location);
-                streamname = term->at(1).second->getText();
+                m_filename = term->at(1).second->getText();
+                m_location.begin.filename = &m_filename;
+                //                m_loc_stack.push_back(m_location);
                 return true;
             }
         }
@@ -518,31 +524,31 @@ bool Parser::RegisterPredefMacro(const char * name, const char * desc) {
 void Parser::InitPredefMacro() {
     if (m_predef_macro.empty()) {
 
-        VERIFY(RegisterPredefMacro("__NLC_VER__", "Version NewLang Compiler."));
-        VERIFY(RegisterPredefMacro("__NLC_SOURCE_GIT__", "Git source code identifier of the current compiler version."));
-        VERIFY(RegisterPredefMacro("__NLC_DATE_BUILD__", "Date build of the current compiler version."));
-        VERIFY(RegisterPredefMacro("__NLC_SOURCE_BUILD__", "Git source code identifier and date build of the current compiler version."));
+        VERIFY(RegisterPredefMacro("@__NLC_VER__", "Version NewLang Compiler."));
+        VERIFY(RegisterPredefMacro("@__NLC_SOURCE_GIT__", "Git source code identifier of the current compiler version."));
+        VERIFY(RegisterPredefMacro("@__NLC_DATE_BUILD__", "Date build of the current compiler version."));
+        VERIFY(RegisterPredefMacro("@__NLC_SOURCE_BUILD__", "Git source code identifier and date build of the current compiler version."));
 
-        VERIFY(RegisterPredefMacro("__FILE__", "Current file name"));
-        VERIFY(RegisterPredefMacro("__FILE_NAME__", "Current file name"));
+        VERIFY(RegisterPredefMacro("@__FILE__", "Current file name"));
+        VERIFY(RegisterPredefMacro("@__FILE_NAME__", "Current file name"));
 
-        VERIFY(RegisterPredefMacro("__LINE__", "Line number in current file"));
-        VERIFY(RegisterPredefMacro("__FILE_LINE__", "Line number in current file"));
+        VERIFY(RegisterPredefMacro("@__LINE__", "Line number in current file"));
+        VERIFY(RegisterPredefMacro("@__FILE_LINE__", "Line number in current file"));
 
-        VERIFY(RegisterPredefMacro("__FILE_MD5__", "MD5 hash for current file"));
-        VERIFY(RegisterPredefMacro("__FILE_TIMESTAMP__", "Timestamp current file"));
+        VERIFY(RegisterPredefMacro("@__FILE_MD5__", "MD5 hash for current file"));
+        VERIFY(RegisterPredefMacro("@__FILE_TIMESTAMP__", "Timestamp current file"));
 
-        VERIFY(RegisterPredefMacro("__DATE__", "Current date"));
-        VERIFY(RegisterPredefMacro("__TIME__", "Current time"));
+        VERIFY(RegisterPredefMacro("@__DATE__", "Current date"));
+        VERIFY(RegisterPredefMacro("@__TIME__", "Current time"));
         // определяется как строковый литерал, содержащий дату и время последнего изменения текущего исходного файла 
         //в сокращенной форме с постоянной длиной, которые возвращаются функцией asctime библиотеки CRT, 
         //например: Fri 19 Aug 13:32:58 2016. Этот макрос определяется всегда.
-        VERIFY(RegisterPredefMacro("__TIMESTAMP__", "Current timestamp"));
-        VERIFY(RegisterPredefMacro("__TIMESTAMP_ISO__", "Current timestamp as ISO format")); // 2013-07-06T00:50:06Z
+        VERIFY(RegisterPredefMacro("@__TIMESTAMP__", "Current timestamp"));
+        VERIFY(RegisterPredefMacro("@__TIMESTAMP_ISO__", "Current timestamp as ISO format")); // 2013-07-06T00:50:06Z
 
         //Развертывается до целочисленного литерала, начинающегося с 0. 
         //Значение увеличивается на 1 каждый раз, когда используется в файле исходного кода или во включенных заголовках файла исходного кода. 
-        VERIFY(RegisterPredefMacro("__COUNTER__", "Monotonically increasing counter from zero"));
+        VERIFY(RegisterPredefMacro("@__COUNTER__", "Monotonically increasing counter from zero"));
     }
 }
 
@@ -567,14 +573,14 @@ parser::token_type Parser::ExpandPredefMacro(TermPtr & term) {
     if (!term) {
         LOG_RUNTIME("Environment variable not defined!");
     }
-    if (term->m_id != TermID::NAME) {
+    if (term->m_id != TermID::MACRO) {
         return term->m_lexer_type;
     }
 
     std::string_view text = term->m_text;
-    if (text.find("@") == 0) {
-        text.remove_prefix(1);
-    }
+    //    if (text.find("@") == 0) {
+    //        text.remove_prefix(1);
+    //    }
 
     ASSERT(!m_predef_macro.empty());
     if (m_predef_macro.find(text.begin()) == m_predef_macro.end()) {
@@ -585,7 +591,7 @@ parser::token_type Parser::ExpandPredefMacro(TermPtr & term) {
     const TermID str_type = TermID::STRWIDE;
     const parser::token_type str_token = parser::token_type::STRWIDE;
 
-    if (text.compare("__COUNTER__") == 0) {
+    if (text.compare("@__COUNTER__") == 0) {
 
         term->m_id = TermID::INTEGER;
         term->m_text = std::to_string(m_counter);
@@ -593,50 +599,50 @@ parser::token_type Parser::ExpandPredefMacro(TermPtr & term) {
         term->m_lexer_type = parser::token_type::INTEGER;
         return term->m_lexer_type;
 
-    } else if (text.compare("__NLC_VER__") == 0) {
+    } else if (text.compare("@__NLC_VER__") == 0) {
 
         term->m_id = TermID::INTEGER;
         term->m_text = std::to_string(VERSION);
         term->m_lexer_type = parser::token_type::INTEGER;
         return term->m_lexer_type;
 
-    } else if (text.compare("__NLC_SOURCE_GIT__") == 0) {
+    } else if (text.compare("@__NLC_SOURCE_GIT__") == 0) {
         term->m_text = GIT_SOURCE;
         term->m_id = str_type;
         term->m_lexer_type = str_token;
         return term->m_lexer_type;
 
-    } else if (text.compare("__NLC_DATE_BUILD__") == 0) {
+    } else if (text.compare("@__NLC_DATE_BUILD__") == 0) {
         term->m_text = DATE_BUILD_STR;
         term->m_id = str_type;
         term->m_lexer_type = str_token;
         return term->m_lexer_type;
 
-    } else if (text.compare("__NLC_SOURCE_BUILD__") == 0) {
+    } else if (text.compare("@__NLC_SOURCE_BUILD__") == 0) {
         term->m_text = SOURCE_FULL_ID;
         term->m_id = str_type;
         term->m_lexer_type = str_token;
         return term->m_lexer_type;
 
-    } else if (text.compare("__LINE__") == 0 || text.compare("__FILE_LINE__") == 0) {
+    } else if (text.compare("@__LINE__") == 0 || text.compare("@__FILE_LINE__") == 0) {
 
         term->m_id = TermID::INTEGER;
-        term->m_text = std::to_string(term->m_line);
+        term->m_text = std::to_string(m_location.begin.line);
         term->m_lexer_type = parser::token_type::INTEGER;
         return term->m_lexer_type;
 
-    } else if (text.compare("__FILE__") == 0 || text.compare("__FILE_NAME__") == 0) {
+    } else if (text.compare("@__FILE__") == 0 || text.compare("@__FILE_NAME__") == 0) {
 
         term->m_id = str_type;
-        if (!m_file_name.empty()) {
-            term->m_text = m_file_name;
+        if (!m_filename.empty()) {
+            term->m_text = m_filename;
         } else {
             term->m_text = "File name undefined!!!";
         }
         term->m_lexer_type = str_token;
         return term->m_lexer_type;
 
-    } else if (text.compare("__FILE_TIMESTAMP__") == 0) {
+    } else if (text.compare("@__FILE_TIMESTAMP__") == 0) {
 
         term->m_id = str_type;
         if (!m_file_time.empty()) {
@@ -647,7 +653,7 @@ parser::token_type Parser::ExpandPredefMacro(TermPtr & term) {
         term->m_lexer_type = str_token;
         return term->m_lexer_type;
 
-    } else if (text.compare("__FILE_MD5__") == 0) {
+    } else if (text.compare("@__FILE_MD5__") == 0) {
 
         term->m_id = str_type;
         if (!m_file_md5.empty()) {
@@ -659,7 +665,7 @@ parser::token_type Parser::ExpandPredefMacro(TermPtr & term) {
         return term->m_lexer_type;
 
 
-    } else if (text.compare("__DATE__") == 0) {
+    } else if (text.compare("@__DATE__") == 0) {
 
         char buf[sizeof "Jul 27 2012"];
         strftime(buf, sizeof buf, "%b %e %Y", localtime(&m_timestamp));
@@ -669,7 +675,7 @@ parser::token_type Parser::ExpandPredefMacro(TermPtr & term) {
         term->m_lexer_type = str_token;
         return term->m_lexer_type;
 
-    } else if (text.compare("__TIME__") == 0) {
+    } else if (text.compare("@__TIME__") == 0) {
 
         char buf[sizeof "07:07:09"];
         strftime(buf, sizeof buf, "%T", localtime(&m_timestamp));
@@ -679,7 +685,7 @@ parser::token_type Parser::ExpandPredefMacro(TermPtr & term) {
         term->m_lexer_type = str_token;
         return term->m_lexer_type;
 
-    } else if (text.compare("__TIMESTAMP__") == 0) {
+    } else if (text.compare("@__TIMESTAMP__") == 0) {
 
         term->m_text = asctime(localtime(&m_timestamp));
         term->m_text = term->m_text.substr(0, 24); // Remove \n on the end line
@@ -687,7 +693,7 @@ parser::token_type Parser::ExpandPredefMacro(TermPtr & term) {
         term->m_lexer_type = str_token;
         return term->m_lexer_type;
 
-    } else if (text.compare("__TIMESTAMP_ISO__") == 0) {
+    } else if (text.compare("@__TIMESTAMP_ISO__") == 0) {
 
         char buf[sizeof "2011-10-08T07:07:09Z"];
         strftime(buf, sizeof buf, "%FT%TZ", localtime(&m_timestamp));
@@ -700,7 +706,6 @@ parser::token_type Parser::ExpandPredefMacro(TermPtr & term) {
 
     NL_PARSER(term, "Predef macro '%s' not implemented!", term->toString().c_str());
 }
-
 
 TermPtr Parser::ParseTerm(const char *proto, NamedPtr macro, bool pragma_enable) {
     try {

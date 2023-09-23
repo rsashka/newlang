@@ -38,6 +38,12 @@
         <itemPath>../examples/speed_test.py</itemPath>
         <itemPath>../examples/tensor.nlp</itemPath>
       </logicalFolder>
+      <logicalFolder name="f2" displayName="runtime" projectFiles="true">
+        <itemPath>../runtime/__init__.nlp</itemPath>
+        <itemPath>../runtime/dsl.nlp</itemPath>
+        <itemPath>../runtime/fs.nlp</itemPath>
+        <itemPath>../runtime/os.nlp</itemPath>
+      </logicalFolder>
       <logicalFolder name="f1" displayName="test" projectFiles="true">
         <itemPath>test/alg_test.cpp</itemPath>
         <itemPath>test/compiler_test.cpp</itemPath>
@@ -259,6 +265,14 @@
       <item path="../examples/speed_test.py" ex="false" tool="3" flavor2="0">
       </item>
       <item path="../examples/tensor.nlp" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../runtime/__init__.nlp" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../runtime/dsl.nlp" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../runtime/fs.nlp" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../runtime/os.nlp" ex="false" tool="3" flavor2="0">
       </item>
       <item path="../site/content" ex="false" tool="3" flavor2="0">
       </item>
@@ -646,6 +660,14 @@
       </item>
       <item path="../examples/tensor.nlp" ex="false" tool="3" flavor2="0">
       </item>
+      <item path="../runtime/__init__.nlp" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../runtime/dsl.nlp" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../runtime/fs.nlp" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../runtime/os.nlp" ex="false" tool="3" flavor2="0">
+      </item>
       <item path="../site/content" ex="false" tool="3" flavor2="0">
       </item>
       <item path="autocomplete.h" ex="false" tool="3" flavor2="0">
@@ -1011,6 +1033,14 @@
       </item>
       <item path="../examples/tensor.nlp" ex="false" tool="3" flavor2="0">
       </item>
+      <item path="../runtime/__init__.nlp" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../runtime/dsl.nlp" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../runtime/fs.nlp" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../runtime/os.nlp" ex="false" tool="3" flavor2="0">
+      </item>
       <item path="../site/content" ex="false" tool="3" flavor2="0">
       </item>
       <item path="autocomplete.h" ex="false" tool="3" flavor2="0">
@@ -1296,6 +1326,14 @@
       <item path="../examples/speed_test.py" ex="false" tool="3" flavor2="0">
       </item>
       <item path="../examples/tensor.nlp" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../runtime/__init__.nlp" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../runtime/dsl.nlp" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../runtime/fs.nlp" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../runtime/os.nlp" ex="false" tool="3" flavor2="0">
       </item>
       <item path="../site/content" ex="false" tool="3" flavor2="0">
       </item>
@@ -1680,6 +1718,14 @@
       <item path="../examples/speed_test.py" ex="false" tool="3" flavor2="0">
       </item>
       <item path="../examples/tensor.nlp" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../runtime/__init__.nlp" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../runtime/dsl.nlp" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../runtime/fs.nlp" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../runtime/os.nlp" ex="false" tool="3" flavor2="0">
       </item>
       <item path="../site/content" ex="false" tool="3" flavor2="0">
       </item>

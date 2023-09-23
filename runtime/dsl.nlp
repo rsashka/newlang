@@ -1,32 +1,42 @@
 #!../output/nlc --eval --no-dsl --no-runtime --emit-cpp
 
-\\true 1:Bool\\\
-\\yes 1:Bool\\\
+@@ true @@ ::= 1:Bool;
+@@ yes @@ ::= 1:Bool;
 
-\\false 0:Bool\\\
-\\no 0:Bool\\\
+@@ false @@ ::= 0:Bool;
+@@ no @@ ::= 0:Bool;
 
-\\this $0\\\  
+@@ this @@ ::= $0;
 
-\\parent $$\\\ 
+@@ parent @@ ::= $$;
 
-\\args \$*\\\
-\\sys @@\\\
-\\current @$\\\
-\\cmd @*\\\
+@@ match( ... ) @@ ::= @@ [ @$... ] @@;
+@@ if( ... ) @@ ::= @@ [ @$... ] --> @@;
+@@ elif( ... ) @@ ::= @@ , [ @$... ] --> @@;
+@@ else @@ ::= @@ , [ _ ] --> @@;
 
-\\run(...) @@(\$*)\\\
-\\ifmain [@$.$0]-->\\\
-\\ifload [@$.__load__]-->\\\
 
-\\match(cond) [\$cond]\\\
-\\if(...) [\$*]-->\\\
-\\elif(...) ,[\$*]-->\\\
-\\else ,[_]-->\\\
+@@ while( ... ) @@ ::= @@ [ @$... ] <-> @@;
+@@ dowhile( ... ) @@ ::= @@ <-> [ @$... ] @@;
 
-\\while(cond) [\$cond] <->\\\
-\\dowhile(cond) <->[\$cond]\\\
+@@ return $result @@ ::= ++ @$result ++;
+@@ return @@ ::= ++;
+# @@ result( ... ) ::= ++ @$... ++;
 
+# @@ error @@ ::= --;
+# @@ error( ... ) ::= -- @$... --;
+@@ error $value @@ ::= -- @$value --;
+@@ error @@ ::= --;
+
+
+@@ lock( ... ) @@ ::= @@ *( @$...) @@;      #@__PRAGMA_EXPECTED__( @\\ {, @\\ {*, @\\ {+)
+@@ trylock( ... ) @@ ::= @@ **( @$...) @@;  #@__PRAGMA_EXPECTED__( @\\ {, @\\ {*, @\\ {+) 
+@@ with( ... ) @@ ::= @trylock( @$...);     #@__PRAGMA_EXPECTED__( @\\ {, @\\ {*, @\\ {+)
+
+
+@@ TODO( ... ) @@ ::= @__PRAGMA_MESSAGE__("TODO - ", @$...);
+
+/*
 \\iter(obj, ... ) \$obj ? (\$*) \\\
 \\next(obj, ... ) \$obj ! (\$*) \\\
 \\curr(obj, ... ) \$obj !? (\$*) \\\
@@ -39,10 +49,15 @@
 \\continue+  ++:Continue++\\\
 \\continue-  --:Continue--\\\
 
-\\return ++\\\
-\\return(value) ++\$value++\\\
 
-\\error --\\\
-\\error(value) --\$value--\\\
+\\args \$*\\\
+\\sys @@\\\
+\\current @$\\\
+\\cmd @*\\\
+
+\\run(...) @@(\$*)\\\
+\\ifmain [@$.$0]-->\\\
+\\ifload [@$.__load__]-->\\\
+*/
 
 'OK'

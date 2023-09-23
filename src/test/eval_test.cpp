@@ -340,19 +340,19 @@ TEST(Eval, TypesNative) {
 
     //    ASSERT_EQ(41, ctx.m_types.size());
 
-    std::vector<std::wstring> types = ctx.m_named->SelectPredict(":");
+    std::vector<std::wstring> types = ctx.m_runtime->m_named->SelectPredict(":");
     ASSERT_EQ(2, types.size());
 
     //    ASSERT_STREQ(":Bool", utf8_encode(types[0]).c_str());
     //    ASSERT_STREQ(":Int8", utf8_encode(types[1]).c_str());
 
-    types = ctx.m_named->SelectPredict(":", 5);
+    types = ctx.m_runtime->m_named->SelectPredict(":", 5);
     ASSERT_EQ(7, types.size());
 
     ObjPtr file = ctx.ExecStr(":File ::= :Pointer;");
     ASSERT_TRUE(file);
 
-    types = ctx.m_named->SelectPredict(":File");
+    types = ctx.m_runtime->m_named->SelectPredict(":File");
     ASSERT_EQ(1, types.size());
 
     //    ObjPtr f_stdout = ctx.CreateNative("stdout:File");
@@ -806,70 +806,70 @@ TEST(Eval, Macros) {
     Context::Reset();
     Context ctx(RunTime::Init());
 
-    ASSERT_EQ(0, ctx.m_named->size());
+    ASSERT_EQ(0, ctx.m_runtime->m_named->size());
     ObjPtr none = ctx.ExecStr("@@macro@@ := _");
 
-    ASSERT_EQ(1, ctx.m_named->size());
+    ASSERT_EQ(1, ctx.m_runtime->m_named->size());
     none = ctx.ExecStr("@@macro2 @@ := 2");
-    ASSERT_EQ(2, ctx.m_named->size());
+    ASSERT_EQ(2, ctx.m_runtime->m_named->size());
 
     none = ctx.ExecStr("@@macro3() @@ := 3");
-    ASSERT_EQ(3, ctx.m_named->size());
+    ASSERT_EQ(3, ctx.m_runtime->m_named->size());
 
     none = ctx.ExecStr("@@macro4(...)@@ := @@@ @$* @@@");
-    ASSERT_EQ(4, ctx.m_named->size()) << ctx.m_named->Dump();
+    ASSERT_EQ(4, ctx.m_runtime->m_named->size()) << ctx.m_runtime->m_named->Dump();
 
     none = ctx.ExecStr("@@macro5(...)@@ := @@@ @$* @@@");
-    ASSERT_EQ(5, ctx.m_named->size()) << ctx.m_named->Dump();
+    ASSERT_EQ(5, ctx.m_runtime->m_named->size()) << ctx.m_runtime->m_named->Dump();
 
     none = ctx.ExecStr("@@ if(...) @@:= @@ [ @$* ] --> @@");
-    ASSERT_EQ(6, ctx.m_named->size()) << ctx.m_named->Dump();
+    ASSERT_EQ(6, ctx.m_runtime->m_named->size()) << ctx.m_runtime->m_named->Dump();
 
     none = ctx.ExecStr("@@ else @@ := @@ ,[_] --> @@");
-    ASSERT_EQ(7, ctx.m_named->size()) << ctx.m_named->Dump();
+    ASSERT_EQ(7, ctx.m_runtime->m_named->size()) << ctx.m_runtime->m_named->Dump();
 
     ObjPtr result = ctx.ExecStr("macro");
     ASSERT_TRUE(result);
     ASSERT_TRUE(result->is_none_type());
 
-    ASSERT_NO_THROW(result = ctx.ExecStr("macro2")) << ctx.m_named->Dump();
+    ASSERT_NO_THROW(result = ctx.ExecStr("macro2")) << ctx.m_runtime->m_named->Dump();
     ASSERT_TRUE(result);
-    ASSERT_STREQ("aaaa", result->toString().c_str());
+    ASSERT_STREQ("aaaa", result->toString().c_str()) << ctx.m_runtime->m_named->Dump();
     ASSERT_TRUE(result->is_integer());
     ASSERT_EQ(2, result->GetValueAsInteger());
 
-    ASSERT_NO_THROW(result = ctx.ExecStr("macro3()")) << ctx.m_named->Dump();
+    ASSERT_NO_THROW(result = ctx.ExecStr("macro3()")) << ctx.m_runtime->m_named->Dump();
     ASSERT_TRUE(result);
     ASSERT_TRUE(result->is_integer());
     ASSERT_EQ(3, result->GetValueAsInteger());
 
-    ASSERT_NO_THROW(result = ctx.ExecStr("macro4(999)")) << ctx.m_named->Dump();
+    ASSERT_NO_THROW(result = ctx.ExecStr("macro4(999)")) << ctx.m_runtime->m_named->Dump();
     ASSERT_TRUE(result);
     ASSERT_TRUE(result->is_integer()) << result->toString();
     ASSERT_EQ(999, result->GetValueAsInteger()) << result->toString();
 
-    ASSERT_NO_THROW(result = ctx.ExecStr("macro4(999);@macro;macro4(42)")) << ctx.m_named->Dump();
+    ASSERT_NO_THROW(result = ctx.ExecStr("macro4(999);@macro;macro4(42)")) << ctx.m_runtime->m_named->Dump();
     ASSERT_TRUE(result);
     ASSERT_TRUE(result->is_integer());
     ASSERT_EQ(42, result->GetValueAsInteger());
 
 
-    ASSERT_NO_THROW(result = ctx.ExecStr("macro5(100)")) << ctx.m_named->Dump();
+    ASSERT_NO_THROW(result = ctx.ExecStr("macro5(100)")) << ctx.m_runtime->m_named->Dump();
     ASSERT_TRUE(result);
     ASSERT_TRUE(result->is_integer()) << result->toString();
     ASSERT_EQ(100, result->GetValueAsInteger()) << result->toString();
 
-    ASSERT_NO_THROW(result = ctx.ExecStr("@macro5(999);macro;@macro5(42)")) << ctx.m_named->Dump();
+    ASSERT_NO_THROW(result = ctx.ExecStr("@macro5(999);macro;@macro5(42)")) << ctx.m_runtime->m_named->Dump();
     ASSERT_TRUE(result);
     ASSERT_TRUE(result->is_integer());
     ASSERT_EQ(42, result->GetValueAsInteger());
 
-    ASSERT_NO_THROW(result = ctx.ExecStr("if(1<10){99}else{100}")) << ctx.m_named->Dump();
+    ASSERT_NO_THROW(result = ctx.ExecStr("if(1<10){99}else{100}")) << ctx.m_runtime->m_named->Dump();
     ASSERT_TRUE(result);
     ASSERT_TRUE(result->is_integer());
     ASSERT_EQ(99, result->GetValueAsInteger());
 
-    ASSERT_NO_THROW(result = ctx.ExecStr("@if(0){* 99 *}@else{+100+}")) << ctx.m_named->Dump();
+    ASSERT_NO_THROW(result = ctx.ExecStr("@if(0){* 99 *}@else{+100+}")) << ctx.m_runtime->m_named->Dump();
     ASSERT_TRUE(result);
     ASSERT_TRUE(result->is_integer());
     ASSERT_EQ(100, result->GetValueAsInteger());
@@ -916,9 +916,9 @@ TEST(Eval, MacroDSL) {
             "@@no      @@ := 0;\n"
             "";
 
-    EXPECT_EQ(0, ctx.m_named->size()) << ctx.m_named->Dump();
+    EXPECT_EQ(0, ctx.m_runtime->m_named->size()) << ctx.m_runtime->m_named->Dump();
     ObjPtr none = ctx.ExecStr(dsl);
-    EXPECT_TRUE(ctx.m_named->size() > 100) << ctx.m_named->Dump();
+    EXPECT_TRUE(ctx.m_runtime->m_named->size() > 100) << ctx.m_runtime->m_named->Dump();
 
     ObjPtr count = ctx.ExecStr("count:=0;");
     ASSERT_TRUE(count);
@@ -933,15 +933,15 @@ TEST(Eval, MacroDSL) {
             "  count+=1;"
             "+};"
             ;
-    EXPECT_TRUE(ctx.m_named->size() > 100) << ctx.m_named->Dump();
+    EXPECT_TRUE(ctx.m_runtime->m_named->size() > 100) << ctx.m_runtime->m_named->Dump();
     ObjPtr result = ctx.ExecStr(run_raw, nullptr, Context::CatchType::CATCH_ALL);
-    EXPECT_TRUE(ctx.m_named->size() > 100) << ctx.m_named->Dump();
+    EXPECT_TRUE(ctx.m_runtime->m_named->size() > 100) << ctx.m_runtime->m_named->Dump();
 
     ASSERT_TRUE(result);
     ASSERT_TRUE(result->is_integer());
     ASSERT_EQ(6, count->GetValueAsInteger());
     ASSERT_EQ(100, result->GetValueAsInteger());
-    ASSERT_TRUE(ctx.m_named->size() > 10) << ctx.m_named->Dump();
+    ASSERT_TRUE(ctx.m_runtime->m_named->size() > 10) << ctx.m_runtime->m_named->Dump();
 
     const char * run_macro = ""
             //            "count := 5;"
@@ -954,7 +954,7 @@ TEST(Eval, MacroDSL) {
             "";
 
 
-    ASSERT_TRUE(ctx.m_named->size() > 10) << ctx.m_named->Dump();
+    ASSERT_TRUE(ctx.m_runtime->m_named->size() > 10) << ctx.m_runtime->m_named->Dump();
     ASSERT_NO_THROW(result = ctx.ExecStr(run_macro, nullptr, Context::CatchType::CATCH_ALL));
     ASSERT_TRUE(result);
     ASSERT_TRUE(result->is_integer());
@@ -1446,15 +1446,11 @@ TEST_F(EvalTester, Ops) {
 
     //    ASSERT_STREQ("100", Test("2*20+10*5"));
 
-    //    ASSERT_STREQ("1", Test("1 ** 1"));
-    //    ASSERT_STREQ("4", Test("2 ** 2"));
-    //    ASSERT_STREQ("-8.0", Test("-2.0 ** 3"));
-
     ASSERT_STREQ("", Test("\"\""));
     ASSERT_STREQ(" ", Test("\" \""));
     ASSERT_STREQ("строка", Test("\"\"+\"строка\" "));
     ASSERT_STREQ("строка 222", Test("\"строка \" + \"222\" "));
-    ASSERT_STREQ("строка строка строка ", Test("\"строка \" ** 3 "));
+    ASSERT_STREQ("строка строка строка ", Test("\"строка \" * 3 "));
 
     ASSERT_STREQ("100", Test("$var1:=100"));
     ObjPtr var1 = m_result;

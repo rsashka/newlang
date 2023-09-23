@@ -1108,7 +1108,7 @@ next_escape_token:
 
                 ASSERT(lexer->m_macro_body);
 
-                if (lexer->m_macro_del && type != parser::token_type::NAME) {
+                if (lexer->m_macro_del && !(type == parser::token_type::NAME || type == parser::token_type::LOCAL)) {
                     NL_PARSER(term, "Invalid token '%s' at given position!", term->m_text.c_str());
                 }
 
@@ -1178,28 +1178,34 @@ next_escape_token:
     TermPtr pragma;
     while (lexer->m_macro_count == 0 && !m_macro_analisys_buff.empty()) {
 
-        // Обработка команд парсера @__PRAGMA ... __
-        if (m_enable_pragma && PragmaCheck(m_macro_analisys_buff[0])) {
+        if (m_enable_pragma) {
 
-            size_t size;
-            size = Parser::ParseTerm(pragma, m_macro_analisys_buff, 0, false);
+            ExpandPredefMacro(m_macro_analisys_buff[0]);
 
-            ASSERT(size);
-            ASSERT(pragma);
+            // Обработка команд парсера @__PRAGMA ... __
+            if (PragmaCheck(m_macro_analisys_buff[0])) {
 
-            LOG_DEBUG("Pragma '%s' size %d", pragma->toString().c_str(), (int) size);
+                size_t size;
+                size = Parser::ParseTerm(pragma, m_macro_analisys_buff, 0, false);
 
-            m_macro_analisys_buff.erase(m_macro_analisys_buff.begin(), m_macro_analisys_buff.begin() + size);
+                ASSERT(size);
+                ASSERT(pragma);
 
-            while (!m_macro_analisys_buff.empty() && (m_macro_analisys_buff[0]->m_text.compare(";") == 0 || m_macro_analisys_buff[0]->m_id == TermID::END)) {
-                LOG_DEBUG("Erase '%s' !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!", m_macro_analisys_buff[0]->toString().c_str());
-                m_macro_analisys_buff.erase(m_macro_analisys_buff.begin());
+                LOG_DEBUG("Pragma '%s' size %d", pragma->toString().c_str(), (int) size);
+
+                m_macro_analisys_buff.erase(m_macro_analisys_buff.begin(), m_macro_analisys_buff.begin() + size);
+
+                //                while (!m_macro_analisys_buff.empty() && m_macro_analisys_buff[0]->m_text.compare(";") == 0) {
+                //                    LOG_DEBUG("Erase '%s' !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!", m_macro_analisys_buff[0]->toString().c_str());
+                //                    m_macro_analisys_buff.erase(m_macro_analisys_buff.begin());
+                //                }
+
+
+                PragmaEval(pragma, m_macro_analisys_buff);
+                continue;
             }
-
-
-            PragmaEval(pragma, m_macro_analisys_buff);
-            continue;
         }
+
 
         // Обработка команды проверка следующего термина @__PRAGMA_EXPECTED__
         if (m_expected) {
@@ -1241,7 +1247,7 @@ next_escape_token:
         if (m_macro) {
 
             // Макрос должне начинаться всегда с термина
-            if (m_macro_analisys_buff[0]->getTermID() != TermID::NAME) {
+            if (!(m_macro_analisys_buff[0]->getTermID() == TermID::MACRO || m_macro_analisys_buff[0]->getTermID() == TermID::NAME)) {
                 break;
             }
 
@@ -1373,9 +1379,6 @@ next_escape_token:
 
         //        if (m_macro_analisys_buff.at(0)->m_id) {
         //        LOG_DEBUG("%d  %s", (int)m_prep_buff.at(0)->m_lexer_type, m_prep_buff.at(0)->m_text.c_str());
-        if (m_enable_pragma) {
-            ExpandPredefMacro(m_macro_analisys_buff[0]);
-        }
 
         *yylval = m_macro_analisys_buff.at(0);
         *yylloc = m_macro_analisys_buff.at(0)->m_lexer_loc;
@@ -1492,7 +1495,6 @@ next_escape_token:
 //    }
 //    LOG_RUNTIME("Type name '%s' not found!", type.c_str());
 //}
-
 
 std::vector<std::wstring> Named::SelectPredict(std::string start, size_t overage_count) {
 

@@ -7,6 +7,7 @@
 #include <system.h>
 
 using namespace newlang;
+using namespace runtime;
 
 bool Buildin::AddMethod(const char * name, ObjPtr obj) {
     if (find(name) != end()) {
@@ -69,7 +70,6 @@ bool Buildin::CreateProperty(const char * proto, ObjPtr obj) {
  * 
  * };
  * 
- 
  */
 CALSS_METHOD(System, getname) {
 

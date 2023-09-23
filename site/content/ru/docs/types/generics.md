@@ -10,17 +10,15 @@ tags: [типы данных, ООП, коллекции]
 
 С помощью обобщений (generics) можно писать код, который может работать с любым совместимым типом данных. 
 
-Фрагмент иерархии типов данных ([строки](/ru/docs/types/strings/) и [числа](/ru/docs/types/numbers/)):
+Фрагмент иерархии типов данных ([строки](/ru/docs/types/strings/) и [числа](/ru/docs/types/numbers/),
+а в скобках указаны синонимы типов):
 ```
-:Any -+-> :Arithmetic -+-> :Tensor -+-> :Integer -+-> :Int64    ... -+-> :Int8 -> :Bool
-      |                |            |             |                  |
-      |                |            |             +-> :DWord64  ...  +-> :Char   
-      |                |            |                                |
-      |                |            |                                +-> :Byte
+:Any -+-> :Arithmetic -+-> :Tensor -+-> :Integer --> :Int64   ...  --> :Int8 --> :Bool
+      |                |            |               (:DWord64)        (:Char)
+      |                |            |                                 (:Byte)
       |                |            |
-      |                |            +-> :Number -+-> :Float64 -+-> :Float32 -> :Float16
-      |                |            |            |             |
-      |                |            |            +-> :Double   +-> :Single
+      |                |            +-> :Number --> :Float64 --> :Float32 --> :Float16
+      |                |            |              (:Double)    (:Single)
       |                |            |
       |                |            +-> :Complex ...
       |                | 

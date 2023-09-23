@@ -31,7 +31,7 @@ class Obj;
 class Context;
 class Module;
 class Named;
-class Compiler;
+//class Compiler;
 class RunTime;
 class Diag;
 
@@ -350,7 +350,7 @@ void ParserException(const char *msg, std::string &buffer, int row, int col);
         _NumOptions
     };
 
-    constexpr uint16_t NumObjTypes = static_cast<uint16_t> (ObjType::_NumOptions);
+    constexpr uint16_t ObjTypesNum = static_cast<uint16_t> (ObjType::_NumOptions);
 
 
 #define MAKE_TYPE_NAME(type_name)  type_name
@@ -409,14 +409,14 @@ void ParserException(const char *msg, std::string &buffer, int row, int col);
         LOG_RUNTIME("NewLang type '%s'(%d) can't be represented by C++ type!", toString(type), static_cast<int> (type));
     }
 
-#define NL_REFS(_)      \
-    _(NoRef, 0)         \
-    _(Single, 0x01)        \
-    _(Mono, 0x02)          \
-    _(Multi, 0x03)         \
-    _(SingleConst, 0x11)   \
-    _(MonoConst, 0x12)     \
-    _(MultiConst, 0x13)              
+#define NL_REFS(_)          \
+    _(RefNone, 0)           \
+    _(RefNoMt, 0x01)        \
+    _(RefMtMono, 0x02)      \
+    _(RefMtMulti, 0x03)     \
+    _(RefNoMtReadOnly, 0x11)    \
+    _(RefMtMonoReadOnly, 0x12)  \
+    _(RefMtMultiReadOnly, 0x13)         
 
     enum class RefType : uint8_t {
 #define DEFINE_ENUM(name, value) name = static_cast<uint8_t>(value),
@@ -425,7 +425,7 @@ void ParserException(const char *msg, std::string &buffer, int row, int col);
         _NumOptions
     };
 
-    constexpr uint16_t NumRefTypes = static_cast<uint16_t> (RefType::_NumOptions);
+    constexpr uint16_t RefTypesNum = static_cast<uint16_t> (RefType::_NumOptions);
 
     inline const char *toString(RefType type) {
 #define DEFINE_CASE(name, _)                                                                                           \
@@ -489,7 +489,7 @@ void ParserException(const char *msg, std::string &buffer, int row, int col);
             case ObjType::Double:
             case ObjType::Pointer:
 
-//            case ObjType::String:
+                //            case ObjType::String:
             case ObjType::StrChar:
             case ObjType::FmtChar:
             case ObjType::StrWide:

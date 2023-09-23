@@ -53,7 +53,7 @@
 %initial-action
 {
     // initialize the initial location object
-    @$.begin.filename = @$.end.filename = &driver.streamname;
+    @$.begin.filename = @$.end.filename = &driver.m_filename;
 //    yydebug_ = 1;
 };
 
@@ -676,7 +676,7 @@ lval:  assign_name
             {
                 $$ = $1;
             }
-        |  '&'  assign_name
+/*        |  '&'  assign_name
             {
                 $$ = $2;
                 $$->MakeRef($1);
@@ -686,7 +686,7 @@ lval:  assign_name
                 $$ = $3;
                 $$->MakeRef($1);
                 $$->m_ref->m_text += "&";
-            }
+            } */
         /* Не могут быть ссылками*/
         |  assign_name  '['  args  ']'
             {   
@@ -740,6 +740,11 @@ rval_name: lval
             {
                 $$ = $1; 
             }
+/*        | with_op  '('  lval  ')'
+            {
+                $$ = $1; 
+                $$->Last()->Append($lval);
+            } */
         | ARGS /* $* и @* - rval */
             {
                 $$ = $1;
@@ -1867,6 +1872,19 @@ ast:    END
                 driver.AstAddTerm($1);
             }
         | sequence separator  doc_after
+            {
+                Term::ListToVector($doc_after, $1->m_docs);
+                driver.AstAddTerm($1);
+            }
+        | separator  sequence
+            {
+                driver.AstAddTerm($1);
+            }
+        | separator  sequence separator
+            {
+                driver.AstAddTerm($1);
+            }
+        | separator  sequence separator  doc_after
             {
                 Term::ListToVector($doc_after, $1->m_docs);
                 driver.AstAddTerm($1);

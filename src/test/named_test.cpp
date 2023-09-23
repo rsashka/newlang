@@ -240,7 +240,7 @@ TEST_F(NamedTest, PredefMacro) {
     ASSERT_TRUE(p.m_predef_macro.empty());
     ASSERT_EQ(0, p.m_predef_macro.size());
 
-    TermPtr term = Term::Create(parser::token_type::NAME, TermID::NAME, "__NLC_VER__");
+    TermPtr term = Term::Create(parser::token_type::MACRO, TermID::MACRO, "@__NLC_VER__");
     ASSERT_EQ(parser::token_type::INTEGER, p.ExpandPredefMacro(term));
 
     ASSERT_FALSE(p.m_predef_macro.empty());
@@ -253,25 +253,25 @@ TEST_F(NamedTest, PredefMacro) {
         ASSERT_FALSE(elem.second.empty());
 
         term->m_text = elem.first;
-        term->m_id = TermID::NAME;
-        term->m_lexer_type = parser::token_type::NAME;
+        term->m_id = TermID::MACRO;
+        term->m_lexer_type = parser::token_type::MACRO;
 
-        ASSERT_NE(parser::token_type::NAME, p.ExpandPredefMacro(term));
+        ASSERT_NE(parser::token_type::MACRO, p.ExpandPredefMacro(term));
     }
     ASSERT_EQ(1, p.m_counter);
 
 
-    ASSERT_TRUE(Parse("__NLC_VER__"));
+    ASSERT_TRUE(Parse("@__NLC_VER__"));
     ASSERT_STREQ(std::to_string(VERSION).c_str(), ast->toString().c_str());
     ASSERT_EQ(TermID::INTEGER, ast->getTermID());
 
     p.m_counter = 0;
-    ASSERT_NO_THROW(Parse("__COUNTER__"));
+    ASSERT_NO_THROW(Parse("@__COUNTER__"));
     ASSERT_STREQ("0", ast->toString().c_str());
     ASSERT_EQ(1, p.m_counter);
     ASSERT_EQ(TermID::INTEGER, ast->getTermID());
 
-    ASSERT_NO_THROW(Parse("__COUNTER__"));
+    ASSERT_NO_THROW(Parse("@__COUNTER__"));
     ASSERT_STREQ("1", ast->toString().c_str());
     ASSERT_EQ(TermID::INTEGER, ast->getTermID());
 
@@ -284,24 +284,24 @@ TEST_F(NamedTest, PredefMacro) {
     ASSERT_EQ(TermID::INTEGER, ast->getTermID());
 
 
-    ASSERT_NO_THROW(Parse("__TIME__"));
+    ASSERT_NO_THROW(Parse("@__TIME__"));
     ASSERT_EQ(10, ast->toString().size()) << ast->toString();
     ASSERT_EQ(TermID::STRWIDE, ast->getTermID());
 
-    ASSERT_NO_THROW(Parse("__DATE__"));
+    ASSERT_NO_THROW(Parse("@__DATE__"));
     ASSERT_EQ(13, ast->toString().size()) << ast->toString();
     ASSERT_EQ(TermID::STRWIDE, ast->getTermID());
 
-    ASSERT_NO_THROW(Parse("__TIMESTAMP__"));
+    ASSERT_NO_THROW(Parse("@__TIMESTAMP__"));
     ASSERT_EQ(26, ast->toString().size()) << ast->toString();
     ASSERT_EQ(TermID::STRWIDE, ast->getTermID());
 
-    ASSERT_NO_THROW(Parse("__TIMESTAMP_ISO__"));
+    ASSERT_NO_THROW(Parse("@__TIMESTAMP_ISO__"));
     ASSERT_EQ(22, ast->toString().size()) << ast->toString();
     ASSERT_EQ(TermID::STRWIDE, ast->getTermID());
 
 
-    ASSERT_NO_THROW(Parse("__LINE__"));
+    ASSERT_NO_THROW(Parse("@__LINE__"));
     ASSERT_STREQ(std::to_string(1).c_str(), ast->toString().c_str());
     ASSERT_EQ(TermID::INTEGER, ast->getTermID());
 
@@ -309,38 +309,38 @@ TEST_F(NamedTest, PredefMacro) {
     ASSERT_STREQ(std::to_string(2).c_str(), ast->toString().c_str());
     ASSERT_EQ(TermID::INTEGER, ast->getTermID());
 
-    ASSERT_NO_THROW(Parse("\n\n__FILE_LINE__"));
+    ASSERT_NO_THROW(Parse("\n\n@__FILE_LINE__"));
     ASSERT_STREQ(std::to_string(3).c_str(), ast->toString().c_str());
     ASSERT_EQ(TermID::INTEGER, ast->getTermID());
 
 
-    ASSERT_NO_THROW(Parse("__FILE__"));
+    ASSERT_NO_THROW(Parse("@__FILE__"));
     ASSERT_STREQ("\"File name undefined!!!\"", ast->toString().c_str());
     ASSERT_EQ(TermID::STRWIDE, ast->getTermID());
 
-    ASSERT_NO_THROW(Parse("__FILE_NAME__"));
+    ASSERT_NO_THROW(Parse("@__FILE_NAME__"));
     ASSERT_STREQ("\"File name undefined!!!\"", ast->toString().c_str());
     ASSERT_EQ(TermID::STRWIDE, ast->getTermID());
 
 
-    ASSERT_NO_THROW(Parse("__FILE_TIMESTAMP__"));
+    ASSERT_NO_THROW(Parse("@__FILE_TIMESTAMP__"));
     ASSERT_EQ(26, ast->toString().size()) << ast->toString();
     ASSERT_EQ(TermID::STRWIDE, ast->getTermID());
 
-    ASSERT_NO_THROW(Parse("__FILE_MD5__"));
+    ASSERT_NO_THROW(Parse("@__FILE_MD5__"));
     ASSERT_TRUE(ast->toString().size() > 30) << ast->toString();
     ASSERT_EQ(TermID::STRWIDE, ast->getTermID());
 
 
-    ASSERT_NO_THROW(Parse("__NLC_SOURCE_GIT__"));
+    ASSERT_NO_THROW(Parse("@__NLC_SOURCE_GIT__"));
     ASSERT_STREQ("\"" VERSION_GIT_SOURCE "\"", ast->toString().c_str());
     ASSERT_EQ(TermID::STRWIDE, ast->getTermID());
 
-    ASSERT_NO_THROW(Parse("__NLC_DATE_BUILD__"));
+    ASSERT_NO_THROW(Parse("@__NLC_DATE_BUILD__"));
     ASSERT_STREQ("\"" VERSION_DATE_BUILD_STR "\"", ast->toString().c_str());
     ASSERT_EQ(TermID::STRWIDE, ast->getTermID());
 
-    ASSERT_NO_THROW(Parse("__NLC_SOURCE_BUILD__"));
+    ASSERT_NO_THROW(Parse("@__NLC_SOURCE_BUILD__"));
     ASSERT_STREQ("\"" VERSION_SOURCE_FULL_ID "\"", ast->toString().c_str());
     ASSERT_EQ(TermID::STRWIDE, ast->getTermID());
 
@@ -350,7 +350,7 @@ TEST_F(NamedTest, PredefMacro) {
     ASSERT_TRUE(std::filesystem::is_directory("temp"));
 
     std::ofstream out("temp/file.md5.test");
-    out << "__LINE__; __FILE__; __FILE_TIMESTAMP__; __FILE_MD5__;";
+    out << "@__LINE__; @__FILE__; @__FILE_TIMESTAMP__; @__FILE_MD5__;";
     out.close();
 
     ASSERT_NO_THROW(
@@ -368,22 +368,22 @@ TEST_F(NamedTest, PredefMacro) {
     ASSERT_EQ(26, ast->m_block[2]->toString().size()) << ast->m_block[2]->toString();
     ASSERT_EQ(TermID::STRWIDE, ast->m_block[2]->getTermID());
 
-    ASSERT_STREQ("\"6c5d2069ede975a4e09f4f432a8ad648\"", ast->m_block[3]->toString().c_str());
+    ASSERT_STREQ("\"c3b16159b22333f2b0d1abe7f2960ce0\"", ast->m_block[3]->toString().c_str());
     ASSERT_EQ(TermID::STRWIDE, ast->m_block[3]->getTermID());
 
     std::remove("temp/file.md5.test");
 
 
 
-    term->m_text = "__NOT_FOUND__";
-    term->m_id = TermID::NAME;
-    term->m_lexer_type = parser::token_type::NAME;
+    term->m_text = "@__NOT_FOUND__";
+    term->m_id = TermID::MACRO;
+    term->m_lexer_type = parser::token_type::MACRO;
 
     ASSERT_NO_THROW(p.ExpandPredefMacro(term));
 
-    ASSERT_TRUE(p.RegisterPredefMacro("__NOT_FOUND__", ""));
+    ASSERT_TRUE(p.RegisterPredefMacro("@__NOT_FOUND__", ""));
     ASSERT_ANY_THROW(p.ExpandPredefMacro(term));
-    ASSERT_FALSE(p.RegisterPredefMacro("__NOT_FOUND__", ""));
+    ASSERT_FALSE(p.RegisterPredefMacro("@__NOT_FOUND__", ""));
 
 }
 
@@ -480,6 +480,13 @@ TEST_F(NamedTest, ParseTerm) {
 TEST_F(NamedTest, Pragma) {
 
     DiagPtr diag = Diag::Init();
+
+    ASSERT_NO_THROW(Parse("; 100", nullptr, nullptr)) << LexOut().c_str();
+    ASSERT_NO_THROW(Parse("; ; ; ; 100; ", nullptr, nullptr)) << LexOut().c_str();
+    ASSERT_NO_THROW(Parse("@__PRAGMA_LOCATION__(9) @__PRAGMA_LOCATION__(100) @__LINE__", nullptr, nullptr)) << LexOut().c_str();
+    ASSERT_NO_THROW(Parse("@__PRAGMA_LOCATION__(9); @__PRAGMA_LOCATION__(100); @__LINE__", nullptr, nullptr)) << LexOut().c_str();
+    ASSERT_NO_THROW(Parse("@__PRAGMA_LOCATION__(9);; @__PRAGMA_LOCATION__(100);; @__LINE__;", nullptr, nullptr)) << LexOut().c_str();
+    ASSERT_NO_THROW(Parse("@__PRAGMA_LOCATION__(9);;; @__PRAGMA_LOCATION__(100);;; @__LINE__;;", nullptr, nullptr)) << LexOut().c_str();
 
     //    m_output.clear();
     //    ASSERT_ANY_THROW(Parse("@__PRAGMA_NOT_FOUND__()"));
@@ -589,24 +596,20 @@ TEST_F(NamedTest, Pragma) {
     //    ASSERT_STREQ("", LexOut().c_str());
 
     m_output.clear();
-    ASSERT_NO_THROW(Parse("@__PRAGMA_LOCATION__(9);;; @__PRAGMA_LOCATION__(100);;; __LINE__", nullptr, diag)) << LexOut().c_str();
+    ASSERT_NO_THROW(Parse("@__PRAGMA_LOCATION__(9) @__PRAGMA_LOCATION__(100) @__LINE__", nullptr, diag)) << LexOut().c_str();
     ASSERT_STREQ("100", LexOut().c_str());
-    //    ASSERT_TRUE(m_output.find("100") != std::string::npos) << m_output;
 
     m_output.clear();
-    ASSERT_NO_THROW(Parse("@__PRAGMA_LOCATION__(99, 'file_name.test'); __LINE__; __FILE__", nullptr, diag)) << LexOut().c_str();
-    ASSERT_STREQ("100; \"file_name.test\"", LexOut().c_str());
-    //    ASSERT_TRUE(m_output.find("100; \"file_name.test\"") != std::string::npos) << m_output;
+    ASSERT_NO_THROW(Parse("@__PRAGMA_LOCATION__(99, 'file_name.test') @__LINE__; @__FILE__", nullptr, diag)) << LexOut().c_str();
+    ASSERT_STREQ("99 ; file_name.test", LexOut().c_str());
 
     m_output.clear();
-    ASSERT_NO_THROW(Parse("@__PRAGMA_LOCATION__(push) @__PRAGMA_LOCATION__(42); __LINE__ @__PRAGMA_LOCATION__(pop); __LINE__", nullptr, diag));
-    ASSERT_STREQ("42 1", LexOut().c_str());
-    //    ASSERT_TRUE(m_output.find("100; \"file_name.test\"") != std::string::npos) << m_output;
+    ASSERT_NO_THROW(Parse("@__PRAGMA_LOCATION__(push) @__PRAGMA_LOCATION__(42) @__LINE__; @__PRAGMA_LOCATION__(pop) @__LINE__", nullptr, diag));
+    ASSERT_STREQ("42 ; 1", LexOut().c_str());
 
     m_output.clear();
-    ASSERT_NO_THROW(Parse("@__PRAGMA_LOCATION__(push) @__PRAGMA_LOCATION__(44, 'filename'); __LINE__ __FILE__ @__PRAGMA_LOCATION__(pop); __LINE__ __FILE__", nullptr, diag));
-    ASSERT_STREQ("44 \"filename\" 1 \"\"", LexOut().c_str());
-    //    ASSERT_TRUE(m_output.find("100; \"file_name.test\"") != std::string::npos) << m_output;
+    ASSERT_NO_THROW(Parse("@__PRAGMA_LOCATION__(push) @__PRAGMA_LOCATION__(44, 'filename') @__LINE__; @__FILE__; @__PRAGMA_LOCATION__(pop) @__LINE__; @__FILE__", nullptr, diag));
+    ASSERT_STREQ("44 ; filename ; 1 ; File name undefined!!!", LexOut().c_str());
 
 }
 
@@ -793,11 +796,11 @@ TEST_F(NamedTest, Buffer) {
     ASSERT_TRUE(macro->GetMacro({"if"})->Right());
     ASSERT_EQ(4, macro->GetMacro({"if"})->Right()->m_macro_seq.size()) << macro->GetMacro({"if"})->Right()->toString().c_str();
 
-        ASSERT_TRUE(term = Parse("@@if2(...)@@ := @@@ [ __LINE__ ] --> @@@", macro));
-    ASSERT_STREQ("@@ if2 ( ... ) @@ :=  [ __LINE__ ] -->", LexOut().c_str());
+    ASSERT_TRUE(term = Parse("@@if2(...)@@ := @@@ [ @__LINE__ ] --> @@@", macro));
+    ASSERT_STREQ("@@ if2 ( ... ) @@ :=  [ @__LINE__ ] -->", LexOut().c_str());
 
-    ASSERT_TRUE(term = Parse("@@if2(...)@@ := @@ [ __LINE__ ] --> @@", macro));
-    ASSERT_STREQ("@@ if2 ( ... ) @@ := @@ [ 1 ] --> @@", LexOut().c_str());
+    ASSERT_TRUE(term = Parse("@@if2(...)@@ := @@ [ @__LINE__ ] --> @@", macro));
+    ASSERT_STREQ("@@ if2 ( ... ) @@ := @@ [ @__LINE__ ] --> @@", LexOut().c_str());
 
 
     ASSERT_TRUE(term->Left());
@@ -811,13 +814,13 @@ TEST_F(NamedTest, Buffer) {
     ASSERT_EQ(2, macro->size());
     ASSERT_TRUE(macro->GetMacro({"if2"}));
     ASSERT_TRUE(macro->GetMacro({"if2"})->Right());
-    ASSERT_STREQ("@@ [ 1 ] --> @@", macro->GetMacro({"if2"})->Right()->toString().c_str());
+    ASSERT_STREQ("@@ [ @__LINE__ ] --> @@", macro->GetMacro({"if2"})->Right()->toString().c_str());
 
 
 
 
-    ASSERT_TRUE(term = Parse("@@ func $name(arg= __LINE__ , ...) @@ := @@@ [ __LINE__ ] --> @@@", macro));
-    ASSERT_STREQ("@@ func $name ( arg = 1 , ... ) @@ :=  [ __LINE__ ] -->", LexOut().c_str());
+    ASSERT_TRUE(term = Parse("@@ func $name(arg= @__LINE__ , ...) @@ := @@@ [ @__LINE__ ] --> @@@", macro));
+    ASSERT_STREQ("@@ func $name ( arg = @__LINE__ , ... ) @@ :=  [ @__LINE__ ] -->", LexOut().c_str());
 
     ASSERT_EQ(2, term->m_macro_id.size());
     ASSERT_TRUE(term->m_macro_id[0]);
@@ -829,14 +832,14 @@ TEST_F(NamedTest, Buffer) {
     ASSERT_EQ(3, macro->size());
     ASSERT_TRUE(macro->GetMacro(std::vector<std::string>({"func", "$"})));
     ASSERT_TRUE(macro->GetMacro(std::vector<std::string>({"func", "$"}))->Right());
-    ASSERT_STREQ("@@@ [ __LINE__ ] --> @@@", macro->GetMacro(std::vector<std::string>({"func", "$"}))->Right()->toString().c_str());
+    ASSERT_STREQ("@@@ [ @__LINE__ ] --> @@@", macro->GetMacro(std::vector<std::string>({"func", "$"}))->Right()->toString().c_str());
 
 #undef CREATE_TERM
 
 }
 
 TEST_F(NamedTest, MacroMacro) {
-    NamedPtr macro=std::make_shared<Named>();
+    NamedPtr macro = std::make_shared<Named>();
     ASSERT_EQ(0, macro->size());
 
     ASSERT_TRUE(Parse("@@alias replace@@ := @@replace@@", macro));
@@ -942,7 +945,7 @@ TEST_F(NamedTest, MacroMacro) {
 }
 
 TEST_F(NamedTest, Simple) {
-    NamedPtr macro=std::make_shared<Named>();
+    NamedPtr macro = std::make_shared<Named>();
     ASSERT_EQ(0, macro->size());
 
     ASSERT_NO_THROW(Parse("@@alias@@ ::= @@replace@@", macro));
@@ -1217,7 +1220,7 @@ TEST_F(NamedTest, Simple) {
 //}
 
 TEST_F(NamedTest, MacroAlias) {
-    NamedPtr macro=std::make_shared<Named>();
+    NamedPtr macro = std::make_shared<Named>();
     ASSERT_EQ(0, macro->size());
 
     ASSERT_ANY_THROW(Parse("@@@@ macro @@  @@@@"));
@@ -1331,7 +1334,7 @@ TEST_F(NamedTest, MacroAlias) {
 
 TEST_F(NamedTest, MacroArgs) {
 
-    NamedPtr macro=std::make_shared<Named>();
+    NamedPtr macro = std::make_shared<Named>();
     BlockType buffer;
 
     BlockType vect;
@@ -1861,7 +1864,7 @@ TEST_F(NamedTest, MacroArgs) {
 
 TEST_F(NamedTest, NamedTest) {
 
-    NamedPtr macro=std::make_shared<Named>();
+    NamedPtr macro = std::make_shared<Named>();
     BlockType buffer;
 
     ASSERT_EQ(0, macro->GetCount());
@@ -1875,28 +1878,28 @@ TEST_F(NamedTest, NamedTest) {
     ASSERT_TRUE(macro->GetMacro({"alias"}));
 
     ASSERT_NO_THROW(Parse("alias", macro)) << macro->Dump();
-    ASSERT_STREQ("replace", LexOut().c_str());
+    ASSERT_STREQ("replace", LexOut().c_str()) << macro->Dump();
 
     ASSERT_NO_THROW(Parse("alias()", macro)) << macro->Dump();
-    ASSERT_STREQ("replace ( )", LexOut().c_str());
+    ASSERT_STREQ("replace ( )", LexOut().c_str()) << macro->Dump();
 
     ASSERT_NO_THROW(Parse("alias(...)", macro)) << macro->Dump();
-    ASSERT_STREQ("replace ( ... )", LexOut().c_str());
+    ASSERT_STREQ("replace ( ... )", LexOut().c_str()) << macro->Dump();
 
     ASSERT_NO_THROW(Parse("alias(1,2,3)", macro)) << macro->Dump();
-    ASSERT_STREQ("replace ( 1 , 2 , 3 )", LexOut().c_str());
+    ASSERT_STREQ("replace ( 1 , 2 , 3 )", LexOut().c_str()) << macro->Dump();
 
     ASSERT_NO_THROW(Parse("@alias", macro)) << macro->Dump();
-    ASSERT_STREQ("replace", LexOut().c_str());
+    ASSERT_STREQ("replace", LexOut().c_str()) << macro->Dump();
 
     ASSERT_NO_THROW(Parse("@alias(); @alias", macro)) << macro->Dump() << " LEX: \"" << LexOut().c_str() << "\"";
-    ASSERT_STREQ("replace ( ) ; replace", LexOut().c_str());
+    ASSERT_STREQ("replace ( ) ; replace", LexOut().c_str()) << macro->Dump();
 
     ASSERT_NO_THROW(Parse("@alias(...)", macro)) << macro->Dump();
-    ASSERT_STREQ("replace ( ... )", LexOut().c_str());
+    ASSERT_STREQ("replace ( ... )", LexOut().c_str()) << macro->Dump();
 
     ASSERT_NO_THROW(Parse("@alias(1,2,3); none", macro)) << macro->Dump();
-    ASSERT_STREQ("replace ( 1 , 2 , 3 ) ; none", LexOut().c_str());
+    ASSERT_STREQ("replace ( 1 , 2 , 3 ) ; none", LexOut().c_str()) << macro->Dump();
 
 
     ASSERT_NO_THROW(Parse("@@ macro1 @@ ::= @@ replace1 @@", macro)) << macro->Dump();

@@ -51,7 +51,8 @@ typedef newlang::parser::token_type token_type;
  * yylex is invoked, the begin position is moved onto the end position. */
 #define YY_USER_ACTION  yylloc->columns(yyleng);
 
-#define YY_TOKEN(tok) *yylval = Term::Create(token:: tok, TermID:: tok, yytext, yyleng, yylloc, source_string);  return token:: tok
+/* #define YY_TOKEN(tok) *yylval = Term::Create(token:: tok, TermID:: tok, yytext, yyleng, yylloc, source_string);  return token:: tok */
+#define YY_TOKEN(tok) *yylval = Term::Create(token:: tok, TermID:: tok, yytext, yyleng, yylloc, source_string);  (*yylval)->m_bracket_depth = m_bracket_depth; return token:: tok
 #define YY_TOKEN_ONLY(tok) *yylval = Term::Create(token:: tok, TermID::UNKNOWN, yytext, yyleng, yylloc, source_string);  return token:: tok
 
 %}
@@ -498,12 +499,6 @@ ${name}     YY_TOKEN(LOCAL);
 "==>"       YY_TOKEN(MATCHING);
 "===>"      YY_TOKEN(MATCHING);
 
-    /* 
-    "=>"       YY_TOKEN(RIGHT_ASSIGN);
-    ":=>"      YY_TOKEN(RIGHT_CREATE_OR_ASSIGN);
-    "::=>"     YY_TOKEN(RIGHT_CREATE);
-    */
-
 "::="       YY_TOKEN(CREATE);
 ":="        YY_TOKEN(CREATE_OR_ASSIGN);
 "[]="       YY_TOKEN(APPEND);
@@ -549,12 +544,12 @@ ${name}     YY_TOKEN(LOCAL);
 "-+"        YY_TOKEN(INT_REPEAT);
 "+-"        YY_TOKEN(INT_REPEAT);
 
-"{*"        YY_TOKEN_ONLY(TRY_ALL_BEGIN);
-"*}"        YY_TOKEN_ONLY(TRY_ALL_END);
-"{+"        YY_TOKEN_ONLY(TRY_PLUS_BEGIN);
-"+}"        YY_TOKEN_ONLY(TRY_PLUS_END);
-"{-"        YY_TOKEN_ONLY(TRY_MINUS_BEGIN);
-"-}"        YY_TOKEN_ONLY(TRY_MINUS_END);
+"{*"        m_bracket_depth++; YY_TOKEN_ONLY(TRY_ALL_BEGIN);
+"*}"        m_bracket_depth--; YY_TOKEN_ONLY(TRY_ALL_END);
+"{+"        m_bracket_depth++; YY_TOKEN_ONLY(TRY_PLUS_BEGIN);
+"+}"        m_bracket_depth--; YY_TOKEN_ONLY(TRY_PLUS_END);
+"{-"        m_bracket_depth++; YY_TOKEN_ONLY(TRY_MINUS_BEGIN);
+"-}"        m_bracket_depth--; YY_TOKEN_ONLY(TRY_MINUS_END);
 
 
 "//"        YY_TOKEN_ONLY(OPERATOR_DIV);
@@ -562,7 +557,7 @@ ${name}     YY_TOKEN(LOCAL);
 "+="        YY_TOKEN(OPERATOR);
 "-="        YY_TOKEN(OPERATOR);
 "*="        YY_TOKEN(OPERATOR);
-"**="       YY_TOKEN(OPERATOR);
+        /* "**="       YY_TOKEN(OPERATOR); */
 "/="        YY_TOKEN(OPERATOR);
 "//="       YY_TOKEN(OPERATOR);
 "%="        YY_TOKEN(OPERATOR);
@@ -571,8 +566,10 @@ ${name}     YY_TOKEN(LOCAL);
 "||"        YY_TOKEN(OPERATOR);
 "^^"        YY_TOKEN(OPERATOR);
 "&&"        YY_TOKEN_ONLY(OPERATOR_AND);
-"&^"       YY_TOKEN_ONLY(OPERATOR_PTR);
+"&^"        YY_TOKEN_ONLY(OPERATOR_PTR);
 "&&^"       YY_TOKEN_ONLY(OPERATOR_PTR);
+"&*"        YY_TOKEN_ONLY(OPERATOR_PTR);
+"&*^"       YY_TOKEN_ONLY(OPERATOR_PTR);
 
 ".>."        YY_TOKEN(OPERATOR);
 ".<."        YY_TOKEN(OPERATOR);
@@ -625,6 +622,17 @@ ${name}     YY_TOKEN(LOCAL);
         return token::CRLF;
     }
 }
+
+"{"     {
+            m_bracket_depth++;
+            *yylval = Term::Create(static_cast<token_type>(*yytext), TermID::SYMBOL, yytext, yyleng, yylloc, source_string);
+            return static_cast<token_type>(*yytext);
+        }
+"}"     {
+            m_bracket_depth--;
+            *yylval = Term::Create(static_cast<token_type>(*yytext), TermID::SYMBOL, yytext, yyleng, yylloc, source_string);
+            return static_cast<token_type>(*yytext);
+        }
 
 . {
 

@@ -169,6 +169,11 @@ namespace newlang {
             m_source = source;
             m_is_call = false;
             m_is_const = false;
+            m_bracket_depth = 0;
+            
+            m_ref_restrict = RefType::RefNone;
+            m_ref_type = RefType::RefNone;
+            
             SetTermID(id);
         }
 
@@ -362,6 +367,7 @@ namespace newlang {
                 case TermID::INDENT:
                 case TermID::COMMENT:
                 case TermID::CRLF:
+                case TermID::FIELD:
                     return m_text;
 
                 case TermID::MACRO_STR:
@@ -391,8 +397,6 @@ namespace newlang {
                     }
                     return result;
 
-                case TermID::FIELD:
-                    return std::string("." + m_text);
                 case TermID::INDEX:
                     result = "";
                     if (size()) {
@@ -408,6 +412,9 @@ namespace newlang {
                 case TermID::MODULE:
                 case TermID::NEWLANG:
                 case TermID::NATIVE:
+                case TermID::MACRO:
+                case TermID::LOCAL:
+                case TermID::GLOBAL:
                 case TermID::NAME: // name=(1,second="two",3,<EMPTY>,5)
                     //                result(m_is_ref ? "&" : "");
                     ASSERT(m_dims.empty());
@@ -950,7 +957,18 @@ namespace newlang {
             }
             while (next) {
                 if (next->getTermID() != TermID::END) {
-                    push_back(next, next->getName());
+
+                    if (isSystemName(next->getName())) {
+                        if (!m_sys_prop) {
+                            m_sys_prop = Term::Create(parser::token_type::UNKNOWN, TermID::DICT, "");
+                        }
+                        m_sys_prop->push_back(next, next->getName());
+                    } else {
+                        if (m_sys_prop) {
+                            NL_PARSER(next, "Cannot pass arguments after any system attributes!");
+                        }
+                        push_back(next, next->getName());
+                    }
                 }
                 prev = next;
                 next = next->m_list;
@@ -1270,11 +1288,16 @@ namespace newlang {
         BlockType m_docs;
         BlockType m_type_allowed;
 
+        TermPtr m_sys_prop;
+        int m_bracket_depth;
+
         BlockType m_block;
         BlockType m_follow;
         BlockType m_macro_id;
         BlockType m_macro_seq;
 
+        RefType m_ref_restrict;
+        RefType m_ref_type;
         TermPtr m_ref;
         bool m_is_call;
         bool m_is_const;
@@ -1282,7 +1305,7 @@ namespace newlang {
         /// Символьное описание потребуется для работы с пользовательскими типами данных.
         /// Итоговый тип может отличаться от указанного в исходнике для совместимых типов.
         std::string m_type_name;
-        
+
         std::weak_ptr<Obj> m_obj;
 
         SCOPE(private) :

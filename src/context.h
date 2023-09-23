@@ -8,37 +8,9 @@
 
 #include <term.h>
 #include <object.h>
+#include <newlang.h>
 
 namespace newlang {
-
-
-    std::string GetFileExt(const char * str);
-    std::string AddDefaultFileExt(const char * str, const char *ext_default);
-    std::string ReplaceFileExt(const char * str, const char *ext_old, const char *ext_new);
-    std::string ReadFile(const char *fileName);
-
-    bool Tranliterate(const wchar_t c, std::wstring &str);
-    std::string MangleName(const char * name);
-
-    std::string MangaledFuncCPP(const char *name, const char *space = nullptr);
-    std::string MangaledFunc(const std::string name);
-
-    inline std::string MakeConstructorName(std::string name) {
-        ASSERT(isType(name));
-        std::string result(name.substr(1));
-        result += ":";
-        result += name.substr(name.rfind(":"));
-        return result;
-    }
-
-    inline std::string MakeLocalName(std::string name) {
-        return MangleName(MakeName(name).c_str());
-    }
-
-    inline std::string GetDoc(std::string name) {
-        return "Help system not implemented!!!!!";
-    }
-
 
     /*
      * Класс контекст предназначен для хранения контекста среды выполнения при вызове функций.
@@ -78,7 +50,6 @@ namespace newlang {
         _("/", DIV)\
         _("//", DIV_CEIL)\
         _("%", REM)\
-        _("**", POW)\
         \
         _("+=", PLUS_)\
         _("-=", MINUS_)\
@@ -86,7 +57,6 @@ namespace newlang {
         _("/=", DIV_)\
         _("//=", DIV_CEIL_)\
         _("%=", REM_)\
-        _("**=", POW_)\
         \
         _("++", CONCAT)\
 /*        _("--", DEC_)\*/\
@@ -105,83 +75,6 @@ namespace newlang {
         _(">>>", RRSHIFT)\
         _(">>>=", RRSHIFT_)\
         _("<=>", SPACESHIP)
-
-//#define NL_BUILTIN(_) \
-//        _("export", NOT_SUPPORT)\
-//        _("local", NOT_SUPPORT)
-
-    class Module : public Obj {
-    public:
-        std::string m_file;
-        std::string m_source;
-        std::string m_md5;
-        std::string m_timestamp;
-        std::string m_version;
-        bool m_is_main;
-
-    public:
-
-        Module() : Obj(ObjType::Module) {
-            m_var_is_init = true;
-
-        }
-
-        bool Load(Context & ctx, const char * path, bool is_main) {
-            m_is_main = is_main;
-            m_file = path;
-            m_var_name = ExtractModuleName(path);
-            auto file = llvm::sys::fs::openNativeFileForRead(path);
-            if (!file) {
-                LOG_ERROR("Error open module '%s' from file %s!", m_var_name.c_str(), path);
-                return false;
-            }
-
-
-            char buffer[llvm::sys::fs::DefaultReadChunkSize];
-            llvm::MutableArrayRef<char> Buf(buffer, llvm::sys::fs::DefaultReadChunkSize);
-
-            llvm::Expected<size_t> readed(0);
-            do {
-                readed = llvm::sys::fs::readNativeFile(*file, Buf);
-                if (!readed) {
-                    LOG_ERROR("Error read module '%s' from file %s!", m_var_name.c_str(), path);
-                    return false;
-                }
-                m_source.append(Buf.data(), *readed);
-            } while (*readed);
-
-            llvm::sys::fs::file_status fs;
-            std::error_code ec = llvm::sys::fs::status(*file, fs);
-            if (ec) {
-                m_timestamp = "??? ??? ?? ??:??:?? ????";
-            } else {
-                //                auto tp = fs.getLastModificationTime();
-                time_t temp = llvm::sys::toTimeT(fs.getLastModificationTime());
-                struct tm * timeinfo;
-                timeinfo = localtime(&temp);
-                m_timestamp = asctime(timeinfo);
-                m_timestamp = m_timestamp.substr(0, 24); // Remove \n on the end line
-
-            }
-
-            llvm::ErrorOr<llvm::MD5::MD5Result> md5 = llvm::sys::fs::md5_contents((int) *file);
-            if (!md5) {
-                m_md5 = "????????????????????????????????";
-            } else {
-                llvm::SmallString<32> hash;
-                llvm::MD5::stringifyResult((*md5), hash);
-                m_md5 = hash.c_str();
-            }
-            llvm::sys::fs::closeFile(*file);
-
-            m_var_is_init = true;
-            return true;
-        }
-
-        virtual ~Module() {
-
-        }
-    };
 
     class Context : public Variable<Obj, std::weak_ptr<Obj> >, public std::enable_shared_from_this<Context> {
     public:
@@ -224,57 +117,24 @@ namespace newlang {
 #undef PROTO_OP
 
 
-//        typedef ObjPtr(*EvalFunction)(Context *ctx, const TermPtr & term, Obj * args, bool eval_block);
+        //        typedef ObjPtr(*EvalFunction)(Context *ctx, const TermPtr & term, Obj * args, bool eval_block);
 
         static std::map<std::string, EvalFunction> m_ops;
-//        static std::map<std::string, Context::EvalFunction> m_builtin_calls;
+        //        static std::map<std::string, Context::EvalFunction> m_builtin_calls;
         //        static Parser::MacrosStore m_macros; ///< Хотя макросы и могут обработываться в рантайме, но доступны они только для парсера
-        NamedPtr m_named;
-
-        LLVMBuilderRef m_llvm_builder;
-
-        std::map<std::string, ModulePtr> m_modules;
-
-        bool CheckOrLoadModule(std::string name);
 
         static void Reset() {
-//            m_types.clear();
-//            m_funcs.clear();
+            //            m_types.clear();
+            //            m_funcs.clear();
             m_ops.clear();
-//            m_builtin_calls.clear();
+            //            m_builtin_calls.clear();
             Docs::m_docs.clear();
         }
 
-        void clear_() override {
-            Variable::clear_();
+        void clear_() override;
 
-            m_modules.clear();
-
-            ASSERT(m_terms);
-            m_terms->clear_();
-            m_terms->m_var_is_init = true;
-            m_terms->m_var_type_current = ObjType::Module;
-        }
-
-        inline ObjPtr ExecFile(const std::string &filename, Obj *args = nullptr, CatchType int_catch = CatchType::CATCH_ALL) {
-            std::string source = ReadFile(filename.c_str());
-            if (source.empty()) {
-                LOG_RUNTIME("Empty source or file '%s' not found!", filename.c_str());
-            }
-            return ExecStr(source, args, int_catch);
-        }
-
-        inline ObjPtr ExecStr(const std::string str, Obj *args = nullptr, CatchType int_catch = CatchType::CATCH_AUTO) {
-            TermPtr exec = Parser::ParseString(str, m_named);
-            ObjPtr temp;
-            if (args == nullptr) {
-                temp = Obj::CreateNone();
-                args = temp.get();
-            }
-            return Eval(this, exec, args, true, int_catch);
-        }
-
-        ObjPtr Run(TermPtr term, Obj *args);
+        ObjPtr ExecFile(const std::string &filename, Obj *args = nullptr, CatchType int_catch = CatchType::CATCH_ALL);
+        ObjPtr ExecStr(const std::string str, Obj *args = nullptr, CatchType int_catch = CatchType::CATCH_AUTO);
 
         static ObjPtr Eval(Context *ctx, TermPtr term, Obj *args, bool eval_block, CatchType int_catch = CatchType::CATCH_AUTO);
 
@@ -284,9 +144,9 @@ namespace newlang {
         Context(RuntimePtr global);
 
 
-//        static std::map<std::string, ObjPtr> m_types;
-//        typedef at::variant<ObjPtr, std::vector < ObjPtr> > FuncItem;
-//        static std::map<std::string, FuncItem> m_funcs; // Системный и встроенные функции 
+        //        static std::map<std::string, ObjPtr> m_types;
+        //        typedef at::variant<ObjPtr, std::vector < ObjPtr> > FuncItem;
+        //        static std::map<std::string, FuncItem> m_funcs; // Системный и встроенные функции 
 
         ObjPtr CreateClass(std::string class_name, TermPtr type, Obj *args);
 
@@ -294,9 +154,9 @@ namespace newlang {
             Obj args;
             return CreateLVal(ctx, type, &args);
         }
-        
-//        static ObjPtr Exec(Context *ctx, const char * cmd, ObjPtr opts);
-        
+
+        //        static ObjPtr Exec(Context *ctx, const char * cmd, ObjPtr opts);
+
         inline static ObjPtr CreateRVal(Context *ctx, TermPtr term, bool eval_block = true, CatchType int_catch = CatchType::CATCH_ALL) {
             Obj args;
             return CreateRVal(ctx, term, &args, eval_block, int_catch);
@@ -317,9 +177,9 @@ namespace newlang {
         void ItemTensorEval_(torch::Tensor &tensor, c10::IntArrayRef shape, std::vector<Index> &ind, const int64_t pos, ObjPtr & obj, ObjPtr & args);
         void ItemTensorEval(torch::Tensor &tensor, ObjPtr obj, ObjPtr args);
 
-//        void ReadBuiltInProto(ProtoType & proto);
+        //        void ReadBuiltInProto(ProtoType & proto);
 
-//        bool CreateBuiltin(const char * prototype, void * func, ObjType type);
+        //        bool CreateBuiltin(const char * prototype, void * func, ObjType type);
         ObjPtr RegisterObject(ObjPtr var);
 
         ObjPtr RemoveObject(const char * name) {
@@ -335,25 +195,7 @@ namespace newlang {
             return Obj::No();
         }
 
-        ObjPtr GetObject(const std::string name) {
-            std::string str(name);
-            if (str.size() && (str[0] == '$')) {
-                str = str.substr(1);
-            }
-            auto found = find(str);
-            if (found != end()) {
-                return found->second.lock();
-            }
-            auto func = m_named->m_funcs.find(str);
-            if (func != m_named->m_funcs.end()) {
-                if (at::holds_alternative<ObjPtr>(func->second)) {
-                    return at::get<ObjPtr>(func->second);
-                }
-                ASSERT(at::holds_alternative<std::vector < ObjPtr >> (func->second));
-                return at::get<std::vector < ObjPtr >> (func->second)[0];
-            }
-            return nullptr;
-        }
+        ObjPtr GetObject(const std::string name);
 
         RuntimePtr m_runtime; // Глобальный контекс, если к нему есть доступ
 
@@ -378,8 +220,6 @@ namespace newlang {
         }
 
         virtual ~Context() {
-            LLVMDisposeBuilder(m_llvm_builder);
-            m_llvm_builder = nullptr;
         }
 
         ObjPtr GetTerm(const std::string name, bool is_ref);
@@ -392,14 +232,7 @@ namespace newlang {
 
 
         ObjPtr FindGlobalTerm(TermPtr term);
-
-        ObjPtr FindGlobalTerm(const std::string name) {
-            auto found = m_terms->find(MakeName(name));
-            if (found != m_terms->end()) {
-                return found->second;
-            }
-            return GetObject(name);
-        }
+        ObjPtr FindGlobalTerm(const std::string name);
 
         void RegisterInContext(ObjPtr & args) {
             RegisterInContext(*args);
@@ -423,9 +256,9 @@ namespace newlang {
         static ObjPtr EvalBlockOR(Context *ctx, const TermPtr &block, Obj * local_vars);
         static ObjPtr EvalBlockXOR(Context *ctx, const TermPtr &block, Obj * local_vars);
 
-//        ObjPtr CreateNative(const char *proto, const char *module = nullptr, bool lazzy = false, const char *mangle_name = nullptr);
-//        ObjPtr CreateNative(TermPtr proto, const char *module = nullptr, bool lazzy = false, const char *mangle_name = nullptr);
-//        ObjPtr CreateNative(Obj args);
+        //        ObjPtr CreateNative(const char *proto, const char *module = nullptr, bool lazzy = false, const char *mangle_name = nullptr);
+        //        ObjPtr CreateNative(TermPtr proto, const char *module = nullptr, bool lazzy = false, const char *mangle_name = nullptr);
+        //        ObjPtr CreateNative(Obj args);
 
 
         std::string ffi_file;
@@ -452,117 +285,117 @@ namespace newlang {
         ffi_call_type * m_ffi_call;
         //        m_func_abi
 
-//        static bool pred_compare(const std::string &find, const std::string &str) {
-//            size_t pos = 0;
-//            while (pos < find.size() && pos < str.size()) {
-//                if (find[pos] != str[pos]) {
-//                    return false;
-//                }
-//                pos++;
-//            }
-//            return find.empty() || (pos && find.size() == pos);
-//        }
-//
-//        std::vector<std::wstring> SelectPredict(std::wstring wstart, size_t overage_count = 0) {
-//            return SelectPredict(utf8_encode(wstart), overage_count);
-//        }
-//
-//        std::vector<std::wstring> SelectPredict(std::string start, size_t overage_count = 0) {
-//
-//            std::vector<std::wstring> result;
-//
-//            bool find_local = false;
-//            bool find_global = false;
-//            bool find_types = false;
-//            bool find_macro = false;
-//
-//            std::string prefix;
-//
-//            if (isModule(start)) {
-//                prefix = start[0];
-//                start = start.substr(1);
-//                find_global = true;
-//            } else if (isLocal(start)) {
-//                prefix = start[0];
-//                start = start.substr(1);
-//                find_local = true;
-//            } else if (isMacro(start)) {
-//                find_macro = true;
-//            } else if (isType(start)) {
-//                find_types = true;
-//            } else {
-//                find_local = true;
-//                find_global = true;
-//                find_types = true;
-//                find_macro = true;
-//            }
-//
-//
-//            if (find_macro) {
-//                for (auto &elem : *m_named) {
-//                    if (pred_compare(start, elem.first)) {
-//                        result.push_back(utf8_decode(prefix + elem.first));
-//                        if (result.size() > overage_count + 1) {
-//                            break;
-//                        }
-//                    }
-//                }
-//            }
-//
-//            if (find_local) {
-//                for (int i = 0; i < size(); i++) {
-//                    if (pred_compare(start, at(i).first)) {
-//                        ObjPtr object = at(i).second.lock();
-//                        if (object && object->is_function_type()) {
-//                            result.push_back(utf8_decode(prefix + at(i).first) + L"(");
-//                        } else if (object) {
-//                            result.push_back(utf8_decode(prefix + at(i).first));
-//                        }
-//                        if (result.size() > overage_count + 1) {
-//                            break;
-//                        }
-//                    }
-//                }
-//            }
-//
-//            if (find_global) {
-//                for (int i = 0; i < m_terms->size(); i++) {
-//                    if (pred_compare(start, m_terms->at(i).first)) {
-//                        if (m_terms->at(i).second->is_function_type()) {
-//                            result.push_back(utf8_decode(prefix + m_terms->at(i).first) + L"(");
-//                        } else {
-//                            result.push_back(utf8_decode(prefix + m_terms->at(i).first));
-//                        }
-//                        if (result.size() > overage_count + 1) {
-//                            break;
-//                        }
-//                    }
-//                }
-//
-//                for (auto &elem : m_named->m_funcs) {
-//
-//                    if (pred_compare(start, elem.first)) {
-//                        result.push_back(utf8_decode(prefix + elem.first) + L"(");
-//                        if (result.size() > overage_count + 1) {
-//                            break;
-//                        }
-//                    }
-//                }
-//            }
-//
-//            if (find_types) {
-//                for (auto &elem : m_named->m_types) {
-//                    if (pred_compare(start, elem.first)) {
-//                        result.push_back(utf8_decode(elem.first));
-//                        if (result.size() > overage_count + 1) {
-//                            break;
-//                        }
-//                    }
-//                }
-//            }
-//            return result;
-//
-//        }
+        //        static bool pred_compare(const std::string &find, const std::string &str) {
+        //            size_t pos = 0;
+        //            while (pos < find.size() && pos < str.size()) {
+        //                if (find[pos] != str[pos]) {
+        //                    return false;
+        //                }
+        //                pos++;
+        //            }
+        //            return find.empty() || (pos && find.size() == pos);
+        //        }
+        //
+        //        std::vector<std::wstring> SelectPredict(std::wstring wstart, size_t overage_count = 0) {
+        //            return SelectPredict(utf8_encode(wstart), overage_count);
+        //        }
+        //
+        //        std::vector<std::wstring> SelectPredict(std::string start, size_t overage_count = 0) {
+        //
+        //            std::vector<std::wstring> result;
+        //
+        //            bool find_local = false;
+        //            bool find_global = false;
+        //            bool find_types = false;
+        //            bool find_macro = false;
+        //
+        //            std::string prefix;
+        //
+        //            if (isModule(start)) {
+        //                prefix = start[0];
+        //                start = start.substr(1);
+        //                find_global = true;
+        //            } else if (isLocal(start)) {
+        //                prefix = start[0];
+        //                start = start.substr(1);
+        //                find_local = true;
+        //            } else if (isMacro(start)) {
+        //                find_macro = true;
+        //            } else if (isType(start)) {
+        //                find_types = true;
+        //            } else {
+        //                find_local = true;
+        //                find_global = true;
+        //                find_types = true;
+        //                find_macro = true;
+        //            }
+        //
+        //
+        //            if (find_macro) {
+        //                for (auto &elem : *m_named) {
+        //                    if (pred_compare(start, elem.first)) {
+        //                        result.push_back(utf8_decode(prefix + elem.first));
+        //                        if (result.size() > overage_count + 1) {
+        //                            break;
+        //                        }
+        //                    }
+        //                }
+        //            }
+        //
+        //            if (find_local) {
+        //                for (int i = 0; i < size(); i++) {
+        //                    if (pred_compare(start, at(i).first)) {
+        //                        ObjPtr object = at(i).second.lock();
+        //                        if (object && object->is_function_type()) {
+        //                            result.push_back(utf8_decode(prefix + at(i).first) + L"(");
+        //                        } else if (object) {
+        //                            result.push_back(utf8_decode(prefix + at(i).first));
+        //                        }
+        //                        if (result.size() > overage_count + 1) {
+        //                            break;
+        //                        }
+        //                    }
+        //                }
+        //            }
+        //
+        //            if (find_global) {
+        //                for (int i = 0; i < m_terms->size(); i++) {
+        //                    if (pred_compare(start, m_terms->at(i).first)) {
+        //                        if (m_terms->at(i).second->is_function_type()) {
+        //                            result.push_back(utf8_decode(prefix + m_terms->at(i).first) + L"(");
+        //                        } else {
+        //                            result.push_back(utf8_decode(prefix + m_terms->at(i).first));
+        //                        }
+        //                        if (result.size() > overage_count + 1) {
+        //                            break;
+        //                        }
+        //                    }
+        //                }
+        //
+        //                for (auto &elem : m_named->m_funcs) {
+        //
+        //                    if (pred_compare(start, elem.first)) {
+        //                        result.push_back(utf8_decode(prefix + elem.first) + L"(");
+        //                        if (result.size() > overage_count + 1) {
+        //                            break;
+        //                        }
+        //                    }
+        //                }
+        //            }
+        //
+        //            if (find_types) {
+        //                for (auto &elem : m_named->m_types) {
+        //                    if (pred_compare(start, elem.first)) {
+        //                        result.push_back(utf8_decode(elem.first));
+        //                        if (result.size() > overage_count + 1) {
+        //                            break;
+        //                        }
+        //                    }
+        //                }
+        //            }
+        //            return result;
+        //
+        //        }
 
         inline ObjPtr ConvertType(const ObjType type, const Dimension *dims, ObjPtr obj, const ObjPtr obj2 = nullptr) {
             ObjPtr result = obj->Clone();
@@ -571,21 +404,7 @@ namespace newlang {
         }
         void ConvertType_(const ObjType type, const Dimension *dims, ObjPtr obj, const ObjPtr obj2 = nullptr);
 
-        ObjPtr CreateConvertTypeFunc(const char *prototype, void *func, ObjType type) {
-            ASSERT(prototype);
-            ASSERT(func);
-
-            std::string func_dump(prototype);
-            func_dump += " := { };";
-
-            TermPtr proto = Parser::ParseString(func_dump, m_named);
-            ObjPtr obj =
-                    Obj::CreateFunc(this, proto->Left(), type,
-                    proto->Left()->getName().empty() ? proto->Left()->getText() : proto->Left()->getName());
-            obj->m_var = func;
-
-            return obj;
-        }
+        ObjPtr CreateConvertTypeFunc(const char *prototype, void *func, ObjType type);
 
         /**
          * Функция для организации встроенных типов в иерархию наследования.
@@ -595,40 +414,7 @@ namespace newlang {
          * @param parents - Список сторок с именами родительских типов
          * @return - Успешность регистрации базовго типа в иерархии
          */
-        bool RegisterTypeHierarchy(ObjType type, std::vector<std::string> parents) {
-            //            std::array < std::string, sizeof...(parents) > list = {parents...};
-
-            std::string type_name(toString(type));
-            auto base = m_named->m_types.find(type_name);
-            if (base != m_named->m_types.end()) {
-                return false;
-            }
-
-            ObjPtr result = Obj::CreateBaseType(type);
-            ASSERT(result->m_var_type_fixed == type);
-            ASSERT(result->m_var_type_current == ObjType::Type);
-            ASSERT(!type_name.empty() && result->m_class_name.compare(type_name) == 0);
-            ASSERT(result->m_class_parents.empty());
-
-            for (auto &parent : parents) {
-                auto iter = m_named->m_types.find(parent);
-                if (iter == m_named->m_types.end()) {
-                    LOG_DEBUG("Parent type '%s' not found!", parent.c_str());
-                    return false;
-                }
-                for (auto &elem : result->m_class_parents) {
-                    ASSERT(elem);
-                    if (!elem->m_class_name.empty() && elem->m_class_name.compare(parent) == 0) {
-                        LOG_DEBUG("The type '%s' already exists in the parents of '%s'!", parent.c_str(), type_name.c_str());
-                        return false;
-                    }
-                }
-                ASSERT(iter->first.compare(parent) == 0);
-                result->m_class_parents.push_back(iter->second);
-            }
-            m_named->m_types[type_name] = result;
-            return true;
-        }
+        bool RegisterTypeHierarchy(ObjType type, std::vector<std::string> parents);
 
         ObjType BaseTypeFromString(const std::string & type, bool *has_error = nullptr) {
             ObjPtr obj_type = GetTypeFromString(type, has_error);
@@ -643,36 +429,7 @@ namespace newlang {
             return obj_type->m_var_type_fixed;
         }
 
-        ObjPtr GetTypeFromString(const std::string & type, bool *has_error = nullptr) {
-            if (type.empty()) {
-                if (has_error) {
-                    *has_error = true;
-                    return Obj::CreateNone();
-                }
-                LOG_RUNTIME("Type name '%s' not found!", type.c_str());
-            }
-
-            auto result_types = m_named->m_types.find(type);
-            if (result_types != m_named->m_types.end()) {
-                return result_types->second;
-            }
-
-            auto result_terms = m_terms->find(type);
-            if (result_terms != m_terms->end()) {
-                return result_terms->second;
-            }
-
-            auto result_find = find(type);
-            if (result_find != end()) {
-                return result_find->second.lock();
-            }
-
-            if (has_error) {
-                *has_error = true;
-                return nullptr;
-            }
-            LOG_RUNTIME("Type name '%s' not found!", type.c_str());
-        }
+        ObjPtr GetTypeFromString(const std::string & type, bool *has_error = nullptr);
 
         enum class MatchMode {
             MatchEqual,

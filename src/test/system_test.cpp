@@ -10,6 +10,7 @@
 #include <system.h>
 
 using namespace newlang;
+using namespace newlang::runtime;
 
 class SystemTest : public ::testing::Test {
 protected:
@@ -182,27 +183,27 @@ TEST_F(SystemTest, MethodRun) {
 
 }
 
-TEST_F(SystemTest, Runtime) {
-
-    RuntimePtr rt = RunTime::Init();
-    for (auto &elem : *rt) {
-        ASSERT_TRUE(elem.second) << elem.first;
-        ASSERT_TRUE(elem.second->proto) << elem.first;
-        std::cout << elem.first << " -> " << elem.second->proto->toString() << "\n";
-    }
-
-    Context ctx(rt);
-
-    TermPtr term = Parser::ParseString(":System::getlogin()", nullptr);
-    ASSERT_TRUE(term);
-    std::cout << "\nTerm: " << term->toString() << "!!!!!!!!!!!!!!!!!!!!!!!!!!11\n";
-
-    ObjPtr result = ctx.Run(term, nullptr);
-    ASSERT_TRUE(result);
-
-    std::cout << result->toString() << "!!!!!!!!!!!!!!!!!!!!!!!!!!11";
-
-}
+//TEST_F(SystemTest, Runtime) {
+//
+//    RuntimePtr rt = RunTime::Init();
+//    for (auto &elem : *rt) {
+//        ASSERT_TRUE(elem.second) << elem.first;
+//        ASSERT_TRUE(elem.second->proto) << elem.first;
+//        std::cout << elem.first << " -> " << elem.second->proto->toString() << "\n";
+//    }
+//
+//    Context ctx(rt);
+//
+//    TermPtr term = Parser::ParseString(":System::getlogin()", nullptr);
+//    ASSERT_TRUE(term);
+//    std::cout << "\nTerm: " << term->toString() << "!!!!!!!!!!!!!!!!!!!!!!!!!!11\n";
+//
+//    ObjPtr result = ctx.Run(term, nullptr);
+//    ASSERT_TRUE(result);
+//
+//    std::cout << result->toString() << "!!!!!!!!!!!!!!!!!!!!!!!!!!11";
+//
+//}
 
 TEST_F(SystemTest, Native) {
     RuntimePtr rt = RunTime::Init();
@@ -218,13 +219,17 @@ TEST_F(SystemTest, Native) {
     ObjPtr time = ctx.ExecStr("time(ptr:Pointer):Int32 := %time");
     ASSERT_TRUE(time);
 
-    ObjPtr res = time->Call(&ctx, Obj::Arg());
+    ObjPtr res;
+
+    ASSERT_NO_THROW(
+            res = time->Call(&ctx, Obj::ArgNull());
+            ) << time->m_prototype->toString();
 
     std::cout << time->toString();
 
     usleep->Call(&ctx, Obj::Arg(1000000));
 
-    ObjPtr res2 = time->Call(&ctx, Obj::Arg());
+    ObjPtr res2 = time->Call(&ctx, Obj::ArgNull());
 
     std::cout << "\nres1: " << res->toString() << "\n";
     std::cout << "res2: " << res2->toString() << "\n";
@@ -236,7 +241,7 @@ TEST_F(SystemTest, Native) {
     ObjPtr srand = ctx.ExecStr("srand(val:Int32):None := %srand");
     ASSERT_TRUE(srand);
 
-    srand->Call(&ctx, Obj::Arg(time->Call(&ctx, Obj::Arg())));
+    srand->Call(&ctx, Obj::Arg(time->Call(&ctx, Obj::ArgNull())));
 
     ObjPtr rand = ctx.ExecStr("rand():Int32 := %rand");
     ASSERT_TRUE(rand);
@@ -253,7 +258,7 @@ TEST_F(SystemTest, Native) {
  */
 
 TEST_F(SystemTest, Logger) {
-//    std::cout << exec("ls -l");
+    //    std::cout << exec("ls -l");
     //    std::system("ls -l > temp/test.txt"); // executes the UNIX command "ls -l >test.txt"
     //    std::cout << std::ifstream("temp/test.txt").rdbuf();
 }

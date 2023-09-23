@@ -7,7 +7,8 @@ namespace newlang {
     : NewLangFlexLexer(in, out),
     source_base(source), source_string(source),
     m_macro_iss(nullptr), m_macro_count(0), m_macro_del(0),
-    m_ignore_space(true), m_ignore_indent(true), m_ignore_comment(true), m_ignore_crlf(true) {
+    m_ignore_space(true), m_ignore_indent(true), m_ignore_comment(true), m_ignore_crlf(true),
+    m_bracket_depth(0) {
         //        yy_flex_debug = true;
     }
 
@@ -23,14 +24,14 @@ namespace newlang {
 
         TermPtr tok;
         parser::location_type loc;
-        while(lexer.lex(&tok, &loc) != parser::token::END) {
+        while (lexer.lex(&tok, &loc) != parser::token::END) {
             result.push_back(tok);
         }
         return result;
     }
 
     void Scanner::ApplyDiags(DiagPtr diag) {
-        if(diag) {
+        if (diag) {
             //@todo Need implement ApplyDiags 
 #ifdef UNITTEST            
             //            LOG_WARNING("ApplyDiags not implemenetd!");
