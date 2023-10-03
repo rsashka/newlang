@@ -170,6 +170,7 @@ bool Parser::PragmaEval(const TermPtr &term, BlockType &buffer) {
     /*
      * 
      * https://javarush.com/groups/posts/1896-java-annotacii-chto-ehto-i-kak-ehtim-poljhzovatjhsja
+     * https://habr.com/ru/companies/otus/articles/764244/
      * 
         @__PRAGMA_DIAG__(push)
         @__PRAGMA_DIAG__(ignored, "-Wundef")

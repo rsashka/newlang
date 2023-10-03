@@ -87,6 +87,7 @@ namespace newlang {
         _(DOWHILE) \
         _(MATCHING) \
         _(WITH) \
+        _(TAKE) \
         \
         _(RANGE) \
         _(ELLIPSIS) \

@@ -14,11 +14,11 @@ GREP=grep
 NM=nm
 CCADMIN=CCadmin
 RANLIB=ranlib
-CC=clang-16
-CCC=clang++-16
-CXX=clang++-16
+CC=clang
+CCC=clang++
+CXX=clang++
 FC=gfortran
-AS=lld-16
+AS=as
 
 # Macros
 CND_PLATFORM=CLang-Linux

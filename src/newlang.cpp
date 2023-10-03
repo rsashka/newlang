@@ -1974,6 +1974,9 @@ GlobNamePtr RunTime::FindObject(const char *name) {
 bool RunTime::RegisterSystemObj(ObjPtr obj) {
 
     ASSERT(obj);
+
+    LOG_RUNTIME("RegisterSystemObj '%s' !!!!!!!!!!!!!!!!!!!!!!!!!!!!!", obj->toString().c_str());
+
     //    ASSERT(obj->m_prototype);
 
     //    std::string obj_name = obj->m_prototype->getText();
@@ -1985,26 +1988,26 @@ bool RunTime::RegisterSystemObj(ObjPtr obj) {
     }
 
     m_sys_obj.push_back(obj);
-    push_back(std::make_shared<GlobNameInfo>(obj->m_prototype, obj), obj_name);
+//    push_back(std::make_shared<GlobNameInfo>(obj->m_prototype, obj), obj_name);
 
-    std::string name;
-    for (auto &elem : *obj) {
-        name = obj_name;
-        name.append("::");
-        name.append(elem.second->m_prototype->getText());
-
-        //        LOG_DEBUG("%s    ->    %s", name.c_str(), elem.second->m_prototype->toString().c_str());
-
-        auto found = find(name);
-        if (found != end()) {
-            LOG_ERROR("Object name '%s' already exist!", name.c_str());
-            return false;
-        }
-
-        push_back(std::make_shared<GlobNameInfo>(elem.second->m_prototype, elem.second), name);
-
-
-    }
+//    std::string name;
+//    for (auto &elem : *obj) {
+//        name = obj_name;
+//        name.append("::");
+//        name.append(elem.second->m_prototype->getText());
+//
+//        //        LOG_DEBUG("%s    ->    %s", name.c_str(), elem.second->m_prototype->toString().c_str());
+//
+//        auto found = find(name);
+//        if (found != end()) {
+//            LOG_ERROR("Object name '%s' already exist!", name.c_str());
+//            return false;
+//        }
+//
+//        push_back(std::make_shared<GlobNameInfo>(elem.second->m_prototype, elem.second), name);
+//
+//
+//    }
 
 
     return true;

@@ -579,7 +579,9 @@ ${name}     YY_TOKEN(LOCAL);
 ".^."        YY_TOKEN(OPERATOR);
 ".~."        YY_TOKEN(OPERATOR);
 
+"*^"        YY_TOKEN(TAKE);
 "**"        YY_TOKEN(WITH);
+"**^"        YY_TOKEN(WITH);
 "!~~~"      YY_TOKEN(OPERATOR);
 "~~~"       YY_TOKEN(OPERATOR);
 "!~~"       YY_TOKEN(OPERATOR);

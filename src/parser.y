@@ -197,6 +197,7 @@
 %token			MATCHING
 %token			REPEAT
 %token			WITH
+%token			TAKE
 
 %token			ARGUMENT
 %token			MODULES
@@ -220,12 +221,6 @@
 %token			DOC_BEFORE
 %token			DOC_AFTER
 
-
-/* Есть предупреждения, parser.y: предупреждение: shift/reduce conflict on token ';' [-Wcounterexamples]
-  First example: assign_items '=' assign_expr • ';' doc_after "end of file"
-  Second example: assign_items '=' assign_expr • ';' "end of file"
-*/
-//%expect 2
 
 %% /*** Grammar Rules ***/
 
@@ -671,8 +666,7 @@ field:  '.'  NAME
                 Term::ListToVector($type_list, $$->m_type_allowed);
             }
        
-/* Допустимые lvalue объекты */
-lval:  assign_name
+lval_obj: assign_name
             {
                 $$ = $1;
             }
@@ -703,7 +697,35 @@ lval:  assign_name
             {
                 $$ = $1; 
                 $$->Last()->Append($field);
+            }        
+        
+        
+take:   TAKE 
+        {
+            $$ = $1;
+            $$->SetTermID(TermID::TAKE);
+        }
+    | '*' 
+        {
+            $$ = $1;
+            $$->SetTermID(TermID::TAKE);
+        }  
+    
+/* Допустимые lvalue объекты */
+lval:  lval_obj
+            {
+                $$ = $1; 
             }
+        |  take   lval_obj
+            {
+                $$ = $1;
+                $$->SetArgs($lval_obj);
+            } 
+        |  take '('  lval_obj  ')'
+            {
+                $$ = $1;
+                $$->SetArgs($lval_obj);
+            } 
         |  type_item
             {   
                 $$ = $type_item; 
@@ -888,11 +910,61 @@ arg: arg_name  '='
             Term::ListToVector($type_list, $$->m_type_allowed);
             $$->SetName($1->getText());
         }
+    | arg_name  '='  ptr  logical
+        { // Именованный аргумент
+            $$ = $4;
+            $$->SetName($1->getText());
+            $$->MakeRef($ptr);
+        }
+    | name  type_item  '='  ptr  logical
+        { // Именованный аргумент
+            $$ = $5;
+            $$->SetType($type_item);
+            $$->SetName($1->getText());
+            $$->MakeRef($ptr);
+        }
+    | name  type_list  '='  ptr  logical
+        { // Именованный аргумент
+            $$ = $5;
+            Term::ListToVector($type_list, $$->m_type_allowed);
+            $$->SetName($1->getText());
+            $$->MakeRef($ptr);
+        }
+/*    | arg_name  '='  take  logical
+        { // Именованный аргумент
+            $$ = $take;
+            $logical->SetName($1->getText());
+            $$->SetArgs($logical);
+        }
+    | name  type_item  '='  take  logical
+        { // Именованный аргумент
+            $$ = $take;
+            $logical->SetType($type_item);
+            $logical->SetName($1->getText());
+            $$->SetArgs($logical);
+        }
+    | name  type_list  '='  take  logical
+        { // Именованный аргумент
+            $$ = $take;
+            Term::ListToVector($type_list, $logical->m_type_allowed);
+            $logical->SetName($1->getText());
+            $$->SetArgs($logical);
+        } */ 
     | logical
         {
             // сюда попадают и именованные аргументы как операция присвоения значения
             $$ = $1;
         }
+    | ptr  logical
+        {
+            $$ = $2;  
+            $$->MakeRef($ptr);
+        }   
+/*    | take  logical
+        {
+            $$ = $1;  
+            $$->SetArgs($2);
+        } */  
     |  ELLIPSIS
         {
             // Раскрыть элементы словаря в последовательность не именованных параметров
@@ -1141,6 +1213,11 @@ assign_expr:  body_all
                 {
                     $$ = $1;  
                 }
+            |  ptr  body_all
+                {
+                    $$ = $2;  
+                    $$->MakeRef($ptr);
+                }
             | ELLIPSIS  rval
                 {
                     $$ = $1;  
@@ -1168,6 +1245,11 @@ assign_expr:  body_all
 assign_item:  lval
                 {
                     $$ = $1;
+                }
+            |  ptr   lval
+                {
+                    $$ = $2;
+                    $$->MakeRef($ptr);
                 }
             |  ELLIPSIS
                 {
@@ -1722,12 +1804,7 @@ exit:  interrupt
         }
 
 
-with_op:   '*' 
-        {
-            $$ = $1;
-            $$->SetTermID(TermID::WITH);
-        }
-    | WITH
+with_op:  WITH
         {
             $$ = $1;
         }

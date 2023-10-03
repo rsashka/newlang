@@ -995,6 +995,10 @@ ObjPtr Context::eval_WITH(Context *ctx, const TermPtr &term, Obj *args, bool eva
     LOG_RUNTIME("WITH Not implemented!");
     return nullptr;
 }
+ObjPtr Context::eval_TAKE(Context *ctx, const TermPtr &term, Obj *args, bool eval_block) {
+    LOG_RUNTIME("TAKE Not implemented!");
+    return nullptr;
+}
 
 ObjPtr Context::eval_FOLLOW(Context *ctx, const TermPtr &term, Obj * args, bool eval_block) {
 
