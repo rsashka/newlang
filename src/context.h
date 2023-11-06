@@ -8,7 +8,8 @@
 
 #include <term.h>
 #include <object.h>
-#include <newlang.h>
+#include <module.h>
+#include <runtime.h>
 
 namespace newlang {
 
@@ -199,8 +200,8 @@ namespace newlang {
 
         RuntimePtr m_runtime; // Глобальный контекс, если к нему есть доступ
 
-        ModulePtr m_main_module;
-        Module * m_terms;
+//        ModulePtr m_main_module;
+//        Module * m_terms;
 
         std::string Dump(const char *separator = "") {
             std::string result;
@@ -231,8 +232,8 @@ namespace newlang {
         ObjPtr CreateSessionTerm(ObjPtr obj, const char *name);
 
 
-        ObjPtr FindGlobalTerm(TermPtr term);
-        ObjPtr FindGlobalTerm(const std::string name);
+//        ObjPtr FindGlobalTerm(TermPtr term);
+//        ObjPtr FindGlobalTerm(const std::string name);
 
         void RegisterInContext(ObjPtr & args) {
             RegisterInContext(*args);
@@ -405,31 +406,6 @@ namespace newlang {
         void ConvertType_(const ObjType type, const Dimension *dims, ObjPtr obj, const ObjPtr obj2 = nullptr);
 
         ObjPtr CreateConvertTypeFunc(const char *prototype, void *func, ObjType type);
-
-        /**
-         * Функция для организации встроенных типов в иерархию наследования.
-         * Другие функции: CreateBaseType - создает базовые типы данных (для расширения классов требуется контекст)
-         * и BaseTypeConstructor - функция обратного вызова при создании нового объекта базового типа данных
-         * @param type - Базовый тип данных \ref ObjType
-         * @param parents - Список сторок с именами родительских типов
-         * @return - Успешность регистрации базовго типа в иерархии
-         */
-        bool RegisterTypeHierarchy(ObjType type, std::vector<std::string> parents);
-
-        ObjType BaseTypeFromString(const std::string & type, bool *has_error = nullptr) {
-            ObjPtr obj_type = GetTypeFromString(type, has_error);
-
-            if (obj_type == nullptr) {
-                if (has_error) {
-                    *has_error = true;
-                    return ObjType::None;
-                }
-                LOG_RUNTIME("Type name '%s' not found!", type.c_str());
-            }
-            return obj_type->m_var_type_fixed;
-        }
-
-        ObjPtr GetTypeFromString(const std::string & type, bool *has_error = nullptr);
 
         enum class MatchMode {
             MatchEqual,

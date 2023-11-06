@@ -30,7 +30,7 @@ class Term;
 class Obj;
 class Context;
 class Module;
-class Named;
+class Macro;
 //class Compiler;
 class RunTime;
 class Diag;
@@ -55,15 +55,21 @@ typedef std::shared_ptr<Term> TermPtr;
 typedef std::shared_ptr<Module> ModulePtr;
 
 typedef std::vector<TermPtr> BlockType;
+
 typedef std::shared_ptr<Obj> ObjPtr;
 typedef std::shared_ptr<const Obj> ObjPtrConst;
+
+typedef std::weak_ptr<Obj> ObjWeak;
+typedef std::weak_ptr<const Obj> ObjWeakConst;
+ 
 typedef std::shared_ptr<RunTime> RuntimePtr;
 typedef std::shared_ptr<Diag> DiagPtr;
-typedef std::shared_ptr<Named> NamedPtr;
+typedef std::shared_ptr<Macro> MacroPtr;
 
 typedef ObjPtr FunctionType(Context *ctx, Obj &in);
 typedef ObjPtr TransparentType(const Context *ctx, Obj &in);
-//typedef at::variant<ObjPtr, std::vector < ObjPtr> > FuncItem;
+
+typedef at::variant<at::monostate, ObjWeak, std::vector < ObjWeak> > WeakItem;
 
 typedef ObjPtr(*EvalFunction)(Context *ctx, const TermPtr & term, Obj * args, bool eval_block);
 
@@ -409,14 +415,17 @@ void ParserException(const char *msg, std::string &buffer, int row, int col);
         LOG_RUNTIME("NewLang type '%s'(%d) can't be represented by C++ type!", toString(type), static_cast<int> (type));
     }
 
-#define NL_REFS(_)          \
-    _(RefNone, 0)           \
-    _(RefNoMt, 0x01)        \
-    _(RefMtMono, 0x02)      \
-    _(RefMtMulti, 0x03)     \
-    _(RefNoMtReadOnly, 0x11)    \
-    _(RefMtMonoReadOnly, 0x12)  \
-    _(RefMtMultiReadOnly, 0x13)         
+#define NL_REFS(_)      \
+    _(RefNone, 0)       \
+    _(RefNoMt, 1)       \
+    _(RefMtMono, 2)     \
+    _(RefMtMulti, 3)    \
+    _(RefNoMtReadOnly, 4)   \
+    _(RefMtMonoReadOnly, 5) \
+    _(RefMtMultiReadOnly, 6)\
+    _(RefCustom7, 7)    \
+    _(RefCustom8, 8)    \
+    _(RefCustom9, 9)  
 
     enum class RefType : uint8_t {
 #define DEFINE_ENUM(name, value) name = static_cast<uint8_t>(value),
@@ -850,15 +859,15 @@ void ParserException(const char *msg, std::string &buffer, int row, int col);
      *
      *
      */
-    inline bool isModule(const std::string &name) {
+    inline bool isModuleName(const std::string &name) {
         return !name.empty() && name[0] == '\\';
     }
 
-    inline bool isLocal(const std::string &name) {
+    inline bool isLocalName(const std::string &name) {
         return !name.empty() && name[0] == '$';
     }
 
-    inline bool isType(const std::string &name) {
+    inline bool isTypeName(const std::string &name) {
         return name.size() > 1 && name[0] == ':' && name[1] != ':';
     }
 
@@ -866,11 +875,19 @@ void ParserException(const char *msg, std::string &buffer, int row, int col);
         return name.size() > 1 && name[0] == ':' && name[1] == ':';
     }
 
-    inline bool isMacro(const std::string &name) {
+    inline bool isGlobalName(const std::string &name) {
+        return name.find("::") != std::string::npos;
+    }
+
+    inline bool isMacroName(const std::string &name) {
         return !name.empty() && name[0] == '@';
     }
 
-    inline bool isLocalAny(const char *name) {
+    inline bool isNativeName(const std::string &name) {
+        return !name.empty() && name[0] == '%';
+    }
+
+    inline bool isLocalAnyName(const char *name) {
         return name && (name[0] == '$' || name[0] == '@' || name[0] == ':' || name[0] == '%' || name[0] == '\\');
     }
 
@@ -899,13 +916,13 @@ void ParserException(const char *msg, std::string &buffer, int row, int col);
 
     inline bool isVariableName(const std::string name) {
         LOG_DEBUG("%s", name.c_str());
-        if (isModule(name)) {
+        if (isModuleName(name)) {
             return name.find("::") != name.npos;
         }
-        return !isType(name);
+        return !isTypeName(name);
     }
 
-    inline bool isConst(const std::string name) {
+    inline bool isConstName(const std::string name) {
         return !name.empty() && name[name.size() - 1] == '^';
     }
 
@@ -965,7 +982,7 @@ void ParserException(const char *msg, std::string &buffer, int row, int col);
                 return false;
         }
     }
-
+    
 } // namespace newlang
 
 #endif // INCLUDED_NEWLANG_TYPES_H_

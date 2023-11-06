@@ -585,10 +585,10 @@ TEST_F(Lexer, ParseLexem) {
     BlockType arr = Scanner::ParseLexem("1 2 3 4 5");
 
     ASSERT_EQ(5, arr.size());
-    ASSERT_STREQ("1 2 3 4 5", Named::Dump(arr).c_str());
+    ASSERT_STREQ("1 2 3 4 5", Macro::Dump(arr).c_str());
 
     arr = Scanner::ParseLexem("macro    @test(1,2,3,...):type; next \n; # sssssss\n @only lexem((((;;     ;");
-    ASSERT_STREQ("macro @test ( 1 , 2 , 3 , ... ) : type ; next ; @only lexem ( ( ( ( ; ; ;", Named::Dump(arr).c_str());
+    ASSERT_STREQ("macro @test ( 1 , 2 , 3 , ... ) : type ; next ; @only lexem ( ( ( ( ; ; ;", Macro::Dump(arr).c_str());
 }
 
 #endif // UNITTEST

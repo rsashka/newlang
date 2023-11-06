@@ -9,7 +9,7 @@
 #include <parser.h>
 #include <term.h>
 #include "version.h"
-#include "newlang.h"
+#include "runtime.h"
 #include "nlc.h"
 
 using namespace newlang;
@@ -46,7 +46,7 @@ protected:
         utils::Logger::Instance()->SetCallback(m_log_callback_save, m_log_callback_arg_save);
     }
 
-    TermPtr Parse(std::string str, NamedPtr buffer = nullptr, DiagPtr diag = nullptr) {
+    TermPtr Parse(std::string str, MacroPtr buffer = nullptr, DiagPtr diag = nullptr) {
         m_postlex.clear();
         ast = Parser::ParseString(str, buffer, &m_postlex, diag);
         return ast;
@@ -2177,7 +2177,7 @@ TEST_F(ParserTest, Module) {
 TEST_F(ParserTest, SkipBrackets) {
 
 
-    Named macro;
+    Macro macro;
     BlockType buffer;
 
     ASSERT_EQ(0, Parser::SkipBrackets(buffer, 0));
@@ -2229,7 +2229,7 @@ TEST_F(ParserTest, SkipBrackets) {
 }
 
 TEST_F(ParserTest, MacroCreate) {
-    NamedPtr macro = std::make_shared<Named>();
+    MacroPtr macro = std::make_shared<Macro>();
     TermPtr term;
     ASSERT_NO_THROW(
             term = Parse("@@ name @@ := macro", macro)

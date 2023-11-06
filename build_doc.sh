@@ -129,7 +129,6 @@ echo "#include <stdint.h>"  >> $VERSION_HEADER_TEMP
 echo "extern const uint8_t VERSION_MAJOR;"  >> $VERSION_HEADER_TEMP
 echo "extern const uint8_t VERSION_MINOR;"  >> $VERSION_HEADER_TEMP
 echo "extern const uint8_t VERSION_PATCH;"  >> $VERSION_HEADER_TEMP
-echo "extern const uint16_t VERSION_BUILD;"  >> $VERSION_HEADER_TEMP
 echo ""  >> $VERSION_HEADER_TEMP
 
 echo "#define VERSION ($VERSION_MAJOR << 4 | $VERSION_MINOR)"  >> $VERSION_HEADER_TEMP

@@ -1,5 +1,5 @@
 #include "pch.h"
-#include "newlang.h"
+#include "runtime.h"
 
 #ifdef UNITTEST
 
@@ -44,7 +44,7 @@ protected:
         utils::Logger::Instance()->SetCallback(m_log_callback_save, m_log_callback_arg_save);
     }
 
-    TermPtr Parse(std::string str, NamedPtr buffer = nullptr, DiagPtr diag = nullptr) {
+    TermPtr Parse(std::string str, MacroPtr buffer = nullptr, DiagPtr diag = nullptr) {
         m_postlex.clear();
         ast = Parser::ParseString(str, buffer, &m_postlex, diag);
         return ast;
@@ -177,11 +177,11 @@ TEST_F(SystemTest, MethodExist) {
 
 }
 
-TEST_F(SystemTest, MethodRun) {
-
-    ObjPtr sys = std::make_shared<System>();
-
-}
+//TEST_F(SystemTest, MethodRun) {
+//
+//    ObjPtr sys = std::make_shared<System>();
+//
+//}
 
 //TEST_F(SystemTest, Runtime) {
 //

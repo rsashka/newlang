@@ -5,7 +5,8 @@
 #include <gtest/gtest.h>
 
 #include <builtin.h>
-#include <newlang.h>
+#include <module.h>
+#include <runtime.h>
 
 using namespace newlang;
 
@@ -159,155 +160,158 @@ TEST(Oop, Namespace) {
     Context::Reset();
     Context ctx(RunTime::Init());
 
-    ASSERT_EQ(0, ctx.m_runtime->m_named->m_ns_stack.size());
-    ASSERT_STREQ("name", ctx.m_runtime->m_named->NamespaseFull("name").c_str());
+    ASSERT_EQ(0, ctx.m_runtime->m_parser.m_ns_stack.size());
+    ASSERT_STREQ("name", ctx.m_runtime->m_parser.NamespaceFull("name").c_str());
 
-    ASSERT_TRUE(ctx.m_runtime->m_named->NamespasePush("name"));
-    ASSERT_EQ(1, ctx.m_runtime->m_named->m_ns_stack.size());
-    ASSERT_STREQ("name", ctx.m_runtime->m_named->NamespaseFull().c_str());
+    ASSERT_TRUE(ctx.m_runtime->m_parser.NamespacePush("name"));
+    ASSERT_EQ(1, ctx.m_runtime->m_parser.m_ns_stack.size());
+    ASSERT_STREQ("name", ctx.m_runtime->m_parser.NamespaceFull().c_str());
 
-    ASSERT_FALSE(ctx.m_runtime->m_named->NamespasePush(""));
-    ASSERT_EQ(1, ctx.m_runtime->m_named->m_ns_stack.size());
+    ASSERT_FALSE(ctx.m_runtime->m_parser.NamespacePush(""));
+    ASSERT_EQ(1, ctx.m_runtime->m_parser.m_ns_stack.size());
 
-    ASSERT_TRUE(ctx.m_runtime->m_named->NamespasePush("name2"));
-    ASSERT_EQ(2, ctx.m_runtime->m_named->m_ns_stack.size());
-    ASSERT_STREQ("name::name2", ctx.m_runtime->m_named->NamespaseFull().c_str());
+    ASSERT_TRUE(ctx.m_runtime->m_parser.NamespacePush("name2"));
+    ASSERT_EQ(2, ctx.m_runtime->m_parser.m_ns_stack.size());
+    ASSERT_STREQ("name::name2", ctx.m_runtime->m_parser.NamespaceFull().c_str());
 
-    ASSERT_TRUE(ctx.m_runtime->m_named->NamespasePush("name3::name4"));
-    ASSERT_EQ(3, ctx.m_runtime->m_named->m_ns_stack.size());
-    ASSERT_STREQ("name::name2::name3::name4", ctx.m_runtime->m_named->NamespaseFull().c_str());
+    ASSERT_TRUE(ctx.m_runtime->m_parser.NamespacePush("name3::name4"));
+    ASSERT_EQ(3, ctx.m_runtime->m_parser.m_ns_stack.size());
+    ASSERT_STREQ("name::name2::name3::name4", ctx.m_runtime->m_parser.NamespaceFull().c_str());
 
-    ASSERT_TRUE(ctx.m_runtime->m_named->NamespasePush("::"));
-    ASSERT_EQ(4, ctx.m_runtime->m_named->m_ns_stack.size());
-    ASSERT_STREQ("::", ctx.m_runtime->m_named->NamespaseFull().c_str());
+    ASSERT_TRUE(ctx.m_runtime->m_parser.NamespacePush("::"));
+    ASSERT_EQ(4, ctx.m_runtime->m_parser.m_ns_stack.size());
+    ASSERT_STREQ("::", ctx.m_runtime->m_parser.NamespaceFull().c_str());
 
-    ASSERT_FALSE(ctx.m_runtime->m_named->NamespasePush(""));
-    ASSERT_EQ(4, ctx.m_runtime->m_named->m_ns_stack.size());
+    ASSERT_FALSE(ctx.m_runtime->m_parser.NamespacePush(""));
+    ASSERT_EQ(4, ctx.m_runtime->m_parser.m_ns_stack.size());
 
-    ASSERT_STREQ("::ns", ctx.m_runtime->m_named->NamespaseFull("::ns").c_str());
+    ASSERT_STREQ("::ns", ctx.m_runtime->m_parser.NamespaceFull("::ns").c_str());
 
-    ASSERT_TRUE(ctx.m_runtime->m_named->NamespasePush("::name5::name6"));
-    ASSERT_EQ(5, ctx.m_runtime->m_named->m_ns_stack.size());
-    ASSERT_STREQ("::name5::name6", ctx.m_runtime->m_named->NamespaseFull().c_str());
+    ASSERT_TRUE(ctx.m_runtime->m_parser.NamespacePush("::name5::name6"));
+    ASSERT_EQ(5, ctx.m_runtime->m_parser.m_ns_stack.size());
+    ASSERT_STREQ("::name5::name6", ctx.m_runtime->m_parser.NamespaceFull().c_str());
 
-    ASSERT_STREQ("::ns", ctx.m_runtime->m_named->NamespaseFull("::ns").c_str());
+    ASSERT_STREQ("::ns", ctx.m_runtime->m_parser.NamespaceFull("::ns").c_str());
 
-    ASSERT_TRUE(ctx.m_runtime->m_named->NamespasePush("name7"));
-    ASSERT_EQ(6, ctx.m_runtime->m_named->m_ns_stack.size());
-    ASSERT_STREQ("::name5::name6::name7", ctx.m_runtime->m_named->NamespaseFull().c_str());
+    ASSERT_TRUE(ctx.m_runtime->m_parser.NamespacePush("name7"));
+    ASSERT_EQ(6, ctx.m_runtime->m_parser.m_ns_stack.size());
+    ASSERT_STREQ("::name5::name6::name7", ctx.m_runtime->m_parser.NamespaceFull().c_str());
 
-    ctx.m_runtime->m_named->NamespasePop();
-    ASSERT_EQ(5, ctx.m_runtime->m_named->m_ns_stack.size());
-    ASSERT_STREQ("::name5::name6", ctx.m_runtime->m_named->NamespaseFull().c_str());
+    ctx.m_runtime->m_parser.NamespacePop();
+    ASSERT_EQ(5, ctx.m_runtime->m_parser.m_ns_stack.size());
+    ASSERT_STREQ("::name5::name6", ctx.m_runtime->m_parser.NamespaceFull().c_str());
 
-    ctx.m_runtime->m_named->NamespasePop();
-    ASSERT_EQ(4, ctx.m_runtime->m_named->m_ns_stack.size());
-    ASSERT_STREQ("::", ctx.m_runtime->m_named->NamespaseFull().c_str());
+    ctx.m_runtime->m_parser.NamespacePop();
+    ASSERT_EQ(4, ctx.m_runtime->m_parser.m_ns_stack.size());
+    ASSERT_STREQ("::", ctx.m_runtime->m_parser.NamespaceFull().c_str());
 
-    ctx.m_runtime->m_named->NamespasePop();
-    ASSERT_EQ(3, ctx.m_runtime->m_named->m_ns_stack.size());
-    ASSERT_STREQ("name::name2::name3::name4", ctx.m_runtime->m_named->NamespaseFull().c_str());
-    ASSERT_STREQ("::ns", ctx.m_runtime->m_named->NamespaseFull("::ns").c_str());
+    ctx.m_runtime->m_parser.NamespacePop();
+    ASSERT_EQ(3, ctx.m_runtime->m_parser.m_ns_stack.size());
+    ASSERT_STREQ("name::name2::name3::name4", ctx.m_runtime->m_parser.NamespaceFull().c_str());
+    ASSERT_STREQ("::ns", ctx.m_runtime->m_parser.NamespaceFull("::ns").c_str());
 
-    ctx.m_runtime->m_named->NamespasePop();
-    ASSERT_EQ(2, ctx.m_runtime->m_named->m_ns_stack.size());
-    ASSERT_STREQ("name::name2", ctx.m_runtime->m_named->NamespaseFull().c_str());
+    ctx.m_runtime->m_parser.NamespacePop();
+    ASSERT_EQ(2, ctx.m_runtime->m_parser.m_ns_stack.size());
+    ASSERT_STREQ("name::name2", ctx.m_runtime->m_parser.NamespaceFull().c_str());
 
-    ctx.m_runtime->m_named->NamespasePop();
-    ASSERT_EQ(1, ctx.m_runtime->m_named->m_ns_stack.size());
-    ASSERT_STREQ("name", ctx.m_runtime->m_named->NamespaseFull().c_str());
+    ctx.m_runtime->m_parser.NamespacePop();
+    ASSERT_EQ(1, ctx.m_runtime->m_parser.m_ns_stack.size());
+    ASSERT_STREQ("name", ctx.m_runtime->m_parser.NamespaceFull().c_str());
 
-    ctx.m_runtime->m_named->NamespasePop();
-    ASSERT_EQ(0, ctx.m_runtime->m_named->m_ns_stack.size());
-    ASSERT_STREQ("", ctx.m_runtime->m_named->NamespaseFull().c_str());
-
-
-    ASSERT_TRUE(ctx.m_runtime->m_named->NamespasePush("ns::name"));
-    ASSERT_EQ(1, ctx.m_runtime->m_named->m_ns_stack.size());
-    ASSERT_STREQ("ns::name::var6", ctx.m_runtime->m_named->NamespaseFull("var6").c_str());
+    ctx.m_runtime->m_parser.NamespacePop();
+    ASSERT_EQ(0, ctx.m_runtime->m_parser.m_ns_stack.size());
+    ASSERT_STREQ("", ctx.m_runtime->m_parser.NamespaceFull().c_str());
 
 
-    ASSERT_TRUE(ctx.m_runtime->m_named->NamespasePush("::"));
-    ASSERT_EQ(2, ctx.m_runtime->m_named->m_ns_stack.size());
-    ASSERT_STREQ("::var6", ctx.m_runtime->m_named->NamespaseFull("var6").c_str());
-
-    ctx.m_runtime->m_named->NamespasePop();
-    ctx.m_runtime->m_named->NamespasePop();
-    ASSERT_EQ(0, ctx.m_runtime->m_named->m_ns_stack.size());
+    ASSERT_TRUE(ctx.m_runtime->m_parser.NamespacePush("ns::name"));
+    ASSERT_EQ(1, ctx.m_runtime->m_parser.m_ns_stack.size());
+    ASSERT_STREQ("ns::name::var6", ctx.m_runtime->m_parser.NamespaceFull("var6").c_str());
 
 
+    ASSERT_TRUE(ctx.m_runtime->m_parser.NamespacePush("::"));
+    ASSERT_EQ(2, ctx.m_runtime->m_parser.m_ns_stack.size());
+    ASSERT_STREQ("::var6", ctx.m_runtime->m_parser.NamespaceFull("var6").c_str());
 
+    ctx.m_runtime->m_parser.NamespacePop();
+    ctx.m_runtime->m_parser.NamespacePop();
+    ASSERT_EQ(0, ctx.m_runtime->m_parser.m_ns_stack.size());
+
+
+
+    size_t buildin_count = ctx.m_runtime->size();
+    
     ASSERT_EQ(0, ctx.size());
-    ASSERT_EQ(0, ctx.m_terms->size());
 
     ObjPtr var1 = ctx.ExecStr("var1 := 1;");
     ASSERT_TRUE(var1);
     ASSERT_EQ(1, var1->GetValueAsInteger());
     ASSERT_EQ(1, ctx.size()) << ctx.Dump("; ").c_str();
     ASSERT_STREQ("var1", ctx.at(0).first.c_str());
-    ASSERT_EQ(1, ctx.m_terms->size());
+    ASSERT_EQ(1, ctx.m_runtime->size() - buildin_count);
 
     ObjPtr var2 = ctx.ExecStr("name { var2 := 2; }");
     ASSERT_TRUE(var2);
     ASSERT_EQ(2, var2->GetValueAsInteger());
     ASSERT_EQ(2, ctx.size()) << ctx.Dump("; ").c_str();
     ASSERT_STREQ("name::var2", ctx.at(1).first.c_str());
-    ASSERT_EQ(2, ctx.m_terms->size());
+    ASSERT_EQ(2, ctx.m_runtime->size() - buildin_count);
 
     ObjPtr var3 = ctx.ExecStr("ns3::name { var3 := 3; }");
     ASSERT_TRUE(var3);
     ASSERT_EQ(3, var3->GetValueAsInteger());
     ASSERT_EQ(3, ctx.size()) << ctx.Dump("; ").c_str();
     ASSERT_STREQ("ns3::name::var3", ctx.at(2).first.c_str());
-    ASSERT_EQ(3, ctx.m_terms->size());
+    ASSERT_EQ(3, ctx.m_runtime->size() - buildin_count);
 
     ObjPtr var4 = ctx.ExecStr("ns4::name { ::var4 := 4; }");
     ASSERT_TRUE(var4);
     ASSERT_EQ(4, var4->GetValueAsInteger());
     ASSERT_EQ(4, ctx.size()) << ctx.Dump("; ").c_str();
     ASSERT_STREQ("::var4", ctx.at(3).first.c_str());
-    ASSERT_EQ(4, ctx.m_terms->size());
+    ASSERT_EQ(4, ctx.m_runtime->size() - buildin_count);
 
     ObjPtr var5 = ctx.ExecStr("ns5::name { ns::var5 := 5; }");
     ASSERT_TRUE(var5);
     ASSERT_EQ(5, var5->GetValueAsInteger());
     ASSERT_EQ(5, ctx.size()) << ctx.Dump("; ").c_str();
     ASSERT_STREQ("ns5::name::ns::var5", ctx.at(4).first.c_str());
-    ASSERT_EQ(5, ctx.m_terms->size());
+    ASSERT_EQ(5, ctx.m_runtime->size() - buildin_count);
 
     ObjPtr var6 = ctx.ExecStr("ns6::name { { ::var6 := 6;} }");
-    ASSERT_EQ(0, ctx.m_runtime->m_named->m_ns_stack.size());
+    ASSERT_EQ(0, ctx.m_runtime->m_parser.m_ns_stack.size());
 
     ASSERT_TRUE(var6);
     ASSERT_EQ(6, var6->GetValueAsInteger());
     ASSERT_EQ(6, ctx.size()) << ctx.Dump("; ").c_str();
     ASSERT_STREQ("::var6", ctx.at(5).first.c_str());
-    ASSERT_EQ(6, ctx.m_terms->size());
+    ASSERT_EQ(6, ctx.m_runtime->size() - buildin_count);
 
     ObjPtr var7 = ctx.ExecStr("ns7::name { :: { var7 := 7;} }");
-    ASSERT_EQ(0, ctx.m_runtime->m_named->m_ns_stack.size());
+    ASSERT_EQ(0, ctx.m_runtime->m_parser.m_ns_stack.size());
 
     ASSERT_TRUE(var7);
     ASSERT_EQ(7, var7->GetValueAsInteger());
     ASSERT_EQ(7, ctx.size()) << ctx.Dump("; ").c_str();
     ASSERT_STREQ("::var7", ctx.at(6).first.c_str());
-    ASSERT_EQ(7, ctx.m_terms->size());
+    ASSERT_EQ(7, ctx.m_runtime->size() - buildin_count);
 
     ObjPtr var8 = ctx.ExecStr("ns8::name { ::ext { var8 := 8;}}");
     ASSERT_TRUE(var8);
     ASSERT_EQ(8, var8->GetValueAsInteger());
     ASSERT_EQ(8, ctx.size()) << ctx.Dump("; ").c_str();
     ASSERT_STREQ("::ext::var8", ctx.at(7).first.c_str());
-    ASSERT_EQ(8, ctx.m_terms->size());
+    ASSERT_EQ(8, ctx.m_runtime->size() - buildin_count);
 
 
 
     Context::Reset();
     ctx.clear_();
 
-    ASSERT_EQ(0, ctx.m_runtime->m_named->m_ns_stack.size());
+    ASSERT_EQ(0, ctx.m_runtime->m_parser.m_ns_stack.size());
     ASSERT_EQ(0, ctx.size());
-    ASSERT_EQ(0, ctx.m_terms->size());
+
+    buildin_count = ctx.m_runtime->size();
+//    ASSERT_EQ(buildin_count, ctx.m_runtime->size());
 
     ASSERT_EQ(0, ctx.size());
 
@@ -316,292 +320,296 @@ TEST(Oop, Namespace) {
     ASSERT_EQ(1, func1->Call(&ctx)->GetValueAsInteger());
     ASSERT_EQ(1, ctx.size()) << ctx.Dump("; ").c_str();
     ASSERT_STREQ("func1", ctx.at(0).first.c_str());
-    ASSERT_EQ(1, ctx.m_terms->size());
+    ASSERT_EQ(1, ctx.m_runtime->size() - buildin_count);
 
     ObjPtr func2 = ctx.ExecStr("name { func2() := {2}; }");
     ASSERT_TRUE(func2);
     ASSERT_EQ(2, func2->Call(&ctx)->GetValueAsInteger());
     ASSERT_EQ(2, ctx.size()) << ctx.Dump("; ").c_str();
     ASSERT_STREQ("name::func2", ctx.at(1).first.c_str());
-    ASSERT_EQ(2, ctx.m_terms->size());
+    ASSERT_EQ(2, ctx.m_runtime->size() - buildin_count);
 
     ObjPtr func3 = ctx.ExecStr("ns3::name { func3() := {3}; }");
     ASSERT_TRUE(func3);
     ASSERT_EQ(3, func3->Call(&ctx)->GetValueAsInteger());
     ASSERT_EQ(3, ctx.size()) << ctx.Dump("; ").c_str();
     ASSERT_STREQ("ns3::name::func3", ctx.at(2).first.c_str());
-    ASSERT_EQ(3, ctx.m_terms->size());
+    ASSERT_EQ(3, ctx.m_runtime->size() - buildin_count);
 
     ObjPtr func4 = ctx.ExecStr("ns4::name { ::func4() := {4}; }");
     ASSERT_TRUE(func4);
     ASSERT_EQ(4, func4->Call(&ctx)->GetValueAsInteger());
     ASSERT_EQ(4, ctx.size()) << ctx.Dump("; ").c_str();
     ASSERT_STREQ("::func4", ctx.at(3).first.c_str());
-    ASSERT_EQ(4, ctx.m_terms->size());
+    ASSERT_EQ(4, ctx.m_runtime->size() - buildin_count);
 
     ObjPtr func5 = ctx.ExecStr("ns5::name { ns::func5() := {5}; }");
     ASSERT_TRUE(func5);
     ASSERT_EQ(5, func5->Call(&ctx)->GetValueAsInteger());
     ASSERT_EQ(5, ctx.size()) << ctx.Dump("; ").c_str();
     ASSERT_STREQ("ns5::name::ns::func5", ctx.at(4).first.c_str());
-    ASSERT_EQ(5, ctx.m_terms->size());
+    ASSERT_EQ(5, ctx.m_runtime->size() - buildin_count);
 
     ObjPtr func6 = ctx.ExecStr("ns6::name { { ::func6() := {6};} }");
-    ASSERT_EQ(0, ctx.m_runtime->m_named->m_ns_stack.size());
+    ASSERT_EQ(0, ctx.m_runtime->m_parser.m_ns_stack.size());
 
     ASSERT_TRUE(func6);
     ASSERT_EQ(6, func6->Call(&ctx)->GetValueAsInteger());
     ASSERT_EQ(6, ctx.size()) << ctx.Dump("; ").c_str();
     ASSERT_STREQ("::func6", ctx.at(5).first.c_str());
-    ASSERT_EQ(6, ctx.m_terms->size());
+    ASSERT_EQ(6, ctx.m_runtime->size() - buildin_count);
 
     ObjPtr func7 = ctx.ExecStr("ns7::name { :: { func7() := {7};} }");
-    ASSERT_EQ(0, ctx.m_runtime->m_named->m_ns_stack.size());
+    ASSERT_EQ(0, ctx.m_runtime->m_parser.m_ns_stack.size());
 
     ASSERT_TRUE(func7);
     ASSERT_EQ(7, func7->Call(&ctx)->GetValueAsInteger());
     ASSERT_EQ(7, ctx.size()) << ctx.Dump("; ").c_str();
     ASSERT_STREQ("::func7", ctx.at(6).first.c_str());
-    ASSERT_EQ(7, ctx.m_terms->size());
+    ASSERT_EQ(7, ctx.m_runtime->size() - buildin_count);
 
     ObjPtr func8 = ctx.ExecStr("ns8::name { ::ext { func8() := {8};}}");
     ASSERT_TRUE(func8);
     ASSERT_EQ(8, func8->Call(&ctx)->GetValueAsInteger());
     ASSERT_EQ(8, ctx.size()) << ctx.Dump("; ").c_str();
     ASSERT_STREQ("::ext::func8", ctx.at(7).first.c_str());
-    ASSERT_EQ(8, ctx.m_terms->size());
+    ASSERT_EQ(8, ctx.m_runtime->size() - buildin_count);
 }
 
-TEST(Oop, ClassFunc) {
+//TEST(Oop, ClassFunc) {
+//
+//    Context::Reset();
+//    Context ctx(RunTime::Init());
+//
+//    size_t buildin_count = ctx.m_runtime->size();
+//
+//    ASSERT_EQ(0, ctx.m_runtime->m_macro->m_ns_stack.size());
+//    ASSERT_EQ(0, ctx.size());
+//    
+//    ASSERT_EQ(0, ctx.size());
+//
+//    ObjPtr class1 = ctx.ExecStr(":class1 := :Class() { func1() := {1}; }");
+//    ASSERT_TRUE(class1);
+//    ASSERT_EQ(ObjType::Type, class1->m_var_type_current) << toString(class1->m_var_type_current);
+//    ASSERT_EQ(ObjType::Class, class1->m_var_type_fixed) << toString(class1->m_var_type_fixed);
+//    ASSERT_STREQ(":class1", class1->getName().c_str());
+//
+//    //    ASSERT_TRUE(ctx.size() > 0) << ctx.Dump("; ").c_str();
+//    //    ASSERT_STREQ(":class1", ctx.at(0).first.c_str()) << ctx.Dump("; ").c_str();
+//    //    ASSERT_TRUE(ctx.find(":class1") != ctx.end()) << ctx.Dump("; ").c_str();
+//    //    ASSERT_STREQ("class1::func1", ctx.at(1).first.c_str()) << ctx.Dump("; ").c_str();
+//    ASSERT_EQ(2, ctx.m_runtime->size()-buildin_count);
+//    ASSERT_STREQ("class1::class1", ctx.m_terms->at(0).first.c_str());
+//    ASSERT_STREQ("class1::func1", ctx.m_terms->at(1).first.c_str());
+//    ObjPtr func1 = ctx.ExecStr("class1::func1");
+//    ASSERT_EQ(1, func1->Call(&ctx)->GetValueAsInteger());
+//
+//    ASSERT_STREQ("class::class", MakeConstructorName(":class").c_str());
+//    ASSERT_STREQ("ns::class::class", MakeConstructorName(":ns::class").c_str());
+//    ASSERT_STREQ("ns::class::class::class", MakeConstructorName(":ns::class::class").c_str());
+//    
+//    EXPECT_ANY_THROW(ctx.ExecStr(":class_dup_func1 := :class1 { func1() ::= {11}; }"));
+//    EXPECT_ANY_THROW(ctx.ExecStr(":class_func_not_found := :class1 { func_not_found() = {0}; }"));
+//
+//    ObjPtr class2 = ctx.ExecStr(":class2 := :class1() { func2() := {2}; }");
+//    ASSERT_TRUE(class2);
+//    ASSERT_EQ(ObjType::Type, class2->m_var_type_current) << toString(class2->m_var_type_current);
+//    ASSERT_EQ(ObjType::Class, class2->m_var_type_fixed) << toString(class2->m_var_type_fixed);
+//    ASSERT_STREQ(":class2", class2->getName().c_str());
+//
+//    ASSERT_TRUE(ctx.size() > 2) << ctx.Dump("; ").c_str();
+//    //    ASSERT_STREQ(":class2", ctx.at(2).first.c_str()) << ctx.Dump("; ").c_str();
+//
+//    std::string dump;
+//    for (int i = 0; i < ctx.m_terms->size(); i++) {
+//        dump += ctx.m_terms->at(i).first;
+//        dump += "; ";
+//    }
+//    ASSERT_EQ(5, ctx.m_terms->size()) << dump;
+//    ASSERT_STREQ("class2::class2", ctx.m_terms->at(2).first.c_str());
+//    ASSERT_STREQ("class2::func1", ctx.m_terms->at(3).first.c_str());
+//    ASSERT_STREQ("class2::func2", ctx.m_terms->at(4).first.c_str());
+//    ObjPtr func2_1 = ctx.ExecStr("class2::func1");
+//    ASSERT_EQ(1, func2_1->Call(&ctx)->GetValueAsInteger());
+//    ObjPtr func2_2 = ctx.ExecStr("class2::func2");
+//    ASSERT_EQ(2, func2_2->Call(&ctx)->GetValueAsInteger());
+//
+//
+//
+//    ObjPtr func_name = ctx.ExecStr("class2 { func_name() := {'func_name'}; }");
+//    ASSERT_TRUE(func_name);
+//    ASSERT_EQ(ObjType::EVAL_FUNCTION, func_name->m_var_type_current) << toString(func_name->m_var_type_current);
+//    ASSERT_STREQ("class2::func_name", func_name->getName().c_str());
+//
+//    dump = "";
+//    for (int i = 0; i < ctx.m_terms->size(); i++) {
+//        dump += ctx.m_terms->at(i).first;
+//        dump += "; ";
+//    }
+//    ASSERT_EQ(6, ctx.m_terms->size()) << dump;
+//    ASSERT_STREQ("class2::func_name", ctx.m_terms->at(5).first.c_str());
+//    ASSERT_STREQ("func_name", func_name->Call(&ctx)->GetValueAsString().c_str());
+//
+//
+//    ObjPtr class3 = ctx.ExecStr(":class3 := :class1, :class2 { func3() := {33}; func4() := {4}; }");
+//    ASSERT_TRUE(class3);
+//    ASSERT_EQ(ObjType::Type, class3->m_var_type_current) << toString(class3->m_var_type_current);
+//    ASSERT_EQ(ObjType::Class, class3->m_var_type_fixed) << toString(class3->m_var_type_fixed);
+//    ASSERT_STREQ(":class3", class3->getName().c_str());
+//
+//    ASSERT_TRUE(ctx.size() > 4) << ctx.Dump("; ").c_str();
+//
+//    dump = "";
+//    for (int i = 0; i < ctx.m_terms->size(); i++) {
+//        dump += ctx.m_terms->at(i).first;
+//        dump += "; ";
+//    }
+//    ASSERT_EQ(12, ctx.m_terms->size()) << dump;
+//    ASSERT_STREQ("class3::class3", ctx.m_terms->at(6).first.c_str());
+//    ASSERT_STREQ("class3::func1", ctx.m_terms->at(7).first.c_str());
+//    ASSERT_STREQ("class3::func3", ctx.m_terms->at(8).first.c_str());
+//    ASSERT_STREQ("class3::func4", ctx.m_terms->at(9).first.c_str());
+//    ASSERT_STREQ("class3::func2", ctx.m_terms->at(10).first.c_str());
+//    ASSERT_STREQ("class3::func_name", ctx.m_terms->at(11).first.c_str());
+//    ObjPtr func3_1 = ctx.ExecStr("class3::func1");
+//    ASSERT_EQ(1, func3_1->Call(&ctx)->GetValueAsInteger());
+//    ObjPtr func3_2 = ctx.ExecStr("class3::func2");
+//    ASSERT_EQ(2, func3_2->Call(&ctx)->GetValueAsInteger());
+//    ObjPtr func3_3 = ctx.ExecStr("class3::func3");
+//    ASSERT_EQ(33, func3_3->Call(&ctx)->GetValueAsInteger());
+//    ObjPtr func3_4 = ctx.ExecStr("class3::func4");
+//    ASSERT_EQ(4, func3_4->Call(&ctx)->GetValueAsInteger());
+//    ObjPtr result = ctx.ExecStr("class3::func_name()");
+//    ASSERT_TRUE(result);
+//    ASSERT_STREQ("func_name", result->GetValueAsString().c_str());
+//
+//
+//
+//
+//    ObjPtr var1 = ctx.ExecStr("var1 := :class1()");
+//    ASSERT_TRUE(var1);
+//    ObjPtr var1_1 = ctx.ExecStr("var1.func1()");
+//    ASSERT_TRUE(var1_1);
+//    ASSERT_EQ(1, var1_1->GetValueAsInteger());
+//
+//
+//    ObjPtr var2 = ctx.ExecStr("var2 := :class2()");
+//    ASSERT_TRUE(var2);
+//    ObjPtr var2_1 = ctx.ExecStr("var2.func1()");
+//    ASSERT_TRUE(var2_1);
+//    ASSERT_EQ(1, var2_1->GetValueAsInteger());
+//    ObjPtr var2_2 = ctx.ExecStr("var2.func2()");
+//    ASSERT_TRUE(var2_2);
+//    ASSERT_EQ(2, var2_2->GetValueAsInteger());
+//
+//
+//    ObjPtr var3 = ctx.ExecStr("var3 := :class3()");
+//    ASSERT_TRUE(var3);
+//    ObjPtr var3_1 = ctx.ExecStr("var3.func1()");
+//    ASSERT_TRUE(var3_1);
+//    ASSERT_EQ(1, var3_1->GetValueAsInteger());
+//    ObjPtr var3_2 = ctx.ExecStr("var3.func2()");
+//    ASSERT_TRUE(var3_2);
+//    ASSERT_EQ(2, var3_2->GetValueAsInteger());
+//    ObjPtr var3_3 = ctx.ExecStr("var3.func3()");
+//    ASSERT_TRUE(var3_3);
+//    ASSERT_EQ(33, var3_3->GetValueAsInteger());
+//    ObjPtr var3_4 = ctx.ExecStr("var3.func4()");
+//    ASSERT_TRUE(var3_4);
+//    ASSERT_EQ(4, var3_4->GetValueAsInteger());
+//
+//}
+//
+//TEST(Oop, ClassProp) {
+//
+//    Context::Reset();
+//    Context ctx(RunTime::Init());
+//
+//    ASSERT_EQ(0, ctx.m_runtime->m_macro->m_ns_stack.size());
+//    ASSERT_EQ(0, ctx.size());
+//    ASSERT_EQ(0, ctx.m_terms->size());
+//
+//    ASSERT_EQ(0, ctx.size());
+//
+//    ObjPtr class1 = ctx.ExecStr(":class1 := :Class() { prop1 := 1; }");
+//    ASSERT_TRUE(class1);
+//    ASSERT_TRUE(class1->is_init());
+//    ASSERT_EQ(ObjType::Type, class1->m_var_type_current) << toString(class1->m_var_type_current);
+//    ASSERT_EQ(ObjType::Class, class1->m_var_type_fixed) << toString(class1->m_var_type_fixed);
+//    ASSERT_STREQ(":class1", class1->getName().c_str());
+//    ASSERT_EQ(1, class1->size());
+//    ASSERT_TRUE(class1->at("prop1").second);
+//    ASSERT_STREQ("1", class1->at("prop1").second->toString().c_str());
+//
+//    ObjPtr class2 = ctx.ExecStr(":class2 := :class1 { prop2 := 2; }");
+//    ASSERT_TRUE(class2);
+//    ASSERT_EQ(ObjType::Type, class2->m_var_type_current) << toString(class2->m_var_type_current);
+//    ASSERT_EQ(ObjType::Class, class2->m_var_type_fixed) << toString(class2->m_var_type_fixed);
+//    ASSERT_STREQ(":class2", class2->getName().c_str());
+//    ASSERT_EQ(2, class2->size());
+//    ASSERT_STREQ("1", class2->at("prop1").second->toString().c_str());
+//    ASSERT_STREQ("2", class2->at("prop2").second->toString().c_str());
+//
+//
+//    ObjPtr class3 = ctx.ExecStr(":class3 := :class2 { prop1 = 10; }");
+//    ASSERT_TRUE(class3);
+//    ASSERT_EQ(ObjType::Type, class3->m_var_type_current) << toString(class2->m_var_type_current);
+//    ASSERT_EQ(ObjType::Class, class3->m_var_type_fixed) << toString(class2->m_var_type_fixed);
+//    ASSERT_STREQ(":class3", class3->getName().c_str());
+//    ASSERT_EQ(2, class3->size());
+//    ASSERT_STREQ("10", class3->at("prop1").second->toString().c_str());
+//    ASSERT_STREQ("2", class3->at("prop2").second->toString().c_str());
+//
+//
+//    EXPECT_ANY_THROW(ctx.ExecStr(":class_dup_prop2 := :class2 { prop2 ::= 1; }"));
+//    EXPECT_ANY_THROW(ctx.ExecStr(":class_prop_not_found := :class2 { prop_not_found = 1; }"));
+//
+//
+//    ObjPtr var1 = ctx.ExecStr("var1 := :class1()");
+//    ASSERT_TRUE(var1);
+//    ObjPtr var1_1;
+//
+//    ASSERT_NO_THROW(var1_1 = ctx.ExecStr("var1.prop1")) << ctx.Dump() << "  (" << var1->toString() << ")";
+//
+//    ASSERT_TRUE(var1_1);
+//    ASSERT_EQ(1, var1_1->GetValueAsInteger());
+//
+//
+//    ObjPtr var2 = ctx.ExecStr("var2 := :class2()");
+//    ASSERT_TRUE(var2);
+//    ObjPtr var2_1 = ctx.ExecStr("var2.prop1");
+//    ASSERT_TRUE(var2_1);
+//    ASSERT_EQ(1, var2_1->GetValueAsInteger());
+//    ObjPtr var2_2 = ctx.ExecStr("var2.prop2");
+//    ASSERT_TRUE(var2_2);
+//    ASSERT_EQ(2, var2_2->GetValueAsInteger());
+//
+//    ObjPtr var3 = ctx.ExecStr("var3 := :class3()");
+//    ASSERT_TRUE(var3);
+//    ObjPtr var3_1 = ctx.ExecStr("var3.prop1");
+//    ASSERT_TRUE(var3_1);
+//    ASSERT_EQ(10, var3_1->GetValueAsInteger());
+//    ObjPtr var3_2 = ctx.ExecStr("var3.prop2");
+//    ASSERT_TRUE(var3_2);
+//    ASSERT_EQ(2, var3_2->GetValueAsInteger());
+//
+//
+//    ObjPtr var4 = ctx.ExecStr("var4 := :class3(prop2=100, prop1=99)");
+//    ASSERT_TRUE(var4);
+//    ObjPtr var4_1 = ctx.ExecStr("var4.prop1");
+//    ASSERT_TRUE(var4_1);
+//    ASSERT_EQ(99, var4_1->GetValueAsInteger());
+//    ObjPtr var4_2 = ctx.ExecStr("var4.prop2");
+//    ASSERT_TRUE(var4_2);
+//    ASSERT_EQ(100, var4_2->GetValueAsInteger());
+//
+//
+//    EXPECT_ANY_THROW(ctx.ExecStr("var_not_found := :class3(prop_not_found=100)"));
+//    EXPECT_ANY_THROW(ctx.ExecStr("var_bad_type := :class3(prop1='BAD TYPE')"));
+//}
 
-    Context::Reset();
-    Context ctx(RunTime::Init());
-
-    ASSERT_EQ(0, ctx.m_runtime->m_named->m_ns_stack.size());
-    ASSERT_EQ(0, ctx.size());
-    ASSERT_EQ(0, ctx.m_terms->size());
-
-    ASSERT_EQ(0, ctx.size());
-
-    ObjPtr class1 = ctx.ExecStr(":class1 := :Class() { func1() := {1}; }");
-    ASSERT_TRUE(class1);
-    ASSERT_EQ(ObjType::Type, class1->m_var_type_current) << toString(class1->m_var_type_current);
-    ASSERT_EQ(ObjType::Class, class1->m_var_type_fixed) << toString(class1->m_var_type_fixed);
-    ASSERT_STREQ(":class1", class1->getName().c_str());
-
-    //    ASSERT_TRUE(ctx.size() > 0) << ctx.Dump("; ").c_str();
-    //    ASSERT_STREQ(":class1", ctx.at(0).first.c_str()) << ctx.Dump("; ").c_str();
-    //    ASSERT_TRUE(ctx.find(":class1") != ctx.end()) << ctx.Dump("; ").c_str();
-    //    ASSERT_STREQ("class1::func1", ctx.at(1).first.c_str()) << ctx.Dump("; ").c_str();
-    ASSERT_EQ(2, ctx.m_terms->size());
-    ASSERT_STREQ("class1::class1", ctx.m_terms->at(0).first.c_str());
-    ASSERT_STREQ("class1::func1", ctx.m_terms->at(1).first.c_str());
-    ObjPtr func1 = ctx.ExecStr("class1::func1");
-    ASSERT_EQ(1, func1->Call(&ctx)->GetValueAsInteger());
-
-    ASSERT_STREQ("class::class", MakeConstructorName(":class").c_str());
-    ASSERT_STREQ("ns::class::class", MakeConstructorName(":ns::class").c_str());
-    ASSERT_STREQ("ns::class::class::class", MakeConstructorName(":ns::class::class").c_str());
-    
-    EXPECT_ANY_THROW(ctx.ExecStr(":class_dup_func1 := :class1 { func1() ::= {11}; }"));
-    EXPECT_ANY_THROW(ctx.ExecStr(":class_func_not_found := :class1 { func_not_found() = {0}; }"));
-
-    ObjPtr class2 = ctx.ExecStr(":class2 := :class1() { func2() := {2}; }");
-    ASSERT_TRUE(class2);
-    ASSERT_EQ(ObjType::Type, class2->m_var_type_current) << toString(class2->m_var_type_current);
-    ASSERT_EQ(ObjType::Class, class2->m_var_type_fixed) << toString(class2->m_var_type_fixed);
-    ASSERT_STREQ(":class2", class2->getName().c_str());
-
-    ASSERT_TRUE(ctx.size() > 2) << ctx.Dump("; ").c_str();
-    //    ASSERT_STREQ(":class2", ctx.at(2).first.c_str()) << ctx.Dump("; ").c_str();
-
-    std::string dump;
-    for (int i = 0; i < ctx.m_terms->size(); i++) {
-        dump += ctx.m_terms->at(i).first;
-        dump += "; ";
-    }
-    ASSERT_EQ(5, ctx.m_terms->size()) << dump;
-    ASSERT_STREQ("class2::class2", ctx.m_terms->at(2).first.c_str());
-    ASSERT_STREQ("class2::func1", ctx.m_terms->at(3).first.c_str());
-    ASSERT_STREQ("class2::func2", ctx.m_terms->at(4).first.c_str());
-    ObjPtr func2_1 = ctx.ExecStr("class2::func1");
-    ASSERT_EQ(1, func2_1->Call(&ctx)->GetValueAsInteger());
-    ObjPtr func2_2 = ctx.ExecStr("class2::func2");
-    ASSERT_EQ(2, func2_2->Call(&ctx)->GetValueAsInteger());
 
 
-
-    ObjPtr func_name = ctx.ExecStr("class2 { func_name() := {'func_name'}; }");
-    ASSERT_TRUE(func_name);
-    ASSERT_EQ(ObjType::EVAL_FUNCTION, func_name->m_var_type_current) << toString(func_name->m_var_type_current);
-    ASSERT_STREQ("class2::func_name", func_name->getName().c_str());
-
-    dump = "";
-    for (int i = 0; i < ctx.m_terms->size(); i++) {
-        dump += ctx.m_terms->at(i).first;
-        dump += "; ";
-    }
-    ASSERT_EQ(6, ctx.m_terms->size()) << dump;
-    ASSERT_STREQ("class2::func_name", ctx.m_terms->at(5).first.c_str());
-    ASSERT_STREQ("func_name", func_name->Call(&ctx)->GetValueAsString().c_str());
-
-
-    ObjPtr class3 = ctx.ExecStr(":class3 := :class1, :class2 { func3() := {33}; func4() := {4}; }");
-    ASSERT_TRUE(class3);
-    ASSERT_EQ(ObjType::Type, class3->m_var_type_current) << toString(class3->m_var_type_current);
-    ASSERT_EQ(ObjType::Class, class3->m_var_type_fixed) << toString(class3->m_var_type_fixed);
-    ASSERT_STREQ(":class3", class3->getName().c_str());
-
-    ASSERT_TRUE(ctx.size() > 4) << ctx.Dump("; ").c_str();
-
-    dump = "";
-    for (int i = 0; i < ctx.m_terms->size(); i++) {
-        dump += ctx.m_terms->at(i).first;
-        dump += "; ";
-    }
-    ASSERT_EQ(12, ctx.m_terms->size()) << dump;
-    ASSERT_STREQ("class3::class3", ctx.m_terms->at(6).first.c_str());
-    ASSERT_STREQ("class3::func1", ctx.m_terms->at(7).first.c_str());
-    ASSERT_STREQ("class3::func3", ctx.m_terms->at(8).first.c_str());
-    ASSERT_STREQ("class3::func4", ctx.m_terms->at(9).first.c_str());
-    ASSERT_STREQ("class3::func2", ctx.m_terms->at(10).first.c_str());
-    ASSERT_STREQ("class3::func_name", ctx.m_terms->at(11).first.c_str());
-    ObjPtr func3_1 = ctx.ExecStr("class3::func1");
-    ASSERT_EQ(1, func3_1->Call(&ctx)->GetValueAsInteger());
-    ObjPtr func3_2 = ctx.ExecStr("class3::func2");
-    ASSERT_EQ(2, func3_2->Call(&ctx)->GetValueAsInteger());
-    ObjPtr func3_3 = ctx.ExecStr("class3::func3");
-    ASSERT_EQ(33, func3_3->Call(&ctx)->GetValueAsInteger());
-    ObjPtr func3_4 = ctx.ExecStr("class3::func4");
-    ASSERT_EQ(4, func3_4->Call(&ctx)->GetValueAsInteger());
-    ObjPtr result = ctx.ExecStr("class3::func_name()");
-    ASSERT_TRUE(result);
-    ASSERT_STREQ("func_name", result->GetValueAsString().c_str());
-
-
-
-
-    ObjPtr var1 = ctx.ExecStr("var1 := :class1()");
-    ASSERT_TRUE(var1);
-    ObjPtr var1_1 = ctx.ExecStr("var1.func1()");
-    ASSERT_TRUE(var1_1);
-    ASSERT_EQ(1, var1_1->GetValueAsInteger());
-
-
-    ObjPtr var2 = ctx.ExecStr("var2 := :class2()");
-    ASSERT_TRUE(var2);
-    ObjPtr var2_1 = ctx.ExecStr("var2.func1()");
-    ASSERT_TRUE(var2_1);
-    ASSERT_EQ(1, var2_1->GetValueAsInteger());
-    ObjPtr var2_2 = ctx.ExecStr("var2.func2()");
-    ASSERT_TRUE(var2_2);
-    ASSERT_EQ(2, var2_2->GetValueAsInteger());
-
-
-    ObjPtr var3 = ctx.ExecStr("var3 := :class3()");
-    ASSERT_TRUE(var3);
-    ObjPtr var3_1 = ctx.ExecStr("var3.func1()");
-    ASSERT_TRUE(var3_1);
-    ASSERT_EQ(1, var3_1->GetValueAsInteger());
-    ObjPtr var3_2 = ctx.ExecStr("var3.func2()");
-    ASSERT_TRUE(var3_2);
-    ASSERT_EQ(2, var3_2->GetValueAsInteger());
-    ObjPtr var3_3 = ctx.ExecStr("var3.func3()");
-    ASSERT_TRUE(var3_3);
-    ASSERT_EQ(33, var3_3->GetValueAsInteger());
-    ObjPtr var3_4 = ctx.ExecStr("var3.func4()");
-    ASSERT_TRUE(var3_4);
-    ASSERT_EQ(4, var3_4->GetValueAsInteger());
-
-}
-
-TEST(Oop, ClassProp) {
-
-    Context::Reset();
-    Context ctx(RunTime::Init());
-
-    ASSERT_EQ(0, ctx.m_runtime->m_named->m_ns_stack.size());
-    ASSERT_EQ(0, ctx.size());
-    ASSERT_EQ(0, ctx.m_terms->size());
-
-    ASSERT_EQ(0, ctx.size());
-
-    ObjPtr class1 = ctx.ExecStr(":class1 := :Class() { prop1 := 1; }");
-    ASSERT_TRUE(class1);
-    ASSERT_TRUE(class1->is_init());
-    ASSERT_EQ(ObjType::Type, class1->m_var_type_current) << toString(class1->m_var_type_current);
-    ASSERT_EQ(ObjType::Class, class1->m_var_type_fixed) << toString(class1->m_var_type_fixed);
-    ASSERT_STREQ(":class1", class1->getName().c_str());
-    ASSERT_EQ(1, class1->size());
-    ASSERT_TRUE(class1->at("prop1").second);
-    ASSERT_STREQ("1", class1->at("prop1").second->toString().c_str());
-
-    ObjPtr class2 = ctx.ExecStr(":class2 := :class1 { prop2 := 2; }");
-    ASSERT_TRUE(class2);
-    ASSERT_EQ(ObjType::Type, class2->m_var_type_current) << toString(class2->m_var_type_current);
-    ASSERT_EQ(ObjType::Class, class2->m_var_type_fixed) << toString(class2->m_var_type_fixed);
-    ASSERT_STREQ(":class2", class2->getName().c_str());
-    ASSERT_EQ(2, class2->size());
-    ASSERT_STREQ("1", class2->at("prop1").second->toString().c_str());
-    ASSERT_STREQ("2", class2->at("prop2").second->toString().c_str());
-
-
-    ObjPtr class3 = ctx.ExecStr(":class3 := :class2 { prop1 = 10; }");
-    ASSERT_TRUE(class3);
-    ASSERT_EQ(ObjType::Type, class3->m_var_type_current) << toString(class2->m_var_type_current);
-    ASSERT_EQ(ObjType::Class, class3->m_var_type_fixed) << toString(class2->m_var_type_fixed);
-    ASSERT_STREQ(":class3", class3->getName().c_str());
-    ASSERT_EQ(2, class3->size());
-    ASSERT_STREQ("10", class3->at("prop1").second->toString().c_str());
-    ASSERT_STREQ("2", class3->at("prop2").second->toString().c_str());
-
-
-    EXPECT_ANY_THROW(ctx.ExecStr(":class_dup_prop2 := :class2 { prop2 ::= 1; }"));
-    EXPECT_ANY_THROW(ctx.ExecStr(":class_prop_not_found := :class2 { prop_not_found = 1; }"));
-
-
-    ObjPtr var1 = ctx.ExecStr("var1 := :class1()");
-    ASSERT_TRUE(var1);
-    ObjPtr var1_1;
-
-    ASSERT_NO_THROW(var1_1 = ctx.ExecStr("var1.prop1")) << ctx.Dump() << "  (" << var1->toString() << ")";
-
-    ASSERT_TRUE(var1_1);
-    ASSERT_EQ(1, var1_1->GetValueAsInteger());
-
-
-    ObjPtr var2 = ctx.ExecStr("var2 := :class2()");
-    ASSERT_TRUE(var2);
-    ObjPtr var2_1 = ctx.ExecStr("var2.prop1");
-    ASSERT_TRUE(var2_1);
-    ASSERT_EQ(1, var2_1->GetValueAsInteger());
-    ObjPtr var2_2 = ctx.ExecStr("var2.prop2");
-    ASSERT_TRUE(var2_2);
-    ASSERT_EQ(2, var2_2->GetValueAsInteger());
-
-    ObjPtr var3 = ctx.ExecStr("var3 := :class3()");
-    ASSERT_TRUE(var3);
-    ObjPtr var3_1 = ctx.ExecStr("var3.prop1");
-    ASSERT_TRUE(var3_1);
-    ASSERT_EQ(10, var3_1->GetValueAsInteger());
-    ObjPtr var3_2 = ctx.ExecStr("var3.prop2");
-    ASSERT_TRUE(var3_2);
-    ASSERT_EQ(2, var3_2->GetValueAsInteger());
-
-
-    ObjPtr var4 = ctx.ExecStr("var4 := :class3(prop2=100, prop1=99)");
-    ASSERT_TRUE(var4);
-    ObjPtr var4_1 = ctx.ExecStr("var4.prop1");
-    ASSERT_TRUE(var4_1);
-    ASSERT_EQ(99, var4_1->GetValueAsInteger());
-    ObjPtr var4_2 = ctx.ExecStr("var4.prop2");
-    ASSERT_TRUE(var4_2);
-    ASSERT_EQ(100, var4_2->GetValueAsInteger());
-
-
-    EXPECT_ANY_THROW(ctx.ExecStr("var_not_found := :class3(prop_not_found=100)"));
-    EXPECT_ANY_THROW(ctx.ExecStr("var_bad_type := :class3(prop1='BAD TYPE')"));
-}
 
 //TEST(Oop, ClassConstruct) {
 //

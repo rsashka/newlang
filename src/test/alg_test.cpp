@@ -11,7 +11,7 @@
 #include <gtest/gtest.h>
 
 #include <builtin.h>
-#include <newlang.h>
+#include <runtime.h>
 
 using namespace newlang;
 
@@ -957,11 +957,11 @@ TEST(Alg, Return) {
     ASSERT_FALSE(result);
 
 
-    ObjPtr test_err = ctx.GetTypeFromString(":Error");
+    ObjPtr test_err = ctx.m_runtime->GetTypeFromString(":Error");
     ASSERT_TRUE(test_err->op_class_test(":Error", &ctx));
     ASSERT_FALSE(test_err->op_class_test(":ErrorRunTime", &ctx));
 
-    ObjPtr test_rt = ctx.GetTypeFromString(":ErrorRunTime");
+    ObjPtr test_rt = ctx.m_runtime->GetTypeFromString(":ErrorRunTime");
     ASSERT_TRUE(test_rt->op_class_test(":ErrorRunTime", &ctx));
     ASSERT_TRUE(test_rt->op_class_test(":Error", &ctx));
 

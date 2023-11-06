@@ -1,11 +1,9 @@
-#ifndef NEWLANG_NAMED_H_
-#define NEWLANG_NAMED_H_
+#ifndef NEWLANG_MACRO_H_
+#define NEWLANG_MACRO_H_
 
 #include "pch.h"
 
-#include <variable.h>
-#include <diag.h>
-#include <object.h>
+#include <compiler.h>
 
 #include <warning_push.h>
 #include "parser.yy.h"
@@ -25,7 +23,7 @@ namespace newlang {
 
     inline std::string ExtractModuleName(const char *str) {
         std::string name(str);
-        if (isModule(name)) {
+        if (isModuleName(name)) {
             size_t pos = name.find("::");
             if (pos != std::string::npos) {
 
@@ -41,45 +39,15 @@ namespace newlang {
         if (pos != std::string::npos) {
             name = name.substr(pos + 2);
         }
-        if (isModule(name)) {
+        if (isModuleName(name)) {
 
             return std::string();
         }
         return name;
     }
 
-    /**
-     * Единица хранения информации об именованнм объекте
-     * 
-     */
-    struct NamedItem {
-        /** 
-         * Определение прототипа, включая макросы и предварительные определения с помощью @__PRAGMA_PROTOTYPE__
-         * Должне быть определн всегда, так как именно по этому объекту производится сранение типов у переменных и проверка параметров у функций.
-         * Создается для любого именнованного объекта системы (макрос, модуля, тип, функция или переменная) во время парсинга
-         */
-        BlockType proto;
-        /**
-         * Термин с определением (инициализацией) объекта в исходном коде (включает в себя место определения в файле в @ref Term::m_lexer_loc)
-         * Создается при инициалиазции (загрузке) модуля или определнии (создании) класса, функции или перемной.
-         * Не создется для маросов и прототипов (@__PRAGMA_PROTOTYPE__)
-         * Заполняется во время парсинга или анализа???
-         * 
-         * Реально созданный объект хранится в поле @ref Term::m_obj
-         * Он создается при выполнении программы (инициалиазции (загрузке) модуля, определении (создании) класса, функции или перемной).
-         * @ref Term::m_obj - слабая ссылка (std::weak_ptr<Obj>), чтобы память объекта не держалась в таблице символов
-         */
-        BlockType term;
-        //        /**
-        //         * Реально созданный объект.
-        //         * Создается при выполнении программы (инициалиазции (загрузке) модуля, определении (создании) класса, функции или перемной).
-        //         * Заполняется для модулей и типов - во время парсинга/анализа
-        //         * для функций и перемных - во время компиляции и выполнения
-        //         */
-        //        FuncItem obj;
-    };
 
-    class Named : SCOPE(protected) std::map<std::string, NamedItem>, public std::enable_shared_from_this<Named> {
+    class Macro : SCOPE(protected) std::map<std::string, BlockType>, public std::enable_shared_from_this<Macro> {
     public:
 
         /*
@@ -171,26 +139,19 @@ namespace newlang {
          */
 
 
-        Named();
+        Macro();
 
-        virtual ~Named() {
+        virtual ~Macro() {
         }
 
-        typedef at::variant<ObjPtr, std::vector < ObjPtr> > FuncItem;
-
-        std::map<std::string, ObjPtr> m_types;
-        std::map<std::string, FuncItem> m_funcs;
-        //        std::map<std::string, EvalFunction> m_builtin_calls;
-
         static const std::string deny_chars_from_macro;
-        std::vector<std::string> m_ns_stack;
 
         static std::string toMacroHash(const TermPtr &term);
 
         inline static std::string toMacroHashName(const std::string str) {
-            if (isLocal(str)) {
+            if (isLocalName(str)) {
                 return "$"; // Template
-            } else if (isMacro(str)) {
+            } else if (isMacroName(str)) {
                 return str.substr(1); // without macro prefix
             }
             return str;
@@ -198,8 +159,8 @@ namespace newlang {
 
         std::string GetMacroMaping(const std::string str, const char *separator = ", ");
 
-        void Push(const TermPtr term);
-        void Pop(const TermPtr term);
+//        void Push(const TermPtr term);
+//        void Pop(const TermPtr term);
 
         //        parser::token_type ExpandPredefMacro(TermPtr &term, Parser * parser);
         //
@@ -232,7 +193,7 @@ namespace newlang {
             size_t count = 0;
             auto iter = begin();
             while (iter != end()) {
-                count += iter->second.proto.size();
+                count += iter->second.size();
                 iter++;
             }
             return count;
@@ -354,43 +315,6 @@ namespace newlang {
 
         DiagPtr m_diag;
 
-        bool NamespasePush(const std::string &name) {
-            if (name.empty()) {
-                return false;
-            }
-            m_ns_stack.push_back(name);
-            return true;
-        }
-
-        void NamespasePop() {
-            ASSERT(!m_ns_stack.empty());
-            m_ns_stack.pop_back();
-        }
-
-        std::string NamespaseFull(std::string name = "") {
-            if (name.find("::") != 0) {
-                for (size_t i = m_ns_stack.size(); i > 0; i--) {
-                    if (!name.empty()) {
-                        name.insert(0, "::");
-                    }
-                    if (m_ns_stack[i - 1].compare("::") == 0) {
-                        if (name.empty()) {
-                            name = "::";
-                        }
-                        break;
-                    }
-                    name.insert(0, m_ns_stack[i - 1]);
-                    if (m_ns_stack[i - 1].find("::") == 0) {
-                        break;
-                    }
-                }
-            }
-            //            if (!isFullName(name)) {
-            //                name.insert(0, "::");
-            //            }
-            return name;
-        }
-
 
         TermPtr FindTerm(std::string_view name);
 
@@ -415,41 +339,10 @@ namespace newlang {
         }
 
 
-        /**
-         * Функция для организации встроенных типов в иерархию наследования.
-         * Другие функции: @ref CreateBaseType - создает базовые типы данных (для расширения классов требуется контекст)
-         * и @ref BaseTypeConstructor - функция обратного вызова при создании нового объекта базового типа данных
-         * @param type - Базовый тип данных @ref ObjType
-         * @param parents - Список сторок с именами родительских типов
-         * @return - Успешность регистрации базовго типа в иерархии
-         */
-        bool RegisterTypeHierarchy(ObjType type, std::vector<std::string> parents);
-
-        ObjType BaseTypeFromString(const std::string & type, bool *has_error = nullptr);
-
-        ObjPtr GetTypeFromString(const std::string & type, bool *has_error = nullptr);
-
-        static bool pred_compare(const std::string &find, const std::string &str) {
-            size_t pos = 0;
-            while (pos < find.size() && pos < str.size()) {
-                if (find[pos] != str[pos]) {
-                    return false;
-                }
-                pos++;
-            }
-            return find.empty() || (pos && find.size() == pos);
-        }
-
-        std::vector<std::wstring> SelectPredict(std::wstring wstart, size_t overage_count = 0) {
-            return SelectPredict(utf8_encode(wstart), overage_count);
-        }
-        std::vector<std::wstring> SelectPredict(std::string start, size_t overage_count = 0);
-
-
         //        SCOPE(private) :
         //        MacroTokenType m_store;
     };
 
 } // namespace example
 
-#endif // NEWLANG_NAMED_H_
+#endif // NEWLANG_MACRO_H_

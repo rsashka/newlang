@@ -51,24 +51,27 @@
         <itemPath>test/eval_test.cpp</itemPath>
         <itemPath>test/example_test.cpp</itemPath>
         <itemPath>test/lexer_test.cpp</itemPath>
+        <itemPath>test/macro_test.cpp</itemPath>
         <itemPath>test/module_test.cpp</itemPath>
-        <itemPath>test/named_test.cpp</itemPath>
         <itemPath>test/nlc_test.cpp</itemPath>
         <itemPath>test/object_test.cpp</itemPath>
         <itemPath>test/oop_test.cpp</itemPath>
+        <itemPath>test/parser_analysis_test.cpp</itemPath>
         <itemPath>test/parser_test.cpp</itemPath>
         <itemPath>test/rational_test.cpp</itemPath>
         <itemPath>test/system_test.cpp</itemPath>
       </logicalFolder>
       <itemPath>builtin.cpp</itemPath>
+      <itemPath>compiler.cpp</itemPath>
       <itemPath>context.cpp</itemPath>
       <itemPath>diag.cpp</itemPath>
       <itemPath>lexer.cpp</itemPath>
-      <itemPath>named.cpp</itemPath>
-      <itemPath>newlang.cpp</itemPath>
+      <itemPath>macro.cpp</itemPath>
+      <itemPath>module.cpp</itemPath>
       <itemPath>nlc.cpp</itemPath>
       <itemPath>object.cpp</itemPath>
       <itemPath>parser.cpp</itemPath>
+      <itemPath>runtime.cpp</itemPath>
       <itemPath>system.cpp</itemPath>
       <itemPath>term.cpp</itemPath>
     </logicalFolder>
@@ -77,16 +80,18 @@
                    projectFiles="true">
       <itemPath>autocomplete.h</itemPath>
       <itemPath>builtin.h</itemPath>
+      <itemPath>compiler.h</itemPath>
       <itemPath>context.h</itemPath>
       <itemPath>diag.h</itemPath>
       <itemPath>lexer.h</itemPath>
-      <itemPath>named.h</itemPath>
-      <itemPath>newlang.h</itemPath>
+      <itemPath>macro.h</itemPath>
+      <itemPath>module.h</itemPath>
       <itemPath>nlc.h</itemPath>
       <itemPath>object.h</itemPath>
       <itemPath>parser.h</itemPath>
       <itemPath>pch.h</itemPath>
       <itemPath>rational.h</itemPath>
+      <itemPath>runtime.h</itemPath>
       <itemPath>system.h</itemPath>
       <itemPath>term.h</itemPath>
       <itemPath>types.h</itemPath>
@@ -286,6 +291,14 @@
       </item>
       <item path="builtin.h" ex="false" tool="3" flavor2="0">
       </item>
+      <item path="compiler.cpp" ex="false" tool="1" flavor2="9">
+        <ccTool>
+          <commandLine>-include-pch pch.h.pch</commandLine>
+          <additionalDep>pch.h.pch</additionalDep>
+        </ccTool>
+      </item>
+      <item path="compiler.h" ex="false" tool="3" flavor2="0">
+      </item>
       <item path="context.cpp" ex="false" tool="1" flavor2="9">
         <ccTool>
           <commandLine>-include-pch pch.h.pch</commandLine>
@@ -332,21 +345,21 @@
       </item>
       <item path="location.hh" ex="false" tool="3" flavor2="0">
       </item>
-      <item path="named.cpp" ex="false" tool="1" flavor2="9">
+      <item path="macro.cpp" ex="false" tool="1" flavor2="9">
         <ccTool>
           <commandLine>-include-pch pch.h.pch</commandLine>
           <additionalDep>pch.h.pch</additionalDep>
         </ccTool>
       </item>
-      <item path="named.h" ex="false" tool="3" flavor2="0">
+      <item path="macro.h" ex="false" tool="3" flavor2="0">
       </item>
-      <item path="newlang.cpp" ex="false" tool="1" flavor2="9">
+      <item path="module.cpp" ex="false" tool="1" flavor2="9">
         <ccTool>
           <commandLine>-include-pch pch.h.pch</commandLine>
           <additionalDep>pch.h.pch</additionalDep>
         </ccTool>
       </item>
-      <item path="newlang.h" ex="false" tool="3" flavor2="0">
+      <item path="module.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="nlc.cpp" ex="false" tool="1" flavor2="9">
         <ccTool>
@@ -400,6 +413,14 @@
       <item path="pch.h.pch" ex="false" tool="3" flavor2="0">
       </item>
       <item path="rational.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="runtime.cpp" ex="false" tool="1" flavor2="9">
+        <ccTool>
+          <commandLine>-include-pch pch.h.pch</commandLine>
+          <additionalDep>pch.h.pch</additionalDep>
+        </ccTool>
+      </item>
+      <item path="runtime.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="syntax_help_en.cpp" ex="false" tool="1" flavor2="0">
       </item>
@@ -460,13 +481,13 @@
           <additionalDep>pch.h.pch</additionalDep>
         </ccTool>
       </item>
-      <item path="test/module_test.cpp" ex="true" tool="1" flavor2="9">
+      <item path="test/macro_test.cpp" ex="true" tool="1" flavor2="9">
         <ccTool>
           <commandLine>-include-pch pch.h.pch</commandLine>
           <additionalDep>pch.h.pch</additionalDep>
         </ccTool>
       </item>
-      <item path="test/named_test.cpp" ex="true" tool="1" flavor2="9">
+      <item path="test/module_test.cpp" ex="true" tool="1" flavor2="9">
         <ccTool>
           <commandLine>-include-pch pch.h.pch</commandLine>
           <additionalDep>pch.h.pch</additionalDep>
@@ -485,6 +506,12 @@
         </ccTool>
       </item>
       <item path="test/oop_test.cpp" ex="true" tool="1" flavor2="9">
+        <ccTool>
+          <commandLine>-include-pch pch.h.pch</commandLine>
+          <additionalDep>pch.h.pch</additionalDep>
+        </ccTool>
+      </item>
+      <item path="test/parser_analysis_test.cpp" ex="true" tool="1" flavor2="9">
         <ccTool>
           <commandLine>-include-pch pch.h.pch</commandLine>
           <additionalDep>pch.h.pch</additionalDep>
@@ -680,6 +707,14 @@
       </item>
       <item path="builtin.h" ex="false" tool="3" flavor2="0">
       </item>
+      <item path="compiler.cpp" ex="false" tool="1" flavor2="0">
+        <ccTool>
+          <commandLine>-include-pch pch.h.pch</commandLine>
+          <additionalDep>pch.h.pch</additionalDep>
+        </ccTool>
+      </item>
+      <item path="compiler.h" ex="false" tool="3" flavor2="0">
+      </item>
       <item path="context.cpp" ex="false" tool="1" flavor2="0">
         <ccTool>
           <commandLine>-include-pch pch.h.pch</commandLine>
@@ -726,21 +761,21 @@
       </item>
       <item path="location.hh" ex="false" tool="3" flavor2="0">
       </item>
-      <item path="named.cpp" ex="false" tool="1" flavor2="0">
+      <item path="macro.cpp" ex="false" tool="1" flavor2="0">
         <ccTool>
           <commandLine>-include-pch pch.h.pch</commandLine>
           <additionalDep>pch.h.pch</additionalDep>
         </ccTool>
       </item>
-      <item path="named.h" ex="false" tool="3" flavor2="0">
+      <item path="macro.h" ex="false" tool="3" flavor2="0">
       </item>
-      <item path="newlang.cpp" ex="false" tool="1" flavor2="0">
+      <item path="module.cpp" ex="false" tool="1" flavor2="0">
         <ccTool>
           <commandLine>-include-pch pch.h.pch</commandLine>
           <additionalDep>pch.h.pch</additionalDep>
         </ccTool>
       </item>
-      <item path="newlang.h" ex="false" tool="3" flavor2="0">
+      <item path="module.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="nlc.cpp" ex="false" tool="1" flavor2="0">
         <ccTool>
@@ -794,6 +829,14 @@
       <item path="pch.h.pch" ex="false" tool="3" flavor2="0">
       </item>
       <item path="rational.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="runtime.cpp" ex="false" tool="1" flavor2="0">
+        <ccTool>
+          <commandLine>-include-pch pch.h.pch</commandLine>
+          <additionalDep>pch.h.pch</additionalDep>
+        </ccTool>
+      </item>
+      <item path="runtime.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="syntax_help_en.cpp" ex="false" tool="1" flavor2="0">
       </item>
@@ -854,13 +897,13 @@
           <additionalDep>pch.h.pch</additionalDep>
         </ccTool>
       </item>
-      <item path="test/module_test.cpp" ex="false" tool="1" flavor2="0">
+      <item path="test/macro_test.cpp" ex="false" tool="1" flavor2="0">
         <ccTool>
           <commandLine>-include-pch pch.h.pch</commandLine>
           <additionalDep>pch.h.pch</additionalDep>
         </ccTool>
       </item>
-      <item path="test/named_test.cpp" ex="false" tool="1" flavor2="0">
+      <item path="test/module_test.cpp" ex="false" tool="1" flavor2="0">
         <ccTool>
           <commandLine>-include-pch pch.h.pch</commandLine>
           <additionalDep>pch.h.pch</additionalDep>
@@ -879,6 +922,12 @@
         </ccTool>
       </item>
       <item path="test/oop_test.cpp" ex="false" tool="1" flavor2="0">
+        <ccTool>
+          <commandLine>-include-pch pch.h.pch</commandLine>
+          <additionalDep>pch.h.pch</additionalDep>
+        </ccTool>
+      </item>
+      <item path="test/parser_analysis_test.cpp" ex="false" tool="1" flavor2="0">
         <ccTool>
           <commandLine>-include-pch pch.h.pch</commandLine>
           <additionalDep>pch.h.pch</additionalDep>
@@ -1049,6 +1098,10 @@
       </item>
       <item path="builtin.h" ex="false" tool="3" flavor2="0">
       </item>
+      <item path="compiler.cpp" ex="false" tool="1" flavor2="9">
+      </item>
+      <item path="compiler.h" ex="false" tool="3" flavor2="0">
+      </item>
       <item path="context.cpp" ex="false" tool="1" flavor2="9">
         <ccTool>
           <additionalDep>parser.h parser.yy.h</additionalDep>
@@ -1089,13 +1142,13 @@
       </item>
       <item path="location.hh" ex="false" tool="3" flavor2="0">
       </item>
-      <item path="named.cpp" ex="false" tool="1" flavor2="9">
+      <item path="macro.cpp" ex="false" tool="1" flavor2="9">
       </item>
-      <item path="named.h" ex="false" tool="3" flavor2="0">
+      <item path="macro.h" ex="false" tool="3" flavor2="0">
       </item>
-      <item path="newlang.cpp" ex="false" tool="1" flavor2="9">
+      <item path="module.cpp" ex="false" tool="1" flavor2="9">
       </item>
-      <item path="newlang.h" ex="false" tool="3" flavor2="0">
+      <item path="module.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="nlc.cpp" ex="false" tool="1" flavor2="9">
       </item>
@@ -1137,6 +1190,10 @@
       </item>
       <item path="rational.h" ex="false" tool="3" flavor2="0">
       </item>
+      <item path="runtime.cpp" ex="false" tool="1" flavor2="9">
+      </item>
+      <item path="runtime.h" ex="false" tool="3" flavor2="0">
+      </item>
       <item path="syntax_help_en.cpp" ex="false" tool="1" flavor2="0">
       </item>
       <item path="syntax_help_ru.cpp" ex="false" tool="1" flavor2="0">
@@ -1167,15 +1224,17 @@
       </item>
       <item path="test/lexer_test.cpp" ex="false" tool="1" flavor2="9">
       </item>
-      <item path="test/module_test.cpp" ex="false" tool="1" flavor2="9">
+      <item path="test/macro_test.cpp" ex="false" tool="1" flavor2="9">
       </item>
-      <item path="test/named_test.cpp" ex="false" tool="1" flavor2="9">
+      <item path="test/module_test.cpp" ex="false" tool="1" flavor2="9">
       </item>
       <item path="test/nlc_test.cpp" ex="false" tool="1" flavor2="9">
       </item>
       <item path="test/object_test.cpp" ex="false" tool="1" flavor2="11">
       </item>
       <item path="test/oop_test.cpp" ex="false" tool="1" flavor2="9">
+      </item>
+      <item path="test/parser_analysis_test.cpp" ex="false" tool="1" flavor2="9">
       </item>
       <item path="test/parser_test.cpp" ex="false" tool="1" flavor2="9">
       </item>
@@ -1350,6 +1409,16 @@
           <customToolAdditionalDep>pch.h.gch</customToolAdditionalDep>
         </customTool>
       </item>
+      <item path="compiler.cpp" ex="false" tool="1" flavor2="9">
+        <ccTool>
+          <additionalDep>parser.h parser.yy.h pch.h.gch location.hh</additionalDep>
+        </ccTool>
+      </item>
+      <item path="compiler.h" ex="false" tool="3" flavor2="0">
+        <customTool>
+          <customToolAdditionalDep>pch.h.gch</customToolAdditionalDep>
+        </customTool>
+      </item>
       <item path="context.cpp" ex="false" tool="1" flavor2="9">
         <ccTool>
           <additionalDep>parser.h parser.yy.h pch.h.gch location.hh</additionalDep>
@@ -1402,22 +1471,22 @@
       </item>
       <item path="location.hh" ex="false" tool="3" flavor2="0">
       </item>
-      <item path="named.cpp" ex="false" tool="1" flavor2="9">
+      <item path="macro.cpp" ex="false" tool="1" flavor2="9">
         <ccTool>
           <additionalDep>parser.h parser.yy.h pch.h.gch location.hh</additionalDep>
         </ccTool>
       </item>
-      <item path="named.h" ex="false" tool="3" flavor2="0">
+      <item path="macro.h" ex="false" tool="3" flavor2="0">
         <customTool>
           <customToolAdditionalDep>pch.h.gch</customToolAdditionalDep>
         </customTool>
       </item>
-      <item path="newlang.cpp" ex="false" tool="1" flavor2="9">
+      <item path="module.cpp" ex="false" tool="1" flavor2="9">
         <ccTool>
           <additionalDep>parser.h parser.yy.h pch.h.gch location.hh</additionalDep>
         </ccTool>
       </item>
-      <item path="newlang.h" ex="false" tool="3" flavor2="0">
+      <item path="module.h" ex="false" tool="3" flavor2="0">
         <customTool>
           <customToolAdditionalDep>pch.h.gch</customToolAdditionalDep>
         </customTool>
@@ -1478,6 +1547,16 @@
       </item>
       <item path="rational.h" ex="false" tool="3" flavor2="0">
       </item>
+      <item path="runtime.cpp" ex="false" tool="1" flavor2="9">
+        <ccTool>
+          <additionalDep>parser.h parser.yy.h pch.h.gch location.hh</additionalDep>
+        </ccTool>
+      </item>
+      <item path="runtime.h" ex="false" tool="3" flavor2="0">
+        <customTool>
+          <customToolAdditionalDep>pch.h.gch</customToolAdditionalDep>
+        </customTool>
+      </item>
       <item path="syntax_help_en.cpp" ex="false" tool="1" flavor2="0">
       </item>
       <item path="syntax_help_ru.cpp" ex="false" tool="1" flavor2="0">
@@ -1533,12 +1612,12 @@
           <additionalDep>pch.h.gch</additionalDep>
         </ccTool>
       </item>
-      <item path="test/module_test.cpp" ex="false" tool="1" flavor2="9">
+      <item path="test/macro_test.cpp" ex="false" tool="1" flavor2="9">
         <ccTool>
           <additionalDep>pch.h.gch</additionalDep>
         </ccTool>
       </item>
-      <item path="test/named_test.cpp" ex="false" tool="1" flavor2="9">
+      <item path="test/module_test.cpp" ex="false" tool="1" flavor2="9">
         <ccTool>
           <additionalDep>pch.h.gch</additionalDep>
         </ccTool>
@@ -1554,6 +1633,11 @@
         </ccTool>
       </item>
       <item path="test/oop_test.cpp" ex="false" tool="1" flavor2="9">
+        <ccTool>
+          <additionalDep>pch.h.gch</additionalDep>
+        </ccTool>
+      </item>
+      <item path="test/parser_analysis_test.cpp" ex="false" tool="1" flavor2="9">
         <ccTool>
           <additionalDep>pch.h.gch</additionalDep>
         </ccTool>
@@ -1742,6 +1826,16 @@
           <customToolAdditionalDep>pch.h.gch</customToolAdditionalDep>
         </customTool>
       </item>
+      <item path="compiler.cpp" ex="false" tool="1" flavor2="9">
+        <ccTool>
+          <additionalDep>parser.h parser.yy.h pch.h.gch location.hh</additionalDep>
+        </ccTool>
+      </item>
+      <item path="compiler.h" ex="false" tool="3" flavor2="0">
+        <customTool>
+          <customToolAdditionalDep>pch.h.gch</customToolAdditionalDep>
+        </customTool>
+      </item>
       <item path="context.cpp" ex="false" tool="1" flavor2="9">
         <ccTool>
           <additionalDep>parser.h parser.yy.h pch.h.gch location.hh</additionalDep>
@@ -1794,22 +1888,22 @@
       </item>
       <item path="location.hh" ex="false" tool="3" flavor2="0">
       </item>
-      <item path="named.cpp" ex="false" tool="1" flavor2="9">
+      <item path="macro.cpp" ex="false" tool="1" flavor2="9">
         <ccTool>
           <additionalDep>parser.h parser.yy.h pch.h.gch location.hh</additionalDep>
         </ccTool>
       </item>
-      <item path="named.h" ex="false" tool="3" flavor2="0">
+      <item path="macro.h" ex="false" tool="3" flavor2="0">
         <customTool>
           <customToolAdditionalDep>pch.h.gch</customToolAdditionalDep>
         </customTool>
       </item>
-      <item path="newlang.cpp" ex="false" tool="1" flavor2="9">
+      <item path="module.cpp" ex="false" tool="1" flavor2="9">
         <ccTool>
           <additionalDep>parser.h parser.yy.h pch.h.gch location.hh</additionalDep>
         </ccTool>
       </item>
-      <item path="newlang.h" ex="false" tool="3" flavor2="0">
+      <item path="module.h" ex="false" tool="3" flavor2="0">
         <customTool>
           <customToolAdditionalDep>pch.h.gch</customToolAdditionalDep>
         </customTool>
@@ -1870,6 +1964,16 @@
       </item>
       <item path="rational.h" ex="false" tool="3" flavor2="0">
       </item>
+      <item path="runtime.cpp" ex="false" tool="1" flavor2="9">
+        <ccTool>
+          <additionalDep>parser.h parser.yy.h pch.h.gch location.hh</additionalDep>
+        </ccTool>
+      </item>
+      <item path="runtime.h" ex="false" tool="3" flavor2="0">
+        <customTool>
+          <customToolAdditionalDep>pch.h.gch</customToolAdditionalDep>
+        </customTool>
+      </item>
       <item path="syntax_help_en.cpp" ex="false" tool="1" flavor2="0">
       </item>
       <item path="syntax_help_ru.cpp" ex="false" tool="1" flavor2="0">
@@ -1925,12 +2029,12 @@
           <additionalDep>pch.h.gch</additionalDep>
         </ccTool>
       </item>
-      <item path="test/module_test.cpp" ex="false" tool="1" flavor2="9">
+      <item path="test/macro_test.cpp" ex="false" tool="1" flavor2="9">
         <ccTool>
           <additionalDep>pch.h.gch</additionalDep>
         </ccTool>
       </item>
-      <item path="test/named_test.cpp" ex="false" tool="1" flavor2="9">
+      <item path="test/module_test.cpp" ex="false" tool="1" flavor2="9">
         <ccTool>
           <additionalDep>pch.h.gch</additionalDep>
         </ccTool>
@@ -1946,6 +2050,11 @@
         </ccTool>
       </item>
       <item path="test/oop_test.cpp" ex="false" tool="1" flavor2="9">
+        <ccTool>
+          <additionalDep>pch.h.gch</additionalDep>
+        </ccTool>
+      </item>
+      <item path="test/parser_analysis_test.cpp" ex="false" tool="1" flavor2="9">
         <ccTool>
           <additionalDep>pch.h.gch</additionalDep>
         </ccTool>

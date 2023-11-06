@@ -5,7 +5,7 @@
 
 #include <variable.h>
 #include <diag.h>
-#include <named.h>
+#include <macro.h>
 
 #include <warning_push.h>
 #include "parser.yy.h"
@@ -22,7 +22,7 @@ namespace newlang {
     class Parser {
     public:
 
-        Parser(NamedPtr macro = nullptr, PostLexerType *postlex = nullptr, DiagPtr diag = nullptr, bool pragma_enable = true);
+        Parser(MacroPtr macro = nullptr, PostLexerType *postlex = nullptr, DiagPtr diag = nullptr, bool pragma_enable = true);
 
         /// enable debug output in the flex scanner
         bool trace_scanning;
@@ -84,6 +84,9 @@ namespace newlang {
         TermPtr m_annotation;
         bool m_no_macro;
         bool m_enable_pragma;
+        std::vector<std::string> m_ns_stack;
+        std::map<std::string, TermPtr> m_declare;
+        std::map<std::string, TermPtr> m_native;
 
         //        struct IndentBlock {
         //            TermPtr indent;
@@ -101,16 +104,63 @@ namespace newlang {
         bool PragmaEval(const TermPtr &term, BlockType &buffer);
 
         TermPtr Parse(const std::string str);
-        static TermPtr ParseString(const std::string str, NamedPtr macro, PostLexerType *postlex = nullptr, DiagPtr diag = nullptr);
+        static TermPtr ParseString(const std::string str, MacroPtr macro, PostLexerType *postlex = nullptr, DiagPtr diag = nullptr);
         TermPtr ParseFile(const std::string str);
 
         // Собирает термин из последовательности лексем и удаялет их из входного буфера
         static size_t ParseTerm(TermPtr &term, const BlockType &buffer, const size_t skip = 0, bool pragma_enable = true);
-        static TermPtr ParseTerm(const char *proto, NamedPtr macro = nullptr, bool pragma_enable = true);
+        static TermPtr ParseTerm(const char *proto, MacroPtr macro = nullptr, bool pragma_enable = true);
 
         inline static bool IsBracket(const std::string_view str) {
             return str.size() > 0 && (str[0] == '(' || str[0] == '[' || str[0] == '<');
         }
+
+        bool NamespacePush(const TermPtr &term);
+
+        bool NamespacePush(const std::string &name) {
+            if (name.empty()) {
+                return false;
+            }
+            m_ns_stack.push_back(name);
+            return true;
+        }
+
+        void NamespacePop() {
+            ASSERT(!m_ns_stack.empty());
+            m_ns_stack.pop_back();
+        }
+
+        std::string NamespaceCurrent() {
+            if (m_ns_stack.empty()) {
+                return "";
+            }
+            return m_ns_stack[m_ns_stack.size() - 1];
+        }
+
+        std::string NamespaceFull(std::string name = "") {
+            if (name.find("::") != 0) {
+                for (size_t i = m_ns_stack.size(); i > 0; i--) {
+                    if (!name.empty()) {
+                        name.insert(0, "::");
+                    }
+                    if (m_ns_stack[i - 1].compare("::") == 0) {
+                        if (name.empty()) {
+                            name = "::";
+                        }
+                        break;
+                    }
+                    name.insert(0, m_ns_stack[i - 1]);
+                    if (m_ns_stack[i - 1].find("::") == 0) {
+                        break;
+                    }
+                }
+            }
+            //            if (!isFullName(name)) {
+            //                name.insert(0, "::");
+            //            }
+            return name;
+        }
+
 
         static size_t SkipBrackets(const BlockType& buffer, size_t offset);
 
@@ -124,7 +174,7 @@ namespace newlang {
         TermPtr m_ast;
         bool m_is_runing;
         bool m_is_lexer_complete;
-        NamedPtr m_macro;
+        MacroPtr m_macro;
         PostLexerType *m_postlex;
         DiagPtr m_diag;
 

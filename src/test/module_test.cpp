@@ -5,7 +5,7 @@
 #include <gtest/gtest.h>
 
 #include <builtin.h>
-#include <newlang.h>
+#include <runtime.h>
 
 using namespace newlang;
 
@@ -154,7 +154,7 @@ TEST(Module, Env) {
     const char *args[1] = {"-nlc-search=../example;../src"};
 
     RuntimePtr env = RunTime::Init(1, args);
-//    Context ctx(env);
+    //    Context ctx(env);
 
     env->CheckOrLoadModule("\\file");
     env->CheckOrLoadModule("\\dir\\file");

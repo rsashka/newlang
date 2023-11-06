@@ -5,7 +5,7 @@
 #include "variable.h"
 
 #include <context.h>
-#include <newlang.h>
+#include <runtime.h>
 #include <object.h>
 #include <term.h>
 
@@ -770,11 +770,11 @@ void Obj::ClonePropTo(Obj & clone) const {
 
     for (int i = 0; i < Variable<Obj>::size(); i++) {
         if (Variable<Obj>::at(i).second) {
-            if (Variable<Obj>::at(i).second->m_is_reference || Variable<Obj>::at(i).second->m_is_reference) {
-                clone.Variable<Obj>::push_back(Variable<Obj>::at(i));
-            } else {
+//            if (Variable<Obj>::at(i).second->m_is_reference || Variable<Obj>::at(i).second->m_is_reference) {
+//                clone.Variable<Obj>::push_back(Variable<Obj>::at(i));
+//            } else {
                 clone.Variable<Obj>::push_back(Variable<Obj>::at(i).second->Clone(nullptr), name(i));
-            }
+//            }
         } else {
             if (name(i).empty()) {
                 LOG_RUNTIME("Null arg %d without name! %s", i, toString().c_str());
@@ -1472,7 +1472,7 @@ void Obj::ConvertToArgs_(Obj *in, bool check_valid, Context * ctx) {
                         base_type = ObjType::Any;
                     } else {
                         bool has_error = false;
-                        base_type = ctx->BaseTypeFromString((*m_prototype)[i].second->m_type_name, &has_error);
+                        base_type = ctx->m_runtime->BaseTypeFromString((*m_prototype)[i].second->m_type_name, &has_error);
                         if (has_error && (*m_prototype)[i].second->getTermID() == TermID::ELLIPSIS) {
                             base_type = ObjType::Any;
                         }
@@ -2196,7 +2196,7 @@ ObjPtr Obj::CallNative(Context *ctx, Obj args) {
     VALUE res_value;
     ffi_type *result_ffi_type = nullptr;
 
-    ObjType type = ctx->BaseTypeFromString(m_prototype->m_type_name);
+    ObjType type = ctx->m_runtime->BaseTypeFromString(m_prototype->m_type_name);
 
     switch (type) {
         case ObjType::Bool:
@@ -2276,7 +2276,7 @@ ObjPtr Obj::CallNative(Context *ctx, Obj args) {
             } else if (type == ObjType::StrWide) {
                 return Obj::CreateString(reinterpret_cast<const wchar_t *> (res_value.ptr));
             } else if (type == ObjType::Pointer) {
-                ObjPtr result = ctx->GetTypeFromString(m_prototype->m_type_name);
+                ObjPtr result = ctx->m_runtime->GetTypeFromString(m_prototype->m_type_name);
                 result->m_var = (void *) res_value.ptr;
                 result->m_var_is_init = true;
                 return result;
@@ -3749,21 +3749,21 @@ ObjPtr newlang::CheckSystemField(const Obj *obj, std::string name) {
     } else {
 
         if (obj->m_var_type_current == ObjType::Module) {
-            const Module *mod = static_cast<const Module *> (obj);
-
-            if (name.compare(MODULE__MD5__) == 0) {
-                return Obj::CreateString(mod->m_md5);
-            } else if (name.compare(MODULE__FILE__) == 0) {
-                return Obj::CreateString(mod->m_file);
-            } else if (name.compare(MODULE__TIMESTAMP__) == 0) {
-                return Obj::CreateString(mod->m_timestamp);
-            } else if (name.compare(MODULE__VERSION__) == 0) {
-                return Obj::CreateString(mod->m_version);
-            } else if (name.compare(MODULE__MAIN__) == 0) {
-                return Obj::CreateBool(mod->m_is_main);
-            } else if (name.compare(SYS__SOURCE__) == 0) {
-                return Obj::CreateString(mod->m_source);
-            }
+//            const Module *mod = static_cast<const Module *> (obj);
+//
+//            if (name.compare(MODULE__MD5__) == 0) {
+//                return Obj::CreateString(mod->m_md5);
+//            } else if (name.compare(MODULE__FILE__) == 0) {
+//                return Obj::CreateString(mod->m_file);
+//            } else if (name.compare(MODULE__TIMESTAMP__) == 0) {
+//                return Obj::CreateString(mod->m_timestamp);
+//            } else if (name.compare(MODULE__VERSION__) == 0) {
+//                return Obj::CreateString(mod->m_version);
+//            } else if (name.compare(MODULE__MAIN__) == 0) {
+//                return Obj::CreateBool(mod->m_is_main);
+//            } else if (name.compare(SYS__SOURCE__) == 0) {
+//                return Obj::CreateString(mod->m_source);
+//            }
         }
 
         std::string message("Internal field '");

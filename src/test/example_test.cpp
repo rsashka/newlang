@@ -6,7 +6,7 @@
 #include <gtest/gtest.h>
 #include <warning_pop.h>
 
-#include <newlang.h>
+#include <runtime.h>
 #include <chrono>
 #include <stdio.h> 
 

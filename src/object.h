@@ -2440,15 +2440,16 @@ namespace newlang {
 
         //        std::string m_namespace;
         std::string m_var_name; ///< Имя переменной, в которой хранится объект
-
-        ObjPtr m_dimensions; ///< Размерности для ObjType::Type
         std::string m_class_name; ///< Имя класса объекта (у базовых типов отсуствует)
         std::vector<ObjPtr> m_class_parents; ///< Родительские классы (типы)
+        std::string m_module_name;
+        const TermPtr m_prototype; ///< Описание прототипа функции (или данных)
+
+        ObjPtr m_dimensions; ///< Размерности для ObjType::Type
 
         mutable PairType m_str_pair; //< Для доступа к отдельным символам строк
 
         std::string m_func_mangle_name;
-        std::string m_module_name;
 
         // Применение variant необходимо для полей хранения данных, чтобы контролировать их инициализацию
         //        std::variant<std::monostate, void *, torch::Tensor, std::string, std::wstring, std::string_view, std::wstring_view,
@@ -2478,7 +2479,6 @@ namespace newlang {
         std::shared_ptr<Iterator < Obj>> m_iterator; ///< Итератор для данных
         mutable ObjPtr m_iter_range_value;
         TermPtr m_sequence; ///< Последовательно распарсенных команд для выполнения
-        const TermPtr m_prototype; ///< Описание прототипп функции (или данных)
         ObjPtr m_return_obj;
 
         bool m_check_args; //< Проверять аргументы на корректность (для всех видов функций) @ref MakeArgs

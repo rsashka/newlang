@@ -10,7 +10,7 @@ using namespace newlang;
 
 int Parser::m_counter = 0;
 
-Parser::Parser(NamedPtr macro, PostLexerType *postlex, DiagPtr diag, bool pragma_enable) {
+Parser::Parser(MacroPtr macro, PostLexerType *postlex, DiagPtr diag, bool pragma_enable) {
     char *source_date_epoch = std::getenv("SOURCE_DATE_EPOCH");
     if (source_date_epoch) {
         std::istringstream iss(source_date_epoch);
@@ -102,7 +102,7 @@ TermPtr Parser::Parse(const std::string input) {
     return m_ast;
 }
 
-TermPtr Parser::ParseString(const std::string str, NamedPtr macro, PostLexerType *postlex, DiagPtr diag) {
+TermPtr Parser::ParseString(const std::string str, MacroPtr macro, PostLexerType *postlex, DiagPtr diag) {
     Parser p(macro, postlex, diag);
     return p.Parse(str);
 }
@@ -221,7 +221,8 @@ bool Parser::PragmaEval(const TermPtr &term, BlockType &buffer) {
     static const char * __PRAGMA_NO_MACRO__ = "@__PRAGMA_NO_MACRO__";
     static const char * __PRAGMA_INDENT_BLOCK__ = "@__PRAGMA_INDENT_BLOCK__";
 
-    static const char * __PRAGMA_PROTOTYPE__ = "@__PRAGMA_PROTOTYPE__";
+    static const char * __PRAGMA_NATIVE__ = "@__PRAGMA_NATIVE__";
+    static const char * __PRAGMA_DECLARE__ = "@__PRAGMA_DECLARE__";
     static const char * __PRAGMA_LOCATION__ = "@__PRAGMA_LOCATION__";
 
     static const char * __ANNOTATION_SET__ = "@__ANNOTATION_SET__";
@@ -298,12 +299,14 @@ bool Parser::PragmaEval(const TermPtr &term, BlockType &buffer) {
         Diag::State state;
         if (term->at(0).second->m_text.compare("push") == 0) {
 
-            m_macro->Push(term);
+            LOG_RUNTIME("Pragma push not implemented!");
+            //            m_macro->Push(term);
             return true;
 
         } else if (term->at(0).second->m_text.compare("pop") == 0) {
 
-            m_macro->Pop(term);
+            LOG_RUNTIME("Pragma pop not implemented!");
+            //            m_macro->Pop(term);
             return true;
 
             //        } else if(term->at(0).second->m_text.compare(Diag::toString(Diag::State::ignored)) == 0) {
@@ -355,9 +358,64 @@ bool Parser::PragmaEval(const TermPtr &term, BlockType &buffer) {
 
         m_no_macro = true;
 
-    } else if (term->m_text.compare(__PRAGMA_PROTOTYPE__) == 0) {
+    } else if (term->m_text.compare(__PRAGMA_DECLARE__) == 0) {
 
-        LOG_RUNTIME("Pragma @__PRAGMA_PROTOTYPE__ not implemented!");
+        TermPtr obj;
+        if (term->size() == 1 && term->name(0).empty()) {
+            obj = term->at(0).second;
+        } else {
+            NL_PARSER(term, "Unknown pragma syntax @__PRAGMA_DECLARE__");
+        }
+
+        for (size_t i = 0; i < obj->size(); i++) {
+            if (!obj->at(i).first.empty()) {
+                NL_PARSER(obj->at(i).second, "Default value for declare functions are not yet supported!");
+            }
+        }
+        
+        auto found = m_declare.find(obj->m_text);
+        if (found != m_declare.end()) {
+
+            NL_PARSER(term, "Declaration '%s' already exists at line %d column %d!",
+                    obj->m_text.c_str(), term->m_lexer_loc.begin.line, term->m_lexer_loc.begin.column);
+        }
+
+        m_declare[obj->m_text] = obj;
+
+    } else if (term->m_text.compare(__PRAGMA_NATIVE__) == 0) {
+
+        TermPtr obj;
+        if (term->size() == 1 && term->name(0).empty()) {
+            obj = term->at(0).second;
+        } else if (term->size() == 2) {
+            NL_PARSER(term, "In the @__PRAGMA_NATIVE__ currently support the FFI_DEFAULT_ABI only.");
+        } else {
+            NL_PARSER(term, "Use syntax `@__PRAGMA_NATIVE__( printf(format:FmtChar, ...):Int32 )` for import native `int printf(char *format, ...)`.");
+        }
+
+        if (obj->m_type_name.empty()) {
+            NL_PARSER(obj, "The type of the variable or function return value must be specified!");
+        }
+
+        for (size_t i = 0; i < obj->size(); i++) {
+            if (!obj->at(i).first.empty()) {
+                NL_PARSER(obj->at(i).second, "Default value for args in native functions are not yet supported!");
+            }
+            if (obj->at(i).second->m_type_name.empty()) {
+                if (!(i == obj->size() - 1 && obj->at(i).second->getTermID() == TermID::ELLIPSIS)) {
+                    NL_PARSER(obj->at(i).second, "The type of arg must be specified!");
+                }
+            }
+        }
+
+        auto found = m_native.find(obj->m_text);
+        if (found != m_native.end()) {
+
+            NL_PARSER(term, "Native '%s' already defined at line %d column %d!",
+                    obj->m_text.c_str(), term->m_lexer_loc.begin.line, term->m_lexer_loc.begin.column);
+        }
+
+        m_native[obj->m_text] = obj;
 
     } else if (term->m_text.compare(__PRAGMA_LOCATION__) == 0) {
 
@@ -708,7 +766,7 @@ parser::token_type Parser::ExpandPredefMacro(TermPtr & term) {
     NL_PARSER(term, "Predef macro '%s' not implemented!", term->toString().c_str());
 }
 
-TermPtr Parser::ParseTerm(const char *proto, NamedPtr macro, bool pragma_enable) {
+TermPtr Parser::ParseTerm(const char *proto, MacroPtr macro, bool pragma_enable) {
     try {
         // Термин или термин + тип парсятся без ошибок
         Parser p(macro, nullptr, nullptr, pragma_enable);
@@ -825,4 +883,9 @@ size_t Parser::ParseTerm(TermPtr &result, const BlockType &buffer, size_t offset
     LOG_DEBUG("ParseTerm: '%s' - %d", source.c_str(), (int) offset);
     result = ParseTerm(source.c_str(), nullptr, pragma_enable);
     return offset;
+}
+
+bool Parser::NamespacePush(const TermPtr &term) {
+    ASSERT(term);
+    return NamespacePush(term->m_text);
 }

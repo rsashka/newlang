@@ -3,7 +3,7 @@
 #include <syntax_help_en.cpp>
 
 #include <builtin.h>
-#include <newlang.h>
+#include <runtime.h>
 
 using namespace newlang;
 

@@ -570,6 +570,15 @@ ${name}     YY_TOKEN(LOCAL);
 "&&^"       YY_TOKEN_ONLY(OPERATOR_PTR);
 "&*"        YY_TOKEN_ONLY(OPERATOR_PTR);
 "&*^"       YY_TOKEN_ONLY(OPERATOR_PTR);
+"&"{digit}  YY_TOKEN_ONLY(OPERATOR_PTR);
+"&%"        YY_TOKEN_ONLY(OPERATOR_PTR);
+    /*
+    "&@"        YY_TOKEN_ONLY(OPERATOR_PTR);
+    "&~"        YY_TOKEN_ONLY(OPERATOR_PTR);
+    "&:"        YY_TOKEN_ONLY(OPERATOR_PTR);
+    "&$"        YY_TOKEN_ONLY(OPERATOR_PTR);
+    "&#"        YY_TOKEN_ONLY(OPERATOR_PTR);
+    */
 
 ".>."        YY_TOKEN(OPERATOR);
 ".<."        YY_TOKEN(OPERATOR);

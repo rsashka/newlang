@@ -11,7 +11,7 @@
 #include <term.h>
 #include <context.h>
 #include <object.h>
-#include <newlang.h>
+#include <runtime.h>
 #include <builtin.h>
 
 

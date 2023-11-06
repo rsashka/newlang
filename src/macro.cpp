@@ -3,16 +3,16 @@
 #include "lexer.h"
 #include "builtin.h"
 
-#include <named.h>
+#include <macro.h>
 
 using namespace newlang;
 
-const std::string Named::deny_chars_from_macro(";@:&^#?!{}+-%*~`\"',/|\\()[]<>");
+const std::string Macro::deny_chars_from_macro(";@:&^#?!{}+-%*~`\"',/|\\()[]<>");
 
-Named::Named() {
+Macro::Macro() {
 }
 
-std::string Named::toMacroHash(const TermPtr &term) {
+std::string Macro::toMacroHash(const TermPtr &term) {
     if (term->isMacro()) {
         ASSERT(!term->GetMacroId().empty());
         return toMacroHashName(term->GetMacroId()[0]->m_text);
@@ -20,30 +20,30 @@ std::string Named::toMacroHash(const TermPtr &term) {
     return toMacroHashName(term->m_text);
 }
 
-void Named::Push(const TermPtr term) {
-    //    ASSERT(!m_diag_stack.empty());
-    //    m_diag_stack.push_back(m_diag_stack[m_diag_stack.size() - 1]);
-}
+//void Macro::Push(const TermPtr term) {
+//    //    ASSERT(!m_diag_stack.empty());
+//    //    m_diag_stack.push_back(m_diag_stack[m_diag_stack.size() - 1]);
+//}
+//
+//void Macro::Pop(const TermPtr term) {
+//    //    if(m_diag_stack.empty()) {
+//    //        if(term) {
+//    //            NL_PARSER(term, "Empty stack diags at '%s'!", term->toString().c_str());
+//    //        } else {
+//    //            LOG_RUNTIME("Empty stack diags!");
+//    //        }
+//    //    }
+//    //    m_diag_stack.pop_back();
+//}
 
-void Named::Pop(const TermPtr term) {
-    //    if(m_diag_stack.empty()) {
-    //        if(term) {
-    //            NL_PARSER(term, "Empty stack diags at '%s'!", term->toString().c_str());
-    //        } else {
-    //            LOG_RUNTIME("Empty stack diags!");
-    //        }
-    //    }
-    //    m_diag_stack.pop_back();
-}
-
-std::string Named::GetMacroMaping(const std::string str, const char *separator) {
+std::string Macro::GetMacroMaping(const std::string str, const char *separator) {
 
     std::string result;
 
     // Итератор для списка макросов, один из которых может соответствовать текущему буферу (по первому термину буфера)
     iterator found = this->map::find(str);
 
-    for (auto iter = found->second.proto.begin(); found != end() && iter != found->second.proto.end(); ++iter) {
+    for (auto iter = found->second.begin(); found != end() && iter != found->second.end(); ++iter) {
 
         if (!result.empty() && separator) {
             result += separator;
@@ -277,7 +277,7 @@ std::string Named::GetMacroMaping(const std::string str, const char *separator) 
 //    return result;
 //}
 
-TermPtr Named::EvalOpMacros(const TermPtr & term) {
+TermPtr Macro::EvalOpMacros(const TermPtr & term) {
 
     ASSERT(term);
 
@@ -309,9 +309,9 @@ TermPtr Named::EvalOpMacros(const TermPtr & term) {
         }
 
         // Итератор для списка макросов, один из которых может соответствовать текущему буферу (по первому термину буфера)
-        Named::iterator found = map::find(toMacroHash(term));
-        for (auto iter = found->second.proto.begin(); found != end() && iter != found->second.proto.end(); ++iter) {
-            if (Named::IdentityMacro(term->GetMacroId(), *iter) || Named::IdentityMacro(iter->get()->GetMacroId(), term)) {
+        Macro::iterator found = map::find(toMacroHash(term));
+        for (auto iter = found->second.begin(); found != end() && iter != found->second.end(); ++iter) {
+            if (Macro::IdentityMacro(term->GetMacroId(), *iter) || Macro::IdentityMacro(iter->get()->GetMacroId(), term)) {
 
                 if (term->getTermID() == TermID::CREATE || term->getTermID() == TermID::PURE_CREATE || (iter->get() != macro.get())) {
                     LOG_RUNTIME("Macro duplication '%s' and '%s'!", term->Left()->toString().c_str(), (*iter)->toString().c_str());
@@ -328,9 +328,9 @@ TermPtr Named::EvalOpMacros(const TermPtr & term) {
         }
 
         // Итератор для списка макросов, один из которых может соответствовать текущему буферу (по первому термину буфера)
-        Named::iterator found = map::find(toMacroHash(term->Left()));
-        for (auto iter = found->second.proto.begin(); found != end() && iter != found->second.proto.end(); ++iter) {
-            if (Named::IdentityMacro(term->GetMacroId(), *iter) || Named::IdentityMacro(iter->get()->GetMacroId(), term)) {
+        Macro::iterator found = map::find(toMacroHash(term->Left()));
+        for (auto iter = found->second.begin(); found != end() && iter != found->second.end(); ++iter) {
+            if (Macro::IdentityMacro(term->GetMacroId(), *iter) || Macro::IdentityMacro(iter->get()->GetMacroId(), term)) {
                 LOG_RUNTIME("Macro duplication '%s' and '%s'!", term->Left()->toString().c_str(), (*iter)->toString().c_str());
             }
         }
@@ -339,12 +339,9 @@ TermPtr Named::EvalOpMacros(const TermPtr & term) {
 
         iterator iter = map::find(toMacroHash(macro));
         if (iter == end()) {
-            insert(std::make_pair(toMacroHash(macro), NamedItem{
-                {macro},
-                {nullptr}
-            }));
+            insert(std::make_pair<std::string, BlockType>(toMacroHash(macro),{macro}));
         } else {
-            iter->second.proto.push_back(macro);
+            iter->second.push_back(macro);
         }
     }
 
@@ -352,7 +349,7 @@ TermPtr Named::EvalOpMacros(const TermPtr & term) {
     return macro;
 }
 
-bool Named::RemoveMacro(const TermPtr & term) {
+bool Macro::RemoveMacro(const TermPtr & term) {
 
     BlockType list = term->GetMacroId();
     ASSERT(!list.empty());
@@ -366,7 +363,7 @@ bool Named::RemoveMacro(const TermPtr & term) {
     iterator found = map::find(toMacroHash(term));
 
     if (found != end()) {
-        for (BlockType::iterator iter = found->second.proto.begin(); iter != found->second.proto.end(); ++iter) {
+        for (BlockType::iterator iter = found->second.begin(); iter != found->second.end(); ++iter) {
 
             BlockType names = (*iter)->GetMacroId();
 
@@ -385,9 +382,10 @@ bool Named::RemoveMacro(const TermPtr & term) {
                 }
             }
 
-            found->second.proto.erase(iter);
+            found->second.erase(iter);
 
-            if (found->second.proto.empty()) {
+            if (found->second.empty()) {
+
                 erase(list[0]->m_text.c_str());
             }
 
@@ -400,7 +398,7 @@ skip_remove:
     return false;
 }
 
-std::string Named::Dump() {
+std::string Macro::Dump() {
     std::string result;
     auto iter = begin();
     while (iter != end()) {
@@ -408,20 +406,21 @@ std::string Named::Dump() {
             result += ", ";
         }
 
-        for (int pos = 0; pos < iter->second.proto.size(); pos++) {
+        for (int pos = 0; pos < iter->second.size(); pos++) {
 
             std::string str;
-            for (auto &elem : iter->second.proto[pos]->GetMacroId()) {
+            for (auto &elem : iter->second[pos]->GetMacroId()) {
                 if (!str.empty()) {
                     str += " ";
                 }
                 str += elem->m_text;
-                if (iter->second.proto[pos]->isCall()) {
+                if (iter->second[pos]->isCall()) {
                     str += "(";
                 }
             }
             result += iter->first + "->'" + str + "'";
-            if (pos + 1 < iter->second.proto.size()) {
+            if (pos + 1 < iter->second.size()) {
+
                 result += "; ";
             }
         }
@@ -431,7 +430,7 @@ std::string Named::Dump() {
     return result;
 }
 
-std::string Named::Dump(const MacroArgsType & var) {
+std::string Macro::Dump(const MacroArgsType & var) {
     std::string result;
     auto iter = var.begin();
     while (iter != var.end()) {
@@ -442,6 +441,7 @@ std::string Named::Dump(const MacroArgsType & var) {
         std::string str;
         for (int pos = 0; pos < iter->second.size(); pos++) {
             if (!str.empty()) {
+
                 str += " ";
             }
             str += iter->second[pos]->toString();
@@ -453,11 +453,12 @@ std::string Named::Dump(const MacroArgsType & var) {
     return result;
 }
 
-std::string Named::Dump(const BlockType & arr) {
+std::string Macro::Dump(const BlockType & arr) {
     std::string result;
     auto iter = arr.begin();
     while (iter != arr.end()) {
         if (!result.empty()) {
+
             result += " ";
         }
         result += (*iter)->toString();
@@ -466,30 +467,31 @@ std::string Named::Dump(const BlockType & arr) {
     return result;
 }
 
-bool Named::CompareMacroName(const std::string & term_name, const std::string & macro_name) {
+bool Macro::CompareMacroName(const std::string & term_name, const std::string & macro_name) {
     //    LOG_DEBUG("%s == %s", term_name.c_str(), macro_name.c_str());
-    if (isLocal(macro_name)) {
+    if (isLocalName(macro_name)) {
         // Шаблон соответствует любому термину входного буфера
         return true;
     }
-    if (isMacro(term_name)) {
+    if (isMacroName(term_name)) {
         // Если термин в буфере - имя макроса
-        if (isMacro(macro_name)) {
+        if (isMacroName(macro_name)) {
             return macro_name.compare(term_name) == 0;
         }
         // Префикс макроса не учавтствует в сравнении
         return macro_name.compare(&term_name.c_str()[1]) == 0;
 
-    } else if (isMacro(macro_name)) {
+    } else if (isMacroName(macro_name)) {
         // Если термин в буфере - имя макроса
-        if (isMacro(term_name)) {
+        if (isMacroName(term_name)) {
             return macro_name.compare(term_name) == 0;
         }
         // Префикс макроса не учавтствует в сравнении
         return term_name.compare(&macro_name.c_str()[1]) == 0;
 
-    } else if (isLocalAny(term_name.c_str())) {
+    } else if (isLocalAnyName(term_name.c_str())) {
         // Любой другой термин не подходит
+
         return false;
     }
     // Без префиксов оба термина
@@ -592,7 +594,7 @@ bool Named::CompareMacroName(const std::string & term_name, const std::string & 
  * @__PRAGMA_PROP_TEST__(const, ^)
  * 
  */
-bool Named::IdentityMacro(const BlockType &buffer, const TermPtr & macro) {
+bool Macro::IdentityMacro(const BlockType &buffer, const TermPtr & macro) {
 
     if (!macro || !macro->isMacro()) {// || buffer.size() < macro->m_macro_id.size()) {
         return false;
@@ -631,6 +633,7 @@ bool Named::IdentityMacro(const BlockType &buffer, const TermPtr & macro) {
 
         if (macro_offset == macro->GetMacroId().size()) {
             //            LOG_DEBUG("Macro '%s' done for %d lexem!", macro->toString().c_str(), buff_offset);
+
             return true;
         }
 
@@ -640,7 +643,7 @@ bool Named::IdentityMacro(const BlockType &buffer, const TermPtr & macro) {
     return false;
 }
 
-void Named::InsertArg_(MacroArgsType & args, std::string name, BlockType & buffer, size_t pos) {
+void Macro::InsertArg_(MacroArgsType & args, std::string name, BlockType & buffer, size_t pos) {
 
     if (args.find(name) != args.end()) {
         LOG_RUNTIME("Duplicate arg %s!", name.c_str());
@@ -653,6 +656,7 @@ void Named::InsertArg_(MacroArgsType & args, std::string name, BlockType & buffe
         }
     } else {
         if (pos >= buffer.size()) {
+
             LOG_RUNTIME("No data for input buffer! Pos %d for size %d!", (int) pos, (int) buffer.size());
         }
         vect.push_back(buffer[pos]->Clone());
@@ -660,7 +664,7 @@ void Named::InsertArg_(MacroArgsType & args, std::string name, BlockType & buffe
     args.insert(std::make_pair(name, vect));
 }
 
-BlockType Named::SymbolSeparateArg_(const BlockType &buffer, size_t pos, std::vector<std::string> sym, std::string & error) {
+BlockType Macro::SymbolSeparateArg_(const BlockType &buffer, size_t pos, std::vector<std::string> sym, std::string & error) {
     error.clear();
     BlockType result;
     size_t skip;
@@ -699,7 +703,7 @@ BlockType Named::SymbolSeparateArg_(const BlockType &buffer, size_t pos, std::ve
     return result;
 }
 
-size_t Named::ExtractArgs(BlockType &buffer, const TermPtr &term, MacroArgsType & args) {
+size_t Macro::ExtractArgs(BlockType &buffer, const TermPtr &term, MacroArgsType & args) {
 
     ASSERT(term);
 
@@ -725,7 +729,7 @@ size_t Named::ExtractArgs(BlockType &buffer, const TermPtr &term, MacroArgsType 
     while (pos_id < term->GetMacroId().size()) {
 
         // Имя локальной переменной в идентификаторе макроса - это шаблон для замещения при его последующем раскрытии тела макроса
-        if (isLocal(term->GetMacroId()[pos_id]->m_text)) {
+        if (isLocalName(term->GetMacroId()[pos_id]->m_text)) {
 
             InsertArg_(args, term->GetMacroId()[pos_id]->m_text, buffer, pos_buf);
 
@@ -838,7 +842,7 @@ size_t Named::ExtractArgs(BlockType &buffer, const TermPtr &term, MacroArgsType 
         if (j) {
             ttt += " ";
         }
-        ttt += Named::toMacroHashName(term->GetMacroId()[j]->m_text);
+        ttt += Macro::toMacroHashName(term->GetMacroId()[j]->m_text);
     }
     //    LOG_DEBUG("m_macro_id: '%s'  args: %s", ttt.c_str(), Dump(args).c_str());
 
@@ -854,7 +858,7 @@ size_t Named::ExtractArgs(BlockType &buffer, const TermPtr &term, MacroArgsType 
     NL_PARSER(buffer[0], "Input buffer empty for extract args macros %s (%d+%d)=%d!", term->toString().c_str(), (int) pos_buf, (int) arg_offset, (int) buffer.size());
 }
 
-BlockType Named::ExpandMacros(const TermPtr &macro, MacroArgsType & args) {
+BlockType Macro::ExpandMacros(const TermPtr &macro, MacroArgsType & args) {
     ASSERT(macro);
     ASSERT(macro->Right());
 
@@ -911,6 +915,7 @@ BlockType Named::ExpandMacros(const TermPtr &macro, MacroArgsType & args) {
             }
 
         } else {
+
             result.insert(result.end(), seq[i]->Clone());
         }
     }
@@ -920,13 +925,14 @@ BlockType Named::ExpandMacros(const TermPtr &macro, MacroArgsType & args) {
 std::string ReplaceAll(std::string str, const std::string& from, const std::string & to) {
     size_t start_pos = 0;
     while ((start_pos = str.find(from, start_pos)) != std::string::npos) {
+
         str.replace(start_pos, from.length(), to);
         start_pos += to.length(); // Handles case where 'to' is a substring of 'from'
     }
     return str;
 }
 
-std::string Named::ExpandString(const TermPtr &macro, MacroArgsType & args) {
+std::string Macro::ExpandString(const TermPtr &macro, MacroArgsType & args) {
     ASSERT(macro);
     ASSERT(macro->Right());
     if (macro->Right()->m_id != TermID::MACRO_STR) {
@@ -951,22 +957,23 @@ std::string Named::ExpandString(const TermPtr &macro, MacroArgsType & args) {
     return body;
 }
 
-TermPtr Named::GetMacroById(const BlockType block) {
+TermPtr Macro::GetMacroById(const BlockType block) {
     std::vector<std::string> list;
     for (auto &elem : block) {
+
         list.push_back(elem->m_text);
     }
     return GetMacro(list);
 }
 
-TermPtr Named::GetMacro(std::vector<std::string> list) {
+TermPtr Macro::GetMacro(std::vector<std::string> list) {
     if (list.empty()) {
         return nullptr;
     }
     iterator found = map::find(toMacroHashName(list[0]));
 
     if (found != end()) {
-        for (BlockType::iterator iter = found->second.proto.begin(); iter != found->second.proto.end(); ++iter) {
+        for (BlockType::iterator iter = found->second.begin(); iter != found->second.end(); ++iter) {
 
             BlockType names = (*iter)->GetMacroId();
 
@@ -1254,7 +1261,7 @@ next_escape_token:
             TermPtr macro_done = nullptr;
 
             // Итератор для списка макросов, один из которых может соответствовать текущему буферу (по первому термину буфера)
-            Named::iterator found = m_macro->map::find(Named::toMacroHash(m_macro_analisys_buff[0]));
+            Macro::iterator found = m_macro->map::find(Macro::toMacroHash(m_macro_analisys_buff[0]));
 
             if (found == m_macro->end()) {
 
@@ -1268,9 +1275,9 @@ next_escape_token:
 
             macro_done.reset();
             // Перебрать все макросы и сравнить с буфером
-            for (auto iter = found->second.proto.begin(); iter != found->second.proto.end(); ++iter) {
+            for (auto iter = found->second.begin(); iter != found->second.end(); ++iter) {
 
-                if (Named::IdentityMacro(m_macro_analisys_buff, *iter)) {
+                if (Macro::IdentityMacro(m_macro_analisys_buff, *iter)) {
 
                     if (macro_done) {
                         LOG_RUNTIME("Macro duplication %s and '%s'!", macro_done->toString().c_str(), (*iter)->toString().c_str());
@@ -1293,8 +1300,8 @@ next_escape_token:
                 ASSERT(m_macro_analisys_buff.size() >= macro_done->m_macro_seq.size());
                 ASSERT(macro_done->Right());
 
-                Named::MacroArgsType macro_args;
-                size_t size_remove = Named::ExtractArgs(m_macro_analisys_buff, macro_done, macro_args);
+                Macro::MacroArgsType macro_args;
+                size_t size_remove = Macro::ExtractArgs(m_macro_analisys_buff, macro_done, macro_args);
 
                 //                LOG_DEBUG("buffer '%s' DumpArgs: %s", MacroBuffer::Dump(m_macro_analisys_buff).c_str(), MacroBuffer::Dump(macro_args).c_str());
 
@@ -1315,8 +1322,8 @@ next_escape_token:
 
                 if (macro_done->Right()->getTermID() == TermID::MACRO_STR) {
 
-                    std::string macro_str = Named::ExpandString(macro_done, macro_args);
-                    lexer->source_string = std::make_shared<std::string>(Named::ExpandString(macro_done, macro_args));
+                    std::string macro_str = Macro::ExpandString(macro_done, macro_args);
+                    lexer->source_string = std::make_shared<std::string>(Macro::ExpandString(macro_done, macro_args));
                     lexer->m_macro_iss = new std::istringstream(*lexer->source_string);
                     lexer->m_macro_loc = *lexer->m_loc; // save
                     lexer->m_loc->initialize();
@@ -1338,7 +1345,7 @@ next_escape_token:
                 } else {
 
                     ASSERT(macro_done->Right());
-                    BlockType macro_block = Named::ExpandMacros(macro_done, macro_args);
+                    BlockType macro_block = Macro::ExpandMacros(macro_done, macro_args);
                     m_macro_analisys_buff.insert(m_macro_analisys_buff.begin(), macro_block.begin(), macro_block.end());
 
                     std::string temp = "";
@@ -1358,7 +1365,7 @@ next_escape_token:
 
                 LOG_RUNTIME("Macro mapping '%s' not found!\nThe following macro mapping are available:\n%s",
                         m_macro_analisys_buff[0]->toString().c_str(),
-                        m_macro->GetMacroMaping(Named::toMacroHash(m_macro_analisys_buff[0]), "\n").c_str());
+                        m_macro->GetMacroMaping(Macro::toMacroHash(m_macro_analisys_buff[0]), "\n").c_str());
 
                 //                }
             }
@@ -1406,6 +1413,7 @@ next_escape_token:
     }
 
     *yylval = nullptr;
+
     return parser::token_type::END;
 }
 
@@ -1496,104 +1504,7 @@ next_escape_token:
 //    LOG_RUNTIME("Type name '%s' not found!", type.c_str());
 //}
 
-std::vector<std::wstring> Named::SelectPredict(std::string start, size_t overage_count) {
-
-    std::vector<std::wstring> result;
-
-    bool find_local = false;
-    bool find_global = false;
-    bool find_types = false;
-    bool find_macro = false;
-
-    std::string prefix;
-
-    if (isModule(start)) {
-        prefix = start[0];
-        start = start.substr(1);
-        find_global = true;
-    } else if (isLocal(start)) {
-        prefix = start[0];
-        start = start.substr(1);
-        find_local = true;
-    } else if (isMacro(start)) {
-        find_macro = true;
-    } else if (isType(start)) {
-        find_types = true;
-    } else {
-        find_local = true;
-        find_global = true;
-        find_types = true;
-        find_macro = true;
-    }
-
-
-    if (find_macro) {
-        for (auto &elem : * this) {
-            if (pred_compare(start, elem.first)) {
-                result.push_back(utf8_decode(prefix + elem.first));
-                if (result.size() > overage_count + 1) {
-                    break;
-                }
-            }
-        }
-    }
-
-    if (find_local) {
-        //        for (int i = 0; i < size(); i++) {
-        //            if (pred_compare(start, at(i).first)) {
-        //                ObjPtr object = at(i).second.lock();
-        //                if (object && object->is_function_type()) {
-        //                    result.push_back(utf8_decode(prefix + at(i).first) + L"(");
-        //                } else if (object) {
-        //                    result.push_back(utf8_decode(prefix + at(i).first));
-        //                }
-        //                if (result.size() > overage_count + 1) {
-        //                    break;
-        //                }
-        //            }
-        //        }
-    }
-
-    if (find_global) {
-        //        for (int i = 0; i < m_terms->size(); i++) {
-        //            if (pred_compare(start, m_terms->at(i).first)) {
-        //                if (m_terms->at(i).second->is_function_type()) {
-        //                    result.push_back(utf8_decode(prefix + m_terms->at(i).first) + L"(");
-        //                } else {
-        //                    result.push_back(utf8_decode(prefix + m_terms->at(i).first));
-        //                }
-        //                if (result.size() > overage_count + 1) {
-        //                    break;
-        //                }
-        //            }
-        //        }
-
-        for (auto &elem : m_funcs) {
-
-            if (pred_compare(start, elem.first)) {
-                result.push_back(utf8_decode(prefix + elem.first) + L"(");
-                if (result.size() > overage_count + 1) {
-                    break;
-                }
-            }
-        }
-    }
-
-    if (find_types) {
-        for (auto &elem : m_types) {
-            if (pred_compare(start, elem.first)) {
-                result.push_back(utf8_decode(elem.first));
-                if (result.size() > overage_count + 1) {
-                    break;
-                }
-            }
-        }
-    }
-    return result;
-
-}
-
-TermPtr Named::FindTerm(std::string_view name) {//, bool *has_error = nullptr) {
+TermPtr Macro::FindTerm(std::string_view name) {//, bool *has_error = nullptr) {
     if (name.empty()) {
         LOG_RUNTIME("Empty term name!");
     }
@@ -1603,7 +1514,7 @@ TermPtr Named::FindTerm(std::string_view name) {//, bool *has_error = nullptr) {
     //        return nullptr;
     //    }
     //    
-    //    return found->second.proto
+    //    return found->second
     //    
     //    
     //

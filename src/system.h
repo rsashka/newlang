@@ -2,18 +2,13 @@
 #define NEWLANG_SYSTEM_H_
 
 #include "pch.h"
-#include "newlang.h"
 
-//#include <variable.h>
-//#include <diag.h>
-//#include <object.h>
+#include <module.h>
 #include <builtin.h>
-
 
 namespace newlang {
 
     namespace runtime {
-
 
         //    os.name - имя операционной системы. Доступные варианты: ‘posix’, ’nt’, ‘mac’, ‘os2’, ‘ce’, ‘java’.
         //    os.environ - словарь переменных окружения. Изменяемый (можно добавлять и удалять переменные окружения).
@@ -48,7 +43,7 @@ namespace newlang {
         //    os.utime(path, times=None, *, ns=None, dir_fd=None, follow_symlinks=True) - модификация времени последнего доступа и изменения файла. Либо times - кортеж (время доступа в секундах, время изменения в секундах), либо ns - кортеж (время доступа в наносекундах, время изменения в наносекундах).
         //    os.walk(top, topdown=True, onerror=None, followlinks=False) - генерация имён файлов в дереве каталогов, сверху вниз (если topdown равен True), либо снизу вверх (если False). Для каждого каталога функция walk возвращает кортеж (путь к каталогу, список каталогов, список файлов).
 
-        class Buildin : public Obj {
+        class Buildin : public Module {
         public:
 
             Buildin(ObjType type, const char * name = nullptr) {
@@ -57,16 +52,22 @@ namespace newlang {
                     ASSERT(name);
                 }
 
-                m_var_type_current = type;
-                m_var_type_fixed = type;
-                m_class_name = name;
+//                m_var_type_current = type;
+//                m_var_type_fixed = type;
+//                m_class_name = name;
 
                 TermPtr term = Parser::ParseTerm(name, nullptr, false);
 
                 if (!term) {
                     LOG_RUNTIME("Fail name '%s'!", name);
                 }
-                * const_cast<TermPtr *> (&m_prototype) = term;
+//                * const_cast<TermPtr *> (&m_prototype) = term;
+
+                m_file = "__buildin__";
+                m_source = "__buildin__";
+                m_md5 = "";
+                m_timestamp = __TIMESTAMP__;
+                m_version = VERSION;
 
             }
 
@@ -83,8 +84,9 @@ namespace newlang {
         public:
 
             System() : Buildin(ObjType::System) {
-                m_var_type_current = ObjType::Module;
-                m_var_type_fixed = ObjType::Module;
+//                m_var_type_current = ObjType::Module;
+//                m_var_type_fixed = ObjType::Module;
+//                m_class_name = "System";
 
 
                 Obj arg;
@@ -108,7 +110,7 @@ namespace newlang {
                 VERIFY(CreateMethodNative("chdir(dir:StrChar):Int32", (void *) &::chdir));
                 VERIFY(CreateMethodNative("getcwd():StrChar", (void *) &::getcwd));
 
-                m_var_is_init = true;
+//                m_var_is_init = true;
             }
 
             virtual ~System() {

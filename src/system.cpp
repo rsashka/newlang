@@ -3,7 +3,6 @@
 #include <sys/sysinfo.h>
 #include <sys/time.h>
 
-#include <newlang.h>
 #include <system.h>
 
 using namespace newlang;
@@ -15,7 +14,7 @@ bool Buildin::AddMethod(const char * name, ObjPtr obj) {
         return false;
     }
     //    LOG_DEBUG("New method '%s'!", name);
-    push_back(obj, name);
+//    push_back(obj, name);
     return true;
 }
 
@@ -195,7 +194,7 @@ CALSS_METHOD(System, getenviron) {
     std::vector<std::string> split;
     ObjPtr result = Obj::CreateDict();
     for (; env && *env; ++env) {
-        split = Named::SplitString(*env, "=");
+        split = Macro::SplitString(*env, "=");
         result->push_back(Obj::CreateString(&(*env)[split[0].size() + 1]), split[0]);
     }
     return result;

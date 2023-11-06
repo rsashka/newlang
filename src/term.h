@@ -133,6 +133,37 @@ namespace newlang {
         return id == TermID::CREATE || id == TermID::CREATE_OR_ASSIGN || id == TermID::ASSIGN || id == TermID::PUREFUNC || id == TermID::PURE_CREATE;
     }
 
+    /*
+     * 
+     * 
+     */
+
+    struct GlobNameItem {
+        TermPtr proto;
+        WeakItem obj;
+    };
+
+    class GlobNameList : public std::map<std::string, GlobNameItem> {
+    public:
+        //        ModulePtr GlobalNameCreate(ModulePtr module);
+
+
+        bool GlobalNameRegister(TermPtr term, WeakItem obj); // = at::monostate);
+        GlobNameItem * GlobalNameFind(const char *name);
+
+        ObjPtr GlobalNameGet(const char *name, bool is_raise = true);
+
+        bool MakeFullNames(TermPtr ast);
+
+    };
+
+    typedef bool NodeHandlerFunc(TermPtr &term, void * obj);
+    typedef std::vector < NodeHandlerFunc *> NodeHandlerList;
+
+    /*
+     * 
+     * 
+     */
     class Term : public Variable<Term>, public std::enable_shared_from_this<Term> {
     public:
 
@@ -171,10 +202,10 @@ namespace newlang {
             m_is_call = false;
             m_is_const = false;
             m_bracket_depth = 0;
-            
+
             m_ref_restrict = RefType::RefNone;
             m_ref_type = RefType::RefNone;
-            
+
             SetTermID(id);
         }
 
@@ -1013,6 +1044,7 @@ namespace newlang {
                 return true;
             }
 
+            std::string ns = m_namespace;
             TermPtr next = shared_from_this();
             TermPtr prev;
 
@@ -1024,6 +1056,7 @@ namespace newlang {
             m_class.clear();
 
             while (next && next->getTermID() != TermID::END) {
+                next->m_namespace = ns;
                 m_block.push_back(next);
                 prev = next;
                 next = next->m_sequence;
@@ -1081,6 +1114,7 @@ namespace newlang {
             m_docs.clear();
             m_macro_id.clear();
             m_macro_seq.clear();
+            m_namespace.clear();
         }
 
         inline TermPtr First() {
@@ -1253,7 +1287,7 @@ namespace newlang {
         }
 
         inline bool TestConst() {
-            if (isConst(m_text)) {
+            if (isConstName(m_text)) {
                 m_text.resize(m_text.size() - 1);
                 m_is_const = true;
             }
@@ -1264,6 +1298,17 @@ namespace newlang {
 
         //    SCOPE(protected) :
         static BlockType MakeMacroId(const BlockType &seq);
+
+        /**
+         * Проверяет аргументы термина на корректность, обрабатывает системные аргументы, проверяет наличие внешних функций
+         * 
+         * 
+         */
+        static bool CheckArgsProto(TermPtr &term, const TermPtr proto);
+        static bool CheckArgsCall(TermPtr &term, RuntimePtr rt = nullptr);
+        static bool CheckCompareArgs_(const TermPtr &term, const TermPtr &proto);
+        static void TraversingNodes(TermPtr &ast, NodeHandlerList handlers, void * obj);
+
 
         TermID m_id;
         SourceType m_source;
@@ -1285,9 +1330,12 @@ namespace newlang {
         std::string m_name;
         std::string m_text;
         std::string m_class;
+        std::string m_namespace; ///< Текущая область имен в исходном файле при использовании данного термина
         BlockType m_dims;
         BlockType m_docs;
         BlockType m_type_allowed;
+
+        GlobNameList m_names;
 
         TermPtr m_sys_prop;
         int m_bracket_depth;

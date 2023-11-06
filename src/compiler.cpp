@@ -1,9 +1,6 @@
 #include "pch.h"
-#include "system.h"
 
-#include <term.h>
-#include <newlang.h>
-#include <builtin.h>
+#include "compiler.h"
 
 using namespace newlang;
 
@@ -11,7 +8,196 @@ using namespace newlang;
 //LLVMModuleRef RunTime::m_llvm_module = nullptr;
 //LLVMExecutionEngineRef RunTime::m_llvm_engine = nullptr;
 
-const char * RunTime::default_argv[RunTime::default_argc] = {"", "-nlc-no-runtime", "-nlc-no-dsl"};
+bool newlang::Tranliterate(const wchar_t c, std::wstring &str) {
+    switch (c) {
+        case L'а': str.append(L"a");
+            return true;
+        case L'б': str.append(L"b");
+            return true;
+        case L'в': str.append(L"v");
+            return true;
+        case L'г': str.append(L"g");
+            return true;
+        case L'д': str.append(L"d");
+            return true;
+        case L'е': str.append(L"e");
+            return true;
+        case L'ё': str.append(L"ye");
+            return true;
+        case L'ж': str.append(L"zh");
+            return true;
+        case L'з': str.append(L"z");
+            return true;
+        case L'и': str.append(L"i");
+            return true;
+        case L'й': str.append(L"y");
+            return true;
+        case L'к': str.append(L"k");
+            return true;
+        case L'л': str.append(L"l");
+            return true;
+        case L'м': str.append(L"m");
+            return true;
+        case L'н': str.append(L"n");
+            return true;
+        case L'о': str.append(L"o");
+            return true;
+        case L'п': str.append(L"p");
+            return true;
+        case L'р': str.append(L"r");
+            return true;
+        case L'с': str.append(L"s");
+            return true;
+        case L'т': str.append(L"t");
+            return true;
+        case L'у': str.append(L"u");
+            return true;
+        case L'ф': str.append(L"f");
+            return true;
+        case L'х': str.append(L"h");
+            return true;
+        case L'ц': str.append(L"z");
+            return true;
+        case L'ч': str.append(L"ch");
+            return true;
+        case L'ш': str.append(L"sh");
+            return true;
+        case L'щ': str.append(L"sch");
+            return true;
+        case L'ы': str.append(L"y");
+            return true;
+        case L'э': str.append(L"e");
+            return true;
+        case L'ю': str.append(L"yu");
+            return true;
+        case L'я': str.append(L"ya");
+            return true;
+        case L'А': str.append(L"A");
+            return true;
+        case L'Б': str.append(L"B");
+            return true;
+        case L'В': str.append(L"V");
+            return true;
+        case L'Г': str.append(L"G");
+            return true;
+        case L'Д': str.append(L"D");
+            return true;
+        case L'Е': str.append(L"E");
+            return true;
+        case L'Ё': str.append(L"YE");
+            return true;
+        case L'Ж': str.append(L"ZH");
+            return true;
+        case L'З': str.append(L"Z");
+            return true;
+        case L'И': str.append(L"I");
+            return true;
+        case L'Й': str.append(L"Y");
+            return true;
+        case L'К': str.append(L"K");
+            return true;
+        case L'Л': str.append(L"L");
+            return true;
+        case L'М': str.append(L"M");
+            return true;
+        case L'Н': str.append(L"N");
+            return true;
+        case L'О': str.append(L"O");
+            return true;
+        case L'П': str.append(L"P");
+            return true;
+        case L'Р': str.append(L"R");
+            return true;
+        case L'С': str.append(L"S");
+            return true;
+        case L'Т': str.append(L"T");
+            return true;
+        case L'У': str.append(L"U");
+            return true;
+        case L'Ф': str.append(L"F");
+            return true;
+        case L'Х': str.append(L"H");
+            return true;
+        case L'Ц': str.append(L"Z");
+            return true;
+        case L'Ч': str.append(L"CH");
+            return true;
+        case L'Ш': str.append(L"SH");
+            return true;
+        case L'Щ': str.append(L"SCH");
+            return true;
+        case L'Ы': str.append(L"Y");
+            return true;
+        case L'ъ': str.append(L"_");
+        case L'ь': str.append(L"_");
+        case L'Ь': str.append(L"_");
+        case L'Ъ': str.append(L"_");
+            return true;
+        case L'Э': str.append(L"E");
+            return true;
+        case L'Ю': str.append(L"YU");
+            return true;
+        case L'Я': str.append(L"YA");
+            return true;
+        default:
+            str.append(std::to_wstring(static_cast<unsigned int> (c)));
+    }
+    return true;
+}
+
+
+//_Z5name1PN7newlang7ContextERNS_4ObjectE
+//_Z6name22PN7newlang7ContextERNS_4ObjectE
+//_Z7name333PN7newlang7ContextERNS_4ObjectE
+// Для типа
+//typedef ObjPtr FunctionType(Context *ctx, Object &in);
+
+std::string newlang::MangaledFuncCPP(const char *name, const char *space) {
+    std::string result("_Z");
+    result += std::to_string(strlen(name));
+    result += name;
+    result += "PN7newlang7ContextERNS_4ObjectE";
+    return result;
+}
+
+//Int8    _ZN7newlang4CharEPKNS_7ContextERKNS_6ObjectE
+//Int16   _ZN7newlang5ShortEPKNS_7ContextERKNS_6ObjectE
+//Char_   _ZN7newlang5Char_EPNS_7ContextERNS_6ObjectE
+//Short_  _ZN7newlang6Short_EPNS_7ContextERNS_6ObjectE
+
+std::string newlang::MangaledFunc(const std::string name) {
+    std::string result("_ZN7newlang");
+    result += std::to_string(name.size());
+    result += name;
+    result += isMutableName(name) ? "EPNS_7ContextERNS_6ObjectE" : "EPKNS_7ContextERKNS_6ObjectE";
+    return result;
+}
+
+std::string newlang::MangleName(const char * name) {
+
+#define ALLOW_CHAR L"_ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz"
+    static const std::wstring first_char(ALLOW_CHAR);
+    static const std::wstring next_char(L"0123456789" ALLOW_CHAR);
+#undef ALLOW_CHAR
+    std::wstring_convert < std::codecvt_utf8<wchar_t>, wchar_t> converter;
+    std::wstring temp = converter.from_bytes(name);
+
+    std::wstring result = converter.from_bytes(NEWLANG_PREFIX "_");
+    if (temp.size()) {
+        size_t len = temp.size();
+        for (size_t i = 0; i < len; i++) {
+            if (i == 0 && first_char.find(temp[i]) != std::wstring::npos) {
+                result += temp[i]; // Первый символ имени только буква или подчерк
+            } else if (i != 0 && next_char.find(temp[i]) != std::wstring::npos) {
+                result += temp[i]; // Последующие могут содержать ещё и цифры
+            } else {
+                Tranliterate(temp[i], result); // Иначе конвертировать в ASCII символы
+            }
+        }
+    }
+    return converter.to_bytes(result);
+}
+
 
 //TermPtr CompileInfo::isFunction(TermPtr term) {
 //    ASSERT(term);
@@ -216,195 +402,7 @@ const char * RunTime::default_argv[RunTime::default_argc] = {"", "-nlc-no-runtim
 //    return "";
 //}
 
-bool newlang::Tranliterate(const wchar_t c, std::wstring &str) {
-    switch (c) {
-        case L'а': str.append(L"a");
-            return true;
-        case L'б': str.append(L"b");
-            return true;
-        case L'в': str.append(L"v");
-            return true;
-        case L'г': str.append(L"g");
-            return true;
-        case L'д': str.append(L"d");
-            return true;
-        case L'е': str.append(L"e");
-            return true;
-        case L'ё': str.append(L"ye");
-            return true;
-        case L'ж': str.append(L"zh");
-            return true;
-        case L'з': str.append(L"z");
-            return true;
-        case L'и': str.append(L"i");
-            return true;
-        case L'й': str.append(L"y");
-            return true;
-        case L'к': str.append(L"k");
-            return true;
-        case L'л': str.append(L"l");
-            return true;
-        case L'м': str.append(L"m");
-            return true;
-        case L'н': str.append(L"n");
-            return true;
-        case L'о': str.append(L"o");
-            return true;
-        case L'п': str.append(L"p");
-            return true;
-        case L'р': str.append(L"r");
-            return true;
-        case L'с': str.append(L"s");
-            return true;
-        case L'т': str.append(L"t");
-            return true;
-        case L'у': str.append(L"u");
-            return true;
-        case L'ф': str.append(L"f");
-            return true;
-        case L'х': str.append(L"h");
-            return true;
-        case L'ц': str.append(L"z");
-            return true;
-        case L'ч': str.append(L"ch");
-            return true;
-        case L'ш': str.append(L"sh");
-            return true;
-        case L'щ': str.append(L"sch");
-            return true;
-        case L'ы': str.append(L"y");
-            return true;
-        case L'э': str.append(L"e");
-            return true;
-        case L'ю': str.append(L"yu");
-            return true;
-        case L'я': str.append(L"ya");
-            return true;
-        case L'А': str.append(L"A");
-            return true;
-        case L'Б': str.append(L"B");
-            return true;
-        case L'В': str.append(L"V");
-            return true;
-        case L'Г': str.append(L"G");
-            return true;
-        case L'Д': str.append(L"D");
-            return true;
-        case L'Е': str.append(L"E");
-            return true;
-        case L'Ё': str.append(L"YE");
-            return true;
-        case L'Ж': str.append(L"ZH");
-            return true;
-        case L'З': str.append(L"Z");
-            return true;
-        case L'И': str.append(L"I");
-            return true;
-        case L'Й': str.append(L"Y");
-            return true;
-        case L'К': str.append(L"K");
-            return true;
-        case L'Л': str.append(L"L");
-            return true;
-        case L'М': str.append(L"M");
-            return true;
-        case L'Н': str.append(L"N");
-            return true;
-        case L'О': str.append(L"O");
-            return true;
-        case L'П': str.append(L"P");
-            return true;
-        case L'Р': str.append(L"R");
-            return true;
-        case L'С': str.append(L"S");
-            return true;
-        case L'Т': str.append(L"T");
-            return true;
-        case L'У': str.append(L"U");
-            return true;
-        case L'Ф': str.append(L"F");
-            return true;
-        case L'Х': str.append(L"H");
-            return true;
-        case L'Ц': str.append(L"Z");
-            return true;
-        case L'Ч': str.append(L"CH");
-            return true;
-        case L'Ш': str.append(L"SH");
-            return true;
-        case L'Щ': str.append(L"SCH");
-            return true;
-        case L'Ы': str.append(L"Y");
-            return true;
-        case L'ъ': str.append(L"_");
-        case L'ь': str.append(L"_");
-        case L'Ь': str.append(L"_");
-        case L'Ъ': str.append(L"_");
-            return true;
-        case L'Э': str.append(L"E");
-            return true;
-        case L'Ю': str.append(L"YU");
-            return true;
-        case L'Я': str.append(L"YA");
-            return true;
-        default:
-            str.append(std::to_wstring(static_cast<unsigned int> (c)));
-    }
-    return true;
-}
 
-
-//_Z5name1PN7newlang7ContextERNS_4ObjectE
-//_Z6name22PN7newlang7ContextERNS_4ObjectE
-//_Z7name333PN7newlang7ContextERNS_4ObjectE
-// Для типа
-//typedef ObjPtr FunctionType(Context *ctx, Object &in);
-
-std::string newlang::MangaledFuncCPP(const char *name, const char *space) {
-    std::string result("_Z");
-    result += std::to_string(strlen(name));
-    result += name;
-    result += "PN7newlang7ContextERNS_4ObjectE";
-    return result;
-}
-
-//Int8    _ZN7newlang4CharEPKNS_7ContextERKNS_6ObjectE
-//Int16   _ZN7newlang5ShortEPKNS_7ContextERKNS_6ObjectE
-//Char_   _ZN7newlang5Char_EPNS_7ContextERNS_6ObjectE
-//Short_  _ZN7newlang6Short_EPNS_7ContextERNS_6ObjectE
-
-std::string newlang::MangaledFunc(const std::string name) {
-    std::string result("_ZN7newlang");
-    result += std::to_string(name.size());
-    result += name;
-    result += isMutableName(name) ? "EPNS_7ContextERNS_6ObjectE" : "EPKNS_7ContextERKNS_6ObjectE";
-    return result;
-}
-
-std::string newlang::MangleName(const char * name) {
-
-#define ALLOW_CHAR L"_ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz"
-    static const std::wstring first_char(ALLOW_CHAR);
-    static const std::wstring next_char(L"0123456789" ALLOW_CHAR);
-#undef ALLOW_CHAR
-    std::wstring_convert < std::codecvt_utf8<wchar_t>, wchar_t> converter;
-    std::wstring temp = converter.from_bytes(name);
-
-    std::wstring result = converter.from_bytes(NEWLANG_PREFIX "_");
-    if (temp.size()) {
-        size_t len = temp.size();
-        for (size_t i = 0; i < len; i++) {
-            if (i == 0 && first_char.find(temp[i]) != std::wstring::npos) {
-                result += temp[i]; // Первый символ имени только буква или подчерк
-            } else if (i != 0 && next_char.find(temp[i]) != std::wstring::npos) {
-                result += temp[i]; // Последующие могут содержать ещё и цифры
-            } else {
-                Tranliterate(temp[i], result); // Иначе конвертировать в ASCII символы
-            }
-        }
-    }
-    return converter.to_bytes(result);
-}
 
 //bool Compiler::MakeFunctionCpp(CompileInfo &ci, std::string func_name, TermPtr &func_define, std::ostream &out) {
 //    LOG_RUNTIME("MakeFunctionCpp Not implemeneted!");
@@ -1256,249 +1254,6 @@ std::string newlang::MangleName(const char * name) {
 //    }
 //}
 
-ModulePtr RunTime::LoadModule(const char *term, bool init) {
-    ASSERT(term);
-
-
-    std::string name = ExtractModuleName(term);
-    bool is_root = (name.find("\\\\") == 0);
-    if (is_root) {
-        LOG_WARNING("Load module from root not implemented! '%s'", name.c_str());
-        name = name.substr(1); // remove root marker (double back slash) i.e. \\root\dir\module
-    }
-    std::vector<std::string> split = Named::SplitString(name.substr(1).c_str(), "\\");
-
-    std::string path;
-    for (auto &elem : split) {
-        if (!path.empty()) {
-            path += llvm::sys::path::get_separator();
-        }
-        path += elem;
-    }
-
-    path += ".nlp";
-
-
-    llvm::SmallString<1024> search_file;
-    if (llvm::sys::path::is_relative(path)) {
-        for (int i = 0; i < m_search_dir.size(); i++) {
-
-            search_file = m_search_dir[i];
-            llvm::sys::path::append(search_file, path);
-
-            std::string full_path = search_file.c_str();
-            if (llvm::sys::path::is_relative(full_path)) {
-                full_path.insert(0, llvm::sys::path::get_separator().str());
-                full_path.insert(0, m_work_dir);
-            }
-
-//            //            LOG_DEBUG("Check '%s' in file %s", name_str, full_path.c_str());
-//
-//            if (llvm::sys::fs::exists(full_path)) {
-//                LOG_DEBUG("Module '%s' load from file '%s'!", term, full_path.c_str());
-//
-//                ModulePtr module = std::make_shared<Module>();
-//                if (module->Load(ctx, full_path.c_str(), false)) {
-//
-//                    ctx.m_terms = module.get();
-//                    ctx.ExecStr(module->m_source);
-//                    ctx.m_terms = ctx.m_main_module.get();
-//
-//                    for (int i = 0; i < module->size(); i++) {
-//                        if (!isModule(module->at(i).first)) {
-//                            if (module->at(i).first.compare("::") != 0) {
-//                                module->at(i).first.insert(0, "::");
-//                            }
-//                            module->at(i).first.insert(0, name);
-//                        }
-//                    }
-//
-//                    return module;
-//                }
-//            }
-
-
-        }
-    }
-
-    LOG_ERROR("Module name '%s' or file '%s' not found!", term, search_file.c_str());
-
-    return nullptr;
-
-
-    //    ASSERT(!"Not impelmented");
-    //    std::string name(module_name ? module_name : name_str);
-    //    try {
-    //        m_modules.insert(std::pair<std::string, Module *>(name, new Module(name_str)));
-    //        void * handle = m_modules[name]->GetHandle();
-    //
-    //        const size_t * func_list_count = static_cast<const size_t *> (dlsym(handle, NEWLANG_PREFIX "_func_list_count"));
-    //        const char ** func_list = static_cast<const char **> (dlsym(handle, NEWLANG_PREFIX "_func_list"));
-    //        m_modules[name]->m_source = static_cast<const char **> (dlsym(handle, NEWLANG_PREFIX "_module_source"));
-    //        m_modules[name]->m_main = reinterpret_cast<FunctionType*> (dlsym(handle, NEWLANG_PREFIX "_main_module_func"));
-    //
-    //        //@todo INIT MODULE
-    //
-    //        ObjPtr func;
-    //        if(func_list_count && func_list) {
-    //            TermPtr proto;
-    //            Parser parser(proto);
-    //            for (size_t i = 0; i < (*func_list_count); i++) {
-    //                LOG_DEBUG("Load '%s' form module '%s'.", func_list[i], name_str);
-    //
-    //                std::string arg_name = NEWLANG_PREFIX "_";
-    //                arg_name += func_list[i];
-    //                arg_name += "_text";
-    //
-    //                const char ** func_proto = static_cast<const char **> (dlsym(handle, arg_name.c_str()));
-    //                parser.Parse(*func_proto);
-    //                ObjType type;
-    //                switch(proto->getTermID()) {
-    //                    case TermID::SIMPLE:
-    //                    case TermID::PUREFUNC:
-    //                        type = ObjType::PUREFUNC;
-    //                        break;
-    //                    case TermID::FUNCTION:
-    //                        type = ObjType::FUNCTION;
-    //                        break;
-    //                    default:
-    //                        LOG_RUNTIME("Function type '%s' unknown '%s'", newlang::toString(proto->getTermID()), proto->toString().c_str());
-    //                }
-    //                func = Obj::CreateFunc(ctx, proto->Left(), type, func_list[i]);
-    //                func->m_func_ptr = reinterpret_cast<void *> (dlsym(handle, MangleName(func_list[i]).c_str()));
-    //                func->m_func_source = proto;
-    //
-    //                //@todo call init module                
-    //                if(!(func->m_func_ptr && ctx->RegisterObject(func))) {
-    //                    LOG_ERROR("Fail load '%s' form module '%s'.", func_list[i], name_str);
-    //                } else {
-    //                    m_modules[name]->Funcs()[func_list[i]] = func;
-    //                }
-    //            }
-    //
-    //            return true;
-    //        }
-    //        LOG_WARNING("In module '%s' functions not found!", name_str);
-    //        return true;
-    //    } catch (std::runtime_error &e) {
-    //
-    //        LOG_ERROR("%s", e.what());
-    //    }
-    return nullptr;
-}
-
-bool RunTime::UnLoadModule(const char *name_str, bool deinit) {
-    bool result = false;
-    bool is_error = false;
-    //    auto it = m_modules.begin();
-    //    while(it != m_modules.end()) {
-    //        if(name == nullptr || it->first.compare(name) == 0) {
-    //
-    //            for (auto &elem : it->second->Funcs()) {
-    //                if(!ctx->RemoveObject(elem.first.c_str())) {
-    //                    LOG_ERROR("Fail unregister func '%s' from module '%s'.", elem.first.c_str(), it->first.c_str());
-    //                    is_error = true;
-    //                }
-    //            }
-    //            LOG_DEBUG("UnLoad module '%s'.", it->first.c_str());
-    //
-    //            //@todo call deinit module
-    //            delete it->second;
-    //            it = m_modules.erase(it);
-    //            result = true;
-    //        } else {
-    //
-    //            it++;
-    //        }
-    //    }
-    return result && !is_error;
-}
-
-bool CheckClearFunction(TermPtr term) {
-    if (term && term->getTermID() == TermID::SOURCE) {
-        return false;
-    } else if (term && term->getTermID() == TermID::BLOCK) {
-        for (int i = 0; i < (int) term->m_block.size(); i++) {
-            if (!CheckClearFunction(term->m_block[i])) {
-                return false;
-            }
-        }
-    } else if (term && term->Right()) {
-        TermPtr temp = term->Right();
-        while (temp) {
-            if (term->getTermID() == TermID::SOURCE) {
-                return false;
-            }
-            if (term->Right()) {
-                temp = term->Right();
-            } else {
-
-                break;
-            }
-        }
-    }
-    return true;
-}
-
-//bool NewLang::SaveContext(const char *name) {
-//    std::ofstream file;
-//    file.open(name, std::ios::trunc);
-//    file << "#!/bin/nlc --exec\n";
-//    file << "// Global user terms\n\n";
-//    std::string temp;
-//    std::string str;
-//    for (auto &elem : * this) {
-//        temp.swap(elem.second->m_var_name);
-//
-//        str = elem.second->toString();
-//        if(str.find("&=") == 0) {
-//            str = str.substr(2);
-//        }
-//        if(str.find("&") == 0) {
-//            str = str.substr(1);
-//        }
-//
-//        file << "@[]." << temp << " := " << str << ";\n";
-//
-//        temp.swap(elem.second->m_var_name);
-//    }
-//
-//    for (auto &elem : m_global_funcs) {
-//        if((elem.second->m_func_source) && ((elem.second->m_func_source)->getTermID() == TermID::SIMPLE || (elem.second->m_func_source)->getTermID() == TermID::PUREFUNC)) {
-//            TermPtr term = (elem.second->m_func_source)->Right();
-//            if(!CheckClearFunction(term)) {
-//                LOG_DEBUG("The function '%s' cannot be saved because it is not clean!", elem.second->m_func_source->Left()->toString().c_str());
-//            }
-//            file << term->toString() << ";\n";
-//        }
-//    }
-//    file.close();
-//
-//    return true;
-//}
-//
-//bool NewLang::LoadContext(Context *ctx, const char *name) {
-//
-//    return RunTime::Instance()->ExecModule(name, ReplaceFileExt(name, ".ctx", ".nlm").c_str(), true, ctx)->getType() != ObjType::Error;
-//}
-
-ObjPtr RunTime::ExecModule(const char *mod, const char *output, bool cached, Context * ctx) {
-    /*std::string source = ReadFile(mod);
-    Obj args;
-    if(cached && access(output, F_OK) != -1 && LoadModule(output, true)) {
-        if(m_modules[output]->m_source && *(m_modules[output]->m_source) && source.compare(*(m_modules[output]->m_source)) == 0) {
-            LOG_DEBUG("Load cached module '%s'", output);
-            return m_modules[output]->Main(ctx, args);
-        }
-        LOG_DEBUG("Disabled cached module '%s'\nsource:\n%s\nmodule:\n%s", output, source.c_str(), m_modules[output]->m_source ? *(m_modules[output]->m_source) : "nullptr");
-        UnLoadModule(ctx, output);
-    }
-    if(NewLang::CompileModule(module, output) && LoadModule(output)) {
-        return m_modules[output]->Main(ctx, args);
-    }*/
-    LOG_RUNTIME("Fail compile module '%s' form file '%s'.", output, mod);
-    return nullptr;
-}
 
 //void Compiler::ReplaceSourceVariable(CompileInfo &ci, size_t count, std::string &body) {
 //    std::string arg_name;
@@ -1918,326 +1673,3 @@ ObjPtr RunTime::ExecModule(const char *mod, const char *output, bool cached, Con
 //    }
 //    return summary;
 //}
-
-RunTime::RunTime(): m_llvm_builder(LLVMCreateBuilder()) {
-    m_args = Obj::CreateType(ObjType::Dictionary, ObjType::Dictionary, true);
-    m_named = std::make_shared<Named>();
-    
-    LLVMLoadLibraryPermanently(nullptr);
-
-    VERIFY(RegisterSystemObj(std::make_shared<newlang::runtime::System>()));
-
-}
-
-GlobNamePtr RunTime::FindObject(const char *name) {
-    if (!name) {
-        return nullptr;
-    }
-
-    if (isLocalAny(name)) {
-
-        auto found = find(name);
-        if (found != end()) {
-            return found->second;
-        }
-        return nullptr;
-    }
-
-    auto found = find(name);
-    if (found != end()) {
-        return found->second;
-    }
-
-    std::string find_name("@");
-
-    find_name.append(name);
-    found = find(find_name);
-    if (found != end()) {
-        return found->second;
-    }
-
-    find_name[0] = '$';
-    found = find(find_name);
-    if (found != end()) {
-        return found->second;
-    }
-
-    find_name[0] = ':';
-    found = find(find_name);
-    if (found != end()) {
-        return found->second;
-    }
-
-    return nullptr;
-}
-
-bool RunTime::RegisterSystemObj(ObjPtr obj) {
-
-    ASSERT(obj);
-
-    LOG_RUNTIME("RegisterSystemObj '%s' !!!!!!!!!!!!!!!!!!!!!!!!!!!!!", obj->toString().c_str());
-
-    //    ASSERT(obj->m_prototype);
-
-    //    std::string obj_name = obj->m_prototype->getText();
-    std::string obj_name = obj->m_class_name; //m_prototype->getText();
-    auto found = find(obj_name);
-    if (found != end()) {
-        LOG_ERROR("Object name '%s' already exist!", obj_name.c_str());
-        return false;
-    }
-
-    m_sys_obj.push_back(obj);
-//    push_back(std::make_shared<GlobNameInfo>(obj->m_prototype, obj), obj_name);
-
-//    std::string name;
-//    for (auto &elem : *obj) {
-//        name = obj_name;
-//        name.append("::");
-//        name.append(elem.second->m_prototype->getText());
-//
-//        //        LOG_DEBUG("%s    ->    %s", name.c_str(), elem.second->m_prototype->toString().c_str());
-//
-//        auto found = find(name);
-//        if (found != end()) {
-//            LOG_ERROR("Object name '%s' already exist!", name.c_str());
-//            return false;
-//        }
-//
-//        push_back(std::make_shared<GlobNameInfo>(elem.second->m_prototype, elem.second), name);
-//
-//
-//    }
-
-
-    return true;
-}
-
-ObjPtr RunTime::CreateNative(const char *proto, const char *module, bool lazzy, const char *mangle_name) {
-    TermPtr term;
-    try {
-        // Термин или термин + тип парсятся без ошибок
-        term = Parser::ParseString(proto, nullptr); //m_named);
-    } catch (std::exception &) {
-        try {
-            std::string func(proto);
-            func += ":={}";
-            term = Parser::ParseString(func, nullptr)->Left(); //m_named)->Left();
-        } catch (std::exception &e) {
-
-            LOG_RUNTIME("Fail parsing prototype '%s'!", e.what());
-        }
-    }
-    return CreateNative(term, module, lazzy, mangle_name);
-}
-
-ObjPtr RunTime::CreateNative(TermPtr proto, const char *module, bool lazzy, const char *mangle_name) {
-    ASSERT(!lazzy);
-
-    void *addr = GetNativeAddr(mangle_name ? mangle_name : proto->m_text.c_str(), module);
-    NL_CHECK(addr, "Error getting address '%s' from '%s'!", proto->toString().c_str(), module);
-
-    return RunTime::CreateNative(proto, addr);
-}
-
-ObjPtr RunTime::CreateNative(TermPtr proto, void *addr) {
-
-    NL_CHECK(proto, "Fail prototype native function!");
-    //    NL_CHECK((module == nullptr || (module && *module == '\0')) || m_runtime,
-    //            "You cannot load a module '%s' without access to the runtime context!", module);
-
-    ObjPtr result;
-    ObjType type = ObjType::None;
-    if (proto->isCall()) {
-        type = ObjType::NativeFunc;
-
-        ObjType type_test;
-        for (int i = 0; i < proto->size(); i++) {
-
-            if (!proto->name(i).empty()) {
-                NL_PARSER((*proto)[i].second, "Default values '%s' are not supported!", proto->name(i).c_str());
-            }
-
-            if (isLocalAny((*proto)[i].second->m_text.c_str())) {
-                NL_PARSER((*proto)[i].second, "Argument name expected '%s'!", (*proto)[i].second->m_text.c_str());
-            }
-
-            if ((*proto)[i].second->m_type_name.empty()) {
-                NL_PARSER((*proto)[i].second, "Argument type must be specified!");
-            }
-
-            type_test = typeFromString((*proto)[i].second->m_type_name); //, this);
-            if (!isNativeType(type_test)) {
-                NL_PARSER((*proto)[i].second->GetType(), "Argument must be machine type! Creating a variable with type '%s' is not supported!", (*proto)[i].second->m_type_name.c_str());
-            }
-        }
-
-
-    } else if (proto->getTermID() == TermID::NAME) {
-        if (proto->m_type_name.empty()) {
-            NL_PARSER(proto, "Cannot create native variable without specifying the type!");
-        }
-
-        type = typeFromString(proto->m_type_name); //, this);
-        if (!isNativeType(type)) {
-            NL_PARSER(proto, "Creating a variable with type '%s' is not supported!", proto->m_type_name.c_str());
-        }
-    } else {
-        NL_PARSER(proto, "Native type arg undefined!");
-    }
-
-    result = Obj::CreateType(type);
-    result->m_var_type_fixed = ObjType::None; // Тип определен и не может измениться в дальнейшем
-
-    *const_cast<TermPtr *> (&result->m_prototype) = proto;
-    //    result->m_func_abi = abi;
-
-    //    if (mangle_name) {
-    //        result->m_func_mangle_name = mangle_name;
-    //    }
-    //    if (module) {
-    //        result->m_module_name = module;
-    //    }
-    void * ptr = nullptr;
-    //    if (lazzy) {
-    //        result->m_var = static_cast<void *> (nullptr);
-    //    } else {
-    ASSERT(at::holds_alternative<at::monostate>(result->m_var));
-
-    ptr = addr; //GetNativeAddr(result->m_func_mangle_name.empty() ? proto->m_text.c_str() : result->m_func_mangle_name.c_str(), module);
-
-    switch (type) {
-        case ObjType::Bool:
-            result->m_var = static_cast<bool *> (ptr);
-            break;
-        case ObjType::Int8:
-        case ObjType::Char:
-        case ObjType::Byte:
-            result->m_var = static_cast<int8_t *> (ptr);
-            break;
-        case ObjType::Int16:
-        case ObjType::Word:
-            result->m_var = static_cast<int16_t *> (ptr);
-            break;
-        case ObjType::Int32:
-        case ObjType::DWord:
-            result->m_var = static_cast<int32_t *> (ptr);
-            break;
-        case ObjType::Int64:
-        case ObjType::DWord64:
-            result->m_var = static_cast<int64_t *> (ptr);
-            break;
-        case ObjType::Float32:
-        case ObjType::Single:
-            result->m_var = static_cast<float *> (ptr);
-            break;
-        case ObjType::Float64:
-        case ObjType::Double:
-            result->m_var = static_cast<double *> (ptr);
-            break;
-
-        case ObjType::NativeFunc:
-        default:
-            result->m_var = ptr;
-            //        }
-            //        result->m_var = m_runtime->GetNativeAddr(
-            //                result->m_func_mangle_name.empty() ? proto->m_text.c_str() : result->m_func_mangle_name.c_str(), module);
-
-            if (result->is_function_type() || type == ObjType::Pointer) {
-                NL_CHECK(at::get<void *>(result->m_var), "Error getting address '%s'!", proto->toString().c_str());
-            } else if (ptr && result->is_tensor_type()) {
-                //            result->m_tensor = torch::from_blob(at::get<void *>(result->m_var),{
-                //            }, toTorchType(type));
-                result->m_var_is_init = true;
-            } else {
-                NL_PARSER(proto, "Fail CreateNative object");
-            }
-    }
-    return result;
-}
-
-bool RunTime::NameAnalisysItem_(TermPtr lval, TermPtr rval) {
-    switch (rval->getTermID()) {
-        case TermID::NAME:
-        case TermID::MACRO:
-        case TermID::LOCAL:
-        case TermID::MODULE:
-        case TermID::NATIVE:
-            return true;
-    }
-    switch (lval->getTermID()) {
-        case TermID::MODULE:
-        case TermID::NATIVE:
-            LOG_ERROR("Term '%s' as lval not allowed!", lval->toString().c_str());
-            return false;
-        case TermID::NAME:
-        case TermID::MACRO:
-        case TermID::LOCAL:
-            return true;
-    }
-    return true;
-}
-
-bool RunTime::NameAnalisys_(TermPtr term) {
-    if (term->IsCreate()) {
-        return NameAnalisysItem_(term->Left(), term->Right());
-    }
-    return true;
-}
-
-bool RunTime::NameAnalisys(TermPtr ast) {
-    ASSERT(ast);
-    if (ast->IsBlock()) {
-        for (auto &elem : ast->m_block) {
-            if (!NameAnalisys(ast)) {
-                return false;
-            }
-        }
-    } else {
-        return NameAnalisys_(ast);
-    }
-    return true;
-}
-
-std::string newlang::ReplaceFileExt(const char *str, const char *ext_old, const char *ext_new) {
-    std::string filename(str);
-    std::string file_ext = GetFileExt(str);
-    if (file_ext.compare(ext_old) == 0) {
-        filename = filename.substr(0, filename.length() - file_ext.length());
-    }
-    file_ext = GetFileExt(filename.c_str());
-    if (file_ext.compare(".") != 0 && file_ext.compare(ext_new) != 0 && !filename.empty() &&
-            filename.compare(".") != 0) {
-
-        filename.append(ext_new);
-    }
-    return filename;
-}
-
-std::string newlang::ReadFile(const char *fileName) {
-    std::ifstream f(fileName);
-    std::stringstream ss;
-    ss << f.rdbuf();
-    //    if(f.fail()) {
-    //        std::cout << "Current path is " << std::filesystem::current_path() << '\n';
-    //        std::cerr << strerror(errno);
-    //    }
-    f.close();
-
-    return ss.str();
-}
-
-bool RunTime::CheckOrLoadModule(std::string str) {
-    ASSERT(isModule(str));
-
-    
-    std::string name = ExtractModuleName(str.c_str());
-    if (m_modules.find(name) == m_modules.end()) {
-
-        ModulePtr module = LoadModule(str.c_str(), true);
-        if (module) {
-            m_modules[name] = std::move(module);
-        }
-    }
-    return m_modules.find(name) != m_modules.end();
-}
