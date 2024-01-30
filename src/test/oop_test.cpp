@@ -155,225 +155,635 @@ using namespace newlang;
 
  *  
  */
+
+TEST(Oop, Name) {
+
+    ASSERT_STREQ("name", ExtractName("name").c_str());
+    ASSERT_STREQ("name", ExtractName("::name").c_str());
+    ASSERT_STREQ("name", ExtractName("ns::name").c_str());
+    ASSERT_STREQ("", ExtractName("\\file").c_str());
+    ASSERT_STREQ("", ExtractName("\\\\dir.file").c_str());
+    ASSERT_STREQ("var", ExtractName("\\dir.file::var").c_str());
+    ASSERT_STREQ("var.field", ExtractName("\\\\dir.file::var.field").c_str());
+
+
+    ASSERT_STREQ("\\file", ExtractModuleName("\\file").c_str());
+    ASSERT_STREQ("\\\\dir.file", ExtractModuleName("\\\\dir.file").c_str());
+    ASSERT_STREQ("\\dir.file", ExtractModuleName("\\dir.file::var").c_str());
+    ASSERT_STREQ("\\\\dir.file", ExtractModuleName("\\\\dir.file::var.field").c_str());
+
+
+
+
+    NsStack ns_stack(nullptr);
+
+    ASSERT_EQ(0, ns_stack.size());
+    ASSERT_STREQ("name", ns_stack.GetNamespace("name").c_str());
+
+    ASSERT_TRUE(ns_stack.NamespacePush("name"));
+    ASSERT_EQ(1, ns_stack.size());
+    ASSERT_STREQ("name", ns_stack.GetNamespace().c_str());
+
+    ASSERT_FALSE(ns_stack.NamespacePush(""));
+    ASSERT_EQ(1, ns_stack.size());
+
+    ASSERT_TRUE(ns_stack.NamespacePush("name2"));
+    ASSERT_EQ(2, ns_stack.size());
+    ASSERT_STREQ("name::name2", ns_stack.GetNamespace().c_str());
+
+    ASSERT_TRUE(ns_stack.NamespacePush("name3::name4"));
+    ASSERT_EQ(3, ns_stack.size());
+    ASSERT_STREQ("name::name2::name3::name4", ns_stack.GetNamespace().c_str());
+
+    ASSERT_TRUE(ns_stack.NamespacePush("::"));
+    ASSERT_EQ(4, ns_stack.size());
+    ASSERT_STREQ("::", ns_stack.GetNamespace().c_str());
+
+    ASSERT_FALSE(ns_stack.NamespacePush(""));
+    ASSERT_EQ(4, ns_stack.size());
+
+    ASSERT_STREQ("::ns", ns_stack.GetNamespace("::ns").c_str());
+
+    ASSERT_TRUE(ns_stack.NamespacePush("::name5::name6"));
+    ASSERT_EQ(5, ns_stack.size());
+    ASSERT_STREQ("::name5::name6", ns_stack.GetNamespace().c_str());
+
+    ASSERT_STREQ("::ns", ns_stack.GetNamespace("::ns").c_str());
+
+    ASSERT_TRUE(ns_stack.NamespacePush("name7"));
+    ASSERT_EQ(6, ns_stack.size());
+    ASSERT_STREQ("::name5::name6::name7", ns_stack.GetNamespace().c_str());
+
+    ns_stack.NamespacePop();
+    ASSERT_EQ(5, ns_stack.size());
+    ASSERT_STREQ("::name5::name6", ns_stack.GetNamespace().c_str());
+
+    ns_stack.NamespacePop();
+    ASSERT_EQ(4, ns_stack.size());
+    ASSERT_STREQ("::", ns_stack.GetNamespace().c_str());
+
+    ns_stack.NamespacePop();
+    ASSERT_EQ(3, ns_stack.size());
+    ASSERT_STREQ("name::name2::name3::name4", ns_stack.GetNamespace().c_str());
+    ASSERT_STREQ("::ns", ns_stack.GetNamespace("::ns").c_str());
+
+    ns_stack.NamespacePop();
+    ASSERT_EQ(2, ns_stack.size());
+    ASSERT_STREQ("name::name2", ns_stack.GetNamespace().c_str());
+
+    ns_stack.NamespacePop();
+    ASSERT_EQ(1, ns_stack.size());
+    ASSERT_STREQ("name", ns_stack.GetNamespace().c_str());
+
+    ns_stack.NamespacePop();
+    ASSERT_EQ(0, ns_stack.size());
+    ASSERT_STREQ("", ns_stack.GetNamespace().c_str());
+
+
+    ASSERT_TRUE(ns_stack.NamespacePush("ns::name"));
+    ASSERT_EQ(1, ns_stack.size());
+    ASSERT_STREQ("ns::name::var6", ns_stack.GetNamespace("var6").c_str());
+
+
+    ASSERT_TRUE(ns_stack.NamespacePush("::"));
+    ASSERT_EQ(2, ns_stack.size());
+    ASSERT_STREQ("::var6", ns_stack.GetNamespace("var6").c_str());
+
+    ns_stack.NamespacePop();
+    ns_stack.NamespacePop();
+    ASSERT_EQ(0, ns_stack.size());
+
+
+
+
+    TermPtr ns = Parser::ParseString("ns::var");
+
+    ASSERT_TRUE(ns);
+    ASSERT_STREQ(ns->m_text.c_str(), "ns::var");
+    ASSERT_FALSE(ns->m_namespace);
+
+    //    ns = Parser::ParseString("ns::var");
+}
+
+TEST(Oop, AstAnalyze) {
+
+    RuntimePtr rt = RunTime::Init();
+    ASSERT_TRUE(rt);
+
+    TermPtr ast = rt->GetParser()->Parse("var1 ::= '1';");
+
+    ASSERT_TRUE(ast);
+    ASSERT_TRUE(rt->AstAnalyze(ast)) << ast->m_variables.Dump();
+    ASSERT_EQ(1, ast->m_variables.size());
+    ASSERT_TRUE(ast->m_variables["$var1"].proto);
+    ASSERT_STREQ("$var1", ast->m_variables["$var1"].proto->m_text.c_str());
+    ASSERT_FALSE(ast->m_variables["$var2saddasda"].proto);
+
+    ast = rt->GetParser()->Parse("$var2 ::= '1';$var3 ::= '1';");
+
+    ASSERT_TRUE(ast);
+    ASSERT_TRUE(rt->AstAnalyze(ast));
+    ASSERT_EQ(2, ast->m_variables.size());
+    ASSERT_TRUE(ast->m_variables["$var2"].proto);
+    ASSERT_TRUE(ast->m_variables["$var3"].proto);
+    ASSERT_STREQ("$var2", ast->m_variables["$var2"].proto->m_text.c_str());
+    ASSERT_STREQ("$var3", ast->m_variables["$var3"].proto->m_text.c_str());
+
+    ast = rt->GetParser()->Parse("$var ::= '1'; $var := '2';");
+
+    ASSERT_TRUE(ast);
+    ASSERT_TRUE(rt->AstAnalyze(ast));
+    ASSERT_EQ(1, ast->m_variables.size());
+    ASSERT_TRUE(ast->m_variables["$var"].proto);
+    ASSERT_STREQ("$var", ast->m_variables["$var"].proto->m_text.c_str());
+
+    ast = rt->GetParser()->Parse("$var := '1'; $var = '2';");
+
+    ASSERT_TRUE(ast);
+    ASSERT_TRUE(rt->AstAnalyze(ast));
+    ASSERT_EQ(1, ast->m_variables.size());
+    ASSERT_TRUE(ast->m_variables["$var"].proto);
+    ASSERT_STREQ("$var", ast->m_variables["$var"].proto->m_text.c_str());
+
+
+    ast = rt->GetParser()->Parse("$var = '1'; $var := '2';");
+    ASSERT_TRUE(ast);
+    ASSERT_FALSE(rt->AstAnalyze(ast));
+
+    ast = rt->GetParser()->Parse("$var ::= '1'; $var ::= '2';");
+    ASSERT_TRUE(ast);
+    ASSERT_FALSE(rt->AstAnalyze(ast));
+
+    ast = rt->GetParser()->Parse("$var := 'строка'; $var = 2;");
+    ASSERT_TRUE(ast);
+    ASSERT_EQ(2, ast->m_block.size());
+    ASSERT_STREQ(":=", ast->m_block[0]->m_text.c_str());
+    ASSERT_TRUE(ast->m_block[0]->m_left);
+    ASSERT_STREQ("$var", ast->m_block[0]->m_left->m_text.c_str());
+    ASSERT_FALSE(ast->m_block[0]->m_left->m_type);
+    ASSERT_TRUE(ast->m_block[0]->m_right);
+    ASSERT_STREQ("строка", ast->m_block[0]->m_right->m_text.c_str());
+    ASSERT_TRUE(ast->m_block[0]->m_right->m_type);
+    ASSERT_STREQ(":StrChar", ast->m_block[0]->m_right->m_type->asTypeString().c_str());
+
+    ASSERT_STREQ("=", ast->m_block[1]->m_text.c_str());
+    ASSERT_TRUE(ast->m_block[1]->m_left);
+    ASSERT_STREQ("$var", ast->m_block[1]->m_left->m_text.c_str());
+    ASSERT_FALSE(ast->m_block[1]->m_left->m_type);
+    ASSERT_TRUE(ast->m_block[1]->m_right);
+    ASSERT_STREQ("2", ast->m_block[1]->m_right->m_text.c_str());
+    ASSERT_TRUE(ast->m_block[1]->m_right->m_type);
+    ASSERT_STREQ(":Int8", ast->m_block[1]->m_right->m_type->asTypeString().c_str());
+
+    ASSERT_FALSE(rt->AstAnalyze(ast));
+
+    ast = rt->GetParser()->Parse("$var := 2; $var = '';");
+    ASSERT_TRUE(ast);
+    ASSERT_FALSE(rt->AstAnalyze(ast));
+
+    //    ast = rt->GetParser()->Parse("$var := 2; $var = _;");
+    //    ASSERT_TRUE(ast);
+    //    ASSERT_TRUE(rt->AstAnalyze(ast));
+    //    ASSERT_STREQ(":None", ast->m_variables["$var"].proto->GetType()->asTypeString().c_str());
+
+    ast = rt->GetParser()->Parse("$var := 2; $var = 2222;");
+    ASSERT_TRUE(ast);
+    ASSERT_TRUE(rt->AstAnalyze(ast));
+    ASSERT_STREQ(":Int16", ast->m_variables["$var"].proto->GetType()->asTypeString().c_str());
+
+    ast = rt->GetParser()->Parse("$var:Int8 := 2; $var = 2222;");
+    ASSERT_TRUE(ast);
+    ASSERT_FALSE(rt->AstAnalyze(ast));
+
+
+    ast = rt->GetParser()->Parse("$var := 2; $var = 22222222;");
+    ASSERT_TRUE(ast);
+    ASSERT_TRUE(rt->AstAnalyze(ast));
+    ASSERT_STREQ(":Int32", ast->m_variables["$var"].proto->GetType()->asTypeString().c_str());
+
+    ast = rt->GetParser()->Parse("$var := 2; $var = 2222222222222;");
+    ASSERT_TRUE(ast);
+    ASSERT_TRUE(rt->AstAnalyze(ast));
+    ASSERT_STREQ(":Int64", ast->m_variables["$var"].proto->GetType()->asTypeString().c_str());
+
+    ast = rt->GetParser()->Parse("$var := 2; $var = 2.0;");
+    ASSERT_TRUE(ast);
+    ASSERT_TRUE(rt->AstAnalyze(ast));
+    ASSERT_STREQ(":Float32", ast->m_variables["$var"].proto->GetType()->asTypeString().c_str());
+
+}
+
+/*
+ * 
+ */
+
 TEST(Oop, Namespace) {
 
-    Context::Reset();
-    Context ctx(RunTime::Init());
+    RuntimePtr rt = RunTime::Init();
+    ASSERT_TRUE(rt);
+    size_t buildin_count = rt->size();
+    ASSERT_TRUE(buildin_count > 100);
 
-    ASSERT_EQ(0, ctx.m_runtime->m_parser.m_ns_stack.size());
-    ASSERT_STREQ("name", ctx.m_runtime->m_parser.NamespaceFull("name").c_str());
+    TermPtr ast = rt->GetParser()->Parse("$var := 1;");
+    ASSERT_TRUE(ast);
+    ASSERT_EQ(0, rt->size() - buildin_count);
+    ASSERT_EQ(0, ast->m_variables.size());
+    ASSERT_TRUE(rt->AstAnalyze(ast));
+    ASSERT_EQ(0, rt->size() - buildin_count);
+    ASSERT_EQ(1, ast->m_variables.size());
+    ASSERT_STREQ("$var", ast->m_variables.begin()->second.proto->m_text.c_str());
 
-    ASSERT_TRUE(ctx.m_runtime->m_parser.NamespacePush("name"));
-    ASSERT_EQ(1, ctx.m_runtime->m_parser.m_ns_stack.size());
-    ASSERT_STREQ("name", ctx.m_runtime->m_parser.NamespaceFull().c_str());
-
-    ASSERT_FALSE(ctx.m_runtime->m_parser.NamespacePush(""));
-    ASSERT_EQ(1, ctx.m_runtime->m_parser.m_ns_stack.size());
-
-    ASSERT_TRUE(ctx.m_runtime->m_parser.NamespacePush("name2"));
-    ASSERT_EQ(2, ctx.m_runtime->m_parser.m_ns_stack.size());
-    ASSERT_STREQ("name::name2", ctx.m_runtime->m_parser.NamespaceFull().c_str());
-
-    ASSERT_TRUE(ctx.m_runtime->m_parser.NamespacePush("name3::name4"));
-    ASSERT_EQ(3, ctx.m_runtime->m_parser.m_ns_stack.size());
-    ASSERT_STREQ("name::name2::name3::name4", ctx.m_runtime->m_parser.NamespaceFull().c_str());
-
-    ASSERT_TRUE(ctx.m_runtime->m_parser.NamespacePush("::"));
-    ASSERT_EQ(4, ctx.m_runtime->m_parser.m_ns_stack.size());
-    ASSERT_STREQ("::", ctx.m_runtime->m_parser.NamespaceFull().c_str());
-
-    ASSERT_FALSE(ctx.m_runtime->m_parser.NamespacePush(""));
-    ASSERT_EQ(4, ctx.m_runtime->m_parser.m_ns_stack.size());
-
-    ASSERT_STREQ("::ns", ctx.m_runtime->m_parser.NamespaceFull("::ns").c_str());
-
-    ASSERT_TRUE(ctx.m_runtime->m_parser.NamespacePush("::name5::name6"));
-    ASSERT_EQ(5, ctx.m_runtime->m_parser.m_ns_stack.size());
-    ASSERT_STREQ("::name5::name6", ctx.m_runtime->m_parser.NamespaceFull().c_str());
-
-    ASSERT_STREQ("::ns", ctx.m_runtime->m_parser.NamespaceFull("::ns").c_str());
-
-    ASSERT_TRUE(ctx.m_runtime->m_parser.NamespacePush("name7"));
-    ASSERT_EQ(6, ctx.m_runtime->m_parser.m_ns_stack.size());
-    ASSERT_STREQ("::name5::name6::name7", ctx.m_runtime->m_parser.NamespaceFull().c_str());
-
-    ctx.m_runtime->m_parser.NamespacePop();
-    ASSERT_EQ(5, ctx.m_runtime->m_parser.m_ns_stack.size());
-    ASSERT_STREQ("::name5::name6", ctx.m_runtime->m_parser.NamespaceFull().c_str());
-
-    ctx.m_runtime->m_parser.NamespacePop();
-    ASSERT_EQ(4, ctx.m_runtime->m_parser.m_ns_stack.size());
-    ASSERT_STREQ("::", ctx.m_runtime->m_parser.NamespaceFull().c_str());
-
-    ctx.m_runtime->m_parser.NamespacePop();
-    ASSERT_EQ(3, ctx.m_runtime->m_parser.m_ns_stack.size());
-    ASSERT_STREQ("name::name2::name3::name4", ctx.m_runtime->m_parser.NamespaceFull().c_str());
-    ASSERT_STREQ("::ns", ctx.m_runtime->m_parser.NamespaceFull("::ns").c_str());
-
-    ctx.m_runtime->m_parser.NamespacePop();
-    ASSERT_EQ(2, ctx.m_runtime->m_parser.m_ns_stack.size());
-    ASSERT_STREQ("name::name2", ctx.m_runtime->m_parser.NamespaceFull().c_str());
-
-    ctx.m_runtime->m_parser.NamespacePop();
-    ASSERT_EQ(1, ctx.m_runtime->m_parser.m_ns_stack.size());
-    ASSERT_STREQ("name", ctx.m_runtime->m_parser.NamespaceFull().c_str());
-
-    ctx.m_runtime->m_parser.NamespacePop();
-    ASSERT_EQ(0, ctx.m_runtime->m_parser.m_ns_stack.size());
-    ASSERT_STREQ("", ctx.m_runtime->m_parser.NamespaceFull().c_str());
+    ast = rt->GetParser()->Parse("var := 1;");
+    ASSERT_TRUE(ast);
+    ASSERT_EQ(0, ast->m_variables.size());
+    ASSERT_EQ(0, rt->size() - buildin_count);
+    ASSERT_TRUE(rt->AstAnalyze(ast));
+    ASSERT_EQ(0, rt->size() - buildin_count);
+    ASSERT_EQ(1, ast->m_variables.size());
+    ASSERT_STREQ("$var", ast->m_variables.begin()->second.proto->m_text.c_str());
 
 
-    ASSERT_TRUE(ctx.m_runtime->m_parser.NamespacePush("ns::name"));
-    ASSERT_EQ(1, ctx.m_runtime->m_parser.m_ns_stack.size());
-    ASSERT_STREQ("ns::name::var6", ctx.m_runtime->m_parser.NamespaceFull("var6").c_str());
+    ast = rt->GetParser()->Parse("::ns::var := 1;");
+    ASSERT_TRUE(ast);
+    ASSERT_EQ(0, ast->m_variables.size());
+    ASSERT_EQ(0, rt->size() - buildin_count);
+    ASSERT_TRUE(rt->AstAnalyze(ast));
+    ASSERT_EQ(1, rt->size() - buildin_count) << ast->m_variables.Dump();
+    ASSERT_EQ(0, ast->m_variables.size());
+    ASSERT_STREQ("::ns::var", (*rt)["::ns::var"].proto->m_text.c_str());
 
+    ast = rt->GetParser()->Parse("ns::var := 1;");
+    ASSERT_TRUE(ast);
+    ASSERT_EQ(0, ast->m_variables.size());
+    ASSERT_EQ(1, rt->size() - buildin_count);
+    ASSERT_TRUE(rt->AstAnalyze(ast)) << ast->m_variables.Dump();
+    ASSERT_EQ(1, rt->size() - buildin_count);
+    ASSERT_EQ(1, ast->m_variables.size());
+    ASSERT_STREQ("ns::var", ast->m_variables.begin()->second.proto->m_text.c_str());
 
-    ASSERT_TRUE(ctx.m_runtime->m_parser.NamespacePush("::"));
-    ASSERT_EQ(2, ctx.m_runtime->m_parser.m_ns_stack.size());
-    ASSERT_STREQ("::var6", ctx.m_runtime->m_parser.NamespaceFull("var6").c_str());
-
-    ctx.m_runtime->m_parser.NamespacePop();
-    ctx.m_runtime->m_parser.NamespacePop();
-    ASSERT_EQ(0, ctx.m_runtime->m_parser.m_ns_stack.size());
-
-
-
-    size_t buildin_count = ctx.m_runtime->size();
     
-    ASSERT_EQ(0, ctx.size());
+    ast = rt->GetParser()->Parse("name { var := 1 };");
+    ASSERT_TRUE(ast);
+    ASSERT_EQ(0, ast->m_variables.size());
+    ASSERT_EQ(1, rt->size() - buildin_count);
+    ASSERT_TRUE(rt->AstAnalyze(ast));
+    ASSERT_EQ(1, rt->size() - buildin_count);
+    ASSERT_EQ(1, ast->m_variables.size());
 
-    ObjPtr var1 = ctx.ExecStr("var1 := 1;");
-    ASSERT_TRUE(var1);
-    ASSERT_EQ(1, var1->GetValueAsInteger());
-    ASSERT_EQ(1, ctx.size()) << ctx.Dump("; ").c_str();
-    ASSERT_STREQ("var1", ctx.at(0).first.c_str());
-    ASSERT_EQ(1, ctx.m_runtime->size() - buildin_count);
+    ASSERT_EQ(1, ast->m_block.size());
+    ASSERT_STREQ(":=", ast->m_block[0]->m_text.c_str());
+    ASSERT_TRUE(ast->m_block[0]->m_left);
+    ASSERT_STREQ("name$var", ast->m_block[0]->m_left->m_text.c_str());
+    ASSERT_TRUE(ast->m_block[0]->m_right);
+    ASSERT_STREQ("1", ast->m_block[0]->m_right->m_text.c_str());
 
-    ObjPtr var2 = ctx.ExecStr("name { var2 := 2; }");
-    ASSERT_TRUE(var2);
-    ASSERT_EQ(2, var2->GetValueAsInteger());
-    ASSERT_EQ(2, ctx.size()) << ctx.Dump("; ").c_str();
-    ASSERT_STREQ("name::var2", ctx.at(1).first.c_str());
-    ASSERT_EQ(2, ctx.m_runtime->size() - buildin_count);
+    ASSERT_STREQ("name$var", ast->m_variables.begin()->second.proto->m_text.c_str());
 
-    ObjPtr var3 = ctx.ExecStr("ns3::name { var3 := 3; }");
-    ASSERT_TRUE(var3);
-    ASSERT_EQ(3, var3->GetValueAsInteger());
-    ASSERT_EQ(3, ctx.size()) << ctx.Dump("; ").c_str();
-    ASSERT_STREQ("ns3::name::var3", ctx.at(2).first.c_str());
-    ASSERT_EQ(3, ctx.m_runtime->size() - buildin_count);
-
-    ObjPtr var4 = ctx.ExecStr("ns4::name { ::var4 := 4; }");
-    ASSERT_TRUE(var4);
-    ASSERT_EQ(4, var4->GetValueAsInteger());
-    ASSERT_EQ(4, ctx.size()) << ctx.Dump("; ").c_str();
-    ASSERT_STREQ("::var4", ctx.at(3).first.c_str());
-    ASSERT_EQ(4, ctx.m_runtime->size() - buildin_count);
-
-    ObjPtr var5 = ctx.ExecStr("ns5::name { ns::var5 := 5; }");
-    ASSERT_TRUE(var5);
-    ASSERT_EQ(5, var5->GetValueAsInteger());
-    ASSERT_EQ(5, ctx.size()) << ctx.Dump("; ").c_str();
-    ASSERT_STREQ("ns5::name::ns::var5", ctx.at(4).first.c_str());
-    ASSERT_EQ(5, ctx.m_runtime->size() - buildin_count);
-
-    ObjPtr var6 = ctx.ExecStr("ns6::name { { ::var6 := 6;} }");
-    ASSERT_EQ(0, ctx.m_runtime->m_parser.m_ns_stack.size());
-
-    ASSERT_TRUE(var6);
-    ASSERT_EQ(6, var6->GetValueAsInteger());
-    ASSERT_EQ(6, ctx.size()) << ctx.Dump("; ").c_str();
-    ASSERT_STREQ("::var6", ctx.at(5).first.c_str());
-    ASSERT_EQ(6, ctx.m_runtime->size() - buildin_count);
-
-    ObjPtr var7 = ctx.ExecStr("ns7::name { :: { var7 := 7;} }");
-    ASSERT_EQ(0, ctx.m_runtime->m_parser.m_ns_stack.size());
-
-    ASSERT_TRUE(var7);
-    ASSERT_EQ(7, var7->GetValueAsInteger());
-    ASSERT_EQ(7, ctx.size()) << ctx.Dump("; ").c_str();
-    ASSERT_STREQ("::var7", ctx.at(6).first.c_str());
-    ASSERT_EQ(7, ctx.m_runtime->size() - buildin_count);
-
-    ObjPtr var8 = ctx.ExecStr("ns8::name { ::ext { var8 := 8;}}");
-    ASSERT_TRUE(var8);
-    ASSERT_EQ(8, var8->GetValueAsInteger());
-    ASSERT_EQ(8, ctx.size()) << ctx.Dump("; ").c_str();
-    ASSERT_STREQ("::ext::var8", ctx.at(7).first.c_str());
-    ASSERT_EQ(8, ctx.m_runtime->size() - buildin_count);
+    ast = rt->GetParser()->Parse("name:: { var := 1 };");
+    ASSERT_TRUE(ast);
+    ASSERT_EQ(0, ast->m_variables.size());
+    ASSERT_EQ(1, rt->size() - buildin_count);
+    ASSERT_TRUE(rt->AstAnalyze(ast));
+    ASSERT_EQ(1, rt->size() - buildin_count);
+    ASSERT_EQ(1, ast->m_variables.size());
+    ASSERT_STREQ("name$var", ast->m_variables.begin()->second.proto->m_text.c_str());
 
 
+    ast = rt->GetParser()->Parse("ns::name:: { var := 1 };");
+    ASSERT_TRUE(ast);
+    ASSERT_EQ(0, ast->m_variables.size());
+    ASSERT_EQ(1, rt->size() - buildin_count);
+    ASSERT_TRUE(rt->AstAnalyze(ast));
+    ASSERT_EQ(1, rt->size() - buildin_count);
+    ASSERT_EQ(1, ast->m_variables.size());
+    ASSERT_STREQ("ns::name$var", ast->m_variables.begin()->second.proto->m_text.c_str());
 
-    Context::Reset();
-    ctx.clear_();
+    ast = rt->GetParser()->Parse("name:: { ::var := 1 };");
+    ASSERT_TRUE(ast);
+    ASSERT_EQ(0, ast->m_variables.size());
+    ASSERT_EQ(1, rt->size() - buildin_count);
+    ASSERT_TRUE(rt->AstAnalyze(ast));
+    ASSERT_EQ(2, rt->size() - buildin_count);
+    ASSERT_EQ(0, ast->m_variables.size());
+    ASSERT_STREQ("::var", (*rt)["::var"].proto->m_text.c_str());
 
-    ASSERT_EQ(0, ctx.m_runtime->m_parser.m_ns_stack.size());
-    ASSERT_EQ(0, ctx.size());
+    ast = rt->GetParser()->Parse("::name:: { ::ns2::var := 1 };");
+    ASSERT_TRUE(ast);
+    ASSERT_EQ(0, ast->m_variables.size());
+    ASSERT_EQ(2, rt->size() - buildin_count);
+    ASSERT_TRUE(rt->AstAnalyze(ast));
+    ASSERT_EQ(3, rt->size() - buildin_count);
+    ASSERT_EQ(0, ast->m_variables.size());
+    ASSERT_STREQ("::ns2::var", (*rt)["::ns2::var"].proto->m_text.c_str());
 
-    buildin_count = ctx.m_runtime->size();
-//    ASSERT_EQ(buildin_count, ctx.m_runtime->size());
 
-    ASSERT_EQ(0, ctx.size());
+    ast = rt->GetParser()->Parse("name { $var := 1 };");
+    ASSERT_TRUE(ast);
+    ASSERT_EQ(0, ast->m_variables.size());
+    ASSERT_EQ(3, rt->size() - buildin_count);
+    ASSERT_TRUE(rt->AstAnalyze(ast));
+    ASSERT_EQ(3, rt->size() - buildin_count);
+    ASSERT_EQ(1, ast->m_variables.size());
+    ASSERT_STREQ("name$var", ast->m_variables.begin()->second.proto->m_text.c_str());
 
-    ObjPtr func1 = ctx.ExecStr("func1() := {1};");
-    ASSERT_TRUE(func1);
-    ASSERT_EQ(1, func1->Call(&ctx)->GetValueAsInteger());
-    ASSERT_EQ(1, ctx.size()) << ctx.Dump("; ").c_str();
-    ASSERT_STREQ("func1", ctx.at(0).first.c_str());
-    ASSERT_EQ(1, ctx.m_runtime->size() - buildin_count);
+    ast = rt->GetParser()->Parse("name { { $var := 1 } };");
+    ASSERT_TRUE(ast);
+    ASSERT_EQ(0, ast->m_variables.size());
+    ASSERT_EQ(3, rt->size() - buildin_count);
+    ASSERT_TRUE(rt->AstAnalyze(ast));
+    ASSERT_EQ(3, rt->size() - buildin_count);
+    ASSERT_EQ(1, ast->m_variables.size());
+    ASSERT_STREQ("name$var", ast->m_variables.begin()->second.proto->m_text.c_str());
 
-    ObjPtr func2 = ctx.ExecStr("name { func2() := {2}; }");
-    ASSERT_TRUE(func2);
-    ASSERT_EQ(2, func2->Call(&ctx)->GetValueAsInteger());
-    ASSERT_EQ(2, ctx.size()) << ctx.Dump("; ").c_str();
-    ASSERT_STREQ("name::func2", ctx.at(1).first.c_str());
-    ASSERT_EQ(2, ctx.m_runtime->size() - buildin_count);
+    ast = rt->GetParser()->Parse("ns{ name { { $var := 1 } } };");
+    ASSERT_TRUE(ast);
+    ASSERT_EQ(0, ast->m_variables.size());
+    ASSERT_EQ(3, rt->size() - buildin_count);
+    ASSERT_TRUE(rt->AstAnalyze(ast));
+    ASSERT_EQ(3, rt->size() - buildin_count);
+    ASSERT_EQ(1, ast->m_variables.size());
+    ASSERT_STREQ("ns::name$var", ast->m_variables.begin()->second.proto->m_text.c_str());
 
-    ObjPtr func3 = ctx.ExecStr("ns3::name { func3() := {3}; }");
-    ASSERT_TRUE(func3);
-    ASSERT_EQ(3, func3->Call(&ctx)->GetValueAsInteger());
-    ASSERT_EQ(3, ctx.size()) << ctx.Dump("; ").c_str();
-    ASSERT_STREQ("ns3::name::func3", ctx.at(2).first.c_str());
-    ASSERT_EQ(3, ctx.m_runtime->size() - buildin_count);
 
-    ObjPtr func4 = ctx.ExecStr("ns4::name { ::func4() := {4}; }");
-    ASSERT_TRUE(func4);
-    ASSERT_EQ(4, func4->Call(&ctx)->GetValueAsInteger());
-    ASSERT_EQ(4, ctx.size()) << ctx.Dump("; ").c_str();
-    ASSERT_STREQ("::func4", ctx.at(3).first.c_str());
-    ASSERT_EQ(4, ctx.m_runtime->size() - buildin_count);
+    ast = rt->GetParser()->Parse("ns { name { { $var := 1 } } };");
+    ASSERT_TRUE(ast);
+    ASSERT_EQ(0, ast->m_variables.size());
+    ASSERT_EQ(3, rt->size() - buildin_count);
+    ASSERT_TRUE(rt->AstAnalyze(ast));
+    ASSERT_EQ(3, rt->size() - buildin_count);
+    ASSERT_EQ(1, ast->m_variables.size());
+    ASSERT_STREQ("ns::name$var", ast->m_variables.begin()->second.proto->m_text.c_str());
 
-    ObjPtr func5 = ctx.ExecStr("ns5::name { ns::func5() := {5}; }");
-    ASSERT_TRUE(func5);
-    ASSERT_EQ(5, func5->Call(&ctx)->GetValueAsInteger());
-    ASSERT_EQ(5, ctx.size()) << ctx.Dump("; ").c_str();
-    ASSERT_STREQ("ns5::name::ns::func5", ctx.at(4).first.c_str());
-    ASSERT_EQ(5, ctx.m_runtime->size() - buildin_count);
 
-    ObjPtr func6 = ctx.ExecStr("ns6::name { { ::func6() := {6};} }");
-    ASSERT_EQ(0, ctx.m_runtime->m_parser.m_ns_stack.size());
+    ast = rt->GetParser()->Parse("@:: --;");
+    ASSERT_TRUE(ast);
+    ASSERT_STREQ("@::", ast->m_namespace->m_text.c_str());
+    ASSERT_TRUE(rt->AstAnalyze(ast));
+    ASSERT_STREQ("", ast->m_namespace->m_text.c_str());
 
-    ASSERT_TRUE(func6);
-    ASSERT_EQ(6, func6->Call(&ctx)->GetValueAsInteger());
-    ASSERT_EQ(6, ctx.size()) << ctx.Dump("; ").c_str();
-    ASSERT_STREQ("::func6", ctx.at(5).first.c_str());
-    ASSERT_EQ(6, ctx.m_runtime->size() - buildin_count);
+    ast = rt->GetParser()->Parse("name {  @:: -- };");
+    ASSERT_TRUE(ast);
+    ASSERT_EQ(1, ast->m_block.size());
+    ASSERT_STREQ("--", ast->m_block[0]->m_text.c_str());
+    ASSERT_TRUE(ast->m_block[0]->IsBlock());
+    ASSERT_TRUE(ast->m_block[0]->m_block[0]->IsInterrupt());
+    ASSERT_TRUE(ast->m_block[0]->m_block[0]->m_namespace);
+    ASSERT_STREQ("@::", ast->m_block[0]->m_block[0]->m_namespace->m_text.c_str());
+    ASSERT_TRUE(rt->AstAnalyze(ast));
+    ASSERT_STREQ("name", ast->m_block[0]->m_block[0]->m_namespace->m_text.c_str());
 
-    ObjPtr func7 = ctx.ExecStr("ns7::name { :: { func7() := {7};} }");
-    ASSERT_EQ(0, ctx.m_runtime->m_parser.m_ns_stack.size());
 
-    ASSERT_TRUE(func7);
-    ASSERT_EQ(7, func7->Call(&ctx)->GetValueAsInteger());
-    ASSERT_EQ(7, ctx.size()) << ctx.Dump("; ").c_str();
-    ASSERT_STREQ("::func7", ctx.at(6).first.c_str());
-    ASSERT_EQ(7, ctx.m_runtime->size() - buildin_count);
+    ast = rt->GetParser()->Parse("name {  bad_name -- };");
+    ASSERT_TRUE(ast);
+    ASSERT_FALSE(rt->AstAnalyze(ast));
 
-    ObjPtr func8 = ctx.ExecStr("ns8::name { ::ext { func8() := {8};}}");
-    ASSERT_TRUE(func8);
-    ASSERT_EQ(8, func8->Call(&ctx)->GetValueAsInteger());
-    ASSERT_EQ(8, ctx.size()) << ctx.Dump("; ").c_str();
-    ASSERT_STREQ("::ext::func8", ctx.at(7).first.c_str());
-    ASSERT_EQ(8, ctx.m_runtime->size() - buildin_count);
+    ast = rt->GetParser()->Parse("name {  bad_name:: -- };");
+    ASSERT_TRUE(ast);
+    ASSERT_FALSE(rt->AstAnalyze(ast));
+
+    ast = rt->GetParser()->Parse("name1 { name2 { name3 {  ::bad_name -- }}};");
+    ASSERT_TRUE(ast);
+    ASSERT_FALSE(rt->AstAnalyze(ast));
+
+    ast = rt->GetParser()->Parse("name { name2::name3 {  ::bad_name::name -- }};");
+    ASSERT_TRUE(ast);
+    ASSERT_FALSE(rt->AstAnalyze(ast));
+
+    ast = rt->GetParser()->Parse("name {  name::bad -- };");
+    ASSERT_TRUE(ast);
+    ASSERT_FALSE(rt->AstAnalyze(ast));
+
+    //    ast = rt->GetParser()->Parse("@$$ --;");
+    //    ASSERT_TRUE(ast);
+    //    ASSERT_STREQ("@$$", ast->m_namespace->m_text.c_str());
+    //    ASSERT_TRUE(rt->AstAnalyze(ast));
+    //    ASSERT_STREQ("", ast->m_namespace->m_text.c_str());
+
+    //    ast = rt->GetParser()->Parse("name {  @$$ -- };");
+    //    ASSERT_TRUE(ast);
+    //    ASSERT_EQ(1, ast->m_block.size());
+    //    ASSERT_STREQ("--", ast->m_block[0]->m_text.c_str());
+    //    ASSERT_TRUE(ast->m_block[0]->m_namespace);
+    //    ASSERT_STREQ("@$$", ast->m_block[0]->m_namespace->m_text.c_str());
+    //    ASSERT_TRUE(rt->AstAnalyze(ast));
+    //    ASSERT_STREQ("name", ast->m_block[0]->m_namespace->m_text.c_str());
+
+    ast = rt->GetParser()->Parse("@::var := 1");
+    ASSERT_TRUE(ast);
+    ASSERT_EQ(0, ast->m_variables.size());
+    ASSERT_EQ(3, rt->size() - buildin_count);
+    ASSERT_TRUE(rt->AstAnalyze(ast));
+    ASSERT_EQ(3, rt->size() - buildin_count);
+    ASSERT_EQ(1, ast->m_variables.size());
+    ASSERT_STREQ("$$var", ast->m_variables.begin()->second.proto->m_text.c_str());
+
+    ast = rt->GetParser()->Parse("@::var ::= 1");
+    ASSERT_TRUE(ast);
+    ASSERT_EQ(0, ast->m_variables.size());
+    ASSERT_EQ(3, rt->size() - buildin_count);
+    ASSERT_TRUE(rt->AstAnalyze(ast));
+    ASSERT_EQ(3, rt->size() - buildin_count);
+    ASSERT_EQ(1, ast->m_variables.size());
+    ASSERT_STREQ("$$var", ast->m_variables.begin()->second.proto->m_text.c_str());
+
+    ast = rt->GetParser()->Parse("ns { name { @::var := 1 } };");
+    ASSERT_TRUE(ast);
+    ASSERT_EQ(0, ast->m_variables.size());
+    ASSERT_EQ(3, rt->size() - buildin_count);
+    ASSERT_TRUE(rt->AstAnalyze(ast));
+    ASSERT_EQ(3, rt->size() - buildin_count);
+    ASSERT_EQ(1, ast->m_variables.size());
+    ASSERT_STREQ("ns::name::var", ast->m_variables.begin()->second.proto->m_text.c_str());
+
+
+    //    ast = rt->GetParser()->Parse("ns { name { { var7 := @:: } } };");
+    //    ASSERT_TRUE(ast);
+    //    ASSERT_EQ(0, ast->m_variables.size());
+    //    ASSERT_EQ(3, rt->size() - buildin_count);
+    //    ASSERT_TRUE(rt->AstAnalyze(ast));
+    //    ASSERT_EQ(3, rt->size() - buildin_count);
+    //    ASSERT_EQ(1, ast->m_variables.size()) << ast->m_variables.Dump();
+    //    ASSERT_STREQ("ns::name$var7", ast->m_variables.begin()->second.proto->m_text.c_str());
+
+    //    // В каком модуле ::$var_glob ???
+    //    ast = rt->GetParser()->Parse(":: { var_glob := 1 };");
+    //    ASSERT_TRUE(ast);
+    //    ASSERT_EQ(0, ast->m_variables.size());
+    //    ASSERT_EQ(3, rt->size() - buildin_count);
+    //    ASSERT_TRUE(rt->AstAnalyze(ast));
+    //    ASSERT_EQ(0, ast->m_variables.size()) << ast->m_variables.begin()->second.proto->m_text.c_str();
+    //    ASSERT_EQ(4, rt->size() - buildin_count);
+    //    ASSERT_STREQ("::$var_glob", ast->m_variables.begin()->second.proto->m_text.c_str());
+
+
+    /*
+     * Функции
+     */
+
+    buildin_count = rt->size();
+    ast = rt->GetParser()->Parse("func() ::= {};");
+    ASSERT_TRUE(ast);
+    ASSERT_EQ(0, rt->size() - buildin_count);
+    ASSERT_EQ(0, ast->m_variables.size());
+    ASSERT_TRUE(rt->AstAnalyze(ast));
+    ASSERT_EQ(0, rt->size() - buildin_count);
+    ASSERT_EQ(1, ast->m_variables.size());
+    ASSERT_STREQ("$$func", ast->m_variables.begin()->second.proto->m_text.c_str());
+
+    ast = rt->GetParser()->Parse("@::func() ::= {};");
+    ASSERT_TRUE(ast);
+
+    ASSERT_TRUE(ast->m_left);
+    ASSERT_TRUE(ast->m_left->isCall()) << ast->toString();
+    ASSERT_STREQ("@::func", ast->m_left->m_text.c_str());
+
+    ASSERT_EQ(0, rt->size() - buildin_count);
+    ASSERT_EQ(0, ast->m_variables.size());
+    ASSERT_TRUE(rt->AstAnalyze(ast));
+    ASSERT_EQ(0, rt->size() - buildin_count);
+    ASSERT_EQ(1, ast->m_variables.size()) << ast->m_variables.Dump();
+    ASSERT_TRUE(ast->m_variables.begin()->second.proto);
+    ASSERT_STREQ("$$func", ast->m_variables.begin()->second.proto->m_text.c_str());
+
+
+    ast = rt->GetParser()->Parse("name { func() ::= {}  };");
+    ASSERT_TRUE(ast);
+
+    ASSERT_EQ(1, ast->m_block.size());
+    ASSERT_TRUE(ast->m_block[0]->m_left);
+    ASSERT_TRUE(ast->m_block[0]->m_left->isCall()) << ast->m_block[0]->toString();
+    ASSERT_STREQ("func", ast->m_block[0]->m_left->m_text.c_str());
+
+    ASSERT_EQ(0, rt->size() - buildin_count);
+    ASSERT_EQ(0, ast->m_variables.size());
+    ASSERT_TRUE(rt->AstAnalyze(ast));
+    ASSERT_EQ(0, rt->size() - buildin_count);
+    ASSERT_EQ(1, ast->m_variables.size()) << ast->m_variables.Dump();
+    ASSERT_TRUE(ast->m_variables.begin()->second.proto);
+    ASSERT_STREQ("name$$func", ast->m_variables.begin()->second.proto->m_text.c_str());
+    ASSERT_STREQ("name$$func", ast->m_block[0]->m_left->m_text.c_str());
+
+    ast = rt->GetParser()->Parse("ns { name { func() ::= {}  } };");
+    ASSERT_TRUE(ast);
+
+    ASSERT_EQ(1, ast->m_block.size());
+    ASSERT_TRUE(ast->m_block[0]->m_left);
+    ASSERT_TRUE(ast->m_block[0]->m_left->isCall()) << ast->m_block[0]->toString();
+    ASSERT_STREQ("func", ast->m_block[0]->m_left->m_text.c_str());
+
+    ASSERT_EQ(0, rt->size() - buildin_count);
+    ASSERT_EQ(0, ast->m_variables.size());
+    ASSERT_TRUE(rt->AstAnalyze(ast));
+    ASSERT_EQ(0, rt->size() - buildin_count);
+    ASSERT_EQ(1, ast->m_variables.size()) << ast->m_variables.Dump();
+    ASSERT_TRUE(ast->m_variables.begin()->second.proto);
+    ASSERT_STREQ("ns::name$$func", ast->m_variables.begin()->second.proto->m_text.c_str());
+    ASSERT_STREQ("ns::name$$func", ast->m_block[0]->m_left->m_text.c_str());
+
+    //    ast = rt->GetParser()->Parse("var := 1;");
+    //    ASSERT_TRUE(ast);
+    //    ASSERT_EQ(0, ast->m_variables.size());
+    //    ASSERT_EQ(0, rt->size() - buildin_count);
+    //    ASSERT_TRUE(rt->AstAnalyze(ast));
+    //    ASSERT_EQ(0, rt->size() - buildin_count);
+    //    ASSERT_EQ(1, ast->m_variables.size());
+    //    ASSERT_STREQ("$var", ast->m_variables.begin()->second.proto->m_text.c_str());
+    //
+    //
+    //    ast = rt->GetParser()->Parse("ns::var := 1;");
+    //    ASSERT_TRUE(ast);
+    //    ASSERT_EQ(0, ast->m_variables.size());
+    //    ASSERT_EQ(0, rt->size() - buildin_count);
+    //    ASSERT_TRUE(rt->AstAnalyze(ast));
+    //    ASSERT_EQ(0, rt->size() - buildin_count);
+    //    ASSERT_EQ(1, ast->m_variables.size());
+    //    ASSERT_STREQ("ns::var", ast->m_variables.begin()->second.proto->m_text.c_str());
+    //
+    //
+    //    ast = rt->GetParser()->Parse("::ns::var := 1;");
+    //    ASSERT_TRUE(ast);
+    //    ASSERT_EQ(0, ast->m_variables.size());
+    //    ASSERT_EQ(0, rt->size() - buildin_count);
+    //    ASSERT_TRUE(rt->AstAnalyze(ast));
+    //    ASSERT_EQ(1, rt->size() - buildin_count);
+    //    ASSERT_EQ(0, ast->m_variables.size());
+    //    ASSERT_STREQ("::ns::var", (*rt)["::ns::var"].proto->m_text.c_str());
+    //
+    //
+    //    ast = rt->GetParser()->Parse("name { var := 1 };");
+    //    ASSERT_TRUE(ast);
+    //    ASSERT_EQ(0, ast->m_variables.size());
+    //    ASSERT_EQ(1, rt->size() - buildin_count);
+    //    ASSERT_TRUE(rt->AstAnalyze(ast));
+    //    ASSERT_EQ(1, rt->size() - buildin_count);
+    //    ASSERT_EQ(1, ast->m_variables.size());
+    //
+    //    ASSERT_EQ(1, ast->m_block.size());
+    //    ASSERT_STREQ(":=", ast->m_block[0]->m_text.c_str());
+    //    ASSERT_TRUE(ast->m_block[0]->m_left);
+    //    ASSERT_STREQ("name$var", ast->m_block[0]->m_left->m_text.c_str());
+    //    ASSERT_TRUE(ast->m_block[0]->m_right);
+    //    ASSERT_STREQ("1", ast->m_block[0]->m_right->m_text.c_str());
+    //
+    //    ASSERT_STREQ("name$var", ast->m_variables.begin()->second.proto->m_text.c_str());
+    //
+    //    ast = rt->GetParser()->Parse("name:: { var := 1 };");
+    //    ASSERT_TRUE(ast);
+    //    ASSERT_EQ(0, ast->m_variables.size());
+    //    ASSERT_EQ(1, rt->size() - buildin_count);
+    //    ASSERT_TRUE(rt->AstAnalyze(ast));
+    //    ASSERT_EQ(1, rt->size() - buildin_count);
+    //    ASSERT_EQ(1, ast->m_variables.size());
+    //    ASSERT_STREQ("name$var", ast->m_variables.begin()->second.proto->m_text.c_str());
+    //
+    //
+    //    ast = rt->GetParser()->Parse("ns::name:: { var := 1 };");
+    //    ASSERT_TRUE(ast);
+    //    ASSERT_EQ(0, ast->m_variables.size());
+    //    ASSERT_EQ(1, rt->size() - buildin_count);
+    //    ASSERT_TRUE(rt->AstAnalyze(ast));
+    //    ASSERT_EQ(1, rt->size() - buildin_count);
+    //    ASSERT_EQ(1, ast->m_variables.size());
+    //    ASSERT_STREQ("ns::name$var", ast->m_variables.begin()->second.proto->m_text.c_str());
+    //
+    //    ast = rt->GetParser()->Parse("name:: { ::var := 1 };");
+    //    ASSERT_TRUE(ast);
+    //    ASSERT_EQ(0, ast->m_variables.size());
+    //    ASSERT_EQ(1, rt->size() - buildin_count);
+    //    ASSERT_TRUE(rt->AstAnalyze(ast));
+    //    ASSERT_EQ(2, rt->size() - buildin_count);
+    //    ASSERT_EQ(0, ast->m_variables.size());
+    //    ASSERT_STREQ("::var", (*rt)["::var"].proto->m_text.c_str());
+    //
+    //    ast = rt->GetParser()->Parse("::name:: { ::ns2::var := 1 };");
+    //    ASSERT_TRUE(ast);
+    //    ASSERT_EQ(0, ast->m_variables.size());
+    //    ASSERT_EQ(2, rt->size() - buildin_count);
+    //    ASSERT_TRUE(rt->AstAnalyze(ast));
+    //    ASSERT_EQ(3, rt->size() - buildin_count);
+    //    ASSERT_EQ(0, ast->m_variables.size());
+    //    ASSERT_STREQ("::ns2::var", (*rt)["::ns2::var"].proto->m_text.c_str());
+    //
+    //
+    //    ast = rt->GetParser()->Parse("name { $var := 1 };");
+    //    ASSERT_TRUE(ast);
+    //    ASSERT_EQ(0, ast->m_variables.size());
+    //    ASSERT_EQ(3, rt->size() - buildin_count);
+    //    ASSERT_TRUE(rt->AstAnalyze(ast));
+    //    ASSERT_EQ(3, rt->size() - buildin_count);
+    //    ASSERT_EQ(1, ast->m_variables.size());
+    //    ASSERT_STREQ("name$var", ast->m_variables.begin()->second.proto->m_text.c_str());
+    //
+    //    ast = rt->GetParser()->Parse("name { { $var := 1 } };");
+    //    ASSERT_TRUE(ast);
+    //    ASSERT_EQ(0, ast->m_variables.size());
+    //    ASSERT_EQ(3, rt->size() - buildin_count);
+    //    ASSERT_TRUE(rt->AstAnalyze(ast));
+    //    ASSERT_EQ(3, rt->size() - buildin_count);
+    //    ASSERT_EQ(1, ast->m_variables.size());
+    //    ASSERT_STREQ("name$var", ast->m_variables.begin()->second.proto->m_text.c_str());
+
+
 }
 
 //TEST(Oop, ClassFunc) {

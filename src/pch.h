@@ -69,10 +69,8 @@
 #include "warning_pop.h"
 
 
-#undef LOG_RUNTIME
 #define LOG_RUNTIME(format, ...)  LOG_EXCEPT(newlang::Return, format, ##__VA_ARGS__)
-
-#include "types.h"
+#define LOG_CUSTOM_ERROR(error, format, ...)  LOG_EXCEPT_LEVEL(error, LOG_LEVEL_ERROR, "", format, ##__VA_ARGS__ )
 
 
 #endif // NEWLANG_PCH_H_

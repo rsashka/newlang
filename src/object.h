@@ -558,7 +558,7 @@ namespace newlang {
 
         [[nodiscard]]
         inline bool is_scalar() const {
-            return is_tensor_type() && !m_tensor.defined();
+            return is_tensor_type() && !m_tensor.defined();// || m_tensor.dim() == 0);
         }
 
         [[nodiscard]]
@@ -1402,6 +1402,8 @@ namespace newlang {
                 case ObjType::Integer:
                     if (at::holds_alternative<int64_t>(m_var)) {
                         return at::get<int64_t>(m_var);
+//                    } else if (m_tensor.dim()==0) {
+//                        return m_tensor.item<int64_t>();
                     }
                     ASSERT(!is_scalar());
                     LOG_RUNTIME("Can`t convert tensor to scalar!");
@@ -2291,7 +2293,7 @@ namespace newlang {
                     } else if (!is_scalar() && value->is_scalar()) {
 
                         // Установить одно значение для всех элементов тензора
-                        if (is_integral()) {
+                        if (value->is_integral()) {
                             m_tensor.set_(torch::scalar_tensor(value->GetValueAsInteger(), m_tensor.scalar_type()));
                         } else {
                             ASSERT(is_floating());

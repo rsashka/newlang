@@ -150,6 +150,7 @@
 %token			OPERATOR_AND
 %token			OPERATOR_PTR
 %token			OPERATOR_ANGLE_EQ
+%token			OPERATOR_DUCK
 
 %token			SPACE
 %token			COMMENT
@@ -170,9 +171,10 @@
 %token			MACRO_ARGUMENT  "Macro argument"
 %token			MACRO_ARGCOUNT  "Macro args count"
 
+%token			MACRO_NAMESPACE
 
-%token			CREATE                  "::="
-%token			CREATE_OR_ASSIGN        ":="
+%token			CREATE_ONCE              "::="
+%token			CREATE_OVERLAP             ":="
 %token			APPEND                  "[]="
 %token			SWAP
 
@@ -191,6 +193,8 @@
 %token			TRY_MINUS_END
 %token			TRY_ALL_BEGIN
 %token			TRY_ALL_END
+%token			SYM_BEGIN
+%token			SYM_END
 
 
 %token			FOLLOW
@@ -200,7 +204,6 @@
 %token			TAKE
 
 %token			ARGUMENT
-%token			MODULES
 
 
 %token			RANGE           ".."
@@ -213,10 +216,9 @@
 %token                  SOURCE
 %token			ITERATOR
 %token			ITERATOR_QQ
-%token			ELSE
 
-%token			PUREFUNC
-%token			PURE_CREATE
+%token			PURE_ONCE
+%token			PURE_OVERLAP
 %token			OPERATOR
 %token			DOC_BEFORE
 %token			DOC_AFTER
@@ -245,59 +247,71 @@ symbols: SYMBOL
             }
 
 
-ns:     NAME
+
+ns_part:  NAME
             {
                 $$ = $1;
             }
-        | ns  NAMESPACE  NAME
-            {
-                $$ = $3;
-                $$->m_text.insert(0, "::");
-                $$->m_text.insert(0, $1->m_text);
-                $$->SetTermID(TermID::GLOBAL);
-            }
-            
-ns_name:  ns
-            {
-                $$ = $1;
-            }
-        | NAMESPACE
-            {
-                $$ = $1;
-                $$->SetTermID(TermID::GLOBAL);
-            }
-        | NAMESPACE  ns
+        | MACRO_NAMESPACE   NAME
             {
                 $$ = $2;
-                $$->m_text.insert(0, "::");
-                $$->SetTermID(TermID::GLOBAL);
+                $$->m_text.insert(0, $1->m_text);
             }
-        | ns  NAMESPACE
+        | ns_part  NAMESPACE  NAME   
+            {
+                $$ = $3;
+                $$->m_text.insert(0, $2->m_text);
+                $$->m_text.insert(0, $1->m_text);
+                $$->SetTermID(TermID::STATIC);
+                // У переменных m_namespace заполняется в AstExpandNamespace
+            }
+        
+ns_start:  NAMESPACE
             {
                 $$ = $1;
-                $$->m_text.append("::");
-                $$->SetTermID(TermID::GLOBAL);
             }
-
-/*
-local:  '$'
+/*        | MACRO_NAMESPACE
             {
                 $$ = $1;
-                $$->SetTermID(TermID::LOCAL);
-            }
-        | LOCAL
-            {
-                $$ = $1;
+                $$->SetTermID(TermID::NAMESPACE);
             }
 */
 
-
-name:  ns_name
+name:   ns_part
             {
                 $$ = $1;
                 $$->TestConst();
-                $$->m_namespace = driver.NamespaceCurrent();
             }
+        | ns_start
+            {
+                $$ = $1;
+                $$->SetTermID(TermID::STATIC);
+                // У переменных m_namespace заполняется в AstExpandNamespace
+            }
+        | ns_start  ns_part
+            {
+                $$ = $2;
+                $$->m_text.insert(0, $1->m_text);
+                $$->SetTermID(TermID::STATIC);
+                // У переменных m_namespace заполняется в AstExpandNamespace
+            }
+        | ns_part  NAMESPACE  type_class
+            {
+                $$ = $3;
+                $$->m_text.insert(0, $2->m_text);
+                $$->m_text.insert(0, $1->m_text);
+                $$->SetTermID(TermID::STATIC);
+                // У переменных m_namespace заполняется в AstExpandNamespace
+            }
+        | ns_start  ns_part  NAMESPACE  type_class
+            {
+                $$ = $4;
+                $$->m_text.insert(0, $3->m_text);
+                $$->m_text.insert(0, $2->m_text);
+                $$->m_text.insert(0, $1->m_text);
+                $$->SetTermID(TermID::STATIC);
+                // У переменных m_namespace заполняется в AstExpandNamespace
+            } 
         |  LOCAL
             {
                 $$ = $1;
@@ -310,20 +324,27 @@ name:  ns_name
             }
         |  MODULE
             {
+                driver.CheckLoadModule($1);
                 $$ = $1;
                 $$->TestConst();
             }
         |  '\\'
             {
+                driver.CheckLoadModule($1);
                 $$ = $1;
                 $$->SetTermID(TermID::MODULE);
                 $$->TestConst();
             }
-        |  MODULE   NAMESPACE   assign_name
+        |  MODULE  ns_start   ns_part
             {
+                driver.CheckLoadModule($1);
                 $$ = $1;
+
+                $3->m_namespace = $2;
+                $3->SetTermID(TermID::STATIC);
+                $3->TestConst();
+                
                 $$->Last()->Append($3);
-                $$->TestConst();
             }
         |  NATIVE
             {
@@ -370,11 +391,11 @@ type_dim: INTEGER
             // Произвольное количество элементов
             $$ = $1; 
         }
-/*    | TERM  '='  INTEGER
+    | NAME  '='  INTEGER
         { // torch поддерживает именованные диапазоны, но пока незнаю, нужны ли они?
             $$ = $3;
             $$->SetName($1->getText());
-        } */
+        }
 
 type_dims: type_dim
         {
@@ -390,6 +411,19 @@ type_class:  ':'  name
             {
                 $$ = $2;
                 $$->m_text.insert(0, ":");
+                $$->SetTermID(TermID::TYPE);
+            }
+        | ':'  '~'  name
+            {
+                $$ = $3;
+                $$->m_text.insert(0, ":");
+                $$->SetTermID(TermID::TYPE);
+            }
+        | ':'  OPERATOR_DUCK  name
+            {
+                $$ = $3;
+                $$->m_text.insert(0, ":");
+                $$->SetTermID(TermID::TYPE);
             }
 
 ptr: '&' 
@@ -405,7 +439,7 @@ ptr: '&'
             $$ = $1;
         }
     
-    
+
 type_name:  type_class
             {
                 $$ = $1;
@@ -450,13 +484,13 @@ type_item:  type_name
             {
                 $$ = $1;
             }
-        | ':'  eval
+/*        | ':'  eval
             {
                 // Если тип еще не определён и/или его ненужно проверять во время компиляции, то имя типа можно взять в кавычки.
                 $$ = $2;
                 $$->SetTermID(TermID::TYPENAME);
                 $$->m_text.insert(0, ":");
-            }
+            } */
 
 type_items:  type_item
             {
@@ -473,7 +507,11 @@ type_list:  ':'  '<'  type_items  '>'
             {
                 $$ = $type_items;
             }
-        
+        |  ':'  '<'  ELLIPSIS  '>'
+            {
+                $$ = $3;
+            }
+
 
 
 digits_literal: INTEGER
@@ -521,7 +559,7 @@ range_val:  rval_range
         {
             $$ = $2;
         }
-            
+
         
 range: range_val  RANGE  range_val
         {
@@ -543,7 +581,7 @@ name_to_concat:  MACRO_ARGUMENT
         {
             $$ = $1;
         }
-    |  ns_name
+    |  NAME
         {
             $$ = $1;
         }
@@ -612,29 +650,40 @@ arg_name: name
         {
             $$ = $1;
         }
+    | '.'  NAME
+        {
+            $$ = $2; 
+        }
         
 /* Допустимые <имена> объеков */
 assign_name:  name
                 {
                     $$ = $1;
                     $$->TestConst();
-                    $$->m_namespace = driver.NamespaceCurrent();
                 }
             |  symbols
                 {
                     $$ = $1;  
                     $$->TestConst();
-                    $$->m_namespace = driver.NamespaceCurrent();
                 }
-            |  ns  NAMESPACE  symbols
+            |  ns_part  symbols
                 {
-                    $$ = $2;  
-                    $$->m_text.insert(0, "::");
-                    $$->m_text.insert(0, $ns->m_text);
+                    $$ = $2;
+                    $$->m_text.insert(0, $1->m_text);
+                    $$->SetTermID(TermID::STATIC);
                     $$->TestConst();
-                    $$->m_namespace = driver.NamespaceCurrent();
+                    // У переменных m_namespace заполняется в AstExpandNamespace
                 }
-            | ARGUMENT  /* $123 */
+            |  ns_start   ns_part   symbols
+                {
+                    $$ = $3;
+                    $$->m_text.insert(0, $2->m_text);
+                    $$->m_text.insert(0, $1->m_text);
+                    $$->SetTermID(TermID::STATIC);
+                    $$->TestConst();
+                    // У переменных m_namespace заполняется в AstExpandNamespace
+                }
+           | ARGUMENT  /* $123 */
                 {
                     $$ = $1;
                 }
@@ -673,7 +722,7 @@ field:  '.'  NAME
                 $NAME->SetTermID(TermID::FIELD);
                 $NAME->SetArgs($call);
                 $$->Last()->Append($NAME);
-                Term::ListToVector($type_list, $$->m_type_allowed);
+                $$->SetType($type_list);
             }
        
 lval_obj: assign_name
@@ -753,7 +802,7 @@ lval:  lval_obj
             {   
                 $$ = $name; 
                 $$->SetArgs($call);
-                Term::ListToVector($type_list, $$->m_type_allowed);
+                $$->SetType($type_list);
             }
 
 rval_name: lval
@@ -884,17 +933,23 @@ arg: arg_name  '='
             $$->m_name.swap($1->m_text);
             $$->SetTermID(TermID::EMPTY);
         }
-    | name  type_item  '='
+/*    | arg_name  type_item  '='
         { // Именованный аргумент
             $$ = $3;
             $$->SetType($type_item);
             $$->m_name.swap($1->m_text);
             $$->SetTermID(TermID::EMPTY);
-        }
+        } */
     | arg_name  '='  logical
         { // Именованный аргумент
             $$ = $3;
             $$->SetName($1->getText());
+        }
+    | ptr   arg_name  '='  logical
+        { // Именованный аргумент
+            $$ = $logical;
+            $$->SetName($arg_name->getText());
+            $$->MakeRef($ptr);
         }
     | name  type_item  '='  logical
         { // Именованный аргумент
@@ -905,8 +960,22 @@ arg: arg_name  '='
     | name  type_list  '='  logical
         { // Именованный аргумент
             $$ = $4;
-            Term::ListToVector($type_list, $$->m_type_allowed);
             $$->SetName($1->getText());
+            $$->SetType($type_list);
+        }
+    | ptr  name  type_item  '='  logical
+        { // Именованный аргумент
+            $$ = $logical;
+            $$->SetType($type_item);
+            $$->SetName($name->getText());
+            $$->MakeRef($ptr);
+        }
+    | ptr  name  type_list  '='  logical
+        { // Именованный аргумент
+            $$ = $logical;
+            $$->SetName($name->getText());
+            $$->SetType($type_list);
+            $$->MakeRef($ptr);
         }
     | arg_name  '='  ptr  logical
         { // Именованный аргумент
@@ -924,8 +993,8 @@ arg: arg_name  '='
     | name  type_list  '='  ptr  logical
         { // Именованный аргумент
             $$ = $5;
-            Term::ListToVector($type_list, $$->m_type_allowed);
             $$->SetName($1->getText());
+            $$->SetType($type_list);
             $$->MakeRef($ptr);
         }
 /*    | arg_name  '='  take  logical
@@ -1086,7 +1155,6 @@ collection: array
 class_props: assign_lval
             {
                 $$ = $1;
-                $$->m_namespace = driver.NamespaceCurrent();
             }
         | class_props   separator   assign_lval
             {
@@ -1094,7 +1162,7 @@ class_props: assign_lval
                 $$->AppendSequenceTerm($3);
             }
 
-class_item:  type_item
+class_item:  type_call
             {
                 $$ = $1;
             }
@@ -1107,7 +1175,6 @@ class_item:  type_item
 class_base: class_item
             {
                 $$ = $1;
-                $$->m_namespace = driver.NamespaceCurrent();
             }
         | class_base   ','   class_item
             {
@@ -1144,72 +1211,12 @@ class_def:  class_base  '{'  '}'
             }
         
         
-       
-block_ns:  ns_name  '{'  '}'
-            {
-                driver.NamespacePush($ns_name);
-                $$ = $2;
-                $$->m_namespace = driver.NamespaceCurrent();
-                $$->SetTermID(TermID::BLOCK);
-                $$->m_class = $1->m_text;
-                driver.NamespacePop();
-            }
-        | ns_name  '{'  sequence  '}'
-            {
-                driver.NamespacePush($ns_name);
-                $$ = $sequence; 
-                $$->m_namespace = driver.NamespaceCurrent();
-                $$->ConvertSequenceToBlock(TermID::BLOCK);
-                $$->m_class = $1->m_text;
-                driver.NamespacePop();
-            }
-        | ns_name  '{'  sequence  separator  '}'
-            {
-                driver.NamespacePush($ns_name);
-                $$ = $sequence; 
-                $$->m_namespace = driver.NamespaceCurrent();
-                $$->ConvertSequenceToBlock(TermID::BLOCK);
-                $$->m_class = $1->m_text;
-                driver.NamespacePop();
-            }        
-        | ns_name  '{' doc_after '}'
-            {
-                driver.NamespacePush($ns_name);
-                $$ = $2; 
-                $$->m_namespace = driver.NamespaceCurrent();
-                $$->SetTermID(TermID::BLOCK);
-                Term::ListToVector($doc_after, $$->m_docs);
-                $$->m_class = $1->m_text;
-                driver.NamespacePop();
-            }
-        | ns_name  '{'  doc_after  sequence  '}'
-            {
-                driver.NamespacePush($ns_name);
-                $$ = $sequence; 
-                $$->m_namespace = driver.NamespaceCurrent();
-                $$->ConvertSequenceToBlock(TermID::BLOCK);
-                Term::ListToVector($doc_after, $$->m_docs);
-                $$->m_class = $1->m_text;
-                driver.NamespacePop();
-            }
-        | ns_name  '{'  doc_after  sequence  separator  '}'
-            {
-                driver.NamespacePush($ns_name);
-                $$ = $sequence; 
-                $$->m_namespace = driver.NamespaceCurrent();
-                $$->ConvertSequenceToBlock(TermID::BLOCK);
-                Term::ListToVector($doc_after, $$->m_docs);
-                $$->m_class = $1->m_text;
-                driver.NamespacePop();
-            }        
-
         
-        
-assign_op: CREATE_OR_ASSIGN /* := */
+assign_op: CREATE_OVERLAP /* := */
             {
                 $$ = $1;
             }
-        | CREATE /* ::= */
+        | CREATE_ONCE /* ::= */
             {
                 $$ = $1;
             }
@@ -1217,11 +1224,11 @@ assign_op: CREATE_OR_ASSIGN /* := */
             {
                 $$ = $1;
             }
-        | PUREFUNC /* :- */
+        | PURE_ONCE /* :- */
             {
                 $$ = $1;
             }
-        | PURE_CREATE /* ::- */
+        | PURE_OVERLAP /* ::- */
             {
                 $$ = $1;
             }
@@ -1264,11 +1271,17 @@ assign_item:  lval
                 {
                     $$ = $1;
                 }
-            |  ptr   lval
+            | ptr   lval
                 {
                     $$ = $2;
                     $$->MakeRef($ptr);
                 }
+            | ptr  call  logical
+                {
+                    $ptr->SetArgs($call);
+                    $$ = $3;  
+                    $$->MakeRef($ptr);
+                }   
             |  ELLIPSIS
                 {
                     $$ = $1;
@@ -1335,50 +1348,69 @@ assign_seq:  assign_items  assign_op  assign_expr
 block:  '{'  '}'
             {
                 $$ = $1; 
-                $$->m_namespace = driver.NamespaceCurrent();
                 $$->SetTermID(TermID::BLOCK);
             }
         | '{'  sequence  '}'
             {
                 $$ = $sequence; 
-                $$->m_namespace = driver.NamespaceCurrent();
                 $$->ConvertSequenceToBlock(TermID::BLOCK);
             }
         | '{'  sequence  separator  '}'
             {
                 $$ = $sequence; 
-                $$->m_namespace = driver.NamespaceCurrent();
                 $$->ConvertSequenceToBlock(TermID::BLOCK);
             }
         |  '{'  doc_after  '}'
             {
                 $$ = $1; 
-                $$->m_namespace = driver.NamespaceCurrent();
                 $$->SetTermID(TermID::BLOCK);
                 Term::ListToVector($doc_after, $$->m_docs);
             }
         | '{'  doc_after  sequence  '}'
             {
                 $$ = $sequence; 
-                $$->m_namespace = driver.NamespaceCurrent();
                 $$->ConvertSequenceToBlock(TermID::BLOCK);
                 Term::ListToVector($doc_after, $$->m_docs);
             }
         | '{'  doc_after  sequence  separator  '}'
             {
                 $$ = $sequence; 
-                $$->m_namespace = driver.NamespaceCurrent();
                 $$->ConvertSequenceToBlock(TermID::BLOCK);
                 Term::ListToVector($doc_after, $$->m_docs);
             }
 
-     
-        
-body:  condition
+
+block_ns:  ns_part  block
             {
-                $$ = $1;
+                $$ = $2;
+                $$->m_namespace = $1;
             }
-        |  block
+        |  ns_part  NAMESPACE  block
+            {
+                $$ = $3;
+                $$->m_namespace = $2;
+                $$->m_namespace->m_text.insert(0, $1->m_text);
+            }
+        |  ns_start  ns_part  NAMESPACE  block
+            {
+                $$ = $block;
+                $$->m_namespace = $3;
+                $$->m_namespace->m_text.insert(0, $2->m_text);
+                $$->m_namespace->m_text.insert(0, $1->m_text);
+            }
+        |  ns_start  ns_part  block
+            {
+                $$ = $3;
+                $$->m_namespace = $2;
+                $$->m_namespace->m_text.insert(0, $1->m_text);
+            } 
+        |  ns_start  block
+            {
+                $$ = $2;
+                $$->m_namespace = $1;
+            } 
+     
+block_all: block
             {
                 $$ = $1;
             }
@@ -1386,95 +1418,103 @@ body:  condition
             {
                 $$ = $1;
             }
-        |  doc_before  block
-            {
-                $$ = $block;
-                Term::ListToVector($doc_before, $$->m_docs);
-            }
-        |  doc_before  block_ns
-            {
-                $$ = $block_ns;
-                Term::ListToVector($doc_before, $$->m_docs);
-            }
-        |  exit
+        |  try_any
             {
                 $$ = $1;
             }
+
+block_type: block_all
+            {
+                $$ = $1;
+            }
+        | block_all  type_name
+            {
+                $$ = $1;
+                $$->SetType($type_name);
+            }
+        | block_all  type_list
+            {
+                $$ = $1;
+                $$->SetType($type_list);
+            }
+        
+body:  condition
+            {
+                $$ = $1;
+            }
+        |  block_type
+            {
+                $$ = $1;
+            }
+        |  doc_before  block_type
+            {
+                $$ = $block_type;
+                Term::ListToVector($doc_before, $$->m_docs);
+            } 
 
 body_all: body
             {
                 $$ = $1;
             }
-        |  try_catch
-            {
-                $$ = $1;
-            }
-
         
 body_else: ',' else  FOLLOW  body_all
             {
-                $$ = $4; 
+                $$ = $3; 
+                
+                $$->Append($else, Term::LEFT); 
+                $$->Append($body_all, Term::RIGHT); 
             }
 
 
 try_all: TRY_ALL_BEGIN  TRY_ALL_END
             {
                 $$ = $1; 
-                $$->m_namespace = driver.NamespaceCurrent();
                 $$->ConvertSequenceToBlock(TermID::BLOCK_TRY);
             }
         | TRY_ALL_BEGIN  sequence  TRY_ALL_END
             {
                 $$ = $2; 
-                $$->m_namespace = driver.NamespaceCurrent();
                 $$->ConvertSequenceToBlock(TermID::BLOCK_TRY);
             }
         | TRY_ALL_BEGIN  sequence  separator  TRY_ALL_END
             {
                 $$ = $2; 
-                $$->m_namespace = driver.NamespaceCurrent();
                 $$->ConvertSequenceToBlock(TermID::BLOCK_TRY);
             }
 
 try_plus: TRY_PLUS_BEGIN  TRY_PLUS_END
             {
                 $$ = $1; 
-                $$->m_namespace = driver.NamespaceCurrent();
                 $$->ConvertSequenceToBlock(TermID::BLOCK_PLUS);
             }
         | TRY_PLUS_BEGIN  sequence  TRY_PLUS_END
             {
                 $$ = $2; 
-                $$->m_namespace = driver.NamespaceCurrent();
                 $$->ConvertSequenceToBlock(TermID::BLOCK_PLUS);
             }
         | TRY_PLUS_BEGIN  sequence  separator  TRY_PLUS_END
             {
                 $$ = $2; 
-                $$->m_namespace = driver.NamespaceCurrent();
                 $$->ConvertSequenceToBlock(TermID::BLOCK_PLUS);
             }
         
 try_minus: TRY_MINUS_BEGIN  TRY_MINUS_END
             {
                 $$ = $1; 
-                $$->m_namespace = driver.NamespaceCurrent();
                 $$->ConvertSequenceToBlock(TermID::BLOCK_MINUS);
             }
         | TRY_MINUS_BEGIN  sequence  TRY_MINUS_END
             {
                 $$ = $2; 
-                $$->m_namespace = driver.NamespaceCurrent();
                 $$->ConvertSequenceToBlock(TermID::BLOCK_MINUS);
             }
         | TRY_MINUS_BEGIN  sequence  separator  TRY_MINUS_END
             {
                 $$ = $2; 
-                $$->m_namespace = driver.NamespaceCurrent();
                 $$->ConvertSequenceToBlock(TermID::BLOCK_MINUS);
             }
 
-try_catch:  try_plus 
+try_any:  try_plus 
             {
                 $$ = $1;
             }
@@ -1486,17 +1526,8 @@ try_catch:  try_plus
             {
                 $$ = $1;
             }
-        | try_all  type_name
-            {
-                $$ = $1;
-                $$->m_type_allowed.push_back($type_name);
-            }
-        | try_all  type_list
-            {
-                $$ = $1;
-                Term::ListToVector($type_list, $$->m_type_allowed);
-            }
-        
+
+       
 /* 
  * lvalue - объект в памяти, которому может быть присовено значение (может быть ссылкой и/или константой)
  * rvalue - объект, которому <НЕ> может быть присвоено значение (литерал, итератор, вызов функции)
@@ -1538,6 +1569,11 @@ operator: OPERATOR
                 $$->SetTermID(TermID::OPERATOR);
             }
         |  OPERATOR_ANGLE_EQ
+            {
+                $$ = $1;
+                $$->SetTermID(TermID::OPERATOR);
+            }
+        |  OPERATOR_DUCK
             {
                 $$ = $1;
                 $$->SetTermID(TermID::OPERATOR);
@@ -1624,7 +1660,35 @@ factor:   rval_var
                 $$ = $2; 
             }
 
-       
+
+symbolyc: SYM_BEGIN  arithmetic  SYM_END   PURE_OVERLAP   SYM_BEGIN  sequence  SYM_END
+            {
+                $$ = $PURE_OVERLAP;
+                $$->SetTermID(TermID::SYM_RULE);
+                $$->Append($arithmetic, Term::LEFT); 
+                $$->Append($sequence, Term::RIGHT); 
+            }
+        | SYM_BEGIN  arithmetic  SYM_END   PURE_OVERLAP   SYM_BEGIN  sequence  separator  SYM_END
+            {
+                $$ = $PURE_OVERLAP;
+                $$->SetTermID(TermID::SYM_RULE);
+                $$->Append($arithmetic, Term::LEFT); 
+                $$->Append($sequence, Term::RIGHT); 
+            }
+        | SYM_BEGIN  arithmetic  separator SYM_END   PURE_OVERLAP   SYM_BEGIN  sequence  SYM_END
+            {
+                $$ = $PURE_OVERLAP;
+                $$->SetTermID(TermID::SYM_RULE);
+                $$->Append($arithmetic, Term::LEFT); 
+                $$->Append($sequence, Term::RIGHT); 
+            }
+        | SYM_BEGIN  arithmetic  separator SYM_END   PURE_OVERLAP   SYM_BEGIN  sequence  separator  SYM_END
+            {
+                $$ = $PURE_OVERLAP;
+                $$->SetTermID(TermID::SYM_RULE);
+                $$->Append($arithmetic, Term::LEFT); 
+                $$->Append($sequence, Term::RIGHT); 
+            }
    
         
 condition: SOURCE
@@ -1639,7 +1703,7 @@ condition: SOURCE
         
 logical:  arithmetic
             {
-                    $$ = $1;
+                $$ = $1;
             }
         |  logical  operator  arithmetic
             {
@@ -1661,23 +1725,15 @@ logical:  arithmetic
             }
         
         
-else:   ELSE
+else:   '['  ELLIPSIS  ']' 
             {
-                 $$ = Term::Create(token::SYMBOL, TermID::NONE, "_", 1, & @$);
-            }
-        |  '['  '_'  ']' 
-            {
-                 $$ = Term::Create(token::SYMBOL, TermID::NONE, "_", 1, & @$);
+                $$ = $2;
             }
             
 
 match_cond: '['   condition   ']' 
             {
                 $$ = $condition;
-            }
-        |  else
-            {
-                $$ = $else;
             }
 
 if_then:  match_cond  FOLLOW  body_all
@@ -1687,17 +1743,26 @@ if_then:  match_cond  FOLLOW  body_all
                 $$->Append($3, Term::RIGHT); 
             }
 
-follow: if_then
+if_list: if_then
             {
                 $$ = $1; 
                 $$->AppendFollow($1);
             }
-        | follow  ','  if_then
+        | if_list  ','  if_then
             {
                 $$ = $1; 
                 $$->AppendFollow($3);
             }
         
+follow: if_list
+            {
+                $$ = $1; 
+            }
+        | if_list  body_else
+            {
+                $$ = $1; 
+                $$->AppendFollow($2);
+            }
    
 repeat: body_all  REPEAT  match_cond
             {
@@ -1738,70 +1803,75 @@ match_item: '[' matches  ']' FOLLOW  body
                 $$->Append($2, Term::LEFT); 
                 $$->Append($5, Term::RIGHT); 
             }
-        | else  FOLLOW  body
+/*        | else  FOLLOW  body
             {
                 $$=$2;
                 $$->Append($1, Term::LEFT); 
                 $$->Append($3, Term::RIGHT); 
-            }
+            } */
 
-match_items:  match_item
+match_items:  match_item  ';'
             {
                 $$ = $1;
             }
-        | match_items  separator  match_item
+        | match_items  match_item  ';'
             {
                 $$ = $1;
                 $$->AppendSequenceTerm($match_item);
             }
 
+match_items_else:  match_items
+            {
+                $$=$1;
+            } 
+        |  match_items  else  FOLLOW  body
+            {
+                $$=$1;
+
+                $3->Append($else, Term::LEFT); 
+                $3->Append($body, Term::RIGHT); 
+
+                $$->AppendSequenceTerm($3);
+            } 
       
-match_body:  '{'  match_items  '}'
+match_body: '{'  match_items_else  '}'
             {
                 $$ = $2;
-                $$->m_namespace = driver.NamespaceCurrent();
                 $$->ConvertSequenceToBlock(TermID::BLOCK);
             }
-        | '{'  match_items  separator '}'
+        | '{'  match_items_else  separator '}'
             {
                 $$ = $2;
-                $$->m_namespace = driver.NamespaceCurrent();
                 $$->ConvertSequenceToBlock(TermID::BLOCK);
             }
-        | TRY_ALL_BEGIN  match_items  TRY_ALL_END
+        | TRY_ALL_BEGIN  match_items_else  TRY_ALL_END
             {
                 $$ = $2;
-                $$->m_namespace = driver.NamespaceCurrent();
                 $$->ConvertSequenceToBlock(TermID::BLOCK_TRY);
             }
-        | TRY_ALL_BEGIN  match_items  separator TRY_ALL_END
+        | TRY_ALL_BEGIN  match_items_else  separator TRY_ALL_END
             {
                 $$ = $2;
-                $$->m_namespace = driver.NamespaceCurrent();
                 $$->ConvertSequenceToBlock(TermID::BLOCK_TRY);
             }
-        | TRY_PLUS_BEGIN  match_items  TRY_PLUS_END
+        | TRY_PLUS_BEGIN  match_items_else  TRY_PLUS_END
             {
                 $$ = $2;
-                $$->m_namespace = driver.NamespaceCurrent();
                 $$->ConvertSequenceToBlock(TermID::BLOCK_PLUS);
             }
-        | TRY_PLUS_BEGIN  match_items  separator TRY_PLUS_END
+        | TRY_PLUS_BEGIN  match_items_else  separator TRY_PLUS_END
             {
                 $$ = $2;
-                $$->m_namespace = driver.NamespaceCurrent();
                 $$->ConvertSequenceToBlock(TermID::BLOCK_PLUS);
             }
-        | TRY_MINUS_BEGIN  match_items  TRY_MINUS_END
+        | TRY_MINUS_BEGIN  match_items_else  TRY_MINUS_END
             {
                 $$ = $2;
-                $$->m_namespace = driver.NamespaceCurrent();
                 $$->ConvertSequenceToBlock(TermID::BLOCK_MINUS);
             }
-        | TRY_MINUS_BEGIN  match_items  separator TRY_MINUS_END
+        | TRY_MINUS_BEGIN  match_items_else  separator TRY_MINUS_END
             {
                 $$ = $2;
-                $$->m_namespace = driver.NamespaceCurrent();
                 $$->ConvertSequenceToBlock(TermID::BLOCK_MINUS);
             }
 
@@ -1827,9 +1897,13 @@ interrupt: INT_PLUS
             {
                 $$ = $1;
             }
+        | INT_REPEAT
+            {
+                $$ = $1;
+            }
         
         
-exit:  interrupt
+exit_part:  interrupt
         {
             $$ = $1;
         }
@@ -1838,10 +1912,41 @@ exit:  interrupt
             $$ = $1;
             $$->Append($2, Term::RIGHT); 
         }
-    |  INT_REPEAT   rval   INT_REPEAT
+
+
+exit_prefix: ns_part
         {
             $$ = $1;
-            $$->Append($2, Term::RIGHT); 
+        }
+    |  ns_start
+        {
+            $$ = $1;
+        }
+    |  ns_start   ns_part
+        {
+            $$ = $2;
+            $$->m_text.insert(0, $1->m_text);
+        }
+    | ns_part  NAMESPACE
+        {
+            $$ = $1;
+            $$->m_text.insert(0, $1->m_text);
+        }
+    |  ns_start   ns_part  NAMESPACE
+        {
+            $$ = $3;
+            $$->m_text.insert(0, $2->m_text);
+            $$->m_text.insert(0, $1->m_text);
+        }
+            
+exit:   exit_part
+        {
+            $$ = $1;
+        }
+    | exit_prefix  exit_part 
+        {
+            $$ = $2;
+            $$->m_namespace = $1;
         }
 
 
@@ -1867,17 +1972,7 @@ with_args: with_arg
         }
         
     
-with: with_op  assign_name
-        {
-                $$ = $1; 
-                $$->Append($assign_name, Term::RIGHT); 
-        }
-    |  with_op  '('  ')' assign_name
-        {
-                $$ = $1; 
-                $$->Append($assign_name, Term::RIGHT); 
-        }
-    | with_op  '('  rval_name  ')'   body
+with: with_op  '('  rval_name  ')'   body
         {
                 $$ = $1; 
                 $$->Append($3, Term::LEFT); 
@@ -1904,12 +1999,6 @@ with: with_op  assign_name
                 $$->AppendFollow($body_else); 
         }
 
-swap:  assign_name  SWAP assign_name
-        {
-            $$ = $2; 
-            $$->Append($1, Term::LEFT); 
-            $$->Append($3, Term::RIGHT); 
-        }
     
 /*  expression - одна операция или результат <ОДНОГО выражения без завершающей точки с запятой !!!!!> */
 seq_item: assign_seq
@@ -1937,16 +2026,7 @@ seq_item: assign_seq
             {
                 $$ = $1;
             }
-        | try_catch  body_else
-            {
-                $$ = $1; 
-                $$->AppendFollow($body_else); 
-            }
         |  with
-            {            
-                $$ = $1;
-            }
-        |  swap
             {            
                 $$ = $1;
             }
@@ -1954,10 +2034,18 @@ seq_item: assign_seq
             {            
                 $$ = $1;
             }
-       
+        |  symbolyc
+            {            
+                $$ = $1;
+            }
+        |  exit
+            {
+                $$ = $1;
+            }
+        
 sequence:  seq_item
             {
-                $$ = $1;  
+                $$ = $1;
             }
         | seq_item  doc_after
             {
@@ -1996,16 +2084,16 @@ ast:    END
             }
         | separator  sequence
             {
-                driver.AstAddTerm($1);
+                driver.AstAddTerm($2);
             }
         | separator  sequence separator
             {
-                driver.AstAddTerm($1);
+                driver.AstAddTerm($2);
             }
         | separator  sequence separator  doc_after
             {
                 Term::ListToVector($doc_after, $1->m_docs);
-                driver.AstAddTerm($1);
+                driver.AstAddTerm($2);
             }
 /*        | comment     Комменатарии не добавляются в AST, т.к. в парсере они не нужны, а
                         их потенциальное использование - документирование кода, решается 

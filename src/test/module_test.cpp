@@ -156,20 +156,20 @@ TEST(Module, Env) {
     RuntimePtr env = RunTime::Init(1, args);
     //    Context ctx(env);
 
-    env->CheckOrLoadModule("\\file");
-    env->CheckOrLoadModule("\\dir\\file");
-    env->CheckOrLoadModule("\\dir\\file::var");
-    env->CheckOrLoadModule("\\dir\\file::var.ddd");
+    //    env->CheckOrLoadModule("\\file");
+    //    env->CheckOrLoadModule("\\dir\\file");
+    //    env->CheckOrLoadModule("\\dir\\file::var");
+    //    env->CheckOrLoadModule("\\dir\\file::var.ddd");
 }
 
 TEST(Module, Load) {
 
-    const char *args[1] = {"-nlc-search=../example;../src"};
+    const char *args[1] = {"-nlc-search=./;../example;../src"};
 
     Context::Reset();
 
-    RuntimePtr env = RunTime::Init(1, args);
-    Context ctx(env);
+    RuntimePtr rt = RunTime::Init(1, args);
+    Context ctx(rt);
 
 
     std::filesystem::create_directories("temp");
@@ -183,10 +183,28 @@ TEST(Module, Load) {
     file << "ns3::ns4::module_var4 := 4;\n";
     file.close();
 
-    EXPECT_FALSE(ctx.FindTerm("module_var1"));
-    EXPECT_FALSE(ctx.FindTerm("ns::module_var2"));
-    EXPECT_FALSE(ctx.FindTerm("ns::ns2::module_var3"));
-    EXPECT_FALSE(ctx.FindTerm("ns3::ns4::module_var4"));
+    EXPECT_FALSE(ctx.FindSessionTerm("module_var1"));
+    EXPECT_FALSE(ctx.FindSessionTerm("ns::module_var2"));
+    EXPECT_FALSE(ctx.FindSessionTerm("ns::ns2::module_var3"));
+    EXPECT_FALSE(ctx.FindSessionTerm("ns3::ns4::module_var4"));
+
+    TermPtr ast;
+    EXPECT_NO_THROW(ast = rt->GetParser()->Parse("var1:=1;\n \\temp\\module_test();\n var2:=2;"));
+    ASSERT_TRUE(ast);
+
+    ModulePtr mod = rt->m_modules["\\temp\\module_test"];
+    ASSERT_TRUE(mod);
+    
+    ASSERT_TRUE(mod->find("$module_var1") != mod->end()) << mod->Dump();
+
+
+
+
+
+
+
+
+
 
     EXPECT_ANY_THROW(
             ctx.ExecStr("\\temp\\module_test::module_var1");
@@ -218,13 +236,13 @@ TEST(Module, Load) {
     ASSERT_EQ(4, result->GetValueAsInteger());
 
 
-    ASSERT_TRUE(env->m_modules.find("\\temp\\module_test") != env->m_modules.end());
+    ASSERT_TRUE(rt->m_modules.find("\\temp\\module_test") != rt->m_modules.end());
 
     // Выгрузить модуль
     result = ctx.ExecStr("\\temp\\module_test(_)");
     ASSERT_TRUE(result);
 
-    ASSERT_TRUE(env->m_modules.find("\\temp\\module_test") == env->m_modules.end());
+    ASSERT_TRUE(rt->m_modules.find("\\temp\\module_test") == rt->m_modules.end());
 
 
     result = ctx.FindTerm("module_var1");
@@ -257,13 +275,13 @@ TEST(Module, Load) {
     ASSERT_TRUE(ctx.FindTerm("\\temp\\module_test::ns3::ns4::module_var4"));
 
 
-    ASSERT_TRUE(env->m_modules.find("\\temp\\module_test") != env->m_modules.end());
+    ASSERT_TRUE(rt->m_modules.find("\\temp\\module_test") != rt->m_modules.end());
 
     // Выгрузить модуль
     result = ctx.ExecStr("\\temp\\module_test(_)");
     ASSERT_TRUE(result);
 
-    ASSERT_TRUE(env->m_modules.find("\\temp\\module_test") == env->m_modules.end());
+    ASSERT_TRUE(rt->m_modules.find("\\temp\\module_test") == rt->m_modules.end());
 
 
     //    // Импортировать по маске

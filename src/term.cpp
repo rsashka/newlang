@@ -75,37 +75,85 @@ BlockType Term::GetMacroId() {
  * 
  * 
  */
-ObjPtr GlobNameList::GlobalNameGet(const char *name, bool is_raise) {
+//ObjPtr NameList::NameGet(const char *name, bool is_raise) {
+//
+//    TermPtr ret = NameFind(name);
+//
+//    if (ret) {
+//        return ret;//->obj;
+////        if (at::holds_alternative<ObjPtr>(ret->obj)) {
+////            return at::get<ObjPtr>(ret->obj).lock();
+////        } else if (at::holds_alternative<std::vector < ObjPtr >> (ret->obj)) {
+////            return at::get<std::vector < ObjPtr >> (ret->obj)[0].lock();
+////        }
+//        if (is_raise) {
+//            NL_PARSER(ret->item, "Global name not implemented! '%s'", name);
+//        }
+//    } else {
+//        if (is_raise) {
+//            LOG_RUNTIME("Global Name '%s' not found!", name);
+//        }
+//    }
+//    return nullptr;
+//}
 
-    GlobNameItem * ret = GlobalNameFind(name);
+std::string NameList::Dump() {
+    std::string result;
 
-    if (ret) {
-        if (!at::holds_alternative<ObjWeak>(ret->obj)) {
-
-            if (at::holds_alternative<ObjWeak>(ret->obj)) {
-                return at::get<ObjWeak>(ret->obj).lock();
-            }
-            ASSERT(at::holds_alternative<std::vector < ObjWeak >> (ret->obj));
-            return at::get<std::vector < ObjWeak >> (ret->obj)[0].lock();
-        }
-        if (is_raise) {
-            NL_PARSER(ret->proto, "Global name not implemented! '%s'", name);
-        }
+    for (auto &elem : * this) {
+        result += '\n';
+        result += elem.first;
     }
-    if (is_raise) {
-        LOG_RUNTIME("Global Name '%s' not found!", name);
-    }
-    return nullptr;
+
+    return result;
 }
 
 /*
  * 
  * 
  */
+bool Term::CheckTermEq(const TermPtr &term1, const TermPtr &term2, bool type, RuntimePtr rt) {
+    if (term1 == nullptr && term2 == nullptr) {
+        return true;
+    }
+    if (!!term1 != !!term2) {
+        if (type) {
+            return true;
+        }
+        return false;
+    }
+    if (term1->m_text.compare(term2->m_text) != 0) {
+        return false;
+    }
+    if (term1->isCall() != term2->isCall()) {
+        return false;
+    }
+    if (term1->m_dims.size() != term2->m_dims.size()) {
+        return false;
+    }
+    for (int i = 0; i < term1->m_dims.size(); i++) {
+        if (!CheckTermEq(term1->m_dims[i], term2->m_dims[i], false, rt)) {
+            return false;
+        }
+    }
+    if (term1->size() != term2->size()) {
+        return false;
+    }
+    for (int i = 0; i < term1->size(); i++) {
+        if (term1->at(i).first.compare(term2->at(i).first) != 0) {
+            return false;
+        }
+        if (!CheckTermEq(term1->at(i).second, term2->at(i).second, false, rt)) {
+            return false;
+        }
+    }
+    return CheckTermEq(term1->m_type, term2->m_type, true, rt);
+}
+
 bool Term::CheckArgsCall(TermPtr &term, RuntimePtr rt) {
     ASSERT(term);
     if (rt) {
-        GlobNameItem * ret = rt->GlobalNameFind(term->m_text.c_str());
+        GlobItem * ret = rt->NameFind(term->m_text.c_str());
         if (ret) {
             return CheckArgsProto(term, ret->proto);
         }
@@ -271,42 +319,42 @@ bool Term::CheckCompareArgs_(const TermPtr &term, const TermPtr &proto) {
     //    }
 }
 
-struct TraversingParam {
-    TermPtr root;
-    std::vector < NodeHandlerFunc *> handlers;
-    void * obj;
-};
-
-void TraversingNodesExecuter(TermPtr &term, TraversingParam &param) {
-    ASSERT(term);
-    ASSERT(!term->m_list);
-    ASSERT(!term->m_sequence);
-
-    for (auto &func : param.handlers) {
-        (*func)(term, param.obj);
-    }
-    if (term->m_left) {
-        TraversingNodesExecuter(term->m_left, param);
-    }
-    if (term->m_right) {
-        TraversingNodesExecuter(term->m_right, param);
-    }
-    for (auto &item : term->m_block) {
-        TraversingNodesExecuter(item, param);
-    }
-    for (auto &item : term->m_follow) {
-        TraversingNodesExecuter(item, param);
-    }
-}
-
-void Term::TraversingNodes(TermPtr &ast, NodeHandlerList h, void * obj) {
-
-    TraversingParam param;
-
-    param.root = ast;
-    param.handlers = h;
-    param.obj = obj;
-
-    TraversingNodesExecuter(ast, param);
-}
+//struct TraversingParam {
+//    TermPtr root;
+//    std::vector < NodeHandlerFunc *> handlers;
+//    void * obj;
+//};
+//
+//void TraversingNodesExecuter(TermPtr &term, TraversingParam &param) {
+//    ASSERT(term);
+//    ASSERT(!term->m_list);
+//    ASSERT(!term->m_sequence);
+//
+//    for (auto &func : param.handlers) {
+//        (*func)(term, param.obj);
+//    }
+//    if (term->m_left) {
+//        TraversingNodesExecuter(term->m_left, param);
+//    }
+//    if (term->m_right) {
+//        TraversingNodesExecuter(term->m_right, param);
+//    }
+//    for (auto &item : term->m_block) {
+//        TraversingNodesExecuter(item, param);
+//    }
+//    for (auto &item : term->m_follow) {
+//        TraversingNodesExecuter(item, param);
+//    }
+//}
+//
+//void Term::TraversingNodes(TermPtr &ast, NodeHandlerList h, void * obj) {
+//
+//    TraversingParam param;
+//
+//    param.root = ast;
+//    param.handlers = h;
+//    param.obj = obj;
+//
+//    TraversingNodesExecuter(ast, param);
+//}
 

@@ -25,13 +25,19 @@ namespace newlang {
 
 typedef at::indexing::TensorIndex Index;
 typedef at::IntArrayRef Dimension;
+typedef std::vector<std::string> StringArray;
 
 class Term;
 class Obj;
 class Context;
 class Module;
+
+namespace runtime {
+    class  Buildin;
+}
+
 class Macro;
-//class Compiler;
+class Parser;
 class RunTime;
 class Diag;
 
@@ -53,6 +59,7 @@ class Diag;
 
 typedef std::shared_ptr<Term> TermPtr;
 typedef std::shared_ptr<Module> ModulePtr;
+typedef std::shared_ptr<runtime::Buildin> BuildinPtr;
 
 typedef std::vector<TermPtr> BlockType;
 
@@ -65,6 +72,7 @@ typedef std::weak_ptr<const Obj> ObjWeakConst;
 typedef std::shared_ptr<RunTime> RuntimePtr;
 typedef std::shared_ptr<Diag> DiagPtr;
 typedef std::shared_ptr<Macro> MacroPtr;
+typedef std::shared_ptr<Parser> ParserPtr;
 
 typedef ObjPtr FunctionType(Context *ctx, Obj &in);
 typedef ObjPtr TransparentType(const Context *ctx, Obj &in);
@@ -157,6 +165,14 @@ void ParserException(const char *msg, std::string &buffer, int row, int col);
         LOG_EXCEPT_LEVEL(Return, LOG_LEVEL_INFO, "", "%s", message.c_str());                                 \
     } while (0)
 
+#define NL_MESSAGE(level, term, format, ...)                                                                                   \
+    do {                                                                                                               \
+        std::string empty;                                                                                             \
+        std::string message =                                                                                          \
+            newlang::ParserMessage(term->m_source ? *term->m_source : empty, term->m_line, term->m_col, format, ##__VA_ARGS__); \
+        LOG_MAKE(level, "", "%s", message.c_str());                                 \
+    } while (0)
+
 #define NL_CHECK(cond, format, ...)                                                                                    \
     do {                                                                                                               \
         if (!(cond)) {                                                                                                 \
@@ -168,9 +184,9 @@ void ParserException(const char *msg, std::string &buffer, int row, int col);
     do {                                                                                                               \
         if (!canCast(from, to)) {                                                                                      \
             std::string message = "Incompatible data type '";                                                          \
-            message += newlang::toString(typeFromString(from));                                                        \
+            message += newlang::toString(from);                                                        \
             message += "' and '";                                                                                      \
-            message += newlang::toString(typeFromString(to));                                                          \
+            message += newlang::toString(to);                                                          \
             message += "' (" __FILE__ ":" TO_STR(__LINE__) ")";                                                        \
             LOG_EXCEPT_LEVEL(                                                                                          \
                 Return, LOG_LEVEL_INFO, "", "%s",                                                            \
@@ -240,7 +256,8 @@ void ParserException(const char *msg, std::string &buffer, int row, int col);
     _(PureFunc, 71)        \
     \
     _(Thread, 80)        \
-    _(System, 85)        \
+    _(Base, 84)        \
+    _(Sys, 85)        \
     \
     _(Range, 104)           \
     _(Dictionary, 105)      \
@@ -353,11 +370,7 @@ void ParserException(const char *msg, std::string &buffer, int row, int col);
 #define DEFINE_ENUM(name, value) name = static_cast<uint8_t>(value),
         NL_TYPES(DEFINE_ENUM)
 #undef DEFINE_ENUM
-        _NumOptions
     };
-
-    constexpr uint16_t ObjTypesNum = static_cast<uint16_t> (ObjType::_NumOptions);
-
 
 #define MAKE_TYPE_NAME(type_name)  type_name
 
@@ -513,6 +526,10 @@ void ParserException(const char *msg, std::string &buffer, int row, int col);
         return t == ObjType::Dictionary || t == ObjType::Interface || t == ObjType::Class;
     }
 
+    bool isDefaultType(const TermPtr & term);
+    const TermPtr getDefaultType(const std::string_view text);
+    const TermPtr getDefaultType(ObjType type);
+
     inline bool isBaseType(ObjType t) {
         return t == ObjType::Bool || t == ObjType::Int8 || t == ObjType::Int16 || t == ObjType::Int32
                 || t == ObjType::Int64 || t == ObjType::Float32 || t == ObjType::Float64
@@ -610,6 +627,98 @@ void ParserException(const char *msg, std::string &buffer, int row, int col);
         return false;
     }
 
+    //#define AT_FORALL_SCALAR_TYPES_WITH_COMPLEX_AND_QINTS(_) \
+//  _(uint8_t, Byte) /* 0 */                               \
+//  _(int8_t, Char) /* 1 */                                \
+//  _(int16_t, Short) /* 2 */                              \
+//  _(int, Int) /* 3 */                                    \
+//  _(int64_t, Long) /* 4 */                               \
+//  _(at::Half, Half) /* 5 */                              \
+//  _(float, Float) /* 6 */                                \
+//  _(double, Double) /* 7 */                              \
+//  _(c10::complex<c10::Half>, ComplexHalf) /* 8 */        \
+//  _(c10::complex<float>, ComplexFloat) /* 9 */           \
+//  _(c10::complex<double>, ComplexDouble) /* 10 */        \
+//  _(bool, Bool) /* 11 */                                 \
+//  _(c10::qint8, QInt8) /* 12 */                          \
+//  _(c10::quint8, QUInt8) /* 13 */                        \
+//  _(c10::qint32, QInt32) /* 14 */                        \
+//  _(at::BFloat16, BFloat16) /* 15 */                     \
+//  _(c10::quint4x2, QUInt4x2) /* 16 */                    \
+//  _(c10::quint2x4, QUInt2x4) /* 17 */                    \
+//  _(c10::bits1x8, Bits1x8) /* 18 */                      \
+//  _(c10::bits2x4, Bits2x4) /* 19 */                      \
+//  _(c10::bits4x2, Bits4x2) /* 20 */                      \
+//  _(c10::bits8, Bits8) /* 21 */                          \
+//  _(c10::bits16, Bits16) /* 22 */                        \
+//  _(c10::Float8_e5m2, Float8_e5m2) /* 23 */              \
+//  _(c10::Float8_e4m3fn, Float8_e4m3fn) /* 24 */
+
+    //    
+    //  switch (scalarType) {
+    //    case at::ScalarType::Byte:
+    //      // no "byte" because byte is signed in numpy and we overload
+    //      // byte to mean bool often
+    //      return std::make_pair("uint8", "");
+    //    case at::ScalarType::Char:
+    //      // no "char" because it is not consistently signed or unsigned; we want
+    //      // to move to int8
+    //      return std::make_pair("int8", "");
+    //    case at::ScalarType::Double:
+    //      return std::make_pair("float64", "double");
+    //    case at::ScalarType::Float:
+    //      return std::make_pair("float32", "float");
+    //    case at::ScalarType::Int:
+    //      return std::make_pair("int32", "int");
+    //    case at::ScalarType::Long:
+    //      return std::make_pair("int64", "long");
+    //    case at::ScalarType::Short:
+    //      return std::make_pair("int16", "short");
+    //    case at::ScalarType::Half:
+    //      return std::make_pair("float16", "half");
+    //    case at::ScalarType::ComplexHalf:
+    //      return std::make_pair("complex32", "chalf");
+    //    case at::ScalarType::ComplexFloat:
+    //      return std::make_pair("complex64", "cfloat");
+    //    case at::ScalarType::ComplexDouble:
+    //      return std::make_pair("complex128", "cdouble");
+    //    case at::ScalarType::Bool:
+    //      return std::make_pair("bool", "");
+    //    case at::ScalarType::QInt8:
+    //      return std::make_pair("qint8", "");
+    //    case at::ScalarType::QUInt8:
+    //      return std::make_pair("quint8", "");
+    //    case at::ScalarType::QInt32:
+    //      return std::make_pair("qint32", "");
+    //    case at::ScalarType::BFloat16:
+    //      return std::make_pair("bfloat16", "");
+    //    case at::ScalarType::QUInt4x2:
+    //      return std::make_pair("quint4x2", "");
+    //    case at::ScalarType::QUInt2x4:
+    //      return std::make_pair("quint2x4", "");
+    //    case at::ScalarType::Bits1x8:
+    //      return std::make_pair("bits1x8", "");
+    //    case at::ScalarType::Bits2x4:
+    //      return std::make_pair("bits2x4", "");
+    //    case at::ScalarType::Bits4x2:
+    //      return std::make_pair("bits4x2", "");
+    //    case at::ScalarType::Bits8:
+    //      return std::make_pair("bits8", "");
+    //    case at::ScalarType::Bits16:
+    //      return std::make_pair("bits16", "");
+    //    case at::ScalarType::Float8_e5m2:
+    //      return std::make_pair("float8_e5m2", "");
+    //    case at::ScalarType::Float8_e4m3fn:
+    //      return std::make_pair("float8_e4m3fn", "");
+    //    case at::ScalarType::Float8_e5m2fnuz:
+    //      return std::make_pair("float8_e5m2fnuz", "");
+    //    case at::ScalarType::Float8_e4m3fnuz:
+    //      return std::make_pair("float8_e4m3fnuz", "");
+    //    default:
+    //      throw std::runtime_error("Unimplemented scalar type");
+    //  }
+    //}    
+
     inline torch::Dtype toTorchType(ObjType t) {
         switch (t) {
             case ObjType::Bool:
@@ -699,8 +808,8 @@ void ParserException(const char *msg, std::string &buffer, int row, int col);
     }
 
     inline ObjType typeFromLimit(double value, ObjType type_default = ObjType::Float64) {
-        if (std::equal_to<double>()(value, 0)) {
-            return type_default;
+        if (value >= std::numeric_limits<float>::min() && value < std::numeric_limits<float>::max()) {
+            return ObjType::Float32;
         }
         return ObjType::Float64;
     }
@@ -709,7 +818,8 @@ void ParserException(const char *msg, std::string &buffer, int row, int col);
         LOG_RUNTIME("Not implemented!");
     }
 
-    ObjType typeFromString(const std::string type, Context *ctx = nullptr, bool *has_error = nullptr);
+    ObjType typeFromString(const TermPtr &term, RuntimePtr rt = nullptr, bool *has_error = nullptr);
+    ObjType typeFromString(const std::string type, RuntimePtr rt = nullptr, bool *has_error = nullptr);
 
     inline LLVMTypeRef toLLVMType(ObjType t, bool none_if_error = false) {
         switch (t) {
@@ -863,20 +973,33 @@ void ParserException(const char *msg, std::string &buffer, int row, int col);
         return !name.empty() && name[0] == '\\';
     }
 
+    inline bool isStaticName(const std::string &name) {
+        return name.find("::") != std::string::npos && name.find("&&") != std::string::npos;
+    }
+
     inline bool isLocalName(const std::string &name) {
-        return !name.empty() && name[0] == '$';
+        return !isStaticName(name) && name.find("$") != std::string::npos && name[0] != '@';
+    }
+
+    inline bool isGlobalScope(const std::string &name) {
+        return name.find("::") == 0;
+    }
+
+    inline bool isModuleScope(const std::string &name) {
+        size_t pos = name.find("::");
+        return pos && pos != std::string::npos && name[0] != '@';
     }
 
     inline bool isTypeName(const std::string &name) {
-        return name.size() > 1 && name[0] == ':' && name[1] != ':';
+        if (isGlobalScope(name)) {
+            return name.find(":::") != std::string::npos;
+        } else {
+            return name.size() > 1 && name[0] == ':' && name[1] != ':';
+        }
     }
 
     inline bool isFullName(const std::string &name) {
         return name.size() > 1 && name[0] == ':' && name[1] == ':';
-    }
-
-    inline bool isGlobalName(const std::string &name) {
-        return name.find("::") != std::string::npos;
     }
 
     inline bool isMacroName(const std::string &name) {
@@ -925,6 +1048,177 @@ void ParserException(const char *msg, std::string &buffer, int row, int col);
     inline bool isConstName(const std::string name) {
         return !name.empty() && name[name.size() - 1] == '^';
     }
+
+    inline std::string MakeName(std::string name) {
+        if (!name.empty() && (name[0] == '\\' || name[0] == '$' || name[0] == '@' || name[0] == '%')) {
+            return name.find("\\\\") == 0 ? name.substr(2) : name.substr(1);
+        }
+        return name;
+    }
+
+    inline std::string ExtractModuleName(const char *str) {
+        std::string name(str);
+        if (isModuleName(name)) {
+            size_t pos = name.find("::");
+            if (pos != std::string::npos) {
+
+                return name.substr(0, pos);
+            }
+            return name;
+        }
+        return std::string();
+    }
+
+    inline std::string ExtractName(std::string name) {
+        size_t pos = name.rfind("::");
+        if (pos != std::string::npos) {
+            name = name.substr(pos + 2);
+        }
+        if (isModuleName(name)) {
+
+            return std::string();
+        }
+        return name;
+    }
+
+    class TermName : public std::string {
+    public:
+
+        TermName(const std::string str) {
+            this->assign(str);
+        }
+
+        TermName(const char * str = nullptr) {
+            this->assign(str ? str : "");
+        }
+
+        TermName(const TermName &name) {
+            this->assign(name);
+        }
+
+        TermName& operator=(const TermName & name) {
+            this->assign(name);
+            return *this;
+        }
+
+        TermName& operator=(const char * name) {
+            this->assign(name);
+            return *this;
+        }
+
+        /*
+         * 
+         * 
+         * 
+         */
+
+
+        inline bool isModule() {
+            return newlang::isModuleName(this->c_str());
+        }
+
+        inline bool isStatic() {
+            return newlang::isStaticName(this->c_str());
+        }
+
+        inline bool isLocal() {
+            return newlang::isLocalName(this->c_str());
+        }
+
+        inline bool isGlobalScope() {
+            return newlang::isGlobalScope(*this);
+        }
+
+        inline bool isModuleScope() {
+            return newlang::isModuleScope(*this);
+        }
+
+        inline bool isTypeName() {
+            return newlang::isTypeName(this->c_str());
+        }
+
+        inline bool isFullName() {
+            return newlang::isFullName(this->c_str());
+        }
+
+        inline bool isMacroName() {
+            return newlang::isMacroName(this->c_str());
+        }
+
+        inline bool isNativeName() {
+            return newlang::isNativeName(this->c_str());
+        }
+
+        inline bool isLocalAnyName() {
+            return newlang::isLocalAnyName(this->c_str());
+        }
+
+        inline bool isMutableName() {
+            // Метод, который изменяет объект, должен заканчиваеться на ОДИН подчерк
+            return newlang::isMutableName(this->c_str());
+        }
+
+        inline bool isSystemName() {
+            return newlang::isSystemName(this->c_str());
+        }
+
+        inline bool isPrivateName(const std::string name) {
+            return newlang::isPrivateName(this->c_str());
+        }
+
+        inline bool isHidenName() {
+            return newlang::isHidenName(this->c_str());
+        }
+
+        inline bool isVariableName() {
+            return newlang::isVariableName(this->c_str());
+        }
+
+        inline bool isConstName() {
+            return newlang::isConstName(this->c_str());
+        }
+
+        inline std::string SetFromLocalName(std::string name) {
+            this->assign(name);
+            return *this;
+        }
+
+        inline std::string SetFromGlobalName(std::string name) {
+            this->assign(name);
+            return *this;
+        }
+
+        inline std::string GetLocalName() {
+            return *this;
+        }
+
+        inline std::string GetGlobalName(std::string module_name) {
+            return *this;
+        }
+
+        //        inline std::string MakeName(std::string name) {
+        //            if (!name.empty() && (name[0] == '\\' || name[0] == '$' || name[0] == '@' || name[0] == '%')) {
+        //                return name.find("\\\\") == 0 ? name.substr(2) : name.substr(1);
+        //            }
+        //            return name;
+        //        }
+
+        inline std::string ExtractModuleName() {
+            return newlang::ExtractModuleName(this->c_str());
+        }
+
+        inline std::string ExtractName() {
+            return newlang::ExtractName(this->c_str());
+        }
+
+
+    };
+
+    /*
+     * 
+     * 
+     * 
+     */
 
     inline std::string DimToString(const Dimension dim) {
         std::stringstream ss;
@@ -982,7 +1276,7 @@ void ParserException(const char *msg, std::string &buffer, int row, int col);
                 return false;
         }
     }
-    
+
 } // namespace newlang
 
 #endif // INCLUDED_NEWLANG_TYPES_H_

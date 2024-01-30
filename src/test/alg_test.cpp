@@ -43,11 +43,11 @@ TEST(Alg, Follow) {
     ASSERT_TRUE(result);
     ASSERT_EQ(300, result->GetValueAsInteger());
 
-    result = ctx.ExecStr("[0]-->100,[0]-->300,[99]-->99,[_]-->1000");
+    result = ctx.ExecStr("[0]-->100,[0]-->300,[99]-->99,[...]-->1000");
     ASSERT_TRUE(result);
     ASSERT_EQ(99, result->GetValueAsInteger());
 
-    result = ctx.ExecStr("[0]-->111,[_]-->1000");
+    result = ctx.ExecStr("[0]-->111,[...]-->1000");
     ASSERT_TRUE(result);
     ASSERT_EQ(1000, result->GetValueAsInteger());
 
@@ -55,20 +55,20 @@ TEST(Alg, Follow) {
     ASSERT_TRUE(result);
     ASSERT_EQ(30, result->GetValueAsInteger());
 
-    result = ctx.ExecStr("[0]-->{100},[0]-->{300},[99]-->{99},[_]-->{1000}");
+    result = ctx.ExecStr("[0]-->{100},[0]-->{300},[99]-->{99},[...]-->{1000}");
     ASSERT_TRUE(result);
     ASSERT_EQ(99, result->GetValueAsInteger());
 
-    result = ctx.ExecStr("[0]-->111,[_]-->{30;50;1000}");
+    result = ctx.ExecStr("[0]-->111,[...]-->{30;50;1000}");
     ASSERT_TRUE(result);
     ASSERT_EQ(1000, result->GetValueAsInteger());
 
 
-    result = ctx.ExecStr("cond := 100; [cond]-->111,[_]-->1000");
+    result = ctx.ExecStr("cond := 100; [cond]-->111,[...]-->1000");
     ASSERT_TRUE(result);
     ASSERT_EQ(111, result->GetValueAsInteger());
 
-    result = ctx.ExecStr("cond2 := 0; [cond2]-->111,[_]-->1000");
+    result = ctx.ExecStr("cond2 := 0; [cond2]-->111,[...]-->1000");
     ASSERT_TRUE(result);
     ASSERT_EQ(1000, result->GetValueAsInteger());
 }
@@ -526,7 +526,7 @@ TEST(Alg, Else) {
     ASSERT_TRUE(result->is_integer()) << result->toString().c_str() << " (" << toString(result->getType()) << ")";
     ASSERT_EQ(42, result->GetValueAsInteger()) << result->toString().c_str();
 
-    result = ctx.ExecStr("[0]<->{ 43 },[_]-->{44}");
+    result = ctx.ExecStr("[0]<->{ 43 },[...]-->{44}");
     ASSERT_TRUE(result);
     ASSERT_TRUE(result->is_integer()) << result->toString().c_str() << " (" << toString(result->getType()) << ")";
     ASSERT_EQ(44, result->GetValueAsInteger()) << result->toString().c_str();
@@ -536,52 +536,52 @@ TEST(Alg, Else) {
     ASSERT_TRUE(result->is_integer()) << result->toString().c_str() << " (" << toString(result->getType()) << ")";
     ASSERT_EQ(100, result->GetValueAsInteger()) << result->toString().c_str();
 
-    result = ctx.ExecStr("{- 100 -},[_]-->{200}");
+    result = ctx.ExecStr("{- 100 -},[...]-->{200}");
     ASSERT_TRUE(result);
     ASSERT_TRUE(result->is_integer()) << result->toString().c_str() << " (" << toString(result->getType()) << ")";
     ASSERT_EQ(200, result->GetValueAsInteger()) << result->toString().c_str();
 
-    result = ctx.ExecStr("{+ 100 +},[_]-->{201}");
+    result = ctx.ExecStr("{+ 100 +},[...]-->{201}");
     ASSERT_TRUE(result);
     ASSERT_TRUE(result->is_integer()) << result->toString().c_str() << " (" << toString(result->getType()) << ")";
     ASSERT_EQ(201, result->GetValueAsInteger()) << result->toString().c_str();
 
-    result = ctx.ExecStr("{* 100 *},[_]-->{202}");
+    result = ctx.ExecStr("{* 100 *},[...]-->{202}");
     ASSERT_TRUE(result);
     ASSERT_TRUE(result->is_integer()) << result->toString().c_str() << " (" << toString(result->getType()) << ")";
     ASSERT_EQ(202, result->GetValueAsInteger()) << result->toString().c_str();
 
-    result = ctx.ExecStr("{- 100 -},[_]-->{- 204 -}");
+    result = ctx.ExecStr("{- 100 -},[...]-->{- 204 -}");
     ASSERT_TRUE(result);
     ASSERT_TRUE(result->is_integer()) << result->toString().c_str() << " (" << toString(result->getType()) << ")";
     ASSERT_EQ(204, result->GetValueAsInteger()) << result->toString().c_str();
 
-    result = ctx.ExecStr("{- 100 -},[_]-->{+ 205 +}");
+    result = ctx.ExecStr("{- 100 -},[...]-->{+ 205 +}");
     ASSERT_TRUE(result);
     ASSERT_TRUE(result->is_integer()) << result->toString().c_str() << " (" << toString(result->getType()) << ")";
     ASSERT_EQ(205, result->GetValueAsInteger()) << result->toString().c_str();
 
-    result = ctx.ExecStr("{* 100 *},[_]-->{* 206 *}");
+    result = ctx.ExecStr("{* 100 *},[...]-->{* 206 *}");
     ASSERT_TRUE(result);
     ASSERT_TRUE(result->is_integer()) << result->toString().c_str() << " (" << toString(result->getType()) << ")";
     ASSERT_EQ(206, result->GetValueAsInteger()) << result->toString().c_str();
 
-    result = ctx.ExecStr("{* 100 *}:Test, [_]-->{* 207 *}");
+    result = ctx.ExecStr("{* 100 *}:Test, [...]-->{* 207 *}");
     ASSERT_TRUE(result);
     ASSERT_TRUE(result->is_integer()) << result->toString().c_str() << " (" << toString(result->getType()) << ")";
     ASSERT_EQ(207, result->GetValueAsInteger()) << result->toString().c_str();
 
-    result = ctx.ExecStr("[1] --> 1, [1] --> 2, [_] -->3");
+    result = ctx.ExecStr("[1] --> 1, [1] --> 2, [...] -->3");
     ASSERT_TRUE(result);
     ASSERT_TRUE(result->is_integral()) << result->toString().c_str() << " (" << toString(result->getType()) << ")";
     ASSERT_EQ(1, result->GetValueAsInteger()) << result->toString().c_str();
 
-    result = ctx.ExecStr("[0] --> 1, [1] --> 2, [_] -->3");
+    result = ctx.ExecStr("[0] --> 1, [1] --> 2, [...] -->3");
     ASSERT_TRUE(result);
     ASSERT_TRUE(result->is_integral()) << result->toString().c_str() << " (" << toString(result->getType()) << ")";
     ASSERT_EQ(2, result->GetValueAsInteger()) << result->toString().c_str();
 
-    result = ctx.ExecStr("[0] --> 1, [0] --> 2, [_] -->3");
+    result = ctx.ExecStr("[0] --> 1, [0] --> 2, [...] -->3");
     ASSERT_TRUE(result);
     ASSERT_TRUE(result->is_integral()) << result->toString().c_str() << " (" << toString(result->getType()) << ")";
     ASSERT_EQ(3, result->GetValueAsInteger()) << result->toString().c_str();

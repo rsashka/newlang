@@ -36,7 +36,7 @@ namespace newlang {
         \
         _(NAME) \
         _(LOCAL) \
-        _(GLOBAL) \
+        _(STATIC) \
         _(MACRO) \
         _(MODULE) \
         _(NATIVE) \
@@ -57,6 +57,8 @@ namespace newlang {
         _(ARGUMENT) \
         _(NEWLANG) \
         _(TYPENAME) \
+        _(TYPECAST) \
+        _(TYPEDUCK) \
         _(UNKNOWN) \
         _(SYMBOL) \
         _(NAMESPACE) \
@@ -71,13 +73,14 @@ namespace newlang {
         _(MACRO_ARGUMENT) \
         _(MACRO_ARGCOUNT) \
         \
-        _(CREATE) \
-        _(CREATE_OR_ASSIGN) \
+        _(CREATE_ONCE) \
+        _(CREATE_OVERLAP) \
         _(ASSIGN) \
-        _(PUREFUNC) \
-        _(PURE_CREATE) \
+        _(PURE_ONCE) \
+        _(PURE_OVERLAP) \
         _(APPEND) \
         _(SWAP) \
+        _(SYM_RULE) \
         \
         _(FUNCTION) \
         _(ITERATOR) \
@@ -130,7 +133,7 @@ namespace newlang {
     std::string ParserMessage(std::string &buffer, int row, int col, const char *format, ...);
 
     inline static bool IsAnyCreate(TermID id) {
-        return id == TermID::CREATE || id == TermID::CREATE_OR_ASSIGN || id == TermID::ASSIGN || id == TermID::PUREFUNC || id == TermID::PURE_CREATE;
+        return id == TermID::CREATE_ONCE || id == TermID::CREATE_OVERLAP || id == TermID::ASSIGN || id == TermID::PURE_ONCE || id == TermID::PURE_OVERLAP;
     }
 
     /*
@@ -138,22 +141,25 @@ namespace newlang {
      * 
      */
 
-    struct GlobNameItem {
+    struct NameItem {
         TermPtr proto;
-        WeakItem obj;
+        TermPtr expr;
+//        ObjPtr obj;
     };
 
-    class GlobNameList : public std::map<std::string, GlobNameItem> {
+    class NameList : public std::map<std::string, NameItem> {
     public:
         //        ModulePtr GlobalNameCreate(ModulePtr module);
 
 
-        bool GlobalNameRegister(TermPtr term, WeakItem obj); // = at::monostate);
-        GlobNameItem * GlobalNameFind(const char *name);
+        TermPtr NameRegister(bool new_only, const char *name, TermPtr proto);//, WeakItem obj = c10::monostate()); // = at::monostate);
+//        bool NameRegister(const char * glob_name, TermPtr proto, WeakItem obj); // = at::monostate);
+        TermPtr NameFind(const char *name);
 
-        ObjPtr GlobalNameGet(const char *name, bool is_raise = true);
+//        ObjPtr NameGet(const char *name, bool is_raise = true);
 
-        bool MakeFullNames(TermPtr ast);
+        //        bool MakeFullNames(TermPtr ast);
+        std::string Dump();
 
     };
 
@@ -192,8 +198,8 @@ namespace newlang {
                 m_text.assign(text, std::min(strlen(text), len));
             }
             if (loc) {
-                m_line = loc->begin.line;
-                m_col = loc->begin.column;
+                m_line = loc->end.line;
+                m_col = loc->end.column;
             } else {
                 m_line = 0;
                 m_col = 0;
@@ -203,8 +209,8 @@ namespace newlang {
             m_is_const = false;
             m_bracket_depth = 0;
 
-            m_ref_restrict = RefType::RefNone;
-            m_ref_type = RefType::RefNone;
+            //            m_ref_restrict = RefType::RefNone;
+            //            m_ref_type = RefType::RefNone;
 
             SetTermID(id);
         }
@@ -254,14 +260,52 @@ namespace newlang {
             return m_is_call;
         }
 
+        inline bool IsInterrupt() {
+            switch (m_id) {
+                case TermID::INT_PLUS:
+                case TermID::INT_MINUS:
+                case TermID::INT_REPEAT:
+                    return true;
+                default:
+                    return false;
+            }
+        }
+
+        inline bool IsCreateOnce() {
+            switch (m_id) {
+                case TermID::CREATE_ONCE:
+                case TermID::PURE_ONCE:
+                    return true;
+            }
+            return false;
+        }
+
+        inline bool IsCreateOverlap() {
+            switch (m_id) {
+                case TermID::CREATE_OVERLAP:
+                case TermID::PURE_OVERLAP:
+                    return true;
+            }
+            return false;
+        }
+
         inline bool IsCreate() {
             switch (m_id) {
                 case TermID::APPEND:
-                case TermID::CREATE:
-                case TermID::CREATE_OR_ASSIGN:
+                case TermID::CREATE_ONCE:
+                case TermID::CREATE_OVERLAP:
                 case TermID::ASSIGN:
-                case TermID::PUREFUNC:
-                case TermID::PURE_CREATE:
+                case TermID::PURE_ONCE:
+                case TermID::PURE_OVERLAP:
+                    return true;
+            }
+            return false;
+        }
+
+        inline bool IsPure() {
+            switch (m_id) {
+                case TermID::PURE_ONCE:
+                case TermID::PURE_OVERLAP:
                     return true;
             }
             return false;
@@ -281,17 +325,17 @@ namespace newlang {
             return result;
         }
 
-        inline bool IsFunction() {
-            return m_id == TermID::FUNCTION || m_id == TermID::PUREFUNC;
-        }
-
-        inline bool IsVariable() {
-            return m_id == TermID::CREATE;
-        }
-
-        inline bool IsObject() {
-            return !IsFunction() && !IsVariable();
-        }
+        //        inline bool IsFunction() {
+        //            return m_id == TermID::FUNCTION || m_id == TermID::PURE_ONCE;
+        //        }
+        //
+        //        inline bool IsVariable() {
+        //            return m_id == TermID::CREATE_ONCE;
+        //        }
+        //
+        //        inline bool IsObject() {
+        //            return !IsFunction() && !IsVariable();
+        //        }
 
         inline bool IsScalar() {
             switch (m_id) {
@@ -317,6 +361,7 @@ namespace newlang {
                 case TermID::NUMBER:
                 case TermID::STRWIDE:
                 case TermID::STRCHAR:
+                case TermID::RATIONAL:
                     return true;
 
             }
@@ -328,7 +373,9 @@ namespace newlang {
                 case TermID::ARGUMENT:
                 case TermID::ARGS:
                 case TermID::NAME:
-                case TermID::CREATE:
+                case TermID::CREATE_ONCE:
+                case TermID::ASSIGN:
+                case TermID::CREATE_OVERLAP:
                 case TermID::RANGE:
                 case TermID::TENSOR:
                 case TermID::DICT:
@@ -336,7 +383,7 @@ namespace newlang {
                 case TermID::EVAL:
                     return true;
                 default:
-                    return IsLiteral() || IsVariable() || IsFunction() || isCall();
+                    return IsLiteral() || isCall(); // || IsFunction() || IsVariable()
             }
         }
 
@@ -366,7 +413,7 @@ namespace newlang {
                 if (!elem.first.empty()) {
                     str.append(elem.first);
 
-                    if (elem.second->GetType()) {
+                    if (elem.second->GetType() && !isDefaultType(elem.second->GetType())) {
                         str += elem.second->GetType()->asTypeString();
                     }
 
@@ -389,6 +436,7 @@ namespace newlang {
             }
 
             TermPtr temp;
+            std::string str_text;
             bool test;
             switch (m_id) {
                 case TermID::END:// name=<END>
@@ -446,7 +494,7 @@ namespace newlang {
                 case TermID::NATIVE:
                 case TermID::MACRO:
                 case TermID::LOCAL:
-                case TermID::GLOBAL:
+                case TermID::STATIC:
                 case TermID::NAME: // name=(1,second="two",3,<EMPTY>,5)
                     //                result(m_is_ref ? "&" : "");
                     ASSERT(m_dims.empty());
@@ -492,7 +540,7 @@ namespace newlang {
                     } else if (m_is_call) {
                         result += "()";
                     }
-                    if (m_name.empty() && GetType()) {
+                    if (m_name.empty() && GetType() && !isDefaultType(GetType())) {
                         result += GetType()->asTypeString();
                     }
                     return result;
@@ -531,15 +579,15 @@ namespace newlang {
                     //                        result += "=";
                     //                    }
                     result = m_text;
-                    if (GetType() && m_name.empty()) {
+                    if (GetType() && !isDefaultType(GetType()) && m_name.empty()) {
                         result += GetType()->asTypeString();
                     }
                     return result;
 
                 case TermID::ASSIGN:
-                case TermID::CREATE:
-                case TermID::CREATE_OR_ASSIGN:
-                case TermID::PURE_CREATE:
+                case TermID::CREATE_ONCE:
+                case TermID::CREATE_OVERLAP:
+                case TermID::PURE_OVERLAP:
                     //            case TermID::APPEND:
                     if (m_id == TermID::ASSIGN) {
                         result += m_text;
@@ -566,6 +614,7 @@ namespace newlang {
                         result += ";";
                     }
                     return result;
+
                 case TermID::RANGE:
                     ASSERT(size() == 2 || size() == 3);
                     result = at(0).second->toString();
@@ -577,12 +626,14 @@ namespace newlang {
                         //                    result += ")";
                     }
                     return result;
+
                 case TermID::FUNCTION:
-                case TermID::PUREFUNC:
+                case TermID::PURE_ONCE:
 
                     result += " " + m_text + " ";
                     //                    result.insert(0, m_namespace);
                     //                result += "{";
+                    ASSERT(m_right);
                     result += m_right->toString(true);
                     if (!result.empty() && result[result.size() - 1] != ';') {
                         result += ";";
@@ -598,7 +649,7 @@ namespace newlang {
                     dump_items_(result);
                     result += ",";
                     result += "]";
-                    if (GetType()) {
+                    if (GetType() && !isDefaultType(GetType())) {
                         result += GetType()->asTypeString();
                     }
                     return result;
@@ -611,13 +662,23 @@ namespace newlang {
                     if (!m_class.empty()) {
                         result += m_class;
                     }
-                    if (GetType()) {
+                    if (GetType() && !isDefaultType(GetType())) {
                         result += GetType()->asTypeString();
                     }
                     return result;
 
+                case TermID::TYPEDUCK:
+                case TermID::TYPECAST:
                 case TermID::TYPE:
-                    result += m_text;
+                    if (m_id == TermID::TYPEDUCK) {
+                        result += ":~~";
+                        result += m_text.substr(1);
+                    } else if (m_id == TermID::TYPECAST) {
+                        result += ":~";
+                        result += m_text.substr(1);
+                    } else {
+                        result += m_text;
+                    }
                     if (m_dims.size()) {
                         result += "[";
                         for (int i = 0; i < m_dims.size(); i++) {
@@ -636,6 +697,7 @@ namespace newlang {
                         result += ")";
                     }
                     return result;
+
                 case TermID::SOURCE: // name:={% function code %}
                     result += "{%";
                     result += m_text;
@@ -808,12 +870,14 @@ namespace newlang {
                     result += m_text;
                     return result;
 
+                case TermID::NAMESPACE:
                 case TermID::SYMBOL:
                 case TermID::UNKNOWN:
                 case TermID::RATIONAL:
                 case TermID::COMPLEX:
                 case TermID::MACRO_ARGCOUNT:
                 case TermID::MACRO_ARGUMENT:
+                case TermID::MACRO_TOSTR:
                     return m_text;
 
                 case TermID::ESCAPE:
@@ -1044,7 +1108,7 @@ namespace newlang {
                 return true;
             }
 
-            std::string ns = m_namespace;
+            //            TermPtr ns = m_namespace;
             TermPtr next = shared_from_this();
             TermPtr prev;
 
@@ -1054,9 +1118,11 @@ namespace newlang {
             m_block.clear();
             m_sequence.reset();
             m_class.clear();
+            m_namespace.reset();
+            //            m_text.clear();
 
             while (next && next->getTermID() != TermID::END) {
-                next->m_namespace = ns;
+                //                next->m_namespace = ns;
                 m_block.push_back(next);
                 prev = next;
                 next = next->m_sequence;
@@ -1114,7 +1180,7 @@ namespace newlang {
             m_docs.clear();
             m_macro_id.clear();
             m_macro_seq.clear();
-            m_namespace.clear();
+            m_namespace.reset();
         }
 
         inline TermPtr First() {
@@ -1205,7 +1271,7 @@ namespace newlang {
         }
 
         void MakeRef(TermPtr ref) {
-            if (m_id != TermID::NAME || Left() || Right()) {
+            if (!(m_id == TermID::NAME || m_id == TermID::TYPE || m_id == TermID::STATIC || m_id == TermID::MACRO) || Left() || Right()) {
                 LOG_RUNTIME("Cannon make referens value for %s!", toString().c_str());
             }
             m_ref = ref;
@@ -1238,46 +1304,60 @@ namespace newlang {
 
         void SetType(TermPtr type) {
             if (type) {
+
+                if (type->m_list) {
+                    m_id = TermID::BLOCK;
+                    ListToVector(type, m_block);
+                }
+
                 ASSERT(!type->m_list);
-                ASSERT(type->m_type_allowed.empty());
-                ASSERT(m_type_allowed.empty());
-                m_type_allowed.push_back(type);
+                //                ASSERT(type->m_type_allowed.empty());
+                //                ASSERT(m_type_allowed.empty());
+                //                m_type_allowed.push_back(type);
                 m_type = type;
-                m_type_name = m_type->asTypeString();
+                //                m_type_name = m_type->asTypeString();
                 // Check type
                 if (m_id == TermID::INTEGER) {
                     ObjType type_val = typeFromLimit(parseInteger(m_text.c_str()), ObjType::Bool);
-                    if (!canCastLimit(type_val, typeFromString(m_type_name))) {
-                        NL_PARSER(type, "Error cast '%s' to integer type '%s'", m_text.c_str(), m_type_name.c_str());
+                    if (!canCastLimit(type_val, typeFromString(m_type))) {
+                        NL_PARSER(type, "Error cast '%s' to integer type '%s'", m_text.c_str(), m_type->m_text.c_str());
                     }
                 } else if (m_id == TermID::NUMBER) {
                     ObjType type_val = typeFromLimit(parseDouble(m_text.c_str()), ObjType::Float64);
-                    if (!canCastLimit(type_val, typeFromString(m_type_name))) {
-                        NL_PARSER(type, "Error cast '%s' to numeric type '%s'", m_text.c_str(), m_type_name.c_str());
+                    if (!canCastLimit(type_val, typeFromString(m_type))) {
+                        NL_PARSER(type, "Error cast '%s' to numeric type '%s'", m_text.c_str(), m_type->m_text.c_str());
                     }
                 } else if (m_id == TermID::COMPLEX) {
                     ObjType type_val = typeFromLimit(parseComplex(m_text.c_str()), ObjType::Complex64);
-                    if (!canCastLimit(type_val, typeFromString(m_type_name))) {
-                        NL_PARSER(type, "Error cast '%s' to complex type '%s'", m_text.c_str(), m_type_name.c_str());
+                    if (!canCastLimit(type_val, typeFromString(m_type))) {
+                        NL_PARSER(type, "Error cast '%s' to complex type '%s'", m_text.c_str(), m_type->m_text.c_str());
                     }
                 }
             } else {
-                if (m_type) {
-                    m_type.reset();
-                }
+                //                if (m_type) {
+                //                    m_type.reset();
+                //                }
                 // Default type
                 if (m_id == TermID::INTEGER) {
-                    m_type_name = newlang::toString(typeFromLimit(parseInteger(m_text.c_str()), ObjType::Bool));
+                    m_type = getDefaultType(typeFromLimit(parseInteger(m_text.c_str()), ObjType::Bool));
                 } else if (m_id == TermID::NUMBER) {
-                    m_type_name = newlang::toString(typeFromLimit(parseDouble(m_text.c_str()), ObjType::Float64));
+                    m_type = getDefaultType(typeFromLimit(parseDouble(m_text.c_str()), ObjType::Float64));
                 } else if (m_id == TermID::COMPLEX) {
-                    m_type_name = newlang::toString(typeFromLimit(parseComplex(m_text.c_str()), ObjType::Complex64));
+                    m_type = getDefaultType(typeFromLimit(parseComplex(m_text.c_str()), ObjType::Complex64));
                 } else if (m_id == TermID::STRCHAR) {
-                    m_type_name = newlang::toString(ObjType::StrChar);
+                    m_type = getDefaultType(ObjType::StrChar);
                 } else if (m_id == TermID::STRWIDE) {
-                    m_type_name = newlang::toString(ObjType::StrWide);
+                    m_type = getDefaultType(ObjType::StrWide);
                 } else if (m_id == TermID::DICT) {
-                    m_type_name = newlang::toString(ObjType::Dictionary);
+                    m_type = getDefaultType(ObjType::Dictionary);
+                } else if (m_id == TermID::RATIONAL) {
+                    m_type = getDefaultType(ObjType::Rational);
+                } else if (m_id == TermID::RANGE) {
+                    m_type = getDefaultType(ObjType::Range);
+                } else if (m_id == TermID::ITERATOR) {
+                    m_type = getDefaultType(ObjType::Iterator);
+                    //                } else if (m_id == TermID::INT_MINUS || m_id == TermID::INT_PLUS || m_id == TermID::INT_REPEAT) {
+                    //                    m_type = getDefaultType(ObjType::Interruption);
                 }
             }
         }
@@ -1304,10 +1384,11 @@ namespace newlang {
          * 
          * 
          */
+        static bool CheckTermEq(const TermPtr &term, const TermPtr &proto, bool type = false, RuntimePtr rt = nullptr);
         static bool CheckArgsProto(TermPtr &term, const TermPtr proto);
         static bool CheckArgsCall(TermPtr &term, RuntimePtr rt = nullptr);
-        static bool CheckCompareArgs_(const TermPtr &term, const TermPtr &proto);
-        static void TraversingNodes(TermPtr &ast, NodeHandlerList handlers, void * obj);
+        static bool CheckCompareArgs_(const TermPtr &term, const TermPtr & proto);
+        //        static void TraversingNodes(TermPtr &ast, NodeHandlerList handlers, void * obj);
 
 
         TermID m_id;
@@ -1326,16 +1407,16 @@ namespace newlang {
         BlockType m_base;
         TermPtr m_list;
         TermPtr m_sequence;
+        TermPtr m_module;
 
+        TermName m_text;
         std::string m_name;
-        std::string m_text;
         std::string m_class;
-        std::string m_namespace; ///< Текущая область имен в исходном файле при использовании данного термина
+        TermPtr m_namespace; ///< Текущая область имен в исходном файле при использовании данного термина
         BlockType m_dims;
         BlockType m_docs;
-        BlockType m_type_allowed;
 
-        GlobNameList m_names;
+        NameList m_variables;
 
         TermPtr m_sys_prop;
         int m_bracket_depth;
@@ -1345,24 +1426,23 @@ namespace newlang {
         BlockType m_macro_id;
         BlockType m_macro_seq;
 
-        RefType m_ref_restrict;
-        RefType m_ref_type;
         TermPtr m_ref;
         bool m_is_call;
         bool m_is_const;
-
-        /// Символьное описание потребуется для работы с пользовательскими типами данных.
-        /// Итоговый тип может отличаться от указанного в исходнике для совместимых типов.
-        std::string m_type_name;
 
         std::weak_ptr<Obj> m_obj;
 
         SCOPE(private) :
 
+        /// Символьное описание потребуется для работы с пользовательскими типами данных.
+        /// Итоговый тип может отличаться от указанного в исходнике для совместимых типов.
+        //        std::string m_type_name;
+
         /// Тип данных, который хранится в виде термина из исходного файла. 
         /// Нужен для отображения сообщений (позиция в исходнике)
         /// Приватная область видимости для использовая SetType для проверки совместимости типов
         TermPtr m_type;
+        //        BlockType m_type_allowed;
     };
 
     std::ostream & operator<<(std::ostream &out, newlang::TermPtr & var);

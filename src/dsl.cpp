@@ -27,7 +27,7 @@ inline const char *newlang_dsl_arr[newlang_dsl_size] = {
 "@@match(cond) [@$cond]@@@",
 "@@if(...) [@$*]-->@@@",
 "@@elif(...) ,[@$*]-->@@@",
-"@@else ,[_]-->@@@",
+"@@else ,[...]-->@@@",
 "",
 "@@while(cond) [@$cond] <->@@@",
 "@@dowhile(cond) <->[@$cond]@@@",

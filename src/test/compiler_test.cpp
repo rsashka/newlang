@@ -861,7 +861,7 @@
 //
 //    TermPtr func1 = funcs->BlockCode()[0];
 //
-//    ASSERT_EQ(TermID::PUREFUNC, func1->getTermID());
+//    ASSERT_EQ(TermID::PURE_ONCE, func1->getTermID());
 //    ASSERT_TRUE(func1->Left());
 //    ASSERT_EQ(2, func1->Left()->size());
 //
@@ -888,7 +888,7 @@
 //
 //    TermPtr func2 = funcs->BlockCode()[1];
 //
-//    ASSERT_EQ(TermID::PUREFUNC, func2->getTermID());
+//    ASSERT_EQ(TermID::PURE_ONCE, func2->getTermID());
 //    ASSERT_TRUE(func2->Left());
 //    ASSERT_EQ(2, func2->Left()->size());
 //

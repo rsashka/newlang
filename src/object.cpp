@@ -770,11 +770,11 @@ void Obj::ClonePropTo(Obj & clone) const {
 
     for (int i = 0; i < Variable<Obj>::size(); i++) {
         if (Variable<Obj>::at(i).second) {
-//            if (Variable<Obj>::at(i).second->m_is_reference || Variable<Obj>::at(i).second->m_is_reference) {
-//                clone.Variable<Obj>::push_back(Variable<Obj>::at(i));
-//            } else {
-                clone.Variable<Obj>::push_back(Variable<Obj>::at(i).second->Clone(nullptr), name(i));
-//            }
+            //            if (Variable<Obj>::at(i).second->m_is_reference || Variable<Obj>::at(i).second->m_is_reference) {
+            //                clone.Variable<Obj>::push_back(Variable<Obj>::at(i));
+            //            } else {
+            clone.Variable<Obj>::push_back(Variable<Obj>::at(i).second->Clone(nullptr), name(i));
+            //            }
         } else {
             if (name(i).empty()) {
                 LOG_RUNTIME("Null arg %d without name! %s", i, toString().c_str());
@@ -898,8 +898,8 @@ std::string Obj::toString(bool deep) const {
             case ObjType::Pointer:
                 if (at::holds_alternative<void *>(m_var)) {
                     ss << at::get<void *>(m_var);
-//                } else if (m_var_type_fixed == ObjType::None || m_var_type_current == ObjType::None) {
-//                    ss << "nullptr";
+                    //                } else if (m_var_type_fixed == ObjType::None || m_var_type_current == ObjType::None) {
+                    //                    ss << "nullptr";
                 } else {
                     LOG_RUNTIME("Fail convert object to pointer!");
                 }
@@ -937,8 +937,8 @@ std::string Obj::toString(bool deep) const {
                 result += "(";
                 m_prototype->dump_items_(result);
                 result += ")";
-                if (!m_prototype->m_type_name.empty()) {
-                    result += m_prototype->m_type_name;
+                if (!m_prototype->m_type) {
+                    result += m_prototype->m_type->asTypeString();
                 }
 
             case ObjType::BLOCK:
@@ -963,8 +963,8 @@ std::string Obj::toString(bool deep) const {
                 result += "(";
                 m_prototype->dump_items_(result);
                 result += ")";
-                if (!m_prototype->m_type_name.empty()) {
-                    result += m_prototype->m_type_name;
+                if (!m_prototype->m_type) {
+                    result += m_prototype->m_type->asTypeString();
                 }
 
                 if (m_var_type_current == ObjType::EVAL_FUNCTION) {
@@ -1084,7 +1084,8 @@ std::string newlang::TensorToString(const torch::Tensor & tensor) {
     std::stringstream ss;
 
     if (!tensor.dim()) {
-        ASSERT(tensor.dim());
+        LOG_RUNTIME("!tensor.dim() %s", tensor.toString().c_str());
+        //        ASSERT(tensor.dim());
     }
 
     c10::IntArrayRef shape = tensor.sizes(); // Кол-во эментов в каждом измерении
@@ -1468,17 +1469,17 @@ void Obj::ConvertToArgs_(Obj *in, bool check_valid, Context * ctx) {
             ObjType base_type = ObjType::None;
             if (i < size()) {
                 if (ctx) {
-                    if ((*m_prototype)[i].second->m_type_name.empty()) {
+                    if (!(*m_prototype)[i].second->m_type) {
                         base_type = ObjType::Any;
                     } else {
                         bool has_error = false;
-                        base_type = ctx->m_runtime->BaseTypeFromString((*m_prototype)[i].second->m_type_name, &has_error);
+                        base_type = ctx->m_runtime->BaseTypeFromString((*m_prototype)[i].second->m_type->m_text, &has_error);
                         if (has_error && (*m_prototype)[i].second->getTermID() == TermID::ELLIPSIS) {
                             base_type = ObjType::Any;
                         }
                     }
-                } else if (!(*m_prototype)[i].second->m_type_name.empty()) {
-                    base_type = typeFromString((*m_prototype)[i].second->m_type_name, ctx);
+                } else if ((*m_prototype)[i].second->m_type) {
+                    base_type = typeFromString((*m_prototype)[i].second->m_type->m_text, ctx->m_runtime);
                 } else {
                     base_type = ObjType::Any;
                 }
@@ -1503,10 +1504,11 @@ void Obj::ConvertToArgs_(Obj *in, bool check_valid, Context * ctx) {
                     if (!canCast(limit_type, base_type)) {
                         // Строку с одним символом можно преобразовать в арифметичсекий тип
                         if (!(isArithmeticType(base_type) && (*in)[i].second->is_string_type() && (*in)[i].second->size() == 1)) {
-                            LOG_RUNTIME("Fail cast value %s%s to type %s",
-                                    (*in)[i].second->toString().c_str(),
-                                    newlang::toString((*in)[i].second->getType()),
-                                    (*m_prototype)[i].second->m_type_name.c_str());
+                            LOG_RUNTIME("Fail cast value !!!!!!!!!!!!!!");
+                            //                            LOG_RUNTIME("Fail cast value %s%s to type %s",
+                            //                                    (*in)[i].second->toString().c_str(),
+                            //                                    newlang::toString((*in)[i].second->getType()),
+                            //                                    (*m_prototype)[i].second->m_type->asTypeString.c_str());
                         }
                     }
                 }
@@ -1759,7 +1761,7 @@ bool Obj::op_class_test(const char *name, Context * ctx) const {
     }
 
     bool has_error = false;
-    ObjType type = typeFromString(name, ctx, &has_error);
+    ObjType type = typeFromString(name, ctx->m_runtime, &has_error);
     if (has_error) {
         LOG_DEBUG("Type name %s not found!", name);
         return false;
@@ -2054,9 +2056,9 @@ ObjPtr Obj::CallNative(Context *ctx, Obj args) {
         switch (type) {
             case ObjType::Bool:
                 if (pind < check_count) {
-                    NL_CHECK(!(*m_prototype)[pind].second->m_type_name.empty(), "Undefined type arg '%s'", (*m_prototype)[pind].second->toString().c_str());
-                    NL_CHECK(canCast(type, typeFromString((*m_prototype)[pind].second->m_type_name, ctx)), "Fail cast from '%s' to '%s'",
-                            (*m_prototype)[pind].second->m_type_name.c_str(), newlang::toString(type));
+                    NL_CHECK(!isDefaultType((*m_prototype)[pind].second->m_type), "Undefined type arg '%s'", (*m_prototype)[pind].second->toString().c_str());
+                    NL_CHECK(canCast(type, typeFromString((*m_prototype)[pind].second->m_type, ctx->m_runtime)), "Fail cast from '%s' to '%s'",
+                            (*m_prototype)[pind].second->m_type->asTypeString().c_str(), newlang::toString(type));
                 }
                 m_args_type.push_back(ctx->m_ffi_type_uint8);
                 temp.boolean = args[i].second->GetValueAsBoolean();
@@ -2067,9 +2069,9 @@ ObjPtr Obj::CallNative(Context *ctx, Obj args) {
             case ObjType::Char:
             case ObjType::Byte:
                 if (pind < check_count) {
-                    NL_CHECK(!(*m_prototype)[pind].second->m_type_name.empty(), "Undefined type arg '%s'", (*m_prototype)[pind].second->toString().c_str());
-                    NL_CHECK(canCast(type, typeFromString((*m_prototype)[pind].second->m_type_name, ctx)), "Fail cast from '%s' to '%s'",
-                            (*m_prototype)[pind].second->m_type_name.c_str(), newlang::toString(type));
+                    NL_CHECK(!isDefaultType((*m_prototype)[pind].second->m_type), "Undefined type arg '%s'", (*m_prototype)[pind].second->toString().c_str());
+                    NL_CHECK(canCast(type, typeFromString((*m_prototype)[pind].second->m_type, ctx->m_runtime)), "Fail cast from '%s' to '%s'",
+                            (*m_prototype)[pind].second->m_type->asTypeString().c_str(), newlang::toString(type));
                 }
                 m_args_type.push_back(ctx->m_ffi_type_sint8);
                 temp.integer = args[i].second->GetValueAsInteger();
@@ -2079,9 +2081,9 @@ ObjPtr Obj::CallNative(Context *ctx, Obj args) {
             case ObjType::Int16:
             case ObjType::Word:
                 if (pind < check_count) {
-                    NL_CHECK(!(*m_prototype)[pind].second->m_type_name.empty(), "Undefined type arg '%s'", (*m_prototype)[pind].second->toString().c_str());
-                    NL_CHECK(canCast(type, typeFromString((*m_prototype)[pind].second->m_type_name, ctx)), "Fail cast from '%s' to '%s'",
-                            (*m_prototype)[pind].second->m_type_name.c_str(), newlang::toString(type));
+                    NL_CHECK(!isDefaultType((*m_prototype)[pind].second->m_type), "Undefined type arg '%s'", (*m_prototype)[pind].second->toString().c_str());
+                    NL_CHECK(canCast(type, typeFromString((*m_prototype)[pind].second->m_type, ctx->m_runtime)), "Fail cast from '%s' to '%s'",
+                            (*m_prototype)[pind].second->m_type->m_text.c_str(), newlang::toString(type));
                 }
                 m_args_type.push_back(ctx->m_ffi_type_sint16);
                 temp.integer = args[i].second->GetValueAsInteger();
@@ -2091,9 +2093,9 @@ ObjPtr Obj::CallNative(Context *ctx, Obj args) {
             case ObjType::Int32:
             case ObjType::DWord:
                 if (pind < check_count) {
-                    NL_CHECK(!(*m_prototype)[pind].second->m_type_name.empty(), "Undefined type arg '%s'", (*m_prototype)[pind].second->toString().c_str());
-                    NL_CHECK(canCast(type, typeFromString((*m_prototype)[pind].second->m_type_name, ctx)), "Fail cast from '%s' to '%s'",
-                            (*m_prototype)[pind].second->m_type_name.c_str(), newlang::toString(type));
+                    NL_CHECK(!isDefaultType((*m_prototype)[pind].second->m_type), "Undefined type arg '%s'", (*m_prototype)[pind].second->toString().c_str());
+                    NL_CHECK(canCast(type, typeFromString((*m_prototype)[pind].second->m_type, ctx->m_runtime)), "Fail cast from '%s' to '%s'",
+                            (*m_prototype)[pind].second->m_type->m_text.c_str(), newlang::toString(type));
                 }
                 m_args_type.push_back(ctx->m_ffi_type_sint32);
                 temp.integer = args[i].second->GetValueAsInteger();
@@ -2103,9 +2105,9 @@ ObjPtr Obj::CallNative(Context *ctx, Obj args) {
             case ObjType::Int64:
             case ObjType::DWord64:
                 if (pind < check_count) {
-                    NL_CHECK(!(*m_prototype)[pind].second->m_type_name.empty(), "Undefined type arg '%s'", (*m_prototype)[pind].second->toString().c_str());
-                    NL_CHECK(canCast(type, typeFromString((*m_prototype)[pind].second->m_type_name, ctx)), "Fail cast from '%s' to '%s'",
-                            (*m_prototype)[pind].second->m_type_name.c_str(), newlang::toString(type));
+                    NL_CHECK(!isDefaultType((*m_prototype)[pind].second->m_type), "Undefined type arg '%s'", (*m_prototype)[pind].second->toString().c_str());
+                    NL_CHECK(canCast(type, typeFromString((*m_prototype)[pind].second->m_type, ctx->m_runtime)), "Fail cast from '%s' to '%s'",
+                            (*m_prototype)[pind].second->m_type->m_text.c_str(), newlang::toString(type));
                 }
                 m_args_type.push_back(ctx->m_ffi_type_sint64);
                 temp.integer = args[i].second->GetValueAsInteger();
@@ -2115,9 +2117,9 @@ ObjPtr Obj::CallNative(Context *ctx, Obj args) {
             case ObjType::Float32:
             case ObjType::Single:
                 if (pind < check_count) {
-                    NL_CHECK(!(*m_prototype)[pind].second->m_type_name.empty(), "Undefined type arg '%s'", (*m_prototype)[pind].second->toString().c_str());
-                    NL_CHECK(canCast(type, typeFromString((*m_prototype)[pind].second->m_type_name, ctx)), "Fail cast from '%s' to '%s'",
-                            (*m_prototype)[pind].second->m_type_name.c_str(), newlang::toString(type));
+                    NL_CHECK(!isDefaultType((*m_prototype)[pind].second->m_type), "Undefined type arg '%s'", (*m_prototype)[pind].second->toString().c_str());
+                    NL_CHECK(canCast(type, typeFromString((*m_prototype)[pind].second->m_type, ctx->m_runtime)), "Fail cast from '%s' to '%s'",
+                            (*m_prototype)[pind].second->m_type->m_text.c_str(), newlang::toString(type));
                 }
                 m_args_type.push_back(ctx->m_ffi_type_float);
                 temp.number = args[i].second->GetValueAsNumber();
@@ -2127,9 +2129,9 @@ ObjPtr Obj::CallNative(Context *ctx, Obj args) {
             case ObjType::Float64:
             case ObjType::Double:
                 if (pind < check_count) {
-                    NL_CHECK(!(*m_prototype)[pind].second->m_type_name.empty(), "Undefined type arg '%s'", (*m_prototype)[pind].second->toString().c_str());
-                    NL_CHECK(canCast(type, typeFromString((*m_prototype)[pind].second->m_type_name, ctx)), "Fail cast from '%s' to '%s'",
-                            (*m_prototype)[pind].second->m_type_name.c_str(), newlang::toString(type));
+                    NL_CHECK(!isDefaultType((*m_prototype)[pind].second->m_type), "Undefined type arg '%s'", (*m_prototype)[pind].second->toString().c_str());
+                    NL_CHECK(canCast(type, typeFromString((*m_prototype)[pind].second->m_type, ctx->m_runtime)), "Fail cast from '%s' to '%s'",
+                            (*m_prototype)[pind].second->m_type->m_text.c_str(), newlang::toString(type));
                 }
                 m_args_type.push_back(ctx->m_ffi_type_double);
                 temp.number = args[i].second->GetValueAsNumber();
@@ -2138,9 +2140,9 @@ ObjPtr Obj::CallNative(Context *ctx, Obj args) {
 
             case ObjType::StrChar:
                 if (pind < check_count) {
-                    NL_CHECK(!(*m_prototype)[pind].second->m_type_name.empty(), "Undefined type arg '%s'", (*m_prototype)[pind].second->toString().c_str());
-                    NL_CHECK(canCast(type, typeFromString((*m_prototype)[pind].second->m_type_name, ctx)), "Fail cast from '%s' to '%s'",
-                            (*m_prototype)[pind].second->m_type_name.c_str(), newlang::toString(type));
+                    NL_CHECK(!isDefaultType((*m_prototype)[pind].second->m_type), "Undefined type arg '%s'", (*m_prototype)[pind].second->toString().c_str());
+                    NL_CHECK(canCast(type, typeFromString((*m_prototype)[pind].second->m_type, ctx->m_runtime)), "Fail cast from '%s' to '%s'",
+                            (*m_prototype)[pind].second->m_type->m_text.c_str(), newlang::toString(type));
                 }
                 m_args_type.push_back(ctx->m_ffi_type_pointer);
                 temp.ptr = args[i].second->m_value.c_str();
@@ -2149,9 +2151,9 @@ ObjPtr Obj::CallNative(Context *ctx, Obj args) {
 
             case ObjType::StrWide:
                 if (pind < check_count) {
-                    NL_CHECK(!(*m_prototype)[pind].second->m_type_name.empty(), "Undefined type arg '%s'", (*m_prototype)[pind].second->toString().c_str());
-                    NL_CHECK(canCast(type, typeFromString((*m_prototype)[pind].second->m_type_name, ctx)), "Fail cast from '%s' to '%s'",
-                            (*m_prototype)[pind].second->m_type_name.c_str(), newlang::toString(type));
+                    NL_CHECK(!isDefaultType((*m_prototype)[pind].second->m_type), "Undefined type arg '%s'", (*m_prototype)[pind].second->toString().c_str());
+                    NL_CHECK(canCast(type, typeFromString((*m_prototype)[pind].second->m_type, ctx->m_runtime)), "Fail cast from '%s' to '%s'",
+                            (*m_prototype)[pind].second->m_type->m_text.c_str(), newlang::toString(type));
                 }
                 m_args_type.push_back(ctx->m_ffi_type_pointer);
                 temp.ptr = args[i].second->m_string.c_str();
@@ -2160,16 +2162,16 @@ ObjPtr Obj::CallNative(Context *ctx, Obj args) {
 
             case ObjType::Pointer:
                 if (pind < check_count) {
-                    NL_CHECK(!(*m_prototype)[pind].second->m_type_name.empty(), "Undefined type arg '%s'", (*m_prototype)[pind].second->toString().c_str());
-                    NL_CHECK(canCast(type, typeFromString((*m_prototype)[pind].second->m_type_name, ctx)), "Fail cast from '%s' to '%s'",
-                            (*m_prototype)[pind].second->m_type_name.c_str(), newlang::toString(type));
+                    NL_CHECK(!isDefaultType((*m_prototype)[pind].second->m_type), "Undefined type arg '%s'", (*m_prototype)[pind].second->toString().c_str());
+                    NL_CHECK(canCast(type, typeFromString((*m_prototype)[pind].second->m_type, ctx->m_runtime)), "Fail cast from '%s' to '%s'",
+                            (*m_prototype)[pind].second->m_type->m_text.c_str(), newlang::toString(type));
                 }
                 m_args_type.push_back(ctx->m_ffi_type_pointer);
 
                 if (at::holds_alternative<void *>(args[i].second->m_var)) {
                     temp.ptr = at::get<void *>(args[i].second->m_var);
-//                } else if (args[i].second->m_var_type_fixed == ObjType::None || args[i].second->m_var_type_current == ObjType::None ) {
-//                    temp.ptr = nullptr;
+                    //                } else if (args[i].second->m_var_type_fixed == ObjType::None || args[i].second->m_var_type_current == ObjType::None ) {
+                    //                    temp.ptr = nullptr;
                 } else {
                     LOG_RUNTIME("Fail convert arg '%s' to pointer!", args[i].second->toString().c_str());
                 }
@@ -2191,12 +2193,12 @@ ObjPtr Obj::CallNative(Context *ctx, Obj args) {
         m_args_ptr.push_back((void *) &m_args_val[i]);
     }
 
-    NL_CHECK(!m_prototype->m_type_name.empty(), "Undefined return type '%s'", m_prototype->toString().c_str());
+    NL_CHECK(!isDefaultType(m_prototype->m_type), "Undefined return type '%s'", m_prototype->toString().c_str());
 
     VALUE res_value;
     ffi_type *result_ffi_type = nullptr;
 
-    ObjType type = ctx->m_runtime->BaseTypeFromString(m_prototype->m_type_name);
+    ObjType type = ctx->m_runtime->BaseTypeFromString(m_prototype->m_type->m_text);
 
     switch (type) {
         case ObjType::Bool:
@@ -2245,11 +2247,13 @@ ObjPtr Obj::CallNative(Context *ctx, Obj args) {
             break;
 
         default:
-            LOG_RUNTIME("Native return type '%s' not implemented!", m_prototype->m_type_name.c_str());
+            LOG_RUNTIME("Native return type '%s' not implemented!", m_prototype->m_type->asTypeString().c_str());
     }
 
     //    ASSERT(ctx->m_func_abi == FFI_DEFAULT_ABI); // Нужны другие типы вызовов ???
     if (ctx->m_ffi_prep_cif(&m_cif, FFI_DEFAULT_ABI, static_cast<unsigned int> (m_args_type.size()), result_ffi_type, m_args_type.data()) == FFI_OK) {
+
+        ASSERT(m_prototype->m_type);
 
         ctx->m_ffi_call(&m_cif, FFI_FN(func_ptr), &res_value, m_args_ptr.data());
 
@@ -2257,7 +2261,7 @@ ObjPtr Obj::CallNative(Context *ctx, Obj args) {
             return Obj::CreateNone();
         } else if (result_ffi_type == ctx->m_ffi_type_uint8) {
             // Возвращаемый тип может быть как Byte, так и Bool
-            return Obj::CreateValue(static_cast<uint8_t> (res_value.integer), typeFromString(m_prototype->m_type_name));
+            return Obj::CreateValue(static_cast<uint8_t> (res_value.integer), typeFromString(m_prototype->m_type));
         } else if (result_ffi_type == ctx->m_ffi_type_sint8) {
             return Obj::CreateValue(static_cast<int8_t> (res_value.integer), type);
         } else if (result_ffi_type == ctx->m_ffi_type_sint16) {
@@ -2276,15 +2280,15 @@ ObjPtr Obj::CallNative(Context *ctx, Obj args) {
             } else if (type == ObjType::StrWide) {
                 return Obj::CreateString(reinterpret_cast<const wchar_t *> (res_value.ptr));
             } else if (type == ObjType::Pointer) {
-                ObjPtr result = ctx->m_runtime->GetTypeFromString(m_prototype->m_type_name);
+                ObjPtr result = ctx->m_runtime->GetTypeFromString(m_prototype->m_type->m_text.c_str());
                 result->m_var = (void *) res_value.ptr;
                 result->m_var_is_init = true;
                 return result;
             } else {
-                LOG_RUNTIME("Error result type '%s' or not implemented!", m_prototype->m_type_name.c_str());
+                LOG_RUNTIME("Error result type '%s' or not implemented!", m_prototype->m_type->m_text.c_str());
             }
         } else {
-            LOG_RUNTIME("Native return type '%s' not implemented!", m_prototype->m_type_name.c_str());
+            LOG_RUNTIME("Native return type '%s' not implemented!", m_prototype->m_type->m_text.c_str());
         }
     }
 
@@ -3053,7 +3057,7 @@ ObjPtr Obj::BaseTypeConstructor(const Context *ctx, Obj & args) {
         result = ConstructorReturn_(ctx, args);
     } else if (args[0].second->m_var_type_fixed == ObjType::Thread) {
         result = ConstructorThread_(ctx, args);
-    } else if (args[0].second->m_var_type_fixed == ObjType::System) {
+    } else if (args[0].second->m_var_type_fixed == ObjType::Sys) {
         result = ConstructorSystem_(ctx, args);
     } else if (args[0].second->m_var_type_fixed == ObjType::Break || args[0].second->m_var_type_fixed == ObjType::Continue) {
         result = ConstructorInterraption_(ctx, args, args[0].second->m_var_type_fixed);
@@ -3234,7 +3238,7 @@ ObjPtr Obj::ConstructorNative_(const Context *ctx_const, Obj & args) {
     }
     //@todo Передача дополнительных аргументов? args["module"]->GetValueAsString().c_str(), args["lazzy"]->GetValueAsBoolean()
     Context *ctx = const_cast<Context *> (ctx_const);
-    return ctx->m_runtime->CreateNative(args.at(1).second->GetValueAsString().c_str());
+    return ctx->m_runtime->CreateNative(ctx, args.at(1).second->GetValueAsString().c_str());
 }
 
 ObjPtr Obj::ConstructorStub_(const Context *ctx, Obj & args) {
@@ -3749,21 +3753,21 @@ ObjPtr newlang::CheckSystemField(const Obj *obj, std::string name) {
     } else {
 
         if (obj->m_var_type_current == ObjType::Module) {
-//            const Module *mod = static_cast<const Module *> (obj);
-//
-//            if (name.compare(MODULE__MD5__) == 0) {
-//                return Obj::CreateString(mod->m_md5);
-//            } else if (name.compare(MODULE__FILE__) == 0) {
-//                return Obj::CreateString(mod->m_file);
-//            } else if (name.compare(MODULE__TIMESTAMP__) == 0) {
-//                return Obj::CreateString(mod->m_timestamp);
-//            } else if (name.compare(MODULE__VERSION__) == 0) {
-//                return Obj::CreateString(mod->m_version);
-//            } else if (name.compare(MODULE__MAIN__) == 0) {
-//                return Obj::CreateBool(mod->m_is_main);
-//            } else if (name.compare(SYS__SOURCE__) == 0) {
-//                return Obj::CreateString(mod->m_source);
-//            }
+            //            const Module *mod = static_cast<const Module *> (obj);
+            //
+            //            if (name.compare(MODULE__MD5__) == 0) {
+            //                return Obj::CreateString(mod->m_md5);
+            //            } else if (name.compare(MODULE__FILE__) == 0) {
+            //                return Obj::CreateString(mod->m_file);
+            //            } else if (name.compare(MODULE__TIMESTAMP__) == 0) {
+            //                return Obj::CreateString(mod->m_timestamp);
+            //            } else if (name.compare(MODULE__VERSION__) == 0) {
+            //                return Obj::CreateString(mod->m_version);
+            //            } else if (name.compare(MODULE__MAIN__) == 0) {
+            //                return Obj::CreateBool(mod->m_is_main);
+            //            } else if (name.compare(SYS__SOURCE__) == 0) {
+            //                return Obj::CreateString(mod->m_source);
+            //            }
         }
 
         std::string message("Internal field '");

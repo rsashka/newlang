@@ -1,5 +1,7 @@
 #include "pch.h"
 
+#include "types.h"
+
 #ifdef UNITTEST
 
 #include "rational.h"
@@ -33,6 +35,9 @@ TEST(ObjTest, Value) {
     ASSERT_EQ(ObjType::Bool, var.getType());
 
     var.SetValue_(1.0);
+    ASSERT_EQ(ObjType::Float32, var.getType());
+
+    var.SetValue_(1.0E+40);
     ASSERT_EQ(ObjType::Float64, var.getType());
 
     var.SetValue_(true);
@@ -54,6 +59,9 @@ TEST(ObjTest, Value) {
     ASSERT_EQ(ObjType::Int64, var.getType());
 
     var.SetValue_(2.0);
+    ASSERT_EQ(ObjType::Float32, var.getType());
+
+    var.SetValue_(2.0E+40);
     ASSERT_EQ(ObjType::Float64, var.getType());
 
     var.SetValue_(false);
@@ -251,7 +259,7 @@ TEST(ObjTest, Eq) {
     ObjPtr var_empty = Obj::CreateNone();
 
     ASSERT_EQ(var_int->m_var_type_current, ObjType::Int8) << (int) var_int->getType();
-    ASSERT_EQ(var_num->m_var_type_current, ObjType::Float64) << (int) var_num->getType();
+    ASSERT_EQ(var_num->m_var_type_current, ObjType::Float32) << (int) var_num->getType();
     ASSERT_EQ(var_str->m_var_type_current, ObjType::StrWide) << (int) var_str->getType();
     ASSERT_EQ(var_bool->m_var_type_current, ObjType::Bool) << (int) var_bool->getType();
     ASSERT_EQ(var_empty->m_var_type_current, ObjType::None) << (int) var_empty->getType();
@@ -328,7 +336,7 @@ TEST(ObjTest, Ops) {
 
     ObjPtr var_float = Obj::CreateValue(1.0);
     ASSERT_TRUE(var_float->is_arithmetic_type());
-    ASSERT_EQ(ObjType::Float64, var_float->m_var_type_current) << newlang::toString(var_char->m_var_type_current);
+    ASSERT_EQ(ObjType::Float32, var_float->m_var_type_current) << newlang::toString(var_char->m_var_type_current);
 
     ObjPtr var_tensor = Obj::CreateRange(0, 10)->toType(ObjType::Int32);
     ASSERT_TRUE(var_tensor->is_arithmetic_type());
@@ -344,7 +352,7 @@ TEST(ObjTest, Ops) {
 
     var_tensor->operator*=(var_float);
     ASSERT_TRUE(var_tensor->is_arithmetic_type());
-    EXPECT_EQ(ObjType::Float64, var_tensor->m_var_type_current) << newlang::toString(var_char->m_var_type_current);
+    EXPECT_EQ(ObjType::Float32, var_tensor->m_var_type_current) << newlang::toString(var_char->m_var_type_current);
 }
 
 TEST(ObjTest, Exist) {
@@ -515,12 +523,12 @@ TEST(ObjTest, CreateFromNumber) {
 
     ObjPtr var = Context::CreateRVal(&ctx, Parser::ParseString("123.123", nullptr));
     ASSERT_TRUE(var);
-    ASSERT_EQ(ObjType::Float64, var->getType());
+    ASSERT_EQ(ObjType::Float32, var->getType());
     ASSERT_DOUBLE_EQ(123.123, var->GetValueAsNumber());
 
     ObjPtr var2 = ctx.ExecStr("123.123");
     ASSERT_TRUE(var2);
-    ASSERT_EQ(ObjType::Float64, var2->getType());
+    ASSERT_EQ(ObjType::Float32, var2->getType());
     ASSERT_DOUBLE_EQ(123.123, var2->GetValueAsNumber());
 
     var = Context::CreateRVal(&ctx, Parser::ParseString("-123.123", nullptr));
@@ -528,10 +536,10 @@ TEST(ObjTest, CreateFromNumber) {
     ASSERT_EQ(ObjType::Float64, var->getType());
     ASSERT_DOUBLE_EQ(-123.123, var->GetValueAsNumber());
 
-    var2 = ctx.ExecStr("-123.123");
+    var2 = ctx.ExecStr("-123.123E+40");
     ASSERT_TRUE(var2);
     ASSERT_EQ(ObjType::Float64, var2->getType());
-    ASSERT_DOUBLE_EQ(-123.123, var2->GetValueAsNumber());
+    ASSERT_DOUBLE_EQ(-123.123E+40, var2->GetValueAsNumber());
 
     ASSERT_ANY_THROW(Context::CreateRVal(&ctx, Term::Create(parser::token_type::NUMBER, TermID::NUMBER, "")));
     ASSERT_ANY_THROW(Context::CreateRVal(&ctx, Term::Create(parser::token_type::NUMBER, TermID::NUMBER, "lkdfjsha")));
@@ -798,8 +806,9 @@ TEST(Types, FromLimit) {
         ASSERT_EQ(elem.second, typeFromLimit(elem.first)) << elem.first << " " << toString(elem.second);
     }
 
-    ASSERT_EQ(ObjType::Float64, typeFromLimit(1.0));
-    ASSERT_EQ(ObjType::Float64, typeFromLimit(0.0));
+    ASSERT_EQ(ObjType::Float32, typeFromLimit(1.0));
+    ASSERT_EQ(ObjType::Float64, typeFromLimit(0.0));  //@todo Fix???????
+    ASSERT_EQ(ObjType::Float64, typeFromLimit(1E+40));
 
 }
 

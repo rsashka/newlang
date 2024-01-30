@@ -245,7 +245,7 @@ TEST_F(Lexer, AssignEq) {
 
     ASSERT_EQ(3, TokenParse("token:=\"ssssssss\""));
     EXPECT_EQ(1, Count(TermID::NAME));
-    EXPECT_EQ(1, Count(TermID::CREATE_OR_ASSIGN));
+    EXPECT_EQ(1, Count(TermID::CREATE_OVERLAP));
     EXPECT_EQ(1, Count(TermID::STRWIDE));
 
     EXPECT_STREQ("token", tokens[0]->getText().c_str()) << tokens[0]->getText();
@@ -253,7 +253,7 @@ TEST_F(Lexer, AssignEq) {
 
     ASSERT_EQ(3, TokenParse("    token   \t  ::=   'ssssssss'       "));
     EXPECT_EQ(1, Count(TermID::NAME));
-    EXPECT_EQ(1, Count(TermID::CREATE));
+    EXPECT_EQ(1, Count(TermID::CREATE_ONCE));
     EXPECT_EQ(1, Count(TermID::STRCHAR));
 
     EXPECT_STREQ("token", tokens[0]->getText().c_str()) << tokens[0]->getText();
@@ -299,10 +299,10 @@ TEST_F(Lexer, CodeSource) {
 
 TEST_F(Lexer, Assign) {
     ASSERT_EQ(5, TokenParse(":= :- ::= ::- ="));
-    EXPECT_EQ(1, Count(TermID::CREATE));
-    EXPECT_EQ(1, Count(TermID::CREATE_OR_ASSIGN));
-    EXPECT_EQ(1, Count(TermID::PUREFUNC));
-    EXPECT_EQ(1, Count(TermID::PURE_CREATE));
+    EXPECT_EQ(1, Count(TermID::CREATE_ONCE));
+    EXPECT_EQ(1, Count(TermID::CREATE_OVERLAP));
+    EXPECT_EQ(1, Count(TermID::PURE_ONCE));
+    EXPECT_EQ(1, Count(TermID::PURE_OVERLAP));
 }
 
 TEST_F(Lexer, Function) {
@@ -372,8 +372,8 @@ TEST_F(Lexer, Comment2) {
     //    EXPECT_EQ(5, tokens[0]->m_line);
     //    EXPECT_EQ(1, tokens[0]->m_col);
     EXPECT_STREQ("term", tokens[0]->getText().c_str()) << tokens[1]->getText().c_str();
-    EXPECT_EQ(7, tokens[0]->m_line);
-    EXPECT_EQ(3, tokens[0]->m_col);
+    EXPECT_EQ(7, tokens[0]->m_line) << Dump();
+    EXPECT_EQ(7, tokens[0]->m_col) << Dump();
 }
 
 TEST_F(Lexer, Paren) {
@@ -446,24 +446,24 @@ TEST_F(Lexer, Alias) {
     EXPECT_EQ(1, Count(TermID::DOC_BEFORE));
     EXPECT_EQ(1, Count(TermID::DOC_AFTER));
     EXPECT_EQ(2, Count(TermID::NAME));
-    EXPECT_EQ(1, tokens[0]->m_line);
-    EXPECT_EQ(1, tokens[0]->m_col);
-    EXPECT_EQ(1, tokens[1]->m_line);
-    EXPECT_EQ(15, tokens[1]->m_col);
+    EXPECT_EQ(1, tokens[0]->m_line) << Dump();
+    EXPECT_EQ(15, tokens[0]->m_col) << Dump();
+    EXPECT_EQ(1, tokens[1]->m_line) << Dump();
+    EXPECT_EQ(17, tokens[1]->m_col) << Dump();
 
     ASSERT_EQ(2, TokenParse("/** Русские символы */name")) << Dump();
     EXPECT_EQ(1, Count(TermID::DOC_BEFORE));
     EXPECT_EQ(1, Count(TermID::NAME));
     EXPECT_EQ(1, tokens[0]->m_line);
-    EXPECT_EQ(1, tokens[0]->m_col);
+    EXPECT_EQ(37, tokens[0]->m_col);
     EXPECT_EQ(1, tokens[1]->m_line);
-    EXPECT_EQ(23 + 14, tokens[1]->m_col);
+    EXPECT_EQ(23 + 14 + 4, tokens[1]->m_col);
 }
 
 TEST_F(Lexer, Macro) {
 
     ASSERT_EQ(1, TokenParse("@$arg")) << Dump();
-    EXPECT_EQ(1, Count(TermID::MACRO_ARGUMENT));
+    EXPECT_EQ(1, Count(TermID::MACRO_ARGUMENT)) << Dump();
 
     //    ASSERT_EQ(1, TokenParse("@$name(*)")) << Dump();
     //    EXPECT_EQ(1, Count(TermID::MACRO_ARGUMENT));
@@ -507,10 +507,10 @@ TEST_F(Lexer, Macro) {
     EXPECT_EQ(1, Count(TermID::MACRO_STR));
     EXPECT_STREQ("@macro", tokens[0]->m_text.c_str());
     EXPECT_STREQ("123 ... 456", tokens[2]->m_text.c_str());
-    EXPECT_EQ(1, tokens[0]->m_line);
-    EXPECT_EQ(1, tokens[0]->m_col);
-    EXPECT_EQ(1, tokens[2]->m_line);
-    EXPECT_EQ(11, tokens[2]->m_col);
+    EXPECT_EQ(1, tokens[0]->m_line) << Dump();
+    EXPECT_EQ(7, tokens[0]->m_col) << Dump();
+    EXPECT_EQ(1, tokens[2]->m_line) << Dump();
+    EXPECT_EQ(28, tokens[2]->m_col) << Dump();
 
     ASSERT_EQ(6, TokenParse("@macro (name) := @@@123 \n \n ... 456@@@ # Комментарий"));
     EXPECT_EQ(1, Count(TermID::NAME));
@@ -520,14 +520,14 @@ TEST_F(Lexer, Macro) {
     EXPECT_STREQ("@macro", tokens[0]->m_text.c_str());
     EXPECT_STREQ("123 \n \n ... 456", tokens[5]->m_text.c_str());
     EXPECT_EQ(1, tokens[0]->m_line);
-    EXPECT_EQ(1, tokens[0]->m_col);
+    EXPECT_EQ(7, tokens[0]->m_col);
     EXPECT_EQ(3, tokens[5]->m_line);
-    EXPECT_EQ(1, tokens[5]->m_col);
+    EXPECT_EQ(12, tokens[5]->m_col);
 
     ASSERT_EQ(11, TokenParse("@if($args) := @@ [@$args] --> @@")) << Dump();
     EXPECT_EQ(1, Count(TermID::MACRO));
     EXPECT_EQ(4, Count(TermID::SYMBOL));
-    EXPECT_EQ(1, Count(TermID::CREATE_OR_ASSIGN));
+    EXPECT_EQ(1, Count(TermID::CREATE_OVERLAP));
     EXPECT_EQ(2, Count(TermID::MACRO_SEQ));
     EXPECT_EQ(1, Count(TermID::FOLLOW));
     EXPECT_EQ(1, Count(TermID::MACRO_ARGUMENT)) << Dump();
@@ -584,11 +584,11 @@ TEST_F(Lexer, ParseLexem) {
 
     BlockType arr = Scanner::ParseLexem("1 2 3 4 5");
 
-    ASSERT_EQ(5, arr.size());
-    ASSERT_STREQ("1 2 3 4 5", Macro::Dump(arr).c_str());
+    ASSERT_EQ(5, arr.size()) << Macro::DumpText(arr).c_str();
+    ASSERT_STREQ("1 2 3 4 5", Macro::DumpText(arr).c_str());
 
     arr = Scanner::ParseLexem("macro    @test(1,2,3,...):type; next \n; # sssssss\n @only lexem((((;;     ;");
-    ASSERT_STREQ("macro @test ( 1 , 2 , 3 , ... ) : type ; next ; @only lexem ( ( ( ( ; ; ;", Macro::Dump(arr).c_str());
+    ASSERT_STREQ("macro @test ( 1 , 2 , 3 , ... ) : type ; next ; @only lexem ( ( ( ( ; ; ;", Macro::DumpText(arr).c_str());
 }
 
 #endif // UNITTEST

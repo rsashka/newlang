@@ -70,6 +70,7 @@ OBJECTFILES= \
 	${OBJECTDIR}/test/parser_test.o \
 	${OBJECTDIR}/test/rational_test.o \
 	${OBJECTDIR}/test/system_test.o \
+	${OBJECTDIR}/types.o \
 	${OBJECTDIR}/version.o
 
 
@@ -297,6 +298,11 @@ ${OBJECTDIR}/test/system_test.o: test/system_test.cpp pch.h.pch
 	${MKDIR} -p ${OBJECTDIR}/test
 	${RM} "$@.d"
 	$(COMPILE.cc) -g -DDEBUG -DLOG_LEVEL_NORMAL=LOG_LEVEL_DEBUG -DPDC_WIDE -DUNITTEST -I. -I.. -I/usr/lib/clang/16/include -I/usr/include/llvm -I/usr/include/llvm-c -I/usr/include/x86_64-linux-gnu/c++/10 -I/usr/include/c++/10 -I/usr/local/include -I/usr/include -I../contrib/googletest/googletest -I../contrib/googletest/googletest/include -I../contrib/Lyra/include -I../contrib/libtorch/include/torch/csrc/api/include -I../contrib/libtorch/include -include-pch pch.h.pch -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/test/system_test.o test/system_test.cpp
+
+${OBJECTDIR}/types.o: types.cpp pch.h.pch
+	${MKDIR} -p ${OBJECTDIR}
+	${RM} "$@.d"
+	$(COMPILE.cc) -g -DDEBUG -DLOG_LEVEL_NORMAL=LOG_LEVEL_DEBUG -DPDC_WIDE -DUNITTEST -I. -I.. -I/usr/lib/clang/16/include -I/usr/include/llvm -I/usr/include/llvm-c -I/usr/include/x86_64-linux-gnu/c++/10 -I/usr/include/c++/10 -I/usr/local/include -I/usr/include -I../contrib/googletest/googletest -I../contrib/googletest/googletest/include -I../contrib/Lyra/include -I../contrib/libtorch/include/torch/csrc/api/include -I../contrib/libtorch/include -include-pch pch.h.pch -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/types.o types.cpp
 
 ${OBJECTDIR}/version.o: version.cpp
 	${MKDIR} -p ${OBJECTDIR}

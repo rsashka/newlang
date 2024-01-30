@@ -480,8 +480,6 @@ native  %({ualpha}|[_])+({name}|{digit})?
 {number}        YY_TOKEN(NUMBER);
 
 
-"[_]"       YY_TOKEN_ONLY(ELSE);
-
 "$"[0-9]+   YY_TOKEN(ARGUMENT);
 
 {name}      YY_TOKEN(NAME);
@@ -499,11 +497,11 @@ ${name}     YY_TOKEN(LOCAL);
 "==>"       YY_TOKEN(MATCHING);
 "===>"      YY_TOKEN(MATCHING);
 
-"::="       YY_TOKEN(CREATE);
-":="        YY_TOKEN(CREATE_OR_ASSIGN);
+"::="       YY_TOKEN(CREATE_ONCE);
+":="        YY_TOKEN(CREATE_OVERLAP);
 "[]="       YY_TOKEN(APPEND);
-"::-"       YY_TOKEN(PURE_CREATE);
-":-"        YY_TOKEN(PUREFUNC);
+"::-"       YY_TOKEN(PURE_OVERLAP);
+":-"        YY_TOKEN(PURE_ONCE);
 ":=:"       YY_TOKEN(SWAP);
 
 "::"        YY_TOKEN(NAMESPACE);
@@ -511,16 +509,19 @@ ${name}     YY_TOKEN(LOCAL);
 "$^"        YY_TOKEN(ARGS);
 "$$"        YY_TOKEN(NAME);
 "\\\\"      YY_TOKEN(MODULE);
-"\\\\$"     YY_TOKEN(NEWLANG);
-"\\$"       YY_TOKEN(NEWLANG);
+
+    /*  
+    "\\\\$"     YY_TOKEN(NEWLANG);
+    "\\$"       YY_TOKEN(NEWLANG);
+    */
+
+"@::"       YY_TOKEN_ONLY(MACRO_NAMESPACE);
+"@$$"       YY_TOKEN_ONLY(MACRO_NAMESPACE);
+"@\\\\"     YY_TOKEN_ONLY(MACRO);
+"$\\\\"     YY_TOKEN_ONLY(MACRO);
 
 "@\\"       YY_TOKEN(ESCAPE);
        /* 
-    "$..."     YY_TOKEN(ESCAPE);
-    "@$..."     YY_TOKEN(ESCAPE);
-    "$,,,"     YY_TOKEN(ESCAPE);
-    "@$,,,"     YY_TOKEN(ESCAPE);
-    "@\\:"      YY_TOKEN(ESCAPE);
           "@\\)"
 
           "@\\,"
@@ -537,6 +538,8 @@ ${name}     YY_TOKEN(LOCAL);
           "@\\#"
           "@\\##"
         */
+"{@"        m_bracket_depth++; YY_TOKEN_ONLY(SYM_BEGIN);
+"@}"        m_bracket_depth--; YY_TOKEN_ONLY(SYM_END);
 
 
 "++"        YY_TOKEN(INT_PLUS);
@@ -566,13 +569,16 @@ ${name}     YY_TOKEN(LOCAL);
 "||"        YY_TOKEN(OPERATOR);
 "^^"        YY_TOKEN(OPERATOR);
 "&&"        YY_TOKEN_ONLY(OPERATOR_AND);
+
 "&^"        YY_TOKEN_ONLY(OPERATOR_PTR);
 "&&^"       YY_TOKEN_ONLY(OPERATOR_PTR);
 "&*"        YY_TOKEN_ONLY(OPERATOR_PTR);
 "&*^"       YY_TOKEN_ONLY(OPERATOR_PTR);
-"&"{digit}  YY_TOKEN_ONLY(OPERATOR_PTR);
-"&%"        YY_TOKEN_ONLY(OPERATOR_PTR);
+"&?"        YY_TOKEN_ONLY(OPERATOR_PTR);
+"&?^"       YY_TOKEN_ONLY(OPERATOR_PTR);
+
     /*
+    "&%"        YY_TOKEN_ONLY(OPERATOR_PTR);
     "&@"        YY_TOKEN_ONLY(OPERATOR_PTR);
     "&~"        YY_TOKEN_ONLY(OPERATOR_PTR);
     "&:"        YY_TOKEN_ONLY(OPERATOR_PTR);
@@ -590,19 +596,37 @@ ${name}     YY_TOKEN(LOCAL);
 
 "*^"        YY_TOKEN(TAKE);
 "**"        YY_TOKEN(WITH);
-"**^"        YY_TOKEN(WITH);
 "!~~~"      YY_TOKEN(OPERATOR);
-"~~~"       YY_TOKEN(OPERATOR);
+"~~~"       YY_TOKEN_ONLY(OPERATOR_DUCK);
 "!~~"       YY_TOKEN(OPERATOR);
-"~~"        YY_TOKEN(OPERATOR);
+"~~"        YY_TOKEN_ONLY(OPERATOR_DUCK);
 "!~"        YY_TOKEN(OPERATOR);
 "==="       YY_TOKEN(OPERATOR);
 "=="        YY_TOKEN(OPERATOR);
 "!=="       YY_TOKEN(OPERATOR);
 "!="        YY_TOKEN(OPERATOR);
+"=/="       YY_TOKEN(OPERATOR);
 "<="        YY_TOKEN(OPERATOR);
 ">="        YY_TOKEN_ONLY(OPERATOR_ANGLE_EQ);
 
+"[+]"        YY_TOKEN(OPERATOR); /* Объединение множеств */
+"[-]"        YY_TOKEN(OPERATOR); /* Разность множеств */
+"[*]"        YY_TOKEN(OPERATOR); /* Пересечение множеств */
+"[/]"        YY_TOKEN(OPERATOR);
+
+    /* Симметри́ческая ра́зность двух множеств — теоретико-множественная операция, результатом которой является новое множество, включающее все элементы исходных множеств, не принадлежащие одновременно обоим исходным множествам. Другими словами, если есть два множества A A и B B, их симметрическая разность есть объединение элементов A A, не входящих в B B, с элементами B B, не входящими в A A. На письме для обозначения симметрической разности множеств A A и B B используется обозначение A △ B {\displaystyle A\bigtriangleup B}, реже используется обозначение A − ˙ B {\displaystyle A\,{\dot {-}}\,B} или A + B A+B[1].
+    */
+    /*
+    Приоритет операций
+    Последовательность выполнения операций над множествами, как и обычно, может быть задана скобками. 
+    При отсутствии скобок сначала выполняются унарные операции (дополнение), затем — пересечения, затем — объединения, разности и симметрической разности. 
+    Операции одного приоритета выполняются слева направо. При этом надо иметь в виду, что в отличие от арифметических сложения и вычитания, 
+    для которых, в частности, верно, что ( a + b ) − c = a + ( b − c ) {\displaystyle (a+b)-c=a+(b-c)}, 
+    для аналогичных операций над множествами это неверно. 
+    Например, если A = { 1 , 3 } {\displaystyle A=\{1,3\}}, B = { 1 , 2 } {\displaystyle B=\{1,2\}}, C = { 2 , 3 } {\displaystyle C=\{2,3\}}, 
+    то ( A ∪ B ) ∖ C = { 1 } {\displaystyle (A\cup B)\setminus C=\{1\}}, 
+    но, в то же время, A ∪ ( B ∖ C ) = { 1 , 3 } {\displaystyle A\cup (B\setminus C)=\{1,3\}}. 
+    */
 
 "!!"        YY_TOKEN(ITERATOR);
 "??"        YY_TOKEN(ITERATOR);

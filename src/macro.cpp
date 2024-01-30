@@ -304,7 +304,7 @@ TermPtr Macro::EvalOpMacros(const TermPtr & term) {
 
     if (macro) {
 
-        if (term->getTermID() == TermID::CREATE || term->getTermID() == TermID::PURE_CREATE) {
+        if (term->getTermID() == TermID::CREATE_ONCE || term->getTermID() == TermID::PURE_OVERLAP) {
             NL_PARSER(term, "Macros '%s' already exists!", term->Left()->toString().c_str());
         }
 
@@ -313,7 +313,7 @@ TermPtr Macro::EvalOpMacros(const TermPtr & term) {
         for (auto iter = found->second.begin(); found != end() && iter != found->second.end(); ++iter) {
             if (Macro::IdentityMacro(term->GetMacroId(), *iter) || Macro::IdentityMacro(iter->get()->GetMacroId(), term)) {
 
-                if (term->getTermID() == TermID::CREATE || term->getTermID() == TermID::PURE_CREATE || (iter->get() != macro.get())) {
+                if (term->getTermID() == TermID::CREATE_ONCE || term->getTermID() == TermID::PURE_OVERLAP || (iter->get() != macro.get())) {
                     LOG_RUNTIME("Macro duplication '%s' and '%s'!", term->Left()->toString().c_str(), (*iter)->toString().c_str());
                 }
             }
@@ -335,6 +335,12 @@ TermPtr Macro::EvalOpMacros(const TermPtr & term) {
             }
         }
 
+        
+        //@todo Сделать два типа макросов, явные и не явные (::- :- или ::= :=), что позволит 
+        // контролировать обязательность указания признака макроса @ для явных макросов,
+        // а не явные применять всегда (как сейчас)
+        
+        
         macro = term;
 
         iterator iter = map::find(toMacroHash(macro));
@@ -409,7 +415,7 @@ std::string Macro::Dump() {
         for (int pos = 0; pos < iter->second.size(); pos++) {
 
             std::string str;
-            for (auto &elem : iter->second[pos]->GetMacroId()) {
+            for (auto &elem : iter->second[pos]->m_macro_id) {
                 if (!str.empty()) {
                     str += " ";
                 }
@@ -462,6 +468,20 @@ std::string Macro::Dump(const BlockType & arr) {
             result += " ";
         }
         result += (*iter)->toString();
+        iter++;
+    }
+    return result;
+}
+
+std::string Macro::DumpText(const BlockType & arr) {
+    std::string result;
+    auto iter = arr.begin();
+    while (iter != arr.end()) {
+        if (!result.empty()) {
+
+            result += " ";
+        }
+        result += (*iter)->m_text;
         iter++;
     }
     return result;
@@ -592,6 +612,28 @@ bool Macro::CompareMacroName(const std::string & term_name, const std::string & 
  * @__PRAGMA_PROP_CHECK__(const, ^)
  * @__PRAGMA_PROP_TEST__(const, ^)
  * @__PRAGMA_PROP_TEST__(const, ^)
+ * 
+ * 
+ * Запускать тесты
+ * Определять тесты
+ * Выполнять утверждения в тестах
+ * @Test("Group", "Name", timeout = 100) {
+ * 
+ * };
+ * 
+ * @@ TEST_FATAL @@ ::= 1;
+ * @@ TEST_NOT_FATAL @@ ::= 0;
+ * 
+ * @@ TEST (...) @@ ::= @@ @__PRAGMA_TEST__(@$*)__;  @__PRAGMA_EXPECTED__( { ) @@
+ * 
+ * @@ ASSERT_TRUE ( exp ) @@ ::= @@ @__PRAGMA_TEST_BOOL__(@$exp, @# @$exp, @TEST_FATAL, @__FILE_NAME__, @__FILE_LINE__) @@
+ * @@ EXPECT_TRUE ( exp ) @@ ::= @@ @__PRAGMA_TEST_BOOL__(@$exp, @# @$exp, @TEST_NOT_FATAL, @__FILE_NAME__, @__FILE_LINE__) @@
+ * @@ ASSERT_FALSE ( exp ) @@ ::= @@ @__PRAGMA_TEST_BOOL__(! @$exp, @# @$exp, @TEST_FATAL, @__FILE_NAME__, @__FILE_LINE__) @@
+ * @@ EXPECT_FALSE ( exp ) @@ ::= @@ @__PRAGMA_TEST_BOOL__(! @$exp, @# @$exp, @TEST_NOT_FATAL, @__FILE_NAME__, @__FILE_LINE__) @@
+ * 
+ * @@@@ TEST_FATAL @@@@;
+ * @@@@ TEST_NOT_FATAL @@@@;
+ * 
  * 
  */
 bool Macro::IdentityMacro(const BlockType &buffer, const TermPtr & macro) {
@@ -863,7 +905,13 @@ BlockType Macro::ExpandMacros(const TermPtr &macro, MacroArgsType & args) {
     ASSERT(macro->Right());
 
     BlockType result;
+
     BlockType seq = macro->Right()->m_macro_seq;
+
+    if (macro->Right()->getTermID() != TermID::MACRO_SEQ) {
+        ASSERT(seq.empty());
+        seq.push_back(macro->Right());
+    }
 
     for (int i = 0; i < seq.size(); i++) {
 
@@ -873,6 +921,18 @@ BlockType Macro::ExpandMacros(const TermPtr &macro, MacroArgsType & args) {
                 NL_PARSER(seq[i], "Next element to string not found!");
             }
             result.insert(result.end(), seq[i + 1]->Clone());
+
+            if ((*result.rbegin())->m_text.find("@$") == 0) {
+                auto iter = args.find((*result.rbegin())->m_text);
+                if (iter == args.end()) {
+                    LOG_RUNTIME("Argument name '%s' not found!", seq[i]->m_text.c_str());
+                }
+                std::string text;
+                for (auto & elem : iter->second) {
+                    text += elem->m_text;
+                }
+                (*result.rbegin())->m_text = text;
+            }
 
             if (seq[i]->m_text.compare("@#\"") == 0) {
                 (*result.rbegin())->m_id = TermID::STRWIDE;
@@ -1059,6 +1119,57 @@ next_escape_token:
                 goto next_escape_token;
             }
 
+
+            //            if (type == parser::token_type::MACRO && term->m_text.compare("@::") == 0) {
+            //                
+            //                type = parser::token_type::NAMESPACE;
+            //                term->m_lexer_type = type;
+            //                term->m_id = TermID::NAMESPACE;
+            //                term->m_text = m_ns_stack.NamespaceCurrent();
+            //                        
+            //            } else 
+
+//            if (type == MACRO_MODULE) {
+//
+//                type = parser::token_type::MODULE;
+//                term->m_lexer_type = type;
+//                term->m_id = TermID::MODULE;
+//                term->m_text = GetCurrentModule();
+//
+//            }
+
+
+//            if (m_next_string != static_cast<uint8_t> (TermID::NONE)) {
+//
+//                if (m_next_string == static_cast<uint8_t> (TermID::STRCHAR)) {
+//                    type = parser::token_type::STRCHAR;
+//                } else {
+//                    ASSERT(m_next_string == static_cast<uint8_t> (TermID::STRWIDE));
+//                    type = parser::token_type::STRWIDE;
+//                }
+//
+//                term->m_lexer_type = type;
+//                term->m_id = static_cast<TermID> (m_next_string);
+//
+//                m_next_string = static_cast<uint8_t> (TermID::NONE);
+//
+//            } else if (type == parser::token_type::MACRO_TOSTR && lexer->m_macro_count == 0) {
+//
+//                if (term->m_text.compare("@#\"") == 0) {
+//                    m_next_string = static_cast<uint8_t> (TermID::STRWIDE);
+//                } else if (term->m_text.compare("@#'") == 0) {
+//                    m_next_string = static_cast<uint8_t> (TermID::STRCHAR);
+//                } else {
+//                    ASSERT(term->m_text.compare("@#") == 0);
+//                    //@todo Set string type default by global settings
+//                    m_next_string = static_cast<uint8_t> (TermID::STRWIDE);
+//                }
+//
+//                goto next_escape_token;
+//            }
+
+
+
             if (type == parser::token_type::END) {
 
                 if (lexer->m_macro_iss == nullptr) {
@@ -1198,7 +1309,9 @@ next_escape_token:
                 ASSERT(size);
                 ASSERT(pragma);
 
-                LOG_DEBUG("Pragma '%s' size %d", pragma->toString().c_str(), (int) size);
+                //                LOG_DEBUG("Pragma '%s' size %d", pragma->toString().c_str(), (int) size);
+
+                BlockType temp(m_macro_analisys_buff.begin(), m_macro_analisys_buff.begin() + size);
 
                 m_macro_analisys_buff.erase(m_macro_analisys_buff.begin(), m_macro_analisys_buff.begin() + size);
 
@@ -1208,7 +1321,7 @@ next_escape_token:
                 //                }
 
 
-                PragmaEval(pragma, m_macro_analisys_buff);
+                PragmaEval(pragma, m_macro_analisys_buff, temp);
                 continue;
             }
         }
@@ -1316,7 +1429,7 @@ next_escape_token:
                     }
                     temp += elem->m_text;
                 }
-                //                LOG_DEBUG("From: %s (remove %d)", temp.c_str(), (int) size_remove);
+                LOG_DEBUG("From: %s (remove %d)", temp.c_str(), (int) size_remove);
 
                 m_macro_analisys_buff.erase(m_macro_analisys_buff.begin(), m_macro_analisys_buff.begin() + size_remove);
 
@@ -1355,7 +1468,7 @@ next_escape_token:
                         }
                         temp += elem->m_text;
                     }
-                    //                    LOG_DEBUG("To: %s", temp.c_str());
+                    LOG_DEBUG("To: %s", temp.c_str());
                 }
 
                 continue;

@@ -3,6 +3,7 @@
 #include "parser.h"
 #include "lexer.h"
 #include "builtin.h"
+#include "system.h"
 
 #include <term.h>
 
@@ -10,7 +11,7 @@ using namespace newlang;
 
 int Parser::m_counter = 0;
 
-Parser::Parser(MacroPtr macro, PostLexerType *postlex, DiagPtr diag, bool pragma_enable) {
+Parser::Parser(MacroPtr macro, PostLexerType *postlex, DiagPtr diag, bool pragma_enable, RuntimePtr rt) {
     char *source_date_epoch = std::getenv("SOURCE_DATE_EPOCH");
     if (source_date_epoch) {
         std::istringstream iss(source_date_epoch);
@@ -22,6 +23,7 @@ Parser::Parser(MacroPtr macro, PostLexerType *postlex, DiagPtr diag, bool pragma
         m_timestamp = std::time(NULL);
     }
 
+    m_rt = rt;
     m_is_runing = false;
     m_is_lexer_complete = false;
 
@@ -34,6 +36,7 @@ Parser::Parser(MacroPtr macro, PostLexerType *postlex, DiagPtr diag, bool pragma
     m_annotation = Term::Create(parser::token_type::ARGS, TermID::ARGS, "");
     m_no_macro = false;
     m_enable_pragma = pragma_enable;
+    m_name_module = "\\\\__main__";
 
     m_ast = nullptr;
 }
@@ -86,6 +89,7 @@ TermPtr Parser::Parse(const std::string input) {
     m_ast = Term::Create(parser::token_type::END, TermID::END, "");
     //    m_ast->SetSource(std::make_shared<std::string>(input));
     m_stream.str(input);
+    m_stream.clear();
     Scanner scanner(&m_stream, &std::cout, std::make_shared<std::string>(input));
     scanner.ApplyDiags(m_diag);
 
@@ -102,8 +106,8 @@ TermPtr Parser::Parse(const std::string input) {
     return m_ast;
 }
 
-TermPtr Parser::ParseString(const std::string str, MacroPtr macro, PostLexerType *postlex, DiagPtr diag) {
-    Parser p(macro, postlex, diag);
+TermPtr Parser::ParseString(const std::string str, MacroPtr macro, PostLexerType *postlex, DiagPtr diag, RuntimePtr rt) {
+    Parser p(macro, postlex, diag, true, rt);
     return p.Parse(str);
 }
 
@@ -135,6 +139,7 @@ void Parser::AstAddTerm(TermPtr &term) {
         m_ast->ConvertSequenceToBlock(TermID::BLOCK, false);
     } else if (!m_ast->IsBlock()) {
         m_ast->ConvertSequenceToBlock(TermID::BLOCK, true);
+        m_ast->m_namespace = nullptr;
     } else {
         ASSERT(m_ast->IsBlock());
         m_ast->m_block.push_back(term);
@@ -166,7 +171,7 @@ bool Parser::PragmaCheck(const TermPtr& term) {
     return false;
 }
 
-bool Parser::PragmaEval(const TermPtr &term, BlockType &buffer) {
+bool Parser::PragmaEval(const TermPtr &term, BlockType &buffer, BlockType &seq) {
     /*
      * 
      * https://javarush.com/groups/posts/1896-java-annotacii-chto-ehto-i-kak-ehtim-poljhzovatjhsja
@@ -206,6 +211,7 @@ bool Parser::PragmaEval(const TermPtr &term, BlockType &buffer) {
      */
 
     static const char * __PRAGMA_DIAG__ = "@__PRAGMA_DIAG__";
+    static const char * __PRAGMA_TYPE_DEFINE__ = "@__PRAGMA_TYPE_DEFINE__";
     static const char * __PRAGMA_IGNORE__ = "@__PRAGMA_IGNORE__";
     static const char * __PRAGMA_MACRO__ = "@__PRAGMA_MACRO__";
     static const char * __PRAGMA_MACRO_COND__ = "@__PRAGMA_MACRO_COND__";
@@ -226,7 +232,10 @@ bool Parser::PragmaEval(const TermPtr &term, BlockType &buffer) {
     static const char * __PRAGMA_LOCATION__ = "@__PRAGMA_LOCATION__";
 
     static const char * __ANNOTATION_SET__ = "@__ANNOTATION_SET__";
+    static const char * __ANNOTATION_CHECK__ = "@__ANNOTATION_CHECK__";
     static const char * __ANNOTATION_IIF__ = "@__ANNOTATION_IIF__";
+
+    static const char * __PRAGMA_STATIC_ASSERT__ = "@__PRAGMA_STATIC_ASSERT__";
 
     ASSERT(term);
     if (term->m_text.compare(__PRAGMA_DIAG__) == 0) {
@@ -258,7 +267,16 @@ bool Parser::PragmaEval(const TermPtr &term, BlockType &buffer) {
         for (int i = 1; i < term->size(); i++) {
             m_diag->Apply(term->at(i).second->m_text.c_str(), state, term);
         }
+    } else if (term->m_text.compare(__PRAGMA_TYPE_DEFINE__) == 0) {
 
+        if (term->size() != 1 || !term->at(1).first.empty()) {
+            NL_PARSER(term, "Expected argument in pragma macro '%s'", term->toString().c_str());
+        }
+
+        if (term->at(1).first.empty() && term->at(1).second->getTermID() == TermID::INTEGER && m_rt) {
+            m_rt->m_typedef_limit = std::stoi(term->at(0).second->getText().c_str()); //parseInteger
+            return true;
+        }
 
     } else if (term->m_text.compare(__PRAGMA_MESSAGE__) == 0
             || term->m_text.compare(__PRAGMA_WARNING__) == 0
@@ -372,7 +390,7 @@ bool Parser::PragmaEval(const TermPtr &term, BlockType &buffer) {
                 NL_PARSER(obj->at(i).second, "Default value for declare functions are not yet supported!");
             }
         }
-        
+
         auto found = m_declare.find(obj->m_text);
         if (found != m_declare.end()) {
 
@@ -393,7 +411,7 @@ bool Parser::PragmaEval(const TermPtr &term, BlockType &buffer) {
             NL_PARSER(term, "Use syntax `@__PRAGMA_NATIVE__( printf(format:FmtChar, ...):Int32 )` for import native `int printf(char *format, ...)`.");
         }
 
-        if (obj->m_type_name.empty()) {
+        if (!obj->m_type) {
             NL_PARSER(obj, "The type of the variable or function return value must be specified!");
         }
 
@@ -401,7 +419,7 @@ bool Parser::PragmaEval(const TermPtr &term, BlockType &buffer) {
             if (!obj->at(i).first.empty()) {
                 NL_PARSER(obj->at(i).second, "Default value for args in native functions are not yet supported!");
             }
-            if (obj->at(i).second->m_type_name.empty()) {
+            if (!obj->at(i).second->m_type) {
                 if (!(i == obj->size() - 1 && obj->at(i).second->getTermID() == TermID::ELLIPSIS)) {
                     NL_PARSER(obj->at(i).second, "The type of arg must be specified!");
                 }
@@ -493,6 +511,25 @@ bool Parser::PragmaEval(const TermPtr &term, BlockType &buffer) {
 
         //        LOG_DEBUG("ANNOT: %s", m_annotation->toString().c_str());
 
+    } else if (term->m_text.compare(__ANNOTATION_CHECK__) == 0) {
+
+        ASSERT(m_annotation);
+
+        LOG_RUNTIME("Pragma __ANNOTATION_CHECK__ not implemented!");
+
+        //        if (term->size() != 3) {
+        //            NL_PARSER(term, "Annotation IIF must have three arguments!");
+        //        }
+        //
+        //        //        LOG_DEBUG("Annot %s %d", m_annotation->toString().c_str(), (int) m_annotation->size());
+        //
+        //        auto iter = m_annotation->find(term->at(0).second->m_text);
+        //        if (iter == m_annotation->end() || iter->second->m_text.empty() || iter->second->m_text.compare("0") == 0) {
+        //            buffer.insert(buffer.begin(), term->at(2).second);
+        //        } else {
+        //            buffer.insert(buffer.begin(), term->at(1).second);
+        //        }
+
     } else if (term->m_text.compare(__ANNOTATION_IIF__) == 0) {
 
         ASSERT(m_annotation);
@@ -510,8 +547,26 @@ bool Parser::PragmaEval(const TermPtr &term, BlockType &buffer) {
             buffer.insert(buffer.begin(), term->at(1).second);
         }
 
+    } else if (term->m_text.compare(__PRAGMA_STATIC_ASSERT__) == 0) {
+
+        PragmaStaticAssert(term);
+
     } else {
         NL_PARSER(term, "Uknown pragma '%s'", term->toString().c_str());
+    }
+    return true;
+}
+
+bool Parser::PragmaStaticAssert(const TermPtr &term) {
+
+    if (term->size() < 1 || !term->at(0).first.empty()) {
+        NL_PARSER(term, "Agruments '%s' not recognized! See @__PRAGMA_STATIC_ASSERT__ for usage and syntax help.", term->toString().c_str());
+    } else {
+
+        if (!RunTime::EvalStatic(term->at(0).second)->GetValueAsBoolean()) {
+            LOG_RUNTIME("StaticAssert '%s' failed!", term->at(0).second->toString().c_str());
+        }
+
     }
     return true;
 }
@@ -551,13 +606,13 @@ std::string newlang::ParserMessage(std::string &buffer, int row, int col, const 
     if (row) { // Если переданы координаты ошибки, показываем место
 
         // Лексер обрабатывает строки в байтах, а вывод в UTF8
-        // поэтому позиция ошибки лексера може не совпадать для многобайтных символов
+        // поэтому позиция ошибки лексера может не совпадать для многобайтных символов
         std::wstring_convert < std::codecvt_utf8<wchar_t>, wchar_t> converter;
         std::wstring wstr = converter.from_bytes(tmp.substr(0, col));
 
         message += tmp + "\n";
-        std::string placeholder(col - 1 - (tmp.substr(0, col).size() - wstr.size()), ' ');
-        placeholder += "^\n";
+        std::string placeholder(col - 2 - (tmp.substr(0, col).size() - wstr.size()), ' ');
+        placeholder += "^   ";
         message += placeholder;
     } else {
 
@@ -591,6 +646,15 @@ void Parser::InitPredefMacro() {
         VERIFY(RegisterPredefMacro("@__FILE__", "Current file name"));
         VERIFY(RegisterPredefMacro("@__FILE_NAME__", "Current file name"));
 
+        VERIFY(RegisterPredefMacro("@__CLASS__", "Current class name"));
+        VERIFY(RegisterPredefMacro("@__NAMESPACE__", "Current namespace"));
+        VERIFY(RegisterPredefMacro("@__FUNCTION__", "Current function name"));
+        VERIFY(RegisterPredefMacro("@__FUNCDNAME__", "Decorated of current function name"));
+        VERIFY(RegisterPredefMacro("@__FUNCSIG__", "Signature of current function"));
+        VERIFY(RegisterPredefMacro("@__FUNC_BLOCK__", "Full namespace function name"));
+
+
+
         VERIFY(RegisterPredefMacro("@__LINE__", "Line number in current file"));
         VERIFY(RegisterPredefMacro("@__FILE_LINE__", "Line number in current file"));
 
@@ -608,6 +672,10 @@ void Parser::InitPredefMacro() {
         //Развертывается до целочисленного литерала, начинающегося с 0. 
         //Значение увеличивается на 1 каждый раз, когда используется в файле исходного кода или во включенных заголовках файла исходного кода. 
         VERIFY(RegisterPredefMacro("@__COUNTER__", "Monotonically increasing counter from zero"));
+
+        VERIFY(RegisterPredefMacro("@::", "Full name of the current namespace"));
+        VERIFY(RegisterPredefMacro("$\\\\", "Full name of the current module name"));
+        VERIFY(RegisterPredefMacro("@\\\\", "Root directory with the main program module"));
     }
 }
 
@@ -761,6 +829,46 @@ parser::token_type Parser::ExpandPredefMacro(TermPtr & term) {
         term->m_id = str_type;
         term->m_lexer_type = str_token;
         return term->m_lexer_type;
+
+    } else if (text.compare("@__CLASS__") == 0 || text.compare("@__NAMESPACE__") == 0 || text.compare("@__FUNC_BLOCK__") == 0 ||
+            text.compare("@__FUNCTION__") == 0 || text.compare("@__FUNCDNAME__") == 0 || text.compare("@__FUNCSIG__") == 0) {
+
+        term->m_id = TermID::NAMESPACE;
+        term->m_lexer_type = parser::token_type::NAMESPACE;
+        return term->m_lexer_type;
+
+    } else if (text.compare("@::") == 0) {
+
+        term->m_id = TermID::NAMESPACE;
+        term->m_lexer_type = parser::token_type::NAMESPACE;
+        return term->m_lexer_type;
+
+        //        ASSERT(text.compare("@::") != 0);
+
+    } else if (text.compare("@$$") == 0) {
+
+        term->m_id = TermID::NAMESPACE;
+        term->m_lexer_type = parser::token_type::NAMESPACE;
+        return term->m_lexer_type;
+
+        //        // Внешний блок или функция
+        //        ASSERT(text.compare("@$$") != 0);
+
+    } else if (text.compare("@\\\\") == 0) {
+
+        if (m_rt) {
+            term->m_text = m_rt->m_exec_dir;
+        }
+        term->m_id = TermID::NAME;
+        term->m_lexer_type = parser::token_type::NAME;
+        return term->m_lexer_type;
+
+    } else if (text.compare("$\\\\") == 0) {
+
+        term->m_text = GetCurrentModule();
+        term->m_id = TermID::MODULE;
+        term->m_lexer_type = parser::token_type::MODULE;
+        return term->m_lexer_type;
     }
 
     NL_PARSER(term, "Predef macro '%s' not implemented!", term->toString().c_str());
@@ -880,12 +988,17 @@ size_t Parser::ParseTerm(TermPtr &result, const BlockType &buffer, size_t offset
             offset += (skip + 1);
         }
     }
-    LOG_DEBUG("ParseTerm: '%s' - %d", source.c_str(), (int) offset);
+    //        LOG_DEBUG("ParseTerm: '%s' - %d", source.c_str(), (int) offset);
     result = ParseTerm(source.c_str(), nullptr, pragma_enable);
     return offset;
 }
 
-bool Parser::NamespacePush(const TermPtr &term) {
-    ASSERT(term);
-    return NamespacePush(term->m_text);
+bool Parser::CheckLoadModule(TermPtr &term) {
+    if (!CheckCharModuleName(term->m_text.c_str())) {
+        NL_PARSER(term, "Module name - backslash, underscore, lowercase English letters or number!");
+    }
+    if (m_rt && !m_rt->CheckLoadModule(term)) {
+        NL_PARSER(term, "Fail load module '%s'!", term->toString().c_str());
+    }
+    return true;
 }

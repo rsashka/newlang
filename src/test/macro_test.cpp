@@ -180,7 +180,7 @@ finally:
     
     },[2] --> {*
     
- *},[_] --> {
+ *},[...] --> {
         other
     }
     on_exit();
@@ -195,7 +195,7 @@ finally:
     [:ValueError] --> print ("Это не число!"),  # except ValueError:
     [:ZeroDivisionError] --> print ("На ноль делить нельзя!"), # except ZeroDivisionError
     [:IntMinus] --> print ("Неожиданная ошибка."), # except:
-    [_] --> print ("Код выполнился без ошибок");  # else:
+    [...] --> print ("Код выполнился без ошибок");  # else:
     
     print ("Я выполняюсь в любом случае!");    # finally:
 }
@@ -1243,7 +1243,7 @@ TEST_F(NamedTest, MacroAlias) {
     ASSERT_TRUE(macro->GetMacro({"alias"}));
     TermPtr macro_alias = macro->GetMacro({"alias"});
     ASSERT_TRUE(macro_alias);
-    ASSERT_EQ(TermID::CREATE, macro_alias->getTermID()) << toString(macro_alias->getTermID());
+    ASSERT_EQ(TermID::CREATE_ONCE, macro_alias->getTermID()) << toString(macro_alias->getTermID());
     ASSERT_TRUE(macro_alias->Left());
     ASSERT_EQ(TermID::MACRO_SEQ, macro_alias->Left()->getTermID()) << toString(macro_alias->Left()->getTermID());
     ASSERT_TRUE(macro_alias->Right());
@@ -1254,7 +1254,7 @@ TEST_F(NamedTest, MacroAlias) {
     TermPtr macro_alias2 = macro->GetMacro({"alias2"});
     ASSERT_TRUE(macro_alias2);
     ASSERT_TRUE(macro_alias2->isMacro());
-    ASSERT_EQ(TermID::CREATE_OR_ASSIGN, macro_alias2->getTermID()) << toString(macro_alias2->getTermID());
+    ASSERT_EQ(TermID::CREATE_OVERLAP, macro_alias2->getTermID()) << toString(macro_alias2->getTermID());
     ASSERT_TRUE(macro_alias2->Left());
     ASSERT_EQ(TermID::MACRO_SEQ, macro_alias2->Left()->getTermID()) << toString(macro_alias2->Left()->getTermID());
     ASSERT_STREQ("alias", macro_alias2->Right()->m_macro_seq[0]->m_text.c_str());
@@ -1845,7 +1845,7 @@ TEST_F(NamedTest, MacroArgs) {
 //    std::string dsl = ""
 //            "@if(cond)@@      [$cond]-->@@"
 //            "@elseif(cond)@@ ,[$cond]-->@@"
-//            "@else@@         ,[_]-->@@"
+//            "@else@@         ,[...]-->@@"
 //            ""
 //            "@while(cond)@@  [$cond]<->@@"
 //            "@dowhile(cond)@@<->[$cond]@@"
@@ -1963,24 +1963,5 @@ TEST_F(NamedTest, NamedTest) {
     //    ASSERT_STREQ("replace2 ( 1 , 2 , 3 ) ; none", LexOut().c_str());
 
 }
-
-TEST_F(NamedTest, Name) {
-
-    ASSERT_STREQ("name", ExtractName("name").c_str());
-    ASSERT_STREQ("name", ExtractName("::name").c_str());
-    ASSERT_STREQ("name", ExtractName("ns::name").c_str());
-    ASSERT_STREQ("", ExtractName("\\file").c_str());
-    ASSERT_STREQ("", ExtractName("\\\\dir.file").c_str());
-    ASSERT_STREQ("var", ExtractName("\\dir.file::var").c_str());
-    ASSERT_STREQ("var.field", ExtractName("\\\\dir.file::var.field").c_str());
-
-
-    ASSERT_STREQ("\\file", ExtractModuleName("\\file").c_str());
-    ASSERT_STREQ("\\\\dir.file", ExtractModuleName("\\\\dir.file").c_str());
-    ASSERT_STREQ("\\dir.file", ExtractModuleName("\\dir.file::var").c_str());
-    ASSERT_STREQ("\\\\dir.file", ExtractModuleName("\\\\dir.file::var.field").c_str());
-
-}
-
 
 #endif // UNITTEST

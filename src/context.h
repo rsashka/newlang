@@ -200,8 +200,8 @@ namespace newlang {
 
         RuntimePtr m_runtime; // Глобальный контекс, если к нему есть доступ
 
-//        ModulePtr m_main_module;
-//        Module * m_terms;
+        //        ModulePtr m_main_module;
+        //        Module * m_terms;
 
         std::string Dump(const char *separator = "") {
             std::string result;
@@ -232,8 +232,8 @@ namespace newlang {
         ObjPtr CreateSessionTerm(ObjPtr obj, const char *name);
 
 
-//        ObjPtr FindGlobalTerm(TermPtr term);
-//        ObjPtr FindGlobalTerm(const std::string name);
+        //        ObjPtr FindGlobalTerm(TermPtr term);
+        //        ObjPtr FindGlobalTerm(const std::string name);
 
         void RegisterInContext(ObjPtr & args) {
             RegisterInContext(*args);

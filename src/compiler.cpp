@@ -1,5 +1,6 @@
 #include "pch.h"
 
+#include "types.h"
 #include "compiler.h"
 
 using namespace newlang;
@@ -297,7 +298,7 @@ std::string newlang::MangleName(const char * name) {
 //        GetImpl(ci, op, result);
 //        result += "->GetValueAsBoolean()";
 //
-//    } else if (id == TermID::OPERATOR || id == TermID::CREATE) {
+//    } else if (id == TermID::OPERATOR || id == TermID::CREATE_ONCE) {
 //
 //        result += "(*";
 //
@@ -501,7 +502,7 @@ std::string newlang::MangleName(const char * name) {
 //    //        for (TermPtr &elem : ast->BlockCode()) {
 //    //            MakeCppFileConstants(ci, elem, out);
 //    //        }
-//    //    } else if(ast->getTermID() == TermID::CREATE && isConst(ast->Left()->m_text.c_str())) {
+//    //    } else if(ast->getTermID() == TermID::CREATE_ONCE && isConst(ast->Left()->m_text.c_str())) {
 //    //        ASSERT(ast->Left());
 //    //        ASSERT(ast->Right());
 //    //
@@ -555,7 +556,7 @@ std::string newlang::MangleName(const char * name) {
 //    //                result += MakeSequenceOpsCpp(ci, elem, false);
 //    //            }
 //    //        }
-//    //    } else if(!(ast->IsFunction() || (ast->getTermID() == TermID::CREATE && isConst(ast->Left()->m_text.c_str())))) {
+//    //    } else if(!(ast->IsFunction() || (ast->getTermID() == TermID::CREATE_ONCE && isConst(ast->Left()->m_text.c_str())))) {
 //    //
 //    //        //                out << "#line " << ast->GetLine() << "\n";
 //    //        result += ci.GetIndent() + MakeCommentLine(ast->toString());
@@ -625,7 +626,7 @@ std::string newlang::MangleName(const char * name) {
 //    }
 //
 //    if (is_new) {
-//        if (var->getTermID() == TermID::CREATE) {
+//        if (var->getTermID() == TermID::CREATE_ONCE) {
 //            out << "ctx->CreateGlobalTerm(" << impl_name << ", \"" << local_name << "\"); ";
 //        } else {
 //            if (var->Left()->getTermID() != TermID::ARGUMENT) {
@@ -1177,7 +1178,7 @@ std::string newlang::MangleName(const char * name) {
 //
 //            return lval;
 //
-//        } else if(term_id == TermID::CREATE || term_id == TermID::CREATE || term_id == TermID::CREATE || term_id == TermID::CREATE) { // Создание нового термина
+//        } else if(term_id == TermID::CREATE_ONCE || term_id == TermID::CREATE_ONCE || term_id == TermID::CREATE_ONCE || term_id == TermID::CREATE_ONCE) { // Создание нового термина
 //
 //            // Левый операнд всегда создается
 //            ObjPtr base;
@@ -1194,26 +1195,26 @@ std::string newlang::MangleName(const char * name) {
 //
 //            lval->op_assign(rval);
 //
-//            if(term_id == TermID::CREATE) {
+//            if(term_id == TermID::CREATE_ONCE) {
 //                lval->MakeConst();
 //            }
-//            if(term_id == TermID::CREATE || term_id == TermID::CREATE) {
-//                if(lval->is_dictionary() || term_id == TermID::CREATE) {
+//            if(term_id == TermID::CREATE_ONCE || term_id == TermID::CREATE_ONCE) {
+//                if(lval->is_dictionary() || term_id == TermID::CREATE_ONCE) {
 //                    lval->m_var_name = calc->Left()->m_text;
 //                }
 //                return ctx->CreateSessionTerm(lval, calc->Left()->m_text.c_str());
-//            } else if(term_id == TermID::CREATE) {
+//            } else if(term_id == TermID::CREATE_ONCE) {
 //                return ctx->CreateGlobalTerm(lval, calc->Left()->m_text.c_str());
 //            }
 //            return lval;
 //
-//        } else if(term_id == TermID::SIMPLE || term_id == TermID::FUNCTION || term_id == TermID::PUREFUNC) {
+//        } else if(term_id == TermID::SIMPLE || term_id == TermID::FUNCTION || term_id == TermID::PURE_ONCE) {
 //            if(!make_function) { // Игнорировать определения функций при выполнении
 //                // Ничего не делаем
 //                ObjType type;
 //                switch(term_id) {
 //                    case TermID::SIMPLE:
-//                    case TermID::PUREFUNC:
+//                    case TermID::PURE_ONCE:
 //                        type = ObjType::PUREFUNC;
 //                        break;
 //                    case TermID::FUNCTION:
@@ -1312,7 +1313,7 @@ std::string newlang::MangleName(const char * name) {
 //    //            output += result;
 //    //            return result;
 //    //
-//    //        case TermID::CREATE:
+//    //        case TermID::CREATE_ONCE:
 //    //            ostr.str("");
 //    //            result = MakeCppFileVariable(ci, term, ostr);
 //    //            output += ostr.str();

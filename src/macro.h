@@ -14,39 +14,6 @@ namespace newlang {
     typedef std::shared_ptr<std::string> SourceType;
     typedef std::vector<std::string> PostLexerType;
 
-    inline std::string MakeName(std::string name) {
-        if (!name.empty() && (name[0] == '\\' || name[0] == '$' || name[0] == '@' || name[0] == '%')) {
-            return name.find("\\\\") == 0 ? name.substr(2) : name.substr(1);
-        }
-        return name;
-    }
-
-    inline std::string ExtractModuleName(const char *str) {
-        std::string name(str);
-        if (isModuleName(name)) {
-            size_t pos = name.find("::");
-            if (pos != std::string::npos) {
-
-                return name.substr(0, pos);
-            }
-            return name;
-        }
-        return std::string();
-    }
-
-    inline std::string ExtractName(std::string name) {
-        size_t pos = name.rfind("::");
-        if (pos != std::string::npos) {
-            name = name.substr(pos + 2);
-        }
-        if (isModuleName(name)) {
-
-            return std::string();
-        }
-        return name;
-    }
-
-
     class Macro : SCOPE(protected) std::map<std::string, BlockType>, public std::enable_shared_from_this<Macro> {
     public:
 
@@ -247,6 +214,7 @@ namespace newlang {
         std::string Dump();
         static std::string Dump(const MacroArgsType & var);
         static std::string Dump(const BlockType & arr);
+        static std::string DumpText(const BlockType & arr);
 
         static std::vector<std::string> SplitString(const char * str, const char *delim) {
 

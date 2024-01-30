@@ -30,6 +30,7 @@
         <itemPath>../examples/class.nlp</itemPath>
         <itemPath>../examples/dsl.nlp</itemPath>
         <itemPath>../examples/fact_1000.nlp</itemPath>
+        <itemPath>../examples/fact_40_dsl.nlp</itemPath>
         <itemPath>../examples/fileio.nlp</itemPath>
         <itemPath>../examples/foreach.nlp</itemPath>
         <itemPath>../examples/hello.nlp</itemPath>
@@ -74,6 +75,7 @@
       <itemPath>runtime.cpp</itemPath>
       <itemPath>system.cpp</itemPath>
       <itemPath>term.cpp</itemPath>
+      <itemPath>types.cpp</itemPath>
     </logicalFolder>
     <logicalFolder name="HeaderFiles"
                    displayName="Файлы заголовков"
@@ -256,6 +258,8 @@
       <item path="../examples/dsl.nlp" ex="false" tool="3" flavor2="0">
       </item>
       <item path="../examples/fact_1000.nlp" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../examples/fact_40_dsl.nlp" ex="false" tool="3" flavor2="0">
       </item>
       <item path="../examples/fileio.nlp" ex="false" tool="3" flavor2="0">
       </item>
@@ -535,6 +539,12 @@
           <additionalDep>pch.h.pch</additionalDep>
         </ccTool>
       </item>
+      <item path="types.cpp" ex="false" tool="1" flavor2="9">
+        <ccTool>
+          <commandLine>-include-pch pch.h.pch</commandLine>
+          <additionalDep>pch.h.pch</additionalDep>
+        </ccTool>
+      </item>
       <item path="types.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="variable.h" ex="false" tool="3" flavor2="0">
@@ -672,6 +682,8 @@
       <item path="../examples/dsl.nlp" ex="false" tool="3" flavor2="0">
       </item>
       <item path="../examples/fact_1000.nlp" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../examples/fact_40_dsl.nlp" ex="false" tool="3" flavor2="0">
       </item>
       <item path="../examples/fileio.nlp" ex="false" tool="3" flavor2="0">
       </item>
@@ -951,6 +963,12 @@
           <additionalDep>pch.h.pch</additionalDep>
         </ccTool>
       </item>
+      <item path="types.cpp" ex="false" tool="1" flavor2="0">
+        <ccTool>
+          <commandLine>-include-pch pch.h.pch</commandLine>
+          <additionalDep>pch.h.pch</additionalDep>
+        </ccTool>
+      </item>
       <item path="types.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="variable.h" ex="false" tool="3" flavor2="0">
@@ -1067,6 +1085,8 @@
       <item path="../examples/dsl.nlp" ex="false" tool="3" flavor2="0">
       </item>
       <item path="../examples/fact_1000.nlp" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../examples/fact_40_dsl.nlp" ex="false" tool="3" flavor2="0">
       </item>
       <item path="../examples/fileio.nlp" ex="false" tool="3" flavor2="0">
       </item>
@@ -1242,6 +1262,11 @@
       </item>
       <item path="test/system_test.cpp" ex="false" tool="1" flavor2="9">
       </item>
+      <item path="types.cpp" ex="false" tool="1" flavor2="9">
+        <ccTool>
+          <additionalDep></additionalDep>
+        </ccTool>
+      </item>
       <item path="types.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="variable.h" ex="false" tool="3" flavor2="0">
@@ -1371,6 +1396,8 @@
       <item path="../examples/dsl.nlp" ex="false" tool="3" flavor2="0">
       </item>
       <item path="../examples/fact_1000.nlp" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../examples/fact_40_dsl.nlp" ex="false" tool="3" flavor2="0">
       </item>
       <item path="../examples/fileio.nlp" ex="false" tool="3" flavor2="0">
       </item>
@@ -1654,6 +1681,11 @@
           <additionalDep>pch.h.gch</additionalDep>
         </ccTool>
       </item>
+      <item path="types.cpp" ex="false" tool="1" flavor2="9">
+        <ccTool>
+          <additionalDep>parser.h parser.yy.h pch.h.gch location.hh</additionalDep>
+        </ccTool>
+      </item>
       <item path="types.h" ex="false" tool="3" flavor2="0">
         <customTool>
           <customToolAdditionalDep>pch.h.gch</customToolAdditionalDep>
@@ -1788,6 +1820,8 @@
       <item path="../examples/dsl.nlp" ex="false" tool="3" flavor2="0">
       </item>
       <item path="../examples/fact_1000.nlp" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../examples/fact_40_dsl.nlp" ex="false" tool="3" flavor2="0">
       </item>
       <item path="../examples/fileio.nlp" ex="false" tool="3" flavor2="0">
       </item>
@@ -2069,6 +2103,11 @@
       <item path="test/system_test.cpp" ex="false" tool="1" flavor2="9">
         <ccTool>
           <additionalDep>pch.h.gch</additionalDep>
+        </ccTool>
+      </item>
+      <item path="types.cpp" ex="false" tool="1" flavor2="9">
+        <ccTool>
+          <additionalDep>parser.h parser.yy.h pch.h.gch location.hh</additionalDep>
         </ccTool>
       </item>
       <item path="types.h" ex="false" tool="3" flavor2="0">

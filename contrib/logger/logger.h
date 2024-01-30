@@ -16,7 +16,15 @@
 #define LOG_EXCEPT_LEVEL(EXCEPT, LEVEL, PREFIX, ...)  throw EXCEPT(std::string(LOG_MAKE(LEVEL, PREFIX, ##__VA_ARGS__)))
 #define LOG_EXCEPT(EXCEPT, ...)  LOG_EXCEPT_LEVEL(EXCEPT, LOG_LEVEL_ERROR, "E:", ##__VA_ARGS__)
 #define LOG_CALLSTACK(EXCEPT_TYPE, ...)  LOG_PRINT_CALLSTACK(); LOG_EXCEPT(EXCEPT_TYPE, ##__VA_ARGS__)
-#define LOG_RUNTIME(...)  LOG_CALLSTACK(std::runtime_error, ##__VA_ARGS__)
+#define LOG_COREDUMP(...)  LOG_CALLSTACK(std::runtime_error, ##__VA_ARGS__)
+
+
+#ifdef UNITTEST
+#define LOG_TEST(...)   LOG_MAKE(LOG_LEVEL_DEBUG, "T:", ##__VA_ARGS__)
+#else
+#define LOG_TEST(...)
+#endif
+
 
 
 #ifndef EXTERN_C

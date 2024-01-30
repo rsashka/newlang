@@ -177,6 +177,192 @@ TEST_F(SystemTest, MethodExist) {
 
 }
 
+TEST_F(SystemTest, StaticAssert) {
+
+    RuntimePtr rt = RunTime::Init();
+
+    ASSERT_TRUE(rt);
+    ASSERT_TRUE(rt->m_macro);
+    ASSERT_FALSE(rt->m_macro->empty());
+    ASSERT_FALSE(rt->m_macro->find("static_assert") == rt->m_macro->end()) << rt->m_macro->Dump();
+
+
+
+    TermPtr term = rt->GetParser()->Parse("@static_assert(1)");
+    ASSERT_TRUE(term);
+    ASSERT_TRUE(term->getTermID() == TermID::END);
+
+    ASSERT_ANY_THROW(rt->GetParser()->Parse("@static_assert(0)"));
+    ASSERT_ANY_THROW(rt->GetParser()->Parse("@static_assert(0.0)"));
+    ASSERT_ANY_THROW(rt->GetParser()->Parse("@static_assert(0\\1)"));
+    ASSERT_ANY_THROW(rt->GetParser()->Parse("@static_assert('')"));
+    ASSERT_ANY_THROW(rt->GetParser()->Parse("@static_assert(\"\")"));
+    ASSERT_ANY_THROW(rt->GetParser()->Parse("@static_assert($local)"));
+    ASSERT_ANY_THROW(rt->GetParser()->Parse("@static_assert(::global)"));
+    ASSERT_ANY_THROW(rt->GetParser()->Parse("@static_assert(@macro)"));
+
+    ASSERT_NO_THROW(rt->GetParser()->Parse("@static_assert(1)"));
+    ASSERT_NO_THROW(rt->GetParser()->Parse("@static_assert(1.0)"));
+    ASSERT_NO_THROW(rt->GetParser()->Parse("@static_assert(1\\1)"));
+    ASSERT_NO_THROW(rt->GetParser()->Parse("@static_assert(' ')"));
+    ASSERT_NO_THROW(rt->GetParser()->Parse("@static_assert(\" \")"));
+
+    ASSERT_NO_THROW(rt->GetParser()->Parse("@static_assert(%printf)"));
+
+    ASSERT_ANY_THROW(rt->GetParser()->Parse("@static_assert(%FAIL_NATIVE_NAME)"));
+    int FAIL_NATIVE_NAME;
+    LLVMAddSymbol("FAIL_NATIVE_NAME", (void *) &FAIL_NATIVE_NAME);
+    ASSERT_NO_THROW(rt->GetParser()->Parse("@static_assert(%FAIL_NATIVE_NAME)"));
+
+    ASSERT_NO_THROW(rt->GetParser()->Parse("@static_assert(1==1)"));
+    ASSERT_NO_THROW(rt->GetParser()->Parse("@static_assert(1.0===1.0)"));
+    ASSERT_NO_THROW(rt->GetParser()->Parse("@static_assert(1\\1 <= 10)"));
+    ASSERT_NO_THROW(rt->GetParser()->Parse("@static_assert(''=='')"));
+    ASSERT_NO_THROW(rt->GetParser()->Parse("@static_assert(\"str\"=='str')"));
+
+    ASSERT_ANY_THROW(rt->GetParser()->Parse("@static_assert(\"str2222\"=='str')"));
+
+}
+
+TEST_F(SystemTest, Assert) {
+
+    RuntimePtr rt = RunTime::Init();
+
+    ASSERT_TRUE(rt);
+    ASSERT_TRUE(rt->m_assert_enable);
+
+    ASSERT_TRUE(rt->m_macro);
+    ASSERT_FALSE(rt->m_macro->empty());
+    ASSERT_FALSE(rt->m_macro->find("assert") == rt->m_macro->end()) << rt->m_macro->Dump();
+    ASSERT_FALSE(rt->m_macro->find("verify") == rt->m_macro->end()) << rt->m_macro->Dump();
+
+    TermPtr term;
+
+    ASSERT_NO_THROW(
+            term = rt->GetParser()->Parse("  :Bool(1)");
+            ) << rt->Dump();
+
+    ASSERT_NO_THROW(
+            term = rt->GetParser()->Parse("@assert(1+1, 2, 'str')");
+            ) << rt->Dump();
+    ASSERT_TRUE(term);
+    ASSERT_TRUE(term->getTermID() == TermID::FOLLOW) << term->toString();
+    ASSERT_STREQ("[:Bool(1 + 1) == 0]-->{::Base::__assert_abort__(\"1+1\", 1 + 1, 2, 'str');};", term->toString().c_str());
+
+    Context ctx1(rt);
+    Obj args;
+    ObjPtr result;
+
+    ASSERT_NO_THROW(
+            result = ctx1.Eval(&ctx1, term, &args, true);
+            ) << rt->Dump();
+
+    ASSERT_NO_THROW(
+            term = rt->GetParser()->Parse("@verify(1)");
+            ) << rt->Dump();
+    ASSERT_TRUE(term);
+    ASSERT_TRUE(term->getTermID() == TermID::FOLLOW) << term->toString();
+    ASSERT_STREQ("[:Bool(1) == 0]-->{::Base::__assert_abort__(\"1\", 1);};", term->toString().c_str());
+
+    ASSERT_NO_THROW(
+            result = ctx1.Eval(&ctx1, term, &args, true);
+            ) << rt->Dump();
+
+    term = rt->GetParser()->Parse("@verify(0, 3+4, '555')");
+    ASSERT_TRUE(term);
+    ASSERT_TRUE(term->getTermID() == TermID::FOLLOW) << term->toString();
+    ASSERT_STREQ("[:Bool(0) == 0]-->{::Base::__assert_abort__(\"0\", 0, 3 + 4, '555');};", term->toString().c_str());
+
+    ASSERT_ANY_THROW(
+            result = ctx1.Eval(&ctx1, term, &args, true);
+            ) << rt->Dump();
+
+
+
+    rt = RunTime::Init({"path", "-nlc-no-assert"});
+    ASSERT_FALSE(rt->m_assert_enable);
+
+    ASSERT_TRUE(rt->m_macro);
+    ASSERT_FALSE(rt->m_macro->empty());
+    ASSERT_FALSE(rt->m_macro->find("assert") == rt->m_macro->end()) << rt->m_macro->Dump();
+    ASSERT_FALSE(rt->m_macro->find("verify") == rt->m_macro->end()) << rt->m_macro->Dump();
+
+
+
+    ASSERT_NO_THROW(
+            term = rt->GetParser()->Parse("@assert(1+1, 2, 'str'); 33+44; 55");
+            ) << rt->Dump();
+    ASSERT_TRUE(term);
+    ASSERT_TRUE(term->getTermID() == TermID::BLOCK) << toString(term->getTermID()) << " " << term->toString();
+    ASSERT_STREQ("{_; 33 + 44; 55;}", term->toString().c_str());
+
+    Context ctx2(rt);
+    ASSERT_NO_THROW(
+            result = ctx2.Eval(&ctx1, term, &args, true);
+            ) << rt->Dump();
+
+    ASSERT_NO_THROW(
+            term = rt->GetParser()->Parse("@verify(1+1, 'message'); 33+44");
+            );
+    ASSERT_TRUE(term);
+    ASSERT_TRUE(term->getTermID() == TermID::BLOCK) << term->toString();
+    ASSERT_STREQ("{1 + 1; 33 + 44;}", term->toString().c_str());
+
+    ASSERT_NO_THROW(
+            result = ctx2.Eval(&ctx1, term, &args, true);
+            );
+    ASSERT_NO_THROW(
+            term = rt->GetParser()->Parse("@verify(0+0)");
+            );
+    ASSERT_TRUE(term);
+    ASSERT_TRUE(term->getTermID() == TermID::OPERATOR) << term->toString();
+    ASSERT_STREQ("0 + 0", term->toString().c_str());
+
+    ASSERT_NO_THROW(
+            result = ctx2.Eval(&ctx1, term, &args, true);
+            );
+}
+
+//TEST_F(SystemTest, Base) {
+//
+//    //    struct Method {
+//    //        std::string name;
+//    //        ObjPtr res;
+//    //    };
+//    //
+//    //    std::vector<Method> list;
+//    //
+//    //    list.push_back({"getname", nullptr});
+//    //    //    list.push_back("getlogin");
+//    //    //    list.push_back("getenv");
+//    //    //    list.push_back("getpid");
+//    //    //    list.push_back("getuname");
+//    //    std::string callname;
+//    //    for (auto &elem : list) {
+//    //        callname = "System::";
+//    //        callname += elem.name;
+//    //        callname += "()";
+//    //    }
+//
+//    //    CALSS_METHOD(System, getname);
+//
+//    ObjPtr arg = Obj::CreateDict();
+//    arg->push_back(Obj::Arg());
+//    arg->push_back(Obj::Arg("ls -l"));
+//
+//    ObjPtr ret = Base::__pragma_assert__(nullptr, *arg);
+//
+//    std::cout << ret->toString().c_str();
+//
+//   RuntimePtr rt = RunTime::Init();
+//   
+////   rt->m_macro.find("@assert")
+//   
+//
+//
+//
+//}
+
 //TEST_F(SystemTest, MethodRun) {
 //
 //    ObjPtr sys = std::make_shared<System>();
@@ -206,6 +392,7 @@ TEST_F(SystemTest, MethodExist) {
 //}
 
 TEST_F(SystemTest, Native) {
+
     RuntimePtr rt = RunTime::Init();
     Context ctx(rt);
 
@@ -218,6 +405,18 @@ TEST_F(SystemTest, Native) {
 
     ObjPtr time = ctx.ExecStr("time(ptr:Pointer):Int32 := %time");
     ASSERT_TRUE(time);
+    
+    ASSERT_TRUE(time->m_prototype);
+    ASSERT_EQ(1, time->m_prototype->size());
+    ASSERT_STREQ("ptr", (*time->m_prototype)[0].second->m_text.c_str());
+    
+    ASSERT_TRUE((*time->m_prototype)[0].second->m_type);
+    ASSERT_STREQ(":Pointer", (*time->m_prototype)[0].second->m_type->m_text.c_str());
+    
+    ASSERT_TRUE(time->m_prototype->m_type);
+    ASSERT_STREQ(":Int32", time->m_prototype->m_type->m_text.c_str());
+
+//    ASSERT_STREQ("%time(ptr:Pointer):Int32", time->m_prototype->toString().c_str())<< time->toString();
 
     ObjPtr res;
 

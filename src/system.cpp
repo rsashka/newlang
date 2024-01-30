@@ -13,8 +13,16 @@ bool Buildin::AddMethod(const char * name, ObjPtr obj) {
         LOG_ERROR("Name '%s' already exist!", name);
         return false;
     }
-    //    LOG_DEBUG("New method '%s'!", name);
-//    push_back(obj, name);
+    std::string fullname(m_file);
+    fullname += "::";
+    fullname += name;
+
+    TermPtr proto = *const_cast<TermPtr *> (&obj->m_prototype);
+    proto->m_text = fullname;
+
+    insert({fullname, {proto, obj}});
+
+    //    LOG_DEBUG("New method '%s'!", fullname.c_str());
     return true;
 }
 
@@ -26,7 +34,7 @@ bool Buildin::CreateMethodNative(const char * proto, void * addr) {
         return false;
     }
 
-    return AddMethod(term->getText().c_str(), RunTime::CreateNative(term, addr));
+    return AddMethod(term->getText().c_str(), RunTime::CreateNative(term, addr, nullptr));
 
 }
 
@@ -45,6 +53,29 @@ bool Buildin::CreateMethod(const char * proto, FunctionType & func, ObjType type
 
 bool Buildin::CreateProperty(const char * proto, ObjPtr obj) {
     return true;
+}
+
+/*
+ * 
+ * :Base ::= :Class() {
+ * 
+ * };
+ * 
+ */
+CALSS_METHOD(Base, __assert_abort__) {
+
+    //    ARG_TEST_COUNT(1);
+    std::string message;
+    for (int i = 1; i < in.size(); i++) {
+        if (in.at(i).second) {
+            message += in.at(i).second->toString();
+        } else {
+            message += "nullptr";
+        }
+    }
+
+    LOG_RUNTIME("Assert abort '%s'!", message.c_str());
+    return Obj::CreateNone();
 }
 
 /*
