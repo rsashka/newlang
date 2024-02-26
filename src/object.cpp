@@ -363,7 +363,7 @@ bool Obj::exist(ObjPtr &find, bool strong) {
 
 ObjType newlang::getSummaryTensorType(Obj *obj, ObjType start) {
 
-    ObjType result = ObjType::None;
+    ObjType result = start;
     if (!obj) {
         return result;
     }
@@ -893,6 +893,7 @@ std::string Obj::toString(bool deep) const {
                 dump_dict_(result);
                 result += ",";
                 result += ")";
+                result += m_class_name;
                 return result;
 
             case ObjType::Pointer:
@@ -937,7 +938,7 @@ std::string Obj::toString(bool deep) const {
                 result += "(";
                 m_prototype->dump_items_(result);
                 result += ")";
-                if (!m_prototype->m_type) {
+                if (m_prototype->m_type) {
                     result += m_prototype->m_type->asTypeString();
                 }
 
@@ -2406,7 +2407,7 @@ ObjPtr Obj::CallNative(Context *ctx, Obj args) {
     //    }
     //
     //
-    //#ifdef UNITTEST
+    //#ifdef BUILD_UNITTEST
     //    char *dump = LLVMPrintValueToString(wrap);
     //    LOG_DEBUG("LLVM DUMP %s:\n%s\r\r", toString().c_str(), dump);
     //    LLVMDisposeMessage(dump);

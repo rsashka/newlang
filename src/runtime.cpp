@@ -8,8 +8,8 @@
 
 using namespace newlang;
 
-const char * RunTime::default_argv[RunTime::default_argc] = {"", "-nlc-no-runtime", "-nlc-no-dsl"};
-const TermPtr NsStack::NonameBlock = Term::Create(parser::token_type::END, TermID::NAMESPACE, "_");
+//const char * RunTime::default_argv[RunTime::default_argc] = {"", "-nlc-no-runtime", "-nlc-no-dsl", "-nlc-no-embed-source"};
+//const TermPtr VarScope::NonameBlock = Term::Create(parser::token_type::END, TermID::NAMESPACE, "_");
 
 ObjType newlang::typeFromString(const std::string type_arg, RuntimePtr rt, bool *has_error) {
 
@@ -164,85 +164,85 @@ TermPtr RunTime::NameRegister(bool new_only, const char *name, TermPtr proto, We
  * 
  */
 
-TermPtr NameList::NameFind(const char* name) {
-
-    NameList::iterator found;
-
-    if (!name) {
-        return nullptr;
-    }
-
-    if (isMacroName(name)) {
-        LOG_RUNTIME("Macro name not allowed! '%s'", name);
-    }
-    //    if (isLocalName(name)) {
-    //        LOG_RUNTIME("Local name not allowed! '%s'", name);
-    //    }
-
-    if (isGlobalScope(name) || isTypeName(name)) {
-
-        found = find(name);
-        if (found == end()) {
-            return nullptr;
-        }
-
-    } else {
-
-        found = find(name);
-        if (found != end()) {
-            //@todo  Check typename ????
-            return found->second.proto;
-            //            LOG_RUNTIME("Fail logical for name '%s' as '%s'", name, found->first.c_str());
-        }
-
-        std::string glob_name("::");
-
-        glob_name.append(name);
-        found = find(glob_name);
-        if (found == end()) {
-            return nullptr;
-        }
-    }
-
-    ASSERT(found != end());
-
-    //    if (!at::holds_alternative<ObjWeak>(found->second.obj)) {
-
-    //        if (at::holds_alternative<ObjWeak>(found->second.obj)) {
-    //            return at::get<ObjWeak>(found->second.obj).lock();
-    //        }
-    //        ASSERT(at::holds_alternative<std::vector < ObjWeak >> (found->second.obj));
-    //        return at::get<std::vector < ObjWeak >> (found->second.obj)[0].lock();
-
-    //        return at::get<std::vector < ObjWeak >> (found->second.obj)[0];
-
-    //    } else {
-    //        NL_PARSER(found->second.proto, "Global name not implemented! '%s'", found->first.c_str());
-    //    }
-    return found->second.proto;
-}
-
-TermPtr NameList::NameRegister(bool new_only, const char *name, TermPtr proto) {
-
-    TermPtr item = NameFind(name);
-
-    if (new_only && item) {
-        NL_MESSAGE(LOG_LEVEL_INFO, proto, "Name '%s' already exist!", name);
-        return nullptr;
-    } else {
-        if (item) {
-            if (!Term::CheckTermEq(item, proto)) {
-                ASSERT(item);
-                NL_MESSAGE(LOG_LEVEL_INFO, proto, "The prototype '%s' differs from the first definition '%s'!",
-                        name, item->asTypeString().c_str());
-                return nullptr;
-            }
-        } else {
-            insert(std::pair(name, NameItem({proto, nullptr})));
-        }
-    }
-    return at(name).proto;
-}
+//TermPtr NameList::NameFind(const char* name) {
+//
+//    NameList::iterator found;
+//
+//    if (!name) {
+//        return nullptr;
+//    }
+//
+//    if (isMacroName(name)) {
+//        LOG_RUNTIME("Macro name not allowed! '%s'", name);
+//    }
+//    //    if (isLocalName(name)) {
+//    //        LOG_RUNTIME("Local name not allowed! '%s'", name);
+//    //    }
+//
+//    if (isGlobalScope(name) || isTypeName(name)) {
+//
+//        found = find(name);
+//        if (found == end()) {
+//            return nullptr;
+//        }
+//
+//    } else {
+//
+//        found = find(name);
+//        if (found != end()) {
+//            //@todo  Check typename ????
+//            return found->second.proto;
+//            //            LOG_RUNTIME("Fail logical for name '%s' as '%s'", name, found->first.c_str());
+//        }
+//
+//        std::string glob_name("::");
+//
+//        glob_name.append(name);
+//        found = find(glob_name);
+//        if (found == end()) {
+//            return nullptr;
+//        }
+//    }
+//
+//    ASSERT(found != end());
+//
+//    //    if (!at::holds_alternative<ObjWeak>(found->second.obj)) {
+//
+//    //        if (at::holds_alternative<ObjWeak>(found->second.obj)) {
+//    //            return at::get<ObjWeak>(found->second.obj).lock();
+//    //        }
+//    //        ASSERT(at::holds_alternative<std::vector < ObjWeak >> (found->second.obj));
+//    //        return at::get<std::vector < ObjWeak >> (found->second.obj)[0].lock();
+//
+//    //        return at::get<std::vector < ObjWeak >> (found->second.obj)[0];
+//
+//    //    } else {
+//    //        NL_PARSER(found->second.proto, "Global name not implemented! '%s'", found->first.c_str());
+//    //    }
+//    return found->second.proto;
+//}
+//
+//TermPtr NameList::NameRegister(bool new_only, const char *name, TermPtr proto) {
+//
+//    TermPtr item = NameFind(name);
+//
+//    if (new_only && item) {
+//        NL_MESSAGE(LOG_LEVEL_INFO, proto, "Name '%s' already exist!", name);
+//        return nullptr;
+//    } else {
+//        if (item) {
+//            if (!Term::CheckTermEq(item, proto)) {
+//                ASSERT(item);
+//                NL_MESSAGE(LOG_LEVEL_INFO, proto, "The prototype '%s' differs from the first definition '%s'!",
+//                        name, item->asTypeString().c_str());
+//                return nullptr;
+//            }
+//        } else {
+//            insert(std::pair(name, NameItem({proto, nullptr})));
+//        }
+//    }
+//    return at(name).proto;
+//}
 
 //TermPtr NameList::NameRegister(const char * glob_name, TermPtr proto){
 //
@@ -304,12 +304,15 @@ std::string RunTime::Dump() {
 }
 
 ObjPtr RunTime::EvalStatic(const TermPtr term, bool pure) {
-    if (term->IsLiteral()) {
+    if (term->isLiteral()) {
 
         return Context::CreateRVal(nullptr, term);
 
     } else if (term->getTermID() == TermID::NATIVE) {
 
+        if (!m_import_natime) {
+            NL_PARSER(term, "Import native not allowed!");
+        }
         //@todo Add check mangled name for C++ lang
         return Obj::CreateValue(reinterpret_cast<int64_t> (RunTime::GetNativeAddr(&term->m_text[1], nullptr)), ObjType::Int64);
 
@@ -343,6 +346,69 @@ ObjPtr RunTime::EvalStatic(const TermPtr term, bool pure) {
     NL_PARSER(term, "Expression '%s' not static calculate!", term->toString().c_str());
 }
 
+ObjPtr RunTime::Eval(TermPtr term, RunnerPtr runner, bool pure) {
+    if (runner) {
+        return runner->Run(term);
+    }
+    return EvalStatic(term, pure);
+}
+
+void RunTime::CreateArgs_(ObjPtr &args, TermPtr &term, RunnerPtr runner, bool is_pure) {
+    for (int i = 0; i < term->size(); i++) {
+        if (term->name(i).empty()) {
+            args->push_back(Eval((*term)[i].second, runner, is_pure));
+        } else {
+            args->push_back(Eval((*term)[i].second, runner, is_pure), term->name(i).c_str());
+        }
+    }
+}
+
+ObjPtr RunTime::CreateDict(TermPtr term, RunnerPtr runner, bool is_pure) {
+    ObjPtr result = Obj::CreateDict();
+
+    CreateArgs_(result, term, runner, is_pure);
+    result->m_var_is_init = true;
+
+    if (term->getTermID() == TermID::DICT) {
+        result->m_var_type_fixed = ObjType::Class;
+        result->m_class_name = term->m_class;
+    }
+
+    return result;
+}
+
+ObjPtr RunTime::CreateTensor(const TermPtr term, RunnerPtr runner, bool is_pure) {
+
+    ASSERT(term->getTermID() == TermID::TENSOR);
+    ASSERT(term->m_class.empty());
+
+    ObjPtr result = CreateDict(term, runner, is_pure);
+    if (!term->m_type) {
+        result->m_var_type_fixed = ObjType::None;
+    } else {
+        result->m_var_type_fixed = typeFromString(term->m_type->m_text, shared_from_this());
+    }
+    ObjType type = getSummaryTensorType(result.get(), result->m_var_type_fixed);
+
+    if (type != ObjType::None) {
+
+        std::vector<int64_t> sizes = TensorShapeFromDict(result.get());
+        result->toType_(type);
+
+        if (!sizes.empty()) {
+            ASSERT(result->m_tensor.defined());
+            result->m_tensor = result->m_tensor.reshape(sizes);
+        }
+
+    } else {
+        result->m_var_is_init = false;
+    }
+
+    result->m_var_type_current = type;
+
+    return result;
+}
+
 bool RunTime::LoadModuleFromFile(const char *term, bool init) {
     ASSERT(term);
 
@@ -362,7 +428,7 @@ bool RunTime::LoadModuleFromFile(const char *term, bool init) {
         path += elem;
     }
 
-    path += ".nlp";
+    path += ".src";
 
 
     llvm::SmallString<1024> search_file;
@@ -387,7 +453,7 @@ bool RunTime::LoadModuleFromFile(const char *term, bool init) {
 
                 ParserPtr parser = GetParser();
                 TermPtr ast = parser->Parse(str);
-                AstAnalyze(ast, false);
+                AstAnalyze(ast, ast);
                 if (!ast->m_module) {
                     ast->m_module = Term::Create(parser::token_type::END, TermID::STRCHAR, name.c_str());
                 }
@@ -493,7 +559,7 @@ bool RunTime::UnLoadModule(const char *name_str, bool deinit) {
 }
 
 bool CheckClearFunction(TermPtr term) {
-    if (term && term->getTermID() == TermID::SOURCE) {
+    if (term && term->getTermID() == TermID::EMBED) {
         return false;
     } else if (term && term->getTermID() == TermID::BLOCK) {
         for (int i = 0; i < (int) term->m_block.size(); i++) {
@@ -504,7 +570,7 @@ bool CheckClearFunction(TermPtr term) {
     } else if (term && term->Right()) {
         TermPtr temp = term->Right();
         while (temp) {
-            if (term->getTermID() == TermID::SOURCE) {
+            if (term->getTermID() == TermID::EMBED) {
                 return false;
             }
             if (term->Right()) {
@@ -578,27 +644,129 @@ ObjPtr RunTime::ExecModule(const char *mod, const char *output, bool cached, Con
     return nullptr;
 }
 
-RuntimePtr RunTime::Init(std::vector<const char *> args, bool ignore_error) {
-    return RunTime::Init(args.size(), args.data(), ignore_error);
+//RuntimePtr RunTime::Init(std::vector<const char *> args, bool ignore_error) {
+//    return RunTime::Init(args.size(), args.data(), ignore_error);
+//}
+
+RuntimePtr RunTime::Init(int argc, const char** argv) {
+    //    RuntimePtr rt = std::make_shared<RunTime>();
+    //    if (!rt->ParseArgs(argc, argv)) {
+    //        LOG_RUNTIME("Fail parse args!");
+    //    }
+    //
+    //    if (rt->m_load_runtime) {
+    //        VERIFY(rt->RegisterBuildin(std::make_shared<newlang::runtime::Base>(rt)));
+    //        VERIFY(rt->RegisterBuildin(std::make_shared<newlang::runtime::System>(rt)));
+    //    }
+
+    return RunTime::Init(MakeMainArgs(argc, argv));
 }
 
-RuntimePtr RunTime::Init(int argc, const char** argv, bool ignore_error) {
+RuntimePtr RunTime::Init(StringArray args) {
     RuntimePtr rt = std::make_shared<RunTime>();
-    if (!rt->ParseArgs(argc, argv)) {
+    if (!rt->ParseArgs(args)) {
         LOG_RUNTIME("Fail parse args!");
     }
-
     if (rt->m_load_runtime) {
         VERIFY(rt->RegisterBuildin(std::make_shared<newlang::runtime::Base>(rt)));
         VERIFY(rt->RegisterBuildin(std::make_shared<newlang::runtime::System>(rt)));
     }
-
     return rt;
 }
 
 ParserPtr RunTime::GetParser() {
     // @todo Сделать корректныую очистку состояния парсера???
     return std::make_shared<Parser>(m_macro, nullptr, m_diag, true, shared_from_this());
+}
+
+
+//TermPtr RunTime::MakeAst(std::string str, bool is_main) {
+//    TermPtr ast = GetParser()->Parse(str);
+//    if (AstAnalyze(ast, is_main)) {
+//        return ast;
+//    }
+//    LOG_RUNTIME("Make AST fail!");
+//}
+
+TermPtr RunTime::MakeAst(const std::string_view src, bool skip_analize) {
+    TermPtr ast = GetParser()->Parse(src.begin());
+    if (skip_analize) {
+        return ast;
+    }
+
+    if (!AstAnalyze(ast, ast)) {
+        LOG_RUNTIME("");
+    }
+    return ast;
+}
+
+/*
+ * Построчное выполнение не изменяет AST, а только добавляет к нему новые строки.
+ * Констекст выполнения (m_main_runner) тоже остается не изменным.
+ */
+ObjPtr RunTime::Run(const std::string_view str, Obj* args) {
+    if (!m_main_ast || m_main_ast->m_id != TermID::BLOCK) {
+        m_main_ast = Term::Create(parser::token_type::END, TermID::BLOCK, "");
+        m_main_runner.reset();
+    }
+
+    TermPtr ast = GetParser()->Parse(str.begin());
+
+    m_main_ast->m_block.push_back(ast);
+
+    if (!m_main_runner) {
+        //        m_main_runner = std::make_shared<Runner>(&m_main_ast->m_variables, shared_from_this());
+    }
+    try {
+        if (!AstAnalyze(ast, m_main_ast)) {
+            LOG_RUNTIME("");
+        }
+        return m_main_runner->Run(m_main_ast->m_block.back(), args);
+    } catch (...) {
+        m_main_ast->m_block.pop_back();
+        throw;
+    }
+}
+
+/*
+ * Выполенение целого AST создает полностью новый контекст выполнения.
+ */
+ObjPtr RunTime::Run(TermPtr ast, Obj* args) {
+    m_main_ast = ast;
+    //    m_main_runner = std::make_shared<Runner>(&m_main_ast->m_variables, shared_from_this());
+    return m_main_runner->Run(m_main_ast, args);
+}
+
+bool RunTime::ExpandFileName(std::string &filename) {
+    if (std::filesystem::exists(filename)) {
+        filename = std::filesystem::absolute(filename);
+        return true;
+    }
+    return false;
+}
+
+ObjPtr RunTime::RunFile(std::string file, Obj* args) {
+    if (!ExpandFileName(file)) {
+        LOG_RUNTIME("File or module '%s' not found!", file.c_str());
+    }
+    std::string source = ReadFile(file.c_str());
+    TermPtr ast = MakeAst(source);
+    if (args) {
+        args->insert(args->begin(), {
+            "", Obj::CreateString(file)
+        });
+    }
+    return Run(ast, args);
+}
+
+// Для теста 
+
+static char convert(char c) {
+    if (c == 'A') return 'C';
+    if (c == 'C') return 'G';
+    if (c == 'G') return 'T';
+    if (c == 'T') return 'A';
+    return ' ';
 }
 
 RunTime::RunTime() :
@@ -608,99 +776,123 @@ m_diag(std::make_shared<Diag>()) {
 
     m_assert_enable = true;
     m_load_dsl = true;
+    m_embed_source = false;
+    m_import_module = true;
+    m_import_natime = true;
     m_load_runtime = true;
     m_error_limit = 10;
     m_typedef_limit = 0;
 
-    m_args = Obj::CreateType(ObjType::Dictionary, ObjType::Dictionary, true);
+    //    m_cmd_args = Obj::CreateType(ObjType::Dictionary, ObjType::Dictionary, true);
+    //    m_main_args = Obj::CreateType(ObjType::Dictionary, ObjType::Dictionary, true);
 
     m_main_module = std::make_shared<Module>();
 
     LLVMLoadLibraryPermanently(nullptr);
+    LLVMAddSymbol("convert", (void *) &convert); // Для теста 
 
     GlobalNameBuildinRegister();
 }
 
 void RunTime::GlobalNameBuildinRegister() {
-    VERIFY(RegisterTypeHierarchy(ObjType::None,{}));
-    VERIFY(RegisterTypeHierarchy(ObjType::Any,{}));
+    VERIFY(RegisterBuildinType(ObjType::None,{}));
+    VERIFY(RegisterBuildinType(ObjType::Any,{}));
 
-    VERIFY(RegisterTypeHierarchy(ObjType::Arithmetic,{":Any"}));
-    VERIFY(RegisterTypeHierarchy(ObjType::Rational,{":Arithmetic"}));
-    VERIFY(RegisterTypeHierarchy(ObjType::Tensor,{":Arithmetic"}));
+    VERIFY(RegisterBuildinType(ObjType::Arithmetic,{":Any"}));
+    VERIFY(RegisterBuildinType(ObjType::Rational,{":Arithmetic"}));
+    VERIFY(RegisterBuildinType(ObjType::Tensor,{":Arithmetic"}));
 
-    VERIFY(RegisterTypeHierarchy(ObjType::Integer,{":Tensor"}));
-    VERIFY(RegisterTypeHierarchy(ObjType::Bool,{":Integer"}));
-    VERIFY(RegisterTypeHierarchy(ObjType::Int8,{":Integer"}));
-    VERIFY(RegisterTypeHierarchy(ObjType::Char,{":Integer"}));
-    VERIFY(RegisterTypeHierarchy(ObjType::Byte,{":Integer"}));
-    VERIFY(RegisterTypeHierarchy(ObjType::Int16,{":Integer"}));
-    VERIFY(RegisterTypeHierarchy(ObjType::Word,{":Integer"}));
-    VERIFY(RegisterTypeHierarchy(ObjType::Int32,{":Integer"}));
-    VERIFY(RegisterTypeHierarchy(ObjType::DWord,{":Integer"}));
-    VERIFY(RegisterTypeHierarchy(ObjType::Int64,{":Integer"}));
-    VERIFY(RegisterTypeHierarchy(ObjType::DWord64,{":Integer"}));
+    VERIFY(RegisterBuildinType(ObjType::Integer,{":Tensor"}));
+    VERIFY(RegisterBuildinType(ObjType::Bool,{":Integer"}));
+    VERIFY(RegisterBuildinType(ObjType::Int8,{":Integer"}));
+    VERIFY(RegisterBuildinType(ObjType::Char,{":Integer"}));
+    VERIFY(RegisterBuildinType(ObjType::Byte,{":Integer"}));
+    VERIFY(RegisterBuildinType(ObjType::Int16,{":Integer"}));
+    VERIFY(RegisterBuildinType(ObjType::Word,{":Integer"}));
+    VERIFY(RegisterBuildinType(ObjType::Int32,{":Integer"}));
+    VERIFY(RegisterBuildinType(ObjType::DWord,{":Integer"}));
+    VERIFY(RegisterBuildinType(ObjType::Int64,{":Integer"}));
+    VERIFY(RegisterBuildinType(ObjType::DWord64,{":Integer"}));
 
-    VERIFY(RegisterTypeHierarchy(ObjType::Number,{":Tensor"}));
-    VERIFY(RegisterTypeHierarchy(ObjType::Float16,{":Number"}));
-    VERIFY(RegisterTypeHierarchy(ObjType::Float32,{":Number"}));
-    VERIFY(RegisterTypeHierarchy(ObjType::Float64,{":Number"}));
-    VERIFY(RegisterTypeHierarchy(ObjType::Single,{":Number"}));
-    VERIFY(RegisterTypeHierarchy(ObjType::Double,{":Number"}));
+    VERIFY(RegisterBuildinType(ObjType::Number,{":Tensor"}));
+    VERIFY(RegisterBuildinType(ObjType::Float16,{":Number"}));
+    VERIFY(RegisterBuildinType(ObjType::Float32,{":Number"}));
+    VERIFY(RegisterBuildinType(ObjType::Float64,{":Number"}));
+    VERIFY(RegisterBuildinType(ObjType::Single,{":Number"}));
+    VERIFY(RegisterBuildinType(ObjType::Double,{":Number"}));
 
-    VERIFY(RegisterTypeHierarchy(ObjType::Complex,{":Tensor"}));
-    VERIFY(RegisterTypeHierarchy(ObjType::Complex32,{":Complex"}));
-    VERIFY(RegisterTypeHierarchy(ObjType::Complex64,{":Complex"}));
+    VERIFY(RegisterBuildinType(ObjType::Complex,{":Tensor"}));
+    VERIFY(RegisterBuildinType(ObjType::Complex32,{":Complex"}));
+    VERIFY(RegisterBuildinType(ObjType::Complex64,{":Complex"}));
 
-    VERIFY(RegisterTypeHierarchy(ObjType::String,{":Any"}));
-    VERIFY(RegisterTypeHierarchy(ObjType::StrChar,{":String"}));
-    VERIFY(RegisterTypeHierarchy(ObjType::StrWide,{":String"}));
-    VERIFY(RegisterTypeHierarchy(ObjType::FmtChar,{":String"}));
+    VERIFY(RegisterBuildinType(ObjType::String,{":Any"}));
+    VERIFY(RegisterBuildinType(ObjType::StrChar,{":String"}));
+    VERIFY(RegisterBuildinType(ObjType::StrWide,{":String"}));
+    VERIFY(RegisterBuildinType(ObjType::FmtChar,{":String"}));
 
-    VERIFY(RegisterTypeHierarchy(ObjType::Dictionary,{":Any"}));
-    VERIFY(RegisterTypeHierarchy(ObjType::Interface,{":Any"}));
-    VERIFY(RegisterTypeHierarchy(ObjType::Class,{":Dictionary", ":Interface"}));
+    VERIFY(RegisterBuildinType(ObjType::Dictionary,{":Any"}));
+    VERIFY(RegisterBuildinType(ObjType::Interface,{":Any"}));
+    VERIFY(RegisterBuildinType(ObjType::Class,{":Dictionary", ":Interface"}));
 
-    VERIFY(RegisterTypeHierarchy(ObjType::Pointer,{":Any"})); // Указатели на машиннозависимую реализауию объектов
+    VERIFY(RegisterBuildinType(ObjType::Pointer,{":Any"})); // Указатели на машиннозависимую реализауию объектов
 
-    VERIFY(RegisterTypeHierarchy(ObjType::Plain,{":Pointer"})); // Могут быть представленые в одном блоке памяти
-    VERIFY(RegisterTypeHierarchy(ObjType::Enum,{":Plain", ":Integer"}));
-    VERIFY(RegisterTypeHierarchy(ObjType::Union,{":Plain", ":Dictionary"}));
-    VERIFY(RegisterTypeHierarchy(ObjType::Struct,{":Plain", ":Class"}));
-
-
-    VERIFY(RegisterTypeHierarchy(ObjType::Eval,{":Any"})); // Может быть выполнен
-    VERIFY(RegisterTypeHierarchy(ObjType::Function,{":Eval"}));
-    VERIFY(RegisterTypeHierarchy(ObjType::NativeFunc,{":Function", ":Pointer"}));
-
-    VERIFY(RegisterTypeHierarchy(ObjType::Other,{":Any"}));
-    VERIFY(RegisterTypeHierarchy(ObjType::Range,{":Other"}));
-    VERIFY(RegisterTypeHierarchy(ObjType::Ellipsis,{":Other"}));
-
-    VERIFY(RegisterTypeHierarchy(ObjType::BLOCK,{":Eval"}));
-    VERIFY(RegisterTypeHierarchy(ObjType::BLOCK_TRY,{":Eval"}));
-
-    VERIFY(RegisterTypeHierarchy(ObjType::PureFunc,{":Function"}));
-
-    VERIFY(RegisterTypeHierarchy(ObjType::Type,{":Any"}));
-    VERIFY(RegisterTypeHierarchy(ObjType::Return,{":Any"}));
-
-    VERIFY(RegisterTypeHierarchy(ObjType::Error,{":Return"}));
-    VERIFY(RegisterTypeHierarchy(ObjType::Break,{":Return"})); // Синонимы прерывания последовательности выполнения для совместимости
-    VERIFY(RegisterTypeHierarchy(ObjType::Continue,{":Return"})); // со стндартными алгоритмическими приемами (синтаксический сахар)
+    VERIFY(RegisterBuildinType(ObjType::Plain,{":Pointer"})); // Могут быть представленые в одном блоке памяти
+    VERIFY(RegisterBuildinType(ObjType::Enum,{":Plain", ":Integer"}));
+    VERIFY(RegisterBuildinType(ObjType::Union,{":Plain", ":Dictionary"}));
+    VERIFY(RegisterBuildinType(ObjType::Struct,{":Plain", ":Class"}));
 
 
-    VERIFY(RegisterTypeHierarchy(ObjType::ErrorParser,{":Error"}));
-    VERIFY(RegisterTypeHierarchy(ObjType::ErrorRunTime,{":Error"}));
-    VERIFY(RegisterTypeHierarchy(ObjType::ErrorSignal,{":Error"}));
+    VERIFY(RegisterBuildinType(ObjType::Eval,{":Any"})); // Может быть выполнен
+    VERIFY(RegisterBuildinType(ObjType::Function,{":Eval"}));
+    VERIFY(RegisterBuildinType(ObjType::NativeFunc,{":Function", ":Pointer"}));
+
+    VERIFY(RegisterBuildinType(ObjType::Other,{":Any"}));
+    VERIFY(RegisterBuildinType(ObjType::Range,{":Other"}));
+    VERIFY(RegisterBuildinType(ObjType::Ellipsis,{":Other"}));
+
+    VERIFY(RegisterBuildinType(ObjType::BLOCK,{":Eval"}));
+    VERIFY(RegisterBuildinType(ObjType::BLOCK_TRY,{":Eval"}));
+
+    VERIFY(RegisterBuildinType(ObjType::PureFunc,{":Function"}));
+
+    VERIFY(RegisterBuildinType(ObjType::Type,{":Any"}));
+    VERIFY(RegisterBuildinType(ObjType::Return,{":Any"}));
+
+    VERIFY(RegisterBuildinType(ObjType::Error,{":Return"}));
+    VERIFY(RegisterBuildinType(ObjType::Break,{":Return"})); // Синонимы прерывания последовательности выполнения для совместимости
+    VERIFY(RegisterBuildinType(ObjType::Continue,{":Return"})); // со стндартными алгоритмическими приемами (синтаксический сахар)
 
 
+    VERIFY(RegisterBuildinType(ObjType::ErrorParser,{":Error"}));
+    VERIFY(RegisterBuildinType(ObjType::ErrorRunTime,{":Error"}));
+    VERIFY(RegisterBuildinType(ObjType::ErrorSignal,{":Error"}));
+
+
+
+
+    //__STAT_RUNTIME_UNITTEST__()
 
 
 
 
     //    VERIFY(RegisterSystemBuildin("::__compare__(obj1, obj2):Int8"));
     //    VERIFY(RegisterSystemBuildin("::__equals__(obj1, obj2):Bool"));
+    // __eq__ , __ne__ , __lt__ , __gt__ , __ge__ , __le__
+    //__cmp__
+    //  == 	__eq__()
+    //  != 	__ne__()
+    //  > 	__gt__()
+    //  >= 	__ge__()
+    //  < 	__lt__()
+    //  <= 	__le__()
+    // __module__, __name__, __qualname__, __doc__ and __annotations__) and have a new __wrapped__ 
+
+    // __getattr__ __getattribute__ __setattr__ __delattr__
+    // __get__(self, instance, owner=None)  __set__
+
+    // __call__(self[, args...])
+    // __getitem__(), __setitem__(), __delitem__(), 
+    // __contains__
 }
 
 bool RunTime::RegisterSystemBuildin(const char *text) {
@@ -708,12 +900,11 @@ bool RunTime::RegisterSystemBuildin(const char *text) {
     return false;
 }
 
-bool RunTime::RegisterTypeHierarchy(ObjType type, std::vector<std::string> parents) {
-    //            std::array < std::string, sizeof...(parents) > list = {parents...};
+bool RunTime::RegisterBuildinType(ObjType type, std::vector<std::string> parents) {
 
     std::string type_name(toString(type));
-    auto base = m_types.find(type_name);
-    if (base != m_types.end()) {
+    auto base = m_buildin_obj.find(type_name);
+    if (base != m_buildin_obj.end()) {
         return false;
     }
 
@@ -724,8 +915,8 @@ bool RunTime::RegisterTypeHierarchy(ObjType type, std::vector<std::string> paren
     ASSERT(result->m_class_parents.empty());
 
     for (auto &parent : parents) {
-        auto iter = m_types.find(parent);
-        if (iter == m_types.end()) {
+        auto iter = m_buildin_obj.find(parent);
+        if (iter == m_buildin_obj.end()) {
             LOG_DEBUG("Parent type '%s' not found!", parent.c_str());
             return false;
         }
@@ -740,7 +931,7 @@ bool RunTime::RegisterTypeHierarchy(ObjType type, std::vector<std::string> paren
         result->m_class_parents.push_back(iter->second);
     }
 
-    m_types[type_name] = result;
+    m_buildin_obj[type_name] = result;
 
     if (type_name.compare(":None") == 0) {
         VERIFY(NameRegister(true, "_", Term::Create(parser::token_type::NAME, TermID::TYPE, "_"), result));
@@ -759,8 +950,8 @@ ObjPtr RunTime::GetTypeFromString(const std::string & type, bool *has_error) {
         LOG_RUNTIME("Type name '%s' not found!", type.c_str());
     }
 
-    auto result_types = m_types.find(type);
-    if (result_types != m_types.end()) {
+    auto result_types = m_buildin_obj.find(type);
+    if (result_types != m_buildin_obj.end()) {
         return result_types->second;
     }
 
@@ -918,7 +1109,7 @@ std::vector<std::wstring> RunTime::SelectPredict(std::string start, size_t overa
     }
 
     if (find_types) {
-        for (auto &elem : m_types) {
+        for (auto &elem : m_buildin_obj) {
             if (pred_compare(start, elem.first)) {
                 result.push_back(utf8_decode(elem.first));
                 if (result.size() > overage_count + 1) {
@@ -1019,6 +1210,13 @@ bool RunTime::RegisterSystemObj(ObjPtr obj) {
 
 
     return true;
+}
+
+ObjPtr RunTime::CreateFunction(TermPtr proto, TermPtr block) {
+    ObjPtr result = Obj::CreateType(ObjType::Function, ObjType::Function, true);
+    *const_cast<TermPtr *> (&result->m_prototype) = proto;
+    result->m_sequence = block;
+    return result;
 }
 
 ObjPtr RunTime::CreateNative(Context *ctx, const char *proto, const char *module, bool lazzy, const char *mangle_name) {
@@ -1297,261 +1495,396 @@ ModulePtr RunTime::CheckLoadModule(TermPtr &term) {
  * 
  */
 
-bool NsStack::NameMacroExpand(TermPtr term) {
-    ASSERT(term);
-    if (term->m_text.find("@::") == 0) {
-        if (term->m_text.size() == 3) {
-            term->m_text = GetNamespace();
-        } else {
-            if (GetNamespace().empty()) {
-                term->m_text = term->m_text.replace(0, 3, "$$");
-            } else {
-                term->m_text = term->m_text.replace(0, 1, GetNamespace());
-            }
-        }
-        //        } else if (term->m_text.find("@$$") == 0) {
-        //            term->m_text = term->m_text.replace(0, 3, Get__BLOCK__());
-    } else if (term->m_id == TermID::NAMESPACE) {
-        if (term->m_text.compare("@__CLASS__") == 0) {
-            term->m_text = Get__CLASS__();
-        } else if (term->m_text.compare("@__NAMESPACE__") == 0) {
-            term->m_text = GetNamespace();
-        } else if (term->m_text.compare("@__FUNC_BLOCK__") == 0) {
-            term->m_text = Get__BLOCK__();
-        } else if (term->m_text.compare("@__FUNCTION__") == 0) {
-            term->m_text = Get__FUNCTION__();
-        } else if (term->m_text.compare("@__FUNCDNAME__") == 0) {
-            term->m_text = Get__FUNCDNAME__();
-        } else if (term->m_text.compare("@__FUNCSIG__") == 0) {
-            term->m_text = Get__FUNCSIG__();
-        } else {
-            NL_MESSAGE(LOG_LEVEL_INFO, term, "Fail NAMESPACE prefix '%s'!", term->m_text.c_str());
+//bool VarScope::NameMacroExpand(TermPtr term) {
+//    ASSERT(term);
+//    if (term->m_text.find("@::") == 0) {
+//        if (term->m_text.size() == 3) {
+//            term->m_text = GetFullNamespace();
+//        } else {
+//            if (GetFullNamespace().empty()) {
+//                term->m_text = term->m_text.replace(0, 3, "$$");
+//            } else {
+//                term->m_text = term->m_text.replace(0, 1, GetFullNamespace());
+//            }
+//        }
+//        //        } else if (term->m_text.find("@$$") == 0) {
+//        //            term->m_text = term->m_text.replace(0, 3, Get__BLOCK__());
+//    } else if (term->m_id == TermID::NAMESPACE) {
+//        if (term->m_text.compare("@__CLASS__") == 0) {
+//            term->m_text = Get__CLASS__();
+//        } else if (term->m_text.compare("@__NAMESPACE__") == 0) {
+//            term->m_text = GetFullNamespace();
+//        } else if (term->m_text.compare("@__FUNC_BLOCK__") == 0) {
+//            term->m_text = Get__BLOCK__();
+//        } else if (term->m_text.compare("@__FUNCTION__") == 0) {
+//            term->m_text = Get__FUNCTION__();
+//        } else if (term->m_text.compare("@__FUNCDNAME__") == 0) {
+//            term->m_text = Get__FUNCDNAME__();
+//        } else if (term->m_text.compare("@__FUNCSIG__") == 0) {
+//            term->m_text = Get__FUNCSIG__();
+//        } else {
+//            NL_MESSAGE(LOG_LEVEL_INFO, term, "Fail NAMESPACE prefix '%s'!", term->m_text.c_str());
+//
+//            return false;
+//        }
+//        term->m_id = TermID::STRCHAR;
+//    }
+//    return true;
+//}
+//
+//bool VarScope::LookupName(TermPtr term, RunTime * rt) {
+//
+//    if (term && !term->m_text.empty() && term->m_text[0] == '@') {
+////        if (m_op && m_op->IsCreate() && term->m_text.compare("@$$") == 0) {
+////            if (m_root && m_root->m_variables.empty() && !m_root->m_module) {
+////                if (!m_op->m_right || !CheckCharModuleName(m_op->m_right->m_text.c_str())) {
+////                    NL_MESSAGE(LOG_LEVEL_INFO, m_op, "Set module name - backslash, underscore, lowercase English letters or number!");
+////                    return false;
+////                }
+////                m_root->m_module = m_op->m_right;
+////            } else {
+////                NL_MESSAGE(LOG_LEVEL_INFO, m_op, "Setting the module name must be the first statement once!");
+////                return false;
+////            }
+////        } else if (!NameMacroExpand(term)) {
+////            return false;
+////        }
+//    }
+//
+//    //// error: no member named 'isCreate' in 'newlang::Term'; did you mean 'IsCreate'?
+//    TermPtr proto;
+//    //    NameItem *item = nullptr;
+//
+//    if (m_op && m_op->IsCreate()) {
+//
+////        if (term->m_id == TermID::FIELD) {
+////
+////            // Field class or module
+////            LOG_RUNTIME("Not TermID::FIELD implemented! '%s'", term->toString().c_str());
+////
+////        } else if (isLocalName(term->m_text)) {
+////            // Full name include namespace
+////            term->m_text.insert(0, GetNamespace());
+////        } else if (!isGlobalScope(term->m_text) && !isModuleScope(term->m_text)) {
+////            if (term->isCall()) {
+////                term->m_text.insert(0, "$"); // Default hiden function name
+////            }
+////            term->m_text.insert(0, "$"); // Default local variable name
+////            term->m_text.insert(0, GetNamespace());
+////        } else {
+////            ASSERT(isGlobalScope(term->m_text) || isModuleScope(term->m_text));
+////
+////            if (!isStaticName(term->m_text) && !GetNamespace().empty()) {
+////                // Expand full name
+////                term->m_text.insert(0, "::");
+////                term->m_text.insert(0, GetNamespace());
+////            }
+////        }
+//
+////        if (m_op->m_id == TermID::CREATE_ONCE || m_op->m_id == TermID::PURE_OVERLAP) {
+////
+////            if (isLocalName(term->m_text)) {
+////
+////                if (m_function) {
+////                    proto = m_function->m_variables.NameRegister(true, term->m_text.c_str(), term);
+////                } else if (m_class) {
+////                    proto = m_class->m_variables.NameRegister(true, term->m_text.c_str(), term);
+////                } else {
+////                    ASSERT(m_root);
+////                    proto = m_root->m_variables.NameRegister(true, term->m_text.c_str(), term);
+////                }
+////
+////            } else if (isModuleScope(term->m_text)) {
+////
+////                proto = m_root->m_variables.NameRegister(true, term->m_text.c_str(), term);
+////
+////            } else if (isGlobalScope(term->m_text)) {
+////                if (!rt) {
+////                    LOG_RUNTIME("Global table name not exists!");
+////                }
+////                proto = rt->NameRegister(true, term->m_text.c_str(), term);
+////            } else {
+////                LOG_RUNTIME("Qualifier name '%s' not recognized!", term->toString().c_str());
+////            }
+////
+////        } else if (m_op->m_id == TermID::CREATE_OVERLAP || m_op->m_id == TermID::PURE_ONCE) {
+////
+////            if (isLocalName(term->m_text)) {
+////
+////                if (m_function) {
+////                    proto = m_function->m_variables.NameRegister(false, term->m_text.c_str(), term);
+////                } else if (m_class) {
+////                    proto = m_class->m_variables.NameRegister(false, term->m_text.c_str(), term);
+////                } else {
+////                    ASSERT(m_root);
+////                    proto = m_root->m_variables.NameRegister(false, term->m_text.c_str(), term);
+////                }
+////
+////            } else if (isModuleScope(term->m_text)) {
+////                //                item = m_root->m_variables.NameRegister(false, term->m_text.c_str(), term);
+////            } else if (isGlobalScope(term->m_text)) {
+////                if (!rt) {
+////                    LOG_RUNTIME("Global table name not exists!");
+////                }
+////                proto = rt->NameRegister(false, term->m_text.c_str(), term);
+////            } else {
+////                LOG_RUNTIME("Qualifier name '%s' not recognized!", term->toString().c_str());
+////            }
+////
+////        } else if (m_op->m_id == TermID::ASSIGN) {
+////
+////            if (isLocalName(term->m_text)) {
+////
+////                if (m_function) {
+////                    proto = m_function->m_variables.NameFind(term->m_text.c_str());
+////                } else if (m_class) {
+////                    proto = m_class->m_variables.NameFind(term->m_text.c_str());
+////                } else {
+////                    ASSERT(m_root);
+////                    proto = m_root->m_variables.NameFind(term->m_text.c_str());
+////                }
+////
+////            } else if (isModuleScope(term->m_text)) {
+////                proto = m_root->m_variables.NameFind(term->m_text.c_str());
+////            } else if (isGlobalScope(term->m_text)) {
+////                if (!rt) {
+////                    LOG_RUNTIME("Global table name not exists!");
+////                }
+////                proto = rt->GlobFindProto(term->m_text.c_str());
+////            } else {
+////                LOG_RUNTIME("Qualifier name '%s' not recognized!", term->toString().c_str());
+////            }
+////
+////        } else {
+////            LOG_RUNTIME("CREATE '%s' not implemented!", m_op ? m_op->toString().c_str() : term->toString().c_str());
+////        }
+//
+//    } else if (term->getTermID() == TermID::MODULE) {
+//        if (term->isCall()) {
+//            // Skip load module
+//            // @todo Load module args
+//            ASSERT(term->size() == 0);
+//        }
+//
+//        ModulePtr module = rt ? rt->CheckLoadModule(term) : nullptr;
+//        if (!module) {
+//            return false;
+//        }
+//        if (term->m_right) {
+//            proto = rt->GlobFindProto(term->m_right->m_text.c_str());
+//        } else {
+//            // Module exist - all ok!
+//            return true;
+//        }
+//    }
+//
+//    if (!proto) {
+//        return false; // Name not found
+//    }
+//    // Совместимость типов у переменных при повторных присвоениях
+//    if (rt && !rt->CheckType(proto, term)) {
+//        return false;
+//    }
+//
+//    if (m_op && m_op->m_right) {
+//        // Совместимость типов правого операнда с типом переменной
+//        if (!rt->CheckType(proto, m_op->m_right)) {
+//            return false;
+//        }
+//        if (m_op->getTermID() == TermID::CREATE_ONCE || m_op->getTermID() == TermID::PURE_OVERLAP) {
+//            //            item->
+//        }
+//    }
+//    return true;
+//}
+//
+//std::string VarScope::Get__CLASS__() {
+//    if (m_class) {
+//
+//        return m_class->m_text;
+//    }
+//    return "";
+//}
+//
+//std::string VarScope::Get__FUNCTION__() {
+//    if (m_function) {
+//
+//        return m_function->m_text;
+//    }
+//    return "";
+//}
+//
+//std::string VarScope::Get__FUNCDNAME__() {
+//    if (m_function) {
+//
+//        return m_function->m_text;
+//    }
+//    return "";
+//}
+//
+//std::string VarScope::Get__FUNCSIG__() {
+//    if (m_function) {
+//
+//        return m_function->m_text;
+//    }
+//    return "";
+//}
+//
+//std::string VarScope::Get__BLOCK__() {
+//    if (m_blocks.size()) {
+//
+//        return m_blocks.back();
+//    }
+//    return "";
+//}
+//
+//bool VarScope::LookupBlock(TermPtr &term) {
+//    if (!term || term->m_text.empty() || term->m_text.compare("::") == 0) {
+//        return true;
+//    }
+//    for (auto &elem : m_blocks) {
+//        if (elem.compare(term->m_text) == 0) {
+//            return true;
+//        }
+//    }
+//    NL_MESSAGE(LOG_LEVEL_INFO, term, "Lookup block '%s' fail!%s", term->m_text.c_str(), GetOfferBlock().c_str());
+//
+//    return false;
+//}
 
-            return false;
-        }
-        term->m_id = TermID::STRCHAR;
-    }
+bool RunTime::AstCheckArgsType_(TermPtr proto, TermPtr value) {
+    //    if (!proto || !proto->getType() || proto->getType()->isNone()) {
+    //        return true;
+    //    }
+    //    if (!canCast(value->getType(), proto->getType())) {
+    //        NL_PARSER(value, "Fail cast value '%s' to type '%s'", newlang::toString(value->getType()),
+    //                newlang::toString(proto->getType()));
+    //    }
+    //
+    //    ObjType limit_type = value->getTypeAsLimit();
+    //    if (!canCast(limit_type, value->getType())) {
+    //        // Строку с одним символом можно преобразовать в арифметичсекий тип
+    //        if (!(isArithmeticType(value->getType()) && value->is_string_type() && value->size() == 1)) {
+    //            NL_PARSER(value, "Limit value overflow!");
+    //        }
+    //    }
     return true;
 }
 
-bool NsStack::LookupName(TermPtr term, RunTime * rt) {
+bool RunTime::AstCheckArgs_(TermPtr proto, TermPtr args) {
 
-    if (term && !term->m_text.empty() && term->m_text[0] == '@') {
-        if (m_op && m_op->IsCreate() && term->m_text.compare("@$$") == 0) {
-            if (m_root->m_variables.empty() && !m_root->m_module) {
-                if (!m_op->m_right || !CheckCharModuleName(m_op->m_right->m_text.c_str())) {
-                    NL_MESSAGE(LOG_LEVEL_INFO, m_op, "Set module name - backslash, underscore, lowercase English letters or number!");
-                    return false;
-                }
-                m_root->m_module = m_op->m_right;
-            } else {
-                NL_MESSAGE(LOG_LEVEL_INFO, m_op, "Setting the module name must be the first statement once!");
-                return false;
-            }
-        } else if (!NameMacroExpand(term)) {
-            return false;
-        }
-    }
+    ASSERT(proto); // Прототип функции с аргументами по умолчанию
+    ASSERT(args); // Реальные аргументы
 
-    //// error: no member named 'isCreate' in 'newlang::Term'; did you mean 'IsCreate'?
-    TermPtr proto;
-    //    NameItem *item = nullptr;
-
-    if (m_op && m_op->IsCreate()) {
-
-        if (term->m_id == TermID::FIELD) {
-
-            // Field class or module
-            LOG_RUNTIME("Not TermID::FIELD implemented! '%s'", term->toString().c_str());
-
-        } else if (isLocalName(term->m_text)) {
-            // Full name include namespace
-            term->m_text.insert(0, GetNamespace());
-        } else if (!isGlobalScope(term->m_text) && !isModuleScope(term->m_text)) {
-            if (term->isCall()) {
-                term->m_text.insert(0, "$"); // Default hiden function name
-            }
-            term->m_text.insert(0, "$"); // Default local variable name
-            term->m_text.insert(0, GetNamespace());
-        } else {
-            ASSERT(isGlobalScope(term->m_text) || isModuleScope(term->m_text));
-
-            if (!isStaticName(term->m_text) && !GetNamespace().empty()) {
-                // Expand full name
-                term->m_text.insert(0, "::");
-                term->m_text.insert(0, GetNamespace());
-            }
-        }
-
-        if (m_op->m_id == TermID::CREATE_ONCE || m_op->m_id == TermID::PURE_OVERLAP) {
-
-            if (isLocalName(term->m_text)) {
-
-                if (m_function) {
-                    proto = m_function->m_variables.NameRegister(true, term->m_text.c_str(), term);
-                } else if (m_class) {
-                    proto = m_class->m_variables.NameRegister(true, term->m_text.c_str(), term);
-                } else {
-                    ASSERT(m_root);
-                    proto = m_root->m_variables.NameRegister(true, term->m_text.c_str(), term);
-                }
-
-            } else if (isModuleScope(term->m_text)) {
-
-                proto = m_root->m_variables.NameRegister(true, term->m_text.c_str(), term);
-
-            } else if (isGlobalScope(term->m_text)) {
-                if (!rt) {
-                    LOG_RUNTIME("Global table name not exists!");
-                }
-                proto = rt->NameRegister(true, term->m_text.c_str(), term);
-            } else {
-                LOG_RUNTIME("Qualifier name '%s' not recognized!", term->toString().c_str());
-            }
-
-        } else if (m_op->m_id == TermID::CREATE_OVERLAP || m_op->m_id == TermID::PURE_ONCE) {
-
-            if (isLocalName(term->m_text)) {
-
-                if (m_function) {
-                    proto = m_function->m_variables.NameRegister(false, term->m_text.c_str(), term);
-                } else if (m_class) {
-                    proto = m_class->m_variables.NameRegister(false, term->m_text.c_str(), term);
-                } else {
-                    ASSERT(m_root);
-                    proto = m_root->m_variables.NameRegister(false, term->m_text.c_str(), term);
-                }
-
-            } else if (isModuleScope(term->m_text)) {
-                //                item = m_root->m_variables.NameRegister(false, term->m_text.c_str(), term);
-            } else if (isGlobalScope(term->m_text)) {
-                if (!rt) {
-                    LOG_RUNTIME("Global table name not exists!");
-                }
-                proto = rt->NameRegister(false, term->m_text.c_str(), term);
-            } else {
-                LOG_RUNTIME("Qualifier name '%s' not recognized!", term->toString().c_str());
-            }
-
-        } else if (m_op->m_id == TermID::ASSIGN) {
-
-            if (isLocalName(term->m_text)) {
-
-                if (m_function) {
-                    proto = m_function->m_variables.NameFind(term->m_text.c_str());
-                } else if (m_class) {
-                    proto = m_class->m_variables.NameFind(term->m_text.c_str());
-                } else {
-                    ASSERT(m_root);
-                    proto = m_root->m_variables.NameFind(term->m_text.c_str());
-                }
-
-            } else if (isModuleScope(term->m_text)) {
-                proto = m_root->m_variables.NameFind(term->m_text.c_str());
-            } else if (isGlobalScope(term->m_text)) {
-                if (!rt) {
-                    LOG_RUNTIME("Global table name not exists!");
-                }
-                proto = rt->GlobFindProto(term->m_text.c_str());
-            } else {
-                LOG_RUNTIME("Qualifier name '%s' not recognized!", term->toString().c_str());
-            }
-
-        } else {
-            LOG_RUNTIME("CREATE '%s' not implemented!", m_op ? m_op->toString().c_str() : term->toString().c_str());
-        }
-
-    } else if (term->getTermID() == TermID::MODULE) {
-        if (term->isCall()) {
-            // Skip load module
-            // @todo Load module args
-            ASSERT(term->size() == 0);
-        }
-
-        ModulePtr module = rt ? rt->CheckLoadModule(term) : nullptr;
-        if (!module) {
-            return false;
-        }
-        if (term->m_right) {
-            proto = rt->GlobFindProto(term->m_right->m_text.c_str());
-        } else {
-            // Module exist - all ok!
-            return true;
-        }
-    }
-
-    if (!proto) {
-        return false; // Name not found
-    }
-    // Совместимость типов у переменных при повторных присвоениях
-    if (rt && !rt->CheckType(proto, term)) {
-        return false;
-    }
-
-    if (m_op && m_op->m_right) {
-        // Совместимость типов правого операнда с типом переменной
-        if (!rt->CheckType(proto, m_op->m_right)) {
-            return false;
-        }
-        if (m_op->getTermID() == TermID::CREATE_ONCE || m_op->getTermID() == TermID::PURE_OVERLAP) {
-            //            item->
-        }
-    }
     return true;
-}
 
-std::string NsStack::Get__CLASS__() {
-    if (m_class) {
-
-        return m_class->m_text;
-    }
-    return "";
-}
-
-std::string NsStack::Get__FUNCTION__() {
-    if (m_function) {
-
-        return m_function->m_text;
-    }
-    return "";
-}
-
-std::string NsStack::Get__FUNCDNAME__() {
-    if (m_function) {
-
-        return m_function->m_text;
-    }
-    return "";
-}
-
-std::string NsStack::Get__FUNCSIG__() {
-    if (m_function) {
-
-        return m_function->m_text;
-    }
-    return "";
-}
-
-std::string NsStack::Get__BLOCK__() {
-    if (m_blocks.size()) {
-
-        return m_blocks.back();
-    }
-    return "";
-}
-
-bool NsStack::LookupBlock(TermPtr &term) {
-    if (!term || term->m_text.empty() || term->m_text.compare("::") == 0) {
-        return true;
-    }
-    for (auto &elem : m_blocks) {
-        if (elem.compare(term->m_text) == 0) {
-            return true;
+    //    bool named = false;
+    size_t args_count = proto->size();
+    bool is_ellipsis = false;
+    if (args_count) {
+        if (proto->at(args_count - 1).first.compare("...") == 0) {
+            is_ellipsis = true;
+            args_count--;
         }
     }
-    NL_MESSAGE(LOG_LEVEL_INFO, term, "Lookup block '%s' fail!%s", term->m_text.c_str(), GetOfferBlock().c_str());
+    bool is_system_arg = false;
+    for (int i = 0; i < args->size(); i++) {
 
-    return false;
+        if (isSystemName(args->name(i))) {
+            is_system_arg = true;
+            continue;
+        }
+
+        if (is_system_arg) {
+            NL_PARSER(args->at(i).second, "System arguments must be passed last!");
+        }
+
+        if (args->name(i).empty()) {
+            //            if(check_valid && named) {
+            //                LOG_RUNTIME("Position %d requires a named argument!", (int) i + 1);
+            //            }
+            ObjType base_type = ObjType::Any;
+            if (i < args_count) {
+                ASSERT(proto->at(1).second->m_type);
+                //if (proto->at(1).second->m_type) {
+                base_type = BaseTypeFromString(proto->at(i).second->m_type->m_text);
+                //}
+            }
+
+
+            if (i < args_count) {
+                ASSERT(proto->at(i).second);
+                AstCheckArgsType_(proto->at(i).second, args->at(i).second);
+                //                if (proto->at(i).second && at(i).second->getType() != ObjType::None) {
+                //                    if (!canCast(args->at(i).second->getType(), proto->at(i).second->getType())) {
+                //                        LOG_RUNTIME("Fail cast value '%s' to type '%s'", newlang::toString(args->at(i).second->getType()),
+                //                                newlang::toString(proto->at(i).second->getType()));
+                //                    }
+                //                }
+                //                if (!at(i).second) {
+                //                    at(i).second = Obj::CreateNone();
+                //                }
+                //                if (m_prototype && i < m_prototype->size()) {
+                //                    at(i).second->m_is_reference = (*m_prototype)[i].second->isRef();
+                //                    ObjType limit_type = (*in)[i].second->getTypeAsLimit();
+                //                    if (!canCast(limit_type, base_type)) {
+                //                        // Строку с одним символом можно преобразовать в арифметичсекий тип
+                //                        if (!(isArithmeticType(base_type) && (*in)[i].second->is_string_type() && (*in)[i].second->size() == 1)) {
+                //                            LOG_RUNTIME("Fail cast value !!!!!!!!!!!!!!");
+                //                            //                            LOG_RUNTIME("Fail cast value %s%s to type %s",
+                //                            //                                    (*in)[i].second->toString().c_str(),
+                //                            //                                    newlang::toString((*in)[i].second->getType()),
+                //                            //                                    (*m_prototype)[i].second->m_type->asTypeString.c_str());
+                //                        }
+                //                    }
+                //                }
+                //
+                //                LOG_DEBUG("%s", (*in)[i].second->toString().c_str());
+                //
+                //                at(i).second->op_assign((*in)[i].second->toType(base_type));
+            } else {
+                if (!is_ellipsis && i >= args_count) {
+                    NL_PARSER(args->at(i).second, "Positional args overflow!");
+                }
+                //                push_back(in->at(i).second->toType(base_type), in->at(i).first);
+            }
+        } else {
+            //            named = true;
+            auto found = proto->find(args->name(i));
+            if (found != proto->end()) {
+
+                AstCheckArgsType_(proto->at(i).second, (*found).second);
+
+                //                if ((*found).second && (*found).second->getType() != (*in)[i].second->getType() && (*found).second->getType() != ObjType::None) {
+                //                    LOG_RUNTIME("Different type arg '%s' and '%s'", (*found).second->toString().c_str(),
+                //                            (*in)[i].second->toString().c_str());
+                //                }
+                //                //@todo  Проверка ограничений размер данных при указаном типе
+                //                if (!(*found).second) {
+                //                    (*found).second = Obj::CreateNone();
+                //                }
+                //                (*found).second->op_assign((*in)[i].second);
+            } else {
+                for (int pos = 0; pos < size(); pos++) {
+                    //                    if (!at(pos).first.empty() && at(pos).first.compare(in->at(i).first) == 0) {
+                    //                        at(pos).second->op_assign(in[i]);
+                    goto done;
+                    //                    }
+                }
+                if (!is_ellipsis) {
+                    NL_PARSER(args->at(i).second, "Named arg '%s' not found!", args->name(i).c_str());
+                }
+                //                push_back(in->at(i));
+done:
+                ;
+            }
+        }
+    }
+    for (int i = 0; i < args_count; i++) {
+        //        if (!at(i).second) {
+        //            LOG_RUNTIME("Argument %d '%s' missed!", (int) i + 1, at(i).first.c_str());
+        //        }
+    }
 }
 
 class ParserError : public Return {
@@ -1574,13 +1907,14 @@ void RunTime::AstCheckError(bool force) {
     }
 }
 
-bool RunTime::AstAnalyze(TermPtr &term, bool is_main) {
+bool RunTime::AstAnalyze(TermPtr &term, TermPtr &module) {
     m_error_count = 0;
-    NsStack stack(term);
-    if (is_main) {
-        // Main module name - empty string
-        term->m_module = Term::Create(parser::token_type::END, TermID::STRCHAR, "");
-    }
+    ScopeBlock stack(&module->m_int_vars);
+
+    //    if (is_main) {
+    //        // Main module name - empty string
+    //        term->m_module = Term::Create(parser::token_type::END, TermID::STRCHAR, "");
+    //    }
     try {
         AstRecursiveAnalyzer(term, stack);
         AstCheckError(true);
@@ -1590,21 +1924,54 @@ bool RunTime::AstAnalyze(TermPtr &term, bool is_main) {
     return true;
 }
 
-void RunTime::AstRecursiveAnalyzer(TermPtr &term, NsStack &stack) {
-    if (term->IsLiteral()) {
+TermPtr RunTime::AstLockupName(TermPtr &term, ScopeBlock &stack) {
+    TermPtr result = stack.LookupVar(term->m_text);
+    if (!result) {
+        if (isGlobalScope(term->m_text)) {
+            result = this->GlobFindProto(term->m_text.c_str());
+        }
+    }
+    if (result) {
+        if (!AstCheckType(result, term)) {
+            m_error_count++;
+            AstCheckError(false);
+        } else {
+            term->m_int_name = result->m_int_name;
+        }
+
+        if (term->isCall()) {
+            AstCheckCall_(result, term);
+        }
+    }
+    return result;
+}
+
+void RunTime::AstRecursiveAnalyzer(TermPtr &term, ScopeBlock & stack) {
+    TermPtr found;
+    if (term->isLiteral()) {
 
         return;
 
     } else if (term->getTermID() == TermID::STATIC || term->getTermID() == TermID::LOCAL || term->getTermID() == TermID::NAME
-            || term->getTermID() == TermID::NAMESPACE || term->getTermID() == TermID::FIELD || term->getTermID() == TermID::MODULE) {
+            || term->getTermID() == TermID::NAMESPACE || term->getTermID() == TermID::FIELD || term->getTermID() == TermID::MODULE
+            || term->getTermID() == TermID::FUNCTION) {
 
-        if (!stack.LookupName(term, this)) {
-            NL_MESSAGE(LOG_LEVEL_INFO, term, "NameLookup fail for '%s'!%s", term->m_text.c_str(), stack.GetOffer().c_str());
+        found = AstLockupName(term, stack);
+        if (found) {
+            ASSERT(!found->m_int_name.empty());
+            term->m_int_name = found->m_int_name;
+        } else {
+            //#ifdef BUILD_UNITTEST
+            //            if (term->m_text.compare("__STAT_RUNTIME_UNITTEST__") == 0) {
+            //                return;
+            //            }
+            //#endif
+            NL_MESSAGE(LOG_LEVEL_INFO, term, "NameLookup fail for '%s'!%s", term->m_text.c_str(), stack.Dump().c_str());
             m_error_count++;
             AstCheckError(false);
         }
 
-    } else if (term->IsInterrupt()) {
+    } else if (term->isInterrupt()) {
 
         if (!stack.NameMacroExpand(term->m_namespace)) {
             m_error_count++;
@@ -1615,64 +1982,30 @@ void RunTime::AstRecursiveAnalyzer(TermPtr &term, NsStack &stack) {
             AstCheckError(false);
         }
 
-    } else if (term->IsCreate()) {
+    } else if (term->isCreate()) {
 
         if (!AstCreateOp(term, stack)) {
             m_error_count++;
             AstCheckError(false);
         }
 
-        //        if (term->m_left->isCall()) {
-        //            if (!(term->getTermID() == TermID::CREATE_ONCE || term->getTermID() == TermID::PURE_OVERLAP)) {
-        //                NL_MESSAGE(LOG_LEVEL_INFO, term, "Allowed to create functions only by one-time initialization using '::='!");
-        //                m_error_count++;
-        //                AstCheckError(false);
-        //            }
-        //        }
-        //
-        //        stack.m_op = term;
-        //        AstRecursiveAnalyzer(term->m_left, stack);
-        //
-        //        if (term->m_right->getTermID() == TermID::CLASS) {
-        //
-        //            stack.SetClass(term->m_left);
-        //            AstRecursiveAnalyzer(term->m_right, stack);
-        //            stack.SetClass(nullptr);
-        //
-        //        } else if (term->m_left->isCall()) {
-        //
-        //            stack.SetFunc(term->m_left);
-        //            AstRecursiveAnalyzer(term->m_right, stack);
-        //            stack.SetFunc(nullptr);
-        //
-        //        } else {
-        //            AstRecursiveAnalyzer(term->m_right, stack);
-        //        }
-        //
-        //        stack.m_op = nullptr;
-
     } else if (term->getTermID() == TermID::OPERATOR) {
 
         AstRecursiveAnalyzer(term->m_left, stack);
         AstRecursiveAnalyzer(term->m_right, stack);
 
-        if (!CheckType(term->m_left, term->m_right)) {
+        if (!AstCheckType(term->m_left, term->m_right)) {
             m_error_count++;
             AstCheckError(false);
         }
 
-    } else if (term->IsBlock()) {
-        bool is_pop = !!term->m_namespace;
-        if (is_pop) {
-            stack.NamespacePush(term->m_namespace->m_text);
-        }
+    } else if (term->isBlock()) {
 
+        ScopePush block_scope(stack, term->m_namespace);
         for (auto &elem : term->m_block) {
             AstRecursiveAnalyzer(elem, stack);
         }
-        if (is_pop) {
-            stack.NamespacePop();
-        }
+
     } else if (term->getTermID() == TermID::FOLLOW) {
         ASSERT(term->m_right);
         AstRecursiveAnalyzer(term->m_right, stack);
@@ -1686,7 +2019,7 @@ void RunTime::AstRecursiveAnalyzer(TermPtr &term, NsStack &stack) {
     }
 }
 
-bool RunTime::CheckType(TermPtr &left, TermPtr &right) {
+bool RunTime::AstCheckType(TermPtr &left, TermPtr & right) {
 
     if (left && right) {
         if (!right->m_type && !left->m_type) {
@@ -1719,61 +2052,217 @@ bool RunTime::CheckType(TermPtr &left, TermPtr &right) {
     return false;
 }
 
-bool AstCreateVar(TermPtr &var, TermPtr &value, NsStack &stack);
-bool AstAssignVar(TermPtr &var, TermPtr &value, NsStack &stack);
+//bool AstCreateVar(TermPtr &var, TermPtr &value, ScopeBlock & stack);
+//bool AstAssignVar(TermPtr &var, TermPtr &value, ScopeBlock & stack);
 
-bool RunTime::AstCreateOp(TermPtr &op, NsStack &stack) {
-    return false;
-    //    TermPtr variable = op->m_left;
-    //    TermPtr value = op;
-    //    int right_count = 0;
-    //
-    //    while (variable) {
-    //        if (value->m_right) {
-    //            value = value->m_right;
-    //            right_count++;
-    //        } else if (right_count) {
+bool RunTime::AstCreateOp(TermPtr &op, ScopeBlock & stack) {
+
+    ASSERT(op);
+    ASSERT(op->m_left);
+    ASSERT(op->m_right);
+
+    if (!op->m_left->isCall()) {
+        // Создание переменной
+        TermPtr term = op;
+        TermPtr var;
+        std::string int_name;
+        bool name_exist;
+        while (term->m_left) {
+
+            term = op->m_left;
+            if (!term->m_type && op->m_right->m_type) {
+                term->m_type = op->m_right->m_type;
+            }
+            int_name = stack.CreateVarName(term->m_text);
+            var = AstLockupName(term, stack);
+
+            if (op->isCreateOnce()) {
+                if (var) {
+                    NL_MESSAGE(LOG_LEVEL_INFO, term, "Name '%s' already exist!", var->m_text.c_str());
+                    m_error_count++;
+                    AstCheckError(false);
+                    return false;
+                }
+            } else if (op->getTermID() == TermID::ASSIGN) {
+                if (!var) {
+                    NL_MESSAGE(LOG_LEVEL_INFO, term, "Name '%s' not exist!", term->m_text.c_str());
+                    m_error_count++;
+                    AstCheckError(false);
+                    return false;
+                }
+            } else {
+                ASSERT(op->isCreateOverlap());
+            }
+
+            if (!var) {
+                term->m_int_name = int_name;
+                if (!stack.AddName(term)) {
+                    m_error_count++;
+                    AstCheckError(false);
+                    return false;
+                }
+            }
+
+            if (!AstCheckType(term, op->m_right)) {
+                m_error_count++;
+                AstCheckError(false);
+            }
+
+        }
+        return true;
+
+    } else {
+        // Создание функции
+        if (op->m_left->m_left) {
+            NL_MESSAGE(LOG_LEVEL_INFO, op->m_left->m_left, "Multiple function creation is not supported!");
+            return false;
+        }
+
+        TermPtr proto = op->m_left;
+
+        proto->m_id = TermID::FUNCTION;
+        proto->m_int_name = stack.CreateVarName(proto->m_text);
+
+        ScopePush block_args(stack, proto);
+
+        //  Add default args self and all args as dict
+        TermPtr all = Term::CreateDict();
+        TermPtr arg;
+        std::string name;
+        for (size_t i = 0; i < proto->size(); i++) {
+
+            ASSERT(proto->at(i).second);
+            if (proto->at(i).second->getTermID() == TermID::ELLIPSIS) {
+                if (i + 1 != proto->size()) {
+                    NL_MESSAGE(LOG_LEVEL_INFO, proto->at(i).second, "The ellipsis must be the last argument!");
+                    return false;
+                }
+                break;
+            }
+
+            // Named arguments
+            if (proto->at(i).first.empty()) {
+                if (proto->at(i).second->getTermID() != TermID::NAME) {
+                    NL_MESSAGE(LOG_LEVEL_INFO, proto->at(i).second, "Argument name expected!");
+                    return false;
+                }
+                all->push_back({stack.CreateVarName(proto->at(i).second->m_text), proto->at(i).second});
+
+                TermPtr none = Term::CreateNil();
+                none->m_int_name = stack.CreateVarName(proto->at(i).second->m_text);
+                if (!stack.AddName(none) || !proto->m_variables.AddName(none)) {
+                    return false;
+                }
+            } else {
+                proto->at(i).second->m_int_name = stack.CreateVarName(proto->at(i).first);
+                all->push_back({stack.CreateVarName(proto->at(i).first), proto->at(i).second});
+                if (!stack.AddName(proto->at(i).second) || !proto->m_variables.AddName(proto->at(i).second)) {
+                    return false;
+                }
+            }
+
+            name = "$";
+            name += std::to_string(i + 1);
+            // Positional arguments
+            if (!stack.AddName(proto->at(i).second, name.c_str()) || !proto->m_variables.AddName(proto->at(i).second, name.c_str())) {
+                return false;
+            }
+
+        }
+
+        TermPtr none = Term::CreateNil();
+        none->m_int_name = stack.CreateVarName("$0");
+
+        if (!stack.AddName(all, "$*") || !stack.AddName(none, "$0") ||
+                !proto->m_variables.AddName(all, "$*") || !proto->m_variables.AddName(none, "$0")) {
+            return false;
+        }
+
+        if (!stack.AddName(proto)) {
+            m_error_count++;
+            AstCheckError(false);
+            return false;
+        }
+
+        ASSERT(op->m_right);
+        AstRecursiveAnalyzer(op->m_right, proto->m_variables);
+
+        return true;
+    }
+}
+
+void RunTime::AstCheckCall_(TermPtr &proto, TermPtr &call) {
+
+    ASSERT(proto);
+    ASSERT(call);
+    ASSERT(call->isCall());
+
+    // Object clone
+    if (!proto->isCall()) {
+        if (call->size()) {
+            NL_MESSAGE(LOG_LEVEL_INFO, call->at(0).second, "Cloning objects with field overrides is not implemented!");
+            m_error_count++;
+            AstCheckError(false);
+        }
+        return;
+    }
+
+    call->m_variables = proto->m_variables;
+
+    // Function call
+    //    for (size_t i = 0; i < proto->size(); i++) {
+    //        ASSERT(proto->at(i).second);
+    //        if (proto->at(i).second.get() != getRequiredTerm().get()) {
+    //            if (proto->at(i).second->m_obj) {
+    //            }
     //        }
-    //        if (!AstCreateVar(variable, value, stack)) {
-    //            return false;
+    //    }
+
+    //    for (size_t i = 0; i < proto->size(); i++) {
+    //
+    //        name = func->at(i).first;
+    //        term = func->at(i).second;
+    //        ASSERT(term);
+    //
+    //        if (term.get() == getRequiredTerm().get()) {
+    //            //            pos_count++;
+    //            if (named_args) {
+    //                NL_PARSER(term, "A named argument is expected!");
+    //            }
+    //            // Обязательный позиционный аргумент
+    //            if (i < args->size()) {
+    //                NL_PARSER(term, "Missing required argument");
+    //            }
+    //            if (!args->at(i).first.empty()) {
+    //                NL_PARSER(args->at(i).second, "Requires a positional argument!");
+    //            }
+    //            if (m_runtime->AstCheckArgs_(term, args->at(i).second)) {
+    //                NL_PARSER(args->at(i).second, "Fail argument type!");
+    //            }
+    //
+    //        } else {
+    //            //Именованный аргумент
+    //            named_args = true;
+    //            auto found = args->find(name);
+    //            if (found == args->end()) {
+    //                NL_PARSER(term, "Named argument Fail argument type!");
+    //            }
     //        }
-    //        variable = op->m_left;
+    //
+    //
+    //        TermPtr var = func->m_variables.FindVar(scope.CreateVarName(name));
+    //        if (!var) {
+    //            NL_PARSER(args->at(i).second, "Argument name '%s' not fund!%s", name.c_str(), func->m_variables.Dump().c_str());
+    //        }
+    //        var->m_obj = m_runtime->Run(args->at(i).second);
+    //        all->push_back({name, varj});
     //    }
     //
+    //    if (func->size() > args->size()) {
+    //        for (size_t i = func->size(); args->size(); i++) {
+    //            // Все оставшиеся переданные аргументы
     //
-    //    if (op->isCreateOnce()) {
-    //    } else if (op->isCreateOverlap()) {
-    //    } else {
-    //        ASSERT(op->isCreate());
-    //    }
-    //
-    //    if (term->m_left->isCall()) {
-    //        if (!(term->getTermID() == TermID::CREATE_ONCE || term->getTermID() == TermID::PURE_OVERLAP)) {
-    //            NL_MESSAGE(LOG_LEVEL_INFO, term, "Allowed to create functions only by one-time initialization using '::='!");
-    //            m_error_count++;
-    //            AstCheckError(false);
     //        }
     //    }
-    //
-    //    stack.m_op = term;
-    //    AstRecursiveAnalyzer(term->m_left, stack);
-    //
-    //    if (term->m_right->getTermID() == TermID::CLASS) {
-    //
-    //        stack.SetClass(term->m_left);
-    //        AstRecursiveAnalyzer(term->m_right, stack);
-    //        stack.SetClass(nullptr);
-    //
-    //    } else if (term->m_left->isCall()) {
-    //
-    //        stack.SetFunc(term->m_left);
-    //        AstRecursiveAnalyzer(term->m_right, stack);
-    //        stack.SetFunc(nullptr);
-    //
-    //    } else {
-    //        AstRecursiveAnalyzer(term->m_right, stack);
-    //    }
-    //
-    //    stack.m_op = nullptr;
 
 }

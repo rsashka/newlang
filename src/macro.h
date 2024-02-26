@@ -14,7 +14,7 @@ namespace newlang {
     typedef std::shared_ptr<std::string> SourceType;
     typedef std::vector<std::string> PostLexerType;
 
-    class Macro : SCOPE(protected) std::map<std::string, BlockType>, public std::enable_shared_from_this<Macro> {
+    class Macro : SCOPE(public) std::map<std::string, BlockType>, public std::enable_shared_from_this<Macro> {
     public:
 
         /*

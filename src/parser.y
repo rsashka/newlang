@@ -213,13 +213,16 @@
 
 %token			END         0	"end of file"
 
-%token                  SOURCE
+%token                  EMBED
 %token			ITERATOR
 %token			ITERATOR_QQ
 
 %token			PURE_ONCE
 %token			PURE_OVERLAP
 %token			OPERATOR
+%token			OP_MATH
+%token			OP_COMPARE
+%token			OP_BITWISE
 %token			DOC_BEFORE
 %token			DOC_AFTER
 
@@ -585,28 +588,48 @@ name_to_concat:  MACRO_ARGUMENT
         {
             $$ = $1;
         }
+
+strwide: STRWIDE
+            {
+                $$ = $1;
+                $$->SetType(nullptr);
+            }
+        | strwide  STRWIDE
+            {
+                $$ = $1;
+                $$->m_text.append($2->m_text);
+            }
+
+strchar: STRCHAR
+            {
+                $$ = $1;
+                $$->SetType(nullptr);
+            }
+        | strchar  STRCHAR
+            {
+                $$ = $1;
+                $$->m_text.append($2->m_text);
+            }
         
-strtype: STRWIDE
-        {
-            $$ = $1;
-            $$->SetType(nullptr);
-        }
-    | STRCHAR
-        {
-            $$ = $1;
-            $$->SetType(nullptr);
-        }
-    |  MACRO_TOSTR   name_to_concat
-        {            
-            $$ = $1;
-            $$->Append($2, Term::RIGHT); 
-        }
-    |  name_to_concat  MACRO_CONCAT  name_to_concat
-       {            
-            $$ = $2;
-            $$->Append($1, Term::LEFT); 
-            $$->Append($3, Term::RIGHT); 
-        }
+strtype: strwide
+            {
+                $$ = $1;
+            }
+        | strchar
+            {
+                $$ = $1;
+            }
+        |  MACRO_TOSTR   name_to_concat
+            {            
+                $$ = $1;
+                $$->Append($2, Term::RIGHT); 
+            }
+        |  name_to_concat  MACRO_CONCAT  name_to_concat
+           {            
+                $$ = $2;
+                $$->Append($1, Term::LEFT); 
+                $$->Append($3, Term::RIGHT); 
+            }
     
 
 string: strtype
@@ -1551,17 +1574,17 @@ operator: OPERATOR
         | '~'
             {
                 $$ = $1;
-                $$->SetTermID(TermID::OPERATOR);
+                $$->SetTermID(TermID::OP_COMPARE);
             }
         | '>'
             {
                 $$ = $1;
-                $$->SetTermID(TermID::OPERATOR);
+                $$->SetTermID(TermID::OP_COMPARE);
             }
         | '<'
             {
                 $$ = $1;
-                $$->SetTermID(TermID::OPERATOR);
+                $$->SetTermID(TermID::OP_COMPARE);
             }
         |  OPERATOR_AND
             {
@@ -1571,26 +1594,26 @@ operator: OPERATOR
         |  OPERATOR_ANGLE_EQ
             {
                 $$ = $1;
-                $$->SetTermID(TermID::OPERATOR);
+                $$->SetTermID(TermID::OP_COMPARE);
             }
         |  OPERATOR_DUCK
             {
                 $$ = $1;
-                $$->SetTermID(TermID::OPERATOR);
+                $$->SetTermID(TermID::OP_COMPARE);
             }
 
 
 arithmetic:  arithmetic '+' addition
                 { 
                     $$ = $2;
-                    $$->SetTermID(TermID::OPERATOR);
+                    $$->SetTermID(TermID::OP_MATH);
                     $$->Append($1, Term::LEFT);                    
                     $$->Append($3, Term::RIGHT); 
                 }
             | arithmetic '-'  addition
                 { 
                     $$ = $2;
-                    $$->SetTermID(TermID::OPERATOR);
+                    $$->SetTermID(TermID::OP_MATH);
                     $$->Append($1, Term::LEFT);                    
                     $$->Append($3, Term::RIGHT); 
                 }
@@ -1600,7 +1623,7 @@ arithmetic:  arithmetic '+' addition
                         NL_PARSER($digits, "Missing operator between '%s' and '%s'", $addition->m_text.c_str(), $digits->m_text.c_str());
                     }
                     //@todo location
-                    $$ = Term::Create(token::OPERATOR, TermID::OPERATOR, $2->m_text.c_str(), 1, & @$);
+                    $$ = Term::Create(token::OP_MATH, TermID::OP_MATH, $2->m_text.c_str(), 1, & @$);
                     $$->Append($1, Term::LEFT); 
                     $2->m_text = $2->m_text.substr(1);
                     $$->Append($2, Term::RIGHT); 
@@ -1637,7 +1660,7 @@ addition:  addition  op_factor  factor
                     }
     
                     $$ = $op_factor;
-                    $$->SetTermID(TermID::OPERATOR);
+                    $$->SetTermID(TermID::OP_MATH);
                     $$->Append($1, Term::LEFT); 
                     $$->Append($3, Term::RIGHT); 
                 }
@@ -1652,7 +1675,7 @@ factor:   rval_var
             }
         | '-'  factor
             { 
-                $$ = Term::Create(token::OPERATOR, TermID::OPERATOR, "-", 1,  & @$);
+                $$ = Term::Create(token::OP_MATH, TermID::OP_MATH, "-", 1,  & @$);
                 $$->Append($2, Term::RIGHT); 
             }
         | '('  arithmetic  ')'
@@ -1690,8 +1713,18 @@ symbolyc: SYM_BEGIN  arithmetic  SYM_END   PURE_OVERLAP   SYM_BEGIN  sequence  S
                 $$->Append($sequence, Term::RIGHT); 
             }
    
+
+embed: EMBED
+            {
+                $$ = $1;
+            }
+        | embed  EMBED
+            {
+                $$ = $1;
+                $$->m_text.append($2->m_text);
+            }
         
-condition: SOURCE
+condition: embed
             {
                 $$=$1;
             }

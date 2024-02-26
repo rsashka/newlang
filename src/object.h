@@ -74,7 +74,7 @@ namespace newlang {
     }
 
     /* Для конвертирования словаря в тензор для вывода общего типа данных для всех элементов */
-    ObjType getSummaryTensorType(Obj *obj, ObjType start);
+    ObjType getSummaryTensorType(Obj *obj, ObjType start = ObjType::None);
     void ConvertStringToTensor(const std::string &from, torch::Tensor &to, ObjType type = ObjType::None);
     void ConvertStringToTensor(const std::wstring &from, torch::Tensor &to, ObjType type = ObjType::None);
     void ConvertTensorToString(const torch::Tensor &from, std::string &to, std::vector<Index> *index = nullptr);
@@ -558,7 +558,7 @@ namespace newlang {
 
         [[nodiscard]]
         inline bool is_scalar() const {
-            return is_tensor_type() && !m_tensor.defined();// || m_tensor.dim() == 0);
+            return is_tensor_type() && !m_tensor.defined(); // || m_tensor.dim() == 0);
         }
 
         [[nodiscard]]
@@ -1402,8 +1402,8 @@ namespace newlang {
                 case ObjType::Integer:
                     if (at::holds_alternative<int64_t>(m_var)) {
                         return at::get<int64_t>(m_var);
-//                    } else if (m_tensor.dim()==0) {
-//                        return m_tensor.item<int64_t>();
+                        //                    } else if (m_tensor.dim()==0) {
+                        //                        return m_tensor.item<int64_t>();
                     }
                     ASSERT(!is_scalar());
                     LOG_RUNTIME("Can`t convert tensor to scalar!");

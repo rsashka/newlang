@@ -5,19 +5,15 @@ site navigation, structure, and more. This **Docsy Example Project** uses the Do
 theme component as a hugo module and provides a skeleton documentation structure for you to use.
 You can clone/copy this project and edit it with your own content, or use it as an example.
 
-In this project, the Docsy theme component is pulled in as a Hugo module, together with other module dependencies:
+In this project, the Docsy theme is pulled in as a Hugo module, together with
+its dependencies:
 
 ```console
 $ hugo mod graph
-hugo: collected modules in 566 ms
-hugo: collected modules in 578 ms
-github.com/google/docsy-example github.com/google/docsy@v0.7.1
-github.com/google/docsy-example github.com/google/docsy/dependencies@v0.7.1
-github.com/google/docsy/dependencies@v0.7.1 github.com/twbs/bootstrap@v5.2.3+incompatible
-github.com/google/docsy/dependencies@v0.7.1 github.com/FortAwesome/Font-Awesome@v0.0.0-20230327165841-0698449d50f2
+...
 ```
 
-You can find detailed theme instructions in the [Docsy user guide][].
+For Docsy documentation, see [Docsy user guide][].
 
 This Docsy Example Project is hosted on [Netlify][] at [example.docsy.dev][].
 You can view deploy logs from the [deploy section of the project's Netlify
@@ -29,7 +25,7 @@ This is not an officially supported Google product. This project is currently ma
 
 A simple way to get started is to use this project as a template, which gives you a site project that is set up and ready to use. To do this:
 
-1. Use the dropdown for switching branches/tags to change to the latest released tag `v0.7.1`
+1. Use the dropdown for switching branches/tags to change to the **latest** released tag.
 
 2. Click **Use this template**.
 
@@ -101,6 +97,40 @@ To remove the produced images run:
 docker-compose rm
 ```
 For more information see the [Docker Compose documentation][].
+
+## Using a local Docsy clone
+
+Make sure your installed go version is `1.18` or higher.
+
+Clone the latest version of the docsy theme into the parent folder of your project. The newly created repo should now reside in a sibling folder of your site's root folder.
+
+```shell
+cd root-of-your-site
+git clone --branch v0.7.2 https://github.com/google/docsy.git ../docsy
+```
+
+Now run:
+
+```shell
+HUGO_MODULE_WORKSPACE=docsy.work hugo server --ignoreVendorPaths "**"
+```
+
+or, when using npm, prepend `local` to the script you want to invoke, e.g.:
+
+```shell
+npm run local serve
+```
+
+By using the `HUGO_MODULE_WORKSPACE` directive (either directly or via prefix `local` when using npm), the server now watches all files and directories inside the sibling directory `../docsy` , too. Any changes inside the local `docsy` theme clone are  now immediately picked up (hot reload), you can instantly see the effect of your local edits.
+
+In the command above, we used the environment variable `HUGO_MODULE_WORKSPACE` to tell hugo about the local workspace file `docsy.work`. Alternatively, you can declare the workspace file inside your settings file `hugo.toml`:
+
+```toml
+[module]
+  workspace = "docsy.work"
+```
+
+Your project's `hugo.toml` file already contains these lines, the directive for workspace assignment is commented out, however. Remove the two trailing comment characters '//' so that this line takes effect.
 
 ## Troubleshooting
 

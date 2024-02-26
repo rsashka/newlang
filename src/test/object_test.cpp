@@ -2,7 +2,7 @@
 
 #include "types.h"
 
-#ifdef UNITTEST
+#ifdef BUILD_UNITTEST
 
 #include "rational.h"
 

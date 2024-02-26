@@ -428,5 +428,89 @@ namespace newlang {
 
     };
 
+    /* 
+     * Выполняет модуль (файл/ast)
+     */
+
+    class Runner : SCOPE(public) std::vector<ObjMapType>, public std::enable_shared_from_this<Runner> {
+        SCOPE(private) :
+        RuntimePtr m_runtime;
+        ObjPtr m_latter;
+
+    public:
+
+        Runner(RuntimePtr rt) : m_runtime(rt) {
+        }
+
+        virtual ~Runner() {
+        }
+
+        //        ObjPtr Run(const std::string_view str, Obj *args = nullptr);
+        ObjPtr Run(TermPtr ast, Obj *args = nullptr);
+
+        ObjPtr GetObject(const std::string_view name) {
+            //            if (!isMangledName(name)) {
+            //                LOG_RUNTIME("Name '%s' not mangled!", name.begin());
+            //            }
+            //            std::string_view module_name(name);
+
+            auto iter = rbegin();
+            while (iter != rend()) {
+                if (iter->find(name.begin()) != iter->end()) {
+                    return iter->at(name.begin());
+                }
+                iter++;
+            }
+            //            if (isGlobalScope(name)) {
+            //                LOG_RUNTIME("Object '%s' not found!", name.begin());
+            //            }
+            LOG_RUNTIME("Object '%s' not found!", name.begin());
+        }
+
+    protected:
+        ObjPtr Call_(TermPtr &proto, TermPtr &args);
+
+        ObjPtr MakeArgs_(ScopeBlock &scope, TermPtr &proto, TermPtr &args);
+
+        /**
+         * Выполняет одну операцию
+         * @param op
+         * @param run
+         * @return 
+         */
+        inline void CheckObjTerm_(TermPtr &term) {
+            if (!term->m_obj) {
+                term->m_obj = EvalTerm_(term);
+            }
+        }
+
+
+        ObjPtr EvalTerm_(TermPtr &op);
+        ObjPtr EvalCreate_(TermPtr &op);
+        ObjPtr AssignVars_(ArrayTermType &vars, const TermPtr &r_term, bool is_pure);
+        ObjPtr EvalOp_(TermPtr &op);
+        ObjPtr EvalOpOther_(TermPtr &op);
+
+        ObjPtr EvalOpMath_(TermPtr &op);
+        ObjPtr EvalOpBitwise_(TermPtr &op);
+        ObjPtr EvalOpCompare_(TermPtr &op);
+
+
+        /**
+         * Выполняет группу операций, которые записаны в стек
+         * @param op
+         * @param run
+         * @return 
+         */
+        //        static ObjPtr EvalBlock(TermPtr op, Runner *run = nullptr);
+        ObjPtr EvalBlock_(TermPtr &block, TermPtr proto);
+        ObjPtr CalcTerm(const TermPtr &term);
+
+
+        static TermPtr EvalStack(Runner &run);
+        int EvalInterrupt_(TermPtr op, std::string &label);
+
+    };
+
 }
 #endif //INCLUDED_NEWLANG_CONTEXT_

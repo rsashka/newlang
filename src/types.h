@@ -30,6 +30,7 @@ typedef std::vector<std::string> StringArray;
 class Term;
 class Obj;
 class Context;
+class Runner;
 class Module;
 
 namespace runtime {
@@ -61,10 +62,13 @@ typedef std::shared_ptr<Term> TermPtr;
 typedef std::shared_ptr<Module> ModulePtr;
 typedef std::shared_ptr<runtime::Buildin> BuildinPtr;
 
-typedef std::vector<TermPtr> BlockType;
 
 typedef std::shared_ptr<Obj> ObjPtr;
 typedef std::shared_ptr<const Obj> ObjPtrConst;
+
+typedef std::vector<TermPtr> BlockType;
+typedef std::vector<TermPtr> ArrayTermType;
+typedef std::vector<ObjPtr> ArrayObjType;
 
 typedef std::weak_ptr<Obj> ObjWeak;
 typedef std::weak_ptr<const Obj> ObjWeakConst;
@@ -73,6 +77,7 @@ typedef std::shared_ptr<RunTime> RuntimePtr;
 typedef std::shared_ptr<Diag> DiagPtr;
 typedef std::shared_ptr<Macro> MacroPtr;
 typedef std::shared_ptr<Parser> ParserPtr;
+typedef std::shared_ptr<Runner> RunnerPtr;
 
 typedef ObjPtr FunctionType(Context *ctx, Obj &in);
 typedef ObjPtr TransparentType(const Context *ctx, Obj &in);
@@ -109,6 +114,30 @@ class Return : public std::exception {
     const ObjPtr m_obj;
     char m_buffer_message[1000];
     
+};
+
+class IntAny : public std::exception {
+  public:
+
+    IntAny(const ObjPtr obj): m_obj(obj){
+    }
+
+    virtual const char *what() const noexcept override;
+    
+    const ObjPtr m_obj;
+    char m_buffer_message[1000];
+};
+
+class IntPlus : public IntAny {
+public:
+    IntPlus(const ObjPtr obj): IntAny(obj){
+    }
+};
+
+class IntMinus : public IntAny {
+public:
+    IntMinus(const ObjPtr obj): IntAny(obj){
+    }
 };
 
 void NewLangSignalHandler(int signal);
@@ -169,7 +198,7 @@ void ParserException(const char *msg, std::string &buffer, int row, int col);
     do {                                                                                                               \
         std::string empty;                                                                                             \
         std::string message =                                                                                          \
-            newlang::ParserMessage(term->m_source ? *term->m_source : empty, term->m_line, term->m_col, format, ##__VA_ARGS__); \
+            newlang::ParserMessage((term && term->m_source) ? *term->m_source : empty, term?term->m_line:1, term?term->m_col:0, format, ##__VA_ARGS__); \
         LOG_MAKE(level, "", "%s", message.c_str());                                 \
     } while (0)
 
@@ -287,7 +316,7 @@ void ParserException(const char *msg, std::string &buffer, int row, int col);
     \
     _(RetPlus, 210)         \
     _(RetMinus, 211)        \
-    _(IntRepeat, 212)        \
+    _(RetRepeat, 212)        \
     _(IntParser, 213)       \
     _(IntError, 214)        \
     \
@@ -529,6 +558,11 @@ void ParserException(const char *msg, std::string &buffer, int row, int col);
     bool isDefaultType(const TermPtr & term);
     const TermPtr getDefaultType(const std::string_view text);
     const TermPtr getDefaultType(ObjType type);
+    const TermPtr getNoneTerm();
+    const TermPtr getEllipsysTerm();
+    const TermPtr getRequiredTerm();
+    const ObjPtr getNoneObj();
+    const ObjPtr getEllipsysObj();
 
     inline bool isBaseType(ObjType t) {
         return t == ObjType::Bool || t == ObjType::Int8 || t == ObjType::Int16 || t == ObjType::Int32
@@ -589,6 +623,10 @@ void ParserException(const char *msg, std::string &buffer, int row, int col);
 
     inline bool isString(ObjType t) {
         return isStringChar(t) || isStringWide(t) || t == ObjType::String;
+    }
+
+    inline bool isInterrupt(ObjType t) {
+        return t == ObjType::RetPlus || t == ObjType::RetMinus || t == ObjType::RetRepeat;
     }
 
     inline bool isPlainDataType(ObjType t) {
@@ -969,20 +1007,33 @@ void ParserException(const char *msg, std::string &buffer, int row, int col);
      *
      *
      */
-    inline bool isModuleName(const std::string &name) {
+    inline bool isInternalName(const std::string_view name) {
+        return !name.empty() && (name.rbegin()[0] == ':' || name.rbegin()[0] == '$');
+    }
+
+    inline bool isMangledName(const std::string_view name) {
+        return name.size() > 4 && name[0] == '_' && name[1] == '$';
+    }
+
+    inline bool isModuleName(const std::string_view name) {
         return !name.empty() && name[0] == '\\';
     }
 
-    inline bool isStaticName(const std::string &name) {
-        return name.find("::") != std::string::npos && name.find("&&") != std::string::npos;
+    inline bool isStaticName(const std::string_view name) {
+        return name.find("::") != std::string::npos; // && name.find("&&") != std::string::npos;
     }
 
-    inline bool isLocalName(const std::string &name) {
+    inline bool isTrivialName(const std::string_view name) {
+        return name.find("$") == std::string::npos && name.find(":") == std::string::npos && name.find("@") == std::string::npos;
+    }
+
+    inline bool isLocalName(const std::string_view name) {
         return !isStaticName(name) && name.find("$") != std::string::npos && name[0] != '@';
     }
 
-    inline bool isGlobalScope(const std::string &name) {
-        return name.find("::") == 0;
+    inline bool isGlobalScope(const std::string_view name) {
+        ASSERT(!isMangledName(name));
+        return name.size() > 1 && ((name[0] == ':' && name[1] == ':') || (name[0] == '$' && name[1] == '$'));
     }
 
     inline bool isModuleScope(const std::string &name) {
@@ -990,7 +1041,7 @@ void ParserException(const char *msg, std::string &buffer, int row, int col);
         return pos && pos != std::string::npos && name[0] != '@';
     }
 
-    inline bool isTypeName(const std::string &name) {
+    inline bool isTypeName(const std::string_view name) {
         if (isGlobalScope(name)) {
             return name.find(":::") != std::string::npos;
         } else {
@@ -998,73 +1049,114 @@ void ParserException(const char *msg, std::string &buffer, int row, int col);
         }
     }
 
-    inline bool isFullName(const std::string &name) {
+    inline bool isFullName(const std::string_view name) {
+
         return name.size() > 1 && name[0] == ':' && name[1] == ':';
     }
 
-    inline bool isMacroName(const std::string &name) {
+    inline bool isMacroName(const std::string_view name) {
+
         return !name.empty() && name[0] == '@';
     }
 
-    inline bool isNativeName(const std::string &name) {
+    inline bool isNativeName(const std::string_view name) {
+
         return !name.empty() && name[0] == '%';
     }
 
-    inline bool isLocalAnyName(const char *name) {
-        return name && (name[0] == '$' || name[0] == '@' || name[0] == ':' || name[0] == '%' || name[0] == '\\');
+    inline bool isLocalAnyName(const std::string_view name) {
+
+        return !name.empty() && (name[0] == '$' || name[0] == '@' || name[0] == ':' || name[0] == '%' || name[0] == '\\');
     }
 
-    inline bool isMutableName(const std::string name) {
+    inline bool isMutableName(const std::string_view name) {
         // Метод, который изменяет объект, должен заканчиваеться на ОДИН подчерк
+
         return name.size() > 1 && name[name.size() - 1] == '_' && name[name.size() - 2] != '_';
     }
 
-    inline bool isSystemName(const std::string name) {
+    inline bool isSystemName(const std::string_view name) {
         if (name.empty()) {
+
             return false;
         }
         return name.size() >= 4 && name.find("__") == 0 && name.rfind("__") == name.size() - 2;
     }
 
-    inline bool isPrivateName(const std::string name) {
+    inline bool isPrivateName(const std::string_view name) {
         if (name.empty()) {
+
             return false;
         }
         return name.size() >= 3 && name.find("__") == 0;
     }
 
-    inline bool isHidenName(const std::string name) {
+    inline bool isHidenName(const std::string_view name) {
+
         return !isPrivateName(name) && name.find("_") == 0;
     }
 
-    inline bool isVariableName(const std::string name) {
-        LOG_DEBUG("%s", name.c_str());
+    inline bool isVariableName(const std::string_view name) {
+        LOG_DEBUG("%s", name.begin());
         if (isModuleName(name)) {
+
             return name.find("::") != name.npos;
         }
         return !isTypeName(name);
     }
 
-    inline bool isConstName(const std::string name) {
+    inline bool isConstName(const std::string_view name) {
+
         return !name.empty() && name[name.size() - 1] == '^';
+    }
+
+    inline std::string NormalizeName(const std::string_view name) {
+        std::string result(name.begin());
+        ASSERT(result.size());
+        if (isInternalName(name)) {
+            return result;
+        } else if (isLocalName(name)) {
+            result = result.substr(1);
+            result += "$";
+        } else if (isTrivialName(name)) {
+            result += "$";
+        } else if (isTypeName(name)) {
+            result = result.substr(1);
+            result += ":::";
+        } else {
+            if (!isStaticName(name)) {
+                ASSERT(isStaticName(name));
+            }
+            if (result[0] == '@' && result.find("@::") == 0) {
+                result = result.substr(3);
+            }
+            result += "::";
+        }
+        return result;
     }
 
     inline std::string MakeName(std::string name) {
         if (!name.empty() && (name[0] == '\\' || name[0] == '$' || name[0] == '@' || name[0] == '%')) {
+
             return name.find("\\\\") == 0 ? name.substr(2) : name.substr(1);
         }
         return name;
     }
 
-    inline std::string ExtractModuleName(const char *str) {
-        std::string name(str);
-        if (isModuleName(name)) {
-            size_t pos = name.find("::");
-            if (pos != std::string::npos) {
-
-                return name.substr(0, pos);
+    inline std::string ExtractModuleName(const std::string_view name) {
+        if (isMangledName(name)) {
+            std::string result(name.begin(), name.begin() + name.find("$_"));
+            result[1] = '_';
+            std::replace(result.begin(), result.end(), '_', '\\');
+            return result;
+        } else {
+            if (isModuleName(name)) {
+                size_t pos = name.find("::");
+                if (pos != std::string::npos) {
+                    return std::string(name.begin(), name.begin() + pos);
+                }
+                return std::string(name.begin(), name.end());
             }
-            return name;
         }
         return std::string();
     }
@@ -1081,28 +1173,33 @@ void ParserException(const char *msg, std::string &buffer, int row, int col);
         return name;
     }
 
-    class TermName : public std::string {
+    class InternalName : public std::string {
     public:
 
-        TermName(const std::string str) {
+        InternalName(const std::string str) {
+
             this->assign(str);
         }
 
-        TermName(const char * str = nullptr) {
+        InternalName(const char * str = nullptr) {
+
             this->assign(str ? str : "");
         }
 
-        TermName(const TermName &name) {
+        InternalName(const InternalName &name) {
+
             this->assign(name);
         }
 
-        TermName& operator=(const TermName & name) {
+        InternalName& operator=(const InternalName & name) {
             this->assign(name);
+
             return *this;
         }
 
-        TermName& operator=(const char * name) {
+        InternalName& operator=(const char * name) {
             this->assign(name);
+
             return *this;
         }
 
@@ -1112,87 +1209,130 @@ void ParserException(const char *msg, std::string &buffer, int row, int col);
          * 
          */
 
+        inline bool isInternalName() {
+            return newlang::isInternalName(*this);
+        }
+
+        inline std::string getMangledName(const std::string_view module) {
+            std::string result(*this);
+            if (!isInternalName()) {
+                LOG_RUNTIME("The name '%s' is not internal!", result.c_str());
+            }
+            if (module.size() > 2) {
+                result.insert(0, "$_");
+                result.insert(result.begin(), module.begin() + 2, module.end());
+                std::replace(result.begin(), result.begin()+(module.begin() - module.end() - 2), '\\', '$');
+                result.insert(0, "_$");
+            } else {
+                result.insert(0, "_$$_");
+            }
+            return result;
+        }
+
+        static std::string ExtractModuleName(const std::string_view name) {
+            return newlang::ExtractModuleName(name);
+        }
 
         inline bool isModule() {
+
             return newlang::isModuleName(this->c_str());
         }
 
         inline bool isStatic() {
+
             return newlang::isStaticName(this->c_str());
         }
 
         inline bool isLocal() {
+
             return newlang::isLocalName(this->c_str());
         }
 
         inline bool isGlobalScope() {
+
             return newlang::isGlobalScope(*this);
         }
 
         inline bool isModuleScope() {
+
             return newlang::isModuleScope(*this);
         }
 
         inline bool isTypeName() {
+
             return newlang::isTypeName(this->c_str());
         }
 
         inline bool isFullName() {
+
             return newlang::isFullName(this->c_str());
         }
 
         inline bool isMacroName() {
+
             return newlang::isMacroName(this->c_str());
         }
 
         inline bool isNativeName() {
+
             return newlang::isNativeName(this->c_str());
         }
 
         inline bool isLocalAnyName() {
+
             return newlang::isLocalAnyName(this->c_str());
         }
 
         inline bool isMutableName() {
             // Метод, который изменяет объект, должен заканчиваеться на ОДИН подчерк
+
             return newlang::isMutableName(this->c_str());
         }
 
         inline bool isSystemName() {
+
             return newlang::isSystemName(this->c_str());
         }
 
         inline bool isPrivateName(const std::string name) {
+
             return newlang::isPrivateName(this->c_str());
         }
 
         inline bool isHidenName() {
+
             return newlang::isHidenName(this->c_str());
         }
 
         inline bool isVariableName() {
+
             return newlang::isVariableName(this->c_str());
         }
 
         inline bool isConstName() {
+
             return newlang::isConstName(this->c_str());
         }
 
         inline std::string SetFromLocalName(std::string name) {
             this->assign(name);
+
             return *this;
         }
 
         inline std::string SetFromGlobalName(std::string name) {
             this->assign(name);
+
             return *this;
         }
 
         inline std::string GetLocalName() {
+
             return *this;
         }
 
         inline std::string GetGlobalName(std::string module_name) {
+
             return *this;
         }
 
@@ -1204,10 +1344,12 @@ void ParserException(const char *msg, std::string &buffer, int row, int col);
         //        }
 
         inline std::string ExtractModuleName() {
+
             return newlang::ExtractModuleName(this->c_str());
         }
 
         inline std::string ExtractName() {
+
             return newlang::ExtractName(this->c_str());
         }
 
@@ -1223,6 +1365,7 @@ void ParserException(const char *msg, std::string &buffer, int row, int col);
     inline std::string DimToString(const Dimension dim) {
         std::stringstream ss;
         ss << dim;
+
         return ss.str();
     }
 

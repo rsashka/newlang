@@ -137,11 +137,11 @@ void Parser::AstAddTerm(TermPtr &term) {
     if (m_ast->m_id == TermID::END) {
         m_ast = term;
         m_ast->ConvertSequenceToBlock(TermID::BLOCK, false);
-    } else if (!m_ast->IsBlock()) {
+    } else if (!m_ast->isBlock()) {
         m_ast->ConvertSequenceToBlock(TermID::BLOCK, true);
         m_ast->m_namespace = nullptr;
     } else {
-        ASSERT(m_ast->IsBlock());
+        ASSERT(m_ast->isBlock());
         m_ast->m_block.push_back(term);
     }
 }
@@ -225,10 +225,7 @@ bool Parser::PragmaEval(const TermPtr &term, BlockType &buffer, BlockType &seq) 
     static const char * __PRAGMA_FINALIZE__ = "@__PRAGMA_FINALIZE__";
 
     static const char * __PRAGMA_NO_MACRO__ = "@__PRAGMA_NO_MACRO__";
-    static const char * __PRAGMA_INDENT_BLOCK__ = "@__PRAGMA_INDENT_BLOCK__";
 
-    static const char * __PRAGMA_NATIVE__ = "@__PRAGMA_NATIVE__";
-    static const char * __PRAGMA_DECLARE__ = "@__PRAGMA_DECLARE__";
     static const char * __PRAGMA_LOCATION__ = "@__PRAGMA_LOCATION__";
 
     static const char * __ANNOTATION_SET__ = "@__ANNOTATION_SET__";
@@ -349,10 +346,6 @@ bool Parser::PragmaEval(const TermPtr &term, BlockType &buffer, BlockType &seq) 
         LOG_RUNTIME("Pragma @__PRAGMA_MACRO_COND__ not implemented!");
 
 
-    } else if (term->m_text.compare(__PRAGMA_INDENT_BLOCK__) == 0) {
-
-        LOG_RUNTIME("Pragma @__PRAGMA_INDENT_BLOCK__ not implemented!");
-
     } else if (term->m_text.compare(__PRAGMA_EXPECTED__) == 0) {
 
         m_expected = term;
@@ -376,65 +369,6 @@ bool Parser::PragmaEval(const TermPtr &term, BlockType &buffer, BlockType &seq) 
 
         m_no_macro = true;
 
-    } else if (term->m_text.compare(__PRAGMA_DECLARE__) == 0) {
-
-        TermPtr obj;
-        if (term->size() == 1 && term->name(0).empty()) {
-            obj = term->at(0).second;
-        } else {
-            NL_PARSER(term, "Unknown pragma syntax @__PRAGMA_DECLARE__");
-        }
-
-        for (size_t i = 0; i < obj->size(); i++) {
-            if (!obj->at(i).first.empty()) {
-                NL_PARSER(obj->at(i).second, "Default value for declare functions are not yet supported!");
-            }
-        }
-
-        auto found = m_declare.find(obj->m_text);
-        if (found != m_declare.end()) {
-
-            NL_PARSER(term, "Declaration '%s' already exists at line %d column %d!",
-                    obj->m_text.c_str(), term->m_lexer_loc.begin.line, term->m_lexer_loc.begin.column);
-        }
-
-        m_declare[obj->m_text] = obj;
-
-    } else if (term->m_text.compare(__PRAGMA_NATIVE__) == 0) {
-
-        TermPtr obj;
-        if (term->size() == 1 && term->name(0).empty()) {
-            obj = term->at(0).second;
-        } else if (term->size() == 2) {
-            NL_PARSER(term, "In the @__PRAGMA_NATIVE__ currently support the FFI_DEFAULT_ABI only.");
-        } else {
-            NL_PARSER(term, "Use syntax `@__PRAGMA_NATIVE__( printf(format:FmtChar, ...):Int32 )` for import native `int printf(char *format, ...)`.");
-        }
-
-        if (!obj->m_type) {
-            NL_PARSER(obj, "The type of the variable or function return value must be specified!");
-        }
-
-        for (size_t i = 0; i < obj->size(); i++) {
-            if (!obj->at(i).first.empty()) {
-                NL_PARSER(obj->at(i).second, "Default value for args in native functions are not yet supported!");
-            }
-            if (!obj->at(i).second->m_type) {
-                if (!(i == obj->size() - 1 && obj->at(i).second->getTermID() == TermID::ELLIPSIS)) {
-                    NL_PARSER(obj->at(i).second, "The type of arg must be specified!");
-                }
-            }
-        }
-
-        auto found = m_native.find(obj->m_text);
-        if (found != m_native.end()) {
-
-            NL_PARSER(term, "Native '%s' already defined at line %d column %d!",
-                    obj->m_text.c_str(), term->m_lexer_loc.begin.line, term->m_lexer_loc.begin.column);
-        }
-
-        m_native[obj->m_text] = obj;
-
     } else if (term->m_text.compare(__PRAGMA_LOCATION__) == 0) {
 
         // #line 303 "location.hh"
@@ -456,7 +390,7 @@ bool Parser::PragmaEval(const TermPtr &term, BlockType &buffer, BlockType &seq) 
             if (term->size() == 1) {
                 m_loc_stack.push_back({m_filename, m_location});
                 return true;
-            } else if (term->size() >= 2 && term->at(1).first.empty() && term->at(1).second->IsString()) {
+            } else if (term->size() >= 2 && term->at(1).first.empty() && term->at(1).second->isString()) {
 
                 m_loc_stack.push_back({m_filename, m_location});
                 m_filename = term->at(1).second->getText();
@@ -476,7 +410,7 @@ bool Parser::PragmaEval(const TermPtr &term, BlockType &buffer, BlockType &seq) 
             m_location.end.line = m_location.begin.line;
             if (term->size() == 1) {
                 return true;
-            } else if (term->size() == 2 && term->at(1).first.empty() && term->at(1).second->IsString()) {
+            } else if (term->size() == 2 && term->at(1).first.empty() && term->at(1).second->isString()) {
                 m_filename = term->at(1).second->getText();
                 m_location.begin.filename = &m_filename;
                 //                m_loc_stack.push_back(m_location);
@@ -563,8 +497,12 @@ bool Parser::PragmaStaticAssert(const TermPtr &term) {
         NL_PARSER(term, "Agruments '%s' not recognized! See @__PRAGMA_STATIC_ASSERT__ for usage and syntax help.", term->toString().c_str());
     } else {
 
-        if (!RunTime::EvalStatic(term->at(0).second)->GetValueAsBoolean()) {
-            LOG_RUNTIME("StaticAssert '%s' failed!", term->at(0).second->toString().c_str());
+        if (!m_rt) {
+            NL_PARSER(term, "Runtime environment for eval static assert is not available!");
+        }
+
+        if (!m_rt->RunTime::EvalStatic(term->at(0).second, false)->GetValueAsBoolean()) {
+            NL_PARSER(term, "StaticAssert '%s' failed!", term->at(0).second->toString().c_str());
         }
 
     }
@@ -610,10 +548,13 @@ std::string newlang::ParserMessage(std::string &buffer, int row, int col, const 
         std::wstring_convert < std::codecvt_utf8<wchar_t>, wchar_t> converter;
         std::wstring wstr = converter.from_bytes(tmp.substr(0, col));
 
-        message += tmp + "\n";
-        std::string placeholder(col - 2 - (tmp.substr(0, col).size() - wstr.size()), ' ');
-        placeholder += "^   ";
-        message += placeholder;
+        message += tmp;
+        if (col > 1) {
+            message += "\n";
+            std::string placeholder(col - 2 - (tmp.substr(0, col).size() - wstr.size()), ' ');
+            placeholder += "^   ";
+            message += placeholder;
+        }
     } else {
 
         message += tmp;

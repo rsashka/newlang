@@ -1,6 +1,6 @@
 #include "pch.h"
 
-#ifdef UNITTEST
+#ifdef BUILD_UNITTEST
 
 #include <warning_push.h>
 #include <gtest/gtest.h>
@@ -113,7 +113,7 @@ TEST(Example, DISABLED_SpeedNewLang) {
 
     utils::Logger::LogLevelType save = utils::Logger::Instance()->SetLogLevel(LOG_LEVEL_INFO);
     std::chrono::steady_clock::time_point begin = std::chrono::steady_clock::now();
-    ObjPtr result = ctx.ExecFile("../examples/speed_test.nlp");
+    ObjPtr result = ctx.ExecFile("../examples/speed_test.src");
     std::chrono::steady_clock::time_point end = std::chrono::steady_clock::now();
     utils::Logger::Instance()->SetLogLevel(save);
 
@@ -248,7 +248,7 @@ TEST(Example, DISABLED_Rational) {
 
     utils::Logger::LogLevelType save = utils::Logger::Instance()->SetLogLevel(LOG_LEVEL_INFO);
     std::chrono::steady_clock::time_point begin = std::chrono::steady_clock::now();
-    ObjPtr result = ctx.ExecFile("../examples/rational.nlp");
+    ObjPtr result = ctx.ExecFile("../examples/rational.src");
     std::chrono::steady_clock::time_point end = std::chrono::steady_clock::now();
     utils::Logger::Instance()->SetLogLevel(save);
 
@@ -265,7 +265,7 @@ TEST(Example, DISABLED_Rational) {
 
     save = utils::Logger::Instance()->SetLogLevel(LOG_LEVEL_INFO);
     begin = std::chrono::steady_clock::now();
-    result = ctx.ExecFile("\\\\('../examples/rational.nlp')");
+    result = ctx.ExecFile("\\\\('../examples/rational.src')");
     end = std::chrono::steady_clock::now();
     utils::Logger::Instance()->SetLogLevel(save);
 
@@ -288,7 +288,7 @@ TEST(Example, Tensor) {
 
     utils::Logger::LogLevelType save = utils::Logger::Instance()->SetLogLevel(LOG_LEVEL_INFO);
     std::chrono::steady_clock::time_point begin = std::chrono::steady_clock::now();
-    ObjPtr result = ctx.ExecFile("../examples/tensor.nlp");
+    ObjPtr result = ctx.ExecFile("../examples/tensor.src");
     std::chrono::steady_clock::time_point end = std::chrono::steady_clock::now();
     utils::Logger::Instance()->SetLogLevel(save);
 
@@ -300,7 +300,7 @@ TEST(Example, Tensor) {
     
     save = utils::Logger::Instance()->SetLogLevel(LOG_LEVEL_INFO);
     begin = std::chrono::steady_clock::now();
-    result = ctx.ExecStr("\\\\('../examples/tensor.nlp')");
+    result = ctx.ExecStr("\\\\('../examples/tensor.src')");
     end = std::chrono::steady_clock::now();
     utils::Logger::Instance()->SetLogLevel(save);
 
@@ -345,7 +345,7 @@ TEST(Example, Hello) {
 
     utils::Logger::LogLevelType save = utils::Logger::Instance()->SetLogLevel(LOG_LEVEL_INFO);
     std::chrono::steady_clock::time_point begin = std::chrono::steady_clock::now();
-    ObjPtr result = ctx.ExecFile("../examples/hello.nlp");
+    ObjPtr result = ctx.ExecFile("../examples/hello.src");
     std::chrono::steady_clock::time_point end = std::chrono::steady_clock::now();
     utils::Logger::Instance()->SetLogLevel(save);
 
@@ -357,7 +357,7 @@ TEST(Example, Hello) {
     
     save = utils::Logger::Instance()->SetLogLevel(LOG_LEVEL_INFO);
     begin = std::chrono::steady_clock::now();
-    result = ctx.ExecStr("\\\\('../examples/hello.nlp')");
+    result = ctx.ExecStr("\\\\('../examples/hello.src')");
     end = std::chrono::steady_clock::now();
     utils::Logger::Instance()->SetLogLevel(save);
 

@@ -27,26 +27,21 @@
                    projectFiles="true">
       <logicalFolder name="f3" displayName="examples" projectFiles="true">
         <itemPath>../examples/_run.sh</itemPath>
-        <itemPath>../examples/class.nlp</itemPath>
-        <itemPath>../examples/dsl.nlp</itemPath>
-        <itemPath>../examples/fact_1000.nlp</itemPath>
-        <itemPath>../examples/fact_40_dsl.nlp</itemPath>
-        <itemPath>../examples/fileio.nlp</itemPath>
-        <itemPath>../examples/foreach.nlp</itemPath>
-        <itemPath>../examples/hello.nlp</itemPath>
-        <itemPath>../examples/rational.nlp</itemPath>
-        <itemPath>../examples/speed_test.nlp</itemPath>
+        <itemPath>../examples/class.src</itemPath>
+        <itemPath>../examples/fact_40.src</itemPath>
+        <itemPath>../examples/fact_40_dsl.src</itemPath>
+        <itemPath>../examples/fibonacci.src</itemPath>
+        <itemPath>../examples/fileio.src</itemPath>
+        <itemPath>../examples/foreach.src</itemPath>
+        <itemPath>../examples/hello.src</itemPath>
+        <itemPath>../examples/rational.src</itemPath>
         <itemPath>../examples/speed_test.py</itemPath>
-        <itemPath>../examples/tensor.nlp</itemPath>
-      </logicalFolder>
-      <logicalFolder name="f2" displayName="runtime" projectFiles="true">
-        <itemPath>../runtime/__init__.nlp</itemPath>
-        <itemPath>../runtime/dsl.nlp</itemPath>
-        <itemPath>../runtime/fs.nlp</itemPath>
-        <itemPath>../runtime/os.nlp</itemPath>
+        <itemPath>../examples/speed_test.src</itemPath>
+        <itemPath>../examples/tensor.src</itemPath>
       </logicalFolder>
       <logicalFolder name="f1" displayName="test" projectFiles="true">
         <itemPath>test/alg_test.cpp</itemPath>
+        <itemPath>test/ast_test.cpp</itemPath>
         <itemPath>test/compiler_test.cpp</itemPath>
         <itemPath>test/diag_test.cpp</itemPath>
         <itemPath>test/eval_test.cpp</itemPath>
@@ -56,10 +51,10 @@
         <itemPath>test/module_test.cpp</itemPath>
         <itemPath>test/nlc_test.cpp</itemPath>
         <itemPath>test/object_test.cpp</itemPath>
-        <itemPath>test/oop_test.cpp</itemPath>
         <itemPath>test/parser_analysis_test.cpp</itemPath>
         <itemPath>test/parser_test.cpp</itemPath>
         <itemPath>test/rational_test.cpp</itemPath>
+        <itemPath>test/run_test.cpp</itemPath>
         <itemPath>test/system_test.cpp</itemPath>
       </logicalFolder>
       <itemPath>builtin.cpp</itemPath>
@@ -159,10 +154,12 @@
           <incDir>
             <pElem>/usr/local/include</pElem>
             <pElem>/usr/include/x86_64-linux-gnu/c++/10</pElem>
+            <pElem>../contrib/googletest/googletest</pElem>
+            <pElem>../contrib/googletest/googletest/include</pElem>
             <pElem>..</pElem>
           </incDir>
           <preprocessorList>
-            <Elem>DEBUG</Elem>
+            <Elem>BUILD_DEBUG</Elem>
             <Elem>LOG_LEVEL_NORMAL=LOG_LEVEL_DUMP</Elem>
           </preprocessorList>
         </cTool>
@@ -170,19 +167,22 @@
           <incDir>
             <pElem>.</pElem>
             <pElem>..</pElem>
-            <pElem>/usr/lib/clang/15/include</pElem>
-            <pElem>/usr/include/llvm-c-15</pElem>
+            <pElem>/usr/lib/clang/16/include</pElem>
+            <pElem>/usr/include/llvm</pElem>
+            <pElem>/usr/include/llvm-c</pElem>
             <pElem>/usr/include/x86_64-linux-gnu/c++/10</pElem>
             <pElem>/usr/include/c++/10</pElem>
             <pElem>/usr/local/include</pElem>
             <pElem>/usr/include</pElem>
+            <pElem>../contrib/googletest/googletest</pElem>
+            <pElem>../contrib/googletest/googletest/include</pElem>
             <pElem>../contrib/Lyra/include</pElem>
             <pElem>../contrib/libtorch/include/torch/csrc/api/include</pElem>
             <pElem>../contrib/libtorch/include</pElem>
           </incDir>
-          <commandLine>`llvm-config-15 --cxxflags` -std=c++17 -fexceptions -fcxx-exceptions -Wall -Wextra -Werror -Wfloat-equal -Wundef -Wcast-align -Wwrite-strings -Wmissing-declarations -Wredundant-decls -Wshadow -Woverloaded-virtual -Wno-trigraphs -Wno-invalid-source-encoding -stdlib=libstdc++ -Wno-error=unused-variable -Wno-error=unused-parameter -Wno-error=switch -fsanitize=undefined-trap -fsanitize-undefined-trap-on-error                                         -Wno-undefined-var-template -Wno-switch  -fvisibility=default</commandLine>
+          <commandLine>`llvm-config --cxxflags` -std=c++20 -fexceptions -fcxx-exceptions -Wall -Wextra -Werror -Wfloat-equal -Wundef -Wcast-align -Wwrite-strings -Wmissing-declarations -Wredundant-decls -Wshadow -Woverloaded-virtual -Wno-trigraphs -Wno-invalid-source-encoding -stdlib=libstdc++ -Wno-error=unused-variable -Wno-error=unused-parameter -Wno-error=switch -fsanitize=undefined -fsanitize-trap=undefined   -gdwarf-4               -Wno-undefined-var-template -Wno-switch  -fvisibility=default  -ggdb -O0</commandLine>
           <preprocessorList>
-            <Elem>DEBUG</Elem>
+            <Elem>BUILD_DEBUG</Elem>
             <Elem>LOG_LEVEL_NORMAL=LOG_LEVEL_DEBUG</Elem>
             <Elem>PDC_WIDE</Elem>
           </preprocessorList>
@@ -193,7 +193,8 @@
           <linkerAddLib>
             <pElem>../contrib/libtorch/lib</pElem>
             <pElem>/usr/lib/x86_64-linux-gnu</pElem>
-            <pElem>/usr/lib/llvm-15/lib</pElem>
+            <pElem>/usr/local/lib/x86_64-linux-gnu</pElem>
+            <pElem>/usr/lib/llvm-16/lib</pElem>
           </linkerAddLib>
           <linkerDynSerch>
             <pElem>.</pElem>
@@ -206,9 +207,10 @@
             <linkerLibLibItem>torch</linkerLibLibItem>
             <linkerLibLibItem>torch_cpu</linkerLibLibItem>
             <linkerLibLibItem>crypto</linkerLibLibItem>
+            <linkerLibLibItem>curl</linkerLibLibItem>
             <linkerLibStdlibItem>DynamicLinking</linkerLibStdlibItem>
           </linkerLibItems>
-          <commandLine>`llvm-config-15 --libs --ldflags` -fuse-ld=lld-15 -g -lclangTooling -lclangFrontendTool -lclangFrontend -lclangDriver -lclangSerialization -lclangCodeGen -lclangParse -lclangSema -lclangStaticAnalyzerFrontend -lclangStaticAnalyzerCheckers -lclangStaticAnalyzerCore -lclangAnalysis -lclangARCMigrate -lclangRewrite -lclangRewriteFrontend -lclangEdit -lclangAST -lclangLex -lclangBasic  -lclangASTMatchers -lclangSupport -fvisibility=default -Wl,--export-dynamic</commandLine>
+          <commandLine>`llvm-config --libs --ldflags` -fuse-ld=lld -g -lclangTooling -lclangFrontendTool -lclangFrontend -lclangDriver -lclangSerialization -lclangCodeGen -lclangParse -lclangSema -lclangStaticAnalyzerFrontend -lclangStaticAnalyzerCheckers -lclangStaticAnalyzerCore -lclangAnalysis -lclangARCMigrate -lclangRewrite -lclangRewriteFrontend -lclangEdit -lclangAST -lclangLex -lclangBasic  -lclangASTMatchers -lclangSupport -fvisibility=default -Wl,--export-dynamic</commandLine>
         </linkerTool>
       </compileType>
       <item path="../CHANGELOG.md" ex="false" tool="3" flavor2="0">
@@ -216,7 +218,7 @@
       <item path="../README.md" ex="false" tool="3" flavor2="0">
       </item>
       <item path="../contrib/googletest/googletest/src/gtest-all.cc"
-            ex="true"
+            ex="false"
             tool="1"
             flavor2="11">
         <ccTool>
@@ -253,35 +255,27 @@
       </item>
       <item path="../examples/_run.sh" ex="false" tool="3" flavor2="0">
       </item>
-      <item path="../examples/class.nlp" ex="false" tool="3" flavor2="0">
+      <item path="../examples/class.src" ex="false" tool="3" flavor2="0">
       </item>
-      <item path="../examples/dsl.nlp" ex="false" tool="3" flavor2="0">
+      <item path="../examples/fact_40.src" ex="false" tool="3" flavor2="0">
       </item>
-      <item path="../examples/fact_1000.nlp" ex="false" tool="3" flavor2="0">
+      <item path="../examples/fact_40_dsl.src" ex="false" tool="3" flavor2="0">
       </item>
-      <item path="../examples/fact_40_dsl.nlp" ex="false" tool="3" flavor2="0">
+      <item path="../examples/fibonacci.src" ex="false" tool="3" flavor2="0">
       </item>
-      <item path="../examples/fileio.nlp" ex="false" tool="3" flavor2="0">
+      <item path="../examples/fileio.src" ex="false" tool="3" flavor2="0">
       </item>
-      <item path="../examples/foreach.nlp" ex="false" tool="3" flavor2="0">
+      <item path="../examples/foreach.src" ex="false" tool="3" flavor2="0">
       </item>
-      <item path="../examples/hello.nlp" ex="false" tool="3" flavor2="0">
+      <item path="../examples/hello.src" ex="false" tool="3" flavor2="0">
       </item>
-      <item path="../examples/rational.nlp" ex="false" tool="3" flavor2="0">
-      </item>
-      <item path="../examples/speed_test.nlp" ex="false" tool="3" flavor2="0">
+      <item path="../examples/rational.src" ex="false" tool="3" flavor2="0">
       </item>
       <item path="../examples/speed_test.py" ex="false" tool="3" flavor2="0">
       </item>
-      <item path="../examples/tensor.nlp" ex="false" tool="3" flavor2="0">
+      <item path="../examples/speed_test.src" ex="false" tool="3" flavor2="0">
       </item>
-      <item path="../runtime/__init__.nlp" ex="false" tool="3" flavor2="0">
-      </item>
-      <item path="../runtime/dsl.nlp" ex="false" tool="3" flavor2="0">
-      </item>
-      <item path="../runtime/fs.nlp" ex="false" tool="3" flavor2="0">
-      </item>
-      <item path="../runtime/os.nlp" ex="false" tool="3" flavor2="0">
+      <item path="../examples/tensor.src" ex="false" tool="3" flavor2="0">
       </item>
       <item path="../site/content" ex="false" tool="3" flavor2="0">
       </item>
@@ -319,7 +313,7 @@
       </item>
       <item path="diag.h" ex="false" tool="3" flavor2="0">
       </item>
-      <item path="dsl.cpp" ex="false" tool="1" flavor2="0">
+      <item path="dsl.cpp" ex="false" tool="1" flavor2="9">
       </item>
       <item path="lexer.cpp" ex="false" tool="1" flavor2="9">
         <ccTool>
@@ -408,7 +402,7 @@
       </item>
       <item path="pch.h" ex="false" tool="3" flavor2="0">
         <customTool>
-          <customToolCommandline>clang++ `llvm-config-15 --cxxflags` -std=c++17 -fexceptions -fcxx-exceptions -Wall -Wextra -Werror -Wfloat-equal -Wundef -Wcast-align -Wwrite-strings -Wmissing-declarations -Wredundant-decls -Wshadow -Woverloaded-virtual -Wno-trigraphs -Wno-invalid-source-encoding -stdlib=libstdc++ -Wno-error=unused-variable -Wno-error=unused-parameter -Wno-error=switch -fsanitize=undefined-trap -fsanitize-undefined-trap-on-error                                         -Wno-undefined-var-template -Wno-switch   -fvisibility=default              -g -DDEBUG -DLOG_LEVEL_NORMAL=LOG_LEVEL_DEBUG -DPDC_WIDE -I. -I.. -I/usr/include/llvm-c-15 -I/usr/include/x86_64-linux-gnu/c++/10 -I/usr/include/c++/10 -I/usr/local/include -I/usr/include -I../contrib/googletest/googletest -I../contrib/googletest/googletest/include -I../contrib/Tensorflow/bazel-bin/tensorflow/include -I../contrib/Lyra/include -I../contrib/libtorch/include/torch/csrc/api/include -I../contrib/libtorch/include                 -x c++-header -o pch.h.pch pch.h -verify-pch -fpch-validate-input-files-content</customToolCommandline>
+          <customToolCommandline>clang++ `llvm-config --cxxflags` -std=c++20 -fexceptions -fcxx-exceptions -Wall -Wextra -Werror -Wfloat-equal -Wundef -Wcast-align -Wwrite-strings -Wmissing-declarations -Wredundant-decls -Wshadow -Woverloaded-virtual -Wno-trigraphs -Wno-invalid-source-encoding -stdlib=libstdc++ -Wno-error=unused-variable -Wno-error=unused-parameter -Wno-error=switch -fsanitize=undefined-trap -fsanitize-undefined-trap-on-error                                         -Wno-undefined-var-template -Wno-switch   -fvisibility=default              -g -DBUILD_DEBUG -DLOG_LEVEL_NORMAL=LOG_LEVEL_DEBUG -DPDC_WIDE -I. -I.. -I/usr/include/llvm-c-16 -I/usr/include/x86_64-linux-gnu/c++/10 -I/usr/include/c++/10 -I/usr/local/include -I/usr/include -I../contrib/googletest/googletest -I../contrib/googletest/googletest/include -I../contrib/Tensorflow/bazel-bin/tensorflow/include -I../contrib/Lyra/include -I../contrib/libtorch/include/torch/csrc/api/include -I../contrib/libtorch/include                 -x c++-header -o pch.h.pch pch.h -verify-pch -fpch-validate-input-files-content</customToolCommandline>
           <customToolOutputs>pch.h.pch</customToolOutputs>
         </customTool>
       </item>
@@ -426,9 +420,9 @@
       </item>
       <item path="runtime.h" ex="false" tool="3" flavor2="0">
       </item>
-      <item path="syntax_help_en.cpp" ex="false" tool="1" flavor2="0">
+      <item path="syntax_help_en.cpp" ex="false" tool="1" flavor2="9">
       </item>
-      <item path="syntax_help_ru.cpp" ex="false" tool="1" flavor2="0">
+      <item path="syntax_help_ru.cpp" ex="false" tool="1" flavor2="9">
       </item>
       <item path="system.cpp" ex="false" tool="1" flavor2="9">
         <ccTool>
@@ -449,91 +443,97 @@
           <customToolAdditionalDep>parser.yy.cpp location.hh</customToolAdditionalDep>
         </customTool>
       </item>
-      <item path="test/alg_test.cpp" ex="true" tool="1" flavor2="9">
+      <item path="test/alg_test.cpp" ex="false" tool="1" flavor2="9">
         <ccTool>
           <commandLine>-include-pch pch.h.pch</commandLine>
           <additionalDep>pch.h.pch</additionalDep>
         </ccTool>
       </item>
-      <item path="test/compiler_test.cpp" ex="true" tool="1" flavor2="9">
+      <item path="test/ast_test.cpp" ex="false" tool="1" flavor2="9">
         <ccTool>
           <commandLine>-include-pch pch.h.pch</commandLine>
           <additionalDep>pch.h.pch</additionalDep>
         </ccTool>
       </item>
-      <item path="test/diag_test.cpp" ex="true" tool="1" flavor2="9">
+      <item path="test/compiler_test.cpp" ex="false" tool="1" flavor2="9">
         <ccTool>
           <commandLine>-include-pch pch.h.pch</commandLine>
           <additionalDep>pch.h.pch</additionalDep>
         </ccTool>
       </item>
-      <item path="test/eval_test.cpp" ex="true" tool="1" flavor2="9">
+      <item path="test/diag_test.cpp" ex="false" tool="1" flavor2="9">
         <ccTool>
           <commandLine>-include-pch pch.h.pch</commandLine>
           <additionalDep>pch.h.pch</additionalDep>
         </ccTool>
       </item>
-      <item path="test/example_test.cpp" ex="true" tool="1" flavor2="9">
+      <item path="test/eval_test.cpp" ex="false" tool="1" flavor2="9">
         <ccTool>
           <commandLine>-include-pch pch.h.pch</commandLine>
           <additionalDep>pch.h.pch</additionalDep>
         </ccTool>
       </item>
-      <item path="test/lexer_test.cpp" ex="true" tool="1" flavor2="9">
+      <item path="test/example_test.cpp" ex="false" tool="1" flavor2="9">
         <ccTool>
           <commandLine>-include-pch pch.h.pch</commandLine>
           <additionalDep>pch.h.pch</additionalDep>
         </ccTool>
       </item>
-      <item path="test/macro_test.cpp" ex="true" tool="1" flavor2="9">
+      <item path="test/lexer_test.cpp" ex="false" tool="1" flavor2="9">
         <ccTool>
           <commandLine>-include-pch pch.h.pch</commandLine>
           <additionalDep>pch.h.pch</additionalDep>
         </ccTool>
       </item>
-      <item path="test/module_test.cpp" ex="true" tool="1" flavor2="9">
+      <item path="test/macro_test.cpp" ex="false" tool="1" flavor2="9">
         <ccTool>
           <commandLine>-include-pch pch.h.pch</commandLine>
           <additionalDep>pch.h.pch</additionalDep>
         </ccTool>
       </item>
-      <item path="test/nlc_test.cpp" ex="true" tool="1" flavor2="9">
+      <item path="test/module_test.cpp" ex="false" tool="1" flavor2="9">
         <ccTool>
           <commandLine>-include-pch pch.h.pch</commandLine>
           <additionalDep>pch.h.pch</additionalDep>
         </ccTool>
       </item>
-      <item path="test/object_test.cpp" ex="true" tool="1" flavor2="9">
+      <item path="test/nlc_test.cpp" ex="false" tool="1" flavor2="9">
         <ccTool>
           <commandLine>-include-pch pch.h.pch</commandLine>
           <additionalDep>pch.h.pch</additionalDep>
         </ccTool>
       </item>
-      <item path="test/oop_test.cpp" ex="true" tool="1" flavor2="9">
+      <item path="test/object_test.cpp" ex="false" tool="1" flavor2="9">
         <ccTool>
           <commandLine>-include-pch pch.h.pch</commandLine>
           <additionalDep>pch.h.pch</additionalDep>
         </ccTool>
       </item>
-      <item path="test/parser_analysis_test.cpp" ex="true" tool="1" flavor2="9">
+      <item path="test/parser_analysis_test.cpp" ex="false" tool="1" flavor2="9">
         <ccTool>
           <commandLine>-include-pch pch.h.pch</commandLine>
           <additionalDep>pch.h.pch</additionalDep>
         </ccTool>
       </item>
-      <item path="test/parser_test.cpp" ex="true" tool="1" flavor2="9">
+      <item path="test/parser_test.cpp" ex="false" tool="1" flavor2="9">
         <ccTool>
           <commandLine>-include-pch pch.h.pch</commandLine>
           <additionalDep>pch.h.pch</additionalDep>
         </ccTool>
       </item>
-      <item path="test/rational_test.cpp" ex="true" tool="1" flavor2="9">
+      <item path="test/rational_test.cpp" ex="false" tool="1" flavor2="9">
         <ccTool>
           <commandLine>-include-pch pch.h.pch</commandLine>
           <additionalDep>pch.h.pch</additionalDep>
         </ccTool>
       </item>
-      <item path="test/system_test.cpp" ex="true" tool="1" flavor2="9">
+      <item path="test/run_test.cpp" ex="false" tool="1" flavor2="9">
+        <ccTool>
+          <commandLine>-include-pch pch.h.pch</commandLine>
+          <additionalDep>pch.h.pch</additionalDep>
+        </ccTool>
+      </item>
+      <item path="test/system_test.cpp" ex="false" tool="1" flavor2="9">
         <ccTool>
           <commandLine>-include-pch pch.h.pch</commandLine>
           <additionalDep>pch.h.pch</additionalDep>
@@ -581,9 +581,9 @@
             <pElem>..</pElem>
           </incDir>
           <preprocessorList>
-            <Elem>DEBUG</Elem>
+            <Elem>BUILD_DEBUG</Elem>
+            <Elem>BUILD_UNITTEST</Elem>
             <Elem>LOG_LEVEL_NORMAL=LOG_LEVEL_DUMP</Elem>
-            <Elem>UNITTEST</Elem>
           </preprocessorList>
         </cTool>
         <ccTool>
@@ -605,10 +605,10 @@
           </incDir>
           <commandLine>`llvm-config --cxxflags` -std=c++20 -fexceptions -fcxx-exceptions -Wall -Wextra -Werror -Wfloat-equal -Wundef -Wcast-align -Wwrite-strings -Wmissing-declarations -Wredundant-decls -Wshadow -Woverloaded-virtual -Wno-trigraphs -Wno-invalid-source-encoding -stdlib=libstdc++ -Wno-error=unused-variable -Wno-error=unused-parameter -Wno-error=switch -fsanitize=undefined -fsanitize-trap=undefined   -gdwarf-4               -Wno-undefined-var-template -Wno-switch  -fvisibility=default  -ggdb -O0</commandLine>
           <preprocessorList>
-            <Elem>DEBUG</Elem>
+            <Elem>BUILD_DEBUG</Elem>
+            <Elem>BUILD_UNITTEST</Elem>
             <Elem>LOG_LEVEL_NORMAL=LOG_LEVEL_DEBUG</Elem>
             <Elem>PDC_WIDE</Elem>
-            <Elem>UNITTEST</Elem>
           </preprocessorList>
           <useLinkerLibraries>false</useLinkerLibraries>
         </ccTool>
@@ -617,6 +617,7 @@
           <linkerAddLib>
             <pElem>../contrib/libtorch/lib</pElem>
             <pElem>/usr/lib/x86_64-linux-gnu</pElem>
+            <pElem>/usr/local/lib/x86_64-linux-gnu</pElem>
             <pElem>/usr/lib/llvm-16/lib</pElem>
           </linkerAddLib>
           <linkerDynSerch>
@@ -677,35 +678,27 @@
       </item>
       <item path="../examples/_run.sh" ex="false" tool="3" flavor2="0">
       </item>
-      <item path="../examples/class.nlp" ex="false" tool="3" flavor2="0">
+      <item path="../examples/class.src" ex="false" tool="3" flavor2="0">
       </item>
-      <item path="../examples/dsl.nlp" ex="false" tool="3" flavor2="0">
+      <item path="../examples/fact_40.src" ex="false" tool="3" flavor2="0">
       </item>
-      <item path="../examples/fact_1000.nlp" ex="false" tool="3" flavor2="0">
+      <item path="../examples/fact_40_dsl.src" ex="false" tool="3" flavor2="0">
       </item>
-      <item path="../examples/fact_40_dsl.nlp" ex="false" tool="3" flavor2="0">
+      <item path="../examples/fibonacci.src" ex="false" tool="3" flavor2="0">
       </item>
-      <item path="../examples/fileio.nlp" ex="false" tool="3" flavor2="0">
+      <item path="../examples/fileio.src" ex="false" tool="3" flavor2="0">
       </item>
-      <item path="../examples/foreach.nlp" ex="false" tool="3" flavor2="0">
+      <item path="../examples/foreach.src" ex="false" tool="3" flavor2="0">
       </item>
-      <item path="../examples/hello.nlp" ex="false" tool="3" flavor2="0">
+      <item path="../examples/hello.src" ex="false" tool="3" flavor2="0">
       </item>
-      <item path="../examples/rational.nlp" ex="false" tool="3" flavor2="0">
-      </item>
-      <item path="../examples/speed_test.nlp" ex="false" tool="3" flavor2="0">
+      <item path="../examples/rational.src" ex="false" tool="3" flavor2="0">
       </item>
       <item path="../examples/speed_test.py" ex="false" tool="3" flavor2="0">
       </item>
-      <item path="../examples/tensor.nlp" ex="false" tool="3" flavor2="0">
+      <item path="../examples/speed_test.src" ex="false" tool="3" flavor2="0">
       </item>
-      <item path="../runtime/__init__.nlp" ex="false" tool="3" flavor2="0">
-      </item>
-      <item path="../runtime/dsl.nlp" ex="false" tool="3" flavor2="0">
-      </item>
-      <item path="../runtime/fs.nlp" ex="false" tool="3" flavor2="0">
-      </item>
-      <item path="../runtime/os.nlp" ex="false" tool="3" flavor2="0">
+      <item path="../examples/tensor.src" ex="false" tool="3" flavor2="0">
       </item>
       <item path="../site/content" ex="false" tool="3" flavor2="0">
       </item>
@@ -832,7 +825,7 @@
       </item>
       <item path="pch.h" ex="false" tool="3" flavor2="0">
         <customTool>
-          <customToolCommandline>clang++ `llvm-config --cxxflags` -std=c++20 -fexceptions -fcxx-exceptions -Wall -Wextra -Werror -Wfloat-equal -Wundef -Wcast-align -Wwrite-strings -Wmissing-declarations -Wredundant-decls -Wshadow -Woverloaded-virtual -Wno-trigraphs -Wno-invalid-source-encoding -stdlib=libstdc++ -Wno-error=unused-variable -Wno-error=unused-parameter -Wno-error=switch -fsanitize=undefined-trap -fsanitize-undefined-trap-on-error                                         -Wno-undefined-var-template -Wno-switch   -fvisibility=default              -g -DDEBUG -DLOG_LEVEL_NORMAL=LOG_LEVEL_DEBUG -DPDC_WIDE -DUNITTEST -I. -I.. -I/usr/include/llvm-c-16 -I/usr/include/x86_64-linux-gnu/c++/10 -I/usr/include/c++/10 -I/usr/local/include -I/usr/include -I../contrib/googletest/googletest -I../contrib/googletest/googletest/include -I../contrib/Tensorflow/bazel-bin/tensorflow/include -I../contrib/Lyra/include -I../contrib/libtorch/include/torch/csrc/api/include -I../contrib/libtorch/include                 -x c++-header -o pch.h.pch pch.h -verify-pch -fpch-validate-input-files-content</customToolCommandline>
+          <customToolCommandline>clang++ `llvm-config --cxxflags` -std=c++20 -fexceptions -fcxx-exceptions -Wall -Wextra -Werror -Wfloat-equal -Wundef -Wcast-align -Wwrite-strings -Wmissing-declarations -Wredundant-decls -Wshadow -Woverloaded-virtual -Wno-trigraphs -Wno-invalid-source-encoding -stdlib=libstdc++ -Wno-error=unused-variable -Wno-error=unused-parameter -Wno-error=switch -fsanitize=undefined-trap -fsanitize-undefined-trap-on-error                                         -Wno-undefined-var-template -Wno-switch   -fvisibility=default              -g -DBUILD_DEBUG -DLOG_LEVEL_NORMAL=LOG_LEVEL_DEBUG -DPDC_WIDE -DBUILD_UNITTEST -I. -I.. -I/usr/include/llvm-c-16 -I/usr/include/x86_64-linux-gnu/c++/10 -I/usr/include/c++/10 -I/usr/local/include -I/usr/include -I../contrib/googletest/googletest -I../contrib/googletest/googletest/include -I../contrib/Tensorflow/bazel-bin/tensorflow/include -I../contrib/Lyra/include -I../contrib/libtorch/include/torch/csrc/api/include -I../contrib/libtorch/include                 -x c++-header -o pch.h.pch pch.h -verify-pch -fpch-validate-input-files-content</customToolCommandline>
           <customToolOutputs>pch.h.pch</customToolOutputs>
         </customTool>
       </item>
@@ -874,6 +867,12 @@
         </customTool>
       </item>
       <item path="test/alg_test.cpp" ex="false" tool="1" flavor2="0">
+        <ccTool>
+          <commandLine>-include-pch pch.h.pch</commandLine>
+          <additionalDep>pch.h.pch</additionalDep>
+        </ccTool>
+      </item>
+      <item path="test/ast_test.cpp" ex="false" tool="1" flavor2="0">
         <ccTool>
           <commandLine>-include-pch pch.h.pch</commandLine>
           <additionalDep>pch.h.pch</additionalDep>
@@ -933,12 +932,6 @@
           <additionalDep>pch.h.pch</additionalDep>
         </ccTool>
       </item>
-      <item path="test/oop_test.cpp" ex="false" tool="1" flavor2="0">
-        <ccTool>
-          <commandLine>-include-pch pch.h.pch</commandLine>
-          <additionalDep>pch.h.pch</additionalDep>
-        </ccTool>
-      </item>
       <item path="test/parser_analysis_test.cpp" ex="false" tool="1" flavor2="0">
         <ccTool>
           <commandLine>-include-pch pch.h.pch</commandLine>
@@ -952,6 +945,12 @@
         </ccTool>
       </item>
       <item path="test/rational_test.cpp" ex="false" tool="1" flavor2="0">
+        <ccTool>
+          <commandLine>-include-pch pch.h.pch</commandLine>
+          <additionalDep>pch.h.pch</additionalDep>
+        </ccTool>
+      </item>
+      <item path="test/run_test.cpp" ex="false" tool="1" flavor2="0">
         <ccTool>
           <commandLine>-include-pch pch.h.pch</commandLine>
           <additionalDep>pch.h.pch</additionalDep>
@@ -1080,35 +1079,27 @@
       </item>
       <item path="../examples/_run.sh" ex="false" tool="3" flavor2="0">
       </item>
-      <item path="../examples/class.nlp" ex="false" tool="3" flavor2="0">
+      <item path="../examples/class.src" ex="false" tool="3" flavor2="0">
       </item>
-      <item path="../examples/dsl.nlp" ex="false" tool="3" flavor2="0">
+      <item path="../examples/fact_40.src" ex="false" tool="3" flavor2="0">
       </item>
-      <item path="../examples/fact_1000.nlp" ex="false" tool="3" flavor2="0">
+      <item path="../examples/fact_40_dsl.src" ex="false" tool="3" flavor2="0">
       </item>
-      <item path="../examples/fact_40_dsl.nlp" ex="false" tool="3" flavor2="0">
+      <item path="../examples/fibonacci.src" ex="false" tool="3" flavor2="0">
       </item>
-      <item path="../examples/fileio.nlp" ex="false" tool="3" flavor2="0">
+      <item path="../examples/fileio.src" ex="false" tool="3" flavor2="0">
       </item>
-      <item path="../examples/foreach.nlp" ex="false" tool="3" flavor2="0">
+      <item path="../examples/foreach.src" ex="false" tool="3" flavor2="0">
       </item>
-      <item path="../examples/hello.nlp" ex="false" tool="3" flavor2="0">
+      <item path="../examples/hello.src" ex="false" tool="3" flavor2="0">
       </item>
-      <item path="../examples/rational.nlp" ex="false" tool="3" flavor2="0">
-      </item>
-      <item path="../examples/speed_test.nlp" ex="false" tool="3" flavor2="0">
+      <item path="../examples/rational.src" ex="false" tool="3" flavor2="0">
       </item>
       <item path="../examples/speed_test.py" ex="false" tool="3" flavor2="0">
       </item>
-      <item path="../examples/tensor.nlp" ex="false" tool="3" flavor2="0">
+      <item path="../examples/speed_test.src" ex="false" tool="3" flavor2="0">
       </item>
-      <item path="../runtime/__init__.nlp" ex="false" tool="3" flavor2="0">
-      </item>
-      <item path="../runtime/dsl.nlp" ex="false" tool="3" flavor2="0">
-      </item>
-      <item path="../runtime/fs.nlp" ex="false" tool="3" flavor2="0">
-      </item>
-      <item path="../runtime/os.nlp" ex="false" tool="3" flavor2="0">
+      <item path="../examples/tensor.src" ex="false" tool="3" flavor2="0">
       </item>
       <item path="../site/content" ex="false" tool="3" flavor2="0">
       </item>
@@ -1234,6 +1225,8 @@
       </item>
       <item path="test/alg_test.cpp" ex="false" tool="1" flavor2="9">
       </item>
+      <item path="test/ast_test.cpp" ex="false" tool="1" flavor2="9">
+      </item>
       <item path="test/compiler_test.cpp" ex="false" tool="1" flavor2="9">
       </item>
       <item path="test/diag_test.cpp" ex="false" tool="1" flavor2="9">
@@ -1252,13 +1245,13 @@
       </item>
       <item path="test/object_test.cpp" ex="false" tool="1" flavor2="11">
       </item>
-      <item path="test/oop_test.cpp" ex="false" tool="1" flavor2="9">
-      </item>
       <item path="test/parser_analysis_test.cpp" ex="false" tool="1" flavor2="9">
       </item>
       <item path="test/parser_test.cpp" ex="false" tool="1" flavor2="9">
       </item>
       <item path="test/rational_test.cpp" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="test/run_test.cpp" ex="false" tool="1" flavor2="9">
       </item>
       <item path="test/system_test.cpp" ex="false" tool="1" flavor2="9">
       </item>
@@ -1391,35 +1384,27 @@
       </item>
       <item path="../examples/_run.sh" ex="false" tool="3" flavor2="0">
       </item>
-      <item path="../examples/class.nlp" ex="false" tool="3" flavor2="0">
+      <item path="../examples/class.src" ex="false" tool="3" flavor2="0">
       </item>
-      <item path="../examples/dsl.nlp" ex="false" tool="3" flavor2="0">
+      <item path="../examples/fact_40.src" ex="false" tool="3" flavor2="0">
       </item>
-      <item path="../examples/fact_1000.nlp" ex="false" tool="3" flavor2="0">
+      <item path="../examples/fact_40_dsl.src" ex="false" tool="3" flavor2="0">
       </item>
-      <item path="../examples/fact_40_dsl.nlp" ex="false" tool="3" flavor2="0">
+      <item path="../examples/fibonacci.src" ex="false" tool="3" flavor2="0">
       </item>
-      <item path="../examples/fileio.nlp" ex="false" tool="3" flavor2="0">
+      <item path="../examples/fileio.src" ex="false" tool="3" flavor2="0">
       </item>
-      <item path="../examples/foreach.nlp" ex="false" tool="3" flavor2="0">
+      <item path="../examples/foreach.src" ex="false" tool="3" flavor2="0">
       </item>
-      <item path="../examples/hello.nlp" ex="false" tool="3" flavor2="0">
+      <item path="../examples/hello.src" ex="false" tool="3" flavor2="0">
       </item>
-      <item path="../examples/rational.nlp" ex="false" tool="3" flavor2="0">
-      </item>
-      <item path="../examples/speed_test.nlp" ex="false" tool="3" flavor2="0">
+      <item path="../examples/rational.src" ex="false" tool="3" flavor2="0">
       </item>
       <item path="../examples/speed_test.py" ex="false" tool="3" flavor2="0">
       </item>
-      <item path="../examples/tensor.nlp" ex="false" tool="3" flavor2="0">
+      <item path="../examples/speed_test.src" ex="false" tool="3" flavor2="0">
       </item>
-      <item path="../runtime/__init__.nlp" ex="false" tool="3" flavor2="0">
-      </item>
-      <item path="../runtime/dsl.nlp" ex="false" tool="3" flavor2="0">
-      </item>
-      <item path="../runtime/fs.nlp" ex="false" tool="3" flavor2="0">
-      </item>
-      <item path="../runtime/os.nlp" ex="false" tool="3" flavor2="0">
+      <item path="../examples/tensor.src" ex="false" tool="3" flavor2="0">
       </item>
       <item path="../site/content" ex="false" tool="3" flavor2="0">
       </item>
@@ -1614,6 +1599,11 @@
           <additionalDep>pch.h.gch</additionalDep>
         </ccTool>
       </item>
+      <item path="test/ast_test.cpp" ex="false" tool="1" flavor2="9">
+        <ccTool>
+          <additionalDep>pch.h.gch</additionalDep>
+        </ccTool>
+      </item>
       <item path="test/compiler_test.cpp" ex="false" tool="1" flavor2="9">
         <ccTool>
           <additionalDep>pch.h.gch</additionalDep>
@@ -1659,11 +1649,6 @@
           <additionalDep>pch.h.gch</additionalDep>
         </ccTool>
       </item>
-      <item path="test/oop_test.cpp" ex="false" tool="1" flavor2="9">
-        <ccTool>
-          <additionalDep>pch.h.gch</additionalDep>
-        </ccTool>
-      </item>
       <item path="test/parser_analysis_test.cpp" ex="false" tool="1" flavor2="9">
         <ccTool>
           <additionalDep>pch.h.gch</additionalDep>
@@ -1675,6 +1660,11 @@
         </ccTool>
       </item>
       <item path="test/rational_test.cpp" ex="false" tool="1" flavor2="9">
+      </item>
+      <item path="test/run_test.cpp" ex="false" tool="1" flavor2="9">
+        <ccTool>
+          <additionalDep>pch.h.gch</additionalDep>
+        </ccTool>
       </item>
       <item path="test/system_test.cpp" ex="false" tool="1" flavor2="9">
         <ccTool>
@@ -1815,35 +1805,27 @@
       </item>
       <item path="../examples/_run.sh" ex="false" tool="3" flavor2="0">
       </item>
-      <item path="../examples/class.nlp" ex="false" tool="3" flavor2="0">
+      <item path="../examples/class.src" ex="false" tool="3" flavor2="0">
       </item>
-      <item path="../examples/dsl.nlp" ex="false" tool="3" flavor2="0">
+      <item path="../examples/fact_40.src" ex="false" tool="3" flavor2="0">
       </item>
-      <item path="../examples/fact_1000.nlp" ex="false" tool="3" flavor2="0">
+      <item path="../examples/fact_40_dsl.src" ex="false" tool="3" flavor2="0">
       </item>
-      <item path="../examples/fact_40_dsl.nlp" ex="false" tool="3" flavor2="0">
+      <item path="../examples/fibonacci.src" ex="false" tool="3" flavor2="0">
       </item>
-      <item path="../examples/fileio.nlp" ex="false" tool="3" flavor2="0">
+      <item path="../examples/fileio.src" ex="false" tool="3" flavor2="0">
       </item>
-      <item path="../examples/foreach.nlp" ex="false" tool="3" flavor2="0">
+      <item path="../examples/foreach.src" ex="false" tool="3" flavor2="0">
       </item>
-      <item path="../examples/hello.nlp" ex="false" tool="3" flavor2="0">
+      <item path="../examples/hello.src" ex="false" tool="3" flavor2="0">
       </item>
-      <item path="../examples/rational.nlp" ex="false" tool="3" flavor2="0">
-      </item>
-      <item path="../examples/speed_test.nlp" ex="false" tool="3" flavor2="0">
+      <item path="../examples/rational.src" ex="false" tool="3" flavor2="0">
       </item>
       <item path="../examples/speed_test.py" ex="false" tool="3" flavor2="0">
       </item>
-      <item path="../examples/tensor.nlp" ex="false" tool="3" flavor2="0">
+      <item path="../examples/speed_test.src" ex="false" tool="3" flavor2="0">
       </item>
-      <item path="../runtime/__init__.nlp" ex="false" tool="3" flavor2="0">
-      </item>
-      <item path="../runtime/dsl.nlp" ex="false" tool="3" flavor2="0">
-      </item>
-      <item path="../runtime/fs.nlp" ex="false" tool="3" flavor2="0">
-      </item>
-      <item path="../runtime/os.nlp" ex="false" tool="3" flavor2="0">
+      <item path="../examples/tensor.src" ex="false" tool="3" flavor2="0">
       </item>
       <item path="../site/content" ex="false" tool="3" flavor2="0">
       </item>
@@ -2038,6 +2020,11 @@
           <additionalDep>pch.h.gch</additionalDep>
         </ccTool>
       </item>
+      <item path="test/ast_test.cpp" ex="false" tool="1" flavor2="9">
+        <ccTool>
+          <additionalDep>pch.h.gch</additionalDep>
+        </ccTool>
+      </item>
       <item path="test/compiler_test.cpp" ex="false" tool="1" flavor2="9">
         <ccTool>
           <additionalDep>pch.h.gch</additionalDep>
@@ -2083,11 +2070,6 @@
           <additionalDep>pch.h.gch</additionalDep>
         </ccTool>
       </item>
-      <item path="test/oop_test.cpp" ex="false" tool="1" flavor2="9">
-        <ccTool>
-          <additionalDep>pch.h.gch</additionalDep>
-        </ccTool>
-      </item>
       <item path="test/parser_analysis_test.cpp" ex="false" tool="1" flavor2="9">
         <ccTool>
           <additionalDep>pch.h.gch</additionalDep>
@@ -2099,6 +2081,11 @@
         </ccTool>
       </item>
       <item path="test/rational_test.cpp" ex="false" tool="1" flavor2="9">
+      </item>
+      <item path="test/run_test.cpp" ex="false" tool="1" flavor2="9">
+        <ccTool>
+          <additionalDep>pch.h.gch</additionalDep>
+        </ccTool>
       </item>
       <item path="test/system_test.cpp" ex="false" tool="1" flavor2="9">
         <ccTool>

@@ -164,6 +164,7 @@ namespace newlang {
                     VERIFY(CreateMacro("@@ module() @@ ::= @@ @$$ @@"));
                     VERIFY(CreateMacro("@@ static @@ ::= @@ @:: @@"));
                     VERIFY(CreateMacro("@@ package @@ ::= @@  @$$ = @# @$name @@"));
+                    VERIFY(CreateMacro("@@ declare( obj ) @@ ::= @@ @$obj ::= ... @@  ##< Forward declaration of the object"));
 
                     VERIFY(CreateMacro("@@ typedef($cnt) @@ ::= @@ @__PRAGMA_TYPE_DEFINE__(@$cnt) @@ ##< Disable warning when defining a type inside a namespace"));
 
@@ -355,6 +356,10 @@ namespace newlang {
          * 
          * Функция __import__() в Python, находит и импортирует модуль
          * Функция __import__() импортирует имя модуля name, потенциально используя данные значений переменных глобальной globals и локальной locals областей видимости, чтобы определить, как интерпретировать имя name в контексте пакета.
+         * 
+         * 
+         * len()!!!
+         * size()
          */
 
     } // namespace runtime

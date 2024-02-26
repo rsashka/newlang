@@ -44,7 +44,7 @@
 
 #endif
 
-#ifdef UNITTEST
+#ifdef BUILD_UNITTEST
 
 #include <cstdio>
 #include "gtest/gtest.h"
@@ -78,22 +78,11 @@ int main(int argc, char **argv) {
 
 #else
 
-// Для теста 
-char convert(char c) {
-    if(c == 'A') return 'C';
-    if(c == 'C') return 'G';
-    if(c == 'G') return 'T';
-    if(c == 'T') return 'A';
-    return ' ';
-}
-
 int main(int argc, char** argv) {
-
-    LLVMAddSymbol("convert", (void *) &convert);
-
-    newlang::NLC nlc(argc, (const char **) argv);
-    //    return nlc.Run();
-    _exit(nlc.Run());
+    newlang::NLC nlc;
+    int res = nlc.Run(argc, argv);
+    fflush(nullptr);
+    _exit(res);
 }
 
 #endif

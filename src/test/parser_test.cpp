@@ -1,6 +1,6 @@
 #include "pch.h"
 
-#ifdef UNITTEST
+#ifdef BUILD_UNITTEST
 
 #include <warning_push.h>
 #include <gtest/gtest.h>
@@ -186,7 +186,7 @@ TEST_F(ParserTest, TermSimple) {
     ASSERT_STREQ("term", ast->m_text.c_str());
 }
 
-TEST_F(ParserTest, TermName) {
+TEST_F(ParserTest, InternalName) {
     ASSERT_TRUE(Parse("term.filed();"));
     ASSERT_EQ(TermID::NAME, ast->getTermID()) << newlang::toString(ast->getTermID());
     ASSERT_STREQ("term", ast->m_text.c_str());

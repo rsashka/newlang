@@ -123,7 +123,7 @@ add_custom_target(doc ALL
   #COMMAND CREATE_DOC  "${CMAKE_SOURCE_DIR}/docs" "ru"
 )
 
-execute_process(COMMAND ${CMD} "${CMAKE_SOURCE_DIR}/contrib/text2cpp/output/bin/text2cpp  ${CMAKE_SOURCE_DIR}/examples/dsl.nlp  ${CMAKE_SOURCE_DIR}/src/dsl.cpp.temp  newlang_dsl  c")
+execute_process(COMMAND ${CMD} "${CMAKE_SOURCE_DIR}/contrib/text2cpp/output/bin/text2cpp  ${CMAKE_SOURCE_DIR}/examples/dsl.src  ${CMAKE_SOURCE_DIR}/src/dsl.cpp.temp  newlang_dsl  c")
 cmake_language(CALL CHECK_NEW_FILE  "${CMAKE_SOURCE_DIR}/src/dsl.cpp" 0)
 
 

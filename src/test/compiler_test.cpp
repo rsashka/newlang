@@ -1,6 +1,6 @@
 #include "pch.h"
 
-//#ifdef UNITTEST
+//#ifdef BUILD_UNITTEST
 //
 //#include "term.h"
 //
@@ -30,7 +30,7 @@
 //    ASSERT_STREQ("cpp", (*op)[0].second->getText().c_str());
 //
 //    op = p->BlockCode()[1];
-//    ASSERT_EQ(TermID::SOURCE, op->getTermID());
+//    ASSERT_EQ(TermID::EMBED, op->getTermID());
 //    ASSERT_STREQ("printf(\"Hello world!\");", op->getText().c_str());
 //    ASSERT_EQ(0, op->size());
 //}
@@ -822,14 +822,14 @@
 ////    std::filesystem::create_directories("temp");
 ////    ASSERT_TRUE(std::filesystem::is_directory("temp"));
 ////
-////     //    std::ofstream out("temp/native.temp.nlp");
+////     //    std::ofstream out("temp/native.temp.src");
 ////     //    out << "native(str=\"default arg\") $= { %{ $$=$str; printf(\"%s\",
 ////     static_cast<char *>($str)); %} };";
 ////     //    out.close();
 ////     //
 ////     //    ASSERT_TRUE(opts->CompileFunctions("native(str=\"default arg\") $=
 ////     { %{ $$=$str; printf(\"%s\", static_cast<char *>($str)); %} };"));
-////     //    ASSERT_TRUE(opts->CompileModule("temp/native.temp.nlp",
+////     //    ASSERT_TRUE(opts->CompileModule("temp/native.temp.src",
 ////     "temp/native.temp.nlm"));
 ////     //    ASSERT_TRUE(opts->LoadModule("temp/native.temp.nlm"));
 ////     //

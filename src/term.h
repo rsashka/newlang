@@ -103,7 +103,10 @@ namespace newlang {
         _(DICT) \
         _(CLASS) \
         _(OPERATOR) \
-        _(SOURCE)
+        _(OP_MATH) \
+        _(OP_COMPARE) \
+        _(OP_BITWISE) \
+        _(EMBED)
 
     enum class TermID : uint8_t {
         END = 0,
@@ -141,30 +144,194 @@ namespace newlang {
      * 
      */
 
-    struct NameItem {
-        TermPtr proto;
-        TermPtr expr;
-//        ObjPtr obj;
+    /*
+     * Класс для хренения имен переменных в соответствии с их областью видимости.
+     * Имена внутренних областей могут перекрывать внешние, но в
+     * одной области видимости (блоке) имена переменных должны быть уникальны.
+     * 
+     * Поиск простого имени происходит в соответствии с name lookup.
+     * При добавлении имени без сигила, оно преобразуются в локальную переменную (var -> $var)
+     * Статические переменные <дополнительно> регистрируются в root, если он задан.
+     * За счет этого к статическим переменным можно обратиться по их полному имени из любого места модуля.
+     */
+    class TermStorage : public std::map<InternalName, TermPtr> {
+    public:
+
+        std::string Dump() {
+            std::string result;
+            {
+                std::string list;
+                auto iter = this->begin();
+                while (iter != this->end()) {
+                    if (!list.empty()) {
+                        list += ", ";
+                    }
+
+                    list += iter->first;
+                    iter++;
+                }
+
+                //                result += "(";
+                result += list;
+                result += "\n";
+            }
+            return result;
+        }
     };
 
-    class NameList : public std::map<std::string, NameItem> {
+    typedef std::map<InternalName, ObjPtr> ObjMapType;
+
+    class ScopeBlock {
     public:
-        //        ModulePtr GlobalNameCreate(ModulePtr module);
+
+        struct Block {
+            TermPtr scope_name; ///< Имя блока кода
+            TermStorage vars; ///< Список имен переменных определеных для текущего блока кода
+            TermStorage * storage; ///< Указатель на хранилице переменных
+        };
+        std::vector< Block > m_stack; ///< Иерархия (стек) блоков кода
+
+        TermStorage * m_module; ///< Корневой узел для хренения переменных модуля
+        size_t m_block_num;
+
+    public:
+
+        ScopeBlock(TermStorage *module = nullptr) : m_module(module), m_block_num(1) {
+        }
+        //        ScopeBlock(const ScopeBlock& obj);
+        //        ScopeBlock& operator=(const ScopeBlock& obj);
+        //        void CloneFrom(const ScopeBlock& obj);
+
+        virtual ~ScopeBlock() {
+        }
+
+        TermStorage * getStorage_() {
+            auto iter = m_stack.rbegin();
+            while (iter != m_stack.rend()) {
+                if (iter->storage) {
+                    return iter->storage;
+                }
+                iter++;
+            }
+            return m_module;
+        }
+
+        static std::string EnumerateString(const StringArray &names) {
+            std::string fails;
+            for (auto &elem : names) {
+                if (!fails.empty()) {
+                    fails += ", ";
+                }
+                fails += elem;
+            }
+            return fails;
+        }
+
+        static inline bool isRoot(const std::string & name) {
+            return name.find("::") == 0;
+        }
+
+        /* 
+         * 
+         */
+        void PushScope(TermPtr ns, TermStorage * storage = nullptr);
+
+        void PopScope() {
+            ASSERT(m_stack.size() > 0);
+            m_stack.pop_back();
+        }
+
+        /**
+         * Добавялет в текущую область имен новый объект с указанным внутренним именем (int_name).
+         * или альтернативным именем (alt_name), которое должно быть нормализованным
+         * Имя сразу добавляется в текщее хранилище (на постоянной основе),
+         * и в стек простарнства имен для поиска по простому имени.
+         * У одной и той же перменной может быть несколько внутренних имен (например, синонимы у аругментов функций),
+         * потому термин (его внутреннее имя) не модифицируеься.
+         * @param int_name
+         * @param var
+         * @return Истина, если нет пересечений с уже зарегистрированными именами
+         */
+        bool AddName(const TermPtr var, const char * alt_name = nullptr);
+
+        /**
+         * Выполняет поиск объекта по <внутреннему имени (int_name)>
+         * Расширение имен согласно name lookup ны выполняется!
+         * @param int_name      Внутреннему имя объекта для поиска
+         * @param local_only    Искать только в локальном хранилище (для чистых функций)
+         * @return  Найденный объект (если он есть)
+         */
+        TermPtr FindVar(std::string int_name, bool local_only = false);
 
 
-        TermPtr NameRegister(bool new_only, const char *name, TermPtr proto);//, WeakItem obj = c10::monostate()); // = at::monostate);
-//        bool NameRegister(const char * glob_name, TermPtr proto, WeakItem obj); // = at::monostate);
-        TermPtr NameFind(const char *name);
+        /**
+         * Производит поиск <простого имени в соответствии с name lookup>
+         * @param name          Простое имя для поиска
+         * @param local_only    Искать только в локальном хранилище (для чистых функций)
+         * @return  Найденный объект (если он есть)
+         */
+        TermPtr LookupVar(std::string name, bool local_only = false);
 
-//        ObjPtr NameGet(const char *name, bool is_raise = true);
+        //        std::string LookupName(const std::string_view name);
+        std::string CreateVarName(const std::string_view name);
+        std::string ExpandNamespace(std::string name);
 
-        //        bool MakeFullNames(TermPtr ast);
+
+        //        std::vector< Block >::reverse_iterator LookupNamespace(std::string ns);
+
+        std::string GetNamespace(bool is_global = false);
+        static std::string MakeNamespace(std::vector< Block > & stack, size_t count, bool is_global);
+
+        //        TermPtr FindIntName(std::string name);
+        //
+        //        std::string MakeIntName(const std::string name) {
+        //            ASSERT(!name.empty());
+        //            std::string result = CreateVarName(name);
+        //            if (isRoot(name)) {
+        //                result = name;
+        //            } else {
+        //                result = GetNamespace(isStaticName(name) || isTypeName(name));
+        //                if (isLocalName(name) || isTypeName(name)) {
+        //                    result += name.substr(1);
+        //                } else {
+        //                    result += name;
+        //                }
+        //            }
+        //            std::replace(result.begin(), result.end(), ':', '$');
+        //            if (isTypeName(name)) {
+        //                result += "$$$";
+        //            } else if (!isStaticName(name)) {
+        //                result += "$";
+        //            }
+        //            return result;
+        //        }
+
+        //        std::string GetFullName(const std::string name) {
+        //            ASSERT(!name.empty());
+        //            if (isRoot(name) || isLocalName(name)) {
+        //                return name;
+        //            }
+        //            std::string result(GetNamespace());
+        //            result += name;
+        //            return result;
+        //        }
+
+        std::string GetOffer() {
+            return "";
+        }
+
+        bool NameMacroExpand(TermPtr term);
+        bool LookupBlock(TermPtr &term);
+        std::string GetOfferBlock();
+
         std::string Dump();
 
     };
 
-    typedef bool NodeHandlerFunc(TermPtr &term, void * obj);
-    typedef std::vector < NodeHandlerFunc *> NodeHandlerList;
+
+
+    //    typedef bool NodeHandlerFunc(TermPtr &term, void * obj);
+    //    typedef std::vector < NodeHandlerFunc *> NodeHandlerList;
 
     /*
      * 
@@ -174,12 +341,20 @@ namespace newlang {
     public:
 
         static TermPtr Create(Term * term) {
-            return std::make_shared<Term>(term);
+            if (term) {
+                return std::make_shared<Term>(term);
+            }
+            return nullptr;
         }
 
         static TermPtr Create(parser::token_type lex_type, TermID id, const char *text, size_t len = std::string::npos, location *loc = nullptr, std::shared_ptr<std::string> source = nullptr) {
             return std::make_shared<Term>(lex_type, id, text, (len == std::string::npos ? strlen(text) : len), loc, source);
         }
+
+        static TermPtr CreateNone();
+        static TermPtr CreateNil();
+        static TermPtr CreateDict();
+        static TermPtr CreateName(std::string name);
 
         TermPtr Clone() {
             TermPtr result = Term::Create(m_lexer_type, m_id, m_text.c_str());
@@ -188,6 +363,7 @@ namespace newlang {
         }
 
         Term(Term *term) {
+            ASSERT(term);
             *this = *term;
         }
 
@@ -260,7 +436,7 @@ namespace newlang {
             return m_is_call;
         }
 
-        inline bool IsInterrupt() {
+        inline bool isInterrupt() {
             switch (m_id) {
                 case TermID::INT_PLUS:
                 case TermID::INT_MINUS:
@@ -271,7 +447,7 @@ namespace newlang {
             }
         }
 
-        inline bool IsCreateOnce() {
+        inline bool isCreateOnce() {
             switch (m_id) {
                 case TermID::CREATE_ONCE:
                 case TermID::PURE_ONCE:
@@ -280,7 +456,7 @@ namespace newlang {
             return false;
         }
 
-        inline bool IsCreateOverlap() {
+        inline bool isCreateOverlap() {
             switch (m_id) {
                 case TermID::CREATE_OVERLAP:
                 case TermID::PURE_OVERLAP:
@@ -289,7 +465,7 @@ namespace newlang {
             return false;
         }
 
-        inline bool IsCreate() {
+        inline bool isCreate() {
             switch (m_id) {
                 case TermID::APPEND:
                 case TermID::CREATE_ONCE:
@@ -302,7 +478,7 @@ namespace newlang {
             return false;
         }
 
-        inline bool IsPure() {
+        inline bool isPure() {
             switch (m_id) {
                 case TermID::PURE_ONCE:
                 case TermID::PURE_OVERLAP:
@@ -311,8 +487,12 @@ namespace newlang {
             return false;
         }
 
+        inline bool isNone() {
+            return m_text.compare("_") == 0;
+        }
+
         inline bool isMacro() {
-            return m_id == TermID::MACRO_DEL || (IsCreate() && m_left && m_left->m_id == TermID::MACRO_SEQ);
+            return m_id == TermID::MACRO_DEL || (isCreate() && m_left && m_left->m_id == TermID::MACRO_SEQ);
         }
 
         inline bool isReturn() {
@@ -325,10 +505,10 @@ namespace newlang {
             return result;
         }
 
-        //        inline bool IsFunction() {
-        //            return m_id == TermID::FUNCTION || m_id == TermID::PURE_ONCE;
-        //        }
-        //
+        inline bool isFunction() {
+            return m_id == TermID::FUNCTION;
+        }
+
         //        inline bool IsVariable() {
         //            return m_id == TermID::CREATE_ONCE;
         //        }
@@ -337,7 +517,7 @@ namespace newlang {
         //            return !IsFunction() && !IsVariable();
         //        }
 
-        inline bool IsScalar() {
+        inline bool isScalar() {
             switch (m_id) {
                 case TermID::INTEGER:
                 case TermID::NUMBER:
@@ -346,7 +526,7 @@ namespace newlang {
             return false;
         }
 
-        inline bool IsString() {
+        inline bool isString() {
             switch (m_id) {
                 case TermID::STRWIDE:
                 case TermID::STRCHAR:
@@ -355,7 +535,7 @@ namespace newlang {
             return false;
         }
 
-        inline bool IsLiteral() {
+        inline bool isLiteral() {
             switch (m_id) {
                 case TermID::INTEGER:
                 case TermID::NUMBER:
@@ -368,7 +548,7 @@ namespace newlang {
             return false;
         }
 
-        inline bool IsCalculated() {
+        inline bool isCalculated() {
             switch (m_id) {
                 case TermID::ARGUMENT:
                 case TermID::ARGS:
@@ -383,11 +563,11 @@ namespace newlang {
                 case TermID::EVAL:
                     return true;
                 default:
-                    return IsLiteral() || isCall(); // || IsFunction() || IsVariable()
+                    return isLiteral() || isCall(); // || IsFunction() || IsVariable()
             }
         }
 
-        inline bool IsBlock() {
+        inline bool isBlock() {
             switch (m_id) {
                 case TermID::BLOCK:
                 case TermID::BLOCK_TRY:
@@ -698,7 +878,7 @@ namespace newlang {
                     }
                     return result;
 
-                case TermID::SOURCE: // name:={% function code %}
+                case TermID::EMBED: // name:={% function code %}
                     result += "{%";
                     result += m_text;
                     result += "%}";
@@ -750,7 +930,7 @@ namespace newlang {
                             if (m_follow[i]->m_right) {
                                 result += "-->";
                                 result += m_follow[i]->m_right->toString();
-                                if (!(m_follow[i]->IsBlock() || m_follow[i]->getTermID() == TermID::SOURCE)) {
+                                if (!(m_follow[i]->isBlock() || m_follow[i]->getTermID() == TermID::EMBED)) {
                                     result += ";";
                                 }
                                 //                            result += "}";
@@ -759,7 +939,7 @@ namespace newlang {
                                     result += "-->";
                                 }
                                 result += m_follow[i]->toString(true);
-                                if (!(m_follow[i]->IsBlock() || m_follow[i]->getTermID() == TermID::SOURCE)) {
+                                if (!(m_follow[i]->isBlock() || m_follow[i]->getTermID() == TermID::EMBED)) {
                                     result += ";";
                                 }
                                 if (nested || (!nested && m_follow[i]->m_left)) {
@@ -911,7 +1091,7 @@ namespace newlang {
                             result += " ";
                         }
                         result += m_block[i]->toString(true);
-                        //                        if (m_block[i]->getTermID() != TermID::SOURCE) {
+                        //                        if (m_block[i]->getTermID() != TermID::EMBED) {
                         //                            result += ";";
                         //                        }
                     }
@@ -999,6 +1179,21 @@ namespace newlang {
                 next->SetSource(m_source);
                 next = next->Left();
             }
+        }
+
+        std::vector<TermPtr> CreateArrayFromList(int side) {
+            std::vector<TermPtr> result;
+            TermPtr temp = shared_from_this();
+            while (temp) {
+                result.push_back(temp);
+                if (side == RIGHT) {
+                    temp = temp->m_right;
+                } else {
+                    ASSERT(side == LEFT);
+                    temp = temp->m_left;
+                }
+            }
+            return result;
         }
 
         inline TermPtr Append(TermPtr item, int side = RIGHT) {
@@ -1104,7 +1299,7 @@ namespace newlang {
 
         inline bool ConvertSequenceToBlock(TermID id, bool force = true) {
 
-            if (!force && !m_sequence && !IsBlock()) {
+            if (!force && !m_sequence && !isBlock()) {
                 return true;
             }
 
@@ -1385,10 +1580,10 @@ namespace newlang {
          * 
          */
         static bool CheckTermEq(const TermPtr &term, const TermPtr &proto, bool type = false, RuntimePtr rt = nullptr);
-        static bool CheckArgsProto(TermPtr &term, const TermPtr proto);
-        static bool CheckArgsCall(TermPtr &term, RuntimePtr rt = nullptr);
-        static bool CheckCompareArgs_(const TermPtr &term, const TermPtr & proto);
-        //        static void TraversingNodes(TermPtr &ast, NodeHandlerList handlers, void * obj);
+        //        static bool CheckArgsProto(TermPtr &term, const TermPtr proto);
+        //        static bool CheckArgsCall(TermPtr &term, RuntimePtr rt = nullptr);
+        //        static bool CheckCompareArgs_(const TermPtr &term, const TermPtr & proto);
+        //        //        static void TraversingNodes(TermPtr &ast, NodeHandlerList handlers, void * obj);
 
 
         TermID m_id;
@@ -1409,14 +1604,14 @@ namespace newlang {
         TermPtr m_sequence;
         TermPtr m_module;
 
-        TermName m_text;
+        InternalName m_text;
         std::string m_name;
         std::string m_class;
         TermPtr m_namespace; ///< Текущая область имен в исходном файле при использовании данного термина
         BlockType m_dims;
         BlockType m_docs;
 
-        NameList m_variables;
+        ScopeBlock m_variables;
 
         TermPtr m_sys_prop;
         int m_bracket_depth;
@@ -1430,7 +1625,11 @@ namespace newlang {
         bool m_is_call;
         bool m_is_const;
 
-        std::weak_ptr<Obj> m_obj;
+        ObjPtr m_obj; // Бинарное значение объекта (испольузется при интерпретации) ???????????????????
+        std::string m_int_name; // Внутренее имя объекта после анализа AST
+        TermStorage m_int_vars; // Дочерние объекты (если они есть) модули, блоки кода, функции, классы
+
+        TermPtr m_type;
 
         SCOPE(private) :
 
@@ -1441,11 +1640,27 @@ namespace newlang {
         /// Тип данных, который хранится в виде термина из исходного файла. 
         /// Нужен для отображения сообщений (позиция в исходнике)
         /// Приватная область видимости для использовая SetType для проверки совместимости типов
-        TermPtr m_type;
         //        BlockType m_type_allowed;
     };
 
     std::ostream & operator<<(std::ostream &out, newlang::TermPtr & var);
     std::ostream & operator<<(std::ostream &out, newlang::TermPtr var);
+
+    /**
+     * Вспомогательный класс для автоматического выхода из текущей области видимости
+     */
+    class ScopePush {
+    public:
+        ScopeBlock &m_scope;
+
+        ScopePush(ScopeBlock &scope, TermPtr ns) : m_scope(scope) { //, ScopeBlock *vars = nullptr
+            m_scope.PushScope(ns); //, vars
+        }
+
+        ~ScopePush() {
+            m_scope.PopScope();
+        }
+    };
+
 }
 #endif // INCLUDED_NEWLANG_TERM_

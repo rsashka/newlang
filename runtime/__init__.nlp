@@ -1,4 +1,0 @@
-#!../output/nlc -no-runtime -emit-cpp
-
-\os();
-\fs();

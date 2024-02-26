@@ -1,0 +1,8 @@
+#!../output/nlc 
+
+hello(str) := {
+    printf('call: %s', $str);
+    $str;
+};
+
+hello('Hello, world!');

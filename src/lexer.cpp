@@ -33,7 +33,7 @@ namespace newlang {
     void Scanner::ApplyDiags(DiagPtr diag) {
         if (diag) {
             //@todo Need implement ApplyDiags 
-#ifdef UNITTEST            
+#ifdef BUILD_UNITTEST            
             //            LOG_WARNING("ApplyDiags not implemenetd!");
 #endif
         } else {

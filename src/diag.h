@@ -146,6 +146,8 @@ namespace newlang {
         virtual ~Diag() {
         }
 
+        Diag();
+
         SCOPE(private) :
 
         bool ParseArgs(int argc, const char** argv) {
@@ -191,7 +193,7 @@ namespace newlang {
 
         DiagStackType m_diag_stack;
 
-        Diag();
+//        Diag();
         Diag(const Diag&) = delete;
         const Diag& operator=(const Diag&) = delete;
 

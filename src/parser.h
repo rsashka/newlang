@@ -86,17 +86,6 @@ namespace newlang {
         bool m_no_macro;
         bool m_enable_pragma;
 
-//        NsStack m_ns_stack;
-
-        std::map<std::string, TermPtr> m_declare;
-        std::map<std::string, TermPtr> m_native;
-
-        //        struct IndentBlock {
-        //            TermPtr indent;
-        //            TermPtr block;
-        //        };
-        //        std::vector<IndentBlock> m_indent_stack;
-
 
         parser::token_type GetNextToken(TermPtr * yylval, parser::location_type* yylloc);
         TermPtr MacroEval(const TermPtr &term);
@@ -120,9 +109,9 @@ namespace newlang {
             return str.size() > 0 && (str[0] == '(' || str[0] == '[' || str[0] == '<');
         }
 
-        
+
         bool CheckLoadModule(TermPtr &term);
-        
+
         std::string GetCurrentModule() {
             return m_name_module;
         }

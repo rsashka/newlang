@@ -4,6 +4,13 @@
 
 #include "pch.h"
 
+//#include "stdlib.h"
+//#include "stdio.h"
+//#include "string.h"
+//#include "sys/times.h"
+//#include "sys/vtimes.h"
+#include <sys/time.h>
+
 #include <compiler.h>
 
 #include "term.h"
@@ -63,206 +70,242 @@ namespace newlang {
         return MangleName(MakeName(name).c_str());
     }
 
-    /*
-     * 
-     * 
-     */
-
-    class NsStack : SCOPE(private) StringArray {
-
-        struct NsItem {
-            TermPtr ns_name;
-            std::map<std::string, TermPtr> vars;
-        };
-        std::vector< NsItem > m_stack;
-        static const TermPtr NonameBlock;
-
-        TermPtr m_root;
-        StringArray m_last_name;
-
-        StringArray m_blocks;
-        TermPtr m_class;
-        TermPtr m_function;
-
-    public:
-        TermPtr m_op;
-
-        void SetFunc(TermPtr func) {
-            m_function = func;
-            if (func) {
-                m_blocks.push_back(func->m_text);
-            } else {
-                m_blocks.pop_back();
-            }
-        }
-
-        void SetClass(TermPtr cls) {
-            m_class = cls;
-        }
-
-        inline TermPtr GetClass() {
-            return m_class;
-        }
-
-        inline TermPtr GetFunc() {
-            return m_function;
-        }
-
-        NsStack(TermPtr root) : m_root(root), m_last_name({""}), m_class(nullptr), m_function(nullptr), m_op(nullptr) {
-        }
-
-        TermPtr GetRoot() {
-            return m_root;
-        }
-
-        static std::string EnumerateString(const StringArray &names) {
-            std::string fails;
-            for (auto &elem : names) {
-                if (!fails.empty()) {
-                    fails += ", ";
-                }
-                fails += elem;
-            }
-            return fails;
-        }
-
-        std::string GetLastNames() {
-            return EnumerateString(m_last_name);
-        };
-
-        //// error: no member named 'isCreate' in 'newlang::Term'; did you mean 'IsCreate'?
-
-        std::string GetOffer() {
-            ASSERT(m_last_name.size());
-            return m_last_name[0];
-        }
-
-        std::string GetOfferBlock() {
-            if (m_blocks.empty()) {
-                return "";
-            }
-            std::string result = " Possible block identifiers: '";
-            result += EnumerateString(m_blocks);
-            result += "'";
-            return result;
-        }
-
-        std::string Get__CLASS__();
-        std::string Get__FUNCTION__();
-        std::string Get__FUNCDNAME__();
-        std::string Get__FUNCSIG__();
-        std::string Get__BLOCK__();
-
-        static inline bool isRoot(const std::string & name) {
-            return name.find("::") == 0;
-        }
-
-        // ::, ::name, name, ns::name
-
-        bool NamespacePush(const std::string & name) {
-            if (name.empty()) {
-                return false;
-            }
-            if (name.size() > 2 && name.rfind("::") == name.size() - 2) {
-                push_back(name.substr(0, name.size() - 2));
-            } else {
-                push_back(name);
-            }
-            m_blocks.push_back(back());
-            return true;
-        }
-
-        void NamespacePop() {
-            ASSERT(!empty());
-            pop_back();
-            m_blocks.pop_back();
-        }
-
-        std::string GetNamespace(const std::string name = "") {
-            std::string result(name);
-            for (size_t i = size(); i > 0; i--) {
-                if (result.find("::") == 0) {
-                    break;
-                }
-                if (!result.empty() && at(i - 1).compare("::") != 0) {
-                    result.insert(0, "::");
-                }
-                result.insert(0, at(i - 1));
-            }
-            return result;
-        }
-
-        bool NameMacroExpand(TermPtr term);
-        bool LookupBlock(TermPtr &term);
-
-        bool LookupName(TermPtr term, RunTime * rt);
-
-        /*
-         * 
-         * 
-         */
-        void PushScope(TermPtr ns) {
-            m_stack.push_back(NsItem({ns ? ns : NonameBlock,
-                {}}));
-        }
-
-        void PopScope() {
-            ASSERT(!m_stack.empty());
-            m_stack.pop_back();
-        }
-
-        bool AddVar(TermPtr var) {
-            ASSERT(!m_stack.empty());
-            if (m_stack.back().vars.find(var->m_text.GetLocalName()) != m_stack.back().vars.end()) {
-                NL_MESSAGE(LOG_LEVEL_INFO, var, "Var '%s' exist!", var->m_text.GetLocalName().c_str());
-                return false;
-            }
-            m_stack.back().vars.insert({var->m_text.GetLocalName(), var});
-            return true;
-        }
-
-        TermPtr LookupVar(TermPtr var) {
-            auto iter = m_stack.rbegin();
-            while (iter != m_stack.rend()) {
-                if (iter->vars.find(var->m_text.GetLocalName()) != iter->vars.end()) {
-                    return iter->vars.at(var->m_text.GetLocalName());
-                }
-                iter++;
-            }
-            return nullptr;
-        }
-
-        TermPtr LookupNamespace(TermPtr ns) {
-            auto iter = m_stack.rbegin();
-            while (iter != m_stack.rend()) {
-                ASSERT(iter->ns_name);
-                if (iter->ns_name->m_text.compare(ns->m_text) == 0) {
-                    return iter->ns_name;
-                }
-                iter++;
-            }
-            return nullptr;
-        }
-
-        std::string GetFullNamespace(const std::string name = "") {
-            std::string result(name);
-            auto iter = m_stack.rbegin();
-            while (iter != m_stack.rend()) {
-                if (result.find("::") == 0) {
-                    break;
-                }
-                if (iter->ns_name) {
-                    if (!result.empty() && iter->ns_name->m_text.compare("::") != 0) {
-                        result.insert(0, "::");
-                    }
-                    result.insert(0, iter->ns_name->m_text);
-                }
-                iter++;
-            }
-            return result;
-        }
-
-    };
+    //    /*
+    //     * Класс для хренения имен переменных в соответствии с их областью видимости.
+    //     * Имена во внутренних областях могут перекрывать внешние, но в
+    //     * одной области видимости (блоке) имена переменных должны быть уникальны.
+    //     */
+    //    class VarScope {
+    //    public:
+    //        
+    //        typedef std::map<std::string, TermPtr> VarTermMap;
+    //        
+    //        struct Block {
+    //            TermPtr scope_name; ///< Имя блока кода
+    //            VarTermMap vars; ///< Список имен переменных определеных для текущего блока кода
+    //        };
+    //        static const TermPtr NonameBlock; ///< Имя "_" для безымянного блока кода {...}
+    //        std::vector< Block > m_stack; ///< Иерархия (стек) блоков кода
+    //        VarTermMap *m_root; ///< Корневой узел для хренения переменных модуля
+    //        //        StringArray m_last_name;
+    //
+    //        StringArray m_blocks;
+    //        TermPtr m_class;
+    //        TermPtr m_function;
+    //
+    //    public:
+    //        TermPtr m_op;
+    //
+    //        void SetFunc(TermPtr func) {
+    //            m_function = func;
+    //            if (func) {
+    //                m_blocks.push_back(func->m_text);
+    //            } else {
+    //                m_blocks.pop_back();
+    //            }
+    //        }
+    //
+    //        void SetClass(TermPtr cls) {
+    //            m_class = cls;
+    //        }
+    //
+    //        inline TermPtr GetClass() {
+    //            return m_class;
+    //        }
+    //
+    //        inline TermPtr GetFunc() {
+    //            return m_function;
+    //        }
+    //
+    //        VarScope(VarTermMap *root = nullptr) : m_root(root), /*m_last_name({""}), */m_class(nullptr), m_function(nullptr), m_op(nullptr) {
+    //        }
+    //
+    ////        TermPtr GetRoot() {
+    ////            return m_root;
+    ////        }
+    //
+    //        static std::string EnumerateString(const StringArray &names) {
+    //            std::string fails;
+    //            for (auto &elem : names) {
+    //                if (!fails.empty()) {
+    //                    fails += ", ";
+    //                }
+    //                fails += elem;
+    //            }
+    //            return fails;
+    //        }
+    //
+    ////        std::string GetLastNames() {
+    ////            return EnumerateString(m_last_name);
+    ////        };
+    //
+    //        //// error: no member named 'isCreate' in 'newlang::Term'; did you mean 'IsCreate'?
+    //
+    //        std::string GetOffer() {
+    ////            ASSERT(m_last_name.size());
+    //            return "";
+    //        }
+    //
+    //        std::string GetOfferBlock() {
+    //            if (m_blocks.empty()) {
+    //                return "";
+    //            }
+    //            std::string result = " Possible block identifiers: '";
+    //            result += EnumerateString(m_blocks);
+    //            result += "'";
+    //            return result;
+    //        }
+    //
+    //        std::string Get__CLASS__();
+    //        std::string Get__FUNCTION__();
+    //        std::string Get__FUNCDNAME__();
+    //        std::string Get__FUNCSIG__();
+    //        std::string Get__BLOCK__();
+    //
+    //        static inline bool isRoot(const std::string & name) {
+    //            return name.find("::") == 0;
+    //        }
+    //
+    //        // ::, ::name, name, ns::name
+    //
+    //        //        bool NamespacePush(const std::string & name) {
+    //        //            if (name.empty()) {
+    //        //                return false;
+    //        //            }
+    //        //            if (name.size() > 2 && name.rfind("::") == name.size() - 2) {
+    //        //                push_back(name.substr(0, name.size() - 2));
+    //        //            } else {
+    //        //                push_back(name);
+    //        //            }
+    //        //            m_blocks.push_back(back());
+    //        //            return true;
+    //        //        }
+    //        //
+    //        //        void NamespacePop() {
+    //        //            ASSERT(!empty());
+    //        //            pop_back();
+    //        //            m_blocks.pop_back();
+    //        //        }
+    //        //
+    //        //        std::string GetNamespace(const std::string name = "") {
+    //        //            std::string result(name);
+    //        //            for (size_t i = size(); i > 0; i--) {
+    //        //                if (result.find("::") == 0) {
+    //        //                    break;
+    //        //                }
+    //        //                if (!result.empty() && at(i - 1).compare("::") != 0) {
+    //        //                    result.insert(0, "::");
+    //        //                }
+    //        //                result.insert(0, at(i - 1));
+    //        //            }
+    //        //            return result;
+    //        //        }
+    //
+    //        bool NameMacroExpand(TermPtr term);
+    //        bool LookupBlock(TermPtr &term);
+    //
+    //        bool LookupName(TermPtr term, RunTime * rt);
+    //
+    //        /*
+    //         * 
+    //         * 
+    //         */
+    //        void PushScope(TermPtr ns) {
+    //            m_stack.push_back(Block({ns ? ns : NonameBlock,
+    //                {}}));
+    //        }
+    //
+    //        void PopScope() {
+    //            ASSERT(!m_stack.empty());
+    //            m_stack.pop_back();
+    //        }
+    //
+    //        bool AddVar(TermPtr var) {
+    //            ASSERT(!m_stack.empty());
+    //            if (m_stack.back().vars.find(var->m_text.GetLocalName()) != m_stack.back().vars.end()) {
+    //                NL_MESSAGE(LOG_LEVEL_INFO, var, "Var '%s' exist!", var->m_text.GetLocalName().c_str());
+    //                return false;
+    //            }
+    //            m_stack.back().vars.insert({var->m_text.GetLocalName(), var});
+    //            return true;
+    //        }
+    //
+    //        TermPtr LookupVar(TermPtr var) {
+    //            auto iter = m_stack.rbegin();
+    //            while (iter != m_stack.rend()) {
+    //                if (iter->vars.find(var->m_text.GetLocalName()) != iter->vars.end()) {
+    //                    return iter->vars.at(var->m_text.GetLocalName());
+    //                }
+    //                iter++;
+    //            }
+    //            return nullptr;
+    //        }
+    //
+    //        TermPtr LookupNamespace(TermPtr ns) {
+    //            auto iter = m_stack.rbegin();
+    //            while (iter != m_stack.rend()) {
+    //                ASSERT(iter->scope_name);
+    //                if (iter->scope_name->m_text.compare(ns->m_text) == 0) {
+    //                    return iter->scope_name;
+    //                }
+    //                iter++;
+    //            }
+    //            return nullptr;
+    //        }
+    //
+    //        std::string GetFullNamespace(const std::string name = "") {
+    //            std::string result(name);
+    //            auto iter = m_stack.rbegin();
+    //            while (iter != m_stack.rend()) {
+    //                if (result.find("::") == 0) {
+    //                    break;
+    //                }
+    //                if (iter->scope_name) {
+    //                    if (!result.empty() && iter->scope_name->m_text.compare("::") != 0) {
+    //                        result.insert(0, "::");
+    //                    }
+    //                    result.insert(0, iter->scope_name->m_text);
+    //                }
+    //                iter++;
+    //            }
+    //            return result;
+    //        }
+    //
+    //        std::string Dump() {
+    //            std::string result;
+    //            auto iter = m_stack.begin();
+    //            while (iter != m_stack.end()) {
+    //                if (!result.empty()) {
+    //                    result += "\n";
+    //                }
+    //                ASSERT(iter->scope_name);
+    //                result += iter->scope_name->m_text;
+    //
+    //                std::string list;
+    //                auto iter_list = iter->vars.begin();
+    //                while (iter_list != iter->vars.end()) {
+    //
+    //                    if (!list.empty()) {
+    //                        list += ", ";
+    //                    }
+    //
+    //                    list += iter_list->first;
+    //                    iter_list++;
+    //                }
+    //
+    //
+    //                result += " = <";
+    //                result += list;
+    //                result += ">";
+    //
+    //                iter++;
+    //            }
+    //
+    //            return result;
+    //
+    //        }
+    //
+    //    };
 
     /*
      * Последовательность работы к кодом:
@@ -401,6 +444,7 @@ namespace newlang {
         static ObjPtr CreateNative(Context *ctx, const char *proto, const char *module = nullptr, bool lazzy = false, const char *mangle_name = nullptr);
         static ObjPtr CreateNative(Context *ctx, TermPtr proto, const char *module = nullptr, bool lazzy = false, const char *mangle_name = nullptr);
         static ObjPtr CreateNative(TermPtr proto, void *addr, Context *ctx);
+        static ObjPtr CreateFunction(TermPtr proto, TermPtr block);
 
         virtual ~RunTime() {
 
@@ -409,8 +453,9 @@ namespace newlang {
             //LLVMShutdown();
         }
 
-        static RuntimePtr Init(int argc = 0, const char** argv = nullptr, bool ignore_error = true);
-        static RuntimePtr Init(std::vector<const char *> args, bool ignore_error = true);
+        static RuntimePtr Init(StringArray args);
+        static RuntimePtr Init(int argc = 0, const char** argv = nullptr);
+        //        static RuntimePtr Init(std::vector<const char *> args, bool ignore_error = true);
 
         inline static void * GetDirectAddressFromLibrary(void *handle, const char * name) {
             if (isNativeName(name)) {
@@ -446,7 +491,7 @@ namespace newlang {
         /*
          * При раскрытии области видимости объектов и проверки корректности их имен,
          * нужно одновремно регистрировать глобальные и локальные переменные, 
-         * так как nameloockup выполняется последовательно, и если создавать переменные позже, 
+         * так как nameloockup выполняется последовательно и если создавать переменные позже, 
          * то обращение может произойти к неправильным переменным 
          * (либо будет неправильное перекрытие, либо ошибка, т.к. переменная еще не создана).
          * 
@@ -456,11 +501,12 @@ namespace newlang {
          * либо глобальные объекты - функции с собственными локальными переменными.
          * m_variables
          */
-        bool AstAnalyze(TermPtr &term, bool is_main = true);
-        void AstRecursiveAnalyzer(TermPtr &term, NsStack &stack);
-        bool AstCreateOp(TermPtr &term, NsStack &stack);
-        bool AstCreateVar(TermPtr &var, TermPtr &value, NsStack &stack);
-        bool AstAssignVar(TermPtr &var, TermPtr &value, NsStack &stack);
+        bool AstAnalyze(TermPtr &term, TermPtr &root);
+        void AstRecursiveAnalyzer(TermPtr &term, ScopeBlock &stack);
+        bool AstCreateOp(TermPtr &term, ScopeBlock &stack);
+        bool AstCreateVar(TermPtr &var, TermPtr &value, ScopeBlock &stack);
+        bool AstAssignVar(TermPtr &var, TermPtr &value, ScopeBlock &stack);
+        TermPtr AstLockupName(TermPtr &term, ScopeBlock &stack);
         /**
          * Функция проверки наличия ошибок при анализе AST.
          * Прерывает работу анализатора при превышении лимита или при force=true
@@ -471,7 +517,8 @@ namespace newlang {
         bool CheckName(TermPtr &term);
         bool CheckOp(TermPtr &term);
         bool CalcType(TermPtr &term);
-        bool CheckType(TermPtr &left, TermPtr &right);
+        bool AstCheckType(TermPtr &left, TermPtr &right);
+        void AstCheckCall_(TermPtr &proto, TermPtr &term);
 
         /**
          * Функция для организации встроенных типов в иерархию наследования.
@@ -481,7 +528,7 @@ namespace newlang {
          * @param parents - Список сторок с именами родительских типов
          * @return - Успешность регистрации базовго типа в иерархии
          */
-        bool RegisterTypeHierarchy(ObjType type, std::vector<std::string> parents);
+        bool RegisterBuildinType(ObjType type, std::vector<std::string> parents);
 
         ObjType BaseTypeFromString(const std::string & type, bool *has_error = nullptr);
 
@@ -505,81 +552,227 @@ namespace newlang {
         }
         std::vector<std::wstring> SelectPredict(std::string start, size_t overage_count = 0);
 
-        static ObjPtr EvalStatic(const TermPtr term, bool pure = false);
+        ObjPtr EvalStatic(const TermPtr term, bool pure);
+        ObjPtr Eval(const TermPtr term, RunnerPtr runner = nullptr, bool pure = false);
 
+        void CreateArgs_(ObjPtr &args, TermPtr &term, RunnerPtr runner = nullptr, bool is_pure = false);
+        ObjPtr CreateDict(TermPtr term, RunnerPtr runner = nullptr, bool is_pure = false);
+        ObjPtr CreateTensor(TermPtr term, RunnerPtr runner = nullptr, bool is_pure = false);
 
 
 
 
         LLVMBuilderRef m_llvm_builder;
 
-        ModulePtr m_buildin_obj;
+        //        ModulePtr m_buildin_obj;
         ModulePtr m_main_module;
 
         TermPtr m_main;
         std::map<std::string, ModulePtr> m_modules;
         StringArray m_module_loader;
 
-        std::map<std::string, ObjPtr> m_types;
+        std::map<std::string, ObjPtr> m_buildin_obj;
 
         std::string m_work_dir;
         std::string m_exec_dir;
         std::vector<std::string> m_search_dir;
         bool m_assert_enable;
         bool m_load_dsl;
+        bool m_embed_source;
+        bool m_import_module;
+        bool m_import_natime;
         bool m_load_runtime;
         int m_error_limit;
         int m_error_count;
         int m_typedef_limit;
-        ObjPtr m_args;
+        //        ObjPtr m_cmd_args;
+        //        ObjPtr m_main_args;
         MacroPtr m_macro;
         DiagPtr m_diag;
 
+        TermPtr m_main_ast;
+        RunnerPtr m_main_runner;
+
+        // Выполняет одну строку в контексте главного модуля программы
+        // При первом вызове в m_main_ast создается AST как BLOCK
+        // При повторнвых вызовах в m_main_ast->m_block добавляется новая строка
+        ObjPtr Run(const std::string_view str, Obj* args = nullptr);
+
+        // Выполняет скопилированное AST как главный модуль программы
+        // При повторном вызове m_main_ast заменяется на новый AST
+        ObjPtr Run(TermPtr ast, Obj* args = nullptr);
+        ObjPtr RunFile(std::string file, Obj* args = nullptr);
+        bool ExpandFileName(std::string &filename);
+
+        TermPtr MakeAst(const std::string_view src, bool skip_analize = false);
+
         ParserPtr GetParser();
+        bool AstCheckArgsType_(TermPtr proto, TermPtr value);
+        bool AstCheckArgs_(TermPtr proto, TermPtr args);
+
+
+        //        static const int default_argc = 4;
+        //        static const char * default_argv[default_argc];
+
+        static StringArray MakeMainArgs(int argc, const char** argv) {
+            StringArray result;
+            for (int i = 0; i < argc; i++) {
+                result.push_back(std::string(argv[i]));
+            }
+            return result;
+        }
+
+        static ObjPtr MakeObjArgs(int argc, const char** argv) {
+            ObjPtr result = Obj::CreateDict();
+            for (int i = 0; i < argc; i++) {
+                result->push_back(Obj::CreateString(argv[i]));
+            }
+            return result;
+        }
 
     protected:
 
-        static const int default_argc = 3;
-        static const char * default_argv[default_argc];
+        //        /*
+        //         * -nlc-search=sss;sss;sss;sss (char [3][const char*]){"", "-nlc-no-runtime", "-nlc-no-dsl"}
+        //         */
+        //        bool ParseArgs(int argc, const char** argv) {
+        //
+        //            std::vector<std::string> load;
+        //
+        //            for (int i = 0; i < argc; i++) {
+        //
+        //                m_cmd_args->push_back(Obj::CreateString(argv[i]));
+        //
+        //                const char *arg_test;
+        //                if (strstr(argv[i], "-nlc-") == argv[i] || strstr(argv[i], "--nlc-") == argv[i]) {
+        //                    if (strstr(argv[i], "--nlc-") == argv[i]) {
+        //                        arg_test = &argv[i][1];
+        //                    } else {
+        //                        arg_test = argv[i];
+        //                    }
+        //
+        //                    /*
+        //                     * nlc
+        //                     * dlc
+        //                     * 
+        //                     * Запуска 
+        //                     * --playground-cgi="format='json', port=1000, thread=10, memory=5, timeout=10"
+        //                     * 
+        //                     * --eval-source --eval-src     - выполнить одну строку
+        //                     * --eval-file                  - выполнить файл
+        //                     * --make-module                - создать (скомпилировать) модуль
+        //                     * --make-program --make-prg    - создать (скомпилировать) приложение
+        //                     * --repl (или без аргументов)
+        //                     * 
+        //                     */
+        //                    if (strstr(arg_test, "-nlc-search=") == arg_test) {
+        //                        std::string list(arg_test);
+        //                        list = list.substr(strlen("-nlc-search="));
+        //                        m_search_dir = Macro::SplitString(list.c_str(), ";");
+        //                    } else if (strstr(arg_test, "-nlc-search=") == arg_test) {
+        //                    } else if (strcmp(arg_test, "-nlc-no-runtime") == 0) {
+        //                        m_load_runtime = false;
+        //                    } else if (strcmp(arg_test, "-nlc-no-dsl") == 0) {
+        //                        m_load_dsl = false;
+        //                    } else if (strcmp(arg_test, "-nlc-main-arg=") == 0 || strcmp(arg_test, "-nlc-main-args=") == 0) {
+        //
+        //                        std::string temp(arg_test);
+        //                        std::string call("(");
+        //
+        //                        call += temp.substr(temp.find("=") + 1);
+        //                        call += ",)";
+        //                        m_main_args = EvalStatic(MakeAst(call, true), false);
+        //
+        //                    } else if (strcmp(arg_test, "-nlc-embed-source") == 0) {
+        //                        m_embed_source = true;
+        //                    } else if (strcmp(arg_test, "-nlc-no-embed-source") == 0) {
+        //                        m_embed_source = false;
+        //                    } else if (strcmp(arg_test, "-nlc-no-import-module") == 0) {
+        //                        m_import_module = false;
+        //                    } else if (strcmp(arg_test, "-nlc-no-import-native") == 0) {
+        //                        m_import_natime = false;
+        //                    } else if (strcmp(arg_test, "-nlc-no-assert") == 0) {
+        //                        m_assert_enable = false;
+        //                    } else if (strstr(arg_test, "-nlc-error-limit=") == arg_test) {
+        //                        std::string value(argv[i]);
+        //                        m_error_limit = parseInteger(value.substr(strlen("-nlc-error-limit=")).c_str());
+        //                    } else if (strstr(arg_test, "-nlc-load=") == arg_test) {
+        //                        load.push_back(std::string(arg_test).substr(strlen("-nlc-load=")));
+        //                    } else {
+        //                        LOG_RUNTIME("System arg '%s' not found!", argv[i]);
+        //                    }
+        //                }
+        //            }
+        //
+        //
+        //            llvm::SmallString<1024> path;
+        //            auto error = llvm::sys::fs::current_path(path);
+        //            if (error) {
+        //                LOG_RUNTIME("%s", error.message().c_str());
+        //            }
+        //            m_work_dir = path.c_str();
+        //            // LOG_DEBUG("work_dir: %s", m_work_dir.c_str());
+        //
+        //            path = llvm::sys::fs::getMainExecutable(nullptr, nullptr);
+        //            // LOG_DEBUG("%s", path.c_str());
+        //
+        //            llvm::sys::path::remove_filename(path);
+        //            m_exec_dir = path.c_str();
+        //            // LOG_DEBUG("exec_dir: %s", m_exec_dir.c_str());
+        //
+        //            m_search_dir.push_back(m_work_dir);
+        //            m_search_dir.push_back(m_exec_dir);
+        //
+        //            for (auto &elem : load) {
+        //
+        //            }
+        //
+        //            return true;
+        //        }
 
-        /*
-         * -nlc-search=sss;sss;sss;sss (char [3][const char*]){"", "-nlc-no-runtime", "-nlc-no-dsl"}
-         */
-        bool ParseArgs(int argc = default_argc, const char** argv = default_argv) {
+        bool ParseArgs(StringArray args) {
 
             std::vector<std::string> load;
 
-            for (int i = 0; i < argc; i++) {
+            for (int i = 0; i < args.size(); i++) {
 
-                m_args->push_back(Obj::CreateString(argv[i]));
+                //                m_cmd_args->push_back(Obj::CreateString(args[i]));
 
-                const char *arg_test;
-                if (strstr(argv[i], "-nlc-") == argv[i] || strstr(argv[i], "--nlc-") == argv[i]) {
-                    if (strstr(argv[i], "--nlc-") == argv[i]) {
-                        arg_test = &argv[i][1];
-                    } else {
-                        arg_test = argv[i];
-                    }
+                if (args[i].find("--nlc-search=") == 0) {
+                    std::string list;
+                    list = args[i].substr(strlen("--nlc-search="));
+                    m_search_dir = Macro::SplitString(list.c_str(), ";");
+                } else if (args[i].compare("--nlc-search=") == 0) {
+                } else if (args[i].compare("--nlc-no-runtime") == 0) {
+                    m_load_runtime = false;
+                } else if (args[i].compare("--nlc-no-dsl") == 0) {
+                    m_load_dsl = false;
+                    //                } else if (args[i].compare("--nlc-main-arg=") == 0 || strcmp(arg_test, "-nlc-main-args=") == 0) {
+                    //
+                    //                    std::string temp(arg_test);
+                    //                    std::string call("(");
+                    //
+                    //                    call += temp.substr(temp.find("=") + 1);
+                    //                    call += ",)";
+                    //                    m_main_args = EvalStatic(MakeAst(call, true), false);
 
-                    if (strstr(arg_test, "-nlc-search=") == arg_test) {
-                        std::string list(arg_test);
-                        list = list.substr(strlen("-nlc-search="));
-                        m_search_dir = Macro::SplitString(list.c_str(), ";");
-                    } else if (strstr(arg_test, "-nlc-search=") == arg_test) {
-                    } else if (strcmp(arg_test, "-nlc-no-runtime") == 0) {
-                        m_load_runtime = false;
-                    } else if (strcmp(arg_test, "-nlc-no-dsl") == 0) {
-                        m_load_dsl = false;
-                    } else if (strcmp(arg_test, "-nlc-no-assert") == 0) {
-                        m_assert_enable = false;
-                    } else if (strstr(arg_test, "-nlc-error-limit=") == arg_test) {
-                        std::string value(argv[i]);
-                        m_error_limit = parseInteger(value.substr(strlen("-nlc-error-limit=")).c_str());
-                    } else if (strstr(arg_test, "-nlc-load=") == arg_test) {
-                        load.push_back(std::string(arg_test).substr(strlen("-nlc-load=")));
-                    } else {
-                        LOG_RUNTIME("System arg '%s' not found!", argv[i]);
-                    }
+                } else if (args[i].compare("--nlc-embed-source") == 0) {
+                    m_embed_source = true;
+                } else if (args[i].compare("--nlc-no-embed-source") == 0) {
+                    m_embed_source = false;
+                } else if (args[i].compare("--nlc-no-import-module") == 0) {
+                    m_import_module = false;
+                } else if (args[i].compare("--nlc-no-import-native") == 0) {
+                    m_import_natime = false;
+                } else if (args[i].compare("--nlc-no-assert") == 0) {
+                    m_assert_enable = false;
+                } else if (args[i].find("--nlc-error-limit=") == 0) {
+                    std::string value(args[i]);
+                    m_error_limit = parseInteger(value.substr(strlen("--nlc-error-limit=")).c_str());
+                    //                } else if (args[i].compare("--nlc-load=") == arg_test) {
+                    //                    load.push_back(std::string(arg_test).substr(strlen("-nlc-load=")));
+                } else {
+                    LOG_RUNTIME("System argument '%s' not recognized!", args[i].c_str());
                 }
             }
 

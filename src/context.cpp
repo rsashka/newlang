@@ -771,7 +771,7 @@ ObjPtr Context::CREATE_OR_ASSIGN(Context *ctx, const TermPtr &term, Obj *local_v
                 result->m_class_name = list_term[i]->m_text;
                 result->m_class_parents.push_back(rval);
 
-                ctx->m_runtime->m_types[list_term[i]->m_text] = result;
+                ctx->m_runtime->m_buildin_obj[list_term[i]->m_text] = result;
 
                 //                if (!ctx->m_runtime->NameRegister(result->m_prototype->m_text.c_str(), result->m_prototype, result)) {
                 LOG_RUNTIME("Fail register prototype '%s'!", result->m_prototype->toString().c_str());
@@ -1109,7 +1109,7 @@ ObjPtr Context::eval_CLASS(Context *ctx, const TermPtr &term, Obj * args, bool e
     return nullptr;
 }
 
-ObjPtr Context::eval_SOURCE(Context *ctx, const TermPtr &term, Obj * args, bool eval_block) {
+ObjPtr Context::eval_EMBED(Context *ctx, const TermPtr &term, Obj * args, bool eval_block) {
     NL_PARSER(term, "Inclusion on the implementation language is not supported in interpreter mode!");
 
     return nullptr;
@@ -1119,6 +1119,21 @@ ObjPtr Context::eval_SOURCE(Context *ctx, const TermPtr &term, Obj * args, bool 
  *
  *
  */
+
+ObjPtr Context::eval_OP_MATH(Context *ctx, const TermPtr &term, Obj *args, bool eval_block) {
+    LOG_RUNTIME("OP_MATH Not implemented!");
+    return nullptr;
+}
+
+ObjPtr Context::eval_OP_BITWISE(Context* ctx, const TermPtr& term, Obj* args, bool eval_block) {
+    LOG_RUNTIME("OP_BITWISE Not implemented!");
+    return nullptr;
+}
+
+ObjPtr Context::eval_OP_COMPARE(Context* ctx, const TermPtr& term, Obj* args, bool eval_block) {
+    LOG_RUNTIME("OP_COMPARE Not implemented!");
+    return nullptr;
+}
 
 ObjPtr Context::eval_OPERATOR(Context *ctx, const TermPtr &term, Obj * args, bool eval_block) {
     if (Context::m_ops.find(term->m_text) == Context::m_ops.end()) {
@@ -1505,7 +1520,7 @@ ObjPtr Context::CallBlock(Context *ctx, const TermPtr &block, Obj * local_vars, 
     ObjPtr result = Obj::CreateNone();
     TermID auto_type = TermID::NONE;
 
-    if (block->IsBlock()) {
+    if (block->isBlock()) {
         auto_type = block->getTermID();
     }
 
@@ -1514,7 +1529,7 @@ ObjPtr Context::CallBlock(Context *ctx, const TermPtr &block, Obj * local_vars, 
         if (!block->m_block.empty()) {
 
             for (size_t i = 0; i < block->m_block.size(); i++) {
-                if (block->m_block[i]->IsBlock()) {
+                if (block->m_block[i]->isBlock()) {
                     //                    LOG_DEBUG("NS %s (%d)", block->m_block[i]->m_class.c_str(), (int)ctx->m_ns_stack.size());
                     //                    bool is_ns = block->m_block[i]->m_namespace;
                     try {
@@ -1534,7 +1549,7 @@ ObjPtr Context::CallBlock(Context *ctx, const TermPtr &block, Obj * local_vars, 
             }
 
         } else {
-            if (block->IsBlock()) {
+            if (block->isBlock()) {
                 //                LOG_DEBUG("NS %s (%d)", block->m_class.c_str(), (int)ctx->m_ns_stack.size());
                 //                bool is_ns = ctx->m_runtime->NamespacePush(block->m_class);
                 try {
@@ -1620,7 +1635,7 @@ ObjPtr Context::CallBlock(Context *ctx, const TermPtr &block, Obj * local_vars, 
         //        
         //        ASSERT(block->m_follow.size() == 1);
 
-        if (block->IsBlock()) {
+        if (block->isBlock()) {
             result = CallBlock(ctx, block->m_follow[0], local_vars, eval_block, CatchType::CATCH_AUTO, has_interrupt);
         } else {
             result = Eval(ctx, block->m_follow[0], local_vars, eval_block, CatchType::CATCH_NONE);
@@ -1933,7 +1948,7 @@ std::vector<Index> Context::MakeIndex(Context *ctx, TermPtr term, Obj * local_va
         NL_PARSER(term, "Index not found!");
     }
     for (int i = 0; i < term->size(); i++) {
-        if (!term->name(i).empty() || (term->at(i).second && term->at(i).second->IsString())) {
+        if (!term->name(i).empty() || (term->at(i).second && term->at(i).second->isString())) {
             NL_PARSER(term, "Named index not support '%d'!", i);
         }
         if (!term->at(i).second) {
@@ -3089,7 +3104,7 @@ ObjPtr Context::ExecFile(const std::string &filename, Obj *args, CatchType int_c
 ObjPtr Context::ExecStr(const std::string str, Obj *args, CatchType int_catch) {
 
     m_runtime->m_main = Parser::ParseString(str, m_runtime->m_macro, nullptr, m_runtime->m_diag, m_runtime);
-    m_runtime->AstAnalyze(m_runtime->m_main);
+    m_runtime->AstAnalyze(m_runtime->m_main, m_runtime->m_main);
 
     ObjPtr temp;
     if (args == nullptr) {
@@ -3110,3 +3125,1010 @@ void Context::clear_() {
     //    m_terms->m_var_is_init = true;
     //    m_terms->m_var_type_current = ObjType::Module;
 }
+
+/*
+ * 
+ * 
+ */
+//ObjPtr Runner::Run(const std::string_view str, Obj *args) {
+//    ASSERT(m_runtime);
+//    TermPtr ast = m_runtime->MakeAst(str.begin());
+//    return Run(ast);
+//}
+
+ObjPtr Runner::Run(TermPtr term, Obj *args) {
+    if (term->isBlock()) {
+        m_latter = EvalBlock_(term, term);
+    } else {
+        m_latter = EvalTerm_(term);
+    }
+    return m_latter;
+}
+
+ObjPtr Runner::EvalBlock_(TermPtr &block, TermPtr proto) {
+    ASSERT(block->isBlock());
+    m_latter = getNoneObj();
+    try {
+//        ScopePush scope_block(*this, proto);
+        for (auto &elem : block->m_block) {
+            m_latter = Run(elem);
+        }
+    } catch (IntPlus &plus) {
+
+    } catch (IntMinus &minus) {
+
+    } catch (...) {
+        throw;
+    }
+    return m_latter;
+}
+
+ObjPtr Runner::Call_(TermPtr &proto, TermPtr &args) {
+    ASSERT(proto);
+    ASSERT(proto->m_obj);
+    ASSERT(args);
+
+    if (!proto->isFunction()) {
+        if (args->size()) {
+            ASSERT(!args->size()); // Клонирование пока без переопределения значений
+        }
+        // Клонирование объекта
+        return proto->m_obj->Clone();
+    }
+
+    TermPtr func = proto->Clone();
+
+    ASSERT(func->m_obj->m_sequence);
+
+    /* 
+     * Алгоритм вызова функции.
+     * Проверка аргументов прототипа и значений аргументов по умолчанию
+     * Проверка типов реально переданных аргументов
+     * Создание реальных аргументов для вызова в отдельной области видимости (с удалением системых параметров)
+     * Вызов блока кода (тела функции) в котором создается отдельная области видимости для локальных переемнных.
+     * При завершении блока кода (тела функции) её лркальные переменные удаляются
+     * При выходе из текущей функции, уничтожаются и аргументы функции
+     */
+
+    // Аргументы
+//    ScopePush scope_block(*this, nullptr);
+//    ObjPtr all = MakeArgs_(*this, func, args);
+
+
+
+    return EvalBlock_(func->m_obj->m_sequence, proto);
+}
+
+ObjPtr Runner::MakeArgs_(ScopeBlock &scope, TermPtr &func, TermPtr &args) {
+    ASSERT(func);
+    ASSERT(args);
+    ObjPtr all = Obj::CreateDict();
+
+    std::string name;
+    TermPtr term;
+    ObjPtr obj;
+    bool named_args = false;
+//    bool pos_count = 0;
+//    for (size_t i = 0; i < func->size(); i++) {
+//
+//        name = func->at(i).first;
+//        term = func->at(i).second;
+//        ASSERT(term);
+//
+//        if (term.get() == getRequiredTerm().get()) {
+////            pos_count++;
+//            if (named_args) {
+//                NL_PARSER(term, "A named argument is expected!");
+//            }
+//            // Обязательный позиционный аргумент
+//            if (i < args->size()) {
+//                NL_PARSER(term, "Missing required argument");
+//            }
+//            if (!args->at(i).first.empty()) {
+//                NL_PARSER(args->at(i).second, "Requires a positional argument!");
+//            }
+//            if (m_runtime->AstCheckArgs_(term, args->at(i).second)) {
+//                NL_PARSER(args->at(i).second, "Fail argument type!");
+//            }
+//
+//        } else {
+//            //Именованный аргумент
+//            named_args = true;
+//            auto found = args->find(name);
+//            if (found == args->end()) {
+//                NL_PARSER(term, "Named argument Fail argument type!");
+//            }
+//        }
+//
+//
+//        TermPtr var = func->m_variables.FindVar(scope.CreateVarName(name));
+//        if (!var) {
+//            NL_PARSER(args->at(i).second, "Argument name '%s' not fund!%s", name.c_str(), func->m_variables.Dump().c_str());
+//        }
+//        var->m_obj = m_runtime->Run(args->at(i).second);
+//        all->push_back({name, varj});
+//    }
+//
+//    if (func->size() > args->size()) {
+//        for (size_t i = func->size(); args->size(); i++) {
+//            // Все оставшиеся переданные аргументы
+//
+//        }
+//    }
+
+    return all;
+}
+
+//void Runner::MakeArgs_(TermPtr func, Obj *in, bool check_valid) {
+//
+//    ASSERT(func); // Реальные аргументы
+//    ASSERT(func->m_prototype); // Прототип функции с аргументами по умолчанию
+//    ASSERT(in);
+//
+//    //    bool named = false;
+//    bool is_ellipsis = false;
+//    if (check_valid && size()) {
+//        if (at(size() - 1).first.compare("...") == 0) {
+//            is_ellipsis = true;
+//            Variable::erase(size() - 1);
+//        }
+//    }
+//    for (int i = 0; i < in->size(); i++) {
+//
+//        if (isSystemName(in->name(i))) {
+//            continue;
+//        }
+//
+//        if (in->name(i).empty()) {
+//            //            if(check_valid && named) {
+//            //                LOG_RUNTIME("Position %d requires a named argument!", (int) i + 1);
+//            //            }
+//            ObjType base_type = ObjType::None;
+//            if (i < size()) {
+//                if (!(*m_prototype)[i].second->m_type) {
+//                    base_type = ObjType::Any;
+//                } else {
+//                    bool has_error = false;
+//                    base_type = m_runtime->BaseTypeFromString((*m_prototype)[i].second->m_type->m_text, &has_error);
+//                    if (has_error && (*m_prototype)[i].second->getTermID() == TermID::ELLIPSIS) {
+//                        base_type = ObjType::Any;
+//                    }
+//                }
+//            } else {
+//                base_type = ObjType::Any;
+//            }
+//
+//
+//            if (i < size()) {
+//                if (check_valid && at(i).second && at(i).second->getType() != ObjType::None) {
+//                    if (!canCast((*in)[i].second->getType(), at(i).second->getType())) {
+//                        LOG_RUNTIME("Fail cast value '%s' to type '%s'", newlang::toString((*in)[i].second->getType()),
+//                                newlang::toString(at(i).second->getType()));
+//                    }
+//                }
+//                if (!at(i).second) {
+//                    at(i).second = Obj::CreateNone();
+//                }
+//                if (m_prototype && i < m_prototype->size()) {
+//                    at(i).second->m_is_reference = (*m_prototype)[i].second->isRef();
+//                    ObjType limit_type = (*in)[i].second->getTypeAsLimit();
+//                    if (!canCast(limit_type, base_type)) {
+//                        // Строку с одним символом можно преобразовать в арифметичсекий тип
+//                        if (!(isArithmeticType(base_type) && (*in)[i].second->is_string_type() && (*in)[i].second->size() == 1)) {
+//                            LOG_RUNTIME("Fail cast value !!!!!!!!!!!!!!");
+//                            //                            LOG_RUNTIME("Fail cast value %s%s to type %s",
+//                            //                                    (*in)[i].second->toString().c_str(),
+//                            //                                    newlang::toString((*in)[i].second->getType()),
+//                            //                                    (*m_prototype)[i].second->m_type->asTypeString.c_str());
+//                        }
+//                    }
+//                }
+//
+//                //                LOG_DEBUG("%s", (*in)[i].second->toString().c_str());
+//
+//                at(i).second->op_assign((*in)[i].second->toType(base_type));
+//            } else {
+//                if (check_valid && !is_ellipsis && m_prototype && i >= m_prototype->size()) {
+//                    LOG_RUNTIME("Positional args overflow. Ptrototype '%s'!",
+//                            m_prototype ? m_prototype->toString().c_str() : "Prototype not exists!");
+//                }
+//                push_back(in->at(i).second->toType(base_type), in->at(i).first);
+//            }
+//        } else {
+//            //            named = true;
+//            auto found = find(in->name(i));
+//            if (found != end()) {
+//                if (check_valid && (*found).second && (*found).second->getType() != (*in)[i].second->getType() && (*found).second->getType() != ObjType::None) {
+//                    LOG_RUNTIME("Different type arg '%s' and '%s'", (*found).second->toString().c_str(),
+//                            (*in)[i].second->toString().c_str());
+//                }
+//                //@todo  Проверка ограничений размер данных при указаном типе
+//                if (!(*found).second) {
+//                    (*found).second = Obj::CreateNone();
+//                }
+//                (*found).second->op_assign((*in)[i].second);
+//            } else {
+//                for (int pos = 0; pos < size(); pos++) {
+//                    if (!at(pos).first.empty() && at(pos).first.compare(in->at(i).first) == 0) {
+//                        at(pos).second->op_assign(in[i]);
+//                        goto done;
+//                    }
+//                }
+//                if (check_valid && !is_ellipsis) {
+//                    LOG_RUNTIME("Named arg '%s' not found!", in->name(i).c_str());
+//                }
+//                push_back(in->at(i));
+//done:
+//                ;
+//            }
+//        }
+//    }
+//    if (check_valid) {
+//        for (int i = 0; i < Variable::size(); i++) {
+//            if (!at(i).second) {
+//
+//                LOG_RUNTIME("Argument %d '%s' missed!", (int) i + 1, at(i).first.c_str());
+//            }
+//        }
+//    }
+//}
+
+ObjPtr Runner::EvalTerm_(TermPtr &term) {
+    ASSERT(term);
+
+//    if (term->isCreate()) {
+//        return EvalCreate_(term);
+//    } else if (term->isNone()) {
+//        return getNoneObj();
+//    } else if (term->m_id == TermID::ELLIPSIS) {
+//        return getEllipsysObj();
+//    } else if (term->m_id == TermID::NAME || term->m_id == TermID::LOCAL || term->m_id == TermID::STATIC) {
+//
+//        std::string var_name = GetFullName(term->m_text);
+//        TermPtr var_found = LookupVar(var_name);
+//
+//        if (!var_found) {
+//            var_found = m_runtime->GlobFindProto(var_name.c_str());
+//        }
+//        if (!var_found) {
+//
+//            //#ifdef BUILD_UNITTEST
+//            //            if (term->m_text.compare("__STAT_RUNTIME_UNITTEST__") == 0) {
+//            //                ASSERT(term->isCall());
+//            //                ASSERT(term->size() == 2);
+//            //                return Obj::CreateValue(RunTime::__STAT_RUNTIME_UNITTEST__(
+//            //                        parseInteger(term->at(0).second->m_text.c_str()),
+//            //                        parseInteger(term->at(1).second->m_text.c_str())));
+//            //            }
+//            //#endif
+//            NL_PARSER(term, "Object '%s' not found!", var_name.c_str());
+//        }
+//        if (!var_found->m_obj) {
+//            NL_PARSER(term, "Object '%s' not calculated!", var_name.c_str());
+//        }
+//
+//        if (term->isCall()) {
+//            // Вызов функции или клонирование объекта
+//            return Call_(var_found, term);
+//        }
+//        return var_found->m_obj;
+//
+//    } else {
+//
+//        switch (term->m_id) {
+//            case TermID::OPERATOR:
+//                return EvalOpOther_(term);
+//            case TermID::OP_MATH:
+//                return EvalOpMath_(term);
+//            case TermID::OP_BITWISE:
+//                return EvalOpBitwise_(term);
+//            case TermID::OP_COMPARE:
+//                return EvalOpCompare_(term);
+//
+//            case TermID::STRWIDE:
+//                return Obj::CreateString(utf8_decode(term->getText()));
+//
+//            case TermID::STRCHAR:
+//                return Obj::CreateString(term->getText());
+//
+//            case TermID::INTEGER:
+//            {
+//                int64_t val_int = parseInteger(term->getText().c_str());
+//                NL_TYPECHECK(term, typeFromLimit(val_int), typeFromString(term->m_type, m_runtime)); // Соответстствует ли тип значению?
+//                term->m_obj = Obj::CreateValue(val_int);
+//                term->m_obj->m_var_type_current = typeFromLimit(val_int);
+//                break;
+//
+//            }
+//            case TermID::NUMBER:
+//            {
+//                double val_dbl = parseDouble(term->getText().c_str());
+//                NL_TYPECHECK(term, typeFromLimit(val_dbl), typeFromString(term->m_type, m_runtime)); // Соответстствует ли тип значению?
+//
+//                term->m_obj = Obj::CreateValue(val_dbl);
+//                term->m_obj->m_var_type_current = typeFromLimit(val_dbl);
+//                break;
+//            }
+//            case TermID::RATIONAL:
+//            {
+//                term->m_obj = Obj::CreateRational(term->m_text);
+//                break;
+//
+//            }
+//            case TermID::DICT:
+//            {
+//                term->m_obj = m_runtime->CreateDict(term, shared_from_this(), false);
+//                break;
+//            }
+//            case TermID::TENSOR:
+//            {
+//                term->m_obj = m_runtime->CreateTensor(term, shared_from_this(), false);
+//                break;
+//            }
+//            case TermID::END:
+//            {
+//                term->m_obj = Obj::CreateNone();
+//                break;
+//            }
+//            default:
+//                NL_PARSER(term, "EvalTerm_ for type '%s'(%s) not implemented!", toString(term->m_id), term->m_text.c_str());
+//        }
+//
+//        if (term->GetType() && !isDefaultType(term->GetType())) {
+//            term->m_obj->m_var_type_fixed = typeFromString(term->m_type, m_runtime);
+//            term->m_obj->m_var_type_current = term->m_obj->m_var_type_fixed;
+//        }
+//    }
+    return term->m_obj;
+}
+
+ObjPtr Runner::EvalCreate_(TermPtr &op) {
+    ASSERT(op);
+    ASSERT(op->isCreate());
+    ASSERT(op->m_left);
+
+//    ArrayTermType l_vars = op->m_left->CreateArrayFromList(Term::LEFT);
+//
+//    bool is_ellipsis = false;
+//    TermPtr var_found;
+//    for (auto &elem : l_vars) {
+//
+//        if (elem->getTermID() == TermID::ELLIPSIS) {
+//
+//            //@todo добавить поддержку многоточия с левой стороный оператора присвоения
+//            // NL_PARSER(elem, "Ellipsis on the left side in assignment not implemented!");
+//
+//            //  Игнорировать несколько объектов
+//            elem->m_obj = getEllipsysObj();
+//            if (is_ellipsis) {
+//                NL_PARSER(elem, "Multiple ellipsis on the left side of the assignment!");
+//            }
+//            is_ellipsis = true;
+//
+//        } else if (elem->isNone()) {
+//
+//            //  Игнорировать один объект
+//            elem->m_obj = getNoneObj();
+//
+//        } else {
+//
+//            std::string var_name = GetFullName(elem->m_text);
+//            var_found = LookupVar(var_name);
+//
+//            if (!var_found && isGlobalScope(var_name)) {
+//                var_found = m_runtime->GlobFindProto(var_name.c_str());
+//            }
+//
+//            if (op->isCreateOnce() && var_found) {
+//                NL_PARSER(elem, "Object '%s' already exist", var_name.c_str());
+//            } else if (op->getTermID() == TermID::ASSIGN && !(var_found && var_found->m_obj)) {
+//                NL_PARSER(elem, "Object '%s' not exist!", var_name.c_str());
+//            }
+//
+//            if (var_found) {
+//                if (var_found->isCall()) {
+//                    NL_PARSER(elem, "The function cannot be overridden! '%s'", var_found->toString().c_str());
+//                }
+//                elem.swap(var_found);
+//            } else {
+//                if (!RegisterName(elem)) {
+//                    NL_PARSER(elem, "Fail create object '%s'", var_name.c_str());
+//                }
+//            }
+//        }
+//    }
+//
+//    m_latter = AssignVars_(l_vars, op->m_right, op->isPure());
+//    for (auto &elem : l_vars) {
+//        std::string var_name = GetFullName(elem->m_text);
+//        if (isGlobalScope(var_name)) {
+//            m_runtime->NameRegister(op->isCreateOnce(), var_name.c_str(), elem, elem->m_obj);
+//        }
+//    }
+    return m_latter;
+}
+
+ObjPtr Runner::AssignVars_(ArrayTermType &vars, const TermPtr &r_term, bool is_pure) {
+
+    if (r_term->getTermID() == TermID::ELLIPSIS) {
+        // При раскрытии словаря присвоить значение можно как одному, так и сразу нескольким терминам: 
+        // var1, var2, _ = ... func(); Первый и второй элементы записывается в var1 и var2, 
+        // а все остальные игнорируются (если они есть)
+        // var1, var2 = ... func(); Если функция вернула словарь с двумя элементами, 
+        // то их значения записываются в var1 и var2. Если в словаре было больше двух элементов, 
+        // то первый записывается в var1, а все оставшиеся элементы в var2. !!!!!!!!!!!!!
+        // _, var1, ..., var2 = ... func(); 
+        // Первый элемент словаря игнорируется, второй записывается в var1, а последний в var2.
+
+        //@todo добавить поддержку многоточия с левой стороный оператора присвоения
+        NL_PARSER(r_term, "ELLIPSIS NOT implemented!");
+
+    } else if (r_term->isBlock()) {
+
+        if (vars.size() > 1) {
+            //@todo добавить поддержку присвоения сразу нескольким функциям
+            NL_PARSER(r_term, "Multiple function assignment not implemented!");
+        }
+        ASSERT(vars.size() == 1);
+
+        if (!vars[0]->isCall()) {
+            NL_PARSER(vars[0], "Function name expected!");
+        }
+
+
+        vars[0]->m_obj = RunTime::CreateFunction(vars[0], r_term);
+        m_latter = vars[0]->m_obj;
+
+    } else {
+
+        ArrayTermType r_vars = r_term->CreateArrayFromList(Term::RIGHT);
+        if (r_vars.empty()) {
+            // Delete vars
+            NL_PARSER(r_term, "NOT implemented!");
+            //            m_latter = getNoneObj();
+
+        } else if (r_vars.size() == 1) {
+
+            m_latter = Run(r_vars[0]);
+            for (auto &elem : vars) {
+                if (elem->getTermID() == TermID::ELLIPSIS) {
+                    NL_PARSER(elem, "Ellipses unexpected!");
+                } else if (elem->isNone()) {
+                    NL_PARSER(elem, "None var unexpected!");
+                } else {
+                    elem->m_obj = m_latter;
+                }
+            }
+
+        } else {
+            // Что присваиваем (правая часть выражения)
+            // @todo В будущем можно будет сделать сахар для обмена значениями при одинаковом кол-ве объектов у оператора присваивания
+            // a, b = b, a;   a, b, c = c, b, a; и т.д.
+
+            if (vars.size() != r_vars.size()) {
+                NL_PARSER(r_term, "Fail count right values! Expected one or %d.", (int) vars.size());
+            }
+            for (size_t i = 0; i < vars.size(); i++) {
+                if (vars[i]->getTermID() == TermID::ELLIPSIS) {
+                    NL_PARSER(vars[i], "Ellipses unexpected!");
+                } else if (vars[i]->isNone()) {
+                    NL_PARSER(vars[i], "None var unexpected!");
+                } else {
+                    m_latter = Run(r_vars[i]);
+                    vars[i]->m_obj = m_latter;
+                }
+            }
+        }
+    }
+
+    return m_latter;
+
+
+
+    //    std::vector<TermPtr> list_term; // Список терминов для создания/присвоения значения
+    //    std::vector<ObjPtr> list_obj; // Список реальных переменных ассоциированных с терминами
+    //
+    //    bool is_eval_block = true;
+    //
+    //    TermPtr next = term->Left();
+    //    while (next && next->getTermID() != TermID::END) {
+    //        if (next->isCall()) {
+    //            is_eval_block = false;
+    //        }
+    //        list_term.push_back(next);
+    //        next = next->m_list;
+    //    }
+    //
+    //
+    //    ObjPtr result;
+    //    bool is_ellipsis = false;
+    //    for (auto & elem : list_term) {
+    //
+    //        if (elem->getTermID() == TermID::ELLIPSIS) {
+    //
+    //            //@todo добавить поддержку многоточия с левой стороный оператора присвоения
+    //            NL_PARSER(elem, "Ellipsis on the left side in assignment not implemented!");
+    //
+    //            if (is_ellipsis) {
+    //                NL_PARSER(elem, "Multiple ellipsis on the left side of the assignment!");
+    //            }
+    //            is_ellipsis = true;
+    //            result = Obj::CreateType(ObjType::Ellipsis);
+    //        } else if (elem->getTermID() == TermID::NONE) {
+    //            result = Obj::CreateNone();
+    //        } else {
+    //            // LOG_DEBUG("find: %s", ctx->NamespaceFull(elem->GetFullName()).c_str());
+    //            auto found = ctx->find(elem->GetFullName());
+    //            if (found == ctx->end() && mode == CreateMode::ASSIGN_ONLY) {
+    //                NL_PARSER(elem, "Object '%s' (%s) not found!", elem->m_text.c_str(), elem->GetFullName().c_str());
+    //            }
+    //
+    //            if (found != ctx->end()) {
+    //                result = (*found).second.lock(); // Но она может быть возвращена как локальная
+    //            }
+    //
+    //            if (result && mode == CreateMode::CREATE_ONLY) {
+    //                NL_PARSER(elem, "Object '%s' (%s) already exists!", elem->m_text.c_str(), elem->GetFullName().c_str());
+    //            }
+    //
+    //            if (!term->Right()) { // Удаление глобальной переменной
+    //                ctx->ListType::erase(found);
+    //            } else {
+    //                if (!result && (mode == CreateMode::ASSIGN_ONLY)) {
+    //                    NL_PARSER(term->Left(), "Object '%s' (%s) not found!", term->Left()->m_text.c_str(), elem->GetFullName().c_str());
+    //                }
+    //                if (!result) {
+    //                    result = CreateLVal(ctx, elem, local_vars);
+    //                    if (!result) {
+    //                        NL_PARSER(term->Left(), "Fail create lvalue object!");
+    //                    }
+    //                }
+    //            }
+    //        }
+    //        list_obj.push_back(result);
+    //    }
+    //
+    //    if (!term->Right()) {
+    //        // Для удаления переменных все сделано
+    //        return result;
+    //    }
+
+    //    // Что присваиваем (правая часть выражения) - пока единичный объект
+    //    // @todo В будущем можно будет сделать сахар для обмена значениями при одинаковом кол-ве объектов у оператора присваивания
+    //    // a, b = b, a;   a, b, c = c, b, a; и т.д.
+    //    if (term->Right() && term->Right()->getTermID() != TermID::ELLIPSIS && term->Right()->m_list) {
+    //        NL_PARSER(term->Right()->Right(), "Multiple assignments not implemented!");
+    //    }
+
+    //    ObjPtr rval;
+    //    if (term->Right()->getTermID() == TermID::ELLIPSIS) {
+    //        ASSERT(term->Right()->Right());
+    //        rval = Eval(ctx, term->Right()->Right(), local_vars, is_eval_block, CatchType::CATCH_AUTO);
+    //    } else if (term->Right()->getTermID() == TermID::CLASS) {
+    //        ASSERT(list_obj.size() == 1);
+    //        // Имя класса появляется только при операции присвоения в левой части оператора
+    //        rval = ctx->CreateClass(term->Left()->GetFullName(), term->Right(), local_vars);
+    //    } else if (term->Right()->getTermID() == TermID::NATIVE) {
+    //        // Нативное имя допустимо только в правой части части оператора присвоения
+    //        ASSERT(list_obj.size() == 1);
+    //
+    //        if (term->Left()->isCall() != term->Right()->isCall()) {
+    //            // Нативная функция с частичным прототипом
+    //            TermPtr from;
+    //            TermPtr to;
+    //            if (term->Left()->isCall()) {
+    //                from = term->Left();
+    //                to = term->Right();
+    //            } else {
+    //                ASSERT(term->Right()->isCall());
+    //                from = term->Right();
+    //                to = term->Left();
+    //            }
+    //            for (int i = 0; i < from->size(); i++) {
+    //                to->push_back((*from)[i]);
+    //            }
+    //            to->m_is_call = from->m_is_call;
+    //            to->m_type = from->m_type;
+    //            //            to->m_type_name = from->m_type_name;
+    //
+    //        } else if (!term->Left()->isCall() && !term->Right()->isCall()) {
+    //            // Нативная переменная
+    //            if (!term->Right()->m_type) {
+    //                term->Right()->m_type = term->Left()->m_type;
+    //                //                term->Right()->m_type_name = term->Left()->m_type_name;
+    //            }
+    //
+    //        } else if (term->Left()->isCall() && term->Right()->isCall()) {
+    //            LOG_RUNTIME("Check args in native func not implemented!");
+    //        }
+    //        rval = ctx->m_runtime->CreateNative(ctx, term->Right(), nullptr, false, term->Right()->m_text.substr(1).c_str());
+    //
+    //    } else {
+    //        rval = Eval(ctx, term->Right(), local_vars, is_eval_block, CatchType::CATCH_AUTO);
+    //    }
+    //    if (!rval) {
+    //        NL_PARSER(term->Right(), "Object is missing or expression is not evaluated!");
+    //    }
+    //
+    //    ASSERT(list_obj.size() == list_term.size());
+    //
+    //    if (term->Right()->getTermID() == TermID::ELLIPSIS) {
+    //        if (rval->is_dictionary_type() || rval->is_tensor_type()) {
+    //            if (!rval->empty() && rval->is_scalar()) {
+    //                LOG_RUNTIME("Fail expand scalar!");
+    //            }
+    //            for (int i = 0; i < list_obj.size() - 1; i++) {
+    //                if (list_term[i]->getTermID() != TermID::NONE) {
+    //                    if (i < rval->size()) {
+    //                        list_obj[i]->SetValue_((*rval)[i].second); //->Clone()
+    //                    } else {
+    //                        list_obj[i]->SetValue_(Obj::CreateNone());
+    //                    }
+    //                }
+    //            }
+    //            if (static_cast<int64_t> (list_obj.size()) - 1 < rval->size()) {
+    //                // Удалить первые элементы
+    //                rval->resize_(-(rval->size() - (static_cast<int64_t> (list_obj.size()) - 1)), nullptr);
+    //            } else {
+    //                rval->resize_(0, nullptr);
+    //            }
+    //            list_obj[list_obj.size() - 1]->SetValue_(rval->Clone());
+    //
+    //            result = list_obj[list_obj.size() - 1];
+    //
+    //        } else {
+    //            LOG_RUNTIME("Fail expand type '%s'!", toString(rval->getType()));
+    //        }
+    //    } else {
+    //        // Присвоеить единственное значение всем элементам с левой стороны оператора присовения
+    //
+    //        for (int i = 0; i < list_obj.size(); i++) {
+    //            if (isTypeName(list_term[i]->m_text)) {
+    //
+    //                // Новый тип
+    //                //                if (ctx->m_runtime->m_types.find(list_term[i]->m_text) != ctx->m_runtime->m_types.end()) {
+    //                //                    LOG_RUNTIME("Type name '%s' already exists!", list_term[i]->m_text.c_str());
+    //                //                }
+    //                //
+    //                //                result = rval->Clone();
+    //                //                result->m_class_name = list_term[i]->m_text;
+    //                //                result->m_class_parents.push_back(rval);
+    //                //
+    //                //                ctx->m_runtime->m_types[list_term[i]->m_text] = result;
+    //
+    //                if (ctx->m_runtime->NameFind(list_term[i]->m_text.c_str()) || ctx->m_runtime->NameFind(&list_term[i]->m_text[1])) {
+    //                    LOG_RUNTIME("Type name '%s' already exists!", list_term[i]->m_text.c_str());
+    //                }
+    //
+    //                result = rval->Clone();
+    //
+    //
+    //                TermPtr term = *const_cast<TermPtr *> (&result->m_prototype);
+    //                term->m_text = list_term[i]->m_text;
+    //
+    //                result->m_class_name = list_term[i]->m_text;
+    //                result->m_class_parents.push_back(rval);
+    //
+    //                ctx->m_runtime->m_types[list_term[i]->m_text] = result;
+    //
+    //                //                if (!ctx->m_runtime->NameRegister(result->m_prototype->m_text.c_str(), result->m_prototype, result)) {
+    //                LOG_RUNTIME("Fail register prototype '%s'!", result->m_prototype->toString().c_str());
+    //                //                }
+    //
+    //
+    //            } else if (list_term[i]->getTermID() == TermID::NONE) {
+    //                // Skip
+    //            } else {
+    //                if (list_term[i]->Right()) {
+    //                    ASSERT(list_term[i]->Right()->getTermID() == TermID::INDEX);
+    //                    list_obj[i]->index_set_(MakeIndex(ctx, list_term[i]->Right(), local_vars), rval);
+    //                } else {
+    //                    list_obj[i]->SetValue_(rval);
+    //                }
+    //                if (list_obj[i]->m_var_type_current == ObjType::Function && rval->is_block()) {
+    //                    list_obj[i]->m_var_type_current = ObjType::EVAL_FUNCTION;
+    //                }
+    //                result = list_obj[i];
+    //            }
+    //        }
+    //    }
+    //    return result;
+}
+
+/*
+ * 
+ * 
+ * 
+ */
+
+ObjPtr Runner::EvalOpOther_(TermPtr & op) {
+    ASSERT(op);
+    if (op->m_id == TermID::OPERATOR) {
+        //        if(op->m_text.compare(==))
+    }
+    NL_PARSER(op, "EvalOpOther '%s' not implemented!", op->m_text.c_str());
+}
+
+ObjPtr Runner::EvalOpMath_(TermPtr & op) {
+    ASSERT(op);
+    ASSERT(op->m_id == TermID::OP_MATH);
+    ASSERT(op->m_left);
+    ASSERT(op->m_right);
+    CheckObjTerm_(op->m_left);
+    CheckObjTerm_(op->m_right);
+
+    ObjPtr result = op->m_left->m_obj;
+    if (op->m_text.rfind("=") == op->m_text.size() - 2) {
+        result = result->Clone();
+    }
+
+    if (op->m_text.find("+") == 0) {
+        (*result) += op->m_right->m_obj;
+    } else if (op->m_text.find("-") == 0) {
+        (*result) -= op->m_right->m_obj;
+    } else if (op->m_text.find("*") == 0) {
+        (*result) *= op->m_right->m_obj;
+    } else if (op->m_text.find("/") == 0) {
+        (*result) /= op->m_right->m_obj;
+    } else if (op->m_text.find("//") == 0) {
+        result->op_div_ceil_(op->m_right->m_obj);
+    } else if (op->m_text.find("%") == 0) {
+        (*result) %= op->m_right->m_obj;
+    } else {
+        NL_PARSER(op, "Math operator '%s' not implemented!", op->m_text.c_str());
+    }
+    return result;
+}
+
+ObjPtr Runner::EvalOpCompare_(TermPtr & op) {
+    ASSERT(op);
+    ASSERT(op->m_id == TermID::OP_COMPARE);
+    ASSERT(op->m_left);
+    ASSERT(op->m_right);
+    ASSERT(op->m_left->m_obj);
+    ASSERT(op->m_right->m_obj);
+
+    ObjPtr result;
+
+    if (op->m_text.compare("==") == 0) {
+        result = Obj::CreateBool(op->m_left->m_obj->op_equal(op->m_right->m_obj));
+    } else if (op->m_text.compare("!=") == 0) {
+        result = Obj::CreateBool(!op->m_left->m_obj->op_equal(op->m_right->m_obj));
+    } else if (op->m_text.compare("<") == 0) {
+        result = Obj::CreateBool((*op->m_left->m_obj) < op->m_right->m_obj);
+    } else if (op->m_text.compare("<=") == 0) {
+        result = Obj::CreateBool((*op->m_left->m_obj) <= op->m_right->m_obj);
+    } else if (op->m_text.compare(">") == 0) {
+        result = Obj::CreateBool((*op->m_left->m_obj) > op->m_right->m_obj);
+    } else if (op->m_text.compare(">=") == 0) {
+        result = Obj::CreateBool((*op->m_left->m_obj) >= op->m_right->m_obj);
+    } else if (op->m_text.compare("===") == 0) {
+        result = Obj::CreateBool(op->m_left->m_obj->op_accurate(op->m_right->m_obj));
+    } else if (op->m_text.compare("!==") == 0) {
+        result = Obj::CreateBool(!op->m_left->m_obj->op_accurate(op->m_right->m_obj));
+    } else {
+        NL_PARSER(op, "Compare operator '%s' not implemented!", op->m_text.c_str());
+    }
+    return result;
+}
+
+ObjPtr Runner::EvalOpBitwise_(TermPtr & op) {
+    ASSERT(op);
+    NL_PARSER(op, "Bitwise operator '%s' not implemented!", op->m_text.c_str());
+}
+
+ObjPtr Runner::EvalOp_(TermPtr & op) {
+    ASSERT(op);
+    ObjPtr result;
+    //    switch (obj->getTermID()) {
+    //        case TermID::INT_PLUS:
+    //            result = Obj::CreateString(obj->m_namespace ? obj->m_namespace->m_text : "");
+    //            result->m_var_type = ObjType::RetPlus;
+    //            break;
+    //        case TermID::INT_MINUS:
+    //            result = Obj::CreateString(obj->m_namespace ? obj->m_namespace->m_text : "");
+    //            result->m_var_type = ObjType::RetMinus;
+    //            break;
+    //        case TermID::INT_REPEAT:
+    //            result = Obj::CreateString(obj->m_namespace ? obj->m_namespace->m_text : "");
+    //            result->m_var_type = ObjType::RetRepeat;
+    //            break;
+    //        default:
+    //            NL_PARSER(term, "EvalOp for type '%s' not implemented!", toString(obj->getTermID()));
+    //    }
+    return result;
+}
+
+
+//VERIFY(CreateMacro("@@ exit(code) @@ ::= @@ :: ++ @$code ++ @@"));
+//VERIFY(CreateMacro("@@ abort() @@ ::= @@ :: -- @@"));
+
+int Runner::EvalInterrupt_(TermPtr obj, std::string & label) {
+    label = obj->m_namespace ? obj->m_namespace->m_text : "";
+    //    TermPtr val = obj->m_right ? EvalOp(obj->m_right) : Term::CreateNone();
+    //    switch (obj->getTermID()) {
+    //        case TermID::INT_PLUS:
+    //            if (label.compare("::") == 0) {
+    //                ::exit(val->m_obj->GetValueAsInteger());
+    //            }
+    //            return +1;
+    //        case TermID::INT_MINUS:
+    //            if (label.compare("::") == 0) {
+    //                ::abort();
+    //            }
+    //            return -1;
+    //        case TermID::INT_REPEAT:
+    //            return 0;
+    //    }
+    NL_PARSER(obj, "EvalInterrupt '%s' not implemented!", obj->toString().c_str());
+}
+
+TermPtr EvalStack(Runner & run) {
+//    auto item = run.m_stack.rbegin();
+    //    ASSERT(item != run.m_stack.end());
+
+    //     newlang::ScopeBlock::Block br;
+    //     br.vars
+    //             
+    //    if (item->) {
+    //    } else {
+    //    }
+
+    return Term::CreateNone();
+
+}
+
+//        
+//    
+//        m_latter = EvalBlock(op, this);
+//
+//        if (isInterrupt(m_latter->getType())) {
+//            std::string label;
+//            int direct = EvalInterrupt(m_latter, label);
+//            if (!label.empty()) {
+//                riter = LookupNamespace(label);
+//                if (riter == rend()) {
+//                    NL_PARSER(op, "Named block '%s' not found!", label.c_str());
+//                }
+//            } else {
+//            }
+//
+//            if (direct < 0) {
+//            } else if (direct > 0) {
+//            } else {
+//                throw;
+//            }
+//        }
+//
+//    }
+//    return m_latter;
+//    //
+//    //
+//    //    if (block->IsBlock()) {
+//    //        auto_type = block->getTermID();
+//    //    }
+//    //
+//    //    try {
+//    //
+//    //        if (!block->m_block.empty()) {
+//    //
+//    //            for (size_t i = 0; i < block->m_block.size(); i++) {
+//    //                if (block->m_block[i]->IsBlock()) {
+//    //                    //                    LOG_DEBUG("NS %s (%d)", block->m_block[i]->m_class.c_str(), (int)ctx->m_ns_stack.size());
+//    //                    //                    bool is_ns = block->m_block[i]->m_namespace;
+//    //                    try {
+//    //                        result = CallBlock(ctx, block->m_block[i], local_vars, eval_block, CatchType::CATCH_AUTO, has_interrupt);
+//    //                    } catch (...) {
+//    //                        //                        if (is_ns) {
+//    //                        //                            ctx->m_runtime->NamespacePop();
+//    //                        //                        }
+//    //                        throw;
+//    //                    }
+//    //                    //                    if (is_ns) {
+//    //                    //                        ctx->m_runtime->NamespacePop();
+//    //                    //                    }
+//    //                } else {
+//    //                    result = Eval(ctx, block->m_block[i], local_vars, eval_block, CatchType::CATCH_NONE);
+//    //                }
+//    //            }
+//    //
+//    //        } else {
+//    //            if (block->IsBlock()) {
+//    //                //                LOG_DEBUG("NS %s (%d)", block->m_class.c_str(), (int)ctx->m_ns_stack.size());
+//    //                //                bool is_ns = ctx->m_runtime->NamespacePush(block->m_class);
+//    //                try {
+//    //                    result = CallBlock(ctx, block, local_vars, eval_block, CatchType::CATCH_AUTO, has_interrupt);
+//    //                } catch (...) {
+//    //                    //                    if (is_ns) {
+//    //                    //                        ctx->m_runtime->NamespacePop();
+//    //                    //                    }
+//    //                    throw;
+//    //                }
+//    //                //                if (is_ns) {
+//    //                //                    ctx->m_runtime->NamespacePop();
+//    //                //                }
+//    //            } else {
+//    //                result = Eval(ctx, block, local_vars, eval_block, CatchType::CATCH_NONE);
+//    //            }
+//    //        }
+//    //
+//    //    } catch (Return &obj) {
+//    //
+//    //        call_else = false;
+//    //        if (has_interrupt) {
+//    //            *has_interrupt = true;
+//    //        }
+//    //
+//    //        ASSERT(obj.m_obj);
+//    //        ASSERT(obj.m_obj->m_return_obj);
+//    //
+//    //        if (type_catch == CatchType::CATCH_NONE || auto_type == TermID::NONE || (type_catch == CatchType::CATCH_AUTO && auto_type == TermID::BLOCK)) {
+//    //            throw;
+//    //        } else if (auto_type == TermID::BLOCK_PLUS) {
+//    //            if ((type_catch == CatchType::CATCH_PLUS || type_catch == CatchType::CATCH_AUTO)
+//    //                    && obj.m_obj->m_var_type_current == ObjType::RetPlus) {
+//    //                return obj.m_obj->m_return_obj;
+//    //            }
+//    //            throw;
+//    //        } else if (auto_type == TermID::BLOCK_MINUS) {
+//    //            if ((type_catch == CatchType::CATCH_MINUS || type_catch == CatchType::CATCH_AUTO)
+//    //                    && obj.m_obj->m_var_type_current == ObjType::RetMinus) {
+//    //                return obj.m_obj->m_return_obj;
+//    //            }
+//    //            throw;
+//    //        } else if ((type_catch == CatchType::CATCH_ALL ||
+//    //                (type_catch == CatchType::CATCH_AUTO && auto_type == TermID::BLOCK_TRY))
+//    //                && !block->m_type) { // Если есть фильтр для типа
+//    //            // Тип данных при возврате не соответствует фильтру, пробросить исключение дальше
+//    //            bool is_return = false;
+//    //            //            for (size_t i = 0; i < block->m_type_allowed.size(); i++) {
+//    //            //                if (obj.m_obj->m_return_obj->op_class_test(block->m_type_allowed[i]->getText().c_str(), ctx)) {
+//    //            //                    is_return = true;
+//    //            //                    break;
+//    //            //                }
+//    //            //            }
+//    //            if (!is_return) {
+//    //                throw;
+//    //            }
+//    //        }
+//    //
+//    //        result = obj.m_obj->m_return_obj;
+//    //
+//    //    } catch (std::exception &obj) {
+//    //
+//    //        call_else = false;
+//    //        if (type_catch == CatchType::CATCH_NONE || (type_catch == CatchType::CATCH_AUTO && auto_type == TermID::BLOCK)) {
+//    //            throw;
+//    //        }
+//    //
+//    //        if (has_interrupt) {
+//    //            *has_interrupt = true;
+//    //        }
+//    //        result = Obj::CreateType(ObjType::Error, ObjType::Error, true);
+//    //        result->m_value = std::string(obj.what());
+//    //    }
+//    //
+//    //    if (call_else) {
+//    //        //        
+//    //        //        if(block->m_follow.size()!=1){
+//    //        //            LOG_DEBUG("block->m_follow.size() %d", (int)block->m_follow.size());
+//    //        //            for (auto &elem : block->m_follow) {
+//    //        //                LOG_DEBUG("%s", elem->toString().c_str());
+//    //        //            }
+//    //        //        }
+//    //        //        
+//    //        //        ASSERT(block->m_follow.size() == 1);
+//    //
+//    //        if (block->IsBlock()) {
+//    //            result = CallBlock(ctx, block->m_follow[0], local_vars, eval_block, CatchType::CATCH_AUTO, has_interrupt);
+//    //        } else {
+//    //            result = Eval(ctx, block->m_follow[0], local_vars, eval_block, CatchType::CATCH_NONE);
+//    //        }
+//    //
+//    //        //        result = Eval(ctx, block->m_follow[0], local_vars, eval_block, CatchType::CATCH_AUTO);
+//    //    }
+//    //
+//    //    return result;
+//}
+//
+

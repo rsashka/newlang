@@ -1,6 +1,6 @@
 #include "pch.h"
 
-#ifdef UNITTEST
+#ifdef BUILD_UNITTEST
 #include "parser.h"
 
 #include <signal.h>
@@ -551,7 +551,7 @@ TEST(Eval, Fileio) {
     Context::Reset();
     Context ctx(RunTime::Init());
 
-    ASSERT_NO_THROW(ctx.ExecFile("../examples/fileio.nlp"));
+    ASSERT_NO_THROW(ctx.ExecFile("../examples/fileio.src"));
 
     ASSERT_TRUE(ctx.FindTerm("fopen"));
     ASSERT_TRUE(ctx.FindTerm("fputs"));

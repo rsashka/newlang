@@ -1,6 +1,6 @@
 #include "pch.h"
 
-#ifdef UNITTEST
+#ifdef BUILD_UNITTEST
 
 #include <gtest/gtest.h>
 
@@ -175,7 +175,7 @@ TEST(Module, Load) {
     std::filesystem::create_directories("temp");
     ASSERT_TRUE(std::filesystem::is_directory("temp"));
 
-    std::ofstream file("temp/module_test.nlp");
+    std::ofstream file("temp/module_test.src");
     file << "module_var1 := 1;\n";
     file << "ns { module_var2 := 2;\n";
     file << "   ns2 { module_var3 := 3;};\n";
@@ -315,7 +315,7 @@ TEST(Module, SysEnv) {
     std::filesystem::create_directories("temp");
     ASSERT_TRUE(std::filesystem::is_directory("temp"));
 
-    std::ofstream file("temp/module_test.nlp");
+    std::ofstream file("temp/module_test.src");
     file << "module_var1 := 1;\n";
     file << "ns { module_var2 := 2;\n";
     file << "   ns2 { module_var3 := 3;};\n";
@@ -364,7 +364,7 @@ TEST(Module, SysEnv) {
             result = ctx.ExecStr("\\temp\\module_test::__file__");
             );
     ASSERT_TRUE(result);
-    ASSERT_TRUE(result->GetValueAsString().find("temp/module_test.nlp") != std::string::npos) << result->GetValueAsString();
+    ASSERT_TRUE(result->GetValueAsString().find("temp/module_test.src") != std::string::npos) << result->GetValueAsString();
 
 
     ASSERT_NO_THROW(

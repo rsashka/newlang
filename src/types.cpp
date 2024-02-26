@@ -2,6 +2,7 @@
 
 #include <types.h>
 #include <term.h>
+#include <object.h>
 
 using namespace newlang;
 
@@ -32,13 +33,38 @@ static const std::map<const std::string, const TermPtr> default_types{
 
     MAKE_TYPE(":Range"),
     MAKE_TYPE(":Iterator"),
-            
+
     MAKE_TYPE(":Any")};
 
 #undef MAKE_TYPE
 
 static const TermPtr type_default_none = default_types.find(":None")->second;
 static const TermPtr type_default_any = default_types.find(":Any")->second;
+static const TermPtr term_none = Term::Create(parser::token_type::NAME, TermID::NAME, "_");
+static const TermPtr term_ellipsys = Term::Create(parser::token_type::ELLIPSIS, TermID::ELLIPSIS, "...");
+static const TermPtr term_required = Term::Create(parser::token_type::END, TermID::NONE, "_");
+static const ObjPtr obj_none = Obj::CreateNone();
+static const ObjPtr obj_ellipsys = Obj::CreateType(ObjType::Ellipsis, ObjType::Ellipsis, true);
+
+const TermPtr newlang::getNoneTerm() {
+    return term_none;
+}
+
+const TermPtr newlang::getRequiredTerm() {
+    return term_required;
+}
+
+const TermPtr newlang::getEllipsysTerm() {
+    return term_ellipsys;
+}
+
+const ObjPtr newlang::getNoneObj() {
+    return obj_none;
+}
+
+const ObjPtr newlang::getEllipsysObj() {
+    return obj_ellipsys;
+}
 
 bool newlang::isDefaultType(const TermPtr & term) {
     if (term) {
@@ -65,4 +91,16 @@ const TermPtr newlang::getDefaultType(const std::string_view text) {
         return type_default_any;
     }
     return nullptr;
+}
+
+const char * IntAny::what() const noexcept {
+    assert(m_obj);
+    std::string temp = m_obj->toString();
+
+    size_t pos = temp.find("\n')");
+    if (pos == temp.size() - 3) {
+        temp = temp.replace(pos, 1, "");
+    }
+    snprintf((char *) m_buffer_message, sizeof (m_buffer_message), "%s", temp.c_str());
+    return m_buffer_message;
 }

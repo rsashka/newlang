@@ -17,7 +17,7 @@ namespace newlang {
      * \runtime\os(args);
      * 
      * Раскрывается в описание класса??? __name__="os" или __name__="__main__" для приложения
-     * :Module(args, __module__="\\\\runtime\\os", __file__="runtime\\os.nlp", __md5__="..." ... ) { @__PRAGMA_LOCATION__( push, 'runtime\\os.nlp', 0)
+     * :Module(args, __module__="\\\\runtime\\os", __file__="runtime\\os.src", __md5__="..." ... ) { @__PRAGMA_LOCATION__( push, 'runtime\\os.src', 0)
      * ..... текст модуля ..... начинается с 1 строки т.к. @__PRAGMA_LOCATION__( push устанавливает номер строки **0**
      * @__PRAGMA_LOCATION__( pop) };
      */

@@ -1,6 +1,6 @@
 #include "pch.h"
 
-#ifdef UNITTEST
+#ifdef BUILD_UNITTEST
 
 #include <warning_push.h>
 #include <gtest/gtest.h>

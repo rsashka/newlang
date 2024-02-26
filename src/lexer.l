@@ -66,6 +66,19 @@ ualpha  {alpha}|{U2}{U1}|{U3}{U1}{U1}|{U4}{U1}{U1}{U1}
 
 /* запрет использования U+202A, U+202B, U+202C, U+202D, U+202E, U+2066, U+2067, U+2068, U+2069, U+061C, U+200E и U+200F */
 
+
+/*
+sign        ::=  "+" | "-"
+infinity    ::=  "Infinity" | "inf"
+nan         ::=  "nan"
+digit       ::=  <a Unicode decimal digit, i.e. characters in Unicode general category Nd>
+digitpart   ::=  digit (["_"] digit)*
+number      ::=  [digitpart] "." digitpart | digitpart ["."]
+exponent    ::=  ("e" | "E") ["+" | "-"] digitpart
+floatnumber ::=  number [exponent]
+floatvalue  ::=  [sign] (floatnumber | infinity | nan)
+*/
+
 digit   [0-9]
 /* In numbers, it is allowed to separate digits using a handwriting symbol... */
 integer {digit}([_]?{digit}+)*
@@ -225,8 +238,8 @@ native  %({ualpha}|[_])+({name}|{digit})?
 .                   buffer.append(yytext, yyleng);
 "%}"            {
                     BEGIN(INITIAL);
-                    *yylval = Term::Create(token::SOURCE, TermID::SOURCE, buffer.c_str(), buffer.size(), yylloc, source_string);
-                    return token::SOURCE;
+                    *yylval = Term::Create(token::EMBED, TermID::EMBED, buffer.c_str(), buffer.size(), yylloc, source_string);
+                    return token::EMBED;
                 }
 } /* End of state_SOURCE state */
 
@@ -556,15 +569,15 @@ ${name}     YY_TOKEN(LOCAL);
 
 
 "//"        YY_TOKEN_ONLY(OPERATOR_DIV);
-"++="       YY_TOKEN(OPERATOR);
-"+="        YY_TOKEN(OPERATOR);
-"-="        YY_TOKEN(OPERATOR);
-"*="        YY_TOKEN(OPERATOR);
+"++="       YY_TOKEN(OP_MATH);
+"+="        YY_TOKEN(OP_MATH);
+"-="        YY_TOKEN(OP_MATH);
+"*="        YY_TOKEN(OP_MATH);
         /* "**="       YY_TOKEN(OPERATOR); */
-"/="        YY_TOKEN(OPERATOR);
-"//="       YY_TOKEN(OPERATOR);
-"%="        YY_TOKEN(OPERATOR);
-"~="        YY_TOKEN(OPERATOR);
+"/="        YY_TOKEN(OP_MATH);
+"//="       YY_TOKEN(OP_MATH);
+"%="        YY_TOKEN(OP_MATH);
+"~="        YY_TOKEN(OP_COMPARE);
 
 "||"        YY_TOKEN(OPERATOR);
 "^^"        YY_TOKEN(OPERATOR);
@@ -586,33 +599,33 @@ ${name}     YY_TOKEN(LOCAL);
     "&#"        YY_TOKEN_ONLY(OPERATOR_PTR);
     */
 
-".>."        YY_TOKEN(OPERATOR);
-".<."        YY_TOKEN(OPERATOR);
-".>>."       YY_TOKEN(OPERATOR);
-".&."        YY_TOKEN(OPERATOR);
-".|."        YY_TOKEN(OPERATOR);
-".^."        YY_TOKEN(OPERATOR);
-".~."        YY_TOKEN(OPERATOR);
+".>."        YY_TOKEN(OP_BITWISE);
+".<."        YY_TOKEN(OP_BITWISE);
+".>>."       YY_TOKEN(OP_BITWISE);
+".&."        YY_TOKEN(OP_BITWISE);
+".|."        YY_TOKEN(OP_BITWISE);
+".^."        YY_TOKEN(OP_BITWISE);
+".~."        YY_TOKEN(OP_BITWISE);
 
 "*^"        YY_TOKEN(TAKE);
 "**"        YY_TOKEN(WITH);
-"!~~~"      YY_TOKEN(OPERATOR);
+"!~~~"      YY_TOKEN(OP_COMPARE);
 "~~~"       YY_TOKEN_ONLY(OPERATOR_DUCK);
-"!~~"       YY_TOKEN(OPERATOR);
+"!~~"       YY_TOKEN(OP_COMPARE);
 "~~"        YY_TOKEN_ONLY(OPERATOR_DUCK);
-"!~"        YY_TOKEN(OPERATOR);
-"==="       YY_TOKEN(OPERATOR);
-"=="        YY_TOKEN(OPERATOR);
-"!=="       YY_TOKEN(OPERATOR);
-"!="        YY_TOKEN(OPERATOR);
-"=/="       YY_TOKEN(OPERATOR);
-"<="        YY_TOKEN(OPERATOR);
+"!~"        YY_TOKEN(OP_COMPARE);
+"==="       YY_TOKEN(OP_COMPARE);
+"=="        YY_TOKEN(OP_COMPARE);
+"!=="       YY_TOKEN(OP_COMPARE);
+"!="        YY_TOKEN(OP_COMPARE);
+"=/="       YY_TOKEN(OP_COMPARE);
+"<="        YY_TOKEN(OP_COMPARE);
 ">="        YY_TOKEN_ONLY(OPERATOR_ANGLE_EQ);
 
-"[+]"        YY_TOKEN(OPERATOR); /* Объединение множеств */
-"[-]"        YY_TOKEN(OPERATOR); /* Разность множеств */
-"[*]"        YY_TOKEN(OPERATOR); /* Пересечение множеств */
-"[/]"        YY_TOKEN(OPERATOR);
+"[+]"        YY_TOKEN(OP_MATH); /* Объединение множеств */
+"[-]"        YY_TOKEN(OP_MATH); /* Разность множеств */
+"[*]"        YY_TOKEN(OP_MATH); /* Пересечение множеств */
+"[/]"        YY_TOKEN(OP_MATH);
 
     /* Симметри́ческая ра́зность двух множеств — теоретико-множественная операция, результатом которой является новое множество, включающее все элементы исходных множеств, не принадлежащие одновременно обоим исходным множествам. Другими словами, если есть два множества A A и B B, их симметрическая разность есть объединение элементов A A, не входящих в B B, с элементами B B, не входящими в A A. На письме для обозначения симметрической разности множеств A A и B B используется обозначение A △ B {\displaystyle A\bigtriangleup B}, реже используется обозначение A − ˙ B {\displaystyle A\,{\dot {-}}\,B} или A + B A+B[1].
     */

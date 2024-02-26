@@ -1416,7 +1416,7 @@ std::string newlang::MangleName(const char * name) {
 //    //            //            result = output;
 //    //            //            return result;
 //    //
-//    //        case TermID::SOURCE:
+//    //        case TermID::EMBED:
 //    //            temp = term->getText();
 //    //            ReplaceSourceVariable(ci, ci.arguments.size() + 1, temp);
 //    //            output += temp;

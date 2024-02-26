@@ -19,7 +19,7 @@
 #define LOG_COREDUMP(...)  LOG_CALLSTACK(std::runtime_error, ##__VA_ARGS__)
 
 
-#ifdef UNITTEST
+#ifdef BUILD_UNITTEST
 #define LOG_TEST(...)   LOG_MAKE(LOG_LEVEL_DEBUG, "T:", ##__VA_ARGS__)
 #else
 #define LOG_TEST(...)
@@ -69,7 +69,7 @@
 #define ASSERT_EXCEPTION(text) do { LOG_PRINT_CALLSTACK(); LOG_ABORT(text); exit(1); } while(0)
 #endif
 
-#if defined(DEBUG)
+#if defined(BUILD_DEBUG)
 #define ASSERT(condition)   do {\
                                 if(!(condition)) { \
                                     ASSERT_EXCEPTION(TO_STR(condition) " (" __FILE__ ":" TO_STR(__LINE__) ")"); \
@@ -97,7 +97,7 @@
 #endif
 
 #ifndef SCOPE
-#ifdef UNITTEST
+#ifdef BUILD_UNITTEST
 #define SCOPE(scope) public
 #else
 #define SCOPE(scope) scope

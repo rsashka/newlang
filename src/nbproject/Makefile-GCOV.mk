@@ -56,6 +56,7 @@ OBJECTFILES= \
 	${OBJECTDIR}/system.o \
 	${OBJECTDIR}/term.o \
 	${OBJECTDIR}/test/alg_test.o \
+	${OBJECTDIR}/test/ast_test.o \
 	${OBJECTDIR}/test/compiler_test.o \
 	${OBJECTDIR}/test/diag_test.o \
 	${OBJECTDIR}/test/eval_test.o \
@@ -65,10 +66,10 @@ OBJECTFILES= \
 	${OBJECTDIR}/test/module_test.o \
 	${OBJECTDIR}/test/nlc_test.o \
 	${OBJECTDIR}/test/object_test.o \
-	${OBJECTDIR}/test/oop_test.o \
 	${OBJECTDIR}/test/parser_analysis_test.o \
 	${OBJECTDIR}/test/parser_test.o \
 	${OBJECTDIR}/test/rational_test.o \
+	${OBJECTDIR}/test/run_test.o \
 	${OBJECTDIR}/test/system_test.o \
 	${OBJECTDIR}/types.o \
 	${OBJECTDIR}/version.o
@@ -227,6 +228,11 @@ ${OBJECTDIR}/test/alg_test.o: test/alg_test.cpp
 	${RM} "$@.d"
 	$(COMPILE.cc) -g -DDEBUG -DLOG_LEVEL_NORMAL=LOG_LEVEL_DEBUG -DPDC_WIDE -DUNITTEST -I.. -I../contrib/googletest/googletest -I../contrib/googletest/googletest/include -I../contrib/Tensorflow/bazel-bin/tensorflow/include -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/test/alg_test.o test/alg_test.cpp
 
+${OBJECTDIR}/test/ast_test.o: test/ast_test.cpp
+	${MKDIR} -p ${OBJECTDIR}/test
+	${RM} "$@.d"
+	$(COMPILE.cc) -g -DDEBUG -DLOG_LEVEL_NORMAL=LOG_LEVEL_DEBUG -DPDC_WIDE -DUNITTEST -I.. -I../contrib/googletest/googletest -I../contrib/googletest/googletest/include -I../contrib/Tensorflow/bazel-bin/tensorflow/include -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/test/ast_test.o test/ast_test.cpp
+
 ${OBJECTDIR}/test/compiler_test.o: test/compiler_test.cpp
 	${MKDIR} -p ${OBJECTDIR}/test
 	${RM} "$@.d"
@@ -272,11 +278,6 @@ ${OBJECTDIR}/test/object_test.o: test/object_test.cpp
 	${RM} "$@.d"
 	$(COMPILE.cc) -g -DDEBUG -DLOG_LEVEL_NORMAL=LOG_LEVEL_DEBUG -DPDC_WIDE -DUNITTEST -I.. -I../contrib/googletest/googletest -I../contrib/googletest/googletest/include -I../contrib/Tensorflow/bazel-bin/tensorflow/include -std=c++14 -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/test/object_test.o test/object_test.cpp
 
-${OBJECTDIR}/test/oop_test.o: test/oop_test.cpp
-	${MKDIR} -p ${OBJECTDIR}/test
-	${RM} "$@.d"
-	$(COMPILE.cc) -g -DDEBUG -DLOG_LEVEL_NORMAL=LOG_LEVEL_DEBUG -DPDC_WIDE -DUNITTEST -I.. -I../contrib/googletest/googletest -I../contrib/googletest/googletest/include -I../contrib/Tensorflow/bazel-bin/tensorflow/include -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/test/oop_test.o test/oop_test.cpp
-
 ${OBJECTDIR}/test/parser_analysis_test.o: test/parser_analysis_test.cpp
 	${MKDIR} -p ${OBJECTDIR}/test
 	${RM} "$@.d"
@@ -291,6 +292,11 @@ ${OBJECTDIR}/test/rational_test.o: test/rational_test.cpp
 	${MKDIR} -p ${OBJECTDIR}/test
 	${RM} "$@.d"
 	$(COMPILE.cc) -g -DDEBUG -DLOG_LEVEL_NORMAL=LOG_LEVEL_DEBUG -DPDC_WIDE -DUNITTEST -I.. -I../contrib/googletest/googletest -I../contrib/googletest/googletest/include -I../contrib/Tensorflow/bazel-bin/tensorflow/include -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/test/rational_test.o test/rational_test.cpp
+
+${OBJECTDIR}/test/run_test.o: test/run_test.cpp
+	${MKDIR} -p ${OBJECTDIR}/test
+	${RM} "$@.d"
+	$(COMPILE.cc) -g -DDEBUG -DLOG_LEVEL_NORMAL=LOG_LEVEL_DEBUG -DPDC_WIDE -DUNITTEST -I.. -I../contrib/googletest/googletest -I../contrib/googletest/googletest/include -I../contrib/Tensorflow/bazel-bin/tensorflow/include -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/test/run_test.o test/run_test.cpp
 
 ${OBJECTDIR}/test/system_test.o: test/system_test.cpp
 	${MKDIR} -p ${OBJECTDIR}/test
