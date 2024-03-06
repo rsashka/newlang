@@ -34,7 +34,7 @@ bool Buildin::CreateMethodNative(const char * proto, void * addr) {
         return false;
     }
 
-    return AddMethod(term->getText().c_str(), RunTime::CreateNative(term, addr, nullptr));
+    return AddMethod(term->getText().c_str(), m_runtime->CreateNative(term, addr));
 
 }
 

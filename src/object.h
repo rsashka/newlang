@@ -567,6 +567,11 @@ namespace newlang {
         }
 
         [[nodiscard]]
+        inline bool is_native() const {
+            return isNative(m_var_type_current);
+        }
+
+        [[nodiscard]]
         inline bool is_tensor_type() const {
             return isTensor(m_var_type_current);
         }
@@ -698,25 +703,40 @@ namespace newlang {
             return temp.compare("true") == 0;
         }
 
-        /**
-         * Создать копию объекта (клонировать)
-         * @return 
-         */
-        ObjPtr operator()(Context *ctx) {
+        inline ObjPtr operator()() {
             Obj args(ObjType::Dictionary);
-            return Call(ctx, &args);
+            return op_call(args);
         }
+
+        inline ObjPtr op_call(ObjPtr args) {
+            ASSERT(args);
+            return op_call(*args);
+        }
+
+        ObjPtr op_call(Obj &args);
 
         template <typename... T>
         typename std::enable_if<is_all<Obj::PairType, T ...>::value, ObjPtr>::type
-        inline operator()(Context *ctx, T ... args) {
+        inline operator()(T ... args) {
             auto list = {args...};
             ObjPtr arg = Obj::CreateDict();
             for (auto &elem : list) {
                 arg->push_back(elem);
             }
-            return Call(ctx, arg.get());
+            return op_call(*arg);
         }
+        
+        template <typename... T>
+        typename std::enable_if<!is_all<Obj::PairType, T ...>::value, ObjPtr>::type
+        inline operator()(T ... args) {
+            auto list = {args...};
+            ObjPtr arg = Obj::CreateDict();
+            for (auto &elem : list) {
+                arg->push_back(Obj::CreateValue(elem));
+            }
+            return op_call(*arg);
+        }
+
 
         inline ObjPtr Call(Context *ctx) {
             Obj args(ObjType::Dictionary);
@@ -1891,6 +1911,18 @@ namespace newlang {
             return result;
         }
 
+        template <typename T>
+        typename std::enable_if<std::is_same<T, std::string>::value, ObjPtr>::type
+        static CreateValue(T value, ObjType fix_type = ObjType::None) {
+            return Obj::CreateString(value);
+        }
+        
+        template <typename T>
+        typename std::enable_if<std::is_same<T, std::wstring>::value, ObjPtr>::type
+        static CreateValue(T value, ObjType fix_type = ObjType::None) {
+            return Obj::CreateString(value);
+        }
+        
         inline static ObjPtr Yes() {
             ObjPtr result = std::make_shared<Obj>(ObjType::Bool);
             result->m_var = static_cast<int64_t> (1);
@@ -2446,6 +2478,7 @@ namespace newlang {
         std::vector<ObjPtr> m_class_parents; ///< Родительские классы (типы)
         std::string m_module_name;
         const TermPtr m_prototype; ///< Описание прототипа функции (или данных)
+        Runner *m_ctx;
 
         ObjPtr m_dimensions; ///< Размерности для ObjType::Type
 

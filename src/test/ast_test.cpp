@@ -156,7 +156,7 @@ using namespace newlang;
  *  
  */
 
-TEST(Ast, ScopeBlock) {
+TEST(Ast, ScopeStack) {
 
     ASSERT_STREQ("name", ExtractName("name").c_str());
     ASSERT_STREQ("name", ExtractName("::name").c_str());
@@ -180,9 +180,9 @@ TEST(Ast, ScopeBlock) {
     ASSERT_STREQ("\\\\file\\dir", ExtractModuleName("_$file_dir$_var$$").c_str());
     ASSERT_STREQ("\\\\file\\dir", ExtractModuleName("_$file_dir$_var$$$").c_str());
 
-    TermStorage storage;
-    ScopeBlock ns_stack(&storage);
-    ASSERT_EQ(ns_stack.m_module, &storage);
+    StorageTerm storage;
+    ScopeStack ns_stack(storage);
+    ASSERT_EQ(ns_stack.m_static, storage);
 
     ASSERT_STREQ("::name1::", ns_stack.CreateVarName("::name1").c_str());
     ASSERT_STREQ("name1$", ns_stack.CreateVarName("name1").c_str());
@@ -197,11 +197,11 @@ TEST(Ast, ScopeBlock) {
     ASSERT_STREQ("1::name1$", ns_stack.CreateVarName("$name1").c_str());
     ASSERT_STREQ("name1:::", ns_stack.CreateVarName(":name1").c_str());
 
-    ns_stack.m_stack.back().vars.insert({"name1", Term::Create(parser::token_type::NAME, TermID::NAME, "term_name1")});
-    ns_stack.m_stack.back().vars.insert({"name2", Term::Create(parser::token_type::NAME, TermID::NAME, "term_name2")});
+    ns_stack.back().vars.insert({"name1", Term::Create(parser::token_type::NAME, TermID::NAME, "term_name1")});
+    ns_stack.back().vars.insert({"name2", Term::Create(parser::token_type::NAME, TermID::NAME, "term_name2")});
 
     ns_stack.PushScope(Term::Create(parser::token_type::NAME, TermID::NAME, "ns"));
-    ns_stack.m_stack.back().vars.insert({"name3", Term::Create(parser::token_type::NAME, TermID::NAME, "term_name3")});
+    ns_stack.back().vars.insert({"name3", Term::Create(parser::token_type::NAME, TermID::NAME, "term_name3")});
 
     ASSERT_STREQ("::name1::", ns_stack.CreateVarName("::name1").c_str());
     ASSERT_STREQ("1::ns::name1$", ns_stack.CreateVarName("name1").c_str());
@@ -214,15 +214,15 @@ TEST(Ast, ScopeBlock) {
 
     ASSERT_STREQ("Storage: name4, name5\nStack [1::]: name1, name2\nStack [ns::]: name3\n", ns_stack.Dump().c_str());
     storage.clear();
-    ns_stack.m_stack.clear();
+    ns_stack.clear();
 
     //  ... 
-    ASSERT_EQ(0, ns_stack.m_stack.size());
+    ASSERT_EQ(0, ns_stack.size());
     ASSERT_STREQ("", ns_stack.GetNamespace().c_str());
 
-    ASSERT_FALSE(ns_stack.LookupVar("name1"));
-    ASSERT_FALSE(ns_stack.LookupVar("$name1"));
-    ASSERT_FALSE(ns_stack.LookupVar("::name1"));
+    ASSERT_FALSE(ns_stack.LookupName("name1"));
+    ASSERT_FALSE(ns_stack.LookupName("$name1"));
+    ASSERT_FALSE(ns_stack.LookupName("::name1"));
 
     TermPtr name1 = Term::Create(parser::token_type::NAME, TermID::NAME, "name1");
     ASSERT_EQ(0, storage.size()) << ns_stack.Dump();
@@ -231,21 +231,21 @@ TEST(Ast, ScopeBlock) {
     name1->m_int_name = ns_stack.CreateVarName(name1->m_text);
     ASSERT_TRUE(ns_stack.AddName(name1)) << ns_stack.Dump();
 
-    ASSERT_EQ(0, ns_stack.m_stack.size());
+    ASSERT_EQ(0, ns_stack.size());
     ASSERT_EQ(1, storage.size()) << ns_stack.Dump();
     ASSERT_TRUE(storage.find("name1$") != storage.end()) << ns_stack.Dump();
 
     ASSERT_STREQ("name1$", name1->m_int_name.c_str());
     TermPtr temp1;
-    ASSERT_TRUE(temp1 = ns_stack.LookupVar("name1")) << ns_stack.Dump();
+    ASSERT_TRUE(temp1 = ns_stack.LookupName("name1")) << ns_stack.Dump();
     ASSERT_EQ(temp1.get(), name1.get());
-    ASSERT_TRUE(temp1 = ns_stack.LookupVar("$name1")) << ns_stack.Dump();
+    ASSERT_TRUE(temp1 = ns_stack.LookupName("$name1")) << ns_stack.Dump();
     ASSERT_EQ(temp1.get(), name1.get());
-    ASSERT_FALSE(ns_stack.LookupVar("::name1")) << ns_stack.Dump();
+    ASSERT_FALSE(ns_stack.LookupName("::name1")) << ns_stack.Dump();
 
     //  name { ... }
     ns_stack.PushScope(Term::Create(parser::token_type::NAMESPACE, TermID::NAMESPACE, "name"));
-    ASSERT_EQ(1, ns_stack.m_stack.size());
+    ASSERT_EQ(1, ns_stack.size());
     ASSERT_STREQ("name::", ns_stack.GetNamespace().c_str());
 
 
@@ -256,32 +256,32 @@ TEST(Ast, ScopeBlock) {
 
 
     TermPtr name2 = Term::Create(parser::token_type::NAME, TermID::NAME, "name2");
-    ASSERT_EQ(1, ns_stack.m_stack.size()) << ns_stack.Dump();
+    ASSERT_EQ(1, ns_stack.size()) << ns_stack.Dump();
     ASSERT_EQ(1, storage.size()) << ns_stack.Dump();
     ASSERT_TRUE(storage.find("$name2") == storage.end()) << ns_stack.Dump();
-    ASSERT_TRUE(ns_stack.m_stack[0].vars.find("$name2") == ns_stack.m_stack[0].vars.end()) << ns_stack.Dump();
+    ASSERT_TRUE(ns_stack[0].vars.find("$name2") == ns_stack[0].vars.end()) << ns_stack.Dump();
 
     name2->m_int_name = ns_stack.CreateVarName(name2->m_text);
     ASSERT_TRUE(ns_stack.AddName(name2)) << ns_stack.Dump();
 
     ASSERT_STREQ("name2", name2->m_text.c_str());
     TermPtr temp2;
-    ASSERT_TRUE(temp2 = ns_stack.LookupVar("name2")) << ns_stack.Dump();
+    ASSERT_TRUE(temp2 = ns_stack.LookupName("name2")) << ns_stack.Dump();
     ASSERT_EQ(temp2.get(), name2.get());
-    ASSERT_TRUE(temp2 = ns_stack.LookupVar("$name2")) << ns_stack.Dump();
+    ASSERT_TRUE(temp2 = ns_stack.LookupName("$name2")) << ns_stack.Dump();
     ASSERT_EQ(temp2.get(), name2.get());
-    ASSERT_FALSE(ns_stack.LookupVar("::name2")) << ns_stack.Dump();
+    ASSERT_FALSE(ns_stack.LookupName("::name2")) << ns_stack.Dump();
 
     TermPtr temp;
-    ASSERT_TRUE(temp = ns_stack.LookupVar("name1")) << ns_stack.Dump();
+    ASSERT_TRUE(temp = ns_stack.LookupName("name1")) << ns_stack.Dump();
     ASSERT_EQ(temp.get(), name1.get());
-    ASSERT_TRUE(temp = ns_stack.LookupVar("$name1")) << ns_stack.Dump();
+    ASSERT_TRUE(temp = ns_stack.LookupName("$name1")) << ns_stack.Dump();
     ASSERT_EQ(temp.get(), name1.get());
 
 
     //  name {  {...}  }
     ns_stack.PushScope(nullptr);
-    ASSERT_EQ(2, ns_stack.m_stack.size());
+    ASSERT_EQ(2, ns_stack.size());
 
     ASSERT_STREQ("::name1::", ns_stack.CreateVarName("::name1").c_str());
     ASSERT_STREQ("name::2::name1$", ns_stack.CreateVarName("name1").c_str());
@@ -290,35 +290,35 @@ TEST(Ast, ScopeBlock) {
 
 
     TermPtr name3 = Term::Create(parser::token_type::NAME, TermID::NAME, "$name3");
-    ASSERT_EQ(2, ns_stack.m_stack.size()) << ns_stack.Dump();
+    ASSERT_EQ(2, ns_stack.size()) << ns_stack.Dump();
     ASSERT_EQ(2, storage.size()) << ns_stack.Dump();
-    ASSERT_TRUE(ns_stack.m_stack[1].vars.find("$name3") == ns_stack.m_stack[1].vars.end()) << ns_stack.Dump();
+    ASSERT_TRUE(ns_stack[1].vars.find("$name3") == ns_stack[1].vars.end()) << ns_stack.Dump();
 
     name3->m_int_name = ns_stack.CreateVarName(name3->m_text);
     ASSERT_TRUE(ns_stack.AddName(name3)) << ns_stack.Dump();
 
     ASSERT_STREQ("$name3", name3->m_text.c_str());
     TermPtr temp3;
-    ASSERT_TRUE(temp3 = ns_stack.LookupVar("name3")) << ns_stack.Dump();
+    ASSERT_TRUE(temp3 = ns_stack.LookupName("name3")) << ns_stack.Dump();
     ASSERT_EQ(temp3.get(), name3.get());
-    ASSERT_TRUE(temp3 = ns_stack.LookupVar("$name3")) << ns_stack.Dump();
+    ASSERT_TRUE(temp3 = ns_stack.LookupName("$name3")) << ns_stack.Dump();
     ASSERT_EQ(temp3.get(), name3.get());
-    ASSERT_FALSE(ns_stack.LookupVar("::name3")) << ns_stack.Dump();
+    ASSERT_FALSE(ns_stack.LookupName("::name3")) << ns_stack.Dump();
 
-    ASSERT_TRUE(temp = ns_stack.LookupVar("name1")) << ns_stack.Dump();
+    ASSERT_TRUE(temp = ns_stack.LookupName("name1")) << ns_stack.Dump();
     ASSERT_EQ(temp.get(), name1.get());
-    ASSERT_TRUE(temp = ns_stack.LookupVar("$name1")) << ns_stack.Dump();
+    ASSERT_TRUE(temp = ns_stack.LookupName("$name1")) << ns_stack.Dump();
     ASSERT_EQ(temp.get(), name1.get());
 
-    ASSERT_TRUE(temp = ns_stack.LookupVar("name2")) << ns_stack.Dump();
+    ASSERT_TRUE(temp = ns_stack.LookupName("name2")) << ns_stack.Dump();
     ASSERT_EQ(temp.get(), name2.get());
-    ASSERT_TRUE(temp = ns_stack.LookupVar("$name2")) << ns_stack.Dump();
+    ASSERT_TRUE(temp = ns_stack.LookupName("$name2")) << ns_stack.Dump();
     ASSERT_EQ(temp.get(), name2.get());
 
 
     //  name {  {  name2 {...}  }  }
     ns_stack.PushScope(Term::Create(parser::token_type::NAMESPACE, TermID::NAMESPACE, "name2"));
-    ASSERT_EQ(3, ns_stack.m_stack.size());
+    ASSERT_EQ(3, ns_stack.size());
     ASSERT_STREQ("name::2::name2::", ns_stack.GetNamespace(false).c_str());
     ASSERT_STREQ("name::name2::", ns_stack.GetNamespace(true).c_str());
 
@@ -328,38 +328,38 @@ TEST(Ast, ScopeBlock) {
     ASSERT_STREQ("name::name2::name1:::", ns_stack.CreateVarName(":name1").c_str());
 
     TermPtr name4 = Term::Create(parser::token_type::NAME, TermID::NAME, "name4");
-    ASSERT_EQ(3, ns_stack.m_stack.size()) << ns_stack.Dump();
+    ASSERT_EQ(3, ns_stack.size()) << ns_stack.Dump();
     ASSERT_EQ(3, storage.size()) << ns_stack.Dump();
-    ASSERT_TRUE(ns_stack.m_stack[2].vars.find("$name4") == ns_stack.m_stack[2].vars.end()) << ns_stack.Dump();
+    ASSERT_TRUE(ns_stack[2].vars.find("$name4") == ns_stack[2].vars.end()) << ns_stack.Dump();
 
     name4->m_int_name = ns_stack.CreateVarName(name4->m_text);
     ASSERT_TRUE(ns_stack.AddName(name4)) << ns_stack.Dump();
 
-    ASSERT_TRUE(temp = ns_stack.LookupVar("name4")) << ns_stack.Dump();
+    ASSERT_TRUE(temp = ns_stack.LookupName("name4")) << ns_stack.Dump();
     ASSERT_EQ(temp.get(), name4.get());
-    ASSERT_TRUE(temp = ns_stack.LookupVar("$name4")) << ns_stack.Dump();
+    ASSERT_TRUE(temp = ns_stack.LookupName("$name4")) << ns_stack.Dump();
     ASSERT_EQ(temp.get(), name4.get());
 
-    ASSERT_TRUE(temp = ns_stack.LookupVar("name1")) << ns_stack.Dump();
+    ASSERT_TRUE(temp = ns_stack.LookupName("name1")) << ns_stack.Dump();
     ASSERT_EQ(temp.get(), name1.get());
-    ASSERT_TRUE(temp = ns_stack.LookupVar("$name1")) << ns_stack.Dump();
+    ASSERT_TRUE(temp = ns_stack.LookupName("$name1")) << ns_stack.Dump();
     ASSERT_EQ(temp.get(), name1.get());
 
-    ASSERT_TRUE(temp = ns_stack.LookupVar("name2")) << ns_stack.Dump();
+    ASSERT_TRUE(temp = ns_stack.LookupName("name2")) << ns_stack.Dump();
     ASSERT_EQ(temp.get(), name2.get());
-    ASSERT_TRUE(temp = ns_stack.LookupVar("$name2")) << ns_stack.Dump();
+    ASSERT_TRUE(temp = ns_stack.LookupName("$name2")) << ns_stack.Dump();
     ASSERT_EQ(temp.get(), name2.get());
 
-    ASSERT_TRUE(temp = ns_stack.LookupVar("name3")) << ns_stack.Dump();
+    ASSERT_TRUE(temp = ns_stack.LookupName("name3")) << ns_stack.Dump();
     ASSERT_EQ(temp.get(), name3.get());
-    ASSERT_TRUE(temp = ns_stack.LookupVar("$name3")) << ns_stack.Dump();
+    ASSERT_TRUE(temp = ns_stack.LookupName("$name3")) << ns_stack.Dump();
     ASSERT_EQ(temp.get(), name3.get());
 
 
 
     //  name {  {  name2 {  name3::name4 {...}  }  }  }
     ns_stack.PushScope(Term::Create(parser::token_type::NAMESPACE, TermID::NAMESPACE, "name3::name4"));
-    ASSERT_EQ(4, ns_stack.m_stack.size());
+    ASSERT_EQ(4, ns_stack.size());
     ASSERT_STREQ("name::2::name2::name3::name4::", ns_stack.GetNamespace().c_str());
 
     ASSERT_STREQ("::name1::", ns_stack.CreateVarName("::name1").c_str());
@@ -369,7 +369,7 @@ TEST(Ast, ScopeBlock) {
 
     //  name {  {  name2 {  name3::name4 {   ::{...}  }  }  }  }
     ns_stack.PushScope(Term::Create(parser::token_type::NAMESPACE, TermID::NAMESPACE, "::"));
-    ASSERT_EQ(5, ns_stack.m_stack.size());
+    ASSERT_EQ(5, ns_stack.size());
     ASSERT_STREQ("::", ns_stack.GetNamespace(false).c_str());
     ASSERT_STREQ("::", ns_stack.GetNamespace(true).c_str());
     //    ASSERT_STREQ("::name", ns_stack.GetFullName("name").c_str());
@@ -381,11 +381,11 @@ TEST(Ast, ScopeBlock) {
 
     //  name {  {  name2 {  name3::name4 {   ::{  {...}  }  }  }  }  }
     ns_stack.PushScope(nullptr);
-    ASSERT_EQ(6, ns_stack.m_stack.size());
+    ASSERT_EQ(6, ns_stack.size());
 
     ASSERT_STREQ("::3::", ns_stack.GetNamespace(false).c_str());
     ASSERT_STREQ("::", ns_stack.GetNamespace(true).c_str());
-    
+
     ASSERT_STREQ("::name1::", ns_stack.CreateVarName("::name1").c_str());
     ASSERT_STREQ("::3::name1$", ns_stack.CreateVarName("name1").c_str());
     ASSERT_STREQ("::3::name1$", ns_stack.CreateVarName("$name1").c_str());
@@ -393,47 +393,47 @@ TEST(Ast, ScopeBlock) {
 
 
     TermPtr name_g = Term::Create(parser::token_type::NAME, TermID::NAME, "@::name_g");
-    ASSERT_EQ(6, ns_stack.m_stack.size()) << ns_stack.Dump();
+    ASSERT_EQ(6, ns_stack.size()) << ns_stack.Dump();
     ASSERT_EQ(4, storage.size()) << ns_stack.Dump();
     ASSERT_TRUE(storage.find("::name_g") == storage.end()) << ns_stack.Dump();
-    ASSERT_TRUE(ns_stack.m_stack[5].vars.find("$name4") == ns_stack.m_stack[5].vars.end()) << ns_stack.Dump();
+    ASSERT_TRUE(ns_stack[5].vars.find("$name4") == ns_stack[5].vars.end()) << ns_stack.Dump();
 
     name_g->m_int_name = ns_stack.CreateVarName(name_g->m_text);
     ASSERT_TRUE(ns_stack.AddName(name_g)) << ns_stack.Dump();
 
     ASSERT_EQ(5, storage.size()) << ns_stack.Dump();
     ASSERT_TRUE(storage.find("::3::name_g::") != storage.end()) << ns_stack.Dump();
-    ASSERT_TRUE(ns_stack.m_stack[5].vars.find("::3::name_g::") != ns_stack.m_stack[5].vars.end()) << ns_stack.Dump();
+    ASSERT_TRUE(ns_stack[5].vars.find("::3::name_g::") != ns_stack[5].vars.end()) << ns_stack.Dump();
 
     ASSERT_STREQ("::3::name_g::", name_g->m_int_name.c_str());
 
-    ASSERT_TRUE(temp = ns_stack.LookupVar("name_g")) << ns_stack.Dump();
+    ASSERT_TRUE(temp = ns_stack.LookupName("name_g")) << ns_stack.Dump();
     ASSERT_EQ(temp.get(), name_g.get());
-    ASSERT_FALSE(temp = ns_stack.LookupVar("$name_g")) << ns_stack.Dump();
-    ASSERT_FALSE(ns_stack.LookupVar("::name_g")) << ns_stack.Dump();
-    ASSERT_TRUE(temp = ns_stack.LookupVar("@::name_g")) << ns_stack.Dump();
+    ASSERT_FALSE(temp = ns_stack.LookupName("$name_g")) << ns_stack.Dump();
+    ASSERT_FALSE(ns_stack.LookupName("::name_g")) << ns_stack.Dump();
+    ASSERT_TRUE(temp = ns_stack.LookupName("@::name_g")) << ns_stack.Dump();
     ASSERT_EQ(temp.get(), name_g.get());
 
-    ASSERT_TRUE(temp = ns_stack.LookupVar("name1")) << ns_stack.Dump();
+    ASSERT_TRUE(temp = ns_stack.LookupName("name1")) << ns_stack.Dump();
     ASSERT_EQ(temp.get(), name1.get());
-    ASSERT_TRUE(temp = ns_stack.LookupVar("$name1")) << ns_stack.Dump();
+    ASSERT_TRUE(temp = ns_stack.LookupName("$name1")) << ns_stack.Dump();
     ASSERT_EQ(temp.get(), name1.get());
 
-    ASSERT_TRUE(temp = ns_stack.LookupVar("name2")) << ns_stack.Dump();
+    ASSERT_TRUE(temp = ns_stack.LookupName("name2")) << ns_stack.Dump();
     ASSERT_EQ(temp.get(), name2.get());
-    ASSERT_TRUE(temp = ns_stack.LookupVar("$name2")) << ns_stack.Dump();
+    ASSERT_TRUE(temp = ns_stack.LookupName("$name2")) << ns_stack.Dump();
     ASSERT_EQ(temp.get(), name2.get());
 
-    ASSERT_TRUE(temp = ns_stack.LookupVar("name3")) << ns_stack.Dump();
+    ASSERT_TRUE(temp = ns_stack.LookupName("name3")) << ns_stack.Dump();
     ASSERT_EQ(temp.get(), name3.get());
-    ASSERT_TRUE(temp = ns_stack.LookupVar("$name3")) << ns_stack.Dump();
+    ASSERT_TRUE(temp = ns_stack.LookupName("$name3")) << ns_stack.Dump();
     ASSERT_EQ(temp.get(), name3.get());
 
-    ASSERT_TRUE(temp = ns_stack.LookupVar("name_g")) << ns_stack.Dump();
+    ASSERT_TRUE(temp = ns_stack.LookupName("name_g")) << ns_stack.Dump();
     ASSERT_EQ(temp.get(), name_g.get());
-    ASSERT_FALSE(temp = ns_stack.LookupVar("$name_g")) << ns_stack.Dump();
-    ASSERT_FALSE(temp = ns_stack.LookupVar("::name_g")) << ns_stack.Dump();
-    ASSERT_TRUE(temp = ns_stack.LookupVar("@::name_g")) << ns_stack.Dump();
+    ASSERT_FALSE(temp = ns_stack.LookupName("$name_g")) << ns_stack.Dump();
+    ASSERT_FALSE(temp = ns_stack.LookupName("::name_g")) << ns_stack.Dump();
+    ASSERT_TRUE(temp = ns_stack.LookupName("@::name_g")) << ns_stack.Dump();
     ASSERT_EQ(temp.get(), name_g.get());
 
 
@@ -442,7 +442,7 @@ TEST(Ast, ScopeBlock) {
 
     //  name {  {  name2 {  name3::name4 {   ::{  {  ::name5::name6 {...}  }  }  }  }  }  }
     ns_stack.PushScope(Term::Create(parser::token_type::NAMESPACE, TermID::NAMESPACE, "::name5::name6"));
-    ASSERT_EQ(7, ns_stack.m_stack.size());
+    ASSERT_EQ(7, ns_stack.size());
     ASSERT_STREQ("::name5::name6::", ns_stack.GetNamespace().c_str());
 
     //  name {  {  name2 {  name3::name4 {   ::{  {  ::name5::name6 {  ::{ ... }  }  }  }  }  }  }  }
@@ -451,74 +451,74 @@ TEST(Ast, ScopeBlock) {
 
     //  name {  {  name2 {  name3::name4 {   ::{  {  ::name5::name6 { ::{ name7 {...}  }  }  }  }  }  }  }  }
     ns_stack.PushScope(Term::Create(parser::token_type::NAMESPACE, TermID::NAMESPACE, "name7"));
-    ASSERT_EQ(9, ns_stack.m_stack.size());
+    ASSERT_EQ(9, ns_stack.size());
     ASSERT_STREQ("::name7::", ns_stack.GetNamespace().c_str());
 
     //  name {  {  name2 {  name3::name4 {   ::{  {  ::name5::name6 { ...  }  }  }  }  }  }  }
     ns_stack.PopScope();
     ns_stack.PopScope();
-    ASSERT_EQ(7, ns_stack.m_stack.size());
+    ASSERT_EQ(7, ns_stack.size());
     ASSERT_STREQ("::name5::name6::", ns_stack.GetNamespace().c_str());
 
     //  name {  {  name2 {  name3::name4 {   ::{  {  ...  }  }  }  }  }  }
     ns_stack.PopScope();
-    ASSERT_EQ(6, ns_stack.m_stack.size());
+    ASSERT_EQ(6, ns_stack.size());
     ASSERT_STREQ("::", ns_stack.GetNamespace(true).c_str()) << ns_stack.Dump();
     ASSERT_STREQ("::3::", ns_stack.GetNamespace(false).c_str()) << ns_stack.Dump();
 
     //  name {  {  name2 {  name3::name4 {   ::{  ...  }  }  }  }  }
     ns_stack.PopScope();
-    ASSERT_EQ(5, ns_stack.m_stack.size());
+    ASSERT_EQ(5, ns_stack.size());
     ASSERT_STREQ("::", ns_stack.GetNamespace(true).c_str()) << ns_stack.Dump();
     ASSERT_STREQ("::", ns_stack.GetNamespace(false).c_str()) << ns_stack.Dump();
 
     //  name {  {  name2 {  name3::name4 {  ...  }  }  }  }
     ns_stack.PopScope();
-    ASSERT_EQ(4, ns_stack.m_stack.size());
+    ASSERT_EQ(4, ns_stack.size());
     ASSERT_STREQ("name::name2::name3::name4::", ns_stack.GetNamespace(true).c_str());
     ASSERT_STREQ("name::2::name2::name3::name4::", ns_stack.GetNamespace(false).c_str());
 
     //  name {  {  name2 {  ...  }  }  }
     ns_stack.PopScope();
-    ASSERT_EQ(3, ns_stack.m_stack.size());
+    ASSERT_EQ(3, ns_stack.size());
     ASSERT_STREQ("name::name2::", ns_stack.GetNamespace(true).c_str());
     ASSERT_STREQ("name::2::name2::", ns_stack.GetNamespace(false).c_str());
-    
+
     //  name {  {  ...  }  }
     ns_stack.PopScope();
-    ASSERT_EQ(2, ns_stack.m_stack.size());
+    ASSERT_EQ(2, ns_stack.size());
     ASSERT_STREQ("name::", ns_stack.GetNamespace(true).c_str());
     ASSERT_STREQ("name::2::", ns_stack.GetNamespace(false).c_str());
 
 
     //  name {  ...  }
     ns_stack.PopScope();
-    ASSERT_EQ(1, ns_stack.m_stack.size());
+    ASSERT_EQ(1, ns_stack.size());
     ASSERT_STREQ("name::", ns_stack.GetNamespace(true).c_str());
     ASSERT_STREQ("name::", ns_stack.GetNamespace(false).c_str());
 
     //  - 
     ns_stack.PopScope();
-    ASSERT_EQ(0, ns_stack.m_stack.size());
+    ASSERT_EQ(0, ns_stack.size());
     ASSERT_STREQ("", ns_stack.GetNamespace(true).c_str());
     ASSERT_STREQ("", ns_stack.GetNamespace(false).c_str());
 
     //  ns::name {  ...  }
     ns_stack.PushScope(Term::Create(parser::token_type::NAMESPACE, TermID::NAMESPACE, "ns::name"));
-    ASSERT_EQ(1, ns_stack.m_stack.size());
+    ASSERT_EQ(1, ns_stack.size());
     ASSERT_STREQ("ns::name::", ns_stack.GetNamespace().c_str());
 
 
     //  ns::name {  ::{ ... } }
     ns_stack.PushScope(Term::Create(parser::token_type::NAMESPACE, TermID::NAMESPACE, "::"));
-    ASSERT_EQ(2, ns_stack.m_stack.size());
+    ASSERT_EQ(2, ns_stack.size());
     ASSERT_STREQ("::", ns_stack.GetNamespace().c_str());
 
     //  ns::name {  ... }
     ns_stack.PopScope();
     //  ... 
     ns_stack.PopScope();
-    ASSERT_EQ(0, ns_stack.m_stack.size());
+    ASSERT_EQ(0, ns_stack.size());
 
 }
 
@@ -646,8 +646,6 @@ TEST(Ast, Namespace) {
 
     RuntimePtr rt = RunTime::Init();
     ASSERT_TRUE(rt);
-    //    size_t buildin_count = rt->size();
-    //    ASSERT_TRUE(buildin_count > 100);
 
     TermPtr ast = rt->GetParser()->Parse("$var := 1;");
     ASSERT_TRUE(ast);
@@ -756,24 +754,63 @@ TEST(Ast, Namespace) {
     ASSERT_STREQ("$var", ast->m_int_vars.find("1::ns::name::2::var$")->second->m_text.c_str());
     ASSERT_STREQ("1::ns::name::2::var$", ast->m_int_vars.find("1::ns::name::2::var$")->second->m_int_name.c_str());
 
-    //    ast = rt->GetParser()->Parse("@:: --;");
-    //    ASSERT_TRUE(ast);
-    //    ASSERT_STREQ("@::", ast->m_namespace->m_text.c_str());
-    //    ASSERT_TRUE(rt->AstAnalyze(ast));
-    //    ASSERT_STREQ("", ast->m_namespace->m_text.c_str());
-    //
-    //    ast = rt->GetParser()->Parse("name {  @:: -- };");
-    //    ASSERT_TRUE(ast);
-    //    ASSERT_EQ(1, ast->m_block.size());
-    //    ASSERT_STREQ("--", ast->m_block[0]->m_text.c_str());
-    //    ASSERT_TRUE(ast->m_block[0]->IsBlock());
-    //    ASSERT_TRUE(ast->m_block[0]->m_block[0]->IsInterrupt());
-    //    ASSERT_TRUE(ast->m_block[0]->m_block[0]->m_namespace);
-    //    ASSERT_STREQ("@::", ast->m_block[0]->m_block[0]->m_namespace->m_text.c_str());
-    //    ASSERT_TRUE(rt->AstAnalyze(ast));
-    //    ASSERT_STREQ("name", ast->m_block[0]->m_block[0]->m_namespace->m_text.c_str());
-    //
-    //
+}
+
+TEST(Ast, Interruption) {
+
+    RuntimePtr rt = RunTime::Init();
+    ASSERT_TRUE(rt);
+
+    TermPtr ast = rt->GetParser()->Parse(":: --;");
+    ASSERT_TRUE(ast);
+    ASSERT_STREQ("::", ast->m_namespace->m_text.c_str());
+    ASSERT_TRUE(rt->AstAnalyze(ast, ast));
+    ASSERT_TRUE(ast->m_namespace);
+    ASSERT_STREQ("::", ast->m_namespace->m_text.c_str());
+
+    ASSERT_NO_THROW(ast = rt->GetParser()->Parse("name {  name -- };"));
+    ASSERT_TRUE(ast);
+    ASSERT_EQ(1, ast->m_block.size());
+    ASSERT_STREQ("--", ast->m_block[0]->m_text.c_str());
+    ASSERT_TRUE(ast->m_block[0]->isBlock());
+    ASSERT_TRUE(ast->m_block[0]->m_block[0]->isInterrupt());
+    ASSERT_TRUE(ast->m_block[0]->m_block[0]->m_namespace);
+    ASSERT_STREQ("name", ast->m_block[0]->m_block[0]->m_namespace->m_text.c_str());
+    ASSERT_TRUE(rt->AstAnalyze(ast, ast));
+    ASSERT_STREQ("name", ast->m_block[0]->m_block[0]->m_namespace->m_text.c_str());
+
+    ASSERT_NO_THROW(ast = rt->GetParser()->Parse("ns::name {  ns::name -+ };"));
+    ASSERT_TRUE(rt->AstAnalyze(ast, ast));
+    ASSERT_TRUE(ast);
+
+    ASSERT_NO_THROW(ast = rt->GetParser()->Parse("ns { name {  ns::name +- } };"));
+    ASSERT_TRUE(rt->AstAnalyze(ast, ast));
+    ASSERT_TRUE(ast);
+
+    ASSERT_NO_THROW(ast = rt->GetParser()->Parse("ns { { name {  { ns::name ++ } } } };"));
+    ASSERT_TRUE(rt->AstAnalyze(ast, ast));
+    ASSERT_TRUE(ast);
+
+    ASSERT_NO_THROW(ast = rt->GetParser()->Parse("{ ns { name {  ns::name +- } } };"));
+    ASSERT_TRUE(rt->AstAnalyze(ast, ast));
+    ASSERT_TRUE(ast);
+
+    ASSERT_NO_THROW(ast = rt->GetParser()->Parse("ns { { name {  local:: { ns::name ++ } } } };"));
+    ASSERT_TRUE(rt->AstAnalyze(ast, ast));
+    ASSERT_TRUE(ast);
+
+    ASSERT_NO_THROW(ast = rt->GetParser()->Parse("ns { { name {  local:: { local:: ++ } } } };"));
+    ASSERT_TRUE(rt->AstAnalyze(ast, ast));
+    ASSERT_TRUE(ast);
+
+    ASSERT_NO_THROW(ast = rt->GetParser()->Parse("ns { { name {  local:: { ns ++ } } } };"));
+    ASSERT_TRUE(rt->AstAnalyze(ast, ast));
+    ASSERT_TRUE(ast);
+
+
+    ASSERT_NO_THROW(ast = rt->GetParser()->Parse("ns { { name {  local:: { bad_name ++ } } } };"));
+    ASSERT_FALSE(rt->AstAnalyze(ast, ast));
+
     //    ast = rt->GetParser()->Parse("name {  bad_name -- };");
     //    ASSERT_TRUE(ast);
     //    ASSERT_FALSE(rt->AstAnalyze(ast));

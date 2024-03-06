@@ -219,7 +219,7 @@
 
 %token			PURE_ONCE
 %token			PURE_OVERLAP
-%token			OPERATOR
+%token			OP_LOGICAL
 %token			OP_MATH
 %token			OP_COMPARE
 %token			OP_BITWISE
@@ -353,6 +353,11 @@ name:   ns_part
             {
                 $$ = $1;
                 $$->TestConst();
+            }
+        |  NATIVE  ELLIPSIS
+            {
+                $$ = $1;
+                $$->Last()->Append($2);
             }
         |  '%'
             {
@@ -1567,11 +1572,7 @@ try_any:  try_plus
  * <factor> -> vars | ( <expr> )
  */
 
-operator: OPERATOR
-            {
-                $$ = $1;
-            }
-        | '~'
+operator: '~'
             {
                 $$ = $1;
                 $$->SetTermID(TermID::OP_COMPARE);
@@ -1589,7 +1590,7 @@ operator: OPERATOR
         |  OPERATOR_AND
             {
                 $$ = $1;
-                $$->SetTermID(TermID::OPERATOR);
+                $$->SetTermID(TermID::OP_LOGICAL);
             }
         |  OPERATOR_ANGLE_EQ
             {
@@ -1601,6 +1602,23 @@ operator: OPERATOR
                 $$ = $1;
                 $$->SetTermID(TermID::OP_COMPARE);
             }
+        |  OP_MATH
+            {
+                $$ = $1;
+            }
+        |  OP_LOGICAL
+            {
+                $$ = $1;
+            }
+        |  OP_BITWISE
+            {
+                $$ = $1;
+            }
+        |  OP_COMPARE
+            {
+                $$ = $1;
+            }
+        
 
 
 arithmetic:  arithmetic '+' addition
@@ -1951,6 +1969,11 @@ exit_prefix: ns_part
         {
             $$ = $1;
         }
+
+    |  MACRO_NAMESPACE
+        {
+            $$ = $1;
+        }
     |  ns_start
         {
             $$ = $1;
@@ -1962,7 +1985,7 @@ exit_prefix: ns_part
         }
     | ns_part  NAMESPACE
         {
-            $$ = $1;
+            $$ = $2;
             $$->m_text.insert(0, $1->m_text);
         }
     |  ns_start   ns_part  NAMESPACE

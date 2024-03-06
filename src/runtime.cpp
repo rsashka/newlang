@@ -8,10 +8,28 @@
 
 using namespace newlang;
 
+
+ffi_type * RunTime::m_ffi_type_void = nullptr;
+ffi_type * RunTime::m_ffi_type_uint8 = nullptr;
+ffi_type * RunTime::m_ffi_type_sint8 = nullptr;
+ffi_type * RunTime::m_ffi_type_uint16 = nullptr;
+ffi_type * RunTime::m_ffi_type_sint16 = nullptr;
+ffi_type * RunTime::m_ffi_type_uint32 = nullptr;
+ffi_type * RunTime::m_ffi_type_sint32 = nullptr;
+ffi_type * RunTime::m_ffi_type_uint64 = nullptr;
+ffi_type * RunTime::m_ffi_type_sint64 = nullptr;
+ffi_type * RunTime::m_ffi_type_float = nullptr;
+ffi_type * RunTime::m_ffi_type_double = nullptr;
+ffi_type * RunTime::m_ffi_type_pointer = nullptr;
+
+RunTime::ffi_prep_cif_type *RunTime::m_ffi_prep_cif = nullptr;
+RunTime::ffi_prep_cif_var_type * RunTime::m_ffi_prep_cif_var = nullptr;
+RunTime::ffi_call_type * RunTime::m_ffi_call = nullptr;
+
 //const char * RunTime::default_argv[RunTime::default_argc] = {"", "-nlc-no-runtime", "-nlc-no-dsl", "-nlc-no-embed-source"};
 //const TermPtr VarScope::NonameBlock = Term::Create(parser::token_type::END, TermID::NAMESPACE, "_");
 
-ObjType newlang::typeFromString(const std::string type_arg, RuntimePtr rt, bool *has_error) {
+ObjType newlang::typeFromString(const std::string type_arg, RunTime *rt, bool *has_error) {
 
     std::string type(type_arg);
 
@@ -52,8 +70,14 @@ ObjType newlang::typeFromString(const std::string type_arg, RuntimePtr rt, bool 
  * 
  * 
  */
-TermPtr RunTime::GlobFindProto(const char *name) {
-    GlobItem *glob = NameFind(name);
+void RunTime::Clear() {
+    m_main_ast.reset();
+    m_main_runner.reset();
+    m_main_module.reset();
+}
+
+TermPtr RunTime::GlobFindProto(const std::string_view name) {
+    GlobItem *glob = NameFind(name.begin());
     if (glob) {
         return glob->proto;
     }
@@ -316,7 +340,7 @@ ObjPtr RunTime::EvalStatic(const TermPtr term, bool pure) {
         //@todo Add check mangled name for C++ lang
         return Obj::CreateValue(reinterpret_cast<int64_t> (RunTime::GetNativeAddr(&term->m_text[1], nullptr)), ObjType::Int64);
 
-    } else if (term->getTermID() == TermID::OPERATOR) {
+    } else if (term->getTermID() == TermID::OP_COMPARE) {
 
         ASSERT(term->Left());
         ASSERT(term->Right());
@@ -386,7 +410,7 @@ ObjPtr RunTime::CreateTensor(const TermPtr term, RunnerPtr runner, bool is_pure)
     if (!term->m_type) {
         result->m_var_type_fixed = ObjType::None;
     } else {
-        result->m_var_type_fixed = typeFromString(term->m_type->m_text, shared_from_this());
+        result->m_var_type_fixed = typeFromString(term->m_type->m_text, this);
     }
     ObjType type = getSummaryTensorType(result.get(), result->m_var_type_fixed);
 
@@ -695,46 +719,9 @@ TermPtr RunTime::MakeAst(const std::string_view src, bool skip_analize) {
     }
 
     if (!AstAnalyze(ast, ast)) {
-        LOG_RUNTIME("");
+        LOG_RUNTIME("Make AST fail!");
     }
     return ast;
-}
-
-/*
- * Построчное выполнение не изменяет AST, а только добавляет к нему новые строки.
- * Констекст выполнения (m_main_runner) тоже остается не изменным.
- */
-ObjPtr RunTime::Run(const std::string_view str, Obj* args) {
-    if (!m_main_ast || m_main_ast->m_id != TermID::BLOCK) {
-        m_main_ast = Term::Create(parser::token_type::END, TermID::BLOCK, "");
-        m_main_runner.reset();
-    }
-
-    TermPtr ast = GetParser()->Parse(str.begin());
-
-    m_main_ast->m_block.push_back(ast);
-
-    if (!m_main_runner) {
-        //        m_main_runner = std::make_shared<Runner>(&m_main_ast->m_variables, shared_from_this());
-    }
-    try {
-        if (!AstAnalyze(ast, m_main_ast)) {
-            LOG_RUNTIME("");
-        }
-        return m_main_runner->Run(m_main_ast->m_block.back(), args);
-    } catch (...) {
-        m_main_ast->m_block.pop_back();
-        throw;
-    }
-}
-
-/*
- * Выполенение целого AST создает полностью новый контекст выполнения.
- */
-ObjPtr RunTime::Run(TermPtr ast, Obj* args) {
-    m_main_ast = ast;
-    //    m_main_runner = std::make_shared<Runner>(&m_main_ast->m_variables, shared_from_this());
-    return m_main_runner->Run(m_main_ast, args);
 }
 
 bool RunTime::ExpandFileName(std::string &filename) {
@@ -792,6 +779,96 @@ m_diag(std::make_shared<Diag>()) {
     LLVMAddSymbol("convert", (void *) &convert); // Для теста 
 
     GlobalNameBuildinRegister();
+
+
+
+#ifdef _MSC_VER
+
+    std::wstring sys_file;
+    std::string sys_init;
+
+    //#define CYGWIN
+#ifdef CYGWIN
+    sys_file = L"cygwin1.dll";
+    sys_init = "cygwin_dll_init";
+    ffi_file = "cygffi-6.dll";
+#else
+    //sys_file = L"msys-2.0.dll";
+    //sys_init = "msys_dll_init";
+    ffi_file = "libffi-6.dll";
+#endif
+
+    //m_msys = LoadLibrary(sys_file.c_str());
+    //if(!m_msys) {
+    //    LOG_RUNTIME("Fail LoadLibrary %s: %s", sys_file.c_str(), RunTime::GetLastErrorMessage().c_str());
+    //}
+
+    //    typedef void init_type();
+    //    init_type *init = (init_type *) GetProcAddress((HMODULE) m_msys, sys_init.c_str());
+    //    if(m_msys && !init) {
+    //        FreeLibrary((HMODULE) m_msys);
+    //        LOG_RUNTIME("Func %s not found! %s", sys_init.c_str(), RunTime::GetLastErrorMessage().c_str());
+    //        (*init)();
+    //    }
+
+    static void * m_ffi_handle = nullptr;
+
+    if (!m_ffi_handle) {
+        m_ffi_handle = LoadLibrary(utf8_decode(ffi_file).c_str());
+    }
+    if (!m_ffi_handle) {
+        LOG_RUNTIME("Fail load %s!", ffi_file.c_str());
+    }
+
+    m_ffi_type_void = reinterpret_cast<ffi_type *> (GetProcAddress((HMODULE) m_ffi_handle, "ffi_type_void"));
+    m_ffi_type_uint8 = reinterpret_cast<ffi_type *> (GetProcAddress((HMODULE) m_ffi_handle, "ffi_type_uint8"));
+    m_ffi_type_sint8 = reinterpret_cast<ffi_type *> (GetProcAddress((HMODULE) m_ffi_handle, "ffi_type_sint8"));
+    m_ffi_type_uint16 = reinterpret_cast<ffi_type *> (GetProcAddress((HMODULE) m_ffi_handle, "ffi_type_uint16"));
+    m_ffi_type_sint16 = reinterpret_cast<ffi_type *> (GetProcAddress((HMODULE) m_ffi_handle, "ffi_type_sint16"));
+    m_ffi_type_uint32 = reinterpret_cast<ffi_type *> (GetProcAddress((HMODULE) m_ffi_handle, "ffi_type_uint32"));
+    m_ffi_type_sint32 = reinterpret_cast<ffi_type *> (GetProcAddress((HMODULE) m_ffi_handle, "ffi_type_sint32"));
+    m_ffi_type_uint64 = reinterpret_cast<ffi_type *> (GetProcAddress((HMODULE) m_ffi_handle, "ffi_type_uint64"));
+    m_ffi_type_sint64 = reinterpret_cast<ffi_type *> (GetProcAddress((HMODULE) m_ffi_handle, "ffi_type_sint64"));
+    m_ffi_type_float = reinterpret_cast<ffi_type *> (GetProcAddress((HMODULE) m_ffi_handle, "ffi_type_float"));
+    m_ffi_type_double = reinterpret_cast<ffi_type *> (GetProcAddress((HMODULE) m_ffi_handle, "ffi_type_double"));
+    m_ffi_type_pointer = reinterpret_cast<ffi_type *> (GetProcAddress((HMODULE) m_ffi_handle, "ffi_type_pointer"));
+
+    m_ffi_prep_cif = reinterpret_cast<ffi_prep_cif_type *> (GetProcAddress((HMODULE) m_ffi_handle, "ffi_prep_cif"));
+    m_ffi_prep_cif_var = reinterpret_cast<ffi_prep_cif_var_type *> (GetProcAddress((HMODULE) m_ffi_handle, "ffi_prep_cif_var"));
+    m_ffi_call = reinterpret_cast<ffi_call_type *> (GetProcAddress((HMODULE) m_ffi_handle, "ffi_call"));
+
+#else
+    //    std::string error;
+    if (LLVMLoadLibraryPermanently("libffi") == 0) {
+        LOG_RUNTIME("Fail load library libffi!");
+    }
+
+    m_ffi_type_void = static_cast<ffi_type *> (LLVMSearchForAddressOfSymbol("ffi_type_void"));
+    m_ffi_type_uint8 = static_cast<ffi_type *> (LLVMSearchForAddressOfSymbol("ffi_type_uint8"));
+    m_ffi_type_sint8 = static_cast<ffi_type *> (LLVMSearchForAddressOfSymbol("ffi_type_sint8"));
+    m_ffi_type_uint16 = static_cast<ffi_type *> (LLVMSearchForAddressOfSymbol("ffi_type_uint16"));
+    m_ffi_type_sint16 = static_cast<ffi_type *> (LLVMSearchForAddressOfSymbol("ffi_type_sint16"));
+    m_ffi_type_uint32 = static_cast<ffi_type *> (LLVMSearchForAddressOfSymbol("ffi_type_uint32"));
+    m_ffi_type_sint32 = static_cast<ffi_type *> (LLVMSearchForAddressOfSymbol("ffi_type_sint32"));
+    m_ffi_type_uint64 = static_cast<ffi_type *> (LLVMSearchForAddressOfSymbol("ffi_type_uint64"));
+    m_ffi_type_sint64 = static_cast<ffi_type *> (LLVMSearchForAddressOfSymbol("ffi_type_sint64"));
+    m_ffi_type_float = static_cast<ffi_type *> (LLVMSearchForAddressOfSymbol("ffi_type_float"));
+    m_ffi_type_double = static_cast<ffi_type *> (LLVMSearchForAddressOfSymbol("ffi_type_double"));
+    m_ffi_type_pointer = static_cast<ffi_type *> (LLVMSearchForAddressOfSymbol("ffi_type_pointer"));
+
+    m_ffi_prep_cif = reinterpret_cast<ffi_prep_cif_type *> (LLVMSearchForAddressOfSymbol("ffi_prep_cif"));
+    m_ffi_prep_cif_var = reinterpret_cast<ffi_prep_cif_var_type *> (LLVMSearchForAddressOfSymbol("ffi_prep_cif_var"));
+    m_ffi_call = reinterpret_cast<ffi_call_type *> (LLVMSearchForAddressOfSymbol("ffi_call"));
+
+#endif
+
+    if (!(m_ffi_type_uint8 && m_ffi_type_sint8 && m_ffi_type_uint16 && m_ffi_type_sint16 &&
+            m_ffi_type_uint32 && m_ffi_type_sint32 && m_ffi_type_uint64 && m_ffi_type_sint64 &&
+            m_ffi_type_float && m_ffi_type_double && m_ffi_type_pointer && m_ffi_type_void &&
+            m_ffi_prep_cif && m_ffi_prep_cif_var && m_ffi_call)) {
+        LOG_RUNTIME("Fail init data from libffi!");
+    }
+
 }
 
 void RunTime::GlobalNameBuildinRegister() {
@@ -1219,7 +1296,7 @@ ObjPtr RunTime::CreateFunction(TermPtr proto, TermPtr block) {
     return result;
 }
 
-ObjPtr RunTime::CreateNative(Context *ctx, const char *proto, const char *module, bool lazzy, const char *mangle_name) {
+ObjPtr RunTime::CreateNative(const char *proto, const char *module, bool lazzy, const char *mangle_name) {
     TermPtr term;
     try {
         // Термин или термин + тип парсятся без ошибок
@@ -1234,19 +1311,21 @@ ObjPtr RunTime::CreateNative(Context *ctx, const char *proto, const char *module
             LOG_RUNTIME("Fail parsing prototype '%s'!", e.what());
         }
     }
-    return CreateNative(ctx, term, module, lazzy, mangle_name);
+    return CreateNative(term, module, lazzy, mangle_name);
 }
 
-ObjPtr RunTime::CreateNative(Context *ctx, TermPtr proto, const char *module, bool lazzy, const char *mangle_name) {
+ObjPtr RunTime::CreateNative(TermPtr proto, const char *module, bool lazzy, const char *mangle_name) {
     ASSERT(!lazzy);
 
-    void *addr = GetNativeAddr(mangle_name ? mangle_name : proto->m_text.c_str(), module);
-    NL_CHECK(addr, "Error getting address '%s' from '%s'!", proto->toString().c_str(), module);
+    void *addr = GetNativeAddr(mangle_name ? mangle_name : proto->m_text.c_str());
+    if (!addr) {
+        NL_CHECK(addr, "Error getting address '%s' from '%s'!", proto->toString().c_str(), module);
+    }
 
-    return RunTime::CreateNative(proto, addr, ctx);
+    return CreateNative(proto, addr);
 }
 
-ObjPtr RunTime::CreateNative(TermPtr proto, void *addr, Context *ctx) {
+ObjPtr RunTime::CreateNative(TermPtr proto, void *addr) {
 
     NL_CHECK(proto, "Fail prototype native function!");
     //    NL_CHECK((module == nullptr || (module && *module == '\0')) || m_runtime,
@@ -1277,7 +1356,7 @@ ObjPtr RunTime::CreateNative(TermPtr proto, void *addr, Context *ctx) {
                     NL_PARSER((*proto)[i].second, "Argument type must be specified!");
                 }
 
-                type_test = typeFromString((*proto)[i].second->m_type->m_text, ctx ? ctx->m_runtime : nullptr);
+                type_test = typeFromString((*proto)[i].second->m_type->m_text, this);
                 if (!isNativeType(type_test)) {
                     NL_PARSER((*proto)[i].second->GetType(), "Argument must be machine type! Creating a variable with type '%s' is not supported!", (*proto)[i].second->m_type->m_text.c_str());
                 }
@@ -1285,7 +1364,7 @@ ObjPtr RunTime::CreateNative(TermPtr proto, void *addr, Context *ctx) {
         }
 
 
-    } else if (proto->getTermID() == TermID::NAME) {
+    } else {
         if (!proto->m_type) {
             NL_PARSER(proto, "Cannot create native variable without specifying the type!");
         }
@@ -1294,8 +1373,6 @@ ObjPtr RunTime::CreateNative(TermPtr proto, void *addr, Context *ctx) {
         if (!isNativeType(type)) {
             NL_PARSER(proto, "Creating a variable with type '%s' is not supported!", proto->m_type->m_text.c_str());
         }
-    } else {
-        NL_PARSER(proto, "Native type arg undefined!");
     }
 
     result = Obj::CreateType(type);
@@ -1898,18 +1975,19 @@ public:
 
 };
 
-void RunTime::AstCheckError(bool force) {
-    if (m_error_limit && m_error_count >= m_error_limit) {
-        LOG_CUSTOM_ERROR(ParserError, "fatal error: too many errors emitted %d, stopping now [-nlc-error-limit=]", m_error_count);
-    } else if (force && m_error_count) {
-
-        LOG_CUSTOM_ERROR(ParserError, "fatal error: %d generated. ", m_error_count);
+bool RunTime::AstCheckError(bool result) {
+    if (!result) {
+        m_error_count++;
+        if (m_error_limit && m_error_count >= m_error_limit) {
+            LOG_CUSTOM_ERROR(ParserError, "fatal error: too many errors emitted %d, stopping now [-nlc-error-limit=]", m_error_count);
+        }
     }
+    return result;
 }
 
 bool RunTime::AstAnalyze(TermPtr &term, TermPtr &module) {
     m_error_count = 0;
-    ScopeBlock stack(&module->m_int_vars);
+    ScopeStack stack(module->m_int_vars);
 
     //    if (is_main) {
     //        // Main module name - empty string
@@ -1917,109 +1995,239 @@ bool RunTime::AstAnalyze(TermPtr &term, TermPtr &module) {
     //    }
     try {
         AstRecursiveAnalyzer(term, stack);
-        AstCheckError(true);
+        if (m_error_count) {
+            LOG_CUSTOM_ERROR(ParserError, "fatal error: %d generated. ", m_error_count);
+        }
     } catch (ParserError err) {
         return false;
     }
     return true;
 }
 
-TermPtr RunTime::AstLockupName(TermPtr &term, ScopeBlock &stack) {
-    TermPtr result = stack.LookupVar(term->m_text);
-    if (!result) {
-        if (isGlobalScope(term->m_text)) {
-            result = this->GlobFindProto(term->m_text.c_str());
-        }
+/*
+ * Построчное выполнение не изменяет AST, а только добавляет к нему новые строки.
+ * Констекст выполнения (m_main_runner) тоже остается не изменным.
+ */
+ObjPtr RunTime::Run(const std::string_view str, Obj* args) {
+    if (!m_main_ast || m_main_ast->m_id != TermID::BLOCK) {
+        m_main_ast = Term::Create(parser::token_type::END, TermID::BLOCK, "");
+        m_main_runner.reset();
     }
+
+    TermPtr ast = GetParser()->Parse(str.begin());
+
+    m_main_ast->m_block.push_back(ast);
+
+    if (!m_main_runner) {
+        m_main_runner = std::make_shared<Runner>(m_main_ast->m_int_vars, shared_from_this());
+    }
+    try {
+        AstCheckError(AstAnalyze(ast, m_main_ast));
+        if (m_error_count) {
+            LOG_CUSTOM_ERROR(ParserError, "fatal error: %d generated. ", m_error_count);
+        }
+        return m_main_runner->Run(m_main_ast->m_block.back(), args);
+    } catch (...) {
+        m_main_ast->m_block.pop_back();
+        throw;
+    }
+}
+
+/*
+ * Выполенение целого AST создает полностью новый контекст выполнения.
+ */
+ObjPtr RunTime::Run(TermPtr ast, Obj* args) {
+    m_main_ast = ast;
+    m_main_runner = std::make_shared<Runner>(m_main_ast->m_int_vars, shared_from_this());
+    return m_main_runner->Run(m_main_ast, args);
+}
+
+/*
+ * 
+ * 
+ * 
+ */
+
+TermPtr RunTime::AstLockupName(TermPtr &term, ScopeStack &stack) {
+    if (isReservedName(term->m_text)) {
+        term->m_int_name = term->m_text;
+        return term;
+    }
+
+    TermPtr result = stack.LookupName(term->m_text, this);
+    //    if (!result) {
+    //        if (isGlobalScope(term->m_text)) {
+    //            result = this->GlobFindProto(term->m_text.c_str());
+    //        }
+    //    }
     if (result) {
         if (!AstCheckType(result, term)) {
-            m_error_count++;
-            AstCheckError(false);
+            return nullptr;
         } else {
             term->m_int_name = result->m_int_name;
         }
 
         if (term->isCall()) {
-            AstCheckCall_(result, term);
+            if (!AstCheckCall_(result, term)) {
+                return nullptr;
+            }
         }
     }
     return result;
 }
 
-void RunTime::AstRecursiveAnalyzer(TermPtr &term, ScopeBlock & stack) {
+bool RunTime::AstRecursiveAnalyzer(TermPtr &term, ScopeStack & stack) {
     TermPtr found;
     if (term->isLiteral()) {
 
-        return;
+        return true;
 
     } else if (term->getTermID() == TermID::STATIC || term->getTermID() == TermID::LOCAL || term->getTermID() == TermID::NAME
             || term->getTermID() == TermID::NAMESPACE || term->getTermID() == TermID::FIELD || term->getTermID() == TermID::MODULE
             || term->getTermID() == TermID::FUNCTION) {
 
         found = AstLockupName(term, stack);
-        if (found) {
+        if (AstCheckError(!!found)) {
+
             ASSERT(!found->m_int_name.empty());
             term->m_int_name = found->m_int_name;
+            return true;
+
         } else {
-            //#ifdef BUILD_UNITTEST
-            //            if (term->m_text.compare("__STAT_RUNTIME_UNITTEST__") == 0) {
-            //                return;
-            //            }
-            //#endif
-            NL_MESSAGE(LOG_LEVEL_INFO, term, "NameLookup fail for '%s'!%s", term->m_text.c_str(), stack.Dump().c_str());
-            m_error_count++;
-            AstCheckError(false);
+            NL_MESSAGE(LOG_LEVEL_INFO, term, "NameLookup fail for '%s'! %s", term->m_text.c_str(), stack.Dump().c_str());
         }
 
     } else if (term->isInterrupt()) {
 
-        if (!stack.NameMacroExpand(term->m_namespace)) {
-            m_error_count++;
-            AstCheckError(false);
-        }
-        if (!stack.LookupBlock(term->m_namespace)) {
-            m_error_count++;
-            AstCheckError(false);
-        }
+        return AstCheckError(stack.LookupBlock(term));
 
     } else if (term->isCreate()) {
 
-        if (!AstCreateOp(term, stack)) {
-            m_error_count++;
-            AstCheckError(false);
-        }
+        return AstCheckError(AstCreateOp_(term, stack));
 
-    } else if (term->getTermID() == TermID::OPERATOR) {
+    } else if (term->getTermID() == TermID::OP_MATH) {
 
-        AstRecursiveAnalyzer(term->m_left, stack);
-        AstRecursiveAnalyzer(term->m_right, stack);
-
-        if (!AstCheckType(term->m_left, term->m_right)) {
-            m_error_count++;
-            AstCheckError(false);
-        }
+        return AstCheckError(
+                AstRecursiveAnalyzer(term->m_left, stack)
+                && AstRecursiveAnalyzer(term->m_right, stack)
+                && AstCheckType(term->m_left, term->m_right)
+                && AstUpcastOpType(term)
+                );
 
     } else if (term->isBlock()) {
 
         ScopePush block_scope(stack, term->m_namespace);
         for (auto &elem : term->m_block) {
-            AstRecursiveAnalyzer(elem, stack);
+            AstCheckError(AstRecursiveAnalyzer(elem, stack));
         }
 
     } else if (term->getTermID() == TermID::FOLLOW) {
-        ASSERT(term->m_right);
-        AstRecursiveAnalyzer(term->m_right, stack);
-        //        for (auto &elem : term->m_follow) {
-        //            ASSERT(elem);
-        //            AstExpandNamespace(elem, stack);
-        //        }
-    } else {
 
+        ASSERT(term->m_right);
+        return AstCheckError(AstRecursiveAnalyzer(term->m_right, stack));
+
+    } else if (term->getTermID() == TermID::ITERATOR) {
+
+        return AstCheckError(AstIterator_(term, stack));
+
+    } else {
         LOG_TEST("Skip ExpandNamespace %s: '%s'", toString(term->getTermID()), term->toString().c_str());
     }
+    return false;
 }
 
-bool RunTime::AstCheckType(TermPtr &left, TermPtr & right) {
+bool RunTime::AstUpcastOpType(TermPtr &op) {
+    ASSERT(op);
+    ASSERT(op->m_left);
+    ASSERT(op->m_right);
+
+    //    if (op->m_left->m_type) {
+    //        if (op->m_text[0] == '+' || op->m_text[0] == '-' || op->m_text[0] == '*') { // +, +=, -, -=, *, *=
+    //        } else if (op->m_text.compare("/") == 0 || op->m_text.compare("/=") == 0) {
+    //        } else {
+    //            if (!(op->m_text.compare("//") == 0 || op->m_text.compare("//=") == 0
+    //                    || op->m_text.compare("%") == 0 || op->m_text.compare("%=") == 0)) {
+    //                NL_MESSAGE(LOG_LEVEL_INFO, op, "Unknown operator '%s'!", op->m_text.c_str());
+    //                return false;
+    //            }
+    //        }
+    //    }
+
+    return true;
+}
+
+bool RunTime::AstCheckNative_(TermPtr &proto, TermPtr &native) {
+
+    ASSERT(native->getTermID() == TermID::NATIVE);
+    if (!native->m_right || native->m_right->m_text.compare("...") != 0) {
+        NL_MESSAGE(LOG_LEVEL_INFO, native, "Native name definition is supported with ellipses only!");
+        return false;
+    }
+
+    if (proto->isCall() != native->isCall()) {
+        // Нативная функция с частичным прототипом
+        TermPtr from;
+        TermPtr to;
+        if (native->isCall()) {
+            from = native;
+            to = proto;
+        } else {
+            ASSERT(proto->isCall());
+            from = proto;
+            to = native;
+        }
+        for (int i = 0; i < from->size(); i++) {
+            to->push_back((*from)[i]);
+        }
+        to->m_is_call = from->m_is_call;
+        to->m_type = from->m_type;
+
+    } else if (!proto->isCall() && !native->isCall()) {
+        // Нативная переменная
+        if (!native->m_type) {
+            native->m_type = proto->m_type;
+        }
+
+    } else if (proto->isCall() && native->isCall()) {
+        NL_MESSAGE(LOG_LEVEL_INFO, native, "Native name definition is supported with ellipses only!");
+        return false;
+    }
+
+    proto->m_name = native->m_text.substr(1).c_str();
+    //    proto->m_obj = CreateNative(proto, nullptr, false, proto->m_name.c_str());
+
+    if (!GetNativeAddr(proto->m_name.c_str(), nullptr)) {
+        NL_MESSAGE(LOG_LEVEL_INFO, native, "Error getting address native '%s'!", proto->toString().c_str());
+        return false;
+    }
+
+    return true;
+}
+
+bool RunTime::AstIterator_(TermPtr &term, ScopeStack &stack) {
+    ASSERT(term->getTermID() == TermID::ITERATOR);
+    ASSERT(term->m_left);
+
+    TermPtr found = AstLockupName(term->m_left, stack);
+
+    if (term->m_text.compare("!?") == 0 || term->m_text.compare("?!") == 0) {
+
+        return !!found && AstCheckError(AstCheckType(term, getDefaultType(ObjType::Dictionary)));
+
+    } else if (term->m_text.compare("?") == 0) {
+    } else if (term->m_text.compare("!") == 0) {
+    } else if (term->m_text.compare("??") == 0) {
+    } else if (term->m_text.compare("!!") == 0) {
+    } else {
+        NL_MESSAGE(LOG_LEVEL_INFO, term, "Unknown iterator '%s'!", term->m_text.c_str());
+        return false;
+    }
+    NL_MESSAGE(LOG_LEVEL_INFO, term, "Iterator '%s' not implemented!", term->m_text.c_str());
+
+    return false;
+}
+
+bool RunTime::AstCheckType(TermPtr &left, const TermPtr right) {
 
     if (left && right) {
         if (!right->m_type && !left->m_type) {
@@ -2029,7 +2237,7 @@ bool RunTime::AstCheckType(TermPtr &left, TermPtr & right) {
             left->m_type = right->m_type;
             return true;
         } else if (left->m_type && !right->m_type) {
-            // Mark dinamic type check cast ??????????????????????????????????
+            // Mark dynamic type check cast ??????????????????????????????????
             return true;
         }
         if (right->m_type && left->m_type) {
@@ -2052,10 +2260,7 @@ bool RunTime::AstCheckType(TermPtr &left, TermPtr & right) {
     return false;
 }
 
-//bool AstCreateVar(TermPtr &var, TermPtr &value, ScopeBlock & stack);
-//bool AstAssignVar(TermPtr &var, TermPtr &value, ScopeBlock & stack);
-
-bool RunTime::AstCreateOp(TermPtr &op, ScopeBlock & stack) {
+bool RunTime::AstCreateOp_(TermPtr &op, ScopeStack & stack) {
 
     ASSERT(op);
     ASSERT(op->m_left);
@@ -2079,15 +2284,11 @@ bool RunTime::AstCreateOp(TermPtr &op, ScopeBlock & stack) {
             if (op->isCreateOnce()) {
                 if (var) {
                     NL_MESSAGE(LOG_LEVEL_INFO, term, "Name '%s' already exist!", var->m_text.c_str());
-                    m_error_count++;
-                    AstCheckError(false);
                     return false;
                 }
             } else if (op->getTermID() == TermID::ASSIGN) {
                 if (!var) {
                     NL_MESSAGE(LOG_LEVEL_INFO, term, "Name '%s' not exist!", term->m_text.c_str());
-                    m_error_count++;
-                    AstCheckError(false);
                     return false;
                 }
             } else {
@@ -2097,16 +2298,26 @@ bool RunTime::AstCreateOp(TermPtr &op, ScopeBlock & stack) {
             if (!var) {
                 term->m_int_name = int_name;
                 if (!stack.AddName(term)) {
-                    m_error_count++;
-                    AstCheckError(false);
                     return false;
                 }
             }
 
-            if (!AstCheckType(term, op->m_right)) {
-                m_error_count++;
-                AstCheckError(false);
+            if (op->m_right->isNamed()) {
+                TermPtr r_var = AstLockupName(op->m_right, stack);
+                if (!r_var) {
+                    NL_MESSAGE(LOG_LEVEL_INFO, op->m_right, "Name '%s' not exist!", op->m_right->m_text.c_str());
+                    return false;
+                }
+                op->m_right->m_int_name = r_var->m_int_name;
             }
+
+            if (op->m_right->getTermID() == TermID::NATIVE) {
+                return AstCheckNative_(term, op->m_right);
+            } else {
+                return AstCheckType(term, op->m_right);
+            }
+
+
 
         }
         return true;
@@ -2123,7 +2334,7 @@ bool RunTime::AstCreateOp(TermPtr &op, ScopeBlock & stack) {
         proto->m_id = TermID::FUNCTION;
         proto->m_int_name = stack.CreateVarName(proto->m_text);
 
-        ScopePush block_args(stack, proto);
+        ScopePush block_args(stack, proto, nullptr, true);
 
         //  Add default args self and all args as dict
         TermPtr all = Term::CreateDict();
@@ -2150,13 +2361,13 @@ bool RunTime::AstCreateOp(TermPtr &op, ScopeBlock & stack) {
 
                 TermPtr none = Term::CreateNil();
                 none->m_int_name = stack.CreateVarName(proto->at(i).second->m_text);
-                if (!stack.AddName(none) || !proto->m_variables.AddName(none)) {
+                if (!stack.AddName(none)) {
                     return false;
                 }
             } else {
                 proto->at(i).second->m_int_name = stack.CreateVarName(proto->at(i).first);
                 all->push_back({stack.CreateVarName(proto->at(i).first), proto->at(i).second});
-                if (!stack.AddName(proto->at(i).second) || !proto->m_variables.AddName(proto->at(i).second)) {
+                if (!stack.AddName(proto->at(i).second)) {
                     return false;
                 }
             }
@@ -2164,34 +2375,36 @@ bool RunTime::AstCreateOp(TermPtr &op, ScopeBlock & stack) {
             name = "$";
             name += std::to_string(i + 1);
             // Positional arguments
-            if (!stack.AddName(proto->at(i).second, name.c_str()) || !proto->m_variables.AddName(proto->at(i).second, name.c_str())) {
+            if (!stack.AddName(proto->at(i).second, name.c_str())) {
                 return false;
             }
 
         }
 
+        if (!stack.AddName(proto)) {
+            return false;
+        }
+
+        ScopePush block(stack, proto, &proto->m_int_vars, true);
+
         TermPtr none = Term::CreateNil();
         none->m_int_name = stack.CreateVarName("$0");
 
-        if (!stack.AddName(all, "$*") || !stack.AddName(none, "$0") ||
-                !proto->m_variables.AddName(all, "$*") || !proto->m_variables.AddName(none, "$0")) {
+        if (!stack.AddName(all, "$*") || !stack.AddName(none, "$0")) {
             return false;
         }
 
-        if (!stack.AddName(proto)) {
-            m_error_count++;
-            AstCheckError(false);
-            return false;
-        }
 
         ASSERT(op->m_right);
-        AstRecursiveAnalyzer(op->m_right, proto->m_variables);
-
-        return true;
+        if (op->m_right->getTermID() == TermID::NATIVE) {
+            return AstCheckNative_(proto, op->m_right) && stack.FixTransaction();
+        } else {
+            return AstRecursiveAnalyzer(op->m_right, stack) && stack.FixTransaction();
+        }
     }
 }
 
-void RunTime::AstCheckCall_(TermPtr &proto, TermPtr &call) {
+bool RunTime::AstCheckCall_(TermPtr &proto, TermPtr &call) {
 
     ASSERT(proto);
     ASSERT(call);
@@ -2201,13 +2414,12 @@ void RunTime::AstCheckCall_(TermPtr &proto, TermPtr &call) {
     if (!proto->isCall()) {
         if (call->size()) {
             NL_MESSAGE(LOG_LEVEL_INFO, call->at(0).second, "Cloning objects with field overrides is not implemented!");
-            m_error_count++;
-            AstCheckError(false);
+            return false;
         }
-        return;
     }
+    return true;
 
-    call->m_variables = proto->m_variables;
+    //    call->m_variables = proto->m_variables;
 
     // Function call
     //    for (size_t i = 0; i < proto->size(); i++) {

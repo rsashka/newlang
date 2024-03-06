@@ -702,6 +702,7 @@ TEST_F(NamedTest, Buffer) {
 
     // Разные имена терминов
     term->m_text = "macro2";
+    ASSERT_TRUE(term->m_macro_id.size());
     term->m_macro_id[0]->m_text = "macro2";
     term->Left()->m_macro_seq[0]->m_text = "macro2";
     term->Left()->m_macro_id[0]->m_text = "macro2";

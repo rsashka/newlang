@@ -186,12 +186,18 @@ std::string ParserMessage(std::string &buffer, int row, int col, const char *for
 
 void ParserException(const char *msg, std::string &buffer, int row, int col);
 
+#ifdef BUILD_UNITTEST
+#define LOG_LEVEL_ERROR_MESSAGE  LOG_LEVEL_DEBUG
+#else
+#define LOG_LEVEL_ERROR_MESSAGE  LOG_LEVEL_INFO
+#endif
+
 #define NL_PARSER(term, format, ...)                                                                                   \
     do {                                                                                                               \
         std::string empty;                                                                                             \
         std::string message =                                                                                          \
             newlang::ParserMessage(term->m_source ? *term->m_source : empty, term->m_line, term->m_col, format, ##__VA_ARGS__); \
-        LOG_EXCEPT_LEVEL(Return, LOG_LEVEL_INFO, "", "%s", message.c_str());                                 \
+        LOG_EXCEPT_LEVEL(Return, LOG_LEVEL_ERROR_MESSAGE, "", "%s", message.c_str());                                 \
     } while (0)
 
 #define NL_MESSAGE(level, term, format, ...)                                                                                   \
@@ -205,7 +211,7 @@ void ParserException(const char *msg, std::string &buffer, int row, int col);
 #define NL_CHECK(cond, format, ...)                                                                                    \
     do {                                                                                                               \
         if (!(cond)) {                                                                                                 \
-            LOG_EXCEPT_LEVEL(Return, LOG_LEVEL_INFO, "", format, ##__VA_ARGS__);                             \
+            LOG_EXCEPT_LEVEL(Return, LOG_LEVEL_ERROR_MESSAGE, "", format, ##__VA_ARGS__);                             \
         }                                                                                                              \
     } while (0)
 
@@ -218,7 +224,7 @@ void ParserException(const char *msg, std::string &buffer, int row, int col);
             message += newlang::toString(to);                                                          \
             message += "' (" __FILE__ ":" TO_STR(__LINE__) ")";                                                        \
             LOG_EXCEPT_LEVEL(                                                                                          \
-                Return, LOG_LEVEL_INFO, "", "%s",                                                            \
+                Return, LOG_LEVEL_ERROR_MESSAGE, "", "%s",                                                            \
                 newlang::ParserMessage(*term->m_source, term->m_line, term->m_col, "%s", message.c_str()).c_str());             \
         }                                                                                                              \
     } while (0)
@@ -577,6 +583,10 @@ void ParserException(const char *msg, std::string &buffer, int row, int col);
                 t == ObjType::EVAL_FUNCTION || t == ObjType::PureFunc || t == ObjType::Virtual;
     }
 
+    inline bool isNative(ObjType t) {
+        return t == ObjType::NativeFunc || t == ObjType::NativeFunc;
+    }
+
     inline bool isEval(ObjType t) {
         return t == ObjType::BLOCK || t == ObjType::BLOCK_TRY;
     }
@@ -856,8 +866,8 @@ void ParserException(const char *msg, std::string &buffer, int row, int col);
         LOG_RUNTIME("Not implemented!");
     }
 
-    ObjType typeFromString(const TermPtr &term, RuntimePtr rt = nullptr, bool *has_error = nullptr);
-    ObjType typeFromString(const std::string type, RuntimePtr rt = nullptr, bool *has_error = nullptr);
+    ObjType typeFromString(const TermPtr &term, RunTime *rt = nullptr, bool *has_error = nullptr);
+    ObjType typeFromString(const std::string type, RunTime *rt = nullptr, bool *has_error = nullptr);
 
     inline LLVMTypeRef toLLVMType(ObjType t, bool none_if_error = false) {
         switch (t) {
@@ -1036,7 +1046,7 @@ void ParserException(const char *msg, std::string &buffer, int row, int col);
         return name.size() > 1 && ((name[0] == ':' && name[1] == ':') || (name[0] == '$' && name[1] == '$'));
     }
 
-    inline bool isModuleScope(const std::string &name) {
+    inline bool isModuleScope(const std::string_view name) {
         size_t pos = name.find("::");
         return pos && pos != std::string::npos && name[0] != '@';
     }
@@ -1073,6 +1083,16 @@ void ParserException(const char *msg, std::string &buffer, int row, int col);
         // Метод, который изменяет объект, должен заканчиваеться на ОДИН подчерк
 
         return name.size() > 1 && name[name.size() - 1] == '_' && name[name.size() - 2] != '_';
+    }
+
+    inline bool isReservedName(const std::string_view name) {
+        ASSERT(name.size());
+        if (name.size() > 3 || !(name[0] == '$' || name[0] == '@' || name[0] == '%')) {
+            return name.compare("_") == 0;
+        }
+        return name.compare("$") == 0 || name.compare("@") == 0 || name.compare("%") == 0
+                || name.compare("$$") == 0 || name.compare("@$") == 0 || name.compare("$^") == 0
+                || name.compare("@::") == 0;
     }
 
     inline bool isSystemName(const std::string_view name) {
@@ -1167,7 +1187,6 @@ void ParserException(const char *msg, std::string &buffer, int row, int col);
             name = name.substr(pos + 2);
         }
         if (isModuleName(name)) {
-
             return std::string();
         }
         return name;

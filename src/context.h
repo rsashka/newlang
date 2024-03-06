@@ -262,28 +262,28 @@ namespace newlang {
         //        ObjPtr CreateNative(Obj args);
 
 
-        std::string ffi_file;
-
-        typedef ffi_status ffi_prep_cif_type(ffi_cif *cif, ffi_abi abi, unsigned int nargs, ffi_type *rtype, ffi_type **atypes);
-        typedef ffi_status ffi_prep_cif_var_type(ffi_cif *cif, ffi_abi abi, unsigned int nfixedargs, unsigned int ntotalargs, ffi_type *rtype, ffi_type **atypes);
-        typedef void ffi_call_type(ffi_cif *cif, void (*fn)(void), void *rvalue, void **avalue);
-
-        ffi_type * m_ffi_type_void;
-        ffi_type * m_ffi_type_uint8;
-        ffi_type * m_ffi_type_sint8;
-        ffi_type * m_ffi_type_uint16;
-        ffi_type * m_ffi_type_sint16;
-        ffi_type * m_ffi_type_uint32;
-        ffi_type * m_ffi_type_sint32;
-        ffi_type * m_ffi_type_uint64;
-        ffi_type * m_ffi_type_sint64;
-        ffi_type * m_ffi_type_float;
-        ffi_type * m_ffi_type_double;
-        ffi_type * m_ffi_type_pointer;
-
-        ffi_prep_cif_type *m_ffi_prep_cif;
-        ffi_prep_cif_var_type * m_ffi_prep_cif_var;
-        ffi_call_type * m_ffi_call;
+//        std::string ffi_file;
+//
+//        typedef ffi_status ffi_prep_cif_type(ffi_cif *cif, ffi_abi abi, unsigned int nargs, ffi_type *rtype, ffi_type **atypes);
+//        typedef ffi_status ffi_prep_cif_var_type(ffi_cif *cif, ffi_abi abi, unsigned int nfixedargs, unsigned int ntotalargs, ffi_type *rtype, ffi_type **atypes);
+//        typedef void ffi_call_type(ffi_cif *cif, void (*fn)(void), void *rvalue, void **avalue);
+//
+//        ffi_type * m_ffi_type_void;
+//        ffi_type * m_ffi_type_uint8;
+//        ffi_type * m_ffi_type_sint8;
+//        ffi_type * m_ffi_type_uint16;
+//        ffi_type * m_ffi_type_sint16;
+//        ffi_type * m_ffi_type_uint32;
+//        ffi_type * m_ffi_type_sint32;
+//        ffi_type * m_ffi_type_uint64;
+//        ffi_type * m_ffi_type_sint64;
+//        ffi_type * m_ffi_type_float;
+//        ffi_type * m_ffi_type_double;
+//        ffi_type * m_ffi_type_pointer;
+//
+//        ffi_prep_cif_type *m_ffi_prep_cif;
+//        ffi_prep_cif_var_type * m_ffi_prep_cif_var;
+//        ffi_call_type * m_ffi_call;
         //        m_func_abi
 
         //        static bool pred_compare(const std::string &find, const std::string &str) {
@@ -432,14 +432,14 @@ namespace newlang {
      * Выполняет модуль (файл/ast)
      */
 
-    class Runner : SCOPE(public) std::vector<ObjMapType>, public std::enable_shared_from_this<Runner> {
+    class Runner : SCOPE(public) ScopeStack, public std::enable_shared_from_this<Runner> {
         SCOPE(private) :
         RuntimePtr m_runtime;
         ObjPtr m_latter;
 
     public:
 
-        Runner(RuntimePtr rt) : m_runtime(rt) {
+        Runner(StorageTerm &module, RuntimePtr rt) : ScopeStack(module), m_runtime(rt) {
         }
 
         virtual ~Runner() {
@@ -448,29 +448,39 @@ namespace newlang {
         //        ObjPtr Run(const std::string_view str, Obj *args = nullptr);
         ObjPtr Run(TermPtr ast, Obj *args = nullptr);
 
-        ObjPtr GetObject(const std::string_view name) {
-            //            if (!isMangledName(name)) {
-            //                LOG_RUNTIME("Name '%s' not mangled!", name.begin());
-            //            }
-            //            std::string_view module_name(name);
+        //        bool RegisterName(TermPtr name, RuntimePtr rt = nullptr);
+        //        ObjPtr GetObject(const std::string &name) {
+        //            if (!isInternalName(name)) {
+        //                LOG_RUNTIME("Object '%s' not internal name!", name.c_str());
+        //            }
+        //
+        //            std::string module_name(ExtractModuleName(name));
+        //            std::string object_name(ExtractName(name));
+        //            if (!module_name.empty()) {
+        //                LOG_RUNTIME("Get module name '%s' not implemented!", module_name.c_str());
+        //            }
+        //
+        //            auto iter = rbegin();
+        //            while (iter != rend()) {
+        //                if (iter->find(object_name) != iter->end()) {
+        //                    return iter->at(object_name);
+        //                }
+        //                iter++;
+        //            }
+        //            if (isGlobalScope(object_name)) {
+        //                LOG_RUNTIME("Get global scope '%s' not inmpelented!", object_name.c_str());
+        //            }
+        //            LOG_RUNTIME("Object '%s' not found!", object_name.c_str());
+        //        }
 
-            auto iter = rbegin();
-            while (iter != rend()) {
-                if (iter->find(name.begin()) != iter->end()) {
-                    return iter->at(name.begin());
-                }
-                iter++;
-            }
-            //            if (isGlobalScope(name)) {
-            //                LOG_RUNTIME("Object '%s' not found!", name.begin());
-            //            }
-            LOG_RUNTIME("Object '%s' not found!", name.begin());
-        }
-
+        ObjPtr Call(Obj & obj, Obj *args = nullptr);
     protected:
+        ObjPtr CreateNative_(TermPtr &proto, const char *module, bool lazzy, const char *mangle_name);
+        ObjPtr CallNative_(Obj & obj, Obj *args = nullptr);
+
         ObjPtr Call_(TermPtr &proto, TermPtr &args);
 
-        ObjPtr MakeArgs_(ScopeBlock &scope, TermPtr &proto, TermPtr &args);
+        ObjPtr MakeArgs_(ScopeStack &scope, TermPtr &proto, TermPtr &args);
 
         /**
          * Выполняет одну операцию
@@ -488,8 +498,11 @@ namespace newlang {
         ObjPtr EvalTerm_(TermPtr &op);
         ObjPtr EvalCreate_(TermPtr &op);
         ObjPtr AssignVars_(ArrayTermType &vars, const TermPtr &r_term, bool is_pure);
+
+        ObjPtr EvalIterator_(TermPtr & op);
+
         ObjPtr EvalOp_(TermPtr &op);
-        ObjPtr EvalOpOther_(TermPtr &op);
+        ObjPtr EvalOpLogical_(TermPtr &op);
 
         ObjPtr EvalOpMath_(TermPtr &op);
         ObjPtr EvalOpBitwise_(TermPtr &op);

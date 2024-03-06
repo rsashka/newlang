@@ -1,231 +1,237 @@
-//#include "pch.h"
-//
-//#ifdef BUILD_UNITTEST
-//#include "parser.h"
-//
-//#include <signal.h>
-//
-//#include <warning_pop.h>
-//#include <warning_push.h>
-//#include <gtest/gtest.h>
-//
-//#include <builtin.h>
-//#include <runtime.h>
-//
-//using namespace newlang;
-//
-//TEST(Run, Simple) {
-//    RuntimePtr rt = RunTime::Init();
-//    ASSERT_TRUE(rt);
-//
-//    ObjPtr res = rt->Run("123");
-//    ASSERT_TRUE(res);
-//    ASSERT_STREQ("123", res->toString().c_str());
-//    ASSERT_EQ(1, rt->m_main_ast->m_block.size());
-//
-//    res = rt->Run("123.456");
-//    ASSERT_TRUE(res);
-//    ASSERT_STREQ("123.456", res->toString().c_str());
-//    ASSERT_EQ(2, rt->m_main_ast->m_block.size());
-//
-//    res = rt->Run("'123.456'");
-//    ASSERT_TRUE(res);
-//    ASSERT_STREQ("'123.456'", res->toString().c_str());
-//    ASSERT_EQ(3, rt->m_main_ast->m_block.size());
-//
-//    res = rt->Run("\"123.456\"");
-//    ASSERT_TRUE(res);
-//    ASSERT_STREQ("\"123.456\"", res->toString().c_str());
-//    ASSERT_EQ(4, rt->m_main_ast->m_block.size());
-//
-//    res = rt->Run("(,)");
-//    ASSERT_TRUE(res);
-//    ASSERT_STREQ("(,)", res->toString().c_str());
-//    ASSERT_EQ(5, rt->m_main_ast->m_block.size());
-//
-//    res = rt->Run("(123,)");
-//    ASSERT_TRUE(res);
-//    ASSERT_STREQ("(123,)", res->toString().c_str());
-//    ASSERT_EQ(6, rt->m_main_ast->m_block.size());
-//
-//    res = rt->Run("(name=123,)");
-//    ASSERT_TRUE(res);
-//    ASSERT_STREQ("(name=123,)", res->toString().c_str());
-//    ASSERT_EQ(7, rt->m_main_ast->m_block.size());
-//
-//    res = rt->Run("(name=123,):ClassName");
-//    ASSERT_TRUE(res);
-//    ASSERT_STREQ("(name=123,):ClassName", res->toString().c_str());
-//    ASSERT_EQ(8, rt->m_main_ast->m_block.size());
-//
-//    res = rt->Run("[123,]");
-//    ASSERT_TRUE(res);
-//    ASSERT_STREQ("[123,]:Int8", res->toString().c_str());
-//    ASSERT_EQ(9, rt->m_main_ast->m_block.size());
-//
-//    res = rt->Run("[123,456,]:Float32");
-//    ASSERT_TRUE(res);
-//    ASSERT_STREQ("[123, 456,]:Float32", res->toString().c_str());
-//    ASSERT_EQ(10, rt->m_main_ast->m_block.size());
-//}
-//
-//TEST(Run, Vars) {
-//
-//    //    for (int i = 0; i < 5; i++) {
-//    //        int val = i; /// val := i
-//    //        static int stat = i; /// @::stat := i ???????????????????????????
-//    //        std::cout << i << " -> " << val << " stat " << stat << "\n";
-//    //    }
-//
-//
-//    RuntimePtr rt = RunTime::Init();
-//    ASSERT_TRUE(rt);
-//    size_t glob_count = rt->size();
-//
-//    ObjPtr res = rt->Run("::var_glob := 123");
-//    ASSERT_TRUE(res);
-//    ASSERT_EQ(1, rt->size() - glob_count);
-//    ASSERT_EQ(1, rt->m_main_ast->m_block.size());
-//    ASSERT_EQ(1, rt->m_main_runner->size());
-//    ASSERT_EQ(1, rt->m_main_ast->m_variables.size());
-//    ASSERT_STREQ("123", res->toString().c_str());
-//
-//    res = rt->Run("var_mod := 456");
-//    ASSERT_TRUE(res);
-//    ASSERT_STREQ("456", res->toString().c_str());
-//    ASSERT_EQ(1, rt->size() - glob_count);
-//    ASSERT_EQ(2, rt->m_main_ast->m_block.size());
-//    ASSERT_EQ(2, rt->m_main_runner->size());
-//    ASSERT_EQ(2, rt->m_main_ast->m_variables.size());
-//
-//
-//    res = rt->Run("$var_loc := 789");
-//    ASSERT_TRUE(res);
-//    ASSERT_STREQ("789", res->toString().c_str());
-//    ASSERT_EQ(1, rt->size() - glob_count);
-//    ASSERT_EQ(3, rt->m_main_ast->m_block.size());
-//    ASSERT_EQ(3, rt->m_main_runner->size());
-//    ASSERT_EQ(3, rt->m_main_ast->m_variables.size());
-//
-//
-//    res = rt->Run("::var_glob2 := var_glob");
-//    ASSERT_TRUE(res);
-//    ASSERT_STREQ("123", res->toString().c_str());
-//    ASSERT_EQ(2, rt->size() - glob_count);
-//    ASSERT_EQ(4, rt->m_main_ast->m_block.size());
-//    ASSERT_EQ(4, rt->m_main_runner->size());
-//    ASSERT_EQ(4, rt->m_main_ast->m_variables.size());
-//
-//    ASSERT_ANY_THROW(rt->Run("var_mod ::= 0")) << rt->m_main_runner->Dump() << rt->m_main_ast->m_variables.Dump();
-//    ASSERT_ANY_THROW(rt->Run("var_mod2 = 0")) << rt->m_main_runner->Dump() << rt->m_main_ast->m_variables.Dump();
-//    ASSERT_NO_THROW(res = rt->Run("var_mod2 ::= var_mod")) << rt->m_main_runner->Dump() << rt->m_main_ast->m_variables.Dump();
-//    ASSERT_TRUE(res);
-//    ASSERT_STREQ("456", res->toString().c_str());
-//    ASSERT_EQ(2, rt->size() - glob_count);
-//    ASSERT_EQ(5, rt->m_main_ast->m_block.size());
-//    ASSERT_EQ(5, rt->m_main_runner->size());
-//    ASSERT_EQ(5, rt->m_main_ast->m_variables.size());
-//
-//    res = rt->Run("$var_loc2 := $var_loc");
-//    ASSERT_TRUE(res);
-//    ASSERT_STREQ("789", res->toString().c_str());
-//    ASSERT_EQ(2, rt->size() - glob_count);
-//    ASSERT_EQ(6, rt->m_main_ast->m_block.size());
-//    ASSERT_EQ(6, rt->m_main_runner->size());
-//    ASSERT_EQ(6, rt->m_main_ast->m_variables.size());
-//
-//
-//
-//    ASSERT_ANY_THROW(rt->Run("::var_glob2 ::= -1"));
-//    res = rt->Run("::var_glob2 = -1");
-//    ASSERT_TRUE(res);
-//    ASSERT_STREQ("-1", res->toString().c_str());
-//    ASSERT_EQ(2, rt->size() - glob_count);
-//    ASSERT_EQ(7, rt->m_main_ast->m_block.size());
-//    ASSERT_EQ(6, rt->m_main_runner->size());
-//    ASSERT_EQ(6, rt->m_main_ast->m_variables.size());
-//
-//
-//    ASSERT_NO_THROW(res = rt->Run("var_mod2 = -2")) << rt->m_main_runner->Dump() << rt->m_main_ast->m_variables.Dump();
-//    ASSERT_TRUE(res);
-//    ASSERT_STREQ("-2", res->toString().c_str());
-//    ASSERT_EQ(2, rt->size() - glob_count);
-//    ASSERT_EQ(8, rt->m_main_ast->m_block.size());
-//    ASSERT_EQ(6, rt->m_main_runner->size());
-//    ASSERT_EQ(6, rt->m_main_ast->m_variables.size());
-//
-//    ASSERT_ANY_THROW(rt->Run("$var_loc2 ::= -3"));
-//    res = rt->Run("$var_loc2 = -3");
-//    ASSERT_TRUE(res);
-//    ASSERT_STREQ("-3", res->toString().c_str());
-//    ASSERT_EQ(2, rt->size() - glob_count);
-//    ASSERT_EQ(9, rt->m_main_ast->m_block.size());
-//    ASSERT_EQ(6, rt->m_main_runner->size());
-//    ASSERT_EQ(6, rt->m_main_ast->m_variables.size());
-//
-//    res = rt->Run("@::glob := -5");
-//    ASSERT_TRUE(res);
-//    ASSERT_STREQ("-5", res->toString().c_str());
-//    ASSERT_EQ(2, rt->size() - glob_count);
-//    ASSERT_EQ(10, rt->m_main_ast->m_block.size());
-//    ASSERT_EQ(7, rt->m_main_runner->size());
-//    ASSERT_EQ(7, rt->m_main_ast->m_variables.size());
-//
-//}
-//
-//TEST(Run, Call) {
-//
-//    RuntimePtr rt = RunTime::Init();
-//    ASSERT_TRUE(rt);
-//    size_t glob_count = rt->size();
-//    ASSERT_FALSE(rt->m_main_ast);
-//    ASSERT_FALSE(rt->m_main_runner);
-//
-//    ObjPtr res = rt->Run("::func_glob() := { 123 }");
-//    ASSERT_TRUE(res);
-//    ASSERT_EQ(1, rt->size() - glob_count);
-//    ASSERT_EQ(1, rt->m_main_ast->m_block.size());
-//    ASSERT_EQ(1, rt->m_main_runner->size());
-//    ASSERT_EQ(1, rt->m_main_ast->m_variables.size());
-//    ASSERT_STREQ("::func_glob(){ }", res->toString().c_str());
-//
-//    res = rt->Run("::func_glob()");
-//    ASSERT_TRUE(res);
-//    ASSERT_STREQ("123", res->toString().c_str());
-//
-//    ASSERT_ANY_THROW(rt->Run("::func_glob ::= {}")) << rt->m_main_runner->Dump() << rt->m_main_ast->m_variables.Dump();
-//    ASSERT_ANY_THROW(rt->Run("::func_glob = {}")) << rt->m_main_runner->Dump() << rt->m_main_ast->m_variables.Dump();
-//
-//
-//    res = rt->Run("func_loc() := { 456 }");
-//    ASSERT_TRUE(res);
-//    ASSERT_EQ(1, rt->size() - glob_count);
-//    ASSERT_EQ(3, rt->m_main_ast->m_block.size());
-//    ASSERT_EQ(2, rt->m_main_runner->size());
-//    ASSERT_EQ(2, rt->m_main_ast->m_variables.size());
-//    ASSERT_STREQ("$func_loc(){ }", res->toString().c_str());
-//
-//    ASSERT_NO_THROW(res = rt->Run("$func_loc()")) << rt->m_main_runner->Dump() << rt->m_main_ast->m_variables.Dump();
-//
-//    ASSERT_TRUE(res);
-//    ASSERT_STREQ("456", res->toString().c_str());
-//
-//
-//    res = rt->Run("@::func() := { 789 }");
-//    ASSERT_TRUE(res);
-//    ASSERT_EQ(1, rt->size() - glob_count);
-//    ASSERT_EQ(5, rt->m_main_ast->m_block.size());
-//    ASSERT_EQ(3, rt->m_main_runner->size());
-//    ASSERT_EQ(3, rt->m_main_ast->m_variables.size());
-//    ASSERT_STREQ("$func(){ }", res->toString().c_str());
-//
-//    ASSERT_NO_THROW(res = rt->Run("$func()")) << rt->m_main_runner->Dump() << rt->m_main_ast->m_variables.Dump();
-//
-//    ASSERT_TRUE(res);
-//    ASSERT_STREQ("789", res->toString().c_str());
-//
-//}
-//
+#include "pch.h"
+
+#ifdef BUILD_UNITTEST
+#include "parser.h"
+
+#include <signal.h>
+
+#include <warning_pop.h>
+#include <warning_push.h>
+#include <gtest/gtest.h>
+
+#include <builtin.h>
+#include <runtime.h>
+
+using namespace newlang;
+
+TEST(Run, Simple) {
+    RuntimePtr rt = RunTime::Init();
+    ASSERT_TRUE(rt);
+
+    ObjPtr res = rt->Run("123");
+    ASSERT_TRUE(res);
+    ASSERT_STREQ("123", res->toString().c_str());
+    ASSERT_EQ(1, rt->m_main_ast->m_block.size());
+
+    res = rt->Run("123.456");
+    ASSERT_TRUE(res);
+    ASSERT_STREQ("123.456", res->toString().c_str());
+    ASSERT_EQ(2, rt->m_main_ast->m_block.size());
+
+    res = rt->Run("'123.456'");
+    ASSERT_TRUE(res);
+    ASSERT_STREQ("'123.456'", res->toString().c_str());
+    ASSERT_EQ(3, rt->m_main_ast->m_block.size());
+
+    res = rt->Run("\"123.456\"");
+    ASSERT_TRUE(res);
+    ASSERT_STREQ("\"123.456\"", res->toString().c_str());
+    ASSERT_EQ(4, rt->m_main_ast->m_block.size());
+
+    res = rt->Run("(,)");
+    ASSERT_TRUE(res);
+    ASSERT_STREQ("(,)", res->toString().c_str());
+    ASSERT_EQ(5, rt->m_main_ast->m_block.size());
+
+    res = rt->Run("(123,)");
+    ASSERT_TRUE(res);
+    ASSERT_STREQ("(123,)", res->toString().c_str());
+    ASSERT_EQ(6, rt->m_main_ast->m_block.size());
+
+    res = rt->Run("(name=123,)");
+    ASSERT_TRUE(res);
+    ASSERT_STREQ("(name=123,)", res->toString().c_str());
+    ASSERT_EQ(7, rt->m_main_ast->m_block.size());
+
+    res = rt->Run("(name=123,):ClassName");
+    ASSERT_TRUE(res);
+    ASSERT_STREQ("(name=123,):ClassName", res->toString().c_str());
+    ASSERT_EQ(8, rt->m_main_ast->m_block.size());
+
+    res = rt->Run("[123,]");
+    ASSERT_TRUE(res);
+    ASSERT_STREQ("[123,]:Int8", res->toString().c_str());
+    ASSERT_EQ(9, rt->m_main_ast->m_block.size());
+
+    res = rt->Run("[123,456,]:Float32");
+    ASSERT_TRUE(res);
+    ASSERT_STREQ("[123, 456,]:Float32", res->toString().c_str());
+    ASSERT_EQ(10, rt->m_main_ast->m_block.size());
+}
+
+TEST(Run, Vars) {
+
+    //    for (int i = 0; i < 5; i++) {
+    //        int val = i; /// val := i
+    //        static int stat = i; /// @::stat := i ???????????????????????????
+    //        std::cout << i << " -> " << val << " stat " << stat << "\n";
+    //    }
+
+
+    RuntimePtr rt = RunTime::Init();
+    ASSERT_TRUE(rt);
+    size_t glob_count = rt->size();
+
+    ObjPtr res = rt->Run("::var_glob := 123");
+    ASSERT_TRUE(res);
+    ASSERT_EQ(1, rt->size() - glob_count);
+    ASSERT_EQ(1, rt->m_main_ast->m_block.size());
+    ASSERT_EQ(0, rt->m_main_runner->size()) << rt->m_main_runner->Dump();
+    ASSERT_EQ(1, rt->m_main_ast->m_int_vars.size()) << rt->m_main_ast->m_int_vars.Dump();
+    ASSERT_STREQ("123", res->toString().c_str());
+
+    res = rt->Run("var_mod := 456");
+    ASSERT_TRUE(res);
+    ASSERT_STREQ("456", res->toString().c_str());
+    ASSERT_EQ(1, rt->size() - glob_count);
+    ASSERT_EQ(2, rt->m_main_ast->m_block.size());
+    ASSERT_EQ(0, rt->m_main_runner->size());
+    ASSERT_EQ(2, rt->m_main_ast->m_int_vars.size()) << rt->m_main_ast->m_int_vars.Dump();
+
+
+    res = rt->Run("$var_loc := 789");
+    ASSERT_TRUE(res);
+    ASSERT_STREQ("789", res->toString().c_str());
+    ASSERT_EQ(1, rt->size() - glob_count);
+    ASSERT_EQ(3, rt->m_main_ast->m_block.size());
+    ASSERT_EQ(0, rt->m_main_runner->size());
+    ASSERT_EQ(3, rt->m_main_ast->m_int_vars.size()) << rt->m_main_ast->m_int_vars.Dump();
+
+
+    res = rt->Run("::var_glob2 := var_glob");
+    ASSERT_TRUE(res);
+    ASSERT_STREQ("123", res->toString().c_str());
+    ASSERT_EQ(2, rt->size() - glob_count);
+    ASSERT_EQ(4, rt->m_main_ast->m_block.size());
+    ASSERT_EQ(0, rt->m_main_runner->size());
+    ASSERT_EQ(4, rt->m_main_ast->m_int_vars.size()) << rt->m_main_ast->m_int_vars.Dump();
+
+    ASSERT_ANY_THROW(rt->Run("var_mod ::= 0")) << rt->Dump() << rt->m_main_ast->m_int_vars.Dump();
+    ASSERT_ANY_THROW(rt->Run("var_mod2 = 0")) << rt->Dump() << rt->m_main_ast->m_int_vars.Dump();
+    ASSERT_NO_THROW(res = rt->Run("var_mod2 ::= var_mod")) << rt->Dump() << rt->m_main_ast->m_int_vars.Dump();
+    ASSERT_TRUE(res);
+    ASSERT_STREQ("456", res->toString().c_str());
+    ASSERT_EQ(2, rt->size() - glob_count);
+    ASSERT_EQ(5, rt->m_main_ast->m_block.size());
+    ASSERT_EQ(0, rt->m_main_runner->size());
+    ASSERT_EQ(5, rt->m_main_ast->m_int_vars.size()) << rt->m_main_ast->m_int_vars.Dump();
+
+    ASSERT_NO_THROW(res = rt->Run("$var_loc2 := $var_loc")) << rt->Dump() << rt->m_main_ast->m_int_vars.Dump();
+    ASSERT_TRUE(res);
+    ASSERT_STREQ("789", res->toString().c_str());
+    ASSERT_EQ(2, rt->size() - glob_count);
+    ASSERT_EQ(6, rt->m_main_ast->m_block.size());
+    ASSERT_EQ(0, rt->m_main_runner->size());
+    ASSERT_EQ(6, rt->m_main_ast->m_int_vars.size()) << rt->m_main_ast->m_int_vars.Dump();
+
+
+
+    ASSERT_ANY_THROW(rt->Run("::var_glob2 ::= -1"));
+    res = rt->Run("::var_glob2 = -1");
+    ASSERT_TRUE(res);
+    ASSERT_STREQ("-1", res->toString().c_str());
+    ASSERT_EQ(2, rt->size() - glob_count);
+    ASSERT_EQ(7, rt->m_main_ast->m_block.size());
+    ASSERT_EQ(0, rt->m_main_runner->size());
+    ASSERT_EQ(6, rt->m_main_ast->m_int_vars.size());
+
+
+    ASSERT_NO_THROW(res = rt->Run("var_mod2 = -2")) << rt->Dump() << rt->m_main_ast->m_int_vars.Dump();
+    ASSERT_TRUE(res);
+    ASSERT_STREQ("-2", res->toString().c_str());
+    ASSERT_EQ(2, rt->size() - glob_count);
+    ASSERT_EQ(8, rt->m_main_ast->m_block.size());
+    ASSERT_EQ(0, rt->m_main_runner->size());
+    ASSERT_EQ(6, rt->m_main_ast->m_int_vars.size());
+
+    ASSERT_ANY_THROW(rt->Run("$var_loc2 ::= -3"));
+    res = rt->Run("$var_loc2 = -3");
+    ASSERT_TRUE(res);
+    ASSERT_STREQ("-3", res->toString().c_str());
+    ASSERT_EQ(2, rt->size() - glob_count);
+    ASSERT_EQ(9, rt->m_main_ast->m_block.size());
+    ASSERT_EQ(0, rt->m_main_runner->size());
+    ASSERT_EQ(6, rt->m_main_ast->m_int_vars.size());
+
+    res = rt->Run("@::glob := -5");
+    ASSERT_TRUE(res);
+    ASSERT_STREQ("-5", res->toString().c_str());
+    ASSERT_EQ(2, rt->size() - glob_count);
+    ASSERT_EQ(10, rt->m_main_ast->m_block.size());
+    ASSERT_EQ(0, rt->m_main_runner->size());
+    ASSERT_EQ(7, rt->m_main_ast->m_int_vars.size());
+
+}
+
+TEST(Run, Call) {
+
+    RuntimePtr rt = RunTime::Init();
+    ASSERT_TRUE(rt);
+    size_t glob_count = rt->size();
+    ASSERT_FALSE(rt->m_main_ast);
+    ASSERT_FALSE(rt->m_main_runner);
+
+    ObjPtr res = rt->Run("::func_glob() := { 123 }");
+    ASSERT_TRUE(res);
+    ASSERT_EQ(1, rt->size() - glob_count);
+    ASSERT_EQ(1, rt->m_main_ast->m_block.size());
+    ASSERT_EQ(0, rt->m_main_runner->size());
+    ASSERT_EQ(1, rt->m_main_ast->m_int_vars.size()) << rt->m_main_ast->m_int_vars.Dump();
+    ASSERT_STREQ("::func_glob::(){ }", res->toString().c_str());
+
+    res = rt->Run("::func_glob()");
+    ASSERT_TRUE(res);
+    ASSERT_STREQ("123", res->toString().c_str());
+
+    ASSERT_ANY_THROW(rt->Run("::func_glob ::= {}")) << rt->Dump() << rt->m_main_ast->m_int_vars.Dump();
+    ASSERT_ANY_THROW(rt->Run("::func_glob = {}")) << rt->Dump() << rt->m_main_ast->m_int_vars.Dump();
+
+
+    res = rt->Run("func_loc() := { 456 }");
+    ASSERT_TRUE(res);
+    ASSERT_EQ(1, rt->size() - glob_count);
+    ASSERT_EQ(3, rt->m_main_ast->m_block.size());
+    ASSERT_EQ(0, rt->m_main_runner->size());
+    ASSERT_EQ(2, rt->m_main_ast->m_int_vars.size());
+    ASSERT_STREQ("func_loc::(){ }", res->toString().c_str());
+
+    ASSERT_NO_THROW(res = rt->Run("func_loc()")) << rt->Dump() << rt->m_main_ast->m_int_vars.Dump();
+
+    ASSERT_TRUE(res);
+    ASSERT_STREQ("456", res->toString().c_str());
+
+    ASSERT_NO_THROW(res = rt->Run("$func_loc()")) << rt->Dump() << rt->m_main_ast->m_int_vars.Dump();
+
+    ASSERT_TRUE(res);
+    ASSERT_STREQ("456", res->toString().c_str());
+
+    res = rt->Run("@::func() := { 789 }");
+    ASSERT_TRUE(res);
+    ASSERT_EQ(1, rt->size() - glob_count);
+    ASSERT_EQ(6, rt->m_main_ast->m_block.size());
+    ASSERT_EQ(0, rt->m_main_runner->size());
+    ASSERT_EQ(3, rt->m_main_ast->m_int_vars.size());
+    ASSERT_STREQ("@::func::(){ }", res->toString().c_str());
+
+    ASSERT_NO_THROW(res = rt->Run("@::func()")) << rt->Dump() << rt->m_main_ast->m_int_vars.Dump();
+    ASSERT_TRUE(res);
+    ASSERT_STREQ("789", res->toString().c_str());
+
+    ASSERT_NO_THROW(res = rt->Run("func()")) << rt->Dump() << rt->m_main_ast->m_int_vars.Dump();
+    ASSERT_TRUE(res);
+    ASSERT_STREQ("789", res->toString().c_str());
+}
+
 //TEST(Run, CallArgs) {
 //
 //    RuntimePtr rt = RunTime::Init();
@@ -2052,5 +2058,5 @@
 ////    Context ctx(RunTime::Init());
 ////
 ////}
-//
-//#endif // UNITTEST
+
+#endif // UNITTEST

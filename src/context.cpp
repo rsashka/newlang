@@ -37,16 +37,6 @@ const char * Return::Abort = ":ErrorAbort";
 Context::Context(RuntimePtr global) {
     m_runtime = global;
 
-    //    m_main_module = std::make_shared<Module>();
-    //
-    //    ASSERT(m_main_module->m_var_type_current == ObjType::Module);
-    //    m_main_module->m_var_is_init = true;
-    //    m_main_module->m_is_main = true;
-    //
-    //    m_terms = m_main_module.get();
-
-
-
     // typedef enum ffi_abi {
     //#if defined(X86_WIN64)
     //  FFI_FIRST_ABI = 0,
@@ -94,92 +84,92 @@ Context::Context(RuntimePtr global) {
     //} ffi_abi;
     //
 
-#ifdef _MSC_VER
-
-    std::wstring sys_file;
-    std::string sys_init;
-
-    //#define CYGWIN
-#ifdef CYGWIN
-    sys_file = L"cygwin1.dll";
-    sys_init = "cygwin_dll_init";
-    ffi_file = "cygffi-6.dll";
-#else
-    //sys_file = L"msys-2.0.dll";
-    //sys_init = "msys_dll_init";
-    ffi_file = "libffi-6.dll";
-#endif
-
-    //m_msys = LoadLibrary(sys_file.c_str());
-    //if(!m_msys) {
-    //    LOG_RUNTIME("Fail LoadLibrary %s: %s", sys_file.c_str(), RunTime::GetLastErrorMessage().c_str());
-    //}
-
-    //    typedef void init_type();
-    //    init_type *init = (init_type *) GetProcAddress((HMODULE) m_msys, sys_init.c_str());
-    //    if(m_msys && !init) {
-    //        FreeLibrary((HMODULE) m_msys);
-    //        LOG_RUNTIME("Func %s not found! %s", sys_init.c_str(), RunTime::GetLastErrorMessage().c_str());
-    //        (*init)();
-    //    }
-
-    static void * m_ffi_handle = nullptr;
-
-    if (!m_ffi_handle) {
-        m_ffi_handle = LoadLibrary(utf8_decode(ffi_file).c_str());
-    }
-    if (!m_ffi_handle) {
-        LOG_RUNTIME("Fail load %s!", ffi_file.c_str());
-    }
-
-    m_ffi_type_void = reinterpret_cast<ffi_type *> (GetProcAddress((HMODULE) m_ffi_handle, "ffi_type_void"));
-    m_ffi_type_uint8 = reinterpret_cast<ffi_type *> (GetProcAddress((HMODULE) m_ffi_handle, "ffi_type_uint8"));
-    m_ffi_type_sint8 = reinterpret_cast<ffi_type *> (GetProcAddress((HMODULE) m_ffi_handle, "ffi_type_sint8"));
-    m_ffi_type_uint16 = reinterpret_cast<ffi_type *> (GetProcAddress((HMODULE) m_ffi_handle, "ffi_type_uint16"));
-    m_ffi_type_sint16 = reinterpret_cast<ffi_type *> (GetProcAddress((HMODULE) m_ffi_handle, "ffi_type_sint16"));
-    m_ffi_type_uint32 = reinterpret_cast<ffi_type *> (GetProcAddress((HMODULE) m_ffi_handle, "ffi_type_uint32"));
-    m_ffi_type_sint32 = reinterpret_cast<ffi_type *> (GetProcAddress((HMODULE) m_ffi_handle, "ffi_type_sint32"));
-    m_ffi_type_uint64 = reinterpret_cast<ffi_type *> (GetProcAddress((HMODULE) m_ffi_handle, "ffi_type_uint64"));
-    m_ffi_type_sint64 = reinterpret_cast<ffi_type *> (GetProcAddress((HMODULE) m_ffi_handle, "ffi_type_sint64"));
-    m_ffi_type_float = reinterpret_cast<ffi_type *> (GetProcAddress((HMODULE) m_ffi_handle, "ffi_type_float"));
-    m_ffi_type_double = reinterpret_cast<ffi_type *> (GetProcAddress((HMODULE) m_ffi_handle, "ffi_type_double"));
-    m_ffi_type_pointer = reinterpret_cast<ffi_type *> (GetProcAddress((HMODULE) m_ffi_handle, "ffi_type_pointer"));
-
-    m_ffi_prep_cif = reinterpret_cast<ffi_prep_cif_type *> (GetProcAddress((HMODULE) m_ffi_handle, "ffi_prep_cif"));
-    m_ffi_prep_cif_var = reinterpret_cast<ffi_prep_cif_var_type *> (GetProcAddress((HMODULE) m_ffi_handle, "ffi_prep_cif_var"));
-    m_ffi_call = reinterpret_cast<ffi_call_type *> (GetProcAddress((HMODULE) m_ffi_handle, "ffi_call"));
-
-#else
-    //    std::string error;
-    if (LLVMLoadLibraryPermanently("libffi") == 0) {
-        LOG_RUNTIME("Fail load library libffi!");
-    }
-
-    m_ffi_type_void = static_cast<ffi_type *> (LLVMSearchForAddressOfSymbol("ffi_type_void"));
-    m_ffi_type_uint8 = static_cast<ffi_type *> (LLVMSearchForAddressOfSymbol("ffi_type_uint8"));
-    m_ffi_type_sint8 = static_cast<ffi_type *> (LLVMSearchForAddressOfSymbol("ffi_type_sint8"));
-    m_ffi_type_uint16 = static_cast<ffi_type *> (LLVMSearchForAddressOfSymbol("ffi_type_uint16"));
-    m_ffi_type_sint16 = static_cast<ffi_type *> (LLVMSearchForAddressOfSymbol("ffi_type_sint16"));
-    m_ffi_type_uint32 = static_cast<ffi_type *> (LLVMSearchForAddressOfSymbol("ffi_type_uint32"));
-    m_ffi_type_sint32 = static_cast<ffi_type *> (LLVMSearchForAddressOfSymbol("ffi_type_sint32"));
-    m_ffi_type_uint64 = static_cast<ffi_type *> (LLVMSearchForAddressOfSymbol("ffi_type_uint64"));
-    m_ffi_type_sint64 = static_cast<ffi_type *> (LLVMSearchForAddressOfSymbol("ffi_type_sint64"));
-    m_ffi_type_float = static_cast<ffi_type *> (LLVMSearchForAddressOfSymbol("ffi_type_float"));
-    m_ffi_type_double = static_cast<ffi_type *> (LLVMSearchForAddressOfSymbol("ffi_type_double"));
-    m_ffi_type_pointer = static_cast<ffi_type *> (LLVMSearchForAddressOfSymbol("ffi_type_pointer"));
-
-    m_ffi_prep_cif = reinterpret_cast<ffi_prep_cif_type *> (LLVMSearchForAddressOfSymbol("ffi_prep_cif"));
-    m_ffi_prep_cif_var = reinterpret_cast<ffi_prep_cif_var_type *> (LLVMSearchForAddressOfSymbol("ffi_prep_cif_var"));
-    m_ffi_call = reinterpret_cast<ffi_call_type *> (LLVMSearchForAddressOfSymbol("ffi_call"));
-
-#endif
-
-    if (!(m_ffi_type_uint8 && m_ffi_type_sint8 && m_ffi_type_uint16 && m_ffi_type_sint16 &&
-            m_ffi_type_uint32 && m_ffi_type_sint32 && m_ffi_type_uint64 && m_ffi_type_sint64 &&
-            m_ffi_type_float && m_ffi_type_double && m_ffi_type_pointer && m_ffi_type_void &&
-            m_ffi_prep_cif && m_ffi_prep_cif_var && m_ffi_call)) {
-        LOG_RUNTIME("Fail init data from libffi!");
-    }
+//#ifdef _MSC_VER
+//
+//    std::wstring sys_file;
+//    std::string sys_init;
+//
+//    //#define CYGWIN
+//#ifdef CYGWIN
+//    sys_file = L"cygwin1.dll";
+//    sys_init = "cygwin_dll_init";
+//    ffi_file = "cygffi-6.dll";
+//#else
+//    //sys_file = L"msys-2.0.dll";
+//    //sys_init = "msys_dll_init";
+//    ffi_file = "libffi-6.dll";
+//#endif
+//
+//    //m_msys = LoadLibrary(sys_file.c_str());
+//    //if(!m_msys) {
+//    //    LOG_RUNTIME("Fail LoadLibrary %s: %s", sys_file.c_str(), RunTime::GetLastErrorMessage().c_str());
+//    //}
+//
+//    //    typedef void init_type();
+//    //    init_type *init = (init_type *) GetProcAddress((HMODULE) m_msys, sys_init.c_str());
+//    //    if(m_msys && !init) {
+//    //        FreeLibrary((HMODULE) m_msys);
+//    //        LOG_RUNTIME("Func %s not found! %s", sys_init.c_str(), RunTime::GetLastErrorMessage().c_str());
+//    //        (*init)();
+//    //    }
+//
+//    static void * m_ffi_handle = nullptr;
+//
+//    if (!m_ffi_handle) {
+//        m_ffi_handle = LoadLibrary(utf8_decode(ffi_file).c_str());
+//    }
+//    if (!m_ffi_handle) {
+//        LOG_RUNTIME("Fail load %s!", ffi_file.c_str());
+//    }
+//
+//    m_ffi_type_void = reinterpret_cast<ffi_type *> (GetProcAddress((HMODULE) m_ffi_handle, "ffi_type_void"));
+//    m_ffi_type_uint8 = reinterpret_cast<ffi_type *> (GetProcAddress((HMODULE) m_ffi_handle, "ffi_type_uint8"));
+//    m_ffi_type_sint8 = reinterpret_cast<ffi_type *> (GetProcAddress((HMODULE) m_ffi_handle, "ffi_type_sint8"));
+//    m_ffi_type_uint16 = reinterpret_cast<ffi_type *> (GetProcAddress((HMODULE) m_ffi_handle, "ffi_type_uint16"));
+//    m_ffi_type_sint16 = reinterpret_cast<ffi_type *> (GetProcAddress((HMODULE) m_ffi_handle, "ffi_type_sint16"));
+//    m_ffi_type_uint32 = reinterpret_cast<ffi_type *> (GetProcAddress((HMODULE) m_ffi_handle, "ffi_type_uint32"));
+//    m_ffi_type_sint32 = reinterpret_cast<ffi_type *> (GetProcAddress((HMODULE) m_ffi_handle, "ffi_type_sint32"));
+//    m_ffi_type_uint64 = reinterpret_cast<ffi_type *> (GetProcAddress((HMODULE) m_ffi_handle, "ffi_type_uint64"));
+//    m_ffi_type_sint64 = reinterpret_cast<ffi_type *> (GetProcAddress((HMODULE) m_ffi_handle, "ffi_type_sint64"));
+//    m_ffi_type_float = reinterpret_cast<ffi_type *> (GetProcAddress((HMODULE) m_ffi_handle, "ffi_type_float"));
+//    m_ffi_type_double = reinterpret_cast<ffi_type *> (GetProcAddress((HMODULE) m_ffi_handle, "ffi_type_double"));
+//    m_ffi_type_pointer = reinterpret_cast<ffi_type *> (GetProcAddress((HMODULE) m_ffi_handle, "ffi_type_pointer"));
+//
+//    m_ffi_prep_cif = reinterpret_cast<ffi_prep_cif_type *> (GetProcAddress((HMODULE) m_ffi_handle, "ffi_prep_cif"));
+//    m_ffi_prep_cif_var = reinterpret_cast<ffi_prep_cif_var_type *> (GetProcAddress((HMODULE) m_ffi_handle, "ffi_prep_cif_var"));
+//    m_ffi_call = reinterpret_cast<ffi_call_type *> (GetProcAddress((HMODULE) m_ffi_handle, "ffi_call"));
+//
+//#else
+//    //    std::string error;
+//    if (LLVMLoadLibraryPermanently("libffi") == 0) {
+//        LOG_RUNTIME("Fail load library libffi!");
+//    }
+//
+//    m_ffi_type_void = static_cast<ffi_type *> (LLVMSearchForAddressOfSymbol("ffi_type_void"));
+//    m_ffi_type_uint8 = static_cast<ffi_type *> (LLVMSearchForAddressOfSymbol("ffi_type_uint8"));
+//    m_ffi_type_sint8 = static_cast<ffi_type *> (LLVMSearchForAddressOfSymbol("ffi_type_sint8"));
+//    m_ffi_type_uint16 = static_cast<ffi_type *> (LLVMSearchForAddressOfSymbol("ffi_type_uint16"));
+//    m_ffi_type_sint16 = static_cast<ffi_type *> (LLVMSearchForAddressOfSymbol("ffi_type_sint16"));
+//    m_ffi_type_uint32 = static_cast<ffi_type *> (LLVMSearchForAddressOfSymbol("ffi_type_uint32"));
+//    m_ffi_type_sint32 = static_cast<ffi_type *> (LLVMSearchForAddressOfSymbol("ffi_type_sint32"));
+//    m_ffi_type_uint64 = static_cast<ffi_type *> (LLVMSearchForAddressOfSymbol("ffi_type_uint64"));
+//    m_ffi_type_sint64 = static_cast<ffi_type *> (LLVMSearchForAddressOfSymbol("ffi_type_sint64"));
+//    m_ffi_type_float = static_cast<ffi_type *> (LLVMSearchForAddressOfSymbol("ffi_type_float"));
+//    m_ffi_type_double = static_cast<ffi_type *> (LLVMSearchForAddressOfSymbol("ffi_type_double"));
+//    m_ffi_type_pointer = static_cast<ffi_type *> (LLVMSearchForAddressOfSymbol("ffi_type_pointer"));
+//
+//    m_ffi_prep_cif = reinterpret_cast<ffi_prep_cif_type *> (LLVMSearchForAddressOfSymbol("ffi_prep_cif"));
+//    m_ffi_prep_cif_var = reinterpret_cast<ffi_prep_cif_var_type *> (LLVMSearchForAddressOfSymbol("ffi_prep_cif_var"));
+//    m_ffi_call = reinterpret_cast<ffi_call_type *> (LLVMSearchForAddressOfSymbol("ffi_call"));
+//
+//#endif
+//
+//    if (!(m_ffi_type_uint8 && m_ffi_type_sint8 && m_ffi_type_uint16 && m_ffi_type_sint16 &&
+//            m_ffi_type_uint32 && m_ffi_type_sint32 && m_ffi_type_uint64 && m_ffi_type_sint64 &&
+//            m_ffi_type_float && m_ffi_type_double && m_ffi_type_pointer && m_ffi_type_void &&
+//            m_ffi_prep_cif && m_ffi_prep_cif_var && m_ffi_call)) {
+//        LOG_RUNTIME("Fail init data from libffi!");
+//    }
 
 
     //    if (m_runtime->m_funcs.empty()) {
@@ -703,7 +693,7 @@ ObjPtr Context::CREATE_OR_ASSIGN(Context *ctx, const TermPtr &term, Obj *local_v
         } else if (term->Left()->isCall() && term->Right()->isCall()) {
             LOG_RUNTIME("Check args in native func not implemented!");
         }
-        rval = ctx->m_runtime->CreateNative(ctx, term->Right(), nullptr, false, term->Right()->m_text.substr(1).c_str());
+        rval = ctx->m_runtime->CreateNative(term->Right(), nullptr, false, term->Right()->m_text.substr(1).c_str());
 
     } else {
         rval = Eval(ctx, term->Right(), local_vars, is_eval_block, CatchType::CATCH_AUTO);
@@ -1135,7 +1125,7 @@ ObjPtr Context::eval_OP_COMPARE(Context* ctx, const TermPtr& term, Obj* args, bo
     return nullptr;
 }
 
-ObjPtr Context::eval_OPERATOR(Context *ctx, const TermPtr &term, Obj * args, bool eval_block) {
+ObjPtr Context::eval_OP_LOGICAL(Context *ctx, const TermPtr &term, Obj * args, bool eval_block) {
     if (Context::m_ops.find(term->m_text) == Context::m_ops.end()) {
 
         LOG_RUNTIME("Eval op '%s' not exist!", term->m_text.c_str());
@@ -1659,9 +1649,8 @@ std::string RunTime::GetLastErrorMessage() {
 #endif        
 }
 
-void *RunTime::GetNativeAddr(const char *name, const char *module) {
-
-    return GetDirectAddressFromLibrary(nullptr, name);
+void * RunTime::GetNativeAddr(const char *name, void * handle) {
+    return GetDirectAddressFromLibrary(handle, name);
 }
 
 void Context::CleanUp() {
@@ -1769,7 +1758,7 @@ ObjPtr Context::CreateLVal(Context *ctx, TermPtr term, Obj * args) {
         result->m_var_type_fixed = result->m_var_type_current;
         *const_cast<TermPtr *> (&result->m_prototype) = term;
     } else if (type) {
-        result->m_var_type_current = typeFromString(type->getText().c_str(), ctx->m_runtime);
+        result->m_var_type_current = typeFromString(type->getText().c_str(), ctx->m_runtime.get());
         result->m_var_type_fixed = result->m_var_type_current;
         if (result->is_tensor_type()) {
             std::vector<int64_t> dims;
@@ -2013,30 +2002,33 @@ ObjPtr Context::CreateRVal(Context *ctx, TermPtr term, Obj * local_vars, bool ev
     std::vector<int64_t> sizes;
     at::Scalar torch_scalar;
     switch (term->getTermID()) {
-        case TermID::OPERATOR:
+        case TermID::OP_MATH:
+        case TermID::OP_BITWISE:
+        case TermID::OP_COMPARE:
+        case TermID::OP_LOGICAL:
             return Context::Eval(ctx, term, local_vars, eval_block, int_catch);
 
         case TermID::INTEGER:
 
             val_int = parseInteger(term->getText().c_str());
-            NL_TYPECHECK(term, typeFromLimit(val_int), typeFromString(term->m_type, ctx ? ctx->m_runtime : nullptr)); // Соответстствует ли тип значению?
+            NL_TYPECHECK(term, typeFromLimit(val_int), typeFromString(term->m_type, ctx ? ctx->m_runtime.get() : nullptr)); // Соответстствует ли тип значению?
 
             result = Obj::CreateValue(val_int);
             result->m_var_type_current = typeFromLimit(val_int);
             if (term->GetType()) {
-                result->m_var_type_fixed = typeFromString(term->m_type, ctx ? ctx->m_runtime : nullptr);
+                result->m_var_type_fixed = typeFromString(term->m_type, ctx ? ctx->m_runtime.get() : nullptr);
                 result->m_var_type_current = result->m_var_type_fixed;
             }
             return result;
 
         case TermID::NUMBER:
             val_dbl = parseDouble(term->getText().c_str());
-            NL_TYPECHECK(term, typeFromLimit(val_dbl), typeFromString(term->m_type, ctx ? ctx->m_runtime : nullptr)); // Соответстствует ли тип значению?
+            NL_TYPECHECK(term, typeFromLimit(val_dbl), typeFromString(term->m_type, ctx ? ctx->m_runtime.get() : nullptr)); // Соответстствует ли тип значению?
 
             result = Obj::CreateValue(val_dbl);
             result->m_var_type_current = typeFromLimit(val_dbl);
             if (term->GetType()) {
-                result->m_var_type_fixed = typeFromString(term->m_type, ctx ? ctx->m_runtime : nullptr);
+                result->m_var_type_fixed = typeFromString(term->m_type, ctx ? ctx->m_runtime.get() : nullptr);
                 result->m_var_type_current = result->m_var_type_fixed;
             }
             return result;
@@ -2273,7 +2265,7 @@ ObjPtr Context::CreateRVal(Context *ctx, TermPtr term, Obj * local_vars, bool ev
 
             if (term->GetType()) {
 
-                result->m_var_type_current = typeFromString(term->GetType()->m_text, ctx ? ctx->m_runtime : nullptr);
+                result->m_var_type_current = typeFromString(term->GetType()->m_text, ctx ? ctx->m_runtime.get() : nullptr);
                 result->m_var_type_fixed = result->m_var_type_current;
                 result->m_var_is_init = false; // Нельзя считать значение
 
@@ -2601,7 +2593,7 @@ ObjPtr Context::CreateRVal(Context *ctx, TermPtr term, Obj * local_vars, bool ev
 
 
             has_error = false;
-            type = typeFromString(term->GetFullName(), ctx ? ctx->m_runtime : nullptr, &has_error);
+            type = typeFromString(term->GetFullName(), ctx ? ctx->m_runtime.get() : nullptr, &has_error);
             if (has_error) {
                 LOG_RUNTIME("Type name '%s' undefined!", term->GetFullName().c_str());
             }
@@ -2726,7 +2718,7 @@ ObjPtr Context::CreateRVal(Context *ctx, TermPtr term, Obj * local_vars, bool ev
                 if (!term->m_type) {
                     result->m_var_type_fixed = ObjType::None;
                 } else {
-                    result->m_var_type_fixed = typeFromString(term->m_type->m_text, ctx ? ctx->m_runtime : nullptr);
+                    result->m_var_type_fixed = typeFromString(term->m_type->m_text, ctx ? ctx->m_runtime.get() : nullptr);
                 }
                 type = getSummaryTensorType(result.get(), result->m_var_type_fixed);
 
@@ -3149,7 +3141,7 @@ ObjPtr Runner::EvalBlock_(TermPtr &block, TermPtr proto) {
     ASSERT(block->isBlock());
     m_latter = getNoneObj();
     try {
-//        ScopePush scope_block(*this, proto);
+        ScopePush scope_block(*this, proto, &proto->m_int_vars);
         for (auto &elem : block->m_block) {
             m_latter = Run(elem);
         }
@@ -3161,6 +3153,306 @@ ObjPtr Runner::EvalBlock_(TermPtr &block, TermPtr proto) {
         throw;
     }
     return m_latter;
+}
+
+ObjPtr Runner::Call(Obj & obj, Obj *args) {
+    ASSERT(obj.is_native());
+    if (obj.is_function_type()) {
+        return CallNative_(obj, args);
+    }
+    ASSERT(0);
+    return nullptr;
+}
+
+ObjPtr Runner::CallNative_(Obj &obj, Obj *args) {
+
+    ffi_cif m_cif;
+    std::vector<ffi_type *> m_args_type;
+    std::vector<void *> m_args_ptr;
+
+    union VALUE {
+        const void *ptr;
+        size_t size;
+        int64_t integer;
+        double number;
+        bool boolean;
+    };
+
+    std::vector<VALUE> m_args_val;
+    VALUE temp;
+
+    ASSERT(obj.m_var_type_current == ObjType::NativeFunc);
+    ASSERT(obj.m_prototype);
+
+    ASSERT(at::holds_alternative<void *>(obj.m_var));
+    void * func_ptr = at::get<void *>(obj.m_var);
+
+    if (!func_ptr) {
+        LOG_RUNTIME("Dymanic load native address '%s'!", "NOT IMPLEMENTED");
+
+        //        func_ptr = LLVMSearchForAddressOfSymbol(m_func_mangle_name.empty() ? m_prototype->m_text.c_str() : m_func_mangle_name.c_str());
+        //        LOG_RUNTIME("Cannot get address of native name '%s'!", "NOT IMPLEMENTED");
+    }
+//    NL_CHECK(func_ptr, "Fail load func name '%s' (%s) or fail load module '%s'!", m_prototype->m_text.c_str(),
+//            m_func_mangle_name.empty() ? m_prototype->m_text.c_str() : m_func_mangle_name.c_str(),
+//            m_module_name.empty() ? "none" : m_module_name.c_str());
+
+    bool is_ellipsis = (obj.m_prototype->size() && (*obj.m_prototype)[obj.m_prototype->size() - 1].second->getTermID() == TermID::ELLIPSIS);
+    size_t check_count = is_ellipsis ? obj.m_prototype->size() - 1 : obj.m_prototype->size();
+
+    // Пропустить нулевой аргумент для нативных функций
+    for (int i = 0; args && i < args->size(); i++) {
+
+        ASSERT((*args)[i].second);
+        if ((*args)[i].second->m_is_reference) {
+            LOG_RUNTIME("Argument REFERENCE! %s", (*args)[i].second->toString().c_str());
+        }
+
+        size_t pind = i;// - 1; // Индекс прототипа на единицу меньше из-за пустого нулевого аргумента
+
+        ObjType type = (*args)[i].second->getTypeAsLimit();
+        switch (type) {
+            case ObjType::Bool:
+                if (pind < check_count) {
+                    NL_CHECK(!isDefaultType((*obj.m_prototype)[pind].second->m_type), "Undefined type arg '%s'", (*obj.m_prototype)[pind].second->toString().c_str());
+                    NL_CHECK(canCast(type, typeFromString((*obj.m_prototype)[pind].second->m_type, m_runtime.get())), "Fail cast from '%s' to '%s'",
+                            (*obj.m_prototype)[pind].second->m_type->asTypeString().c_str(), newlang::toString(type));
+                }
+                m_args_type.push_back(RunTime::m_ffi_type_uint8);
+                temp.boolean = (*args)[i].second->GetValueAsBoolean();
+                m_args_val.push_back(temp);
+                break;
+
+            case ObjType::Int8:
+            case ObjType::Char:
+            case ObjType::Byte:
+                if (pind < check_count) {
+                    NL_CHECK(!isDefaultType((*obj.m_prototype)[pind].second->m_type), "Undefined type arg '%s'", (*obj.m_prototype)[pind].second->toString().c_str());
+                    NL_CHECK(canCast(type, typeFromString((*obj.m_prototype)[pind].second->m_type, m_runtime.get())), "Fail cast from '%s' to '%s'",
+                            (*obj.m_prototype)[pind].second->m_type->asTypeString().c_str(), newlang::toString(type));
+                }
+                m_args_type.push_back(RunTime::m_ffi_type_sint8);
+                temp.integer = (*args)[i].second->GetValueAsInteger();
+                m_args_val.push_back(temp);
+                break;
+
+            case ObjType::Int16:
+            case ObjType::Word:
+                if (pind < check_count) {
+                    NL_CHECK(!isDefaultType((*obj.m_prototype)[pind].second->m_type), "Undefined type arg '%s'", (*obj.m_prototype)[pind].second->toString().c_str());
+                    NL_CHECK(canCast(type, typeFromString((*obj.m_prototype)[pind].second->m_type, m_runtime.get())), "Fail cast from '%s' to '%s'",
+                            (*obj.m_prototype)[pind].second->m_type->m_text.c_str(), newlang::toString(type));
+                }
+                m_args_type.push_back(RunTime::m_ffi_type_sint16);
+                temp.integer = (*args)[i].second->GetValueAsInteger();
+                m_args_val.push_back(temp);
+                break;
+
+            case ObjType::Int32:
+            case ObjType::DWord:
+                if (pind < check_count) {
+                    NL_CHECK(!isDefaultType((*obj.m_prototype)[pind].second->m_type), "Undefined type arg '%s'", (*obj.m_prototype)[pind].second->toString().c_str());
+                    NL_CHECK(canCast(type, typeFromString((*obj.m_prototype)[pind].second->m_type, m_runtime.get())), "Fail cast from '%s' to '%s'",
+                            (*obj.m_prototype)[pind].second->m_type->m_text.c_str(), newlang::toString(type));
+                }
+                m_args_type.push_back(RunTime::m_ffi_type_sint32);
+                temp.integer = (*args)[i].second->GetValueAsInteger();
+                m_args_val.push_back(temp);
+                break;
+
+            case ObjType::Int64:
+            case ObjType::DWord64:
+                if (pind < check_count) {
+                    NL_CHECK(!isDefaultType((*obj.m_prototype)[pind].second->m_type), "Undefined type arg '%s'", (*obj.m_prototype)[pind].second->toString().c_str());
+                    NL_CHECK(canCast(type, typeFromString((*obj.m_prototype)[pind].second->m_type, m_runtime.get())), "Fail cast from '%s' to '%s'",
+                            (*obj.m_prototype)[pind].second->m_type->m_text.c_str(), newlang::toString(type));
+                }
+                m_args_type.push_back(RunTime::m_ffi_type_sint64);
+                temp.integer = (*args)[i].second->GetValueAsInteger();
+                m_args_val.push_back(temp);
+                break;
+
+            case ObjType::Float32:
+            case ObjType::Single:
+                if (pind < check_count) {
+                    NL_CHECK(!isDefaultType((*obj.m_prototype)[pind].second->m_type), "Undefined type arg '%s'", (*obj.m_prototype)[pind].second->toString().c_str());
+                    NL_CHECK(canCast(type, typeFromString((*obj.m_prototype)[pind].second->m_type, m_runtime.get())), "Fail cast from '%s' to '%s'",
+                            (*obj.m_prototype)[pind].second->m_type->m_text.c_str(), newlang::toString(type));
+                }
+                m_args_type.push_back(RunTime::m_ffi_type_float);
+                temp.number = (*args)[i].second->GetValueAsNumber();
+                m_args_val.push_back(temp);
+                break;
+
+            case ObjType::Float64:
+            case ObjType::Double:
+                if (pind < check_count) {
+                    NL_CHECK(!isDefaultType((*obj.m_prototype)[pind].second->m_type), "Undefined type arg '%s'", (*obj.m_prototype)[pind].second->toString().c_str());
+                    NL_CHECK(canCast(type, typeFromString((*obj.m_prototype)[pind].second->m_type, m_runtime.get())), "Fail cast from '%s' to '%s'",
+                            (*obj.m_prototype)[pind].second->m_type->m_text.c_str(), newlang::toString(type));
+                }
+                m_args_type.push_back(RunTime::m_ffi_type_double);
+                temp.number = (*args)[i].second->GetValueAsNumber();
+                m_args_val.push_back(temp);
+                break;
+
+            case ObjType::StrChar:
+                if (pind < check_count) {
+                    NL_CHECK(!isDefaultType((*obj.m_prototype)[pind].second->m_type), "Undefined type arg '%s'", (*obj.m_prototype)[pind].second->toString().c_str());
+                    NL_CHECK(canCast(type, typeFromString((*obj.m_prototype)[pind].second->m_type, m_runtime.get())), "Fail cast from '%s' to '%s'",
+                            (*obj.m_prototype)[pind].second->m_type->m_text.c_str(), newlang::toString(type));
+                }
+                m_args_type.push_back(RunTime::m_ffi_type_pointer);
+                temp.ptr = (*args)[i].second->m_value.c_str();
+                m_args_val.push_back(temp);
+                break;
+
+            case ObjType::StrWide:
+                if (pind < check_count) {
+                    NL_CHECK(!isDefaultType((*obj.m_prototype)[pind].second->m_type), "Undefined type arg '%s'", (*obj.m_prototype)[pind].second->toString().c_str());
+                    NL_CHECK(canCast(type, typeFromString((*obj.m_prototype)[pind].second->m_type, m_runtime.get())), "Fail cast from '%s' to '%s'",
+                            (*obj.m_prototype)[pind].second->m_type->m_text.c_str(), newlang::toString(type));
+                }
+                m_args_type.push_back(RunTime::m_ffi_type_pointer);
+                temp.ptr = (*args)[i].second->m_string.c_str();
+                m_args_val.push_back(temp);
+                break;
+
+            case ObjType::Pointer:
+                if (pind < check_count) {
+                    NL_CHECK(!isDefaultType((*obj.m_prototype)[pind].second->m_type), "Undefined type arg '%s'", (*obj.m_prototype)[pind].second->toString().c_str());
+                    NL_CHECK(canCast(type, typeFromString((*obj.m_prototype)[pind].second->m_type, m_runtime.get())), "Fail cast from '%s' to '%s'",
+                            (*obj.m_prototype)[pind].second->m_type->m_text.c_str(), newlang::toString(type));
+                }
+                m_args_type.push_back(RunTime::m_ffi_type_pointer);
+
+                if (at::holds_alternative<void *>((*args)[i].second->m_var)) {
+                    temp.ptr = at::get<void *>((*args)[i].second->m_var);
+                    //                } else if (args[i].second->m_var_type_fixed == ObjType::None || args[i].second->m_var_type_current == ObjType::None ) {
+                    //                    temp.ptr = nullptr;
+                } else {
+                    LOG_RUNTIME("Fail convert arg '%s' to pointer!", (*args)[i].second->toString().c_str());
+                }
+
+                m_args_val.push_back(temp);
+                break;
+
+            default:
+                LOG_RUNTIME("Native arg '%s' not implemented!", (*args)[i].second->toString().c_str());
+        }
+        if (pind < check_count && (*obj.m_prototype)[pind].second->GetType()) {
+            if ((*obj.m_prototype)[pind].second->GetType()->m_text.compare(newlang::toString(ObjType::FmtChar)) == 0) {
+                NL_CHECK(newlang::ParsePrintfFormat(args, i), "Fail format string or type args!");
+            }
+        }
+    }
+
+    for (size_t i = 0; i < m_args_val.size(); i++) {
+        m_args_ptr.push_back((void *) &m_args_val[i]);
+    }
+
+    NL_CHECK(!isDefaultType(obj.m_prototype->m_type), "Undefined return type '%s'", obj.m_prototype->toString().c_str());
+
+    VALUE res_value;
+    ffi_type *result_ffi_type = nullptr;
+
+    ObjType type = m_runtime->BaseTypeFromString(obj.m_prototype->m_type->m_text);
+
+    switch (type) {
+        case ObjType::Bool:
+            result_ffi_type = RunTime::m_ffi_type_uint8;
+            break;
+
+        case ObjType::Int8:
+        case ObjType::Char:
+        case ObjType::Byte:
+            result_ffi_type = RunTime::m_ffi_type_sint8;
+            break;
+
+        case ObjType::Int16:
+        case ObjType::Word:
+            result_ffi_type = RunTime::m_ffi_type_sint16;
+            break;
+
+        case ObjType::Int32:
+        case ObjType::DWord:
+            result_ffi_type = RunTime::m_ffi_type_sint32;
+            break;
+
+        case ObjType::Int64:
+        case ObjType::DWord64:
+            result_ffi_type = RunTime::m_ffi_type_sint64;
+            break;
+
+        case ObjType::Float32:
+        case ObjType::Single:
+            result_ffi_type = RunTime::m_ffi_type_float;
+            break;
+
+        case ObjType::Float64:
+        case ObjType::Double:
+            result_ffi_type = RunTime::m_ffi_type_double;
+            break;
+
+        case ObjType::Pointer:
+        case ObjType::StrChar:
+        case ObjType::StrWide:
+            result_ffi_type = RunTime::m_ffi_type_pointer;
+            break;
+
+        case ObjType::None:
+            result_ffi_type = RunTime::m_ffi_type_void;
+            break;
+
+        default:
+            LOG_RUNTIME("Native return type '%s' not implemented!", obj.m_prototype->m_type->asTypeString().c_str());
+    }
+
+    //    ASSERT(ctx->m_func_abi == FFI_DEFAULT_ABI); // Нужны другие типы вызовов ???
+    if (RunTime::m_ffi_prep_cif(&m_cif, FFI_DEFAULT_ABI, static_cast<unsigned int> (m_args_type.size()), result_ffi_type, m_args_type.data()) == FFI_OK) {
+
+        ASSERT(obj.m_prototype->m_type);
+
+        RunTime::m_ffi_call(&m_cif, FFI_FN(func_ptr), &res_value, m_args_ptr.data());
+
+        if (result_ffi_type == RunTime::m_ffi_type_void) {
+            return Obj::CreateNone();
+        } else if (result_ffi_type == RunTime::m_ffi_type_uint8) {
+            // Возвращаемый тип может быть как Byte, так и Bool
+            return Obj::CreateValue(static_cast<uint8_t> (res_value.integer), typeFromString(obj.m_prototype->m_type));
+        } else if (result_ffi_type == RunTime::m_ffi_type_sint8) {
+            return Obj::CreateValue(static_cast<int8_t> (res_value.integer), type);
+        } else if (result_ffi_type == RunTime::m_ffi_type_sint16) {
+            return Obj::CreateValue(static_cast<int16_t> (res_value.integer), type);
+        } else if (result_ffi_type == RunTime::m_ffi_type_sint32) {
+            return Obj::CreateValue(static_cast<int32_t> (res_value.integer), type);
+        } else if (result_ffi_type == RunTime::m_ffi_type_sint64) {
+            return Obj::CreateValue(res_value.integer, type);
+        } else if (result_ffi_type == RunTime::m_ffi_type_float) {
+            return Obj::CreateValue(res_value.number, type);
+        } else if (result_ffi_type == RunTime::m_ffi_type_double) {
+            return Obj::CreateValue(res_value.number, type);
+        } else if (result_ffi_type == RunTime::m_ffi_type_pointer) {
+            if (type == ObjType::StrChar) {
+                return Obj::CreateString(reinterpret_cast<const char *> (res_value.ptr));
+            } else if (type == ObjType::StrWide) {
+                return Obj::CreateString(reinterpret_cast<const wchar_t *> (res_value.ptr));
+            } else if (type == ObjType::Pointer) {
+                ObjPtr result = m_runtime->GetTypeFromString(obj.m_prototype->m_type->m_text.c_str());
+                result->m_var = (void *) res_value.ptr;
+                result->m_var_is_init = true;
+                return result;
+            } else {
+                LOG_RUNTIME("Error result type '%s' or not implemented!", obj.m_prototype->m_type->m_text.c_str());
+            }
+        } else {
+            LOG_RUNTIME("Native return type '%s' not implemented!", obj.m_prototype->m_type->m_text.c_str());
+        }
+    }
+
+    LOG_RUNTIME("Fail native call '%s'!", obj.toString().c_str());
+
+    return Obj::CreateNone();
 }
 
 ObjPtr Runner::Call_(TermPtr &proto, TermPtr &args) {
@@ -3191,15 +3483,15 @@ ObjPtr Runner::Call_(TermPtr &proto, TermPtr &args) {
      */
 
     // Аргументы
-//    ScopePush scope_block(*this, nullptr);
-//    ObjPtr all = MakeArgs_(*this, func, args);
+    //    ScopePush scope_block(*this, nullptr);
+    //    ObjPtr all = MakeArgs_(*this, func, args);
 
 
 
     return EvalBlock_(func->m_obj->m_sequence, proto);
 }
 
-ObjPtr Runner::MakeArgs_(ScopeBlock &scope, TermPtr &func, TermPtr &args) {
+ObjPtr Runner::MakeArgs_(ScopeStack &scope, TermPtr &func, TermPtr &args) {
     ASSERT(func);
     ASSERT(args);
     ObjPtr all = Obj::CreateDict();
@@ -3208,53 +3500,53 @@ ObjPtr Runner::MakeArgs_(ScopeBlock &scope, TermPtr &func, TermPtr &args) {
     TermPtr term;
     ObjPtr obj;
     bool named_args = false;
-//    bool pos_count = 0;
-//    for (size_t i = 0; i < func->size(); i++) {
-//
-//        name = func->at(i).first;
-//        term = func->at(i).second;
-//        ASSERT(term);
-//
-//        if (term.get() == getRequiredTerm().get()) {
-////            pos_count++;
-//            if (named_args) {
-//                NL_PARSER(term, "A named argument is expected!");
-//            }
-//            // Обязательный позиционный аргумент
-//            if (i < args->size()) {
-//                NL_PARSER(term, "Missing required argument");
-//            }
-//            if (!args->at(i).first.empty()) {
-//                NL_PARSER(args->at(i).second, "Requires a positional argument!");
-//            }
-//            if (m_runtime->AstCheckArgs_(term, args->at(i).second)) {
-//                NL_PARSER(args->at(i).second, "Fail argument type!");
-//            }
-//
-//        } else {
-//            //Именованный аргумент
-//            named_args = true;
-//            auto found = args->find(name);
-//            if (found == args->end()) {
-//                NL_PARSER(term, "Named argument Fail argument type!");
-//            }
-//        }
-//
-//
-//        TermPtr var = func->m_variables.FindVar(scope.CreateVarName(name));
-//        if (!var) {
-//            NL_PARSER(args->at(i).second, "Argument name '%s' not fund!%s", name.c_str(), func->m_variables.Dump().c_str());
-//        }
-//        var->m_obj = m_runtime->Run(args->at(i).second);
-//        all->push_back({name, varj});
-//    }
-//
-//    if (func->size() > args->size()) {
-//        for (size_t i = func->size(); args->size(); i++) {
-//            // Все оставшиеся переданные аргументы
-//
-//        }
-//    }
+    //    bool pos_count = 0;
+    //    for (size_t i = 0; i < func->size(); i++) {
+    //
+    //        name = func->at(i).first;
+    //        term = func->at(i).second;
+    //        ASSERT(term);
+    //
+    //        if (term.get() == getRequiredTerm().get()) {
+    ////            pos_count++;
+    //            if (named_args) {
+    //                NL_PARSER(term, "A named argument is expected!");
+    //            }
+    //            // Обязательный позиционный аргумент
+    //            if (i < args->size()) {
+    //                NL_PARSER(term, "Missing required argument");
+    //            }
+    //            if (!args->at(i).first.empty()) {
+    //                NL_PARSER(args->at(i).second, "Requires a positional argument!");
+    //            }
+    //            if (m_runtime->AstCheckArgs_(term, args->at(i).second)) {
+    //                NL_PARSER(args->at(i).second, "Fail argument type!");
+    //            }
+    //
+    //        } else {
+    //            //Именованный аргумент
+    //            named_args = true;
+    //            auto found = args->find(name);
+    //            if (found == args->end()) {
+    //                NL_PARSER(term, "Named argument Fail argument type!");
+    //            }
+    //        }
+    //
+    //
+    //        TermPtr var = func->m_variables.FindVar(scope.CreateVarName(name));
+    //        if (!var) {
+    //            NL_PARSER(args->at(i).second, "Argument name '%s' not fund!%s", name.c_str(), func->m_variables.Dump().c_str());
+    //        }
+    //        var->m_obj = m_runtime->Run(args->at(i).second);
+    //        all->push_back({name, varj});
+    //    }
+    //
+    //    if (func->size() > args->size()) {
+    //        for (size_t i = func->size(); args->size(); i++) {
+    //            // Все оставшиеся переданные аргументы
+    //
+    //        }
+    //    }
 
     return all;
 }
@@ -3376,110 +3668,106 @@ ObjPtr Runner::MakeArgs_(ScopeBlock &scope, TermPtr &func, TermPtr &args) {
 ObjPtr Runner::EvalTerm_(TermPtr &term) {
     ASSERT(term);
 
-//    if (term->isCreate()) {
-//        return EvalCreate_(term);
-//    } else if (term->isNone()) {
-//        return getNoneObj();
-//    } else if (term->m_id == TermID::ELLIPSIS) {
-//        return getEllipsysObj();
-//    } else if (term->m_id == TermID::NAME || term->m_id == TermID::LOCAL || term->m_id == TermID::STATIC) {
-//
-//        std::string var_name = GetFullName(term->m_text);
-//        TermPtr var_found = LookupVar(var_name);
-//
-//        if (!var_found) {
-//            var_found = m_runtime->GlobFindProto(var_name.c_str());
-//        }
-//        if (!var_found) {
-//
-//            //#ifdef BUILD_UNITTEST
-//            //            if (term->m_text.compare("__STAT_RUNTIME_UNITTEST__") == 0) {
-//            //                ASSERT(term->isCall());
-//            //                ASSERT(term->size() == 2);
-//            //                return Obj::CreateValue(RunTime::__STAT_RUNTIME_UNITTEST__(
-//            //                        parseInteger(term->at(0).second->m_text.c_str()),
-//            //                        parseInteger(term->at(1).second->m_text.c_str())));
-//            //            }
-//            //#endif
-//            NL_PARSER(term, "Object '%s' not found!", var_name.c_str());
-//        }
-//        if (!var_found->m_obj) {
-//            NL_PARSER(term, "Object '%s' not calculated!", var_name.c_str());
-//        }
-//
-//        if (term->isCall()) {
-//            // Вызов функции или клонирование объекта
-//            return Call_(var_found, term);
-//        }
-//        return var_found->m_obj;
-//
-//    } else {
-//
-//        switch (term->m_id) {
-//            case TermID::OPERATOR:
-//                return EvalOpOther_(term);
-//            case TermID::OP_MATH:
-//                return EvalOpMath_(term);
-//            case TermID::OP_BITWISE:
-//                return EvalOpBitwise_(term);
-//            case TermID::OP_COMPARE:
-//                return EvalOpCompare_(term);
-//
-//            case TermID::STRWIDE:
-//                return Obj::CreateString(utf8_decode(term->getText()));
-//
-//            case TermID::STRCHAR:
-//                return Obj::CreateString(term->getText());
-//
-//            case TermID::INTEGER:
-//            {
-//                int64_t val_int = parseInteger(term->getText().c_str());
-//                NL_TYPECHECK(term, typeFromLimit(val_int), typeFromString(term->m_type, m_runtime)); // Соответстствует ли тип значению?
-//                term->m_obj = Obj::CreateValue(val_int);
-//                term->m_obj->m_var_type_current = typeFromLimit(val_int);
-//                break;
-//
-//            }
-//            case TermID::NUMBER:
-//            {
-//                double val_dbl = parseDouble(term->getText().c_str());
-//                NL_TYPECHECK(term, typeFromLimit(val_dbl), typeFromString(term->m_type, m_runtime)); // Соответстствует ли тип значению?
-//
-//                term->m_obj = Obj::CreateValue(val_dbl);
-//                term->m_obj->m_var_type_current = typeFromLimit(val_dbl);
-//                break;
-//            }
-//            case TermID::RATIONAL:
-//            {
-//                term->m_obj = Obj::CreateRational(term->m_text);
-//                break;
-//
-//            }
-//            case TermID::DICT:
-//            {
-//                term->m_obj = m_runtime->CreateDict(term, shared_from_this(), false);
-//                break;
-//            }
-//            case TermID::TENSOR:
-//            {
-//                term->m_obj = m_runtime->CreateTensor(term, shared_from_this(), false);
-//                break;
-//            }
-//            case TermID::END:
-//            {
-//                term->m_obj = Obj::CreateNone();
-//                break;
-//            }
-//            default:
-//                NL_PARSER(term, "EvalTerm_ for type '%s'(%s) not implemented!", toString(term->m_id), term->m_text.c_str());
-//        }
-//
-//        if (term->GetType() && !isDefaultType(term->GetType())) {
-//            term->m_obj->m_var_type_fixed = typeFromString(term->m_type, m_runtime);
-//            term->m_obj->m_var_type_current = term->m_obj->m_var_type_fixed;
-//        }
-//    }
+    if (term->isCreate()) {
+        return EvalCreate_(term);
+    } else if (term->isNone()) {
+        return getNoneObj();
+    } else if (term->m_id == TermID::ELLIPSIS) {
+        return getEllipsysObj();
+    } else if (term->m_id == TermID::NAME || term->m_id == TermID::LOCAL || term->m_id == TermID::STATIC) {
+
+        TermPtr found = GetObject(term, m_runtime);
+
+        if (!found->m_obj) {
+            NL_PARSER(term, "Object '%s' not calculated!", term->m_text.c_str());
+        }
+
+        if (term->isCall()) {
+            // Вызов функции или клонирование объекта
+            return Call_(found, term);
+        }
+        return found->m_obj;
+
+    } else {
+
+        switch (term->m_id) {
+            case TermID::OP_MATH:
+                return EvalOpMath_(term);
+            case TermID::OP_COMPARE:
+                return EvalOpCompare_(term);
+            case TermID::OP_LOGICAL:
+                return EvalOpLogical_(term);
+            case TermID::OP_BITWISE:
+                return EvalOpBitwise_(term);
+
+            case TermID::ITERATOR:
+                return EvalIterator_(term);
+
+            case TermID::STRWIDE:
+                return Obj::CreateString(utf8_decode(term->getText()));
+            case TermID::STRCHAR:
+                return Obj::CreateString(term->getText());
+
+            case TermID::INTEGER:
+            {
+                int64_t val_int = parseInteger(term->getText().c_str());
+                NL_TYPECHECK(term, typeFromLimit(val_int), typeFromString(term->m_type, m_runtime.get())); // Соответстствует ли тип значению?
+                term->m_obj = Obj::CreateValue(val_int);
+                term->m_obj->m_var_type_current = typeFromLimit(val_int);
+                break;
+
+            }
+            case TermID::NUMBER:
+            {
+                double val_dbl = parseDouble(term->getText().c_str());
+                NL_TYPECHECK(term, typeFromLimit(val_dbl), typeFromString(term->m_type, m_runtime.get())); // Соответстствует ли тип значению?
+
+                term->m_obj = Obj::CreateValue(val_dbl);
+                term->m_obj->m_var_type_current = typeFromLimit(val_dbl);
+                break;
+            }
+            case TermID::RATIONAL:
+            {
+                term->m_obj = Obj::CreateRational(term->m_text);
+                break;
+
+            }
+            case TermID::DICT:
+            {
+                term->m_obj = m_runtime->CreateDict(term, shared_from_this(), false);
+                break;
+            }
+            case TermID::TENSOR:
+            {
+                term->m_obj = m_runtime->CreateTensor(term, shared_from_this(), false);
+                break;
+            }
+            case TermID::END:
+            {
+                term->m_obj = Obj::CreateNone();
+                break;
+            }
+                //            case TermID::NATIVE:
+                //            {
+                //                term->m_obj = CreateNative_(term);
+                //                break;
+                //            }
+            default:
+                NL_PARSER(term, "EvalTerm_ for type '%s'(%s) not implemented!", toString(term->m_id), term->m_text.c_str());
+        }
+
+        if (term->GetType() && !isDefaultType(term->GetType())) {
+            term->m_obj->m_var_type_fixed = typeFromString(term->m_type, m_runtime.get());
+            term->m_obj->m_var_type_current = term->m_obj->m_var_type_fixed;
+        }
+    }
     return term->m_obj;
+}
+
+ObjPtr Runner::CreateNative_(TermPtr &proto, const char *module, bool lazzy, const char *mangle_name) {
+    ObjPtr result = m_runtime->CreateNative(proto, module, lazzy, mangle_name);
+    result->m_ctx = this;
+    return result;
 }
 
 ObjPtr Runner::EvalCreate_(TermPtr &op) {
@@ -3487,70 +3775,70 @@ ObjPtr Runner::EvalCreate_(TermPtr &op) {
     ASSERT(op->isCreate());
     ASSERT(op->m_left);
 
-//    ArrayTermType l_vars = op->m_left->CreateArrayFromList(Term::LEFT);
-//
-//    bool is_ellipsis = false;
-//    TermPtr var_found;
-//    for (auto &elem : l_vars) {
-//
-//        if (elem->getTermID() == TermID::ELLIPSIS) {
-//
-//            //@todo добавить поддержку многоточия с левой стороный оператора присвоения
-//            // NL_PARSER(elem, "Ellipsis on the left side in assignment not implemented!");
-//
-//            //  Игнорировать несколько объектов
-//            elem->m_obj = getEllipsysObj();
-//            if (is_ellipsis) {
-//                NL_PARSER(elem, "Multiple ellipsis on the left side of the assignment!");
-//            }
-//            is_ellipsis = true;
-//
-//        } else if (elem->isNone()) {
-//
-//            //  Игнорировать один объект
-//            elem->m_obj = getNoneObj();
-//
-//        } else {
-//
-//            std::string var_name = GetFullName(elem->m_text);
-//            var_found = LookupVar(var_name);
-//
-//            if (!var_found && isGlobalScope(var_name)) {
-//                var_found = m_runtime->GlobFindProto(var_name.c_str());
-//            }
-//
-//            if (op->isCreateOnce() && var_found) {
-//                NL_PARSER(elem, "Object '%s' already exist", var_name.c_str());
-//            } else if (op->getTermID() == TermID::ASSIGN && !(var_found && var_found->m_obj)) {
-//                NL_PARSER(elem, "Object '%s' not exist!", var_name.c_str());
-//            }
-//
-//            if (var_found) {
-//                if (var_found->isCall()) {
-//                    NL_PARSER(elem, "The function cannot be overridden! '%s'", var_found->toString().c_str());
-//                }
-//                elem.swap(var_found);
-//            } else {
-//                if (!RegisterName(elem)) {
-//                    NL_PARSER(elem, "Fail create object '%s'", var_name.c_str());
-//                }
-//            }
-//        }
-//    }
-//
-//    m_latter = AssignVars_(l_vars, op->m_right, op->isPure());
-//    for (auto &elem : l_vars) {
-//        std::string var_name = GetFullName(elem->m_text);
-//        if (isGlobalScope(var_name)) {
-//            m_runtime->NameRegister(op->isCreateOnce(), var_name.c_str(), elem, elem->m_obj);
-//        }
-//    }
+    ArrayTermType l_vars = op->m_left->CreateArrayFromList(Term::LEFT);
+
+    bool is_ellipsis = false;
+    TermPtr var_found;
+    for (auto &elem : l_vars) {
+
+        if (elem->getTermID() == TermID::ELLIPSIS) {
+
+            //@todo добавить поддержку многоточия с левой стороный оператора присвоения
+            // NL_PARSER(elem, "Ellipsis on the left side in assignment not implemented!");
+
+            //  Игнорировать несколько объектов
+            elem->m_obj = getEllipsysObj();
+            if (is_ellipsis) {
+                NL_PARSER(elem, "Multiple ellipsis on the left side of the assignment!");
+            }
+            is_ellipsis = true;
+
+        } else if (elem->isNone()) {
+
+            //  Игнорировать один объект
+            elem->m_obj = getNoneObj();
+
+        } else {
+
+            var_found = GetObject(elem, m_runtime);
+
+            if (op->isCreateOnce() && var_found && var_found->m_obj) {
+                NL_PARSER(elem, "Object '%s' already exist", elem->m_text.c_str());
+            } else if (op->getTermID() == TermID::ASSIGN && !(var_found && var_found->m_obj)) {
+                NL_PARSER(elem, "Object '%s' not exist!", elem->m_text.c_str());
+            }
+
+            if (var_found) {
+                if (var_found->isCall() && var_found->m_obj) {
+                    NL_PARSER(elem, "The function cannot be overridden! '%s'", var_found->toString().c_str());
+                }
+                elem.swap(var_found);
+            }
+        }
+    }
+
+    m_latter = AssignVars_(l_vars, op->m_right, op->isPure());
+    for (auto &elem : l_vars) {
+        if (isGlobalScope(elem->m_int_name)) {
+            m_runtime->NameRegister(op->isCreateOnce(), elem->m_int_name.c_str(), elem, elem->m_obj);
+        }
+    }
     return m_latter;
 }
 
 ObjPtr Runner::AssignVars_(ArrayTermType &vars, const TermPtr &r_term, bool is_pure) {
 
-    if (r_term->getTermID() == TermID::ELLIPSIS) {
+    if (r_term->getTermID() == TermID::NATIVE) {
+
+        ASSERT(vars.size() == 1);
+        //        ASSERT(vars[0]->m_obj);
+        //        ASSERT(r_term->m_obj);
+
+        vars[0]->m_obj = CreateNative_(vars[0], nullptr, false, r_term->m_text.substr(1).c_str());
+        //        vars[0]->m_obj = r_term->m_obj;
+        m_latter = vars[0]->m_obj;
+
+    } else if (r_term->getTermID() == TermID::ELLIPSIS) {
         // При раскрытии словаря присвоить значение можно как одному, так и сразу нескольким терминам: 
         // var1, var2, _ = ... func(); Первый и второй элементы записывается в var1 и var2, 
         // а все остальные игнорируются (если они есть)
@@ -3576,7 +3864,7 @@ ObjPtr Runner::AssignVars_(ArrayTermType &vars, const TermPtr &r_term, bool is_p
         }
 
 
-        vars[0]->m_obj = RunTime::CreateFunction(vars[0], r_term);
+        vars[0]->m_obj = m_runtime->CreateFunction(vars[0], r_term);
         m_latter = vars[0]->m_obj;
 
     } else {
@@ -3841,9 +4129,9 @@ ObjPtr Runner::AssignVars_(ArrayTermType &vars, const TermPtr &r_term, bool is_p
  * 
  */
 
-ObjPtr Runner::EvalOpOther_(TermPtr & op) {
+ObjPtr Runner::EvalOpLogical_(TermPtr & op) {
     ASSERT(op);
-    if (op->m_id == TermID::OPERATOR) {
+    if (op->m_id == TermID::OP_MATH || op->m_id == TermID::OP_LOGICAL) {
         //        if(op->m_text.compare(==))
     }
     NL_PARSER(op, "EvalOpOther '%s' not implemented!", op->m_text.c_str());
@@ -3912,6 +4200,53 @@ ObjPtr Runner::EvalOpCompare_(TermPtr & op) {
     return result;
 }
 
+ObjPtr Runner::EvalIterator_(TermPtr & op) {
+    ASSERT(op);
+    ASSERT(op->m_left);
+    if (op->m_text.compare("?!") == 0 || op->m_text.compare("!?") == 0) {
+        if (isReservedName(op->m_left->m_text)) {
+            ObjPtr result;
+            if (op->m_left->m_text.compare("$") == 0) {
+
+                result = Obj::CreateDict();
+                for (auto &elem : getStorage_()) {
+                    ASSERT(elem.second);
+                    result->push_back(Obj::CreateString(elem.second->m_text));
+                }
+                return result;
+
+            } else if (op->m_left->m_text.compare("@") == 0) {
+
+                result = Obj::CreateDict();
+                if (m_runtime && m_runtime->m_macro) {
+                    for (auto &elem : *(m_runtime->m_macro)) {
+                        result->push_back(Obj::CreateString(elem.first));
+                    }
+                }
+                return result;
+
+            } else if (op->m_left->m_text.compare("$^") == 0) {
+                return m_latter;
+            } else if (op->m_left->m_text.compare("@::") == 0) {
+
+                result = Obj::CreateDict();
+                for (auto &elem : m_static) {
+                    result->push_back(Obj::CreateString(elem.first));
+                }
+                return result;
+
+            } else if (op->m_left->m_text.compare("%") == 0) {
+            } else if (op->m_left->m_text.compare("$$") == 0) {
+            } else if (op->m_left->m_text.compare("@$") == 0) {
+            }
+        }
+        NL_PARSER(op, "Eval iterator for reserved word '%s' not implemented!", op->m_left->m_text.c_str());
+    } else {
+        NL_PARSER(op, "Eval iterator '%s' not implemented!", op->m_text.c_str());
+    }
+    NL_PARSER(op, "Eval iterator not implemented!");
+}
+
 ObjPtr Runner::EvalOpBitwise_(TermPtr & op) {
     ASSERT(op);
     NL_PARSER(op, "Bitwise operator '%s' not implemented!", op->m_text.c_str());
@@ -3964,7 +4299,7 @@ int Runner::EvalInterrupt_(TermPtr obj, std::string & label) {
 }
 
 TermPtr EvalStack(Runner & run) {
-//    auto item = run.m_stack.rbegin();
+    //    auto item = run.m_stack.rbegin();
     //    ASSERT(item != run.m_stack.end());
 
     //     newlang::ScopeBlock::Block br;

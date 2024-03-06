@@ -34,12 +34,15 @@ static const std::map<const std::string, const TermPtr> default_types{
     MAKE_TYPE(":Range"),
     MAKE_TYPE(":Iterator"),
 
+    MAKE_TYPE(":Dictionary"),
+
     MAKE_TYPE(":Any")};
 
 #undef MAKE_TYPE
 
 static const TermPtr type_default_none = default_types.find(":None")->second;
 static const TermPtr type_default_any = default_types.find(":Any")->second;
+//static const TermPtr type_default_dict = default_types.find(":Dict")->second;
 static const TermPtr term_none = Term::Create(parser::token_type::NAME, TermID::NAME, "_");
 static const TermPtr term_ellipsys = Term::Create(parser::token_type::ELLIPSIS, TermID::ELLIPSIS, "...");
 static const TermPtr term_required = Term::Create(parser::token_type::END, TermID::NONE, "_");

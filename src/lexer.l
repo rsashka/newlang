@@ -530,7 +530,7 @@ ${name}     YY_TOKEN(LOCAL);
 
 "@::"       YY_TOKEN_ONLY(MACRO_NAMESPACE);
 "@$$"       YY_TOKEN_ONLY(MACRO_NAMESPACE);
-"@\\\\"     YY_TOKEN_ONLY(MACRO);
+    /* "@\\\\"     YY_TOKEN_ONLY(MACRO); */
 "$\\\\"     YY_TOKEN_ONLY(MACRO);
 
 "@\\"       YY_TOKEN(ESCAPE);
@@ -569,7 +569,7 @@ ${name}     YY_TOKEN(LOCAL);
 
 
 "//"        YY_TOKEN_ONLY(OPERATOR_DIV);
-"++="       YY_TOKEN(OP_MATH);
+    /* "++="       YY_TOKEN(OP_MATH); */
 "+="        YY_TOKEN(OP_MATH);
 "-="        YY_TOKEN(OP_MATH);
 "*="        YY_TOKEN(OP_MATH);
@@ -579,8 +579,8 @@ ${name}     YY_TOKEN(LOCAL);
 "%="        YY_TOKEN(OP_MATH);
 "~="        YY_TOKEN(OP_COMPARE);
 
-"||"        YY_TOKEN(OPERATOR);
-"^^"        YY_TOKEN(OPERATOR);
+"||"        YY_TOKEN(OP_LOGICAL);
+"^^"        YY_TOKEN(OP_LOGICAL);
 "&&"        YY_TOKEN_ONLY(OPERATOR_AND);
 
 "&^"        YY_TOKEN_ONLY(OPERATOR_PTR);

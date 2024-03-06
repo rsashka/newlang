@@ -102,7 +102,7 @@ namespace newlang {
         _(TENSOR) \
         _(DICT) \
         _(CLASS) \
-        _(OPERATOR) \
+        _(OP_LOGICAL) \
         _(OP_MATH) \
         _(OP_COMPARE) \
         _(OP_BITWISE) \
@@ -154,11 +154,15 @@ namespace newlang {
      * Статические переменные <дополнительно> регистрируются в root, если он задан.
      * За счет этого к статическим переменным можно обратиться по их полному имени из любого места модуля.
      */
-    class TermStorage : public std::map<InternalName, TermPtr> {
+
+    class StorageTerm : public std::map<InternalName, TermPtr> {
     public:
+
+        bool RegisterName(TermPtr term, const std::string_view syn = "");
 
         std::string Dump() {
             std::string result;
+#ifdef BUILD_UNITTEST
             {
                 std::string list;
                 auto iter = this->begin();
@@ -175,45 +179,49 @@ namespace newlang {
                 result += list;
                 result += "\n";
             }
+#endif
             return result;
         }
     };
 
     typedef std::map<InternalName, ObjPtr> ObjMapType;
 
-    class ScopeBlock {
+    struct ScopeVars {
+        TermPtr scope_name; ///< Имя блока кода
+        StorageTerm vars; ///< Список имен переменных определеных для текущего блока кода
+        StorageTerm * storage; ///< Указатель на хранилище переменных
+    };
+
+    class ScopeStack : SCOPE(protected) std::vector< ScopeVars > {
     public:
 
-        struct Block {
-            TermPtr scope_name; ///< Имя блока кода
-            TermStorage vars; ///< Список имен переменных определеных для текущего блока кода
-            TermStorage * storage; ///< Указатель на хранилице переменных
-        };
-        std::vector< Block > m_stack; ///< Иерархия (стек) блоков кода
+        StorageTerm & m_static; ///< Корневой узел для хренения статических переменных модуля
+        size_t m_block_num; ///< Нумератор безымянных блоков кода
 
-        TermStorage * m_module; ///< Корневой узел для хренения переменных модуля
-        size_t m_block_num;
+        bool m_is_transaction;
+        std::vector< InternalName > m_transaction;
+
 
     public:
 
-        ScopeBlock(TermStorage *module = nullptr) : m_module(module), m_block_num(1) {
+        ScopeStack(StorageTerm & module) : m_static(module), m_block_num(1), m_is_transaction(false), m_transaction() {
         }
         //        ScopeBlock(const ScopeBlock& obj);
         //        ScopeBlock& operator=(const ScopeBlock& obj);
         //        void CloneFrom(const ScopeBlock& obj);
 
-        virtual ~ScopeBlock() {
+        virtual ~ScopeStack() {
         }
 
-        TermStorage * getStorage_() {
-            auto iter = m_stack.rbegin();
-            while (iter != m_stack.rend()) {
+        StorageTerm & getStorage_() {
+            auto iter = rbegin();
+            while (iter != rend()) {
                 if (iter->storage) {
-                    return iter->storage;
+                    return *iter->storage;
                 }
                 iter++;
             }
-            return m_module;
+            return m_static;
         }
 
         static std::string EnumerateString(const StringArray &names) {
@@ -234,11 +242,11 @@ namespace newlang {
         /* 
          * 
          */
-        void PushScope(TermPtr ns, TermStorage * storage = nullptr);
+        void PushScope(TermPtr ns, StorageTerm * storage = nullptr, bool transaction = false);
 
         void PopScope() {
-            ASSERT(m_stack.size() > 0);
-            m_stack.pop_back();
+            ASSERT(size() > 0);
+            pop_back();
         }
 
         /**
@@ -254,6 +262,9 @@ namespace newlang {
          */
         bool AddName(const TermPtr var, const char * alt_name = nullptr);
 
+        bool FixTransaction();
+        void RollbackNames_();
+        void RemoveName_(const std::string_view int_name);
         /**
          * Выполняет поиск объекта по <внутреннему имени (int_name)>
          * Расширение имен согласно name lookup ны выполняется!
@@ -261,7 +272,7 @@ namespace newlang {
          * @param local_only    Искать только в локальном хранилище (для чистых функций)
          * @return  Найденный объект (если он есть)
          */
-        TermPtr FindVar(std::string int_name, bool local_only = false);
+        TermPtr FindInternalName(std::string_view int_name, RunTime *rt = nullptr);
 
 
         /**
@@ -270,57 +281,23 @@ namespace newlang {
          * @param local_only    Искать только в локальном хранилище (для чистых функций)
          * @return  Найденный объект (если он есть)
          */
-        TermPtr LookupVar(std::string name, bool local_only = false);
+        TermPtr LookupName(std::string name, RunTime *rt = nullptr);
+
+
+        TermPtr GetObject(const TermPtr &term, RuntimePtr rt = nullptr);
 
         //        std::string LookupName(const std::string_view name);
         std::string CreateVarName(const std::string_view name);
         std::string ExpandNamespace(std::string name);
 
 
-        //        std::vector< Block >::reverse_iterator LookupNamespace(std::string ns);
-
         std::string GetNamespace(bool is_global = false);
-        static std::string MakeNamespace(std::vector< Block > & stack, size_t count, bool is_global);
-
-        //        TermPtr FindIntName(std::string name);
-        //
-        //        std::string MakeIntName(const std::string name) {
-        //            ASSERT(!name.empty());
-        //            std::string result = CreateVarName(name);
-        //            if (isRoot(name)) {
-        //                result = name;
-        //            } else {
-        //                result = GetNamespace(isStaticName(name) || isTypeName(name));
-        //                if (isLocalName(name) || isTypeName(name)) {
-        //                    result += name.substr(1);
-        //                } else {
-        //                    result += name;
-        //                }
-        //            }
-        //            std::replace(result.begin(), result.end(), ':', '$');
-        //            if (isTypeName(name)) {
-        //                result += "$$$";
-        //            } else if (!isStaticName(name)) {
-        //                result += "$";
-        //            }
-        //            return result;
-        //        }
-
-        //        std::string GetFullName(const std::string name) {
-        //            ASSERT(!name.empty());
-        //            if (isRoot(name) || isLocalName(name)) {
-        //                return name;
-        //            }
-        //            std::string result(GetNamespace());
-        //            result += name;
-        //            return result;
-        //        }
+        std::string MakeNamespace(int skip, bool is_global);
 
         std::string GetOffer() {
             return "";
         }
 
-        bool NameMacroExpand(TermPtr term);
         bool LookupBlock(TermPtr &term);
         std::string GetOfferBlock();
 
@@ -473,6 +450,7 @@ namespace newlang {
                 case TermID::ASSIGN:
                 case TermID::PURE_ONCE:
                 case TermID::PURE_OVERLAP:
+                case TermID::SWAP:
                     return true;
             }
             return false;
@@ -535,6 +513,19 @@ namespace newlang {
             return false;
         }
 
+        inline bool isNamed() {
+            switch (m_id) {
+                case TermID::NAME:
+                case TermID::ARGS:
+                case TermID::ARGUMENT:
+                case TermID::LOCAL:
+                case TermID::STATIC:
+                case TermID::MODULE:
+                    return true;
+            }
+            return false;
+        }
+
         inline bool isLiteral() {
             switch (m_id) {
                 case TermID::INTEGER:
@@ -559,7 +550,8 @@ namespace newlang {
                 case TermID::RANGE:
                 case TermID::TENSOR:
                 case TermID::DICT:
-                case TermID::OPERATOR:
+                case TermID::OP_LOGICAL:
+                case TermID::OP_MATH:
                 case TermID::EVAL:
                     return true;
                 default:
@@ -650,7 +642,11 @@ namespace newlang {
 
                 case TermID::INT_PLUS:
                 case TermID::INT_MINUS:
-                    result = m_text;
+                    if (m_namespace) {
+                        result = m_namespace->m_text;
+                        result += " ";
+                    }
+                    result += m_text;
                     if (Right()) {
                         result += " ";
                         result += Right()->toString();
@@ -813,13 +809,14 @@ namespace newlang {
                     result += " " + m_text + " ";
                     //                    result.insert(0, m_namespace);
                     //                result += "{";
-                    ASSERT(m_right);
-                    result += m_right->toString(true);
-                    if (!result.empty() && result[result.size() - 1] != ';') {
-                        result += ";";
-                    }
-                    for (int i = 0; i < m_right->size(); i++) {
-                        result += m_right->at(i).second->toString();
+                    if (m_right) {
+                        result += m_right->toString(true);
+                        if (!result.empty() && result[result.size() - 1] != ';') {
+                            result += ";";
+                        }
+                        for (int i = 0; i < m_right->size(); i++) {
+                            result += m_right->at(i).second->toString();
+                        }
                     }
                     //                result += "};";
                     return result;
@@ -957,20 +954,24 @@ namespace newlang {
                 case TermID::BLOCK_TRY:
                 case TermID::BLOCK_PLUS:
                 case TermID::BLOCK_MINUS:
-                    result.clear();
+                    result = "";
+                    if (m_namespace && !m_namespace->m_text.empty() && m_namespace->m_text[0] != '$') {
+                        result += m_namespace->m_text;
+                        result += " ";
+                    }
                     //                    if (m_id == TermID::CALL_BLOCK || m_id == TermID::CALL_TRY) {
                     //                        result += "(";
                     //                        dump_items_(result);
                     //                        result += ")";
                     //                    }
                     if (m_id == TermID::BLOCK) {
-                        result = "{";
+                        result += "{";
                     } else if (m_id == TermID::BLOCK_TRY) {
-                        result = "{*";
+                        result += "{*";
                     } else if (m_id == TermID::BLOCK_PLUS) {
-                        result = "{+";
+                        result += "{+";
                     } else if (m_id == TermID::BLOCK_MINUS) {
-                        result = "{-";
+                        result += "{-";
                     } else {
                         LOG_ABORT("Unknown block type %s (%d)", newlang::toString(m_id), static_cast<uint8_t> (m_id));
                     }
@@ -1003,7 +1004,10 @@ namespace newlang {
                     result += m_class;
                     return result;
 
-                case TermID::OPERATOR:
+                case TermID::OP_MATH:
+                case TermID::OP_BITWISE:
+                case TermID::OP_COMPARE:
+                case TermID::OP_LOGICAL:
                     result += " ";
                     result += m_text;
                     result += " ";
@@ -1611,8 +1615,6 @@ namespace newlang {
         BlockType m_dims;
         BlockType m_docs;
 
-        ScopeBlock m_variables;
-
         TermPtr m_sys_prop;
         int m_bracket_depth;
 
@@ -1627,7 +1629,7 @@ namespace newlang {
 
         ObjPtr m_obj; // Бинарное значение объекта (испольузется при интерпретации) ???????????????????
         std::string m_int_name; // Внутренее имя объекта после анализа AST
-        TermStorage m_int_vars; // Дочерние объекты (если они есть) модули, блоки кода, функции, классы
+        StorageTerm m_int_vars; // Дочерние объекты (если они есть) модули, блоки кода, функции, классы
 
         TermPtr m_type;
 
@@ -1651,13 +1653,14 @@ namespace newlang {
      */
     class ScopePush {
     public:
-        ScopeBlock &m_scope;
+        ScopeStack &m_scope;
 
-        ScopePush(ScopeBlock &scope, TermPtr ns) : m_scope(scope) { //, ScopeBlock *vars = nullptr
-            m_scope.PushScope(ns); //, vars
+        ScopePush(ScopeStack &scope, TermPtr ns, StorageTerm *ts = nullptr, bool transaction = false) : m_scope(scope) {
+            m_scope.PushScope(ns, ts, transaction);
         }
 
         ~ScopePush() {
+            m_scope.RollbackNames_();
             m_scope.PopScope();
         }
     };

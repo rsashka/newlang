@@ -14,223 +14,256 @@
 
 using namespace newlang;
 
-int64_t var_long = 987654321;
+static int64_t var_long = 987654321;
 
-int64_t func_export(int64_t arg_long, uint8_t arg_byte) {
-    return arg_long + arg_byte;
+static int64_t func_export(int64_t arg_long, uint8_t arg_byte) {
+    return arg_long + 2 * arg_byte;
 }
 
 TEST(Eval, Assign) {
 
-    Context ctx(RunTime::Init());
+    RuntimePtr rt = RunTime::Init();
 
-    ObjPtr list = ctx.ExecStr("$$");
-    ASSERT_STREQ("$$=(,)", list->toString().c_str());
+    ObjPtr list = rt->Run("$?!");
+    ASSERT_STREQ("(,)", list->toString().c_str());
 
-    ObjPtr var1 = ctx.ExecStr("var1 ::= 123");
+    ObjPtr var1 = rt->Run("var1 ::= 123");
     ASSERT_TRUE(var1);
     ASSERT_TRUE(var1->is_arithmetic_type());
     ASSERT_TRUE(var1->is_integer());
     ASSERT_TRUE(at::holds_alternative<int64_t>(var1->m_var));
     ASSERT_EQ(var1->m_var_type_current, ObjType::Int8) << newlang::toString(var1->m_var_type_current);
     ASSERT_EQ(var1->m_var_type_fixed, ObjType::None) << newlang::toString(var1->m_var_type_fixed);
-    ASSERT_STREQ("var1=123", var1->toString().c_str());
-    ASSERT_FALSE(ctx.find("var1") == ctx.end());
+    ASSERT_STREQ("123", var1->toString().c_str());
 
-    list = ctx.ExecStr("$$");
-    ASSERT_STREQ("$$=('var1',)", list->toString().c_str());
+    list = rt->Run("$?!");
+    ASSERT_STREQ("('var1',)", list->toString().c_str());
 
-    ASSERT_THROW(ctx.ExecStr("var1 ::= 123"), Return);
+    ASSERT_THROW(rt->Run("var1 ::= 123"), Return);
 
-    ASSERT_TRUE(ctx.ExecStr("var1 = 100:Int8"));
+    ASSERT_NO_THROW(var1 = rt->Run("var1 = 100:Int8"));
     ASSERT_EQ(var1->m_var_type_current, ObjType::Int8) << newlang::toString(var1->m_var_type_current);
-    ASSERT_EQ(var1->m_var_type_fixed, ObjType::None) << newlang::toString(var1->m_var_type_fixed);
-    ASSERT_STREQ("var1=100", var1->toString().c_str());
+    ASSERT_EQ(var1->m_var_type_fixed, ObjType::Int8) << newlang::toString(var1->m_var_type_fixed);
+    ASSERT_STREQ("100", var1->toString().c_str());
 
-    ASSERT_TRUE(ctx.ExecStr("var1 = 999"));
-    ASSERT_STREQ("var1=999", var1->toString().c_str());
-    ASSERT_FALSE(ctx.find("var1") == ctx.end());
+    ASSERT_NO_THROW(var1 = rt->Run("var1 = 999"));
+    ASSERT_STREQ("999", var1->toString().c_str());
 
-    ASSERT_TRUE(ctx.ExecStr("var1 = _"));
+    ASSERT_NO_THROW(var1 = rt->Run("var1 = _"));
     ASSERT_EQ(var1->getType(), ObjType::None);
-    ASSERT_STREQ("var1=_", var1->toString().c_str());
-    ASSERT_FALSE(ctx.find("var1") == ctx.end());
+    ASSERT_STREQ("_", var1->toString().c_str());
 
-    list = ctx.ExecStr("$$");
-    ASSERT_STREQ("$$=('var1',)", list->toString().c_str());
+    list = rt->Run("$?!");
+    ASSERT_STREQ("('var1',)", list->toString().c_str());
 
     //    ASSERT_TRUE(ctx.ExecStr("var1 = "));
     //    ASSERT_TRUE(ctx.select("var1").complete());
-    ctx.clear_();
+    rt->Clear();
 
-    list = ctx.ExecStr("$$");
-    ASSERT_STREQ("$$=(,)", list->toString().c_str());
+    list = rt->Run("$?!");
+    ASSERT_STREQ("(,)", list->toString().c_str());
 
-    ObjPtr var_str = ctx.ExecStr("var_str := 'Строка'");
+    ObjPtr var_str;
+    ASSERT_NO_THROW(var_str = rt->Run("var_str := 'Строка'"));
     ASSERT_TRUE(var_str);
     ASSERT_TRUE(var_str->is_string_type());
-    ASSERT_EQ(var_str->m_var_type_current, ObjType::StrChar);
-    //    ASSERT_EQ(var_str->m_var_type_fixed, ObjType::String);
-    ASSERT_STREQ("var_str='Строка'", var_str->toString().c_str());
-    ASSERT_FALSE(ctx.find("var_str") == ctx.end());
+    ASSERT_EQ(var_str->m_var_type_current, ObjType::StrChar) << newlang::toString(var_str->m_var_type_current);
+    ASSERT_EQ(var_str->m_var_type_fixed, ObjType::String) << newlang::toString(var_str->m_var_type_fixed);
+    ASSERT_STREQ("'Строка'", var_str->toString().c_str());
 
-    list = ctx.ExecStr("$$");
-    ASSERT_STREQ("$$=('var_str',)", list->toString().c_str());
+    list = rt->Run("$?!");
+    ASSERT_STREQ("('var_str',)", list->toString().c_str());
 
-    ObjPtr var_num = ctx.ExecStr("$var_num := 123.456: Single");
+    ObjPtr var_num;
+    ASSERT_NO_THROW(var_num = rt->Run("$var_num := 123.456: Single"));
     ASSERT_TRUE(var_num);
     ASSERT_TRUE(var_num->is_arithmetic_type());
     ASSERT_TRUE(var_num->is_tensor_type());
-    //    ASSERT_EQ(var_num->m_var_type_current, ObjType::Float64);
-    //    ASSERT_EQ(var_num->m_var_type_fixed, ObjType::Float);
-    ASSERT_STREQ("var_num=123.456", var_num->toString().c_str());
+    ASSERT_EQ(var_num->m_var_type_current, ObjType::Single) << newlang::toString(var_num->m_var_type_current);
+    ASSERT_EQ(var_num->m_var_type_fixed, ObjType::Single) << newlang::toString(var_num->m_var_type_fixed);
+    ASSERT_STREQ("123.456", var_num->toString().c_str());
 
-    list = ctx.ExecStr("$$");
-    ASSERT_STREQ("$$=('var_str', 'var_num',)", list->toString().c_str());
-
-
-    LLVMAddSymbol("var_long", &var_long);
-    LLVMAddSymbol("func_export", (void *) &func_export);
+    list = rt->Run("$?!");
+    ASSERT_STREQ("('$var_num', 'var_str',)", list->toString().c_str());
 
 
     var_long = 987654321;
-    ObjPtr var_export = ctx.ExecStr("var_export := :Pointer(\"var_long:Int64\")");
+    ObjPtr var_export;
+
+    ASSERT_ANY_THROW(rt->Run("var_export:= %var_long"));
+    ASSERT_ANY_THROW(rt->Run("var_export:= %var_long..."));
+    ASSERT_ANY_THROW(rt->Run("var_export:Int64 := %var_long:Int32 "));
+    ASSERT_ANY_THROW(rt->Run("var_export := %var_long:Int64 "));
+
+    ASSERT_ANY_THROW(var_export = rt->Run("var_export:Int64 := %var_long..."));
+
+    LLVMAddSymbol("var_long", &var_long);
+
+    ASSERT_NO_THROW(var_export = rt->Run("var_export:Int64 := %var_long..."));
+
     ASSERT_TRUE(var_export);
     ASSERT_TRUE(var_export->is_tensor_type()) << var_export->toString();
     ASSERT_EQ(var_export->getType(), ObjType::Int64);
-    ASSERT_STREQ("var_export=987654321", var_export->toString().c_str());
+    ASSERT_STREQ("987654321", var_export->toString().c_str());
     var_long = 123132132;
-    ASSERT_STREQ("var_export=123132132", var_export->toString().c_str());
+    ASSERT_STREQ("123132132", var_export->toString().c_str());
     var_export->SetValue_(Obj::CreateValue(59875, ObjType::None));
     ASSERT_EQ(59875, var_long);
 
-    list = ctx.ExecStr("$$");
-    ASSERT_STREQ("$$=('var_str', 'var_num', 'var_export',)", list->toString().c_str());
+    list = rt->Run("$?!");
+    ASSERT_STREQ("('var_export', '$var_num', 'var_str',)", list->toString().c_str());
 
-//    ObjPtr func_export = ctx.ExecStr("$func_export := :Pointer(\"func_export(arg1:Int64, arg2:Int8=100):Int64\")");
-    ObjPtr func_export = ctx.ExecStr("$func_export := :Pointer(\"func_export(arg1:Int64, arg2:Int8):Int64\")");
-    ASSERT_TRUE(func_export);
-    ASSERT_TRUE(func_export->is_function_type()) << func_export;
-    ASSERT_EQ(func_export->getType(), ObjType::NativeFunc);
-    ASSERT_STREQ("func_export=func_export(arg1:Int64, arg2:Int8):Int64{ }", func_export->toString().c_str());
 
-    ObjPtr result = func_export->Call(&ctx, Obj::Arg(200), Obj::Arg(10));
+    /*
+     * Аргументы по умолчанию для нативных функций.
+     * Функция шаблон для создания списка аргументов для встраиваемого кода,
+     * чтобы было как в C/C++ func_export(10, 20), а не func_export( (10, 20,) )
+     * + проверка компилятором, например:
+     * extern "C" _$$_func_export$( Obj &args );
+     * extern "C" _$$_func_export$_$(int64_t arg_long, uint8_t arg_byte);
+     * тогда при раскрытии EMBED {%   $func_export(10, 20)  %}?
+     * $func_export заменяется на _$$_func_export$_$ и компилятор будет счстлив проверкой аргументов :-)
+     */
+    ObjPtr func;
+    ASSERT_ANY_THROW(rt->Run("$func_export(arg1:Int64, arg2:Int8):Int64 := %func_export"));
+    ASSERT_ANY_THROW(rt->Run("$func_export(arg1:Int64, arg2:Int8):Int64 := %func_export..."));
+
+    LLVMAddSymbol("func_export", (void *) &func_export);
+
+    ASSERT_NO_THROW(func = rt->Run("$func_export(arg1:Int64, arg2:Int8):Int64 := %func_export..."));
+
+    ASSERT_TRUE(func);
+    ASSERT_TRUE(func->is_function_type()) << func;
+    ASSERT_EQ(func->getType(), ObjType::NativeFunc);
+    ASSERT_STREQ("$func_export::(arg1:Int64, arg2:Int8):Int64{ }", func->toString().c_str());
+
+    ObjPtr result = (*func)(200, 10);
     ASSERT_TRUE(result);
-    ASSERT_EQ(210, result->GetValueAsInteger());
+    ASSERT_EQ(220, result->GetValueAsInteger());
 
-    result = func_export->Call(&ctx, Obj::Arg(10), Obj::Arg(10));
+    result = (*func)(10, 10);
     ASSERT_TRUE(result);
-    ASSERT_EQ(20, result->GetValueAsInteger());
+    ASSERT_EQ(30, result->GetValueAsInteger());
 
-//    result = func_export->Call(&ctx, Obj::Arg(10));
-//    ASSERT_TRUE(result);
-//    ASSERT_EQ(110, result->GetValueAsInteger());
+    //    result = (*func)({10, "arg2"}, {20, "arg1"});
+    //    ASSERT_TRUE(result);
+    //    ASSERT_EQ(40, result->GetValueAsInteger());
+
+    //    result = (*func_export)(10);
+    //    ASSERT_TRUE(result);
+    //    ASSERT_EQ(110, result.GetValueAsInteger());
+
+
 
     // Переполнение второго аргумента
-    ASSERT_ANY_THROW(func_export->Call(&ctx, Obj::Arg(1000), Obj::Arg(1000)));
-
-    list = ctx.ExecStr("$$");
-    ASSERT_STREQ("$$=('var_str', 'var_num', 'var_export', 'func_export',)", list->toString().c_str());
-
-    var_num.reset();
-    func_export.reset();
-
-    list = ctx.ExecStr("$$");
-    ASSERT_STREQ("$$=('var_str', 'var_export',)", list->toString().c_str());
-
-    // Функция возвращает словарь с именами объектов в текущем контексте
-    ObjPtr func_eval = ctx.ExecStr("func_eval(arg1, arg2) := {$$;}");
-    ASSERT_TRUE(func_eval);
-    ASSERT_TRUE(func_eval->is_function_type()) << func_eval;
-    ASSERT_EQ(func_eval->getType(), ObjType::EVAL_FUNCTION) << toString(func_eval->getType());
-    ASSERT_STREQ("func_eval=::func_eval(arg1, arg2):={$$;}", func_eval->toString().c_str());
-
-    ObjPtr result_eval = func_eval->Call(&ctx, Obj::Arg(200), Obj::Arg(10));
-    ASSERT_TRUE(result_eval);
-    ASSERT_STREQ("$$=('$0', 'arg1', 'arg2', 'var_str', 'var_export', 'func_eval',)", result_eval->toString().c_str());
-
-    list = ctx.ExecStr("$$");
-    ASSERT_STREQ("$$=('var_str', 'var_export', 'func_eval',)", list->toString().c_str());
-
-
-    ObjPtr dict1 = ctx.ExecStr("(10, 2,  3,   4,   )");
-    ASSERT_TRUE(dict1);
-    ASSERT_EQ(ObjType::Dictionary, dict1->m_var_type_current) << toString(dict1->m_var_type_current);
-    ASSERT_EQ(ObjType::None, dict1->m_var_type_fixed) << toString(dict1->m_var_type_fixed);
-    ASSERT_EQ(4, dict1->size());
-    ASSERT_STREQ("(10, 2, 3, 4,)", dict1->toString().c_str());
-
-    ObjPtr dict2 = ctx.ExecStr("( (10, 2,  3,   4, (1,2,),   ), (10, 2,  3,   4,   ),)");
-    ASSERT_TRUE(dict2);
-    ASSERT_EQ(ObjType::Dictionary, dict2->m_var_type_current) << toString(dict2->m_var_type_current);
-    ASSERT_EQ(ObjType::None, dict2->m_var_type_fixed) << toString(dict2->m_var_type_fixed);
-    ASSERT_EQ(2, dict2->size());
-    ASSERT_STREQ("((10, 2, 3, 4, (1, 2,),), (10, 2, 3, 4,),)", dict2->toString().c_str());
-
-    ObjPtr tensor = ctx.ExecStr("[1,1,0,0,]");
-    ASSERT_TRUE(tensor);
-    ASSERT_EQ(ObjType::Bool, tensor->m_var_type_current) << toString(tensor->m_var_type_current);
-    ASSERT_EQ(ObjType::None, tensor->m_var_type_fixed) << toString(tensor->m_var_type_fixed);
-    ASSERT_EQ(1, tensor->m_tensor.dim());
-    ASSERT_EQ(4, tensor->m_tensor.size(0));
-    ASSERT_EQ(1, tensor->index_get({0})->GetValueAsInteger());
-    ASSERT_EQ(1, tensor->index_get({1})->GetValueAsInteger());
-    ASSERT_EQ(0, tensor->index_get({2})->GetValueAsInteger());
-    ASSERT_EQ(0, tensor->index_get({3})->GetValueAsInteger());
-
-    ASSERT_STREQ("[1, 1, 0, 0,]:Bool", tensor->GetValueAsString().c_str());
-
-    ObjPtr tensor2 = ctx.ExecStr("[222,333,3333,]");
-    ASSERT_TRUE(tensor2);
-    ASSERT_STREQ("[222, 333, 3333,]:Int16", tensor2->GetValueAsString().c_str());
-
-    ObjPtr tensorf = ctx.ExecStr("[1.2, 0.22, 0.69,]");
-    ASSERT_TRUE(tensorf);
-    ASSERT_STREQ("[1.2, 0.22, 0.69,]:Float32", tensorf->GetValueAsString().c_str());
-
-    ObjPtr tensor_all = ctx.ExecStr("[ [1, 1, 0, 0,], [10, 10, 0.1, 0.2,], ]");
-    ASSERT_TRUE(tensor_all);
-    ASSERT_EQ(ObjType::Float32, tensor_all->m_var_type_current) << toString(tensor_all->m_var_type_current);
-    ASSERT_EQ(ObjType::None, tensor_all->m_var_type_fixed) << toString(tensor_all->m_var_type_fixed);
-    ASSERT_EQ(2, tensor_all->m_tensor.dim()) << tensor_all->m_tensor.size(0);
-    ASSERT_EQ(2, tensor_all->m_tensor.size(0));
-    ASSERT_EQ(4, tensor_all->m_tensor.size(1));
-
-    ASSERT_STREQ("1", tensor_all->index_get({0, 0})->GetValueAsString().c_str());
-    ASSERT_STREQ("1", tensor_all->index_get({0, 1})->GetValueAsString().c_str());
-    ASSERT_STREQ("0", tensor_all->index_get({0, 2})->GetValueAsString().c_str());
-    ASSERT_STREQ("0", tensor_all->index_get({0, 3})->GetValueAsString().c_str());
-
-    ASSERT_STREQ("10", tensor_all->index_get({1, 0})->GetValueAsString().c_str());
-    ASSERT_STREQ("10", tensor_all->index_get({1, 1})->GetValueAsString().c_str());
-    ASSERT_STREQ("0.1", tensor_all->index_get({1, 2})->GetValueAsString().c_str());
-    ASSERT_STREQ("0.2", tensor_all->index_get({1, 3})->GetValueAsString().c_str());
-
-    ASSERT_STREQ("[\n  [1, 1, 0, 0,], [10, 10, 0.1, 0.2,],\n]:Float32", tensor_all->GetValueAsString().c_str());
+    //    ASSERT_ANY_THROW(func_export->Call(&ctx, Obj::Arg(1000), Obj::Arg(1000)));
+    //
+    //    list = ctx.ExecStr("$$");
+    //    ASSERT_STREQ("$$=('var_str', 'var_num', 'var_export', 'func_export',)", list->toString().c_str());
+    //
+    //    var_num.reset();
+    //    func_export.reset();
+    //
+    //    list = ctx.ExecStr("$$");
+    //    ASSERT_STREQ("$$=('var_str', 'var_export',)", list->toString().c_str());
+    //
+    //    // Функция возвращает словарь с именами объектов в текущем контексте
+    //    ObjPtr func_eval = ctx.ExecStr("func_eval(arg1, arg2) := {$$;}");
+    //    ASSERT_TRUE(func_eval);
+    //    ASSERT_TRUE(func_eval->is_function_type()) << func_eval;
+    //    ASSERT_EQ(func_eval->getType(), ObjType::EVAL_FUNCTION) << toString(func_eval->getType());
+    //    ASSERT_STREQ("func_eval=::func_eval(arg1, arg2):={$$;}", func_eval->toString().c_str());
+    //
+    //    ObjPtr result_eval = func_eval->Call(&ctx, Obj::Arg(200), Obj::Arg(10));
+    //    ASSERT_TRUE(result_eval);
+    //    ASSERT_STREQ("$$=('$0', 'arg1', 'arg2', 'var_str', 'var_export', 'func_eval',)", result_eval->toString().c_str());
+    //
+    //    list = ctx.ExecStr("$$");
+    //    ASSERT_STREQ("$$=('var_str', 'var_export', 'func_eval',)", list->toString().c_str());
+    //
+    //
+    //    ObjPtr dict1 = ctx.ExecStr("(10, 2,  3,   4,   )");
+    //    ASSERT_TRUE(dict1);
+    //    ASSERT_EQ(ObjType::Dictionary, dict1->m_var_type_current) << toString(dict1->m_var_type_current);
+    //    ASSERT_EQ(ObjType::None, dict1->m_var_type_fixed) << toString(dict1->m_var_type_fixed);
+    //    ASSERT_EQ(4, dict1->size());
+    //    ASSERT_STREQ("(10, 2, 3, 4,)", dict1->toString().c_str());
+    //
+    //    ObjPtr dict2 = ctx.ExecStr("( (10, 2,  3,   4, (1,2,),   ), (10, 2,  3,   4,   ),)");
+    //    ASSERT_TRUE(dict2);
+    //    ASSERT_EQ(ObjType::Dictionary, dict2->m_var_type_current) << toString(dict2->m_var_type_current);
+    //    ASSERT_EQ(ObjType::None, dict2->m_var_type_fixed) << toString(dict2->m_var_type_fixed);
+    //    ASSERT_EQ(2, dict2->size());
+    //    ASSERT_STREQ("((10, 2, 3, 4, (1, 2,),), (10, 2, 3, 4,),)", dict2->toString().c_str());
+    //
+    //    ObjPtr tensor = ctx.ExecStr("[1,1,0,0,]");
+    //    ASSERT_TRUE(tensor);
+    //    ASSERT_EQ(ObjType::Bool, tensor->m_var_type_current) << toString(tensor->m_var_type_current);
+    //    ASSERT_EQ(ObjType::None, tensor->m_var_type_fixed) << toString(tensor->m_var_type_fixed);
+    //    ASSERT_EQ(1, tensor->m_tensor.dim());
+    //    ASSERT_EQ(4, tensor->m_tensor.size(0));
+    //    ASSERT_EQ(1, tensor->index_get({0})->GetValueAsInteger());
+    //    ASSERT_EQ(1, tensor->index_get({1})->GetValueAsInteger());
+    //    ASSERT_EQ(0, tensor->index_get({2})->GetValueAsInteger());
+    //    ASSERT_EQ(0, tensor->index_get({3})->GetValueAsInteger());
+    //
+    //    ASSERT_STREQ("[1, 1, 0, 0,]:Bool", tensor->GetValueAsString().c_str());
+    //
+    //    ObjPtr tensor2 = ctx.ExecStr("[222,333,3333,]");
+    //    ASSERT_TRUE(tensor2);
+    //    ASSERT_STREQ("[222, 333, 3333,]:Int16", tensor2->GetValueAsString().c_str());
+    //
+    //    ObjPtr tensorf = ctx.ExecStr("[1.2, 0.22, 0.69,]");
+    //    ASSERT_TRUE(tensorf);
+    //    ASSERT_STREQ("[1.2, 0.22, 0.69,]:Float32", tensorf->GetValueAsString().c_str());
+    //
+    //    ObjPtr tensor_all = ctx.ExecStr("[ [1, 1, 0, 0,], [10, 10, 0.1, 0.2,], ]");
+    //    ASSERT_TRUE(tensor_all);
+    //    ASSERT_EQ(ObjType::Float32, tensor_all->m_var_type_current) << toString(tensor_all->m_var_type_current);
+    //    ASSERT_EQ(ObjType::None, tensor_all->m_var_type_fixed) << toString(tensor_all->m_var_type_fixed);
+    //    ASSERT_EQ(2, tensor_all->m_tensor.dim()) << tensor_all->m_tensor.size(0);
+    //    ASSERT_EQ(2, tensor_all->m_tensor.size(0));
+    //    ASSERT_EQ(4, tensor_all->m_tensor.size(1));
+    //
+    //    ASSERT_STREQ("1", tensor_all->index_get({0, 0})->GetValueAsString().c_str());
+    //    ASSERT_STREQ("1", tensor_all->index_get({0, 1})->GetValueAsString().c_str());
+    //    ASSERT_STREQ("0", tensor_all->index_get({0, 2})->GetValueAsString().c_str());
+    //    ASSERT_STREQ("0", tensor_all->index_get({0, 3})->GetValueAsString().c_str());
+    //
+    //    ASSERT_STREQ("10", tensor_all->index_get({1, 0})->GetValueAsString().c_str());
+    //    ASSERT_STREQ("10", tensor_all->index_get({1, 1})->GetValueAsString().c_str());
+    //    ASSERT_STREQ("0.1", tensor_all->index_get({1, 2})->GetValueAsString().c_str());
+    //    ASSERT_STREQ("0.2", tensor_all->index_get({1, 3})->GetValueAsString().c_str());
+    //
+    //    ASSERT_STREQ("[\n  [1, 1, 0, 0,], [10, 10, 0.1, 0.2,],\n]:Float32", tensor_all->GetValueAsString().c_str());
 }
 
 TEST(Eval, Tensor) {
 
-    Context ctx(RunTime::Init());
+    RuntimePtr rt = RunTime::Init();
+    ASSERT_TRUE(rt);
 
-    ObjPtr ddd = ctx.ExecStr("(1,2,3,)");
+    ObjPtr ddd;
+
+    ASSERT_NO_THROW(ddd = rt->Run("(1,2,3,)"));
     ASSERT_TRUE(ddd);
     ASSERT_STREQ("(1, 2, 3,)", ddd->GetValueAsString().c_str()) << ddd->GetValueAsString().c_str();
 
-    ddd = ctx.ExecStr(":Tensor( (1,2,3,) )");
+    ASSERT_NO_THROW(ddd = rt->Run(":Tensor( (1,2,3,) )"));
     ASSERT_TRUE(ddd);
     ASSERT_STREQ("[1, 2, 3,]:Int8", ddd->GetValueAsString().c_str()) << ddd->GetValueAsString().c_str();
 
 
-    ddd = ctx.ExecStr(":Dictionary(1,2,3)");
+    ASSERT_NO_THROW(ddd = rt->Run(":Dictionary(1,2,3)"));
     ASSERT_TRUE(ddd);
     ASSERT_STREQ("(1, 2, 3,)", ddd->GetValueAsString().c_str()) << ddd->GetValueAsString().c_str();
 
-    ddd = ctx.ExecStr(":Dictionary( (1,2,3,) )");
+    ASSERT_NO_THROW(ddd = rt->Run(":Dictionary( (1,2,3,) )"));
     ASSERT_TRUE(ddd);
     ASSERT_STREQ("((1, 2, 3,),)", ddd->GetValueAsString().c_str()) << ddd->GetValueAsString().c_str();
 
-    ObjPtr tensor = ctx.ExecStr(":Tensor(1)");
+    ObjPtr tensor;
+    ASSERT_NO_THROW(tensor = rt->Run(":Tensor(1)"));
     ASSERT_TRUE(tensor);
     ASSERT_EQ(ObjType::Tensor, tensor->m_var_type_fixed) << toString(tensor->m_var_type_fixed);
     ASSERT_EQ(ObjType::Bool, tensor->getType()) << toString(tensor->m_var_type_current);
@@ -238,27 +271,28 @@ TEST(Eval, Tensor) {
 
     ASSERT_STREQ("1", tensor->GetValueAsString().c_str()) << tensor->GetValueAsString().c_str();
 
-    tensor = ctx.ExecStr("(1,2,3,)");
+    ASSERT_NO_THROW(tensor = rt->Run("(1,2,3,)"));
     ASSERT_TRUE(tensor);
     ASSERT_STREQ("(1, 2, 3,)", tensor->GetValueAsString().c_str()) << tensor->GetValueAsString().c_str();
 
-    tensor = ctx.ExecStr(":Tensor([1,2,3,])");
+    ASSERT_NO_THROW(tensor = rt->Run(":Tensor([1,2,3,])"));
     ASSERT_TRUE(tensor);
     ASSERT_STREQ("[1, 2, 3,]:Int8", tensor->GetValueAsString().c_str()) << tensor->GetValueAsString().c_str();
 
-    tensor = ctx.ExecStr(":Int32([1,])");
+    ASSERT_NO_THROW(tensor = rt->Run(":Int32([1,])"));
     ASSERT_TRUE(tensor);
     ASSERT_STREQ("[1,]:Int32", tensor->GetValueAsString().c_str()) << tensor->GetValueAsString().c_str();
 
-    ObjPtr tt = ctx.ExecStr(":Tensor[3]( (1,2,3,) )");
+    ObjPtr tt;
+    ASSERT_NO_THROW(tt = rt->Run(":Tensor[3]( (1,2,3,) )"));
     ASSERT_TRUE(tt);
     ASSERT_STREQ("[1, 2, 3,]:Int8", tt->GetValueAsString().c_str()) << tt->GetValueAsString().c_str();
 
-    tt = ctx.ExecStr(":Int32((1,2,3,))");
+    ASSERT_NO_THROW(tensor = rt->Run(":Int32((1,2,3,))"));
     ASSERT_TRUE(tt);
     ASSERT_STREQ("[1, 2, 3,]:Int32", tt->GetValueAsString().c_str()) << tt->GetValueAsString().c_str();
 
-    tt = ctx.ExecStr(":Int32[2,3]((1,2,3,4,5,6,))");
+    ASSERT_NO_THROW(tensor = rt->Run(":Int32[2,3]((1,2,3,4,5,6,))"));
     ASSERT_TRUE(tt);
 
     EXPECT_EQ(2, tt->m_tensor.dim());
@@ -267,60 +301,63 @@ TEST(Eval, Tensor) {
 
     ASSERT_STREQ("[\n  [1, 2, 3,], [4, 5, 6,],\n]:Int32", tt->GetValueAsString().c_str());
 
-    ObjPtr str = ctx.ExecStr(":Tensor('first second')");
+    ObjPtr str;
+    ASSERT_NO_THROW(str = rt->Run(":Tensor('first second')"));
     ASSERT_TRUE(str);
     ASSERT_STREQ("[102, 105, 114, 115, 116, 32, 115, 101, 99, 111, 110, 100,]:Int8", str->GetValueAsString().c_str());
 
-    tt = ctx.ExecStr(":Tensor((item1='first', space=32, item3='second',))");
+    ASSERT_NO_THROW(tt = rt->Run(":Tensor((item1='first', space=32, item3='second',))"));
     ASSERT_TRUE(tt);
     ASSERT_STREQ("[102, 105, 114, 115, 116, 32, 115, 101, 99, 111, 110, 100,]:Int8", tt->GetValueAsString().c_str());
 
     ASSERT_TRUE(str->op_equal(tt));
 
-    tt = ctx.ExecStr(":Int32[7,2](\"Тензор Int32  \")");
+    ASSERT_NO_THROW(tt = rt->Run(":Int32[7,2](\"Тензор Int32  \")"));
     ASSERT_TRUE(tt);
     ASSERT_STREQ("[\n  [1058, 1077,], [1085, 1079,], [1086, 1088,], [32, 73,], "
             "[110, 116,], [51, 50,], [32, 32,],\n]:Int32",
             tt->GetValueAsString().c_str());
 
-    tt = ctx.ExecStr(":Tensor(99)");
+    ASSERT_NO_THROW(tt = rt->Run(":Tensor(99)"));
     ASSERT_TRUE(tt);
     ASSERT_STREQ("99", tt->GetValueAsString().c_str());
 
-    tt = ctx.ExecStr(":Float64[10,2](0, ... )");
+    ASSERT_NO_THROW(tt = rt->Run(":Float64[10,2](0, ... )"));
     ASSERT_TRUE(tt);
     ASSERT_STREQ("[\n  [0, 0,], [0, 0,], [0, 0,], [0, 0,], [0, 0,], [0, 0,], [0, "
             "0,], [0, 0,], [0, 0,], [0, 0,],\n]:Float64",
             tt->GetValueAsString().c_str());
 
-    ObjPtr srand = ctx.ExecStr("srand := :Pointer('srand(seed:Int32):None')");
+    ObjPtr srand;
+    ASSERT_NO_THROW(srand = rt->Run("srand(seed:Int32):None ::= %srand..."));
 
-    ObjPtr ret = srand->Call(&ctx, Obj::Arg(100));
+    ObjPtr ret = (*srand)(100);
     ASSERT_TRUE(ret);
     ASSERT_TRUE(ret->is_none_type());
 
-    ObjPtr rand = ctx.ExecStr("rand := :Pointer('rand():Int32')");
+    ObjPtr rand;
+    ASSERT_NO_THROW(rand = rt->Run("rand():Int32 ::= %rand ... "));
 
     // Может быть раскрытие словаря, который возвращает вызов функции
     // и может быть многократный вызов одной и той функции
     // :Int32[3,2]( ... rand() ... )
     utils::Logger::LogLevelType save = utils::Logger::Instance()->SetLogLevel(LOG_LEVEL_INFO);
-    tt = ctx.ExecStr(":Single[3,2]( 42, ... rand() ... )");
+    ASSERT_NO_THROW(tt = rt->Run(":Single[3,2]( 42, ... rand() ... )"));
     utils::Logger::Instance()->SetLogLevel(save);
 
     ASSERT_TRUE(tt);
     std::string rand_str = tt->GetValueAsString();
     ASSERT_TRUE(50 < tt->GetValueAsString().size()) << rand_str;
 
-    tt = ctx.ExecStr(":Int32[5,2]( 0..10 )");
+    ASSERT_NO_THROW(tt = rt->Run(":Int32[5,2]( 0..10 )"));
     ASSERT_TRUE(tt);
     ASSERT_STREQ("[\n  [0, 1,], [2, 3,], [4, 5,], [6, 7,], [8, 9,],\n]:Int32", tt->GetValueAsString().c_str());
 
-    tt = ctx.ExecStr(":Float64[5,2]( 0..10 )");
+    ASSERT_NO_THROW(tt = rt->Run(":Float64[5,2]( 0..10 )"));
     ASSERT_TRUE(tt);
     ASSERT_STREQ("[\n  [0, 1,], [2, 3,], [4, 5,], [6, 7,], [8, 9,],\n]:Float64", tt->GetValueAsString().c_str());
 
-    tt = ctx.ExecStr("0..1..0.1");
+    ASSERT_NO_THROW(tt = rt->Run("0..1..0.1"));
     ASSERT_TRUE(tt);
     ASSERT_STREQ("0..1..0.1", tt->toString().c_str());
 
@@ -328,7 +365,7 @@ TEST(Eval, Tensor) {
     //    ASSERT_TRUE(tt);
     //    ASSERT_STREQ("(0, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9,)", tt->GetValueAsString().c_str());
 
-    tt = ctx.ExecStr(":Tensor( 0..0.99..0.1 )");
+    ASSERT_NO_THROW(tt = rt->Run(":Tensor( 0..0.99..0.1 )"));
     ASSERT_TRUE(tt);
     ASSERT_STREQ("[0, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9,]:Float64", tt->GetValueAsString().c_str());
 }
@@ -355,14 +392,14 @@ TEST(Eval, TypesNative) {
 
 
     std::vector<std::wstring> types = ctx.m_runtime->SelectPredict(":");
-//    ASSERT_EQ(2, types.size()) << WDump(types);
+    //    ASSERT_EQ(2, types.size()) << WDump(types);
     ASSERT_EQ(3, types.size()) << WDump(types);
 
     //    ASSERT_STREQ(":Bool", utf8_encode(types[0]).c_str());
     //    ASSERT_STREQ(":Int8", utf8_encode(types[1]).c_str());
 
     types = ctx.m_runtime->SelectPredict(":", 5);
-//    ASSERT_EQ(7, types.size()) << WDump(types);
+    //    ASSERT_EQ(7, types.size()) << WDump(types);
     ASSERT_EQ(8, types.size()) << WDump(types);
 
     ObjPtr file = ctx.ExecStr(":File ::= :Pointer;");
@@ -384,12 +421,12 @@ TEST(Eval, TypesNative) {
     //    ASSERT_EQ(f_stdout->m_func_ptr, f2_stdout->m_func_ptr);
     //    //    ASSERT_EQ(f_stdout->m_func_ptr, (void *)stdout);
 
-    ObjPtr fopen = rt->CreateNative(&ctx, "fopen(filename:StrChar, modes:StrChar):File");
+    ObjPtr fopen = rt->CreateNative("fopen(filename:StrChar, modes:StrChar):File");
     ASSERT_TRUE(fopen);
     ASSERT_TRUE(at::holds_alternative<void *>(fopen->m_var));
     ASSERT_TRUE(at::get<void *>(fopen->m_var));
 
-    ObjPtr fopen2 = ctx.ExecStr("fopen2 ::= :Pointer('fopen(filename:StrChar, modes:StrChar):File')");
+    ObjPtr fopen2 = rt->CreateNative("fopen2 ::= :Pointer('fopen(filename:StrChar, modes:StrChar):File')");
     ASSERT_TRUE(fopen2);
     ASSERT_TRUE(at::holds_alternative<void *>(fopen2->m_var));
     ASSERT_TRUE(at::get<void *>(fopen2->m_var));
@@ -507,43 +544,43 @@ TEST(Eval, TypesNative) {
     ASSERT_EQ(1, (*SEEK2)["CUR"].second->GetValueAsInteger());
     ASSERT_EQ(300, (*SEEK2)["END"].second->GetValueAsInteger());
 
-//    ObjPtr SEEK = ctx.ExecStr("SEEK ::= :Enum(SET=0, CUR=1, END=2)");
-//    ASSERT_TRUE(SEEK);
-//
-//    ASSERT_EQ(3, SEEK->size());
-//    ASSERT_EQ(0, (*SEEK)[0].second->GetValueAsInteger());
-//    ASSERT_EQ(1, (*SEEK)[1].second->GetValueAsInteger());
-//    ASSERT_EQ(2, (*SEEK)[2].second->GetValueAsInteger());
-//    ASSERT_EQ(0, (*SEEK)["SET"].second->GetValueAsInteger());
-//    ASSERT_EQ(1, (*SEEK)["CUR"].second->GetValueAsInteger());
-//    ASSERT_EQ(2, (*SEEK)["END"].second->GetValueAsInteger());
-//
-//    F_res = ctx.ExecStr("SEEK.SET");
-//    ASSERT_TRUE(F_res);
-//    ASSERT_EQ(0, F_res->GetValueAsInteger());
-//    F_res = ctx.ExecStr("SEEK.CUR");
-//    ASSERT_TRUE(F_res);
-//    ASSERT_EQ(1, F_res->GetValueAsInteger());
-//    F_res = ctx.ExecStr("SEEK.END");
-//    ASSERT_TRUE(F_res);
-//    ASSERT_EQ(2, F_res->GetValueAsInteger());
-//
-//    ObjPtr seek = ctx.ExecStr("fseek(stream:File, offset:Int64, whence:Int32):Int32 ::= "
-//            ":Pointer('fseek(stream:File, offset:Int64, whence:Int32):Int32')");
-//    ASSERT_TRUE(seek);
-//
-//    F_res = ctx.ExecStr("fseek(F2, 10, SEEK.SET)");
-//    ASSERT_TRUE(F_res);
-//    ASSERT_EQ(0, F_res->GetValueAsInteger());
-//
-//    F_res = ctx.ExecStr("fclose(F2)");
-//    ASSERT_TRUE(F_res);
-//
-//    // extern size_t fread (void *__restrict __ptr, size_t __size,
-//    //		     size_t __n, FILE *__restrict __stream) __wur;
-//    //
-//    // extern size_t fwrite (const void *__restrict __ptr, size_t __size,
-//    //		      size_t __n, FILE *__restrict __s);
+    //    ObjPtr SEEK = ctx.ExecStr("SEEK ::= :Enum(SET=0, CUR=1, END=2)");
+    //    ASSERT_TRUE(SEEK);
+    //
+    //    ASSERT_EQ(3, SEEK->size());
+    //    ASSERT_EQ(0, (*SEEK)[0].second->GetValueAsInteger());
+    //    ASSERT_EQ(1, (*SEEK)[1].second->GetValueAsInteger());
+    //    ASSERT_EQ(2, (*SEEK)[2].second->GetValueAsInteger());
+    //    ASSERT_EQ(0, (*SEEK)["SET"].second->GetValueAsInteger());
+    //    ASSERT_EQ(1, (*SEEK)["CUR"].second->GetValueAsInteger());
+    //    ASSERT_EQ(2, (*SEEK)["END"].second->GetValueAsInteger());
+    //
+    //    F_res = ctx.ExecStr("SEEK.SET");
+    //    ASSERT_TRUE(F_res);
+    //    ASSERT_EQ(0, F_res->GetValueAsInteger());
+    //    F_res = ctx.ExecStr("SEEK.CUR");
+    //    ASSERT_TRUE(F_res);
+    //    ASSERT_EQ(1, F_res->GetValueAsInteger());
+    //    F_res = ctx.ExecStr("SEEK.END");
+    //    ASSERT_TRUE(F_res);
+    //    ASSERT_EQ(2, F_res->GetValueAsInteger());
+    //
+    //    ObjPtr seek = ctx.ExecStr("fseek(stream:File, offset:Int64, whence:Int32):Int32 ::= "
+    //            ":Pointer('fseek(stream:File, offset:Int64, whence:Int32):Int32')");
+    //    ASSERT_TRUE(seek);
+    //
+    //    F_res = ctx.ExecStr("fseek(F2, 10, SEEK.SET)");
+    //    ASSERT_TRUE(F_res);
+    //    ASSERT_EQ(0, F_res->GetValueAsInteger());
+    //
+    //    F_res = ctx.ExecStr("fclose(F2)");
+    //    ASSERT_TRUE(F_res);
+    //
+    //    // extern size_t fread (void *__restrict __ptr, size_t __size,
+    //    //		     size_t __n, FILE *__restrict __stream) __wur;
+    //    //
+    //    // extern size_t fwrite (const void *__restrict __ptr, size_t __size,
+    //    //		      size_t __n, FILE *__restrict __s);
 }
 
 TEST(Eval, Fileio) {
@@ -918,8 +955,8 @@ TEST(Eval, MacroDSL) {
             "@@while(...)  @@ := @@ [@$...]<-> @@;\n"
             "@@dowhile(...)@@ := @@ <->[@$...] @@;\n"
             ""
-//            "@@break       @@ := ++ :Break ++ ;\n"
-//            "@@continue    @@ := ++:Continue++;\n"
+            //            "@@break       @@ := ++ :Break ++ ;\n"
+            //            "@@continue    @@ := ++:Continue++;\n"
             ""
             //            "@@return     @@  := ++;\n"
             "@@return(...) @@ := @@ ++ @$... ++ @@;\n"

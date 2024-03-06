@@ -417,7 +417,7 @@ namespace newlang {
         TermPtr NameRegister(bool new_only, const char *name, TermPtr proto, WeakItem obj = c10::monostate()); // = at::monostate);
         //        bool NameRegister(const char * glob_name, TermPtr proto, WeakItem obj); // = at::monostate);
         GlobItem * NameFind(const char *name);
-        TermPtr GlobFindProto(const char *name);
+        TermPtr GlobFindProto(const std::string_view name);
 
         ObjPtr NameGet(const char *name, bool is_raise = true);
 
@@ -428,23 +428,25 @@ namespace newlang {
         bool RegisterBuildin(BuildinPtr module);
         bool RegisterModule(ModulePtr module);
 
-        RunTime();
+        void Clear();
 
         bool RegisterNativeObj(TermPtr term) {
             ASSERT(term);
             ASSERT(term->getTermID() == TermID::NATIVE);
 
-            return RegisterSystemObj(CreateNative(nullptr, term));
+            return RegisterSystemObj(CreateNative(term));
         }
 
         bool RegisterSystemBuildin(const char *text);
         bool RegisterSystemObj(ObjPtr obj);
         std::vector<ObjPtr> m_sys_obj;
 
-        static ObjPtr CreateNative(Context *ctx, const char *proto, const char *module = nullptr, bool lazzy = false, const char *mangle_name = nullptr);
-        static ObjPtr CreateNative(Context *ctx, TermPtr proto, const char *module = nullptr, bool lazzy = false, const char *mangle_name = nullptr);
-        static ObjPtr CreateNative(TermPtr proto, void *addr, Context *ctx);
-        static ObjPtr CreateFunction(TermPtr proto, TermPtr block);
+        ObjPtr CreateNative(const char *proto, const char *module = nullptr, bool lazzy = false, const char *mangle_name = nullptr);
+        ObjPtr CreateNative(TermPtr proto, const char *module = nullptr, bool lazzy = false, const char *mangle_name = nullptr);
+        ObjPtr CreateNative(TermPtr proto, void *addr);
+        ObjPtr CreateFunction(TermPtr proto, TermPtr block);
+
+        RunTime();
 
         virtual ~RunTime() {
 
@@ -452,6 +454,32 @@ namespace newlang {
             m_llvm_builder = nullptr;
             //LLVMShutdown();
         }
+
+
+        std::string ffi_file;
+
+        typedef ffi_status ffi_prep_cif_type(ffi_cif *cif, ffi_abi abi, unsigned int nargs, ffi_type *rtype, ffi_type **atypes);
+        typedef ffi_status ffi_prep_cif_var_type(ffi_cif *cif, ffi_abi abi, unsigned int nfixedargs, unsigned int ntotalargs, ffi_type *rtype, ffi_type **atypes);
+        typedef void ffi_call_type(ffi_cif *cif, void (*fn)(void), void *rvalue, void **avalue);
+
+        static ffi_type * m_ffi_type_void;
+        static ffi_type * m_ffi_type_uint8;
+        static ffi_type * m_ffi_type_sint8;
+        static ffi_type * m_ffi_type_uint16;
+        static ffi_type * m_ffi_type_sint16;
+        static ffi_type * m_ffi_type_uint32;
+        static ffi_type * m_ffi_type_sint32;
+        static ffi_type * m_ffi_type_uint64;
+        static ffi_type * m_ffi_type_sint64;
+        static ffi_type * m_ffi_type_float;
+        static ffi_type * m_ffi_type_double;
+        static ffi_type * m_ffi_type_pointer;
+
+        static ffi_prep_cif_type *m_ffi_prep_cif;
+        static ffi_prep_cif_var_type * m_ffi_prep_cif_var;
+        static ffi_call_type * m_ffi_call;
+
+
 
         static RuntimePtr Init(StringArray args);
         static RuntimePtr Init(int argc = 0, const char** argv = nullptr);
@@ -475,7 +503,7 @@ namespace newlang {
         bool UnLoadModule(const char *name_str, bool deinit);
         ObjPtr ExecModule(const char *module, const char *output, bool cached, Context * ctx);
 
-        static void * GetNativeAddr(const char * name, const char *module = nullptr);
+        static void * GetNativeAddr(const char * name, void *module = nullptr);
 
         static std::string GetLastErrorMessage();
 
@@ -502,23 +530,29 @@ namespace newlang {
          * m_variables
          */
         bool AstAnalyze(TermPtr &term, TermPtr &root);
-        void AstRecursiveAnalyzer(TermPtr &term, ScopeBlock &stack);
-        bool AstCreateOp(TermPtr &term, ScopeBlock &stack);
-        bool AstCreateVar(TermPtr &var, TermPtr &value, ScopeBlock &stack);
-        bool AstAssignVar(TermPtr &var, TermPtr &value, ScopeBlock &stack);
-        TermPtr AstLockupName(TermPtr &term, ScopeBlock &stack);
+        bool AstRecursiveAnalyzer(TermPtr &term, ScopeStack &stack);
+        bool AstCreateOp_(TermPtr &term, ScopeStack &stack);
+        bool AstCreateVar(TermPtr &var, TermPtr &value, ScopeStack &stack);
+        bool AstAssignVar(TermPtr &var, TermPtr &value, ScopeStack &stack);
+        bool AstIterator_(TermPtr &term, ScopeStack &stack);
+
+        TermPtr AstLockupName(TermPtr &term, ScopeStack &stack);
+        bool AstCheckNative_(TermPtr &term);
+
         /**
          * Функция проверки наличия ошибок при анализе AST.
          * Прерывает работу анализатора при превышении лимита или при force=true
          * @param force - Если есть ошибки- завершить работу
          */
-        void AstCheckError(bool force = false);
+        bool AstCheckError(bool result);
 
         bool CheckName(TermPtr &term);
         bool CheckOp(TermPtr &term);
         bool CalcType(TermPtr &term);
-        bool AstCheckType(TermPtr &left, TermPtr &right);
-        void AstCheckCall_(TermPtr &proto, TermPtr &term);
+        bool AstUpcastOpType(TermPtr &op);
+        bool AstCheckType(TermPtr &left, const TermPtr right);
+        bool AstCheckCall_(TermPtr &proto, TermPtr &term);
+        bool AstCheckNative_(TermPtr &proto, TermPtr &term);
 
         /**
          * Функция для организации встроенных типов в иерархию наследования.
@@ -814,7 +848,7 @@ namespace newlang {
      * 
      *      
      */
-    inline ObjType typeFromString(const TermPtr &term, RuntimePtr rt, bool *has_error) {
+    inline ObjType typeFromString(const TermPtr &term, RunTime *rt, bool *has_error) {
         if (term) {
             return newlang::typeFromString(term->m_text, rt, has_error);
         }

@@ -380,12 +380,16 @@ bool Term::CheckTermEq(const TermPtr &term1, const TermPtr &term2, bool type, Ru
 //    TraversingNodesExecuter(ast, param);
 //}
 
-bool ScopeBlock::NameMacroExpand(TermPtr term) {
-    return false;
-}
+void ScopeStack::PushScope(TermPtr ns, StorageTerm * storage, bool transaction) {
 
-void ScopeBlock::PushScope(TermPtr ns, TermStorage * storage) {
-    Block block;
+    if (transaction != m_is_transaction) {
+        if (!transaction) {
+            m_transaction.clear();
+        }
+        m_is_transaction = transaction;
+    }
+
+    ScopeVars block;
     if (ns) {
         block.scope_name = ns;
         if (ns->m_text.rfind("::") != ns->m_text.size() - 2) {
@@ -398,10 +402,10 @@ void ScopeBlock::PushScope(TermPtr ns, TermStorage * storage) {
     }
 
     block.storage = storage;
-    m_stack.push_back(block);
+    push_back(block);
 }
 
-std::string ScopeBlock::ExpandNamespace(std::string name) {
+std::string ScopeStack::ExpandNamespace(std::string name) {
     size_t pos = name.find("@::");
     if (pos != std::string::npos) {
         name = name.replace(pos, 3, GetNamespace());
@@ -409,12 +413,18 @@ std::string ScopeBlock::ExpandNamespace(std::string name) {
     return name;
 }
 
-std::string ScopeBlock::MakeNamespace(std::vector<Block>& stack, size_t skip, bool is_global) {
+std::string ScopeStack::MakeNamespace(int skip, bool is_global) {
     std::string result;
-    auto iter = stack.rbegin();
-    iter += skip;
-    while (iter != stack.rend()) {
+    auto iter = rbegin();
+    if (skip > 0) {
+        iter += skip;
+    }
+    int count = 0;
+    while (iter != rend()) {
         if (result.find("::") == 0) {
+            break;
+        }
+        if (skip < 0 && count == -skip) {
             break;
         }
         ASSERT(iter->scope_name);
@@ -423,17 +433,15 @@ std::string ScopeBlock::MakeNamespace(std::vector<Block>& stack, size_t skip, bo
             result.insert(0, iter->scope_name->m_text);
         }
         iter++;
+        count++;
     }
-//    if (!result.empty() && (result.size() < 2 || result.rfind("::") != result.size() - 2)) {
-//        result += "::";
-//    }
     return result;
 }
 
-std::string ScopeBlock::GetNamespace(bool is_global) {
+std::string ScopeStack::GetNamespace(bool is_global) {
     std::string result;
-    auto iter = m_stack.rbegin();
-    while (iter != m_stack.rend()) {
+    auto iter = rbegin();
+    while (iter != rend()) {
         if (result.find("::") == 0) {
             break;
         }
@@ -447,13 +455,13 @@ std::string ScopeBlock::GetNamespace(bool is_global) {
         }
         iter++;
     }
-//    if (!result.empty() && (result.size() < 2 || result.rfind("::") != result.size() - 2)) {
-//        result += "::";
-//    }
+    //    if (!result.empty() && (result.size() < 2 || result.rfind("::") != result.size() - 2)) {
+    //        result += "::";
+    //    }
     return result;
 }
 
-std::string ScopeBlock::CreateVarName(const std::string_view name) {
+std::string ScopeStack::CreateVarName(const std::string_view name) {
 
     std::string result(NormalizeName(name));
 
@@ -463,7 +471,39 @@ std::string ScopeBlock::CreateVarName(const std::string_view name) {
     return result;
 }
 
-bool ScopeBlock::AddName(const TermPtr var, const char * alt_name) {
+void ScopeStack::RemoveName_(const std::string_view int_name) {
+    auto iter = rbegin();
+    while (iter != rend()) {
+        if (iter->vars.find(int_name.begin()) != iter->vars.end()) {
+            iter->vars.erase(iter->vars.find(int_name.begin()));
+        }
+        iter++;
+    }
+    if (m_static.find(int_name.begin()) != m_static.end()) {
+        m_static.erase(m_static.find(int_name.begin()));
+    }
+    if (isGlobalScope(int_name)) {
+        LOG_RUNTIME("Remove global name in transaction not implemented!");
+    }
+}
+
+void ScopeStack::RollbackNames_() {
+    if (m_is_transaction) {
+        for (auto &name : m_transaction) {
+            RemoveName_(name);
+        }
+        m_transaction.clear();
+        m_is_transaction = false;
+    }
+}
+
+bool ScopeStack::FixTransaction() {
+    m_is_transaction = false;
+    m_transaction.clear();
+    return true;
+}
+
+bool ScopeStack::AddName(const TermPtr var, const char * alt_name) {
 
     ASSERT(var);
 
@@ -476,73 +516,112 @@ bool ScopeBlock::AddName(const TermPtr var, const char * alt_name) {
     if (name.empty()) {
         LOG_RUNTIME("Internal name of '%s' not exist!", var->toString().c_str());
     }
-    if (!m_stack.empty()) {
-        if (m_stack.back().vars.find(name) != m_stack.back().vars.end()) {
+    if (!empty()) {
+        if (back().vars.find(name) != back().vars.end()) {
             NL_MESSAGE(LOG_LEVEL_INFO, var, "Var '%s' exist!", name.c_str());
             return false;
         }
-        m_stack.back().vars.insert({name, var});
+        back().vars.insert({name, var});
     }
-
-    TermStorage *stor = getStorage_();
-
-    if (stor) {
-        if (stor->find(name) != stor->end()) {
-            NL_MESSAGE(LOG_LEVEL_INFO, var, "Var '%s' exist!", name.c_str());
-            return false;
-        }
-        stor->insert({name, var});
+    if (m_is_transaction) {
+        m_transaction.push_back(name);
     }
+    StorageTerm &stor = getStorage_();
+    if (stor.find(name) != stor.end()) {
+        NL_MESSAGE(LOG_LEVEL_INFO, var, "Var '%s' exist!", name.c_str());
 
-    if (m_stack.empty() || isStaticName(name)) {
-        //        if (this->find(name) != this->end()) {
-        //            NL_MESSAGE(LOG_LEVEL_INFO, var, "Var '%s' exist!", name.c_str());
-        //            return false;
-        //        }
-        //        this->insert({name, var});
+        return false;
     }
+    stor.insert({name, var});
+
+    //    if (empty() || isStaticName(name)) {
+    //        //        if (this->find(name) != this->end()) {
+    //        //            NL_MESSAGE(LOG_LEVEL_INFO, var, "Var '%s' exist!", name.c_str());
+    //        //            return false;
+    //        //        }
+    //        //        this->insert({name, var});
+    //    }
     //    if ((m_stack.empty() || isStaticName(name)) && m_module) {
     //        return m_module->AddName(var);
     //    }
     return true;
 }
 
-TermPtr ScopeBlock::FindVar(std::string int_name, bool local_only) {
+TermPtr ScopeStack::GetObject(const TermPtr &term, RuntimePtr rt) {
 
-    int_name = NormalizeName(int_name);
+    //    std::string int_name;
+    //    if (isInternalName(int_name)) {
+    //    }
+    //    int_name = NormalizeName(int_name);
+    //    ASSERT();
+    //
+    //    std::string int_name;
+    //    
+    if (term->m_int_name.empty()) {
+        NL_PARSER(term, "The term '%s' has no internal name! AST analysis required!", term->m_text.c_str());
+    }
+
+    TermPtr result = FindInternalName(term->m_int_name);
+    if (!result && rt && isGlobalScope(term->m_int_name)) {
+        result = rt->GlobFindProto(term->m_int_name.c_str());
+    }
+    if (!result) {
+        //#ifdef BUILD_UNITTEST
+        //            if (term->m_text.compare("__STAT_RUNTIME_UNITTEST__") == 0) {
+        //                ASSERT(term->isCall());
+        //                ASSERT(term->size() == 2);
+        //                return Obj::CreateValue(RunTime::__STAT_RUNTIME_UNITTEST__(
+        //                        parseInteger(term->at(0).second->m_text.c_str()),
+        //                        parseInteger(term->at(1).second->m_text.c_str())));
+        //            }
+        //#endif
+    }
+
+    return result;
+}
+
+TermPtr ScopeStack::FindInternalName(std::string_view int_name, RunTime *rt) {
+
+    //    int_name = NormalizeName(int_name);
     ASSERT(isInternalName(int_name));
 
-    TermStorage *stor = getStorage_();
-    if (stor && stor != m_module) {
-        if (stor->find(int_name) != stor->end()) {
-            return stor->find(int_name)->second;
+    auto iter = rbegin();
+    while (iter != rend()) {
+        if (iter->vars.find(int_name.begin()) != iter->vars.end()) {
+            return iter->vars.find(int_name.begin())->second;
         }
-    } else if (m_module && !local_only && m_module->find(int_name) != m_module->end()) {
-        return m_module->find(int_name)->second;
+        iter++;
+    }
+    if (m_static.find(int_name.begin()) != m_static.end()) {
+        return m_static.find(int_name.begin())->second;
+    }
+    if (isGlobalScope(int_name) && rt) {
+
+        return rt->GlobFindProto(int_name);
     }
     return nullptr;
 }
 
-TermPtr ScopeBlock::LookupVar(std::string name, bool local_only) {
+TermPtr ScopeStack::LookupName(std::string name, RunTime *rt) {
 
-    TermPtr found;
-    if ((found = FindVar(name, local_only))) {
-        return found;
+    if (isInternalName(name)) {
+        return FindInternalName(name, rt);
     }
 
+    TermPtr found;
     bool full_search = isTrivialName(name);
     if (!full_search) {
         name = NormalizeName(name);
     }
     std::string temp;
-    for (size_t skip = 0; skip < m_stack.size(); skip++) {
+    for (size_t skip = 0; skip < size(); skip++) {
         // Check local name
         temp = name;
         if (full_search) {
             temp += "$";
         }
-        temp.insert(0, MakeNamespace(m_stack, skip, false));
-        if ((found = FindVar(temp))) {
+        temp.insert(0, MakeNamespace(skip, false));
+        if ((found = FindInternalName(temp, rt))) {
             return found;
         }
         if (full_search) {
@@ -550,8 +629,8 @@ TermPtr ScopeBlock::LookupVar(std::string name, bool local_only) {
             // Check static name local object
             temp = name;
             temp += "::";
-            temp.insert(0, MakeNamespace(m_stack, skip, false));
-            if ((found = FindVar(temp))) {
+            temp.insert(0, MakeNamespace(skip, false));
+            if ((found = FindInternalName(temp, rt))) {
                 return found;
             }
         }
@@ -561,8 +640,8 @@ TermPtr ScopeBlock::LookupVar(std::string name, bool local_only) {
         if (full_search) {
             temp += "::";
         }
-        temp.insert(0, MakeNamespace(m_stack, skip, true));
-        if ((found = FindVar(temp))) {
+        temp.insert(0, MakeNamespace(skip, true));
+        if ((found = FindInternalName(temp, rt))) {
             return found;
         }
 
@@ -571,8 +650,8 @@ TermPtr ScopeBlock::LookupVar(std::string name, bool local_only) {
             // Check type name
             temp = name;
             temp += ":::";
-            temp.insert(0, MakeNamespace(m_stack, skip, true));
-            if ((found = FindVar(temp))) {
+            temp.insert(0, MakeNamespace(skip, true));
+            if ((found = FindInternalName(temp, rt))) {
                 return found;
             }
         }
@@ -581,30 +660,71 @@ TermPtr ScopeBlock::LookupVar(std::string name, bool local_only) {
         //            break;
         //        }
     }
+
+    temp = name;
+    if (full_search) {
+        temp += "$";
+        if ((found = FindInternalName(temp, rt))) {
+            return found;
+        }
+        temp = name;
+        temp += "::";
+        if ((found = FindInternalName(temp, rt))) {
+            return found;
+        }
+        temp = name;
+        temp += ":";
+        if ((found = FindInternalName(temp, rt))) {
+            return found;
+        }
+
+        temp = name;
+        temp += "::";
+        temp.insert(0, "::");
+        if ((found = FindInternalName(temp, rt))) {
+            return found;
+        }
+        temp += ":";
+        if ((found = FindInternalName(temp, rt))) {
+            return found;
+        }
+    } else {
+        if ((found = FindInternalName(temp, rt))) {
+
+            return found;
+        }
+    }
     return nullptr;
 }
 
-bool ScopeBlock::LookupBlock(TermPtr & term) {
-    if (!term || term->m_text.compare("::") == 0) {
+bool ScopeStack::LookupBlock(TermPtr & term) {
+    ASSERT(term->isInterrupt());
+    if (!term->m_namespace) {
+        return false;
+    }
+    term->m_namespace->m_text = ExpandNamespace(term->m_namespace->m_text);
+    if (term->m_namespace->m_text.compare("::") == 0) {
         return true;
     }
-    for (auto &elem : m_stack) {
-        if (elem.scope_name && elem.scope_name->m_text.compare(term->m_text) == 0) {
+    for (int count = 0; count < size(); count++) {
+        // Check fullname
+        if (MakeNamespace(-(count + 1), true).find(term->m_namespace->m_text) == 0) {
             return true;
         }
     }
-    NL_MESSAGE(LOG_LEVEL_INFO, term, "Lookup block '%s' fail!%s", term->m_text.c_str(), GetOfferBlock().c_str());
+    NL_MESSAGE(LOG_LEVEL_INFO, term, "Lookup block '%s' fail!%s", term->m_namespace->m_text.c_str(), Dump().c_str());
+
     return false;
 }
 
-std::string ScopeBlock::GetOfferBlock() {
-    if (m_stack.empty()) {
+std::string ScopeStack::GetOfferBlock() {
+    if (empty()) {
         return "";
     }
     std::string result = " Possible block identifiers: '";
 
     std::string list_block;
-    for (auto &elem : m_stack) {
+    for (auto &elem : * this) {
         if (elem.scope_name) {
             if (!list_block.empty()) {
                 list_block += ", ";
@@ -614,17 +734,20 @@ std::string ScopeBlock::GetOfferBlock() {
     }
     result += list_block;
     result += "'";
+
     return result;
 }
 
-std::string ScopeBlock::Dump() {
-    std::string result("Storage: ");
-    if (m_module) {
-        result += m_module->Dump();
-    }
+std::string ScopeStack::Dump() {
+    std::string result;
+#ifdef BUILD_UNITTEST
+    result = "Storage: ";
+    //    if (m_module) {
+    result += m_static.Dump();
+    //    }
 
-    auto iter = m_stack.begin();
-    while (iter != m_stack.end()) {
+    auto iter = begin();
+    while (iter != end()) {
         result += "Stack [";
         if (iter->scope_name) {
             result += iter->scope_name->m_text;
@@ -636,6 +759,7 @@ std::string ScopeBlock::Dump() {
         while (iter_list != iter->vars.end()) {
 
             if (!list.empty()) {
+
                 list += ", ";
             }
 
@@ -648,9 +772,8 @@ std::string ScopeBlock::Dump() {
         result += "\n";
         iter++;
     }
-
+#endif
     return result;
-
 }
 
 //void ScopeBlock::CloneFrom(const ScopeBlock& obj) {
@@ -678,3 +801,18 @@ std::string ScopeBlock::Dump() {
 //    CloneFrom(obj);
 //    return *this;
 //}
+
+bool StorageTerm::RegisterName(TermPtr term, const std::string_view syn) {
+    InternalName name;
+    if (syn.empty()) {
+        name = term->m_int_name;
+    } else {
+        name = syn.begin();
+    }
+    ASSERT(!name.empty());
+    if (find(name) != end()) {
+        return false;
+    }
+    insert({name, term});
+    return true;
+}
