@@ -37,6 +37,7 @@ OBJECTDIR=${CND_BUILDDIR}/${CND_CONF}/${CND_PLATFORM}
 OBJECTFILES= \
 	${OBJECTDIR}/_ext/1e501df/gtest-all.o \
 	${OBJECTDIR}/_ext/e16507f5/logger.o \
+	${OBJECTDIR}/analysis.o \
 	${OBJECTDIR}/builtin.o \
 	${OBJECTDIR}/compiler.o \
 	${OBJECTDIR}/context.o \
@@ -59,7 +60,6 @@ OBJECTFILES= \
 	${OBJECTDIR}/test/ast_test.o \
 	${OBJECTDIR}/test/compiler_test.o \
 	${OBJECTDIR}/test/diag_test.o \
-	${OBJECTDIR}/test/eval_test.o \
 	${OBJECTDIR}/test/example_test.o \
 	${OBJECTDIR}/test/lexer_test.o \
 	${OBJECTDIR}/test/macro_test.o \
@@ -110,6 +110,11 @@ ${OBJECTDIR}/_ext/e16507f5/logger.o: ../contrib/logger/logger.cpp
 	${MKDIR} -p ${OBJECTDIR}/_ext/e16507f5
 	${RM} "$@.d"
 	$(COMPILE.cc) -g -DDEBUG -DLOG_LEVEL_NORMAL=LOG_LEVEL_DEBUG -DPDC_WIDE -DUNITTEST -I.. -I../contrib/googletest/googletest -I../contrib/googletest/googletest/include -I../contrib/Tensorflow/bazel-bin/tensorflow/include -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/_ext/e16507f5/logger.o ../contrib/logger/logger.cpp
+
+${OBJECTDIR}/analysis.o: analysis.cpp
+	${MKDIR} -p ${OBJECTDIR}
+	${RM} "$@.d"
+	$(COMPILE.cc) -g -DDEBUG -DLOG_LEVEL_NORMAL=LOG_LEVEL_DEBUG -DPDC_WIDE -DUNITTEST -I.. -I../contrib/googletest/googletest -I../contrib/googletest/googletest/include -I../contrib/Tensorflow/bazel-bin/tensorflow/include -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/analysis.o analysis.cpp
 
 ${OBJECTDIR}/builtin.o: builtin.cpp
 	${MKDIR} -p ${OBJECTDIR}
@@ -242,11 +247,6 @@ ${OBJECTDIR}/test/diag_test.o: test/diag_test.cpp
 	${MKDIR} -p ${OBJECTDIR}/test
 	${RM} "$@.d"
 	$(COMPILE.cc) -g -DDEBUG -DLOG_LEVEL_NORMAL=LOG_LEVEL_DEBUG -DPDC_WIDE -DUNITTEST -I.. -I../contrib/googletest/googletest -I../contrib/googletest/googletest/include -I../contrib/Tensorflow/bazel-bin/tensorflow/include -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/test/diag_test.o test/diag_test.cpp
-
-${OBJECTDIR}/test/eval_test.o: test/eval_test.cpp
-	${MKDIR} -p ${OBJECTDIR}/test
-	${RM} "$@.d"
-	$(COMPILE.cc) -g -DDEBUG -DLOG_LEVEL_NORMAL=LOG_LEVEL_DEBUG -DPDC_WIDE -DUNITTEST -I.. -I../contrib/googletest/googletest -I../contrib/googletest/googletest/include -I../contrib/Tensorflow/bazel-bin/tensorflow/include -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/test/eval_test.o test/eval_test.cpp
 
 ${OBJECTDIR}/test/example_test.o: test/example_test.cpp
 	${MKDIR} -p ${OBJECTDIR}/test

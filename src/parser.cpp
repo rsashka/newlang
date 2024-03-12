@@ -483,7 +483,7 @@ bool Parser::PragmaEval(const TermPtr &term, BlockType &buffer, BlockType &seq) 
 
     } else if (term->m_text.compare(__PRAGMA_STATIC_ASSERT__) == 0) {
 
-        PragmaStaticAssert(term);
+        return PragmaStaticAssert(term);
 
     } else {
         NL_PARSER(term, "Uknown pragma '%s'", term->toString().c_str());
@@ -495,16 +495,20 @@ bool Parser::PragmaStaticAssert(const TermPtr &term) {
 
     if (term->size() < 1 || !term->at(0).first.empty()) {
         NL_PARSER(term, "Agruments '%s' not recognized! See @__PRAGMA_STATIC_ASSERT__ for usage and syntax help.", term->toString().c_str());
-    } else {
+    }
 
-        if (!m_rt) {
-            NL_PARSER(term, "Runtime environment for eval static assert is not available!");
-        }
+    if (!m_rt) {
+        NL_PARSER(term, "Runtime environment for eval static assert is not available!");
+    }
 
-        if (!m_rt->RunTime::EvalStatic(term->at(0).second, false)->GetValueAsBoolean()) {
-            NL_PARSER(term, "StaticAssert '%s' failed!", term->at(0).second->toString().c_str());
-        }
-
+    bool done;
+    try {
+        done = Context::EvalTerm(term->at(0).second, nullptr)->GetValueAsBoolean();
+    } catch (...) {
+        done = false;
+    }
+    if (!done) {
+        NL_PARSER(term, "StaticAssert '%s' failed!", term->at(0).second->toString().c_str());
     }
     return true;
 }
@@ -934,7 +938,7 @@ size_t Parser::ParseTerm(TermPtr &result, const BlockType &buffer, size_t offset
     return offset;
 }
 
-bool Parser::CheckLoadModule(TermPtr &term) {
+bool Parser::CheckLoadModule(TermPtr & term) {
     if (!CheckCharModuleName(term->m_text.c_str())) {
         NL_PARSER(term, "Module name - backslash, underscore, lowercase English letters or number!");
     }

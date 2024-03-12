@@ -5,10 +5,6 @@
 #include "pch.h"
 #include <curl/curl.h>
 
-#include <warning_push.h>
-#include <contrib/Lyra/include/lyra/lyra.hpp>
-#include <warning_pop.h>
-
 #include <autocomplete.h>
 #include <runtime.h>
 

@@ -558,12 +558,21 @@ TermPtr ScopeStack::GetObject(const TermPtr &term, RuntimePtr rt) {
     //    std::string int_name;
     //    
     if (term->m_int_name.empty()) {
-        NL_PARSER(term, "The term '%s' has no internal name! AST analysis required!", term->m_text.c_str());
+        if (rt) {
+            LOG_RUNTIME("The term '%s' has no internal name! AST analysis required!", term->m_text.c_str());
+        } else {
+            NL_PARSER(term, "The term '%s' has no internal name! AST analysis required!", term->m_text.c_str());
+        }
     }
 
-    TermPtr result = FindInternalName(term->m_int_name);
-    if (!result && rt && isGlobalScope(term->m_int_name)) {
-        result = rt->GlobFindProto(term->m_int_name.c_str());
+    TermPtr result;
+    if (term->m_int_name.compare("_") == 0) {
+        result = Term::CreateNone();
+    } else {
+        result = FindInternalName(term->m_int_name);
+        if (!result && rt && (isGlobalScope(term->m_int_name) || isTypeName(term->m_int_name))) {
+            result = rt->GlobFindProto(term->m_int_name.c_str());
+        }
     }
     if (!result) {
         //#ifdef BUILD_UNITTEST
@@ -575,6 +584,7 @@ TermPtr ScopeStack::GetObject(const TermPtr &term, RuntimePtr rt) {
         //                        parseInteger(term->at(1).second->m_text.c_str())));
         //            }
         //#endif
+        NL_PARSER(term, "Object with internal name '%s' not found!", term->m_int_name.c_str());
     }
 
     return result;
@@ -583,7 +593,10 @@ TermPtr ScopeStack::GetObject(const TermPtr &term, RuntimePtr rt) {
 TermPtr ScopeStack::FindInternalName(std::string_view int_name, RunTime *rt) {
 
     //    int_name = NormalizeName(int_name);
-    ASSERT(isInternalName(int_name));
+    if (!isInternalName(int_name)) {
+        ASSERT(isInternalName(int_name));
+    }
+
 
     auto iter = rbegin();
     while (iter != rend()) {
@@ -595,8 +608,7 @@ TermPtr ScopeStack::FindInternalName(std::string_view int_name, RunTime *rt) {
     if (m_static.find(int_name.begin()) != m_static.end()) {
         return m_static.find(int_name.begin())->second;
     }
-    if (isGlobalScope(int_name) && rt) {
-
+    if ((isGlobalScope(int_name) || isTypeName(int_name)) && rt) {
         return rt->GlobFindProto(int_name);
     }
     return nullptr;
@@ -649,7 +661,7 @@ TermPtr ScopeStack::LookupName(std::string name, RunTime *rt) {
         if (full_search) {
             // Check type name
             temp = name;
-            temp += ":::";
+            temp += ":";
             temp.insert(0, MakeNamespace(skip, true));
             if ((found = FindInternalName(temp, rt))) {
                 return found;

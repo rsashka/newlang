@@ -17,7 +17,7 @@ tags: [типы данных, ООП, коллекции]
       |                |            |               (:DWord64)        (:Char)
       |                |            |                                 (:Byte)
       |                |            |
-      |                |            +-> :Number --> :Float64 --> :Float32 --> :Float16
+      |                |            +-> :Number --> :Float64 --> :Float32 --> :Float16 --> ...
       |                |            |              (:Double)    (:Single)
       |                |            |
       |                |            +-> :Complex ...
@@ -25,10 +25,11 @@ tags: [типы данных, ООП, коллекции]
       |                +-> :Rational
       | 
       +-> :String -+-> :StrChar
+      |            |  (:FmtChar)
       |            |
       |            +-> :StrWide
-      |            |
-      |            +-> :FmtChar
+      |               (:FmtWide)
+      |            
       |
      ...
 

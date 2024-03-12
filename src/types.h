@@ -30,7 +30,7 @@ typedef std::vector<std::string> StringArray;
 class Term;
 class Obj;
 class Context;
-class Runner;
+class Context;
 class Module;
 
 namespace runtime {
@@ -77,10 +77,9 @@ typedef std::shared_ptr<RunTime> RuntimePtr;
 typedef std::shared_ptr<Diag> DiagPtr;
 typedef std::shared_ptr<Macro> MacroPtr;
 typedef std::shared_ptr<Parser> ParserPtr;
-typedef std::shared_ptr<Runner> RunnerPtr;
+typedef std::shared_ptr<Context> RunnerPtr;
 
 typedef ObjPtr FunctionType(Context *ctx, Obj &in);
-typedef ObjPtr TransparentType(const Context *ctx, Obj &in);
 
 typedef at::variant<at::monostate, ObjWeak, std::vector < ObjWeak> > WeakItem;
 
@@ -138,6 +137,18 @@ class IntMinus : public IntAny {
 public:
     IntMinus(const ObjPtr obj): IntAny(obj){
     }
+};
+
+
+class ParserError : public Return {
+public:
+
+    ParserError(std::string msg) : Return(msg) {
+    }
+
+    virtual ~ParserError() {
+    }
+
 };
 
 void NewLangSignalHandler(int signal);
@@ -462,6 +473,8 @@ void ParserException(const char *msg, std::string &buffer, int row, int col);
         }
         LOG_RUNTIME("NewLang type '%s'(%d) can't be represented by C++ type!", toString(type), static_cast<int> (type));
     }
+
+    ObjType GetBaseTypeFromString(const std::string type_arg, bool *has_error = nullptr);
 
 #define NL_REFS(_)      \
     _(RefNone, 0)       \
@@ -866,8 +879,8 @@ void ParserException(const char *msg, std::string &buffer, int row, int col);
         LOG_RUNTIME("Not implemented!");
     }
 
-    ObjType typeFromString(const TermPtr &term, RunTime *rt = nullptr, bool *has_error = nullptr);
-    ObjType typeFromString(const std::string type, RunTime *rt = nullptr, bool *has_error = nullptr);
+    ObjType typeFromString(TermPtr &term, RunTime *rt, bool *has_error = nullptr);
+//    ObjType typeFromString(const std::string type, RunTime *rt, bool *has_error = nullptr);
 
     inline LLVMTypeRef toLLVMType(ObjType t, bool none_if_error = false) {
         switch (t) {
@@ -979,8 +992,11 @@ void ParserException(const char *msg, std::string &buffer, int row, int col);
     }
 
     inline bool canCast(const std::string from, const std::string to) {
-        return canCast(typeFromString(from), typeFromString(to));
+        return canCast(GetBaseTypeFromString(from), GetBaseTypeFromString(to));
     }
+
+    bool canCast(const TermPtr &from, const ObjType to);
+    bool canCast(const TermPtr &from, const TermPtr &to);
 
     inline int64_t parseInteger(const char *str) {
         char *ptr;
@@ -1052,11 +1068,7 @@ void ParserException(const char *msg, std::string &buffer, int row, int col);
     }
 
     inline bool isTypeName(const std::string_view name) {
-        if (isGlobalScope(name)) {
-            return name.find(":::") != std::string::npos;
-        } else {
-            return name.size() > 1 && name[0] == ':' && name[1] != ':';
-        }
+        return name.find(":::") != std::string::npos || (name.size() > 1 && name[0] == ':' && name[1] != ':');
     }
 
     inline bool isFullName(const std::string_view name) {
@@ -1179,6 +1191,20 @@ void ParserException(const char *msg, std::string &buffer, int row, int col);
             }
         }
         return std::string();
+    }
+
+    inline bool CheckCharModuleName(const std::string_view name) {
+        if (name.empty() || name[0] == '_') {
+            // The first underscore character in the module name is prohibited!
+            return false;
+        }
+        for (int i = 0; i < name.size(); i++) {
+            // Module name - backslash, underscore, lowercase English letters or number
+            if (!(name[i] == '\\' || name[i] == '_' || islower(name[i]) || isdigit(name[i]))) {
+                return false;
+            }
+        }
+        return true;
     }
 
     inline std::string ExtractName(std::string name) {

@@ -230,11 +230,11 @@ namespace newlang {
 
 
                 Obj arg;
-                VERIFY(CreateProperty("name^:String", getname(nullptr, arg)));
-                VERIFY(CreateMethod("getname():String", getname));
+                VERIFY(CreateProperty("name^:StrChar", getname(nullptr, arg)));
+                VERIFY(CreateMethod("getname():StrChar", getname));
 
-                VERIFY(CreateMethod("getlogin():String", getlogin));
-                VERIFY(CreateMethod("getenv(name:String):String", getenv));
+                VERIFY(CreateMethod("getlogin():StrChar", getlogin));
+                VERIFY(CreateMethod("getenv(name:StrChar):String", getenv));
                 VERIFY(CreateMethodNative("getpid():Int32", (void *) &::getpid));
 
                 VERIFY(CreateMethod("getuname():Dictionary", getuname));
@@ -244,7 +244,7 @@ namespace newlang {
                 VERIFY(CreateMethod("getmillisec():Int64", getmillisec));
                 VERIFY(CreateMethod("gettimeofday():Dictionary", gettimeofday));
                 VERIFY(CreateMethod("getenviron():Dictionary", getenviron));
-                VERIFY(CreateMethod("system(cmd:String):String", system));
+                VERIFY(CreateMethod("system(cmd:StrChar):StrChar", system));
 
 
                 VERIFY(CreateMethodNative("chdir(dir:StrChar):Int32", (void *) &::chdir));

@@ -77,6 +77,8 @@ namespace newlang {
         inline static const char * DIAG_MACRO_STORAGE_NOT_EXIST = "-Wmacro-storage-not-exist";
         inline static const char * DIAG_ERROR_LIMIT = "-ferror-limit="; //-ferror-limit=20
         inline static const char * DIAG_EXTRA_TOKENS = "-Wextra-tokens";
+        inline static const char * DIAG_FILL_REMAINDER = "-Wfill-remainder";
+        
 
         inline static bool IsClang(const std::string name) {
             return name.find("-clang") == 0;
@@ -156,12 +158,12 @@ namespace newlang {
 
                 //                m_args->push_back(Obj::CreateString(argv[i]));
                 //
-                //                if (strstr(argv[i], "-nlc-") == argv[i]) {
-                //                    if (strstr(argv[i], "-nlc-search=") == argv[i]) {
+                //                if (strstr(argv[i], "--nlc-") == argv[i]) {
+                //                    if (strstr(argv[i], "--nlc-search=") == argv[i]) {
                 //                        std::string list(argv[i]);
-                //                        list = list.substr(strlen("-nlc-search="));
+                //                        list = list.substr(strlen("--nlc-search="));
                 //                        m_search_dir = Context::SplitString(list.c_str(), ";");
-                //                    } else if (strstr(argv[i], "-nlc-search=") == argv[i]) {
+                //                    } else if (strstr(argv[i], "--nlc-search=") == argv[i]) {
                 //                    } else {
                 //                        LOG_RUNTIME("System arg '%s' not found!", argv[i]);
                 //                    }
@@ -192,6 +194,11 @@ namespace newlang {
         }
 
         DiagStackType m_diag_stack;
+    
+        int m_error_limit;
+        int m_error_count;
+        bool m_fill_remainder;
+
 
 //        Diag();
         Diag(const Diag&) = delete;

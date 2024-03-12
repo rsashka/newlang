@@ -114,10 +114,10 @@ namespace newlang {
             return *at_index_const(index);
         }
 
-        typename ListType::iterator find(const std::string name) {
+        typename ListType::iterator find(const std::string_view name) {
             auto iter = ListType::begin();
             while (iter != ListType::end()) {
-                if (iter->first.compare(name) == 0) {
+                if (iter->first.compare(name.begin()) == 0) {
                     return iter;
                 }
                 iter++;

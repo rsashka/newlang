@@ -216,12 +216,14 @@ protected:
 TEST_F(ParserAnalysis, ErrorLimit1) {
 
     RuntimePtr rt_default = RunTime::Init();
-    ASSERT_EQ(10, rt_default->m_error_limit);
+    AstAnalysis analysis(*rt_default, rt_default->m_diag.get());    
+
+    ASSERT_EQ(10, rt_default->m_diag->m_error_limit);
 
     TermPtr term;
 
     ASSERT_NO_THROW(term = Parse("1\\1 + 1:Int8; 1\\1 + 1:Int8; 1\\1 + 1:Int8", nullptr, nullptr, rt_default));
-    ASSERT_TRUE(rt_default->AstAnalyze(term, term));
+    ASSERT_TRUE(analysis.Analyze(term, term));
 
     ASSERT_TRUE(m_output.find("fatal error") == std::string::npos) << m_output;
 }
@@ -229,12 +231,14 @@ TEST_F(ParserAnalysis, ErrorLimit1) {
 TEST_F(ParserAnalysis, ErrorLimit2) {
 
     RuntimePtr rt_default = RunTime::Init();
-    ASSERT_EQ(10, rt_default->m_error_limit);
+    AstAnalysis analysis(*rt_default, rt_default->m_diag.get());    
+
+    ASSERT_EQ(10, rt_default->m_diag->m_error_limit);
 
     TermPtr term;
 
     ASSERT_NO_THROW(term = Parse("1:Int8 + 1\\1; 1:Int8 + 1\\1; 1:Int8 + 1\\1", nullptr, nullptr, rt_default));
-    ASSERT_FALSE(rt_default->AstAnalyze(term, term));
+    ASSERT_FALSE(analysis.Analyze(term, term));
 
     ASSERT_TRUE(m_output.find("fatal error: 3 generated") != std::string::npos) << m_output;
 
@@ -244,11 +248,13 @@ TEST_F(ParserAnalysis, ErrorLimit3) {
 
     TermPtr term;
 
-    RuntimePtr rt = RunTime::Init({"", "-nlc-error-limit=1"});
-    ASSERT_EQ(1, rt->m_error_limit);
+    RuntimePtr rt = RunTime::Init({"--nlc-error-limit=1"});
+    AstAnalysis analysis(*rt, rt->m_diag.get());    
+
+    ASSERT_EQ(1, rt->m_diag->m_error_limit);
 
     ASSERT_NO_THROW(term = Parse("1\\1 + 1:Int8; 1\\1 + 1:Int8; 1\\1 + 1:Int8", nullptr, nullptr, rt));
-    ASSERT_TRUE(rt->AstAnalyze(term, term));
+    ASSERT_TRUE(analysis.Analyze(term, term));
 
     ASSERT_TRUE(m_output.find("fatal error") == std::string::npos) << m_output;
 }
@@ -257,11 +263,13 @@ TEST_F(ParserAnalysis, ErrorLimit4) {
 
     TermPtr term;
 
-    RuntimePtr rt = RunTime::Init({"", "-nlc-error-limit=1"});
-    ASSERT_EQ(1, rt->m_error_limit);
+    RuntimePtr rt = RunTime::Init({"--nlc-error-limit=1"});
+    AstAnalysis analysis(*rt, rt->m_diag.get());    
+
+    ASSERT_EQ(1, rt->m_diag->m_error_limit);
 
     ASSERT_NO_THROW(term = Parse("1:Int8 + 1\\1; 1:Int8 + 1\\1; 1:Int8 + 1\\1", nullptr, nullptr, rt));
-    ASSERT_FALSE(rt->AstAnalyze(term, term));
+    ASSERT_FALSE(analysis.Analyze(term, term));
     ASSERT_TRUE(m_output.find("fatal error: too many errors emitted 1, stopping now [-nlc-error-limit=]") != std::string::npos) << m_output;
 }
 

@@ -136,6 +136,8 @@
 %token                  RATIONAL	"Rational"
 %token           	STRCHAR		"StrChar"
 %token           	STRWIDE		"StrWide"
+%token           	STRFMTCHAR	"StrFmtChar"
+%token           	STRFMTWIDE	"StrFmtWide"
 %token           	TEMPLATE	"Template"
 %token           	EVAL            "Eval"
 
@@ -353,11 +355,6 @@ name:   ns_part
             {
                 $$ = $1;
                 $$->TestConst();
-            }
-        |  NATIVE  ELLIPSIS
-            {
-                $$ = $1;
-                $$->Last()->Append($2);
             }
         |  '%'
             {
@@ -615,7 +612,7 @@ strchar: STRCHAR
                 $$ = $1;
                 $$->m_text.append($2->m_text);
             }
-        
+
 strtype: strwide
             {
                 $$ = $1;
@@ -1210,7 +1207,7 @@ class_base: class_item
                 $$->AppendList($3);
             }
 
-        
+
 class_def:  class_base  '{'  '}'
             {
                 $$ = $2;
@@ -1287,6 +1284,11 @@ assign_expr:  body_all
             |  MACRO_STR
                 {
                     $$ = $1;
+                }
+            |  NATIVE  ELLIPSIS
+                {
+                    $$ = $1;
+                    $$->Last()->Append($2);
                 }
             | '('  ')'  body_all 
                 {

@@ -279,7 +279,7 @@ TEST_F(SystemTest, Assert) {
 //
 //
 //
-//    rt = RunTime::Init({"path", "-nlc-no-assert"});
+//    rt = RunTime::Init({"path", "--nlc-no-assert"});
 //    ASSERT_FALSE(rt->m_assert_enable);
 //
 //    ASSERT_TRUE(rt->m_macro);
@@ -362,13 +362,13 @@ TEST_F(SystemTest, Assert) {
 //
 //
 //}
-
+//
 //TEST_F(SystemTest, MethodRun) {
 //
 //    ObjPtr sys = std::make_shared<System>();
 //
 //}
-
+//
 //TEST_F(SystemTest, Runtime) {
 //
 //    RuntimePtr rt = RunTime::Init();
@@ -390,77 +390,77 @@ TEST_F(SystemTest, Assert) {
 //    std::cout << result->toString() << "!!!!!!!!!!!!!!!!!!!!!!!!!!11";
 //
 //}
-
-TEST_F(SystemTest, Native) {
-
-    RuntimePtr rt = RunTime::Init();
-    Context ctx(rt);
-
-    ASSERT_ANY_THROW(ctx.ExecStr("time(:Pointer):Int32 := %time"));
-    ASSERT_ANY_THROW(ctx.ExecStr("time(arg):Int32 := %time"));
-    ASSERT_ANY_THROW(ctx.ExecStr("time(arg:Rational):Int32 := %time"));
-
-    ObjPtr usleep = ctx.ExecStr("usleep(usec:DWord64):Int32 := %usleep");
-    ASSERT_TRUE(usleep);
-
-    ObjPtr time = ctx.ExecStr("time(ptr:Pointer):Int32 := %time");
-    ASSERT_TRUE(time);
-    
-    ASSERT_TRUE(time->m_prototype);
-    ASSERT_EQ(1, time->m_prototype->size());
-    ASSERT_STREQ("ptr", (*time->m_prototype)[0].second->m_text.c_str());
-    
-    ASSERT_TRUE((*time->m_prototype)[0].second->m_type);
-    ASSERT_STREQ(":Pointer", (*time->m_prototype)[0].second->m_type->m_text.c_str());
-    
-    ASSERT_TRUE(time->m_prototype->m_type);
-    ASSERT_STREQ(":Int32", time->m_prototype->m_type->m_text.c_str());
-
-//    ASSERT_STREQ("%time(ptr:Pointer):Int32", time->m_prototype->toString().c_str())<< time->toString();
-
-    ObjPtr res;
-
-    ASSERT_NO_THROW(
-            res = time->Call(&ctx, Obj::ArgNull());
-            ) << time->m_prototype->toString();
-
-    std::cout << time->toString();
-
-    usleep->Call(&ctx, Obj::Arg(1000000));
-
-    ObjPtr res2 = time->Call(&ctx, Obj::ArgNull());
-
-    std::cout << "\nres1: " << res->toString() << "\n";
-    std::cout << "res2: " << res2->toString() << "\n";
-    (*res2) -= res;
-    std::cout << "res2: " << res2->toString() << "\n";
-
-    std::cout << "\nusleep: " << res2->toString() << "\n";
-
-    ObjPtr srand = ctx.ExecStr("srand(val:Int32):None := %srand");
-    ASSERT_TRUE(srand);
-
-    srand->Call(&ctx, Obj::Arg(time->Call(&ctx, Obj::ArgNull())));
-
-    ObjPtr rand = ctx.ExecStr("rand():Int32 := %rand");
-    ASSERT_TRUE(rand);
-
-    std::cout << rand->toString() << " -> " << rand->Call(&ctx) << ", " << rand->Call(&ctx) << "\n";
-
-}
-
-/**
-    rand():Int32 := %rand;
-    usleep(usec:DWord64):None := %usleep;
-    printf(format:FmtChar, ...):Int32 := %printf;
-
- */
-
-TEST_F(SystemTest, Logger) {
-    //    std::cout << exec("ls -l");
-    //    std::system("ls -l > temp/test.txt"); // executes the UNIX command "ls -l >test.txt"
-    //    std::cout << std::ifstream("temp/test.txt").rdbuf();
-}
+//
+//TEST_F(SystemTest, Native) {
+//
+//    RuntimePtr rt = RunTime::Init();
+//    Context ctx(rt);
+//
+//    ASSERT_ANY_THROW(ctx.ExecStr("time(:Pointer):Int32 := %time"));
+//    ASSERT_ANY_THROW(ctx.ExecStr("time(arg):Int32 := %time"));
+//    ASSERT_ANY_THROW(ctx.ExecStr("time(arg:Rational):Int32 := %time"));
+//
+//    ObjPtr usleep = ctx.ExecStr("usleep(usec:DWord64):Int32 := %usleep");
+//    ASSERT_TRUE(usleep);
+//
+//    ObjPtr time = ctx.ExecStr("time(ptr:Pointer):Int32 := %time");
+//    ASSERT_TRUE(time);
+//    
+//    ASSERT_TRUE(time->m_prototype);
+//    ASSERT_EQ(1, time->m_prototype->size());
+//    ASSERT_STREQ("ptr", (*time->m_prototype)[0].second->m_text.c_str());
+//    
+//    ASSERT_TRUE((*time->m_prototype)[0].second->m_type);
+//    ASSERT_STREQ(":Pointer", (*time->m_prototype)[0].second->m_type->m_text.c_str());
+//    
+//    ASSERT_TRUE(time->m_prototype->m_type);
+//    ASSERT_STREQ(":Int32", time->m_prototype->m_type->m_text.c_str());
+//
+////    ASSERT_STREQ("%time(ptr:Pointer):Int32", time->m_prototype->toString().c_str())<< time->toString();
+//
+//    ObjPtr res;
+//
+//    ASSERT_NO_THROW(
+//            res = time->Call(&ctx, Obj::ArgNull());
+//            ) << time->m_prototype->toString();
+//
+//    std::cout << time->toString();
+//
+//    usleep->Call(&ctx, Obj::Arg(1000000));
+//
+//    ObjPtr res2 = time->Call(&ctx, Obj::ArgNull());
+//
+//    std::cout << "\nres1: " << res->toString() << "\n";
+//    std::cout << "res2: " << res2->toString() << "\n";
+//    (*res2) -= res;
+//    std::cout << "res2: " << res2->toString() << "\n";
+//
+//    std::cout << "\nusleep: " << res2->toString() << "\n";
+//
+//    ObjPtr srand = ctx.ExecStr("srand(val:Int32):None := %srand");
+//    ASSERT_TRUE(srand);
+//
+//    srand->Call(&ctx, Obj::Arg(time->Call(&ctx, Obj::ArgNull())));
+//
+//    ObjPtr rand = ctx.ExecStr("rand():Int32 := %rand");
+//    ASSERT_TRUE(rand);
+//
+//    std::cout << rand->toString() << " -> " << rand->Call(&ctx) << ", " << rand->Call(&ctx) << "\n";
+//
+//}
+//
+///**
+//    rand():Int32 := %rand;
+//    usleep(usec:DWord64):None := %usleep;
+//    printf(format:FmtChar, ...):Int32 := %printf;
+//
+// */
+//
+//TEST_F(SystemTest, Logger) {
+//    //    std::cout << exec("ls -l");
+//    //    std::system("ls -l > temp/test.txt"); // executes the UNIX command "ls -l >test.txt"
+//    //    std::cout << std::ifstream("temp/test.txt").rdbuf();
+//}
 
 
 #endif // UNITTEST

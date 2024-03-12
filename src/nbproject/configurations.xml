@@ -44,7 +44,6 @@
         <itemPath>test/ast_test.cpp</itemPath>
         <itemPath>test/compiler_test.cpp</itemPath>
         <itemPath>test/diag_test.cpp</itemPath>
-        <itemPath>test/eval_test.cpp</itemPath>
         <itemPath>test/example_test.cpp</itemPath>
         <itemPath>test/lexer_test.cpp</itemPath>
         <itemPath>test/macro_test.cpp</itemPath>
@@ -57,6 +56,7 @@
         <itemPath>test/run_test.cpp</itemPath>
         <itemPath>test/system_test.cpp</itemPath>
       </logicalFolder>
+      <itemPath>analysis.cpp</itemPath>
       <itemPath>builtin.cpp</itemPath>
       <itemPath>compiler.cpp</itemPath>
       <itemPath>context.cpp</itemPath>
@@ -75,6 +75,7 @@
     <logicalFolder name="HeaderFiles"
                    displayName="Файлы заголовков"
                    projectFiles="true">
+      <itemPath>analysis.h</itemPath>
       <itemPath>autocomplete.h</itemPath>
       <itemPath>builtin.h</itemPath>
       <itemPath>compiler.h</itemPath>
@@ -279,6 +280,14 @@
       </item>
       <item path="../site/content" ex="false" tool="3" flavor2="0">
       </item>
+      <item path="analysis.cpp" ex="false" tool="1" flavor2="9">
+        <ccTool>
+          <commandLine>-include-pch pch.h.pch</commandLine>
+          <additionalDep>pch.h.pch</additionalDep>
+        </ccTool>
+      </item>
+      <item path="analysis.h" ex="false" tool="3" flavor2="0">
+      </item>
       <item path="autocomplete.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="builtin.cpp" ex="false" tool="1" flavor2="9">
@@ -467,12 +476,6 @@
           <additionalDep>pch.h.pch</additionalDep>
         </ccTool>
       </item>
-      <item path="test/eval_test.cpp" ex="false" tool="1" flavor2="9">
-        <ccTool>
-          <commandLine>-include-pch pch.h.pch</commandLine>
-          <additionalDep>pch.h.pch</additionalDep>
-        </ccTool>
-      </item>
       <item path="test/example_test.cpp" ex="false" tool="1" flavor2="9">
         <ccTool>
           <commandLine>-include-pch pch.h.pch</commandLine>
@@ -573,6 +576,7 @@
       <compileType>
         <cTool>
           <stripSymbols>true</stripSymbols>
+          <commandlineTool>clang-16</commandlineTool>
           <incDir>
             <pElem>/usr/local/include</pElem>
             <pElem>/usr/include/x86_64-linux-gnu/c++/10</pElem>
@@ -587,6 +591,7 @@
           </preprocessorList>
         </cTool>
         <ccTool>
+          <commandlineTool>clang++-16</commandlineTool>
           <incDir>
             <pElem>.</pElem>
             <pElem>..</pElem>
@@ -625,6 +630,7 @@
             <pElem>../contrib/libtorch/lib</pElem>
             <pElem>/usr/lib/x86_64-linux-gnu</pElem>
           </linkerDynSerch>
+          <commandlineTool>clang++-16</commandlineTool>
           <linkerLibItems>
             <linkerLibStdlibItem>PosixThreads</linkerLibStdlibItem>
             <linkerLibLibItem>c10</linkerLibLibItem>
@@ -701,6 +707,14 @@
       <item path="../examples/tensor.src" ex="false" tool="3" flavor2="0">
       </item>
       <item path="../site/content" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="analysis.cpp" ex="false" tool="1" flavor2="0">
+        <ccTool>
+          <commandLine>-include-pch pch.h.pch</commandLine>
+          <additionalDep>pch.h.pch</additionalDep>
+        </ccTool>
+      </item>
+      <item path="analysis.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="autocomplete.h" ex="false" tool="3" flavor2="0">
       </item>
@@ -885,12 +899,6 @@
         </ccTool>
       </item>
       <item path="test/diag_test.cpp" ex="false" tool="1" flavor2="0">
-        <ccTool>
-          <commandLine>-include-pch pch.h.pch</commandLine>
-          <additionalDep>pch.h.pch</additionalDep>
-        </ccTool>
-      </item>
-      <item path="test/eval_test.cpp" ex="false" tool="1" flavor2="0">
         <ccTool>
           <commandLine>-include-pch pch.h.pch</commandLine>
           <additionalDep>pch.h.pch</additionalDep>
@@ -1103,6 +1111,10 @@
       </item>
       <item path="../site/content" ex="false" tool="3" flavor2="0">
       </item>
+      <item path="analysis.cpp" ex="false" tool="1" flavor2="9">
+      </item>
+      <item path="analysis.h" ex="false" tool="3" flavor2="0">
+      </item>
       <item path="autocomplete.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="builtin.cpp" ex="false" tool="1" flavor2="9">
@@ -1230,8 +1242,6 @@
       <item path="test/compiler_test.cpp" ex="false" tool="1" flavor2="9">
       </item>
       <item path="test/diag_test.cpp" ex="false" tool="1" flavor2="9">
-      </item>
-      <item path="test/eval_test.cpp" ex="false" tool="1" flavor2="9">
       </item>
       <item path="test/example_test.cpp" ex="false" tool="1" flavor2="9">
       </item>
@@ -1407,6 +1417,16 @@
       <item path="../examples/tensor.src" ex="false" tool="3" flavor2="0">
       </item>
       <item path="../site/content" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="analysis.cpp" ex="false" tool="1" flavor2="9">
+        <ccTool>
+          <additionalDep>parser.h parser.yy.h pch.h.gch location.hh</additionalDep>
+        </ccTool>
+      </item>
+      <item path="analysis.h" ex="false" tool="3" flavor2="0">
+        <customTool>
+          <customToolAdditionalDep>pch.h.gch</customToolAdditionalDep>
+        </customTool>
       </item>
       <item path="autocomplete.h" ex="false" tool="3" flavor2="0">
       </item>
@@ -1610,11 +1630,6 @@
         </ccTool>
       </item>
       <item path="test/diag_test.cpp" ex="false" tool="1" flavor2="9">
-        <ccTool>
-          <additionalDep>pch.h.gch</additionalDep>
-        </ccTool>
-      </item>
-      <item path="test/eval_test.cpp" ex="false" tool="1" flavor2="9">
         <ccTool>
           <additionalDep>pch.h.gch</additionalDep>
         </ccTool>
@@ -1829,6 +1844,16 @@
       </item>
       <item path="../site/content" ex="false" tool="3" flavor2="0">
       </item>
+      <item path="analysis.cpp" ex="false" tool="1" flavor2="9">
+        <ccTool>
+          <additionalDep>parser.h parser.yy.h pch.h.gch location.hh</additionalDep>
+        </ccTool>
+      </item>
+      <item path="analysis.h" ex="false" tool="3" flavor2="0">
+        <customTool>
+          <customToolAdditionalDep>pch.h.gch</customToolAdditionalDep>
+        </customTool>
+      </item>
       <item path="autocomplete.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="builtin.cpp" ex="false" tool="1" flavor2="9">
@@ -2031,11 +2056,6 @@
         </ccTool>
       </item>
       <item path="test/diag_test.cpp" ex="false" tool="1" flavor2="9">
-        <ccTool>
-          <additionalDep>pch.h.gch</additionalDep>
-        </ccTool>
-      </item>
-      <item path="test/eval_test.cpp" ex="false" tool="1" flavor2="9">
         <ccTool>
           <additionalDep>pch.h.gch</additionalDep>
         </ccTool>

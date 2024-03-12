@@ -107,3 +107,46 @@ const char * IntAny::what() const noexcept {
     snprintf((char *) m_buffer_message, sizeof (m_buffer_message), "%s", temp.c_str());
     return m_buffer_message;
 }
+
+bool newlang::canCast(const TermPtr &from, const ObjType to) {
+    if (!from->m_type) {
+        return true; // Empty type cast any type
+    }
+    return canCast(GetBaseTypeFromString(from->m_type->m_text), to);
+}
+
+bool newlang::canCast(const TermPtr &from, const TermPtr &to) {
+    if (!from || !to || !from->m_type || !to->m_type) {
+        return true; // Empty type cast any type
+    }
+    return canCast(GetBaseTypeFromString(from->m_type->m_text), GetBaseTypeFromString(to->m_type->m_text));
+}
+
+ObjType newlang::GetBaseTypeFromString(const std::string type_arg, bool *has_error) {
+
+    std::string type(type_arg);
+
+    if (type.find("~") != std::string::npos) {
+        type.erase(std::remove(type.begin(), type.end(), '~'), type.end());
+    }
+
+    if (type.empty()) {
+        return ObjType::None;
+    } else if (type.compare("_") == 0) {
+        return ObjType::None;
+    }
+
+#define DEFINE_CASE(name, _)                    \
+    else if (type.compare(":"#name) == 0) {     \
+        return ObjType:: name;                  \
+    }
+
+    NL_TYPES(DEFINE_CASE)
+#undef DEFINE_CASE
+
+    if (has_error) {
+        *has_error = true;
+        return ObjType::None;
+    }
+    LOG_RUNTIME("Undefined type name '%s'!", type.c_str());
+}

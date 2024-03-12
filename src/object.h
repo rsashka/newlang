@@ -370,7 +370,7 @@ namespace newlang {
      * 
      * 
      */
-    class Obj : protected Variable<Obj>, public std::enable_shared_from_this<Obj> {
+    class Obj : public Variable<Obj>, public std::enable_shared_from_this<Obj> {
     public:
 
         //    constexpr static const char * BUILDIN_TYPE = "__var_type__";
@@ -394,7 +394,7 @@ namespace newlang {
             ASSERT(!m_tensor.defined());
         }
 
-        Obj(Context *ctx, const TermPtr term, bool as_value, Obj *local_vars);
+//        Obj(Context *ctx, const TermPtr term, bool as_value, Obj *local_vars);
 
 
         [[nodiscard]]
@@ -738,23 +738,23 @@ namespace newlang {
         }
 
 
-        inline ObjPtr Call(Context *ctx) {
-            Obj args(ObjType::Dictionary);
-            return Call(ctx, &args);
-        }
-
-        template <typename... T>
-        typename std::enable_if<is_all<Obj::PairType, T ...>::value, ObjPtr>::type
-        inline Call(Context *ctx, T ... args) {
-            auto list = {args...};
-            Obj arg(ObjType::Dictionary);
-            for (auto &elem : list) {
-                arg.Variable<Obj>::push_back(elem);
-            }
-            return Call(ctx, &arg);
-        }
-
-        ObjPtr Call(Context *ctx, Obj *args, bool direct = false, ObjPtr self = nullptr);
+//        inline ObjPtr Call(Context *ctx) {
+//            Obj args(ObjType::Dictionary);
+//            return Call(ctx, &args);
+//        }
+//
+//        template <typename... T>
+//        typename std::enable_if<is_all<Obj::PairType, T ...>::value, ObjPtr>::type
+//        inline Call(Context *ctx, T ... args) {
+//            auto list = {args...};
+//            Obj arg(ObjType::Dictionary);
+//            for (auto &elem : list) {
+//                arg.Variable<Obj>::push_back(elem);
+//            }
+//            return Call(ctx, &arg);
+//        }
+//
+//        ObjPtr Call(Context *ctx, Obj *args, bool direct = false, ObjPtr self = nullptr);
 
         /*
          * 
@@ -1659,20 +1659,20 @@ namespace newlang {
 
 
         // чистая функция
-        static ObjPtr BaseTypeConstructor(const Context *ctx, Obj &in);
-        static ObjPtr ConstructorSimpleType_(const Context *ctx, Obj & args);
-        static ObjPtr ConstructorDictionary_(const Context *ctx, Obj & args);
-        static ObjPtr ConstructorNative_(const Context *ctx, Obj & args);
-        static ObjPtr ConstructorStub_(const Context *ctx, Obj & args);
-        static ObjPtr ConstructorClass_(const Context *ctx, Obj & args);
-        static ObjPtr ConstructorStruct_(const Context *ctx, Obj & args);
-        static ObjPtr ConstructorEnum_(const Context *ctx, Obj & args);
+        static ObjPtr BaseTypeConstructor(Context *ctx, Obj &in);
+        static ObjPtr ConstructorSimpleType_(Context *ctx, Obj & args);
+        static ObjPtr ConstructorDictionary_(Context *ctx, Obj & args);
+        static ObjPtr ConstructorNative_(Context *ctx, Obj & args);
+        static ObjPtr ConstructorStub_(Context *ctx, Obj & args);
+        static ObjPtr ConstructorClass_(Context *ctx, Obj & args);
+        static ObjPtr ConstructorStruct_(Context *ctx, Obj & args);
+        static ObjPtr ConstructorEnum_(Context *ctx, Obj & args);
 
-        static ObjPtr ConstructorError_(const Context *ctx, Obj & args);
-        static ObjPtr ConstructorReturn_(const Context *ctx, Obj & args);
-        static ObjPtr ConstructorThread_(const Context *ctx, Obj & args);
-        static ObjPtr ConstructorSystem_(const Context *ctx, Obj & args);
-        static ObjPtr ConstructorInterraption_(const Context *ctx, Obj & args, ObjType type);
+        static ObjPtr ConstructorError_(Context *ctx, Obj & args);
+        static ObjPtr ConstructorReturn_(Context *ctx, Obj & args);
+        static ObjPtr ConstructorThread_(Context *ctx, Obj & args);
+        static ObjPtr ConstructorSystem_(Context *ctx, Obj & args);
+        static ObjPtr ConstructorInterraption_(Context *ctx, Obj & args, ObjType type);
 
         static ObjPtr CreateBaseType(ObjType type);
 
@@ -1711,7 +1711,7 @@ namespace newlang {
             return obj;
         }
 
-        static ObjType GetType(torch::Tensor & val) {
+        static ObjType GetTensorType(torch::Tensor & val) {
             switch (val.dtype().toScalarType()) {
                 case at::ScalarType::Bool:
                     return ObjType::Bool;
@@ -1753,7 +1753,7 @@ namespace newlang {
         }
 
         static ObjPtr CreateTensor(torch::Tensor tensor) {
-            ObjType check_type = GetType(tensor);
+            ObjType check_type = GetTensorType(tensor);
             if (!isTensor(check_type)) {
                 LOG_RUNTIME("Unsupport torch type %s (%d)!", at::toString(tensor.dtype().toScalarType()), (int) tensor.dtype().toScalarType());
             }
@@ -2437,10 +2437,10 @@ namespace newlang {
         bool CallOnce(ObjPtr &arg_in, ObjPtr &result, ObjPtr object = nullptr); // !
 
 
-        static ObjPtr CreateFunc(Context *ctx, TermPtr proto, ObjType type, const std::string var_name = "");
-        static ObjPtr CreateFunc(std::string proto, FunctionType *func_addr, ObjType type = ObjType::Function);
-        static ObjPtr CreateFunc(std::string proto, TransparentType *func_addr, ObjType type = ObjType::PureFunc);
-        static ObjPtr CreateFunc(TermPtr proto, void *addr, ObjType type);
+//        static ObjPtr CreateFunc(Context *ctx, TermPtr proto, ObjType type, const std::string var_name = "");
+//        static ObjPtr CreateFunc(std::string proto, FunctionType *func_addr, ObjType type = ObjType::Function);
+//        static ObjPtr CreateFunc(std::string proto, TransparentType *func_addr, ObjType type = ObjType::PureFunc);
+//        static ObjPtr CreateFunc(TermPtr proto, void *addr, ObjType type);
 
         ObjPtr ConvertToArgs(Obj *args, bool check_valid, Context * ctx) const {
             ObjPtr result = Clone();
@@ -2478,7 +2478,7 @@ namespace newlang {
         std::vector<ObjPtr> m_class_parents; ///< Родительские классы (типы)
         std::string m_module_name;
         const TermPtr m_prototype; ///< Описание прототипа функции (или данных)
-        Runner *m_ctx;
+        Context *m_ctx;
 
         ObjPtr m_dimensions; ///< Размерности для ObjType::Type
 

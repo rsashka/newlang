@@ -47,8 +47,7 @@ bool Buildin::CreateMethod(const char * proto, FunctionType & func, ObjType type
         LOG_ERROR("Fail parse '%s'!", proto);
         return false;
     }
-
-    return AddMethod(term->getText().c_str(), Obj::CreateFunc(term, (void *) &func, type));
+    return AddMethod(term->getText().c_str(), m_runtime->CreateNative(term, (void *) &func)); //, type
 }
 
 bool Buildin::CreateProperty(const char * proto, ObjPtr obj) {

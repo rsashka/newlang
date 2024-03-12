@@ -96,6 +96,9 @@ number  ({number1}|{number2})
 /* local   $({ualpha}|[_])?({name}|{digit})? */
 
 /* The first digit character is allowed in module names because they are filenames... */
+/* The module name uses only lowercase letters of the Latin alphabet.
+   The first character cannot be an underscore, but this check occurs at the level 
+   of parsing the syntax tree and checking for the presence of the file. */
 module_name  \\({ualpha}|[_]|{digit})+
 module  \\?{module_name}+
 

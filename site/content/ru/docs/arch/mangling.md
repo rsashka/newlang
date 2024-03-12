@@ -236,10 +236,10 @@ ns {
         @return arg_long + arg_byte;
     }
 
-    # Её С/С++ прототип для первого (основоного) имени
+    # С/С++ прототип для первого (основоного) имени
     # extern "C" _$$_func_embed$( Obj &args );
 
-    # Её С/С++ прототип для второго (дополнительного) имени
+    # С/С++ прототип для второго (дополнительного) имени
     # extern "C" _$$_func_embed$_$(int64_t arg_long, uint8_t arg_byte = 10);
     
     # Тогда при раскрытии блока с расширенным синтаксисом 
@@ -248,6 +248,17 @@ ns {
     {%
         int64_t value = $func_embed(10, 20);
     %}
-    
 
 ```
+*Хотя может имеет смысл сделать inline шаблон для подобного вызова, а не создавать кополнительное имя?*
+
+{{% pageinfo %}}
+```
+./object.h:732:25: error: deduced conflicting types ('int' vs 'const char *') for initializer list element type   
+            auto list = {args...};   
+                        ^~~~~
+test/object_test.cpp:131:21: note: in instantiation of function template specialization 'newlang::Obj::operator()<int, const char *>' requested here   
+    str3 = (*format)(-1, "222");   
+                    ^     
+```
+{{% /pageinfo %}}

@@ -80,16 +80,23 @@ Diag::Diag() {
 
     VERIFY(Register(DIAG_MACRO_NOT_FOUND, State::error, "Macro not found!"));
     VERIFY(Register(DIAG_MACRO_STORAGE_NOT_EXIST, State::error, "Strorage for macro not exists!"));
+    VERIFY(Register(DIAG_FILL_REMAINDER, State::error, "The data is filled in with the remainder!"));
+
+
 
     VERIFY(Register(DIAG_ERROR_LIMIT, State::flag));
     VERIFY(Register(DIAG_EXTRA_TOKENS, State::option));
+
+    m_error_limit = 10;
+    m_error_count = 0;
+    m_fill_remainder = true;
 }
 
 bool Diag::Register(const char *name, State state, const char * desc) {
     ASSERT(name);
     ASSERT(state != State::none);
     ASSERT(!m_diag_stack.empty());
-    if(Test(name) == State::none) {
+    if (Test(name) == State::none) {
         m_diag_stack[0].push_back({name, state, desc});
         return true;
     }
@@ -99,10 +106,10 @@ bool Diag::Register(const char *name, State state, const char * desc) {
 std::string Diag::ChangeState(const std::string name, State from_state, State to_state) {
 
     std::string result;
-    if(from_state == State::flag) {
+    if (from_state == State::flag) {
         return name;
-    } else if(from_state == State::option) {
-        if(to_state == State::ignored) {
+    } else if (from_state == State::option) {
+        if (to_state == State::ignored) {
             result = "-Wno-";
             result += RemoveDiagPrefix(name);
         } else {
@@ -110,11 +117,11 @@ std::string Diag::ChangeState(const std::string name, State from_state, State to
         }
     } else { // for diags only
         result = RemoveDiagPrefix(name);
-        if(to_state == State::ignored) {
+        if (to_state == State::ignored) {
             result = result.insert(0, "-Wno-");
-        } else if(to_state == State::warning) {
+        } else if (to_state == State::warning) {
             result = result.insert(0, "-Wno-error=");
-        } else if(to_state == State::error) {
+        } else if (to_state == State::error) {
             result = result.insert(0, "-Werror=");
         } else {
             result = result.insert(0, "-W");
@@ -129,8 +136,8 @@ void Diag::Push(const TermPtr term) {
 }
 
 void Diag::Pop(const TermPtr term) {
-    if(m_diag_stack.empty()) {
-        if(term) {
+    if (m_diag_stack.empty()) {
+        if (term) {
             NL_PARSER(term, "Empty stack diags at '%s'!", term->toString().c_str());
         } else {
             LOG_RUNTIME("Empty stack diags!");
@@ -140,7 +147,7 @@ void Diag::Pop(const TermPtr term) {
 }
 
 bool Diag::Apply(const char *name, State state, const TermPtr term) {
-    if(term) {
+    if (term) {
         NL_PARSER(term, "Empty stack diags at '%s'!", term->toString().c_str());
     } else {
         LOG_RUNTIME("Empty stack diags!");
@@ -152,10 +159,11 @@ Diag::State Diag::Test(const char *name) {
     ASSERT(m_diag_stack.size());
     size_t top = m_diag_stack.size() - 1;
     for (int pos = 0; pos < m_diag_stack[top].size(); pos++) {
-        if(m_diag_stack[top][pos].Name.compare(name) == 0) {
+        if (m_diag_stack[top][pos].Name.compare(name) == 0) {
             return m_diag_stack[top][pos].State;
         }
     }
+    //    LOG_RUNTIME("Diag name '%s' not found!", name);
     return State::none;
 }
 
@@ -165,24 +173,24 @@ bool Diag::TestIgnore(const char *name) {
 }
 
 bool Diag::Emit(const char *name, const TermPtr term) {
-
-    //    std::string empty;
-    //    std::string str = newlang::ParserMessage(term->m_source ? *term->m_source : empty, term->m_line, term->m_col, "%s", message);
-    //    utils::Logger::LogLevelType save = utils::Logger::Instance()->GetLogLevel();
-    //    utils::Logger::Instance()->SetLogLevel(LOG_LEVEL_INFO);
-    //    LOG_EXCEPT_LEVEL(Return, LOG_LEVEL_INFO, "", "%s", message.c_str());
-    //    LOG_INFO("%s", str.c_str());
-    //    utils::Logger::Instance()->SetLogLevel(save);
-
-
-    //    if(!TestIgnore(name)) {
-    if(term) {
-        NL_PARSER(term, "Emit %s near at '%s'!", name, term->toString().c_str());
-    } else {
-        LOG_RUNTIME("Emit %s!", name);
+    switch (Test(name)) {
+        case Diag::State::error:
+            if (term) {
+                NL_PARSER(term, "Emit %s near at '%s'!", name, term->toString().c_str());
+            } else {
+                LOG_RUNTIME("Emit %s!", name);
+            }
+        case Diag::State::warning:
+            if (term) {
+                NL_MESSAGE(LOG_LEVEL_WARNING, term, "Emit %s near at '%s'!", name, term->toString().c_str());
+            } else {
+                LOG_WARNING("Emit %s!", name);
+            }
+        case Diag::State::ignored:
+        case Diag::State::none:
+            return false;
     }
-    //    }
-    return false;
+    return true;
 }
 
 

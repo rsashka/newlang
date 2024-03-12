@@ -533,8 +533,10 @@ namespace newlang {
                 case TermID::STRWIDE:
                 case TermID::STRCHAR:
                 case TermID::RATIONAL:
+                case TermID::DICT:
+                case TermID::TENSOR:
+                case TermID::END:
                     return true;
-
             }
             return false;
         }
@@ -582,8 +584,8 @@ namespace newlang {
                 } else {
                     str.append(", ");
                 }
-                if (!elem.first.empty()) {
-                    str.append(elem.first);
+                if (!elem.second->m_name.empty()) {
+                    str.append(elem.second->m_name);
 
                     if (elem.second->GetType() && !isDefaultType(elem.second->GetType())) {
                         str += elem.second->GetType()->asTypeString();
@@ -809,7 +811,7 @@ namespace newlang {
                     result += " " + m_text + " ";
                     //                    result.insert(0, m_namespace);
                     //                result += "{";
-                    if (m_right) {
+                    if (m_right && this != m_right.get()) {
                         result += m_right->toString(true);
                         if (!result.empty() && result[result.size() - 1] != ';') {
                             result += ";";
@@ -1518,17 +1520,17 @@ namespace newlang {
                 // Check type
                 if (m_id == TermID::INTEGER) {
                     ObjType type_val = typeFromLimit(parseInteger(m_text.c_str()), ObjType::Bool);
-                    if (!canCastLimit(type_val, typeFromString(m_type))) {
+                    if (!canCastLimit(type_val, typeFromString(m_type, nullptr))) {
                         NL_PARSER(type, "Error cast '%s' to integer type '%s'", m_text.c_str(), m_type->m_text.c_str());
                     }
                 } else if (m_id == TermID::NUMBER) {
                     ObjType type_val = typeFromLimit(parseDouble(m_text.c_str()), ObjType::Float64);
-                    if (!canCastLimit(type_val, typeFromString(m_type))) {
+                    if (!canCastLimit(type_val, typeFromString(m_type, nullptr))) {
                         NL_PARSER(type, "Error cast '%s' to numeric type '%s'", m_text.c_str(), m_type->m_text.c_str());
                     }
                 } else if (m_id == TermID::COMPLEX) {
                     ObjType type_val = typeFromLimit(parseComplex(m_text.c_str()), ObjType::Complex64);
-                    if (!canCastLimit(type_val, typeFromString(m_type))) {
+                    if (!canCastLimit(type_val, typeFromString(m_type, nullptr))) {
                         NL_PARSER(type, "Error cast '%s' to complex type '%s'", m_text.c_str(), m_type->m_text.c_str());
                     }
                 }
