@@ -501,15 +501,15 @@ TEST_F(ParserTest, ScalarType) {
     ASSERT_FALSE(isDefaultType(ast->m_type));
     ASSERT_STREQ(":Float64", ast->m_type->m_text.c_str());
 
-    ASSERT_THROW(Parse("2:Bool;"), Return);
-    ASSERT_THROW(Parse("-1:Bool;"), Return);
+    ASSERT_THROW(Parse("2:Bool;"), Error);
+    ASSERT_THROW(Parse("-1:Bool;"), Error);
     //        ASSERT_THROW(Parse("-1:Int8"), parser_exception);
-    ASSERT_THROW(Parse("300:Int8;"), Return);
-    ASSERT_THROW(Parse("100000:Int16;"), Return);
-    ASSERT_THROW(Parse("0.0:Bool;"), Return);
-    ASSERT_THROW(Parse("0.0:Int8;"), Return);
-    ASSERT_THROW(Parse("0.0:Int32;"), Return);
-    ASSERT_THROW(Parse("0.0:Int64;"), Return);
+    ASSERT_THROW(Parse("300:Int8;"), Error);
+    ASSERT_THROW(Parse("100000:Int16;"), Error);
+    ASSERT_THROW(Parse("0.0:Bool;"), Error);
+    ASSERT_THROW(Parse("0.0:Int8;"), Error);
+    ASSERT_THROW(Parse("0.0:Int32;"), Error);
+    ASSERT_THROW(Parse("0.0:Int64;"), Error);
 }
 
 TEST_F(ParserTest, TensorType) {
@@ -961,10 +961,10 @@ TEST_F(ParserTest, ArgMixedFail) {
     //            Parse("term(arg2=arg3, arg1);"), std::runtime_error
     //            );
     EXPECT_THROW(
-            Parse("term(arg1,arg2=arg3,,);"), Return
+            Parse("term(arg1,arg2=arg3,,);"), Error
             );
     EXPECT_THROW(
-            Parse("term(,);"), Return
+            Parse("term(,);"), Error
             );
 
 }
@@ -1019,7 +1019,7 @@ TEST_F(ParserTest, Iterator) {
     //    ASSERT_FALSE(Parse("term2(arg=value)?(iter_arg=100)?"));
     //    ASSERT_FALSE(Parse("term2(arg=value)??"));
     EXPECT_THROW(
-            Parse("term2(arg=value)!;?"), Return
+            Parse("term2(arg=value)!;?"), Error
             );
 
 
@@ -1939,6 +1939,21 @@ TEST_F(ParserTest, Else) {
 
 TEST_F(ParserTest, CheckResult) {
 
+    ASSERT_TRUE(Parse("{ expr }; "));
+    ASSERT_TRUE(Parse("{- expr -}"));
+    ASSERT_TRUE(Parse("{+ expr +}"));
+    ASSERT_TRUE(Parse("{* expr *}"));
+
+    ASSERT_TRUE(Parse("{ ++expr++ }; "));
+    ASSERT_TRUE(Parse("{- +-expr-+ -}"));
+    ASSERT_TRUE(Parse("{+ --expr-- +}"));
+    ASSERT_TRUE(Parse("{* --expr-- *}"));
+
+    ASSERT_TRUE(Parse("{ ++100++ }; "));
+    ASSERT_TRUE(Parse("{- --100-- -}"));
+    ASSERT_TRUE(Parse("{+ --100-- +}"));
+    ASSERT_TRUE(Parse("{* --100-- *}"));
+
     ASSERT_TRUE(Parse("{ expr } :Type; "));
     ASSERT_TRUE(Parse("{- expr -} :Type "));
     ASSERT_TRUE(Parse("{+ expr +} :Type "));
@@ -2105,11 +2120,11 @@ TEST_F(ParserTest, Range2) {
 }
 
 TEST_F(ParserTest, RangeCall) {
-    ASSERT_TRUE(Parse("0.1..(1+1)"));
-    ASSERT_TRUE(Parse("0.1..(1*2)"));
+    ASSERT_TRUE(Parse("0.1..$sss"));
+    ASSERT_TRUE(Parse("0.1..1*2"));
     ASSERT_TRUE(Parse("0.1..term()"));
-    ASSERT_TRUE(Parse("0.1..term()..(1*2+2-term)"));
-    ASSERT_TRUE(Parse("$term..(term()+$term)..(-1*2+2-@term())"));
+    ASSERT_TRUE(Parse("0.1..term()..1*2+2-term"));
+    ASSERT_TRUE(Parse("$term..term()+$term..-1*2+2-@term()"));
 }
 
 TEST_F(ParserTest, Follow) {
@@ -2230,7 +2245,7 @@ TEST_F(ParserTest, Match3_0) {
     ASSERT_TRUE(Parse("[1]==>{[1]-->first;[2]-->{second();second()};[...]-->{end()};}"));
 }
 
-TEST_F(ParserTest, Return) {
+TEST_F(ParserTest, Error) {
     ASSERT_TRUE(Parse("--;"));
     ASSERT_TRUE(Parse("--;;"));
     ASSERT_TRUE(Parse("ns:: --;"));

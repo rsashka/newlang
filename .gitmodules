@@ -4,3 +4,6 @@
 [submodule "contrib/text2cpp"]
 	path = contrib/text2cpp
 	url = https://github.com/lostjared/text2cpp.git
+[submodule "contrib/fmt"]
+	path = contrib/fmt
+	url = https://github.com/fmtlib/fmt.git

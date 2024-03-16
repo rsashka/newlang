@@ -103,7 +103,7 @@ static char buffer[LOG_MAX_BUFFER_SIZE + 1];
 EXTERN_C const char * log_printf(uint8_t level, const char *prefix, const char *file, int line, const char *format, ...) {
 
     if(Logger::Instance()->GetLogLevel() < level) {
-        return nullptr;
+        return "";
     }
 
     const char * result = nullptr;

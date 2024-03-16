@@ -35,6 +35,7 @@ OBJECTDIR=${CND_BUILDDIR}/${CND_CONF}/${CND_PLATFORM}
 
 # Object Files
 OBJECTFILES= \
+	${OBJECTDIR}/_ext/b0ad39d/format.o \
 	${OBJECTDIR}/_ext/1e501df/gtest-all.o \
 	${OBJECTDIR}/_ext/e16507f5/logger.o \
 	${OBJECTDIR}/analysis.o \
@@ -100,6 +101,11 @@ dist/gcov.run: ../contrib/PDCurses/x11/libXCurses.a
 dist/gcov.run: ${OBJECTFILES}
 	${MKDIR} -p dist
 	${LINK.cc} -o dist/gcov.run ${OBJECTFILES} ${LDLIBSOPTIONS} -Wl,--export-dynamic
+
+${OBJECTDIR}/_ext/b0ad39d/format.o: ../contrib/fmt/src/format.cc
+	${MKDIR} -p ${OBJECTDIR}/_ext/b0ad39d
+	${RM} "$@.d"
+	$(COMPILE.cc) -g -DDEBUG -DLOG_LEVEL_NORMAL=LOG_LEVEL_DEBUG -DPDC_WIDE -DUNITTEST -I.. -I../contrib/googletest/googletest -I../contrib/googletest/googletest/include -I../contrib/Tensorflow/bazel-bin/tensorflow/include -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/_ext/b0ad39d/format.o ../contrib/fmt/src/format.cc
 
 ${OBJECTDIR}/_ext/1e501df/gtest-all.o: ../contrib/googletest/googletest/src/gtest-all.cc
 	${MKDIR} -p ${OBJECTDIR}/_ext/1e501df

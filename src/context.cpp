@@ -13,549 +13,8 @@
 
 using namespace newlang;
 
-
-//std::map<std::string, EvalFunction> Context::m_ops;
-//std::map<std::string, Context::EvalFunction> Context::m_builtin_calls;
-//std::map<std::string, ObjPtr> Context::m_types;
-//std::map<std::string, FuncItem> Context::m_funcs;
 std::multimap<std::string, DocPtr> Docs::m_docs;
 
-const char * Return::RetPlus = ":IntPlus";
-const char * Return::RetMinus = ":IntMinus";
-const char * Return::IntParser = ":IntParser";
-const char * Return::IntError = ":IntError";
-
-const char * Return::Break = ":Break";
-const char * Return::Continue = ":Continue";
-//const char * Return::Return = ":Return";
-const char * Return::Error = ":Error";
-const char * Return::Parser = ":ErrorParser";
-const char * Return::RunTime = ":ErrorRunTime";
-const char * Return::Signal = ":ErrorSignal";
-const char * Return::Abort = ":ErrorAbort";
-
-//Context::Context(RuntimePtr global) {
-//    m_runtime = global;
-//
-//    // typedef enum ffi_abi {
-//    //#if defined(X86_WIN64)
-//    //  FFI_FIRST_ABI = 0,
-//    //  FFI_WIN64,            /* sizeof(long double) == 8  - microsoft compilers */
-//    //  FFI_GNUW64,           /* sizeof(long double) == 16 - GNU compilers */
-//    //  FFI_LAST_ABI,
-//    //#ifdef __GNUC__
-//    //  FFI_DEFAULT_ABI = FFI_GNUW64
-//    //#else
-//    //  FFI_DEFAULT_ABI = FFI_WIN64
-//    //#endif
-//    //
-//    //#elif defined(X86_64) || (defined (__x86_64__) && defined (X86_DARWIN))
-//    //  FFI_FIRST_ABI = 1,
-//    //  FFI_UNIX64,
-//    //  FFI_WIN64,
-//    //  FFI_EFI64 = FFI_WIN64,
-//    //  FFI_GNUW64,
-//    //  FFI_LAST_ABI,
-//    //  FFI_DEFAULT_ABI = FFI_UNIX64
-//    //
-//    //#elif defined(X86_WIN32)
-//    //  FFI_FIRST_ABI = 0,
-//    //  FFI_SYSV      = 1,
-//    //  FFI_STDCALL   = 2,
-//    //  FFI_THISCALL  = 3,
-//    //  FFI_FASTCALL  = 4,
-//    //  FFI_MS_CDECL  = 5,
-//    //  FFI_PASCAL    = 6,
-//    //  FFI_REGISTER  = 7,
-//    //  FFI_LAST_ABI,
-//    //  FFI_DEFAULT_ABI = FFI_MS_CDECL
-//    //#else
-//    //  FFI_FIRST_ABI = 0,
-//    //  FFI_SYSV      = 1,
-//    //  FFI_THISCALL  = 3,
-//    //  FFI_FASTCALL  = 4,
-//    //  FFI_STDCALL   = 5,
-//    //  FFI_PASCAL    = 6,
-//    //  FFI_REGISTER  = 7,
-//    //  FFI_MS_CDECL  = 8,
-//    //  FFI_LAST_ABI,
-//    //  FFI_DEFAULT_ABI = FFI_SYSV
-//    //#endif
-//    //} ffi_abi;
-//    //
-//
-////#ifdef _MSC_VER
-////
-////    std::wstring sys_file;
-////    std::string sys_init;
-////
-////    //#define CYGWIN
-////#ifdef CYGWIN
-////    sys_file = L"cygwin1.dll";
-////    sys_init = "cygwin_dll_init";
-////    ffi_file = "cygffi-6.dll";
-////#else
-////    //sys_file = L"msys-2.0.dll";
-////    //sys_init = "msys_dll_init";
-////    ffi_file = "libffi-6.dll";
-////#endif
-////
-////    //m_msys = LoadLibrary(sys_file.c_str());
-////    //if(!m_msys) {
-////    //    LOG_RUNTIME("Fail LoadLibrary %s: %s", sys_file.c_str(), RunTime::GetLastErrorMessage().c_str());
-////    //}
-////
-////    //    typedef void init_type();
-////    //    init_type *init = (init_type *) GetProcAddress((HMODULE) m_msys, sys_init.c_str());
-////    //    if(m_msys && !init) {
-////    //        FreeLibrary((HMODULE) m_msys);
-////    //        LOG_RUNTIME("Func %s not found! %s", sys_init.c_str(), RunTime::GetLastErrorMessage().c_str());
-////    //        (*init)();
-////    //    }
-////
-////    static void * m_ffi_handle = nullptr;
-////
-////    if (!m_ffi_handle) {
-////        m_ffi_handle = LoadLibrary(utf8_decode(ffi_file).c_str());
-////    }
-////    if (!m_ffi_handle) {
-////        LOG_RUNTIME("Fail load %s!", ffi_file.c_str());
-////    }
-////
-////    m_ffi_type_void = reinterpret_cast<ffi_type *> (GetProcAddress((HMODULE) m_ffi_handle, "ffi_type_void"));
-////    m_ffi_type_uint8 = reinterpret_cast<ffi_type *> (GetProcAddress((HMODULE) m_ffi_handle, "ffi_type_uint8"));
-////    m_ffi_type_sint8 = reinterpret_cast<ffi_type *> (GetProcAddress((HMODULE) m_ffi_handle, "ffi_type_sint8"));
-////    m_ffi_type_uint16 = reinterpret_cast<ffi_type *> (GetProcAddress((HMODULE) m_ffi_handle, "ffi_type_uint16"));
-////    m_ffi_type_sint16 = reinterpret_cast<ffi_type *> (GetProcAddress((HMODULE) m_ffi_handle, "ffi_type_sint16"));
-////    m_ffi_type_uint32 = reinterpret_cast<ffi_type *> (GetProcAddress((HMODULE) m_ffi_handle, "ffi_type_uint32"));
-////    m_ffi_type_sint32 = reinterpret_cast<ffi_type *> (GetProcAddress((HMODULE) m_ffi_handle, "ffi_type_sint32"));
-////    m_ffi_type_uint64 = reinterpret_cast<ffi_type *> (GetProcAddress((HMODULE) m_ffi_handle, "ffi_type_uint64"));
-////    m_ffi_type_sint64 = reinterpret_cast<ffi_type *> (GetProcAddress((HMODULE) m_ffi_handle, "ffi_type_sint64"));
-////    m_ffi_type_float = reinterpret_cast<ffi_type *> (GetProcAddress((HMODULE) m_ffi_handle, "ffi_type_float"));
-////    m_ffi_type_double = reinterpret_cast<ffi_type *> (GetProcAddress((HMODULE) m_ffi_handle, "ffi_type_double"));
-////    m_ffi_type_pointer = reinterpret_cast<ffi_type *> (GetProcAddress((HMODULE) m_ffi_handle, "ffi_type_pointer"));
-////
-////    m_ffi_prep_cif = reinterpret_cast<ffi_prep_cif_type *> (GetProcAddress((HMODULE) m_ffi_handle, "ffi_prep_cif"));
-////    m_ffi_prep_cif_var = reinterpret_cast<ffi_prep_cif_var_type *> (GetProcAddress((HMODULE) m_ffi_handle, "ffi_prep_cif_var"));
-////    m_ffi_call = reinterpret_cast<ffi_call_type *> (GetProcAddress((HMODULE) m_ffi_handle, "ffi_call"));
-////
-////#else
-////    //    std::string error;
-////    if (LLVMLoadLibraryPermanently("libffi") == 0) {
-////        LOG_RUNTIME("Fail load library libffi!");
-////    }
-////
-////    m_ffi_type_void = static_cast<ffi_type *> (LLVMSearchForAddressOfSymbol("ffi_type_void"));
-////    m_ffi_type_uint8 = static_cast<ffi_type *> (LLVMSearchForAddressOfSymbol("ffi_type_uint8"));
-////    m_ffi_type_sint8 = static_cast<ffi_type *> (LLVMSearchForAddressOfSymbol("ffi_type_sint8"));
-////    m_ffi_type_uint16 = static_cast<ffi_type *> (LLVMSearchForAddressOfSymbol("ffi_type_uint16"));
-////    m_ffi_type_sint16 = static_cast<ffi_type *> (LLVMSearchForAddressOfSymbol("ffi_type_sint16"));
-////    m_ffi_type_uint32 = static_cast<ffi_type *> (LLVMSearchForAddressOfSymbol("ffi_type_uint32"));
-////    m_ffi_type_sint32 = static_cast<ffi_type *> (LLVMSearchForAddressOfSymbol("ffi_type_sint32"));
-////    m_ffi_type_uint64 = static_cast<ffi_type *> (LLVMSearchForAddressOfSymbol("ffi_type_uint64"));
-////    m_ffi_type_sint64 = static_cast<ffi_type *> (LLVMSearchForAddressOfSymbol("ffi_type_sint64"));
-////    m_ffi_type_float = static_cast<ffi_type *> (LLVMSearchForAddressOfSymbol("ffi_type_float"));
-////    m_ffi_type_double = static_cast<ffi_type *> (LLVMSearchForAddressOfSymbol("ffi_type_double"));
-////    m_ffi_type_pointer = static_cast<ffi_type *> (LLVMSearchForAddressOfSymbol("ffi_type_pointer"));
-////
-////    m_ffi_prep_cif = reinterpret_cast<ffi_prep_cif_type *> (LLVMSearchForAddressOfSymbol("ffi_prep_cif"));
-////    m_ffi_prep_cif_var = reinterpret_cast<ffi_prep_cif_var_type *> (LLVMSearchForAddressOfSymbol("ffi_prep_cif_var"));
-////    m_ffi_call = reinterpret_cast<ffi_call_type *> (LLVMSearchForAddressOfSymbol("ffi_call"));
-////
-////#endif
-////
-////    if (!(m_ffi_type_uint8 && m_ffi_type_sint8 && m_ffi_type_uint16 && m_ffi_type_sint16 &&
-////            m_ffi_type_uint32 && m_ffi_type_sint32 && m_ffi_type_uint64 && m_ffi_type_sint64 &&
-////            m_ffi_type_float && m_ffi_type_double && m_ffi_type_pointer && m_ffi_type_void &&
-////            m_ffi_prep_cif && m_ffi_prep_cif_var && m_ffi_call)) {
-////        LOG_RUNTIME("Fail init data from libffi!");
-////    }
-//
-//
-//    //    if (m_runtime->m_funcs.empty()) {
-//    //
-//    //        //        VERIFY(CreateBuiltin("min(arg, ...)", (void *) &min, ObjType::PureFunc));
-//    //        //        VERIFY(CreateBuiltin("мин(arg, ...)", (void *) &min, ObjType::PureFunc));
-//    //        //        VERIFY(CreateBuiltin("max(arg, ...)", (void *) &max, ObjType::PureFunc));
-//    //        //        VERIFY(CreateBuiltin("макс(arg, ...)", (void *) &max, ObjType::PureFunc));
-//    //        //
-//    //        //
-//    //        //        VERIFY(CreateBuiltin("help(...)", (void *) &help, ObjType::PureFunc));
-//    //
-//    //    }
-//
-//    //    if (m_named->m_builtin_calls.empty()) {
-//    //#define REGISTER_FUNC(name, func)                                                                                      \
-////    ASSERT(m_named->m_builtin_calls.find(name) == m_named->m_builtin_calls.end());                                     \
-////    m_named->m_builtin_calls[name] = &Context::func_##func;
-//    //
-//    //        NL_BUILTIN(REGISTER_FUNC);
-//    //
-//    //#undef REGISTER_FUNC
-//    //    }
-//
-//    if (Context::m_ops.empty()) {
-//#define REGISTER_OP(op, func)                                                                                          \
-//    ASSERT(Context::m_ops.find(op) == Context::m_ops.end());                                                           \
-//    Context::m_ops[op] = &Context::op_##func;
-//
-//        NL_OPS(REGISTER_OP);
-//
-//#undef REGISTER_OP
-//    }
-//}
-//
-//ObjPtr Context::RegisterObject(ObjPtr var) {
-//    if (!var || var->getName().empty()) {
-//        LOG_RUNTIME("Empty object name %s", var ? var->toString().c_str() : "");
-//    }
-//
-//    if (isLocalName(var->getName())) {
-//        var->getName() = var->getName().substr(1);
-//    } else {
-//        if (!isLocalAnyName(var->getName().c_str())) {
-//            var->m_prototype->m_text.insert(0, "::");
-//        }
-//        //        m_runtime->m_main_module->push_back(var, var->m_prototype->getName());
-//        //        m_runtime->GlobalNameRegister(var->m_prototype, var);
-//    }
-//    push_back(var, var->getName());
-//
-//    return var;
-//}
-//
-////#ifndef _MSC_VER
-////
-////void newlang::NewLangSignalHandler(int signal) {
-////    throw Interrupt("Signal SIGABRT received", Interrupt::Abort);
-////}
-////#endif
-//
-////#include "StdCapture.h"
-//
-//ObjPtr Context::Eval(Context *ctx, TermPtr term, Obj *args, bool eval_block, CatchType int_catch) {
-//
-//    //    StdCapture Capture;
-//    //
-//    //    Capture.BeginCapture();
-//
-//    //#ifndef _MSC_VER
-//    //    auto previous_handler = signal(SIGABRT, &NewLangSignalHandler);
-//    //#endif
-//    //    try {
-//
-//    switch (term->m_id) {
-//        case TermID::END:
-//            return eval_END(ctx, term, args, eval_block);
-//
-//#define DEFINE_CASE(name)                                                                                              \
-//    case TermID::name:                                                                                                 \
-//        return eval_##name(ctx, term, args, eval_block);
-//
-//            NL_TERMS(DEFINE_CASE)
-//
-//#undef DEFINE_CASE
-//
-//    }
-//    //    } catch (Interrupt &obj) {
-//    //
-//    //#ifndef _MSC_VER
-//    //        signal(SIGABRT, previous_handler);
-//    //#endif        
-//    //
-//    //        ASSERT(obj.m_obj);
-//    //
-//    //        if(int_catch && obj.m_obj->getType() == ObjType::Return) {
-//    //
-//    //            ASSERT(obj.m_obj->size() == 1);
-//    //            return (*obj.m_obj)[0].second; // Возврат данных
-//    //
-//    //        } else if(int_catch) {
-//    //            ASSERT(obj.m_obj);
-//    //            return obj.m_obj; // Прерывания анализуирются выше по уровню
-//    //        }
-//    //
-//    //        throw; // Пробросить прерывание дальше
-//    //    }
-//    //
-//    //#ifndef _MSC_VER
-//    //    signal(SIGABRT, previous_handler);
-//    //#endif
-//
-//    return Obj::CreateNone();
-//}
-//
-//ObjPtr Context::eval_END(Context *ctx, const TermPtr &term, Obj *args, bool eval_block) {
-//    return Obj::CreateNone();
-//}
-//
-//ObjPtr Context::eval_UNKNOWN(Context *ctx, const TermPtr &term, Obj *args, bool eval_block) {
-//    ASSERT(term);
-//    LOG_RUNTIME("Fail EVAL: '%s'", term->toString().c_str());
-//
-//    return nullptr;
-//}
-//
-///*
-// *
-// *
-// */
-//
-//ObjPtr Context::eval_BLOCK(Context *ctx, const TermPtr &term, Obj *args, bool eval_block) {
-//    ASSERT(term && term->getTermID() == TermID::BLOCK);
-//    ObjPtr obj = Obj::CreateType(ObjType::BLOCK);
-//    obj->m_sequence = term;
-//    obj->m_var_is_init = true;
-//
-//    if (eval_block) {
-//        return CallBlock(ctx, term, args, eval_block, CatchType::CATCH_AUTO, nullptr);
-//    }
-//
-//    return obj;
-//}
-//
-//ObjPtr Context::eval_BLOCK_TRY(Context *ctx, const TermPtr &term, Obj *args, bool eval_block) {
-//    ASSERT(term && term->getTermID() == TermID::BLOCK_TRY);
-//    ObjPtr obj = Obj::CreateType(ObjType::BLOCK_TRY);
-//    obj->m_sequence = term;
-//    obj->m_var_is_init = true;
-//
-//    if (eval_block) {
-//        return CallBlock(ctx, term, args, eval_block, CatchType::CATCH_ALL, nullptr);
-//    }
-//
-//    return obj;
-//}
-//
-//ObjPtr Context::eval_BLOCK_PLUS(Context *ctx, const TermPtr &term, Obj *args, bool eval_block) {
-//    ASSERT(term && term->getTermID() == TermID::BLOCK_PLUS);
-//    ObjPtr obj = Obj::CreateType(ObjType::BLOCK_PLUS);
-//    obj->m_sequence = term;
-//    obj->m_var_is_init = true;
-//
-//    if (eval_block) {
-//        return CallBlock(ctx, term, args, eval_block, CatchType::CATCH_PLUS, nullptr);
-//    }
-//
-//    return obj;
-//}
-//
-//ObjPtr Context::eval_BLOCK_MINUS(Context *ctx, const TermPtr &term, Obj *args, bool eval_block) {
-//    ASSERT(term && term->getTermID() == TermID::BLOCK_MINUS);
-//    ObjPtr obj = Obj::CreateType(ObjType::BLOCK_MINUS);
-//    obj->m_sequence = term;
-//    obj->m_var_is_init = true;
-//
-//    if (eval_block) {
-//        return CallBlock(ctx, term, args, eval_block, CatchType::CATCH_MINUS, nullptr);
-//    }
-//
-//    return obj;
-//}
-//
-//ObjPtr Context::eval_LOCAL(Context *ctx, const TermPtr &term, Obj *args, bool eval_block) {
-//    return CreateRVal(ctx, term, args, eval_block);
-//}
-//
-//ObjPtr Context::eval_STATIC(Context *ctx, const TermPtr &term, Obj *args, bool eval_block) {
-//    return CreateRVal(ctx, term, args, eval_block);
-//}
-//
-//ObjPtr Context::eval_MACRO(Context *ctx, const TermPtr &term, Obj *args, bool eval_block) {
-//
-//    //    LOG_RUNTIME("eval_MACRO_SEQ: %s", term->toString().c_str());
-//    return Obj::CreateNone();
-//}
-//
-//ObjPtr Context::eval_MACRO_SEQ(Context *ctx, const TermPtr &term, Obj *args, bool eval_block) {
-//
-//    //    LOG_RUNTIME("eval_MACRO_SEQ: %s", term->toString().c_str());
-//    return Obj::CreateNone();
-//}
-//
-//ObjPtr Context::eval_MACRO_STR(Context *ctx, const TermPtr &term, Obj *args, bool eval_block) {
-//    //    LOG_RUNTIME("eval_MACRO_STR: %s", term->toString().c_str());
-//    return Obj::CreateNone();
-//}
-//
-//ObjPtr Context::eval_MACRO_DEL(Context *ctx, const TermPtr &term, Obj *args, bool eval_block) {
-//    //    LOG_RUNTIME("Macro DEL %s not found!", term->toString().c_str());
-//    return Obj::CreateNone();
-//}
-//
-//ObjPtr Context::eval_MACRO_TOSTR(Context *ctx, const TermPtr &term, Obj *args, bool eval_block) {
-//    LOG_RUNTIME("Macro TOSTR %s not found!", term->toString().c_str());
-//    return Obj::CreateNone();
-//}
-//
-//ObjPtr Context::eval_MACRO_CONCAT(Context *ctx, const TermPtr &term, Obj *args, bool eval_block) {
-//    LOG_RUNTIME("Macro CONCAT %s not found!", term->toString().c_str());
-//    return Obj::CreateNone();
-//}
-//
-//ObjPtr Context::eval_MACRO_ARGUMENT(Context *ctx, const TermPtr &term, Obj *args, bool eval_block) {
-//    LOG_RUNTIME("Macro ARGUMENT %s not found!", term->toString().c_str());
-//    return Obj::CreateNone();
-//}
-//
-//ObjPtr Context::eval_MACRO_ARGCOUNT(Context *ctx, const TermPtr &term, Obj *args, bool eval_block) {
-//    //    LOG_RUNTIME("Macro ARGCOUNT %s not found!", term->toString().c_str());
-//    return Obj::CreateNone();
-//}
-//
-//ObjPtr Context::eval_SPACE(Context *ctx, const TermPtr &term, Obj *args, bool eval_block) {
-//    LOG_RUNTIME("SPACE Not implemented!");
-//    return nullptr;
-//}
-//
-//ObjPtr Context::eval_COMMENT(Context *ctx, const TermPtr &term, Obj *args, bool eval_block) {
-//    LOG_RUNTIME("COMMENT Not implemented!");
-//    return nullptr;
-//}
-//
-//ObjPtr Context::eval_INDENT(Context *ctx, const TermPtr &term, Obj *args, bool eval_block) {
-//    LOG_RUNTIME("INDENT Not implemented!");
-//    return nullptr;
-//}
-//
-//ObjPtr Context::eval_CRLF(Context *ctx, const TermPtr &term, Obj *args, bool eval_block) {
-//    LOG_RUNTIME("CRLF Not implemented!");
-//    return nullptr;
-//}
-//
-//ObjPtr Context::eval_ESCAPE(Context *ctx, const TermPtr &term, Obj *args, bool eval_block) {
-//    LOG_RUNTIME("ESCAPE Not implemented!");
-//    return nullptr;
-//}
-//
-//ObjPtr Context::eval_PARENT(Context *ctx, const TermPtr &term, Obj *args, bool eval_block) {
-//    return CreateRVal(ctx, term, args, eval_block);
-//}
-//
-//ObjPtr Context::eval_NEWLANG(Context *ctx, const TermPtr &term, Obj *args, bool eval_block) {
-//    return CreateRVal(ctx, term, args, eval_block);
-//}
-//
-//ObjPtr Context::eval_TYPE(Context *ctx, const TermPtr &term, Obj *local_vars, bool eval_block) {
-//    return CreateRVal(ctx, term, local_vars);
-//}
-//
-//ObjPtr Context::eval_TYPECAST(Context *ctx, const TermPtr &term, Obj *args, bool eval_block) {
-//    LOG_RUNTIME("TYPECAST Not implemented!");
-//
-//    return nullptr;
-//}
-//
-//ObjPtr Context::eval_TYPEDUCK(Context *ctx, const TermPtr &term, Obj *args, bool eval_block) {
-//    LOG_RUNTIME("TYPEDUCK Not implemented!");
-//
-//    return nullptr;
-//}
-//
-//ObjPtr Context::eval_TYPENAME(Context *ctx, const TermPtr &term, Obj *args, bool eval_block) {
-//    LOG_RUNTIME("TYPENAME Not implemented!");
-//
-//    return nullptr;
-//}
-//
-//inline ObjPtr Context::eval_INTEGER(Context *ctx, const TermPtr &term, Obj *args, bool eval_block) {
-//    return CreateRVal(ctx, term, args);
-//}
-//
-//inline ObjPtr Context::eval_NUMBER(Context *ctx, const TermPtr &term, Obj *args, bool eval_block) {
-//    return CreateRVal(ctx, term, args);
-//}
-//
-//inline ObjPtr Context::eval_COMPLEX(Context *ctx, const TermPtr &term, Obj *args, bool eval_block) {
-//    return CreateRVal(ctx, term, args);
-//}
-//
-//inline ObjPtr Context::eval_EVAL(Context *ctx, const TermPtr &term, Obj *args, bool eval_block) {
-//    return CreateRVal(ctx, term, args);
-//}
-//
-//inline ObjPtr Context::eval_RATIONAL(Context *ctx, const TermPtr &term, Obj *args, bool eval_block) {
-//    return CreateRVal(ctx, term, args);
-//}
-//
-//inline ObjPtr Context::eval_STRWIDE(Context *ctx, const TermPtr &term, Obj *args, bool eval_block) {
-//    return CreateRVal(ctx, term, args);
-//}
-//
-//inline ObjPtr Context::eval_STRCHAR(Context *ctx, const TermPtr &term, Obj *args, bool eval_block) {
-//    return CreateRVal(ctx, term, args);
-//}
-//
-//inline ObjPtr Context::eval_TENSOR(Context *ctx, const TermPtr &term, Obj *args, bool eval_block) {
-//
-//    return CreateRVal(ctx, term, args);
-//}
-//
-//inline ObjPtr Context::eval_NONE(Context *ctx, const TermPtr &term, Obj *args, bool eval_block) {
-//    ASSERT(term && term->m_id == TermID::NONE);
-//
-//    return Obj::CreateNone();
-//}
-//
-//inline ObjPtr Context::eval_EMPTY(Context *ctx, const TermPtr &term, Obj *args, bool eval_block) {
-//    LOG_RUNTIME("EMPTY Not implemented!");
-//
-//    return nullptr;
-//}
-//
-//ObjPtr Context::eval_NAME(Context *ctx, const TermPtr &term, Obj *args, bool eval_block) {
-//    ASSERT(term && term->m_id == TermID::NAME);
-//
-//    return CreateRVal(ctx, term, args);
-//}
-//
-//ObjPtr Context::eval_MODULE(Context *ctx, const TermPtr &term, Obj *args, bool eval_block) {
-//    return CreateRVal(ctx, term, args, eval_block);
-//}
-//
-//ObjPtr Context::eval_NATIVE(Context *ctx, const TermPtr &term, Obj *args, bool eval_block) {
-//    LOG_RUNTIME("NATIVE Not implemented!");
-//    return nullptr;
-//}
-//
-//ObjPtr Context::func_NOT_SUPPORT(Context *ctx, const TermPtr &term, Obj *args, bool eval_block) {
-//    NL_PARSER(term, "Function or operator '%s' is not supported in interpreter mode!", term->m_text.c_str());
-//
-//    return nullptr;
-//}
-//
-//ObjPtr Context::eval_TEMPLATE(Context *ctx, const TermPtr &term, Obj *args, bool eval_block) {
-//    LOG_RUNTIME("TEMPLATE Not implemented!");
-//    return nullptr;
-//}
-//
-//ObjPtr Context::eval_DOC_BEFORE(Context *ctx, const TermPtr &term, Obj *args, bool eval_block) {
-//    LOG_RUNTIME("DOC_BEFORE Not implemented!");
-//
-//    return nullptr;
-//}
-//
-//ObjPtr Context::eval_DOC_AFTER(Context *ctx, const TermPtr &term, Obj *args, bool eval_block) {
-//    LOG_RUNTIME("DOC_AFTER Not implemented!");
-//
-//    return nullptr;
-//}
-//
-//ObjPtr Context::eval_SYMBOL(Context *ctx, const TermPtr &term, Obj *args, bool eval_block) {
-//    LOG_RUNTIME("SYMBOL '%s' Not implemented!", term->m_text.c_str());
-//    return nullptr;
-//}
-//
-//ObjPtr Context::eval_NAMESPACE(Context *ctx, const TermPtr &term, Obj *args, bool eval_block) {
-//    LOG_RUNTIME("NAMESPACE Not implemented!");
-//    return nullptr;
-//}
-//
-//ObjPtr Context::eval_SYM_RULE(Context *ctx, const TermPtr &term, Obj *args, bool eval_block) {
-//    LOG_RUNTIME("SYM_RULE Not implemented!");
-//    return nullptr;
-//}
-//
 //ObjPtr Context::CREATE_OR_ASSIGN(Context *ctx, const TermPtr &term, Obj *local_vars, CreateMode mode) {
 //    // Присвоить значение можно как одному термину, так и сразу нескольким при
 //    // раскрытии словаря: var1, var2, _ = ... func(); 
@@ -786,205 +245,7 @@ const char * Return::Abort = ":ErrorAbort";
 //    }
 //    return result;
 //}
-//
-//ObjPtr Context::eval_ASSIGN(Context *ctx, const TermPtr &term, Obj * local_vars, bool eval_block) {
-//
-//    return CREATE_OR_ASSIGN(ctx, term, local_vars, CreateMode::ASSIGN_ONLY);
-//}
-//
-//ObjPtr Context::eval_CREATE_ONCE(Context *ctx, const TermPtr &term, Obj * local_vars, bool eval_block) {
-//
-//    return CREATE_OR_ASSIGN(ctx, term, local_vars, CreateMode::CREATE_ONLY);
-//}
-//
-//ObjPtr Context::eval_CREATE_OVERLAP(Context *ctx, const TermPtr &term, Obj * args, bool eval_block) {
-//
-//    return CREATE_OR_ASSIGN(ctx, term, args, CreateMode::CREATE_AUTO);
-//}
-//
-//ObjPtr Context::eval_PURE_OVERLAP(Context *ctx, const TermPtr &term, Obj * local_vars, bool eval_block) {
-//
-//    return CREATE_OR_ASSIGN(ctx, term, local_vars, CreateMode::CREATE_ONLY);
-//}
-//
-//ObjPtr Context::eval_APPEND(Context *ctx, const TermPtr &term, Obj * args, bool eval_block) {
-//    LOG_RUNTIME("APPEND Not implemented!");
-//
-//    return nullptr;
-//}
-//
-//ObjPtr Context::eval_SWAP(Context *ctx, const TermPtr &term, Obj *args, bool eval_block) {
-//    LOG_RUNTIME("SWAP Not implemented!");
-//    return nullptr;
-//}
-//
-//ObjPtr Context::eval_FUNCTION(Context *ctx, const TermPtr &term, Obj * args, bool eval_block) {
-//    ASSERT(term && (term->getTermID() == TermID::FUNCTION || term->getTermID() == TermID::PURE_ONCE || term->getTermID() == TermID::PURE_OVERLAP));
-//    ASSERT(term->Left());
-//    ASSERT(ctx);
-//
-//    auto found = ctx->find(term->Left()->m_text);
-//    if (!term->Right()) {
-//        if (found != ctx->end()) {
-//            ctx->ListType::erase(found);
-//            return Obj::Yes();
-//        }
-//        return Obj::No();
-//    }
-//
-//    ObjPtr lval = CreateLVal(ctx, term->Left(), args);
-//    if (!lval) {
-//        NL_PARSER(term->Left(), "Fail create lvalue object!");
-//    }
-//
-//    if (term->Right()->isCall()) {
-//        lval->SetValue_(CreateRVal(ctx, term->Right(), eval_block));
-//    } else {
-//        if (term->getTermID() == TermID::FUNCTION) {
-//            lval->m_var_type_current = ObjType::EVAL_FUNCTION;
-//        } else {
-//
-//            LOG_RUNTIME("Create function '%s' not implemented!", term->toString().c_str());
-//        }
-//        lval->m_var_type_fixed = lval->m_var_type_current;
-//        lval->m_var_is_init = true;
-//        lval->m_sequence = term->Right();
-//    }
-//
-//    return ctx->RegisterObject(lval);
-//}
-//
-//ObjPtr Context::eval_PURE_ONCE(Context *ctx, const TermPtr &term, Obj * args, bool eval_block) {
-//
-//    return eval_FUNCTION(ctx, term, args);
-//}
-//
-///*
-// *
-// *
-// */
-//ObjPtr Context::eval_ITERATOR(Context *ctx, const TermPtr &term, Obj * args, bool eval_block) {
-//    return CreateRVal(ctx, term, args, eval_block);
-//}
-//
-//ObjPtr Context::eval_RANGE(Context *ctx, const TermPtr &term, Obj * args, bool eval_block) {
-//
-//    return CreateRVal(ctx, term, args, eval_block);
-//}
-//
-//ObjPtr Context::eval_ELLIPSIS(Context *ctx, const TermPtr &term, Obj * args, bool eval_block) {
-//    LOG_RUNTIME("ELLIPSIS Not implemented!");
-//
-//    return nullptr;
-//}
-//
-//ObjPtr Context::eval_FILLING(Context* ctx, const TermPtr& term, Obj * args, bool eval_block) {
-//    LOG_RUNTIME("FILLING Not implemented!");
-//
-//    return nullptr;
-//}
-//
-//ObjPtr Context::eval_ARGUMENT(Context *ctx, const TermPtr &term, Obj * args, bool eval_block) {
-//
-//    return CreateRVal(ctx, term, args, eval_block);
-//}
-//
-//ObjPtr Context::eval_ARGS(Context *ctx, const TermPtr &term, Obj * args, bool eval_block) {
-//
-//    return CreateRVal(ctx, term, args, eval_block);
-//}
-//
-//ObjPtr Context::eval_WHILE(Context *ctx, const TermPtr &term, Obj * args, bool eval_block) {
-//
-//    ASSERT(term->Left());
-//    ASSERT(term->Right());
-//
-//    bool is_interrupt;
-//
-//    ObjPtr result = Obj::CreateNone();
-//    ObjPtr cond = CallBlock(ctx, term->Left(), args, eval_block, CatchType::CATCH_AUTO, &is_interrupt);
-//    if (!cond->GetValueAsBoolean() && !term->m_follow.empty()) {
-//        ASSERT(term->m_follow.size() == 1);
-//        result = CreateRVal(ctx, term->m_follow[0], args, CatchType::CATCH_AUTO);
-//    } else {
-//        while (cond->GetValueAsBoolean()) {
-//
-//            //            LOG_DEBUG("result %s", result->toString().c_str());
-//            result = CallBlock(ctx, term->Right(), args, eval_block, CatchType::CATCH_AUTO, &is_interrupt);
-//
-//            if (is_interrupt || result->op_class_test(Return::Break, ctx)) {
-//                break;
-//            } else if (is_interrupt || result->op_class_test(Return::Continue, ctx)) {
-//                continue;
-//            }
-//
-//            cond = CallBlock(ctx, term->Left(), args, eval_block, CatchType::CATCH_AUTO, nullptr);
-//        }
-//    }
-//    return result;
-//}
-//
-//ObjPtr Context::eval_DOWHILE(Context *ctx, const TermPtr &term, Obj * args, bool eval_block) {
-//    ASSERT(term->Left());
-//    ASSERT(term->Right());
-//
-//    ObjPtr result;
-//    ObjPtr cond;
-//    bool is_interrupt;
-//    do {
-//
-//        result = CreateRVal(ctx, term->Left(), args, CatchType::CATCH_AUTO);
-//        cond = CallBlock(ctx, term->Right(), args, true, CatchType::CATCH_AUTO, &is_interrupt);
-//
-//        if (is_interrupt && cond->op_class_test(Return::Break, ctx)) {
-//            break;
-//        } else if (is_interrupt && cond->op_class_test(Return::Continue, ctx)) {
-//            continue;
-//        }
-//
-//    } while (cond->GetValueAsBoolean());
-//
-//    return result;
-//}
-//
-//ObjPtr Context::eval_WITH(Context *ctx, const TermPtr &term, Obj *args, bool eval_block) {
-//    LOG_RUNTIME("WITH Not implemented!");
-//    return nullptr;
-//}
-//
-//ObjPtr Context::eval_TAKE(Context *ctx, const TermPtr &term, Obj *args, bool eval_block) {
-//    LOG_RUNTIME("TAKE Not implemented!");
-//    return nullptr;
-//}
-//
-//ObjPtr Context::eval_FOLLOW(Context *ctx, const TermPtr &term, Obj * args, bool eval_block) {
-//
-//    /*
-//     * [cond] --> {expr};
-//     * [cond] --> {expr}, [...] --> {else};
-//     * 
-//     */
-//
-//    for (int64_t i = 0; i < static_cast<int64_t> (term->m_follow.size()); i++) {
-//
-//        ASSERT(term->m_follow[i]->Left());
-//
-//        bool condition = false;
-//        if (term->m_follow[i]->Left()->getTermID() == TermID::ELLIPSIS) {
-//            ASSERT(i + 1 == term->m_follow.size());
-//            condition = true;
-//        } else {
-//            ObjPtr cond = Eval(ctx, term->m_follow[i]->Left(), args, true, CatchType::CATCH_AUTO);
-//            condition = cond->GetValueAsBoolean();
-//        }
-//
-//        if (condition) {
-//            return CallBlock(ctx, term->m_follow[i]->Right(), args, true, CatchType::CATCH_AUTO, nullptr);
-//        }
-//    }
-//    return Obj::CreateNone();
-//}
-//
+
 //bool Context::MatchCompare(Obj &match, ObjPtr &value, MatchMode mode, Context *ctx) {
 //    switch (mode) {
 //        case MatchMode::MatchEqual:
@@ -1075,567 +336,6 @@ const char * Return::Abort = ":ErrorAbort";
 //    }
 //    return Obj::CreateNone();
 //}
-//
-//ObjPtr Context::eval_INDEX(Context *ctx, const TermPtr &term, Obj * args, bool eval_block) {
-//    LOG_RUNTIME("INDEX Not implemented!");
-//
-//    return nullptr;
-//}
-//
-//ObjPtr Context::eval_FIELD(Context *ctx, const TermPtr &term, Obj * args, bool eval_block) {
-//    LOG_RUNTIME("FIELD Not implemented!");
-//
-//    return nullptr;
-//}
-//
-//ObjPtr Context::eval_DICT(Context *ctx, const TermPtr &term, Obj * args, bool eval_block) {
-//
-//    return CreateRVal(ctx, term, args);
-//}
-//
-//ObjPtr Context::eval_CLASS(Context *ctx, const TermPtr &term, Obj * args, bool eval_block) {
-//    LOG_RUNTIME("CLASS Not implemented!");
-//
-//    return nullptr;
-//}
-//
-//ObjPtr Context::eval_EMBED(Context *ctx, const TermPtr &term, Obj * args, bool eval_block) {
-//    NL_PARSER(term, "Inclusion on the implementation language is not supported in interpreter mode!");
-//
-//    return nullptr;
-//}
-//
-///*
-// *
-// *
-// */
-//
-//ObjPtr Context::eval_OP_MATH(Context *ctx, const TermPtr &term, Obj *args, bool eval_block) {
-//    LOG_RUNTIME("OP_MATH Not implemented!");
-//    return nullptr;
-//}
-//
-//ObjPtr Context::eval_OP_BITWISE(Context* ctx, const TermPtr& term, Obj* args, bool eval_block) {
-//    LOG_RUNTIME("OP_BITWISE Not implemented!");
-//    return nullptr;
-//}
-//
-//ObjPtr Context::eval_OP_COMPARE(Context* ctx, const TermPtr& term, Obj* args, bool eval_block) {
-//    LOG_RUNTIME("OP_COMPARE Not implemented!");
-//    return nullptr;
-//}
-//
-//ObjPtr Context::eval_OP_LOGICAL(Context *ctx, const TermPtr &term, Obj * args, bool eval_block) {
-//    if (Context::m_ops.find(term->m_text) == Context::m_ops.end()) {
-//
-//        LOG_RUNTIME("Eval op '%s' not exist!", term->m_text.c_str());
-//    }
-//    return (*Context::m_ops[term->m_text])(ctx, term, args, eval_block);
-//}
-//
-///*
-// *
-// *
-// */
-//
-//ObjPtr Context::op_EQUAL(Context *ctx, const TermPtr &term, Obj * args, bool eval_block) {
-//    ASSERT(term);
-//    ASSERT(term->Left());
-//    ASSERT(term->Right());
-//
-//    return Eval(ctx, term->Left(), args, eval_block)->op_equal(Eval(ctx, term->Right(), args, eval_block)) ? Obj::Yes() : Obj::No();
-//}
-//
-//ObjPtr Context::op_ACCURATE(Context *ctx, const TermPtr &term, Obj * args, bool eval_block) {
-//    ASSERT(term);
-//    ASSERT(term->Left());
-//    ASSERT(term->Right());
-//
-//    return Eval(ctx, term->Left(), args, eval_block)->op_accurate(Eval(ctx, term->Right(), args, eval_block)) ? Obj::Yes() : Obj::No();
-//}
-//
-//ObjPtr Context::op_NE(Context *ctx, const TermPtr &term, Obj * args, bool eval_block) {
-//    ASSERT(term);
-//    ASSERT(term->Left());
-//    ASSERT(term->Right());
-//
-//    return Eval(ctx, term->Left(), args, eval_block)->op_equal(Eval(ctx, term->Right(), args, eval_block)) ? Obj::No() : Obj::Yes();
-//}
-//
-//ObjPtr Context::op_LT(Context *ctx, const TermPtr &term, Obj * args, bool eval_block) {
-//    ASSERT(term);
-//    ASSERT(term->Left());
-//    ASSERT(term->Right());
-//
-//    return Eval(ctx, term->Left(), args, eval_block)->operator<(Eval(ctx, term->Right(), args, eval_block)) ? Obj::Yes() : Obj::No();
-//}
-//
-//ObjPtr Context::op_GT(Context *ctx, const TermPtr &term, Obj * args, bool eval_block) {
-//    ASSERT(term);
-//    ASSERT(term->Left());
-//    ASSERT(term->Right());
-//
-//    return Eval(ctx, term->Left(), args, eval_block)->operator>(Eval(ctx, term->Right(), args, eval_block)) ? Obj::Yes() : Obj::No();
-//}
-//
-//ObjPtr Context::op_LE(Context *ctx, const TermPtr &term, Obj * args, bool eval_block) {
-//    ASSERT(term);
-//    ASSERT(term->Left());
-//    ASSERT(term->Right());
-//
-//    return Eval(ctx, term->Left(), args, eval_block)->operator<=(Eval(ctx, term->Right(), args, eval_block)) ? Obj::Yes() : Obj::No();
-//}
-//
-//ObjPtr Context::op_GE(Context *ctx, const TermPtr &term, Obj * args, bool eval_block) {
-//    ASSERT(term);
-//    ASSERT(term->Left());
-//    ASSERT(term->Right());
-//
-//    return Eval(ctx, term->Left(), args, eval_block)->operator>=(Eval(ctx, term->Right(), args, eval_block)) ? Obj::Yes() : Obj::No();
-//}
-//
-///*
-// *
-// *
-// */
-//
-//ObjPtr Context::op_AND(Context *ctx, const TermPtr &term, Obj * args, bool eval_block) {
-//    ASSERT(term);
-//    ASSERT(term->Left());
-//    ASSERT(term->Right());
-//
-//    return Eval(ctx, term->Left(), args, eval_block)->op_bit_and(Eval(ctx, term->Right(), args, eval_block), false);
-//}
-//
-//ObjPtr Context::op_OR(Context *ctx, const TermPtr &term, Obj * args, bool eval_block) {
-//    LOG_RUNTIME("OR Not implemented!");
-//
-//    return nullptr;
-//}
-//
-//ObjPtr Context::op_XOR(Context *ctx, const TermPtr &term, Obj * args, bool eval_block) {
-//    LOG_RUNTIME("XOR Not implemented!");
-//
-//    return nullptr;
-//}
-//
-//ObjPtr Context::op_BIT_AND(Context *ctx, const TermPtr &term, Obj * args, bool eval_block) {
-//    LOG_RUNTIME("BIT_AND Not implemented!");
-//
-//    return nullptr;
-//}
-//
-//ObjPtr Context::op_BIT_OR(Context *ctx, const TermPtr &term, Obj * args, bool eval_block) {
-//    LOG_RUNTIME("BIT_OR Not implemented!");
-//
-//    return nullptr;
-//}
-//
-//ObjPtr Context::op_BIT_XOR(Context *ctx, const TermPtr &term, Obj * args, bool eval_block) {
-//    LOG_RUNTIME("BIT_XOR Not implemented!");
-//
-//    return nullptr;
-//}
-//
-//ObjPtr Context::op_BIT_AND_(Context *ctx, const TermPtr &term, Obj * args, bool eval_block) {
-//    LOG_RUNTIME("BIT_AND_ Not implemented!");
-//
-//    return nullptr;
-//}
-//
-//ObjPtr Context::op_BIT_OR_(Context *ctx, const TermPtr &term, Obj * args, bool eval_block) {
-//    LOG_RUNTIME("BIT_OR_ Not implemented!");
-//
-//    return nullptr;
-//}
-//
-//ObjPtr Context::op_BIT_XOR_(Context *ctx, const TermPtr &term, Obj * args, bool eval_block) {
-//    LOG_RUNTIME("BIT_XOR_ Not implemented!");
-//
-//    return nullptr;
-//}
-//
-///*
-// *
-// *
-// */
-//ObjPtr Context::op_PLUS(Context *ctx, const TermPtr &term, Obj * args, bool eval_block) {
-//    ASSERT(term);
-//    ASSERT(term->Right());
-//    if (term->Left()) {
-//
-//        return Eval(ctx, term->Left(), args, eval_block)->operator+(Eval(ctx, term->Right(), args, eval_block));
-//    }
-//    return Eval(ctx, term->Left(), args, eval_block)->operator+();
-//}
-//
-//ObjPtr Context::op_MINUS(Context *ctx, const TermPtr &term, Obj * args, bool eval_block) {
-//    ASSERT(term);
-//    ASSERT(term->Right());
-//    if (term->Left()) {
-//
-//        return Eval(ctx, term->Left(), args, eval_block)->operator-(Eval(ctx, term->Right(), args, eval_block));
-//    }
-//    return Eval(ctx, term->Left(), args, eval_block)->operator-();
-//}
-//
-//ObjPtr Context::op_DIV(Context *ctx, const TermPtr &term, Obj * args, bool eval_block) {
-//    ASSERT(term);
-//    ASSERT(term->Left());
-//    ASSERT(term->Right());
-//
-//    return Eval(ctx, term->Left(), args, eval_block)->operator/(Eval(ctx, term->Right(), args, eval_block));
-//}
-//
-//ObjPtr Context::op_DIV_CEIL(Context *ctx, const TermPtr &term, Obj * args, bool eval_block) {
-//    ASSERT(term);
-//    ASSERT(term->Left());
-//    ASSERT(term->Right());
-//
-//    return Eval(ctx, term->Left(), args, eval_block)->op_div_ceil(Eval(ctx, term->Right(), args, eval_block));
-//}
-//
-//ObjPtr Context::op_MUL(Context *ctx, const TermPtr &term, Obj * args, bool eval_block) {
-//    ASSERT(term);
-//    ASSERT(term->Left());
-//    ASSERT(term->Right());
-//
-//    return Eval(ctx, term->Left(), args, eval_block)->operator*(Eval(ctx, term->Right(), args, eval_block));
-//}
-//
-//ObjPtr Context::op_REM(Context *ctx, const TermPtr &term, Obj * args, bool eval_block) {
-//    ASSERT(term);
-//    ASSERT(term->Left());
-//    ASSERT(term->Right());
-//
-//    return Eval(ctx, term->Left(), args, eval_block)->operator%(Eval(ctx, term->Right(), args, eval_block));
-//}
-//
-///*
-// *
-// *
-// */
-//ObjPtr Context::op_PLUS_(Context *ctx, const TermPtr &term, Obj * args, bool eval_block) {
-//    ASSERT(term);
-//    ASSERT(term->Left());
-//    ASSERT(term->Right());
-//
-//    return Eval(ctx, term->Left(), args, eval_block)->operator+=(Eval(ctx, term->Right(), args, eval_block));
-//}
-//
-//ObjPtr Context::op_MINUS_(Context *ctx, const TermPtr &term, Obj * args, bool eval_block) {
-//    ASSERT(term);
-//    ASSERT(term->Left());
-//    ASSERT(term->Right());
-//
-//    return Eval(ctx, term->Left(), args, eval_block)->operator-=(Eval(ctx, term->Right(), args, eval_block));
-//}
-//
-//ObjPtr Context::op_DIV_(Context *ctx, const TermPtr &term, Obj * args, bool eval_block) {
-//    ASSERT(term);
-//    ASSERT(term->Left());
-//    ASSERT(term->Right());
-//
-//    return Eval(ctx, term->Left(), args, eval_block)->operator/=(Eval(ctx, term->Right(), args, eval_block));
-//}
-//
-//ObjPtr Context::op_DIV_CEIL_(Context *ctx, const TermPtr &term, Obj * args, bool eval_block) {
-//    ASSERT(term);
-//    ASSERT(term->Left());
-//    ASSERT(term->Right());
-//
-//    return Eval(ctx, term->Left(), args, eval_block)->op_div_ceil_(Eval(ctx, term->Right(), args, eval_block));
-//}
-//
-//ObjPtr Context::op_MUL_(Context *ctx, const TermPtr &term, Obj * args, bool eval_block) {
-//    ASSERT(term);
-//    ASSERT(term->Left());
-//    ASSERT(term->Right());
-//
-//    return Eval(ctx, term->Left(), args, eval_block)->operator*=(Eval(ctx, term->Right(), args, eval_block));
-//}
-//
-//ObjPtr Context::op_REM_(Context *ctx, const TermPtr &term, Obj * args, bool eval_block) {
-//    ASSERT(term);
-//    ASSERT(term->Left());
-//    ASSERT(term->Right());
-//
-//    return Eval(ctx, term->Left(), args, eval_block)->operator%=(Eval(ctx, term->Right(), args, eval_block));
-//}
-//
-//ObjPtr Context::op_CONCAT(Context *ctx, const TermPtr &term, Obj * args, bool eval_block) {
-//    ASSERT(term);
-//    ASSERT(term->Left());
-//    ASSERT(term->Right());
-//
-//    return Eval(ctx, term->Left(), args, eval_block)->op_concat_(Eval(ctx, term->Right(), args, eval_block), ConcatMode::Append);
-//}
-//
-//ObjPtr Context::op_TYPE_EQ(Context *ctx, const TermPtr &term, Obj * args, bool eval_block) {
-//    ASSERT(term);
-//    ASSERT(term->Left());
-//    ASSERT(term->Right());
-//
-//    if (isTypeName(term->Right()->GetFullName())) {
-//        return Obj::CreateBool(Eval(ctx, term->Left(), args, eval_block)->op_class_test(term->Right()->GetFullName().c_str(), ctx));
-//    }
-//    return Obj::CreateBool(Eval(ctx, term->Left(), args, eval_block)->op_class_test(Eval(ctx, term->Right(), args, eval_block), ctx));
-//}
-//
-//ObjPtr Context::op_TYPE_EQ2(Context *ctx, const TermPtr &term, Obj * args, bool eval_block) {
-//    ASSERT(term);
-//    ASSERT(term->Left());
-//    ASSERT(term->Right());
-//
-//    return Obj::CreateBool(Eval(ctx, term->Left(), args, eval_block)->op_duck_test(Eval(ctx, term->Right(), args, eval_block), false));
-//}
-//
-//ObjPtr Context::op_TYPE_EQ3(Context *ctx, const TermPtr &term, Obj * args, bool eval_block) {
-//    ASSERT(term);
-//    ASSERT(term->Left());
-//    ASSERT(term->Right());
-//
-//    return Obj::CreateBool(Eval(ctx, term->Left(), args, eval_block)->op_duck_test(Eval(ctx, term->Right(), args, eval_block), true));
-//}
-//
-//ObjPtr Context::op_TYPE_NE(Context *ctx, const TermPtr &term, Obj * args, bool eval_block) {
-//    ASSERT(term);
-//    ASSERT(term->Left());
-//    ASSERT(term->Right());
-//    if (isTypeName(term->Right()->GetFullName())) {
-//        return Obj::CreateBool(!Eval(ctx, term->Left(), args, eval_block)->op_class_test(term->Right()->GetFullName().c_str(), ctx));
-//    }
-//    return Obj::CreateBool(!Eval(ctx, term->Left(), args, eval_block)->op_class_test(Eval(ctx, term->Right(), args, eval_block), ctx));
-//}
-//
-//ObjPtr Context::op_TYPE_NE2(Context *ctx, const TermPtr &term, Obj * args, bool eval_block) {
-//    ASSERT(term);
-//    ASSERT(term->Left());
-//    ASSERT(term->Right());
-//
-//    return Obj::CreateBool(!Eval(ctx, term->Left(), args, eval_block)->op_duck_test(Eval(ctx, term->Right(), args, eval_block), false));
-//}
-//
-//ObjPtr Context::op_TYPE_NE3(Context *ctx, const TermPtr &term, Obj * args, bool eval_block) {
-//    ASSERT(term);
-//    ASSERT(term->Left());
-//    ASSERT(term->Right());
-//
-//    return Obj::CreateBool(!Eval(ctx, term->Left(), args, eval_block)->op_duck_test(Eval(ctx, term->Right(), args, eval_block), true));
-//}
-//
-///*
-// *
-// */
-//ObjPtr Context::op_RSHIFT(Context *ctx, const TermPtr &term, Obj * args, bool eval_block) {
-//    LOG_RUNTIME("RSHIFT Not implemented!");
-//
-//    return nullptr;
-//}
-//
-//ObjPtr Context::op_LSHIFT(Context *ctx, const TermPtr &term, Obj * args, bool eval_block) {
-//    LOG_RUNTIME("LSHIFT Not implemented!");
-//
-//    return nullptr;
-//}
-//
-//ObjPtr Context::op_RSHIFT_(Context *ctx, const TermPtr &term, Obj * args, bool eval_block) {
-//    LOG_RUNTIME("RSHIFT_ Not implemented!");
-//
-//    return nullptr;
-//}
-//
-//ObjPtr Context::op_LSHIFT_(Context *ctx, const TermPtr &term, Obj * args, bool eval_block) {
-//    LOG_RUNTIME("LSHIFT_ Not implemented!");
-//
-//    return nullptr;
-//}
-//
-//ObjPtr Context::op_RRSHIFT(Context *ctx, const TermPtr &term, Obj * args, bool eval_block) {
-//    LOG_RUNTIME("RRSHIFT Not implemented!");
-//
-//    return nullptr;
-//}
-//
-//ObjPtr Context::op_RRSHIFT_(Context *ctx, const TermPtr &term, Obj * args, bool eval_block) {
-//    LOG_RUNTIME("RRSHIFT_ Not implemented!");
-//
-//    return nullptr;
-//}
-//
-//ObjPtr Context::op_SPACESHIP(Context *ctx, const TermPtr &term, Obj * args, bool eval_block) {
-//    LOG_RUNTIME("SPACESHIP Not implemented!");
-//
-//    return nullptr;
-//}
-//
-///*
-// *
-// *
-// */
-//
-//ObjPtr eval_int(Context *ctx, const TermPtr &term, Obj * args, bool eval_block, ObjType type) {
-//
-//    ObjPtr ret = Obj::CreateType(type, type, true);
-//    if (term->Right()) {
-//        ret->m_return_obj = Context::CreateRVal(ctx, term->Right(), args, eval_block, Context::CatchType::CATCH_NONE);
-//        //        ret->push_back(Obj::Arg(Context::CreateRVal(ctx, term->Right(), args, Context::CatchType::CATCH_NONE)));
-//    } else {
-//        ret->m_return_obj = Obj::CreateNone();
-//        //        ret->push_back(Obj::CreateNone());
-//    }
-//    ASSERT(ret);
-//    throw Return(ret);
-//}
-//
-//ObjPtr Context::eval_INT_PLUS(Context *ctx, const TermPtr &term, Obj * args, bool eval_block) {
-//    return eval_int(ctx, term, args, eval_block, ObjType::RetPlus);
-//}
-//
-//ObjPtr Context::eval_INT_MINUS(Context *ctx, const TermPtr &term, Obj * args, bool eval_block) {
-//    return eval_int(ctx, term, args, eval_block, ObjType::RetMinus);
-//}
-//
-//ObjPtr Context::eval_INT_REPEAT(Context *ctx, const TermPtr &term, Obj * args, bool eval_block) {
-//    LOG_RUNTIME("eval_INT_REPEAT '%s' Not implemented!", term->m_text.c_str());
-//    return nullptr;
-//}
-//
-//ObjPtr Context::CallBlock(Context *ctx, const TermPtr &block, Obj * local_vars, bool eval_block, CatchType type_catch, bool *has_interrupt) {
-//    if (has_interrupt) {
-//        *has_interrupt = false;
-//    }
-//
-//    bool call_else = !block->m_follow.empty();
-//    ObjPtr result = Obj::CreateNone();
-//    TermID auto_type = TermID::NONE;
-//
-//    if (block->isBlock()) {
-//        auto_type = block->getTermID();
-//    }
-//
-//    try {
-//
-//        if (!block->m_block.empty()) {
-//
-//            for (size_t i = 0; i < block->m_block.size(); i++) {
-//                if (block->m_block[i]->isBlock()) {
-//                    //                    LOG_DEBUG("NS %s (%d)", block->m_block[i]->m_class.c_str(), (int)ctx->m_ns_stack.size());
-//                    //                    bool is_ns = block->m_block[i]->m_namespace;
-//                    try {
-//                        result = CallBlock(ctx, block->m_block[i], local_vars, eval_block, CatchType::CATCH_AUTO, has_interrupt);
-//                    } catch (...) {
-//                        //                        if (is_ns) {
-//                        //                            ctx->m_runtime->NamespacePop();
-//                        //                        }
-//                        throw;
-//                    }
-//                    //                    if (is_ns) {
-//                    //                        ctx->m_runtime->NamespacePop();
-//                    //                    }
-//                } else {
-//                    result = Eval(ctx, block->m_block[i], local_vars, eval_block, CatchType::CATCH_NONE);
-//                }
-//            }
-//
-//        } else {
-//            if (block->isBlock()) {
-//                //                LOG_DEBUG("NS %s (%d)", block->m_class.c_str(), (int)ctx->m_ns_stack.size());
-//                //                bool is_ns = ctx->m_runtime->NamespacePush(block->m_class);
-//                try {
-//                    result = CallBlock(ctx, block, local_vars, eval_block, CatchType::CATCH_AUTO, has_interrupt);
-//                } catch (...) {
-//                    //                    if (is_ns) {
-//                    //                        ctx->m_runtime->NamespacePop();
-//                    //                    }
-//                    throw;
-//                }
-//                //                if (is_ns) {
-//                //                    ctx->m_runtime->NamespacePop();
-//                //                }
-//            } else {
-//                result = Eval(ctx, block, local_vars, eval_block, CatchType::CATCH_NONE);
-//            }
-//        }
-//
-//    } catch (Return &obj) {
-//
-//        call_else = false;
-//        if (has_interrupt) {
-//            *has_interrupt = true;
-//        }
-//
-//        ASSERT(obj.m_obj);
-//        ASSERT(obj.m_obj->m_return_obj);
-//
-//        if (type_catch == CatchType::CATCH_NONE || auto_type == TermID::NONE || (type_catch == CatchType::CATCH_AUTO && auto_type == TermID::BLOCK)) {
-//            throw;
-//        } else if (auto_type == TermID::BLOCK_PLUS) {
-//            if ((type_catch == CatchType::CATCH_PLUS || type_catch == CatchType::CATCH_AUTO)
-//                    && obj.m_obj->m_var_type_current == ObjType::RetPlus) {
-//                return obj.m_obj->m_return_obj;
-//            }
-//            throw;
-//        } else if (auto_type == TermID::BLOCK_MINUS) {
-//            if ((type_catch == CatchType::CATCH_MINUS || type_catch == CatchType::CATCH_AUTO)
-//                    && obj.m_obj->m_var_type_current == ObjType::RetMinus) {
-//                return obj.m_obj->m_return_obj;
-//            }
-//            throw;
-//        } else if ((type_catch == CatchType::CATCH_ALL ||
-//                (type_catch == CatchType::CATCH_AUTO && auto_type == TermID::BLOCK_TRY))
-//                && !block->m_type) { // Если есть фильтр для типа
-//            // Тип данных при возврате не соответствует фильтру, пробросить исключение дальше
-//            bool is_return = false;
-//            //            for (size_t i = 0; i < block->m_type_allowed.size(); i++) {
-//            //                if (obj.m_obj->m_return_obj->op_class_test(block->m_type_allowed[i]->getText().c_str(), ctx)) {
-//            //                    is_return = true;
-//            //                    break;
-//            //                }
-//            //            }
-//            if (!is_return) {
-//                throw;
-//            }
-//        }
-//
-//        result = obj.m_obj->m_return_obj;
-//
-//    } catch (std::exception &obj) {
-//
-//        call_else = false;
-//        if (type_catch == CatchType::CATCH_NONE || (type_catch == CatchType::CATCH_AUTO && auto_type == TermID::BLOCK)) {
-//            throw;
-//        }
-//
-//        if (has_interrupt) {
-//            *has_interrupt = true;
-//        }
-//        result = Obj::CreateType(ObjType::Error, ObjType::Error, true);
-//        result->m_value = std::string(obj.what());
-//    }
-//
-//    if (call_else) {
-//        //        
-//        //        if(block->m_follow.size()!=1){
-//        //            LOG_DEBUG("block->m_follow.size() %d", (int)block->m_follow.size());
-//        //            for (auto &elem : block->m_follow) {
-//        //                LOG_DEBUG("%s", elem->toString().c_str());
-//        //            }
-//        //        }
-//        //        
-//        //        ASSERT(block->m_follow.size() == 1);
-//
-//        if (block->isBlock()) {
-//            result = CallBlock(ctx, block->m_follow[0], local_vars, eval_block, CatchType::CATCH_AUTO, has_interrupt);
-//        } else {
-//            result = Eval(ctx, block->m_follow[0], local_vars, eval_block, CatchType::CATCH_NONE);
-//        }
-//
-//        //        result = Eval(ctx, block->m_follow[0], local_vars, eval_block, CatchType::CATCH_AUTO);
-//    }
-//
-//    return result;
-//}
 
 std::string RunTime::GetLastErrorMessage() {
 #ifndef _MSC_VER
@@ -1653,143 +353,6 @@ void * RunTime::GetNativeAddr(const char *name, void * handle) {
     return GetDirectAddressFromLibrary(handle, name);
 }
 
-//void Context::CleanUp() {
-//    auto iter = begin();
-//    while (iter != end()) {
-//        if (iter->second.expired()) {
-//            iter = ListType::erase(iter);
-//        } else {
-//
-//            iter++;
-//        }
-//    }
-//}
-//
-//ObjPtr Context::FindSessionTerm(const char *name, bool current_only) {
-//    CleanUp();
-//    auto found = find(MakeName(name));
-//    while (found != end()) {
-//        ObjPtr obj = found->second.lock();
-//        if (obj) {
-//            return obj;
-//        }
-//        ListType::erase(found);
-//        found++;
-//    }
-//    return nullptr;
-//}
-//
-///*
-// * обращение по имени - доступ только к локальному объекту (разрешение имени во
-// * время компиляции). обращение как к сессионному обекту - если есть локальный,
-// * будет локальный (разрешение имени во время компиляции), иначе вернется
-// * сессионный или будет ошибка если объект отсутствует. обращение как к
-// * глобальному обекту - если есть локальный, будет локальный (разрешение имени
-// * во время компиляции), иначе вернется сессионный, иначе вернется глобальный
-// * или будет ошибка если объект отсутствует. Можно всегда общащсять как к
-// * глобальному объекту, а доступ будет в зависимости от наличия локальных или
-// * сессионных переменных/объектов.
-// */
-//ObjPtr Context::FindTerm(const std::string name) {
-//    ObjPtr result = FindSessionTerm(name.c_str());
-//    if (!result && isTypeName(name)) {
-//        return m_runtime->GetTypeFromString(name);
-//    }
-//
-//    if (!result) {
-//        result = GetObject(name.c_str());
-//    }
-//
-//    if (result && (isLocalAnyName(name.c_str()) || isLocalName(name))) {
-//
-//        return result;
-//    }
-//    return GetObject(name);
-//}
-//
-////ObjPtr Context::FindGlobalTerm(const std::string name) {
-////    auto found = m_terms->find(MakeName(name));
-////    if (found != m_terms->end()) {
-////        return found->second;
-////    }
-////    return GetObject(name);
-////}
-//
-//ObjPtr Context::GetTerm(const std::string name, bool is_ref) {
-//    if (isTypeName(name)) {
-//
-//        return m_runtime->GetTypeFromString(name);
-//    }
-//    return FindTerm(name);
-//}
-//
-//ObjPtr Context::CreateLVal(Context *ctx, TermPtr term, Obj * args) {
-//
-//    ASSERT(ctx);
-//    ASSERT(term);
-//    ASSERT(!term->m_text.empty());
-//
-//    ctx->CleanUp();
-//
-//    auto iter = ctx->find(term->GetFullName());
-//
-//    if (iter != ctx->end()) {
-//        ObjPtr obj = (*iter).second.lock();
-//        if (obj) {
-//            return obj;
-//        }
-//    }
-//
-//    //    if (ctx->select(term->m_text).complete()) {
-//    //        // Объект должен отсутствовать
-//    //        NL_PARSER(term, "Object '%s' already exists!", term->m_text.c_str());
-//    //    }
-//
-//    ObjPtr result = Obj::CreateNone();
-//    result->m_var_is_init = false;
-//    result->m_var_name = term->GetFullName();
-//
-//    *const_cast<TermPtr *> (&result->m_prototype) = term;
-//
-//    TermPtr type = term->GetType();
-//    if (term->isCall()) { //term->IsFunction() || 
-//
-//        result->m_var_type_current = ObjType::Function;
-//        result->m_var_type_fixed = result->m_var_type_current;
-//        *const_cast<TermPtr *> (&result->m_prototype) = term;
-//    } else if (type) {
-//        result->m_var_type_current = typeFromString(type->getText().c_str(), ctx->m_runtime.get());
-//        result->m_var_type_fixed = result->m_var_type_current;
-//        if (result->is_tensor_type()) {
-//            std::vector<int64_t> dims;
-//            if (type->m_dims.size()) {
-//                for (size_t i = 0; i < type->m_dims.size(); i++) {
-//                    NL_CHECK(type->m_dims[i]->getName().empty(), "Dimension named not supported!");
-//                    ObjPtr temp = CreateRVal(ctx, type->m_dims[i], true);
-//                    if (!temp) {
-//                        NL_PARSER(type, "Term not found!");
-//                    }
-//                    if (!temp->is_integer()) {
-//
-//                        NL_PARSER(type, "Term type not integer!");
-//                    }
-//                    dims.push_back(temp->GetValueAsInteger());
-//                }
-//            }
-//            result->m_tensor = torch::empty(dims, toTorchType(result->m_var_type_current));
-//        }
-//    }
-//    if (!isTypeName(term->GetFullName())) {
-//
-//        ctx->RegisterObject(result);
-//    }
-//    return result;
-//}
-//
-//ObjPtr Context::CreateRVal(Context *ctx, const char *source, Obj * local_vars, bool eval_block, CatchType no_catch) {
-//    return CreateRVal(ctx, Parser::ParseTerm(source, ctx->m_runtime->m_macro), local_vars, eval_block, no_catch);
-//}
-//
 //void Context::ItemTensorEval_(torch::Tensor &tensor, c10::IntArrayRef shape, std::vector<Index> &ind, const int64_t pos,
 //        ObjPtr &obj, ObjPtr & args) {
 //    ASSERT(pos < static_cast<int64_t> (ind.size()));
@@ -2107,133 +670,7 @@ void * RunTime::GetNativeAddr(const char *name, void * handle) {
 //                return ctx->m_runtime->OpLoadModule(term);
 //            }
 //
-//            //            if (!ctx->m_runtime->CkeckLoadModule(term)) {
-//            //                NL_PARSER(term, "The '%s' module must be preloaded using the '%s()' command!", term->getText().c_str(), term->getText().c_str());
-//            //            }
 //
-//
-//
-//
-//            //            if (isModule(term->GetFullName())) {
-//            //                if (term->isCall()) {
-//            //                    /*
-//            //                     * Операцию с модулем можно конкреттизировать с помощью аргумента
-//            //                     * \module() -  загрузка модуля и импорт всех его объектов
-//            //                     * \module("filter*") -  загрузка модуля и импорт всех его объектов по заданной маске в переданой строке
-//            //                     * \module("func;ns::*;ns2::*") -  несколько масок записываются через точку с запятой
-//            //                     * \module(@true) - убедиться, что модуль загружен. Если модуль не загружен, создать ошибку
-//            //                     * \module(@false) - проверить, загружен ли модуль без его реальной загрузки и вернуть значение
-//            //                     * \module(_) -  Выгрузка модуля
-//            //                     * 
-//            //                     * \\dsl() -  Единственный встроенный модуль
-//            //                     */
-//            //
-//            //                    if (term->size() > 1) {
-//            //                        NL_PARSER(term, "Only one argument can be specified for a load module!");
-//            //                    }
-//            //
-//            //                    std::vector<std::string> filter;
-//            //                    if (term->size()) {
-//            //                        ASSERT(term->size() == 1);
-//            //                        args = CreateRVal(ctx, term->at(0).second, local_vars);
-//            //                        ASSERT(args);
-//            //
-//            //                        auto found = ctx->m_runtime->m_modules.find(term->getText());
-//            //                        if (args->is_bool_type()) {
-//            //
-//            //                            if (args->GetValueAsBoolean() && found == ctx->m_runtime->m_modules.end()) {
-//            //                                NL_PARSER(term, "Module %s not loaded!", term->getText().c_str());
-//            //                            }
-//            //                            return found == ctx->m_runtime->m_modules.end() ? Obj::Yes() : Obj::No();
-//            //
-//            //                        } else if (args->is_none_type()) {
-//            //
-//            //                            result = (found == ctx->m_runtime->m_modules.end() ? Obj::Yes() : Obj::No());
-//            //                            if (found != ctx->m_runtime->m_modules.end()) {
-//            //                                ctx->m_runtime->m_modules.erase(found);
-//            //                            }
-//            //
-//            //                            ctx->CleanUp();
-//            //
-//            //                            return result;
-//            //
-//            //                        } else if (args->is_string_type()) {
-//            //                            filter = Macro::SplitString(args->GetValueAsString().c_str(), ";");
-//            //                        }
-//            //                    }
-//            //
-//            //
-//            //                    if (!ctx->m_runtime->CheckOrLoadModule(term->GetFullName())) {
-//            //                        LOG_RUNTIME("Fail load module %s!", ExtractModuleName(term->GetFullName().c_str()).c_str());
-//            //                    }
-//            //
-//            //
-//            //                    size_t count = 0;
-//            //                    auto module = ctx->m_runtime->m_modules[term->getText()];
-//            //
-//            //                    if (filter.empty()) {
-//            //                        for (size_t i = 0; i < module->size(); i++) {
-//            //                            ctx->push_front(module->at(i));
-//            //                            count++;
-//            //                        }
-//            //                    } else {
-//            //
-//            //                        LOG_WARNING("Import of objects by mask does not work correctly!");
-//            //
-//            //                        std::vector<std::regex> regs;
-//            //                        for (auto &elem : filter) {
-//            //                            try {
-//            //                                //                            LOG_DEBUG("From: %s", elem.c_str());
-//            //
-//            //                                //                            if(elem.rfind("::") != 0) {
-//            //                                //                                elem.insert(0, "::");
-//            //                                //                            }
-//            //                                //                            elem.insert(0, term->getText());
-//            //
-//            //                                elem = std::regex_replace(elem, std::regex("@."), "@@.");
-//            //                                elem = std::regex_replace(elem, std::regex("@*"), "(.)*");
-//            //                                //                            LOG_DEBUG("To: %s", elem.c_str());
-//            //                                regs.push_back(std::regex(elem));
-//            //                            } catch (const std::regex_error &err) {
-//            //                                LOG_RUNTIME("Regular expression for '%s' error '%s'!", elem.c_str(), err.what());
-//            //                            }
-//            //
-//            //                        }
-//            //
-//            //                        for (size_t i = 0; i < module->size(); i++) {
-//            //                            for (auto &elem : regs) {
-//            //                                //                            LOG_DEBUG("Test: %s", module->at(i).first.c_str());
-//            //                                if (std::regex_match(module->at(i).first, elem)) {
-//            //                                    //                                LOG_DEBUG("Mask: %s", module->at(i).first.c_str());
-//            //                                    ctx->push_front(module->at(i));
-//            //                                    count++;
-//            //                                    break;
-//            //                                }
-//            //                            }
-//            //                        }
-//            //                    }
-//            //
-//            //                    return Obj::CreateValue(count, ObjType::Integer);
-//            //
-//            //                } else {
-//            //                    std::string name = ExtractName(term->GetFullName());
-//            //                    if (isSystemName(name)) {
-//            //                        std::string module = ExtractModuleName(term->GetFullName().c_str());
-//            //                        auto found = ctx->m_runtime->m_modules.find(module);
-//            //                        if (found != ctx->m_runtime->m_modules.end()) {
-//            //                            return CheckSystemField(found->second.get(), name);
-//            //                        } else {
-//            //                            NL_PARSER(term, "Module %s not loaded!", name.c_str());
-//            //                        }
-//            //                    }
-//            //                }
-//            //            }
-//
-//            NL_PARSER(term, "Term '%s' !!!!!!!!!!!!!!!!!!!!!!!!!", term->GetFullName().c_str());
-//
-//            //            if (var_name.empty() && isModule(term->GetFullName()) && term->isCall()) {
-//            //
-//            //            }
 //
 //        case TermID::LOCAL:
 //        case TermID::STATIC:
@@ -2329,189 +766,7 @@ void * RunTime::GetNativeAddr(const char *name, void * handle) {
 //
 //                return result;
 //
-//                //            } else if (term->m_text.compare("@@") == 0) {
-//                //
-//                //                if (term->m_is_call) {
-//                //
-//                //                    Obj args(ctx, term, true, local_vars);
-//                //
-//                //                    if (args.size() == 0 || !args.at(0).second->is_string_type()) {
-//                //                        LOG_RUNTIME("Requires a filename in the first argument! %s", args.toString().c_str());
-//                //                    }
-//                //
-//                //                    return ctx->ExecFile(args.at(0).second->GetValueAsString().c_str(), &args);
-//                //
-//                //                } else {
-//                //                    return ctx->m_main_module->shared();
-//                //                }
-//                //
-//                //            } else if (term->m_text.compare("@$") == 0) {
-//                //
-//                //                return ctx->m_terms->shared();
-//                //
-//                //            } else if (term->m_text.compare("@*") == 0) {
-//                //                if (ctx->m_runtime) {
-//                //                    return ctx->m_runtime->m_args;
-//                //                } else {
-//                //                    return Obj::CreateType(ObjType::Dictionary, ObjType::Dictionary, true);
-//                //                }
 //            }
-//
-//
-//            //            if (isModule(term->GetFullName()) && term->m_right) {
-//            //                bool is_call = term->m_is_call;
-//            //                std::string name = term->m_text;
-//            //                TermPtr field = term->m_right;
-//            //                while (field) {
-//            //                    if (name.compare(term->m_text) == 0) {
-//            //                        name += "::";
-//            //                    } else {
-//            //                        name += ".";
-//            //                    }
-//            //                    name += field->m_text;
-//            //                    term = field;
-//            //                    field = field->m_right;
-//            //                }
-//            //                term->m_text = name;
-//            //                term->m_is_call = is_call;
-//            //            }
-//            //
-//            //            if (isModule(term->GetFullName())) { // !isVariableName(term->GetFullName())
-//            //                if (term->isCall()) {
-//            //                    /*
-//            //                     * Операцию с модулем можно конкреттизировать с помощью аргумента
-//            //                     * @module() -  загрузка модуля и импорт всех его объектов
-//            //                     * @module("filter*") -  загрузка модуля и импорт всех его объектов по заданной маске в переданой строке
-//            //                     * @module("func;ns::*;ns2::*") -  несколько масок записываются через точку с запятой
-//            //                     * @module(\true) - убедиться, что модуль загружен. Если модуль не загружен, создать ошибку
-//            //                     * @module(\false) - проверить, загружен ли модуль без его реальной загрузки и вернуть значение
-//            //                     * @module(_) -  Выгрузка модуля
-//            //                     * 
-//            //                     * @dsl() -  Единственный встроенный модуль
-//            //                     */
-//            //
-//            //                    //                    if(term->GetFullName().compare("@dsl")==0) {
-//            //                    //                        std::string str;
-//            //                    //
-//            //                    //                        for (int i = 0; i < ::newlang_dsl_size; i++) {
-//            //                    //                            str += ::newlang_dsl_arr[i];
-//            //                    //                            str += "\n";
-//            //                    //                        }
-//            //                    //
-//            //                    //                        m_macros.clear();
-//            //                    //                        Parser::ParseAllMacros(str, &m_macros);
-//            //                    //
-//            //                    //                        result->m_var_type_current = ObjType::Dictionary;
-//            //                    //                        result->m_var_is_init = true;
-//            //                    //
-//            //                    //                        for (auto &elem : m_macros) {
-//            //                    //                            result->push_back(Obj::CreateString(elem.first));
-//            //                    //                        }
-//            //                    //                        return result;
-//            //                    //                    }
-//            //
-//            //                    if (term->size() > 1) {
-//            //                        NL_PARSER(term, "Only one argument can be specified for a load module!");
-//            //                    }
-//            //
-//            //                    std::vector<std::string> filter;
-//            //                    if (term->size()) {
-//            //                        ASSERT(term->size() == 1);
-//            //                        args = CreateRVal(ctx, term->at(0).second, local_vars);
-//            //                        ASSERT(args);
-//            //
-//            //                        auto found = ctx->m_modules.find(term->getText());
-//            //                        if (args->is_bool_type()) {
-//            //
-//            //                            if (args->GetValueAsBoolean() && found == ctx->m_modules.end()) {
-//            //                                NL_PARSER(term, "Module %s not loaded!", term->getText().c_str());
-//            //                            }
-//            //                            return found == ctx->m_modules.end() ? Obj::Yes() : Obj::No();
-//            //
-//            //                        } else if (args->is_none_type()) {
-//            //
-//            //                            result = (found == ctx->m_modules.end() ? Obj::Yes() : Obj::No());
-//            //                            if (found != ctx->m_modules.end()) {
-//            //                                ctx->m_modules.erase(found);
-//            //                            }
-//            //
-//            //                            ctx->CleanUp();
-//            //
-//            //                            return result;
-//            //
-//            //                        } else if (args->is_string_type()) {
-//            //                            filter = SplitString(args->GetValueAsString().c_str(), ";");
-//            //                        }
-//            //                    }
-//            //
-//            //
-//            //                    if (!ctx->CheckOrLoadModule(term->GetFullName())) {
-//            //                        LOG_RUNTIME("Fail load module %s!", ExtractModuleName(term->GetFullName().c_str()).c_str());
-//            //                    }
-//            //
-//            //
-//            //                    size_t count = 0;
-//            //                    auto module = ctx->m_modules[term->getText()];
-//            //
-//            //                    if (filter.empty()) {
-//            //                        for (size_t i = 0; i < module->size(); i++) {
-//            //                            ctx->push_front(module->at(i));
-//            //                            count++;
-//            //                        }
-//            //                    } else {
-//            //
-//            //                        LOG_WARNING("Import of objects by mask does not work correctly!");
-//            //
-//            //                        std::vector<std::regex> regs;
-//            //                        for (auto &elem : filter) {
-//            //                            try {
-//            //                                //                            LOG_DEBUG("From: %s", elem.c_str());
-//            //
-//            //                                //                            if(elem.rfind("::") != 0) {
-//            //                                //                                elem.insert(0, "::");
-//            //                                //                            }
-//            //                                //                            elem.insert(0, term->getText());
-//            //
-//            //                                elem = std::regex_replace(elem, std::regex("@."), "@@.");
-//            //                                elem = std::regex_replace(elem, std::regex("@*"), "(.)*");
-//            //                                //                            LOG_DEBUG("To: %s", elem.c_str());
-//            //                                regs.push_back(std::regex(elem));
-//            //                            } catch (const std::regex_error &err) {
-//            //                                LOG_RUNTIME("Regular expression for '%s' error '%s'!", elem.c_str(), err.what());
-//            //                            }
-//            //
-//            //                        }
-//            //
-//            //                        for (size_t i = 0; i < module->size(); i++) {
-//            //                            for (auto &elem : regs) {
-//            //                                //                            LOG_DEBUG("Test: %s", module->at(i).first.c_str());
-//            //                                if (std::regex_match(module->at(i).first, elem)) {
-//            //                                    //                                LOG_DEBUG("Mask: %s", module->at(i).first.c_str());
-//            //                                    ctx->push_front(module->at(i));
-//            //                                    count++;
-//            //                                    break;
-//            //                                }
-//            //                            }
-//            //                        }
-//            //                    }
-//            //
-//            //                    return Obj::CreateValue(count, ObjType::Integer);
-//            //
-//            //                } else {
-//            //                    std::string name = ExtractName(term->GetFullName());
-//            //                    if (isSystemName(name)) {
-//            //                        std::string module = ExtractModuleName(term->GetFullName().c_str());
-//            //                        auto found = ctx->m_modules.find(module);
-//            //                        if (found != ctx->m_modules.end()) {
-//            //                            return CheckSystemField(found->second.get(), name);
-//            //                        } else {
-//            //                            NL_PARSER(term, "Module %s not loaded!", name.c_str());
-//            //                        }
-//            //                    }
-//            //                }
-//            //            }
-//
-//
 //
 //
 //            if (isLocalName(term->m_text.c_str())) {
@@ -3048,108 +1303,105 @@ void * RunTime::GetNativeAddr(const char *name, void * handle) {
 //    //    return new_class;
 //}
 //
-//ObjPtr Context::GetObject(const std::string name) {
-//    std::string str(name);
-//    if (str.size() && (str[0] == '$')) {
-//        str = str.substr(1);
-//    }
-//    auto found = find(str);
-//    if (found != end()) {
-//        return found->second.lock();
-//    }
-//    //    auto func = m_runtime->m_funcs.find(str);
-//    //    if (func != m_runtime->m_funcs.end()) {
-//    //        if (at::holds_alternative<ObjPtr>(func->second)) {
-//    //            return at::get<ObjPtr>(func->second);
-//    //        }
-//    //        ASSERT(at::holds_alternative<std::vector < ObjPtr >> (func->second));
-//    //        return at::get<std::vector < ObjPtr >> (func->second)[0];
-//    //    }
-//
-//    return m_runtime->NameGet(str.c_str());
-//}
-//
-//ObjPtr Context::CreateConvertTypeFunc(const char *prototype, void *func, ObjType type) {
-//    ASSERT(prototype);
-//    ASSERT(func);
-//
-//    std::string func_dump(prototype);
-//    func_dump += " := { };";
-//
-//    TermPtr proto = Parser::ParseString(func_dump, m_runtime->m_macro);
-//    ObjPtr obj =
-//            Obj::CreateFunc(this, proto->Left(), type,
-//            proto->Left()->getName().empty() ? proto->Left()->getText() : proto->Left()->getName());
-//    obj->m_var = func;
-//
-//    return obj;
-//}
-//
-//ObjPtr Context::ExecFile(const std::string &filename, Obj *args, CatchType int_catch) {
-//    std::string source = ReadFile(filename.c_str());
-//    if (source.empty()) {
-//        LOG_RUNTIME("Empty source or file '%s' not found!", filename.c_str());
-//    }
-//    return ExecStr(source, args, int_catch);
-//}
-//
-//ObjPtr Context::ExecStr(const std::string str, Obj *args, CatchType int_catch) {
-//
-//    m_runtime->m_main = Parser::ParseString(str, m_runtime->m_macro, nullptr, m_runtime->m_diag, m_runtime);
-//    m_runtime->AstAnalyze(m_runtime->m_main, m_runtime->m_main);
-//
-//    ObjPtr temp;
-//    if (args == nullptr) {
-//        temp = Obj::CreateNone();
-//        args = temp.get();
-//    }
-//    return Eval(this, m_runtime->m_main, args, true, int_catch);
-//}
-//
-//void Context::clear_() {
-//    Variable::clear_();
-//
-//    m_runtime->m_modules.clear();
-//
-//
-//    //    ASSERT(m_terms);
-//    //    m_terms->clear_();
-//    //    m_terms->m_var_is_init = true;
-//    //    m_terms->m_var_type_current = ObjType::Module;
-//}
 
 /*
  * 
  * 
  */
-//ObjPtr Runner::Run(const std::string_view str, Obj *args) {
-//    ASSERT(m_runtime);
-//    TermPtr ast = m_runtime->MakeAst(str.begin());
-//    return Run(ast);
-//}
-
-ObjPtr Context::Run(TermPtr term, Obj *args) {
+ObjPtr Context::Run(TermPtr term, Context *runner) {
     if (term->isBlock()) {
-        m_latter = EvalBlock_(term, term);
+        if (!runner) {
+            LOG_RUNTIME("Can't calculate '%s' in static mode!", term->toString().c_str());
+        }
+        runner->m_latter = runner->EvalBlock_(term, term);
     } else {
-        m_latter = EvalTerm(term, this);
+        ObjPtr result = EvalTerm(term, runner);
+        if (runner) {
+            runner->m_latter = result;
+        } else {
+            return result;
+        }
     }
-    return m_latter;
+    return runner->m_latter;
+}
+
+static bool HasReThrow(TermPtr &block, ScopeStack &stack, Obj &obj) {
+    ASSERT(isInterrupt(obj.getType()));
+    ASSERT(block->m_id == TermID::BLOCK || block->m_id == TermID::BLOCK_PLUS
+            || block->m_id == TermID::BLOCK_MINUS || block->m_id == TermID::BLOCK_TRY);
+
+    if (obj.m_value.empty()) {
+        // Non named interrupt
+        if (obj.getType() == ObjType::RetPlus && (block->m_id == TermID::BLOCK_PLUS || block->m_id == TermID::BLOCK_TRY)) {
+            return false;
+        } else if (obj.getType() == ObjType::RetMinus && (block->m_id == TermID::BLOCK_MINUS || block->m_id == TermID::BLOCK_TRY)) {
+            return false;
+        }
+
+    } else {
+        // Named interrupt
+
+        if (obj.m_value.compare("::") == 0) {
+            // Global scope - always rethrow
+            return true;
+        }
+        std::string ns = stack.MakeNamespace(0, true);
+        if (ns.rfind(obj.m_value) != std::string::npos) {
+            return false;
+        }
+
+    }
+    return true;
 }
 
 ObjPtr Context::EvalBlock_(TermPtr &block, TermPtr proto) {
     ASSERT(block->isBlock());
     m_latter = getNoneObj();
+    ScopePush scope_block(*this, block, &proto->m_int_vars);
     try {
-        ScopePush scope_block(*this, proto, &proto->m_int_vars);
-        for (auto &elem : block->m_block) {
-            m_latter = Run(elem);
+        size_t i = 0;
+        while (i < block->m_block.size()) {
+
+            m_latter = Run(block->m_block[i], this);
+
+            //            LOG_DEBUG("iter: %d, value: %s", (int) i, m_latter->toString().c_str());
+
+            if (isInterrupt(m_latter->getType())) {
+                ASSERT(!m_latter->m_value.empty());
+                if (CheckInterrupt(m_latter->m_value)) {
+                    if (m_latter->getType() == ObjType::RetPlus) {
+                        m_latter = m_latter->m_return_obj;
+                        break;
+                    } else if (m_latter->getType() == ObjType::RetMinus) {
+                        m_latter = m_latter->m_return_obj;
+                        i = 0;
+                        continue;
+                    } else {
+                        LOG_RUNTIME("Interrupt type '%s' not implemented!", toString(m_latter->getType()));
+                    }
+                }
+            }
+            i++;
         }
+
     } catch (IntPlus &plus) {
+
+        ASSERT(plus.m_obj);
+        if (HasReThrow(block, *this, *plus.m_obj)) {
+            throw;
+        }
+        m_latter = plus.m_obj->m_return_obj;
 
     } catch (IntMinus &minus) {
 
+        ASSERT(minus.m_obj);
+        if (HasReThrow(block, *this, *minus.m_obj)) {
+            throw;
+        }
+        m_latter = minus.m_obj->m_return_obj;
+
     } catch (...) {
+
         throw;
     }
     return m_latter;
@@ -3351,6 +1603,7 @@ ObjPtr Context::Call(Context *runner, Obj &obj, TermPtr &term) {
         if (term->name(i).empty()) {
             args->push_back(EvalTerm((*term)[i].second, runner));
         } else {
+
             args->push_back(EvalTerm((*term)[i].second, runner), term->name(i).c_str());
         }
     }
@@ -3399,30 +1652,9 @@ ObjPtr Context::Call(Context *runner, Obj &obj, Obj & args) {
     }
 
     ASSERT(!(obj.is_string_type() || obj.is_dictionary_type()));
+
     return obj.Clone();
 }
-
-//ObjPtr Runner::Call(Obj & obj, Obj *args) {
-//    if (obj.is_native()) {
-//        return CallNative_(obj, args);
-//    } else if (obj.is_function_type() || obj.is_type_name()) {
-//
-//        args->insert(args->begin(), std::pair<std::string, ObjPtr>("", obj));
-//        args->push_back(Obj::CreateValue(args->size()), "$#");
-//        args->push_back(args->Clone(), "$*");
-//
-//        if (obj.m_sequence) {
-//            return EvalBlock_(obj.m_sequence, obj.m_prototype);
-//        } else {
-//            ASSERT(at::holds_alternative<void *>(obj.m_var));
-//            FunctionBuildin * func_ptr = (FunctionBuildin *) at::get<void *>(obj.m_var);
-//            ASSERT(func_ptr);
-//            return (*func_ptr)(this, *args);
-//        }
-//    }
-//    ASSERT(!(obj.is_string_type() || obj.is_dictionary_type()));
-//    return obj.Clone();
-//}
 
 ObjPtr Context::CallNative_(Context *runner, Obj &obj, Obj * args) {
 
@@ -3452,16 +1684,13 @@ ObjPtr Context::CallNative_(Context *runner, Obj &obj, Obj * args) {
 
     if (!func_ptr) {
         LOG_RUNTIME("Dymanic load native address '%s'!", "NOT IMPLEMENTED");
-
-        //        func_ptr = LLVMSearchForAddressOfSymbol(m_func_mangle_name.empty() ? m_prototype->m_text.c_str() : m_func_mangle_name.c_str());
-        //        LOG_RUNTIME("Cannot get address of native name '%s'!", "NOT IMPLEMENTED");
     }
     //    NL_CHECK(func_ptr, "Fail load func name '%s' (%s) or fail load module '%s'!", m_prototype->m_text.c_str(),
     //            m_func_mangle_name.empty() ? m_prototype->m_text.c_str() : m_func_mangle_name.c_str(),
     //            m_module_name.empty() ? "none" : m_module_name.c_str());
 
-    //    bool is_ellipsis = (obj.m_prototype->size() && (*obj.m_prototype)[obj.m_prototype->size() - 1].second->getTermID() == TermID::ELLIPSIS);
-    //    size_t check_count = is_ellipsis ? obj.m_prototype->size() - 1 : obj.m_prototype->size();
+//    bool is_ellipsis = (obj.m_prototype->size() && (*obj.m_prototype)[obj.m_prototype->size() - 1].second->getTermID() == TermID::ELLIPSIS);
+//    size_t check_count = is_ellipsis ? obj.m_prototype->size() - 1 : obj.m_prototype->size();
 
     // Пропустить нулевой аргумент для нативных функций
     for (int i = 0; args && i < args->size(); i++) {
@@ -3476,11 +1705,11 @@ ObjPtr Context::CallNative_(Context *runner, Obj &obj, Obj * args) {
         ObjType type = (*args)[i].second->getTypeAsLimit();
         switch (type) {
             case ObjType::Bool:
-                //                if (pind < check_count) {
-                //                    NL_CHECK(!isDefaultType((*obj.m_prototype)[pind].second->m_type), "Undefined type arg '%s'", (*obj.m_prototype)[pind].second->toString().c_str());
-                //                    NL_CHECK(canCast(type, typeFromString((*obj.m_prototype)[pind].second->m_type, m_runtime.get())), "Fail cast from '%s' to '%s'",
-                //                            (*obj.m_prototype)[pind].second->m_type->asTypeString().c_str(), newlang::toString(type));
-                //                }
+//                if (pind < check_count) {
+//                    NL_CHECK(!isDefaultType((*obj.m_prototype)[pind].second->m_type), "Undefined type arg '%s'", (*obj.m_prototype)[pind].second->toString().c_str());
+//                    NL_CHECK(canCast(type, typeFromString((*obj.m_prototype)[pind].second->m_type, GetRT_(runner))), "Fail cast from '%s' to '%s'",
+//                            (*obj.m_prototype)[pind].second->m_type->asTypeString().c_str(), newlang::toString(type));
+//                }
                 m_args_type.push_back(RunTime::m_ffi_type_uint8);
                 temp.boolean = (*args)[i].second->GetValueAsBoolean();
                 m_args_val.push_back(temp);
@@ -3489,11 +1718,11 @@ ObjPtr Context::CallNative_(Context *runner, Obj &obj, Obj * args) {
             case ObjType::Int8:
             case ObjType::Char:
             case ObjType::Byte:
-                //                if (pind < check_count) {
-                //                    NL_CHECK(!isDefaultType((*obj.m_prototype)[pind].second->m_type), "Undefined type arg '%s'", (*obj.m_prototype)[pind].second->toString().c_str());
-                //                    NL_CHECK(canCast(type, typeFromString((*obj.m_prototype)[pind].second->m_type, m_runtime.get())), "Fail cast from '%s' to '%s'",
-                //                            (*obj.m_prototype)[pind].second->m_type->asTypeString().c_str(), newlang::toString(type));
-                //                }
+//                if (pind < check_count) {
+//                    NL_CHECK(!isDefaultType((*obj.m_prototype)[pind].second->m_type), "Undefined type arg '%s'", (*obj.m_prototype)[pind].second->toString().c_str());
+//                    NL_CHECK(canCast(type, typeFromString((*obj.m_prototype)[pind].second->m_type, GetRT_(runner))), "Fail cast from '%s' to '%s'",
+//                            (*obj.m_prototype)[pind].second->m_type->asTypeString().c_str(), newlang::toString(type));
+//                }
                 m_args_type.push_back(RunTime::m_ffi_type_sint8);
                 temp.integer = (*args)[i].second->GetValueAsInteger();
                 m_args_val.push_back(temp);
@@ -3501,11 +1730,11 @@ ObjPtr Context::CallNative_(Context *runner, Obj &obj, Obj * args) {
 
             case ObjType::Int16:
             case ObjType::Word:
-                //                if (pind < check_count) {
-                //                    NL_CHECK(!isDefaultType((*obj.m_prototype)[pind].second->m_type), "Undefined type arg '%s'", (*obj.m_prototype)[pind].second->toString().c_str());
-                //                    NL_CHECK(canCast(type, typeFromString((*obj.m_prototype)[pind].second->m_type, m_runtime.get())), "Fail cast from '%s' to '%s'",
-                //                            (*obj.m_prototype)[pind].second->m_type->m_text.c_str(), newlang::toString(type));
-                //                }
+//                if (pind < check_count) {
+//                    NL_CHECK(!isDefaultType((*obj.m_prototype)[pind].second->m_type), "Undefined type arg '%s'", (*obj.m_prototype)[pind].second->toString().c_str());
+//                    NL_CHECK(canCast(type, typeFromString((*obj.m_prototype)[pind].second->m_type, GetRT_(runner))), "Fail cast from '%s' to '%s'",
+//                            (*obj.m_prototype)[pind].second->m_type->m_text.c_str(), newlang::toString(type));
+//                }
                 m_args_type.push_back(RunTime::m_ffi_type_sint16);
                 temp.integer = (*args)[i].second->GetValueAsInteger();
                 m_args_val.push_back(temp);
@@ -3513,11 +1742,11 @@ ObjPtr Context::CallNative_(Context *runner, Obj &obj, Obj * args) {
 
             case ObjType::Int32:
             case ObjType::DWord:
-                //                if (pind < check_count) {
-                //                    NL_CHECK(!isDefaultType((*obj.m_prototype)[pind].second->m_type), "Undefined type arg '%s'", (*obj.m_prototype)[pind].second->toString().c_str());
-                //                    NL_CHECK(canCast(type, typeFromString((*obj.m_prototype)[pind].second->m_type, m_runtime.get())), "Fail cast from '%s' to '%s'",
-                //                            (*obj.m_prototype)[pind].second->m_type->m_text.c_str(), newlang::toString(type));
-                //                }
+//                if (pind < check_count) {
+//                    NL_CHECK(!isDefaultType((*obj.m_prototype)[pind].second->m_type), "Undefined type arg '%s'", (*obj.m_prototype)[pind].second->toString().c_str());
+//                    NL_CHECK(canCast(type, typeFromString((*obj.m_prototype)[pind].second->m_type, GetRT_(runner))), "Fail cast from '%s' to '%s'",
+//                            (*obj.m_prototype)[pind].second->m_type->m_text.c_str(), newlang::toString(type));
+//                }
                 m_args_type.push_back(RunTime::m_ffi_type_sint32);
                 temp.integer = (*args)[i].second->GetValueAsInteger();
                 m_args_val.push_back(temp);
@@ -3525,11 +1754,11 @@ ObjPtr Context::CallNative_(Context *runner, Obj &obj, Obj * args) {
 
             case ObjType::Int64:
             case ObjType::DWord64:
-                //                if (pind < check_count) {
-                //                    NL_CHECK(!isDefaultType((*obj.m_prototype)[pind].second->m_type), "Undefined type arg '%s'", (*obj.m_prototype)[pind].second->toString().c_str());
-                //                    NL_CHECK(canCast(type, typeFromString((*obj.m_prototype)[pind].second->m_type, m_runtime.get())), "Fail cast from '%s' to '%s'",
-                //                            (*obj.m_prototype)[pind].second->m_type->m_text.c_str(), newlang::toString(type));
-                //                }
+//                if (pind < check_count) {
+//                    NL_CHECK(!isDefaultType((*obj.m_prototype)[pind].second->m_type), "Undefined type arg '%s'", (*obj.m_prototype)[pind].second->toString().c_str());
+//                    NL_CHECK(canCast(type, typeFromString((*obj.m_prototype)[pind].second->m_type, GetRT_(runner))), "Fail cast from '%s' to '%s'",
+//                            (*obj.m_prototype)[pind].second->m_type->m_text.c_str(), newlang::toString(type));
+//                }
                 m_args_type.push_back(RunTime::m_ffi_type_sint64);
                 temp.integer = (*args)[i].second->GetValueAsInteger();
                 m_args_val.push_back(temp);
@@ -3537,11 +1766,11 @@ ObjPtr Context::CallNative_(Context *runner, Obj &obj, Obj * args) {
 
             case ObjType::Float32:
             case ObjType::Single:
-                //                if (pind < check_count) {
-                //                    NL_CHECK(!isDefaultType((*obj.m_prototype)[pind].second->m_type), "Undefined type arg '%s'", (*obj.m_prototype)[pind].second->toString().c_str());
-                //                    NL_CHECK(canCast(type, typeFromString((*obj.m_prototype)[pind].second->m_type, m_runtime.get())), "Fail cast from '%s' to '%s'",
-                //                            (*obj.m_prototype)[pind].second->m_type->m_text.c_str(), newlang::toString(type));
-                //                }
+//                if (pind < check_count) {
+//                    NL_CHECK(!isDefaultType((*obj.m_prototype)[pind].second->m_type), "Undefined type arg '%s'", (*obj.m_prototype)[pind].second->toString().c_str());
+//                    NL_CHECK(canCast(type, typeFromString((*obj.m_prototype)[pind].second->m_type, GetRT_(runner))), "Fail cast from '%s' to '%s'",
+//                            (*obj.m_prototype)[pind].second->m_type->m_text.c_str(), newlang::toString(type));
+//                }
                 m_args_type.push_back(RunTime::m_ffi_type_float);
                 temp.number = (*args)[i].second->GetValueAsNumber();
                 m_args_val.push_back(temp);
@@ -3549,44 +1778,66 @@ ObjPtr Context::CallNative_(Context *runner, Obj &obj, Obj * args) {
 
             case ObjType::Float64:
             case ObjType::Double:
-                //                if (pind < check_count) {
-                //                    NL_CHECK(!isDefaultType((*obj.m_prototype)[pind].second->m_type), "Undefined type arg '%s'", (*obj.m_prototype)[pind].second->toString().c_str());
-                //                    NL_CHECK(canCast(type, typeFromString((*obj.m_prototype)[pind].second->m_type, m_runtime.get())), "Fail cast from '%s' to '%s'",
-                //                            (*obj.m_prototype)[pind].second->m_type->m_text.c_str(), newlang::toString(type));
-                //                }
+//                if (pind < check_count) {
+//                    NL_CHECK(!isDefaultType((*obj.m_prototype)[pind].second->m_type), "Undefined type arg '%s'", (*obj.m_prototype)[pind].second->toString().c_str());
+//                    NL_CHECK(canCast(type, typeFromString((*obj.m_prototype)[pind].second->m_type, GetRT_(runner))), "Fail cast from '%s' to '%s'",
+//                            (*obj.m_prototype)[pind].second->m_type->m_text.c_str(), newlang::toString(type));
+//                }
                 m_args_type.push_back(RunTime::m_ffi_type_double);
                 temp.number = (*args)[i].second->GetValueAsNumber();
                 m_args_val.push_back(temp);
                 break;
 
             case ObjType::StrChar:
-                //                if (pind < check_count) {
-                //                    NL_CHECK(!isDefaultType((*obj.m_prototype)[pind].second->m_type), "Undefined type arg '%s'", (*obj.m_prototype)[pind].second->toString().c_str());
-                //                    NL_CHECK(canCast(type, typeFromString((*obj.m_prototype)[pind].second->m_type, m_runtime.get())), "Fail cast from '%s' to '%s'",
-                //                            (*obj.m_prototype)[pind].second->m_type->m_text.c_str(), newlang::toString(type));
-                //                }
+            {
+//                if (pind < check_count) {
+//                    NL_CHECK(!isDefaultType((*obj.m_prototype)[pind].second->m_type), "Undefined type arg '%s'", (*obj.m_prototype)[pind].second->toString().c_str());
+//                    ObjType target = typeFromString((*obj.m_prototype)[pind].second->m_type, GetRT_(runner));
+//                    if (!canCast(type, target)) {
+//                        if ((target == ObjType::Int8 || target == ObjType::Char || target == ObjType::Byte)
+//                                && isStringChar(type) && (*args)[i].second->size() == 1) {
+//
+//                            m_args_type.push_back(RunTime::m_ffi_type_sint8);
+//                            temp.integer = (*args)[i].second->m_value[0];
+//                            m_args_val.push_back(temp);
+//                            break;
+//
+//                        }
+//                        LOG_RUNTIME("Fail cast from '%s' to '%s'", toString(type), toString(target));
+//                    }
+//                }
                 m_args_type.push_back(RunTime::m_ffi_type_pointer);
                 temp.ptr = (*args)[i].second->m_value.c_str();
                 m_args_val.push_back(temp);
                 break;
-
+            }
             case ObjType::StrWide:
-                //                if (pind < check_count) {
-                //                    NL_CHECK(!isDefaultType((*obj.m_prototype)[pind].second->m_type), "Undefined type arg '%s'", (*obj.m_prototype)[pind].second->toString().c_str());
-                //                    NL_CHECK(canCast(type, typeFromString((*obj.m_prototype)[pind].second->m_type, m_runtime.get())), "Fail cast from '%s' to '%s'",
-                //                            (*obj.m_prototype)[pind].second->m_type->m_text.c_str(), newlang::toString(type));
-                //                }
+//                if (pind < check_count) {
+//                    NL_CHECK(!isDefaultType((*obj.m_prototype)[pind].second->m_type), "Undefined type arg '%s'", (*obj.m_prototype)[pind].second->toString().c_str());
+//                    ObjType target = typeFromString((*obj.m_prototype)[pind].second->m_type, GetRT_(runner));
+//                    if (!canCast(type, target)) {
+//                        if (target == RunTime::m_wide_char_type && isStringWide(type) && (*args)[i].second->size() == 1) {
+//
+//                            m_args_type.push_back(RunTime::m_wide_char_type_ffi);
+//                            temp.integer = (*args)[i].second->m_string[0];
+//                            m_args_val.push_back(temp);
+//                            break;
+//
+//                        }
+//                        LOG_RUNTIME("Fail cast from '%s' to '%s'", toString(type), toString(target));
+//                    }
+//                }
                 m_args_type.push_back(RunTime::m_ffi_type_pointer);
                 temp.ptr = (*args)[i].second->m_string.c_str();
                 m_args_val.push_back(temp);
                 break;
 
             case ObjType::Pointer:
-                //                if (pind < check_count) {
-                //                    NL_CHECK(!isDefaultType((*obj.m_prototype)[pind].second->m_type), "Undefined type arg '%s'", (*obj.m_prototype)[pind].second->toString().c_str());
-                //                    NL_CHECK(canCast(type, typeFromString((*obj.m_prototype)[pind].second->m_type, m_runtime.get())), "Fail cast from '%s' to '%s'",
-                //                            (*obj.m_prototype)[pind].second->m_type->m_text.c_str(), newlang::toString(type));
-                //                }
+//                if (pind < check_count) {
+//                    NL_CHECK(!isDefaultType((*obj.m_prototype)[pind].second->m_type), "Undefined type arg '%s'", (*obj.m_prototype)[pind].second->toString().c_str());
+//                    NL_CHECK(canCast(type, typeFromString((*obj.m_prototype)[pind].second->m_type, GetRT_(runner))), "Fail cast from '%s' to '%s'",
+//                            (*obj.m_prototype)[pind].second->m_type->m_text.c_str(), newlang::toString(type));
+//                }
                 m_args_type.push_back(RunTime::m_ffi_type_pointer);
 
                 if (at::holds_alternative<void *>((*args)[i].second->m_var)) {
@@ -3718,72 +1969,13 @@ ObjPtr Context::CallNative_(Context *runner, Obj &obj, Obj * args) {
     return Obj::CreateNone();
 }
 
-ObjPtr Context::MakeArgs_(ScopeStack &scope, TermPtr &func, TermPtr & args) {
-    ASSERT(func);
-    ASSERT(args);
-    ObjPtr all = Obj::CreateDict();
-
-    std::string name;
-    TermPtr term;
-    ObjPtr obj;
-    bool named_args = false;
-    //    bool pos_count = 0;
-    //    for (size_t i = 0; i < func->size(); i++) {
-    //
-    //        name = func->at(i).first;
-    //        term = func->at(i).second;
-    //        ASSERT(term);
-    //
-    //        if (term.get() == getRequiredTerm().get()) {
-    ////            pos_count++;
-    //            if (named_args) {
-    //                NL_PARSER(term, "A named argument is expected!");
-    //            }
-    //            // Обязательный позиционный аргумент
-    //            if (i < args->size()) {
-    //                NL_PARSER(term, "Missing required argument");
-    //            }
-    //            if (!args->at(i).first.empty()) {
-    //                NL_PARSER(args->at(i).second, "Requires a positional argument!");
-    //            }
-    //            if (m_runtime->AstCheckArgs_(term, args->at(i).second)) {
-    //                NL_PARSER(args->at(i).second, "Fail argument type!");
-    //            }
-    //
-    //        } else {
-    //            //Именованный аргумент
-    //            named_args = true;
-    //            auto found = args->find(name);
-    //            if (found == args->end()) {
-    //                NL_PARSER(term, "Named argument Fail argument type!");
-    //            }
-    //        }
-    //
-    //
-    //        TermPtr var = func->m_variables.FindVar(scope.CreateVarName(name));
-    //        if (!var) {
-    //            NL_PARSER(args->at(i).second, "Argument name '%s' not fund!%s", name.c_str(), func->m_variables.Dump().c_str());
-    //        }
-    //        var->m_obj = m_runtime->Run(args->at(i).second);
-    //        all->push_back({name, varj});
-    //    }
-    //
-    //    if (func->size() > args->size()) {
-    //        for (size_t i = func->size(); args->size(); i++) {
-    //            // Все оставшиеся переданные аргументы
-    //
-    //        }
-    //    }
-
-    return all;
-}
-
 ObjPtr Context::CreateArgs_(ObjPtr &args, TermPtr &term, Context * runner) {
     for (int i = 0; i < term->size(); i++) {
         ASSERT((*term)[i].second);
         if (term->name(i).empty()) {
             args->push_back(EvalTerm((*term)[i].second, runner));
         } else {
+
             args->push_back(EvalTerm((*term)[i].second, runner), term->name(i).c_str());
         }
     }
@@ -3797,6 +1989,7 @@ ObjPtr Context::CreateDict(TermPtr &term, Context * runner) {
     result->m_var_is_init = true;
 
     if (term->getTermID() == TermID::DICT) {
+
         result->m_var_type_fixed = ObjType::Class;
         result->m_class_name = term->m_class;
     }
@@ -3820,6 +2013,7 @@ ObjPtr Context::CreateRange(TermPtr &term, Context * runner) {
     result->m_var_type_current = ObjType::Range;
     result->m_var_type_fixed = ObjType::Range;
     result->m_var_is_init = true;
+
     return result;
 }
 
@@ -3850,20 +2044,23 @@ ObjPtr Context::CreateTensor(TermPtr &term, Context * runner) {
         result->m_var_is_init = false;
     }
     result->m_var_type_current = type;
+
     return result;
 }
 
 ObjPtr Context::StringFormat(std::string_view format, Obj & args) {
     ASSERT(0);
+
     return nullptr;
 }
 
 ObjPtr Context::StringPrintf(std::string_view format, Obj & args) {
     ASSERT(0);
+
     return nullptr;
 }
 
-ObjPtr Context::EvalTerm(TermPtr term, Context * runner) {
+ObjPtr Context::EvalTerm(TermPtr term, Context * runner, bool rvalue) {
     ASSERT(term);
 
     // Static calculate
@@ -3933,6 +2130,12 @@ ObjPtr Context::EvalTerm(TermPtr term, Context * runner) {
             return EvalOpLogical_(term, runner);
         case TermID::OP_BITWISE:
             return EvalOpBitwise_(term, runner);
+        case TermID::WHILE:
+            return EvalWhile_(term, runner);
+        case TermID::DOWHILE:
+            return EvalDoWhile_(term, runner);
+        case TermID::FOLLOW:
+            return EvalFollow_(term, runner);
         case TermID::NATIVE:
             return Obj::CreateBool(RunTime::GetDirectAddressFromLibrary(nullptr, term->m_text.c_str()));
         case TermID::ELLIPSIS:
@@ -3947,7 +2150,7 @@ ObjPtr Context::EvalTerm(TermPtr term, Context * runner) {
 
     if (term->isCreate()) {
         return runner->EvalCreate_(term);
-    } else if (term->m_id == TermID::NAME || term->m_id == TermID::LOCAL || term->m_id == TermID::STATIC || term->m_id == TermID::TYPE) {
+    } else if (term->isNamed()) {
 
         TermPtr found = runner->GetObject(term, runner->m_runtime);
         if (!found->m_obj) {
@@ -3958,6 +2161,16 @@ ObjPtr Context::EvalTerm(TermPtr term, Context * runner) {
             // Вызов функции или клонирование объекта
             ASSERT(found->m_obj);
             return Call(runner, *found->m_obj, term);
+        } else if (rvalue && term->m_right) {
+
+            if (term->m_right->m_id == TermID::INDEX) {
+                return GetIndexValue(term, found->m_obj, runner);
+            } else if (term->m_right->m_id == TermID::FIELD) {
+                return GetFieldValue(term, found->m_obj, runner);
+            } else {
+                NL_PARSER(term, "Eval type '%s' not implemented!", toString(term->m_right->m_id));
+            }
+
         } else {
             return found->m_obj;
         }
@@ -3968,6 +2181,12 @@ ObjPtr Context::EvalTerm(TermPtr term, Context * runner) {
 
             case TermID::ITERATOR:
                 return runner->EvalIterator_(term);
+            case TermID::EVAL:
+                return runner->EvalEval_(term);
+            case TermID::INT_PLUS:
+            case TermID::INT_MINUS:
+            case TermID::INT_REPEAT:
+                return runner->EvalInterrupt_(term);
 
         }
 
@@ -3980,132 +2199,12 @@ ObjPtr Context::EvalTerm(TermPtr term, Context * runner) {
     LOG_RUNTIME("EvalTerm_ for type '%s'(%s) not implemented!", newlang::toString(term->m_id), term->m_text.c_str());
 
     return nullptr;
-
-    //        return CreateLiteral(term, runner);
-    //
-    //    } else if (term->getTermID() == TermID::NATIVE) {
-    //
-    //        if (!m_import_natime) {
-    //            NL_PARSER(term, "Import native not allowed!");
-    //        }
-    //        //@todo Add check mangled name for C++ lang
-    //        return Obj::CreateBool(RunTime::GetNativeAddr(&term->m_text[1], nullptr));
-    //
-    //    } else if (term->getTermID() == TermID::OP_COMPARE) {
-    //
-    //        ASSERT(term->Left());
-    //        ASSERT(term->Right());
-    //
-    //        ObjPtr left = CreateLiteral(term->Left());
-    //        ObjPtr right = CreateLiteral(term->Right());
-    //
-    //        if (term->m_text.compare("==") == 0) {
-    //            return Obj::CreateBool(left->op_equal(right));
-    //        } else if (term->m_text.compare("===") == 0) {
-    //            return Obj::CreateBool(left->op_accurate(right));
-    //        } else if (term->m_text.compare("<") == 0) {
-    //            return Obj::CreateBool(*left < *right);
-    //        } else if (term->m_text.compare("<=") == 0) {
-    //            return Obj::CreateBool(*left <= *right);
-    //        } else if (term->m_text.compare(">") == 0) {
-    //            return Obj::CreateBool(*left > *right);
-    //        } else if (term->m_text.compare(">=") == 0) {
-    //            return Obj::CreateBool(*left >= *right);
-    //        } else if (term->m_text.compare("!=") == 0) {
-    //            return Obj::CreateBool(!left->op_equal(right));
-    //        } else if (term->m_text.compare("!==") == 0) {
-    //            return Obj::CreateBool(!left->op_accurate(right));
-    //        }
-    //        NL_PARSER(term, "Operator '%s' not implemented in static calculate!", term->m_text.c_str());
-    //
-    //    } else if (term->getTermID() == TermID::OP_MATH) {
-    //
-    //        ASSERT(term->Left());
-    //        ASSERT(term->Right());
-    //
-    //        ObjPtr left = CreateLiteral(term->Left());
-    //        ObjPtr right = CreateLiteral(term->Right());
-    //
-    //        if (term->m_text.compare("+") == 0) {
-    //            //            return Obj::CreateBool(left->operator+(right));
-    //            //        } else if (term->m_text.compare("-") == 0) {
-    //            //            return Obj::CreateBool(*left - right);
-    //            //        } else if (term->m_text.compare("*") == 0) {
-    //            //            return Obj::CreateBool((*left) * (*right));
-    //            //        } else if (term->m_text.compare("/") == 0) {
-    //            //            return Obj::CreateBool((*left) / right);
-    //            //        } else if (term->m_text.compare("//") == 0) {
-    //            //            return Obj::CreateBool(left->op_div_ceil(right));
-    //
-    //
-    //            //        bool op_class_test(ObjPtr obj, Context *ctx) const;
-    //            //        inline bool op_duck_test(ObjPtr obj, bool strong) {
-    //
-    //
-    //            //        } else if (term->m_text.compare("%") == 0) {
-    //            //            return Obj::CreateBool(left->op_ >= *right);
-    //            //        } else if (term->m_text.compare("!=") == 0) {
-    //            //            return Obj::CreateBool(!left->op_equal(right));
-    //            //        } else if (term->m_text.compare("!==") == 0) {
-    //            //            return Obj::CreateBool(!left->op_accurate(right));
-    //        }
-    //        NL_PARSER(term, "Operator '%s' not implemented in static calculate!", term->m_text.c_str());
-    //    }
-    //    NL_PARSER(term, "Expression '%s' not static calculate!", term->toString().c_str());    
-    //
-    //    if (term->isCreate()) {
-    //        return EvalCreate_(term);
-    //    } else if (term->m_id == TermID::NAME || term->m_id == TermID::LOCAL || term->m_id == TermID::STATIC || term->m_id == TermID::TYPE) {
-    //
-    //        TermPtr found = GetObject(term, m_runtime);
-    //        if (!found->m_obj) {
-    //            NL_PARSER(term, "Object '%s' not calculated!", term->m_text.c_str());
-    //        }
-    //
-    //        if (term->isCall()) {
-    //            // Вызов функции или клонирование объекта
-    //            return Call_(found, term);
-    //        }
-    //        return found->m_obj;
-    //
-    //    } else if (term->isLiteral()) {
-    //        return m_runtime->CreateLiteral(term);
-    //    } else {
-    //
-    //
-    //        switch (term->m_id) {
-    //            case TermID::OP_MATH:
-    //                return EvalOpMath_(term);
-    //            case TermID::OP_COMPARE:
-    //                return EvalOpCompare_(term);
-    //            case TermID::OP_LOGICAL:
-    //                return EvalOpLogical_(term);
-    //            case TermID::OP_BITWISE:
-    //                return EvalOpBitwise_(term);
-    //
-    //            case TermID::ITERATOR:
-    //                return EvalIterator_(term);
-    //
-    //                //            case TermID::NATIVE:
-    //                //            {
-    //                //                term->m_obj = CreateNative_(term);
-    //                //                break;
-    //                //            }
-    //            default:
-    //                NL_PARSER(term, "EvalTerm_ for type '%s'(%s) not implemented!", toString(term->m_id), term->m_text.c_str());
-    //        }
-    //
-    //        if (term->GetType() && !isDefaultType(term->GetType())) {
-    //            term->m_obj->m_var_type_fixed = typeFromString(term->m_type, m_runtime.get());
-    //            term->m_obj->m_var_type_current = term->m_obj->m_var_type_fixed;
-    //        }
-    //    }
-    //    return term->m_obj;
 }
 
 ObjPtr Context::CreateNative_(TermPtr &proto, const char *module, bool lazzy, const char *mangle_name) {
     ObjPtr result = m_runtime->CreateNative(proto, module, lazzy, mangle_name);
     result->m_ctx = this;
+
     return result;
 }
 
@@ -4114,7 +2213,7 @@ ObjPtr Context::EvalCreate_(TermPtr & op) {
     ASSERT(op->isCreate());
     ASSERT(op->m_left);
 
-    ArrayTermType l_vars = op->m_left->CreateArrayFromList(Term::LEFT);
+    ArrayTermType l_vars = op->m_left->CreateArrayFromList();
 
     bool is_ellipsis = false;
     TermPtr var_found;
@@ -4151,7 +2250,7 @@ ObjPtr Context::EvalCreate_(TermPtr & op) {
                 if (var_found->isCall() && var_found->m_obj) {
                     NL_PARSER(elem, "The function cannot be overridden! '%s'", var_found->toString().c_str());
                 }
-                elem.swap(var_found);
+                elem->m_int_name = var_found->m_int_name;
             }
         }
     }
@@ -4165,17 +2264,17 @@ ObjPtr Context::EvalCreate_(TermPtr & op) {
     return m_latter;
 }
 
-ObjPtr Context::AssignVars_(ArrayTermType &vars, const TermPtr &r_term, bool is_pure) {
+ObjPtr Context::AssignVars_(ArrayTermType &l_vars, const TermPtr &r_term, bool is_pure) {
 
     if (r_term->getTermID() == TermID::NATIVE) {
 
-        ASSERT(vars.size() == 1);
+        ASSERT(l_vars.size() == 1);
         //        ASSERT(vars[0]->m_obj);
         //        ASSERT(r_term->m_obj);
 
-        vars[0]->m_obj = CreateNative_(vars[0], nullptr, false, r_term->m_text.substr(1).c_str());
+        l_vars[0]->m_obj = CreateNative_(l_vars[0], nullptr, false, r_term->m_text.substr(1).c_str());
         //        vars[0]->m_obj = r_term->m_obj;
-        m_latter = vars[0]->m_obj;
+        m_latter = l_vars[0]->m_obj;
 
     } else if (r_term->getTermID() == TermID::ELLIPSIS) {
         // При раскрытии словаря присвоить значение можно как одному, так и сразу нескольким терминам: 
@@ -4198,23 +2297,24 @@ ObjPtr Context::AssignVars_(ArrayTermType &vars, const TermPtr &r_term, bool is_
 
     } else if (r_term->isBlock()) {
 
-        if (vars.size() > 1) {
+        if (l_vars.size() > 1) {
             //@todo добавить поддержку присвоения сразу нескольким функциям
             NL_PARSER(r_term, "Multiple function assignment not implemented!");
         }
-        ASSERT(vars.size() == 1);
+        ASSERT(l_vars.size() == 1);
 
-        if (!vars[0]->isCall()) {
-            NL_PARSER(vars[0], "Function name expected!");
+        if (!l_vars[0]->isCall()) {
+            NL_PARSER(l_vars[0], "Function name expected!");
         }
 
+        ASSERT(!l_vars[0]->m_right);
 
-        vars[0]->m_obj = m_runtime->CreateFunction(vars[0], r_term);
-        m_latter = vars[0]->m_obj;
+        l_vars[0]->m_obj = m_runtime->CreateFunction(l_vars[0], r_term);
+        m_latter = l_vars[0]->m_obj;
 
     } else {
 
-        ArrayTermType r_vars = r_term->CreateArrayFromList(Term::RIGHT);
+        ArrayTermType r_vars = r_term->CreateArrayFromList();
         if (r_vars.empty()) {
             // Delete vars
             NL_PARSER(r_term, "NOT implemented!");
@@ -4222,12 +2322,22 @@ ObjPtr Context::AssignVars_(ArrayTermType &vars, const TermPtr &r_term, bool is_
 
         } else if (r_vars.size() == 1) {
 
-            m_latter = Run(r_vars[0]);
-            for (auto &elem : vars) {
+            m_latter = Run(r_vars[0], this);
+            for (auto &elem : l_vars) {
                 if (elem->getTermID() == TermID::ELLIPSIS) {
                     NL_PARSER(elem, "Ellipses unexpected!");
                 } else if (elem->isNone()) {
                     NL_PARSER(elem, "None var unexpected!");
+                } else if (elem->m_right) {
+
+                    if (elem->m_right->m_id == TermID::INDEX) {
+                        SetIndexValue(elem, m_latter, this);
+                    } else if (elem->m_right->m_id == TermID::FIELD) {
+                        SetFieldValue(elem, m_latter, this);
+                    } else {
+                        NL_PARSER(elem, "Eval type '%s' not implemented!", toString(elem->m_right->m_id));
+                    }
+
                 } else {
                     elem->m_obj = m_latter;
                 }
@@ -4238,17 +2348,18 @@ ObjPtr Context::AssignVars_(ArrayTermType &vars, const TermPtr &r_term, bool is_
             // @todo В будущем можно будет сделать сахар для обмена значениями при одинаковом кол-ве объектов у оператора присваивания
             // a, b = b, a;   a, b, c = c, b, a; и т.д.
 
-            if (vars.size() != r_vars.size()) {
-                NL_PARSER(r_term, "Fail count right values! Expected one or %d.", (int) vars.size());
+            if (l_vars.size() != r_vars.size()) {
+                NL_PARSER(r_term, "Fail count right values! Expected one or %d.", (int) l_vars.size());
             }
-            for (size_t i = 0; i < vars.size(); i++) {
-                if (vars[i]->getTermID() == TermID::ELLIPSIS) {
-                    NL_PARSER(vars[i], "Ellipses unexpected!");
-                } else if (vars[i]->isNone()) {
-                    NL_PARSER(vars[i], "None var unexpected!");
+            for (size_t i = 0; i < l_vars.size(); i++) {
+                if (l_vars[i]->getTermID() == TermID::ELLIPSIS) {
+                    NL_PARSER(l_vars[i], "Ellipses unexpected!");
+                } else if (l_vars[i]->isNone()) {
+                    NL_PARSER(l_vars[i], "None var unexpected!");
                 } else {
-                    m_latter = Run(r_vars[i]);
-                    vars[i]->m_obj = m_latter;
+
+                    m_latter = Run(r_vars[i], this);
+                    l_vars[i]->m_obj = m_latter;
                 }
             }
         }
@@ -4468,6 +2579,107 @@ ObjPtr Context::AssignVars_(ArrayTermType &vars, const TermPtr &r_term, bool is_
     //    return result;
 }
 
+ObjPtr Context::SetIndexValue(TermPtr &term, ObjPtr &value, Context * runner) {
+
+    ASSERT(term->m_right);
+
+    TermPtr index = term->m_right;
+    ASSERT(index->size());
+
+    switch (term->m_id) {
+        case TermID::DICT:
+        case TermID::STRCHAR:
+        case TermID::STRWIDE:
+            if (index->size() > 1) {
+                NL_PARSER(index, "Strings and dictionaries do not support multiple dimensions!");
+            }
+        case TermID::TENSOR:
+            break;
+
+        case TermID::NAME:
+        case TermID::LOCAL:
+        case TermID::TYPE:
+        case TermID::ARGS:
+        case TermID::ARGUMENT:
+        case TermID::STATIC:
+            break;
+
+        default:
+            NL_PARSER(term, "Term type '%s' not indexable!", toString(term->m_id));
+    }
+
+    ObjPtr obj = CheckObjTerm_(term, runner, false);
+    ASSERT(obj);
+    ObjPtr ind = CheckObjTerm_(index->at(0).second, runner);
+    ASSERT(ind);
+
+    if (isStringChar(obj->getType())) {
+
+        if (canCast(value->getType(), ObjType::Int8)) {
+            obj->index_set_({ind->GetValueAsInteger()}, value);
+        } else {
+            NL_PARSER(term, "Fail cast from '%s' to ':Int8'", toString(value->getType()));
+        }
+        return value;
+
+    } else if (isStringWide(obj->getType())) {
+
+        if (canCast(value->getType(), RunTime::m_wide_char_type)) {
+            obj->index_set_({ind->GetValueAsInteger()}, value);
+        } else {
+            NL_PARSER(term, "Fail cast from '%s' to '%s'", toString(value->getType()), newlang::toString(RunTime::m_wide_char_type));
+        }
+        return value;
+    }
+    NL_PARSER(term, "Index type '%s' not implemented!", toString(obj->getType()));
+}
+
+ObjPtr Context::GetIndexValue(TermPtr &term, ObjPtr &obj, Context * runner) {
+    ASSERT(term->m_right);
+
+    TermPtr index = term->m_right;
+    ASSERT(index->size());
+
+    switch (term->m_id) {
+        case TermID::DICT:
+        case TermID::STRCHAR:
+        case TermID::STRWIDE:
+            if (index->size() > 1) {
+                NL_PARSER(index, "Strings and dictionaries do not support multiple dimensions!");
+            }
+        case TermID::TENSOR:
+            break;
+
+        case TermID::NAME:
+        case TermID::LOCAL:
+        case TermID::TYPE:
+        case TermID::ARGS:
+        case TermID::ARGUMENT:
+        case TermID::STATIC:
+            break;
+
+        default:
+            NL_PARSER(term, "Term type '%s' not indexable!", toString(term->m_id));
+    }
+
+    ObjPtr ind = CheckObjTerm_(index->at(0).second, runner);
+    ASSERT(ind);
+
+    if (isStringChar(obj->getType())) {
+        return obj->index_get({ind->GetValueAsInteger()});
+    }
+
+    NL_PARSER(term, "Index type '%s' not implemented!", toString(obj->getType()));
+}
+
+ObjPtr Context::GetFieldValue(TermPtr &term, ObjPtr &value, Context * runner) {
+    NL_PARSER(term, "GetFieldValue not implemented!");
+}
+
+ObjPtr Context::SetFieldValue(TermPtr &term, ObjPtr &value, Context * runner) {
+    NL_PARSER(term, "SetFieldValue not implemented!");
+}
+
 /*
  * 
  * 
@@ -4479,6 +2691,7 @@ ObjPtr Context::EvalOpLogical_(TermPtr & op, Context * runner) {
     if (op->m_id == TermID::OP_MATH || op->m_id == TermID::OP_LOGICAL) {
         //        if(op->m_text.compare(==))
     }
+
     NL_PARSER(op, "EvalOpOther '%s' not implemented!", op->m_text.c_str());
 }
 
@@ -4501,13 +2714,14 @@ ObjPtr Context::EvalOpMath_(TermPtr & op, Context * runner) {
         (*result) -= op->m_right->m_obj;
     } else if (op->m_text.find("*") == 0) {
         (*result) *= op->m_right->m_obj;
-    } else if (op->m_text.find("/") == 0) {
-        (*result) /= op->m_right->m_obj;
     } else if (op->m_text.find("//") == 0) {
         result->op_div_ceil_(op->m_right->m_obj);
+    } else if (op->m_text.find("/") == 0) {
+        (*result) /= op->m_right->m_obj;
     } else if (op->m_text.find("%") == 0) {
         (*result) %= op->m_right->m_obj;
     } else {
+
         NL_PARSER(op, "Math operator '%s' not implemented!", op->m_text.c_str());
     }
     return result;
@@ -4540,9 +2754,132 @@ ObjPtr Context::EvalOpCompare_(TermPtr & op, Context * runner) {
     } else if (op->m_text.compare("!==") == 0) {
         result = Obj::CreateBool(!op->m_left->m_obj->op_accurate(op->m_right->m_obj));
     } else {
+
         NL_PARSER(op, "Compare operator '%s' not implemented!", op->m_text.c_str());
     }
     return result;
+}
+
+ObjPtr Context::EvalWhile_(TermPtr & term, Context * runner) {
+    ASSERT(term->Left());
+    ASSERT(term->Right());
+
+    ObjPtr result = Obj::CreateNone();
+    ObjPtr cond = Run(term->Left(), runner);
+    if (!cond->GetValueAsBoolean() && !term->m_follow.empty()) {
+        // else
+        ASSERT(term->m_follow.size() == 1);
+        ASSERT(term->m_follow[0]->Left()->m_id == TermID::ELLIPSIS);
+        result = Run(term->m_follow[0]->Right(), runner);
+    } else {
+        while (cond->GetValueAsBoolean()) {
+
+            result = Run(term->Right(), runner);
+
+            //            if (result->GetType() == ObjType::RetPlus) {
+            //                if (result->) {
+            //                }
+            //                break;
+            //            } else if (is_interrupt || result->op_class_test(Return::Continue, ctx)) {
+            //                continue;
+            //            }
+
+            cond = Run(term->Left(), runner);
+        }
+    }
+    return result;
+}
+
+ObjPtr Context::EvalDoWhile_(TermPtr & term, Context * runner) {
+    ASSERT(term);
+    ASSERT(term->Left());
+    ASSERT(term->Right());
+
+    ObjPtr result;
+    ObjPtr cond;
+    do {
+
+        result = Run(term->Left(), runner);
+        cond = Run(term->Right(), runner);
+
+        //        if (is_interrupt && cond->op_class_test(Return::Break, ctx)) {
+        //            break;
+        //        } else if (is_interrupt && cond->op_class_test(Return::Continue, ctx)) {
+        //            continue;
+        //        }
+
+    } while (cond->GetValueAsBoolean());
+
+    return result;
+}
+
+ObjPtr Context::EvalFollow_(TermPtr & term, Context * runner) {
+    /*
+     * [cond] --> {expr};
+     * [cond] --> {expr}, [...] --> {else};
+     * 
+     */
+
+    for (int64_t i = 0; i < static_cast<int64_t> (term->m_follow.size()); i++) {
+
+        ASSERT(term->m_follow[i]);
+        ASSERT(term->m_follow[i]->Left());
+
+        bool condition = false;
+        if (term->m_follow[i]->Left()->getTermID() == TermID::ELLIPSIS) {
+            ASSERT(i + 1 == term->m_follow.size());
+            condition = true;
+        } else {
+            ObjPtr cond = Run(term->m_follow[i]->Left(), runner);
+            condition = cond->GetValueAsBoolean();
+        }
+
+        if (condition) {
+
+            return Run(term->m_follow[i]->Right(), runner);
+        }
+    }
+    return Obj::CreateNone();
+}
+
+ObjPtr Context::EvalEval_(TermPtr & term) {
+
+    if (!m_runtime->m_eval_enable) {
+        NL_PARSER(term, "The eval operator cannot be used! Use flag: --nlc-eval-enable");
+    }
+
+    /*
+     * subprocess.run(args, *, stdin=None, input=None, stdout=None, stderr=None, 
+     * capture_output=False, shell=False, cwd=None, timeout=None, check=False, 
+     * encoding=None, errors=None, text=None, env=None, universal_newlines=None, **other_popen_kwargs)            
+     */
+    /* class subprocess.Popen(args, bufsize = -1, executable = None, 
+     * stdin = None, stdout = None, stderr = None, 
+     * preexec_fn = None, close_fds = True, shell = False, cwd = None, 
+     * env = None, universal_newlines = None, startupinfo = None, 
+     * creationflags = 0, restore_signals = True, start_new_session = False, 
+     * pass_fds = (), *, group = None, extra_groups = None, user = None, umask = -1
+     * , encoding = None, errors = None, text = None, 
+     * pipesize = -1, process_group = None)¶
+     */
+
+
+    // we use std::array rather than a C-style array to get all the
+    // C++ array convenience functions
+    std::array<char, 128> buffer;
+    std::string result;
+
+    // popen() receives the command and parameter "r" for read,
+    // since we want to read from a stream.
+    // by using unique_ptr, the pipe object is automatically cleaned
+    // from memory once we've read all the data from the pipe.
+    std::unique_ptr<FILE, decltype(&pclose) > pipe(popen(term->getText().c_str(), "r"), pclose);
+
+    while (fgets(buffer.data(), buffer.size(), pipe.get()) != nullptr) {
+        result += buffer.data();
+    }
+
+    return Obj::CreateString(result);
 }
 
 ObjPtr Context::EvalIterator_(TermPtr & op) {
@@ -4587,228 +2924,79 @@ ObjPtr Context::EvalIterator_(TermPtr & op) {
         }
         NL_PARSER(op, "Eval iterator for reserved word '%s' not implemented!", op->m_left->m_text.c_str());
     } else {
+
         NL_PARSER(op, "Eval iterator '%s' not implemented!", op->m_text.c_str());
     }
     NL_PARSER(op, "Eval iterator not implemented!");
 }
 
 ObjPtr Context::EvalOpBitwise_(TermPtr & op, Context * runner) {
+
     ASSERT(op);
     NL_PARSER(op, "Bitwise operator '%s' not implemented!", op->m_text.c_str());
 }
 
-ObjPtr Context::EvalOp_(TermPtr & op) {
-    ASSERT(op);
-    ObjPtr result;
-    //    switch (obj->getTermID()) {
-    //        case TermID::INT_PLUS:
-    //            result = Obj::CreateString(obj->m_namespace ? obj->m_namespace->m_text : "");
-    //            result->m_var_type = ObjType::RetPlus;
-    //            break;
-    //        case TermID::INT_MINUS:
-    //            result = Obj::CreateString(obj->m_namespace ? obj->m_namespace->m_text : "");
-    //            result->m_var_type = ObjType::RetMinus;
-    //            break;
-    //        case TermID::INT_REPEAT:
-    //            result = Obj::CreateString(obj->m_namespace ? obj->m_namespace->m_text : "");
-    //            result->m_var_type = ObjType::RetRepeat;
-    //            break;
-    //        default:
-    //            NL_PARSER(term, "EvalOp for type '%s' not implemented!", toString(obj->getTermID()));
-    //    }
-    return result;
-}
+//ObjPtr Context::EvalOp_(TermPtr & op) {
+//    ASSERT(op);
+//    ObjPtr result;
+//    //    switch (obj->getTermID()) {
+//    //        case TermID::INT_PLUS:
+//    //            result = Obj::CreateString(obj->m_namespace ? obj->m_namespace->m_text : "");
+//    //            result->m_var_type = ObjType::RetPlus;
+//    //            break;
+//    //        case TermID::INT_MINUS:
+//    //            result = Obj::CreateString(obj->m_namespace ? obj->m_namespace->m_text : "");
+//    //            result->m_var_type = ObjType::RetMinus;
+//    //            break;
+//    //        case TermID::INT_REPEAT:
+//    //            result = Obj::CreateString(obj->m_namespace ? obj->m_namespace->m_text : "");
+//    //            result->m_var_type = ObjType::RetRepeat;
+//    //            break;
+//    //        default:
+//    //            NL_PARSER(term, "EvalOp for type '%s' not implemented!", toString(obj->getTermID()));
+//    //    }
+//    return result;
+//}
 
 
 //VERIFY(CreateMacro("@@ exit(code) @@ ::= @@ :: ++ @$code ++ @@"));
 //VERIFY(CreateMacro("@@ abort() @@ ::= @@ :: -- @@"));
 
-int Context::EvalInterrupt_(TermPtr obj, std::string & label) {
-    label = obj->m_namespace ? obj->m_namespace->m_text : "";
-    //    TermPtr val = obj->m_right ? EvalOp(obj->m_right) : Term::CreateNone();
-    //    switch (obj->getTermID()) {
-    //        case TermID::INT_PLUS:
-    //            if (label.compare("::") == 0) {
-    //                ::exit(val->m_obj->GetValueAsInteger());
-    //            }
-    //            return +1;
-    //        case TermID::INT_MINUS:
-    //            if (label.compare("::") == 0) {
-    //                ::abort();
-    //            }
-    //            return -1;
-    //        case TermID::INT_REPEAT:
-    //            return 0;
-    //    }
-    NL_PARSER(obj, "EvalInterrupt '%s' not implemented!", obj->toString().c_str());
+ObjPtr Context::EvalInterrupt_(TermPtr & term) {
+    ASSERT(term);
+    ObjType type;
+    switch (term->m_id) {
+        case TermID::INT_PLUS:
+            type = ObjType::RetPlus;
+            break;
+        case TermID::INT_MINUS:
+            type = ObjType::RetMinus;
+            break;
+        case TermID::INT_REPEAT:
+            type = ObjType::RetRepeat;
+            break;
+        default:
+            NL_PARSER(term, "Term '%s' is not interrupt!", toString(term->m_id));
+    }
+    ObjPtr result = Obj::CreateType(type, type, true);
+    if (term->Right()) {
+        result->m_return_obj = EvalTerm(term->Right(), this);
+    } else {
+        result->m_return_obj = Obj::CreateNone();
+    }
+    if (!term->m_namespace || term->m_namespace->m_text.compare("::") == 0) {
+        switch (type) {
+            case ObjType::RetPlus:
+                throw IntPlus(result);
+            case ObjType::RetMinus:
+                throw IntMinus(result);
+            case ObjType::RetRepeat:
+                NL_PARSER(term, "Type RetRepeat not implemented!");
+            default:
+                NL_PARSER(term, "Type '%s' is not interrupt!", toString(type));
+        }
+    }
+    result->m_value = term->m_namespace->m_text;
+    return result;
 }
-
-TermPtr EvalStack(Context & run) {
-    //    auto item = run.m_stack.rbegin();
-    //    ASSERT(item != run.m_stack.end());
-
-    //     newlang::ScopeBlock::Block br;
-    //     br.vars
-    //             
-    //    if (item->) {
-    //    } else {
-    //    }
-
-    return Term::CreateNone();
-
-}
-
-//        
-//    
-//        m_latter = EvalBlock(op, this);
-//
-//        if (isInterrupt(m_latter->getType())) {
-//            std::string label;
-//            int direct = EvalInterrupt(m_latter, label);
-//            if (!label.empty()) {
-//                riter = LookupNamespace(label);
-//                if (riter == rend()) {
-//                    NL_PARSER(op, "Named block '%s' not found!", label.c_str());
-//                }
-//            } else {
-//            }
-//
-//            if (direct < 0) {
-//            } else if (direct > 0) {
-//            } else {
-//                throw;
-//            }
-//        }
-//
-//    }
-//    return m_latter;
-//    //
-//    //
-//    //    if (block->IsBlock()) {
-//    //        auto_type = block->getTermID();
-//    //    }
-//    //
-//    //    try {
-//    //
-//    //        if (!block->m_block.empty()) {
-//    //
-//    //            for (size_t i = 0; i < block->m_block.size(); i++) {
-//    //                if (block->m_block[i]->IsBlock()) {
-//    //                    //                    LOG_DEBUG("NS %s (%d)", block->m_block[i]->m_class.c_str(), (int)ctx->m_ns_stack.size());
-//    //                    //                    bool is_ns = block->m_block[i]->m_namespace;
-//    //                    try {
-//    //                        result = CallBlock(ctx, block->m_block[i], local_vars, eval_block, CatchType::CATCH_AUTO, has_interrupt);
-//    //                    } catch (...) {
-//    //                        //                        if (is_ns) {
-//    //                        //                            ctx->m_runtime->NamespacePop();
-//    //                        //                        }
-//    //                        throw;
-//    //                    }
-//    //                    //                    if (is_ns) {
-//    //                    //                        ctx->m_runtime->NamespacePop();
-//    //                    //                    }
-//    //                } else {
-//    //                    result = Eval(ctx, block->m_block[i], local_vars, eval_block, CatchType::CATCH_NONE);
-//    //                }
-//    //            }
-//    //
-//    //        } else {
-//    //            if (block->IsBlock()) {
-//    //                //                LOG_DEBUG("NS %s (%d)", block->m_class.c_str(), (int)ctx->m_ns_stack.size());
-//    //                //                bool is_ns = ctx->m_runtime->NamespacePush(block->m_class);
-//    //                try {
-//    //                    result = CallBlock(ctx, block, local_vars, eval_block, CatchType::CATCH_AUTO, has_interrupt);
-//    //                } catch (...) {
-//    //                    //                    if (is_ns) {
-//    //                    //                        ctx->m_runtime->NamespacePop();
-//    //                    //                    }
-//    //                    throw;
-//    //                }
-//    //                //                if (is_ns) {
-//    //                //                    ctx->m_runtime->NamespacePop();
-//    //                //                }
-//    //            } else {
-//    //                result = Eval(ctx, block, local_vars, eval_block, CatchType::CATCH_NONE);
-//    //            }
-//    //        }
-//    //
-//    //    } catch (Return &obj) {
-//    //
-//    //        call_else = false;
-//    //        if (has_interrupt) {
-//    //            *has_interrupt = true;
-//    //        }
-//    //
-//    //        ASSERT(obj.m_obj);
-//    //        ASSERT(obj.m_obj->m_return_obj);
-//    //
-//    //        if (type_catch == CatchType::CATCH_NONE || auto_type == TermID::NONE || (type_catch == CatchType::CATCH_AUTO && auto_type == TermID::BLOCK)) {
-//    //            throw;
-//    //        } else if (auto_type == TermID::BLOCK_PLUS) {
-//    //            if ((type_catch == CatchType::CATCH_PLUS || type_catch == CatchType::CATCH_AUTO)
-//    //                    && obj.m_obj->m_var_type_current == ObjType::RetPlus) {
-//    //                return obj.m_obj->m_return_obj;
-//    //            }
-//    //            throw;
-//    //        } else if (auto_type == TermID::BLOCK_MINUS) {
-//    //            if ((type_catch == CatchType::CATCH_MINUS || type_catch == CatchType::CATCH_AUTO)
-//    //                    && obj.m_obj->m_var_type_current == ObjType::RetMinus) {
-//    //                return obj.m_obj->m_return_obj;
-//    //            }
-//    //            throw;
-//    //        } else if ((type_catch == CatchType::CATCH_ALL ||
-//    //                (type_catch == CatchType::CATCH_AUTO && auto_type == TermID::BLOCK_TRY))
-//    //                && !block->m_type) { // Если есть фильтр для типа
-//    //            // Тип данных при возврате не соответствует фильтру, пробросить исключение дальше
-//    //            bool is_return = false;
-//    //            //            for (size_t i = 0; i < block->m_type_allowed.size(); i++) {
-//    //            //                if (obj.m_obj->m_return_obj->op_class_test(block->m_type_allowed[i]->getText().c_str(), ctx)) {
-//    //            //                    is_return = true;
-//    //            //                    break;
-//    //            //                }
-//    //            //            }
-//    //            if (!is_return) {
-//    //                throw;
-//    //            }
-//    //        }
-//    //
-//    //        result = obj.m_obj->m_return_obj;
-//    //
-//    //    } catch (std::exception &obj) {
-//    //
-//    //        call_else = false;
-//    //        if (type_catch == CatchType::CATCH_NONE || (type_catch == CatchType::CATCH_AUTO && auto_type == TermID::BLOCK)) {
-//    //            throw;
-//    //        }
-//    //
-//    //        if (has_interrupt) {
-//    //            *has_interrupt = true;
-//    //        }
-//    //        result = Obj::CreateType(ObjType::Error, ObjType::Error, true);
-//    //        result->m_value = std::string(obj.what());
-//    //    }
-//    //
-//    //    if (call_else) {
-//    //        //        
-//    //        //        if(block->m_follow.size()!=1){
-//    //        //            LOG_DEBUG("block->m_follow.size() %d", (int)block->m_follow.size());
-//    //        //            for (auto &elem : block->m_follow) {
-//    //        //                LOG_DEBUG("%s", elem->toString().c_str());
-//    //        //            }
-//    //        //        }
-//    //        //        
-//    //        //        ASSERT(block->m_follow.size() == 1);
-//    //
-//    //        if (block->IsBlock()) {
-//    //            result = CallBlock(ctx, block->m_follow[0], local_vars, eval_block, CatchType::CATCH_AUTO, has_interrupt);
-//    //        } else {
-//    //            result = Eval(ctx, block->m_follow[0], local_vars, eval_block, CatchType::CATCH_NONE);
-//    //        }
-//    //
-//    //        //        result = Eval(ctx, block->m_follow[0], local_vars, eval_block, CatchType::CATCH_AUTO);
-//    //    }
-//    //
-//    //    return result;
-//}
-//
 

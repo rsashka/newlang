@@ -218,6 +218,8 @@
 %token                  EMBED
 %token			ITERATOR
 %token			ITERATOR_QQ
+%token			COROUTINE
+%token			FUNCTION
 
 %token			PURE_ONCE
 %token			PURE_OVERLAP
@@ -560,10 +562,10 @@ range_val:  rval_range
         {
             $$ = $1;  
         }
-    | '('  arithmetic  ')'
+/*    | '('  arithmetic  ')'
         {
             $$ = $2;
-        }
+        } */
 
         
 range: range_val  RANGE  range_val
@@ -1062,6 +1064,11 @@ arg: arg_name  '='
             // Раскрыть элементы словаря в последовательность не именованных параметров
             $$ = $1; 
         }
+    |  ELLIPSIS type_list
+        {
+            $$ = $1; 
+            $$->SetType($type_list);
+        }
     |  ELLIPSIS  logical
         {
             // Раскрыть элементы словаря в последовательность не именованных параметров
@@ -1259,6 +1266,16 @@ assign_op: CREATE_OVERLAP /* := */
             }
         
 
+coro: '(' ')'
+        {
+            $$ = $1;
+        }
+/*    | '(' args ')'
+        {
+            $$ = $1;
+            $$->SetArgs($args);
+        } */
+        
 assign_expr:  body_all
                 {
                     $$ = $1;  
@@ -1290,10 +1307,21 @@ assign_expr:  body_all
                     $$ = $1;
                     $$->Last()->Append($2);
                 }
-            | '('  ')'  body_all 
+            |  coro  block_all
                 {
                 // Короутина?
-                    $$ = $3;  
+                    $$ = $1;  
+                    $$->Append($block_all, Term::RIGHT); 
+                    $$->SetTermID(TermID::COROUTINE);
+                }
+            |  coro  block_all  type_name
+                {
+                // Короутина?
+                    $$ = $1;  
+                    $$->Append($block_all, Term::RIGHT); 
+                    $$->SetTermID(TermID::COROUTINE);
+                    $$->SetType($type_name);
+                    $block_all->SetType($type_name);
                 }
 
             
@@ -1409,42 +1437,7 @@ block:  '{'  '}'
                 Term::ListToVector($doc_after, $$->m_docs);
             }
 
-
-block_ns:  ns_part  block
-            {
-                $$ = $2;
-                $$->m_namespace = $1;
-            }
-        |  ns_part  NAMESPACE  block
-            {
-                $$ = $3;
-                $$->m_namespace = $2;
-                $$->m_namespace->m_text.insert(0, $1->m_text);
-            }
-        |  ns_start  ns_part  NAMESPACE  block
-            {
-                $$ = $block;
-                $$->m_namespace = $3;
-                $$->m_namespace->m_text.insert(0, $2->m_text);
-                $$->m_namespace->m_text.insert(0, $1->m_text);
-            }
-        |  ns_start  ns_part  block
-            {
-                $$ = $3;
-                $$->m_namespace = $2;
-                $$->m_namespace->m_text.insert(0, $1->m_text);
-            } 
-        |  ns_start  block
-            {
-                $$ = $2;
-                $$->m_namespace = $1;
-            } 
-     
-block_all: block
-            {
-                $$ = $1;
-            }
-        |  block_ns
+block_any: block
             {
                 $$ = $1;
             }
@@ -1452,6 +1445,41 @@ block_all: block
             {
                 $$ = $1;
             }
+
+block_all: block_any
+            {
+                $$ = $1;
+            }
+        | ns_part  block_any
+            {
+                $$ = $2;
+                $$->m_namespace = $1;
+            }
+        |  ns_part  NAMESPACE  block_any
+            {
+                $$ = $3;
+                $$->m_namespace = $2;
+                $$->m_namespace->m_text.insert(0, $1->m_text);
+            }
+        |  ns_start  ns_part  NAMESPACE  block_any
+            {
+                $$ = $4;
+                $$->m_namespace = $3;
+                $$->m_namespace->m_text.insert(0, $2->m_text);
+                $$->m_namespace->m_text.insert(0, $1->m_text);
+            }
+        |  ns_start  ns_part  block_any
+            {
+                $$ = $3;
+                $$->m_namespace = $2;
+                $$->m_namespace->m_text.insert(0, $1->m_text);
+            } 
+        |  ns_start  block_any
+            {
+                $$ = $2;
+                $$->m_namespace = $1;
+            } 
+        
 
 block_type: block_all
             {
@@ -1481,6 +1509,11 @@ body:  condition
                 $$ = $block_type;
                 Term::ListToVector($doc_before, $$->m_docs);
             } 
+        |  exit
+            {
+                $$ = $1;
+            }
+        
 
 body_all: body
             {
@@ -1490,7 +1523,6 @@ body_all: body
 body_else: ',' else  FOLLOW  body_all
             {
                 $$ = $3; 
-                
                 $$->Append($else, Term::LEFT); 
                 $$->Append($body_all, Term::RIGHT); 
             }
@@ -1955,12 +1987,12 @@ interrupt: INT_PLUS
                 $$ = $1;
             }
         
-        
+
 exit_part:  interrupt
         {
             $$ = $1;
         }
-    |  interrupt   rval   interrupt
+    |  interrupt   rval_var   interrupt
         {
             $$ = $1;
             $$->Append($2, Term::RIGHT); 
@@ -2094,10 +2126,6 @@ seq_item: assign_seq
             }
         |  symbolyc
             {            
-                $$ = $1;
-            }
-        |  exit
-            {
                 $$ = $1;
             }
         

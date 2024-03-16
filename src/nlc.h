@@ -396,6 +396,7 @@ namespace newlang {
                     rt_args.push_back("--nlc-no-embed-source");
                     rt_args.push_back("--nlc-no-import-module");
                     rt_args.push_back("--nlc-no-import-native");
+                    rt_args.push_back("--nlc-no-eval-enable");
                     continue;
                 } else if (strcmp(argv[pos], "-o") == 0 || strcmp(argv[pos], "--output") == 0) {
                     if (++pos >= argc) {
@@ -463,7 +464,7 @@ namespace newlang {
                     result = rt->Run(url_decode(command), main_args.get());
                 } catch (IntAny &any) {
                     result = any.m_obj;
-                } catch (Return &ret) {
+                } catch (Error &ret) {
                     result = ret.m_obj;
                 }
                 ASSERT(result);

@@ -526,7 +526,7 @@ TEST(Ast, AstAnalyze) {
 
     RuntimePtr rt = RunTime::Init();
     ASSERT_TRUE(rt);
-    
+
     AstAnalysis analysis(*rt, rt->m_diag.get());
 
     TermPtr ast = rt->GetParser()->Parse("var1 ::= '1';");
@@ -648,7 +648,7 @@ TEST(Ast, Namespace) {
 
     RuntimePtr rt = RunTime::Init();
     ASSERT_TRUE(rt);
-    AstAnalysis analysis(*rt, rt->m_diag.get());    
+    AstAnalysis analysis(*rt, rt->m_diag.get());
 
     TermPtr ast = rt->GetParser()->Parse("$var := 1;");
     ASSERT_TRUE(ast);
@@ -764,7 +764,7 @@ TEST(Ast, Interruption) {
     RuntimePtr rt = RunTime::Init();
     ASSERT_TRUE(rt);
 
-    AstAnalysis analysis(*rt, rt->m_diag.get());    
+    AstAnalysis analysis(*rt, rt->m_diag.get());
 
     TermPtr ast = rt->GetParser()->Parse(":: --;");
     ASSERT_TRUE(ast);
@@ -1590,80 +1590,82 @@ TEST(Ast, CheckStrPrintf) {
 
 TEST(Ast, CheckStrFormat) {
 
-//    TermPtr args = Term::CreateDict();
-//
-//    ASSERT_TRUE(AstAnalysis::CheckStrFormat("", args, 0));
-//    args->push_back(Term::CreateName(""));
-//    ASSERT_FALSE(AstAnalysis::CheckStrFormat("", args, 0));
-//    ASSERT_TRUE(AstAnalysis::CheckStrFormat("", args, 1));
-//
-//    ASSERT_FALSE(AstAnalysis::CheckStrFormat("${name}", args, 0));
-//    ASSERT_TRUE(AstAnalysis::CheckStrFormat("$1", args, 0));
-//    ASSERT_FALSE(AstAnalysis::CheckStrFormat("${name}", args, 1));
-//    ASSERT_FALSE(AstAnalysis::CheckStrFormat("$1", args, 1));
-//
-//    args->push_back(Term::CreateName(""), "name");
-//    ASSERT_TRUE(AstAnalysis::CheckStrFormat("$1", args, 0));
-//    ASSERT_TRUE(AstAnalysis::CheckStrFormat("$2", args, 0));
-//    ASSERT_TRUE(AstAnalysis::CheckStrFormat("${name}", args, 0));
-//    ASSERT_FALSE(AstAnalysis::CheckStrFormat("$1", args, 1));
-//    ASSERT_FALSE(AstAnalysis::CheckStrFormat("$2", args, 1));
-//    ASSERT_FALSE(AstAnalysis::CheckStrFormat("${name}", args, 1));
+    TermPtr args = Term::CreateDict();
+
+    ASSERT_ANY_THROW(AstAnalysis::ConvertToVFormat_("", nullptr));
+    ASSERT_ANY_THROW(AstAnalysis::ConvertToVFormat_("{", args));
+
+    ASSERT_STREQ("", AstAnalysis::ConvertToVFormat_("", args).c_str());
+    ASSERT_STREQ("{{", AstAnalysis::ConvertToVFormat_("{{", args).c_str());
+    ASSERT_STREQ("format", AstAnalysis::ConvertToVFormat_("format", args).c_str());
+    ASSERT_STREQ("{}", AstAnalysis::ConvertToVFormat_("{}", args).c_str());
+    ASSERT_STREQ("{1}", AstAnalysis::ConvertToVFormat_("{1}", args).c_str());
+    ASSERT_STREQ("{1:}", AstAnalysis::ConvertToVFormat_("{1:}", args).c_str());
+    ASSERT_STREQ("{:0}", AstAnalysis::ConvertToVFormat_("{:0}", args).c_str());
+    ASSERT_STREQ("{:0}{:0}", AstAnalysis::ConvertToVFormat_("{:0}{:0}", args).c_str());
+    ASSERT_STREQ("{1:1}{1:1}", AstAnalysis::ConvertToVFormat_("{1:1}{1:1}", args).c_str());
+
+    ASSERT_ANY_THROW(AstAnalysis::ConvertToVFormat_("{{{1:1}{1:1", args));
+    ASSERT_STREQ("{{{1:1}{1:1}", AstAnalysis::ConvertToVFormat_("{{{1:1}{1:1}", args).c_str());
+    ASSERT_STREQ("{{{1:1}{1:1}}}", AstAnalysis::ConvertToVFormat_("{{{1:1}{1:1}}}", args).c_str());
+
+    args->push_back(Term::CreateNone(), "name");
+    ASSERT_STREQ("{0}", AstAnalysis::ConvertToVFormat_("{name}", args).c_str());
+    ASSERT_STREQ("{0}{0}", AstAnalysis::ConvertToVFormat_("{name}{name}", args).c_str());
+    ASSERT_STREQ("{0:0}{0:123}{0:0.0}", AstAnalysis::ConvertToVFormat_("{name:0}{0:123}{name:0.0}", args).c_str());
+    ASSERT_STREQ("{0}{0}", AstAnalysis::ConvertToVFormat_("{0}{name}", args).c_str());
+
+    ASSERT_STREQ("{{{0}}}", AstAnalysis::ConvertToVFormat_("{{{0}}}", args).c_str());
+    ASSERT_STREQ("{{{0}}}", AstAnalysis::ConvertToVFormat_("{{{name}}}", args).c_str());
+
+    ASSERT_STREQ("{{0}{0}}", AstAnalysis::ConvertToVFormat_("{{0}{name}}", args).c_str());
+    ASSERT_STREQ("{{{0}{0}}", AstAnalysis::ConvertToVFormat_("{{{0}{name}}", args).c_str());
 
 
+    args->push_back(Term::CreateNone(), "name2");
+    ASSERT_STREQ("{0}{1}", AstAnalysis::ConvertToVFormat_("{name}{name2}", args).c_str());
+    ASSERT_STREQ("{1}", AstAnalysis::ConvertToVFormat_("{name2}", args).c_str());
+    ASSERT_STREQ("{1:0}{1:.0}{0:0.0}", AstAnalysis::ConvertToVFormat_("{name2:0}{1:.0}{name:0.0}", args).c_str());
+    ASSERT_STREQ("{1}{0}", AstAnalysis::ConvertToVFormat_("{name2}{name}", args).c_str());
 
-//    ASSERT_TRUE(AstAnalysis::CheckStrFormat("%s", args, 1));
-//    ASSERT_FALSE(AstAnalysis::CheckStrFormat("%s", args, 2));
-//
-//    ASSERT_TRUE(AstAnalysis::CheckStrFormat("%s%d", args, 0));
-//    ASSERT_FALSE(AstAnalysis::CheckStrFormat("%s%d", args, 1));
-//    args->push_back(Term::CreateName("1"));
-//    args->back().second->m_type = getDefaultType(ObjType::Int8);
-//    ASSERT_TRUE(AstAnalysis::CheckStrFormat("%s%d", args, 1));
-//    ASSERT_FALSE(AstAnalysis::CheckStrFormat("%s%d", args, 2));
-//
-//    ASSERT_TRUE(AstAnalysis::CheckStrFormat("%s%d%d", args, 0));
-//    ASSERT_FALSE(AstAnalysis::CheckStrFormat("%s%d%d", args, 1));
-//    args->push_back(Term::CreateName("1"));
-//    args->back().second->m_type = getDefaultType(ObjType::Int64);
-//    ASSERT_FALSE(AstAnalysis::CheckStrFormat("%s%d%d", args, 1));
-//    ASSERT_TRUE(AstAnalysis::CheckStrFormat("%s%d%ld", args, 1));
-//    args->back().second->m_type = getDefaultType(ObjType::Int32);
-//    ASSERT_TRUE(AstAnalysis::CheckStrFormat("%s%d%ld", args, 1));
-//    ASSERT_FALSE(AstAnalysis::CheckStrFormat("%s%d%ld", args, 2));
-//
-//    ASSERT_TRUE(AstAnalysis::CheckStrFormat("%s%d%ld%f", args, 0));
-//    ASSERT_FALSE(AstAnalysis::CheckStrFormat("%s%d%ld%f", args, 1));
-//    args->push_back(Term::CreateName("0"));
-//    ASSERT_TRUE(AstAnalysis::CheckStrFormat("%s%d%ld%f", args, 1));
-//    ASSERT_FALSE(AstAnalysis::CheckStrFormat("%s%d%ld%f", args, 2));
-//
-//    ASSERT_TRUE(AstAnalysis::CheckStrFormat("%s%d%ld%f%s", args, 0));
-//    ASSERT_FALSE(AstAnalysis::CheckStrFormat("%s%d%ld%f%s", args, 1));
-//    args->push_back(Term::CreateName(""));
-//    ASSERT_TRUE(AstAnalysis::CheckStrFormat("%s%d%ld%f%s", args, 1));
-//    ASSERT_FALSE(AstAnalysis::CheckStrFormat("%s%d%ld%f%s", args, 2));
-//
-//
-//    RuntimePtr rt = RunTime::Init();
-//    ASSERT_TRUE(rt);
-//
-//    ASSERT_ANY_THROW(rt->MakeAst("print()"));
-//    ASSERT_ANY_THROW(rt->MakeAst("print(123)"));
-//    ASSERT_ANY_THROW(rt->MakeAst("print('%s - %s', 1, 'test')"));
-//    ASSERT_ANY_THROW(rt->MakeAst("print('%d - %d', 1, 'test')"));
-//
-//    ASSERT_NO_THROW(rt->MakeAst("print(format='')"));
-//    ASSERT_NO_THROW(rt->MakeAst("print(format='%d', 1)"));
-//
-//    ASSERT_ANY_THROW(rt->MakeAst("print(format='', 1)"));
-//    ASSERT_ANY_THROW(rt->MakeAst("print(format='%d', named=1)"));
-//    ASSERT_ANY_THROW(rt->MakeAst("print(format='%d', __sys__=1)"));
-//
-//    ObjPtr print;
-//    ASSERT_NO_THROW(print = rt->Run("print(format='\\n')"));
-//    ASSERT_NO_THROW(print = rt->Run("print('%d - %s\\n', 1, 'test')"));
+    ASSERT_STREQ("{{name2}{0}}", AstAnalysis::ConvertToVFormat_("{{name2}{name}}", args).c_str());
+    ASSERT_STREQ("{{{1}{0}}", AstAnalysis::ConvertToVFormat_("{{{name2}{name}}", args).c_str());
+    ASSERT_STREQ("{{{1}}}", AstAnalysis::ConvertToVFormat_("{{{name2}}}", args).c_str());
 
+    ASSERT_STREQ("{{{0}}}", AstAnalysis::ConvertToVFormat_("{{{name}}}", args).c_str());
+
+    args->clear();
+    ASSERT_TRUE(!args->size());
+
+    ASSERT_STREQ("", AstAnalysis::MakeFormat("", args, nullptr). c_str());
+    ASSERT_ANY_THROW(AstAnalysis::MakeFormat("{", args, nullptr));
+    ASSERT_STREQ("{", AstAnalysis::MakeFormat("{{", args, nullptr). c_str());
+
+    ASSERT_NO_THROW(ASSERT_STREQ("{}", AstAnalysis::MakeFormat("{{}}", args, nullptr). c_str()));
+    ASSERT_ANY_THROW(ASSERT_STREQ("{}", AstAnalysis::MakeFormat("{{{}}}", args, nullptr). c_str()));
+
+    args->push_back(Term::CreateNone(), "none");
+    ASSERT_NO_THROW(ASSERT_STREQ("{}", AstAnalysis::MakeFormat("{{{}}}", args, nullptr). c_str()));
+    ASSERT_NO_THROW(ASSERT_STREQ("{}", AstAnalysis::MakeFormat("{{{none}}}", args, nullptr). c_str()));
+
+
+    ASSERT_NO_THROW(ASSERT_STREQ("", AstAnalysis::MakeFormat("{none}", args, nullptr). c_str()));
+
+    args->push_back(Term::CreateName("string", TermID::STRCHAR), "str");
+    ASSERT_NO_THROW(ASSERT_STREQ("'string'", AstAnalysis::MakeFormat("{str}", args, nullptr). c_str()));
+
+    args->push_back(Term::CreateName("123", TermID::STRCHAR), "int");
+    ASSERT_NO_THROW(ASSERT_STREQ("'123'", AstAnalysis::MakeFormat("{int}", args, nullptr). c_str()));
+
+    ASSERT_NO_THROW(ASSERT_STREQ("", AstAnalysis::MakeFormat("{}", args, nullptr). c_str()));
+    ASSERT_NO_THROW(ASSERT_STREQ("'string'", AstAnalysis::MakeFormat("{}{}", args, nullptr). c_str()));
+    ASSERT_NO_THROW(ASSERT_STREQ("'string''123'", AstAnalysis::MakeFormat("{}{}{}", args, nullptr). c_str()));
+
+    ASSERT_NO_THROW(ASSERT_STREQ("'string'", AstAnalysis::MakeFormat("{1}", args, nullptr). c_str()));
+    ASSERT_NO_THROW(ASSERT_STREQ("'string'", AstAnalysis::MakeFormat("{0}{1}{0}", args, nullptr). c_str()));
+    ASSERT_NO_THROW(ASSERT_STREQ("'string''123'", AstAnalysis::MakeFormat("{1}{2}{none}", args, nullptr). c_str()));
+
+    ASSERT_NO_THROW(ASSERT_STREQ("'string''123'", AstAnalysis::MakeFormat("{none}{str}{int}{none}", args, nullptr). c_str()));
 }
 
 #endif // UNITTEST

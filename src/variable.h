@@ -141,6 +141,14 @@ namespace newlang {
             return at_index_const(index)->first;
         }
 
+        virtual int64_t index(const std::string_view field_name) {
+            typename ListType::iterator found = find(field_name.begin());
+            if (found == ListType::end()) {
+                return -1;
+            }
+            return std::distance(ListType::begin(), found);
+        }
+
         virtual void clear_() {
             ListType::clear();
         }

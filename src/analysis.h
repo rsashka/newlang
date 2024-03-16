@@ -6,6 +6,9 @@
 
 #include <sys/time.h>
 
+#include "fmt/core.h"
+#include "fmt/args.h"
+
 #include <compiler.h>
 
 #include "term.h"
@@ -48,13 +51,19 @@ namespace newlang {
          * m_variables
          */
         bool Analyze(TermPtr &term, TermPtr &root);
-        bool RecursiveAnalyzer(TermPtr &term, ScopeStack &stack);
+        bool RecursiveAnalyzer(TermPtr term, ScopeStack &stack);
         bool CreateOp_(TermPtr &term, ScopeStack &stack);
         bool CreateVar(TermPtr &var, TermPtr &value, ScopeStack &stack);
         bool AssignVar(TermPtr &var, TermPtr &value, ScopeStack &stack);
         bool Iterator_(TermPtr &term, ScopeStack &stack);
 
-        TermPtr LockupName(TermPtr &term, ScopeStack &stack);
+        TermPtr CheckField_(TermPtr &term, TermPtr &field, ScopeStack &stack);
+        bool CheckIndex_(TermPtr &term, TermPtr &index, TermPtr &value, ScopeStack &stack);
+
+        TermPtr CheckGetValue_(TermPtr &obj, ScopeStack &stack);
+        bool CheckSetValue_(TermPtr &obj, TermPtr &value, ScopeStack &stack);
+
+        TermPtr LookupName(TermPtr &term, ScopeStack &stack);
         bool CheckNative_(TermPtr &term);
 
         /**
@@ -68,17 +77,27 @@ namespace newlang {
         bool CheckOp(TermPtr &term);
         bool CalcType(TermPtr &term);
         bool UpcastOpType(TermPtr &op);
-        bool CheckType(TermPtr &left, const TermPtr right);
+        bool CheckOpType(TermPtr &op, TermPtr &left, const TermPtr right);
         bool CheckCall(TermPtr &proto, TermPtr &call, ScopeStack & stack);
         bool CheckCallArg(TermPtr &call, size_t arg_pos, ScopeStack & stack);
         bool CkeckRange_(TermPtr &term, ScopeStack & stack);
+        bool CheckFollow_(TermPtr &term, ScopeStack & stack);
+        bool CheckWhile_(TermPtr &term, ScopeStack & stack);
+        bool CheckDoWhile_(TermPtr &term, ScopeStack & stack);
+        bool CheckMatching_(TermPtr &term, ScopeStack & stack);
+        bool CheckWith_(TermPtr &term, ScopeStack & stack);
+        bool CheckTake_(TermPtr &term, ScopeStack & stack);
+
         bool CheckNative_(TermPtr &proto, TermPtr &term);
 
         bool CheckArgsType_(TermPtr proto, TermPtr value);
         bool CheckArgs_(TermPtr proto, TermPtr args);
 
-        static bool CheckStrFormat(const std::string_view format, TermPtr args, int start);
+
         static bool CheckStrPrintf(const std::string_view format, TermPtr args, int start);
+        static std::string MakeFormat(const std::string_view format, TermPtr args, RunTime * rt);
+        static fmt::dynamic_format_arg_store<fmt::format_context> MakeFormatArgs(TermPtr args, RunTime * rt);
+        static std::string ConvertToVFormat_(const std::string_view format, TermPtr args);
         TermPtr CalcSummaryType(const TermPtr &term, ScopeStack & stack);
 
     protected:

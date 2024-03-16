@@ -112,7 +112,8 @@ bool newlang::canCast(const TermPtr &from, const ObjType to) {
     if (!from->m_type) {
         return true; // Empty type cast any type
     }
-    return canCast(GetBaseTypeFromString(from->m_type->m_text), to);
+    ObjType test_type = GetBaseTypeFromString(from->m_type->m_text);
+    return canCast(test_type, to);
 }
 
 bool newlang::canCast(const TermPtr &from, const TermPtr &to) {

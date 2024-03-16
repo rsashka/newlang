@@ -35,7 +35,7 @@ namespace newlang {
     //
     //    at::TensorOptions ConvertToTensorOptions(const Obj *obj);
     //    at::DimnameList ConvertToDimnameList(const Obj *obj);
-    bool ParsePrintfFormat(Obj *args, int start = 1);
+    //    bool ParsePrintfFormat(Obj *args, int start = 1);
 
     ObjPtr CheckSystemField(const Obj *obj, const std::string name);
 
@@ -394,7 +394,7 @@ namespace newlang {
             ASSERT(!m_tensor.defined());
         }
 
-//        Obj(Context *ctx, const TermPtr term, bool as_value, Obj *local_vars);
+        //        Obj(Context *ctx, const TermPtr term, bool as_value, Obj *local_vars);
 
 
         [[nodiscard]]
@@ -628,7 +628,7 @@ namespace newlang {
 
         [[nodiscard]]
         inline bool is_return() const {
-            return m_var_type_current == ObjType::Return || m_var_type_fixed == ObjType::Return || m_var_type_current == ObjType::RetPlus || m_var_type_current == ObjType::RetMinus;
+            return m_var_type_current == ObjType::RetPlus || m_var_type_current == ObjType::RetMinus || m_var_type_current == ObjType::RetRepeat;
         }
 
         [[nodiscard]]
@@ -725,7 +725,7 @@ namespace newlang {
             }
             return op_call(*arg);
         }
-        
+
         template <typename... T>
         typename std::enable_if<!is_all<Obj::PairType, T ...>::value, ObjPtr>::type
         inline operator()(T ... args) {
@@ -738,23 +738,23 @@ namespace newlang {
         }
 
 
-//        inline ObjPtr Call(Context *ctx) {
-//            Obj args(ObjType::Dictionary);
-//            return Call(ctx, &args);
-//        }
-//
-//        template <typename... T>
-//        typename std::enable_if<is_all<Obj::PairType, T ...>::value, ObjPtr>::type
-//        inline Call(Context *ctx, T ... args) {
-//            auto list = {args...};
-//            Obj arg(ObjType::Dictionary);
-//            for (auto &elem : list) {
-//                arg.Variable<Obj>::push_back(elem);
-//            }
-//            return Call(ctx, &arg);
-//        }
-//
-//        ObjPtr Call(Context *ctx, Obj *args, bool direct = false, ObjPtr self = nullptr);
+        //        inline ObjPtr Call(Context *ctx) {
+        //            Obj args(ObjType::Dictionary);
+        //            return Call(ctx, &args);
+        //        }
+        //
+        //        template <typename... T>
+        //        typename std::enable_if<is_all<Obj::PairType, T ...>::value, ObjPtr>::type
+        //        inline Call(Context *ctx, T ... args) {
+        //            auto list = {args...};
+        //            Obj arg(ObjType::Dictionary);
+        //            for (auto &elem : list) {
+        //                arg.Variable<Obj>::push_back(elem);
+        //            }
+        //            return Call(ctx, &arg);
+        //        }
+        //
+        //        ObjPtr Call(Context *ctx, Obj *args, bool direct = false, ObjPtr self = nullptr);
 
         /*
          * 
@@ -1668,11 +1668,11 @@ namespace newlang {
         static ObjPtr ConstructorStruct_(Context *ctx, Obj & args);
         static ObjPtr ConstructorEnum_(Context *ctx, Obj & args);
 
-        static ObjPtr ConstructorError_(Context *ctx, Obj & args);
-        static ObjPtr ConstructorReturn_(Context *ctx, Obj & args);
-        static ObjPtr ConstructorThread_(Context *ctx, Obj & args);
-        static ObjPtr ConstructorSystem_(Context *ctx, Obj & args);
-        static ObjPtr ConstructorInterraption_(Context *ctx, Obj & args, ObjType type);
+        //        static ObjPtr ConstructorError_(Context *ctx, Obj & args);
+        //        static ObjPtr ConstructorReturn_(Context *ctx, Obj & args);
+        //        static ObjPtr ConstructorThread_(Context *ctx, Obj & args);
+        //        static ObjPtr ConstructorSystem_(Context *ctx, Obj & args);
+        //        static ObjPtr ConstructorInterraption_(Context *ctx, Obj & args, ObjType type);
 
         static ObjPtr CreateBaseType(ObjType type);
 
@@ -1866,6 +1866,18 @@ namespace newlang {
         }
 
         template <typename T>
+        typename std::enable_if<std::is_same<T, std::string>::value || std::is_same<T, const char *>::value, ObjPtr>::type
+        static CreateValue(T value, ObjType fix_type = ObjType::None) {
+            return Obj::CreateString(value);
+        }
+
+        template <typename T>
+        typename std::enable_if<std::is_same<T, std::wstring>::value || std::is_same<T, const wchar_t *>::value, ObjPtr>::type
+        static CreateValue(T value, ObjType fix_type = ObjType::None) {
+            return Obj::CreateString(value);
+        }
+
+        template <typename T>
         typename std::enable_if<std::is_integral<T>::value, ObjPtr>::type
         static CreateValue(T value, ObjType fix_type = ObjType::None) {
             ObjPtr result = CreateType(fix_type);
@@ -1911,18 +1923,6 @@ namespace newlang {
             return result;
         }
 
-        template <typename T>
-        typename std::enable_if<std::is_same<T, std::string>::value, ObjPtr>::type
-        static CreateValue(T value, ObjType fix_type = ObjType::None) {
-            return Obj::CreateString(value);
-        }
-        
-        template <typename T>
-        typename std::enable_if<std::is_same<T, std::wstring>::value, ObjPtr>::type
-        static CreateValue(T value, ObjType fix_type = ObjType::None) {
-            return Obj::CreateString(value);
-        }
-        
         inline static ObjPtr Yes() {
             ObjPtr result = std::make_shared<Obj>(ObjType::Bool);
             result->m_var = static_cast<int64_t> (1);
@@ -1940,7 +1940,7 @@ namespace newlang {
         }
 
         inline static ObjPtr CreateDict() {
-            return Obj::CreateType(ObjType::Dictionary);
+            return Obj::CreateType(ObjType::Dictionary, ObjType::Dictionary, true);
         }
 
         template <typename... T>
@@ -2437,29 +2437,12 @@ namespace newlang {
         bool CallOnce(ObjPtr &arg_in, ObjPtr &result, ObjPtr object = nullptr); // !
 
 
-//        static ObjPtr CreateFunc(Context *ctx, TermPtr proto, ObjType type, const std::string var_name = "");
-//        static ObjPtr CreateFunc(std::string proto, FunctionType *func_addr, ObjType type = ObjType::Function);
-//        static ObjPtr CreateFunc(std::string proto, TransparentType *func_addr, ObjType type = ObjType::PureFunc);
-//        static ObjPtr CreateFunc(TermPtr proto, void *addr, ObjType type);
-
-        ObjPtr ConvertToArgs(Obj *args, bool check_valid, Context * ctx) const {
-            ObjPtr result = Clone();
-            result->ConvertToArgs_(args, check_valid, ctx);
-
-            return result;
-        }
-
-        void CheckArgsValid() const;
-        bool CheckArgs() const;
-
         inline const TermPtr Proto() {
 
             return m_prototype;
         }
 
         SCOPE(protected) :
-
-        void ConvertToArgs_(Obj *args, bool check_valid, Context *ctx = nullptr); // Обновить параметры для вызова функции или элементы у словаря при создании копии
 
     public:
 

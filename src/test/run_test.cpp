@@ -321,7 +321,7 @@ TEST(Eval, Assign) {
     list = rt->Run("$?!");
     ASSERT_STREQ("('var1',)", list->toString().c_str());
 
-    ASSERT_THROW(rt->Run("var1 ::= 123"), Return);
+    ASSERT_THROW(rt->Run("var1 ::= 123"), Error);
 
     ASSERT_NO_THROW(var1 = rt->Run("var1 = 100:Int8"));
     ASSERT_EQ(var1->m_var_type_current, ObjType::Int8) << newlang::toString(var1->m_var_type_current);
@@ -657,9 +657,9 @@ TEST(Run, Comprehensions) {
     ASSERT_TRUE(tt);
     ASSERT_STREQ("[0, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9,]:Float64", tt->GetValueAsString().c_str());
 
-//    ASSERT_NO_THROW(tt = rt->Run(":Tensor( ... 0..0.99..0.1:Float32 )"));
-//    ASSERT_TRUE(tt);
-//    ASSERT_STREQ("[0, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9,]:Float32", tt->GetValueAsString().c_str());
+    //    ASSERT_NO_THROW(tt = rt->Run(":Tensor( ... 0..0.99..0.1:Float32 )"));
+    //    ASSERT_TRUE(tt);
+    //    ASSERT_STREQ("[0, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9,]:Float32", tt->GetValueAsString().c_str());
 
     ASSERT_NO_THROW(tt = rt->Run(":Tensor[10]( 1, 2, ... )"));
     ASSERT_TRUE(tt);
@@ -1761,127 +1761,123 @@ TEST(Run, Comprehensions) {
 //////
 //////
 //////}
-////
-////class EvalTester : public ::testing::Test {
-////protected:
-////    Context m_ctx;
-////    ObjPtr m_result;
-////    std::string m_string;
-////
-////    EvalTester() : m_ctx(RunTime::Init()) {
-////    }
-////
-////    const char *Test(std::string eval, Obj *vars) {
-////        eval += ";";
-////        m_result = m_ctx.ExecStr(eval, vars);
-////        if (m_result) {
-////            m_string = m_result->GetValueAsString();
-////            return m_string.c_str();
-////        }
-////        std::cout << "Fail parsing: '" << eval << "'\n";
-////        ADD_FAILURE();
-////
-////        return nullptr;
-////    }
-////
-////    const char *Test(const char *eval) {
-////        Obj vars;
-////
-////        return Test(eval, &vars);
-////    }
-////};
-////
-////TEST_F(EvalTester, Ops) {
-////    ASSERT_STREQ("10", Test("10"));
-////    ASSERT_STREQ("32", Test("10+22"));
-////    ASSERT_STREQ("5.1", Test("1.1+4"));
-////    ASSERT_STREQ("5.5", Test("1+4.5"));
-////
-////    ASSERT_STREQ("10\\1", Test("10\\1"));
-////    ASSERT_STREQ("32\\1", Test("10\\1+22\\1"));
-////    ASSERT_STREQ("5\\1", Test("4\\5 + 42\\10"));
-////    ASSERT_STREQ("11\\1", Test("10\\1 + 1"));
-////    ASSERT_STREQ("4\\3", Test("1\\3 + 1"));
-////
-////    ASSERT_STREQ("-12", Test("10 - 22"));
-////    ASSERT_STREQ("-2.9", Test("1.1 - 4"));
-////    ASSERT_STREQ("-3.5", Test("1 - 4.5"));
-////    ASSERT_STREQ("-17\\5", Test("4\\5 - 42\\10"));
-////    ASSERT_STREQ("-9\\10", Test("1\\10 - 1"));
-////    ASSERT_STREQ("-2\\3", Test("1\\3 - 1"));
-////
-////    ASSERT_STREQ("66", Test("2 * 33"));
-////    ASSERT_STREQ("-5.5", Test("1.1 * -5"));
-////    ASSERT_STREQ("180", Test("10 * 18"));
-////    ASSERT_STREQ("66\\1", Test("2\\1 * 66\\2"));
-////    ASSERT_STREQ("-15\\1", Test("3\\1 * -5"));
-////    ASSERT_STREQ("9\\5", Test("18\\100 * 10"));
-////
-////    ASSERT_STREQ("5", Test("10/2"));
-////    ASSERT_STREQ("5.05", Test("10.1 / 2"));
-////    ASSERT_STREQ("0.1", Test("1 / 10"));
-////    ASSERT_STREQ("0.1", Test("1.0 / 10"));
-////
-////    ASSERT_STREQ("4\\3", Test("12\\3 / 3"));
-////    ASSERT_STREQ("1\\1", Test("5\\10 / 1\\2"));
-////    ASSERT_STREQ("1\\100", Test("1\\10 / 10"));
-////
-////    ASSERT_STREQ("5", Test("10//2"));
-////    ASSERT_STREQ("5", Test("10.0 // 2"));
-////    ASSERT_STREQ("0", Test("1 // 10"));
-////    ASSERT_STREQ("-3", Test("-25 // 10"));
-////    ASSERT_STREQ("-3", Test("-30 // 10"));
-////    ASSERT_STREQ("-4", Test("-31 // 10"));
-////
-////    //    ASSERT_STREQ("100", Test("2*20+10*5"));
-////
-////    ASSERT_STREQ("", Test("\"\""));
-////    ASSERT_STREQ(" ", Test("\" \""));
-////    ASSERT_STREQ("строка", Test("\"\"+\"строка\" "));
-////    ASSERT_STREQ("строка 222", Test("\"строка \" + \"222\" "));
-////    ASSERT_STREQ("строка строка строка ", Test("\"строка \" * 3 "));
-////
-////    ASSERT_STREQ("100", Test("$var1:=100"));
-////    ObjPtr var1 = m_result;
-////    ASSERT_TRUE(var1);
-////    ASSERT_STREQ("$$=('var1',)", Test("$$"));
-////    ASSERT_STREQ("100", Test("var1"));
-////
-////    ObjPtr vars = Obj::CreateDict(Obj::Arg(var1, "var1"));
-////
-////    ASSERT_ANY_THROW(Test("$var1"));
-////    ASSERT_NO_THROW(Test("$var1", vars.get()));
-////    ASSERT_STREQ("100", Test("$var1", vars.get()));
-////
-////    ASSERT_STREQ("20", Test("$var2:=9+11"));
-////    ObjPtr var2 = m_result;
-////    ASSERT_TRUE(var2);
-////    ASSERT_STREQ("$$=('var1', 'var2',)", Test("$$"));
-////    ASSERT_STREQ("20", Test("var2"));
-////
-////    ASSERT_ANY_THROW(Test("$var2"));
-////    ASSERT_ANY_THROW(Test("$var2", vars.get()));
-////    vars->push_back(Obj::Arg(var2, "var2"));
-////
-////    ASSERT_NO_THROW(Test("$var2", vars.get()));
-////    ASSERT_STREQ("20", Test("$var2", vars.get()));
-////
-////    ASSERT_STREQ("100", Test("var1"));
-////    ASSERT_STREQ("120", Test("var1+=var2"));
-////    ASSERT_STREQ("$$=('var1', 'var2',)", Test("$$"));
-////
-////    ASSERT_ANY_THROW(Test("$var1"));
-////    ASSERT_NO_THROW(Test("$var1", vars.get()));
-////    ASSERT_STREQ("120", Test("$var1", vars.get()));
-////
-////    vars->clear_();
-////    m_result.reset();
-////    var1.reset();
-////    ASSERT_STREQ("$$=('var2',)", Test("$$"));
-////    var2.reset();
-////    ASSERT_STREQ("$$=(,)", Test("$$"));
-////}
-////
+
+class RunTester : public ::testing::Test {
+protected:
+    RuntimePtr m_rt;
+    ObjPtr m_result;
+    std::string m_string;
+
+    RunTester() : m_rt(RunTime::Init()) {
+    }
+
+    const char *Test(std::string eval, Obj *vars) {
+        eval += ";";
+        m_result = m_rt->Run(eval, vars);
+        if (m_result) {
+            m_string = m_result->GetValueAsString();
+            return m_string.c_str();
+        }
+        std::cout << "Fail parsing: '" << eval << "'\n";
+        ADD_FAILURE();
+
+        return nullptr;
+    }
+
+    const char *Test(const char *eval) {
+        Obj vars;
+
+        return Test(eval, &vars);
+    }
+};
+
+TEST_F(RunTester, Ops) {
+    ASSERT_STREQ("10", Test("10"));
+    ASSERT_STREQ("32", Test("10+22"));
+    ASSERT_STREQ("5.1", Test("1.1+4"));
+    ASSERT_STREQ("5.5", Test("1+4.5"));
+
+    ASSERT_STREQ("10\\1", Test("10\\1"));
+    ASSERT_STREQ("32\\1", Test("10\\1+22\\1"));
+    ASSERT_STREQ("5\\1", Test("4\\5 + 42\\10"));
+    ASSERT_STREQ("11\\1", Test("10\\1 + 1"));
+    ASSERT_STREQ("4\\3", Test("1\\3 + 1"));
+
+    ASSERT_STREQ("-12", Test("10 - 22"));
+    ASSERT_STREQ("-2.9", Test("1.1 - 4"));
+    ASSERT_STREQ("-3.5", Test("1 - 4.5"));
+    ASSERT_STREQ("-17\\5", Test("4\\5 - 42\\10"));
+    ASSERT_STREQ("-9\\10", Test("1\\10 - 1"));
+    ASSERT_STREQ("-2\\3", Test("1\\3 - 1"));
+
+    ASSERT_STREQ("66", Test("2 * 33"));
+    ASSERT_STREQ("-5.5", Test("1.1 * -5"));
+    ASSERT_STREQ("180", Test("10 * 18"));
+    ASSERT_STREQ("66\\1", Test("2\\1 * 66\\2"));
+    ASSERT_STREQ("-15\\1", Test("3\\1 * -5"));
+    ASSERT_STREQ("9\\5", Test("18\\100 * 10"));
+
+    ASSERT_STREQ("5", Test("10/2"));
+    ASSERT_STREQ("5.05", Test("10.1 / 2"));
+    ASSERT_STREQ("0.1", Test("1 / 10"));
+    ASSERT_STREQ("0.1", Test("1.0 / 10"));
+
+    ASSERT_STREQ("4\\3", Test("12\\3 / 3"));
+    ASSERT_STREQ("1\\1", Test("5\\10 / 1\\2"));
+    ASSERT_STREQ("1\\100", Test("1\\10 / 10"));
+
+    ASSERT_STREQ("5", Test("10//2"));
+    ASSERT_STREQ("5", Test("10.0 // 2"));
+    ASSERT_STREQ("0", Test("1 // 10"));
+    ASSERT_STREQ("-3", Test("-25 // 10"));
+    ASSERT_STREQ("-3", Test("-30 // 10"));
+    ASSERT_STREQ("-4", Test("-31 // 10"));
+
+    //    ASSERT_STREQ("100", Test("2*20+10*5"));
+
+    ASSERT_STREQ("", Test("\"\""));
+    ASSERT_STREQ(" ", Test("\" \""));
+    ASSERT_STREQ("строка", Test("\"\"+\"строка\" "));
+    ASSERT_STREQ("строка 222", Test("\"строка \" + \"222\" "));
+//    ASSERT_STREQ("строка строка строка ", Test("\"строка \" * 3 "));
+
+    ASSERT_STREQ("100", Test("$var1:=100"));
+    ObjPtr var1 = m_result;
+    ASSERT_TRUE(var1);
+    ASSERT_STREQ("('$var1',)", Test("$?!"));
+    ASSERT_STREQ("100", Test("var1"));
+
+    ObjPtr vars = Obj::CreateDict(Obj::Arg(var1, "var1"));
+
+    //    ASSERT_ANY_THROW(Test("$var1"));
+    ASSERT_NO_THROW(Test("$var1", vars.get()));
+    ASSERT_STREQ("100", Test("$var1", vars.get()));
+
+    ASSERT_STREQ("20", Test("$var2:=9+11"));
+    ObjPtr var2 = m_result;
+    ASSERT_TRUE(var2);
+    ASSERT_STREQ("('$var1', '$var2',)", Test("$!?"));
+    ASSERT_STREQ("20", Test("var2"));
+
+    //    ASSERT_ANY_THROW(Test("$var2"));
+    //    ASSERT_ANY_THROW(Test("$var2", vars.get()));
+    vars->push_back(Obj::Arg(var2, "var2"));
+
+    ASSERT_NO_THROW(Test("$var2", vars.get()));
+    ASSERT_STREQ("20", Test("$var2", vars.get()));
+
+    ASSERT_STREQ("100", Test("var1"));
+    ASSERT_STREQ("120", Test("var1+=var2"));
+    ASSERT_STREQ("('$var1', '$var2',)", Test("$!?"));
+
+    ASSERT_STREQ("120", Test("$var1", vars.get()));
+
+    ASSERT_NO_THROW(Test("var1 := _"));
+    ASSERT_STREQ("('$var1', '$var2',)", Test("$?!"));
+    ASSERT_NO_THROW(Test("var2 := _"));
+    ASSERT_STREQ("('$var1', '$var2',)", Test("$?!"));
+}
+
 ////TEST(RunOp, InstanceName) {
 ////
 ////    /*

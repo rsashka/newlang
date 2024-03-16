@@ -264,7 +264,9 @@ namespace newlang {
         static ffi_prep_cif_var_type * m_ffi_prep_cif_var;
         static ffi_call_type * m_ffi_call;
 
-
+        static ObjType m_wide_char_type;
+        static ffi_type * m_wide_char_type_ffi;
+        static ObjType m_integer_type;
 
         static RuntimePtr Init(StringArray args);
         static RuntimePtr Init(int argc = 0, const char** argv = nullptr);
@@ -359,6 +361,7 @@ namespace newlang {
         bool m_embed_source;
         bool m_import_module;
         bool m_import_natime;
+        bool m_eval_enable;
         bool m_load_runtime;
         int m_typedef_limit;
         //        ObjPtr m_cmd_args;
@@ -436,6 +439,8 @@ namespace newlang {
                     m_import_module = false;
                 } else if (args[i].compare("--nlc-no-import-native") == 0) {
                     m_import_natime = false;
+                } else if (args[i].compare("--nlc-no-eval-enable") == 0) {
+                    m_eval_enable = false;
                 } else if (args[i].compare("--nlc-no-assert") == 0) {
                     m_assert_enable = false;
                 } else if (args[i].find("--nlc-error-limit=") == 0) {

@@ -75,38 +75,6 @@ BlockType Term::GetMacroId() {
  * 
  * 
  */
-//ObjPtr NameList::NameGet(const char *name, bool is_raise) {
-//
-//    TermPtr ret = NameFind(name);
-//
-//    if (ret) {
-//        return ret;//->obj;
-////        if (at::holds_alternative<ObjPtr>(ret->obj)) {
-////            return at::get<ObjPtr>(ret->obj).lock();
-////        } else if (at::holds_alternative<std::vector < ObjPtr >> (ret->obj)) {
-////            return at::get<std::vector < ObjPtr >> (ret->obj)[0].lock();
-////        }
-//        if (is_raise) {
-//            NL_PARSER(ret->item, "Global name not implemented! '%s'", name);
-//        }
-//    } else {
-//        if (is_raise) {
-//            LOG_RUNTIME("Global Name '%s' not found!", name);
-//        }
-//    }
-//    return nullptr;
-//}
-
-//std::string NameList::Dump() {
-//    std::string result;
-//
-//    for (auto &elem : * this) {
-//        result += '\n';
-//        result += elem.first;
-//    }
-//
-//    return result;
-//}
 
 TermPtr Term::CreateNone() {
     TermPtr result = Term::Create(parser::token_type::END, TermID::NONE, "_");
@@ -125,8 +93,8 @@ TermPtr Term::CreateDict() {
     return result;
 }
 
-TermPtr Term::CreateName(std::string name) {
-    TermPtr result = Term::Create(parser::token_type::NAME, TermID::NAME, name.c_str());
+TermPtr Term::CreateName(std::string name, TermID id) {
+    TermPtr result = Term::Create(parser::token_type::NAME, id, name.c_str());
     return result;
 }
 
@@ -172,213 +140,6 @@ bool Term::CheckTermEq(const TermPtr &term1, const TermPtr &term2, bool type, Ru
     return CheckTermEq(term1->m_type, term2->m_type, true, rt);
 }
 
-//bool Term::CheckArgsCall(TermPtr &term, RuntimePtr rt) {
-//    ASSERT(term);
-//    if (rt) {
-//        GlobItem * ret = rt->NameFind(term->m_text.c_str());
-//        if (ret) {
-//            return CheckArgsProto(term, ret->proto);
-//        }
-//        NL_PARSER(term, "Prototype name '%s' not found!", term->m_text.c_str());
-//    }
-//    return CheckArgsProto(term, nullptr);
-//}
-//
-//bool Term::CheckArgsProto(TermPtr &term, const TermPtr proto) {
-//
-//    ASSERT(term);
-//    std::string name(term->m_text);
-//
-//    if (proto) {
-//
-//        if (isNativeName(proto->m_text)) {
-//            if (!RunTime::GetDirectAddressFromLibrary(nullptr, proto->m_text.c_str())) {
-//                NL_PARSER(proto, "Native name '%s' not found!", proto->m_text.c_str());
-//            }
-//            if (proto->Right()) {
-//                // printf(fmt:FmtStr, ...) := %printf ...; 
-//                if (proto->Right()->getTermID() != TermID::ELLIPSIS) {
-//                    NL_PARSER(proto->Right(), "Unexpected term '%s' in native name!", proto->Right()->m_text.c_str());
-//                }
-//                return true;
-//            }
-//        } else if (isLocalAnyName(proto->m_text.c_str())) {
-//            NL_PARSER(proto, "Unexpected use name '%s' as prototype!", proto->m_text.c_str());
-//        }
-//
-//        // printf(fmt:FmtStr, ...) := %printf(fmt:FmtStr, ...); 
-//        return CheckCompareArgs_(term, proto);
-//
-//    } else {
-//
-//        if (isNativeName(term->m_text)) {
-//            NL_PARSER(term, "Cannot use a native name as LValue !");
-//        } else if (isMacroName(term->m_text)) {
-//            NL_PARSER(term, "Macro name must be expanded!");
-//        } else if (!isLocalAnyName(term->m_text.c_str())) {
-//            NL_PARSER(term, "Unexpected term name!");
-//        }
-//
-//    }
-//    return true;
-//}
-//
-//bool Term::CheckCompareArgs_(const TermPtr &term, const TermPtr &proto) {
-//
-//    return false;
-//
-//    //      
-//    //    void Obj::ConvertToArgs_(Obj *in, bool check_valid, Context * ctx)
-//    //
-//    //    ASSERT(in);
-//    //
-//    //    //    bool named = false;
-//    //    bool is_ellipsis = false;
-//    //    if (check_valid && size()) {
-//    //        if (at(size() - 1).first.compare("...") == 0) {
-//    //            is_ellipsis = true;
-//    //            Variable::erase(size() - 1);
-//    //        }
-//    //    }
-//    //    for (int i = 0; i < in->size(); i++) {
-//    //
-//    //        if (isSystemName(in->name(i))) {
-//    //            continue;
-//    //        }
-//    //
-//    //        if (in->name(i).empty()) {
-//    //            //            if(check_valid && named) {
-//    //            //                LOG_RUNTIME("Position %d requires a named argument!", (int) i + 1);
-//    //            //            }
-//    //            ObjType base_type = ObjType::None;
-//    //            if (i < size()) {
-//    //                if (ctx) {
-//    //                    if ((*m_prototype)[i].second->m_type_name.empty()) {
-//    //                        base_type = ObjType::Any;
-//    //                    } else {
-//    //                        bool has_error = false;
-//    //                        base_type = ctx->m_runtime->BaseTypeFromString((*m_prototype)[i].second->m_type_name, &has_error);
-//    //                        if (has_error && (*m_prototype)[i].second->getTermID() == TermID::ELLIPSIS) {
-//    //                            base_type = ObjType::Any;
-//    //                        }
-//    //                    }
-//    //                } else if (!(*m_prototype)[i].second->m_type_name.empty()) {
-//    //                    base_type = typeFromString((*m_prototype)[i].second->m_type_name, ctx);
-//    //                } else {
-//    //                    base_type = ObjType::Any;
-//    //                }
-//    //            } else {
-//    //                base_type = ObjType::Any;
-//    //            }
-//    //
-//    //
-//    //            if (i < size()) {
-//    //                if (check_valid && at(i).second && at(i).second->getType() != ObjType::None) {
-//    //                    if (!canCast((*in)[i].second->getType(), at(i).second->getType())) {
-//    //                        LOG_RUNTIME("Fail cast value '%s' to type '%s'", newlang::toString((*in)[i].second->getType()),
-//    //                                newlang::toString(at(i).second->getType()));
-//    //                    }
-//    //                }
-//    //                if (!at(i).second) {
-//    //                    at(i).second = Obj::CreateNone();
-//    //                }
-//    //                if (m_prototype && i < m_prototype->size()) {
-//    //                    at(i).second->m_is_reference = (*m_prototype)[i].second->isRef();
-//    //                    ObjType limit_type = (*in)[i].second->getTypeAsLimit();
-//    //                    if (!canCast(limit_type, base_type)) {
-//    //                        // Строку с одним символом можно преобразовать в арифметичсекий тип
-//    //                        if (!(isArithmeticType(base_type) && (*in)[i].second->is_string_type() && (*in)[i].second->size() == 1)) {
-//    //                            LOG_RUNTIME("Fail cast value %s%s to type %s",
-//    //                                    (*in)[i].second->toString().c_str(),
-//    //                                    newlang::toString((*in)[i].second->getType()),
-//    //                                    (*m_prototype)[i].second->m_type_name.c_str());
-//    //                        }
-//    //                    }
-//    //                }
-//    //
-//    //                //                LOG_DEBUG("%s", (*in)[i].second->toString().c_str());
-//    //
-//    //                at(i).second->op_assign((*in)[i].second->toType(base_type));
-//    //            } else {
-//    //                if (check_valid && !is_ellipsis && m_prototype && i >= m_prototype->size()) {
-//    //                    LOG_RUNTIME("Positional args overflow. Ptrototype '%s'!",
-//    //                            m_prototype ? m_prototype->toString().c_str() : "Prototype not exists!");
-//    //                }
-//    //                push_back(in->at(i).second->toType(base_type), in->at(i).first);
-//    //            }
-//    //        } else {
-//    //            //            named = true;
-//    //            auto found = find(in->name(i));
-//    //            if (found != end()) {
-//    //                if (check_valid && (*found).second && (*found).second->getType() != (*in)[i].second->getType() && (*found).second->getType() != ObjType::None) {
-//    //                    LOG_RUNTIME("Different type arg '%s' and '%s'", (*found).second->toString().c_str(),
-//    //                            (*in)[i].second->toString().c_str());
-//    //                }
-//    //                //@todo  Проверка ограничений размер данных при указаном типе
-//    //                if (!(*found).second) {
-//    //                    (*found).second = Obj::CreateNone();
-//    //                }
-//    //                (*found).second->op_assign((*in)[i].second);
-//    //            } else {
-//    //                for (int pos = 0; pos < size(); pos++) {
-//    //                    if (!at(pos).first.empty() && at(pos).first.compare(in->at(i).first) == 0) {
-//    //                        at(pos).second->op_assign(in[i]);
-//    //                        goto done;
-//    //                    }
-//    //                }
-//    //                if (check_valid && !is_ellipsis) {
-//    //                    LOG_RUNTIME("Named arg '%s' not found!", in->name(i).c_str());
-//    //                }
-//    //                push_back(in->at(i));
-//    //done:
-//    //                ;
-//    //            }
-//    //        }
-//    //    }
-//    //    if (check_valid) {
-//    //
-//    //        CheckArgsValid();
-//    //    }
-//}
-
-//struct TraversingParam {
-//    TermPtr root;
-//    std::vector < NodeHandlerFunc *> handlers;
-//    void * obj;
-//};
-//
-//void TraversingNodesExecuter(TermPtr &term, TraversingParam &param) {
-//    ASSERT(term);
-//    ASSERT(!term->m_list);
-//    ASSERT(!term->m_sequence);
-//
-//    for (auto &func : param.handlers) {
-//        (*func)(term, param.obj);
-//    }
-//    if (term->m_left) {
-//        TraversingNodesExecuter(term->m_left, param);
-//    }
-//    if (term->m_right) {
-//        TraversingNodesExecuter(term->m_right, param);
-//    }
-//    for (auto &item : term->m_block) {
-//        TraversingNodesExecuter(item, param);
-//    }
-//    for (auto &item : term->m_follow) {
-//        TraversingNodesExecuter(item, param);
-//    }
-//}
-//
-//void Term::TraversingNodes(TermPtr &ast, NodeHandlerList h, void * obj) {
-//
-//    TraversingParam param;
-//
-//    param.root = ast;
-//    param.handlers = h;
-//    param.obj = obj;
-//
-//    TraversingNodesExecuter(ast, param);
-//}
 
 void ScopeStack::PushScope(TermPtr ns, StorageTerm * storage, bool transaction) {
 
@@ -411,6 +172,22 @@ std::string ScopeStack::ExpandNamespace(std::string name) {
         name = name.replace(pos, 3, GetNamespace());
     }
     return name;
+}
+
+bool ScopeStack::CheckInterrupt(std::string_view name) {
+    std::string ns(name);
+
+    if (!(ns.size() > 1 && ns[ns.size() - 1] == ':' && ns[ns.size() - 2] == ':')) {
+        ns += "::";
+    }
+    auto iter = rbegin();
+    while (iter != rend()) {
+        if (iter->scope_name && iter->scope_name->m_namespace && iter->scope_name->m_namespace->m_text.compare(ns.c_str()) == 0) {
+            return iter == rbegin();
+        }
+        iter++;
+    }
+    LOG_RUNTIME("Named block '%s' not found!", name.begin());
 }
 
 std::string ScopeStack::MakeNamespace(int skip, bool is_global) {
@@ -709,23 +486,23 @@ TermPtr ScopeStack::LookupName(std::string name, RunTime *rt) {
     return nullptr;
 }
 
-bool ScopeStack::LookupBlock(TermPtr & term) {
-    ASSERT(term->isInterrupt());
-    if (!term->m_namespace) {
+bool ScopeStack::LookupBlock_(TermPtr & ns) {
+    //    ASSERT(term->isInterrupt());
+    if (ns->m_text.empty()) {
+        NL_MESSAGE(LOG_LEVEL_INFO, ns, "Lookup block empty!");
         return false;
     }
-    term->m_namespace->m_text = ExpandNamespace(term->m_namespace->m_text);
-    if (term->m_namespace->m_text.compare("::") == 0) {
+    ns->m_text = ExpandNamespace(ns->m_text);
+    if (ns->m_text.compare("::") == 0) {
         return true;
     }
     for (int count = 0; count < size(); count++) {
         // Check fullname
-        if (MakeNamespace(-(count + 1), true).find(term->m_namespace->m_text) == 0) {
+        if (MakeNamespace(-(count + 1), true).find(ns->m_text) == 0) {
             return true;
         }
     }
-    NL_MESSAGE(LOG_LEVEL_INFO, term, "Lookup block '%s' fail!%s", term->m_namespace->m_text.c_str(), Dump().c_str());
-
+    NL_MESSAGE(LOG_LEVEL_INFO, ns, "Lookup block '%s' fail!%s", ns->m_text.c_str(), Dump().c_str());
     return false;
 }
 

@@ -19,6 +19,7 @@ bool Buildin::AddMethod(const char * name, ObjPtr obj) {
 
     TermPtr proto = *const_cast<TermPtr *> (&obj->m_prototype);
     proto->m_text = fullname;
+    proto->m_int_name = NormalizeName(fullname);
 
     insert({fullname, {proto, obj}});
 

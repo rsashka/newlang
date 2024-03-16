@@ -248,79 +248,68 @@ TEST_F(SystemTest, Assert) {
     ASSERT_TRUE(term);
     ASSERT_TRUE(term->getTermID() == TermID::FOLLOW) << term->toString();
     ASSERT_STREQ("[:Bool(1 + 1) == 0]-->{::Base::__assert_abort__(\"1+1\", 1 + 1, 2, 'str');};", term->toString().c_str());
+    //[:Bool(@$value)==0]-->{ ::Base::__assert_abort__(@# @$value, @$... ) }
+    AstAnalysis analisys(*rt, rt->m_diag.get());
+    ASSERT_TRUE(analisys.Analyze(term, term)) << rt->Dump();
 
-//    Context ctx1(rt);
-//    Obj args;
-//    ObjPtr result;
-//
-//    ASSERT_NO_THROW(
-//            result = ctx1.Eval(&ctx1, term, &args, true);
-//            ) << rt->Dump();
-//
-//    ASSERT_NO_THROW(
-//            term = rt->GetParser()->Parse("@verify(1)");
-//            ) << rt->Dump();
-//    ASSERT_TRUE(term);
-//    ASSERT_TRUE(term->getTermID() == TermID::FOLLOW) << term->toString();
-//    ASSERT_STREQ("[:Bool(1) == 0]-->{::Base::__assert_abort__(\"1\", 1);};", term->toString().c_str());
-//
-//    ASSERT_NO_THROW(
-//            result = ctx1.Eval(&ctx1, term, &args, true);
-//            ) << rt->Dump();
-//
-//    term = rt->GetParser()->Parse("@verify(0, 3+4, '555')");
-//    ASSERT_TRUE(term);
-//    ASSERT_TRUE(term->getTermID() == TermID::FOLLOW) << term->toString();
-//    ASSERT_STREQ("[:Bool(0) == 0]-->{::Base::__assert_abort__(\"0\", 0, 3 + 4, '555');};", term->toString().c_str());
-//
-//    ASSERT_ANY_THROW(
-//            result = ctx1.Eval(&ctx1, term, &args, true);
-//            ) << rt->Dump();
-//
-//
-//
-//    rt = RunTime::Init({"path", "--nlc-no-assert"});
-//    ASSERT_FALSE(rt->m_assert_enable);
-//
-//    ASSERT_TRUE(rt->m_macro);
-//    ASSERT_FALSE(rt->m_macro->empty());
-//    ASSERT_FALSE(rt->m_macro->find("assert") == rt->m_macro->end()) << rt->m_macro->Dump();
-//    ASSERT_FALSE(rt->m_macro->find("verify") == rt->m_macro->end()) << rt->m_macro->Dump();
-//
-//
-//
-//    ASSERT_NO_THROW(
-//            term = rt->GetParser()->Parse("@assert(1+1, 2, 'str'); 33+44; 55");
-//            ) << rt->Dump();
-//    ASSERT_TRUE(term);
-//    ASSERT_TRUE(term->getTermID() == TermID::BLOCK) << toString(term->getTermID()) << " " << term->toString();
-//    ASSERT_STREQ("{_; 33 + 44; 55;}", term->toString().c_str());
-//
-//    Context ctx2(rt);
-//    ASSERT_NO_THROW(
-//            result = ctx2.Eval(&ctx1, term, &args, true);
-//            ) << rt->Dump();
-//
-//    ASSERT_NO_THROW(
-//            term = rt->GetParser()->Parse("@verify(1+1, 'message'); 33+44");
-//            );
-//    ASSERT_TRUE(term);
-//    ASSERT_TRUE(term->getTermID() == TermID::BLOCK) << term->toString();
-//    ASSERT_STREQ("{1 + 1; 33 + 44;}", term->toString().c_str());
-//
-//    ASSERT_NO_THROW(
-//            result = ctx2.Eval(&ctx1, term, &args, true);
-//            );
-//    ASSERT_NO_THROW(
-//            term = rt->GetParser()->Parse("@verify(0+0)");
-//            );
-//    ASSERT_TRUE(term);
-//    ASSERT_TRUE(term->getTermID() == TermID::OP_MATH) << term->toString();
-//    ASSERT_STREQ("0 + 0", term->toString().c_str());
-//
-//    ASSERT_NO_THROW(
-//            result = ctx2.Eval(&ctx1, term, &args, true);
-//            );
+    Obj args;
+    ObjPtr result;
+
+    ASSERT_NO_THROW(result = rt->Run(term)) << rt->Dump();
+
+    ASSERT_NO_THROW(
+            term = rt->GetParser()->Parse("@verify(1)");
+            ) << rt->Dump();
+    ASSERT_TRUE(term);
+    ASSERT_TRUE(term->getTermID() == TermID::FOLLOW) << term->toString();
+    ASSERT_STREQ("[:Bool(1) == 0]-->{::Base::__assert_abort__(\"1\", 1);};", term->toString().c_str());
+
+    ASSERT_NO_THROW(result = rt->Run(term->toString())) << rt->Dump();
+
+    term = rt->GetParser()->Parse("@verify(0, 3+4, '555')");
+    ASSERT_TRUE(term);
+    ASSERT_TRUE(term->getTermID() == TermID::FOLLOW) << term->toString();
+    ASSERT_STREQ("[:Bool(0) == 0]-->{::Base::__assert_abort__(\"0\", 0, 3 + 4, '555');};", term->toString().c_str());
+
+    ASSERT_ANY_THROW(result = rt->Run(term)) << rt->Dump();
+
+
+
+    rt = RunTime::Init({"--nlc-no-assert"});
+    ASSERT_FALSE(rt->m_assert_enable);
+
+    ASSERT_TRUE(rt->m_macro);
+    ASSERT_FALSE(rt->m_macro->empty());
+    ASSERT_FALSE(rt->m_macro->find("assert") == rt->m_macro->end()) << rt->m_macro->Dump();
+    ASSERT_FALSE(rt->m_macro->find("verify") == rt->m_macro->end()) << rt->m_macro->Dump();
+
+
+
+    ASSERT_NO_THROW(
+            term = rt->GetParser()->Parse("@assert(1+1, 2, 'str'); 33+44; 55");
+            ) << rt->Dump();
+    ASSERT_TRUE(term);
+    ASSERT_TRUE(term->getTermID() == TermID::BLOCK) << toString(term->getTermID()) << " " << term->toString();
+    ASSERT_STREQ("{_; 33 + 44; 55;}", term->toString().c_str());
+
+    ASSERT_NO_THROW(result = rt->Run(term->toString())) << rt->Dump();
+
+    ASSERT_NO_THROW(
+            term = rt->GetParser()->Parse("@verify(1+1, 'message'); 33+44");
+            );
+    ASSERT_TRUE(term);
+    ASSERT_TRUE(term->getTermID() == TermID::BLOCK) << term->toString();
+    ASSERT_STREQ("{1 + 1; 33 + 44;}", term->toString().c_str());
+
+    ASSERT_NO_THROW(result = rt->Run(term->toString()));
+    ASSERT_NO_THROW(
+            term = rt->GetParser()->Parse("@verify(0+0)");
+            );
+    ASSERT_TRUE(term);
+    ASSERT_TRUE(term->getTermID() == TermID::OP_MATH) << term->toString();
+    ASSERT_STREQ("0 + 0", term->toString().c_str());
+
+    ASSERT_NO_THROW(result = rt->Run(term->toString()));
 }
 
 //TEST_F(SystemTest, Base) {

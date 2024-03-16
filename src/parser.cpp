@@ -568,7 +568,7 @@ std::string newlang::ParserMessage(std::string &buffer, int row, int col, const 
 }
 
 void newlang::ParserException(const char *msg, std::string &buffer, int row, int col) {
-    throw Return(ParserMessage(buffer, row, col, "%s", msg), Return::Parser);
+    throw Error(ParserMessage(buffer, row, col, "%s", msg), ":ErrorParser");
 }
 
 bool Parser::RegisterPredefMacro(const char * name, const char * desc) {

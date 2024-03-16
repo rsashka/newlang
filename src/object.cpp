@@ -25,7 +25,7 @@ std::ostream &operator<<(std::ostream &out, newlang::ObjPtr var) {
     return out;
 }
 
-ObjPtr Return::CreateErrorMessage(const std::string message, const std::string error_name) {
+ObjPtr Error::CreateErrorMessage(const std::string message, const std::string error_name) {
     bool has_error = false;
     ObjType type = GetBaseTypeFromString(error_name, &has_error);
 
@@ -43,10 +43,10 @@ ObjPtr Return::CreateErrorMessage(const std::string message, const std::string e
     return result;
 }
 
-Return::Return(const std::string error_message, const std::string type_name) : Return(CreateErrorMessage(error_message, type_name)) {
+Error::Error(const std::string error_message, const std::string type_name) : Error(CreateErrorMessage(error_message, type_name)) {
 }
 
-Return::Return(ObjPtr obj) : m_obj(obj) {
+Error::Error(ObjPtr obj) : m_obj(obj) {
     std::string temp = m_obj->toString();
     size_t pos = temp.find("\n')");
     if (pos == temp.size() - 3) {
@@ -55,7 +55,7 @@ Return::Return(ObjPtr obj) : m_obj(obj) {
     snprintf(m_buffer_message, sizeof (m_buffer_message), "Interrupt%s%s%s!", temp.empty() ? "" : " data: \"", temp.empty() ? "" : temp.c_str(), temp.empty() ? "" : "\"");
 }
 
-const char* Return::what() const noexcept {
+const char* Error::what() const noexcept {
     return &m_buffer_message[0];
 }
 
@@ -854,9 +854,10 @@ std::string Obj::toString(bool deep) const {
                 result += at("step").second->GetValueAsString();
                 return result;
 
-            case ObjType::Return:
+//            case ObjType::Return:
             case ObjType::RetPlus:
             case ObjType::RetMinus:
+            case ObjType::RetRepeat:
                 if (m_class_name.empty()) {
                     result += newlang::toString(m_var_type_current);
                 } else {
@@ -1200,378 +1201,6 @@ std::string Obj::GetValueAsString() const {
             return newlang::toString(m_var_type_current);
     }
     LOG_RUNTIME("Data type '%s' %d incompatible to string!", newlang::toString(m_var_type_current), (int) m_var_type_current);
-}
-
-//ObjPtr Obj::CreateFunc(std::string prototype, FunctionType *func_addr, ObjType type) {
-//    ASSERT(func_addr);
-//    ASSERT(type == ObjType::Function || type == ObjType::PureFunc);
-//
-//
-//    TermPtr proto = Parser::ParseString(std::string(prototype + ":={}"), nullptr);
-//    proto = proto->Left();
-//
-//    return CreateFunc(proto, (void *) func_addr, type);
-//}
-//
-//ObjPtr Obj::CreateFunc(std::string prototype, TransparentType *func_addr, ObjType type) {
-//    ASSERT(func_addr);
-//    ASSERT(type == ObjType::Function || type == ObjType::PureFunc);
-//
-//
-//    TermPtr proto = Parser::ParseString(std::string(prototype + ":={}"), nullptr);
-//    proto = proto->Left();
-//
-//    return CreateFunc(proto, (void *) func_addr, type);
-//}
-//
-//ObjPtr Obj::CreateFunc(TermPtr proto, void *addr, ObjType type) {
-//    ASSERT(addr);
-//    ASSERT(type == ObjType::Function || type == ObjType::PureFunc);
-//
-//    ObjPtr result = Obj::CreateType(type, type);
-//
-//    * const_cast<TermPtr *> (&result->m_prototype) = proto;
-//    result->m_var = addr;
-//
-//    return result;
-//}
-//
-//ObjPtr Obj::CreateFunc(Context *ctx, TermPtr proto, ObjType type, const std::string var_name) {
-//    ASSERT(type == ObjType::Function || type == ObjType::PureFunc);
-//    ObjPtr result = std::make_shared<Obj>(type, var_name.c_str(), proto);
-//    Obj local;
-//    Obj args(ctx, proto, false, &local);
-//    args.ClonePropTo(*result);
-//    *const_cast<TermPtr *> (&result->m_prototype) = proto;
-//    if (!result->CheckArgs()) {
-//        LOG_RUNTIME("Fail create function '%s'!", proto->toString().c_str());
-//    }
-//    return result;
-//}
-//
-//Obj::Obj(Context *ctx, const TermPtr term, bool as_value, Obj * local_vars) {
-//
-//    if (!term) {
-//        NL_CHECK(term, "Fail term!");
-//    }
-//
-//    m_is_reference = !!term->m_ref;
-//    m_var_name = term->m_name.empty() ? term->m_text : term->m_name;
-//    m_var_type_current = ObjType::Dictionary;
-//    m_dimensions = nullptr;
-//    m_var_is_init = false;
-//    m_is_const = false;
-//    m_var = at::monostate();
-//    ASSERT(!m_tensor.defined());
-//
-//    *const_cast<TermPtr *> (&m_prototype) = term;
-//
-//    for (int i = 0; i < term->size(); i++) {
-//        if (term->name(i).empty()) {
-//            if (as_value) {
-//                // Не именованный аргумент
-//                push_back(Context::CreateRVal(ctx, (*term)[i].second, local_vars));
-//            } else {
-//                // Обязательный аргумент без значения по умолчанию
-//                push_back(pair(nullptr, term->at(i).second->getText()));
-//            }
-//        } else {
-//            push_back(Context::CreateRVal(ctx, (*term)[i].second, local_vars), term->name(i));
-//        }
-//    }
-//}
-
-bool Obj::CheckArgs() const {
-    bool has_error = false;
-    bool named = false;
-    for (int start = 0; start < size(); start++) {
-        if (at(start).first.empty()) {
-            // Аргумент не имеет имени
-            LOG_ERROR("Argument %d has no name!", (int) start + 1);
-            has_error = true;
-        }
-        if (at(start).second == nullptr) {
-            if (named) {
-                // Обязательный аргумент после параметров со значениями по умолчанию
-                LOG_ERROR("Rrequired argument %d after parameters with default values!", (int) start + 1);
-                has_error = true;
-            }
-        } else {
-            named = true;
-            for (int64_t i = start + 1; i < size(); i++) {
-                if (at(start).first.compare(at(i).first) == 0) {
-                    LOG_ERROR("Duplicate named argument '%s'!", at(start).first.c_str());
-                    has_error = true;
-                }
-            }
-        }
-    }
-    return !has_error;
-}
-
-//ObjPtr Obj::Call(Context *ctx, Obj * args, bool direct, ObjPtr self) {
-//    if (is_string_type()) {
-//        ObjPtr result = direct ? shared() : Clone();
-//        result->m_value = format(result->m_value, args);
-//        return result;
-//    } else if (is_function_type() || is_block() || m_var_type_current == ObjType::Type) {
-//        Obj local;
-//        ObjPtr param;
-//        if (m_prototype) {
-//            param = std::make_shared<Obj>(ctx, m_prototype, false, &local);
-//            param->m_var_type_current = ObjType::Dictionary;
-//        } else {
-//            param = Obj::CreateDict();
-//        }
-//        param->ConvertToArgs_(args, true, ctx);
-//        if (self == nullptr) {
-//            param->push_front(pair(shared(), "$0")); // Self
-//        } else {
-//            param->push_front(pair(self, "$0")); // Self
-//        }
-//
-//        //        if (ctx) {
-//        //            ctx->RegisterInContext(param);
-//        //        }
-//
-//        ObjPtr result;
-//        if (m_var_type_current == ObjType::Function) {
-//            ASSERT(at::holds_alternative<void *>(m_var));
-//            ASSERT(at::get<void *>(m_var));
-//            result = (*reinterpret_cast<FunctionType *> (at::get<void *>(m_var)))(ctx, *param.get()); // Непосредственно вызов функции
-//        } else if (m_var_type_current == ObjType::PureFunc || (m_var_type_current == ObjType::Type)) {
-//            //            if(!at::holds_alternative<void *>(m_var)) {
-//            //                LOG_DEBUG("%s", toString().c_str());
-//            ASSERT(at::holds_alternative<void *>(m_var));
-//            ASSERT(at::get<void *>(m_var));
-//            //            }
-//            result = (*reinterpret_cast<TransparentType *> (at::get<void *>(m_var)))(ctx, *param.get()); // Непосредственно вызов функции
-//        } else if (m_var_type_current == ObjType::NativeFunc) {
-//            result = CallNative(ctx, *param.get());
-//        } else if (m_var_type_current == ObjType::EVAL_FUNCTION || m_var_type_current == ObjType::BLOCK || m_var_type_current == ObjType::BLOCK_TRY || m_var_type_current == ObjType::BLOCK_PLUS || m_var_type_current == ObjType::BLOCK_MINUS) {
-//            //            result = Context::CallBlock(ctx, m_sequence, param.get(), true, Context::CatchType::CATCH_AUTO, nullptr);
-//        } else if (m_var_type_current == ObjType::Virtual) {
-//            LOG_RUNTIME("Call virtual function '%s' not allowed!", toString().c_str());
-//        } else {
-//            LOG_RUNTIME("Call by name not implemted '%s'!", toString().c_str());
-//        }
-//
-//
-//        //    ObjType type_result = ctx->BaseTypeFromString(m_prototype->m_type_name);
-//        //    LLVMTypeRef return_llvm_type = toLLVMType(type_result);
-//        //
-//        //    bool is_ellipsis = (m_prototype->size() && (*m_prototype)[m_prototype->size() - 1].second->getTermID() == TermID::ELLIPSIS);
-//        //    size_t check_count = is_ellipsis ? m_prototype->size() - 1 : m_prototype->size();
-//        //
-//        //    bool pointer_exist = false;
-//        //    // Пропустить нулевой аргумент для нативных функций
-//        //    for (int i = 1; i < args.size(); i++) {
-//        //
-//        //        ASSERT(args[i].second);
-//        //        if(args[i].second->m_is_reference) {
-//        //            LOG_RUNTIME("Argument REFERENCE! %s", args[i].second->toString().c_str());
-//        //        }
-//        //
-//        //        size_t pind = i - 1; // Индекс прототипа на единицу меньше из-за пустого нулевого аргумента
-//        //
-//        //        ObjType type = args[i].second->getTypeAsLimit();
-//        //        if(pind < check_count) {
-//        //            NL_CHECK(!(*m_prototype)[pind].second->m_type_name.empty(), "Undefined type arg '%s'", (*m_prototype)[pind].second->toString().c_str());
-//        //
-//        //            ObjType proto_type = typeFromString((*m_prototype)[pind].second->m_type_name, ctx);
-//        //            if(!canCast(type, proto_type)) {
-//        //                if(!((type == ObjType::StrChar || type == ObjType::FmtChar) && proto_type == ObjType::Int8) ||
-//        //                        ((type == ObjType::StrWide || type == ObjType::FmtWide) && proto_type == ObjType::Int32)) {
-//        //                    LOG_RUNTIME("Fail cast from '%s' to '%s'", (*m_prototype)[pind].second->m_type_name.c_str(), newlang::toString(type));
-//        //                }
-//        //            }
-//        //        }
-//        //
-//        //        ObjType check_type;
-//        //        if(pind < check_count) {
-//        //            std::string temp_str = (*m_prototype)[pind].second->m_type_name;
-//        //            check_type = typeFromString((*m_prototype)[pind].second->m_type_name, ctx);
-//        //        } else {
-//        //            check_type = args[i].second->getType();
-//        //        }
-//        //
-//        //        if(args[i].second->is_string_type()) {
-//        //            pointer_exist = true;
-//        //        }
-//        //
-//        //        if(check_type == ObjType::Bool && m_namespace.empty()) {
-//        //            // В чистом С (для пустого m_namespace) для логического типа используется тип int
-//        //            check_type = ObjType::Int32;
-//        //        }
-//        //        if(check_type == ObjType::Iterator) {
-//        //            // У итератора передается не объект, а его данные
-//        //            ASSERT(args[i].second->m_iterator);
-//        //            check_type = args[i].second->m_iterator->data().second->getType();
-//        //        }
-//        //        if((check_type == ObjType::FmtWide || check_type == ObjType::StrWide) ||
-//        //                ((check_type == ObjType::FmtChar || check_type == ObjType::StrChar) &&
-//        //                (args[i].second->getType() == ObjType::StrWide || args[i].second->getType() == ObjType::FmtWide))) {
-//        //            LOG_RUNTIME("Convert wide characters as native function arguments not supported!");
-//        //        }
-//        //
-//        //        LLVMTypeRef temp = toLLVMType(check_type);
-//        //        arg_types.push_back(temp);
-//        //        arg_generic.push_back(args[i].second->GetGenericValueRef(temp));
-//        //
-//        //        if(pind < check_count && (*m_prototype)[pind].second->GetType()) {
-//        //            if((*m_prototype)[pind].second->GetType()->m_text.compare(newlang::toString(ObjType::FmtChar)) == 0) {
-//        //                NL_CHECK(ParsePrintfFormat(&args, i), "Fail format string or type args!");
-//        //            }
-//        //        }
-//        //    }
-//
-//        //        if (ctx) {
-//        //            ctx->pop_front();
-//        //        }
-//        return result;
-//
-//
-//    } else if (is_dictionary_type()) {
-//
-//        ObjPtr result = direct ? shared() : Clone(); // Копия текущего объекта
-//        result->ConvertToArgs_(args, false, ctx); // С обновленными полями, переданными в аргументах
-//        result->m_class_parents.push_back(shared()); // Текущйи объект становится базовым классом для вновь создаваемого
-//        return result;
-//
-//    } else if (args->size() > 1) {
-//        LOG_RUNTIME("Unsupported operation for data type %d '%s'", (int) m_var_type_current, toString().c_str());
-//    }
-//    return direct ? shared() : Clone();
-//}
-
-// Обновить параметры для вызова функции или элементы у словаря при создании копии
-
-void Obj::ConvertToArgs_(Obj *in, bool check_valid, Context * ctx) {
-
-    ASSERT(0);
-    ASSERT(in);
-
-    //    //    bool named = false;
-    //    bool is_ellipsis = false;
-    //    if (check_valid && size()) {
-    //        if (at(size() - 1).first.compare("...") == 0) {
-    //            is_ellipsis = true;
-    //            Variable::erase(size() - 1);
-    //        }
-    //    }
-    //    for (int i = 0; i < in->size(); i++) {
-    //
-    //        if (isSystemName(in->name(i))) {
-    //            continue;
-    //        }
-    //
-    //        if (in->name(i).empty()) {
-    //            //            if(check_valid && named) {
-    //            //                LOG_RUNTIME("Position %d requires a named argument!", (int) i + 1);
-    //            //            }
-    //            ObjType base_type = ObjType::None;
-    //            if (i < size()) {
-    //                if (ctx) {
-    //                    if (!(*m_prototype)[i].second->m_type) {
-    //                        base_type = ObjType::Any;
-    //                    } else {
-    //                        bool has_error = false;
-    //                        base_type = ctx->m_runtime->BaseTypeFromString((*m_prototype)[i].second->m_type->m_text, &has_error);
-    //                        if (has_error && (*m_prototype)[i].second->getTermID() == TermID::ELLIPSIS) {
-    //                            base_type = ObjType::Any;
-    //                        }
-    //                    }
-    //                } else if ((*m_prototype)[i].second->m_type) {
-    //                    base_type = typeFromString((*m_prototype)[i].second->m_type->m_text, ctx->m_runtime.get());
-    //                } else {
-    //                    base_type = ObjType::Any;
-    //                }
-    //            } else {
-    //                base_type = ObjType::Any;
-    //            }
-    //
-    //
-    //            if (i < size()) {
-    //                if (check_valid && at(i).second && at(i).second->getType() != ObjType::None) {
-    //                    if (!canCast((*in)[i].second->getType(), at(i).second->getType())) {
-    //                        LOG_RUNTIME("Fail cast value '%s' to type '%s'", newlang::toString((*in)[i].second->getType()),
-    //                                newlang::toString(at(i).second->getType()));
-    //                    }
-    //                }
-    //                if (!at(i).second) {
-    //                    at(i).second = Obj::CreateNone();
-    //                }
-    //                if (m_prototype && i < m_prototype->size()) {
-    //                    at(i).second->m_is_reference = (*m_prototype)[i].second->isRef();
-    //                    ObjType limit_type = (*in)[i].second->getTypeAsLimit();
-    //                    if (!canCast(limit_type, base_type)) {
-    //                        // Строку с одним символом можно преобразовать в арифметичсекий тип
-    //                        if (!(isArithmeticType(base_type) && (*in)[i].second->is_string_type() && (*in)[i].second->size() == 1)) {
-    //                            LOG_RUNTIME("Fail cast value !!!!!!!!!!!!!!");
-    //                            //                            LOG_RUNTIME("Fail cast value %s%s to type %s",
-    //                            //                                    (*in)[i].second->toString().c_str(),
-    //                            //                                    newlang::toString((*in)[i].second->getType()),
-    //                            //                                    (*m_prototype)[i].second->m_type->asTypeString.c_str());
-    //                        }
-    //                    }
-    //                }
-    //
-    //                //                LOG_DEBUG("%s", (*in)[i].second->toString().c_str());
-    //
-    //                at(i).second->op_assign((*in)[i].second->toType(base_type));
-    //            } else {
-    //                if (check_valid && !is_ellipsis && m_prototype && i >= m_prototype->size()) {
-    //                    LOG_RUNTIME("Positional args overflow. Ptrototype '%s'!",
-    //                            m_prototype ? m_prototype->toString().c_str() : "Prototype not exists!");
-    //                }
-    //                push_back(in->at(i).second->toType(base_type), in->at(i).first);
-    //            }
-    //        } else {
-    //            //            named = true;
-    //            auto found = find(in->name(i));
-    //            if (found != end()) {
-    //                if (check_valid && (*found).second && (*found).second->getType() != (*in)[i].second->getType() && (*found).second->getType() != ObjType::None) {
-    //                    LOG_RUNTIME("Different type arg '%s' and '%s'", (*found).second->toString().c_str(),
-    //                            (*in)[i].second->toString().c_str());
-    //                }
-    //                //@todo  Проверка ограничений размер данных при указаном типе
-    //                if (!(*found).second) {
-    //                    (*found).second = Obj::CreateNone();
-    //                }
-    //                (*found).second->op_assign((*in)[i].second);
-    //            } else {
-    //                for (int pos = 0; pos < size(); pos++) {
-    //                    if (!at(pos).first.empty() && at(pos).first.compare(in->at(i).first) == 0) {
-    //                        at(pos).second->op_assign(in[i]);
-    //                        goto done;
-    //                    }
-    //                }
-    //                if (check_valid && !is_ellipsis) {
-    //                    LOG_RUNTIME("Named arg '%s' not found!", in->name(i).c_str());
-    //                }
-    //                push_back(in->at(i));
-    //done:
-    //                ;
-    //            }
-    //        }
-    //    }
-    //    if (check_valid) {
-    //
-    //        CheckArgsValid();
-    //    }
-}
-
-void Obj::CheckArgsValid() const {
-    bool named = false;
-    for (int i = 0; i < Variable::size(); i++) {
-        if (!at(i).second) {
-
-            LOG_RUNTIME("Argument %d '%s' missed!", (int) i + 1, at(i).first.c_str());
-        }
-    }
-    //    if(!CheckArgs_()) {
-    //        LOG_RUNTIME("Fail arguments!");
-    //    }
 }
 
 /*
@@ -3057,17 +2686,17 @@ ObjPtr Obj::BaseTypeConstructor(Context *ctx, Obj & args) {
         result = ConstructorStruct_(ctx, args);
     } else if (args[0].second->m_var_type_fixed == ObjType::Enum) {
         result = ConstructorEnum_(ctx, args);
-    } else if (args[0].second->m_var_type_fixed == ObjType::Return) {
-        result = ConstructorReturn_(ctx, args);
-    } else if (args[0].second->m_var_type_fixed == ObjType::Thread) {
-        result = ConstructorThread_(ctx, args);
-    } else if (args[0].second->m_var_type_fixed == ObjType::Sys) {
-        result = ConstructorSystem_(ctx, args);
-    } else if (args[0].second->m_var_type_fixed == ObjType::Break || args[0].second->m_var_type_fixed == ObjType::Continue) {
-        result = ConstructorInterraption_(ctx, args, args[0].second->m_var_type_fixed);
-    } else if (args[0].second->m_var_type_fixed == ObjType::Error || args[0].second->m_var_type_fixed == ObjType::ErrorParser
-            || args[0].second->m_var_type_fixed == ObjType::ErrorRunTime || args[0].second->m_var_type_fixed == ObjType::ErrorSignal) {
-        result = ConstructorError_(ctx, args);
+//    } else if (args[0].second->m_var_type_fixed == ObjType::Return) {
+//        result = ConstructorReturn_(ctx, args);
+//    } else if (args[0].second->m_var_type_fixed == ObjType::Thread) {
+//        result = ConstructorThread_(ctx, args);
+//    } else if (args[0].second->m_var_type_fixed == ObjType::Sys) {
+//        result = ConstructorSystem_(ctx, args);
+//    } else if (args[0].second->m_var_type_fixed == ObjType::Break || args[0].second->m_var_type_fixed == ObjType::Continue) {
+//        result = ConstructorInterraption_(ctx, args, args[0].second->m_var_type_fixed);
+//    } else if (args[0].second->m_var_type_fixed == ObjType::Error || args[0].second->m_var_type_fixed == ObjType::ErrorParser
+//            || args[0].second->m_var_type_fixed == ObjType::ErrorRunTime || args[0].second->m_var_type_fixed == ObjType::ErrorSignal) {
+//        result = ConstructorError_(ctx, args);
     } else if (args[0].second->m_var_type_fixed == ObjType::StrChar && args.size() > 1) {
         result = Obj::CreateString("");
         for (int i = 1; i < args.size(); i++) {
@@ -3372,62 +3001,62 @@ ObjPtr Obj::ConstructorEnum_(Context *ctx, Obj & args) {
     return result;
 }
 
-ObjPtr Obj::ConstructorError_(Context *ctx, Obj & args) {
-    ObjPtr result = ConstructorDictionary_(ctx, args);
-    result->m_var_type_current = ObjType::Error;
-    result->m_var_type_fixed = ObjType::Error;
-    return result;
-}
+//ObjPtr Obj::ConstructorError_(Context *ctx, Obj & args) {
+//    ObjPtr result = ConstructorDictionary_(ctx, args);
+//    result->m_var_type_current = ObjType::Error;
+//    result->m_var_type_fixed = ObjType::Error;
+//    return result;
+//}
 
-ObjPtr Obj::ConstructorReturn_(Context *ctx, Obj & args) {
-    ObjPtr result = ConstructorDictionary_(ctx, args);
-    result->m_var_type_current = ObjType::Return;
-    result->m_var_type_fixed = ObjType::Return;
-    if (result->size() == 0) {
-        result->push_back(Obj::Arg(Obj::CreateNone()));
-    }
-    if (result->size() != 1) {
-
-        LOG_RUNTIME("Multiple argument for type ':Return'!");
-    }
-    return result;
-}
-
-ObjPtr Obj::ConstructorThread_(Context *ctx, Obj & args) {
-    if (args.size() == 0) {
-        LOG_RUNTIME("Function for thread not defined!");
-    }
-
-    ObjPtr result = ConstructorDictionary_(ctx, args);
-    result->m_var_type_current = ObjType::Thread;
-    result->m_var_type_fixed = ObjType::Thread;
-
-
-    return result;
-}
-
-ObjPtr Obj::ConstructorSystem_(Context *ctx, Obj & args) {
-    //    if (args.size() == 0) {
-    LOG_RUNTIME("Function for System not defined!");
-    //    }
-
-    ObjPtr result = ConstructorDictionary_(ctx, args);
-    result->m_var_type_current = ObjType::Thread;
-    result->m_var_type_fixed = ObjType::Thread;
-
-
-    return result;
-}
-
-ObjPtr Obj::ConstructorInterraption_(Context* ctx, Obj& args, ObjType type) {
-    ObjPtr result = ConstructorDictionary_(ctx, args);
-    result->m_var_type_current = type;
-    result->m_var_type_fixed = type;
-    if (result->size()) {
-        LOG_RUNTIME("Argument for type %s not allowed!", newlang::toString(type));
-    }
-    return result;
-}
+//ObjPtr Obj::ConstructorReturn_(Context *ctx, Obj & args) {
+//    ObjPtr result = ConstructorDictionary_(ctx, args);
+//    result->m_var_type_current = ObjType::Return;
+//    result->m_var_type_fixed = ObjType::Return;
+//    if (result->size() == 0) {
+//        result->push_back(Obj::Arg(Obj::CreateNone()));
+//    }
+//    if (result->size() != 1) {
+//
+//        LOG_RUNTIME("Multiple argument for type ':Return'!");
+//    }
+//    return result;
+//}
+//
+//ObjPtr Obj::ConstructorThread_(Context *ctx, Obj & args) {
+//    if (args.size() == 0) {
+//        LOG_RUNTIME("Function for thread not defined!");
+//    }
+//
+//    ObjPtr result = ConstructorDictionary_(ctx, args);
+//    result->m_var_type_current = ObjType::Thread;
+//    result->m_var_type_fixed = ObjType::Thread;
+//
+//
+//    return result;
+//}
+//
+//ObjPtr Obj::ConstructorSystem_(Context *ctx, Obj & args) {
+//    //    if (args.size() == 0) {
+//    LOG_RUNTIME("Function for System not defined!");
+//    //    }
+//
+//    ObjPtr result = ConstructorDictionary_(ctx, args);
+//    result->m_var_type_current = ObjType::Thread;
+//    result->m_var_type_fixed = ObjType::Thread;
+//
+//
+//    return result;
+//}
+//
+//ObjPtr Obj::ConstructorInterraption_(Context* ctx, Obj& args, ObjType type) {
+//    ObjPtr result = ConstructorDictionary_(ctx, args);
+//    result->m_var_type_current = type;
+//    result->m_var_type_fixed = type;
+//    if (result->size()) {
+//        LOG_RUNTIME("Argument for type %s not allowed!", newlang::toString(type));
+//    }
+//    return result;
+//}
 
 template<>
 const Iterator<Obj>::IterPairType Iterator<Obj>::m_Iterator_end = IterObj::pair(Obj::CreateType(ObjType::IteratorEnd, ObjType::IteratorEnd, true));

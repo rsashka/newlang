@@ -9,6 +9,15 @@
 using namespace newlang;
 
 
+#ifdef _MSC_VER
+ObjType RunTime::m_wide_char_type = ObjType::Int16;
+STATIC_ASSERT(sizeof (wchar_t) == 2);
+#else
+ObjType RunTime::m_wide_char_type = ObjType::Int32;
+STATIC_ASSERT(sizeof (wchar_t) == 4);
+#endif
+ffi_type * RunTime::m_wide_char_type_ffi = nullptr;
+
 ffi_type * RunTime::m_ffi_type_void = nullptr;
 ffi_type * RunTime::m_ffi_type_uint8 = nullptr;
 ffi_type * RunTime::m_ffi_type_sint8 = nullptr;
@@ -1350,18 +1359,18 @@ ObjPtr RunTime::RunFile(std::string file, Obj* args) {
         LOG_RUNTIME("File or module '%s' not found!", file.c_str());
     }
     std::string source = ReadFile(file.c_str());
-    TermPtr ast = MakeAst(source);
-    if (args) {
-        args->insert(args->begin(), {
-            "", Obj::CreateString(file)
-        });
-    }
-    return Run(ast, args);
+    //    TermPtr ast = MakeAst(source);
+    //    if (args) {
+    //        args->insert(args->begin(), {
+    //            "", Obj::CreateString(file)
+    //        });
+    //    }
+    return Run(source, args);
 }
 
 // Для теста 
 
-static char convert(char c) {
+extern "C" char convert(char c) {
     if (c == 'A') return 'C';
     if (c == 'C') return 'G';
     if (c == 'G') return 'T';
@@ -1379,6 +1388,7 @@ m_diag(std::make_shared<Diag>()) {
     m_embed_source = false;
     m_import_module = true;
     m_import_natime = true;
+    m_eval_enable = true;
     m_load_runtime = true;
     //    m_error_limit = 10;
     m_typedef_limit = 0;
@@ -1447,6 +1457,9 @@ m_diag(std::make_shared<Diag>()) {
     m_ffi_prep_cif_var = reinterpret_cast<ffi_prep_cif_var_type *> (GetProcAddress((HMODULE) m_ffi_handle, "ffi_prep_cif_var"));
     m_ffi_call = reinterpret_cast<ffi_call_type *> (GetProcAddress((HMODULE) m_ffi_handle, "ffi_call"));
 
+    m_wide_char_type_ffi = m_ffi_type_uint16;
+    STATIC_ASSERT(sizeof (wchar_t) == 2);
+
 #else
     //    std::string error;
     if (LLVMLoadLibraryPermanently("libffi") == 0) {
@@ -1469,6 +1482,9 @@ m_diag(std::make_shared<Diag>()) {
     m_ffi_prep_cif = reinterpret_cast<ffi_prep_cif_type *> (LLVMSearchForAddressOfSymbol("ffi_prep_cif"));
     m_ffi_prep_cif_var = reinterpret_cast<ffi_prep_cif_var_type *> (LLVMSearchForAddressOfSymbol("ffi_prep_cif_var"));
     m_ffi_call = reinterpret_cast<ffi_call_type *> (LLVMSearchForAddressOfSymbol("ffi_call"));
+
+    m_wide_char_type_ffi = m_ffi_type_uint32;
+    STATIC_ASSERT(sizeof (wchar_t) == 4);
 
 #endif
 
@@ -1544,16 +1560,16 @@ void RunTime::GlobalNameBuildinRegister() {
     VERIFY(RegisterBuildinType(ObjType::PureFunc,{":Function"}));
 
     VERIFY(RegisterBuildinType(ObjType::Type,{":Any"}));
-    VERIFY(RegisterBuildinType(ObjType::Return,{":Any"}));
-
-    VERIFY(RegisterBuildinType(ObjType::Error,{":Return"}));
-    VERIFY(RegisterBuildinType(ObjType::Break,{":Return"})); // Синонимы прерывания последовательности выполнения для совместимости
-    VERIFY(RegisterBuildinType(ObjType::Continue,{":Return"})); // со стндартными алгоритмическими приемами (синтаксический сахар)
-
-
-    VERIFY(RegisterBuildinType(ObjType::ErrorParser,{":Error"}));
-    VERIFY(RegisterBuildinType(ObjType::ErrorRunTime,{":Error"}));
-    VERIFY(RegisterBuildinType(ObjType::ErrorSignal,{":Error"}));
+    //    VERIFY(RegisterBuildinType(ObjType::Return,{":Any"}));
+    //
+    //    VERIFY(RegisterBuildinType(ObjType::Error,{":Return"}));
+    //    VERIFY(RegisterBuildinType(ObjType::Break,{":Return"})); // Синонимы прерывания последовательности выполнения для совместимости
+    //    VERIFY(RegisterBuildinType(ObjType::Continue,{":Return"})); // со стндартными алгоритмическими приемами (синтаксический сахар)
+    //
+    //
+    //    VERIFY(RegisterBuildinType(ObjType::ErrorParser,{":Error"}));
+    //    VERIFY(RegisterBuildinType(ObjType::ErrorRunTime,{":Error"}));
+    //    VERIFY(RegisterBuildinType(ObjType::ErrorSignal,{":Error"}));
 
 }
 
@@ -1599,8 +1615,8 @@ bool RunTime::RegisterBuildinType(ObjType type, std::vector<std::string> parents
 
     ASSERT(at::holds_alternative<void *>(result->m_var));
     ASSERT(at::get<void *>(result->m_var));
-    
-//    result->m_var = (void *) &Context::__make_type__;
+
+    //    result->m_var = (void *) &Context::__make_type__;
 
     for (auto &parent : parents) {
         auto iter = m_buildin_obj.find(NormalizeName(parent));
@@ -2140,7 +2156,7 @@ ModulePtr RunTime::CheckLoadModule(TermPtr &term) {
 
     if (m_modules.find(name) == m_modules.end()) {
         if (!LoadModuleFromFile(name.c_str(), true)) {
-            NL_PARSER(term, "Load module fail!");
+            NL_PARSER(term, "Load module '%s' fail!", term->m_text.c_str());
         }
     }
     return m_modules[name];
@@ -2174,7 +2190,7 @@ ObjPtr RunTime::Run(const std::string_view str, Obj* args) {
             LOG_CUSTOM_ERROR(ParserError, "fatal error: %d generated. ", m_diag->m_error_count);
         }
 
-        return m_main_runner->Run(m_main_ast->m_block.back(), args);
+        return Context::Run(m_main_ast->m_block.back(), m_main_runner.get());
     } catch (...) {
         m_main_ast->m_block.pop_back();
         throw;
@@ -2187,6 +2203,17 @@ ObjPtr RunTime::Run(const std::string_view str, Obj* args) {
 ObjPtr RunTime::Run(TermPtr ast, Obj* args) {
     m_main_ast = ast;
     m_main_runner = std::make_shared<Context>(m_main_ast->m_int_vars, shared_from_this());
-    return m_main_runner->Run(m_main_ast, args);
+    return Context::Run(m_main_ast, m_main_runner.get());
 }
 
+
+
+#if defined(__x86_64__) || defined(_M_X64) || defined(__amd64__) || defined(__amd64)
+ObjType RunTime::m_integer_type = ObjType::Int64;
+STATIC_ASSERT(sizeof (size_t) == 8);
+#elif defined(i386) || defined(__i386__) || defined(__i386) || defined(_M_IX86)
+ObjType RunTime::m_integer_type = ObjType::Int32;
+STATIC_ASSERT(sizeof (size_t) == 4);
+#else
+#error Target architecture not defined!
+#endif

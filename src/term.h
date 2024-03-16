@@ -83,6 +83,7 @@ namespace newlang {
         _(SYM_RULE) \
         \
         _(FUNCTION) \
+        _(COROUTINE) \
         _(ITERATOR) \
         \
         _(FOLLOW) \
@@ -293,12 +294,13 @@ namespace newlang {
 
         std::string GetNamespace(bool is_global = false);
         std::string MakeNamespace(int skip, bool is_global);
+        bool CheckInterrupt(std::string_view name);
 
         std::string GetOffer() {
             return "";
         }
 
-        bool LookupBlock(TermPtr &term);
+        bool LookupBlock_(TermPtr &term);
         std::string GetOfferBlock();
 
         std::string Dump();
@@ -331,7 +333,7 @@ namespace newlang {
         static TermPtr CreateNone();
         static TermPtr CreateNil();
         static TermPtr CreateDict();
-        static TermPtr CreateName(std::string name);
+        static TermPtr CreateName(std::string name, TermID id = TermID::NAME);
 
         TermPtr Clone() {
             TermPtr result = Term::Create(m_lexer_type, m_id, m_text.c_str());
@@ -516,6 +518,7 @@ namespace newlang {
         inline bool isNamed() {
             switch (m_id) {
                 case TermID::NAME:
+                case TermID::TYPE:
                 case TermID::ARGS:
                 case TermID::ARGUMENT:
                 case TermID::LOCAL:
@@ -1187,17 +1190,12 @@ namespace newlang {
             }
         }
 
-        std::vector<TermPtr> CreateArrayFromList(int side) {
+        std::vector<TermPtr> CreateArrayFromList() {
             std::vector<TermPtr> result;
             TermPtr temp = shared_from_this();
             while (temp) {
                 result.push_back(temp);
-                if (side == RIGHT) {
-                    temp = temp->m_right;
-                } else {
-                    ASSERT(side == LEFT);
-                    temp = temp->m_left;
-                }
+                temp = temp->m_list;
             }
             return result;
         }

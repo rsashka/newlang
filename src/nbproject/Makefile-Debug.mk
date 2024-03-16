@@ -35,6 +35,7 @@ OBJECTDIR=${CND_BUILDDIR}/${CND_CONF}/${CND_PLATFORM}
 
 # Object Files
 OBJECTFILES= \
+	${OBJECTDIR}/_ext/b0ad39d/format.o \
 	${OBJECTDIR}/_ext/1e501df/gtest-all.o \
 	${OBJECTDIR}/_ext/e16507f5/logger.o \
 	${OBJECTDIR}/analysis.o \
@@ -98,6 +99,11 @@ LDLIBSOPTIONS=-L../contrib/libtorch/lib -L/usr/lib/x86_64-linux-gnu -L/usr/local
 ../output/nlc: ${OBJECTFILES}
 	${MKDIR} -p ../output
 	${LINK.cc} -o ../output/nlc ${OBJECTFILES} ${LDLIBSOPTIONS} `llvm-config --libs --ldflags` -fuse-ld=lld -g -lclangTooling -lclangFrontendTool -lclangFrontend -lclangDriver -lclangSerialization -lclangCodeGen -lclangParse -lclangSema -lclangStaticAnalyzerFrontend -lclangStaticAnalyzerCheckers -lclangStaticAnalyzerCore -lclangAnalysis -lclangARCMigrate -lclangRewrite -lclangRewriteFrontend -lclangEdit -lclangAST -lclangLex -lclangBasic  -lclangASTMatchers -lclangSupport -fvisibility=default -Wl,--export-dynamic
+
+${OBJECTDIR}/_ext/b0ad39d/format.o: ../contrib/fmt/src/format.cc
+	${MKDIR} -p ${OBJECTDIR}/_ext/b0ad39d
+	${RM} "$@.d"
+	$(COMPILE.cc) -g -DBUILD_DEBUG -DLOG_LEVEL_NORMAL=LOG_LEVEL_DEBUG -DPDC_WIDE -I. -I.. -I/usr/lib/clang/16/include -I/usr/include/llvm -I/usr/include/llvm-c -I/usr/include/x86_64-linux-gnu/c++/10 -I/usr/include/c++/10 -I/usr/local/include -I/usr/include -I../contrib/googletest/googletest -I../contrib/googletest/googletest/include -I../contrib/Lyra/include -I../contrib/libtorch/include/torch/csrc/api/include -I../contrib/libtorch/include -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/_ext/b0ad39d/format.o ../contrib/fmt/src/format.cc
 
 ${OBJECTDIR}/_ext/1e501df/gtest-all.o: ../contrib/googletest/googletest/src/gtest-all.cc
 	${MKDIR} -p ${OBJECTDIR}/_ext/1e501df

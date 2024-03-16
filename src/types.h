@@ -86,25 +86,25 @@ typedef at::variant<at::monostate, ObjWeak, std::vector < ObjWeak> > WeakItem;
 typedef ObjPtr(*EvalFunction)(Context *ctx, const TermPtr & term, Obj * args, bool eval_block);
 
 
-class Return : public std::exception {
+class Error : public std::exception {
   public:
      
-      static const char * RetPlus;
-      static const char * RetMinus;
-      static const char * IntParser;
-      static const char * IntError;
-    
-      static const char * Break;
-      static const char * Continue;
-//      static const char * Return;
-      static const char * Error;
-      static const char * Parser;
-      static const char * RunTime;
-      static const char * Signal;
-      static const char * Abort;
+//      static const char * RetPlus;
+//      static const char * RetMinus;
+//      static const char * IntParser;
+//      static const char * IntError;
+//    
+//      static const char * Break;
+//      static const char * Continue;
+////      static const char * Return;
+//      static const char * Error;
+//      static const char * Parser;
+//      static const char * RunTime;
+//      static const char * Signal;
+//      static const char * Abort;
 
-    Return(const ObjPtr obj);
-    Return(const std::string message, const std::string error_name=Error);
+    Error(const ObjPtr obj);
+    Error(const std::string message, const std::string error_name=":Error");
 
     virtual const char *what() const noexcept override;
     
@@ -140,10 +140,10 @@ public:
 };
 
 
-class ParserError : public Return {
+class ParserError : public Error {
 public:
 
-    ParserError(std::string msg) : Return(msg) {
+    ParserError(std::string msg) : newlang::Error(msg) {
     }
 
     virtual ~ParserError() {
@@ -208,7 +208,7 @@ void ParserException(const char *msg, std::string &buffer, int row, int col);
         std::string empty;                                                                                             \
         std::string message =                                                                                          \
             newlang::ParserMessage(term->m_source ? *term->m_source : empty, term->m_line, term->m_col, format, ##__VA_ARGS__); \
-        LOG_EXCEPT_LEVEL(Return, LOG_LEVEL_ERROR_MESSAGE, "", "%s", message.c_str());                                 \
+        LOG_EXCEPT_LEVEL(ParserError, LOG_LEVEL_ERROR_MESSAGE, "", "%s", message.c_str());                                 \
     } while (0)
 
 #define NL_MESSAGE(level, term, format, ...)                                                                                   \
@@ -222,7 +222,7 @@ void ParserException(const char *msg, std::string &buffer, int row, int col);
 #define NL_CHECK(cond, format, ...)                                                                                    \
     do {                                                                                                               \
         if (!(cond)) {                                                                                                 \
-            LOG_EXCEPT_LEVEL(Return, LOG_LEVEL_ERROR_MESSAGE, "", format, ##__VA_ARGS__);                             \
+            LOG_EXCEPT_LEVEL(ParserError, LOG_LEVEL_ERROR_MESSAGE, "", format, ##__VA_ARGS__);                             \
         }                                                                                                              \
     } while (0)
 
@@ -235,7 +235,7 @@ void ParserException(const char *msg, std::string &buffer, int row, int col);
             message += newlang::toString(to);                                                          \
             message += "' (" __FILE__ ":" TO_STR(__LINE__) ")";                                                        \
             LOG_EXCEPT_LEVEL(                                                                                          \
-                Return, LOG_LEVEL_ERROR_MESSAGE, "", "%s",                                                            \
+                ParserError, LOG_LEVEL_ERROR_MESSAGE, "", "%s",                                                            \
                 newlang::ParserMessage(*term->m_source, term->m_line, term->m_col, "%s", message.c_str()).c_str());             \
         }                                                                                                              \
     } while (0)
@@ -340,10 +340,9 @@ void ParserException(const char *msg, std::string &buffer, int row, int col);
     _(Context, 227)          \
     _(Module, 228)          \
     _(Undefined, 229)          \
-    _(Return, 230)          \
+    _(Error, 230)          \
     _(Break, 231)           \
     _(Continue, 232)        \
-    _(Error, 240)           \
     _(ErrorParser, 241)     \
     _(ErrorRunTime, 242)    \
     _(ErrorSignal, 243)

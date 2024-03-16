@@ -117,81 +117,29 @@ TEST(ObjTest, String) {
     ASSERT_STREQ("СТРОка", str_char->GetValueAsString().c_str());
 
 
-//    ObjPtr format = Obj::CreateString("$1 $2 ${name}");
-//    ObjPtr str11 = (*format)();
-//    ASSERT_STREQ("$1 $2 ${name}", str11->GetValueAsString().c_str());
-//
-//    ObjPtr str22 = (*format)(Obj::Arg(100));
-//    ASSERT_STREQ("100 $2 ${name}", str22->GetValueAsString().c_str());
-//    str22 = (*format)(100);
-//    ASSERT_STREQ("100 $2 ${name}", str22->GetValueAsString().c_str());
-//
-//    ObjPtr str3 = (*format)(Obj::Arg(-1), Obj::Arg("222"));
-//    ASSERT_STREQ("-1 222 ${name}", str3->GetValueAsString().c_str());
-////    str3 = (*format)(-1, "222");
-////    ASSERT_STREQ("-1 222 ${name}", str3->GetValueAsString().c_str());
-//
-//    ObjPtr str4 = (*format)(Obj::Arg("value", "name"));
-//    ASSERT_STREQ("value $2 value", str4->GetValueAsString().c_str());
-//
-//    format = Obj::CreateString("$nameno ${имя1} $name $имя");
-//    ObjPtr str5 = (*format)(Obj::Arg("value", "name"), Obj::Arg("УТФ8-УТФ8", "имя"), Obj::Arg("УТФ8", "имя1"));
-//    ASSERT_STREQ("valueno УТФ8 value УТФ8-УТФ8", str5->GetValueAsString().c_str());
+    //    ObjPtr format = Obj::CreateString("$1 $2 ${name}");
+    //    ObjPtr str11 = (*format)();
+    //    ASSERT_STREQ("$1 $2 ${name}", str11->GetValueAsString().c_str());
+    //
+    //    ObjPtr str22 = (*format)(Obj::Arg(100));
+    //    ASSERT_STREQ("100 $2 ${name}", str22->GetValueAsString().c_str());
+    //    str22 = (*format)(100);
+    //    ASSERT_STREQ("100 $2 ${name}", str22->GetValueAsString().c_str());
+    //
+    //    ObjPtr str3 = (*format)(Obj::Arg(-1), Obj::Arg("222"));
+    //    ASSERT_STREQ("-1 222 ${name}", str3->GetValueAsString().c_str());
+    ////    str3 = (*format)(-1, "222");
+    ////    ASSERT_STREQ("-1 222 ${name}", str3->GetValueAsString().c_str());
+    //
+    //    ObjPtr str4 = (*format)(Obj::Arg("value", "name"));
+    //    ASSERT_STREQ("value $2 value", str4->GetValueAsString().c_str());
+    //
+    //    format = Obj::CreateString("$nameno ${имя1} $name $имя");
+    //    ObjPtr str5 = (*format)(Obj::Arg("value", "name"), Obj::Arg("УТФ8-УТФ8", "имя"), Obj::Arg("УТФ8", "имя1"));
+    //    ASSERT_STREQ("valueno УТФ8 value УТФ8-УТФ8", str5->GetValueAsString().c_str());
 
 }
 
-//TEST(ObjTest, PrintFormat) {
-//
-//    ObjPtr format_none = Obj::CreateDict(Obj::Arg(Obj::CreateString("")));
-//    ASSERT_TRUE(ParsePrintfFormat(format_none.get(), 0));
-//    format_none->push_back(Obj::CreateString(""));
-//    ASSERT_FALSE(ParsePrintfFormat(format_none.get(), 0));
-//
-//    ObjPtr format_string = Obj::CreateDict(Obj::Arg(Obj::CreateString("%s")));
-//    ASSERT_FALSE(ParsePrintfFormat(format_string.get(), 0));
-//    format_string->push_back(Obj::CreateString(""));
-//    ASSERT_TRUE(ParsePrintfFormat(format_string.get(), 0));
-//    format_string->push_back(Obj::CreateString(""));
-//    ASSERT_FALSE(ParsePrintfFormat(format_string.get(), 0));
-//
-//    ObjPtr format_int = Obj::CreateDict(Obj::Arg(Obj::CreateString("%d")));
-//    ASSERT_FALSE(ParsePrintfFormat(format_int.get(), 0));
-//    format_int->push_back(Obj::CreateValue(100));
-//    ASSERT_TRUE(ParsePrintfFormat(format_int.get(), 0));
-//    format_int->push_back(Obj::CreateString(""));
-//    ASSERT_FALSE(ParsePrintfFormat(format_int.get(), 0));
-//
-//    format_int = Obj::CreateDict(Obj::Arg(Obj::CreateString("%d %d")));
-//    ASSERT_FALSE(ParsePrintfFormat(format_int.get(), 0));
-//    format_int->push_back(Obj::CreateValue(100));
-//    ASSERT_FALSE(ParsePrintfFormat(format_int.get(), 0));
-//    format_int->push_back(Obj::CreateValue(100));
-//    ASSERT_TRUE(ParsePrintfFormat(format_int.get(), 0));
-//    format_int->push_back(Obj::CreateString(""));
-//    ASSERT_FALSE(ParsePrintfFormat(format_int.get(), 0));
-//
-//    ObjPtr format_number = Obj::CreateDict(Obj::Arg(Obj::CreateString("%f")));
-//    ASSERT_FALSE(ParsePrintfFormat(format_number.get(), 0));
-//    format_number->push_back(Obj::CreateValue(0.003));
-//    ASSERT_TRUE(ParsePrintfFormat(format_number.get(), 0));
-//    format_number->push_back(Obj::CreateString(""));
-//    ASSERT_FALSE(ParsePrintfFormat(format_number.get(), 0));
-//
-//    ObjPtr format_full = Obj::CreateDict(Obj::Arg(Obj::CreateString("%s %d %f %s")));
-//    ASSERT_FALSE(ParsePrintfFormat(format_full.get(), 0));
-//    format_full->push_back(Obj::CreateString(""));
-//    ASSERT_FALSE(ParsePrintfFormat(format_full.get(), 0));
-//    format_full->push_back(Obj::CreateValue(100));
-//    ASSERT_FALSE(ParsePrintfFormat(format_full.get(), 0));
-//    format_full->push_back(Obj::CreateValue(0.003));
-//    ASSERT_FALSE(ParsePrintfFormat(format_full.get(), 0));
-//    format_full->push_back(Obj::CreateString(""));
-//    ASSERT_TRUE(ParsePrintfFormat(format_full.get(), 0));
-//
-//    format_full->push_back(Obj::CreateString(""));
-//    ASSERT_FALSE(ParsePrintfFormat(format_full.get(), 0));
-//}
-//
 //TEST(ObjTest, Dict) {
 //
 //    Context ctx(RunTime::Init());
@@ -491,128 +439,111 @@ TEST(ObjTest, Intersec) {
 //    ASSERT_STREQ("array=('item1', 100, 1,)", var_array->toString().c_str()) << var_array;
 //
 //}
-//
-//TEST(ObjTest, CreateFromInteger) {
-//
-//    Context ctx(RunTime::Init());
-//
-//    ObjPtr var = Context::CreateRVal(&ctx, Parser::ParseString("123", nullptr));
-//    ASSERT_TRUE(var);
-//    ASSERT_EQ(ObjType::Int8, var->getType()) << toString(var->getType());
-//    ASSERT_EQ(123, var->GetValueAsInteger());
-//
-//    ObjPtr var2 = ctx.ExecStr("123");
-//    ASSERT_TRUE(var2);
-//    ASSERT_EQ(ObjType::Int8, var2->getType()) << toString(var2->getType());
-//    ASSERT_EQ(123, var2->GetValueAsInteger());
-//
-//    var = Context::CreateRVal(&ctx, Parser::ParseString("-123", nullptr));
-//    ASSERT_TRUE(var);
-//    ASSERT_EQ(ObjType::Int8, var->getType()) << toString(var->getType());
-//    ASSERT_EQ(-123, var->GetValueAsInteger());
-//
-//    var2 = ctx.ExecStr("-123");
-//    ASSERT_TRUE(var2);
-//    ASSERT_EQ(ObjType::Int8, var2->getType()) << toString(var2->getType());
-//    ASSERT_EQ(-123, var2->GetValueAsInteger());
-//
-//    ASSERT_ANY_THROW(Context::CreateRVal(&ctx, Term::Create(parser::token_type::INTEGER, TermID::INTEGER, "")));
-//    ASSERT_ANY_THROW(Context::CreateRVal(&ctx, Term::Create(parser::token_type::INTEGER, TermID::INTEGER, "lkdfjsha")));
-//    ASSERT_ANY_THROW(Context::CreateRVal(&ctx, Term::Create(parser::token_type::INTEGER, TermID::INTEGER, "123lkdfjsha")));
-//}
-//
-//TEST(ObjTest, CreateFromNumber) {
-//
-//    Context ctx(RunTime::Init());
-//
-//    ObjPtr var = Context::CreateRVal(&ctx, Parser::ParseString("123.123", nullptr));
-//    ASSERT_TRUE(var);
-//    ASSERT_EQ(ObjType::Float32, var->getType());
-//    ASSERT_DOUBLE_EQ(123.123, var->GetValueAsNumber());
-//
-//    ObjPtr var2 = ctx.ExecStr("123.123");
-//    ASSERT_TRUE(var2);
-//    ASSERT_EQ(ObjType::Float32, var2->getType());
-//    ASSERT_DOUBLE_EQ(123.123, var2->GetValueAsNumber());
-//
-//    var = Context::CreateRVal(&ctx, Parser::ParseString("-123.123", nullptr));
-//    ASSERT_TRUE(var);
-//    ASSERT_EQ(ObjType::Float64, var->getType());
-//    ASSERT_DOUBLE_EQ(-123.123, var->GetValueAsNumber());
-//
-//    var2 = ctx.ExecStr("-123.123E+40");
-//    ASSERT_TRUE(var2);
-//    ASSERT_EQ(ObjType::Float64, var2->getType());
-//    ASSERT_DOUBLE_EQ(-123.123E+40, var2->GetValueAsNumber());
-//
-//    ASSERT_ANY_THROW(Context::CreateRVal(&ctx, Term::Create(parser::token_type::NUMBER, TermID::NUMBER, "")));
-//    ASSERT_ANY_THROW(Context::CreateRVal(&ctx, Term::Create(parser::token_type::NUMBER, TermID::NUMBER, "lkdfjsha")));
-//    ASSERT_ANY_THROW(Context::CreateRVal(&ctx, Term::Create(parser::token_type::NUMBER, TermID::NUMBER, "123lkdfjsha")));
-//}
-//
-//TEST(ObjTest, CreateFromString) {
-//
-//    Context ctx(RunTime::Init());
-//
-//    ObjPtr var = Context::CreateRVal(&ctx, Parser::ParseString("\"123.123\"", nullptr));
-//    ASSERT_TRUE(var);
-//    ASSERT_EQ(ObjType::StrWide, var->getType());
-//    ASSERT_STREQ("123.123", var->GetValueAsString().c_str());
-//
-//    ObjPtr var2 = ctx.ExecStr("\"123.123\"");
-//    ASSERT_TRUE(var2);
-//    ASSERT_EQ(ObjType::StrWide, var2->getType());
-//    ASSERT_STREQ("123.123", var2->GetValueAsString().c_str());
-//
-//    var = Context::CreateRVal(&ctx, Parser::ParseString("'строка'", nullptr));
-//    ASSERT_TRUE(var);
-//    ASSERT_EQ(ObjType::StrChar, var->getType());
-//    ASSERT_STREQ("строка", var->GetValueAsString().c_str());
-//
-//    var2 = ctx.ExecStr("'строка'");
-//    ASSERT_TRUE(var2);
-//    ASSERT_EQ(ObjType::StrChar, var2->getType());
-//    ASSERT_STREQ("строка", var2->GetValueAsString().c_str());
-//}
-//
-//TEST(ObjTest, CreateFromRational) {
-//
-//    Context ctx(RunTime::Init());
-//
-//    ObjPtr var = Context::CreateRVal(&ctx, Parser::ParseString("123\\1", nullptr));
-//    ASSERT_TRUE(var);
-//    ASSERT_EQ(ObjType::Rational, var->getType()) << toString(var->getType());
-//    ASSERT_EQ(123, var->GetValueAsInteger());
-//    ASSERT_DOUBLE_EQ(123.0, var->GetValueAsNumber());
-//
-//    ObjPtr var2 = ctx.ExecStr("123\\1");
-//    ASSERT_TRUE(var2);
-//    ASSERT_EQ(ObjType::Rational, var2->getType()) << toString(var2->getType());
-//    ASSERT_EQ(123, var2->GetValueAsInteger());
-//    ASSERT_DOUBLE_EQ(123, var2->GetValueAsNumber());
-//
-//    var = Context::CreateRVal(&ctx, Parser::ParseString("-123\\1", nullptr));
-//    ASSERT_TRUE(var);
-//    ASSERT_EQ(ObjType::Rational, var->getType()) << toString(var->getType());
-//    ASSERT_EQ(-123, var->GetValueAsInteger());
-//    ASSERT_DOUBLE_EQ(-123.0, var->GetValueAsNumber());
-//
-//    var2 = ctx.ExecStr("-123\\1");
-//    ASSERT_TRUE(var2);
-//    ASSERT_EQ(ObjType::Rational, var2->getType()) << toString(var2->getType());
-//    ASSERT_EQ(-123, var2->GetValueAsInteger());
-//    ASSERT_DOUBLE_EQ(-123, var2->GetValueAsNumber());
-//
-//    ASSERT_ANY_THROW(Context::CreateRVal(&ctx, Term::Create(parser::token_type::RATIONAL, TermID::RATIONAL, "1@0")));
-//    ASSERT_ANY_THROW(Context::CreateRVal(&ctx, Term::Create(parser::token_type::RATIONAL, TermID::RATIONAL, "1@")));
-//    ASSERT_ANY_THROW(Context::CreateRVal(&ctx, Term::Create(parser::token_type::RATIONAL, TermID::RATIONAL, "")));
-//    ASSERT_ANY_THROW(Context::CreateRVal(&ctx, Term::Create(parser::token_type::RATIONAL, TermID::RATIONAL, "asdsdff")));
-//    ASSERT_ANY_THROW(Context::CreateRVal(&ctx, Term::Create(parser::token_type::RATIONAL, TermID::RATIONAL, "asdsdff@dddddd")));
-//    ASSERT_ANY_THROW(Context::CreateRVal(&ctx, Term::Create(parser::token_type::RATIONAL, TermID::RATIONAL, "123asdsdff@dddddd")));
-//    ASSERT_ANY_THROW(Context::CreateRVal(&ctx, Term::Create(parser::token_type::RATIONAL, TermID::RATIONAL, "123@111dddddd")));
-//    ASSERT_ANY_THROW(Context::CreateRVal(&ctx, Term::Create(parser::token_type::RATIONAL, TermID::RATIONAL, "123wwwww@111")));
-//}
-//
+
+TEST(ObjTest, CreateFromInteger) {
+
+    RuntimePtr rt = RunTime::Init();
+
+    ObjPtr var = rt->Run("123");
+    ASSERT_TRUE(var);
+    ASSERT_EQ(ObjType::Int8, var->getType()) << toString(var->getType());
+    ASSERT_EQ(123, var->GetValueAsInteger());
+
+    ObjPtr var2 = rt->Run("123");
+    ASSERT_TRUE(var2);
+    ASSERT_EQ(ObjType::Int8, var2->getType()) << toString(var2->getType());
+    ASSERT_EQ(123, var2->GetValueAsInteger());
+
+    var = rt->Run("-123");
+    ASSERT_TRUE(var);
+    ASSERT_EQ(ObjType::Int8, var->getType()) << toString(var->getType());
+    ASSERT_EQ(-123, var->GetValueAsInteger());
+
+    var2 = rt->Run("-123");
+    ASSERT_TRUE(var2);
+    ASSERT_EQ(ObjType::Int8, var2->getType()) << toString(var2->getType());
+    ASSERT_EQ(-123, var2->GetValueAsInteger());
+}
+
+TEST(ObjTest, CreateFromNumber) {
+
+    RuntimePtr rt = RunTime::Init();
+
+    ObjPtr var = rt->Run("123.123");
+    ASSERT_TRUE(var);
+    ASSERT_EQ(ObjType::Float32, var->getType());
+    ASSERT_DOUBLE_EQ(123.123, var->GetValueAsNumber());
+
+    ObjPtr var2 = rt->Run("123.123");
+    ASSERT_TRUE(var2);
+    ASSERT_EQ(ObjType::Float32, var2->getType());
+    ASSERT_DOUBLE_EQ(123.123, var2->GetValueAsNumber());
+
+    var = rt->Run("-123.123");
+    ASSERT_TRUE(var);
+    ASSERT_EQ(ObjType::Float64, var->getType());
+    ASSERT_DOUBLE_EQ(-123.123, var->GetValueAsNumber());
+
+    var2 = rt->Run("-123.123E+40");
+    ASSERT_TRUE(var2);
+    ASSERT_EQ(ObjType::Float64, var2->getType());
+    ASSERT_DOUBLE_EQ(-123.123E+40, var2->GetValueAsNumber());
+}
+
+TEST(ObjTest, CreateFromString) {
+
+    RuntimePtr rt= RunTime::Init();
+
+    ObjPtr var = rt->Run("\"123.123\"");
+    ASSERT_TRUE(var);
+    ASSERT_EQ(ObjType::StrWide, var->getType());
+    ASSERT_STREQ("123.123", var->GetValueAsString().c_str());
+
+    ObjPtr var2 = rt->Run("\"123.123\"");
+    ASSERT_TRUE(var2);
+    ASSERT_EQ(ObjType::StrWide, var2->getType());
+    ASSERT_STREQ("123.123", var2->GetValueAsString().c_str());
+
+    var = rt->Run("'строка'");
+    ASSERT_TRUE(var);
+    ASSERT_EQ(ObjType::StrChar, var->getType());
+    ASSERT_STREQ("строка", var->GetValueAsString().c_str());
+
+    var2 = rt->Run("'строка'");
+    ASSERT_TRUE(var2);
+    ASSERT_EQ(ObjType::StrChar, var2->getType());
+    ASSERT_STREQ("строка", var2->GetValueAsString().c_str());
+}
+
+TEST(ObjTest, CreateFromRational) {
+
+    RuntimePtr rt = RunTime::Init();
+
+    ObjPtr var = rt->Run("123\\1");
+    ASSERT_TRUE(var);
+    ASSERT_EQ(ObjType::Rational, var->getType()) << toString(var->getType());
+    ASSERT_EQ(123, var->GetValueAsInteger());
+    ASSERT_DOUBLE_EQ(123.0, var->GetValueAsNumber());
+
+    ObjPtr var2 = rt->Run("123\\1");
+    ASSERT_TRUE(var2);
+    ASSERT_EQ(ObjType::Rational, var2->getType()) << toString(var2->getType());
+    ASSERT_EQ(123, var2->GetValueAsInteger());
+    ASSERT_DOUBLE_EQ(123, var2->GetValueAsNumber());
+
+    var = rt->Run("-123\\1");
+    ASSERT_TRUE(var);
+    ASSERT_EQ(ObjType::Rational, var->getType()) << toString(var->getType());
+    ASSERT_EQ(-123, var->GetValueAsInteger());
+    ASSERT_DOUBLE_EQ(-123.0, var->GetValueAsNumber());
+
+    var2 = rt->Run("-123\\1");
+    ASSERT_TRUE(var2);
+    ASSERT_EQ(ObjType::Rational, var2->getType()) << toString(var2->getType());
+    ASSERT_EQ(-123, var2->GetValueAsInteger());
+    ASSERT_DOUBLE_EQ(-123, var2->GetValueAsNumber());
+}
+
 //TEST(Args, All) {
 //    Context ctx(RunTime::Init());
 //    Parser p1;
@@ -815,263 +746,251 @@ TEST(ObjTest, Intersec) {
 //    ASSERT_EQ(ObjType::Float64, typeFromLimit(1E+40));
 //
 //}
-//
-//TEST(ObjTest, Tensor) {
-//
-//    RuntimePtr opts = RunTime::Init();
-//    Context ctx(opts);
-//
-//    TermPtr term = Parser::ParseString("var:Int32[2,3]", nullptr);
-//
-//    ObjPtr t1 = Context::CreateLVal(&ctx, term);
-//    ASSERT_EQ(ObjType::Int32, t1->m_var_type_current);
-//    ASSERT_EQ(ObjType::Int32, t1->m_var_type_fixed);
-//    ASSERT_FALSE(t1->m_var_is_init);
-//
-//    ASSERT_EQ(2, t1->m_tensor.dim());
-//    ASSERT_EQ(2, t1->m_tensor.size(0));
-//    ASSERT_EQ(3, t1->m_tensor.size(1));
-//
-//    std::string from_str = "русские буквы для ПРОВЕРКИ КОНВЕРТАЦИИ символов";
-//    std::wstring to_str = utf8_decode(from_str);
-//    std::string conv_str = utf8_encode(to_str);
-//
-//    ASSERT_STREQ(from_str.c_str(), conv_str.c_str());
-//
-//    // Байтовые строки
-//    ObjPtr str = Obj::CreateString("test");
-//
-//    ASSERT_STREQ("test", str->m_value.c_str());
-//
-//    torch::Tensor tstr_t;
-//
-//    ConvertStringToTensor(str->m_value, tstr_t, ObjType::Int8);
-//
-//    ASSERT_TRUE(tstr_t.defined());
-//    ASSERT_EQ(tstr_t.index({0}).item<int>(), 't');
-//    ASSERT_EQ(tstr_t.index({1}).item<int>(), 'e');
-//    ASSERT_EQ(tstr_t.index({2}).item<int>(), 's');
-//    ASSERT_EQ(tstr_t.index({3}).item<int>(), 't');
-//
-//
-//    torch::Tensor tensot_temp = str->toType(ObjType::Tensor)->m_tensor;
-//    ASSERT_TRUE(tensot_temp.defined());
-//    ASSERT_EQ(tensot_temp.index({0}).item<int>(), 't');
-//    ASSERT_EQ(tensot_temp.index({1}).item<int>(), 'e');
-//    ASSERT_EQ(tensot_temp.index({2}).item<int>(), 's');
-//    ASSERT_EQ(tensot_temp.index({3}).item<int>(), 't');
-//
-//    ObjPtr t_str = Obj::CreateTensor(tensot_temp);
-//    ASSERT_EQ(t_str->m_var_type_current, ObjType::Int8) << toString(t_str->m_var_type_current);
-//    ASSERT_EQ(4, t_str->size());
-//    ASSERT_TRUE(t_str->m_tensor.defined());
-//
-//    ASSERT_EQ(t_str->m_tensor.index({0}).item<int>(), 't');
-//    ASSERT_EQ(t_str->m_tensor.index({1}).item<int>(), 'e');
-//    ASSERT_EQ(t_str->m_tensor.index({2}).item<int>(), 's');
-//    ASSERT_EQ(t_str->m_tensor.index({3}).item<int>(), 't');
-//
-//    ASSERT_EQ(t_str->index_get({0})->GetValueAsInteger(), 't');
-//    ASSERT_EQ(t_str->index_get({1})->GetValueAsInteger(), 'e');
-//    ASSERT_EQ(t_str->index_get({2})->GetValueAsInteger(), 's');
-//    ASSERT_EQ(t_str->index_get({3})->GetValueAsInteger(), 't');
-//
-//    ASSERT_STREQ(t_str->toType(ObjType::StrWide)->GetValueAsString().c_str(), "test") << t_str->toType(ObjType::StrWide)->GetValueAsString();
-//
-//    t_str->index_set_({1}, Obj::CreateString("E"));
-//    t_str->index_set_({2}, Obj::CreateString("S"));
-//
-//    EXPECT_STREQ(t_str->toType(ObjType::StrWide)->GetValueAsString().c_str(), "tESt") << t_str->toType(ObjType::StrWide)->GetValueAsString();
-//
-//    // Символьные сторки
-//    ObjPtr wstr = Obj::CreateString(L"ТЕСТ");
-//    ObjPtr t_wstr = Obj::CreateTensor(wstr->toType(ObjType::Tensor)->m_tensor);
-//    if(sizeof (wchar_t) == 2) {
-//        ASSERT_EQ(t_wstr->m_var_type_current, ObjType::Int16);
-//    } else {
-//        ASSERT_TRUE(sizeof (wchar_t) == 4);
-//        ASSERT_EQ(t_wstr->m_var_type_current, ObjType::Int32);
-//    }
-//    ASSERT_EQ(4, t_wstr->size());
-//
-//    ASSERT_EQ(t_wstr->index_get({0})->GetValueAsInteger(), L'Т');
-//    ASSERT_EQ(t_wstr->index_get({1})->GetValueAsInteger(), L'Е');
-//    ASSERT_EQ(t_wstr->index_get({2})->GetValueAsInteger(), L'С');
-//    ASSERT_EQ(t_wstr->index_get({3})->GetValueAsInteger(), L'Т');
-//
-//    std::wstring test_wide = t_wstr->toType(ObjType::StrWide)->GetValueAsStringWide();
-//    EXPECT_STREQ(utf8_encode(test_wide).c_str(), "ТЕСТ");
-//
-//    std::string test_str = t_wstr->toType(ObjType::StrWide)->GetValueAsString();
-//    EXPECT_STREQ(test_str.c_str(), "ТЕСТ") << test_str;
-//
-//    t_wstr->index_set_({1}, Obj::CreateString(L"е"));
-//    t_wstr->index_set_({2}, Obj::CreateString(L"с"));
-//
-//    test_str = t_wstr->toType(ObjType::StrWide)->GetValueAsString();
-//    EXPECT_STREQ(test_str.c_str(), "ТесТ") << test_str;
-//
-//}
 
-TEST(ObjTest, Iterator) {
+TEST(ObjTest, Tensor) {
 
-    ObjPtr dict = Obj::CreateDict();
+    RuntimePtr rt = RunTime::Init();
 
-    dict->push_back(Obj::Arg(1, "1"));
-    dict->push_back(Obj::Arg(2, "22"));
-    dict->push_back(Obj::Arg(3, "333"));
-    dict->push_back(Obj::Arg(4));
-    dict->push_back(Obj::Arg(5, "555"));
+    std::string from_str = "русские буквы для ПРОВЕРКИ КОНВЕРТАЦИИ символов";
+    std::wstring to_str = utf8_decode(from_str);
+    std::string conv_str = utf8_encode(to_str);
 
-    ASSERT_EQ(5, dict->size());
+    ASSERT_STREQ(from_str.c_str(), conv_str.c_str());
 
-    auto all = std::regex("(.|\\n)*");
-    ASSERT_TRUE(std::regex_match("1", all));
-    ASSERT_TRUE(std::regex_match("22", all));
-    ASSERT_TRUE(std::regex_match("333", all));
-    ASSERT_TRUE(std::regex_match("", all));
-    ASSERT_TRUE(std::regex_match("\n", all));
-    ASSERT_TRUE(std::regex_match("\n\n\\n", all));
+    // Байтовые строки
+    ObjPtr str = Obj::CreateString("test");
+
+    ASSERT_STREQ("test", str->m_value.c_str());
+
+    torch::Tensor tstr_t;
+
+    ConvertStringToTensor(str->m_value, tstr_t, ObjType::Int8);
+
+    ASSERT_TRUE(tstr_t.defined());
+    ASSERT_EQ(tstr_t.index({0}).item<int>(), 't');
+    ASSERT_EQ(tstr_t.index({1}).item<int>(), 'e');
+    ASSERT_EQ(tstr_t.index({2}).item<int>(), 's');
+    ASSERT_EQ(tstr_t.index({3}).item<int>(), 't');
 
 
-    Iterator <Obj> iter(dict);
+    torch::Tensor tensot_temp = str->toType(ObjType::Tensor)->m_tensor;
+    ASSERT_TRUE(tensot_temp.defined());
+    ASSERT_EQ(tensot_temp.index({0}).item<int>(), 't');
+    ASSERT_EQ(tensot_temp.index({1}).item<int>(), 'e');
+    ASSERT_EQ(tensot_temp.index({2}).item<int>(), 's');
+    ASSERT_EQ(tensot_temp.index({3}).item<int>(), 't');
 
-    ASSERT_TRUE(iter == iter.begin());
-    ASSERT_TRUE(iter != iter.end());
+    ObjPtr t_str = Obj::CreateTensor(tensot_temp);
+    ASSERT_EQ(t_str->m_var_type_current, ObjType::Int8) << toString(t_str->m_var_type_current);
+    ASSERT_EQ(4, t_str->size());
+    ASSERT_TRUE(t_str->m_tensor.defined());
 
-    ObjPtr copy = Obj::CreateDict();
-    for (auto &elem : iter) {
-        copy->push_back(elem.second, elem.first);
+    ASSERT_EQ(t_str->m_tensor.index({0}).item<int>(), 't');
+    ASSERT_EQ(t_str->m_tensor.index({1}).item<int>(), 'e');
+    ASSERT_EQ(t_str->m_tensor.index({2}).item<int>(), 's');
+    ASSERT_EQ(t_str->m_tensor.index({3}).item<int>(), 't');
+
+    ASSERT_EQ(t_str->index_get({0})->GetValueAsInteger(), 't');
+    ASSERT_EQ(t_str->index_get({1})->GetValueAsInteger(), 'e');
+    ASSERT_EQ(t_str->index_get({2})->GetValueAsInteger(), 's');
+    ASSERT_EQ(t_str->index_get({3})->GetValueAsInteger(), 't');
+
+    ASSERT_STREQ(t_str->toType(ObjType::StrWide)->GetValueAsString().c_str(), "test") << t_str->toType(ObjType::StrWide)->GetValueAsString();
+
+    t_str->index_set_({1}, Obj::CreateString("E"));
+    t_str->index_set_({2}, Obj::CreateString("S"));
+
+    EXPECT_STREQ(t_str->toType(ObjType::StrWide)->GetValueAsString().c_str(), "tESt") << t_str->toType(ObjType::StrWide)->GetValueAsString();
+
+    // Символьные сторки
+    ObjPtr wstr = Obj::CreateString(L"ТЕСТ");
+    ObjPtr t_wstr = Obj::CreateTensor(wstr->toType(ObjType::Tensor)->m_tensor);
+    if (sizeof (wchar_t) == 2) {
+        ASSERT_EQ(t_wstr->m_var_type_current, ObjType::Int16);
+    } else {
+        ASSERT_TRUE(sizeof (wchar_t) == 4);
+        ASSERT_EQ(t_wstr->m_var_type_current, ObjType::Int32);
     }
+    ASSERT_EQ(4, t_wstr->size());
 
-    ASSERT_TRUE(iter == iter.begin());
-    ASSERT_TRUE(iter != iter.end());
+    ASSERT_EQ(t_wstr->index_get({0})->GetValueAsInteger(), L'Т');
+    ASSERT_EQ(t_wstr->index_get({1})->GetValueAsInteger(), L'Е');
+    ASSERT_EQ(t_wstr->index_get({2})->GetValueAsInteger(), L'С');
+    ASSERT_EQ(t_wstr->index_get({3})->GetValueAsInteger(), L'Т');
 
-    ASSERT_EQ(dict->size(), copy->size());
+    std::wstring test_wide = t_wstr->toType(ObjType::StrWide)->GetValueAsStringWide();
+    EXPECT_STREQ(utf8_encode(test_wide).c_str(), "ТЕСТ");
 
+    std::string test_str = t_wstr->toType(ObjType::StrWide)->GetValueAsString();
+    EXPECT_STREQ(test_str.c_str(), "ТЕСТ") << test_str;
 
-    ASSERT_TRUE(iter == iter.begin());
+    t_wstr->index_set_({1}, Obj::CreateString(L"е"));
+    t_wstr->index_set_({2}, Obj::CreateString(L"с"));
 
-    ObjPtr one = iter.read_and_next(0);
-    ASSERT_TRUE(one);
-    ASSERT_EQ(1, one->GetValueAsInteger());
-
-    ASSERT_EQ(2, (*iter).second->GetValueAsInteger());
-    one = iter.read_and_next(0);
-    ASSERT_TRUE(one);
-    ASSERT_EQ(2, one->GetValueAsInteger());
-
-    ASSERT_EQ(3, (*iter).second->GetValueAsInteger());
-    one = iter.read_and_next(0);
-    ASSERT_TRUE(one);
-    ASSERT_EQ(3, one->GetValueAsInteger());
-
-    ASSERT_EQ(4, (*iter).second->GetValueAsInteger());
-    one = iter.read_and_next(0);
-    ASSERT_TRUE(one);
-    ASSERT_EQ(4, one->GetValueAsInteger());
-
-    ASSERT_EQ(5, (*iter).second->GetValueAsInteger());
-    one = iter.read_and_next(0);
-    ASSERT_TRUE(one);
-    ASSERT_EQ(5, one->GetValueAsInteger());
-
-    one = iter.read_and_next(0);
-    ASSERT_TRUE(one);
-    ASSERT_EQ(ObjType::IteratorEnd, one->getType()) << one << " " << toString(one->getType());
-
-    one = iter.read_and_next(0);
-    ASSERT_TRUE(one);
-    ASSERT_EQ(ObjType::IteratorEnd, one->getType()) << one << " " << toString(one->getType());
-
-
-
-
-    ASSERT_TRUE(iter == iter.end());
-    iter.reset();
-    ASSERT_TRUE(iter == iter.begin());
-    ASSERT_TRUE(iter != iter.end());
-
-    ObjPtr dict1 = iter.read_and_next(-3);
-    ASSERT_TRUE(dict1);
-    ASSERT_EQ(3, dict1->size());
-    ASSERT_EQ(1, dict1->at(0).second->GetValueAsInteger());
-    ASSERT_EQ(2, dict1->at(1).second->GetValueAsInteger());
-    ASSERT_EQ(3, dict1->at(2).second->GetValueAsInteger());
-
-    ObjPtr dict2 = iter.read_and_next(-3);
-    ASSERT_TRUE(dict2);
-    ASSERT_EQ(3, dict2->size());
-    ASSERT_EQ(4, dict2->at(0).second->GetValueAsInteger());
-    ASSERT_EQ(5, dict2->at(1).second->GetValueAsInteger());
-    ASSERT_EQ(ObjType::IteratorEnd, dict2->at(2).second->getType());
-
-    ObjPtr dict3 = iter.read_and_next(-3);
-    ASSERT_TRUE(dict3);
-    ASSERT_EQ(3, dict1->size());
-    ASSERT_EQ(ObjType::IteratorEnd, dict3->at(0).second->getType());
-    ASSERT_EQ(ObjType::IteratorEnd, dict3->at(1).second->getType());
-    ASSERT_EQ(ObjType::IteratorEnd, dict3->at(2).second->getType());
-
-
-
-    ASSERT_TRUE(iter == iter.end());
-    iter.reset();
-    ASSERT_TRUE(iter == iter.begin());
-    ASSERT_TRUE(iter != iter.end());
-
-    dict1 = iter.read_and_next(3);
-    ASSERT_TRUE(dict1);
-    ASSERT_EQ(3, dict1->size());
-    ASSERT_EQ(1, dict1->at(0).second->GetValueAsInteger());
-    ASSERT_EQ(2, dict1->at(1).second->GetValueAsInteger());
-    ASSERT_EQ(3, dict1->at(2).second->GetValueAsInteger());
-
-    dict2 = iter.read_and_next(3);
-    ASSERT_TRUE(dict2);
-    ASSERT_EQ(2, dict2->size());
-    ASSERT_EQ(4, dict2->at(0).second->GetValueAsInteger());
-    ASSERT_EQ(5, dict2->at(1).second->GetValueAsInteger());
-
-    dict3 = iter.read_and_next(3);
-    ASSERT_TRUE(dict3);
-    ASSERT_EQ(0, dict3->size());
-
-
-
-
-    Iterator <Obj> flt(dict, "");
-    ObjPtr flt_res = flt.read_and_next(100);
-    ASSERT_TRUE(flt_res);
-    ASSERT_EQ(1, flt_res->size());
-    ASSERT_EQ(4, flt_res->at(0).second->GetValueAsInteger());
-
-
-    Iterator <Obj> flt1(dict, ".");
-    ObjPtr flt1_res = flt1.read_and_next(100);
-    ASSERT_TRUE(flt1_res);
-    ASSERT_EQ(1, flt1_res->size());
-    ASSERT_EQ(1, flt1_res->at(0).second->GetValueAsInteger());
-
-
-    Iterator <Obj> flt2(dict, "..");
-    ObjPtr flt2_res = flt2.read_and_next(100);
-    ASSERT_TRUE(flt2_res);
-    ASSERT_EQ(1, flt2_res->size());
-    ASSERT_EQ(2, flt2_res->at(0).second->GetValueAsInteger());
-
-    Iterator <Obj> flt3(dict, "...");
-    ObjPtr flt3_res = flt3.read_and_next(100);
-    ASSERT_TRUE(flt3_res);
-    ASSERT_EQ(2, flt3_res->size());
-    ASSERT_EQ(3, flt3_res->at(0).second->GetValueAsInteger());
-    ASSERT_EQ(5, flt3_res->at(1).second->GetValueAsInteger());
-
-
-
-    //    ObjPtr iter1 = dict->MakeIterator();
+    test_str = t_wstr->toType(ObjType::StrWide)->GetValueAsString();
+    EXPECT_STREQ(test_str.c_str(), "ТесТ") << test_str;
 
 }
+
+//TEST(ObjTest, Iterator) {
+//
+//    ObjPtr dict = Obj::CreateDict();
+//
+//    dict->push_back(Obj::Arg(1, "1"));
+//    dict->push_back(Obj::Arg(2, "22"));
+//    dict->push_back(Obj::Arg(3, "333"));
+//    dict->push_back(Obj::Arg(4));
+//    dict->push_back(Obj::Arg(5, "555"));
+//
+//    ASSERT_EQ(5, dict->size());
+//
+//    auto all = std::regex("(.|\\n)*");
+//    ASSERT_TRUE(std::regex_match("1", all));
+//    ASSERT_TRUE(std::regex_match("22", all));
+//    ASSERT_TRUE(std::regex_match("333", all));
+//    ASSERT_TRUE(std::regex_match("", all));
+//    ASSERT_TRUE(std::regex_match("\n", all));
+//    ASSERT_TRUE(std::regex_match("\n\n\\n", all));
+//
+//
+//    Iterator <Obj> iter(dict);
+//
+//    ASSERT_TRUE(iter == iter.begin());
+//    ASSERT_TRUE(iter != iter.end());
+//
+//    ObjPtr copy = Obj::CreateDict();
+//    for (auto &elem : iter) {
+//        copy->push_back(elem.second, elem.first);
+//    }
+//
+//    ASSERT_TRUE(iter == iter.begin());
+//    ASSERT_TRUE(iter != iter.end());
+//
+//    ASSERT_EQ(dict->size(), copy->size());
+//
+//
+//    ASSERT_TRUE(iter == iter.begin());
+//
+//    ObjPtr one = iter.read_and_next(0);
+//    ASSERT_TRUE(one);
+//    ASSERT_EQ(1, one->GetValueAsInteger());
+//
+//    ASSERT_EQ(2, (*iter).second->GetValueAsInteger());
+//    one = iter.read_and_next(0);
+//    ASSERT_TRUE(one);
+//    ASSERT_EQ(2, one->GetValueAsInteger());
+//
+//    ASSERT_EQ(3, (*iter).second->GetValueAsInteger());
+//    one = iter.read_and_next(0);
+//    ASSERT_TRUE(one);
+//    ASSERT_EQ(3, one->GetValueAsInteger());
+//
+//    ASSERT_EQ(4, (*iter).second->GetValueAsInteger());
+//    one = iter.read_and_next(0);
+//    ASSERT_TRUE(one);
+//    ASSERT_EQ(4, one->GetValueAsInteger());
+//
+//    ASSERT_EQ(5, (*iter).second->GetValueAsInteger());
+//    one = iter.read_and_next(0);
+//    ASSERT_TRUE(one);
+//    ASSERT_EQ(5, one->GetValueAsInteger());
+//
+//    one = iter.read_and_next(0);
+//    ASSERT_TRUE(one);
+//    ASSERT_EQ(ObjType::IteratorEnd, one->getType()) << one << " " << toString(one->getType());
+//
+//    one = iter.read_and_next(0);
+//    ASSERT_TRUE(one);
+//    ASSERT_EQ(ObjType::IteratorEnd, one->getType()) << one << " " << toString(one->getType());
+//
+//
+//
+//
+//    ASSERT_TRUE(iter == iter.end());
+//    iter.reset();
+//    ASSERT_TRUE(iter == iter.begin());
+//    ASSERT_TRUE(iter != iter.end());
+//
+//    ObjPtr dict1 = iter.read_and_next(-3);
+//    ASSERT_TRUE(dict1);
+//    ASSERT_EQ(3, dict1->size());
+//    ASSERT_EQ(1, dict1->at(0).second->GetValueAsInteger());
+//    ASSERT_EQ(2, dict1->at(1).second->GetValueAsInteger());
+//    ASSERT_EQ(3, dict1->at(2).second->GetValueAsInteger());
+//
+//    ObjPtr dict2 = iter.read_and_next(-3);
+//    ASSERT_TRUE(dict2);
+//    ASSERT_EQ(3, dict2->size());
+//    ASSERT_EQ(4, dict2->at(0).second->GetValueAsInteger());
+//    ASSERT_EQ(5, dict2->at(1).second->GetValueAsInteger());
+//    ASSERT_EQ(ObjType::IteratorEnd, dict2->at(2).second->getType());
+//
+//    ObjPtr dict3 = iter.read_and_next(-3);
+//    ASSERT_TRUE(dict3);
+//    ASSERT_EQ(3, dict1->size());
+//    ASSERT_EQ(ObjType::IteratorEnd, dict3->at(0).second->getType());
+//    ASSERT_EQ(ObjType::IteratorEnd, dict3->at(1).second->getType());
+//    ASSERT_EQ(ObjType::IteratorEnd, dict3->at(2).second->getType());
+//
+//
+//
+//    ASSERT_TRUE(iter == iter.end());
+//    iter.reset();
+//    ASSERT_TRUE(iter == iter.begin());
+//    ASSERT_TRUE(iter != iter.end());
+//
+//    dict1 = iter.read_and_next(3);
+//    ASSERT_TRUE(dict1);
+//    ASSERT_EQ(3, dict1->size());
+//    ASSERT_EQ(1, dict1->at(0).second->GetValueAsInteger());
+//    ASSERT_EQ(2, dict1->at(1).second->GetValueAsInteger());
+//    ASSERT_EQ(3, dict1->at(2).second->GetValueAsInteger());
+//
+//    dict2 = iter.read_and_next(3);
+//    ASSERT_TRUE(dict2);
+//    ASSERT_EQ(2, dict2->size());
+//    ASSERT_EQ(4, dict2->at(0).second->GetValueAsInteger());
+//    ASSERT_EQ(5, dict2->at(1).second->GetValueAsInteger());
+//
+//    dict3 = iter.read_and_next(3);
+//    ASSERT_TRUE(dict3);
+//    ASSERT_EQ(0, dict3->size());
+//
+//
+//
+//
+//    Iterator <Obj> flt(dict, "");
+//    ObjPtr flt_res = flt.read_and_next(100);
+//    ASSERT_TRUE(flt_res);
+//    ASSERT_EQ(1, flt_res->size());
+//    ASSERT_EQ(4, flt_res->at(0).second->GetValueAsInteger());
+//
+//
+//    Iterator <Obj> flt1(dict, ".");
+//    ObjPtr flt1_res = flt1.read_and_next(100);
+//    ASSERT_TRUE(flt1_res);
+//    ASSERT_EQ(1, flt1_res->size());
+//    ASSERT_EQ(1, flt1_res->at(0).second->GetValueAsInteger());
+//
+//
+//    Iterator <Obj> flt2(dict, "..");
+//    ObjPtr flt2_res = flt2.read_and_next(100);
+//    ASSERT_TRUE(flt2_res);
+//    ASSERT_EQ(1, flt2_res->size());
+//    ASSERT_EQ(2, flt2_res->at(0).second->GetValueAsInteger());
+//
+//    Iterator <Obj> flt3(dict, "...");
+//    ObjPtr flt3_res = flt3.read_and_next(100);
+//    ASSERT_TRUE(flt3_res);
+//    ASSERT_EQ(2, flt3_res->size());
+//    ASSERT_EQ(3, flt3_res->at(0).second->GetValueAsInteger());
+//    ASSERT_EQ(5, flt3_res->at(1).second->GetValueAsInteger());
+//
+//
+//
+//    //    ObjPtr iter1 = dict->MakeIterator();
+//
+//}
 
 TEST(ObjTest, System) {
 
