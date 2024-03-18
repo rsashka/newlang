@@ -135,7 +135,7 @@
       <itemPath>../CMakeLists.txt</itemPath>
       <itemPath>../LICENSE</itemPath>
       <itemPath>Makefile</itemPath>
-      <itemPath>../build_doc.sh</itemPath>
+      <itemPath>../make_version.sh</itemPath>
     </logicalFolder>
     <itemPath>../CHANGELOG.md</itemPath>
     <itemPath>../README.md</itemPath>

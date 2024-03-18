@@ -1,1 +1,0 @@
-../../../ru/docs/examples/_index.md

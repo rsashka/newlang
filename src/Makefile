@@ -57,7 +57,7 @@ build: .build-post
 # Add your pre 'build' code here...
 
 	# Build documentation, embedded help and version info
-	../build_doc.sh ..
+	../make_version.sh ..
 
 
 .build-post: .build-impl
