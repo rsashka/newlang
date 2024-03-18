@@ -150,7 +150,7 @@ namespace newlang {
 
         Diag();
 
-        SCOPE(private) :
+//        SCOPE(private) :
 
         bool ParseArgs(int argc, const char** argv) {
 

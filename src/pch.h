@@ -65,13 +65,9 @@
 #include <torch/torch.h>
 #include <ATen/ATen.h>
 
-#include <contrib/logger/logger.h>
 #include "warning_pop.h"
 
-
-#define LOG_RUNTIME(format, ...)  LOG_EXCEPT(newlang::Error, format, ##__VA_ARGS__)
-#define LOG_CUSTOM_ERROR(error, format, ...)  LOG_EXCEPT_LEVEL(error, LOG_LEVEL_ERROR, "", format, ##__VA_ARGS__ )
-
+#include <logger.h>
 
 #endif // NEWLANG_PCH_H_
 

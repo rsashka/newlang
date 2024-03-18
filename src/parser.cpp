@@ -284,8 +284,8 @@ bool Parser::PragmaEval(const TermPtr &term, BlockType &buffer, BlockType &seq) 
             message += term->at(i).second->m_text;
         }
 
-        utils::Logger::LogLevelType save = utils::Logger::Instance()->GetLogLevel();
-        utils::Logger::Instance()->SetLogLevel(LOG_LEVEL_INFO);
+        Logger::LogLevelType save = Logger::Instance()->GetLogLevel();
+        Logger::Instance()->SetLogLevel(LOG_LEVEL_INFO);
         if (term->m_text.compare(__PRAGMA_MESSAGE__) == 0) {
             LOG_INFO("note: %s", message.c_str());
         } else if (term->m_text.compare(__PRAGMA_WARNING__) == 0) {
@@ -294,7 +294,7 @@ bool Parser::PragmaEval(const TermPtr &term, BlockType &buffer, BlockType &seq) 
             ASSERT(term->m_text.compare(__PRAGMA_ERROR__) == 0);
             LOG_RUNTIME("error: %s", message.c_str());
         }
-        utils::Logger::Instance()->SetLogLevel(save);
+        Logger::Instance()->SetLogLevel(save);
 
     } else if (term->m_text.compare(__PRAGMA_IGNORE__) == 0) {
 
@@ -528,7 +528,7 @@ std::string newlang::ParserMessage(std::string &buffer, int row, int col, const 
         message += " at line ";
         message += std::to_string(row);
         message += " col ";
-        message += std::to_string(col);
+        message += std::to_string(col - 1);
         message += "\n";
     }
 

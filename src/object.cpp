@@ -1,6 +1,5 @@
 #include "pch.h"
 
-#include "contrib/logger/logger.h"
 #include "types.h"
 #include "variable.h"
 

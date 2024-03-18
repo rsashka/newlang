@@ -1,63 +1,14 @@
-//#include <stdio.h>
 #include <stdarg.h>
 #include <string.h>
 
+#include <logger.h>
 
-#include <contrib/logger/logger.h>
+using namespace newlang;
 
-#include "warning_push.h"
-#include <contrib/logger/mcucpp/ring_buffer.h>
-#include "warning_pop.h"
-
-
-using namespace utils;
-
-#ifndef LOG_BUFFER_SIZE
-#ifdef USE_HAL_DRIVER
-
-#ifdef NDEBUG
-#define LOG_BUFFER_SIZE 4096
-#else
-#define LOG_BUFFER_SIZE 4096*2
-#endif
-
-#else
-#define LOG_BUFFER_SIZE 4096*4
-#endif
-#endif
-
-static Mcucpp::Containers::RingBufferPO2<LOG_BUFFER_SIZE, char> m_log_buffer;
 Logger * Logger::m_instance = nullptr;
 
-const char * Logger::AddString(LogLevelType level, const char * str, bool flush) {
-    if(m_func != nullptr) {
-        (*m_func)(m_func_param, level, str, flush);
-    }
-    if(m_log_buffer.full()) {
-        m_log_buffer.pop_front();
-    }
-    const char *result = nullptr;
-    if(m_log_buffer.empty()) {
-        result = &m_log_buffer[0];
-    } else {
-        result = &m_log_buffer[m_log_buffer.size() - 1];
-    }
-    while(*str) {
-        m_log_buffer.push_back(*str);
-        if(m_log_buffer.full()) {
-            m_log_buffer.pop_front();
-        }
-        str++;
-    }
-    return result;
-}
-
-void Logger::Clear() {
-    m_log_buffer.clear();
-}
-
 const char * Logger::GetLogLevelDesc(LogLevelType level) {
-    switch(level) {
+    switch (level) {
         case LOG_LEVEL_DEFAULT:
             return "DEFAULT";
         case LOG_LEVEL_DUMP:
@@ -78,97 +29,105 @@ const char * Logger::GetLogLevelDesc(LogLevelType level) {
     return "Unknown";
 }
 
-uint16_t Logger::GetDump(uint8_t *data, uint16_t max_size) {
-    size_t result = 0;
-    if(data && max_size > 0) {
-        while(!m_log_buffer.empty() && (result + 1) < max_size) {
-            data[result] = m_log_buffer.front();
-            m_log_buffer.pop_front();
-            result++;
-        }
-        data[result] = '\0';
-        result++;
-    }
-    return (uint16_t) result;
-}
+std::string Logger::log_printf(uint8_t level, const char *prefix, const char *file, int line, const char *format, ...) {
 
-uint16_t Logger::GetDumpSize() {
-    STATIC_ASSERT(LOG_BUFFER_SIZE <= 4096 * 4);
-    return m_log_buffer.size();
-}
-
-#define LOG_MAX_BUFFER_SIZE 1024
-static char buffer[LOG_MAX_BUFFER_SIZE + 1];
-
-EXTERN_C const char * log_printf(uint8_t level, const char *prefix, const char *file, int line, const char *format, ...) {
-
-    if(Logger::Instance()->GetLogLevel() < level) {
+    if (Logger::Instance()->GetLogLevel() < level) {
         return "";
     }
 
-    const char * result = nullptr;
-    if(prefix) {
-        snprintf(buffer, LOG_MAX_BUFFER_SIZE, "%s", prefix);
-        result = Logger::Instance()->AddString(level, buffer, false);
+    std::string result;
+    if (prefix) {
+        result += prefix;
+        //        snprintf(buffer, LOG_MAX_BUFFER_SIZE, "%s", prefix);
+        //        result = Logger::Instance()->AddString(level, buffer, false);
     }
 
-    if(level == LOG_LEVEL_ABORT) {
-        //        utils::Time::TimeToString(utils::Time::GetTime(), buffer, LOG_MAX_BUFFER_SIZE);
-        //        utils::Time::DateTime tmp;
-        //        snprintf(buffer, LOG_MAX_BUFFER_SIZE, " %02d:%02d:%02d %02d/%02d/%04d ",
-        //                    tmp.tm_hour, tmp.tm_min, tmp.tm_sec, tmp.tm_mday, tmp.tm_mon + 1, tmp.tm_year + 1900);
-        const char * tmp = Logger::Instance()->AddString(level, buffer, false);
-        if(!result) {
-            result = tmp;
-        }
+    //    if (level == LOG_LEVEL_ABORT) {
+    //        //        Time::TimeToString(Time::GetTime(), buffer, LOG_MAX_BUFFER_SIZE);
+    //        //        Time::DateTime tmp;
+    //        //        snprintf(buffer, LOG_MAX_BUFFER_SIZE, " %02d:%02d:%02d %02d/%02d/%04d ",
+    //        //                    tmp.tm_hour, tmp.tm_min, tmp.tm_sec, tmp.tm_mday, tmp.tm_mon + 1, tmp.tm_year + 1900);
+    //        const char * tmp = Logger::Instance()->AddString(level, buffer, false);
+    //        if (!result) {
+    //            result = tmp;
+    //        }
+    //    }
+
+
+    static char buffer[4096 + PATH_MAX];
+    char *ptr = nullptr;
+    size_t printf_size;
+
+    {
+        va_list args;
+        va_start(args, format);
+        printf_size = vsnprintf(nullptr, 0, format, args) + PATH_MAX;
+        va_end(args);
     }
 
-    va_list args;
-    va_start(args, format);
-    vsnprintf(buffer, LOG_MAX_BUFFER_SIZE, format, args);
-    va_end(args);
 
-    size_t size = strlen(buffer);
+    if (printf_size > sizeof (buffer)) {
+        ptr = new char[printf_size + PATH_MAX + 1];
+        printf_size += (PATH_MAX + 1);
+    } else {
+        ptr = &buffer[0];
+        printf_size = sizeof (buffer);
+    }
+
+    {
+        va_list args;
+        va_start(args, format);
+        VERIFY(vsnprintf(ptr, printf_size, format, args) >= 0);
+        va_end(args);
+    }
+
+    size_t size = strlen(ptr);
     bool nl = true;
-    if(size >= 2) {
+    if (size >= 2) {
         // После сообщения заканчивающегося на \r\r не ставить перевод строки
-        if(buffer[size - 2] == '\r' && buffer[size - 1] == '\r') {
+        if (ptr[size - 2] == '\r' && ptr[size - 1] == '\r') {
             nl = false;
-            buffer[size - 2] = '\0';
+            ptr[size - 2] = '\0';
         }
     }
 
-    Logger::Instance()->AddString(level, buffer, false);
+    result += ptr;
 
-    if(file && (level != LOG_LEVEL_INFO || Logger::Instance()->GetLogLevel() >= LOG_LEVEL_DUMP)) {
+    if (file && (level != LOG_LEVEL_INFO || Logger::Instance()->GetLogLevel() >= LOG_LEVEL_DUMP)) {
         const char * file_name = strrchr(file, '/');
-        snprintf(buffer, LOG_MAX_BUFFER_SIZE, " (%s:%d)%s", ((file_name && *file_name == '/') ? file_name + 1 : file), line, nl ? "\n" : "");
+        snprintf(ptr, printf_size, " (%s:%d)%s", ((file_name && *file_name == '/') ? file_name + 1 : file), line, nl ? "\n" : "");
 
     } else {
-        snprintf(buffer, LOG_MAX_BUFFER_SIZE, "%s", nl ? "\n" : "");
+        snprintf(ptr, printf_size, "%s", nl ? "\n" : "");
     }
-    const char * tmp = Logger::Instance()->AddString(level, buffer, true);
-    if(!result) {
-        result = tmp;
+    result += ptr;
+
+    if (ptr != &buffer[0]) {
+        delete[] ptr;
     }
+
+    if (Logger::Instance()->m_func != nullptr) {
+        (*Logger::Instance()->m_func)(Logger::Instance()->m_func_param, level, result.c_str(), true);
+    }
+
     return result;
 }
 
-EXTERN_C uint8_t HexToByte(const char c) {
+uint8_t HexToByte(const char c) {
     ASSERT(strchr("0123456789ABCDEFabcdef", c) != nullptr);
-    if(c > '0' && c <= '9') {
+    if (c > '0' && c <= '9') {
         return c - 0x30;
     }
-    if(c >= 'a' && c <= 'f') {
+    if (c >= 'a' && c <= 'f') {
         return c - 0x61 + 10;
     }
-    if(c >= 'A' && c <= 'F') {
+    if (c >= 'A' && c <= 'F') {
         return c - 0x41 + 10;
     }
     return 0;
 }
 
-EXTERN_C size_t HexToBin(const char * str, uint8_t * buf, const size_t size) {
+size_t HexToBin(const char * str, uint8_t * buf, const size_t size) {
     ASSERT(str != nullptr);
     ASSERT(buf != nullptr);
     //    ASSERT((strlen(str) % 2) == 0);
@@ -178,26 +137,26 @@ EXTERN_C size_t HexToBin(const char * str, uint8_t * buf, const size_t size) {
     size_t pos = 0;
     size_t count = std::min(strlen(str), size * 2);
 
-    while(pos < count) {
+    while (pos < count) {
         buf[pos / 2] = (uint8_t) ((HexToByte(str[pos]) << 4) | (HexToByte(str[pos + 1])));
         pos += 2;
     }
     return pos / 2;
 }
 
-EXTERN_C int HexToBinEq(const char * str, const uint8_t * buf, size_t size) {
+int HexToBinEq(const char * str, const uint8_t * buf, size_t size) {
     ASSERT(str);
     ASSERT(buf);
     //    ASSERT(strlen(str) % 2 == 0);
 
     size_t len = strlen(str);
-    if(len / 2 != size) {
+    if (len / 2 != size) {
         return 0;
     }
     for (size_t pos = 0; pos < len; pos += 2) {
         uint8_t byte = (uint8_t) ((HexToByte(str[pos]) << 4) | (HexToByte(str[pos + 1])));
 
-        if(byte != buf[pos / 2]) {
+        if (byte != buf[pos / 2]) {
             return false;
         }
     }
@@ -220,10 +179,10 @@ std::string BinToHex(const uint8_t * buf, const size_t size) {
 std::string HexStrToBinStr(std::string & hex_str) {
     std::string result;
     for (size_t pos = 0; pos < hex_str.size(); pos++) {
-        if(pos != 0) {
+        if (pos != 0) {
             result.append(" ");
         }
-        switch(hex_str[pos]) {
+        switch (hex_str[pos]) {
             case '0':
                 result.append("0000");
                 break;
@@ -287,10 +246,10 @@ std::string HexStrToBinStr(std::string & hex_str) {
     return result;
 }
 
-EXTERN_C size_t BinToHexBuffer(const uint8_t * buf, const size_t size, char * str, const size_t str_size) {
+size_t BinToHexBuffer(const uint8_t * buf, const size_t size, char * str, const size_t str_size) {
     ASSERT(buf);
     ASSERT(str);
-    if(!str || !buf || !size || !str_size) {
+    if (!str || !buf || !size || !str_size) {
         return 0;
     }
     size_t max_size = std::min(size * 2, str_size - 1);
@@ -302,16 +261,14 @@ EXTERN_C size_t BinToHexBuffer(const uint8_t * buf, const size_t size, char * st
     return max_size;
 }
 
-#if !defined(USE_HAL_DRIVER) && !defined(_WIN32)
-
 #include <execinfo.h>
 #include <cxxabi.h>
 
 inline const char * get_basename(const char * str) {
-    if(str) {
+    if (str) {
         size_t pos = strlen(str);
-        while(pos) {
-            if(str[pos] == '@' || str[pos] == '/') {
+        while (pos) {
+            if (str[pos] == '@' || str[pos] == '/') {
                 return &str[pos + 1];
             }
             pos--;
@@ -320,7 +277,7 @@ inline const char * get_basename(const char * str) {
     return str;
 }
 
-EXTERN_C void log_print_callstack() {
+void log_print_callstack() {
     const size_t max_depth = 5;
     size_t stack_depth;
     void *stack_addrs[max_depth];
@@ -329,8 +286,8 @@ EXTERN_C void log_print_callstack() {
     stack_depth = backtrace(stack_addrs, max_depth);
     stack_strings = backtrace_symbols(stack_addrs, stack_depth);
 
-    utils::Logger::LogLevelType save_level = utils::Logger::Instance()->GetLogLevel();
-    utils::Logger::Instance()->SetLogLevel(LOG_LEVEL_INFO);
+    newlang::Logger::LogLevelType save_level = newlang::Logger::Instance()->GetLogLevel();
+    newlang::Logger::Instance()->SetLogLevel(LOG_LEVEL_INFO);
     LOG_INFO("Call stack:");
 
     for (size_t i = 1; i < stack_depth; i++) {
@@ -340,20 +297,20 @@ EXTERN_C void log_print_callstack() {
 
         // find the parentheses and address offset surrounding the mangled name
         for (char *j = stack_strings[i]; *j; ++j) {
-            if(*j == '(') {
+            if (*j == '(') {
                 begin = j;
-            } else if(*j == '+') {
+            } else if (*j == '+') {
                 end = j;
             }
         }
-        if(begin && end) {
+        if (begin && end) {
             *begin++ = '\0';
             *end = '\0';
             // found our mangled name, now in [begin, end)
 
             int status;
             char *ret = abi::__cxa_demangle(begin, function, &sz, &status);
-            if(ret) {
+            if (ret) {
                 // return value may be a realloc() of the input
                 function = ret;
             } else {
@@ -372,7 +329,6 @@ EXTERN_C void log_print_callstack() {
 
     free(stack_strings);
 
-    utils::Logger::Instance()->SetLogLevel(save_level);
+    newlang::Logger::Instance()->SetLogLevel(save_level);
 }
 
-#endif

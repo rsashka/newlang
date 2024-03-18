@@ -27,11 +27,11 @@ namespace newlang {
      */
 
     class Context : SCOPE(public) ScopeStack, public std::enable_shared_from_this<Context> {
-        SCOPE(private) :
-        RuntimePtr m_runtime;
-        ObjPtr m_latter;
+//        SCOPE(private) :
 
     public:
+        RuntimePtr m_runtime;
+        ObjPtr m_latter;
 
         Context(StorageTerm &module, RuntimePtr rt) : ScopeStack(module), m_runtime(rt) {
         }

@@ -21,11 +21,11 @@ protected:
 
     std::vector<std::string> m_postlex;
 
-    utils::Logger::FuncCallback *m_log_callback_save;
+    Logger::FuncCallback *m_log_callback_save;
     void *m_log_callback_arg_save;
     std::string m_output;
 
-    static void LoggerCallback(void *param, utils::Logger::LogLevelType level, const char * str, bool flush) {
+    static void LoggerCallback(void *param, Logger::LogLevelType level, const char * str, bool flush) {
         ParserTest *p = static_cast<ParserTest *> (param);
         fprintf(stdout, "%s", str);
         if (flush) {
@@ -37,13 +37,12 @@ protected:
     }
 
     void SetUp() {
-        utils::Logger::Instance()->SaveCallback(m_log_callback_save, m_log_callback_arg_save);
-        utils::Logger::Instance()->Clear();
-        utils::Logger::Instance()->SetCallback(&LoggerCallback, this);
+        Logger::Instance()->SaveCallback(m_log_callback_save, m_log_callback_arg_save);
+        Logger::Instance()->SetCallback(&LoggerCallback, this);
     }
 
     void TearDown() {
-        utils::Logger::Instance()->SetCallback(m_log_callback_save, m_log_callback_arg_save);
+        Logger::Instance()->SetCallback(m_log_callback_save, m_log_callback_arg_save);
     }
 
     TermPtr Parse(std::string str, MacroPtr buffer = nullptr, DiagPtr diag = nullptr) {

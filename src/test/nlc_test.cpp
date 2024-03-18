@@ -319,9 +319,9 @@ using namespace newlang;
 //////
 //////    newlang_zh->MakeConst();
 //////
-//////    utils::Logger::LogLevelType save =
-///// utils::Logger::Instance()->GetLogLevel(); /
-///// utils::Logger::Instance()->SetLogLevel(LOG_LEVEL_INFO);
+//////    Logger::LogLevelType save =
+///// Logger::Instance()->GetLogLevel(); /
+///// Logger::Instance()->SetLogLevel(LOG_LEVEL_INFO);
 //////
 //////    ObjPtr human = Obj::CreateDict(Obj::Arg(Obj::CreateNone(),
 /////"пол"), Obj::Arg(Obj::CreateDict(), "parent")); /    human->m_var_type
@@ -381,7 +381,7 @@ using namespace newlang;
 ///// ctx.m_info.global->size()); /    ASSERT_STREQ("Tim=human(пол=\"male\",
 ///// parent=[&Tom, &Janna,])", Tim->toString().c_str());
 //////
-//////    utils::Logger::Instance()->SetLogLevel(save);
+//////    Logger::Instance()->SetLogLevel(save);
 //////
 //////    ASSERT_TRUE((*Jake)["пол"]->op_eq(newlang_m, true));
 //////    ASSERT_TRUE((*Tim)["пол"]->op_eq(newlang_m, true));

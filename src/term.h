@@ -371,7 +371,9 @@ namespace newlang {
         }
 
         virtual ~Term() {
+#if BUILD_UNTITEST
             LOG_DUMP("DeleteVar %d \"%s\" (%p)", static_cast<int> (m_id), m_text.c_str(), (void *) this);
+#endif
             clear_();
         }
 

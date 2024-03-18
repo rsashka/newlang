@@ -99,7 +99,7 @@ VERSION_FILE_TEMP="$root/src/version.cpp.temp"
 GIT_TAG_VERSION=`git describe --abbrev=0 --tags`
 GIT_SHORT_HASH=`git rev-parse --short HEAD`
 GIT_SOURCE_ID="$GIT_TAG_VERSION-$GIT_SHORT_HASH"
-DATE_BUILD=`date +'%y.%m.%d %H:%M:%S'`
+DATE_BUILD=`date +'%Y.%m.%d %H:%M:%S'`
 
 
 if [ ! "$GIT_TAG_VERSION" = "v$VERSION_MAJOR.$VERSION_MINOR.$VERSION_PATCH" ]; then

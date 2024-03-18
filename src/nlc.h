@@ -145,13 +145,16 @@ namespace newlang {
         TermPtr m_args;
         //        std::map<Obj *, ObjPtr> m_local_vars; //< Локальные переменные и объекты, которые создаются интерпретатором
 
-        utils::Logger::LogLevelType m_loglevel_save;
-        utils::Logger::FuncCallback *m_log_callback_save;
+        Logger::LogLevelType m_loglevel_save;
+        Logger::FuncCallback *m_log_callback_save;
         void *m_log_callback_arg_save;
+        std::string m_log_file_dir;
+        FILE *m_log_file;
 
         NLC() {
             m_log_callback_save = nullptr;
             m_log_callback_arg_save = nullptr;
+            m_log_file = nullptr;
         }
 
         //        NLC(int argc, const char** argv) { // : m_ctx(RunTime::Init(argc, argv)) {
@@ -172,13 +175,19 @@ namespace newlang {
         //
 
         virtual ~NLC() {
-            utils::Logger::Instance()->SetCallback(m_log_callback_save, m_log_callback_arg_save);
+            Logger::Instance()->SetCallback(m_log_callback_save, m_log_callback_arg_save);
         }
 
-        static void LoggerCallback(void *param, utils::Logger::LogLevelType level, const char * str, bool flush) {
+        static void LoggerCallback(void *param, Logger::LogLevelType level, const char * str, bool flush) {
             NLC *nlc = static_cast<NLC *> (param);
             if (nlc) {
                 nlc->m_output += str;
+            }
+            if (nlc->m_log_file) {
+                fprintf(nlc->m_log_file, "%s", str);
+                if (flush) {
+                    fflush(nlc->m_log_file);
+                }
             }
             if (nlc && nlc->m_is_silent) {
                 return;
@@ -231,10 +240,10 @@ namespace newlang {
         //            std::string exec;
         //            std::string eval;
         //
-        //            utils::Logger::Instance()->SaveCallback(m_log_callback_save, m_log_callback_arg_save);
-        //            m_loglevel_save = utils::Logger::Instance()->GetLogLevel();
-        //            utils::Logger::Instance()->Clear();
-        //            utils::Logger::Instance()->SetCallback(&LoggerCallback, this);
+        //            Logger::Instance()->SaveCallback(m_log_callback_save, m_log_callback_arg_save);
+        //            m_loglevel_save = Logger::Instance()->GetLogLevel();
+        //            Logger::Instance()->Clear();
+        //            Logger::Instance()->SetCallback(&LoggerCallback, this);
         //
         //            auto cli
         //                    = lyra::help(is_help).description("Description!!!!!!!!!!!!!!!!!!")
@@ -259,7 +268,7 @@ namespace newlang {
         //            }
         //
         //            if (is_debug) {
-        //                utils::Logger::Instance()->SetLogLevel(LOG_LEVEL_DEBUG);
+        //                Logger::Instance()->SetLogLevel(LOG_LEVEL_DEBUG);
         //            }
         //
         //            if (is_help) {
@@ -350,9 +359,6 @@ namespace newlang {
             result += url_encode(VERSION_SOURCE_FULL_ID);
             result += "\"}\n";
 
-            result.insert(0, "Content-type: application/json\r\n\r\n");
-            result.insert(0, "Access-Control-Allow-Origin: *\r\n");
-
             return result;
         }
 
@@ -369,6 +375,7 @@ namespace newlang {
             ObjPtr main_args = Obj::CreateDict();
 
             std::string command;
+            int ret_code = 0;
 
             bool is_playground = false;
             std::string file_name;
@@ -404,9 +411,13 @@ namespace newlang {
                     }
                     out_file = argv[pos];
                     continue;
+                } else if (strcmp(argv[pos], "-l") == 0 || strcmp(argv[pos], "--log-dir") == 0) {
+                    if (++pos >= argc) {
+                        LOG_RUNTIME("Argument expected after '%s'", argv[pos - 1]);
+                    }
+                    m_log_file_dir = argv[pos];
+                    continue;
                 }
-
-
 
 
                 if (strcmp(argv[pos], "-c") == 0 || strcmp(argv[pos], "-m") == 0 || strcmp(argv[pos], "-") == 0) {
@@ -443,10 +454,41 @@ namespace newlang {
                 break;
             }
 
+
+            if (!m_log_file_dir.empty()) {
+
+                if (!std::filesystem::exists(std::filesystem::path(m_log_file_dir))) {
+                    std::filesystem::create_directories(std::filesystem::path(m_log_file_dir));
+                }
+
+                if (!std::filesystem::exists(std::filesystem::path(m_log_file_dir))) {
+                    LOG_RUNTIME("The directory '%s' for log files does not exist or an error occurred while creating it!", m_log_file_dir.c_str());
+                }
+                if (!std::filesystem::is_directory(std::filesystem::path(m_log_file_dir))) {
+                    LOG_RUNTIME("The file path '%s' is not a directory!", m_log_file_dir.c_str());
+                }
+
+                const std::time_t now = std::time(nullptr);
+                char filename[100];
+                std::strftime(filename, sizeof (filename), "%y%m%d_%H%M%S.log", std::localtime(&now));
+
+                m_log_file_dir += "/";
+                m_log_file_dir += filename;
+
+                m_log_file = fopen(std::filesystem::path(m_log_file_dir).c_str(), "w+");
+
+                if (!m_log_file) {
+                    LOG_RUNTIME("Fail create log file '%s'!", m_log_file_dir.c_str());
+                }
+            }
+
+
             RuntimePtr rt = RunTime::Init(rt_args);
             ObjPtr result;
 
             if (is_playground) {
+
+                // playground
 
                 ASSERT(file_name.empty());
 
@@ -454,31 +496,48 @@ namespace newlang {
                     command = getenv("QUERY_STRING") ? getenv("QUERY_STRING") : "";
                 }
 
-                utils::Logger::Instance()->SaveCallback(m_log_callback_save, m_log_callback_arg_save);
-                m_loglevel_save = utils::Logger::Instance()->GetLogLevel();
-                utils::Logger::Instance()->Clear();
-                utils::Logger::Instance()->SetCallback(&LoggerCallback, this);
+                Logger::Instance()->SaveCallback(m_log_callback_save, m_log_callback_arg_save);
+                m_loglevel_save = Logger::Instance()->GetLogLevel();
+                Logger::Instance()->SetCallback(&LoggerCallback, this);
                 m_is_silent = true;
+
+                std::string header = \
+                        "Content-type: application/text/plain;\n"
+                        "Access-Control-Allow-Origin: *\n\n";
+
+                std::ofstream f;
+
+                if (out_file.empty()) {
+                    std::cout << header;
+                } else {
+                    f.open(out_file);
+                    if (f.fail()) {
+                        LOG_RUNTIME("Fail write to file '%s'", out_file.c_str());
+                    }
+                    f << header;
+                }
 
                 try {
                     result = rt->Run(url_decode(command), main_args.get());
+                    ret_code = 0;
                 } catch (IntAny &any) {
                     result = any.m_obj;
+                    ret_code = 2;
                 } catch (Error &ret) {
                     result = ret.m_obj;
+                    ret_code = 1;
                 }
                 ASSERT(result);
 
                 m_output += "\n";
                 m_output += result->toString();
 
-                std::string answer = AnswerCGI(command, m_output);
+                m_output = AnswerCGI(command, m_output);
 
                 if (out_file.empty()) {
-                    std::cout << answer;
+                    std::cout << m_output;
                 } else {
-                    std::ofstream f(out_file);
-                    f << answer;
+                    f << m_output;
                     if (f.fail()) {
                         LOG_RUNTIME("Fail write to file '%s'", out_file.c_str());
                     }
@@ -492,9 +551,17 @@ namespace newlang {
                 ASSERT(file_name.empty());
                 result = rt->Run(command, main_args.get());
             } else {
-                return RunREPL(rt, main_args);
+                ret_code = RunREPL(rt, main_args);
             }
-            return 0;
+
+            
+            if (m_log_file) {
+                fwrite(m_output.c_str(), m_output.size(), 1, m_log_file);
+                fclose(m_log_file);
+                m_log_file = nullptr;
+            }
+
+            return ret_code;
         }
 
         int RunREPL(RuntimePtr rt, ObjPtr main_args) {
@@ -611,10 +678,10 @@ namespace newlang {
         //
         //            } catch (Return &err) {
         //                // Вывод информации об ошибке синтаксиса при парсинге без информации о точке вызова макроса LOG_INFO
-        //                utils::Logger::LogLevelType save_level = utils::Logger::Instance()->GetLogLevel();
-        //                utils::Logger::Instance()->SetLogLevel(LOG_LEVEL_INFO);
+        //                Logger::LogLevelType save_level = Logger::Instance()->GetLogLevel();
+        //                Logger::Instance()->SetLogLevel(LOG_LEVEL_INFO);
         //                LOG_INFO("%s", err.what());
-        //                utils::Logger::Instance()->SetLogLevel(save_level);
+        //                Logger::Instance()->SetLogLevel(save_level);
         //                return 1;
         //            } catch (...) {
         //                return 1;

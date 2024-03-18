@@ -1,11 +1,16 @@
-// Использование файла только в UNITTEST конфигурации
-#ifdef UNITTEST
+#include "pch.h"
 
-#include <utils/unittest.h>
-#include <utils/logger.h>
+#ifdef BUILD_UNITTEST
+
+#include <warning_push.h>
+#include <gtest/gtest.h>
+#include <warning_pop.h>
+
+using namespace newlang;
 
 TEST(Logger, Logger) {
 
+    LOG_DUMP("LOG_DEBUG");
 
     LOG_DEBUG("LOG_DEBUG");
     LOG_DEBUG("LOG_DEBUG %s", "sssssssssss");
@@ -18,7 +23,7 @@ TEST(Logger, Logger) {
 
 }
 
-TEST(HexToByte, HexToByte) {
+TEST(Logger, HexToByte) {
     EXPECT_EQ(HexToByte('0'), 0);
     EXPECT_EQ(HexToByte('1'), 1);
     EXPECT_EQ(HexToByte('2'), 2);
@@ -44,14 +49,12 @@ TEST(HexToByte, HexToByte) {
     EXPECT_EQ(HexToByte('e'), 0xE);
     EXPECT_EQ(HexToByte('f'), 0xF);
 
-#ifdef DEBUG
     EXPECT_THROW(HexToByte('w'), std::invalid_argument);
     EXPECT_THROW(HexToByte('+'), std::invalid_argument);
     EXPECT_THROW(HexToByte('S'), std::invalid_argument);
-#endif
 }
 
-TEST(HexToBin, HexToBin) {
+TEST(Logger, HexToBin) {
     std::array<uint8_t, 100> buffer;
 
     EXPECT_EQ(0, HexToBin("", buffer.data(), buffer.size()));
@@ -86,51 +89,44 @@ TEST(HexToBin, HexToBin) {
     EXPECT_FALSE(HexToBinEq("0123456789ABCDEFabcdefFF", buffer.data(), 11));
 
 
-#ifdef DEBUG
     EXPECT_THROW(HexToBin(nullptr, buffer.data(), buffer.size()), std::invalid_argument);
     EXPECT_THROW(HexToBin(nullptr, nullptr, buffer.size()), std::invalid_argument);
     EXPECT_THROW(HexToBin("", nullptr, buffer.size()), std::invalid_argument);
 
     uint8_t buf[17] = {1, 2, 3, 4, 5, 6, 7, 8, 9, 0xA, 0xB, 0xC, 0xD, 0xE, 0xF, 0xF, 0};
     EXPECT_STREQ(BinToHex(buf, sizeof (buf)).c_str(), "0102030405060708090A0B0C0D0E0F0F00");
-#endif
 }
 
 
 std::string test_log_out;
 
-void test_log_callback(void * param, utils::Logger::LogLevelType level, const char * str, bool flush) {
-    _UNUSED(param);
-    _UNUSED(level);
-    _UNUSED(flush);
+void test_log_callback(void *, Logger::LogLevelType, const char * str, bool) {
     test_log_out.append(str);
 }
 
 TEST(Logger, Duplicate) {
 
-    utils::Logger::Instance()->SetLogLevel(LOG_LEVEL_DEBUG);
-
-    utils::Logger::Instance()->Clear();
-    utils::Logger::Instance()->SetCallback(&test_log_callback, nullptr);
+    Logger::Instance()->SetLogLevel(LOG_LEVEL_DEBUG);
+    Logger::Instance()->SetCallback(&test_log_callback, nullptr);
 
     LOG_DEBUG("Test 1");
-    EXPECT_STREQ(test_log_out.c_str(), "D:Test 1 (logger_test.cpp:116)\n");
+    EXPECT_TRUE(test_log_out.find("D:Test 1 (logger_test.cpp:") == 0);
     test_log_out.clear();
     LOG_DEBUG("Test");
-    EXPECT_STREQ(test_log_out.c_str(), "D:Test (logger_test.cpp:119)\n");
+    EXPECT_TRUE(test_log_out.find("D:Test (logger_test.cpp:") == 0);
     test_log_out.clear();
 
-    utils::Logger::Instance()->SetLogLevel(LOG_LEVEL_NORMAL);
+    Logger::Instance()->SetLogLevel(LOG_LEVEL_NORMAL);
     LOG_INFO("123456789 123456789 123456789 123456789 123456789 123456789 123456789 123456789 123456789 123456789 ");
     EXPECT_STREQ(test_log_out.c_str(), "123456789 123456789 123456789 123456789 123456789 123456789 123456789 123456789 123456789 123456789 \n");
     test_log_out.clear();
 
-    utils::Logger::Instance()->SetLogLevel(LOG_LEVEL_MAX);
+    Logger::Instance()->SetLogLevel(LOG_LEVEL_MAX);
     LOG_INFO("123456789 123456789 123456789 123456789 123456789 123456789 123456789 123456789 123456789 123456789 ");
-    EXPECT_STREQ(test_log_out.c_str(), "123456789 123456789 123456789 123456789 123456789 123456789 123456789 123456789 123456789 123456789  (logger_test.cpp:129)\n");
+    EXPECT_TRUE(test_log_out.find("123456789 123456789 123456789 123456789 123456789 123456789 123456789 123456789 123456789 123456789  (logger_test.cpp:") == 0);
     test_log_out.clear();
 
-    utils::Logger::Instance()->SetCallback(nullptr, nullptr);
+    Logger::Instance()->SetCallback(nullptr, nullptr);
 
 }
 

@@ -152,11 +152,11 @@ TEST(Example, DISABLED_SpeedNewLang) {
     ASSERT_TRUE(test);
     ASSERT_STREQ("CB DEF\n", test->GetValueAsString().c_str());
 
-    utils::Logger::LogLevelType save = utils::Logger::Instance()->SetLogLevel(LOG_LEVEL_INFO);
+    Logger::LogLevelType save = Logger::Instance()->SetLogLevel(LOG_LEVEL_INFO);
     std::chrono::steady_clock::time_point begin = std::chrono::steady_clock::now();
     ObjPtr result = rt->RunFile("../examples/speed_test.src");
     std::chrono::steady_clock::time_point end = std::chrono::steady_clock::now();
-    utils::Logger::Instance()->SetLogLevel(save);
+    Logger::Instance()->SetLogLevel(save);
 
 
 
@@ -287,11 +287,11 @@ TEST(Example, DISABLED_Rational) {
     //
     //
     //
-    //    utils::Logger::LogLevelType save = utils::Logger::Instance()->SetLogLevel(LOG_LEVEL_INFO);
+    //    Logger::LogLevelType save = Logger::Instance()->SetLogLevel(LOG_LEVEL_INFO);
     //    std::chrono::steady_clock::time_point begin = std::chrono::steady_clock::now();
     //    ObjPtr result = rt->RunFile("../examples/rational.src");
     //    std::chrono::steady_clock::time_point end = std::chrono::steady_clock::now();
-    //    utils::Logger::Instance()->SetLogLevel(save);
+    //    Logger::Instance()->SetLogLevel(save);
     //
     //
     //
@@ -304,11 +304,11 @@ TEST(Example, DISABLED_Rational) {
     //    int ms = (int) std::chrono::duration_cast<std::chrono::microseconds>(end - begin).count() % 1000000;
     //    LOG_INFO("Test rational complete at %d.%d sec", sec, ms);
     //
-    //    save = utils::Logger::Instance()->SetLogLevel(LOG_LEVEL_INFO);
+    //    save = Logger::Instance()->SetLogLevel(LOG_LEVEL_INFO);
     //    begin = std::chrono::steady_clock::now();
     //    result = rt->RunFile("\\\\('../examples/rational.src')");
     //    end = std::chrono::steady_clock::now();
-    //    utils::Logger::Instance()->SetLogLevel(save);
+    //    Logger::Instance()->SetLogLevel(save);
     //
     //
     //    ASSERT_TRUE(result);
@@ -392,11 +392,11 @@ TEST(Example, Tensor) {
     setvbuf(stderr, nullptr, _IONBF, 0);
 
 
-    utils::Logger::LogLevelType save = utils::Logger::Instance()->SetLogLevel(LOG_LEVEL_INFO);
+    Logger::LogLevelType save = Logger::Instance()->SetLogLevel(LOG_LEVEL_INFO);
     std::chrono::steady_clock::time_point begin = std::chrono::steady_clock::now();
     ObjPtr result = rt->RunFile("../examples/tensor.src");
     std::chrono::steady_clock::time_point end = std::chrono::steady_clock::now();
-    utils::Logger::Instance()->SetLogLevel(save);
+    Logger::Instance()->SetLogLevel(save);
 
 
     ASSERT_TRUE(result);
@@ -404,11 +404,11 @@ TEST(Example, Tensor) {
     ASSERT_TRUE(result->GetValueAsInteger() > 300) << result->toString();
 
 
-    //    save = utils::Logger::Instance()->SetLogLevel(LOG_LEVEL_INFO);
+    //    save = Logger::Instance()->SetLogLevel(LOG_LEVEL_INFO);
     //    begin = std::chrono::steady_clock::now();
     //    result = rt->RunFile("\\\\('../examples/tensor.src')");
     //    end = std::chrono::steady_clock::now();
-    //    utils::Logger::Instance()->SetLogLevel(save);
+    //    Logger::Instance()->SetLogLevel(save);
     //
     //    ASSERT_TRUE(result);
     //    ASSERT_TRUE(result->is_string_type()) << result->toString();
@@ -449,11 +449,11 @@ TEST(Example, Hello) {
     setvbuf(stderr, nullptr, _IONBF, 0);
 
 
-    utils::Logger::LogLevelType save = utils::Logger::Instance()->SetLogLevel(LOG_LEVEL_INFO);
+    Logger::LogLevelType save = Logger::Instance()->SetLogLevel(LOG_LEVEL_INFO);
     std::chrono::steady_clock::time_point begin = std::chrono::steady_clock::now();
     ObjPtr result = rt->RunFile("../examples/hello.src");
     std::chrono::steady_clock::time_point end = std::chrono::steady_clock::now();
-    utils::Logger::Instance()->SetLogLevel(save);
+    Logger::Instance()->SetLogLevel(save);
 
 
     ASSERT_TRUE(result);
@@ -461,11 +461,11 @@ TEST(Example, Hello) {
     ASSERT_STREQ("14", result->GetValueAsString().c_str());
 
 
-    //    save = utils::Logger::Instance()->SetLogLevel(LOG_LEVEL_INFO);
+    //    save = Logger::Instance()->SetLogLevel(LOG_LEVEL_INFO);
     //    begin = std::chrono::steady_clock::now();
     //    ASSERT_NO_THROW(result = rt->Run("\\\\('../examples/hello.src')"));
     //    end = std::chrono::steady_clock::now();
-    //    utils::Logger::Instance()->SetLogLevel(save);
+    //    Logger::Instance()->SetLogLevel(save);
     //
     //
     //    ASSERT_TRUE(result);

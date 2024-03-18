@@ -37,15 +37,14 @@ OBJECTDIR=${CND_BUILDDIR}/${CND_CONF}/${CND_PLATFORM}
 OBJECTFILES= \
 	${OBJECTDIR}/_ext/b0ad39d/format.o \
 	${OBJECTDIR}/_ext/1e501df/gtest-all.o \
-	${OBJECTDIR}/_ext/e16507f5/logger.o \
 	${OBJECTDIR}/analysis.o \
 	${OBJECTDIR}/builtin.o \
 	${OBJECTDIR}/compiler.o \
 	${OBJECTDIR}/context.o \
 	${OBJECTDIR}/diag.o \
-	${OBJECTDIR}/dsl.o \
 	${OBJECTDIR}/lexer.o \
 	${OBJECTDIR}/lexer.yy.o \
+	${OBJECTDIR}/logger.o \
 	${OBJECTDIR}/macro.o \
 	${OBJECTDIR}/module.o \
 	${OBJECTDIR}/nlc.o \
@@ -63,6 +62,7 @@ OBJECTFILES= \
 	${OBJECTDIR}/test/diag_test.o \
 	${OBJECTDIR}/test/example_test.o \
 	${OBJECTDIR}/test/lexer_test.o \
+	${OBJECTDIR}/test/logger_test.o \
 	${OBJECTDIR}/test/macro_test.o \
 	${OBJECTDIR}/test/module_test.o \
 	${OBJECTDIR}/test/nlc_test.o \
@@ -112,11 +112,6 @@ ${OBJECTDIR}/_ext/1e501df/gtest-all.o: ../contrib/googletest/googletest/src/gtes
 	${RM} "$@.d"
 	$(COMPILE.cc) -g -DDEBUG -DLOG_LEVEL_NORMAL=LOG_LEVEL_DEBUG -DPDC_WIDE -DUNITTEST -I.. -I../contrib/googletest/googletest -I../contrib/googletest/googletest/include -I../contrib/Tensorflow/bazel-bin/tensorflow/include -std=c++14 -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/_ext/1e501df/gtest-all.o ../contrib/googletest/googletest/src/gtest-all.cc
 
-${OBJECTDIR}/_ext/e16507f5/logger.o: ../contrib/logger/logger.cpp
-	${MKDIR} -p ${OBJECTDIR}/_ext/e16507f5
-	${RM} "$@.d"
-	$(COMPILE.cc) -g -DDEBUG -DLOG_LEVEL_NORMAL=LOG_LEVEL_DEBUG -DPDC_WIDE -DUNITTEST -I.. -I../contrib/googletest/googletest -I../contrib/googletest/googletest/include -I../contrib/Tensorflow/bazel-bin/tensorflow/include -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/_ext/e16507f5/logger.o ../contrib/logger/logger.cpp
-
 ${OBJECTDIR}/analysis.o: analysis.cpp
 	${MKDIR} -p ${OBJECTDIR}
 	${RM} "$@.d"
@@ -142,11 +137,6 @@ ${OBJECTDIR}/diag.o: diag.cpp
 	${RM} "$@.d"
 	$(COMPILE.cc) -g -DDEBUG -DLOG_LEVEL_NORMAL=LOG_LEVEL_DEBUG -DPDC_WIDE -DUNITTEST -I.. -I../contrib/googletest/googletest -I../contrib/googletest/googletest/include -I../contrib/Tensorflow/bazel-bin/tensorflow/include -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/diag.o diag.cpp
 
-${OBJECTDIR}/dsl.o: dsl.cpp
-	${MKDIR} -p ${OBJECTDIR}
-	${RM} "$@.d"
-	$(COMPILE.cc) -g -DDEBUG -DLOG_LEVEL_NORMAL=LOG_LEVEL_DEBUG -DPDC_WIDE -DUNITTEST -I.. -I../contrib/googletest/googletest -I../contrib/googletest/googletest/include -I../contrib/Tensorflow/bazel-bin/tensorflow/include -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/dsl.o dsl.cpp
-
 ${OBJECTDIR}/lexer.o: lexer.cpp parser.yy.h parser.yy.cpp location.hh
 	${MKDIR} -p ${OBJECTDIR}
 	${RM} "$@.d"
@@ -165,6 +155,11 @@ ${OBJECTDIR}/lexer.yy.o: lexer.yy.cpp parser.y parser.yy.h parser.yy.cpp locatio
 	${MKDIR} -p ${OBJECTDIR}
 	${RM} "$@.d"
 	$(COMPILE.cc) -g -DDEBUG -DLOG_LEVEL_NORMAL=LOG_LEVEL_DEBUG -DPDC_WIDE -DUNITTEST -I.. -I../contrib/googletest/googletest -I../contrib/googletest/googletest/include -I../contrib/Tensorflow/bazel-bin/tensorflow/include -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/lexer.yy.o lexer.yy.cpp
+
+${OBJECTDIR}/logger.o: logger.cpp
+	${MKDIR} -p ${OBJECTDIR}
+	${RM} "$@.d"
+	$(COMPILE.cc) -g -DDEBUG -DLOG_LEVEL_NORMAL=LOG_LEVEL_DEBUG -DPDC_WIDE -DUNITTEST -I.. -I../contrib/googletest/googletest -I../contrib/googletest/googletest/include -I../contrib/Tensorflow/bazel-bin/tensorflow/include -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/logger.o logger.cpp
 
 ${OBJECTDIR}/macro.o: macro.cpp
 	${MKDIR} -p ${OBJECTDIR}
@@ -263,6 +258,11 @@ ${OBJECTDIR}/test/lexer_test.o: test/lexer_test.cpp
 	${MKDIR} -p ${OBJECTDIR}/test
 	${RM} "$@.d"
 	$(COMPILE.cc) -g -DDEBUG -DLOG_LEVEL_NORMAL=LOG_LEVEL_DEBUG -DPDC_WIDE -DUNITTEST -I.. -I../contrib/googletest/googletest -I../contrib/googletest/googletest/include -I../contrib/Tensorflow/bazel-bin/tensorflow/include -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/test/lexer_test.o test/lexer_test.cpp
+
+${OBJECTDIR}/test/logger_test.o: test/logger_test.cpp
+	${MKDIR} -p ${OBJECTDIR}/test
+	${RM} "$@.d"
+	$(COMPILE.cc) -g -DDEBUG -DLOG_LEVEL_NORMAL=LOG_LEVEL_DEBUG -DPDC_WIDE -DUNITTEST -I.. -I../contrib/googletest/googletest -I../contrib/googletest/googletest/include -I../contrib/Tensorflow/bazel-bin/tensorflow/include -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/test/logger_test.o test/logger_test.cpp
 
 ${OBJECTDIR}/test/macro_test.o: test/macro_test.cpp
 	${MKDIR} -p ${OBJECTDIR}/test

@@ -7,6 +7,8 @@
 #include <stdio.h>
 #include <string.h>
 #include <limits.h>
+#include <iostream>
+#include <string>
 
 #ifndef _MSC_VER
 #include <stdint.h>
@@ -18,28 +20,22 @@
 #define LOG_CALLSTACK(EXCEPT_TYPE, ...)  LOG_PRINT_CALLSTACK(); LOG_EXCEPT(EXCEPT_TYPE, ##__VA_ARGS__)
 #define LOG_COREDUMP(...)  LOG_CALLSTACK(std::runtime_error, ##__VA_ARGS__)
 
+#define LOG_RUNTIME(format, ...)  LOG_EXCEPT(newlang::Error, format, ##__VA_ARGS__)
+#define LOG_CUSTOM_ERROR(error, format, ...)  LOG_EXCEPT_LEVEL(error, LOG_LEVEL_ERROR, "", format, ##__VA_ARGS__ )
+
+
+
 
 #ifdef BUILD_UNITTEST
+// Определения только для юнит-тестов
 #define LOG_TEST(...)   LOG_MAKE(LOG_LEVEL_DEBUG, "T:", ##__VA_ARGS__)
+#define SCOPE(scope) public
 #else
+// Исключаются при обычной сборке
 #define LOG_TEST(...)
+#define SCOPE(scope) scope
 #endif
 
-
-
-#ifndef EXTERN_C
-#ifdef __cplusplus
-#define EXTERN_C_BEGIN \
-               extern "C" {
-#define EXTERN_C_END \
-               }
-#define EXTERN_C extern "C"
-#else
-#define EXTERN_C_BEGIN
-#define EXTERN_C_END
-#define EXTERN_C
-#endif
-#endif
 
 
 #ifndef TO_STR
@@ -54,6 +50,8 @@
 #else//__GNUC__ - may need other defines for different compilers
 #define WARNING(exp) ("WARNING: " exp)
 #endif
+
+#define STATIC_ASSERT(expr) static_assert((expr), #expr)
 
 #ifndef ASSERT
 
@@ -92,53 +90,23 @@
 #endif
 
 
-#ifndef _UNUSED
-#define _UNUSED(v) ((void)(v))
-#endif
-
-#ifndef SCOPE
-#ifdef BUILD_UNITTEST
-#define SCOPE(scope) public
-#else
-#define SCOPE(scope) scope
-#endif
-#endif
-
-
-#if defined(__cplusplus)
-
-#include <iostream>
-#include <string>
-
-#include "mcucpp/static_assert.h"
 std::string BinToHex(const uint8_t * buffer, const size_t size);
 std::string HexStrToBinStr(std::string & hex_str);
-#endif
 
-EXTERN_C uint8_t HexToByte(const char c);
-EXTERN_C size_t HexToBin(const char * str, uint8_t * buffer, const size_t size);
-EXTERN_C int HexToBinEq(const char * str, const uint8_t * buffer, const size_t size);
-EXTERN_C size_t BinToHexBuffer(const uint8_t * buffer, const size_t size, char * str, const size_t str_size);
+uint8_t HexToByte(const char c);
+size_t HexToBin(const char * str, uint8_t * buffer, const size_t size);
+int HexToBinEq(const char * str, const uint8_t * buffer, const size_t size);
+size_t BinToHexBuffer(const uint8_t * buffer, const size_t size, char * str, const size_t str_size);
 
 
-#ifndef LOG_PRINTF_FUNCTION
-#define LOG_PRINTF_FUNCTION log_printf
-
-#ifdef __GNUC__
-EXTERN_C const char * log_printf(uint8_t level, char const *prefix, char const *file, int line, char const *format, ...)
-__attribute__ ((format(printf, 5, 6)));
-#else
-EXTERN_C const char * log_printf(uint8_t level, char const *prefix, char const *file, int line, char const *format, ...);
-#endif
-
-#endif
-
-#if defined(USE_HAL_DRIVER) || defined(_WIN32)
+#if defined(_WIN32)
 #define LOG_PRINT_CALLSTACK()
 #else
-EXTERN_C void log_print_callstack();
-#define LOG_PRINT_CALLSTACK() if(utils::Logger::Instance()->GetLogLevel()>=LOG_LEVEL_DEBUG && utils::Logger::Instance()->GetPrintCallstack()){ log_print_callstack(); }
+void log_print_callstack();
+#define LOG_PRINT_CALLSTACK() if(newlang::Logger::Instance()->GetLogLevel()>=LOG_LEVEL_DEBUG && newlang::Logger::Instance()->GetPrintCallstack()){ log_print_callstack(); }
 #endif
+
+
 
 #define LOG_LEVEL_DEFAULT   0
 
@@ -152,17 +120,13 @@ EXTERN_C void log_print_callstack();
 
 /**
  * Максимально возможный уровень логирования для конкретно сборки
- * Все сообщения с большим уровнем удаляются на этапе компиляции исходников
+ * Все сообщения с бОльшим уровнем удаляются на этапе компиляции исходников
  */
 #ifndef LOG_LEVEL_MAX
 #ifdef NDEBUG
 #define LOG_LEVEL_MAX LOG_LEVEL_INFO
 #else
-#ifdef USE_HAL_DRIVER
-#define LOG_LEVEL_MAX LOG_LEVEL_DEBUG
-#else
 #define LOG_LEVEL_MAX LOG_LEVEL_DUMP
-#endif
 #endif
 #endif
 
@@ -177,6 +141,8 @@ EXTERN_C void log_print_callstack();
 #define LOG_LEVEL_NORMAL LOG_LEVEL_INFO
 #endif
 #endif
+
+#define LOG_PRINTF_FUNCTION  newlang::Logger::log_printf
 
 #ifndef NDEBUG
 #define LOG_MAKE(level, prefix, ...) LOG_PRINTF_FUNCTION(level, prefix, __FILE__, __LINE__, ##__VA_ARGS__)
@@ -215,9 +181,8 @@ EXTERN_C void log_print_callstack();
 #error Define LOG_LEVEL_MAX value LOG_INFO or higher
 #endif
 
-#if defined(__cplusplus)
 
-namespace utils {
+namespace newlang {
 
     class Logger {
     public:
@@ -252,9 +217,7 @@ namespace utils {
             return m_print_callstack;
         }
 
-        static void PrintfCallback(void *param, LogLevelType level, const char * str, bool flush) {
-            _UNUSED(param);
-            _UNUSED(level);
+        static void PrintfCallback(void *, LogLevelType, const char * str, bool flush) {
             fprintf(stdout, "%s", str);
             if (flush) {
                 fflush(stdout);
@@ -271,12 +234,14 @@ namespace utils {
             param = m_func_param;
         }
 
-        void Clear();
+        static std::string log_printf(uint8_t level, char const *prefix, char const *file, int line, char const *format, ...)
+#ifdef __GNUC__
+        __attribute__ ((format(printf, 5, 6)))
+#endif
+        ;
+
         const char * AddString(LogLevelType level, char const *string, bool flush);
         static const char * GetLogLevelDesc(LogLevelType level);
-
-        uint16_t GetDump(uint8_t *data, uint16_t max_size);
-        uint16_t GetDumpSize();
 
         static inline Logger * Instance() {
             // Шаблон с определением static Logger m_instance; собирается с warning в MinGW
@@ -285,17 +250,11 @@ namespace utils {
             }
             return m_instance;
         }
-    private:
+        //    private:
 
         Logger() {
             m_level = LOG_LEVEL_NORMAL;
-#ifdef USE_HAL_DRIVER
-            STATIC_ASSERT(LOG_LEVEL_MAX < LOG_LEVEL_DUMP);
-            STATIC_ASSERT(LOG_LEVEL_NORMAL <= LOG_LEVEL_DEBUG);
-            m_func = nullptr;
-#else
             m_func = &PrintfCallback;
-#endif
             m_func_param = nullptr;
             m_print_callstack = false;
         }
@@ -311,7 +270,6 @@ namespace utils {
         bool m_print_callstack;
     };
 }
-#endif
 
 #endif //UTILS_LOGGER_H_
 

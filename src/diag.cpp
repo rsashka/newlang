@@ -212,11 +212,11 @@ bool Diag::Emit(const char *name, const TermPtr term) {
 //    std::string empty;
 //    std::string str = newlang::ParserMessage(term->m_source ? *term->m_source : empty, term->m_line, term->m_col, "%s", message);
 //
-//    utils::Logger::LogLevelType save = utils::Logger::Instance()->GetLogLevel();
-//    utils::Logger::Instance()->SetLogLevel(LOG_LEVEL_INFO);
+//    Logger::LogLevelType save = Logger::Instance()->GetLogLevel();
+//    Logger::Instance()->SetLogLevel(LOG_LEVEL_INFO);
 //    if() {
 //    }
 //    LOG_INFO("%s", str.c_str());
-//    utils::Logger::Instance()->SetLogLevel(save);
+//    Logger::Instance()->SetLogLevel(save);
 //}
 

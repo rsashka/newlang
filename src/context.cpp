@@ -1,4 +1,3 @@
-#include "contrib/logger/logger.h"
 #include "pch.h"
 
 #include <context.h>
@@ -8,8 +7,6 @@
 #include <filesystem>
 #include <stdbool.h>
 #include <macro.h>
-
-#include "dsl.cpp"
 
 using namespace newlang;
 
@@ -1689,8 +1686,8 @@ ObjPtr Context::CallNative_(Context *runner, Obj &obj, Obj * args) {
     //            m_func_mangle_name.empty() ? m_prototype->m_text.c_str() : m_func_mangle_name.c_str(),
     //            m_module_name.empty() ? "none" : m_module_name.c_str());
 
-//    bool is_ellipsis = (obj.m_prototype->size() && (*obj.m_prototype)[obj.m_prototype->size() - 1].second->getTermID() == TermID::ELLIPSIS);
-//    size_t check_count = is_ellipsis ? obj.m_prototype->size() - 1 : obj.m_prototype->size();
+    //    bool is_ellipsis = (obj.m_prototype->size() && (*obj.m_prototype)[obj.m_prototype->size() - 1].second->getTermID() == TermID::ELLIPSIS);
+    //    size_t check_count = is_ellipsis ? obj.m_prototype->size() - 1 : obj.m_prototype->size();
 
     // Пропустить нулевой аргумент для нативных функций
     for (int i = 0; args && i < args->size(); i++) {
@@ -1705,11 +1702,11 @@ ObjPtr Context::CallNative_(Context *runner, Obj &obj, Obj * args) {
         ObjType type = (*args)[i].second->getTypeAsLimit();
         switch (type) {
             case ObjType::Bool:
-//                if (pind < check_count) {
-//                    NL_CHECK(!isDefaultType((*obj.m_prototype)[pind].second->m_type), "Undefined type arg '%s'", (*obj.m_prototype)[pind].second->toString().c_str());
-//                    NL_CHECK(canCast(type, typeFromString((*obj.m_prototype)[pind].second->m_type, GetRT_(runner))), "Fail cast from '%s' to '%s'",
-//                            (*obj.m_prototype)[pind].second->m_type->asTypeString().c_str(), newlang::toString(type));
-//                }
+                //                if (pind < check_count) {
+                //                    NL_CHECK(!isDefaultType((*obj.m_prototype)[pind].second->m_type), "Undefined type arg '%s'", (*obj.m_prototype)[pind].second->toString().c_str());
+                //                    NL_CHECK(canCast(type, typeFromString((*obj.m_prototype)[pind].second->m_type, GetRT_(runner))), "Fail cast from '%s' to '%s'",
+                //                            (*obj.m_prototype)[pind].second->m_type->asTypeString().c_str(), newlang::toString(type));
+                //                }
                 m_args_type.push_back(RunTime::m_ffi_type_uint8);
                 temp.boolean = (*args)[i].second->GetValueAsBoolean();
                 m_args_val.push_back(temp);
@@ -1718,11 +1715,11 @@ ObjPtr Context::CallNative_(Context *runner, Obj &obj, Obj * args) {
             case ObjType::Int8:
             case ObjType::Char:
             case ObjType::Byte:
-//                if (pind < check_count) {
-//                    NL_CHECK(!isDefaultType((*obj.m_prototype)[pind].second->m_type), "Undefined type arg '%s'", (*obj.m_prototype)[pind].second->toString().c_str());
-//                    NL_CHECK(canCast(type, typeFromString((*obj.m_prototype)[pind].second->m_type, GetRT_(runner))), "Fail cast from '%s' to '%s'",
-//                            (*obj.m_prototype)[pind].second->m_type->asTypeString().c_str(), newlang::toString(type));
-//                }
+                //                if (pind < check_count) {
+                //                    NL_CHECK(!isDefaultType((*obj.m_prototype)[pind].second->m_type), "Undefined type arg '%s'", (*obj.m_prototype)[pind].second->toString().c_str());
+                //                    NL_CHECK(canCast(type, typeFromString((*obj.m_prototype)[pind].second->m_type, GetRT_(runner))), "Fail cast from '%s' to '%s'",
+                //                            (*obj.m_prototype)[pind].second->m_type->asTypeString().c_str(), newlang::toString(type));
+                //                }
                 m_args_type.push_back(RunTime::m_ffi_type_sint8);
                 temp.integer = (*args)[i].second->GetValueAsInteger();
                 m_args_val.push_back(temp);
@@ -1730,11 +1727,11 @@ ObjPtr Context::CallNative_(Context *runner, Obj &obj, Obj * args) {
 
             case ObjType::Int16:
             case ObjType::Word:
-//                if (pind < check_count) {
-//                    NL_CHECK(!isDefaultType((*obj.m_prototype)[pind].second->m_type), "Undefined type arg '%s'", (*obj.m_prototype)[pind].second->toString().c_str());
-//                    NL_CHECK(canCast(type, typeFromString((*obj.m_prototype)[pind].second->m_type, GetRT_(runner))), "Fail cast from '%s' to '%s'",
-//                            (*obj.m_prototype)[pind].second->m_type->m_text.c_str(), newlang::toString(type));
-//                }
+                //                if (pind < check_count) {
+                //                    NL_CHECK(!isDefaultType((*obj.m_prototype)[pind].second->m_type), "Undefined type arg '%s'", (*obj.m_prototype)[pind].second->toString().c_str());
+                //                    NL_CHECK(canCast(type, typeFromString((*obj.m_prototype)[pind].second->m_type, GetRT_(runner))), "Fail cast from '%s' to '%s'",
+                //                            (*obj.m_prototype)[pind].second->m_type->m_text.c_str(), newlang::toString(type));
+                //                }
                 m_args_type.push_back(RunTime::m_ffi_type_sint16);
                 temp.integer = (*args)[i].second->GetValueAsInteger();
                 m_args_val.push_back(temp);
@@ -1742,11 +1739,11 @@ ObjPtr Context::CallNative_(Context *runner, Obj &obj, Obj * args) {
 
             case ObjType::Int32:
             case ObjType::DWord:
-//                if (pind < check_count) {
-//                    NL_CHECK(!isDefaultType((*obj.m_prototype)[pind].second->m_type), "Undefined type arg '%s'", (*obj.m_prototype)[pind].second->toString().c_str());
-//                    NL_CHECK(canCast(type, typeFromString((*obj.m_prototype)[pind].second->m_type, GetRT_(runner))), "Fail cast from '%s' to '%s'",
-//                            (*obj.m_prototype)[pind].second->m_type->m_text.c_str(), newlang::toString(type));
-//                }
+                //                if (pind < check_count) {
+                //                    NL_CHECK(!isDefaultType((*obj.m_prototype)[pind].second->m_type), "Undefined type arg '%s'", (*obj.m_prototype)[pind].second->toString().c_str());
+                //                    NL_CHECK(canCast(type, typeFromString((*obj.m_prototype)[pind].second->m_type, GetRT_(runner))), "Fail cast from '%s' to '%s'",
+                //                            (*obj.m_prototype)[pind].second->m_type->m_text.c_str(), newlang::toString(type));
+                //                }
                 m_args_type.push_back(RunTime::m_ffi_type_sint32);
                 temp.integer = (*args)[i].second->GetValueAsInteger();
                 m_args_val.push_back(temp);
@@ -1754,11 +1751,11 @@ ObjPtr Context::CallNative_(Context *runner, Obj &obj, Obj * args) {
 
             case ObjType::Int64:
             case ObjType::DWord64:
-//                if (pind < check_count) {
-//                    NL_CHECK(!isDefaultType((*obj.m_prototype)[pind].second->m_type), "Undefined type arg '%s'", (*obj.m_prototype)[pind].second->toString().c_str());
-//                    NL_CHECK(canCast(type, typeFromString((*obj.m_prototype)[pind].second->m_type, GetRT_(runner))), "Fail cast from '%s' to '%s'",
-//                            (*obj.m_prototype)[pind].second->m_type->m_text.c_str(), newlang::toString(type));
-//                }
+                //                if (pind < check_count) {
+                //                    NL_CHECK(!isDefaultType((*obj.m_prototype)[pind].second->m_type), "Undefined type arg '%s'", (*obj.m_prototype)[pind].second->toString().c_str());
+                //                    NL_CHECK(canCast(type, typeFromString((*obj.m_prototype)[pind].second->m_type, GetRT_(runner))), "Fail cast from '%s' to '%s'",
+                //                            (*obj.m_prototype)[pind].second->m_type->m_text.c_str(), newlang::toString(type));
+                //                }
                 m_args_type.push_back(RunTime::m_ffi_type_sint64);
                 temp.integer = (*args)[i].second->GetValueAsInteger();
                 m_args_val.push_back(temp);
@@ -1766,11 +1763,11 @@ ObjPtr Context::CallNative_(Context *runner, Obj &obj, Obj * args) {
 
             case ObjType::Float32:
             case ObjType::Single:
-//                if (pind < check_count) {
-//                    NL_CHECK(!isDefaultType((*obj.m_prototype)[pind].second->m_type), "Undefined type arg '%s'", (*obj.m_prototype)[pind].second->toString().c_str());
-//                    NL_CHECK(canCast(type, typeFromString((*obj.m_prototype)[pind].second->m_type, GetRT_(runner))), "Fail cast from '%s' to '%s'",
-//                            (*obj.m_prototype)[pind].second->m_type->m_text.c_str(), newlang::toString(type));
-//                }
+                //                if (pind < check_count) {
+                //                    NL_CHECK(!isDefaultType((*obj.m_prototype)[pind].second->m_type), "Undefined type arg '%s'", (*obj.m_prototype)[pind].second->toString().c_str());
+                //                    NL_CHECK(canCast(type, typeFromString((*obj.m_prototype)[pind].second->m_type, GetRT_(runner))), "Fail cast from '%s' to '%s'",
+                //                            (*obj.m_prototype)[pind].second->m_type->m_text.c_str(), newlang::toString(type));
+                //                }
                 m_args_type.push_back(RunTime::m_ffi_type_float);
                 temp.number = (*args)[i].second->GetValueAsNumber();
                 m_args_val.push_back(temp);
@@ -1778,11 +1775,11 @@ ObjPtr Context::CallNative_(Context *runner, Obj &obj, Obj * args) {
 
             case ObjType::Float64:
             case ObjType::Double:
-//                if (pind < check_count) {
-//                    NL_CHECK(!isDefaultType((*obj.m_prototype)[pind].second->m_type), "Undefined type arg '%s'", (*obj.m_prototype)[pind].second->toString().c_str());
-//                    NL_CHECK(canCast(type, typeFromString((*obj.m_prototype)[pind].second->m_type, GetRT_(runner))), "Fail cast from '%s' to '%s'",
-//                            (*obj.m_prototype)[pind].second->m_type->m_text.c_str(), newlang::toString(type));
-//                }
+                //                if (pind < check_count) {
+                //                    NL_CHECK(!isDefaultType((*obj.m_prototype)[pind].second->m_type), "Undefined type arg '%s'", (*obj.m_prototype)[pind].second->toString().c_str());
+                //                    NL_CHECK(canCast(type, typeFromString((*obj.m_prototype)[pind].second->m_type, GetRT_(runner))), "Fail cast from '%s' to '%s'",
+                //                            (*obj.m_prototype)[pind].second->m_type->m_text.c_str(), newlang::toString(type));
+                //                }
                 m_args_type.push_back(RunTime::m_ffi_type_double);
                 temp.number = (*args)[i].second->GetValueAsNumber();
                 m_args_val.push_back(temp);
@@ -1790,54 +1787,54 @@ ObjPtr Context::CallNative_(Context *runner, Obj &obj, Obj * args) {
 
             case ObjType::StrChar:
             {
-//                if (pind < check_count) {
-//                    NL_CHECK(!isDefaultType((*obj.m_prototype)[pind].second->m_type), "Undefined type arg '%s'", (*obj.m_prototype)[pind].second->toString().c_str());
-//                    ObjType target = typeFromString((*obj.m_prototype)[pind].second->m_type, GetRT_(runner));
-//                    if (!canCast(type, target)) {
-//                        if ((target == ObjType::Int8 || target == ObjType::Char || target == ObjType::Byte)
-//                                && isStringChar(type) && (*args)[i].second->size() == 1) {
-//
-//                            m_args_type.push_back(RunTime::m_ffi_type_sint8);
-//                            temp.integer = (*args)[i].second->m_value[0];
-//                            m_args_val.push_back(temp);
-//                            break;
-//
-//                        }
-//                        LOG_RUNTIME("Fail cast from '%s' to '%s'", toString(type), toString(target));
-//                    }
-//                }
+                //                if (pind < check_count) {
+                //                    NL_CHECK(!isDefaultType((*obj.m_prototype)[pind].second->m_type), "Undefined type arg '%s'", (*obj.m_prototype)[pind].second->toString().c_str());
+                //                    ObjType target = typeFromString((*obj.m_prototype)[pind].second->m_type, GetRT_(runner));
+                //                    if (!canCast(type, target)) {
+                //                        if ((target == ObjType::Int8 || target == ObjType::Char || target == ObjType::Byte)
+                //                                && isStringChar(type) && (*args)[i].second->size() == 1) {
+                //
+                //                            m_args_type.push_back(RunTime::m_ffi_type_sint8);
+                //                            temp.integer = (*args)[i].second->m_value[0];
+                //                            m_args_val.push_back(temp);
+                //                            break;
+                //
+                //                        }
+                //                        LOG_RUNTIME("Fail cast from '%s' to '%s'", toString(type), toString(target));
+                //                    }
+                //                }
                 m_args_type.push_back(RunTime::m_ffi_type_pointer);
                 temp.ptr = (*args)[i].second->m_value.c_str();
                 m_args_val.push_back(temp);
                 break;
             }
             case ObjType::StrWide:
-//                if (pind < check_count) {
-//                    NL_CHECK(!isDefaultType((*obj.m_prototype)[pind].second->m_type), "Undefined type arg '%s'", (*obj.m_prototype)[pind].second->toString().c_str());
-//                    ObjType target = typeFromString((*obj.m_prototype)[pind].second->m_type, GetRT_(runner));
-//                    if (!canCast(type, target)) {
-//                        if (target == RunTime::m_wide_char_type && isStringWide(type) && (*args)[i].second->size() == 1) {
-//
-//                            m_args_type.push_back(RunTime::m_wide_char_type_ffi);
-//                            temp.integer = (*args)[i].second->m_string[0];
-//                            m_args_val.push_back(temp);
-//                            break;
-//
-//                        }
-//                        LOG_RUNTIME("Fail cast from '%s' to '%s'", toString(type), toString(target));
-//                    }
-//                }
+                //                if (pind < check_count) {
+                //                    NL_CHECK(!isDefaultType((*obj.m_prototype)[pind].second->m_type), "Undefined type arg '%s'", (*obj.m_prototype)[pind].second->toString().c_str());
+                //                    ObjType target = typeFromString((*obj.m_prototype)[pind].second->m_type, GetRT_(runner));
+                //                    if (!canCast(type, target)) {
+                //                        if (target == RunTime::m_wide_char_type && isStringWide(type) && (*args)[i].second->size() == 1) {
+                //
+                //                            m_args_type.push_back(RunTime::m_wide_char_type_ffi);
+                //                            temp.integer = (*args)[i].second->m_string[0];
+                //                            m_args_val.push_back(temp);
+                //                            break;
+                //
+                //                        }
+                //                        LOG_RUNTIME("Fail cast from '%s' to '%s'", toString(type), toString(target));
+                //                    }
+                //                }
                 m_args_type.push_back(RunTime::m_ffi_type_pointer);
                 temp.ptr = (*args)[i].second->m_string.c_str();
                 m_args_val.push_back(temp);
                 break;
 
             case ObjType::Pointer:
-//                if (pind < check_count) {
-//                    NL_CHECK(!isDefaultType((*obj.m_prototype)[pind].second->m_type), "Undefined type arg '%s'", (*obj.m_prototype)[pind].second->toString().c_str());
-//                    NL_CHECK(canCast(type, typeFromString((*obj.m_prototype)[pind].second->m_type, GetRT_(runner))), "Fail cast from '%s' to '%s'",
-//                            (*obj.m_prototype)[pind].second->m_type->m_text.c_str(), newlang::toString(type));
-//                }
+                //                if (pind < check_count) {
+                //                    NL_CHECK(!isDefaultType((*obj.m_prototype)[pind].second->m_type), "Undefined type arg '%s'", (*obj.m_prototype)[pind].second->toString().c_str());
+                //                    NL_CHECK(canCast(type, typeFromString((*obj.m_prototype)[pind].second->m_type, GetRT_(runner))), "Fail cast from '%s' to '%s'",
+                //                            (*obj.m_prototype)[pind].second->m_type->m_text.c_str(), newlang::toString(type));
+                //                }
                 m_args_type.push_back(RunTime::m_ffi_type_pointer);
 
                 if (at::holds_alternative<void *>((*args)[i].second->m_var)) {
@@ -2063,142 +2060,145 @@ ObjPtr Context::StringPrintf(std::string_view format, Obj & args) {
 ObjPtr Context::EvalTerm(TermPtr term, Context * runner, bool rvalue) {
     ASSERT(term);
 
-    // Static calculate
-    switch (term->m_id) {
-        case TermID::INTEGER:
-        {
-            int64_t val_int = parseInteger(term->getText().c_str());
-            NL_TYPECHECK(term, typeFromLimit(val_int), typeFromString(term->m_type, GetRT_(runner))); // Соответстствует ли тип значению?
-            ObjPtr result = Obj::CreateValue(val_int);
-            result->m_var_type_current = typeFromLimit(val_int);
-            if (term->GetType() && !isDefaultType(term->GetType())) {
-                result->m_var_type_fixed = typeFromString(term->m_type, GetRT_(runner));
-                result->m_var_type_current = result->m_var_type_fixed;
+    try {
+        // Static calculate
+        switch (term->m_id) {
+            case TermID::INTEGER:
+            {
+                int64_t val_int = parseInteger(term->getText().c_str());
+                NL_TYPECHECK(term, typeFromLimit(val_int), typeFromString(term->m_type, GetRT_(runner))); // Соответстствует ли тип значению?
+                ObjPtr result = Obj::CreateValue(val_int);
+                result->m_var_type_current = typeFromLimit(val_int);
+                if (term->GetType() && !isDefaultType(term->GetType())) {
+                    result->m_var_type_fixed = typeFromString(term->m_type, GetRT_(runner));
+                    result->m_var_type_current = result->m_var_type_fixed;
+                }
+                return result;
             }
-            return result;
-        }
-        case TermID::NUMBER:
-        {
-            double val_dbl = parseDouble(term->getText().c_str());
-            NL_TYPECHECK(term, typeFromLimit(val_dbl), typeFromString(term->m_type, GetRT_(runner))); // Соответстствует ли тип значению?
-            ObjPtr result = Obj::CreateValue(val_dbl);
-            result->m_var_type_current = typeFromLimit(val_dbl);
-            if (term->GetType() && !isDefaultType(term->GetType())) {
-                result->m_var_type_fixed = typeFromString(term->m_type, GetRT_(runner));
-                result->m_var_type_current = result->m_var_type_fixed;
+            case TermID::NUMBER:
+            {
+                double val_dbl = parseDouble(term->getText().c_str());
+                NL_TYPECHECK(term, typeFromLimit(val_dbl), typeFromString(term->m_type, GetRT_(runner))); // Соответстствует ли тип значению?
+                ObjPtr result = Obj::CreateValue(val_dbl);
+                result->m_var_type_current = typeFromLimit(val_dbl);
+                if (term->GetType() && !isDefaultType(term->GetType())) {
+                    result->m_var_type_fixed = typeFromString(term->m_type, GetRT_(runner));
+                    result->m_var_type_current = result->m_var_type_fixed;
+                }
+                return result;
             }
-            return result;
+            case TermID::RATIONAL:
+            {
+                ObjPtr result = Obj::CreateRational(term->m_text);
+                result->m_var_type_fixed = result->m_var_type_current;
+                return result;
+            }
+            case TermID::STRWIDE:
+            {
+                ObjPtr result = Obj::CreateString(utf8_decode(term->getText()));
+                ASSERT(result);
+                if (term->isCall()) {
+                    // Format string
+                    result = Call(runner, *result, term);
+                }
+                return result;
+            }
+            case TermID::STRCHAR:
+            {
+                ObjPtr result = Obj::CreateString(term->getText());
+                ASSERT(result);
+                if (term->isCall()) {
+                    // Format string
+                    result = Call(runner, *result, term);
+                }
+                return result;
+            }
+
+            case TermID::TENSOR:
+                return CreateTensor(term, runner);
+            case TermID::DICT:
+                return CreateDict(term, runner);
+            case TermID::RANGE:
+                return CreateRange(term, runner);
+            case TermID::OP_MATH:
+                return EvalOpMath_(term, runner);
+            case TermID::OP_COMPARE:
+                return EvalOpCompare_(term, runner);
+            case TermID::OP_LOGICAL:
+                return EvalOpLogical_(term, runner);
+            case TermID::OP_BITWISE:
+                return EvalOpBitwise_(term, runner);
+            case TermID::WHILE:
+                return EvalWhile_(term, runner);
+            case TermID::DOWHILE:
+                return EvalDoWhile_(term, runner);
+            case TermID::FOLLOW:
+                return EvalFollow_(term, runner);
+            case TermID::NATIVE:
+                return Obj::CreateBool(RunTime::GetDirectAddressFromLibrary(nullptr, term->m_text.c_str()));
+            case TermID::ELLIPSIS:
+                return getEllipsysObj();
+            case TermID::END:
+                return Obj::CreateNone();
         }
-        case TermID::RATIONAL:
-        {
-            ObjPtr result = Obj::CreateRational(term->m_text);
-            result->m_var_type_fixed = result->m_var_type_current;
-            return result;
+
+        if (!runner) {
+            NL_PARSER(term, "The term type '%s' is not calculated statistically!", newlang::toString(term->getTermID()));
         }
-        case TermID::STRWIDE:
-        {
-            ObjPtr result = Obj::CreateString(utf8_decode(term->getText()));
-            ASSERT(result);
+
+        if (term->isCreate()) {
+            return runner->EvalCreate_(term);
+        } else if (term->isNamed()) {
+
+            TermPtr found = runner->GetObject(term, runner->m_runtime);
+            if (!found->m_obj) {
+                NL_PARSER(term, "Object '%s' not calculated!", term->m_text.c_str());
+            }
+
             if (term->isCall()) {
-                // Format string
-                result = Call(runner, *result, term);
-            }
-            return result;
-        }
-        case TermID::STRCHAR:
-        {
-            ObjPtr result = Obj::CreateString(term->getText());
-            ASSERT(result);
-            if (term->isCall()) {
-                // Format string
-                result = Call(runner, *result, term);
-            }
-            return result;
-        }
+                // Вызов функции или клонирование объекта
+                ASSERT(found->m_obj);
+                return Call(runner, *found->m_obj, term);
+            } else if (rvalue && term->m_right) {
 
-        case TermID::TENSOR:
-            return CreateTensor(term, runner);
-        case TermID::DICT:
-            return CreateDict(term, runner);
-        case TermID::RANGE:
-            return CreateRange(term, runner);
-        case TermID::OP_MATH:
-            return EvalOpMath_(term, runner);
-        case TermID::OP_COMPARE:
-            return EvalOpCompare_(term, runner);
-        case TermID::OP_LOGICAL:
-            return EvalOpLogical_(term, runner);
-        case TermID::OP_BITWISE:
-            return EvalOpBitwise_(term, runner);
-        case TermID::WHILE:
-            return EvalWhile_(term, runner);
-        case TermID::DOWHILE:
-            return EvalDoWhile_(term, runner);
-        case TermID::FOLLOW:
-            return EvalFollow_(term, runner);
-        case TermID::NATIVE:
-            return Obj::CreateBool(RunTime::GetDirectAddressFromLibrary(nullptr, term->m_text.c_str()));
-        case TermID::ELLIPSIS:
-            return getEllipsysObj();
-        case TermID::END:
-            return Obj::CreateNone();
-    }
+                if (term->m_right->m_id == TermID::INDEX) {
+                    return GetIndexValue(term, found->m_obj, runner);
+                } else if (term->m_right->m_id == TermID::FIELD) {
+                    return GetFieldValue(term, found->m_obj, runner);
+                } else {
+                    NL_PARSER(term, "Eval type '%s' not implemented!", toString(term->m_right->m_id));
+                }
 
-    if (!runner) {
-        NL_PARSER(term, "The term type '%s' is not calculated statistically!", newlang::toString(term->getTermID()));
-    }
-
-    if (term->isCreate()) {
-        return runner->EvalCreate_(term);
-    } else if (term->isNamed()) {
-
-        TermPtr found = runner->GetObject(term, runner->m_runtime);
-        if (!found->m_obj) {
-            NL_PARSER(term, "Object '%s' not calculated!", term->m_text.c_str());
-        }
-
-        if (term->isCall()) {
-            // Вызов функции или клонирование объекта
-            ASSERT(found->m_obj);
-            return Call(runner, *found->m_obj, term);
-        } else if (rvalue && term->m_right) {
-
-            if (term->m_right->m_id == TermID::INDEX) {
-                return GetIndexValue(term, found->m_obj, runner);
-            } else if (term->m_right->m_id == TermID::FIELD) {
-                return GetFieldValue(term, found->m_obj, runner);
             } else {
-                NL_PARSER(term, "Eval type '%s' not implemented!", toString(term->m_right->m_id));
+                return found->m_obj;
             }
 
         } else {
-            return found->m_obj;
+
+            switch (term->m_id) {
+
+                case TermID::ITERATOR:
+                    return runner->EvalIterator_(term);
+                case TermID::EVAL:
+                    return runner->EvalEval_(term);
+                case TermID::INT_PLUS:
+                case TermID::INT_MINUS:
+                case TermID::INT_REPEAT:
+                    return runner->EvalInterrupt_(term);
+
+            }
+
+            //        if (term->GetType() && !isDefaultType(term->GetType())) {
+            //            term->m_obj->m_var_type_fixed = typeFromString(term->m_type, m_runtime.get());
+            //            term->m_obj->m_var_type_current = term->m_obj->m_var_type_fixed;
+            //        }
         }
 
-    } else {
+        LOG_RUNTIME("EvalTerm_ for type '%s'(%s) not implemented!", newlang::toString(term->m_id), term->m_text.c_str());
 
-        switch (term->m_id) {
-
-            case TermID::ITERATOR:
-                return runner->EvalIterator_(term);
-            case TermID::EVAL:
-                return runner->EvalEval_(term);
-            case TermID::INT_PLUS:
-            case TermID::INT_MINUS:
-            case TermID::INT_REPEAT:
-                return runner->EvalInterrupt_(term);
-
-        }
-
-        //        if (term->GetType() && !isDefaultType(term->GetType())) {
-        //            term->m_obj->m_var_type_fixed = typeFromString(term->m_type, m_runtime.get());
-        //            term->m_obj->m_var_type_current = term->m_obj->m_var_type_fixed;
-        //        }
+    } catch (std::exception & ex) {
+        NL_PARSER(term, "%s", ex.what());
     }
-
-    LOG_RUNTIME("EvalTerm_ for type '%s'(%s) not implemented!", newlang::toString(term->m_id), term->m_text.c_str());
-
-    return nullptr;
 }
 
 ObjPtr Context::CreateNative_(TermPtr &proto, const char *module, bool lazzy, const char *mangle_name) {

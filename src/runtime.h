@@ -26,6 +26,12 @@
 
 
 namespace newlang {
+    
+#ifdef __GNUC__
+extern "C" int nlc_prinft_sub_(char const *format, ...) __attribute__ ((format(printf, 1, 2)));
+#else
+EXTERN_C int nlc_prinft_sub_(char const *format, ...);
+#endif    
 
     template <typename T>
     T repeat(T str, const std::size_t n) {
@@ -367,6 +373,7 @@ namespace newlang {
         //        ObjPtr m_cmd_args;
         //        ObjPtr m_main_args;
         MacroPtr m_macro;
+    public:
         DiagPtr m_diag;
 
         TermPtr m_main_ast;

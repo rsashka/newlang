@@ -631,9 +631,9 @@ TEST(Run, Comprehensions) {
     // Может быть раскрытие словаря, который возвращает вызов функции
     // и может быть многократный вызов одной и той функции
     // :Int32[3,2]( ... rand() ... )
-    utils::Logger::LogLevelType save = utils::Logger::Instance()->SetLogLevel(LOG_LEVEL_INFO);
+    Logger::LogLevelType save = Logger::Instance()->SetLogLevel(LOG_LEVEL_INFO);
     ASSERT_NO_THROW(tt = rt->Run(":Int32[3,2]( 42, ... rand() ... )"));
-    utils::Logger::Instance()->SetLogLevel(save);
+    Logger::Instance()->SetLogLevel(save);
 
     ASSERT_TRUE(tt);
     std::string rand_str = tt->GetValueAsString();

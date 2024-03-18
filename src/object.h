@@ -2436,7 +2436,6 @@ namespace newlang {
         bool CallAll(const char *func_name, ObjPtr &arg_in, ObjPtr &result, ObjPtr object = nullptr, size_t limit = 0); // ?
         bool CallOnce(ObjPtr &arg_in, ObjPtr &result, ObjPtr object = nullptr); // !
 
-
         inline const TermPtr Proto() {
 
             return m_prototype;
@@ -2461,6 +2460,7 @@ namespace newlang {
         std::vector<ObjPtr> m_class_parents; ///< Родительские классы (типы)
         std::string m_module_name;
         const TermPtr m_prototype; ///< Описание прототипа функции (или данных)
+    public:
         Context *m_ctx;
 
         ObjPtr m_dimensions; ///< Размерности для ObjType::Type

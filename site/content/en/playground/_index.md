@@ -1,12 +1,11 @@
 ---
 title: Playground and example code
-weight: 4
-description: >
-    Примеры кода и простые программы для демонстрации возможностей языка
-
-simple_list: false
-categories: [Examples, Placeholders]
-tags: [test, docs]
+#simple_list: false
+#categories: [Examples, Placeholders]
+#tags: [test, docs]
+linkTitle: Playground
+menu: main
+weight: 25
 ---
 
 Примеры программ на NewLang
@@ -18,16 +17,17 @@ tags: [test, docs]
     .txt {width: 90%; overflow-x: scroll; resize: none; font-family: monospace;}
     .out {width: 95%; font-family: monospace;}
     .error {background-color: rgb(255, 180, 180); }
+    .pgbox {margin-top: 4rem;}
 </style>
 
-<div>
+<div class="pgbox">
 <select class="c10" style="width: 95%;" onchange="SelectExample(this);" id="example_list"> 
     <option selected="selected" value="" id="example_start">Select an exmaple...</option>
     <option>Hello, world!</option>
     <option>Rational numbers without limitation of precision</option>
-    <option>3</option>
-    <option>4</option>
-    <option>5</option>
+    <option>Factorial 40</option>
+    <option>Factorial 40 with DSL syntax</option>
+    <option>Tensor example</option>
 </select>
 <div>
     <textarea class="rownr" rows="20" 
@@ -55,12 +55,12 @@ tags: [test, docs]
 
 <div>
     <button onclick="run_playground()">Playground run</button>
-    <label class="pg_out" style="display:none" >Playground version:</label>
-    <input id="pg_version" class="pg_out" style="border-style:none; display:none" size="50" readonly>
 </div>
 
 <div id="pg_out_div" class="pg_out" style="display:none">
-    <label>Output:</label>
+    <label class="pg_out" style="display:none" >Playground version:</label>
+    <input id="pg_version" class="pg_out" style="border-style:none; display:none" size="50" readonly>
+    <p>Output: </p>
     <textarea class="out" rows="5" value="" id="playground_out" style="font-family: monospace; resize: none" readonly ></textarea>
 </div>
 </div>
@@ -71,9 +71,9 @@ tags: [test, docs]
 locations =[ "",
     "{{< source "hello.src" >}}",
     "{{< source "rational.src" >}}",
-
-    /*option 3*/                 
-    " This is template 3 that  will appear in a textarea keeping its formatting as  is. Donec tortor lorem,  ornare vitae commodo nec,  sagittis et nunc. Maecenas sagittis quam ",
+    "{{< source "fact_40.src" >}}",
+    "{{< source "fact_40_dsl.src" >}}",
+    "{{< source "tensor.src" >}}",
 
     /*option 4*/                 
     "#!../output/nlc --eval-file\n\nprintf('Hello, world!');\n",
@@ -172,7 +172,7 @@ function run_playground(){
 
     // 1. Создаём новый XMLHttpRequest-объект
     let xhr = new XMLHttpRequest();
-    xhr.timeout = 2000;
+    xhr.timeout = 10000;
     xhr.responseType = 'json';
 
     let url =  new URL('/cgi-bin/playground.cgi?'+escape(document.getElementById('playground').value), 'http://localhost');
@@ -198,10 +198,10 @@ function run_playground(){
 
         if (xhr.status != 200) { // анализируем HTTP-статус ответа, если статус не 200, то произошла ошибка
               //alert(`Ошибка ${xhr.status}: ${xhr.statusText}`); // Например, 404: Not Found
-            out.classList.add("error");
+            //out.classList.add("error");
         } else { // если всё прошло гладко, выводим результат
               //alert(`Готово, получили ${xhr.response.length} байт`); // response -- это ответ сервера
-            out.classList.remove("error");
+            //out.classList.remove("error");
         }
     };
 
@@ -220,7 +220,4 @@ function run_playground(){
       //alert("Запрос не удался");
     };
 }
-</script>     
-
-
-sssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssss
+</script>

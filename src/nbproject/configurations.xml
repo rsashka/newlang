@@ -47,6 +47,7 @@
         <itemPath>test/diag_test.cpp</itemPath>
         <itemPath>test/example_test.cpp</itemPath>
         <itemPath>test/lexer_test.cpp</itemPath>
+        <itemPath>test/logger_test.cpp</itemPath>
         <itemPath>test/macro_test.cpp</itemPath>
         <itemPath>test/module_test.cpp</itemPath>
         <itemPath>test/nlc_test.cpp</itemPath>
@@ -63,6 +64,7 @@
       <itemPath>context.cpp</itemPath>
       <itemPath>diag.cpp</itemPath>
       <itemPath>lexer.cpp</itemPath>
+      <itemPath>logger.cpp</itemPath>
       <itemPath>macro.cpp</itemPath>
       <itemPath>module.cpp</itemPath>
       <itemPath>nlc.cpp</itemPath>
@@ -83,6 +85,7 @@
       <itemPath>context.h</itemPath>
       <itemPath>diag.h</itemPath>
       <itemPath>lexer.h</itemPath>
+      <itemPath>logger.h</itemPath>
       <itemPath>macro.h</itemPath>
       <itemPath>module.h</itemPath>
       <itemPath>nlc.h</itemPath>
@@ -104,13 +107,10 @@
       <logicalFolder name="f1" displayName="fmt" projectFiles="true">
         <itemPath>../contrib/fmt/src/format.cc</itemPath>
       </logicalFolder>
-      <itemPath>dsl.cpp</itemPath>
       <itemPath>../contrib/googletest/googletest/src/gtest-all.cc</itemPath>
       <itemPath>lexer.yy.cpp</itemPath>
       <itemPath>lexer.yy.h</itemPath>
       <itemPath>location.hh</itemPath>
-      <itemPath>../contrib/logger/logger.cpp</itemPath>
-      <itemPath>../contrib/logger/logger.h</itemPath>
       <itemPath>parser.yy.cpp</itemPath>
       <itemPath>parser.yy.h</itemPath>
       <itemPath>pch.h.gch</itemPath>
@@ -161,6 +161,7 @@
             <pElem>/usr/include/x86_64-linux-gnu/c++/10</pElem>
             <pElem>../contrib/googletest/googletest</pElem>
             <pElem>../contrib/googletest/googletest/include</pElem>
+            <pElem>../contrib/fmt/include</pElem>
             <pElem>..</pElem>
           </incDir>
           <preprocessorList>
@@ -184,6 +185,7 @@
             <pElem>../contrib/Lyra/include</pElem>
             <pElem>../contrib/libtorch/include/torch/csrc/api/include</pElem>
             <pElem>../contrib/libtorch/include</pElem>
+            <pElem>../contrib/fmt/include</pElem>
           </incDir>
           <commandLine>`llvm-config --cxxflags` -std=c++20 -fexceptions -fcxx-exceptions -Wall -Wextra -Werror -Wfloat-equal -Wundef -Wcast-align -Wwrite-strings -Wmissing-declarations -Wredundant-decls -Wshadow -Woverloaded-virtual -Wno-trigraphs -Wno-invalid-source-encoding -stdlib=libstdc++ -Wno-error=unused-variable -Wno-error=unused-parameter -Wno-error=switch -fsanitize=undefined -fsanitize-trap=undefined   -gdwarf-4               -Wno-undefined-var-template -Wno-switch  -fvisibility=default  -ggdb -O0</commandLine>
           <preprocessorList>
@@ -231,10 +233,6 @@
         <ccTool>
           <commandLine>-Wno-undef -Wno-sign-compare</commandLine>
         </ccTool>
-      </item>
-      <item path="../contrib/logger/logger.cpp" ex="false" tool="1" flavor2="9">
-      </item>
-      <item path="../contrib/logger/logger.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="../docs/CNAME" ex="false" tool="3" flavor2="0">
       </item>
@@ -330,8 +328,6 @@
       </item>
       <item path="diag.h" ex="false" tool="3" flavor2="0">
       </item>
-      <item path="dsl.cpp" ex="false" tool="1" flavor2="9">
-      </item>
       <item path="lexer.cpp" ex="false" tool="1" flavor2="9">
         <ccTool>
           <commandLine>-include-pch pch.h.pch</commandLine>
@@ -359,6 +355,10 @@
       <item path="lexer.yy.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="location.hh" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="logger.cpp" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="logger.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="macro.cpp" ex="false" tool="1" flavor2="9">
         <ccTool>
@@ -496,6 +496,8 @@
           <additionalDep>pch.h.pch</additionalDep>
         </ccTool>
       </item>
+      <item path="test/logger_test.cpp" ex="false" tool="1" flavor2="0">
+      </item>
       <item path="test/macro_test.cpp" ex="false" tool="1" flavor2="9">
         <ccTool>
           <commandLine>-include-pch pch.h.pch</commandLine>
@@ -613,7 +615,6 @@
             <pElem>/usr/include</pElem>
             <pElem>../contrib/googletest/googletest</pElem>
             <pElem>../contrib/googletest/googletest/include</pElem>
-            <pElem>../contrib/Lyra/include</pElem>
             <pElem>../contrib/libtorch/include/torch/csrc/api/include</pElem>
             <pElem>../contrib/libtorch/include</pElem>
             <pElem>../contrib/fmt/include</pElem>
@@ -665,10 +666,6 @@
         <ccTool>
           <commandLine>-Wno-undef -Wno-sign-compare</commandLine>
         </ccTool>
-      </item>
-      <item path="../contrib/logger/logger.cpp" ex="false" tool="1" flavor2="0">
-      </item>
-      <item path="../contrib/logger/logger.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="../docs/CNAME" ex="false" tool="3" flavor2="0">
       </item>
@@ -764,8 +761,6 @@
       </item>
       <item path="diag.h" ex="false" tool="3" flavor2="0">
       </item>
-      <item path="dsl.cpp" ex="false" tool="1" flavor2="0">
-      </item>
       <item path="lexer.cpp" ex="false" tool="1" flavor2="0">
         <ccTool>
           <commandLine>-include-pch pch.h.pch</commandLine>
@@ -793,6 +788,10 @@
       <item path="lexer.yy.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="location.hh" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="logger.cpp" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="logger.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="macro.cpp" ex="false" tool="1" flavor2="0">
         <ccTool>
@@ -929,6 +928,8 @@
           <commandLine>-include-pch pch.h.pch</commandLine>
           <additionalDep>pch.h.pch</additionalDep>
         </ccTool>
+      </item>
+      <item path="test/logger_test.cpp" ex="false" tool="1" flavor2="0">
       </item>
       <item path="test/macro_test.cpp" ex="false" tool="1" flavor2="0">
         <ccTool>
@@ -1073,10 +1074,6 @@
             tool="1"
             flavor2="11">
       </item>
-      <item path="../contrib/logger/logger.cpp" ex="false" tool="1" flavor2="9">
-      </item>
-      <item path="../contrib/logger/logger.h" ex="false" tool="3" flavor2="0">
-      </item>
       <item path="../docs/CNAME" ex="false" tool="3" flavor2="0">
       </item>
       <item path="../docs/_config.yml" ex="false" tool="3" flavor2="0">
@@ -1154,8 +1151,6 @@
       </item>
       <item path="diag.h" ex="false" tool="3" flavor2="0">
       </item>
-      <item path="dsl.cpp" ex="false" tool="1" flavor2="0">
-      </item>
       <item path="lexer.cpp" ex="false" tool="1" flavor2="9">
         <ccTool>
           <additionalDep>parser.yy.h parser.yy.cpp location.hh</additionalDep>
@@ -1182,6 +1177,10 @@
       <item path="lexer.yy.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="location.hh" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="logger.cpp" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="logger.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="macro.cpp" ex="false" tool="1" flavor2="9">
       </item>
@@ -1264,6 +1263,8 @@
       <item path="test/example_test.cpp" ex="false" tool="1" flavor2="9">
       </item>
       <item path="test/lexer_test.cpp" ex="false" tool="1" flavor2="9">
+      </item>
+      <item path="test/logger_test.cpp" ex="false" tool="1" flavor2="0">
       </item>
       <item path="test/macro_test.cpp" ex="false" tool="1" flavor2="9">
       </item>
@@ -1384,10 +1385,6 @@
           <commandLine>-Wno-error -Wno-all -Wno-extra -Wno-ctor-dtor-privacy -Wno-undef -Wno-sign-compare</commandLine>
         </ccTool>
       </item>
-      <item path="../contrib/logger/logger.cpp" ex="false" tool="1" flavor2="11">
-      </item>
-      <item path="../contrib/logger/logger.h" ex="false" tool="3" flavor2="0">
-      </item>
       <item path="../docs/CNAME" ex="false" tool="3" flavor2="0">
       </item>
       <item path="../docs/_config.yml" ex="false" tool="3" flavor2="0">
@@ -1493,8 +1490,6 @@
           <customToolAdditionalDep>pch.h.gch</customToolAdditionalDep>
         </customTool>
       </item>
-      <item path="dsl.cpp" ex="false" tool="1" flavor2="0">
-      </item>
       <item path="lexer.cpp" ex="false" tool="1" flavor2="9">
         <ccTool>
           <additionalDep>location.hh</additionalDep>
@@ -1524,6 +1519,10 @@
         </customTool>
       </item>
       <item path="location.hh" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="logger.cpp" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="logger.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="macro.cpp" ex="false" tool="1" flavor2="9">
         <ccTool>
@@ -1665,6 +1664,8 @@
         <ccTool>
           <additionalDep>pch.h.gch</additionalDep>
         </ccTool>
+      </item>
+      <item path="test/logger_test.cpp" ex="false" tool="1" flavor2="0">
       </item>
       <item path="test/macro_test.cpp" ex="false" tool="1" flavor2="9">
         <ccTool>
@@ -1814,10 +1815,6 @@
           <commandLine>-Wno-error -Wno-all -Wno-extra -Wno-ctor-dtor-privacy -Wno-undef -Wno-sign-compare</commandLine>
         </ccTool>
       </item>
-      <item path="../contrib/logger/logger.cpp" ex="false" tool="1" flavor2="11">
-      </item>
-      <item path="../contrib/logger/logger.h" ex="false" tool="3" flavor2="0">
-      </item>
       <item path="../docs/CNAME" ex="false" tool="3" flavor2="0">
       </item>
       <item path="../docs/_config.yml" ex="false" tool="3" flavor2="0">
@@ -1923,8 +1920,6 @@
           <customToolAdditionalDep>pch.h.gch</customToolAdditionalDep>
         </customTool>
       </item>
-      <item path="dsl.cpp" ex="false" tool="1" flavor2="0">
-      </item>
       <item path="lexer.cpp" ex="false" tool="1" flavor2="9">
         <ccTool>
           <additionalDep>location.hh</additionalDep>
@@ -1954,6 +1949,10 @@
         </customTool>
       </item>
       <item path="location.hh" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="logger.cpp" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="logger.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="macro.cpp" ex="false" tool="1" flavor2="9">
         <ccTool>
@@ -2095,6 +2094,8 @@
         <ccTool>
           <additionalDep>pch.h.gch</additionalDep>
         </ccTool>
+      </item>
+      <item path="test/logger_test.cpp" ex="false" tool="1" flavor2="0">
       </item>
       <item path="test/macro_test.cpp" ex="false" tool="1" flavor2="9">
         <ccTool>

@@ -46,6 +46,26 @@ RunTime::ffi_call_type * RunTime::m_ffi_call = nullptr;
  * 
  * 
  */
+
+static char nlc_prinft_sub_buffer[4096 * 8];
+
+extern "C" int nlc_prinft_sub_(char const *format, ...) {
+    va_list args;
+    va_start(args, format);
+
+    int result = vsnprintf(nlc_prinft_sub_buffer, sizeof (nlc_prinft_sub_buffer), format, args);
+    STATIC_ASSERT(sizeof (nlc_prinft_sub_buffer) == 4096 * 8);
+
+    Logger *log = Logger::Instance();
+    if (log->m_func != nullptr) {
+        (*log->m_func)(log->m_func_param, LOG_LEVEL_INFO, nlc_prinft_sub_buffer, true);
+    }
+
+    //    int result = vfprintf(stdout, format, args);
+    va_end(args);
+    return result;
+}
+
 void RunTime::Clear() {
     m_main_ast.reset();
     m_main_runner.reset();
@@ -1314,7 +1334,8 @@ RuntimePtr RunTime::Init(StringArray args) {
 
     rt->GlobalNameBuildinRegister();
 
-    VERIFY(rt->RegisterSystemFunc("::print(format:FmtChar, ... ):Int32 ::= %printf ..."));
+    //    nlc_prinft_sub_
+    VERIFY(rt->RegisterSystemFunc("::print(format:FmtChar, ... ):Int32 ::= %nlc_prinft_sub_ ..."));
 
 
     if (!rt->ParseArgs(args)) {
