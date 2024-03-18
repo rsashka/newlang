@@ -1,104 +1,80 @@
 ---
-title: Именование объектов
-description:  Правила именования переменных, функций и типов данных
+title: Naming Objects
+description: Rules for naming variables, functions, and data types
 weight: 10
 ---
 
-В качестве имен объектов и типов данных можно использовать буквы, цифры и знаки подчеркивания в любых комбинациях, 
-при условии, что первый символ имени не является цифрой. 
+Objects and data types can be named using letters, numbers, and underscores in any combination, provided that the first character of the name is not a digit.
 
-Все идентификаторы должны быть уникальны, а для избежания коллизий можно использовать [пространство имен](/docs/syntax/namespace/) 
-и [модульную структуру кода](/docs/syntax/modules/), которые *NewLang* поддерживает одновременно.
+All identifiers must be unique, and to avoid collisions, you can use [namespaces](/docs/syntax/namespace/) and a [modular code structure](/docs/syntax/modules/) supported simultaneously by *NewLang*.
 
-Перегрузка [функций](/docs/types/funcs/) по типам аргументов *NewLang* отсуствует, поэтому несколько функций с однинаковым именем но разными аругментами определить нельзя,
-но можно [переопределить функцию](/docs/types/funcs/), в том числе и расширив типы принимаемых аргументов или увеличив их количество.
+Overloading [functions](/docs/types/funcs/) based on argument types is absent in *NewLang*, so defining multiple functions with the same name but different arguments is not possible, but you can [override a function](/docs/types/funcs/), including extending the types of accepted arguments or increasing their number.
 
+An object identifier can contain one or more special characters - qualifiers (or [sigils](https://en.wikipedia.org/wiki/Sigil_(computer_programming))), which represent specific values.
+An object identifier that does not contain a qualifier is called *simple*:
 
-Идентификатор объекта может содержать один или несколько специальных символов - квалификаторов 
-(или [сигилов](https://en.wikipedia.org/wiki/Sigil_(computer_programming))), за которыми закрепелено определенное значение.
-Идентификатор объекта который не содержит квалификатора, называется *простым*:
+### Name Qualifiers: {#sigil}
+- '**@**' - the *at sign* prefix is used to specify the name of a [macro](/docs/syntax/macros/), which is processed by the preprocessor before the start of the program's syntactic analysis.
+- '**@**' - the *at* prefix is used to specify the name of a [macro](/docs/syntax/macros/) that is processed by the preprocessor before the start of the syntactic analysis of the source code of the program.
+- '**$**' - the dollar sign at the beginning of an object's name denotes an automatic name for a temporary variable, the memory space for which is dynamically allocated during the application's execution, and the [lifetime is limited by the language semantics](/docs/syntax/memory/).
+- '**::**' - the double colon serves as a separator for [namespaces](/docs/syntax/namespace/) and indicates a *static* object, the memory space for which is allocated during the compilation of the application or module. If the name starts with '**::**', the object's scope will be global and it will be accessible throughout the application. Otherwise, the object's visibility will be limited to the current [program module](/docs/syntax/modules/).
+- '**.**' - the *dot* prefix is used when accessing a module or class field (limits the scope to the current object). The *dot* prefix can be used when defining (calling) a function to explicitly identify a named argument, preventing it from being overridden by a preprocessor macro.
+- '**\\**' - the *backslash* at the beginning of a term denotes the name of a [program module](/docs/syntax/modules/), and also separates directory names in the hierarchy of program module placement.
+- '**:**' — colon at the beginning of the term denotes the name of a [data type](/docs/types/) or a [class constructor](/docs/types/class/)
+- '**%**' — the *percent sign* prefix is used for [imported symbols (native variables and functions)](/docs/types/native/)
+- '**^**' — the caret symbol after the name is used to give immutability (constancy, non-modifiability) to the object.
 
-### Квалификаторы имен: {#sigil}
-- '**@**' — префикс *собачка* используется для указания имени [макроса](/docs/syntax/macros/), 
-        который обрабатыватся препроцессором до начала синтаксического анализа исходного текста программы.
-- '**$**' — знак доллара в начале имени объекта обозначает автоматичекое имя временной переменной, 
-        область памяти для которой выделяется динамически во время выполнения приложения, а время [жизни ограничено семантикой яызка](/docs/syntax/memory/)
-- '**::**' — двойное двоеточие является разделителем [пространства имен](/docs/syntax/namespace/),
-        и является признаком *статического* объекта, область памяти для которого выделяется во время компиляции приложения или модуля.
-        Если имя начинается на '**::**', то область видимости объекта будет глобальной и он будет доступен в рамках всего приложения.
-        В противном случае, видимость объекта будет ограничена только текущим [программным модулем](/docs/syntax/modules/).
-- '**.**' — префикс *точка* используется при обращении к полю модуля или класса (ограничивает область видимости текущим объектом).
-        Префикс *точка* может использоваться при определении (вызове) функции для явной идентификации именованного аргумента,
-        чтобы его нельзя было перекрыть макросом препроцессора.
-- '**\\**' — *обратный слеш* в начале термина обозначает имя [программного модуля](/docs/syntax/modules/), 
-        а так же разделяет имена каталогов в иерархии размещения программных модулей.
-- '**:**' — двоеточие в начале термина обозначает имя [типа](/docs/types/) данных или конструктор [класса](/docs/types/class/)
-- '**%**' — префикс *знак процента* указывается для [импортируемых символов (нативных переменных и функций)](/docs/types/native/)
-- '**^**' — символ *карет* (крышечка/домик) после имени используется для придания объекту иммутабельности (константности, не изменяемости). 
+### Name Lookup {#name-lookup}
+If the object name does not contain a [qualifier](/docs/syntax/naming/#sigil), it is called *simple*. Creating an object with a *simple* name is equivalent to creating a local object.
 
+In other cases, when *NewLang* encounters a *simple* object name without a qualifier ([sigil](https://en.wikipedia.org/wiki/Sigil_(computer_programming))), a special algorithm comes into play that associates the *simple* name found in the source code of the program with its declaration or a specific object by its [internal name](/docs/arch/mangling/).
 
+Resolution of *simple* names *without a qualifier* (*name lookup* for function/variable names) always occurs in a strictly defined order:
+- First, the search for the name is among macros
+- Next, the search is among local objects up to objects of the current module
+- Lastly, the search is among global objects with a gradual expansion of the namespace search scope from current to global
 
-### Разрешение имен (name lookup) {#name-lookup}
-Если имя объекта не содержит [квалификатора](/docs/syntax/naming/#sigil), оно называется *простым*.
-Создание объекта с указанием *простого* имени равнозначно созданию локального объекта.
+Such a sequence of name resolution always provides the opportunity to redefine global/local objects or argument names in functions for existing code without serious changes.
 
-В других случаях, когда *NewLang* встречает *простое* имя объекта без квалификатора ([сигила](https://en.wikipedia.org/wiki/Sigil_(computer_programming))), 
-то в дело вструпает специальный алгоритм, который связывает *простое* имя, встретившееся в исходном тексте программы, 
-с его декларацией или конкретным объектом по его [внутреннему имени](/docs/arch/mangling/).
-
-Разрешение *простых* имен *без квалификатора* (*name lookup*, или поиск имени функции/переменной) происходит всегда в строго определенном порядке:
-- в первую очередь происходит поиск имени среди макросов
-- далее выполняется поиск имени среди локальных объектов до объектов текущего модуля
-- в последнюю очередь выполняется поиск среди глобальных объетов с постепенным расширением пространства имен области поиска от текущей до глобальной
-
-Такая последовательность разрешение имен всегда предоставляет возможность переопределить 
-глобальные/локальные объекты или имена аргументов у функций для уже существующего кода без его серъезных изменений.
-
-Например, для имени `name` в области имен **`ns`** поиск происходит в следующей последовательности: 
+For example, for the name `name` in the namespace **`ns`**, the search occurs in the following sequence:
 `@name` -> `$name` -> `ns::name` -> `::ns::name` -> `::name`,
-а для имени `arg` проверяется только `@arg`:
+and for the name `arg`, only `@arg` is checked:
 ```python
     ns:: {
         name(arg="value");
     };
 ```
 
-И в тоже время, всегда остатся возможность указать конкретный объект не зависимо от работы алгоритма разрешение *простых* имен.
-Достаточно указать квалификатор в имени объекта в явном виде. 
+And at the same time, there will always be the possibility to specify a specific object regardless of the algorithm for resolving *simple* names. It is sufficient to explicitly specify the qualifier in the object name.
 
-Например, обратиться к глобальному объекту **name** из пространства имен **ns** из примера выше, нужно по полному имени объекта `::ns::name`,
-а именованнй аргумент *'**.** arg'* не будет заменен макросом `@arg`, если такой будет определен:
+For example, to access the global object **name** from the namespace **ns** in the above example, you need to use the full object name `::ns::name`, and the named argument *'**.** arg'* will not be replaced by the `@arg` macro if it is defined:
 ```python
     ::ns::name(.arg="value");
 ```
 
-### Предварительное объявление {#forward-declaration}
-В тексте программы можно ссылаться только на реально существующие (созданные) объекты.
-Но для тех случаев, когда требуется сослаться на объект, который создан в другом модуле или будет создан позже,
-можно сделать предварительное объявление, при котором компилятор регистриурет имя и тип объекта без его реального создания.
+### Forward Declaration {#forward-declaration}
+In the program text, you can only refer to actually existing (created) objects. 
+But in cases where it is necessary to refer to an object that is created in another module or will be created later, 
+you can make a preliminary declaration, in which the compiler registers the name and type of the object without its actual creation.
 
-За счет предварительного объявления можно ссылаться только на статические объекты (типы данных), 
-или локальные поля класса о которых компилятор ещё не знает, но которые будут определены в процессе компиляции позже. 
+By means of a forward declaration, one can refer only to static objects (data types), or local class fields that the compiler does not yet know about but which will be defined during the compilation process later.
 
-Для предварительного объявления можно использовать только полное квалифцированное имя, 
-которое должно будет в точности совпадать с именем обекта при его последующем создании.
+For a forward declaration, only the fully qualified name can be used, which must exactly match the object's name when it is subsequently created.
 
-Для предварительного объявления используется точто такой же синтаксис, как и при реальном [создании](/docs/ops/create/) объекта,
-только с права от операторо создания должно быть указано многоточие.
+The same syntax is used for a forward declaration as for the actual [creation](/docs/ops/create/) of an object, only an ellipsis should be specified to the right of the creation operator.
 
-Область видимости предварительное объявения соответствует области видимости его размещенея, 
-а не реальвой области видимости объекта (это касается даже глобальных объектов).
 
+The scope of a forward declaration corresponds to the scope of its placement, not the actual scope of the object (even for global objects).
 ```python
 
-    # Предварительное определение переменной модуля
-    # Действует для всего модуля
+    # Preliminary definition of a module variable
+    # Applies to the entire module
     var_module:Int32 := ...;
 
     func() ::= {
 
-        # Предварительное объявление с помощью DSL
-        # (действует только внутри тела функции)
+        # Preliminary announcement using DSL
+        # (only works inside a function body)
         @declare( func2(arg:Int32):Int32 );
 
         var_module = func2(var_module);
@@ -114,45 +90,40 @@ weight: 10
 ```
 
 
-### Имена аргументов, специальные, системные имена {#args}
-Обозначение имен аргументов у функций очень похоже на обращение к аргументы в bash скриптах, 
-где "**$1**" или "**$name**" — порядковый номер или имя соответствующего аргумента.
+### Argument Names, Special, System Names {#args}
+The notation of argument names in functions is very similar to referencing arguments in bash scripts, where "**$1**" or "**$name**" represents the ordinal number or name of the corresponding argument.
 
-Зарезервированное имя "**$0**" обозначает текущий объект, а именем "**$$**" обозначается родительский объект.
+The reserved name "**$0**" denotes the current object, and the name "**$$**" denotes the parent object.
 
-Все аргументы функции собранны в одном словаре со специальным имеенм **$\***
+All function arguments are collected in a single dictionary with the special name **$\***
 
-Неизменяемая переменная "**$^**" содержит результат выполнения последнего оператора или блока кода.
+The immutable variable "**$^**" contains the result of the last operator or code block execution.
 
-Полное имя текущего модуля содержится в переменной **@\\\\**, а текущая область имен в переменной **@::**, т.е.:
+The full name of the current module is contained in the variable **@\\\\**, and the current namespace in the variable **@::**, i.e.:
 ```bash
-# Имя файла filename.src в каталоге dir
+# File name filename.src in directory dir
 
-ns:: { # Использовать пространство имен ns
+ns:: { # Use namespace ns
     name:: {
-        # Команда препроцессора "@#" - преобразовать в символьную строку
-        ns_str :=  @#  @::; # Строка с областью имен "::ns::name::"
-        mod_str :=  @#  @\\; # Строка с именем модуля "\\dir\filename"
+        # Preprocessor command "@#" - convert to a string
+        ns_str :=  @#  @::; # String with namespase "::ns::name::"
+        mod_str :=  @#  @\\; # String with module name "\\dir\filename"
     };
 };
 ```
 
-### Области видимости
+### Scope
 
+The underscore symbol, as well as an underscore at the beginning of a name or double underscores at the beginning and end of a name, have special meanings.
 
-Символ подчерка, а так же подчерк в начале имени или двойные подчерки в начале и в конце имени имеют специальное значение.
+A single underscore corresponds to a protected, and two underscores to a private scope of an object within a module or class, in accordance with the conventions in the Python language.
 
-Один подчерк соответствует защищенной, а два подчерка - приватной области видимости объекта в модуле или классе,
-что соответствует принятым соглашениям в языке Python. 
+However, just like in Python, scopes are more of a "gentleman's agreement," and with explicit naming, access to protected objects can be obtained by simply specifying the full object name.
 
-Но так же, как и в языке Python, области видимости больше соответствуют "джентльменской" договоренности и при явном указании имени,
-доступ к защищенным объектам можно получить, просто указав полное имя объекта.
+In addition, there are also system fields and objects that start and end with two underscores.
 
-В дополнении к этому, существуют еще системные поля и объекты, которые начинаются и заканчиваются на два подчерка.
-
-
-- '**$**' — знак доллара в начале имени обозначает системное (локальное) имя временной переменной, 
-        область памяти для которой выделяется во время выполнения, а время [жизни ограничено семантикой яызка](/docs/syntax/memory/)
-- '**::**' — двойное двоеточие являются разделителем при указании [пространства имен](/docs/syntax/namespace/). 
-        Явное указание пространства имен является признаком статического объекта, область памяти для которого выделяется во время компиляции приложения или модуля.
- 
+- '**$**' - The dollar sign at the beginning of a name denotes a system (local) name of a temporary variable, 
+the memory space for which is allocated during execution, and the lifetime is limited by the language semantics.
+- '**::**' - Double colons serve as a separator when specifying namespaces. 
+Explicit namespace specification is a sign of a static object, the memory space for which is allocated during the compilation 
+of the application or module. 

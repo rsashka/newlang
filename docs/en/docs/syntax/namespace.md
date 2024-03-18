@@ -1,72 +1,72 @@
 ---
-title: Пространства имен
-weight: 20
+Title: Namespaces
+Weight: 20
 ---
 
-*NewLang* поддерживает пространства имен, разделителем в которых, как и в С++, выступает двойное двоеточие "**::**".
+*NewLang* supports namespaces, where the separator, like in C++, is a double colon "**::**".
 
-Область имен может быть указана как для отдельного индетификатора, так и для целого [блока кода](/docs/ops/block/).
+A namespace can be specified for an individual identifier or for an entire [code block](/docs/ops/block/).
 
-В отличии от *namespace* в С++, области имен в *NewLnag* используются не только для организации кода в виде логических групп 
-и с целью избежания конфликтов имен, но и для отнесения идентификатора, в котором явно указана область имен, к статическим объектам 
-(память под которые выделяется на этапе комиляции программы).
+Unlike *namespace* in C++, namespaces in *NewLang* are used not only to organize code into logical groups and avoid name conflicts, 
+but also to associate an identifier, explicitly specifying the namespace, 
+with static objects (memory allocated during the compilation stage of the program).
 
-Глобальное имя не может быть перекрыто макросом или локальной переменной при [разрешении имен (name lookup)](/docs/syntax/naming/).
-Создать глобальную (статическую) переменную в текущем пространстве имен можно указав переменную препроцессора **@::**.
+The global name cannot be overridden by a macro or local variable during [name lookup](/docs/syntax/naming/). To create a global (static) variable in the current namespace, you can specify the variable with the **@::** preprocessor.
 
-Для использования пространства имен в [блоке кода](/docs/ops/block/), его нужно указать перед открывающейся фигурной скобкой.
-В таком именованном блоке кода завершающие "**::**" указывать не обязательно.
+To use a namespace in a [code block](/docs/ops/block/), it must be specified before the opening curly brace. 
+In such a named code block, it is not necessary to specify the closing "**::**".
 
 ```bash
-::var ::= 0; # Имя глобальной переменной в явном виде (не может быть перекрыто) 
+::var ::= 0; # Name of global variable explicitly (cannot be overridden)
 
-ns { # Можно указать равнозначное ns::
+ns { # Equivalent to ns::
 
-    var ::= 0; # Имя ns::var (может быть перекрыто макросом или локальной переменной)
-    @::var ::= 0; # Имя глобальной переменной ::ns::var (не может быть перекрыто) 
+    var ::= 0; # Name ns::var (can be overridden by macro or local variable)
+    @::var ::= 0; # Name of global variable ::ns::var (cannot be overridden)
 
     name:: {
-        var = 0; # Обращение к переменной ns::var
-        var2 ::= 0; # Имя переменной будет ns::name::var2
-        ::var = 1; # Переменная из глобального пространства имен
+        var = 0; # Reference to variable ns::var
+        var2 ::= 0; # Name of variable will be ns::name::var2
+        ::var = 1; # Variable from global namespace
     };
 
-    :: { # Глобальное пространство имен
-        var = 1;  # Имя глобальной переменной ::var (может быть перекрыто) 
-        ::ns::var = 0; # Имя другой глобальной переменной (не может быть перекрыто) 
+    :: { # Global namespace
+        var = 1; # Name of global variable ::var (can be overridden)
+        ::ns::var = 0; # Name of another global variable (cannot be overridden)
     };
 };
 ```
 
-## Пространство имен, модули и пакеты
+## Namespaces, Modules, and Packages
 
-Пространство имен в *NewLang* поддерживает одновременно с [модульной структурой кода](/docs/syntax/modules/) как в языках Java и Python
-и при указании полного имени объекта, программные модули и пространства имен можно объединять. 
+The namespace in *NewLang* supports both a [modular code structure](/ru/docs/syntax/modules/) like in Java and Python languages, 
+and when specifying the full name of an object, program modules and namespaces can be combined.
 
-Например, полное имя переменой можно записать с указанием программного модуля `\root\dir\module::ns::name::var`, 
-где **root** и **dir** это каталоги в файловой системе относительно текущего модуля, а **module** — имя файла, т.е. *root/dir/module.nlp*.
+For example, the full name of a variable can be written with the indication of the program module `\root\dir\module::ns::name::var`, 
+where **root** and **dir** are directories in the file system relative to the current module, 
+and **module** is the file name, i.e. *root/dir/module.src*.
 
+## Namespace and OOP
 
-## Пространство имен и ООП
+In *NewLang*, name decoration (mangling) based on function argument types is not used.
 
-В *NewLang* не применяется декорирование (манглинг) имен, основанный на типах аргументов функций.
+However, when creating unique identifiers for [class](/ru/docs/types/class/) methods, 
+*NewLang* uses an approach similar to that used in the Python language. When creating a [class method](/ru/docs/types/class/), 
+a global function is created with the class name and method name combined with the separator "**::**".
 
-Тем не менее при создания уникальных идентификаторов для методов [классов](/docs/types/class/) *NewLang* использует подход, похожий на применяемый в языке Python. 
-При создании [метода класса](/docs/types/class/) создается глобальная функция с именем класса и именем метода, объединенные через разделитель "**::**". 
+For example, for the class `:NewClass`, when creating the method `method`, a function named `NewClass::method` will be created.
 
-Например, для класса `:NewClass` при создании метода `method` будет создана функция с именем `NewClass::method`.
+This method naming scheme fully corresponds to the naming of functions in the namespace, 
+allowing class methods to be defined outside the body of the class simply by specifying the desired name in the namespace or explicitly.
 
-Такая схема наименований методов полностью соответствует именованию функций в пространстве имен, 
-и тем самым позволяет определять методы класса вне тела самого класса, просто указав нужное имя в пространстве имен или в явном виде.
-
-Пример создания метода класса *NewClass* в области имен: 
+Example of creating a method of the class *NewClass* in the namespace:
 ```
     NewClass::  {
         method() := { };
     }
 ```
 
-Пример создания метода класса *NewClass* с указанием полного имени: 
+Example of creating a method of the class *NewClass* with specifying the full name:
 ```
     NewClass::method() := { };
 ```
