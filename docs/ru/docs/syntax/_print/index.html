@@ -1,0 +1,2174 @@
+<!doctype html>
+<html itemscope itemtype="http://schema.org/WebPage" lang="ru" class="no-js">
+  <head><script src="/livereload.js?mindelay=10&amp;v=2&amp;port=1313&amp;path=livereload" data-no-instant defer></script>
+    <meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+<link rel="canonical" type="text/html" href="http://localhost:1313/ru/docs/syntax/">
+<link rel="alternate" type="application/rss&#43;xml" href="http://localhost:1313/ru/docs/syntax/index.xml">
+<meta name="robots" content="noindex, nofollow">
+
+
+<link rel="shortcut icon" href="/favicons/favicon.ico" >
+<link rel="apple-touch-icon" href="/favicons/apple-touch-icon-180x180.png" sizes="180x180">
+<link rel="icon" type="image/png" href="/favicons/favicon-16x16.png" sizes="16x16">
+<link rel="icon" type="image/png" href="/favicons/favicon-32x32.png" sizes="32x32">
+<link rel="icon" type="image/png" href="/favicons/android-36x36.png" sizes="36x36">
+<link rel="icon" type="image/png" href="/favicons/android-48x48.png" sizes="48x48">
+<link rel="icon" type="image/png" href="/favicons/android-72x72.png" sizes="72x72">
+<link rel="icon" type="image/png" href="/favicons/android-96x96.png" sizes="96x96">
+<link rel="icon" type="image/png" href="/favicons/android-144x144.png" sizes="144x144">
+<link rel="icon" type="image/png" href="/favicons/android-192x192.png" sizes="192x192">
+
+<title>Синтаксис | NewLang</title>
+<meta name="description" content="Правила синтаксиса и основные понятия языка программирования NewLang 
+">
+<meta property="og:title" content="Синтаксис" />
+<meta property="og:description" content="Правила синтаксиса и основные понятия языка программирования NewLang 
+" />
+<meta property="og:type" content="website" />
+<meta property="og:url" content="http://localhost:1313/ru/docs/syntax/" /><meta property="og:site_name" content="NewLang" />
+<meta itemprop="name" content="Синтаксис">
+<meta itemprop="description" content="Правила синтаксиса и основные понятия языка программирования NewLang 
+"><meta name="twitter:card" content="summary"/><meta name="twitter:title" content="Синтаксис"/>
+<meta name="twitter:description" content="Правила синтаксиса и основные понятия языка программирования NewLang 
+"/>
+
+
+
+
+
+<link href="/scss/main.css" rel="stylesheet">
+
+<script
+  src="https://code.jquery.com/jquery-3.6.3.min.js"
+  integrity="sha512-STof4xm1wgkfm7heWqFJVn58Hm3EtS31XFaagaa8VMReCXAkQnJZ+jEy8PCC/iT18dFy95WcExNHFTqLyp72eQ=="
+  crossorigin="anonymous"></script>
+<script defer
+  src="https://unpkg.com/lunr@2.3.9/lunr.min.js"
+  integrity="sha384-203J0SNzyqHby3iU6hzvzltrWi/M41wOP5Gu+BiJMz5nwKykbkUx8Kp7iti0Lpli"
+  crossorigin="anonymous"></script>
+
+  </head>
+  <body class="td-section">
+    <header>
+      <nav class="td-navbar navbar-dark js-navbar-scroll">
+<div class="container-fluid flex-column flex-md-row">
+  <a class="navbar-brand" href="/ru/"><span class="navbar-brand__logo navbar-logo"><svg id="Layer_1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" viewBox="0 0 500 500" style="enable-background:new 0 0 500 500"><g><path style="fill:#fff" d="M116.8525 421.9722c-5.7041.0-10.3442-4.3127-10.3442-9.6129V88.183c0-5.3002 4.6401-9.6117 10.3442-9.6117H320.858c3.0347.0 9.3959.5498 11.7506 2.6302l.3545.3442 58.905 63.2912c2.3101 2.491 2.9202 8.4928 2.9202 11.3184v256.2039c0 5.3002-4.6407 9.6129-10.3436 9.6129H116.8525z"/><g><g><g><path style="fill:#767676" d="M384.4445 423.2066H116.852c-6.3839.0-11.5786-4.8658-11.5786-10.8474V88.1831c0-5.9804 5.1947-10.8461 11.5786-10.8461h204.0062c.377.0 9.2786.0329 12.568 2.9389l.3947.3833 58.9508 63.337c3.2135 3.4652 3.2514 11.7924 3.2514 12.1593v256.2036C396.0231 418.3408 390.8284 423.2066 384.4445 423.2066zM116.5079 411.9189c.0848.0278.1999.0531.3441.0531h267.5925c.1442.0.2581-.0253.3441-.0531V156.1556c-.0076-.9033-.3593-3.7347-.7034-5.0037l-57.6527-61.9416c-1.4651-.3176-4.4533-.6389-5.5742-.6389H116.852c-.143.0-.2594.024-.3441.0531V411.9189zm267.4533-261.149zM327.0321 89.371v.0013V89.371z"/></g></g></g><g><g><path style="fill:#5b7fc0" d="M189.0874 210.1754l.0012-.0012c7.7751.0012 15.0295 4.1862 18.932 10.9234 1.9177 3.3159 2.9305 7.1011 2.9293 10.9378.0 5.8394-2.2733 11.3304-6.4032 15.4604-4.1288 4.1288-9.6186 6.4032-15.458 6.4032s-11.328-2.2733-15.458-6.4032-6.4032-9.6186-6.4056-15.4628c.0012-6.025 2.454-11.4897 6.4116-15.4473C177.5953 212.627 183.0601 210.1742 189.0874 210.1754zm7.993 21.8576c.0012-1.4042-.3687-2.7868-1.063-3.9887-1.4293-2.4684-4.0833-3.9995-6.9299-4.0019-4.4077.0024-7.993 3.5877-7.993 7.993.0 2.1356.832 4.1431 2.3427 5.6539 1.5083 1.5083 3.5159 2.3403 5.6503 2.3415 2.1356.0 4.1443-.8308 5.6539-2.3403S197.0816 234.1722 197.0804 232.033z"/><path style="opacity:.3;fill:#fff" d="M189.0898 210.176c7.7763.0 15.0283 4.1826 18.926 10.9151 1.9201 3.3136 2.9377 7.0988 2.9353 10.9462.0024 12.0643-9.8065 21.8636-21.8613 21.8613-12.0547.0024-21.8636-9.8066-21.8612-21.8613.0-6.0285 2.4516-11.4921 6.4116-15.452C177.5977 212.6276 183.0612 210.176 189.0898 210.176zm7.9941 21.8612c0-1.4078-.3711-2.7892-1.0702-3.9959-1.4269-2.466-4.0797-3.9983-6.924-3.9983-4.4005-.0048-7.9918 3.5817-7.9942 7.9942.0024 4.4077 3.5865 7.9918 7.9942 7.9942 2.2027.0 4.2018-.8978 5.6479-2.3439C196.1861 236.239 197.0839 234.2399 197.0839 232.0372z"/><g><defs><path id="SVGID_1_" d="M194.7376 237.6875c-1.4461 1.4461-3.4452 2.3439-5.6479 2.3439-4.4077-.0024-7.9918-3.5865-7.9942-7.9942.0024-4.4125 3.5937-7.999 7.9942-7.9942 2.8443.0 5.497 1.5323 6.924 3.9983.6991 1.2067 1.0702 2.5881 1.0702 3.9959C197.0839 234.2399 196.1861 236.239 194.7376 237.6875z"/></defs><clipPath id="SVGID_2_"><use xlink:href="#SVGID_1_" style="overflow:visible"/></clipPath><path style="clip-path:url(#SVGID_2_);fill:#fff" d="M190.0704 225.0237c-4.4005-.0048-7.9918 3.5817-7.9942 7.9942.0011 1.9546.7088 3.7452 1.8782 5.1354-1.7447-1.4674-2.8575-3.663-2.8588-6.116.0024-4.4125 3.5936-7.999 7.9942-7.9942 2.3802-1e-4 4.616 1.0833 6.1218 2.8788C193.7885 225.7247 191.9774 225.0237 190.0704 225.0237z"/><path style="opacity:.13;clip-path:url(#SVGID_2_);fill:#020202" d="M190.0704 225.0237c-4.4005-.0048-7.9918 3.5817-7.9942 7.9942.0011 1.9546.7088 3.7452 1.8782 5.1354-1.7447-1.4674-2.8575-3.663-2.8588-6.116.0024-4.4125 3.5936-7.999 7.9942-7.9942 2.3802-1e-4 4.616 1.0833 6.1218 2.8788C193.7885 225.7247 191.9774 225.0237 190.0704 225.0237z"/></g><g><defs><path id="SVGID_3_" d="M189.0898 210.176c7.7763.0 15.0283 4.1826 18.926 10.9151 1.9201 3.3136 2.9377 7.0988 2.9353 10.9462.0024 12.0643-9.8065 21.8636-21.8613 21.8613-12.0547.0024-21.8636-9.8066-21.8612-21.8613.0-6.0285 2.4516-11.4921 6.4116-15.452C177.5977 212.6276 183.0612 210.176 189.0898 210.176zm7.9941 21.8612c0-1.4078-.3711-2.7892-1.0702-3.9959-1.4269-2.466-4.0797-3.9983-6.924-3.9983-4.4005-.0048-7.9918 3.5817-7.9942 7.9942.0024 4.4077 3.5865 7.9918 7.9942 7.9942 2.2027.0 4.2018-.8978 5.6479-2.3439C196.1861 236.239 197.0839 234.2399 197.0839 232.0372z"/></defs><clipPath id="SVGID_4_"><use xlink:href="#SVGID_3_" style="overflow:visible"/></clipPath><path style="clip-path:url(#SVGID_4_);fill:#5b7fc0" d="M172.6595 215.6045c-3.96 3.96-6.4116 9.4235-6.4116 15.452-.0024 12.0547 9.8066 21.8636 21.8613 21.8612 12.0547.0024 21.8636-9.797 21.8613-21.8612.0024-3.8475-1.0151-7.6326-2.9353-10.9462-3.8977-6.7324-11.1497-10.9151-18.926-10.9151C182.0806 209.1953 176.6171 211.647 172.6595 215.6045z"/></g></g><rect x="198.8952" y="225.1043" style="fill:#5b7fc0" width="122.6266" height="13.8671"/></g><g><path style="fill:#d95140" d="M189.0874 155.7611l.0012-.0012c7.7751.0012 15.0295 4.1862 18.932 10.9234 1.9177 3.3159 2.9305 7.1011 2.9293 10.9378.0 5.8394-2.2733 11.3304-6.4032 15.4604-4.1288 4.1288-9.6186 6.4032-15.458 6.4032s-11.328-2.2733-15.458-6.4032-6.4032-9.6186-6.4056-15.4628c.0012-6.0249 2.454-11.4897 6.4116-15.4473C177.5953 158.2128 183.0601 155.7599 189.0874 155.7611zm7.993 21.8577c.0012-1.4042-.3687-2.7868-1.063-3.9887-1.4293-2.4684-4.0833-3.9995-6.9299-4.0019-4.4077.0024-7.993 3.5877-7.993 7.993.0 2.1356.832 4.1431 2.3427 5.6539 1.5083 1.5083 3.5159 2.3403 5.6503 2.3415 2.1356.0 4.1443-.8308 5.6539-2.3403C196.2508 181.7667 197.0816 179.758 197.0804 177.6188z"/><path style="opacity:.3;fill:#fff" d="M189.0898 155.7617c7.7763.0 15.0283 4.1826 18.926 10.9151 1.9201 3.3135 2.9377 7.0987 2.9353 10.9462.0024 12.0643-9.8065 21.8636-21.8613 21.8613-12.0547.0024-21.8636-9.8066-21.8612-21.8613.0-6.0285 2.4516-11.4921 6.4116-15.452C177.5977 158.2134 183.0612 155.7617 189.0898 155.7617zm7.9941 21.8613c0-1.4078-.3711-2.7892-1.0702-3.9959-1.4269-2.466-4.0797-3.9983-6.924-3.9983-4.4005-.0048-7.9918 3.5817-7.9942 7.9942.0024 4.4077 3.5865 7.9918 7.9942 7.9942 2.2027.0 4.2018-.8978 5.6479-2.3439C196.1861 181.8248 197.0839 179.8256 197.0839 177.623z"/><g><defs><path id="SVGID_5_" d="M194.7376 183.2733c-1.4461 1.4461-3.4452 2.3439-5.6479 2.3439-4.4077-.0024-7.9918-3.5865-7.9942-7.9942.0024-4.4125 3.5937-7.9989 7.9942-7.9942 2.8443.0 5.497 1.5323 6.924 3.9983.6991 1.2067 1.0702 2.5881 1.0702 3.9959C197.0839 179.8256 196.1861 181.8248 194.7376 183.2733z"/></defs><clipPath id="SVGID_6_"><use xlink:href="#SVGID_5_" style="overflow:visible"/></clipPath><path style="clip-path:url(#SVGID_6_);fill:#fff" d="M190.0704 170.6095c-4.4005-.0048-7.9918 3.5817-7.9942 7.9942.0011 1.9546.7088 3.7452 1.8782 5.1354-1.7447-1.4674-2.8575-3.663-2.8588-6.116.0024-4.4125 3.5936-7.999 7.9942-7.9942 2.3802-1e-4 4.616 1.0833 6.1218 2.8788C193.7885 171.3104 191.9774 170.6095 190.0704 170.6095z"/><path style="opacity:.13;clip-path:url(#SVGID_6_);fill:#020202" d="M190.0704 170.6095c-4.4005-.0048-7.9918 3.5817-7.9942 7.9942.0011 1.9546.7088 3.7452 1.8782 5.1354-1.7447-1.4674-2.8575-3.663-2.8588-6.116.0024-4.4125 3.5936-7.999 7.9942-7.9942 2.3802-1e-4 4.616 1.0833 6.1218 2.8788C193.7885 171.3104 191.9774 170.6095 190.0704 170.6095z"/></g><g><defs><path id="SVGID_7_" d="M189.0898 155.7617c7.7763.0 15.0283 4.1826 18.926 10.9151 1.9201 3.3135 2.9377 7.0987 2.9353 10.9462.0024 12.0643-9.8065 21.8636-21.8613 21.8613-12.0547.0024-21.8636-9.8066-21.8612-21.8613.0-6.0285 2.4516-11.4921 6.4116-15.452C177.5977 158.2134 183.0612 155.7617 189.0898 155.7617zm7.9941 21.8613c0-1.4078-.3711-2.7892-1.0702-3.9959-1.4269-2.466-4.0797-3.9983-6.924-3.9983-4.4005-.0048-7.9918 3.5817-7.9942 7.9942.0024 4.4077 3.5865 7.9918 7.9942 7.9942 2.2027.0 4.2018-.8978 5.6479-2.3439C196.1861 181.8248 197.0839 179.8256 197.0839 177.623z"/></defs><clipPath id="SVGID_8_"><use xlink:href="#SVGID_7_" style="overflow:visible"/></clipPath><path style="clip-path:url(#SVGID_8_);fill:#d95140" d="M172.6595 161.1903c-3.96 3.96-6.4116 9.4235-6.4116 15.452-.0024 12.0547 9.8066 21.8636 21.8613 21.8613 12.0547.0024 21.8636-9.797 21.8613-21.8613.0024-3.8474-1.0151-7.6326-2.9353-10.9462-3.8977-6.7324-11.1497-10.9151-18.926-10.9151C182.0806 154.7811 176.6171 157.2327 172.6595 161.1903z"/></g><rect x="198.8952" y="170.69" style="fill:#d95140" width="122.6266" height="13.8671"/></g><g><g><path style="fill:#56a55c" d="M189.5379 264.6147l.0012-.0012c7.7751.0012 15.0294 4.1862 18.932 10.9235 1.9177 3.3159 2.9305 7.1011 2.9293 10.9378.0 5.8394-2.2733 11.3304-6.4032 15.4604-4.1288 4.1288-9.6186 6.4032-15.458 6.4032-5.8394.0-11.3281-2.2733-15.458-6.4032-4.13-4.13-6.4032-9.6186-6.4056-15.4628.0012-6.0249 2.454-11.4897 6.4116-15.4472C178.0458 267.0663 183.5105 264.6135 189.5379 264.6147zm7.993 21.8576c.0012-1.4042-.3687-2.7868-1.063-3.9887-1.4293-2.4684-4.0833-3.9995-6.9299-4.0019-4.4077.0024-7.993 3.5877-7.993 7.993.0 2.1356.832 4.1431 2.3427 5.6538 1.5083 1.5083 3.5159 2.3403 5.6503 2.3415 2.1356.0 4.1443-.8308 5.6539-2.3403C196.7013 290.6202 197.5321 288.6115 197.5309 286.4723z"/><path style="opacity:.3;fill:#fff" d="M189.5403 264.6153c7.7763.0 15.0283 4.1826 18.926 10.9151 1.9201 3.3135 2.9377 7.0987 2.9353 10.9462.0024 12.0643-9.8065 21.8636-21.8613 21.8613-12.0547.0024-21.8636-9.8065-21.8612-21.8613.0-6.0285 2.4516-11.492 6.4116-15.452C178.0482 267.0669 183.5117 264.6153 189.5403 264.6153zm7.9941 21.8612c0-1.4078-.3711-2.7892-1.0702-3.9959-1.4269-2.466-4.0797-3.9983-6.924-3.9983-4.4005-.0048-7.9918 3.5817-7.9942 7.9941.0024 4.4077 3.5865 7.9918 7.9942 7.9942 2.2027.0 4.2018-.8978 5.6479-2.3439C196.6366 290.6783 197.5344 288.6792 197.5344 286.4765z"/><g><defs><path id="SVGID_9_" d="M195.1881 292.1268c-1.4461 1.4461-3.4452 2.3439-5.6479 2.3439-4.4077-.0024-7.9918-3.5865-7.9942-7.9942.0024-4.4125 3.5937-7.9989 7.9942-7.9941 2.8443.0 5.497 1.5323 6.924 3.9983.6991 1.2067 1.0702 2.5881 1.0702 3.9959C197.5344 288.6792 196.6366 290.6783 195.1881 292.1268z"/></defs><clipPath id="SVGID_10_"><use xlink:href="#SVGID_9_" style="overflow:visible"/></clipPath><path style="clip-path:url(#SVGID_10_);fill:#fff" d="M190.5209 279.463c-4.4005-.0048-7.9918 3.5817-7.9942 7.9941.0011 1.9547.7088 3.7452 1.8782 5.1354-1.7446-1.4674-2.8575-3.6631-2.8588-6.1161.0024-4.4125 3.5936-7.999 7.9942-7.9941 2.3802-1e-4 4.616 1.0833 6.1218 2.8788C194.239 280.164 192.4279 279.463 190.5209 279.463z"/><path style="opacity:.13;clip-path:url(#SVGID_10_);fill:#020202" d="M190.5209 279.463c-4.4005-.0048-7.9918 3.5817-7.9942 7.9941.0011 1.9547.7088 3.7452 1.8782 5.1354-1.7446-1.4674-2.8575-3.6631-2.8588-6.1161.0024-4.4125 3.5936-7.999 7.9942-7.9941 2.3802-1e-4 4.616 1.0833 6.1218 2.8788C194.239 280.164 192.4279 279.463 190.5209 279.463z"/></g><g><defs><path id="SVGID_11_" d="M189.5403 264.6153c7.7763.0 15.0283 4.1826 18.926 10.9151 1.9201 3.3135 2.9377 7.0987 2.9353 10.9462.0024 12.0643-9.8065 21.8636-21.8613 21.8613-12.0547.0024-21.8636-9.8065-21.8612-21.8613.0-6.0285 2.4516-11.492 6.4116-15.452C178.0482 267.0669 183.5117 264.6153 189.5403 264.6153zm7.9941 21.8612c0-1.4078-.3711-2.7892-1.0702-3.9959-1.4269-2.466-4.0797-3.9983-6.924-3.9983-4.4005-.0048-7.9918 3.5817-7.9942 7.9941.0024 4.4077 3.5865 7.9918 7.9942 7.9942 2.2027.0 4.2018-.8978 5.6479-2.3439C196.6366 290.6783 197.5344 288.6792 197.5344 286.4765z"/></defs><clipPath id="SVGID_12_"><use xlink:href="#SVGID_11_" style="overflow:visible"/></clipPath><path style="clip-path:url(#SVGID_12_);fill:#56a55c" d="M173.11 270.0439c-3.96 3.96-6.4116 9.4235-6.4116 15.452-.0024 12.0547 9.8066 21.8636 21.8613 21.8613 12.0547.0024 21.8636-9.797 21.8613-21.8613.0024-3.8474-1.0151-7.6326-2.9353-10.9462-3.8977-6.7325-11.1497-10.9151-18.926-10.9151C182.5311 263.6346 177.0676 266.0863 173.11 270.0439z"/></g></g><rect x="199.3456" y="279.5436" style="fill:#56a55c" width="122.6266" height="13.8671"/></g><g><g><path style="fill:#f1bc42" d="M189.0874 318.7208l.0012-.0012c7.7751.0012 15.0295 4.1862 18.932 10.9234 1.9177 3.3159 2.9305 7.1011 2.9293 10.9378.0 5.8394-2.2733 11.3305-6.4032 15.4604-4.1288 4.1288-9.6186 6.4032-15.458 6.4032s-11.328-2.2733-15.458-6.4032-6.4032-9.6186-6.4056-15.4628c.0012-6.025 2.454-11.4897 6.4116-15.4472C177.5953 321.1724 183.0601 318.7196 189.0874 318.7208zm7.993 21.8576c.0012-1.4042-.3687-2.7868-1.063-3.9887-1.4293-2.4684-4.0833-3.9995-6.9299-4.0019-4.4077.0024-7.993 3.5877-7.993 7.993.0 2.1356.832 4.1431 2.3427 5.6539 1.5083 1.5083 3.5159 2.3403 5.6503 2.3415 2.1356.0 4.1443-.8308 5.6539-2.3403S197.0816 342.7176 197.0804 340.5784z"/><path style="opacity:.3;fill:#fff" d="M189.0898 318.7214c7.7763.0 15.0283 4.1826 18.926 10.915 1.9201 3.3136 2.9377 7.0988 2.9353 10.9462.0024 12.0643-9.8065 21.8636-21.8613 21.8612-12.0547.0024-21.8636-9.8065-21.8612-21.8612.0-6.0285 2.4516-11.4921 6.4116-15.452C177.5977 321.173 183.0612 318.7214 189.0898 318.7214zm7.9941 21.8612c0-1.4078-.3711-2.7892-1.0702-3.9959-1.4269-2.466-4.0797-3.9983-6.924-3.9983-4.4005-.0048-7.9918 3.5817-7.9942 7.9942.0024 4.4077 3.5865 7.9918 7.9942 7.9942 2.2027.0 4.2018-.8978 5.6479-2.3439C196.1861 344.7844 197.0839 342.7853 197.0839 340.5826z"/><g><defs><path id="SVGID_13_" d="M194.7376 346.2329c-1.4461 1.4461-3.4452 2.3439-5.6479 2.3439-4.4077-.0024-7.9918-3.5865-7.9942-7.9942.0024-4.4125 3.5937-7.999 7.9942-7.9942 2.8443.0 5.497 1.5323 6.924 3.9983.6991 1.2067 1.0702 2.5881 1.0702 3.9959C197.0839 342.7853 196.1861 344.7844 194.7376 346.2329z"/></defs><clipPath id="SVGID_14_"><use xlink:href="#SVGID_13_" style="overflow:visible"/></clipPath><path style="clip-path:url(#SVGID_14_);fill:#fff" d="M190.0704 333.5691c-4.4005-.0048-7.9918 3.5817-7.9942 7.9942.0011 1.9547.7088 3.7452 1.8782 5.1354-1.7447-1.4674-2.8575-3.6631-2.8588-6.1161.0024-4.4125 3.5936-7.999 7.9942-7.9942 2.3802-1e-4 4.616 1.0834 6.1218 2.8788C193.7885 334.2701 191.9774 333.5691 190.0704 333.5691z"/><path style="opacity:.13;clip-path:url(#SVGID_14_);fill:#020202" d="M190.0704 333.5691c-4.4005-.0048-7.9918 3.5817-7.9942 7.9942.0011 1.9547.7088 3.7452 1.8782 5.1354-1.7447-1.4674-2.8575-3.6631-2.8588-6.1161.0024-4.4125 3.5936-7.999 7.9942-7.9942 2.3802-1e-4 4.616 1.0834 6.1218 2.8788C193.7885 334.2701 191.9774 333.5691 190.0704 333.5691z"/></g><g><defs><path id="SVGID_15_" d="M189.0898 318.7214c7.7763.0 15.0283 4.1826 18.926 10.915 1.9201 3.3136 2.9377 7.0988 2.9353 10.9462.0024 12.0643-9.8065 21.8636-21.8613 21.8612-12.0547.0024-21.8636-9.8065-21.8612-21.8612.0-6.0285 2.4516-11.4921 6.4116-15.452C177.5977 321.173 183.0612 318.7214 189.0898 318.7214zm7.9941 21.8612c0-1.4078-.3711-2.7892-1.0702-3.9959-1.4269-2.466-4.0797-3.9983-6.924-3.9983-4.4005-.0048-7.9918 3.5817-7.9942 7.9942.0024 4.4077 3.5865 7.9918 7.9942 7.9942 2.2027.0 4.2018-.8978 5.6479-2.3439C196.1861 344.7844 197.0839 342.7853 197.0839 340.5826z"/></defs><clipPath id="SVGID_16_"><use xlink:href="#SVGID_15_" style="overflow:visible"/></clipPath><path style="clip-path:url(#SVGID_16_);fill:#f1bc42" d="M172.6595 324.15c-3.96 3.96-6.4116 9.4235-6.4116 15.452-.0024 12.0547 9.8066 21.8636 21.8613 21.8612 12.0547.0024 21.8636-9.797 21.8613-21.8612.0024-3.8474-1.0151-7.6327-2.9353-10.9462-3.8977-6.7324-11.1497-10.9151-18.926-10.9151C182.0806 317.7407 176.6171 320.1924 172.6595 324.15z"/></g></g><rect x="198.8952" y="333.6497" style="fill:#f1bc42" width="122.6266" height="13.8671"/></g></g></svg></span><span class="navbar-brand__name">NewLang</span></a>
+  <div class="td-navbar-nav-scroll ms-md-auto" id="main_navbar">
+    <ul class="navbar-nav">
+      <li class="nav-item">
+        <a class="nav-link active" href="/ru/docs/"><span>Документация</span></a>
+      </li>
+      <li class="nav-item">
+        <a class="nav-link" href="/ru/playground/"><span>Playground</span></a>
+      </li>
+      <li class="nav-item">
+        <a class="nav-link" href="/ru/blog/"><span>Статьи</span></a>
+      </li>
+      <li class="nav-item dropdown d-none d-lg-block">
+        <div class="dropdown">
+  <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false">Русский</a>
+  <ul class="dropdown-menu">
+    <li><a class="dropdown-item" href="/docs/syntax/">English</a></li>
+    </ul>
+</div></li>
+      </ul>
+  </div>
+  <div class="d-none d-lg-block">
+    <div class="td-search td-search--offline">
+  <div class="td-search__icon"></div>
+  <input
+    type="search"
+    class="td-search__input form-control"
+    placeholder="Поиск по сайту…"
+    aria-label="Поиск по сайту…"
+    autocomplete="off"
+    
+    data-offline-search-index-json-src="/offline-search-index.json"
+    data-offline-search-base-href="/"
+    data-offline-search-max-results="10"
+  >
+</div>
+  </div>
+</div>
+</nav>
+    </header>
+    <div class="container-fluid td-outer">
+      <div class="td-main">
+        <div class="row flex-xl-nowrap">
+          <main class="col-12 col-md-9 col-xl-8 ps-md-5" role="main">
+            
+
+
+
+
+<div class="td-content">
+<div class="pageinfo pageinfo-primary d-print-none">
+<p>
+Это многостраничный печатный вид этого раздела.
+<a href="#" onclick="print();return false;">Нажмите что бы печатать</a>.
+</p><p>
+<a href="/ru/docs/syntax/">Вернуться к обычному просмотру страницы</a>.
+</p>
+</div>
+
+
+
+<h1 class="title">Синтаксис</h1>
+<div class="lead">Правила синтаксиса и основные понятия языка программирования NewLang</div>
+
+
+
+
+    <ul>
+    
+  
+  
+  
+  
+
+  
+    
+    
+	
+<li>1: <a href="#pg-28b53fb8430486ae7623f0a46251832e">Именование объектов</a></li>
+
+
+    
+  
+    
+    
+	
+<li>2: <a href="#pg-7103b60f94e6f8172c82283ae1f5f9e1">Пространства имен</a></li>
+
+
+    
+  
+    
+    
+	
+<li>3: <a href="#pg-ebc0228877bb5abed843b18c065dff3e">Модули и пакеты</a></li>
+
+
+    
+  
+    
+    
+	
+<li>4: <a href="#pg-bf03637ca5c035c764a5caee70b93410">Управление памятью, ссылки и совместный доступ</a></li>
+
+
+    
+  
+    
+    
+	
+<li>5: <a href="#pg-66431dc9242fce562d24bb69bdc576f3">Макросы</a></li>
+
+
+    
+  
+    
+    
+	
+<li>6: <a href="#pg-9149371511f94b03074b553a8e82848c">Системные свойства</a></li>
+
+
+    
+  
+    
+    
+	
+<li>7: <a href="#pg-04c6f8255aa249b1ff534ba0a3c6ed5f">Опции и настройки компилятора</a></li>
+
+
+    
+  
+    
+    
+	
+<li>8: <a href="#pg-6eb5eeb42b515a59f60437582b5e9de1">Системные макросы</a></li>
+
+
+    
+  
+    
+    
+	
+<li>9: <a href="#pg-8e386bb5b373d09fe8bcbec82c31b73f">Keyword syntax (DSL)</a></li>
+
+
+    
+  
+
+    </ul>
+
+
+<div class="content">
+      <ul>
+<li>Операторы разделяются точкой с запятой «;».</li>
+<li>Отступы и переводы строк игнорируются.</li>
+<li>Однострочные комментарии начинаются с символа «#» до перевода строки, что соответствует комментариям в стиле Python и Bash.</li>
+<li>Многострочные комментарии соответствуют стилю С/С++ и должны располагаться между символами /* и */. Многосточные комментарии могут быть вложенными.</li>
+<li>Последовательность команд <a href="/ru/docs/ops/block/">(блок кода)</a> заключаются в фигурные скобки &ldquo;<strong>{</strong>&rdquo; и &ldquo;<strong>}</strong>&rdquo;.</li>
+<li>Большинство операторов являются выражениями и возвращают результат выполнения последней операции.</li>
+</ul>
+
+</div>
+</div>
+
+
+  
+  
+  
+  
+
+  
+  
+
+  
+    
+    
+	
+    
+
+<div class="td-content" style="page-break-before: always">
+    
+	<h1 id="pg-28b53fb8430486ae7623f0a46251832e">1 - Именование объектов</h1>
+    <div class="lead">Правила именования переменных, функций и типов данных</div>
+	<p>В качестве имен объектов и типов данных можно использовать буквы, цифры и знаки подчеркивания в любых комбинациях,
+при условии, что первый символ имени не является цифрой.</p>
+<p>Все идентификаторы должны быть уникальны, а для избежания коллизий можно использовать <a href="/ru/docs/syntax/namespace/">пространство имен</a>
+и <a href="/ru/docs/syntax/modules/">модульную структуру кода</a>, которые <em>NewLang</em> поддерживает одновременно.</p>
+<p>Перегрузка <a href="/ru/docs/types/funcs/">функций</a> по типам аргументов <em>NewLang</em> отсуствует, поэтому несколько функций с однинаковым именем но разными аругментами определить нельзя,
+но можно <a href="/ru/docs/types/funcs/">переопределить функцию</a>, в том числе и расширив типы принимаемых аргументов или увеличив их количество.</p>
+<p>Идентификатор объекта может содержать один или несколько специальных символов - квалификаторов
+(или <a href="https://en.wikipedia.org/wiki/Sigil_(computer_programming)">сигилов</a>), за которыми закрепелено определенное значение.
+Идентификатор объекта который не содержит квалификатора, называется <em>простым</em>:</p>
+<h3 id="sigil">Квалификаторы имен:<a class="td-heading-self-link" href="#sigil" aria-label="Heading self-link"></a></h3>
+<ul>
+<li>&lsquo;<strong>@</strong>&rsquo; — префикс <em>собачка</em> используется для указания имени <a href="/ru/docs/syntax/macros/">макроса</a>,
+который обрабатыватся препроцессором до начала синтаксического анализа исходного текста программы.</li>
+<li>&lsquo;<strong>$</strong>&rsquo; — знак доллара в начале имени объекта обозначает автоматичекое имя временной переменной,
+область памяти для которой выделяется динамически во время выполнения приложения, а время <a href="/ru/docs/syntax/memory/">жизни ограничено семантикой яызка</a></li>
+<li>&lsquo;<strong>::</strong>&rsquo; — двойное двоеточие является разделителем <a href="/ru/docs/syntax/namespace/">пространства имен</a>,
+и является признаком <em>статического</em> объекта, область памяти для которого выделяется во время компиляции приложения или модуля.
+Если имя начинается на &lsquo;<strong>::</strong>&rsquo;, то область видимости объекта будет глобальной и он будет доступен в рамках всего приложения.
+В противном случае, видимость объекта будет ограничена только текущим <a href="/ru/docs/syntax/modules/">программным модулем</a>.</li>
+<li>&lsquo;<strong>.</strong>&rsquo; — префикс <em>точка</em> используется при обращении к полю модуля или класса (ограничивает область видимости текущим объектом).
+Префикс <em>точка</em> может использоваться при определении (вызове) функции для явной идентификации именованного аргумента,
+чтобы его нельзя было перекрыть макросом препроцессора.</li>
+<li>&lsquo;<strong>\</strong>&rsquo; — <em>обратный слеш</em> в начале термина обозначает имя <a href="/ru/docs/syntax/modules/">программного модуля</a>,
+а так же разделяет имена каталогов в иерархии размещения программных модулей.</li>
+<li>&lsquo;<strong>:</strong>&rsquo; — двоеточие в начале термина обозначает имя <a href="/ru/docs/types/">типа</a> данных или конструктор <a href="/ru/docs/types/class/">класса</a></li>
+<li>&lsquo;<strong>%</strong>&rsquo; — префикс <em>знак процента</em> указывается для <a href="/ru/docs/types/native/">импортируемых символов (нативных переменных и функций)</a></li>
+<li>&lsquo;<strong>^</strong>&rsquo; — символ <em>карет</em> (крышечка/домик) после имени используется для придания объекту иммутабельности (константности, не изменяемости).</li>
+</ul>
+<h3 id="name-lookup">Разрешение имен (name lookup)<a class="td-heading-self-link" href="#name-lookup" aria-label="Heading self-link"></a></h3>
+<p>Если имя объекта не содержит <a href="/ru/docs/syntax/naming/#sigil">квалификатора</a>, оно называется <em>простым</em>.
+Создание объекта с указанием <em>простого</em> имени равнозначно созданию локального объекта.</p>
+<p>В других случаях, когда <em>NewLang</em> встречает <em>простое</em> имя объекта без квалификатора (<a href="https://en.wikipedia.org/wiki/Sigil_(computer_programming)">сигила</a>),
+то в дело вструпает специальный алгоритм, который связывает <em>простое</em> имя, встретившееся в исходном тексте программы,
+с его декларацией или конкретным объектом по его <a href="/ru/docs/arch/mangling/">внутреннему имени</a>.</p>
+<p>Разрешение <em>простых</em> имен <em>без квалификатора</em> (<em>name lookup</em>, или поиск имени функции/переменной) происходит всегда в строго определенном порядке:</p>
+<ul>
+<li>в первую очередь происходит поиск имени среди макросов</li>
+<li>далее выполняется поиск имени среди локальных объектов до объектов текущего модуля</li>
+<li>в последнюю очередь выполняется поиск среди глобальных объетов с постепенным расширением пространства имен области поиска от текущей до глобальной</li>
+</ul>
+<p>Такая последовательность разрешение имен всегда предоставляет возможность переопределить
+глобальные/локальные объекты или имена аргументов у функций для уже существующего кода без его серъезных изменений.</p>
+<p>Например, для имени <code>name</code> в области имен <strong><code>ns</code></strong> поиск происходит в следующей последовательности:
+<code>@name</code> -&gt; <code>$name</code> -&gt; <code>ns::name</code> -&gt; <code>::ns::name</code> -&gt; <code>::name</code>,
+а для имени <code>arg</code> проверяется только <code>@arg</code>:</p>
+<div class="highlight"><pre tabindex="0" style="background-color:#f8f8f8;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-python" data-lang="python"><span style="display:flex;"><span>    <span style="color:#000">ns</span><span style="color:#000;font-weight:bold">::</span> <span style="color:#000;font-weight:bold">{</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#000">name</span><span style="color:#000;font-weight:bold">(</span><span style="color:#000">arg</span><span style="color:#ce5c00;font-weight:bold">=</span><span style="color:#4e9a06">&#34;value&#34;</span><span style="color:#000;font-weight:bold">);</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#000;font-weight:bold">};</span>
+</span></span></code></pre></div><p>И в тоже время, всегда остатся возможность указать конкретный объект не зависимо от работы алгоритма разрешение <em>простых</em> имен.
+Достаточно указать квалификатор в имени объекта в явном виде.</p>
+<p>Например, обратиться к глобальному объекту <strong>name</strong> из пространства имен <strong>ns</strong> из примера выше, нужно по полному имени объекта <code>::ns::name</code>,
+а именованнй аргумент <em>&rsquo;<strong>.</strong> arg&rsquo;</em> не будет заменен макросом <code>@arg</code>, если такой будет определен:</p>
+<div class="highlight"><pre tabindex="0" style="background-color:#f8f8f8;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-python" data-lang="python"><span style="display:flex;"><span>    <span style="color:#000;font-weight:bold">::</span><span style="color:#000">ns</span><span style="color:#000;font-weight:bold">::</span><span style="color:#000">name</span><span style="color:#000;font-weight:bold">(</span><span style="color:#ce5c00;font-weight:bold">.</span><span style="color:#000">arg</span><span style="color:#ce5c00;font-weight:bold">=</span><span style="color:#4e9a06">&#34;value&#34;</span><span style="color:#000;font-weight:bold">);</span>
+</span></span></code></pre></div><h3 id="forward-declaration">Предварительное объявление<a class="td-heading-self-link" href="#forward-declaration" aria-label="Heading self-link"></a></h3>
+<p>В тексте программы можно ссылаться только на реально существующие (созданные) объекты.
+Но для тех случаев, когда требуется сослаться на объект, который создан в другом модуле или будет создан позже,
+можно сделать предварительное объявление, при котором компилятор регистриурет имя и тип объекта без его реального создания.</p>
+<p>За счет предварительного объявления можно ссылаться только на статические объекты (типы данных),
+или локальные поля класса о которых компилятор ещё не знает, но которые будут определены в процессе компиляции позже.</p>
+<p>Для предварительного объявления можно использовать только полное квалифцированное имя,
+которое должно будет в точности совпадать с именем обекта при его последующем создании.</p>
+<p>Для предварительного объявления используется точто такой же синтаксис, как и при реальном <a href="/ru/docs/ops/create/">создании</a> объекта,
+только с права от операторо создания должно быть указано многоточие.</p>
+<p>Область видимости предварительное объявения соответствует области видимости его размещенея,
+а не реальвой области видимости объекта (это касается даже глобальных объектов).</p>
+<div class="highlight"><pre tabindex="0" style="background-color:#f8f8f8;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-python" data-lang="python"><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    <span style="color:#8f5902;font-style:italic"># Предварительное определение переменной модуля</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#8f5902;font-style:italic"># Действует для всего модуля</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#000">var_module</span><span style="color:#000;font-weight:bold">:</span><span style="color:#000">Int32</span> <span style="color:#ce5c00;font-weight:bold">:=</span> <span style="color:#ce5c00;font-weight:bold">...</span><span style="color:#000;font-weight:bold">;</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    <span style="color:#000">func</span><span style="color:#000;font-weight:bold">()</span> <span style="color:#000;font-weight:bold">:</span><span style="color:#ce5c00;font-weight:bold">:=</span> <span style="color:#000;font-weight:bold">{</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>        <span style="color:#8f5902;font-style:italic"># Предварительное объявление с помощью DSL</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#8f5902;font-style:italic"># (действует только внутри тела функции)</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#5c35cc;font-weight:bold">@declare</span><span style="color:#000;font-weight:bold">(</span> <span style="color:#000">func2</span><span style="color:#000;font-weight:bold">(</span><span style="color:#000">arg</span><span style="color:#000;font-weight:bold">:</span><span style="color:#000">Int32</span><span style="color:#000;font-weight:bold">):</span><span style="color:#000">Int32</span> <span style="color:#000;font-weight:bold">);</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>        <span style="color:#000">var_module</span> <span style="color:#ce5c00;font-weight:bold">=</span> <span style="color:#000">func2</span><span style="color:#000;font-weight:bold">(</span><span style="color:#000">var_module</span><span style="color:#000;font-weight:bold">);</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#5c35cc;font-weight:bold">@return</span> <span style="color:#000">var_module</span><span style="color:#000;font-weight:bold">;</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#000;font-weight:bold">};</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    <span style="color:#000">func2</span><span style="color:#000;font-weight:bold">(</span><span style="color:#000">arg</span><span style="color:#000;font-weight:bold">:</span><span style="color:#000">Int32</span><span style="color:#000;font-weight:bold">):</span><span style="color:#000">Int32</span> <span style="color:#000;font-weight:bold">:</span><span style="color:#ce5c00;font-weight:bold">:=</span> <span style="color:#000;font-weight:bold">{</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#5c35cc;font-weight:bold">@return</span> <span style="color:#a40000">$</span><span style="color:#000">arg</span><span style="color:#ce5c00;font-weight:bold">*</span><span style="color:#a40000">$</span><span style="color:#000">arg</span><span style="color:#000;font-weight:bold">;</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#000;font-weight:bold">}</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    <span style="color:#000">var_module</span><span style="color:#000;font-weight:bold">:</span><span style="color:#000">Int32</span> <span style="color:#ce5c00;font-weight:bold">:=</span> <span style="color:#0000cf;font-weight:bold">1</span><span style="color:#000;font-weight:bold">;</span>
+</span></span></code></pre></div><h3 id="args">Имена аргументов, специальные, системные имена<a class="td-heading-self-link" href="#args" aria-label="Heading self-link"></a></h3>
+<p>Обозначение имен аргументов у функций очень похоже на обращение к аргументы в bash скриптах,
+где &ldquo;<strong>$1</strong>&rdquo; или &ldquo;<strong>$name</strong>&rdquo; — порядковый номер или имя соответствующего аргумента.</p>
+<p>Зарезервированное имя &ldquo;<strong>$0</strong>&rdquo; обозначает текущий объект, а именем &ldquo;<strong>$$</strong>&rdquo; обозначается родительский объект.</p>
+<p>Все аргументы функции собранны в одном словаре со специальным имеенм <strong>$*</strong></p>
+<p>Неизменяемая переменная &ldquo;<strong>$^</strong>&rdquo; содержит результат выполнения последнего оператора или блока кода.</p>
+<p>Полное имя текущего модуля содержится в переменной <strong>@\\</strong>, а текущая область имен в переменной <strong>@::</strong>, т.е.:</p>
+<div class="highlight"><pre tabindex="0" style="background-color:#f8f8f8;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span><span style="color:#8f5902;font-style:italic"># Имя файла filename.src в каталоге dir</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>ns:: <span style="color:#ce5c00;font-weight:bold">{</span> <span style="color:#8f5902;font-style:italic"># Использовать пространство имен ns</span>
+</span></span><span style="display:flex;"><span>    name:: <span style="color:#ce5c00;font-weight:bold">{</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#8f5902;font-style:italic"># Команда препроцессора &#34;@#&#34; - преобразовать в символьную строку</span>
+</span></span><span style="display:flex;"><span>        ns_str :<span style="color:#ce5c00;font-weight:bold">=</span>  @#  @::<span style="color:#000;font-weight:bold">;</span> <span style="color:#8f5902;font-style:italic"># Строка с областью имен &#34;::ns::name::&#34;</span>
+</span></span><span style="display:flex;"><span>        mod_str :<span style="color:#ce5c00;font-weight:bold">=</span>  @#  @<span style="color:#4e9a06">\\</span><span style="color:#000;font-weight:bold">;</span> <span style="color:#8f5902;font-style:italic"># Строка с именем модуля &#34;\\dir\filename&#34;</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#ce5c00;font-weight:bold">}</span><span style="color:#000;font-weight:bold">;</span>
+</span></span><span style="display:flex;"><span><span style="color:#ce5c00;font-weight:bold">}</span><span style="color:#000;font-weight:bold">;</span>
+</span></span></code></pre></div><h3 id="области-видимости">Области видимости<a class="td-heading-self-link" href="#%d0%be%d0%b1%d0%bb%d0%b0%d1%81%d1%82%d0%b8-%d0%b2%d0%b8%d0%b4%d0%b8%d0%bc%d0%be%d1%81%d1%82%d0%b8" aria-label="Heading self-link"></a></h3>
+<p>Символ подчерка, а так же подчерк в начале имени или двойные подчерки в начале и в конце имени имеют специальное значение.</p>
+<p>Один подчерк соответствует защищенной, а два подчерка - приватной области видимости объекта в модуле или классе,
+что соответствует принятым соглашениям в языке Python.</p>
+<p>Но так же, как и в языке Python, области видимости больше соответствуют &ldquo;джентльменской&rdquo; договоренности и при явном указании имени,
+доступ к защищенным объектам можно получить, просто указав полное имя объекта.</p>
+<p>В дополнении к этому, существуют еще системные поля и объекты, которые начинаются и заканчиваются на два подчерка.</p>
+<ul>
+<li>&lsquo;<strong>$</strong>&rsquo; — знак доллара в начале имени обозначает системное (локальное) имя временной переменной,
+область памяти для которой выделяется во время выполнения, а время <a href="/ru/docs/syntax/memory/">жизни ограничено семантикой яызка</a></li>
+<li>&lsquo;<strong>::</strong>&rsquo; — двойное двоеточие являются разделителем при указании <a href="/ru/docs/syntax/namespace/">пространства имен</a>.
+Явное указание пространства имен является признаком статического объекта, область памяти для которого выделяется во время компиляции приложения или модуля.</li>
+</ul>
+
+</div>
+
+
+
+    
+	
+  
+    
+    
+	
+    
+
+<div class="td-content" style="page-break-before: always">
+    
+	<h1 id="pg-7103b60f94e6f8172c82283ae1f5f9e1">2 - Пространства имен</h1>
+    
+	<p><em>NewLang</em> поддерживает пространства имен, разделителем в которых, как и в С++, выступает двойное двоеточие &ldquo;<strong>::</strong>&rdquo;.</p>
+<p>Область имен может быть указана как для отдельного индетификатора, так и для целого <a href="/ru/docs/ops/block/">блока кода</a>.</p>
+<p>В отличии от <em>namespace</em> в С++, области имен в <em>NewLnag</em> используются не только для организации кода в виде логических групп
+и с целью избежания конфликтов имен, но и для отнесения идентификатора, в котором явно указана область имен, к статическим объектам
+(память под которые выделяется на этапе комиляции программы).</p>
+<p>Глобальное имя не может быть перекрыто макросом или локальной переменной при <a href="/ru/docs/syntax/naming/">разрешении имен (name lookup)</a>.
+Создать глобальную (статическую) переменную в текущем пространстве имен можно указав переменную препроцессора <strong>@::</strong>.</p>
+<p>Для использования пространства имен в <a href="/ru/docs/ops/block/">блоке кода</a>, его нужно указать перед открывающейся фигурной скобкой.
+В таком именованном блоке кода завершающие &ldquo;<strong>::</strong>&rdquo; указывать не обязательно.</p>
+<div class="highlight"><pre tabindex="0" style="background-color:#f8f8f8;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>::var ::<span style="color:#ce5c00;font-weight:bold">=</span> 0<span style="color:#000;font-weight:bold">;</span> <span style="color:#8f5902;font-style:italic"># Имя глобальной переменной в явном виде (не может быть перекрыто) </span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>ns <span style="color:#ce5c00;font-weight:bold">{</span> <span style="color:#8f5902;font-style:italic"># Можно указать равнозначное ns::</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    var ::<span style="color:#ce5c00;font-weight:bold">=</span> 0<span style="color:#000;font-weight:bold">;</span> <span style="color:#8f5902;font-style:italic"># Имя ns::var (может быть перекрыто макросом или локальной переменной)</span>
+</span></span><span style="display:flex;"><span>    @::var ::<span style="color:#ce5c00;font-weight:bold">=</span> 0<span style="color:#000;font-weight:bold">;</span> <span style="color:#8f5902;font-style:italic"># Имя глобальной переменной ::ns::var (не может быть перекрыто) </span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    name:: <span style="color:#ce5c00;font-weight:bold">{</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#000">var</span> <span style="color:#ce5c00;font-weight:bold">=</span> 0<span style="color:#000;font-weight:bold">;</span> <span style="color:#8f5902;font-style:italic"># Обращение к переменной ns::var</span>
+</span></span><span style="display:flex;"><span>        var2 ::<span style="color:#ce5c00;font-weight:bold">=</span> 0<span style="color:#000;font-weight:bold">;</span> <span style="color:#8f5902;font-style:italic"># Имя переменной будет ns::name::var2</span>
+</span></span><span style="display:flex;"><span>        ::var <span style="color:#ce5c00;font-weight:bold">=</span> 1<span style="color:#000;font-weight:bold">;</span> <span style="color:#8f5902;font-style:italic"># Переменная из глобального пространства имен</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#ce5c00;font-weight:bold">}</span><span style="color:#000;font-weight:bold">;</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    :: <span style="color:#ce5c00;font-weight:bold">{</span> <span style="color:#8f5902;font-style:italic"># Глобальное пространство имен</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#000">var</span> <span style="color:#ce5c00;font-weight:bold">=</span> 1<span style="color:#000;font-weight:bold">;</span>  <span style="color:#8f5902;font-style:italic"># Имя глобальной переменной ::var (может быть перекрыто) </span>
+</span></span><span style="display:flex;"><span>        ::ns::var <span style="color:#ce5c00;font-weight:bold">=</span> 0<span style="color:#000;font-weight:bold">;</span> <span style="color:#8f5902;font-style:italic"># Имя другой глобальной переменной (не может быть перекрыто) </span>
+</span></span><span style="display:flex;"><span>    <span style="color:#ce5c00;font-weight:bold">}</span><span style="color:#000;font-weight:bold">;</span>
+</span></span><span style="display:flex;"><span><span style="color:#ce5c00;font-weight:bold">}</span><span style="color:#000;font-weight:bold">;</span>
+</span></span></code></pre></div><h2 id="пространство-имен-модули-и-пакеты">Пространство имен, модули и пакеты<a class="td-heading-self-link" href="#%d0%bf%d1%80%d0%be%d1%81%d1%82%d1%80%d0%b0%d0%bd%d1%81%d1%82%d0%b2%d0%be-%d0%b8%d0%bc%d0%b5%d0%bd-%d0%bc%d0%be%d0%b4%d1%83%d0%bb%d0%b8-%d0%b8-%d0%bf%d0%b0%d0%ba%d0%b5%d1%82%d1%8b" aria-label="Heading self-link"></a></h2>
+<p>Пространство имен в <em>NewLang</em> поддерживает одновременно с <a href="/ru/docs/syntax/modules/">модульной структурой кода</a> как в языках Java и Python
+и при указании полного имени объекта, программные модули и пространства имен можно объединять.</p>
+<p>Например, полное имя переменой можно записать с указанием программного модуля <code>\root\dir\module::ns::name::var</code>,
+где <strong>root</strong> и <strong>dir</strong> это каталоги в файловой системе относительно текущего модуля, а <strong>module</strong> — имя файла, т.е. <em>root/dir/module.nlp</em>.</p>
+<h2 id="пространство-имен-и-ооп">Пространство имен и ООП<a class="td-heading-self-link" href="#%d0%bf%d1%80%d0%be%d1%81%d1%82%d1%80%d0%b0%d0%bd%d1%81%d1%82%d0%b2%d0%be-%d0%b8%d0%bc%d0%b5%d0%bd-%d0%b8-%d0%be%d0%be%d0%bf" aria-label="Heading self-link"></a></h2>
+<p>В <em>NewLang</em> не применяется декорирование (манглинг) имен, основанный на типах аргументов функций.</p>
+<p>Тем не менее при создания уникальных идентификаторов для методов <a href="/ru/docs/types/class/">классов</a> <em>NewLang</em> использует подход, похожий на применяемый в языке Python.
+При создании <a href="/ru/docs/types/class/">метода класса</a> создается глобальная функция с именем класса и именем метода, объединенные через разделитель &ldquo;<strong>::</strong>&rdquo;.</p>
+<p>Например, для класса <code>:NewClass</code> при создании метода <code>method</code> будет создана функция с именем <code>NewClass::method</code>.</p>
+<p>Такая схема наименований методов полностью соответствует именованию функций в пространстве имен,
+и тем самым позволяет определять методы класса вне тела самого класса, просто указав нужное имя в пространстве имен или в явном виде.</p>
+<p>Пример создания метода класса <em>NewClass</em> в области имен:</p>
+<pre tabindex="0"><code>    NewClass::  {
+        method() := { };
+    }
+</code></pre><p>Пример создания метода класса <em>NewClass</em> с указанием полного имени:</p>
+<pre tabindex="0"><code>    NewClass::method() := { };
+</code></pre>
+</div>
+
+
+
+    
+	
+  
+    
+    
+	
+    
+
+<div class="td-content" style="page-break-before: always">
+    
+	<h1 id="pg-ebc0228877bb5abed843b18c065dff3e">3 - Модули и пакеты</h1>
+    
+	<p>В <em>NewLang</em> реализована концепция программных модулей и пакетов - которая повторяет идею иерархического расположения файлов
+в каталогах файловой системы, примерно так же, как это сделано в языке Python, но разделителем имен выступает не точка,
+а символ &ldquo;<strong>\</strong>&rdquo; (как разделитель каталогов в Windows).</p>
+<p><em>Имя модуля может содержать только строчные английские буквы или цифры.
+Данное ограничение связано с прямым отображением имен модулей на объекты в файловой системе,
+так как у разных файловых систем могут быть различные возможности с поддержкой кодировок
+и разные требования к преобразованию регистров символов.</em></p>
+<p>Под модулем в <em>NewLang</em> понимается <strong>файл</strong> исходным кодом (с расширением *.src).
+Модули предназначены для того, чтобы в них хранить часто используемые функции, классы, константы и т.п.
+Их можно условно разделить на модули и программы: программы предназначены для непосредственного запуска,
+а модули для импортирования их в другие программы, но функционально модули и программы ничем между собой не отличаются.</p>
+<h3 id="thread-local">Объекты модуля<a class="td-heading-self-link" href="#thread-local" aria-label="Heading self-link"></a></h3>
+<p>Все объекты, определенные внутри одного модуля без указания глобального простанства имен, видны только в рамках текущего файла.</p>
+<p>Время жизни статической и локальной переменных модуля одинаковые, и ограничены временм жизни самого модуля,
+но статическая и локальная переменные модуля отличаются с точки зрения многопоточности.</p>
+<p>Статическая переменная модуля всегда будет в единственном экземпляре для всех потоков,
+тогда как локальная переменная модуля будет для каждого потока своя (аналог <em>thread_local</em> (C++11)).</p>
+<h3 id="как-импортировать-модули">Как импортировать модули?<a class="td-heading-self-link" href="#%d0%ba%d0%b0%d0%ba-%d0%b8%d0%bc%d0%bf%d0%be%d1%80%d1%82%d0%b8%d1%80%d0%be%d0%b2%d0%b0%d1%82%d1%8c-%d0%bc%d0%be%d0%b4%d1%83%d0%bb%d0%b8" aria-label="Heading self-link"></a></h3>
+<p>Относительное имя программного модуля начинается на символ &ldquo;<strong>\</strong>&rdquo;,
+и в этом случае расположение файла программного модуля указывается относительно текущего файла.</p>
+<p>Абсолютное имя программного модуля начинается на два символа &ldquo;<strong>\\</strong>&rdquo;
+и указывает на файл модуля относительно каталога текущего исполняемого файла
+(или в списке каталогов для поиска программных модулей,
+который можно переопределить, например, с помощью аргументов командной строки).</p>
+<p>Полное имя текущего модуля (файла) содержится в переменной препроцессора &lsquo;<strong>@\\</strong>&rsquo;.</p>
+<p>Самый простой способ импортировать модуль, это записать его имя со скобками как при вызове функции.
+Причем в скобках можно передать аргументы для инициализации модуля, список импортируемых функций и т.д.</p>
+<p>Так как <em>NewLang</em> разрабатывается как компилируемый язык, то загрузка модулей возможна как статически, так и динамически
+(очень похоже на статическую и динамическую ликновку с dll библиотеками).</p>
+<ul>
+<li>\dir\module() - статическая загрузка модуля по относительному пути</li>
+<li>\\root\dir\module() - статическая загрузка модуля по абсолютному пути</li>
+<li>\\(<strong>&quot;<strong>каталог\файл</strong>&quot;</strong>) - динамическая загрузка модуля во время выполнения программы</li>
+</ul>
+<p>При динамической линковке, компиляция исходного кода модуля и все проверки будут выполнятся только во время выполнения приложения,
+тогда как статическая загрузка модуля позволяет выявить возможные ошибки еще на этапе компиляции программы.</p>
+<p><em>По умолчанию, при статической линковке модуля, импортируются все его макросы, функции и переменные модуля,
+<strong>тогда как при динамической загрузке моуля, макросы не импортируются</strong>.</em> ?????????????????????????????????????????????????????????????</p>
+<h3 id="package">Что такое пакет в <em>NewLang</em>?<a class="td-heading-self-link" href="#package" aria-label="Heading self-link"></a></h3>
+<p>Пакет в <em>NewLang</em> – это имя <strong>каталога</strong>, который включает в себя другие каталоги и модули и при этом содержит дополнительный файл __init__.src.</p>
+<p>Пакеты используются как дополнение к пространству имен, что позволяет работать с модулями через указание уровня вложенности (через символ <strong>\</strong>).
+Но в отличии от Python и Java, где модули и пакеты <em>заменяют</em> собой пространство имен (<a href="/ru/docs/syntax/namespace/">namespace</a>),
+в <em>NewLang</em> модульная структура и области имен используются одновременно и при указании полного имени объекта,
+программные модули и пространства имен можно объединять.</p>
+<p>Например, полное имя переменой можно записать с указанием программного модуля <code>\root\dir\module::ns::name::var</code>,
+где <strong>root</strong> и <strong>dir</strong> это каталоги в файловой системе относительно текущего моделя, а <strong>module</strong> — имя файла, т.е. <em>root/dir/module.src</em></p>
+<p>Для импортирования пакетов используется тот же синтаксис, что и для работы с модулями.</p>
+<h3 id="использование-пакетов">Использование пакетов<a class="td-heading-self-link" href="#%d0%b8%d1%81%d0%bf%d0%be%d0%bb%d1%8c%d0%b7%d0%be%d0%b2%d0%b0%d0%bd%d0%b8%d0%b5-%d0%bf%d0%b0%d0%ba%d0%b5%d1%82%d0%be%d0%b2" aria-label="Heading self-link"></a></h3>
+<p>Рассмотрим следующую структуру пакета:</p>
+<pre tabindex="0"><code>    fincalc
+    |-- __init__.src
+    |-- simper.src
+    |-- compper.src
+    |-- annuity.src
+</code></pre><p>Пакет <em>fincalc</em> содержит в себе модули для работы с простыми процентами (simper.src), сложными процентами (compper.src) и аннуитетами (annuity.src).
+Файл __init__.src в отличии от Python, не может быть пустым, а должен в явном виде содержать команды загрузки модулей, входящих в пакет</p>
+<p>Например для нашего случая содержимое __init__.src может быть вот таким:</p>
+<pre tabindex="0"><code>    \simper();
+    \compper();
+    \annuity();
+</code></pre><p>Для использования функции <em>fp</em> из модуля для работы с простыми процентами, можно использовать один из следующих вариантов
+(для сравнения приведен аналогичный код на Python, когда это возможно):</p>
+<h4 id="импорт-одного-модуля-без-указания-псевдонима">Импорт одного модуля без указания псевдонима:<a class="td-heading-self-link" href="#%d0%b8%d0%bc%d0%bf%d0%be%d1%80%d1%82-%d0%be%d0%b4%d0%bd%d0%be%d0%b3%d0%be-%d0%bc%d0%be%d0%b4%d1%83%d0%bb%d1%8f-%d0%b1%d0%b5%d0%b7-%d1%83%d0%ba%d0%b0%d0%b7%d0%b0%d0%bd%d0%b8%d1%8f-%d0%bf%d1%81%d0%b5%d0%b2%d0%b4%d0%be%d0%bd%d0%b8%d0%bc%d0%b0" aria-label="Heading self-link"></a></h4>
+<p>Python:</p>
+<div class="highlight"><pre tabindex="0" style="background-color:#f8f8f8;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-python" data-lang="python"><span style="display:flex;"><span>    <span style="color:#204a87;font-weight:bold">import</span> <span style="color:#000">fincalc.simper</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#000">fv</span> <span style="color:#ce5c00;font-weight:bold">=</span> <span style="color:#000">fincalc</span><span style="color:#ce5c00;font-weight:bold">.</span><span style="color:#000">simper</span><span style="color:#ce5c00;font-weight:bold">.</span><span style="color:#000">fv</span><span style="color:#000;font-weight:bold">(</span><span style="color:#000">pv</span><span style="color:#000;font-weight:bold">,</span> <span style="color:#000">i</span><span style="color:#000;font-weight:bold">,</span> <span style="color:#000">n</span><span style="color:#000;font-weight:bold">)</span>
+</span></span></code></pre></div><p>NewLang:</p>
+<pre tabindex="0"><code>    \fincalc\simper();
+    fv := \fincalc\simper::fv(pv, i, n);
+</code></pre><h4 id="с-указанием-псевдонима-имени-модуля">С указанием псевдонима имени модуля:<a class="td-heading-self-link" href="#%d1%81-%d1%83%d0%ba%d0%b0%d0%b7%d0%b0%d0%bd%d0%b8%d0%b5%d0%bc-%d0%bf%d1%81%d0%b5%d0%b2%d0%b4%d0%be%d0%bd%d0%b8%d0%bc%d0%b0-%d0%b8%d0%bc%d0%b5%d0%bd%d0%b8-%d0%bc%d0%be%d0%b4%d1%83%d0%bb%d1%8f" aria-label="Heading self-link"></a></h4>
+<p>Python:</p>
+<div class="highlight"><pre tabindex="0" style="background-color:#f8f8f8;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-python" data-lang="python"><span style="display:flex;"><span>    <span style="color:#204a87;font-weight:bold">import</span> <span style="color:#000">fincalc.simper</span> <span style="color:#204a87;font-weight:bold">as</span> <span style="color:#000">sp</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#000">fv</span> <span style="color:#ce5c00;font-weight:bold">=</span> <span style="color:#000">sp</span><span style="color:#ce5c00;font-weight:bold">.</span><span style="color:#000">fv</span><span style="color:#000;font-weight:bold">(</span><span style="color:#000">pv</span><span style="color:#000;font-weight:bold">,</span> <span style="color:#000">i</span><span style="color:#000;font-weight:bold">,</span> <span style="color:#000">n</span><span style="color:#000;font-weight:bold">)</span>
+</span></span></code></pre></div><p>NewLang:</p>
+<pre tabindex="0"><code>    sp := \fincalc\simper();
+    fv := sp.fv(pv, i, n);
+</code></pre><h4 id="импорт-одной-конкретной-функции">Импорт одной конкретной функции:<a class="td-heading-self-link" href="#%d0%b8%d0%bc%d0%bf%d0%be%d1%80%d1%82-%d0%be%d0%b4%d0%bd%d0%be%d0%b9-%d0%ba%d0%be%d0%bd%d0%ba%d1%80%d0%b5%d1%82%d0%bd%d0%be%d0%b9-%d1%84%d1%83%d0%bd%d0%ba%d1%86%d0%b8%d0%b8" aria-label="Heading self-link"></a></h4>
+<p>Python:</p>
+<div class="highlight"><pre tabindex="0" style="background-color:#f8f8f8;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-python" data-lang="python"><span style="display:flex;"><span>    <span style="color:#204a87;font-weight:bold">from</span> <span style="color:#000">fincalc</span> <span style="color:#204a87;font-weight:bold">import</span> <span style="color:#000">fv</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#000">result</span> <span style="color:#ce5c00;font-weight:bold">=</span> <span style="color:#000">fv</span><span style="color:#000;font-weight:bold">(</span><span style="color:#000">pv</span><span style="color:#000;font-weight:bold">,</span> <span style="color:#000">i</span><span style="color:#000;font-weight:bold">,</span> <span style="color:#000">n</span><span style="color:#000;font-weight:bold">)</span>
+</span></span></code></pre></div><p>NewLang:</p>
+<pre tabindex="0"><code>    \fincalc\simper(__import__=&#34;fv&#34;);
+    result := fv(pv, i, n);
+</code></pre><h4 id="импорт-всего-пакета">Импорт всего пакета:<a class="td-heading-self-link" href="#%d0%b8%d0%bc%d0%bf%d0%be%d1%80%d1%82-%d0%b2%d1%81%d0%b5%d0%b3%d0%be-%d0%bf%d0%b0%d0%ba%d0%b5%d1%82%d0%b0" aria-label="Heading self-link"></a></h4>
+<p>NewLang:</p>
+<pre tabindex="0"><code>    \fincalc();
+    result := fv(pv, i, n);
+</code></pre>
+</div>
+
+
+
+    
+	
+  
+    
+    
+	
+    
+
+<div class="td-content" style="page-break-before: always">
+    
+	<h1 id="pg-bf03637ca5c035c764a5caee70b93410">4 - Управление памятью, ссылки и совместный доступ</h1>
+    
+	<p><a href="https://habr.com/ru/companies/otus/articles/763810/">https://habr.com/ru/companies/otus/articles/763810/</a>
+<a href="https://habr.com/ru/articles/764420/">https://habr.com/ru/articles/764420/</a></p>
+<ul>
+<li>Последовательная согласованность отсутствует (отсутствуют атомарныти типы)</li>
+</ul>
+<p>Любой язык программирования так или иначе вынужден управлять оперативной памятью.
+В <em>NewLang</em> реализовано автоматическое управление памятью без сборщика мусора.</p>
+<p>За основу была взята модель &ldquo;владения&rdquo; из языка Rust, но она переработана под концепцию сильных
+и слабых указателей (аналоги <em>shared_ptr</em> и <em>weak_ptr</em> из С++),
+где каждое значение в памяти может иметь только одну переменную-владельца с <em>сильным</em> указателем.</p>
+<p>И когда такая переменная-владелец уходит из области видимости, счетчик ссылок уменьшается и при достжении нуля память освобождается.</p>
+<p>Фактически, это автоматическое управление памятью с помощью подсчёта ссылок на этапе компиляции и без использования сборщика мусора.</p>
+<p>Существование ссылок на объекты предполагает и возможность
+одновременного доступа к данным из нескольких потоков выполнения.
+Из-за чего управление памятью включает в себя и элементы межпотокового взаимодействия,
+так как совместное владение ссылками по любому будет требовать каких либо
+механизмов синхронизации доступа к разеделяемой памяти объектов.</p>
+<p>Поэтому, при определении объекта указывается, какие типы ссылок допускается создавать на него,
+а так-же какая используется модель совместного доступа к переменной.</p>
+<p>Весь механизм подсчета ссылок и проверки их корректности реализован на <strong>уровне синтаксиса</strong>.
+В рантайме выполняется только контроль идентификатора потока для однопоточных ссылок, а все остальные проверки выполняются во время компиляции.</p>
+<h2 id="управление-памятью-и-терминология">Управление памятью и терминология<a class="td-heading-self-link" href="#%d1%83%d0%bf%d1%80%d0%b0%d0%b2%d0%bb%d0%b5%d0%bd%d0%b8%d0%b5-%d0%bf%d0%b0%d0%bc%d1%8f%d1%82%d1%8c%d1%8e-%d0%b8-%d1%82%d0%b5%d1%80%d0%bc%d0%b8%d0%bd%d0%be%d0%bb%d0%be%d0%b3%d0%b8%d1%8f" aria-label="Heading self-link"></a></h2>
+<ul>
+<li>
+<p>Врчную выделить или освобондить память нельзя</p>
+</li>
+<li>
+<p>Любой объект - это ссылка на область памяти с данным. Память выделяется и освобожадется автоматически при создании/удалении объектов</p>
+</li>
+<li>
+<p>Ссылки на объекты, с точки зрения <em>владения</em>, могут быть:</p>
+<ul>
+<li><em>Сильные/Владеющие</em> ссылки (аналог <em>shared_ptr</em> из С++), а фактические, это переменная которая хранит значение объекта.</li>
+<li><em>Слабые/Не владеющие</em> ссылки (аналог <em>weak_ptr</em> из С++) - указатели на другим объекты которые
+перед использованием требуют обязательного захвата (т.е. преобразования в <em>сильную ссылку</em>).</li>
+</ul>
+</li>
+<li>
+<p>Ссылки на объекты, с точки зрения <em>совместного доступа</em>, могут быть:</p>
+<ul>
+<li><em>Легкие</em> - ссылки без объекта синхронизации</li>
+<li><em>Тяжелые</em> - ссылки с объектом синхронизации совметсного доступа (мьютексом).</li>
+</ul>
+</li>
+<li>
+<p>Переменные - владельцы объектов (в них хранятся ссылки) могут быть двух видов:</p>
+<ul>
+<li><strong><a href="https://en.wikipedia.org/wiki/Local_variable">локальные (контролируемые)</a></strong> -
+область жизни локальных переменных строго ограничена и определяется правилами синтаксиса языка (аргументы и локальные переменные функций, потоков и т.д.).</li>
+<li><strong>не контролируемые</strong> - глобальные или статические переменные, динамически создаваемые объекты, время жизни которых компилятор не контролирует.</li>
+</ul>
+</li>
+<li>
+<p>Когда локальная переменная удаляется - уменьшается счетчик ссылок, а при достижении нуля - объект освобождается.</p>
+</li>
+<li>
+<p>Каждый объект может иметь только одну <em>не контролируемую</em> переменную с <em>сильной</em> ссылкой
+и произвольное количество любых дргуих типов ссылок в <em>локальных (контролируемых)</em> переменных.</p>
+</li>
+<li>
+<p>Для <em>не контролируемых</em> переменных разрешается делать только <em>слабые</em> ссылки,
+которые перед использованием требуется захватить, например в <em>локальную (контролируемую)</em> переменную.</p>
+</li>
+<li>
+<p>Управление временем жизни объекта включает в себя не только управлением памятью,
+но и при необходимости, создаются механизмы синхронизации доступа к ней.
+Для этого при определении переменной, описываются возможные типы ссылок, которые разрешено на неё получать:</p>
+<ul>
+<li>без создания ссылок, т.е. компилятор не даст создать ссылку на данную переменную,
+а совместный доступ к такой переменой будет не возможен</li>
+<li>возможно создание <em>легкой</em> ссылки (&quot;<strong>&amp;</strong>&quot;).
+Компилятору при генерации машинного кода не нужно создавать объект синхронизации доступа к переменной.<br>
+<em>Ссылки для полей структур или объектов могут быть только <em>легкими</em>.</em></li>
+<li>разрешено создавать ссылки с монопольным доступом (&quot;<strong>&amp;&amp;</strong>&quot;).
+Компилятор автоматически создает не рекурсивный мьютекс для синхронизации доступа к переменной,
+т.е. ссылка у этой переменной будет <em>тяжелой</em>.</li>
+<li>разрешено создавать ссылки с рекурсивным доступом (&quot;<strong>&amp;*</strong>&quot;).
+Компилятор автоматически создает рекурсивный мьютекс (его можно захватывать несколько раз),
+а ссылка у этой переменной будет <em>тяжелой</em>.</li>
+<li><em>легкая</em> ссылка может быть создана для совместного доступа (&quot;<strong>&amp;?</strong>&quot;),
+но её захват и синхронизация доступа к ней возможен только при <a href="/ru/docs/ops/with/">групповом</a> захвате ссылок.</li>
+</ul>
+</li>
+<li>
+<p>Все виды ссылок могут быть константными (&quot;<strong>&amp;^</strong>&quot;, &ldquo;<strong>&amp;&amp;^</strong>&rdquo; или &ldquo;<strong>&amp;*^</strong>&rdquo;),
+т.е. только для чтения (и в случае константных объектов, таким ссылкам мьютекс не потребуется).</p>
+</li>
+<li>
+<p>Захват <em>слабой</em> ссылки может быть индивидуальным или <a href="/ru/docs/ops/with/">групповым</a>
+с сохранением результата в <em>локальную (контролируемую)</em> переменную.
+Такое использование логики захвата объекта на уровне синтаксиса языка гарантирует последующее
+автоматическое освобождение временной переменной, что равнозначно невозможности создания циклических ссылок.</p>
+</li>
+<li>
+<p>Переменная со <em>слабой/не владеющей</em> ссылкой создается только тогда, когда
+в правой части операции присвоения присутствует любой из операторов получения ссылки
+(<strong>&amp;</strong>, <strong>&amp;&amp;</strong>, <strong>&amp;*</strong> или <strong>&amp;^</strong>, <strong>&amp;&amp;^</strong>, <strong>&amp;*^</strong>).</p>
+</li>
+<li>
+<p>Во всех остальных случаях создается переменная владелец с сильной/владеющей ссылкой (если это разрешено).</p>
+</li>
+</ul>
+<h3 id="захват-ссылки-и-значение-переменной">Захват ссылки и значение переменной<a class="td-heading-self-link" href="#%d0%b7%d0%b0%d1%85%d0%b2%d0%b0%d1%82-%d1%81%d1%81%d1%8b%d0%bb%d0%ba%d0%b8-%d0%b8-%d0%b7%d0%bd%d0%b0%d1%87%d0%b5%d0%bd%d0%b8%d0%b5-%d0%bf%d0%b5%d1%80%d0%b5%d0%bc%d0%b5%d0%bd%d0%bd%d0%be%d0%b9" aria-label="Heading self-link"></a></h3>
+<ul>
+<li>Захват ссылки - это преобразование <em>слабой</em> ссылки в <em>сильную</em> с её сохранением в контролируемую переменую
+с инкрементом счетчика ссылок и возможностью доступа к значению объекта. Это очень похоже на заимствование (Borrowing) в Rust,
+так как тоже позволяет использовать данные, находящиеся во владении другой переменной, но без перехода владения.</li>
+</ul>
+<p>Для захвата ссылок используются операторы:</p>
+<ul>
+<li>&lsquo;<strong>*</strong>&rsquo; или &lsquo;<strong>*( &hellip; )</strong>&rsquo; - автоматический выбор типа доступа (чтения/запись или только чтение)</li>
+<li>&lsquo;<strong>*^</strong>&rsquo; или &lsquo;<strong>*^( &hellip; )</strong>&rsquo; - захват доступа только для чтения</li>
+<li>&lsquo;<strong>**( &hellip; )</strong>&rsquo; - <a href="/ru/docs/ops/with/">групповой</a> захват ссылок в <em>локальные (контролируемые)</em> переменные</li>
+<li><strong>()</strong> после имени переменной - создание копии значения переменной (глубокое клонирование) ???????????????????????????????????</li>
+</ul>
+<p>Упрощенный условный пример:</p>
+<div class="highlight"><pre tabindex="0" style="background-color:#f8f8f8;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-python" data-lang="python"><span style="display:flex;"><span>    <span style="color:#000">ref</span> <span style="color:#ce5c00;font-weight:bold">:=</span> <span style="color:#ce5c00;font-weight:bold">&amp;</span> <span style="color:#000">owner</span><span style="color:#000;font-weight:bold">;</span>  <span style="color:#8f5902;font-style:italic"># переменная ref - слабая ссылка на owner</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#000">ref_ro</span> <span style="color:#ce5c00;font-weight:bold">:=</span> <span style="color:#ce5c00;font-weight:bold">&amp;^</span> <span style="color:#000">owner</span><span style="color:#000;font-weight:bold">;</span>  <span style="color:#8f5902;font-style:italic"># слабая ссылка на owner только для чтения</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    <span style="color:#000">val</span> <span style="color:#ce5c00;font-weight:bold">:=</span> <span style="color:#ce5c00;font-weight:bold">*</span> <span style="color:#000">ref</span><span style="color:#000;font-weight:bold">;</span>  <span style="color:#8f5902;font-style:italic"># Автоматический захват только для чтения </span>
+</span></span><span style="display:flex;"><span>    <span style="color:#ce5c00;font-weight:bold">*</span><span style="color:#000">ref</span> <span style="color:#ce5c00;font-weight:bold">=</span> <span style="color:#000">val</span><span style="color:#000;font-weight:bold">;</span>    <span style="color:#8f5902;font-style:italic"># Автоматический захват для чтения/записи</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    <span style="color:#000">val</span> <span style="color:#ce5c00;font-weight:bold">:=</span> <span style="color:#ce5c00;font-weight:bold">*^</span> <span style="color:#000">ref</span><span style="color:#000;font-weight:bold">;</span> <span style="color:#8f5902;font-style:italic"># Захват только для чтения</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    <span style="color:#000">val</span> <span style="color:#ce5c00;font-weight:bold">:=</span> <span style="color:#ce5c00;font-weight:bold">*^</span> <span style="color:#000">ref_ro</span><span style="color:#000;font-weight:bold">;</span> 
+</span></span><span style="display:flex;"><span>    <span style="color:#000">val</span> <span style="color:#ce5c00;font-weight:bold">:=</span> <span style="color:#ce5c00;font-weight:bold">*</span> <span style="color:#000">ref_ro</span><span style="color:#000;font-weight:bold">;</span>  <span style="color:#8f5902;font-style:italic"># Автоматический захват только для чтения</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#ce5c00;font-weight:bold">*</span><span style="color:#000">ref_ro</span> <span style="color:#ce5c00;font-weight:bold">=</span> <span style="color:#000">val</span><span style="color:#000;font-weight:bold">;</span>    <span style="color:#8f5902;font-style:italic"># Ошибка - ссылка только для чтения !!!</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#ce5c00;font-weight:bold">*^</span> <span style="color:#000">ref_ro</span> <span style="color:#ce5c00;font-weight:bold">=</span> <span style="color:#000">val</span><span style="color:#000;font-weight:bold">;</span>  <span style="color:#8f5902;font-style:italic"># Ошибка - недопустима конструкция (захват lval - только для чтения)</span>
+</span></span></code></pre></div><ul>
+<li>Слабую ссылку можно захватить (превратить в сильную) сохранив результат в локальной переменной,
+после чего работать с локальной переменной &ldquo;по значению&rdquo;
+без необходимости захватытвать ссылку при каждом обращении к переменной.</li>
+<li>Значения переменных со слабыми ссылками можно копировать в другие переменные без ограничений.</li>
+<li>Значение переменной с сильной ссылкой нельзя скопировать в другую переменную или поле объекта,
+но можно клонировать данные или обменяться значениями &ldquo;<strong>:=:</strong>&rdquo; с другой переменной с сильной ссылкой (swap).</li>
+</ul>
+<p>Примеры владения:</p>
+<div class="highlight"><pre tabindex="0" style="background-color:#f8f8f8;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-python" data-lang="python"><span style="display:flex;"><span>    <span style="color:#000">owner</span> <span style="color:#ce5c00;font-weight:bold">:=</span> <span style="color:#4e9a06">&#34;string&#34;</span><span style="color:#000;font-weight:bold">;</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#000">other</span> <span style="color:#ce5c00;font-weight:bold">:=</span> <span style="color:#4e9a06">&#34;string 2&#34;</span><span style="color:#000;font-weight:bold">;</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    <span style="color:#000">owner</span> <span style="color:#ce5c00;font-weight:bold">=</span> <span style="color:#000">other</span><span style="color:#000;font-weight:bold">;</span> <span style="color:#8f5902;font-style:italic"># Ошибка - нельзя копировать!</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#000">owner</span> <span style="color:#ce5c00;font-weight:bold">=</span> <span style="color:#000">other</span><span style="color:#000;font-weight:bold">();</span> <span style="color:#8f5902;font-style:italic"># Глубокое клонирование данных</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#000">owner</span> <span style="color:#ce5c00;font-weight:bold">:=</span><span style="color:#000;font-weight:bold">:</span> <span style="color:#000">other</span><span style="color:#000;font-weight:bold">;</span> <span style="color:#8f5902;font-style:italic"># Обмен значениями (swap)</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#000">other</span> <span style="color:#ce5c00;font-weight:bold">=</span> <span style="color:#000">_</span><span style="color:#000;font-weight:bold">;</span> <span style="color:#8f5902;font-style:italic"># Очистка данных объекта</span>
+</span></span></code></pre></div><ul>
+<li>Переменную, содержащую ссылку на ссылку создать нельзя,
+но можно создать ссылочный тип и после этого создать переменную-ссылку на этот тип данных.</li>
+</ul>
+<p>Упрощенный условный пример:</p>
+<div class="highlight"><pre tabindex="0" style="background-color:#f8f8f8;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-python" data-lang="python"><span style="display:flex;"><span>    <span style="color:#000">value</span> <span style="color:#ce5c00;font-weight:bold">:=</span> <span style="color:#0000cf;font-weight:bold">123</span><span style="color:#000;font-weight:bold">;</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#000;font-weight:bold">:</span><span style="color:#000">RefInt</span> <span style="color:#ce5c00;font-weight:bold">:=</span> <span style="color:#ce5c00;font-weight:bold">&amp;</span> <span style="color:#000">Integer</span><span style="color:#000;font-weight:bold">;</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#000">ref_int</span> <span style="color:#000;font-weight:bold">:</span><span style="color:#000">RefInt</span> <span style="color:#ce5c00;font-weight:bold">:=</span> <span style="color:#ce5c00;font-weight:bold">&amp;</span> <span style="color:#000">value</span><span style="color:#000;font-weight:bold">;</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#000">ref_ref</span> <span style="color:#ce5c00;font-weight:bold">:=</span> <span style="color:#ce5c00;font-weight:bold">&amp;</span> <span style="color:#000">ref_int</span><span style="color:#000;font-weight:bold">;</span>
+</span></span><span style="display:flex;"><span>    
+</span></span></code></pre></div><ul>
+<li>Если переменная владелец разрешает создавать ссылки на объект, тогда при обращении к такой переменой
+требуется выполнять захват объекта для обеспечения работы механизма совместного доступа.</li>
+</ul>
+<h2 id="ссылки-и-совместный-доступ">Ссылки и совместный доступ<a class="td-heading-self-link" href="#%d1%81%d1%81%d1%8b%d0%bb%d0%ba%d0%b8-%d0%b8-%d1%81%d0%be%d0%b2%d0%bc%d0%b5%d1%81%d1%82%d0%bd%d1%8b%d0%b9-%d0%b4%d0%be%d1%81%d1%82%d1%83%d0%bf" aria-label="Heading self-link"></a></h2>
+<p>Управление временем жизни переменной включает в себя не только управление памятью,
+но и механизм синхронизации для монопольного/раздельного доступа к объектам из разных потоков.</p>
+<p>Примеры ссылок:</p>
+<div class="highlight"><pre tabindex="0" style="background-color:#f8f8f8;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-python" data-lang="python"><span style="display:flex;"><span>    <span style="color:#ce5c00;font-weight:bold">&amp;</span> <span style="color:#000">local</span> <span style="color:#ce5c00;font-weight:bold">:=</span> <span style="color:#0000cf;font-weight:bold">123</span><span style="color:#000;font-weight:bold">;</span>     <span style="color:#8f5902;font-style:italic"># Разрешено создание ссылок только в текущем потоке</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#ce5c00;font-weight:bold">&amp;&amp;</span> <span style="color:#000">thread</span> <span style="color:#ce5c00;font-weight:bold">:=</span> <span style="color:#0000cf;font-weight:bold">456</span><span style="color:#000;font-weight:bold">;</span>   <span style="color:#8f5902;font-style:italic"># Разрешено создание ссылок с монопольным доступом в любом потоке</span>
+</span></span><span style="display:flex;"><span>    
+</span></span><span style="display:flex;"><span>    <span style="color:#000">ref</span> <span style="color:#ce5c00;font-weight:bold">:=</span> <span style="color:#ce5c00;font-weight:bold">&amp;</span> <span style="color:#000">local</span><span style="color:#000;font-weight:bold">;</span>     <span style="color:#8f5902;font-style:italic"># Создание слабой ссылки на local</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#000">ref2</span> <span style="color:#ce5c00;font-weight:bold">:=</span> <span style="color:#ce5c00;font-weight:bold">&amp;&amp;</span> <span style="color:#000">local</span><span style="color:#000;font-weight:bold">;</span>   <span style="color:#8f5902;font-style:italic"># Ошибка! многопоточные ссылки не разрешены</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#000">ref_th</span> <span style="color:#ce5c00;font-weight:bold">:=</span> <span style="color:#ce5c00;font-weight:bold">&amp;&amp;</span> <span style="color:#000">thread</span><span style="color:#000;font-weight:bold">;</span>  <span style="color:#8f5902;font-style:italic"># Создание слабой ссылки на thread </span>
+</span></span><span style="display:flex;"><span>                          <span style="color:#8f5902;font-style:italic"># c монопольной блокировкой доступа</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    <span style="color:#000">local</span> <span style="color:#ce5c00;font-weight:bold">+=</span> <span style="color:#0000cf;font-weight:bold">1</span><span style="color:#000;font-weight:bold">;</span> <span style="color:#8f5902;font-style:italic"># ОК</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#000">thread</span>  <span style="color:#ce5c00;font-weight:bold">+=</span> <span style="color:#0000cf;font-weight:bold">1</span><span style="color:#000;font-weight:bold">;</span> <span style="color:#8f5902;font-style:italic"># Ошибка, требуется захват объекта с разеляемым доступом</span>
+</span></span><span style="display:flex;"><span>    
+</span></span><span style="display:flex;"><span>    <span style="color:#ce5c00;font-weight:bold">*</span><span style="color:#000">local</span> <span style="color:#ce5c00;font-weight:bold">+=</span> <span style="color:#0000cf;font-weight:bold">1</span><span style="color:#000;font-weight:bold">;</span> <span style="color:#8f5902;font-style:italic"># ОК, оператор захвата игнорируется</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#ce5c00;font-weight:bold">*</span><span style="color:#000">thread</span>  <span style="color:#ce5c00;font-weight:bold">+=</span> <span style="color:#0000cf;font-weight:bold">1</span><span style="color:#000;font-weight:bold">;</span> <span style="color:#8f5902;font-style:italic"># Захват объекта (как захват слабой ссылки)</span>
+</span></span><span style="display:flex;"><span>    
+</span></span><span style="display:flex;"><span>    <span style="color:#000">ref</span> <span style="color:#ce5c00;font-weight:bold">+=</span> <span style="color:#0000cf;font-weight:bold">1</span><span style="color:#000;font-weight:bold">;</span>   <span style="color:#8f5902;font-style:italic"># Ошибка, требуется захват слабой ссылки</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#000">ref_th</span> <span style="color:#ce5c00;font-weight:bold">+=</span> <span style="color:#0000cf;font-weight:bold">1</span><span style="color:#000;font-weight:bold">;</span>   <span style="color:#8f5902;font-style:italic"># Ошибка, требуется захват слабой ссылки</span>
+</span></span><span style="display:flex;"><span>    
+</span></span><span style="display:flex;"><span>    <span style="color:#ce5c00;font-weight:bold">*</span><span style="color:#000">ref</span> <span style="color:#ce5c00;font-weight:bold">+=</span> <span style="color:#0000cf;font-weight:bold">1</span><span style="color:#000;font-weight:bold">;</span>   
+</span></span><span style="display:flex;"><span>    <span style="color:#ce5c00;font-weight:bold">*</span><span style="color:#000">ref_th</span> <span style="color:#ce5c00;font-weight:bold">+=</span> <span style="color:#0000cf;font-weight:bold">1</span><span style="color:#000;font-weight:bold">;</span>
+</span></span></code></pre></div><p>Операторы захвата ссылки и синхронизации доступа к объекту выполняются только для одного действия над переменной.
+Но захват объекта синхронизации, это относительно медленная операция и выполнять её для каждого действия над переменной не рационально.</p>
+<p>Для того, чтобы однократно захватить объект(ы) синхронизации для выполнения сразу нескольких действий
+над переменными можно захватить объект в локальную переменую или использовать <a href="/ru/docs/ops/with/">менеджер контекста</a>.</p>
+<h3 id="пример-программы">Пример программы<a class="td-heading-self-link" href="#%d0%bf%d1%80%d0%b8%d0%bc%d0%b5%d1%80-%d0%bf%d1%80%d0%be%d0%b3%d1%80%d0%b0%d0%bc%d0%bc%d1%8b" aria-label="Heading self-link"></a></h3>
+<div class="highlight"><pre tabindex="0" style="background-color:#f8f8f8;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-python" data-lang="python"><span style="display:flex;"><span>    <span style="color:#000">rand</span><span style="color:#000;font-weight:bold">():</span><span style="color:#000">Int32</span> <span style="color:#000;font-weight:bold">:</span><span style="color:#ce5c00;font-weight:bold">:=</span> <span style="color:#ce5c00;font-weight:bold">%</span><span style="color:#000">rand</span><span style="color:#ce5c00;font-weight:bold">...</span><span style="color:#000;font-weight:bold">;</span> <span style="color:#8f5902;font-style:italic"># Создание объекта</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#ce5c00;font-weight:bold">@</span><span style="color:#000;font-weight:bold">(</span> <span style="color:#000">rand</span><span style="color:#000;font-weight:bold">():</span><span style="color:#000">Int32</span> <span style="color:#000;font-weight:bold">);</span> <span style="color:#8f5902;font-style:italic"># Предварительное объявление (объект должен быть создан в другом месте)</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#000">rand</span><span style="color:#000;font-weight:bold">():</span><span style="color:#000">Int32</span> <span style="color:#ce5c00;font-weight:bold">=</span> <span style="color:#ce5c00;font-weight:bold">...</span><span style="color:#000;font-weight:bold">;</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    <span style="color:#000">usleep</span><span style="color:#000;font-weight:bold">(</span><span style="color:#000">usec</span><span style="color:#000;font-weight:bold">:</span><span style="color:#000">DWord64</span><span style="color:#000;font-weight:bold">):</span><span style="color:#204a87;font-weight:bold">None</span> <span style="color:#ce5c00;font-weight:bold">:=</span> <span style="color:#ce5c00;font-weight:bold">%</span><span style="color:#000">usleep</span><span style="color:#ce5c00;font-weight:bold">...</span><span style="color:#000;font-weight:bold">;</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#000">printf</span><span style="color:#000;font-weight:bold">(</span><span style="color:#204a87">format</span><span style="color:#000;font-weight:bold">:</span><span style="color:#000">FmtChar</span><span style="color:#000;font-weight:bold">,</span> <span style="color:#ce5c00;font-weight:bold">...</span><span style="color:#000;font-weight:bold">):</span><span style="color:#000">Int32</span> <span style="color:#ce5c00;font-weight:bold">:=</span> <span style="color:#ce5c00;font-weight:bold">%</span><span style="color:#000">printf</span><span style="color:#ce5c00;font-weight:bold">...</span><span style="color:#000;font-weight:bold">;</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    <span style="color:#000">func</span><span style="color:#000;font-weight:bold">(</span><span style="color:#000">count</span><span style="color:#000;font-weight:bold">:</span><span style="color:#000">Integer</span><span style="color:#000;font-weight:bold">,</span> <span style="color:#000">target</span><span style="color:#000;font-weight:bold">:</span><span style="color:#000">String</span><span style="color:#000;font-weight:bold">)</span> <span style="color:#ce5c00;font-weight:bold">:=</span> <span style="color:#000;font-weight:bold">{</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#a40000">$</span><span style="color:#204a87">iter</span> <span style="color:#ce5c00;font-weight:bold">:=</span> <span style="color:#5c35cc;font-weight:bold">@iter</span><span style="color:#000;font-weight:bold">(</span> <span style="color:#0000cf;font-weight:bold">1.</span><span style="color:#ce5c00;font-weight:bold">.</span><span style="color:#a40000">$</span><span style="color:#000">count</span> <span style="color:#000;font-weight:bold">);</span> <span style="color:#8f5902;font-style:italic"># Итератор для диапазона от 1 до $count</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#5c35cc;font-weight:bold">@while</span><span style="color:#000;font-weight:bold">(</span> <span style="color:#5c35cc;font-weight:bold">@curr</span><span style="color:#000;font-weight:bold">(</span><span style="color:#a40000">$</span><span style="color:#204a87">iter</span><span style="color:#000;font-weight:bold">)</span> <span style="color:#000;font-weight:bold">)</span> <span style="color:#000;font-weight:bold">{</span>   <span style="color:#8f5902;font-style:italic"># Цикл, пока итератор валидный</span>
+</span></span><span style="display:flex;"><span>            
+</span></span><span style="display:flex;"><span>            <span style="color:#a40000">$</span><span style="color:#000">step</span> <span style="color:#ce5c00;font-weight:bold">:=</span> <span style="color:#5c35cc;font-weight:bold">@next</span><span style="color:#000;font-weight:bold">(</span><span style="color:#a40000">$</span><span style="color:#204a87">iter</span><span style="color:#000;font-weight:bold">);</span>  <span style="color:#8f5902;font-style:italic"># Получить текущий и перейти на следующий элемент итератора</span>
+</span></span><span style="display:flex;"><span>            
+</span></span><span style="display:flex;"><span>            <span style="color:#000">printf</span><span style="color:#000;font-weight:bold">(</span><span style="color:#4e9a06">&#39;Number </span><span style="color:#4e9a06">%d</span><span style="color:#4e9a06"> from </span><span style="color:#4e9a06">%s</span><span style="color:#4e9a06">!&#39;</span><span style="color:#000;font-weight:bold">,</span> <span style="color:#a40000">$</span><span style="color:#000">step</span><span style="color:#000;font-weight:bold">,</span> <span style="color:#a40000">$</span><span style="color:#000">target</span><span style="color:#000;font-weight:bold">);</span>
+</span></span><span style="display:flex;"><span>                
+</span></span><span style="display:flex;"><span>            <span style="color:#000">usleep</span><span style="color:#000;font-weight:bold">(</span> <span style="color:#000">rand</span><span style="color:#000;font-weight:bold">()</span> <span style="color:#ce5c00;font-weight:bold">%</span> <span style="color:#0000cf;font-weight:bold">1000</span> <span style="color:#000;font-weight:bold">);</span>    <span style="color:#8f5902;font-style:italic"># Случайная задержка</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#000;font-weight:bold">}</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#000;font-weight:bold">}</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    <span style="color:#000">thread</span> <span style="color:#ce5c00;font-weight:bold">=</span> <span style="color:#000;font-weight:bold">:</span><span style="color:#000">Thread</span><span style="color:#000;font-weight:bold">(</span><span style="color:#000">func</span><span style="color:#000;font-weight:bold">,</span> <span style="color:#0000cf;font-weight:bold">5</span><span style="color:#000;font-weight:bold">,</span> <span style="color:#4e9a06">&#39;thread&#39;</span><span style="color:#000;font-weight:bold">);</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    <span style="color:#000">thread</span><span style="color:#ce5c00;font-weight:bold">.</span><span style="color:#000">start</span><span style="color:#000;font-weight:bold">();</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    <span style="color:#000">func</span><span style="color:#000;font-weight:bold">(</span><span style="color:#0000cf;font-weight:bold">5</span><span style="color:#000;font-weight:bold">,</span> <span style="color:#4e9a06">&#39;main&#39;</span><span style="color:#000;font-weight:bold">);</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    <span style="color:#000">thread</span><span style="color:#ce5c00;font-weight:bold">.</span><span style="color:#000">join</span><span style="color:#000;font-weight:bold">();</span>
+</span></span></code></pre></div><pre tabindex="0"><code class="language-pyton" data-lang="pyton">    Number 1 from the thread!
+    Number 1 from the main!
+    Number 2 from the thread!
+    Number 2 from the main!
+    Number 3 from the thread!
+    Number 4 from the thread!
+    Number 3 from the main!
+    Number 4 from the main!
+    Number 5 from the main!
+    Number 5 from the thread!
+</code></pre><p>Примеры ссылок:</p>
+<div class="highlight"><pre tabindex="0" style="background-color:#f8f8f8;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-python" data-lang="python"><span style="display:flex;"><span>    <span style="color:#ce5c00;font-weight:bold">&amp;</span> <span style="color:#a40000">$</span><span style="color:#000">local</span> <span style="color:#ce5c00;font-weight:bold">:=</span> <span style="color:#0000cf;font-weight:bold">123</span><span style="color:#000;font-weight:bold">;</span>     <span style="color:#8f5902;font-style:italic"># Разрешено получение легких ссылок</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#ce5c00;font-weight:bold">&amp;&amp;</span> <span style="color:#a40000">$</span><span style="color:#000">thread</span> <span style="color:#ce5c00;font-weight:bold">:=</span> <span style="color:#0000cf;font-weight:bold">456</span><span style="color:#000;font-weight:bold">;</span>   <span style="color:#8f5902;font-style:italic"># Доступ к переменной требует захвата тяжелой ссылки</span>
+</span></span><span style="display:flex;"><span>    
+</span></span><span style="display:flex;"><span>    <span style="color:#a40000">$</span><span style="color:#000">ref</span> <span style="color:#ce5c00;font-weight:bold">:=</span> <span style="color:#ce5c00;font-weight:bold">&amp;</span> <span style="color:#a40000">$</span><span style="color:#000">local</span><span style="color:#000;font-weight:bold">;</span>     <span style="color:#8f5902;font-style:italic"># получение слабой ссылки на local</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#a40000">$</span><span style="color:#000">ref2</span> <span style="color:#ce5c00;font-weight:bold">:=</span> <span style="color:#ce5c00;font-weight:bold">&amp;&amp;</span> <span style="color:#a40000">$</span><span style="color:#000">local</span><span style="color:#000;font-weight:bold">;</span>   <span style="color:#8f5902;font-style:italic"># Ошибка! Тяжелой многопоточные ссылки не разрешены</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#a40000">$</span><span style="color:#000">ref_th</span> <span style="color:#ce5c00;font-weight:bold">:=</span> <span style="color:#ce5c00;font-weight:bold">&amp;&amp;</span> <span style="color:#a40000">$</span><span style="color:#000">thread</span><span style="color:#000;font-weight:bold">;</span>  <span style="color:#8f5902;font-style:italic"># Получение слабой ссылки на thread </span>
+</span></span><span style="display:flex;"><span>                            <span style="color:#8f5902;font-style:italic"># c монопольной блокировкой доступа</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    <span style="color:#a40000">$</span><span style="color:#000">local</span> <span style="color:#ce5c00;font-weight:bold">+=</span> <span style="color:#0000cf;font-weight:bold">1</span><span style="color:#000;font-weight:bold">;</span> <span style="color:#8f5902;font-style:italic"># ОК (для легких ссылок блокировка объекта не требуется)</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#a40000">$</span><span style="color:#000">thread</span>  <span style="color:#ce5c00;font-weight:bold">+=</span> <span style="color:#0000cf;font-weight:bold">1</span><span style="color:#000;font-weight:bold">;</span> <span style="color:#8f5902;font-style:italic"># ОК (захват объекта происходит автоматически)</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    <span style="color:#a40000">$</span><span style="color:#000">ref</span> <span style="color:#ce5c00;font-weight:bold">+=</span> <span style="color:#0000cf;font-weight:bold">1</span><span style="color:#000;font-weight:bold">;</span>   <span style="color:#8f5902;font-style:italic"># Ошибка, требуется захват легкой слабой ссылки</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#a40000">$</span><span style="color:#000">ref_th</span> <span style="color:#ce5c00;font-weight:bold">+=</span> <span style="color:#0000cf;font-weight:bold">1</span><span style="color:#000;font-weight:bold">;</span>   <span style="color:#8f5902;font-style:italic"># Ошибка, требуется захват тяжолой слабой ссылки</span>
+</span></span><span style="display:flex;"><span>    
+</span></span><span style="display:flex;"><span>    <span style="color:#ce5c00;font-weight:bold">*</span><span style="color:#a40000">$</span><span style="color:#000">local</span> <span style="color:#ce5c00;font-weight:bold">+=</span> <span style="color:#0000cf;font-weight:bold">1</span><span style="color:#000;font-weight:bold">;</span> <span style="color:#8f5902;font-style:italic"># ОК</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#ce5c00;font-weight:bold">*</span><span style="color:#a40000">$</span><span style="color:#000">thread</span>  <span style="color:#ce5c00;font-weight:bold">+=</span> <span style="color:#0000cf;font-weight:bold">1</span><span style="color:#000;font-weight:bold">;</span> <span style="color:#8f5902;font-style:italic"># ОК</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#ce5c00;font-weight:bold">*</span><span style="color:#a40000">$</span><span style="color:#000">ref</span> <span style="color:#ce5c00;font-weight:bold">+=</span> <span style="color:#0000cf;font-weight:bold">1</span><span style="color:#000;font-weight:bold">;</span>   <span style="color:#8f5902;font-style:italic"># ОК (только захват ссылки, блокировка игнорируется)</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#ce5c00;font-weight:bold">*</span><span style="color:#a40000">$</span><span style="color:#000">ref_th</span> <span style="color:#ce5c00;font-weight:bold">+=</span> <span style="color:#0000cf;font-weight:bold">1</span><span style="color:#000;font-weight:bold">;</span>   <span style="color:#8f5902;font-style:italic"># ОК (захват ссылки и блокироваки доступа)</span>
+</span></span></code></pre></div><h2 id="менеджер-контекста">Менеджер контекста<a class="td-heading-self-link" href="#%d0%bc%d0%b5%d0%bd%d0%b5%d0%b4%d0%b6%d0%b5%d1%80-%d0%ba%d0%be%d0%bd%d1%82%d0%b5%d0%ba%d1%81%d1%82%d0%b0" aria-label="Heading self-link"></a></h2>
+<p>Операторы захвата ссылки и синхронизации доступа к объекту выполняются только для одного действия над переменной.
+Но захват объекта синхронизации, это относительно медленная операция и выполнять её для каждого действия над переменной не рационально.</p>
+<p>Для того, чтобы однократно захватить объект(ы) синхронизации для выполнения сразу нескольких действий
+над переменными используется <a href="/ru/docs/ops/with/">менеджер контекста</a>.</p>
+
+</div>
+
+
+
+    
+	
+  
+    
+    
+	
+    
+
+<div class="td-content" style="page-break-before: always">
+    
+	<h1 id="pg-66431dc9242fce562d24bb69bdc576f3">5 - Макросы</h1>
+    
+	<p>Макросы в <strong>NewLang</strong>, это один или несколько последовательных терминов, которые заменяются на другой термин
+или на целую синтаксическую конструкцию (последовательность лексем).</p>
+<p>Макросы обработываются во время работы <strong>лексера</strong>, т.е. перед передачей последовательности лексем в парсер,
+что позволяет с помощью маросов изменять фрагменты синтаксиса языка, например, при реализации собственных диалектов DSL.</p>
+<h3 id="определение-макросов">Определение макросов<a class="td-heading-self-link" href="#%d0%be%d0%bf%d1%80%d0%b5%d0%b4%d0%b5%d0%bb%d0%b5%d0%bd%d0%b8%d0%b5-%d0%bc%d0%b0%d0%ba%d1%80%d0%be%d1%81%d0%be%d0%b2" aria-label="Heading self-link"></a></h3>
+<p>Определение макросов аналогично <a href="/ru/docs/ops/create/">определению</a> других объектов и состоит из трех частей
+<strong>&lt;имя макроса&gt; &lt;оператор создания/присвоения&gt; &lt;тело макроса&gt;</strong> и завершающая точка с запятой &ldquo;<strong>;</strong>&rdquo;,
+т.е. применяются обычные операторы <strong>::=</strong>(<strong>::-</strong>), <strong>=</strong> или <strong>:=</strong>(<strong>:-</strong>) для создания нового или переопределения уже существующего объекта,
+а имя макроса указывается между двумя символами <strong>&quot;@@&quot;</strong> и может содержать одну или нескольких лексем (терминов).</p>
+<p>Все макросы относятся к глобальному пространству имен, поэтому первый термин в имени макроса должен быть уникальным,
+иначе он будет прекрывать локальные и глобальные переменные при <a href="/ru/docs/syntax/naming/">разрешении имен</a>,
+если они записаны в тексте программы без <a href="/ru/docs/syntax/naming/#sigil">квалификаторов (сигилов)</a>.</p>
+<p>С помощью операторов <strong>::-</strong> и <strong>:-</strong> создаются чистые (гигиеничные) макросы, аргументы и переменные в которых гарантированно не пересекаются с пространством имен программы.</p>
+<p>Телом макроса могут быть корректное выражение языка, последовательность лексем (которые заключается в двойные собачки <strong>&quot;@@&quot;</strong>,
+т.е. <strong><code>@@ лексема1 лексема1 @@</code></strong>) или обычная текстовая строка (которую нужно указать между тройными собачками <strong>&quot;@@@&quot;</strong>, т.е. <strong><code>@@@ текстовая строка @@@</code></strong>).</p>
+<p>В имени макроса после первого термина могут присутствовать один или несколько шаблонов.
+<em>Шаблон</em> — это термин, который при сопоставлении последовательности лексем с идентификатором макроса
+может заменяться любым другим одиночным термином (т.е. фактически это сопоставление по образцу/шаблону).</p>
+<p>Для создания термина-шаблона в начале его идентификатора нужно поставить знак доллара (что соответствует квалификатору локальной переменой),
+т.е. имя макроса <code>@@ FUNC $name @@</code> будет соответствовать последовательности лексем как <code>FUNC my_func_name</code>, так и <code>FUNC other_name_func</code>.</p>
+<p>Для удаления макроса используется специальный синтаксис: <code>@@@@ name @@@@;</code> или <code>@@@@ два термина @@@@;</code>,
+т.е. необходимо указать идентификатор макроса между четырмя символами <strong>&quot;@@@@&quot;</strong>.</p>
+<div class="highlight"><pre tabindex="0" style="background-color:#f8f8f8;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>    <span style="color:#8f5902;font-style:italic"># Тело макроса из текстовой строки (как в препроцессоре С/С++)</span>
+</span></span><span style="display:flex;"><span>    @@macro_str@@ :<span style="color:#ce5c00;font-weight:bold">=</span> @@@ строка - тело макроса @@@<span style="color:#000;font-weight:bold">;</span> <span style="color:#8f5902;font-style:italic"># Строка для лексера</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    <span style="color:#8f5902;font-style:italic"># Удаления макроса @macro_str</span>
+</span></span><span style="display:flex;"><span>    @@@@ macro_str @@@@<span style="color:#000;font-weight:bold">;</span>
+</span></span></code></pre></div><h3 id="args">Аргументы макросов и их раскрытие<a class="td-heading-self-link" href="#args" aria-label="Heading self-link"></a></h3>
+<p>Макросы можно определять как с аргументами (параметрами в скобках), так и без них.
+Если макрос был определен с аргументами, то их проверка будет выполнятся макропроцессором при определении и раскрытии макроса.
+Если макрос был определен без аргументов, то их наличие макропроцессором игнорируется.</p>
+<p>Макропроцессор считает макросы с аргументами и без оных идентичными, то нельзя создать два макроса
+с одинаковыми именами, один из которых будет с аргументами (скобками), а другой без них.</p>
+<p>Поэтому, если требуется использовать макрос в двух разных вариантах (с аргументами и без оных),
+следует определять макрос без аргументов и в этом случае контроль параметров будет выполнятся компилятором.</p>
+<div class="highlight"><pre tabindex="0" style="background-color:#f8f8f8;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>    @@macro@@ :<span style="color:#ce5c00;font-weight:bold">=</span> term<span style="color:#000;font-weight:bold">;</span> <span style="color:#8f5902;font-style:italic"># Макрос без аргументов</span>
+</span></span><span style="display:flex;"><span>    
+</span></span><span style="display:flex;"><span>    macro<span style="color:#ce5c00;font-weight:bold">(</span>args<span style="color:#ce5c00;font-weight:bold">)</span><span style="color:#000;font-weight:bold">;</span> <span style="color:#8f5902;font-style:italic"># ОК -&gt; term(args);</span>
+</span></span><span style="display:flex;"><span>    macro<span style="color:#000;font-weight:bold">;</span> <span style="color:#8f5902;font-style:italic"># ОК -&gt; term;</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    <span style="color:#8f5902;font-style:italic"># Но </span>
+</span></span><span style="display:flex;"><span>    @@call<span style="color:#ce5c00;font-weight:bold">()</span>@@ :<span style="color:#ce5c00;font-weight:bold">=</span> term<span style="color:#ce5c00;font-weight:bold">()</span><span style="color:#000;font-weight:bold">;</span> 
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    call<span style="color:#ce5c00;font-weight:bold">()</span><span style="color:#000;font-weight:bold">;</span> <span style="color:#8f5902;font-style:italic"># ОК -&gt; term();</span>
+</span></span><span style="display:flex;"><span>    call<span style="color:#000;font-weight:bold">;</span> <span style="color:#8f5902;font-style:italic"># Ошибка (@call определен с аргументами) </span>
+</span></span></code></pre></div><p>Если при определении макроса указаны аргументы, то место для их вставки в теле макроса
+записывается как имя локальной переменой, перед которой добавлен символ <strong>&quot;@&quot;</strong>, т.е. <strong>@$arg</strong>.</p>
+<p>Место для вставки числа реально переданных аргументов отмечается лексемой <strong>&quot;@$#&quot;</strong>.
+Если требуется вставить переданные аргументы в виде словаря, то место для вставки отмечается лексемой <strong>&quot;@$*&quot;</strong>.</p>
+<p>Если макрос принимае произвольное количество аргументов (аргуметы макроса завершает многоточие),
+то место их вставки в тело макроса отмечается лексемой <strong>&quot;@$&hellip;&quot;</strong>.</p>
+<p>По аналогии с препроцессором С/С++, для соединения двух лексем в одну, в теле макроса используется оператор <strong>&quot;@##&quot;</strong>,
+а для преобразование лексемы в текстову строку применяется операторы <strong>@#</strong>, <strong>@#&quot;</strong> или <strong>@#&rsquo;</strong>, например,
+<code>@@macro($arg)@@ := @@ func_ @## @$arg( @#&quot; arg ) @;</code>, тогда вызов <code>macro(name);</code> будет преобразован в <code>func_name (&quot;name&quot;);</code></p>
+
+
+<div class="pageinfo pageinfo-primary">
+<h4 id="ограничения-макропроцессора-в-текущей-версии">Ограничения макропроцессора в текущей версии<a class="td-heading-self-link" href="#%d0%be%d0%b3%d1%80%d0%b0%d0%bd%d0%b8%d1%87%d0%b5%d0%bd%d0%b8%d1%8f-%d0%bc%d0%b0%d0%ba%d1%80%d0%be%d0%bf%d1%80%d0%be%d1%86%d0%b5%d1%81%d1%81%d0%be%d1%80%d0%b0-%d0%b2-%d1%82%d0%b5%d0%ba%d1%83%d1%89%d0%b5%d0%b9-%d0%b2%d0%b5%d1%80%d1%81%d0%b8%d0%b8" aria-label="Heading self-link"></a></h4>
+<p>На текущий момент макросы реализованы в минимальном объеме для самых простых сценариев использования:</p>
+<ul>
+<li>DSL для keyword based syntax (if, else, return, match, while  и т.д.) - (1 термин с произвольными аргументами и без) - требуется сейчас !!!</li>
+</ul>
+<p><em>Парсер при обработке макросов может анализировать информацию о типах данных, если она указана.</em>
+<em>Но на текущий момент типы данных в макросах никак не обрабатываются и это одна из обязательных фич, которая будет реализована в будущем.</em></p>
+<ul>
+<li>Определения (func, class) - (несколько терминов с аргументами и без аргументов) - Реализация ООП и импорт С++ классов</li>
+<li>Модификации при определениях (override) - (несколько терминов и шаблоны с аргументами и без аргументов) - Реализация ООП и импорт С++ классов</li>
+</ul>
+
+</div>
+
+<h1 id="макросы-без-аргументов-или-все-аргументы-сразу-">МАКРОСЫ БЕЗ АРГУМЕНТОВ ИЛИ ВСЕ АРГУМЕНТЫ СРАЗУ !!!!!<a class="td-heading-self-link" href="#%d0%bc%d0%b0%d0%ba%d1%80%d0%be%d1%81%d1%8b-%d0%b1%d0%b5%d0%b7-%d0%b0%d1%80%d0%b3%d1%83%d0%bc%d0%b5%d0%bd%d1%82%d0%be%d0%b2-%d0%b8%d0%bb%d0%b8-%d0%b2%d1%81%d0%b5-%d0%b0%d1%80%d0%b3%d1%83%d0%bc%d0%b5%d0%bd%d1%82%d1%8b-%d1%81%d1%80%d0%b0%d0%b7%d1%83-" aria-label="Heading self-link"></a></h1>
+<h1 id="анализа-аргументов-или-их-типов-не-производится-">анализа аргументов или их типов не производится !!!<a class="td-heading-self-link" href="#%d0%b0%d0%bd%d0%b0%d0%bb%d0%b8%d0%b7%d0%b0-%d0%b0%d1%80%d0%b3%d1%83%d0%bc%d0%b5%d0%bd%d1%82%d0%be%d0%b2-%d0%b8%d0%bb%d0%b8-%d0%b8%d1%85-%d1%82%d0%b8%d0%bf%d0%be%d0%b2-%d0%bd%d0%b5-%d0%bf%d1%80%d0%be%d0%b8%d0%b7%d0%b2%d0%be%d0%b4%d0%b8%d1%82%d1%81%d1%8f-" aria-label="Heading self-link"></a></h1>
+<p>Lambda
+@@ lambda $name(&hellip;) @@ ::= @@  @$name( @$&hellip; ) ::= ( _( @$&hellip; ) ::=  @<strong>PRAGMA_FINALIZE</strong>( @), {, {+, {-, {* ) @@</p>
+<h3 id="примеры-использования-макросов">Примеры использования макросов<a class="td-heading-self-link" href="#%d0%bf%d1%80%d0%b8%d0%bc%d0%b5%d1%80%d1%8b-%d0%b8%d1%81%d0%bf%d0%be%d0%bb%d1%8c%d0%b7%d0%be%d0%b2%d0%b0%d0%bd%d0%b8%d1%8f-%d0%bc%d0%b0%d0%ba%d1%80%d0%be%d1%81%d0%be%d0%b2" aria-label="Heading self-link"></a></h3>
+<div class="highlight"><pre tabindex="0" style="background-color:#f8f8f8;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>    <span style="color:#8f5902;font-style:italic"># Обычные макросы (тело макроса корректное выражение)</span>
+</span></span><span style="display:flex;"><span>    @@macro@@        :<span style="color:#ce5c00;font-weight:bold">=</span> replace<span style="color:#ce5c00;font-weight:bold">()</span><span style="color:#000;font-weight:bold">;</span>
+</span></span><span style="display:flex;"><span>    @@macro2<span style="color:#ce5c00;font-weight:bold">(</span>arg<span style="color:#ce5c00;font-weight:bold">)</span>@@  :<span style="color:#ce5c00;font-weight:bold">=</span> <span style="color:#ce5c00;font-weight:bold">{</span> call<span style="color:#ce5c00;font-weight:bold">(</span>@<span style="color:#000">$arg</span><span style="color:#ce5c00;font-weight:bold">)</span><span style="color:#000;font-weight:bold">;</span> call<span style="color:#ce5c00;font-weight:bold">()}</span><span style="color:#000;font-weight:bold">;</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    <span style="color:#8f5902;font-style:italic"># Тело макросов из последовательности лексем</span>
+</span></span><span style="display:flex;"><span>    @@if<span style="color:#ce5c00;font-weight:bold">(</span>...<span style="color:#ce5c00;font-weight:bold">)</span>@@    :<span style="color:#ce5c00;font-weight:bold">=</span> @@ <span style="color:#ce5c00;font-weight:bold">[</span> <span style="color:#4e9a06">\$</span><span style="color:#204a87;font-weight:bold">if</span><span style="color:#ce5c00;font-weight:bold">(</span>*<span style="color:#ce5c00;font-weight:bold">)</span> <span style="color:#ce5c00;font-weight:bold">]</span>--&gt; @@<span style="color:#000;font-weight:bold">;</span> <span style="color:#8f5902;font-style:italic"># Выражение может быть не полным</span>
+</span></span><span style="display:flex;"><span>    @@elif<span style="color:#ce5c00;font-weight:bold">(</span>...<span style="color:#ce5c00;font-weight:bold">)</span>@@  :<span style="color:#ce5c00;font-weight:bold">=</span> @@ ,<span style="color:#ce5c00;font-weight:bold">[</span> <span style="color:#4e9a06">\$</span><span style="color:#204a87;font-weight:bold">elif</span><span style="color:#ce5c00;font-weight:bold">(</span>*<span style="color:#ce5c00;font-weight:bold">)</span> <span style="color:#ce5c00;font-weight:bold">]</span>--&gt; @@<span style="color:#000;font-weight:bold">;</span>
+</span></span><span style="display:flex;"><span>    @@else@@       :<span style="color:#ce5c00;font-weight:bold">=</span> @@ ,<span style="color:#ce5c00;font-weight:bold">[</span>_<span style="color:#ce5c00;font-weight:bold">]</span>--&gt; @@<span style="color:#000;font-weight:bold">;</span>
+</span></span><span style="display:flex;"><span> 
+</span></span><span style="display:flex;"><span>    <span style="color:#8f5902;font-style:italic"># Запись условного оператора с использованием </span>
+</span></span><span style="display:flex;"><span>    <span style="color:#8f5902;font-style:italic"># определенных выше макросов</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#204a87;font-weight:bold">if</span><span style="color:#ce5c00;font-weight:bold">(</span> condition <span style="color:#ce5c00;font-weight:bold">){</span>
+</span></span><span style="display:flex;"><span>        ...
+</span></span><span style="display:flex;"><span>    <span style="color:#ce5c00;font-weight:bold">}</span> <span style="color:#204a87;font-weight:bold">elif</span><span style="color:#ce5c00;font-weight:bold">(</span> condition2 <span style="color:#ce5c00;font-weight:bold">)</span> <span style="color:#ce5c00;font-weight:bold">{</span>
+</span></span><span style="display:flex;"><span>        ...
+</span></span><span style="display:flex;"><span>    <span style="color:#ce5c00;font-weight:bold">}</span> <span style="color:#204a87;font-weight:bold">else</span> <span style="color:#ce5c00;font-weight:bold">{</span>
+</span></span><span style="display:flex;"><span>        ...
+</span></span><span style="display:flex;"><span>    <span style="color:#ce5c00;font-weight:bold">}</span><span style="color:#000;font-weight:bold">;</span>
+</span></span></code></pre></div><p>Зачем нужна трансформация синтаксиса?
+Нативная поддержка других языков нужна чтобы не переписывать легаси код на этих языках.</p>
+<p>Чтобы можно было использовать существующие исходники как собственные требуется настройка работы
+препроцессора и лексера под конкретный язык программирования (описание DSL).
+Для <strong>С/С++</strong> потребуется выделять лексером комментарии из-за пересечения синтаксиса (которые сейчас игнорируются).
+Для <strong>Python</strong> требуется выделять лексером отступы (которые сейчас тоже игнорируются), причем потребуется реализация не только синтаксиса,
+но и зависимых пакетов с последующая трансляцией этого кода в С++, что в настоящий момент делать не целесообразно (cython ???).</p>
+<p>Но так как возможность трансформации кода с других языков программирования принципиальная возможна,
+стоит над этим думать только после полноценного релиза NewLang и его перехода в прод.</p>
+<p>Для реализации DSL требуется передача команд в парсер для управления его работой (по аналогии с командой #pragma)
+Но так как обработка таких команд должна происходить в лексере до передачи данных в парсер (анализатор),
+то команды для макропроцессора должны быть в максимально простом виде и состоять из элементов,
+которые лексер может самостоятельно идентифицировать, т.е. термины, строки и цифры (без выражений и именованных аргументов).</p>
+<p>После обработки такой команды она анализируется макропроцессором и удаляется из потока лексем, т.е. в парсер (анализатор) не передается.
+Но в случае ошибки с синтаксисе, данные команды нужно уметь однозначно идентифировать и самый простой способ,
+комбинация признака макроса и системного имени, т.е. что-то вроде</p>
+<pre tabindex="0"><code>    @__PRAGMA_DIAG__(push)
+    @__PRAGMA_DIAG__(ignored, &#34;-Wundef&#34;)
+    @__PRAGMA_DIAG__(warning, &#34;-Wformat&#34;)
+    @__PRAGMA_DIAG__(error &#34;-Wuninitialized&#34;)
+    @__PRAGMA_DIAG__(pop)
+
+    #pragma message &#34;Compiling &#34; __FILE__ &#34;...&#34;
+    @__PRAGMA_MESSAGE__(&#34;Compiling &#34;, __FILE__, &#34;...&#34;)
+
+    #pragma error &#34;Error &#34; __FILE__ &#34;...&#34;
+    @__PRAGMA_ERROR__(&#34;Error &#34;, __FILE__, &#34;...&#34;)
+
+
+#define DO_PRAGMA(x) _Pragma (#x)
+#define TODO(x) DO_PRAGMA(message (&#34;TODO - &#34; #x))
+
+@@TODO( ... )@@ := @__PRAGMA_MESSAGE__(&#34;TODO - &#34;, @*)
+
+@TODO(Remember to fix this)  # note: TODO - Remember to fix this
+
+\\.__lexer__ignore_space__ = 1;
+\\.__lexer__ignore_indent__ = 1;
+\\.__lexer__ignore_comment__ = 1;
+\\.__lexer__ignore_crlf__ = 1;
+</code></pre><p>Таким образом можно трансформировать условный оператор на питоне в синтаксис NewLang следующим макросом:</p>
+<pre tabindex="0"><code>
+#pragma clang attribute push
+#pragma clang diagnostic ignored &#34;-Wundef&#34;
+#pragma clang diagnostic ignored &#34;-Wunused-variable&#34;
+
+
+#elif __GNUC__
+
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored &#34;-Wuninitialized&#34;
+
+#pragma GCC diagnostic ignored &#34;-Wall&#34;
+#pragma GCC diagnostic ignored &#34;-Wextra&#34;
+    
+    @pragma warning(pop)
+
+    @@ pragma warning(...) @@ := __PRAGMA_TERM_DIAG_WARNING__();
+@__PRAGMA_DIAG__(warning, pop);
+
+Обработка терминов в макропроцессоре в максимально простом виде. 
+Агрументы только термины, строки и цифры без вложенных выражений и именованных аргументов, 
+т.е. только элементы, которые может самостоятельно идентифицировать лексер.
+
+@warning(&#34;--&#34;)
+    @@ if ... : @@ := @@ [ @$* ]-&gt; __TERM_BLOCK_INDENT__(&#34;{&#34;, force_semicolon=1) @@
+    
+    if __name__ == &#34;__main__&#34;:
+        run1()
+        run2()
+
+    [ __name__ == &#34;__main__&#34; ]-&gt; {
+        run1();
+        run2();
+    };
+    
+        
+</code></pre><p>Ключ &ndash;parser-syntax-only только текстовый парсинг исходного кода без загрузки модулей, раскрытия макросов и проверки имен.</p>
+<p>Ключ &ndash;parser-no-macros - без раскрытия макросов
+Ключ &ndash;parser-no-module - без загрузки модулей (и мокросов, если они в них определяются)
+Ключ &ndash;parser-no-check-prototype - без проверки имен при обращении</p>
+<p>prototype
+@<strong>PRAGMA_PROTOTYPE</strong>(define)
+@<strong>PRAGMA_PROTOTYPE</strong>(implement)</p>
+<p>$$</p>
+<p>\$ - корень системы (система)</p>
+<p>$ - текущий модуль</p>
+<h1 id="макросы-для-конвертора-проверки-в-python">Макросы для конвертора проверки в Python<a class="td-heading-self-link" href="#%d0%bc%d0%b0%d0%ba%d1%80%d0%be%d1%81%d1%8b-%d0%b4%d0%bb%d1%8f-%d0%ba%d0%be%d0%bd%d0%b2%d0%b5%d1%80%d1%82%d0%be%d1%80%d0%b0-%d0%bf%d1%80%d0%be%d0%b2%d0%b5%d1%80%d0%ba%d0%b8-%d0%b2-python" aria-label="Heading self-link"></a></h1>
+<h1 id="if-__name__--__main__">if <strong>name</strong> == &ldquo;<strong>main</strong>&rdquo;:<a class="td-heading-self-link" href="#if-__name__--__main__" aria-label="Heading self-link"></a></h1>
+<p>@@ <strong>name</strong> @@ ::= @@   $. @<strong>PRAGMA_NO_MACRO</strong>() <strong>name</strong> @@
+@@ if $&hellip; @: @@ ::= @@ [ @$&hellip; ] &ndash;&gt;  @@</p>
+<p>@if( $.<strong>name</strong> == &ldquo;<strong>main</strong>&rdquo; ) {</p>
+<p>}</p>
+<p>\каталог\модуль() - статический импорт модуля
+\(&ldquo;каталог\модуль&rdquo;)() - динамический импорт модуля</p>
+<p>printf := :Pointer(&lsquo;printf(format:FmtChar, &hellip;):Int32&rsquo;);
+printf := %printf(format:FmtChar, &hellip;):Int32;</p>
+<h1 id="регистрация-прототипа-нативной-функции">Регистрация прототипа нативной функции<a class="td-heading-self-link" href="#%d1%80%d0%b5%d0%b3%d0%b8%d1%81%d1%82%d1%80%d0%b0%d1%86%d0%b8%d1%8f-%d0%bf%d1%80%d0%be%d1%82%d0%be%d1%82%d0%b8%d0%bf%d0%b0-%d0%bd%d0%b0%d1%82%d0%b8%d0%b2%d0%bd%d0%be%d0%b9-%d1%84%d1%83%d0%bd%d0%ba%d1%86%d0%b8%d0%b8" aria-label="Heading self-link"></a></h1>
+<p>@prototype
+%puts(format:StrChar):Int32;</p>
+<h1 id="импорт-нативной-функции-с-предварительной-проверкой-её-наличия-во-время-компиляции-статическая-линковка">Импорт нативной функции с предварительной проверкой её наличия во время компиляции (статическая линковка)<a class="td-heading-self-link" href="#%d0%b8%d0%bc%d0%bf%d0%be%d1%80%d1%82-%d0%bd%d0%b0%d1%82%d0%b8%d0%b2%d0%bd%d0%be%d0%b9-%d1%84%d1%83%d0%bd%d0%ba%d1%86%d0%b8%d0%b8-%d1%81-%d0%bf%d1%80%d0%b5%d0%b4%d0%b2%d0%b0%d1%80%d0%b8%d1%82%d0%b5%d0%bb%d1%8c%d0%bd%d0%be%d0%b9-%d0%bf%d1%80%d0%be%d0%b2%d0%b5%d1%80%d0%ba%d0%be%d0%b9-%d0%b5%d1%91-%d0%bd%d0%b0%d0%bb%d0%b8%d1%87%d0%b8%d1%8f-%d0%b2%d0%be-%d0%b2%d1%80%d0%b5%d0%bc%d1%8f-%d0%ba%d0%be%d0%bc%d0%bf%d0%b8%d0%bb%d1%8f%d1%86%d0%b8%d0%b8-%d1%81%d1%82%d0%b0%d1%82%d0%b8%d1%87%d0%b5%d1%81%d0%ba%d0%b0%d1%8f-%d0%bb%d0%b8%d0%bd%d0%ba%d0%be%d0%b2%d0%ba%d0%b0" aria-label="Heading self-link"></a></h1>
+<p>puts2(format:StrChar):Int32 := %puts(format:StrChar):Int32;</p>
+<h1 id="импорт-нативной-функции-по-её-прототипу-во-время-выполнения-динамическая-линковка">Импорт нативной функции по её прототипу во время выполнения (динамическая линковка)<a class="td-heading-self-link" href="#%d0%b8%d0%bc%d0%bf%d0%be%d1%80%d1%82-%d0%bd%d0%b0%d1%82%d0%b8%d0%b2%d0%bd%d0%be%d0%b9-%d1%84%d1%83%d0%bd%d0%ba%d1%86%d0%b8%d0%b8-%d0%bf%d0%be-%d0%b5%d1%91-%d0%bf%d1%80%d0%be%d1%82%d0%be%d1%82%d0%b8%d0%bf%d1%83-%d0%b2%d0%be-%d0%b2%d1%80%d0%b5%d0%bc%d1%8f-%d0%b2%d1%8b%d0%bf%d0%be%d0%bb%d0%bd%d0%b5%d0%bd%d0%b8%d1%8f-%d0%b4%d0%b8%d0%bd%d0%b0%d0%bc%d0%b8%d1%87%d0%b5%d1%81%d0%ba%d0%b0%d1%8f-%d0%bb%d0%b8%d0%bd%d0%ba%d0%be%d0%b2%d0%ba%d0%b0" aria-label="Heading self-link"></a></h1>
+<p>puts3(format:StrChar):Int32 := :Pointer(&lsquo;puts(format:StrChar):Int32&rsquo;);</p>
+<p>%puts(&lsquo;Тест вывода строки&rsquo;); # Линковка с нативной функцией во время компиляции и непосредственный вызов с оптимизацией передачи параметров
+puts2(&lsquo;Тест 2 вывода строки&rsquo;); # Линковка с нативной функцией во время компиляции
+puts3(&lsquo;Тест 3 вывода строки&rsquo;); # Линковка с нативной функцией во время выполнения при первом вызове puts3</p>
+<ul>
+<li>Парсинг исходного текста без раскрытия макросов и загрузки модулей</li>
+<li>Парсинг исходного текста с раскрытием макросов (требуется загрузка модулей для зависимых и переопределяемых макросов)</li>
+<li>Загружатся модули могут как в виде исходников (которые требуется парсить и компилировть/выполнять)
+или в виде бинарников (в них должны быть список макросов, типов и имена объектов)</li>
+<li>После парсинга получается список <strong>имен</strong> макросов, типов и объектов (TermPtr)</li>
+<li>После выполнения модуля - список <strong>имен</strong> заполняется реальными объектами (ObjPtr).</li>
+</ul>
+<h1 id="компиляция-файла">Компиляция файла<a class="td-heading-self-link" href="#%d0%ba%d0%be%d0%bc%d0%bf%d0%b8%d0%bb%d1%8f%d1%86%d0%b8%d1%8f-%d1%84%d0%b0%d0%b9%d0%bb%d0%b0" aria-label="Heading self-link"></a></h1>
+<ul>
+<li>Парсинг исходника для построения AST (без анализа имен, связей, загрузки модулей и пр. только исходые тексты с раскрытием макросов</li>
+<li></li>
+</ul>
+<h1 id="систематизация-реализации-макросов">Систематизация реализации макросов<a class="td-heading-self-link" href="#%d1%81%d0%b8%d1%81%d1%82%d0%b5%d0%bc%d0%b0%d1%82%d0%b8%d0%b7%d0%b0%d1%86%d0%b8%d1%8f-%d1%80%d0%b5%d0%b0%d0%bb%d0%b8%d0%b7%d0%b0%d1%86%d0%b8%d0%b8-%d0%bc%d0%b0%d0%ba%d1%80%d0%be%d1%81%d0%be%d0%b2" aria-label="Heading self-link"></a></h1>
+<p>последовательность лексем MACRO_SEQ мужду @@  @@ сохраняется в m_block, так как фрагменты блоков не могут быть идентификаторами</p>
+<p>Разбор макросов происходит в лексере. Определением макроса всегда является целая строка,
+которая заканчивается точкой с запятой, а идентификатором макроса всегда выступает последовательность лексем:</p>
+<div class="highlight"><pre tabindex="0" style="background-color:#f8f8f8;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>    @@ id @@ :<span style="color:#ce5c00;font-weight:bold">=</span> macro<span style="color:#000;font-weight:bold">;</span>
+</span></span><span style="display:flex;"><span>    @@ id @@ :<span style="color:#ce5c00;font-weight:bold">=</span> @@ @@<span style="color:#000;font-weight:bold">;</span>
+</span></span><span style="display:flex;"><span>    @@ id @@ :<span style="color:#ce5c00;font-weight:bold">=</span> @@@ @@@<span style="color:#000;font-weight:bold">;</span>
+</span></span></code></pre></div><p>Хранилищем текущих максросов является объект класса MacroBuffer.
+Последовательность лексем идентификатора (id) макроса должна сохраняется в отдельном поле термина и однозначно его идентифицирует.
+Первый термин в идентификаторе хранится как ключ hashmap, а дальше происходит поиск полным перебором.
+Этапы работы с макросами</p>
+<ul>
+<li>
+<p>Входные термины из лексера получаются вызовом GetNextToken, внутри которой и происходит раскрытие макросов.
+Внутренний буфер заполняется до окончания строки (выражения), т.е. до символа &lsquo;;&rsquo; или <END>, после чего производится
+поиск макросов в объекте MacroBuffer для текущей последовательности лексем в буфере.</p>
+</li>
+<li>
+<p>Если макрос найден, то соответствющая ему последоваетльность заменяется на тело макроса и происходит переход
+на повторный анализ входного буфера.</p>
+</li>
+<li>
+<p>Если макрос не найден, то данные передаются в парсер для дальнейшего синтаксическго анализа.</p>
+</li>
+<li>
+<p>Для этого во входном потоке лексем (parser.y) во время оператората создания/присвоения вызывается функция проверки на макрос.
+MacroBuffer::CheckMacroAndConvertDel($$), и после этого выходному значению присваивается результат выполнения driver.MacroEval($$),
+и в дальнейшем этот макрос никак не обработывается.</p>
+</li>
+<li>
+<p>Создание макросов, проверка на дубликаты и логические ошибки в определении происходит путем обращения к методам объекта MacroBuffer.</p>
+<p>/*</p>
+<ul>
+<li>Макросы хрянтся как фрагменты AST в виде объектов типа Term,</li>
+<li>так как создаются после обработки парсером по правилам стандратной грамматики.</li>
+<li></li>
+<li>Но анализ входных данных на предмет раскрытия макросов проиходит из потока (последовательности) лексем,</li>
+<li>т.е. <strong>ДО</strong> обработки парсером, так как при раскрытии макросов может меняться грамматика выражений.</li>
+<li></li>
+<li>Функция \ref CompareMacro сравнивает входной буфер (последовательность лексем)</li>
+<li>на предмет возможного соответствия одному конкретному макросу.</li>
+<li>Сравниваются только ключевые словам без учета аргументов в скобках,</li>
+<li>но само наличие аргументов проверяется ??????????????????</li>
+<li></li>
+<li>Проблема:</li>
+<li>К функции можно обратится с целью её вызова (указав после имени скобки),</li>
+<li>так и по имени без скобок (например для получения ссылки на объект).</li>
+<li>Так и к переменной можно обратиться только по имени,</li>
+<li>так и указав скобки после имени как к функции (при копировании объекта).</li>
+<li></li>
+<li>Сделать один макрос под оба сценария (со скобками и без скобок) не получится, так как непонятно,</li>
+<li>что делать с аргументами при раскрытии тела макроса, когда они не указаны.</li>
+<li></li>
+<li>Но может быть следует переименовывать только одно имя без учета скобок,</li>
+<li>например, оставив такую возможность только для одиночных макросов.</li>
+<li></li>
+<li>\name -&gt; name или name (&hellip;), hash: name</li>
+<li>но \name(&hellip;) -&gt; name(&hellip;), а name - ошибка !!!!  hash: name</li>
+<li></li>
+<li>Или все же следует различать макросы со скобками и без скобок как два разных объекта???</li>
+<li>\name := name2;  и \name(&hellip;) := name2(&hellip;); будут разными объектами</li>
+<li></li>
+<li>Или добавить макросы-алиасы без аргументов только для переименования отдельных терминов?</li>
+<li>\alias :- name2; но как их отличать от обычных макросов в операции удаления?</li>
+<li>Или вообще не нужно отличать и оставить только один варинат (либо макрос, либо алиас)</li>
+<li>Тода вопрос со скобками закрывается сам собой, алиасы всегда без скобок,</li>
+<li>макросы со скбками или без скобок, но должно быть полное соответствие.</li>
+<li></li>
+<li>@ name name2 @ -&gt; name name2, но name name2(&hellip;) - ошибка!!! (hash: name,name2)</li>
+<li>@ name name2(&hellip;) @ -&gt; name name2(&hellip;), но name name2 - ошибка !!!! (hash: name,name2)</li>
+<li>@ name name2<a href="...">&hellip;</a> @ -&gt; name name2<a href="...">&hellip;</a>, но name name2 - ошибка !!!!  ( hash: name,name2 )</li>
+<li>@ name $tmpl<a href="...">&hellip;</a> name3@ -&gt; name $tmpl<a href="...">&hellip;</a> name3, но name $tmpl name3 - ошибка !!!!  ( hash: name,$,name3 )</li>
+<li></li>
+<li>Но!</li>
+<li>@ name name2 @ ::-  -&gt; name name2 - ок, но name name2(&hellip;) - ок</li>
+<li>@ name $tmpl name3@ ::- -&gt; name $tmpl<a href="...">&hellip;</a> name3 - ок, name $tmpl(&hellip;) name3[&hellip;] - ок</li>
+<li></li>
+<li></li>
+<li></li>
+<li>Для последовательности лексем требуется полное соответствие с учетом скобок ???</li>
+<li>и может ли быть несколько скобок одного типа (несколько крыглях, или несколько квардратных????</li>
+<li>&lt;Может быть несколько скобок одного типа, например, при указании типа у аргументов или типа возвращаемого значения.&gt;</li>
+<li></li>
+<li>@ name name2 @ -&gt; name name2, но name name2(&hellip;) - ошибка!!! (hash: name,name2)</li>
+<li>@ name name2(&hellip;) @ -&gt; name name2(&hellip;), но name name2 - ошибка !!!! (hash: name,name2)</li>
+<li>@ name name2<a href="...">&hellip;</a> @ -&gt; name name2<a href="...">&hellip;</a>, но name name2 - ошибка !!!!  ( hash: name,name2 )</li>
+<li>@ name $tmpl<a href="...">&hellip;</a> name3@ -&gt; name $tmpl<a href="...">&hellip;</a> name3, но name $tmpl name3 - ошибка !!!!  ( hash: name,$,name3 )</li>
+<li></li>
+<li>Проблема скобок возникает из-за сценария замены одного термина на другой,</li>
+<li>который есть в препроцессоре С/С++, но отсутствует при реализации с использованием шаблонов.</li>
+<li></li>
+<li></li>
+</ul>
+<p>*/</p>
+</li>
+</ul>
+<p>Макросы используются и для превращеня исходного кода <em>NewLang</em> в более привычный синтаксис на основе <a href="https://newlang.net/syntax_dsl.html">ключевых слов</a>, так как такой тест гораздо легче воспринимается при последующем чтении исходного кода.</p>
+<p><a href="https://newlang.net/syntax_dsl.html">Например:</a>.</p>
+<pre tabindex="0"><code>    @@if(...)@@    ::= @@ [ \$* ]--&gt; @@;
+    @@while(...)@@ ::= @@ [\$*] &lt;-&gt; @@;
+    @@return $arg@@::=  @@ -- \$arg -- @@;
+    @@true@@ ::= 1;
+</code></pre><p>Тогда цикл до 5:</p>
+<pre tabindex="0"><code>count:=1;
+[ 1 ] &lt;-&gt; {
+    [count&gt;5] --&gt; {
+        -- 42 --;
+    };
+    count+=1;
+};
+</code></pre><p>будет выглядеть более привычно</p>
+<pre tabindex="0"><code>count:=1;
+while( true ) {
+    if(count&gt;5) {
+        return 42;
+    };
+    count+=1;
+};
+</code></pre><h2 id="идеи-на-будущее">Идеи на будущее<a class="td-heading-self-link" href="#%d0%b8%d0%b4%d0%b5%d0%b8-%d0%bd%d0%b0-%d0%b1%d1%83%d0%b4%d1%83%d1%89%d0%b5%d0%b5" aria-label="Heading self-link"></a></h2>
+<h3 id="символьное-программирование">Символьное программирование<a class="td-heading-self-link" href="#%d1%81%d0%b8%d0%bc%d0%b2%d0%be%d0%bb%d1%8c%d0%bd%d0%be%d0%b5-%d0%bf%d1%80%d0%be%d0%b3%d1%80%d0%b0%d0%bc%d0%bc%d0%b8%d1%80%d0%be%d0%b2%d0%b0%d0%bd%d0%b8%d0%b5" aria-label="Heading self-link"></a></h3>
+<blockquote>
+<p>Символьное программирование, часто называемое декларативным программированием, представляет собой парадигму программирования, которая использует математическую логику, отношения и символы для представления знаний и помощи в решении проблем. Вместо того, чтобы сосредотачиваться на описании последовательности операций, необходимых для выполнения вычислений, как в императивном программировании, символическое программирование делает упор на выражении отношений и ограничений между структурами данных, уделяя особое внимание «что», а не «как».</p>
+<p>В контексте парадигм программирования символическое программирование часто противопоставляется процедурному или императивному программированию, где программы определяют пошаговые процедуры для достижения своих целей. В то время как императивное программирование фокусируется на описании потока управления с использованием таких конструкций, как циклы и условные выражения, для управления выполнением, символическое программирование сосредоточено на выражении фактов о проблеме и позволяет выполнению естественным образом выводить последующие последствия из предоставленной информации.</p>
+<p>Одним из основных преимуществ символьного программирования является его способность обеспечивать более высокий уровень абстракции, что упрощает анализ кода и снижает вероятность ошибок. Непосредственно выражая отношения и ограничения, символическое программирование позволяет разработчикам сосредоточиться на моделировании и спецификации проблем, позволяя базовой системе управлять реализацией и выполнением алгоритмов.</p>
+<p>Существует несколько языков программирования и сред, использующих парадигму символьного программирования, например Prolog, Lisp и Haskell. Например, Пролог — это язык логического программирования, который позволяет разработчикам выражать взаимосвязи и факты о проблемных областях, в то время как выполнение автоматически обосновывает и извлекает новые факты на основе исходной информации. В том же духе Лисп, функциональный язык программирования, использует символьные вычисления для манипулирования структурами данных и выполнения сложных операций над ними, используя краткий и математически обоснованный синтаксис. Haskell, еще один функциональный язык программирования, использует строгую типизацию и ленивые вычисления, чтобы обеспечить символическое рассуждение и облегчить эффективное создание программ.</p>
+<p>Символьное программирование может быть полезным в широком спектре проблемных областей, включая искусственный интеллект, экспертные системы, программирование логики ограничений и символьную математику, среди других. Более высокий уровень абстракции, обеспечиваемый декларативными языками программирования, облегчает разработку сложных систем, сводя к минимуму вероятность ошибки и улучшая удобство обслуживания. В частности, использование символьного программирования в искусственном интеллекте позволяет разработчикам создавать системы представления знаний и механизмы рассуждения, которые можно применять для обработки естественного языка, машинного обучения и автоматического доказательства теорем.</p>
+</blockquote>
+<p>Различие между символьным программированием и препроцессором</p>
+<ul>
+<li>Задача препроцессора - раскрыть(расширить) макрос, тогда как при символьном программировании нужно сокращать (сворачивать) выражения</li>
+<li>Препроцессор обрабатывает последовательности лексем (плоские данные), тогда как символьное программирование оперирует выражениями (деревом лексем)</li>
+<li>Макрос у препроцессора идентифицируется первым термином, и если макрос не может быть раскрыт, то возникает ошибка. В символьном программировани требуется точное соответствие всего выражения и только в этом случае производится сокращение выражения.</li>
+</ul>
+<p>Предпосылки для реализации символьного программирования
+Компилятор - интерепретатор с REPL и обработка AST как во время компиляции, так и во время выполнения.
+Необходимо добавить конструкции для определения правил символьного программрования (чистые функции?)
+Необходимо добавить конструкцию для вычисления выражений в символьном программировании.</p>
+<p>Wolfram
+<a href="https://habr.com/ru/articles/772984/">https://habr.com/ru/articles/772984/</a></p>
+<pre tabindex="0"><code>diffRules = {
+  Sin[x] -&gt; Cos[x], 
+  Cos[x] -&gt; -Sin[x], 
+  x^2 -&gt; 2*x, 
+  x -&gt; 1, 
+  Log[x] -&gt; 1/x
+}; 
+</code></pre><pre tabindex="0"><code>diffRules := (
+  Sin(x) @-&gt; Cos(x), 
+  Cos(x) @-&gt; -Sin(x), 
+  x^2  @-&gt;  2*x,
+  x @-&gt; 1, 
+  Log(x) @-&gt; 1\x,
+); 
+
+expr @-&gt; Sin(x) - x^2 + Log(x);  
+
+# И применим к нему правила дифференцирования
+
+#expr /. diffRules
+#(* 1/x - 2 x + Cos[x] *)
+
+sym := SymEval(expr, diffRules);
+res := Eval(sym, x=0.123);
+</code></pre><pre tabindex="0"><code>expr = a^2 + 3 * b^3 - c^4 + 2 * x^2 - x + 4*c + 3
+
+И я хочу это выражение линеаризовать, т.е. отбросить все степени выше первой. Я могу сделать это напрямую, как в примерах выше:
+
+expr /. {
+  a^2 -&gt; 0, 
+  b^3 -&gt; 0, 
+  c^4 -&gt; 0, 
+  x^2 -&gt; 0
+}
+(* 3 + 4 c - x *)
+
+Но это слишком неудобно. Что если я не знаю ни точную степень, ни имя переменной? Как просто указать, что нужно заменить все места, где встречается возведение в степень на ноль? Это можно сделать при помощи шаблонов вот так:
+
+expr /. Power[_, _] -&gt; 0
+(* 3 + 4 c - x *)
+
+Либо вот так:
+
+expr /. _ ^ _ -&gt; 0
+(* 3 + 4 c - x *)
+</code></pre><pre tabindex="0"><code>:diffRules() := {
+  {@ Sin(x) @} ::- {@ Cos(x) @};
+  Cos(x) @-&gt; -Sin(x), 
+  x^2  @-&gt;  2*x,
+  x @-&gt; 1, 
+  Log(x) @-&gt; 1\x,
+}; 
+
+expr @-&gt; Sin(x) - x^2 + Log(x);  
+
+# И применим к нему правила дифференцирования
+
+#expr /. diffRules
+#(* 1/x - 2 x + Cos[x] *)
+
+sym := SymEval(expr, diffRules);
+res := Eval(sym, x=0.123);
+</code></pre>
+</div>
+
+
+
+    
+	
+  
+    
+    
+	
+    
+
+<div class="td-content" style="page-break-before: always">
+    
+	<h1 id="pg-9149371511f94b03074b553a8e82848c">6 - Системные свойства</h1>
+    
+	<h3 id="системные-свойства">Системные свойства<a class="td-heading-self-link" href="#%d1%81%d0%b8%d1%81%d1%82%d0%b5%d0%bc%d0%bd%d1%8b%d0%b5-%d1%81%d0%b2%d0%be%d0%b9%d1%81%d1%82%d0%b2%d0%b0" aria-label="Heading self-link"></a></h3>
+<p>Несмотря на то, что не все объекты <em>NewLang</em> являются классами с точки зрения <a href="/ru/docs/types/class/">реализованной концепции ООП</a>,
+тем не менее, каждый объект имеет системные свойства, которые можно считать во время выполнения как обычные свойства объекта:</p>
+<h4 id="у-всех-переменных-объектов-есть-системные-свойства">У всех переменных (объектов) есть системные свойства<a class="td-heading-self-link" href="#%d1%83-%d0%b2%d1%81%d0%b5%d1%85-%d0%bf%d0%b5%d1%80%d0%b5%d0%bc%d0%b5%d0%bd%d0%bd%d1%8b%d1%85-%d0%be%d0%b1%d1%8a%d0%b5%d0%ba%d1%82%d0%be%d0%b2-%d0%b5%d1%81%d1%82%d1%8c-%d1%81%d0%b8%d1%81%d1%82%d0%b5%d0%bc%d0%bd%d1%8b%d0%b5-%d1%81%d0%b2%d0%be%d0%b9%d1%81%d1%82%d0%b2%d0%b0" aria-label="Heading self-link"></a></h4>
+<ul>
+<li>
+<p>__name__ - краткое имя переменной (объекта)</p>
+</li>
+<li>
+<p>__full_name__ - полное имя переменной, включая имя модуля и пространство имен</p>
+</li>
+<li>
+<p>__type__ - текущий тип переменной. Может изменится при некоторых операциях</p>
+</li>
+<li>
+<p>__type_fixed__ - тип переменной (объекта) который не может измениться (ограничитель)</p>
+</li>
+<li>
+<p>__module__ - имя модуля в котором определена переменная (объект)</p>
+</li>
+<li>
+<p>__class__ - имя класса переменной или пусто, если объект не является классом</p>
+</li>
+<li>
+<p>__base__ - словарь со списком базовых классов или пусто, если объект не является классом</p>
+</li>
+<li>
+<p>__size__ - количество элементов у объекта, если применимо или :None</p>
+</li>
+<li>
+<p>__doc__ - документация по текущему объекту (если есть, иначе пустая строка)</p>
+</li>
+<li>
+<p>__str__ - строковое представление объекта для дампа</p>
+</li>
+<li>
+<p>__source__ - исходный текст модуля или функции</p>
+</li>
+</ul>
+<h4 id="системные-свойства-у-модулей">Системные свойства у модулей<a class="td-heading-self-link" href="#%d1%81%d0%b8%d1%81%d1%82%d0%b5%d0%bc%d0%bd%d1%8b%d0%b5-%d1%81%d0%b2%d0%be%d0%b9%d1%81%d1%82%d0%b2%d0%b0-%d1%83-%d0%bc%d0%be%d0%b4%d1%83%d0%bb%d0%b5%d0%b9" aria-label="Heading self-link"></a></h4>
+<ul>
+<li>__file__ - полный путь к файлу модуля (соответствует С/С++ макросу __FILE__)</li>
+<li>__timestamp__ - дата и время последней модификации файла модуля (соответствует макросу С/С++  __TIMESTAMP__)</li>
+<li>__md5__ - хеш исходных данных модуля (соответствует макросу __MD5__)</li>
+</ul>
+<h2 id="dsl">DSL<a class="td-heading-self-link" href="#dsl" aria-label="Heading self-link"></a></h2>
+<h3 id="особенности-ассоциативной-памяти">Особенности ассоциативной памяти<a class="td-heading-self-link" href="#%d0%be%d1%81%d0%be%d0%b1%d0%b5%d0%bd%d0%bd%d0%be%d1%81%d1%82%d0%b8-%d0%b0%d1%81%d1%81%d0%be%d1%86%d0%b8%d0%b0%d1%82%d0%b8%d0%b2%d0%bd%d0%be%d0%b9-%d0%bf%d0%b0%d0%bc%d1%8f%d1%82%d0%b8" aria-label="Heading self-link"></a></h3>
+<p>Синтаксис языка <em>NewLang</em> основан на строгих правилах без использования ключевых слов,
+и как бы он не выглядел логичным, ассоциация по ключевым словам вспоминается гораздо легче, например <strong>if</strong>,
+чем комбинация <em>минус минус правая угловая скобка</em> <strong>&ndash;&gt;</strong>.
+Из-за этого имеет смысл использовать не &ldquo;чистый&rdquo; базовый синтаксис, а более привычный диалект с использованием ключевых слов.</p>
+<h3 id="синтаксис-на-ключевых-словах">Синтаксис на ключевых словах<a class="td-heading-self-link" href="#%d1%81%d0%b8%d0%bd%d1%82%d0%b0%d0%ba%d1%81%d0%b8%d1%81-%d0%bd%d0%b0-%d0%ba%d0%bb%d1%8e%d1%87%d0%b5%d0%b2%d1%8b%d1%85-%d1%81%d0%bb%d0%be%d0%b2%d0%b0%d1%85" aria-label="Heading self-link"></a></h3>
+<p>В файле dsl.nlp находится набор макросов, которые расширяют базовый синтаксис <em>NewLang</em>, основанный на правилах,
+набором предопределенных ключевых слов как в классических языках программирования.
+А при необходимости, их можно адаптировать или дополнить под собственную предметную область.</p>
+<h2 id="константы">Константы<a class="td-heading-self-link" href="#%d0%ba%d0%be%d0%bd%d1%81%d1%82%d0%b0%d0%bd%d1%82%d1%8b" aria-label="Heading self-link"></a></h2>
+<h3 id="логические">Логические<a class="td-heading-self-link" href="#%d0%bb%d0%be%d0%b3%d0%b8%d1%87%d0%b5%d1%81%d0%ba%d0%b8%d0%b5" aria-label="Heading self-link"></a></h3>
+<ul>
+<li><strong>true</strong> - 1</li>
+<li><strong>yes</strong>  - 1</li>
+<li><strong>false</strong> - 0</li>
+<li><strong>no</strong> - 0</li>
+</ul>
+<h3 id="системные-имена">Системные имена<a class="td-heading-self-link" href="#%d1%81%d0%b8%d1%81%d1%82%d0%b5%d0%bc%d0%bd%d1%8b%d0%b5-%d0%b8%d0%bc%d0%b5%d0%bd%d0%b0" aria-label="Heading self-link"></a></h3>
+<ul>
+<li><strong>this</strong> - Текущий объект (<strong>$0</strong>)</li>
+<li><strong>parent</strong> - Родительский объект (<strong>$$</strong>)</li>
+<li><strong>last</strong> - Результат выполнения последнего оператора (<strong>$^</strong>)</li>
+</ul>
+<p>!!!!!!!!- <strong>args</strong> - Все аргументы функции (<strong>$*</strong>)</p>
+<p>!!!!!!!!- <strong>sys</strong> - Системный контекст запущенной программы (<strong>@@</strong>)
+!!!!!!!!- <strong>current</strong> - Текущий модуль (<strong>@$</strong>)
+!!!!!!!!- <strong>cmd</strong> - Все аргументы выполняющегося приложения из командной строки (<strong>@*</strong>)</p>
+<p>!!!!!!!!!!1### Типовые функции и проверки
+!!!!!!!!!!- <strong>run(&lsquo;filename&rsquo;)</strong> - Выполнить указанный файл (<strong>@@(&lsquo;filename&rsquo;)</strong>)
+!!!!!!!!!!- <strong>ifmain</strong> - Проверка, если текущий модуль основной (<strong>[@$.$0] &ndash;&gt;</strong> { &hellip; })
+!!!!!!!!!!- <strong>ifload</strong> - Проверка, если текущий модуль загружается впервые (<strong>[@$.<strong>load</strong>] &ndash;&gt;</strong> { &hellip; })</p>
+<h3 id="операторы">Операторы<a class="td-heading-self-link" href="#%d0%be%d0%bf%d0%b5%d1%80%d0%b0%d1%82%d0%be%d1%80%d1%8b" aria-label="Heading self-link"></a></h3>
+<ul>
+<li>
+<p><strong>match(cond)</strong> - Оператор <a href="/ru/docs/ops/match/">оценки выражения</a></p>
+</li>
+<li>
+<p><strong>if(&hellip;)</strong> - Первый условный оператор (<strong>[$*]&ndash;&gt;</strong> { &hellip; })</p>
+</li>
+<li>
+<p><strong>elif(&hellip;)</strong> - Второй и все последующие (<strong>,[$*]&ndash;&gt;</strong> { &hellip; })</p>
+</li>
+<li>
+<p><strong>else</strong> - Оператор <em>иначе</em> (<strong>,[_]&ndash;&gt;</strong> { &hellip; })</p>
+</li>
+<li>
+<p><strong>while(cond)</strong> - Оператор цикла с предусловием (<strong>[@$cond] &lt;-&gt;</strong> { &hellip; } )</p>
+</li>
+<li>
+<p><strong>dowhile(cond)</strong> - Оператор цикла с постусловием ({ &hellip; } <strong>&lt;-&gt;[@$cond]</strong>)</p>
+</li>
+<li>
+<p><strong>iter(obj, &hellip; )</strong> - Создание итератора ( <strong>@$obj</strong> ? (@$*) )</p>
+</li>
+<li>
+<p><strong>next(obj, &hellip; )</strong> - Следующий элемент итератора ( <strong>@$obj</strong> ! ($*) )</p>
+</li>
+<li>
+<p><strong>curr(obj, &hellip; )</strong> - Текущий элемент итератора ( <strong>@$obj</strong> !? ($*) )</p>
+</li>
+<li>
+<p><strong>first(obj)</strong> - Перейти на первый элемент итератора ( <strong>@$obj</strong> !! )</p>
+</li>
+<li>
+<p><strong>all(obj)</strong> - Получить сразу все элементы итератора ( <strong>@$obj</strong> ??)</p>
+</li>
+</ul>
+<h3 id="прерывания">Прерывания<a class="td-heading-self-link" href="#%d0%bf%d1%80%d0%b5%d1%80%d1%8b%d0%b2%d0%b0%d0%bd%d0%b8%d1%8f" aria-label="Heading self-link"></a></h3>
+<ul>
+<li>
+<p><strong>return</strong> - Положительное прерывание (<strong>++</strong>)</p>
+</li>
+<li>
+<p><strong>return(&hellip;)</strong>- Положительное прерывание с возвратом значения (<strong>++</strong> @$value <strong>++</strong>)</p>
+</li>
+<li>
+<p><strong>error</strong> - Отрицательное прерывание (<strong>--</strong>)</p>
+</li>
+<li>
+<p><strong>error(&hellip;)</strong> - Отрицательное прерывание с возвратом значения (<strong>--</strong> @$value <strong>--</strong>)</p>
+</li>
+<li>
+<p><strong>break+</strong> и <strong>break-</strong> - Выход из цикла:</p>
+</li>
+</ul>
+<pre tabindex="0"><code>    while(...) {+
+        ++ :Break ++   
+    +}
+    while(...) {-
+        -- :Break --
+    -}
+</code></pre><ul>
+<li><strong>continue+</strong> и <strong>continue-</strong> - В начало цикла:</li>
+</ul>
+<pre tabindex="0"><code>    while(...) {+
+        ++ :Continue ++   
+    +}
+    while(...) {-
+        -- :Continue --
+    -}
+</code></pre><p>obj {
+.field = 1;
+.prop();
+};</p>
+<p>#Python</p>
+<h1 id="1-without-using-with-statement">1) without using with statement<a class="td-heading-self-link" href="#1-without-using-with-statement" aria-label="Heading self-link"></a></h1>
+<p>file = open(&lsquo;file_path&rsquo;, &lsquo;w&rsquo;)
+file.write(&lsquo;hello world !&rsquo;)
+file.close()</p>
+<h1 id="2-without-using-with-statement">2) without using with statement<a class="td-heading-self-link" href="#2-without-using-with-statement" aria-label="Heading self-link"></a></h1>
+<p>file = open(&lsquo;file_path&rsquo;, &lsquo;w&rsquo;)
+try:
+file.write(&lsquo;hello world&rsquo;)
+finally:
+file.close()</p>
+<p>open(&lsquo;file_path&rsquo;, &lsquo;w&rsquo;) {
+.write(&lsquo;hello world !&rsquo;);
+.close();
+}</p>
+<p>Python3</p>
+<h1 id="using-with-statement">using with statement<a class="td-heading-self-link" href="#using-with-statement" aria-label="Heading self-link"></a></h1>
+<p>with open(&lsquo;file_path&rsquo;, &lsquo;w&rsquo;) as file:
+file.write(&lsquo;hello world !&rsquo;)</p>
+<h1 id="a-simple-file-writer-object">a simple file writer object<a class="td-heading-self-link" href="#a-simple-file-writer-object" aria-label="Heading self-link"></a></h1>
+<p>class MessageWriter(object):
+def <strong>init</strong>(self, file_name):
+self.file_name = file_name</p>
+<pre><code>def __enter__(self):
+    self.file = open(self.file_name, 'w')
+    return self.file
+
+def __exit__(self, *args):
+    self.file.close()
+</code></pre>
+<h1 id="using-with-statement-with-messagewriter">using with statement with MessageWriter<a class="td-heading-self-link" href="#using-with-statement-with-messagewriter" aria-label="Heading self-link"></a></h1>
+<p>with MessageWriter(&lsquo;my_file.txt&rsquo;) as xfile:
+xfile.write(&lsquo;hello world&rsquo;)</p>
+<h1 id="a-simple-file-writer-object-1">a simple file writer object<a class="td-heading-self-link" href="#a-simple-file-writer-object-1" aria-label="Heading self-link"></a></h1>
+<p>:MessageWriter {
+def <strong>init</strong>(self, file_name):
+self.file_name = file_name</p>
+<pre><code>def __enter__(self):
+    self.file = open(self.file_name, 'w')
+    return self.file
+
+def __exit__(self, *args):
+    self.file.close()
+</code></pre>
+<p>}</p>
+<h1 id="using-with-statement-with-messagewriter-1">using with statement with MessageWriter<a class="td-heading-self-link" href="#using-with-statement-with-messagewriter-1" aria-label="Heading self-link"></a></h1>
+<p>MessageWriter(&lsquo;my_file.txt&rsquo;) {
+.write(&lsquo;hello world&rsquo;);
+};</p>
+<p>from contextlib import contextmanager</p>
+<p>class MessageWriter(object):
+def <strong>init</strong>(self, filename):
+self.file_name = filename</p>
+<pre><code>@contextmanager
+def open_file(self):
+    try:
+        file = open(self.file_name, 'w')
+        yield file
+    finally:
+        file.close()
+</code></pre>
+<h1 id="usage">usage<a class="td-heading-self-link" href="#usage" aria-label="Heading self-link"></a></h1>
+<p>message_writer = MessageWriter(&lsquo;hello.txt&rsquo;)
+with message_writer.open_file() as my_file:
+my_file.write(&lsquo;hello world&rsquo;)</p>
+<p>:MessageWriter(object) {
+def <strong>init</strong>(self, filename):
+self.file_name = filename</p>
+<pre><code>@contextmanager
+def open_file(self):
+    try:
+        file = open(self.file_name, 'w')
+        yield file
+    finally:
+        file.close()
+</code></pre>
+<p>}</p>
+<h1 id="usage-1">usage<a class="td-heading-self-link" href="#usage-1" aria-label="Heading self-link"></a></h1>
+<p>message_writer = MessageWriter(&lsquo;hello.txt&rsquo;)
+with message_writer.open_file() as my_file:
+my_file.write(&lsquo;hello world&rsquo;)</p>
+<h1 id="приложения">Приложения<a class="td-heading-self-link" href="#%d0%bf%d1%80%d0%b8%d0%bb%d0%be%d0%b6%d0%b5%d0%bd%d0%b8%d1%8f" aria-label="Heading self-link"></a></h1>
+<h2 id="предопределенные-макросы">Предопределенные макросы<a class="td-heading-self-link" href="#%d0%bf%d1%80%d0%b5%d0%b4%d0%be%d0%bf%d1%80%d0%b5%d0%b4%d0%b5%d0%bb%d0%b5%d0%bd%d0%bd%d1%8b%d0%b5-%d0%bc%d0%b0%d0%ba%d1%80%d0%be%d1%81%d1%8b" aria-label="Heading self-link"></a></h2>
+<p>При работе парсера <em>NewLang</em> автоматически формируются несколько зарезервированных макросов, часть из которых соответствуют макросам препроцессора у С/С++.
+Данные предопределенные макросы можно использовать как обычные константы.</p>
+<ul>
+<li>
+<p>__FILE__ или __FILE_NAME__ - имя и полный путь текущего файла</p>
+</li>
+<li>
+<p>__LINE__ или __FILE_LINE__ - содержит номер текущей строки в файле</p>
+</li>
+<li>
+<p>__FILE_TIMESTAMP__ - дату и время последней модификации текущего файла в строковом представлении</p>
+</li>
+<li>
+<p>__FILE_MD5__ - md5 хеш текущего файла в строковом виде</p>
+</li>
+<li>
+<p>__COUNTER__ - целочисленный счетчик, который увеличивает свое значение при каждом обращении</p>
+</li>
+<li>
+<p>__DATE__ - дата начала запуска компилятора (имеет одно и тоже значение для всех обрабатываемых файлов)</p>
+</li>
+<li>
+<p>__TIME__ - время начала запуска компилятора (имеет одно и тоже значение для всех обрабатываемых файлов)</p>
+</li>
+<li>
+<p>__TIMESTAMP__ - дату и время начала запуска компилятора (например: &ldquo;Fri 19 Aug 13:32:58 2016&rdquo;)</p>
+</li>
+<li>
+<p>__TIMESTAMP_ISO__ - дату и время начала запуска компилятора в формате ISO (например: &ldquo;2013-07-06T00:50:06Z&rdquo;)</p>
+</li>
+<li>
+<p>__NLC_VER__ - Страшая и младшая версия компилятора NewLang (8 битное число, по 4 бита на цифру)</p>
+</li>
+<li>
+<p>__NLC_DATE_BUILD__ - текстовая строка с датой сборки компилятора NewLang (например, &ldquo;23.06.04 20:51:39&rdquo;)</p>
+</li>
+<li>
+<p>__NLC_SOURCE_GIT__ - текстовая строка с идентификатором исходных файлов NewLang git репозитория, использованных при сборке компилятора (например, &ldquo;v0.3.0-fef8c371&rdquo;)</p>
+</li>
+<li>
+<p>__NLC_SOURCE_BUILD__ - дата сборки и git идентификатор исходных файлов NewLang одной текстовой строкой (например, &ldquo;v0.3.0-fef8c371 23.06.04 20:51:39&rdquo;)</p>
+</li>
+</ul>
+
+</div>
+
+
+
+    
+	
+  
+    
+    
+	
+    
+
+<div class="td-content" style="page-break-before: always">
+    
+	<h1 id="pg-04c6f8255aa249b1ff534ba0a3c6ed5f">7 - Опции и настройки компилятора</h1>
+    
+	<h2 id="прагмы">Прагмы<a class="td-heading-self-link" href="#%d0%bf%d1%80%d0%b0%d0%b3%d0%bc%d1%8b" aria-label="Heading self-link"></a></h2>
+<h3 id="предварительное-объевления-объектов">Предварительное объевления объектов<a class="td-heading-self-link" href="#%d0%bf%d1%80%d0%b5%d0%b4%d0%b2%d0%b0%d1%80%d0%b8%d1%82%d0%b5%d0%bb%d1%8c%d0%bd%d0%be%d0%b5-%d0%be%d0%b1%d1%8a%d0%b5%d0%b2%d0%bb%d0%b5%d0%bd%d0%b8%d1%8f-%d0%be%d0%b1%d1%8a%d0%b5%d0%ba%d1%82%d0%be%d0%b2" aria-label="Heading self-link"></a></h3>
+<p>@__PRAGMA_DECLARE__</p>
+<pre tabindex="0"><code>    @__PRAGMA_DECLARE__( func(arg) );
+</code></pre><h3 id="импорт-нативной-функции--переменной">Импорт нативной функции / переменной<a class="td-heading-self-link" href="#%d0%b8%d0%bc%d0%bf%d0%be%d1%80%d1%82-%d0%bd%d0%b0%d1%82%d0%b8%d0%b2%d0%bd%d0%be%d0%b9-%d1%84%d1%83%d0%bd%d0%ba%d1%86%d0%b8%d0%b8--%d0%bf%d0%b5%d1%80%d0%b5%d0%bc%d0%b5%d0%bd%d0%bd%d0%be%d0%b9" aria-label="Heading self-link"></a></h3>
+<p>@__PRAGMA_NATIVE__</p>
+<pre tabindex="0"><code>    // import native int printf(char *format, ...)
+    @__PRAGMA_NATIVE__( printf(format:FmtChar, ...):Int32 );
+</code></pre><h3 id="управление-диагностикой-компилятора">Управление диагностикой компилятора<a class="td-heading-self-link" href="#%d1%83%d0%bf%d1%80%d0%b0%d0%b2%d0%bb%d0%b5%d0%bd%d0%b8%d0%b5-%d0%b4%d0%b8%d0%b0%d0%b3%d0%bd%d0%be%d1%81%d1%82%d0%b8%d0%ba%d0%be%d0%b9-%d0%ba%d0%be%d0%bc%d0%bf%d0%b8%d0%bb%d1%8f%d1%82%d0%be%d1%80%d0%b0" aria-label="Heading self-link"></a></h3>
+<p>@__PRAGMA_DIAG__ -</p>
+<pre tabindex="0"><code>        @__PRAGMA_DIAG__(push)
+        @__PRAGMA_DIAG__(ignored, &#34;-Wundef&#34;)
+        @__PRAGMA_DIAG__(warning, &#34;-Wformat&#34; , &#34;-Wundef&#34;, &#34;-Wuninitialized&#34;)
+        @__PRAGMA_DIAG__(error, &#34;-Wuninitialized&#34;)
+        @__PRAGMA_DIAG__(pop)
+</code></pre><p>@__PRAGMA_MESSAGE__</p>
+<pre tabindex="0"><code>    #pragma message &#34;Compiling &#34; __FILE__ &#34;...&#34;
+    @__PRAGMA_MESSAGE__(&#34;Compiling &#34;, __FILE__, &#34;...&#34;)
+
+
+    #define DO_PRAGMA(x) _Pragma (#x)
+    #define TODO(x) DO_PRAGMA(message (&#34;TODO - &#34; #x))
+
+    @@TODO( ... )@@ := @__PRAGMA_MESSAGE__(&#34;TODO - &#34;, @#...)
+
+    @TODO(Remember to fix this)  # note: TODO - Remember to fix this
+</code></pre><p>@__PRAGMA_WARNING__
+@__PRAGMA_ERROR__</p>
+<ul>
+<li>@__PRAGMA_LOCATION__</li>
+</ul>
+<pre tabindex="0"><code>        // #line 303 &#34;location.hh&#34;
+        // Prototype - @__PRAGMA_LOCATION__( pop )
+        // Prototype - @__PRAGMA_LOCATION__( push ) or @__PRAGMA_LOCATION__( push, &#39;filename&#39;) or @__PRAGMA_LOCATION__( push, &#39;filename&#39;, line)
+        // Prototype - @__PRAGMA_LOCATION__( line ) or @__PRAGMA_LOCATION__( line, &#39;filename&#39;)
+</code></pre><h2 id="управление-макросами">Управление макросами<a class="td-heading-self-link" href="#%d1%83%d0%bf%d1%80%d0%b0%d0%b2%d0%bb%d0%b5%d0%bd%d0%b8%d0%b5-%d0%bc%d0%b0%d0%ba%d1%80%d0%be%d1%81%d0%b0%d0%bc%d0%b8" aria-label="Heading self-link"></a></h2>
+<p>@__PRAGMA_EXPECTED__ - Следующий символ должен быть одним из списка</p>
+<pre tabindex="0"><code>    @__PRAGMA_EXPECTED__( @\ {, @\ {*, @\ {+ ) 
+        { }
+
+    @__PRAGMA_EXPECTED__( @\ {, @\ {*, @\ {+) 
+        {+ +}
+</code></pre><p>@__PRAGMA_UNEXPECTED__ - Запретить использование перечисленных символов</p>
+<pre tabindex="0"><code>    @__PRAGMA_UNEXPECTED__( @\{, @\{*, @\{+) 
+        {- -}
+    @__PRAGMA_UNEXPECTED__( @\{*, @\{+)
+        {   }
+</code></pre><p>@__PRAGMA_NO_MACRO__ - Следующий символ не макрос</p>
+<h3 id="аннотации">Аннотации<a class="td-heading-self-link" href="#%d0%b0%d0%bd%d0%bd%d0%be%d1%82%d0%b0%d1%86%d0%b8%d0%b8" aria-label="Heading self-link"></a></h3>
+<p>@__ANNOTATION_SET__</p>
+<pre tabindex="0"><code>    @__ANNOTATION_SET__(name)
+    @__ANNOTATION_SET__(name, &#34;value&#34;)
+    @__ANNOTATION_SET__(name, 1)
+</code></pre><p>@__ANNOTATION_IIF__</p>
+<h3 id="не-используется-заготовки-на-будущее">Не используется (заготовки на будущее)<a class="td-heading-self-link" href="#%d0%bd%d0%b5-%d0%b8%d1%81%d0%bf%d0%be%d0%bb%d1%8c%d0%b7%d1%83%d0%b5%d1%82%d1%81%d1%8f-%d0%b7%d0%b0%d0%b3%d0%be%d1%82%d0%be%d0%b2%d0%ba%d0%b8-%d0%bd%d0%b0-%d0%b1%d1%83%d0%b4%d1%83%d1%89%d0%b5%d0%b5" aria-label="Heading self-link"></a></h3>
+<p>@__PRAGMA_IGNORE__</p>
+<pre tabindex="0"><code>        static const char * ignore_space = &#34;space&#34;;
+        static const char * ignore_indent = &#34;indent&#34;;
+        static const char * ignore_comment = &#34;comment&#34;;
+        static const char * ignore_crlf = &#34;crlf&#34;;
+</code></pre><ul>
+<li>
+<p>@__PRAGMA_INDENT_BLOCK__</p>
+</li>
+<li>
+<p>@__PRAGMA_MACRO__ -</p>
+</li>
+<li>
+<p>@__PRAGMA_MACRO_COND__</p>
+</li>
+<li>
+<p>@__PRAGMA_FINALIZE__</p>
+</li>
+</ul>
+
+</div>
+
+
+
+    
+	
+  
+    
+    
+	
+    
+
+<div class="td-content" style="page-break-before: always">
+    
+	<h1 id="pg-6eb5eeb42b515a59f60437582b5e9de1">8 - Системные макросы</h1>
+    
+	<h2 id="dsl">DSL<a class="td-heading-self-link" href="#dsl" aria-label="Heading self-link"></a></h2>
+<h3 id="особенности-ассоциативной-памяти">Особенности ассоциативной памяти<a class="td-heading-self-link" href="#%d0%be%d1%81%d0%be%d0%b1%d0%b5%d0%bd%d0%bd%d0%be%d1%81%d1%82%d0%b8-%d0%b0%d1%81%d1%81%d0%be%d1%86%d0%b8%d0%b0%d1%82%d0%b8%d0%b2%d0%bd%d0%be%d0%b9-%d0%bf%d0%b0%d0%bc%d1%8f%d1%82%d0%b8" aria-label="Heading self-link"></a></h3>
+<p>Синтаксис языка <em>NewLang</em> основан на строгих правилах без использования ключевых слов,
+и как бы он не выглядел логичным, ассоциация по ключевым словам вспоминается гораздо легче, например <strong>if</strong>,
+чем комбинация <em>минус минус правая угловая скобка</em> <strong>&ndash;&gt;</strong>.
+Из-за этого имеет смысл использовать не &ldquo;чистый&rdquo; базовый синтаксис, а более привычный диалект с использованием ключевых слов.</p>
+<h3 id="синтаксис-на-ключевых-словах">Синтаксис на ключевых словах<a class="td-heading-self-link" href="#%d1%81%d0%b8%d0%bd%d1%82%d0%b0%d0%ba%d1%81%d0%b8%d1%81-%d0%bd%d0%b0-%d0%ba%d0%bb%d1%8e%d1%87%d0%b5%d0%b2%d1%8b%d1%85-%d1%81%d0%bb%d0%be%d0%b2%d0%b0%d1%85" aria-label="Heading self-link"></a></h3>
+<p>В файле dsl.nlp находится набор макросов, которые расширяют базовый синтаксис <em>NewLang</em>, основанный на правилах,
+набором предопределенных ключевых слов как в классических языках программирования.
+А при необходимости, их можно адаптировать или дополнить под собственную предметную область.</p>
+<h2 id="константы">Константы<a class="td-heading-self-link" href="#%d0%ba%d0%be%d0%bd%d1%81%d1%82%d0%b0%d0%bd%d1%82%d1%8b" aria-label="Heading self-link"></a></h2>
+<h3 id="логические">Логические<a class="td-heading-self-link" href="#%d0%bb%d0%be%d0%b3%d0%b8%d1%87%d0%b5%d1%81%d0%ba%d0%b8%d0%b5" aria-label="Heading self-link"></a></h3>
+<ul>
+<li><strong>true</strong> - 1</li>
+<li><strong>yes</strong>  - 1</li>
+<li><strong>false</strong> - 0</li>
+<li><strong>no</strong> - 0</li>
+</ul>
+<h3 id="системные-имена">Системные имена<a class="td-heading-self-link" href="#%d1%81%d0%b8%d1%81%d1%82%d0%b5%d0%bc%d0%bd%d1%8b%d0%b5-%d0%b8%d0%bc%d0%b5%d0%bd%d0%b0" aria-label="Heading self-link"></a></h3>
+<ul>
+<li><strong>this</strong> - Текущий объект (<strong>$0</strong>)</li>
+<li><strong>parent</strong> - Родительский объект (<strong>$$</strong>)</li>
+<li><strong>last</strong> - Результат выполнения последнего оператора (<strong>$^</strong>)</li>
+</ul>
+<p>!!!!!!!!- <strong>args</strong> - Все аргументы функции (<strong>$*</strong>)</p>
+<p>!!!!!!!!- <strong>sys</strong> - Системный контекст запущенной программы (<strong>@@</strong>)
+!!!!!!!!- <strong>current</strong> - Текущий модуль (<strong>@$</strong>)
+!!!!!!!!- <strong>cmd</strong> - Все аргументы выполняющегося приложения из командной строки (<strong>@*</strong>)</p>
+<p>!!!!!!!!!!1### Типовые функции и проверки
+!!!!!!!!!!- <strong>run(&lsquo;filename&rsquo;)</strong> - Выполнить указанный файл (<strong>@@(&lsquo;filename&rsquo;)</strong>)
+!!!!!!!!!!- <strong>ifmain</strong> - Проверка, если текущий модуль основной (<strong>[@$.$0] &ndash;&gt;</strong> { &hellip; })
+!!!!!!!!!!- <strong>ifload</strong> - Проверка, если текущий модуль загружается впервые (<strong>[@$.<strong>load</strong>] &ndash;&gt;</strong> { &hellip; })</p>
+<h3 id="операторы">Операторы<a class="td-heading-self-link" href="#%d0%be%d0%bf%d0%b5%d1%80%d0%b0%d1%82%d0%be%d1%80%d1%8b" aria-label="Heading self-link"></a></h3>
+<ul>
+<li>
+<p><strong>match(cond)</strong> - Оператор <a href="https://newlang.net/ops.html#%D0%BE%D1%86%D0%B5%D0%BD%D0%BA%D0%B0-%D0%B2%D1%8B%D1%80%D0%B0%D0%B6%D0%B5%D0%BD%D0%B8%D1%8F">оценки выражения</a></p>
+</li>
+<li>
+<p><strong>if(&hellip;)</strong> - Первый условный оператор (<strong>[$*]&ndash;&gt;</strong> { &hellip; })</p>
+</li>
+<li>
+<p><strong>elif(&hellip;)</strong> - Второй и все последующие (<strong>,[$*]&ndash;&gt;</strong> { &hellip; })</p>
+</li>
+<li>
+<p><strong>else</strong> - Оператор <em>иначе</em> (<strong>,[_]&ndash;&gt;</strong> { &hellip; })</p>
+</li>
+<li>
+<p><strong>while(cond)</strong> - Оператор цикла с предусловием (<strong>[@$cond] &lt;-&gt;</strong> { &hellip; } )</p>
+</li>
+<li>
+<p><strong>dowhile(cond)</strong> - Оператор цикла с постусловием ({ &hellip; } <strong>&lt;-&gt;[@$cond]</strong>)</p>
+</li>
+<li>
+<p><strong>iter(obj, &hellip; )</strong> - Создание итератора ( <strong>@$obj</strong> ? (@$*) )</p>
+</li>
+<li>
+<p><strong>next(obj, &hellip; )</strong> - Следующий элемент итератора ( <strong>@$obj</strong> ! ($*) )</p>
+</li>
+<li>
+<p><strong>curr(obj, &hellip; )</strong> - Текущий элемент итератора ( <strong>@$obj</strong> !? ($*) )</p>
+</li>
+<li>
+<p><strong>first(obj)</strong> - Перейти на первый элемент итератора ( <strong>@$obj</strong> !! )</p>
+</li>
+<li>
+<p><strong>all(obj)</strong> - Получить сразу все элементы итератора ( <strong>@$obj</strong> ??)</p>
+</li>
+</ul>
+<h3 id="прерывания">Прерывания<a class="td-heading-self-link" href="#%d0%bf%d1%80%d0%b5%d1%80%d1%8b%d0%b2%d0%b0%d0%bd%d0%b8%d1%8f" aria-label="Heading self-link"></a></h3>
+<ul>
+<li>
+<p><strong>return</strong> - Положительное прерывание (<strong>++</strong>)</p>
+</li>
+<li>
+<p><strong>return(&hellip;)</strong>- Положительное прерывание с возвратом значения (<strong>++</strong> @$value <strong>++</strong>)</p>
+</li>
+<li>
+<p><strong>error</strong> - Отрицательное прерывание (<strong>--</strong>)</p>
+</li>
+<li>
+<p><strong>error(&hellip;)</strong> - Отрицательное прерывание с возвратом значения (<strong>--</strong> @$value <strong>--</strong>)</p>
+</li>
+<li>
+<p><strong>break+</strong> и <strong>break-</strong> - Выход из цикла:</p>
+</li>
+</ul>
+<pre tabindex="0"><code>    while(...) {+
+        ++ :Break ++   
+    +}
+    while(...) {-
+        -- :Break --
+    -}
+</code></pre><ul>
+<li><strong>continue+</strong> и <strong>continue-</strong> - В начало цикла:</li>
+</ul>
+<pre tabindex="0"><code>    while(...) {+
+        ++ :Continue ++   
+    +}
+    while(...) {-
+        -- :Continue --
+    -}
+</code></pre><p>obj {
+.field = 1;
+.prop();
+};</p>
+<p>#Python</p>
+<h1 id="1-without-using-with-statement">1) without using with statement<a class="td-heading-self-link" href="#1-without-using-with-statement" aria-label="Heading self-link"></a></h1>
+<p>file = open(&lsquo;file_path&rsquo;, &lsquo;w&rsquo;)
+file.write(&lsquo;hello world !&rsquo;)
+file.close()</p>
+<h1 id="2-without-using-with-statement">2) without using with statement<a class="td-heading-self-link" href="#2-without-using-with-statement" aria-label="Heading self-link"></a></h1>
+<p>file = open(&lsquo;file_path&rsquo;, &lsquo;w&rsquo;)
+try:
+file.write(&lsquo;hello world&rsquo;)
+finally:
+file.close()</p>
+<p>open(&lsquo;file_path&rsquo;, &lsquo;w&rsquo;) {
+.write(&lsquo;hello world !&rsquo;);
+.close();
+}</p>
+<p>Python3</p>
+<h1 id="using-with-statement">using with statement<a class="td-heading-self-link" href="#using-with-statement" aria-label="Heading self-link"></a></h1>
+<p>with open(&lsquo;file_path&rsquo;, &lsquo;w&rsquo;) as file:
+file.write(&lsquo;hello world !&rsquo;)</p>
+<h1 id="a-simple-file-writer-object">a simple file writer object<a class="td-heading-self-link" href="#a-simple-file-writer-object" aria-label="Heading self-link"></a></h1>
+<p>class MessageWriter(object):
+def <strong>init</strong>(self, file_name):
+self.file_name = file_name</p>
+<pre><code>def __enter__(self):
+    self.file = open(self.file_name, 'w')
+    return self.file
+
+def __exit__(self, *args):
+    self.file.close()
+</code></pre>
+<h1 id="using-with-statement-with-messagewriter">using with statement with MessageWriter<a class="td-heading-self-link" href="#using-with-statement-with-messagewriter" aria-label="Heading self-link"></a></h1>
+<p>with MessageWriter(&lsquo;my_file.txt&rsquo;) as xfile:
+xfile.write(&lsquo;hello world&rsquo;)</p>
+<h1 id="a-simple-file-writer-object-1">a simple file writer object<a class="td-heading-self-link" href="#a-simple-file-writer-object-1" aria-label="Heading self-link"></a></h1>
+<p>:MessageWriter {
+def <strong>init</strong>(self, file_name):
+self.file_name = file_name</p>
+<pre><code>def __enter__(self):
+    self.file = open(self.file_name, 'w')
+    return self.file
+
+def __exit__(self, *args):
+    self.file.close()
+</code></pre>
+<p>}</p>
+<h1 id="using-with-statement-with-messagewriter-1">using with statement with MessageWriter<a class="td-heading-self-link" href="#using-with-statement-with-messagewriter-1" aria-label="Heading self-link"></a></h1>
+<p>MessageWriter(&lsquo;my_file.txt&rsquo;) {
+.write(&lsquo;hello world&rsquo;);
+};</p>
+<p>from contextlib import contextmanager</p>
+<p>class MessageWriter(object):
+def <strong>init</strong>(self, filename):
+self.file_name = filename</p>
+<pre><code>@contextmanager
+def open_file(self):
+    try:
+        file = open(self.file_name, 'w')
+        yield file
+    finally:
+        file.close()
+</code></pre>
+<h1 id="usage">usage<a class="td-heading-self-link" href="#usage" aria-label="Heading self-link"></a></h1>
+<p>message_writer = MessageWriter(&lsquo;hello.txt&rsquo;)
+with message_writer.open_file() as my_file:
+my_file.write(&lsquo;hello world&rsquo;)</p>
+<p>:MessageWriter(object) {
+def <strong>init</strong>(self, filename):
+self.file_name = filename</p>
+<pre><code>@contextmanager
+def open_file(self):
+    try:
+        file = open(self.file_name, 'w')
+        yield file
+    finally:
+        file.close()
+</code></pre>
+<p>}</p>
+<h1 id="usage-1">usage<a class="td-heading-self-link" href="#usage-1" aria-label="Heading self-link"></a></h1>
+<p>message_writer = MessageWriter(&lsquo;hello.txt&rsquo;)
+with message_writer.open_file() as my_file:
+my_file.write(&lsquo;hello world&rsquo;)</p>
+<h1 id="приложения">Приложения<a class="td-heading-self-link" href="#%d0%bf%d1%80%d0%b8%d0%bb%d0%be%d0%b6%d0%b5%d0%bd%d0%b8%d1%8f" aria-label="Heading self-link"></a></h1>
+<h2 id="предопределенные-макросы">Предопределенные макросы<a class="td-heading-self-link" href="#%d0%bf%d1%80%d0%b5%d0%b4%d0%be%d0%bf%d1%80%d0%b5%d0%b4%d0%b5%d0%bb%d0%b5%d0%bd%d0%bd%d1%8b%d0%b5-%d0%bc%d0%b0%d0%ba%d1%80%d0%be%d1%81%d1%8b" aria-label="Heading self-link"></a></h2>
+<p>При работе парсера <em>NewLang</em> автоматически формируются несколько зарезервированных макросов, часть из которых соответствуют макросам препроцессора у С/С++.
+Данные предопределенные макросы можно использовать как обычные константы.</p>
+<ul>
+<li>
+<p>__FILE__ или __FILE_NAME__ - имя и полный путь текущего файла</p>
+</li>
+<li>
+<p>__LINE__ или __FILE_LINE__ - содержит номер текущей строки в файле</p>
+</li>
+<li>
+<p>__FILE_TIMESTAMP__ - дату и время последней модификации текущего файла в строковом представлении</p>
+</li>
+<li>
+<p>__FILE_MD5__ - md5 хеш текущего файла в строковом виде</p>
+</li>
+<li>
+<p>__COUNTER__ - целочисленный счетчик, который увеличивает свое значение при каждом обращении</p>
+</li>
+<li>
+<p>__DATE__ - дата начала запуска компилятора (имеет одно и тоже значение для всех обрабатываемых файлов)</p>
+</li>
+<li>
+<p>__TIME__ - время начала запуска компилятора (имеет одно и тоже значение для всех обрабатываемых файлов)</p>
+</li>
+<li>
+<p>__TIMESTAMP__ - дату и время начала запуска компилятора (например: &ldquo;Fri 19 Aug 13:32:58 2016&rdquo;)</p>
+</li>
+<li>
+<p>__TIMESTAMP_ISO__ - дату и время начала запуска компилятора в формате ISO (например: &ldquo;2013-07-06T00:50:06Z&rdquo;)</p>
+</li>
+<li>
+<p>__NLC_VER__ - Страшая и младшая версия компилятора NewLang (8 битное число, по 4 бита на цифру)</p>
+</li>
+<li>
+<p>__NLC_DATE_BUILD__ - текстовая строка с датой сборки компилятора NewLang (например, &ldquo;23.06.04 20:51:39&rdquo;)</p>
+</li>
+<li>
+<p>__NLC_SOURCE_GIT__ - текстовая строка с идентификатором исходных файлов NewLang git репозитория, использованных при сборке компилятора (например, &ldquo;v0.3.0-fef8c371&rdquo;)</p>
+</li>
+<li>
+<p>__NLC_SOURCE_BUILD__ - дата сборки и git идентификатор исходных файлов NewLang одной текстовой строкой (например, &ldquo;v0.3.0-fef8c371 23.06.04 20:51:39&rdquo;)</p>
+</li>
+</ul>
+
+</div>
+
+
+
+    
+	
+  
+    
+    
+	
+    
+
+<div class="td-content" style="page-break-before: always">
+    
+	<h1 id="pg-8e386bb5b373d09fe8bcbec82c31b73f">9 - Keyword syntax (DSL)</h1>
+    
+	<h2 id="dsl">DSL<a class="td-heading-self-link" href="#dsl" aria-label="Heading self-link"></a></h2>
+<h3 id="особенности-ассоциативной-памяти">Особенности ассоциативной памяти<a class="td-heading-self-link" href="#%d0%be%d1%81%d0%be%d0%b1%d0%b5%d0%bd%d0%bd%d0%be%d1%81%d1%82%d0%b8-%d0%b0%d1%81%d1%81%d0%be%d1%86%d0%b8%d0%b0%d1%82%d0%b8%d0%b2%d0%bd%d0%be%d0%b9-%d0%bf%d0%b0%d0%bc%d1%8f%d1%82%d0%b8" aria-label="Heading self-link"></a></h3>
+<p>Синтаксис языка <em>NewLang</em> основан на строгих правилах без использования ключевых слов,
+и как бы он не выглядел логичным, ассоциация по ключевым словам вспоминается гораздо легче, например <strong>if</strong>,
+чем комбинация <em>минус минус правая угловая скобка</em> <strong>&ndash;&gt;</strong>.
+Из-за этого имеет смысл использовать не &ldquo;чистый&rdquo; базовый синтаксис, а более привычный диалект с использованием ключевых слов.</p>
+<h3 id="синтаксис-на-ключевых-словах">Синтаксис на ключевых словах<a class="td-heading-self-link" href="#%d1%81%d0%b8%d0%bd%d1%82%d0%b0%d0%ba%d1%81%d0%b8%d1%81-%d0%bd%d0%b0-%d0%ba%d0%bb%d1%8e%d1%87%d0%b5%d0%b2%d1%8b%d1%85-%d1%81%d0%bb%d0%be%d0%b2%d0%b0%d1%85" aria-label="Heading self-link"></a></h3>
+<p>В файле dsl.nlp находится набор макросов, которые расширяют базовый синтаксис <em>NewLang</em>, основанный на правилах,
+набором предопределенных ключевых слов как в классических языках программирования.
+А при необходимости, их можно адаптировать или дополнить под собственную предметную область.</p>
+<h2 id="константы">Константы<a class="td-heading-self-link" href="#%d0%ba%d0%be%d0%bd%d1%81%d1%82%d0%b0%d0%bd%d1%82%d1%8b" aria-label="Heading self-link"></a></h2>
+<h3 id="логические">Логические<a class="td-heading-self-link" href="#%d0%bb%d0%be%d0%b3%d0%b8%d1%87%d0%b5%d1%81%d0%ba%d0%b8%d0%b5" aria-label="Heading self-link"></a></h3>
+<ul>
+<li><strong>true</strong> - 1</li>
+<li><strong>yes</strong>  - 1</li>
+<li><strong>false</strong> - 0</li>
+<li><strong>no</strong> - 0</li>
+</ul>
+<h3 id="системные-имена">Системные имена<a class="td-heading-self-link" href="#%d1%81%d0%b8%d1%81%d1%82%d0%b5%d0%bc%d0%bd%d1%8b%d0%b5-%d0%b8%d0%bc%d0%b5%d0%bd%d0%b0" aria-label="Heading self-link"></a></h3>
+<ul>
+<li><strong>this</strong> - Текущий объект (<strong>$0</strong>)</li>
+<li><strong>parent</strong> - Родительский объект (<strong>$$</strong>)</li>
+<li><strong>last</strong> - Результат выполнения последнего оператора (<strong>$^</strong>)</li>
+</ul>
+<p>!!!!!!!!- <strong>args</strong> - Все аргументы функции (<strong>$*</strong>)</p>
+<p>!!!!!!!!- <strong>sys</strong> - Системный контекст запущенной программы (<strong>@@</strong>)
+!!!!!!!!- <strong>current</strong> - Текущий модуль (<strong>@$</strong>)
+!!!!!!!!- <strong>cmd</strong> - Все аргументы выполняющегося приложения из командной строки (<strong>@*</strong>)</p>
+<p>!!!!!!!!!!1### Типовые функции и проверки
+!!!!!!!!!!- <strong>run(&lsquo;filename&rsquo;)</strong> - Выполнить указанный файл (<strong>@@(&lsquo;filename&rsquo;)</strong>)
+!!!!!!!!!!- <strong>ifmain</strong> - Проверка, если текущий модуль основной (<strong>[@$.$0] &ndash;&gt;</strong> { &hellip; })
+!!!!!!!!!!- <strong>ifload</strong> - Проверка, если текущий модуль загружается впервые (<strong>[@$.<strong>load</strong>] &ndash;&gt;</strong> { &hellip; })</p>
+<h3 id="операторы">Операторы<a class="td-heading-self-link" href="#%d0%be%d0%bf%d0%b5%d1%80%d0%b0%d1%82%d0%be%d1%80%d1%8b" aria-label="Heading self-link"></a></h3>
+<ul>
+<li>
+<p><strong>match(cond)</strong> - Оператор <a href="https://newlang.net/ops.html#%D0%BE%D1%86%D0%B5%D0%BD%D0%BA%D0%B0-%D0%B2%D1%8B%D1%80%D0%B0%D0%B6%D0%B5%D0%BD%D0%B8%D1%8F">оценки выражения</a></p>
+</li>
+<li>
+<p><strong>if(&hellip;)</strong> - Первый условный оператор (<strong>[$*]&ndash;&gt;</strong> { &hellip; })</p>
+</li>
+<li>
+<p><strong>elif(&hellip;)</strong> - Второй и все последующие (<strong>,[$*]&ndash;&gt;</strong> { &hellip; })</p>
+</li>
+<li>
+<p><strong>else</strong> - Оператор <em>иначе</em> (<strong>,[_]&ndash;&gt;</strong> { &hellip; })</p>
+</li>
+<li>
+<p><strong>while(cond)</strong> - Оператор цикла с предусловием (<strong>[@$cond] &lt;-&gt;</strong> { &hellip; } )</p>
+</li>
+<li>
+<p><strong>dowhile(cond)</strong> - Оператор цикла с постусловием ({ &hellip; } <strong>&lt;-&gt;[@$cond]</strong>)</p>
+</li>
+<li>
+<p><strong>iter(obj, &hellip; )</strong> - Создание итератора ( <strong>@$obj</strong> ? (@$*) )</p>
+</li>
+<li>
+<p><strong>next(obj, &hellip; )</strong> - Следующий элемент итератора ( <strong>@$obj</strong> ! ($*) )</p>
+</li>
+<li>
+<p><strong>curr(obj, &hellip; )</strong> - Текущий элемент итератора ( <strong>@$obj</strong> !? ($*) )</p>
+</li>
+<li>
+<p><strong>first(obj)</strong> - Перейти на первый элемент итератора ( <strong>@$obj</strong> !! )</p>
+</li>
+<li>
+<p><strong>all(obj)</strong> - Получить сразу все элементы итератора ( <strong>@$obj</strong> ??)</p>
+</li>
+</ul>
+<h3 id="прерывания">Прерывания<a class="td-heading-self-link" href="#%d0%bf%d1%80%d0%b5%d1%80%d1%8b%d0%b2%d0%b0%d0%bd%d0%b8%d1%8f" aria-label="Heading self-link"></a></h3>
+<ul>
+<li>
+<p><strong>return</strong> - Положительное прерывание (<strong>++</strong>)</p>
+</li>
+<li>
+<p><strong>return(&hellip;)</strong>- Положительное прерывание с возвратом значения (<strong>++</strong> @$value <strong>++</strong>)</p>
+</li>
+<li>
+<p><strong>error</strong> - Отрицательное прерывание (<strong>--</strong>)</p>
+</li>
+<li>
+<p><strong>error(&hellip;)</strong> - Отрицательное прерывание с возвратом значения (<strong>--</strong> @$value <strong>--</strong>)</p>
+</li>
+<li>
+<p><strong>break+</strong> и <strong>break-</strong> - Выход из цикла:</p>
+</li>
+</ul>
+<pre tabindex="0"><code>    while(...) {+
+        ++ :Break ++   
+    +}
+    while(...) {-
+        -- :Break --
+    -}
+</code></pre><ul>
+<li><strong>continue+</strong> и <strong>continue-</strong> - В начало цикла:</li>
+</ul>
+<pre tabindex="0"><code>    while(...) {+
+        ++ :Continue ++   
+    +}
+    while(...) {-
+        -- :Continue --
+    -}
+</code></pre><p>obj {
+.field = 1;
+.prop();
+};</p>
+<p>#Python</p>
+<h1 id="1-without-using-with-statement">1) without using with statement<a class="td-heading-self-link" href="#1-without-using-with-statement" aria-label="Heading self-link"></a></h1>
+<p>file = open(&lsquo;file_path&rsquo;, &lsquo;w&rsquo;)
+file.write(&lsquo;hello world !&rsquo;)
+file.close()</p>
+<h1 id="2-without-using-with-statement">2) without using with statement<a class="td-heading-self-link" href="#2-without-using-with-statement" aria-label="Heading self-link"></a></h1>
+<p>file = open(&lsquo;file_path&rsquo;, &lsquo;w&rsquo;)
+try:
+file.write(&lsquo;hello world&rsquo;)
+finally:
+file.close()</p>
+<p>open(&lsquo;file_path&rsquo;, &lsquo;w&rsquo;) {
+.write(&lsquo;hello world !&rsquo;);
+.close();
+}</p>
+<p>Python3</p>
+<h1 id="using-with-statement">using with statement<a class="td-heading-self-link" href="#using-with-statement" aria-label="Heading self-link"></a></h1>
+<p>with open(&lsquo;file_path&rsquo;, &lsquo;w&rsquo;) as file:
+file.write(&lsquo;hello world !&rsquo;)</p>
+<h1 id="a-simple-file-writer-object">a simple file writer object<a class="td-heading-self-link" href="#a-simple-file-writer-object" aria-label="Heading self-link"></a></h1>
+<p>class MessageWriter(object):
+def <strong>init</strong>(self, file_name):
+self.file_name = file_name</p>
+<pre><code>def __enter__(self):
+    self.file = open(self.file_name, 'w')
+    return self.file
+
+def __exit__(self, *args):
+    self.file.close()
+</code></pre>
+<h1 id="using-with-statement-with-messagewriter">using with statement with MessageWriter<a class="td-heading-self-link" href="#using-with-statement-with-messagewriter" aria-label="Heading self-link"></a></h1>
+<p>with MessageWriter(&lsquo;my_file.txt&rsquo;) as xfile:
+xfile.write(&lsquo;hello world&rsquo;)</p>
+<h1 id="a-simple-file-writer-object-1">a simple file writer object<a class="td-heading-self-link" href="#a-simple-file-writer-object-1" aria-label="Heading self-link"></a></h1>
+<p>:MessageWriter {
+def <strong>init</strong>(self, file_name):
+self.file_name = file_name</p>
+<pre><code>def __enter__(self):
+    self.file = open(self.file_name, 'w')
+    return self.file
+
+def __exit__(self, *args):
+    self.file.close()
+</code></pre>
+<p>}</p>
+<h1 id="using-with-statement-with-messagewriter-1">using with statement with MessageWriter<a class="td-heading-self-link" href="#using-with-statement-with-messagewriter-1" aria-label="Heading self-link"></a></h1>
+<p>MessageWriter(&lsquo;my_file.txt&rsquo;) {
+.write(&lsquo;hello world&rsquo;);
+};</p>
+<p>from contextlib import contextmanager</p>
+<p>class MessageWriter(object):
+def <strong>init</strong>(self, filename):
+self.file_name = filename</p>
+<pre><code>@contextmanager
+def open_file(self):
+    try:
+        file = open(self.file_name, 'w')
+        yield file
+    finally:
+        file.close()
+</code></pre>
+<h1 id="usage">usage<a class="td-heading-self-link" href="#usage" aria-label="Heading self-link"></a></h1>
+<p>message_writer = MessageWriter(&lsquo;hello.txt&rsquo;)
+with message_writer.open_file() as my_file:
+my_file.write(&lsquo;hello world&rsquo;)</p>
+<p>:MessageWriter(object) {
+def <strong>init</strong>(self, filename):
+self.file_name = filename</p>
+<pre><code>@contextmanager
+def open_file(self):
+    try:
+        file = open(self.file_name, 'w')
+        yield file
+    finally:
+        file.close()
+</code></pre>
+<p>}</p>
+<h1 id="usage-1">usage<a class="td-heading-self-link" href="#usage-1" aria-label="Heading self-link"></a></h1>
+<p>message_writer = MessageWriter(&lsquo;hello.txt&rsquo;)
+with message_writer.open_file() as my_file:
+my_file.write(&lsquo;hello world&rsquo;)</p>
+<h1 id="приложения">Приложения<a class="td-heading-self-link" href="#%d0%bf%d1%80%d0%b8%d0%bb%d0%be%d0%b6%d0%b5%d0%bd%d0%b8%d1%8f" aria-label="Heading self-link"></a></h1>
+<h2 id="предопределенные-макросы">Предопределенные макросы<a class="td-heading-self-link" href="#%d0%bf%d1%80%d0%b5%d0%b4%d0%be%d0%bf%d1%80%d0%b5%d0%b4%d0%b5%d0%bb%d0%b5%d0%bd%d0%bd%d1%8b%d0%b5-%d0%bc%d0%b0%d0%ba%d1%80%d0%be%d1%81%d1%8b" aria-label="Heading self-link"></a></h2>
+<p>При работе парсера <em>NewLang</em> автоматически формируются несколько зарезервированных макросов, часть из которых соответствуют макросам препроцессора у С/С++.
+Данные предопределенные макросы можно использовать как обычные константы.</p>
+<ul>
+<li>
+<p>__FILE__ или __FILE_NAME__ - имя и полный путь текущего файла</p>
+</li>
+<li>
+<p>__LINE__ или __FILE_LINE__ - содержит номер текущей строки в файле</p>
+</li>
+<li>
+<p>__FILE_TIMESTAMP__ - дату и время последней модификации текущего файла в строковом представлении</p>
+</li>
+<li>
+<p>__FILE_MD5__ - md5 хеш текущего файла в строковом виде</p>
+</li>
+<li>
+<p>__COUNTER__ - целочисленный счетчик, который увеличивает свое значение при каждом обращении</p>
+</li>
+<li>
+<p>__DATE__ - дата начала запуска компилятора (имеет одно и тоже значение для всех обрабатываемых файлов)</p>
+</li>
+<li>
+<p>__TIME__ - время начала запуска компилятора (имеет одно и тоже значение для всех обрабатываемых файлов)</p>
+</li>
+<li>
+<p>__TIMESTAMP__ - дату и время начала запуска компилятора (например: &ldquo;Fri 19 Aug 13:32:58 2016&rdquo;)</p>
+</li>
+<li>
+<p>__TIMESTAMP_ISO__ - дату и время начала запуска компилятора в формате ISO (например: &ldquo;2013-07-06T00:50:06Z&rdquo;)</p>
+</li>
+<li>
+<p>__NLC_VER__ - Страшая и младшая версия компилятора NewLang (8 битное число, по 4 бита на цифру)</p>
+</li>
+<li>
+<p>__NLC_DATE_BUILD__ - текстовая строка с датой сборки компилятора NewLang (например, &ldquo;23.06.04 20:51:39&rdquo;)</p>
+</li>
+<li>
+<p>__NLC_SOURCE_GIT__ - текстовая строка с идентификатором исходных файлов NewLang git репозитория, использованных при сборке компилятора (например, &ldquo;v0.3.0-fef8c371&rdquo;)</p>
+</li>
+<li>
+<p>__NLC_SOURCE_BUILD__ - дата сборки и git идентификатор исходных файлов NewLang одной текстовой строкой (например, &ldquo;v0.3.0-fef8c371 23.06.04 20:51:39&rdquo;)</p>
+</li>
+</ul>
+
+</div>
+
+
+
+    
+	
+  
+
+
+
+          </main>
+        </div>
+      </div>
+      <footer class="td-footer row d-print-none">
+  <div class="container-fluid">
+    <div class="row mx-md-2">
+      <div class="td-footer__left col-6 col-sm-4 order-sm-1">
+        <ul class="td-footer__links-list">
+  
+  <li class="td-footer__links-item" data-bs-toggle="tooltip" title="User mailing list" aria-label="User mailing list">
+    <a target="_blank" rel="noopener" href="mailto:mail@newlang.net" aria-label="User mailing list">
+      <i class="fa fa-envelope"></i>
+    </a>
+  </li>
+  
+  <li class="td-footer__links-item" data-bs-toggle="tooltip" title="" aria-label="">
+    <a target="_blank" rel="noopener" href="" aria-label="">
+      <i class=""></i>
+    </a>
+  </li>
+  
+  <li class="td-footer__links-item" data-bs-toggle="tooltip" title="" aria-label="">
+    <a target="_blank" rel="noopener" href="" aria-label="">
+      <i class=""></i>
+    </a>
+  </li>
+  
+</ul>
+
+      </div><div class="td-footer__right col-6 col-sm-4 order-sm-3">
+        <ul class="td-footer__links-list">
+  
+  <li class="td-footer__links-item" data-bs-toggle="tooltip" title="GitHub" aria-label="GitHub">
+    <a target="_blank" rel="noopener" href="https://github.com/rsashka/newlang" aria-label="GitHub">
+      <i class="fab fa-github"></i>
+    </a>
+  </li>
+  
+  <li class="td-footer__links-item" data-bs-toggle="tooltip" title="" aria-label="">
+    <a target="_blank" rel="noopener" href="" aria-label="">
+      <i class=""></i>
+    </a>
+  </li>
+  
+  <li class="td-footer__links-item" data-bs-toggle="tooltip" title="" aria-label="">
+    <a target="_blank" rel="noopener" href="" aria-label="">
+      <i class=""></i>
+    </a>
+  </li>
+  
+</ul>
+
+      </div><div class="td-footer__center col-12 col-sm-4 py-2 order-sm-2">
+        <span class="td-footer__copyright">&copy;
+    2024
+    <span class="td-footer__authors">The NewLang Authors</span></span><span class="td-footer__all_rights_reserved">Все права защищены</span>
+      </div>
+    </div>
+  </div>
+</footer>
+
+    </div>
+    <script src="/js/main.js"></script>
+<script defer src="/js/click-to-copy.js" crossorigin="anonymous"></script>
+<script src='/js/tabpane-persist.js'></script>
+
+  </body>
+</html>

@@ -5,7 +5,7 @@ if [ ! -z $1 ]; then
     root="$1"
 fi
 
-rm -rf $root/site/public/*
+rm -rf $root/docs/*
 rm $root/site/content/ru/playground/*.src
 cp $root/examples/*.src  $root/site/content/ru/playground/
 cp -f $root/site/content/ru/playground/* $root/site/content/en/playground/
@@ -31,5 +31,5 @@ done
 
 cd  $root/site
 
-hugo server --cleanDestinationDir
+hugo server --cleanDestinationDir -d ../docs
 

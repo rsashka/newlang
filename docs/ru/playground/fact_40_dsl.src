@@ -1,0 +1,13 @@
+#!../output/nlc 
+
+### Example of calculating factorial 40 using DSL syntax
+
+fact := 1\1;                # Rational number 1 (no precision limit)
+mult := @iter( 40..1..-1 ); # Iterator from range for factors from 40 to 2
+@while( @curr(mult)) {      # Loop until the iterator data runs out
+    fact *= @next(mult);    # Get the current multiplier and move to the next iterator element
+};
+
+@assert(fact == 815915283247897734345611269596115894272000000000\1);
+
+fact    # Return final result
