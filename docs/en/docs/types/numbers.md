@@ -1,83 +1,72 @@
 ---
-title: Числа (тензоры)
-# linkTitle: Docs
-# menu: {main: {weight: 20}}
+title: Numbers
 weight: 10
-tags: [типы данных, простые типы]
 ---
 
-## Числовые типы данных
+*NewLang* is a language with dynamic typing, and explicit type declaration does not affect the memory size occupied by a variable. 
+Type information is used when checking their compatibility, when assigning a value of a different type to an existing object. 
+This operation is possible only when the types are compatible and allow for automatic conversion. 
+This is true both during parsing/compilation of the source text and during execution in interpreter and/or compiled file modes.
 
-Так *NewLang* является языком с динамической типизацией, то явное указание типа не влияет на размер памяти, занимаемой переменной и в основном определяет логические ограничения на возможность присвоения переменной значения другого типа.
+### Arithmetic types
 
-Информация о типах используется при проверке их совместимости, когда существующему объекту присваивается значение другого типа. Такая операция возможна только когда типы совместимы между собой и допускают автоматическое приведение. Это справедливо как во время парсинга/компиляции исходного теста, так и во время выполнения в режимах интерпретатора и/или скомпилированного файла.
+All numbers (except rational) in *NewLang* are tensors, i.e. arrays of one type with an arbitrary number of dimensions 
+and the same column size in each. A unit number is also a tensor of zero size.
 
-### Арифметические типы
+Only signed integers are supported, as there is no special need for unsigned numbers, 
+and there are many problems with them that can be found very easily. 
 
-Все числа (кроме рациональных) в *NewLang* являются тензорами, т.е. массивами одного типа с произвольным количеством измерений и одинаковым размером столбцов в каждом. Единичное число, это тоже тензор нулевого размера.
+> *Issues with unsigned numbers (from the internet):*
+> First, subtracting two unsigned numbers, for example 3 and 5. 
+> 3 minus 5 equals 4294967294 because -2 cannot be represented as an unsigned number.
+> Second, unexpected behavior may occur when mixing signed and unsigned integer values. 
+> C++ can freely convert signed and unsigned numbers, 
+> but does not check the range to ensure that you are not overflowing your data type.
 
-Поддерживаются только знаковые целые числа, т.к. в без знаковых числах особая нужда отсутствует, а проблем с ними можно найти очень много на ровном месте.
+The names of the built-in arithmetic types: :Int8, :Int16, :Int32, :Int64, :Float16, :Float32, :Float64, :Complex16, 
+:Complex32, :Complex64 speak for themselves. 
+And although among them there are names that are inherent to unsigned numbers (:Byte, :Word, :DWord, etc.), 
+they are synonyms and are used for interaction with [native C++ code](/docs/types/native/).
 
-Проблемы без знаковых чисел (из интернета):
-> Во-первых, вычитание двух без знаковых чисел, например 3 и 5. 3 минус 5 равно 4294967294, т.к. -2 не может быть представлено как без знаковое число. Во-вторых, непредвиденное поведение может возникнуть при смешивании целочисленных значений со знаком и без знака. С++ может свободно преобразовывать числа со знаком и без знака, но не проверяет диапазон, чтобы убедиться, что вы не переполняете свой тип данных. 
+#### Logical type {#bool}
+A separate type is the logical type: Bool, which can only take values 0 or 1 (*false*/*true* respectively), 
+and depending on the operation being performed, it can also be classified as integer types, 
+or not included in their composition (this approach to interpreting the logical data type was taken from the Torch library).
+>  ```
+>  // Treat bool as a distinct "category," to be consistent with type promotion
+>  // rules (e.g. `bool_tensor + 5 -> int64_tensor`). If `5` was in the same
+>  // category as `bool_tensor`, we would not promote. Differing categories
+>  // implies `bool_tensor += 5` is disallowed.
+>  //
+>  // NB: numpy distinguishes "unsigned" as a category to get the desired
+>  // `bool_tensor + 5 -> int64_tensor` behavior. We don't, because:
+>  // * We don't want the performance hit of checking the runtime sign of Scalars.
+>  // * `uint8_tensor + 5 -> int64_tensor` would be undesirable.
+>  ```
 
-Имена встроенных арифметических типов: :Int8, :Int16, :Int32, :Int64, :Float16, :Float32, :Float64, :Complex16, :Complex32, :Complex64 говорят сами за себя. Отдельным типом идет логический тип :Bool, который может принимать значения только 0 или 1 (*false*/*true* соответственно), и в зависимости от выполняемой операции тоже может быть отнесен к целочисленным типам, так и не входить в их состав (данный подход интерпретации логического типа данных был взят из библиотеки Torch).
+### Tensor Indexing {#indexing}
+Access to tensor elements is done by an integer index starting from 0. 
+For a multidimensional tensor, element indices are listed in square brackets separated by commas. 
+Access to elements through a negative index is supported, which is handled in the same way as 
+in Python (-1 is the last element, -2 is the second to last, and so on).
 
-    _(Bool, 1)              \
-    _(Int8, 2)              \
-    _(Char, 3)              /* signed char*/ \
-    _(Byte, 4)             /* unsigned char*/ \
-    _(Int16, 5)            /*short*/ \
-    _(Word, 6)            /*unsigned short*/ \
-    _(Int32, 7)            /*int*/ \
-    _(DWord, 8)             /*unsigned int*/ \
-    _(Int64, 9)            /*long*/ \
-    _(DWord64, 10)           /*unsigned long*/ \
-    _(Integer, 15)          \
-    \
-    _(Float16, 16)          \
-    _(Float32, 17)          \
-    _(Single,  18)          \
-    _(Float64, 19)          \
-    _(Double, 20)          \
-    _(Number, 24)           \
-    \
-    _(Complex16, 25)     \
-    _(Complex32, 26)     \
-    _(Complex64, 27)    \
-    _(Complex, 31)          \
+Ranges can be used as tensor indices, which are handled the same way as in Python, 
+as well as the value `:None` and ellipsis `...`. The value `:None`, meaning absence of an index, 
+signifies an arbitrary size of the tensor in *one* specific dimension, while the ellipsis `...` denotes 
+an arbitrary dimension in *any* number of dimensions (hence, it can appear in the tensor index only once).
 
+The tensor literal in the program text is written in square brackets with a mandatory closing comma, i.e. `[1, 2,]` - this is 
+a literal one-dimensional tensor of two numbers. After the closing bracket, the tensor type can be explicitly specified. 
+If the type is not specified, it is automatically output based on the specified data and the minimum possible byte size that allows 
+all values to be saved without loss of accuracy is selected.
 
-```
-// Treat bool as a distinct "category," to be consistent with type promotion
-// rules (e.g. `bool_tensor + 5 -> int64_tensor`). If `5` was in the same
-// category as `bool_tensor`, we would not promote. Differing categories
-// implies `bool_tensor += 5` is disallowed.
-//
-// NB: numpy distinguishes "unsigned" as a category to get the desired
-// `bool_tensor + 5 -> int64_tensor` behavior. We don't, because:
-// * We don't want the performance hit of checking the runtime sign of Scalars.
-// * `uint8_tensor + 5 -> int64_tensor` would be undesirable.
-```
+Examples of creating tensors and transforming their dimensions can be found [here](/docs/types/convert/).
 
-Доступ к элементам тензора происходит по целочисленному индексу, который начинается с 0. Для многомерного тензора, индексы элемента перечисляются в квадратных скобках через запятую. Поддерживается доступ к элементам через отрицательный индекс, который обрабатывается точно так же, как в Python (-1 последний элемент, -2 предпоследний и т.д.).
+### Rational Numbers {#rational}
 
-Литерал тензор в тексте программы записывается в квадратных скобках с обязательной завершающей запятой, т.е. [1, 2,] — это литерал одномерный тензор из двух чисел. После закрывающей скобки тип тензора может быть указан в явном виде. Если тип не указан, то он выводится автоматически на основании указанных данных и выбирается минимально возможный байтовый размер, который позволяет сохранить все значения без потери точности.
+For calculations with unlimited precision in *NewLang*, a separate type is used - rational numbers. 
+They are written in the form of a common fraction, in which the numerator must be an *integer*, 
+and the denominator *natural* (an integer without zero). 
 
-Примеры:
-```
-$var_char := 123; # Тип Int8 выводится автоматически
-$var_short := 1000; # Тип Int16 выводится автоматически
-$var_bool := [0, 1, 0, 1,]; # Тензор из 4 элементов. Тип Bool выводится автоматически
-$tensor[10,10]:Int32 := 1; # Тензор Int32 размером 2x2 инициализированный 1
-$scalar := $tensor[5,5]; # Присвоить скаляру значение указанного элемента тензора
-```
-
-### Рациональные числа
-
-Для специальных расчетов с неограниченной точностью в *NewLang* используется отдельный тип чисел - рациональные. 
-Они записываются в форме обыкновенной дроби, в которой числитель должен быть целым числом, а знаменатель натуральным (целым без нуля). 
-В качестве разделителя дроби используется обратная косая черта, т.е. `1\1` - рациональное число 1, `-5\1` - рациональное числа -5 и т.д.
-
-
+A backslash is used as the fraction separator, i.e. `1\1` - rational number 1, `-5\1` - rational number -5, etc.
 

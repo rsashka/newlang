@@ -8,16 +8,16 @@ weight: 200
 
 ## DSL
 
-### Особенности ассоциативной памяти
-Синтаксис языка *NewLang* основан на строгих правилах без использования ключевых слов, 
-и как бы он не выглядел логичным, ассоциация по ключевым словам вспоминается гораздо легче, например **if**,
-чем комбинация *минус минус правая угловая скобка* **-->**. 
-Из-за этого имеет смысл использовать не "чистый" базовый синтаксис, а более привычный диалект с использованием ключевых слов. 
+### Features of associative memory
+The syntax of the *NewLang* language is based on strict rules without the use of keywords,
+and no matter how logical it may seem, association by keywords is much easier to remember, for example, **if**,
+than the combination *minus minus right angle bracket* **-->**. 
+Because of this, it makes sense to use not a "pure" basic syntax, but a more familiar dialect with the use of keywords.
 
-### Синтаксис на ключевых словах
-В файле dsl.nlp находится набор макросов, которые расширяют базовый синтаксис *NewLang*, основанный на правилах,
-набором предопределенных ключевых слов как в классических языках программирования. 
-А при необходимости, их можно адаптировать или дополнить под собственную предметную область.
+### Syntax based on keywords
+In the dsl.nlp file, there is a set of macros that expand the basic syntax of *NewLang*, based on rules,
+with a set of predefined keywords as in classical programming languages. 
+And if necessary, they can be adapted or supplemented for your own domain.
 
 
 ## Константы

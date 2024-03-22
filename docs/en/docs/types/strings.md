@@ -1,69 +1,62 @@
 ---
-title: Символьные строки
-# linkTitle: Docs
-# menu: {main: {weight: 20}}
+title: Character Strings
 weight: 20
-tags: [типы данных, строки]
+# tags: [типы данных, строки]
 ---
 
-## Символьные строки
+*NewLang* supports two types of strings:
+- *:StrChar* - universal byte UTF-8 strings
+- *:StrWide* - system character (wide characters) 
 
-**NewLang** поддерживает два типа строк: 
-- *:StrChar* - универсальные байтовые UTF-8 строки
-- *:StrWide* - системные символьные (широкие символы) 
+The single element of a universal UTF-8 string is one byte, 
+while the single element of a system character string is a wide character *wchar_t*.
+And although the strings differ in the types of single string elements, the internal representation of both types of strings is the same.
+All data of character strings is stored as a universal byte UTF-8 sequence.
 
-Единичным элементом универсальной UTF-8 строки является один байт, 
-тогда как у системных символьных строк единичным элементом строки является широкий символ *wchar_t*.
+### Byte Strings *:StrChar* {#StrChar}
 
-И хотя строки различаются типами единичного элемента строки, но внутреннее представление у обоих типов строк одинаковое.
-Все данные символьных строки хранятся в виде универсальной байтовой UTF-8 последовательности.
+The basic element of a universal byte string is one byte (specifically *:Int8*, i.e. an 8-bit signed integer).
+The number of characters in a byte string is returned in bytes, and accessing a string element by index is done by the byte of the character sequence.
 
-### Байтовые строки *:StrChar* {#StrChar}
-
-Единичным элементом универсальной байтовой строки является один байт (точнее *:Int8*, т.е. 8-ми битное целое число со знаком).
-Количество символов байтовой строки возвращается в байтах и обращение к элементу строки по индексу происходит к байту символьной последовательности.
-*Так как данные строки интерпретируется как последовательность UTF-8 символов, нужно соблюдать осторожность при изменении отдельных байт!*
+*Since these strings are interpreted as a sequence of UTF-8 characters, caution must be taken when modifying individual bytes!*
 
 
-### Системные строки *:StrWide* {#StrWide}
+### System Strings *:StrWide* {#StrWide}
 
-Единичным элементом системной строки является широкий символ *wchar_t*, а количество элементов системной символьной строки возвращается в широких символах.
-Размер типа *wchar_t* зависит от операционной системы, поэтому размер одного символа :StrWide в Windows будет 2 байта, а в Linux 4 байта,
-что связано с их особенностями реализации.
+The individual element of the system string is a wide character *wchar_t*, and the number of elements in the system character string is returned in wide characters.
+The size of the *wchar_t* type depends on the operating system, so the size of one character :StrWide in Windows will be 2 bytes, and in Linux 4 bytes,
+which is related to their implementation specifics.
 
-Основоне назначение системных строк - упрощение работы в текстовом терминале, 
-так как один символ всегда соответствует одному знакоместу без необходимости постоянного конвертирования кодовых точек UTF-8.
+The main purpose of system strings is to simplify working in a text terminal,
+as one character always corresponds to one character cell without the need for constant conversion of UTF-8 code points.
 
 
-### Форматирование строк {#format}
-К любой переменной можно обратиться как к функции (указав после её имени круглые скобки) для создания копии/клона объекта, 
-а для строк, такую операцию можно использовать как шаблон при форматировании данных. 
+### String Formatting {#format}
+Any variable can be accessed as a function (by specifying parentheses after its name) to create a copy/clone of the object, 
+and for strings, this operation can be used as a template for formatting data.
 
-Форматирование строк можно сделать двумая способами:
-- Задать строку формата с указанием типов выводимых данных (строка формата соотвествует форматированию в стандартной функции [printf](https://en.wikipedia.org/wiki/Printf)).
-Для применения такого варината форматирования у строки формата необходимо указать соответствующий тип данных 
-(*:FmtChar* или *:FmtWide* для обычных и широких символов соответствено).  
-При таком способе форматирования, именнованные аргументы использовать нельзя,
-а компилятор проверяет типы передаваемых значений на соответствие строке формата только *во время компиляции* текста программы.   
-*Данный тип форматной строки можно использовать как последний аргумент функции для проверки 
-типов всех последующих аргументов на соотвестие строки формата.*
+String formatting can be done in two ways:
+- Specify a format string with the types of data to be output (the format string corresponds to formatting in the standard [printf](https://en.wikipedia.org/wiki/Printf) function).
+To apply this formatting variant, the format string must specify the corresponding data type 
+(*: FmtChar* or *: FmtWide* for regular and wide characters, respectively).  
+With this formatting method, named arguments cannot be used, and the compiler checks the types of the passed values 
+for compliance with the format string only *during compilation* of the program text. 
+*This type of format string can be used as the last argument of a function to check the types of all subsequent arguments 
+for compliance with the format string.*
 
-- Во всех остальных случаях в качестве строки формата можно использовать любые строки и именованные аргументы, 
-а сам формат соотвествует строке формата из библиотеки [{fmt}](https://fmt.dev/latest/syntax.html).   
-Единствено отличие заключается в возможности указания не только порядкового номера аргумента, но и его имени.  
-Проверка аргументов на соответствие строки формата производится во время клонирования строки как во время компиляции, 
-так и во время выполняения программы.   
-*Данный способ форматирования используется по умолчанию для любых типов строк, 
-но проверка строки формата не выполняется в аргументах функции.*   
+- In all other cases, any strings and named arguments can be used as the format string, 
+and the format itself corresponds to the format string from the [{fmt}](https://fmt.dev/latest/syntax.html) library. 
+The only difference is the ability to specify not only the positional number of the argument, but also its name. 
+Argument validation against the format string is performed during string cloning both at compile time and during program execution.
 
-*Например:*
+The formatting method is used by default for any type of string, but the format string is not checked in the function arguments.
+
+For example:
 ```python
-    $fmt := '%s: %d':FmtChar; # Форматирование как в printf
+    $fmt := '%s: %d':FmtChar; # Formatting like in printf
     $result := $fmt('value', 123); # "value: 123" - Check compile time only! 
 
     $template := "{name} {0}"; # fmt::format equivalent "{1} {0}"
-    $result := $template("шаблон", name = "Строка"); # result = "Строка шаблон"
-
+    $result := $template("template", name = "String"); # result = "String template"
 ```
-
 

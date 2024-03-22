@@ -39,7 +39,7 @@ ns { # Equivalent to ns::
 
 ## Namespaces, Modules, and Packages
 
-The namespace in *NewLang* supports both a [modular code structure](/ru/docs/syntax/modules/) like in Java and Python languages, 
+The namespace in *NewLang* supports both a [modular code structure](/docs/syntax/modules/) like in Java and Python languages, 
 and when specifying the full name of an object, program modules and namespaces can be combined.
 
 For example, the full name of a variable can be written with the indication of the program module `\root\dir\module::ns::name::var`, 
@@ -50,8 +50,8 @@ and **module** is the file name, i.e. *root/dir/module.src*.
 
 In *NewLang*, name decoration (mangling) based on function argument types is not used.
 
-However, when creating unique identifiers for [class](/ru/docs/types/class/) methods, 
-*NewLang* uses an approach similar to that used in the Python language. When creating a [class method](/ru/docs/types/class/), 
+However, when creating unique identifiers for [class](/docs/types/class/) methods, 
+*NewLang* uses an approach similar to that used in the Python language. When creating a [class method](/docs/types/class/), 
 a global function is created with the class name and method name combined with the separator "**::**".
 
 For example, for the class `:NewClass`, when creating the method `method`, a function named `NewClass::method` will be created.
