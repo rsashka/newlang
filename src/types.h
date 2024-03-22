@@ -25,40 +25,90 @@ namespace newlang {
 
 typedef at::indexing::TensorIndex Index;
 typedef at::IntArrayRef Dimension;
+typedef std::vector<std::string> StringArray;
 
 class Term;
 class Obj;
 class Context;
-class Compiler;
+class Context;
+class Module;
+
+class IntAny;
+class IntPlus;
+class IntMinus;
+
+namespace runtime {
+    class  Buildin;
+}
+
+class Macro;
+class Parser;
 class RunTime;
+class Diag;
+
+/*
+ * RunTime - класс синглетон для процесса. В нем происходит загрузка модулей, взаимодействие 
+ * со средой выполнения. В нем находится таблица имен для всего приложения Named (weak_ptr)
+ * Module - класс для одного модуля. Один файл - один модуль. Являеся владельцем объектов данного модуля (shared_ptr)
+ * Context - класс локальных переменных выполнения одного потока.
+ * 
+ * val := 123; # Обычная переменная - владелец объекта без возможности создания ссылки на объект
+ * т.е. val2 := &val; # Ошибка !!!!
+ * & ref := & 123; # Переменная - владелец объекта с возможностью создать ссылку в текущем потоке
+ * т.е. ref2 := &ref; # ОК, но только в рамках одного потока !!!!
+ * && ref_mt := && 123; # Переменная - владелец объекта с возможностью создать ссылку в одном потоке без синхронизации
+ * в разных потоках приложения (с межпотоковой синхронизацией) т.е. ref_mt2 := &&ref_mt; # ОК !!!!
+
+ * 
+ */
 
 typedef std::shared_ptr<Term> TermPtr;
+typedef std::shared_ptr<Module> ModulePtr;
+typedef std::shared_ptr<runtime::Buildin> BuildinPtr;
+
+
 typedef std::shared_ptr<Obj> ObjPtr;
 typedef std::shared_ptr<const Obj> ObjPtrConst;
+
+typedef std::vector<TermPtr> BlockType;
+typedef std::vector<TermPtr> ArrayTermType;
+typedef std::vector<ObjPtr> ArrayObjType;
+
+typedef std::weak_ptr<Obj> ObjWeak;
+typedef std::weak_ptr<const Obj> ObjWeakConst;
+ 
 typedef std::shared_ptr<RunTime> RuntimePtr;
+typedef std::shared_ptr<Diag> DiagPtr;
+typedef std::shared_ptr<Macro> MacroPtr;
+typedef std::shared_ptr<Parser> ParserPtr;
+typedef std::shared_ptr<Context> RunnerPtr;
 
 typedef ObjPtr FunctionType(Context *ctx, Obj &in);
-typedef ObjPtr TransparentType(const Context *ctx, Obj &in);
 
-class Return : public std::exception {
+typedef at::variant<at::monostate, ObjWeak, std::vector < ObjWeak> > WeakItem;
+
+typedef ObjPtr(*EvalFunction)(Context *ctx, const TermPtr & term, Obj * args, bool eval_block);
+
+
+class Error : public std::exception {
   public:
      
-      static const char * RetPlus;
-      static const char * RetMinus;
-      static const char * IntParser;
-      static const char * IntError;
-    
-      static const char * Break;
-      static const char * Continue;
-//      static const char * Return;
-      static const char * Error;
-      static const char * Parser;
-      static const char * RunTime;
-      static const char * Signal;
-      static const char * Abort;
+//      static const char * RetPlus;
+//      static const char * RetMinus;
+//      static const char * IntParser;
+//      static const char * IntError;
+//    
+//      static const char * Break;
+//      static const char * Continue;
+////      static const char * Return;
+//      static const char * Error;
+//      static const char * Parser;
+//      static const char * RunTime;
+//      static const char * Signal;
+//      static const char * Abort;
 
-    Return(const ObjPtr obj);
-    Return(const std::string message, const std::string error_name=Error);
+    Error(const ObjPtr obj);
+    Error(const std::string message, const std::string error_name=":Error");
 
     virtual const char *what() const noexcept override;
     
@@ -67,6 +117,18 @@ class Return : public std::exception {
     const ObjPtr m_obj;
     char m_buffer_message[1000];
     
+};
+
+
+class ParserError : public Error {
+public:
+
+    ParserError(std::string msg) : newlang::Error(msg) {
+    }
+
+    virtual ~ParserError() {
+    }
+
 };
 
 void NewLangSignalHandler(int signal);
@@ -115,18 +177,32 @@ std::string ParserMessage(std::string &buffer, int row, int col, const char *for
 
 void ParserException(const char *msg, std::string &buffer, int row, int col);
 
+#ifdef BUILD_UNITTEST
+#define LOG_LEVEL_ERROR_MESSAGE  LOG_LEVEL_DEBUG
+#else
+#define LOG_LEVEL_ERROR_MESSAGE  LOG_LEVEL_INFO
+#endif
+
 #define NL_PARSER(term, format, ...)                                                                                   \
     do {                                                                                                               \
         std::string empty;                                                                                             \
         std::string message =                                                                                          \
             newlang::ParserMessage(term->m_source ? *term->m_source : empty, term->m_line, term->m_col, format, ##__VA_ARGS__); \
-        LOG_EXCEPT_LEVEL(Return, LOG_LEVEL_INFO, "", "%s", message.c_str());                                 \
+        LOG_EXCEPT_LEVEL(ParserError, LOG_LEVEL_ERROR_MESSAGE, "", "%s", message.c_str());                                 \
+    } while (0)
+
+#define NL_MESSAGE(level, term, format, ...)                                                                                   \
+    do {                                                                                                               \
+        std::string empty;                                                                                             \
+        std::string message =                                                                                          \
+            newlang::ParserMessage((term && term->m_source) ? *term->m_source : empty, term?term->m_line:1, term?term->m_col:0, format, ##__VA_ARGS__); \
+        LOG_MAKE(level, "", "%s", message.c_str());                                 \
     } while (0)
 
 #define NL_CHECK(cond, format, ...)                                                                                    \
     do {                                                                                                               \
         if (!(cond)) {                                                                                                 \
-            LOG_EXCEPT_LEVEL(Return, LOG_LEVEL_INFO, "", format, ##__VA_ARGS__);                             \
+            LOG_EXCEPT_LEVEL(ParserError, LOG_LEVEL_ERROR_MESSAGE, "", format, ##__VA_ARGS__);                             \
         }                                                                                                              \
     } while (0)
 
@@ -134,12 +210,12 @@ void ParserException(const char *msg, std::string &buffer, int row, int col);
     do {                                                                                                               \
         if (!canCast(from, to)) {                                                                                      \
             std::string message = "Incompatible data type '";                                                          \
-            message += newlang::toString(typeFromString(from));                                                        \
+            message += newlang::toString(from);                                                        \
             message += "' and '";                                                                                      \
-            message += newlang::toString(typeFromString(to));                                                          \
+            message += newlang::toString(to);                                                          \
             message += "' (" __FILE__ ":" TO_STR(__LINE__) ")";                                                        \
             LOG_EXCEPT_LEVEL(                                                                                          \
-                Return, LOG_LEVEL_INFO, "", "%s",                                                            \
+                ParserError, LOG_LEVEL_ERROR_MESSAGE, "", "%s",                                                            \
                 newlang::ParserMessage(*term->m_source, term->m_line, term->m_col, "%s", message.c_str()).c_str());             \
         }                                                                                                              \
     } while (0)
@@ -202,44 +278,51 @@ void ParserException(const char *msg, std::string &buffer, int row, int col);
     \
     _(Pointer, 64)          \
     _(NativeFunc, 65)       \
-    _(Function, 100)        \
-    _(PureFunc, 101)        \
+    _(Function, 70)        \
+    _(PureFunc, 71)        \
+    \
+    _(Thread, 80)        \
+    _(Base, 84)        \
+    _(Sys, 85)        \
     \
     _(Range, 104)           \
     _(Dictionary, 105)      \
-    _(Class, 106)           \
-    _(Ellipsis, 107)        \
+    _(Interface, 106)      \
+    _(Class, 107)           \
+    _(Ellipsis, 108)        \
     _(EVAL_FUNCTION, 110)   \
     \
     _(BLOCK, 111)           \
     _(BLOCK_TRY, 112)       \
     _(BLOCK_PLUS, 113)       \
     _(BLOCK_MINUS, 114)       \
+    _(Macro, 115)       \
     \
     _(Virtual, 119)            \
     _(Eval, 118)            \
     _(Other, 120)           \
     _(Plain, 121)           \
-    _(Struct, 201)          \
-    _(Union, 202)           \
-    _(Enum, 203)            \
     _(Object, 122)          \
     _(Any, 123)             \
+    \
     _(Type, 200)            \
+/*    _(Void, 201)          */\
+    _(Struct, 202)          \
+    _(Union, 203)           \
+    _(Enum, 204)            \
     \
     _(RetPlus, 210)         \
     _(RetMinus, 211)        \
-    _(IntRepeat, 212)        \
+    _(RetRepeat, 212)        \
     _(IntParser, 213)       \
     _(IntError, 214)        \
     \
     _(Context, 227)          \
     _(Module, 228)          \
     _(Undefined, 229)          \
-    _(Return, 230)          \
+    _(Error, 230)          \
     _(Break, 231)           \
     _(Continue, 232)        \
-    _(Error, 240)           \
     _(ErrorParser, 241)     \
     _(ErrorRunTime, 242)    \
     _(ErrorSignal, 243)
@@ -312,11 +395,7 @@ void ParserException(const char *msg, std::string &buffer, int row, int col);
 #define DEFINE_ENUM(name, value) name = static_cast<uint8_t>(value),
         NL_TYPES(DEFINE_ENUM)
 #undef DEFINE_ENUM
-        _NumOptions
     };
-
-    constexpr uint16_t NumObjTypes = static_cast<uint16_t> (ObjType::_NumOptions);
-
 
 #define MAKE_TYPE_NAME(type_name)  type_name
 
@@ -374,6 +453,42 @@ void ParserException(const char *msg, std::string &buffer, int row, int col);
         LOG_RUNTIME("NewLang type '%s'(%d) can't be represented by C++ type!", toString(type), static_cast<int> (type));
     }
 
+    ObjType GetBaseTypeFromString(const std::string type_arg, bool *has_error = nullptr);
+
+#define NL_REFS(_)      \
+    _(RefNone, 0)       \
+    _(RefNoMt, 1)       \
+    _(RefMtMono, 2)     \
+    _(RefMtMulti, 3)    \
+    _(RefNoMtReadOnly, 4)   \
+    _(RefMtMonoReadOnly, 5) \
+    _(RefMtMultiReadOnly, 6)\
+    _(RefCustom7, 7)    \
+    _(RefCustom8, 8)    \
+    _(RefCustom9, 9)  
+
+    enum class RefType : uint8_t {
+#define DEFINE_ENUM(name, value) name = static_cast<uint8_t>(value),
+        NL_REFS(DEFINE_ENUM)
+#undef DEFINE_ENUM
+        _NumOptions
+    };
+
+    constexpr uint16_t RefTypesNum = static_cast<uint16_t> (RefType::_NumOptions);
+
+    inline const char *toString(RefType type) {
+#define DEFINE_CASE(name, _)                                                                                           \
+    case RefType::name:                                                                                                \
+        return TO_STR(#name);
+
+        switch (type) {
+                NL_REFS(DEFINE_CASE)
+            default:
+                LOG_RUNTIME("UNKNOWN ref type code %d", static_cast<int> (type));
+        }
+#undef DEFINE_CASE
+    }
+
     inline const char *toCXXRef(std::string &ref) {
         if (ref.compare("&") == 0) {
             return "*";
@@ -405,9 +520,47 @@ void ParserException(const char *msg, std::string &buffer, int row, int col);
         }
     }
 
-    inline bool isObjectType(ObjType t) {
-        return t == ObjType::Dictionary || t == ObjType::Class;
+    inline bool isNativeType(ObjType t) {
+        switch (t) {
+            case ObjType::Bool:
+            case ObjType::Int8:
+            case ObjType::Char:
+            case ObjType::Byte:
+            case ObjType::Int16:
+            case ObjType::Word:
+            case ObjType::Int32:
+            case ObjType::DWord:
+            case ObjType::Int64:
+            case ObjType::DWord64:
+            case ObjType::Float32:
+            case ObjType::Float64:
+            case ObjType::Single:
+            case ObjType::Double:
+            case ObjType::Pointer:
+
+                //            case ObjType::String:
+            case ObjType::StrChar:
+            case ObjType::FmtChar:
+            case ObjType::StrWide:
+            case ObjType::FmtWide:
+                return true;
+            default:
+                return false;
+        }
     }
+
+    inline bool isObjectType(ObjType t) {
+        return t == ObjType::Dictionary || t == ObjType::Interface || t == ObjType::Class;
+    }
+
+    bool isDefaultType(const TermPtr & term);
+    const TermPtr getDefaultType(const std::string_view text);
+    const TermPtr getDefaultType(ObjType type);
+    const TermPtr getNoneTerm();
+    const TermPtr getEllipsysTerm();
+    const TermPtr getRequiredTerm();
+    const ObjPtr getNoneObj();
+    const ObjPtr getEllipsysObj();
 
     inline bool isBaseType(ObjType t) {
         return t == ObjType::Bool || t == ObjType::Int8 || t == ObjType::Int16 || t == ObjType::Int32
@@ -420,6 +573,10 @@ void ParserException(const char *msg, std::string &buffer, int row, int col);
     inline bool isFunction(ObjType t) {
         return t == ObjType::PureFunc || t == ObjType::Function || t == ObjType::NativeFunc ||
                 t == ObjType::EVAL_FUNCTION || t == ObjType::PureFunc || t == ObjType::Virtual;
+    }
+
+    inline bool isNative(ObjType t) {
+        return t == ObjType::NativeFunc || t == ObjType::NativeFunc;
     }
 
     inline bool isEval(ObjType t) {
@@ -470,16 +627,20 @@ void ParserException(const char *msg, std::string &buffer, int row, int col);
         return isStringChar(t) || isStringWide(t) || t == ObjType::String;
     }
 
+    inline bool isInterrupt(ObjType t) {
+        return t == ObjType::RetPlus || t == ObjType::RetMinus || t == ObjType::RetRepeat;
+    }
+
     inline bool isPlainDataType(ObjType t) {
         return isTensor(t) || isString(t) || t == ObjType::Struct || t == ObjType::Enum || t == ObjType::Union;
     }
 
     inline bool isDictionary(ObjType t) {
-        return t == ObjType::Dictionary || t == ObjType::Class;
+        return t == ObjType::Dictionary || t == ObjType::Class; // ObjType::Interface - не имеет полей данных, т.е. не словарь
     }
 
     inline bool isClass(ObjType t) {
-        return t == ObjType::Class;
+        return t == ObjType::Class || t == ObjType::Interface;
     }
 
     inline bool isEllipsis(ObjType t) {
@@ -499,12 +660,104 @@ void ParserException(const char *msg, std::string &buffer, int row, int col);
     }
 
     inline bool isIndexingType(ObjType curr, ObjType fix) {
-        return isTensor(curr) || isString(curr) || isDictionary(curr) || isClass(curr) || isFunction(curr) || isModule(curr) || (isTypeName(curr) && isIndexingType(fix, fix));
+        return isTensor(curr) || isString(curr) || isDictionary(curr) || isFunction(curr) || isModule(curr) || (isTypeName(curr) && isIndexingType(fix, fix));
     }
 
     inline bool isLocalType(ObjType t) {
         return false;
     }
+
+    //#define AT_FORALL_SCALAR_TYPES_WITH_COMPLEX_AND_QINTS(_) \
+//  _(uint8_t, Byte) /* 0 */                               \
+//  _(int8_t, Char) /* 1 */                                \
+//  _(int16_t, Short) /* 2 */                              \
+//  _(int, Int) /* 3 */                                    \
+//  _(int64_t, Long) /* 4 */                               \
+//  _(at::Half, Half) /* 5 */                              \
+//  _(float, Float) /* 6 */                                \
+//  _(double, Double) /* 7 */                              \
+//  _(c10::complex<c10::Half>, ComplexHalf) /* 8 */        \
+//  _(c10::complex<float>, ComplexFloat) /* 9 */           \
+//  _(c10::complex<double>, ComplexDouble) /* 10 */        \
+//  _(bool, Bool) /* 11 */                                 \
+//  _(c10::qint8, QInt8) /* 12 */                          \
+//  _(c10::quint8, QUInt8) /* 13 */                        \
+//  _(c10::qint32, QInt32) /* 14 */                        \
+//  _(at::BFloat16, BFloat16) /* 15 */                     \
+//  _(c10::quint4x2, QUInt4x2) /* 16 */                    \
+//  _(c10::quint2x4, QUInt2x4) /* 17 */                    \
+//  _(c10::bits1x8, Bits1x8) /* 18 */                      \
+//  _(c10::bits2x4, Bits2x4) /* 19 */                      \
+//  _(c10::bits4x2, Bits4x2) /* 20 */                      \
+//  _(c10::bits8, Bits8) /* 21 */                          \
+//  _(c10::bits16, Bits16) /* 22 */                        \
+//  _(c10::Float8_e5m2, Float8_e5m2) /* 23 */              \
+//  _(c10::Float8_e4m3fn, Float8_e4m3fn) /* 24 */
+
+    //    
+    //  switch (scalarType) {
+    //    case at::ScalarType::Byte:
+    //      // no "byte" because byte is signed in numpy and we overload
+    //      // byte to mean bool often
+    //      return std::make_pair("uint8", "");
+    //    case at::ScalarType::Char:
+    //      // no "char" because it is not consistently signed or unsigned; we want
+    //      // to move to int8
+    //      return std::make_pair("int8", "");
+    //    case at::ScalarType::Double:
+    //      return std::make_pair("float64", "double");
+    //    case at::ScalarType::Float:
+    //      return std::make_pair("float32", "float");
+    //    case at::ScalarType::Int:
+    //      return std::make_pair("int32", "int");
+    //    case at::ScalarType::Long:
+    //      return std::make_pair("int64", "long");
+    //    case at::ScalarType::Short:
+    //      return std::make_pair("int16", "short");
+    //    case at::ScalarType::Half:
+    //      return std::make_pair("float16", "half");
+    //    case at::ScalarType::ComplexHalf:
+    //      return std::make_pair("complex32", "chalf");
+    //    case at::ScalarType::ComplexFloat:
+    //      return std::make_pair("complex64", "cfloat");
+    //    case at::ScalarType::ComplexDouble:
+    //      return std::make_pair("complex128", "cdouble");
+    //    case at::ScalarType::Bool:
+    //      return std::make_pair("bool", "");
+    //    case at::ScalarType::QInt8:
+    //      return std::make_pair("qint8", "");
+    //    case at::ScalarType::QUInt8:
+    //      return std::make_pair("quint8", "");
+    //    case at::ScalarType::QInt32:
+    //      return std::make_pair("qint32", "");
+    //    case at::ScalarType::BFloat16:
+    //      return std::make_pair("bfloat16", "");
+    //    case at::ScalarType::QUInt4x2:
+    //      return std::make_pair("quint4x2", "");
+    //    case at::ScalarType::QUInt2x4:
+    //      return std::make_pair("quint2x4", "");
+    //    case at::ScalarType::Bits1x8:
+    //      return std::make_pair("bits1x8", "");
+    //    case at::ScalarType::Bits2x4:
+    //      return std::make_pair("bits2x4", "");
+    //    case at::ScalarType::Bits4x2:
+    //      return std::make_pair("bits4x2", "");
+    //    case at::ScalarType::Bits8:
+    //      return std::make_pair("bits8", "");
+    //    case at::ScalarType::Bits16:
+    //      return std::make_pair("bits16", "");
+    //    case at::ScalarType::Float8_e5m2:
+    //      return std::make_pair("float8_e5m2", "");
+    //    case at::ScalarType::Float8_e4m3fn:
+    //      return std::make_pair("float8_e4m3fn", "");
+    //    case at::ScalarType::Float8_e5m2fnuz:
+    //      return std::make_pair("float8_e5m2fnuz", "");
+    //    case at::ScalarType::Float8_e4m3fnuz:
+    //      return std::make_pair("float8_e4m3fnuz", "");
+    //    default:
+    //      throw std::runtime_error("Unimplemented scalar type");
+    //  }
+    //}    
 
     inline torch::Dtype toTorchType(ObjType t) {
         switch (t) {
@@ -595,8 +848,8 @@ void ParserException(const char *msg, std::string &buffer, int row, int col);
     }
 
     inline ObjType typeFromLimit(double value, ObjType type_default = ObjType::Float64) {
-        if (std::equal_to<double>()(value, 0)) {
-            return type_default;
+        if (value >= std::numeric_limits<float>::min() && value < std::numeric_limits<float>::max()) {
+            return ObjType::Float32;
         }
         return ObjType::Float64;
     }
@@ -605,7 +858,8 @@ void ParserException(const char *msg, std::string &buffer, int row, int col);
         LOG_RUNTIME("Not implemented!");
     }
 
-    ObjType typeFromString(const std::string type, Context *ctx = nullptr, bool *has_error = nullptr);
+    ObjType typeFromString(TermPtr &term, RunTime *rt, bool *has_error = nullptr);
+    //    ObjType typeFromString(const std::string type, RunTime *rt, bool *has_error = nullptr);
 
     inline LLVMTypeRef toLLVMType(ObjType t, bool none_if_error = false) {
         switch (t) {
@@ -717,8 +971,11 @@ void ParserException(const char *msg, std::string &buffer, int row, int col);
     }
 
     inline bool canCast(const std::string from, const std::string to) {
-        return canCast(typeFromString(from), typeFromString(to));
+        return canCast(GetBaseTypeFromString(from), GetBaseTypeFromString(to));
     }
+
+    bool canCast(const TermPtr &from, const ObjType to);
+    bool canCast(const TermPtr &from, const TermPtr &to);
 
     inline int64_t parseInteger(const char *str) {
         char *ptr;
@@ -755,68 +1012,386 @@ void ParserException(const char *msg, std::string &buffer, int row, int col);
      *
      *
      */
-    inline bool isModule(const std::string &name) {
-        return !name.empty() && name[0] == '@';
+    inline bool isInternalName(const std::string_view name) {
+        return !name.empty() && (name.rbegin()[0] == ':' || name.rbegin()[0] == '$');
     }
 
-    inline bool isLocal(const std::string &name) {
-        return !name.empty() && name[0] == '$';
+    inline bool isMangledName(const std::string_view name) {
+        return name.size() > 4 && name[0] == '_' && name[1] == '$';
     }
 
-    inline bool isType(const std::string &name) {
-        return name.size() > 1 && name[0] == ':' && name[1] != ':';
-    }
-
-    inline bool isFullName(const std::string &name) {
-        return name.size() > 1 && name[0] == ':' && name[1] == ':';
-    }
-
-    inline bool isMacro(const std::string &name) {
+    inline bool isModuleName(const std::string_view name) {
         return !name.empty() && name[0] == '\\';
     }
 
-    inline bool isLocalAny(const char *name) {
-        return name && !(name[0] == '$' || name[0] == '@' || name[0] == ':' || name[0] == '%' || name[0] == '\\');
+    inline bool isStaticName(const std::string_view name) {
+        return name.find("::") != std::string::npos; // && name.find("&&") != std::string::npos;
     }
 
-    inline bool isMutableName(const std::string name) {
+    inline bool isTrivialName(const std::string_view name) {
+        return name.find("$") == std::string::npos && name.find(":") == std::string::npos && name.find("@") == std::string::npos;
+    }
+
+    inline bool isLocalName(const std::string_view name) {
+        return !isStaticName(name) && name.find("$") != std::string::npos && name[0] != '@';
+    }
+
+    inline bool isGlobalScope(const std::string_view name) {
+        ASSERT(!isMangledName(name));
+        return name.size() > 1 && ((name[0] == ':' && name[1] == ':') || (name[0] == '$' && name[1] == '$'));
+    }
+
+    inline bool isModuleScope(const std::string_view name) {
+        size_t pos = name.find("::");
+        return pos && pos != std::string::npos && name[0] != '@';
+    }
+
+    inline bool isTypeName(const std::string_view name) {
+        return name.find(":::") != std::string::npos || (name.size() > 1 && name[0] == ':' && name[1] != ':');
+    }
+
+    inline bool isFullName(const std::string_view name) {
+
+        return name.size() > 1 && name[0] == ':' && name[1] == ':';
+    }
+
+    inline bool isMacroName(const std::string_view name) {
+
+        return !name.empty() && name[0] == '@';
+    }
+
+    inline bool isNativeName(const std::string_view name) {
+
+        return !name.empty() && name[0] == '%';
+    }
+
+    inline bool isLocalAnyName(const std::string_view name) {
+
+        return !name.empty() && (name[0] == '$' || name[0] == '@' || name[0] == ':' || name[0] == '%' || name[0] == '\\');
+    }
+
+    inline bool isMutableName(const std::string_view name) {
         // Метод, который изменяет объект, должен заканчиваеться на ОДИН подчерк
+
         return name.size() > 1 && name[name.size() - 1] == '_' && name[name.size() - 2] != '_';
     }
 
-    inline bool isSystemName(const std::string name) {
+    inline bool isReservedName(const std::string_view name) {
         if (name.empty()) {
+            return false;
+        }
+        if (name.size() > 3 || !(name[0] == '$' || name[0] == '@' || name[0] == '%')) {
+            return name.compare("_") == 0;
+        }
+        return name.compare("$") == 0 || name.compare("@") == 0 || name.compare("%") == 0
+                || name.compare("$$") == 0 || name.compare("@$") == 0 || name.compare("$^") == 0
+                || name.compare("@::") == 0;
+    }
+
+    inline bool isSystemName(const std::string_view name) {
+        if (name.empty()) {
+
             return false;
         }
         return name.size() >= 4 && name.find("__") == 0 && name.rfind("__") == name.size() - 2;
     }
 
-    inline bool isPrivateName(const std::string name) {
+    inline bool isPrivateName(const std::string_view name) {
         if (name.empty()) {
+
             return false;
         }
         return name.size() >= 3 && name.find("__") == 0;
     }
 
-    inline bool isHidenName(const std::string name) {
+    inline bool isHidenName(const std::string_view name) {
+
         return !isPrivateName(name) && name.find("_") == 0;
     }
 
-    inline bool isVariableName(const std::string name) {
-        LOG_DEBUG("%s", name.c_str());
-        if (isModule(name)) {
+    inline bool isVariableName(const std::string_view name) {
+        LOG_DEBUG("%s", name.begin());
+        if (isModuleName(name)) {
+
             return name.find("::") != name.npos;
         }
-        return !isType(name);
+        return !isTypeName(name);
     }
 
-    inline bool isConst(const std::string name) {
+    inline bool isConstName(const std::string_view name) {
+
         return !name.empty() && name[name.size() - 1] == '^';
     }
+
+    inline std::string NormalizeName(const std::string_view name) {
+        std::string result(name.begin());
+        ASSERT(result.size());
+        if (isInternalName(name)) {
+            return result;
+        } else if (isLocalName(name)) {
+            result = result.substr(1);
+            result += "$";
+        } else if (isTrivialName(name)) {
+            result += "$";
+        } else if (isTypeName(name)) {
+            result = result.substr(1);
+            result += ":::";
+        } else {
+            if (!isStaticName(name)) {
+                ASSERT(isStaticName(name));
+            }
+            if (result[0] == '@' && result.find("@::") == 0) {
+                result = result.substr(3);
+            }
+            result += "::";
+        }
+        return result;
+    }
+
+    inline std::string MakeName(std::string name) {
+        if (!name.empty() && (name[0] == '\\' || name[0] == '$' || name[0] == '@' || name[0] == '%')) {
+
+            return name.find("\\\\") == 0 ? name.substr(2) : name.substr(1);
+        }
+        return name;
+    }
+
+    inline std::string ExtractModuleName(const std::string_view name) {
+        if (isMangledName(name)) {
+            std::string result(name.begin(), name.begin() + name.find("$_"));
+            result[1] = '_';
+            std::replace(result.begin(), result.end(), '_', '\\');
+            return result;
+        } else {
+            if (isModuleName(name)) {
+                size_t pos = name.find("::");
+                if (pos != std::string::npos) {
+                    return std::string(name.begin(), name.begin() + pos);
+                }
+                return std::string(name.begin(), name.end());
+            }
+        }
+        return std::string();
+    }
+
+    inline bool CheckCharModuleName(const std::string_view name) {
+        if (name.empty() || name[0] == '_') {
+            // The first underscore character in the module name is prohibited!
+            return false;
+        }
+        for (int i = 0; i < name.size(); i++) {
+            // Module name - backslash, underscore, lowercase English letters or number
+            if (!(name[i] == '\\' || name[i] == '_' || islower(name[i]) || isdigit(name[i]))) {
+                return false;
+            }
+        }
+        return true;
+    }
+
+    inline std::string ExtractName(std::string name) {
+        size_t pos = name.rfind("::");
+        if (pos != std::string::npos) {
+            name = name.substr(pos + 2);
+        }
+        if (isModuleName(name)) {
+            return std::string();
+        }
+        return name;
+    }
+
+    class InternalName : public std::string {
+    public:
+
+        InternalName(const std::string str) {
+
+            this->assign(str);
+        }
+
+        InternalName(const char * str = nullptr) {
+
+            this->assign(str ? str : "");
+        }
+
+        InternalName(const InternalName &name) {
+
+            this->assign(name);
+        }
+
+        InternalName& operator=(const InternalName & name) {
+            this->assign(name);
+
+            return *this;
+        }
+
+        InternalName& operator=(const char * name) {
+            this->assign(name);
+
+            return *this;
+        }
+
+        /*
+         * 
+         * 
+         * 
+         */
+
+        inline bool isInternalName() {
+            return newlang::isInternalName(*this);
+        }
+
+        inline std::string getMangledName(const std::string_view module) {
+            std::string result(*this);
+            if (!isInternalName()) {
+                LOG_RUNTIME("The name '%s' is not internal!", result.c_str());
+            }
+            if (module.size() > 2) {
+                result.insert(0, "$_");
+                result.insert(result.begin(), module.begin() + 2, module.end());
+                std::replace(result.begin(), result.begin()+(module.begin() - module.end() - 2), '\\', '$');
+                result.insert(0, "_$");
+            } else {
+                result.insert(0, "_$$_");
+            }
+            return result;
+        }
+
+        static std::string ExtractModuleName(const std::string_view name) {
+            return newlang::ExtractModuleName(name);
+        }
+
+        inline bool isModule() {
+
+            return newlang::isModuleName(this->c_str());
+        }
+
+        inline bool isStatic() {
+
+            return newlang::isStaticName(this->c_str());
+        }
+
+        inline bool isLocal() {
+
+            return newlang::isLocalName(this->c_str());
+        }
+
+        inline bool isGlobalScope() {
+
+            return newlang::isGlobalScope(*this);
+        }
+
+        inline bool isModuleScope() {
+
+            return newlang::isModuleScope(*this);
+        }
+
+        inline bool isTypeName() {
+
+            return newlang::isTypeName(this->c_str());
+        }
+
+        inline bool isFullName() {
+
+            return newlang::isFullName(this->c_str());
+        }
+
+        inline bool isMacroName() {
+
+            return newlang::isMacroName(this->c_str());
+        }
+
+        inline bool isNativeName() {
+
+            return newlang::isNativeName(this->c_str());
+        }
+
+        inline bool isLocalAnyName() {
+
+            return newlang::isLocalAnyName(this->c_str());
+        }
+
+        inline bool isMutableName() {
+            // Метод, который изменяет объект, должен заканчиваеться на ОДИН подчерк
+
+            return newlang::isMutableName(this->c_str());
+        }
+
+        inline bool isSystemName() {
+
+            return newlang::isSystemName(this->c_str());
+        }
+
+        inline bool isPrivateName(const std::string name) {
+
+            return newlang::isPrivateName(this->c_str());
+        }
+
+        inline bool isHidenName() {
+
+            return newlang::isHidenName(this->c_str());
+        }
+
+        inline bool isVariableName() {
+
+            return newlang::isVariableName(this->c_str());
+        }
+
+        inline bool isConstName() {
+
+            return newlang::isConstName(this->c_str());
+        }
+
+        inline std::string SetFromLocalName(std::string name) {
+            this->assign(name);
+
+            return *this;
+        }
+
+        inline std::string SetFromGlobalName(std::string name) {
+            this->assign(name);
+
+            return *this;
+        }
+
+        inline std::string GetLocalName() {
+
+            return *this;
+        }
+
+        inline std::string GetGlobalName(std::string module_name) {
+
+            return *this;
+        }
+
+        //        inline std::string MakeName(std::string name) {
+        //            if (!name.empty() && (name[0] == '\\' || name[0] == '$' || name[0] == '@' || name[0] == '%')) {
+        //                return name.find("\\\\") == 0 ? name.substr(2) : name.substr(1);
+        //            }
+        //            return name;
+        //        }
+
+        inline std::string ExtractModuleName() {
+
+            return newlang::ExtractModuleName(this->c_str());
+        }
+
+        inline std::string ExtractName() {
+
+            return newlang::ExtractName(this->c_str());
+        }
+
+
+    };
+
+    /*
+     * 
+     * 
+     * 
+     */
 
     inline std::string DimToString(const Dimension dim) {
         std::stringstream ss;
         ss << dim;
+
         return ss.str();
     }
 
@@ -853,7 +1428,7 @@ void ParserException(const char *msg, std::string &buffer, int row, int col);
             case ObjType::String: // Строка любого типа
                 return isString(type);
             case ObjType::Object: // Любой объект (Class или Dictionary)
-                return type == ObjType::Dictionary || type == ObjType::Class;
+                return type == ObjType::Dictionary || type == ObjType::Interface || type == ObjType::Class;
             case ObjType::Plain: // Любой тип для машинного представления
                 return isPlainDataType(type);
             case ObjType::Other: // Специальные типы (многоточие, диапазон)

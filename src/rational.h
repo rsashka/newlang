@@ -119,6 +119,7 @@ namespace newlang {
         }
 
         inline bool SetFromString(const std::string str) {
+            ASSERT(!str.empty());
             if (!BN_dec2bn(&value, str.c_str())) {
                 LOG_RUNTIME("Fail create BinNum from string '%s'!", str.c_str());
             }

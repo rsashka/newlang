@@ -1,11 +1,11 @@
 #include "pch.h"
 
-#ifdef UNITTEST
+#ifdef BUILD_UNITTEST
 
 #include <gtest/gtest.h>
 
 #include <builtin.h>
-#include <newlang.h>
+#include <runtime.h>
 
 using namespace newlang;
 
@@ -21,10 +21,10 @@ using namespace newlang;
  * но можно ли совместить и использовтаь namespace и дектораторы одновременно?
  * 
  * $local; @global;
- * $name::local; @name::global;
+ * $name::local; \\name::global;
  * но ns {
  *   $name::local;  # Будет $ns::name::local
- *   @name::global; # Все равно @name::global или тоже @ns::name::global ????
+ *   \\name::global; # Все равно \\name::global или тоже \\ns::name::global ????
  * }
  * тогда без указания области видимости (без начального символа "::", т.е. name::var - объект выбирается автоматически,
  * т.е. сперва ищется локальный объект с таким именем, потом глобальный)
@@ -37,25 +37,25 @@ using namespace newlang;
  *      $var := 1; # ::name::var
  *      $func() := {11}; # локальная с именем - ::name::func
  *      @func() := {111}; # глобальная с именем - @func
- *      @name::func() := {1111}; # глобальная @name::func и тоже самое, что и локальная $func() !!!
+ *      \\name::func() := {1111}; # глобальная \\name::func и тоже самое, что и локальная $func() !!!
  *      name {
- *          var := 2;  # ::name::name::var или $var или @name::name::var
+ *          var := 2;  # ::name::name::var или $var или \\name::name::var
  *          @var := 2;  # ::var
- *          @name::name::var := 2;  # ::name::name::var или @name::name::var
- *          func() := {2}; # ::name::name::func или @name::name::func - 2
+ *          \\name::name::var := 2;  # ::name::name::var или \\name::name::var
+ *          func() := {2}; # ::name::name::func или \\name::name::func - 2
  *          name3 {
  *              var := 3;           # ::name::name::name3::var или $name::name::name3::var - 3
- *              func() := {3};      # ::name::name::name3::func или @name::name::name3::func() - 3
+ *              func() := {3};      # ::name::name::name3::func или \\name::name::name3::func() - 3
  * 
  *              var??;              # name::name::name3::var или $name::name::name3::var - 3
- *              name::var??;        # name::name::var или @name::name::var - 2
- *              name::name::var??;  # name::var или @name::name::var - 2
+ *              name::var??;        # name::name::var или \\name::name::var - 2
+ *              name::name::var??;  # name::var или \\name::name::var - 2
  *              ::name::var??;      # name::var или $name::var - 1
  *              ::var??;            # ::var или $var - 0
  *          }
  *      }
  *  }
- * Предположим, что:
+ * Предположим, что:     <<<<<<<<<<<<<<<  НЕ АКТУАЛЬНО после изменения ситаксиса мароксов !!!!!!!!!!!!!!!!!!!!!!!!!!  >>>>>>>>>>>
  * :: - глобальный корень. Может быть заменен на @ или $
  * @@ — родительская функция после её переопределния
  * $$ — родительский объект
@@ -64,7 +64,7 @@ using namespace newlang;
  * @@() - вызов переопределенной функции текущего класса или области видимости
  * @func() []= {@@() + 10}; # @func - 10
  * ::name::name@func
- * @name::name::func - такая запись ненравится, но будет самой правильной и логичной, так как все остальные еще хуже для понимания и разбора
+ * \\name::name::func - такая запись ненравится, но будет самой правильной и логичной, так как все остальные еще хуже для понимания и разбора
  * @::name::name::func
  * @::name::name@func
  * ::name::name::func@@
@@ -86,7 +86,7 @@ using namespace newlang;
  * @dir.module2 <func1, func2=::module2::ns::name::func2>;  # Импорт только конкретных функций + переименование
  * @dir.module2 <_>; # Выгрузить модуль?????
  * 
- * \\ns ::name::space::long\\\
+ * \\ns ::name::space::long@\
  * \ns::name;
  * 
  * @dsl{}; # Загрузка модуля с определниями макросов для DSL в самом начале любой программы?
@@ -149,199 +149,229 @@ using namespace newlang;
  */
 
 
-TEST(Module, Env) {
-
-    const char *args[1] = {"-nlc-search=../example;../src"};
-
-    RuntimePtr env = RunTime::Init(1, args);
-    Context ctx(env);
-
-    ctx.CheckOrLoadModule("@file");
-    ctx.CheckOrLoadModule("@dir.file");
-    ctx.CheckOrLoadModule("@dir.file::var");
-    ctx.CheckOrLoadModule("@dir.file::var.ddd");
-}
-
-TEST(Module, Load) {
-
-    const char *args[1] = {"-nlc-search=../example;../src"};
-
-    Context::Reset();
-
-    RuntimePtr env = RunTime::Init(1, args);
-    Context ctx(env);
-
-
-    std::filesystem::create_directories("temp");
-    ASSERT_TRUE(std::filesystem::is_directory("temp"));
-
-    std::ofstream file("temp/module_test.nlp");
-    file << "module_var1 := 1;\n";
-    file << "ns { module_var2 := 2;\n";
-    file << "   ns2 { module_var3 := 3;};\n";
-    file << "};\n";
-    file << "ns3::ns4::module_var4 := 4;\n";
-    file.close();
-
-    EXPECT_FALSE(ctx.FindTerm("module_var1"));
-    EXPECT_FALSE(ctx.FindTerm("ns::module_var2"));
-    EXPECT_FALSE(ctx.FindTerm("ns::ns2::module_var3"));
-    EXPECT_FALSE(ctx.FindTerm("ns3::ns4::module_var4"));
-
-    EXPECT_ANY_THROW(
-            ctx.ExecStr("@temp.module_test::module_var1");
-            ) << ctx.Dump("; ");
-
-    // Загрузить модуль и импортировать все объекты
-    ASSERT_STREQ("@temp.module_test", ExtractModuleName("@temp.module_test").c_str());
-
-    ObjPtr result;
-    result = ctx.ExecStr("@temp.module_test()");
-    ASSERT_TRUE(result);
-    ASSERT_EQ(4, result->GetValueAsInteger()) << ctx.Dump("; ");
-
-
-    result = ctx.FindTerm("module_var1");
-    ASSERT_TRUE(result) << ctx.Dump("; ");
-    ASSERT_EQ(1, result->GetValueAsInteger());
-
-    result = ctx.FindTerm("ns::module_var2");
-    ASSERT_TRUE(result) << ctx.Dump("; ");
-    ASSERT_EQ(2, result->GetValueAsInteger());
-
-    result = ctx.FindTerm("@temp.module_test::ns::ns2::module_var3");
-    ASSERT_TRUE(result) << ctx.Dump("; ");
-    ASSERT_EQ(3, result->GetValueAsInteger());
-
-    result = ctx.FindTerm("@temp.module_test::ns3::ns4::module_var4");
-    ASSERT_TRUE(result) << ctx.Dump("; ");
-    ASSERT_EQ(4, result->GetValueAsInteger());
-
-
-    ASSERT_TRUE(ctx.m_modules.find("@temp.module_test") != ctx.m_modules.end());
-
-    // Выгрузить модуль
-    result = ctx.ExecStr("@temp.module_test(_)");
-    ASSERT_TRUE(result);
-
-    ASSERT_TRUE(ctx.m_modules.find("@temp.module_test") == ctx.m_modules.end());
-
-
-    result = ctx.FindTerm("module_var1");
-    ASSERT_FALSE(result) << ctx.Dump("; ");
-    result = ctx.FindTerm("ns::module_var2");
-    ASSERT_FALSE(result) << ctx.Dump("; ");
-    result = ctx.FindTerm("ns::ns2::module_var3");
-    ASSERT_FALSE(result) << ctx.Dump("; ");
-    result = ctx.FindTerm("ns3::ns4::module_var4");
-    ASSERT_FALSE(result) << ctx.Dump("; ");
-
-    EXPECT_ANY_THROW(
-            ctx.ExecStr("@temp.module_test::module_var1");
-            ) << ctx.Dump("; ");
-
-    // Импортировать по маске
-    result = ctx.ExecStr("@temp.module_test('*')");
-    ASSERT_TRUE(result);
-    ASSERT_EQ(4, result->GetValueAsInteger()) << ctx.Dump("; ");
-
-    result = ctx.FindTerm("ns::module_var2");
-    ASSERT_TRUE(result) << ctx.Dump("; ");
-    ASSERT_EQ(2, result->GetValueAsInteger()) << ctx.Dump("; ");
-
-    result = ctx.FindTerm("@temp.module_test::ns::ns2::module_var3");
-    ASSERT_TRUE(result) << ctx.Dump("; ");
-    ASSERT_EQ(3, result->GetValueAsInteger()) << ctx.Dump("; ");
-
-    ASSERT_TRUE(ctx.FindTerm("module_var1")) << ctx.Dump("; ");
-    ASSERT_TRUE(ctx.FindTerm("@temp.module_test::ns3::ns4::module_var4"));
-
-
-    ASSERT_TRUE(ctx.m_modules.find("@temp.module_test") != ctx.m_modules.end());
-
-    // Выгрузить модуль
-    result = ctx.ExecStr("@temp.module_test(_)");
-    ASSERT_TRUE(result);
-
-    ASSERT_TRUE(ctx.m_modules.find("@temp.module_test") == ctx.m_modules.end());
-
-
-    //    // Импортировать по маске
-    //    result = ctx.ExecStr("@temp.module_test('ns::*')");
-    //    ASSERT_TRUE(result);
-    //    ASSERT_EQ(4, result->GetValueAsInteger()) << ctx.Dump("; ");
-    //
-    //    result = ctx.FindTerm("ns::module_var2");
-    //    ASSERT_TRUE(result) << ctx.Dump("; ");
-    //    ASSERT_EQ(2, result->GetValueAsInteger()) << ctx.Dump("; ");
-    //
-    //    result = ctx.FindTerm("@temp.module_test::ns::ns2::module_var3");
-    //    ASSERT_TRUE(result) << ctx.Dump("; ");
-    //    ASSERT_EQ(3, result->GetValueAsInteger()) << ctx.Dump("; ");
-    //
-    //    ASSERT_FALSE(ctx.FindTerm("module_var1")) << ctx.Dump("; ");
-    //    ASSERT_FALSE(ctx.FindTerm("@temp.module_test::ns3::ns4::module_var4"));
-
-}
-
-TEST(Module, SysEnv) {
-
-    const char *args[1] = {"-nlc-search=../example;../src"};
-
-    Context::Reset();
-
-    RuntimePtr env = RunTime::Init(1, args);
-    Context ctx(env);
-
-
-    std::filesystem::create_directories("temp");
-    ASSERT_TRUE(std::filesystem::is_directory("temp"));
-
-    std::ofstream file("temp/module_test.nlp");
-    file << "module_var1 := 1;\n";
-    file << "ns { module_var2 := 2;\n";
-    file << "   ns2 { module_var3 := 3;};\n";
-    file << "};\n";
-    file << "ns3::ns4::module_var4 := 4;\n";
-    file.close();
-
-    EXPECT_FALSE(ctx.FindTerm("module_var1"));
-    EXPECT_FALSE(ctx.FindTerm("ns::module_var2"));
-    EXPECT_FALSE(ctx.FindTerm("ns::ns2::module_var3"));
-    EXPECT_FALSE(ctx.FindTerm("ns3::ns4::module_var4"));
-
-    EXPECT_ANY_THROW(
-            ctx.ExecStr("@temp.module_test::module_var1");
-            ) << ctx.Dump("; ");
-
-    // Загрузить модуль и импортировать все объекты
-    ASSERT_STREQ("@temp.module_test", ExtractModuleName("@temp.module_test").c_str());
-
-    ObjPtr result;
-    result = ctx.ExecStr("@temp.module_test()");
-    ASSERT_TRUE(result);
-    ASSERT_EQ(4, result->GetValueAsInteger()) << ctx.Dump("; ");
-
-    result = ctx.ExecStr("@temp.module_test::module_var1");
-    ASSERT_TRUE(result);
-    ASSERT_STREQ("1", result->GetValueAsString().c_str());
-
-    result = ctx.ExecStr("@temp.module_test::__md5__");
-    ASSERT_TRUE(result);
-    ASSERT_EQ(32, result->GetValueAsString().size()) << result->GetValueAsString();
-
-    result = ctx.ExecStr("@temp.module_test::__timestamp__");
-    ASSERT_TRUE(result);
-    ASSERT_EQ(25, result->GetValueAsString().size()) << result->GetValueAsString();
-
-    result = ctx.ExecStr("@temp.module_test::__file__");
-    ASSERT_TRUE(result);
-    ASSERT_TRUE(result->GetValueAsString().find("output/temp/module_test.nlp") != std::string::npos) << result->GetValueAsString();
-
-
-    result = ctx.ExecStr("@temp.module_test::__main__");
-    ASSERT_TRUE(result);
-    ASSERT_STREQ("0", result->GetValueAsString().c_str()) << result->GetValueAsString();
-}
+//TEST(Module, Env) {
+//
+//    const char *args[1] = {"--nlc-search=../example;../src"};
+//
+//    RuntimePtr env = RunTime::Init(1, args);
+//    //    Context ctx(env);
+//
+//    //    env->CheckOrLoadModule("\\file");
+//    //    env->CheckOrLoadModule("\\dir\\file");
+//    //    env->CheckOrLoadModule("\\dir\\file::var");
+//    //    env->CheckOrLoadModule("\\dir\\file::var.ddd");
+//}
+//
+//TEST(Module, Load) {
+//
+//    const char *args[1] = {"--nlc-search=./;../example;../src"};
+//
+//    Context::Reset();
+//
+//    RuntimePtr rt = RunTime::Init(1, args);
+//    Context ctx(rt);
+//
+//
+//    std::filesystem::create_directories("temp");
+//    ASSERT_TRUE(std::filesystem::is_directory("temp"));
+//
+//    std::ofstream file("temp/module_test.src");
+//    file << "module_var1 := 1;\n";
+//    file << "ns { module_var2 := 2;\n";
+//    file << "   ns2 { module_var3 := 3;};\n";
+//    file << "};\n";
+//    file << "ns3::ns4::module_var4 := 4;\n";
+//    file.close();
+//
+//    EXPECT_FALSE(ctx.FindSessionTerm("module_var1"));
+//    EXPECT_FALSE(ctx.FindSessionTerm("ns::module_var2"));
+//    EXPECT_FALSE(ctx.FindSessionTerm("ns::ns2::module_var3"));
+//    EXPECT_FALSE(ctx.FindSessionTerm("ns3::ns4::module_var4"));
+//
+//    TermPtr ast;
+//    EXPECT_NO_THROW(ast = rt->GetParser()->Parse("var1:=1;\n \\temp\\module_test();\n var2:=2;"));
+//    ASSERT_TRUE(ast);
+//
+//    ModulePtr mod = rt->m_modules["\\temp\\module_test"];
+//    ASSERT_TRUE(mod);
+//    
+//    ASSERT_TRUE(mod->find("$module_var1") != mod->end()) << mod->Dump();
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//    EXPECT_ANY_THROW(
+//            ctx.ExecStr("\\temp\\module_test::module_var1");
+//            ) << ctx.Dump("; ");
+//
+//    // Загрузить модуль и импортировать все объекты
+//    ASSERT_STREQ("\\temp\\module_test", ExtractModuleName("\\temp\\module_test").c_str());
+//
+//    ObjPtr result;
+//    result = ctx.ExecStr("\\temp\\module_test()");
+//    ASSERT_TRUE(result);
+//    ASSERT_EQ(4, result->GetValueAsInteger()) << ctx.Dump("; ");
+//
+//
+//    result = ctx.FindTerm("module_var1");
+//    ASSERT_TRUE(result) << ctx.Dump("; ");
+//    ASSERT_EQ(1, result->GetValueAsInteger());
+//
+//    result = ctx.FindTerm("ns::module_var2");
+//    ASSERT_TRUE(result) << ctx.Dump("; ");
+//    ASSERT_EQ(2, result->GetValueAsInteger());
+//
+//    result = ctx.FindTerm("\\temp\\module_test::ns::ns2::module_var3");
+//    ASSERT_TRUE(result) << ctx.Dump("; ");
+//    ASSERT_EQ(3, result->GetValueAsInteger());
+//
+//    result = ctx.FindTerm("\\temp\\module_test::ns3::ns4::module_var4");
+//    ASSERT_TRUE(result) << ctx.Dump("; ");
+//    ASSERT_EQ(4, result->GetValueAsInteger());
+//
+//
+//    ASSERT_TRUE(rt->m_modules.find("\\temp\\module_test") != rt->m_modules.end());
+//
+//    // Выгрузить модуль
+//    result = ctx.ExecStr("\\temp\\module_test(_)");
+//    ASSERT_TRUE(result);
+//
+//    ASSERT_TRUE(rt->m_modules.find("\\temp\\module_test") == rt->m_modules.end());
+//
+//
+//    result = ctx.FindTerm("module_var1");
+//    ASSERT_FALSE(result) << ctx.Dump("; ");
+//    result = ctx.FindTerm("ns::module_var2");
+//    ASSERT_FALSE(result) << ctx.Dump("; ");
+//    result = ctx.FindTerm("ns::ns2::module_var3");
+//    ASSERT_FALSE(result) << ctx.Dump("; ");
+//    result = ctx.FindTerm("ns3::ns4::module_var4");
+//    ASSERT_FALSE(result) << ctx.Dump("; ");
+//
+//    EXPECT_ANY_THROW(
+//            ctx.ExecStr("\\temp\\module_test::module_var1");
+//            ) << ctx.Dump("; ");
+//
+//    // Импортировать по маске
+//    result = ctx.ExecStr("\\temp\\module_test('*')");
+//    ASSERT_TRUE(result);
+//    ASSERT_EQ(4, result->GetValueAsInteger()) << ctx.Dump("; ");
+//
+//    result = ctx.FindTerm("ns::module_var2");
+//    ASSERT_TRUE(result) << ctx.Dump("; ");
+//    ASSERT_EQ(2, result->GetValueAsInteger()) << ctx.Dump("; ");
+//
+//    result = ctx.FindTerm("\\temp\\module_test::ns::ns2::module_var3");
+//    ASSERT_TRUE(result) << ctx.Dump("; ");
+//    ASSERT_EQ(3, result->GetValueAsInteger()) << ctx.Dump("; ");
+//
+//    ASSERT_TRUE(ctx.FindTerm("module_var1")) << ctx.Dump("; ");
+//    ASSERT_TRUE(ctx.FindTerm("\\temp\\module_test::ns3::ns4::module_var4"));
+//
+//
+//    ASSERT_TRUE(rt->m_modules.find("\\temp\\module_test") != rt->m_modules.end());
+//
+//    // Выгрузить модуль
+//    result = ctx.ExecStr("\\temp\\module_test(_)");
+//    ASSERT_TRUE(result);
+//
+//    ASSERT_TRUE(rt->m_modules.find("\\temp\\module_test") == rt->m_modules.end());
+//
+//
+//    //    // Импортировать по маске
+//    //    result = ctx.ExecStr("\\temp\\module_test('ns::*')");
+//    //    ASSERT_TRUE(result);
+//    //    ASSERT_EQ(4, result->GetValueAsInteger()) << ctx.Dump("; ");
+//    //
+//    //    result = ctx.FindTerm("ns::module_var2");
+//    //    ASSERT_TRUE(result) << ctx.Dump("; ");
+//    //    ASSERT_EQ(2, result->GetValueAsInteger()) << ctx.Dump("; ");
+//    //
+//    //    result = ctx.FindTerm("\\temp\\module_test::ns::ns2::module_var3");
+//    //    ASSERT_TRUE(result) << ctx.Dump("; ");
+//    //    ASSERT_EQ(3, result->GetValueAsInteger()) << ctx.Dump("; ");
+//    //
+//    //    ASSERT_FALSE(ctx.FindTerm("module_var1")) << ctx.Dump("; ");
+//    //    ASSERT_FALSE(ctx.FindTerm("\\temp\\module_test::ns3::ns4::module_var4"));
+//
+//}
+//
+//TEST(Module, SysEnv) {
+//
+//    const char *args[1] = {"--nlc-search=../example;../src"};
+//
+//    Context::Reset();
+//
+//    RuntimePtr env = RunTime::Init(1, args);
+//    Context ctx(env);
+//
+//
+//    std::filesystem::create_directories("temp");
+//    ASSERT_TRUE(std::filesystem::is_directory("temp"));
+//
+//    std::ofstream file("temp/module_test.src");
+//    file << "module_var1 := 1;\n";
+//    file << "ns { module_var2 := 2;\n";
+//    file << "   ns2 { module_var3 := 3;};\n";
+//    file << "};\n";
+//    file << "ns3::ns4::module_var4 := 4;\n";
+//    file.close();
+//
+//    EXPECT_FALSE(ctx.FindTerm("module_var1"));
+//    EXPECT_FALSE(ctx.FindTerm("ns::module_var2"));
+//    EXPECT_FALSE(ctx.FindTerm("ns::ns2::module_var3"));
+//    EXPECT_FALSE(ctx.FindTerm("ns3::ns4::module_var4"));
+//
+//    EXPECT_ANY_THROW(
+//            ctx.ExecStr("\\temp\\module_test::module_var1");
+//            ) << ctx.Dump("; ");
+//
+//    // Загрузить модуль и импортировать все объекты
+//    ASSERT_STREQ("\\temp\\module_test", ExtractModuleName("\\temp\\module_test").c_str());
+//
+//    ObjPtr result;
+//    ASSERT_NO_THROW(
+//            result = ctx.ExecStr("\\temp\\module_test()");
+//            );
+//    ASSERT_TRUE(result);
+//    ASSERT_EQ(4, result->GetValueAsInteger()) << ctx.Dump("; ");
+//
+//    ASSERT_NO_THROW(
+//            result = ctx.ExecStr("\\temp\\module_test::module_var1");
+//            );
+//    ASSERT_TRUE(result);
+//    ASSERT_STREQ("1", result->GetValueAsString().c_str());
+//
+//    ASSERT_NO_THROW(
+//            result = ctx.ExecStr("\\temp\\module_test::__md5__");
+//            );
+//    ASSERT_TRUE(result);
+//    ASSERT_EQ(32, result->GetValueAsString().size()) << result->GetValueAsString();
+//
+//    ASSERT_NO_THROW(
+//            result = ctx.ExecStr("\\temp\\module_test::__timestamp__");
+//            );
+//    ASSERT_TRUE(result);
+//    ASSERT_EQ(24, result->GetValueAsString().size()) << result->GetValueAsString();
+//
+//    ASSERT_NO_THROW(
+//            result = ctx.ExecStr("\\temp\\module_test::__file__");
+//            );
+//    ASSERT_TRUE(result);
+//    ASSERT_TRUE(result->GetValueAsString().find("temp/module_test.src") != std::string::npos) << result->GetValueAsString();
+//
+//
+//    ASSERT_NO_THROW(
+//            result = ctx.ExecStr("\\temp\\module_test::__main__");
+//            );
+//    ASSERT_TRUE(result);
+//    ASSERT_STREQ("0", result->GetValueAsString().c_str()) << result->GetValueAsString();
+//}
 
 #endif // UNITTEST

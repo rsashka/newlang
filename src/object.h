@@ -35,7 +35,7 @@ namespace newlang {
     //
     //    at::TensorOptions ConvertToTensorOptions(const Obj *obj);
     //    at::DimnameList ConvertToDimnameList(const Obj *obj);
-    bool ParsePrintfFormat(Obj *args, int start = 1);
+    //    bool ParsePrintfFormat(Obj *args, int start = 1);
 
     ObjPtr CheckSystemField(const Obj *obj, const std::string name);
 
@@ -74,7 +74,7 @@ namespace newlang {
     }
 
     /* Для конвертирования словаря в тензор для вывода общего типа данных для всех элементов */
-    ObjType getSummaryTensorType(Obj *obj, ObjType start);
+    ObjType getSummaryTensorType(Obj *obj, ObjType start = ObjType::None);
     void ConvertStringToTensor(const std::string &from, torch::Tensor &to, ObjType type = ObjType::None);
     void ConvertStringToTensor(const std::wstring &from, torch::Tensor &to, ObjType type = ObjType::None);
     void ConvertTensorToString(const torch::Tensor &from, std::string &to, std::vector<Index> *index = nullptr);
@@ -249,7 +249,7 @@ namespace newlang {
         mutable typename Variable<T>::iterator m_found;
         const char * m_base_filter;
 
-        static const IterPairType m_interator_end;
+        static const IterPairType m_Iterator_end;
 
         static IterCmp CompareFuncDefault(const IterPairType &pair, const T *filter, void *extra) {
             const char * str_filter = reinterpret_cast<const char *> (filter);
@@ -298,7 +298,7 @@ namespace newlang {
 
         inline const IterPairType &data() {
             if (m_found == m_iter_obj->end()) {
-                return m_interator_end;
+                return m_Iterator_end;
             }
             return *m_found;
         }
@@ -309,7 +309,7 @@ namespace newlang {
 
         inline const IterPairType &data() const {
             if (m_found == m_iter_obj->end()) {
-                return m_interator_end;
+                return m_Iterator_end;
             }
             return *m_found;
         }
@@ -370,7 +370,7 @@ namespace newlang {
      * 
      * 
      */
-    class Obj : protected Variable<Obj>, public std::enable_shared_from_this<Obj> {
+    class Obj : public Variable<Obj>, public std::enable_shared_from_this<Obj> {
     public:
 
         //    constexpr static const char * BUILDIN_TYPE = "__var_type__";
@@ -394,12 +394,12 @@ namespace newlang {
             ASSERT(!m_tensor.defined());
         }
 
-        Obj(Context *ctx, const TermPtr term, bool as_value, Obj *local_vars);
+        //        Obj(Context *ctx, const TermPtr term, bool as_value, Obj *local_vars);
 
 
         [[nodiscard]]
         static inline PairType ArgNull(const std::string name = "") {
-            return pair(nullptr, name);
+            return pair(Obj::CreateNil(), name);
         }
 
         [[nodiscard]]
@@ -558,12 +558,17 @@ namespace newlang {
 
         [[nodiscard]]
         inline bool is_scalar() const {
-            return is_tensor_type() && !m_tensor.defined();
+            return is_tensor_type() && !m_tensor.defined(); // || m_tensor.dim() == 0);
         }
 
         [[nodiscard]]
         inline bool is_function_type() const {
             return isFunction(m_var_type_current);
+        }
+
+        [[nodiscard]]
+        inline bool is_native() const {
+            return isNative(m_var_type_current);
         }
 
         [[nodiscard]]
@@ -623,7 +628,7 @@ namespace newlang {
 
         [[nodiscard]]
         inline bool is_return() const {
-            return m_var_type_current == ObjType::Return || m_var_type_fixed == ObjType::Return || m_var_type_current == ObjType::RetPlus || m_var_type_current == ObjType::RetMinus;
+            return m_var_type_current == ObjType::RetPlus || m_var_type_current == ObjType::RetMinus || m_var_type_current == ObjType::RetRepeat;
         }
 
         [[nodiscard]]
@@ -635,6 +640,21 @@ namespace newlang {
         [[nodiscard]]
         inline bool is_defined_type() {
             return m_var_type_fixed != ObjType::None;
+        }
+
+        [[nodiscard]]
+        inline bool is_any_size() {
+            return m_var_type_current == ObjType::None || m_var_type_current == ObjType::Ellipsis;
+        }
+
+        static ObjPtr Take(Obj &args) {
+            if (args.empty() || !args[0].second) {
+                LOG_RUNTIME("Take object not exist!");
+            }
+            if (args[0].second->is_return()) {
+                return args[0].second->m_return_obj;
+            }
+            LOG_RUNTIME("Take object for type %s not implemented!", newlang::toString(args[0].second->getType()));
         }
 
         inline void SetTermProp(Term &term);
@@ -698,43 +718,58 @@ namespace newlang {
             return temp.compare("true") == 0;
         }
 
-        /**
-         * Создать копию объекта (клонировать)
-         * @return 
-         */
-        ObjPtr operator()(Context *ctx) {
+        inline ObjPtr operator()() {
             Obj args(ObjType::Dictionary);
-            return Call(ctx, &args);
+            return op_call(args);
         }
+
+        inline ObjPtr op_call(ObjPtr args) {
+            ASSERT(args);
+            return op_call(*args);
+        }
+
+        ObjPtr op_call(Obj &args);
 
         template <typename... T>
         typename std::enable_if<is_all<Obj::PairType, T ...>::value, ObjPtr>::type
-        inline operator()(Context *ctx, T ... args) {
+        inline operator()(T ... args) {
             auto list = {args...};
             ObjPtr arg = Obj::CreateDict();
             for (auto &elem : list) {
                 arg->push_back(elem);
             }
-            return Call(ctx, arg.get());
-        }
-
-        inline ObjPtr Call(Context *ctx) {
-            Obj args(ObjType::Dictionary);
-            return Call(ctx, &args);
+            return op_call(*arg);
         }
 
         template <typename... T>
-        typename std::enable_if<is_all<Obj::PairType, T ...>::value, ObjPtr>::type
-        inline Call(Context *ctx, T ... args) {
+        typename std::enable_if<!is_all<Obj::PairType, T ...>::value, ObjPtr>::type
+        inline operator()(T ... args) {
             auto list = {args...};
-            Obj arg(ObjType::Dictionary);
+            ObjPtr arg = Obj::CreateDict();
             for (auto &elem : list) {
-                arg.Variable<Obj>::push_back(elem);
+                arg->push_back(Obj::CreateValue(elem));
             }
-            return Call(ctx, &arg);
+            return op_call(*arg);
         }
 
-        ObjPtr Call(Context *ctx, Obj *args, bool direct = false, ObjPtr self = nullptr);
+
+        //        inline ObjPtr Call(Context *ctx) {
+        //            Obj args(ObjType::Dictionary);
+        //            return Call(ctx, &args);
+        //        }
+        //
+        //        template <typename... T>
+        //        typename std::enable_if<is_all<Obj::PairType, T ...>::value, ObjPtr>::type
+        //        inline Call(Context *ctx, T ... args) {
+        //            auto list = {args...};
+        //            Obj arg(ObjType::Dictionary);
+        //            for (auto &elem : list) {
+        //                arg.Variable<Obj>::push_back(elem);
+        //            }
+        //            return Call(ctx, &arg);
+        //        }
+        //
+        //        ObjPtr Call(Context *ctx, Obj *args, bool direct = false, ObjPtr self = nullptr);
 
         /*
          * 
@@ -771,28 +806,28 @@ namespace newlang {
             if (is_indexing() || m_var_type_current == ObjType::Range) {
                 return Variable::begin();
             }
-            LOG_RUNTIME("Interator for object type %s not implemented!", newlang::toString(m_var_type_current));
+            LOG_RUNTIME("Iterator for object type %s not implemented!", newlang::toString(m_var_type_current));
         }
 
         Obj::iterator end() {
             if (is_indexing() || m_var_type_current == ObjType::Range) {
                 return Variable::end();
             }
-            LOG_RUNTIME("Interator for object type %s not implemented!", newlang::toString(m_var_type_current));
+            LOG_RUNTIME("Iterator for object type %s not implemented!", newlang::toString(m_var_type_current));
         }
 
         Obj::const_iterator begin() const {
             if (is_indexing() || m_var_type_current == ObjType::Range) {
                 return Variable::begin();
             }
-            LOG_RUNTIME("Interator for object type %s not implemented!", newlang::toString(m_var_type_current));
+            LOG_RUNTIME("Iterator for object type %s not implemented!", newlang::toString(m_var_type_current));
         }
 
         Obj::const_iterator end() const {
             if (is_indexing() || m_var_type_current == ObjType::Range) {
                 return Variable::end();
             }
-            LOG_RUNTIME("Interator for object type %s not implemented!", newlang::toString(m_var_type_current));
+            LOG_RUNTIME("Iterator for object type %s not implemented!", newlang::toString(m_var_type_current));
         }
 
         PairType & push_back(const PairType & p) {
@@ -841,12 +876,53 @@ namespace newlang {
             LOG_RUNTIME("Operator resize for object type %s not implemented!", newlang::toString(m_var_type_current));
         }
 
-        void erase(const int64_t index) override {
-            if (is_indexing()) {
-                Variable<Obj>::erase(index);
-                return;
+        void erase(const size_t from, const size_t to) override {
+            if (!is_indexing()) {
+                LOG_RUNTIME("Operator erase(from, to) for object type %s not implemented!", newlang::toString(m_var_type_current));
             }
-            LOG_RUNTIME("Operator erase(index) for object type %s not implemented!", newlang::toString(m_var_type_current));
+            if (is_tensor_type()) {
+                // For expand operator (val, tensor := ... tensor)
+                int64_t new_size = m_tensor.size(0) - 1;
+                if ((from == 0 && to == 1) || (from == 0 && to == 0 && new_size == 0)) {
+                    if (new_size > 0) {
+                        std::vector<int64_t> sizes(1);
+                        sizes[0] = new_size + 1;
+
+                        at::Tensor ind = torch::arange(sizes[0] - new_size - 1, sizes[0] - 1, at::ScalarType::Long);
+                        at::Tensor any = torch::zeros(sizes[0] - new_size, at::ScalarType::Long);
+                        //                LOG_DEBUG("arange %s    %s", TensorToString(ind).c_str(), TensorToString(any).c_str());
+
+                        ind = at::cat({any, ind});
+                        //                LOG_DEBUG("cat %s", TensorToString(ind).c_str());
+
+                        //                LOG_DEBUG("m_value %s", TensorToString(m_value).c_str());
+                        m_tensor.index_copy_(0, ind, m_tensor.clone());
+                        //                LOG_DEBUG("index_copy_ %s", TensorToString(m_value).c_str());
+
+                        sizes[0] = new_size;
+                        m_tensor.resize_(at::IntArrayRef(sizes));
+
+                    } else {
+                        m_tensor.reset();
+                        m_var_type_current = ObjType::None;
+                    }
+                } else {
+                    LOG_RUNTIME("Operator erase(%ld, %ld) for object type %s not implemented!", from, to, newlang::toString(m_var_type_current));
+                }
+            } else {
+                Variable<Obj>::erase(from, to);
+            }
+        }
+
+        void erase(const int64_t index) override {
+            if (!is_indexing()) {
+                LOG_RUNTIME("Operator erase(index) for object type %s not implemented!", newlang::toString(m_var_type_current));
+            }
+            if (is_tensor_type()) {
+                LOG_RUNTIME("Operator erase(index) for object type %s not implemented!", newlang::toString(m_var_type_current));
+            } else {
+                Variable<Obj>::erase(index);
+            }
         }
 
         void clear_() override {
@@ -1402,6 +1478,8 @@ namespace newlang {
                 case ObjType::Integer:
                     if (at::holds_alternative<int64_t>(m_var)) {
                         return at::get<int64_t>(m_var);
+                        //                    } else if (m_tensor.dim()==0) {
+                        //                        return m_tensor.item<int64_t>();
                     }
                     ASSERT(!is_scalar());
                     LOG_RUNTIME("Can`t convert tensor to scalar!");
@@ -1486,7 +1564,8 @@ namespace newlang {
         }
 
         inline bool GetValueAsBoolean() const {
-            if (!m_var_is_init || m_var_type_current == ObjType::IteratorEnd) {
+            TEST_INIT_();
+            if (m_var_type_current == ObjType::IteratorEnd) {
                 return false;
             }
             if (is_scalar()) {
@@ -1637,24 +1716,31 @@ namespace newlang {
 
 
         // чистая функция
-        static ObjPtr BaseTypeConstructor(const Context *ctx, Obj &in);
-        static ObjPtr ConstructorSimpleType_(const Context *ctx, Obj & args);
-        static ObjPtr ConstructorDictionary_(const Context *ctx, Obj & args);
-        static ObjPtr ConstructorNative_(const Context *ctx, Obj & args);
-        static ObjPtr ConstructorStub_(const Context *ctx, Obj & args);
-        static ObjPtr ConstructorClass_(const Context *ctx, Obj & args);
-        static ObjPtr ConstructorStruct_(const Context *ctx, Obj & args);
-        static ObjPtr ConstructorEnum_(const Context *ctx, Obj & args);
+        static ObjPtr BaseTypeConstructor(Context *ctx, Obj &in);
+        static ObjPtr ConstructorSimpleType_(Context *ctx, Obj & args);
+        static ObjPtr ConstructorDictionary_(Context *ctx, Obj & args);
+        static ObjPtr ConstructorNative_(Context *ctx, Obj & args);
+        static ObjPtr ConstructorStub_(Context *ctx, Obj & args);
+        static ObjPtr ConstructorClass_(Context *ctx, Obj & args);
+        static ObjPtr ConstructorStruct_(Context *ctx, Obj & args);
+        static ObjPtr ConstructorEnum_(Context *ctx, Obj & args);
 
-        static ObjPtr ConstructorError_(const Context *ctx, Obj & args);
-        static ObjPtr ConstructorReturn_(const Context *ctx, Obj & args);
-        static ObjPtr ConstructorInterraption_(const Context *ctx, Obj & args, ObjType type);
+        //        static ObjPtr ConstructorError_(Context *ctx, Obj & args);
+        //        static ObjPtr ConstructorReturn_(Context *ctx, Obj & args);
+        //        static ObjPtr ConstructorThread_(Context *ctx, Obj & args);
+        //        static ObjPtr ConstructorSystem_(Context *ctx, Obj & args);
+        //        static ObjPtr ConstructorInterraption_(Context *ctx, Obj & args, ObjType type);
 
         static ObjPtr CreateBaseType(ObjType type);
 
         static ObjPtr CreateNone() {
-
             return CreateType(ObjType::None, ObjType::None, true);
+        }
+
+        static ObjPtr CreateNil() {
+            ObjPtr obj = CreateType(ObjType::Pointer, ObjType::Pointer, true);
+            obj->m_var = (void *) nullptr;
+            return obj;
         }
 
         template <typename T1, typename T2, typename T3>
@@ -1682,7 +1768,7 @@ namespace newlang {
             return obj;
         }
 
-        static ObjType GetType(torch::Tensor & val) {
+        static ObjType GetTensorType(torch::Tensor & val) {
             switch (val.dtype().toScalarType()) {
                 case at::ScalarType::Bool:
                     return ObjType::Bool;
@@ -1724,7 +1810,7 @@ namespace newlang {
         }
 
         static ObjPtr CreateTensor(torch::Tensor tensor) {
-            ObjType check_type = GetType(tensor);
+            ObjType check_type = GetTensorType(tensor);
             if (!isTensor(check_type)) {
                 LOG_RUNTIME("Unsupport torch type %s (%d)!", at::toString(tensor.dtype().toScalarType()), (int) tensor.dtype().toScalarType());
             }
@@ -1837,6 +1923,18 @@ namespace newlang {
         }
 
         template <typename T>
+        typename std::enable_if<std::is_same<T, std::string>::value || std::is_same<T, const char *>::value, ObjPtr>::type
+        static CreateValue(T value, ObjType fix_type = ObjType::None) {
+            return Obj::CreateString(value);
+        }
+
+        template <typename T>
+        typename std::enable_if<std::is_same<T, std::wstring>::value || std::is_same<T, const wchar_t *>::value, ObjPtr>::type
+        static CreateValue(T value, ObjType fix_type = ObjType::None) {
+            return Obj::CreateString(value);
+        }
+
+        template <typename T>
         typename std::enable_if<std::is_integral<T>::value, ObjPtr>::type
         static CreateValue(T value, ObjType fix_type = ObjType::None) {
             ObjPtr result = CreateType(fix_type);
@@ -1899,7 +1997,7 @@ namespace newlang {
         }
 
         inline static ObjPtr CreateDict() {
-            return Obj::CreateType(ObjType::Dictionary);
+            return Obj::CreateType(ObjType::Dictionary, ObjType::Dictionary, true);
         }
 
         template <typename... T>
@@ -2284,7 +2382,7 @@ namespace newlang {
                     } else if (!is_scalar() && value->is_scalar()) {
 
                         // Установить одно значение для всех элементов тензора
-                        if (is_integral()) {
+                        if (value->is_integral()) {
                             m_tensor.set_(torch::scalar_tensor(value->GetValueAsInteger(), m_tensor.scalar_type()));
                         } else {
                             ASSERT(is_floating());
@@ -2395,29 +2493,12 @@ namespace newlang {
         bool CallAll(const char *func_name, ObjPtr &arg_in, ObjPtr &result, ObjPtr object = nullptr, size_t limit = 0); // ?
         bool CallOnce(ObjPtr &arg_in, ObjPtr &result, ObjPtr object = nullptr); // !
 
-
-        static ObjPtr CreateFunc(Context *ctx, TermPtr proto, ObjType type, const std::string var_name = "");
-        static ObjPtr CreateFunc(std::string proto, FunctionType *func_addr, ObjType type = ObjType::Function);
-        static ObjPtr CreateFunc(std::string proto, TransparentType *func_addr, ObjType type = ObjType::PureFunc);
-
-        ObjPtr ConvertToArgs(Obj *args, bool check_valid, Context * ctx) const {
-            ObjPtr result = Clone();
-            result->ConvertToArgs_(args, check_valid, ctx);
-
-            return result;
-        }
-
-        void CheckArgsValid() const;
-        bool CheckArgs() const;
-
         inline const TermPtr Proto() {
 
             return m_prototype;
         }
 
         SCOPE(protected) :
-
-        void ConvertToArgs_(Obj *args, bool check_valid, Context *ctx = nullptr); // Обновить параметры для вызова функции или элементы у словаря при создании копии
 
     public:
 
@@ -2432,15 +2513,18 @@ namespace newlang {
 
         //        std::string m_namespace;
         std::string m_var_name; ///< Имя переменной, в которой хранится объект
-
-        ObjPtr m_dimensions; ///< Размерности для ObjType::Type
         std::string m_class_name; ///< Имя класса объекта (у базовых типов отсуствует)
         std::vector<ObjPtr> m_class_parents; ///< Родительские классы (типы)
+        std::string m_module_name;
+        const TermPtr m_prototype; ///< Описание прототипа функции (или данных)
+    public:
+        Context *m_ctx;
+
+        ObjPtr m_dimensions; ///< Размерности для ObjType::Type
 
         mutable PairType m_str_pair; //< Для доступа к отдельным символам строк
 
         std::string m_func_mangle_name;
-        std::string m_module_name;
 
         // Применение variant необходимо для полей хранения данных, чтобы контролировать их инициализацию
         //        std::variant<std::monostate, void *, torch::Tensor, std::string, std::wstring, std::string_view, std::wstring_view,
@@ -2455,7 +2539,7 @@ namespace newlang {
 
         at::variant < at::monostate, int64_t, double, void *, // None, скаляры и ссылки на функции (нужно различать чистые, обычные и нативные???)
         bool *, int8_t *, int16_t *, int32_t *, int64_t *, float *, double *, NativeData, // Ссылки на нативные скаляры и данные
-        Rational, torch::Tensor, std::string, std::wstring, TermPtr, Iterator < Obj>> m_var;
+        torch::Tensor, std::string, TermPtr, ModulePtr, Iterator < Obj>> m_var; //Rational,
 
         //        union {
         //            int64_t m_integer;
@@ -2470,7 +2554,6 @@ namespace newlang {
         std::shared_ptr<Iterator < Obj>> m_iterator; ///< Итератор для данных
         mutable ObjPtr m_iter_range_value;
         TermPtr m_sequence; ///< Последовательно распарсенных команд для выполнения
-        const TermPtr m_prototype; ///< Описание прототипп функции (или данных)
         ObjPtr m_return_obj;
 
         bool m_check_args; //< Проверять аргументы на корректность (для всех видов функций) @ref MakeArgs
@@ -2484,6 +2567,29 @@ namespace newlang {
         bool m_is_const; //< Признак константы (по умолчанию изменения разрешено)
         bool m_is_reference; //< Признак ссылки на объект
     };
+
+    class IntAny : public Obj {
+    public:
+        IntAny(const ObjPtr value, ObjType type);
+
+        virtual ~IntAny() {
+        }
+    };
+
+    class IntPlus : public IntAny {
+    public:
+
+        IntPlus(const ObjPtr value) : IntAny(value, ObjType::RetPlus) {
+        }
+    };
+
+    class IntMinus : public IntAny {
+    public:
+
+        IntMinus(const ObjPtr value) : IntAny(value, ObjType::RetMinus) {
+        }
+    };
+
 
 } // namespace newlang
 

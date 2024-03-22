@@ -3,8 +3,19 @@
     // for the documentation about the tasks.json format
     "version": "2.0.0",
     "tasks": [
+        // {
+        //     "label": "Build Makefile",
+        //     "type": "shell",
+        //     "command": "cmake --build ${workspaceFolder}/build --config Debug --target all --",
+        //     "args": [],
+        //     "problemMatcher": [],
+        //     "group": {
+        //         "kind": "build",
+        //         "isDefault": true
+        //     }
+        // },
         {
-            "label": "Build Debug",
+            "label": "Build All",
             "type": "shell",
             "command": "cmake --build ${workspaceFolder}/build --config Debug --target all --",
             "args": [],
@@ -14,32 +25,46 @@
                 "isDefault": true
             }
         },
-        // {
-        //     "label": "Run cmake",
-        //     "type": "shell",
-        //     "command": "cmake",
-        //     "args": [
-        //         "${workspaceFolder}",
-        //         //"--build",            
-        //         // "${workspaceFolder}/build"        
-        //     ],
-        //     "problemMatcher": [],
-        //     "group": {
-        //         "kind": "build",
-        //         "isDefault": false
-        //     }
-        // },
         {
-            "label": "Run UnitTest",
+            "label": "Build UnitTest",
             "type": "shell",
-            "command": "${workspaceFolder}/newlang-unit-tests --gtest_shuffle --gtest_filter=Types.Convert:Eval.Tensor:Eval.Assign:ParserTest.Tensor1",
+            "command": "cmake --build ${workspaceFolder}/build --config Debug --target newlang-unit-tests --",
             "args": [],
             "problemMatcher": [],
             "group": {
-                "kind": "test",
-                "isDefault": true
+                "kind": "build",
+                "isDefault": false
             }
         },
-        // 
+        {
+            "label": "Build NLC",
+            "type": "shell",
+            "command": "cmake --build ${workspaceFolder}/build --config Debug --target nlc --",
+            "args": [],
+            "problemMatcher": [],
+            "group": {
+                "kind": "build",
+                "isDefault": false
+            }
+        },
+        {
+            "label": "Run UnitTest",
+            "type": "shell",
+            "command": "${workspaceFolder}/newlang-unit-tests",
+            "dependsOn": [
+                "Build UnitTest"
+            ],
+            "args": [
+                "--gtest_shuffle",
+                "--gtest_filter=Parser*:Lexer*",
+            ],
+        },
+        // {
+        // //     "type": "cmake",
+        // //     "label": "CMake: test",
+        // //     "command": "test",
+        // //     "problemMatcher": [],
+        // //     "detail": "CMake template test task"
+        // // }
     ]
 }

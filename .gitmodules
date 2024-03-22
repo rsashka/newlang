@@ -1,12 +1,9 @@
 [submodule "contrib/googletest"]
 	path = contrib/googletest
 	url = https://github.com/google/googletest.git
-[submodule "contrib/Lyra"]
-	path = contrib/Lyra
-	url = https://github.com/bfgroup/Lyra.git
-[submodule "contrib/tensorboard_logger"]
-	path = contrib/tensorboard_logger
-	url = https://github.com/RustingSword/tensorboard_logger.git
 [submodule "contrib/text2cpp"]
 	path = contrib/text2cpp
 	url = https://github.com/lostjared/text2cpp.git
+[submodule "contrib/fmt"]
+	path = contrib/fmt
+	url = https://github.com/fmtlib/fmt.git

@@ -1,8 +1,8 @@
 #include "pch.h"
 
-#ifdef UNITTEST
+#ifdef BUILD_UNITTEST
 
-#include "pch.h"
+#include "types.h"
 
 #include <warning_push.h>
 #include <gtest/gtest.h>

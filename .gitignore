@@ -1,4 +1,5 @@
 TEMP
+doxygen/*
 **/*.pt
 contrib/*
 **/.obsidian
@@ -17,12 +18,15 @@ Makefile
 **/*.vcxproj.filters
 **/*.vcxproj.user
 
-**/syntax_help.cpp
+**/syntax_help*.cpp
+**/newlang_doc.txt
 **/version.*
 docs/syntax.txt
 output
 **/*temp*
+**/tmp
 **/.vs
+.history
 
 
 # Binaries
@@ -327,9 +331,6 @@ venv.bak/
 
 # Rope project settings
 .ropeproject
-
-# mkdocs documentation
-/site
 
 # mypy
 .mypy_cache/

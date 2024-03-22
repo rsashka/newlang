@@ -71,7 +71,7 @@ namespace newlang {
         typedef PTR Type;
         typedef std::pair<std::string, Type> PairType;
         typedef std::list<PairType> ListType;
-        
+
         friend class Context;
 
         template <typename I>
@@ -114,10 +114,10 @@ namespace newlang {
             return *at_index_const(index);
         }
 
-        typename ListType::iterator find(const std::string name) {
+        typename ListType::iterator find(const std::string_view name) {
             auto iter = ListType::begin();
             while (iter != ListType::end()) {
-                if (iter->first.compare(name) == 0) {
+                if (iter->first.compare(name.begin()) == 0) {
                     return iter;
                 }
                 iter++;
@@ -125,9 +125,9 @@ namespace newlang {
             return ListType::end();
         }
 
-//        typename ListType::const_iterator find(const std::string_view name) const {
-//            return find(name);
-//        }
+        //        typename ListType::const_iterator find(const std::string_view name) const {
+        //            return find(name);
+        //        }
 
         virtual PairType & at(const std::string name) {
             auto iter = find(name);
@@ -139,6 +139,14 @@ namespace newlang {
 
         virtual const std::string & name(const int64_t index) const {
             return at_index_const(index)->first;
+        }
+
+        virtual int64_t index(const std::string_view field_name) {
+            typename ListType::iterator found = find(field_name.begin());
+            if (found == ListType::end()) {
+                return -1;
+            }
+            return std::distance(ListType::begin(), found);
         }
 
         virtual void clear_() {
@@ -221,6 +229,22 @@ namespace newlang {
 
         virtual void erase(const int64_t index) {
             ListType::erase(at_index_const(index));
+        }
+
+        virtual void erase(const size_t index_from, const size_t index_to) {
+            if (index_from <= index_to) {
+                if (index_from == index_to) {
+                    if (index_from < ListType::size()) {
+                        ListType::erase(at_index(index_from));
+                    }
+                } else {
+                    ListType::erase(at_index(index_from), (index_to < ListType::size() ? at_index(index_to) : ListType::end()));
+                }
+            } else {
+                ASSERT(index_to < index_from);
+                ListType::erase(at_index(index_to), ListType::end());
+                ListType::erase(ListType::begin(), (index_from < ListType::size() ? at_index(index_from) : ListType::end()));
+            }
         }
 
         virtual ~Variable() {

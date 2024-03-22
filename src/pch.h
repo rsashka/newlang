@@ -24,6 +24,9 @@
 #include <functional>
 #include <regex>
 #include <filesystem>
+#include <utility>
+#include <cstdlib>
+#include <ctime>
 
 #include <sstream>
 #include <iostream>
@@ -44,6 +47,8 @@
 #include <wait.h>
 #include <dlfcn.h>
 #include <sys/param.h>
+#include <sys/utsname.h>
+#include <unistd.h>
 
 #endif
 
@@ -60,15 +65,9 @@
 #include <torch/torch.h>
 #include <ATen/ATen.h>
 
-#include <contrib/logger/logger.h>
 #include "warning_pop.h"
 
-
-#undef LOG_RUNTIME
-#define LOG_RUNTIME(format, ...)  LOG_EXCEPT(newlang::Return, format, ##__VA_ARGS__)
-
-#include "types.h"
-
+#include <logger.h>
 
 #endif // NEWLANG_PCH_H_
 

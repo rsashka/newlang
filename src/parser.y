@@ -13,8 +13,9 @@
  * object. it defines the yylex() function call to pull the next token from the
  * current lexer object of the driver context. */
 #undef yylex
-#define yylex driver.lexer->lex
-    
+#define yylex driver.GetNextToken
+    //driver.lexer->lex
+
 #define YYDEBUG 1
     
 %}
@@ -52,7 +53,7 @@
 %initial-action
 {
     // initialize the initial location object
-    @$.begin.filename = @$.end.filename = &driver.streamname;
+    @$.begin.filename = @$.end.filename = &driver.m_filename;
 //    yydebug_ = 1;
 };
 
@@ -135,11 +136,11 @@
 %token                  RATIONAL	"Rational"
 %token           	STRCHAR		"StrChar"
 %token           	STRWIDE		"StrWide"
+%token           	STRFMTCHAR	"StrFmtChar"
+%token           	STRFMTWIDE	"StrFmtWide"
 %token           	TEMPLATE	"Template"
 %token           	EVAL            "Eval"
 
-%token			SYS_ENV_STR
-%token			SYS_ENV_INT
 %token			NAME
 %token			LOCAL
 %token			MODULE
@@ -151,16 +152,42 @@
 %token			OPERATOR_AND
 %token			OPERATOR_PTR
 %token			OPERATOR_ANGLE_EQ
+%token			OPERATOR_DUCK
 
-%token			NEWLANG		"@@"
+%token			SPACE
+%token			COMMENT
+%token			INDENT
+%token			CRLF
+%token			ESCAPE
+
+ %token			NEWLANG		"\\\\"
 %token			PARENT		"$$"
 %token			ARGS		"$*"
-%token			MACRO		"Macro"
-%token			MACRO_BODY      "Macro body"
 
-%token			CREATE		"::="
-%token			CREATE_OR_ASSIGN ":="
-%token			APPEND		"[]="
+%token			MACRO           "Macro"
+%token			MACRO_SEQ
+%token			MACRO_STR       "Macro str"
+%token			MACRO_DEL       "Macro del"
+%token			MACRO_CONCAT    "Macro concatenation"
+%token			MACRO_TOSTR     "Macro to string"
+%token			MACRO_ARGUMENT  "Macro argument"
+%token			MACRO_ARGCOUNT  "Macro args count"
+%token			MACRO_ARGPOS    "Macro argument pos"
+%token			MACRO_ARGNAME   "Macro argument name"
+
+
+%token			MACRO_NAMESPACE
+
+%token			CREATE_ONCE              "::="
+%token			CREATE_OVERLAP             ":="
+%token			APPEND                  "[]="
+%token			SWAP
+
+/*
+%token			RIGHT_ASSIGN            "=>"
+%token			RIGHT_CREATE_OR_ASSIGN  ":=>"
+%token			RIGHT_CREATE            "::=>"
+*/
 
 %token			INT_PLUS
 %token			INT_MINUS
@@ -171,14 +198,17 @@
 %token			TRY_MINUS_END
 %token			TRY_ALL_BEGIN
 %token			TRY_ALL_END
+%token			SYM_BEGIN
+%token			SYM_END
 
 
 %token			FOLLOW
 %token			MATCHING
 %token			REPEAT
+%token			WITH
+%token			TAKE
 
 %token			ARGUMENT
-%token			MODULES
 
 
 %token			RANGE           ".."
@@ -187,27 +217,28 @@
 %token			ASSIGN_MATH     "Arithmetic assign value"
 
 %token			END         0	"end of file"
-%token			COMMENT
 
-%token                  SOURCE
+%token                  EMBED
 %token			ITERATOR
 %token			ITERATOR_QQ
-%token			ELSE
+%token			COROUTINE
+%token			FUNCTION
 
-%token			PUREFUNC
-%token			OPERATOR
+%token			PURE_ONCE
+%token			PURE_OVERLAP
+%token			OP_LOGICAL
+%token			OP_MATH
+%token			OP_COMPARE
+%token			OP_BITWISE
 %token			DOC_BEFORE
 %token			DOC_AFTER
 
 
-/* Есть предупреждения, parser.y: предупреждение: shift/reduce conflict on token ';' [-Wcounterexamples]
-  First example: assign_items '=' assign_expr • ';' doc_after "end of file"
-  Second example: assign_items '=' assign_expr • ';' "end of file"
-*/
-//%expect 2
-
 %% /*** Grammar Rules ***/
 
+
+/* Разделитель */
+separator: ';' | separator  ';'
 
 /* Незнаю, нужны ли теперь символы? Раньше планировалось с их помощью расширять синтаксис языковых конструкций, 
  * но это относится к парсеру и не может изменяться динамически в зависимости от наличия существующий объектов и определений.
@@ -226,71 +257,114 @@ symbols: SYMBOL
             }
 
 
-ns:     NAME
+
+ns_part:  NAME
             {
                 $$ = $1;
             }
-        | ns  NAMESPACE  NAME
-            {
-                $$ = $3;
-                $$->m_text.insert(0, "::");
-                $$->m_text.insert(0, $1->m_text);
-            }
-            
-ns_name:  ns
-            {
-                $$ = $1;
-            }
-        | NAMESPACE
-            {
-                $$ = $1;
-            }
-        | NAMESPACE  ns
+        | MACRO_NAMESPACE   NAME
             {
                 $$ = $2;
-                $$->m_text.insert(0, "::");
+                $$->m_text.insert(0, $1->m_text);
             }
-
-local:  '$'
+        | ns_part  NAMESPACE  NAME   
+            {
+                $$ = $3;
+                $$->m_text.insert(0, $2->m_text);
+                $$->m_text.insert(0, $1->m_text);
+                $$->SetTermID(TermID::STATIC);
+                // У переменных m_namespace заполняется в AstExpandNamespace
+            }
+        
+ns_start:  NAMESPACE
             {
                 $$ = $1;
-                $$->SetTermID(TermID::LOCAL);
             }
-        | LOCAL
+/*        | MACRO_NAMESPACE
             {
                 $$ = $1;
+                $$->SetTermID(TermID::NAMESPACE);
             }
+*/
 
-
-
-name:  ns_name
+name:   ns_part
             {
                 $$ = $1;
                 $$->TestConst();
             }
-        |  local
+        | ns_start
             {
                 $$ = $1;
-                $$->SetTermID(TermID::NAME);
+                $$->SetTermID(TermID::STATIC);
+                // У переменных m_namespace заполняется в AstExpandNamespace
+            }
+        | ns_start  ns_part
+            {
+                $$ = $2;
+                $$->m_text.insert(0, $1->m_text);
+                $$->SetTermID(TermID::STATIC);
+                // У переменных m_namespace заполняется в AstExpandNamespace
+            }
+        | ns_part  NAMESPACE  type_class
+            {
+                $$ = $3;
+                $$->m_text.insert(0, $2->m_text);
+                $$->m_text.insert(0, $1->m_text);
+                $$->SetTermID(TermID::STATIC);
+                // У переменных m_namespace заполняется в AstExpandNamespace
+            }
+        | ns_start  ns_part  NAMESPACE  type_class
+            {
+                $$ = $4;
+                $$->m_text.insert(0, $3->m_text);
+                $$->m_text.insert(0, $2->m_text);
+                $$->m_text.insert(0, $1->m_text);
+                $$->SetTermID(TermID::STATIC);
+                // У переменных m_namespace заполняется в AstExpandNamespace
+            } 
+        |  LOCAL
+            {
+                $$ = $1;
+            }
+        | '$'
+            {
+                $$ = $1;
+                $$->SetTermID(TermID::LOCAL);
                 $$->TestConst();
             }
         |  MODULE
             {
+                driver.CheckLoadModule($1);
                 $$ = $1;
-                $$->SetTermID(TermID::NAME);
                 $$->TestConst();
             }
-        |  MODULE   NAMESPACE   assign_name
+        |  '\\'
             {
+                driver.CheckLoadModule($1);
                 $$ = $1;
-                $$->SetTermID(TermID::NAME);
-                $$->Last()->Append($3);
+                $$->SetTermID(TermID::MODULE);
                 $$->TestConst();
+            }
+        |  MODULE  ns_start   ns_part
+            {
+                driver.CheckLoadModule($1);
+                $$ = $1;
+
+                $3->m_namespace = $2;
+                $3->SetTermID(TermID::STATIC);
+                $3->TestConst();
+                
+                $$->Last()->Append($3);
             }
         |  NATIVE
             {
                 $$ = $1;
-                $$->SetTermID(TermID::NAME);
+                $$->TestConst();
+            }
+        |  '%'
+            {
+                $$ = $1;
+                $$->SetTermID(TermID::NATIVE);
                 $$->TestConst();
             }
         |  PARENT  /* $$ - rval */
@@ -298,27 +372,50 @@ name:  ns_name
                 $$ = $1;
                 $$->SetTermID(TermID::NAME);
             }
-        |  NEWLANG  /* @@ - rval */
+        |  NEWLANG  /* \\ - rval */
             {
                 $$ = $1;
-                $$->SetTermID(TermID::NAME);
+//                $$->SetTermID(TermID::NAME);
             }
+        | MACRO
+            {
+                $$ = $1;
+            }
+        | '@'
+            {
+                $$ = $1;
+                $$->SetTermID(TermID::MACRO);
+            }
+        | MACRO_ARGUMENT
+            {
+                $$ = $1;
+            }
+        | MACRO_ARGPOS
+            {
+                $$ = $1;
+            }
+        | MACRO_ARGNAME
+            {
+                $$ = $1;
+            }
+        
+        
 
 /* Фиксированная размерность тензоров для использования в типах данных */
-type_dim: INTEGER
+type_dim: rval_var
         {
             $$ = $1;
+        }
+    | NAME  '='  rval_var
+        { // torch поддерживает именованные диапазоны, но пока незнаю, нужны ли они?
+            $$ = $3;
+            $$->SetName($1->getText());
         }
     |  ELLIPSIS
         {
             // Произвольное количество элементов
             $$ = $1; 
         }
-/*    | TERM  '='  INTEGER
-        { // torch поддерживает именованные диапазоны, но пока незнаю, нужны ли они?
-            $$ = $3;
-            $$->SetName($1->getText());
-        } */
 
 type_dims: type_dim
         {
@@ -334,6 +431,19 @@ type_class:  ':'  name
             {
                 $$ = $2;
                 $$->m_text.insert(0, ":");
+                $$->SetTermID(TermID::TYPE);
+            }
+        | ':'  '~'  name
+            {
+                $$ = $3;
+                $$->m_text.insert(0, ":");
+                $$->SetTermID(TermID::TYPE);
+            }
+        | ':'  OPERATOR_DUCK  name
+            {
+                $$ = $3;
+                $$->m_text.insert(0, ":");
+                $$->SetTermID(TermID::TYPE);
             }
 
 ptr: '&' 
@@ -349,7 +459,7 @@ ptr: '&'
             $$ = $1;
         }
     
-    
+
 type_name:  type_class
             {
                 $$ = $1;
@@ -357,7 +467,8 @@ type_name:  type_class
         |  type_class   '['  type_dims   ']'
             {
                 $$ = $1;
-                Term::ListToVector($type_dims, $$->m_dims);
+                $$->m_dims = $2;
+                $$->m_dims->SetArgs($type_dims);
             }
         | ':'  ptr  NAME
             {
@@ -371,7 +482,8 @@ type_name:  type_class
                 // Для функций, возвращаюющих ссылки
                 $$ = $3;
                 $$->m_text.insert(0, ":");
-                Term::ListToVector($type_dims, $$->m_dims);
+                $$->m_dims = $type_dims;
+                $$->m_dims->SetArgs($type_dims);
                 $$->MakeRef($ptr);
             }
 
@@ -394,13 +506,13 @@ type_item:  type_name
             {
                 $$ = $1;
             }
-        | ':'  eval
+/*        | ':'  eval
             {
                 // Если тип еще не определён и/или его ненужно проверять во время компиляции, то имя типа можно взять в кавычки.
                 $$ = $2;
                 $$->SetTermID(TermID::TYPENAME);
                 $$->m_text.insert(0, ":");
-            }
+            } */
 
 type_items:  type_item
             {
@@ -417,7 +529,11 @@ type_list:  ':'  '<'  type_items  '>'
             {
                 $$ = $type_items;
             }
-        
+        |  ':'  '<'  ELLIPSIS  '>'
+            {
+                $$ = $3;
+            }
+
 
 
 digits_literal: INTEGER
@@ -440,9 +556,9 @@ digits_literal: INTEGER
                 $$ = $1;
                 $$->SetType(nullptr);
             }
-        | SYS_ENV_INT
+        | MACRO_ARGCOUNT
             {
-                $$ = Term::GetEnvTerm($1);
+                $$ = $1;
             }
         
 digits:  digits_literal
@@ -461,11 +577,11 @@ range_val:  rval_range
         {
             $$ = $1;  
         }
-    | '('  arithmetic  ')'
+/*    | '('  arithmetic  ')'
         {
             $$ = $2;
-        }
-            
+        } */
+
         
 range: range_val  RANGE  range_val
         {
@@ -483,25 +599,65 @@ range: range_val  RANGE  range_val
         
         
         
-        
-strtype: STRWIDE
+name_to_concat:  MACRO_ARGUMENT  
         {
             $$ = $1;
-            $$->SetType(nullptr);
         }
-    | STRCHAR
+    |  MACRO_ARGNAME
         {
             $$ = $1;
-            $$->SetType(nullptr);
         }
+    |  NAME
+        {
+            $$ = $1;
+        }
+
+strwide: STRWIDE
+            {
+                $$ = $1;
+                $$->SetType(nullptr);
+            }
+        | strwide  STRWIDE
+            {
+                $$ = $1;
+                $$->m_text.append($2->m_text);
+            }
+
+strchar: STRCHAR
+            {
+                $$ = $1;
+                $$->SetType(nullptr);
+            }
+        | strchar  STRCHAR
+            {
+                $$ = $1;
+                $$->m_text.append($2->m_text);
+            }
+
+strtype: strwide
+            {
+                $$ = $1;
+            }
+        | strchar
+            {
+                $$ = $1;
+            }
+        |  MACRO_TOSTR   name_to_concat
+            {            
+                $$ = $1;
+                $$->Append($2, Term::RIGHT); 
+            }
+        |  name_to_concat  MACRO_CONCAT  name_to_concat
+           {            
+                $$ = $2;
+                $$->Append($1, Term::LEFT); 
+                $$->Append($3, Term::RIGHT); 
+            }
+    
 
 string: strtype
         {
             $$ = $1;
-        }
-    | SYS_ENV_STR
-        {
-            $$ = Term::GetEnvTerm($1);
         }
     | strtype  call
         {
@@ -540,6 +696,10 @@ arg_name: name
         {
             $$ = $1;
         }
+    | '.'  NAME
+        {
+            $$ = $2; 
+        }
         
 /* Допустимые <имена> объеков */
 assign_name:  name
@@ -552,36 +712,69 @@ assign_name:  name
                     $$ = $1;  
                     $$->TestConst();
                 }
-            |  ns  NAMESPACE  symbols
+            |  ns_part  symbols
                 {
-                    $$ = $2;  
-                    $$->m_text.insert(0, "::");
-                    $$->m_text.insert(0, $ns->m_text);
+                    $$ = $2;
+                    $$->m_text.insert(0, $1->m_text);
+                    $$->SetTermID(TermID::STATIC);
                     $$->TestConst();
+                    // У переменных m_namespace заполняется в AstExpandNamespace
                 }
-            | ARGUMENT  /* $123 */
+            |  ns_start   ns_part   symbols
+                {
+                    $$ = $3;
+                    $$->m_text.insert(0, $2->m_text);
+                    $$->m_text.insert(0, $1->m_text);
+                    $$->SetTermID(TermID::STATIC);
+                    $$->TestConst();
+                    // У переменных m_namespace заполняется в AstExpandNamespace
+                }
+           | ARGUMENT  /* $123 */
                 {
                     $$ = $1;
                 }
             
+field:  '.'  NAME
+            {
+                $$ = $1; 
+                $NAME->SetTermID(TermID::FIELD);
+                $$->Last()->Append($NAME);
+            }
+        |  '.'  NAME  call
+            {
+                $$ = $1; 
+                $NAME->SetTermID(TermID::FIELD);
+                $NAME->SetArgs($call);
+                $$->Last()->Append($NAME);
+            }
+        |  '.'  NAME  type_item
+            {
+                $$ = $1; 
+                $NAME->SetTermID(TermID::FIELD);
+                $NAME->SetType($type_item);
+                $$->Last()->Append($NAME);
+            }
+        |  '.'  NAME  call  type_item
+            {
+                $$ = $1; 
+                $NAME->SetTermID(TermID::FIELD);
+                $NAME->SetArgs($call);
+                $NAME->SetType($type_item);
+                $$->Last()->Append($NAME);
+            }
+        |  '.'  NAME  call  type_list
+            {
+                $$ = $1; 
+                $NAME->SetTermID(TermID::FIELD);
+                $NAME->SetArgs($call);
+                $$->Last()->Append($NAME);
+                $$->SetType($type_list);
+            }
        
-/* Допустимые lvalue объекты */
-lval:  assign_name
+lval_obj: assign_name
             {
                 $$ = $1;
             }
-        |  '&'  assign_name
-            {
-                $$ = $2;
-                $$->MakeRef($1);
-            }
-        |  '&'  '&'  assign_name
-            {
-                $$ = $3;
-                $$->MakeRef($1);
-                $$->m_ref->m_text += "&";
-            }
-        /* Не могут быть ссылками*/
         |  assign_name  '['  args  ']'
             {   
                 $$ = $1; 
@@ -589,42 +782,43 @@ lval:  assign_name
                 $2->SetArgs($args);
                 $$->Last()->Append($2);
             }
-        |  lval  '.'  NAME
+        | field 
             {
                 $$ = $1; 
-                $3->SetTermID(TermID::FIELD);
-                $$->Last()->Append($3);
             }
-        |  lval  '.'  NAME  call
+        |  lval_obj  field
             {
                 $$ = $1; 
-                $3->SetTermID(TermID::FIELD);
-                $3->SetArgs($call);
-                $$->Last()->Append($3);
-            }
-        |  lval  '.'  NAME  type_item
+                $$->Last()->Append($field);
+            }        
+        
+        
+take:   TAKE  /*  *^  */
+        {
+            $$ = $1;
+            $$->SetTermID(TermID::TAKE);
+        }
+    | '*' 
+        {
+            $$ = $1;
+            $$->SetTermID(TermID::TAKE);
+        }  
+    
+/* Допустимые lvalue объекты */
+lval:  lval_obj
             {
                 $$ = $1; 
-                $3->SetTermID(TermID::FIELD);
-                $3->SetType($type_item);
-                $$->Last()->Append($3);
             }
-        |  lval  '.'  NAME  call  type_item
+        |  take  rval_name
             {
-                $$ = $1; 
-                $3->SetTermID(TermID::FIELD);
-                $3->SetArgs($call);
-                $3->SetType($type_item);
-                $$->Last()->Append($3);
-            }
-        |  lval  '.'  NAME  call  type_list
+                $$ = $1;
+                $$->SetArgs($2);
+            } 
+        |  take  call
             {
-                $$ = $1; 
-                $3->SetTermID(TermID::FIELD);
-                $3->SetArgs($call);
-                $$->Last()->Append($3);
-                Term::ListToVector($type_list, $$->m_type_allowed);
-            }
+                $$ = $1;
+                $$->SetArgs($call);
+            } 
         |  type_item
             {   
                 $$ = $type_item; 
@@ -654,13 +848,18 @@ lval:  assign_name
             {   
                 $$ = $name; 
                 $$->SetArgs($call);
-                Term::ListToVector($type_list, $$->m_type_allowed);
+                $$->SetType($type_list);
             }
 
 rval_name: lval
             {
                 $$ = $1; 
             }
+/*        | with_op  '('  lval  ')'
+            {
+                $$ = $1; 
+                $$->Last()->Append($lval);
+            } */
         | ARGS /* $* и @* - rval */
             {
                 $$ = $1;
@@ -713,7 +912,7 @@ rval:   rval_var
             {
                 $$ = $1;
             }
-        |  assign_arg
+        |  assign_lval
             {
                 $$ = $1;
             }
@@ -738,6 +937,11 @@ iter_call:  iter  '('  args   ')'
             {
                 $$ = $1;
                 $$->SetArgs($args);
+            }
+        | iter  '('  ')'
+            {
+                $$ = $1;
+                $$->SetArgs(nullptr);
             }
 
         
@@ -770,7 +974,7 @@ iter_all:  ITERATOR_QQ  /* !?  ?! */
  * <Но все это анализирутся тоже после парсера на уровне компилятора/интерпретатора!>
  * 
  */
-        
+
     
 
 /* Аргументом может быть что угодно */
@@ -780,17 +984,23 @@ arg: arg_name  '='
             $$->m_name.swap($1->m_text);
             $$->SetTermID(TermID::EMPTY);
         }
-    | name  type_item  '='
+/*    | arg_name  type_item  '='
         { // Именованный аргумент
             $$ = $3;
             $$->SetType($type_item);
             $$->m_name.swap($1->m_text);
             $$->SetTermID(TermID::EMPTY);
-        }
+        } */
     | arg_name  '='  logical
         { // Именованный аргумент
             $$ = $3;
             $$->SetName($1->getText());
+        }
+    | ptr   arg_name  '='  logical
+        { // Именованный аргумент
+            $$ = $logical;
+            $$->SetName($arg_name->getText());
+            $$->MakeRef($ptr);
         }
     | name  type_item  '='  logical
         { // Именованный аргумент
@@ -801,18 +1011,87 @@ arg: arg_name  '='
     | name  type_list  '='  logical
         { // Именованный аргумент
             $$ = $4;
-            Term::ListToVector($type_list, $$->m_type_allowed);
             $$->SetName($1->getText());
+            $$->SetType($type_list);
         }
+    | ptr  name  type_item  '='  logical
+        { // Именованный аргумент
+            $$ = $logical;
+            $$->SetType($type_item);
+            $$->SetName($name->getText());
+            $$->MakeRef($ptr);
+        }
+    | ptr  name  type_list  '='  logical
+        { // Именованный аргумент
+            $$ = $logical;
+            $$->SetName($name->getText());
+            $$->SetType($type_list);
+            $$->MakeRef($ptr);
+        }
+    | arg_name  '='  ptr  logical
+        { // Именованный аргумент
+            $$ = $4;
+            $$->SetName($1->getText());
+            $$->MakeRef($ptr);
+        }
+    | name  type_item  '='  ptr  logical
+        { // Именованный аргумент
+            $$ = $5;
+            $$->SetType($type_item);
+            $$->SetName($1->getText());
+            $$->MakeRef($ptr);
+        }
+    | name  type_list  '='  ptr  logical
+        { // Именованный аргумент
+            $$ = $5;
+            $$->SetName($1->getText());
+            $$->SetType($type_list);
+            $$->MakeRef($ptr);
+        }
+/*    | arg_name  '='  take  logical
+        { // Именованный аргумент
+            $$ = $take;
+            $logical->SetName($1->getText());
+            $$->SetArgs($logical);
+        }
+    | name  type_item  '='  take  logical
+        { // Именованный аргумент
+            $$ = $take;
+            $logical->SetType($type_item);
+            $logical->SetName($1->getText());
+            $$->SetArgs($logical);
+        }
+    | name  type_list  '='  take  logical
+        { // Именованный аргумент
+            $$ = $take;
+            Term::ListToVector($type_list, $logical->m_type_allowed);
+            $logical->SetName($1->getText());
+            $$->SetArgs($logical);
+        } */ 
     | logical
         {
             // сюда попадают и именованные аргументы как операция присвоения значения
             $$ = $1;
         }
+    | ptr  logical
+        {
+            $$ = $2;  
+            $$->MakeRef($ptr);
+        }   
+/*    | take  logical
+        {
+            $$ = $1;  
+            $$->SetArgs($2);
+        } */  
     |  ELLIPSIS
         {
             // Раскрыть элементы словаря в последовательность не именованных параметров
             $$ = $1; 
+        }
+    |  ELLIPSIS type_list
+        {
+            $$ = $1; 
+            $$->SetType($type_list);
         }
     |  ELLIPSIS  logical
         {
@@ -834,6 +1113,18 @@ arg: arg_name  '='
             $$->SetTermID(TermID::FILLING);
             $$->Append($2, Term::RIGHT); 
         }
+    |  ESCAPE /* for pragma terms */
+       {            
+            $$ = $1;
+        }
+    /*    |  operator
+       {            
+            $$ = $1;
+       }
+    |  op_factor
+       {            
+            $$ = $1;
+       } */
 
 args: arg
             {
@@ -916,17 +1207,18 @@ collection: array
             {
                 $$ = $1;
             }
-class_props: assign_arg 
+        
+class_props: assign_lval
             {
                 $$ = $1;
             }
-        | class_props   ';'   assign_arg
+        | class_props   separator   assign_lval
             {
                 $$ = $1;
                 $$->AppendSequenceTerm($3);
             }
 
-class_item:  type_item
+class_item:  type_call
             {
                 $$ = $1;
             }
@@ -946,14 +1238,14 @@ class_base: class_item
                 $$->AppendList($3);
             }
 
-        
+
 class_def:  class_base  '{'  '}'
             {
                 $$ = $2;
                 Term::ListToVector($class_base, $$->m_base);
                 $$->SetTermID(TermID::CLASS);
             }
-        | class_base '{' class_props  ';'  '}'
+        | class_base '{' class_props  separator  '}'
             {
                 $$ = $class_props;
                 Term::ListToVector($class_base, $$->m_base);
@@ -966,7 +1258,7 @@ class_def:  class_base  '{'  '}'
                 Term::ListToVector($class_base, $$->m_base);
                 Term::ListToVector($doc_after, $$->m_docs);
             }
-        | class_base '{' doc_after  class_props  ';'  '}'
+        | class_base '{' doc_after  class_props  separator  '}'
             {
                 $$ = $class_props;
                 $$->ConvertSequenceToBlock(TermID::CLASS);
@@ -975,54 +1267,12 @@ class_def:  class_base  '{'  '}'
             }
         
         
-       
-block_ns:  ns_name  '{'  '}'
-            {
-                $$ = $2; 
-                $$->SetTermID(TermID::BLOCK);
-                $$->m_class = $1->m_text;
-            }
-        | ns_name  '{'  sequence  '}'
-            {
-                $$ = $sequence; 
-                $$->ConvertSequenceToBlock(TermID::BLOCK);
-                $$->m_class = $1->m_text;
-            }
-        | ns_name  '{'  sequence  separator  '}'
-            {
-                $$ = $sequence; 
-                $$->ConvertSequenceToBlock(TermID::BLOCK);
-                $$->m_class = $1->m_text;
-            }        
-        | ns_name  '{' doc_after '}'
-            {
-                $$ = $2; 
-                $$->SetTermID(TermID::BLOCK);
-                Term::ListToVector($doc_after, $$->m_docs);
-                $$->m_class = $1->m_text;
-            }
-        | ns_name  '{'  doc_after  sequence  '}'
-            {
-                $$ = $sequence; 
-                $$->ConvertSequenceToBlock(TermID::BLOCK);
-                Term::ListToVector($doc_after, $$->m_docs);
-                $$->m_class = $1->m_text;
-            }
-        | ns_name  '{'  doc_after  sequence  separator  '}'
-            {
-                $$ = $sequence; 
-                $$->ConvertSequenceToBlock(TermID::BLOCK);
-                Term::ListToVector($doc_after, $$->m_docs);
-                $$->m_class = $1->m_text;
-            }        
-
         
-        
-assign_op: CREATE_OR_ASSIGN /* := */
+assign_op: CREATE_OVERLAP /* := */
             {
                 $$ = $1;
             }
-        | CREATE /* ::= */
+        | CREATE_ONCE /* ::= */
             {
                 $$ = $1;
             }
@@ -1030,15 +1280,34 @@ assign_op: CREATE_OR_ASSIGN /* := */
             {
                 $$ = $1;
             }
-        | PUREFUNC /* ::- :- */
+        | PURE_ONCE /* :- */
             {
                 $$ = $1;
             }
+        | PURE_OVERLAP /* ::- */
+            {
+                $$ = $1;
+            }
+        
 
-
+coro: '(' ')'
+        {
+            $$ = $1;
+        }
+/*    | '(' args ')'
+        {
+            $$ = $1;
+            $$->SetArgs($args);
+        } */
+        
 assign_expr:  body_all
                 {
                     $$ = $1;  
+                }
+            |  ptr  body_all
+                {
+                    $$ = $2;  
+                    $$->MakeRef($ptr);
                 }
             | ELLIPSIS  rval
                 {
@@ -1049,17 +1318,61 @@ assign_expr:  body_all
                 {
                     $$ = $1;  
                 }
-            
+            |  MACRO_SEQ
+                {
+                    $$ = $1;  
+                }
+            |  MACRO_STR
+                {
+                    $$ = $1;
+                }
+            |  NATIVE  ELLIPSIS
+                {
+                    $$ = $1;
+                    $$->Last()->Append($2);
+                }
+            |  coro  block_all
+                {
+                // Короутина?
+                    $$ = $1;  
+                    $$->Append($block_all, Term::RIGHT); 
+                    $$->SetTermID(TermID::COROUTINE);
+                }
+            |  coro  block_all  type_name
+                {
+                // Короутина?
+                    $$ = $1;  
+                    $$->Append($block_all, Term::RIGHT); 
+                    $$->SetTermID(TermID::COROUTINE);
+                    $$->SetType($type_name);
+                    $block_all->SetType($type_name);
+                }
+
             
 assign_item:  lval
                 {
                     $$ = $1;
                 }
+            | ptr   lval
+                {
+                    $$ = $2;
+                    $$->MakeRef($ptr);
+                }
+            | ptr  call  logical
+                {
+                    $ptr->SetArgs($call);
+                    $$ = $3;  
+                    $$->MakeRef($ptr);
+                }   
             |  ELLIPSIS
                 {
                     $$ = $1;
                 }
-
+            |  MACRO_SEQ
+                {
+                    $$ = $1;
+                }
+            
 assign_items: assign_item
                 {
                     $$ = $1;
@@ -1069,12 +1382,11 @@ assign_items: assign_item
                     $$ = $1;
                     $$->AppendList($3);
                 }
+
 /*
-lval = rval;
-lval, lval, lval = rval;
-func() = rval;
-*/
-assign_arg:  lval  assign_op  assign_expr
+ * Для применения в определениях классов и в качестве rval
+ */            
+assign_lval:  lval  assign_op  assign_expr
             {
                 $$ = $2;  
                 $$->Append($1, Term::LEFT); 
@@ -1093,6 +1405,10 @@ assign_seq:  assign_items  assign_op  assign_expr
                 $$ = $2;  
                 $$->Append($1, Term::LEFT); 
                 $$->Append($3, Term::RIGHT); 
+
+                if($$->isMacro()){
+                    $$ = driver.MacroEval($$);
+                }
             }
         | assign_items  '='  assign_expr
             {
@@ -1100,8 +1416,16 @@ assign_seq:  assign_items  assign_op  assign_expr
                 $$->SetTermID(TermID::ASSIGN);
                 $$->Append($1, Term::LEFT); 
                 $$->Append($3, Term::RIGHT); 
+
+                if($$->isMacro()){
+                    $$ = driver.MacroEval($$);
+                }
             }
-        
+        | MACRO_DEL
+            {
+                $$ = driver.MacroEval($1);
+            }
+
         
 block:  '{'  '}'
             {
@@ -1137,52 +1461,108 @@ block:  '{'  '}'
                 Term::ListToVector($doc_after, $$->m_docs);
             }
 
-     
+block_any: block
+            {
+                $$ = $1;
+            }
+        |  try_any
+            {
+                $$ = $1;
+            }
+        |  WITH  try_any
+            {
+                $$ = $2;
+                $$->Append($1, Term::LEFT); 
+            }
+
+block_all: block_any
+            {
+                $$ = $1;
+            }
+        | ns_part  block_any
+            {
+                $$ = $2;
+                $$->m_namespace = $1;
+            }
+        |  ns_part  NAMESPACE  block_any
+            {
+                $$ = $3;
+                $$->m_namespace = $2;
+                $$->m_namespace->m_text.insert(0, $1->m_text);
+            }
+        |  ns_start  ns_part  NAMESPACE  block_any
+            {
+                $$ = $4;
+                $$->m_namespace = $3;
+                $$->m_namespace->m_text.insert(0, $2->m_text);
+                $$->m_namespace->m_text.insert(0, $1->m_text);
+            }
+        |  ns_start  ns_part  block_any
+            {
+                $$ = $3;
+                $$->m_namespace = $2;
+                $$->m_namespace->m_text.insert(0, $1->m_text);
+            } 
+        |  ns_start  block_any
+            {
+                $$ = $2;
+                $$->m_namespace = $1;
+            } 
+        
+
+block_type: block_all
+            {
+                $$ = $1;
+            }
+        | block_all  type_name
+            {
+                $$ = $1;
+                $$->SetType($type_name);
+            }
+        | block_all  type_list
+            {
+                $$ = $1;
+                $$->SetType($type_list);
+            }
         
 body:  condition
             {
                 $$ = $1;
             }
-        |  block
+        |  block_type
             {
                 $$ = $1;
             }
-        |  block_ns
+        |  doc_before  block_type
+            {
+                $$ = $block_type;
+                Term::ListToVector($doc_before, $$->m_docs);
+            } 
+        |  exit
             {
                 $$ = $1;
             }
-        |  doc_before  block
-            {
-                $$ = $block;
-                Term::ListToVector($doc_before, $$->m_docs);
-            }
-        |  doc_before  block_ns
-            {
-                $$ = $block_ns;
-                Term::ListToVector($doc_before, $$->m_docs);
-            }
+        
 
 body_all: body
             {
                 $$ = $1;
             }
-        |  try_catch
-            {
-                $$ = $1;
-            }
-        |  exit
-            {
-                $$ = $1;
-            }
-
         
 body_else: ',' else  FOLLOW  body_all
             {
-                $$ = $4; 
+                $$ = $3; 
+                $$->Append($else, Term::LEFT); 
+                $$->Append($body_all, Term::RIGHT); 
             }
 
 
-try_all: TRY_ALL_BEGIN  sequence  TRY_ALL_END
+try_all: TRY_ALL_BEGIN  TRY_ALL_END
+            {
+                $$ = $1; 
+                $$->ConvertSequenceToBlock(TermID::BLOCK_TRY);
+            }
+        | TRY_ALL_BEGIN  sequence  TRY_ALL_END
             {
                 $$ = $2; 
                 $$->ConvertSequenceToBlock(TermID::BLOCK_TRY);
@@ -1193,7 +1573,12 @@ try_all: TRY_ALL_BEGIN  sequence  TRY_ALL_END
                 $$->ConvertSequenceToBlock(TermID::BLOCK_TRY);
             }
 
-try_plus: TRY_PLUS_BEGIN  sequence  TRY_PLUS_END
+try_plus: TRY_PLUS_BEGIN  TRY_PLUS_END
+            {
+                $$ = $1; 
+                $$->ConvertSequenceToBlock(TermID::BLOCK_PLUS);
+            }
+        | TRY_PLUS_BEGIN  sequence  TRY_PLUS_END
             {
                 $$ = $2; 
                 $$->ConvertSequenceToBlock(TermID::BLOCK_PLUS);
@@ -1204,7 +1589,12 @@ try_plus: TRY_PLUS_BEGIN  sequence  TRY_PLUS_END
                 $$->ConvertSequenceToBlock(TermID::BLOCK_PLUS);
             }
         
-try_minus: TRY_MINUS_BEGIN  sequence  TRY_MINUS_END
+try_minus: TRY_MINUS_BEGIN  TRY_MINUS_END
+            {
+                $$ = $1; 
+                $$->ConvertSequenceToBlock(TermID::BLOCK_MINUS);
+            }
+        | TRY_MINUS_BEGIN  sequence  TRY_MINUS_END
             {
                 $$ = $2; 
                 $$->ConvertSequenceToBlock(TermID::BLOCK_MINUS);
@@ -1215,7 +1605,7 @@ try_minus: TRY_MINUS_BEGIN  sequence  TRY_MINUS_END
                 $$->ConvertSequenceToBlock(TermID::BLOCK_MINUS);
             }
 
-try_catch:  try_plus 
+try_any:  try_plus 
             {
                 $$ = $1;
             }
@@ -1227,17 +1617,8 @@ try_catch:  try_plus
             {
                 $$ = $1;
             }
-        | try_all  type_name
-            {
-                $$ = $1;
-                $$->m_type_allowed.push_back($type_name);
-            }
-        | try_all  type_list
-            {
-                $$ = $1;
-                Term::ListToVector($type_list, $$->m_type_allowed);
-            }
-        
+
+       
 /* 
  * lvalue - объект в памяти, которому может быть присовено значение (может быть ссылкой и/или константой)
  * rvalue - объект, которому <НЕ> может быть присвоено значение (литерал, итератор, вызов функции)
@@ -1254,58 +1635,76 @@ try_catch:  try_plus
  * <factor> -> vars | ( <expr> )
  */
 
-operator: OPERATOR
+operator: '~'
             {
                 $$ = $1;
-            }
-        | '~'
-            {
-                $$ = $1;
-                $$->SetTermID(TermID::OPERATOR);
+                $$->SetTermID(TermID::OP_COMPARE);
             }
         | '>'
             {
                 $$ = $1;
-                $$->SetTermID(TermID::OPERATOR);
+                $$->SetTermID(TermID::OP_COMPARE);
             }
         | '<'
             {
                 $$ = $1;
-                $$->SetTermID(TermID::OPERATOR);
+                $$->SetTermID(TermID::OP_COMPARE);
             }
         |  OPERATOR_AND
             {
                 $$ = $1;
-                $$->SetTermID(TermID::OPERATOR);
+                $$->SetTermID(TermID::OP_LOGICAL);
             }
         |  OPERATOR_ANGLE_EQ
             {
                 $$ = $1;
-                $$->SetTermID(TermID::OPERATOR);
+                $$->SetTermID(TermID::OP_COMPARE);
             }
+        |  OPERATOR_DUCK
+            {
+                $$ = $1;
+                $$->SetTermID(TermID::OP_COMPARE);
+            }
+        |  OP_MATH
+            {
+                $$ = $1;
+            }
+        |  OP_LOGICAL
+            {
+                $$ = $1;
+            }
+        |  OP_BITWISE
+            {
+                $$ = $1;
+            }
+        |  OP_COMPARE
+            {
+                $$ = $1;
+            }
+        
 
 
 arithmetic:  arithmetic '+' addition
                 { 
                     $$ = $2;
-                    $$->SetTermID(TermID::OPERATOR);
+                    $$->SetTermID(TermID::OP_MATH);
                     $$->Append($1, Term::LEFT);                    
                     $$->Append($3, Term::RIGHT); 
                 }
             | arithmetic '-'  addition
                 { 
                     $$ = $2;
-                    $$->SetTermID(TermID::OPERATOR);
+                    $$->SetTermID(TermID::OP_MATH);
                     $$->Append($1, Term::LEFT);                    
                     $$->Append($3, Term::RIGHT); 
                 }
             |  addition   digits
                 {
                     if($digits->m_text[0] != '-') {
-                        NL_PARSER($digits, "Missing operator!");
+                        NL_PARSER($digits, "Missing operator between '%s' and '%s'", $addition->m_text.c_str(), $digits->m_text.c_str());
                     }
                     //@todo location
-                    $$ = Term::Create(TermID::OPERATOR, $2->m_text.c_str(), 1, & @$);
+                    $$ = Term::Create(token::OP_MATH, TermID::OP_MATH, $2->m_text.c_str(), 1, & @$);
                     $$->Append($1, Term::LEFT); 
                     $2->m_text = $2->m_text.substr(1);
                     $$->Append($2, Term::RIGHT); 
@@ -1342,7 +1741,7 @@ addition:  addition  op_factor  factor
                     }
     
                     $$ = $op_factor;
-                    $$->SetTermID(TermID::OPERATOR);
+                    $$->SetTermID(TermID::OP_MATH);
                     $$->Append($1, Term::LEFT); 
                     $$->Append($3, Term::RIGHT); 
                 }
@@ -1357,18 +1756,56 @@ factor:   rval_var
             }
         | '-'  factor
             { 
-                $$ = Term::Create(TermID::OPERATOR, "-", 1,  & @$);
+                $$ = Term::Create(token::OP_MATH, TermID::OP_MATH, "-", 1,  & @$);
                 $$->Append($2, Term::RIGHT); 
             }
-        | '('  arithmetic  ')'
+        | '('  logical  ')'
             {
                 $$ = $2; 
             }
 
-       
+
+symbolyc: SYM_BEGIN  arithmetic  SYM_END   PURE_OVERLAP   SYM_BEGIN  sequence  SYM_END
+            {
+                $$ = $PURE_OVERLAP;
+                $$->SetTermID(TermID::SYM_RULE);
+                $$->Append($arithmetic, Term::LEFT); 
+                $$->Append($sequence, Term::RIGHT); 
+            }
+        | SYM_BEGIN  arithmetic  SYM_END   PURE_OVERLAP   SYM_BEGIN  sequence  separator  SYM_END
+            {
+                $$ = $PURE_OVERLAP;
+                $$->SetTermID(TermID::SYM_RULE);
+                $$->Append($arithmetic, Term::LEFT); 
+                $$->Append($sequence, Term::RIGHT); 
+            }
+        | SYM_BEGIN  arithmetic  separator SYM_END   PURE_OVERLAP   SYM_BEGIN  sequence  SYM_END
+            {
+                $$ = $PURE_OVERLAP;
+                $$->SetTermID(TermID::SYM_RULE);
+                $$->Append($arithmetic, Term::LEFT); 
+                $$->Append($sequence, Term::RIGHT); 
+            }
+        | SYM_BEGIN  arithmetic  separator SYM_END   PURE_OVERLAP   SYM_BEGIN  sequence  separator  SYM_END
+            {
+                $$ = $PURE_OVERLAP;
+                $$->SetTermID(TermID::SYM_RULE);
+                $$->Append($arithmetic, Term::LEFT); 
+                $$->Append($sequence, Term::RIGHT); 
+            }
    
+
+embed: EMBED
+            {
+                $$ = $1;
+            }
+        | embed  EMBED
+            {
+                $$ = $1;
+                $$->m_text.append($2->m_text);
+            }
         
-condition: SOURCE
+condition: embed
             {
                 $$=$1;
             }
@@ -1380,7 +1817,7 @@ condition: SOURCE
         
 logical:  arithmetic
             {
-                    $$ = $1;
+                $$ = $1;
             }
         |  logical  operator  arithmetic
             {
@@ -1402,23 +1839,15 @@ logical:  arithmetic
             }
         
         
-else:   ELSE
+else:   '['  ELLIPSIS  ']' 
             {
-                 $$ = Term::Create(TermID::NONE, "_", 1, & @$);
-            }
-        |  '['  '_'  ']' 
-            {
-                 $$ = Term::Create(TermID::NONE, "_", 1, & @$);
+                $$ = $2;
             }
             
 
 match_cond: '['   condition   ']' 
             {
                 $$ = $condition;
-            }
-        |  else
-            {
-                $$ = $else;
             }
 
 if_then:  match_cond  FOLLOW  body_all
@@ -1428,17 +1857,26 @@ if_then:  match_cond  FOLLOW  body_all
                 $$->Append($3, Term::RIGHT); 
             }
 
-follow: if_then
+if_list: if_then
             {
                 $$ = $1; 
                 $$->AppendFollow($1);
             }
-        | follow  ','  if_then
+        | if_list  ','  if_then
             {
                 $$ = $1; 
                 $$->AppendFollow($3);
             }
         
+follow: if_list
+            {
+                $$ = $1; 
+            }
+        | if_list  body_else
+            {
+                $$ = $1; 
+                $$->AppendFollow($2);
+            }
    
 repeat: body_all  REPEAT  match_cond
             {
@@ -1463,11 +1901,11 @@ repeat: body_all  REPEAT  match_cond
                 $$->AppendFollow($body_else); 
             }
 
-matches:  rval_name
+matches:  rval_range
             {
                 $$=$1;
             }
-        |  matches  ','  rval_var
+        |  matches  ','  rval_range
             {
                 $$ = $1;
                 $$->AppendFollow($3);
@@ -1479,25 +1917,79 @@ match_item: '[' matches  ']' FOLLOW  body
                 $$->Append($2, Term::LEFT); 
                 $$->Append($5, Term::RIGHT); 
             }
+/*        | else  FOLLOW  body
+            {
+                $$=$2;
+                $$->Append($1, Term::LEFT); 
+                $$->Append($3, Term::RIGHT); 
+            } */
 
-match_items:  match_item
+match_items:  match_item  ';'
             {
                 $$ = $1;
             }
-        | match_items  ';'  match_item
+        | match_items  match_item  ';'
             {
                 $$ = $1;
                 $$->AppendSequenceTerm($match_item);
             }
-        
-match_body:  '{'  match_items  '}'
+
+match_items_else:  match_items
+            {
+                $$=$1;
+            } 
+        |  match_items  else  FOLLOW  body
+            {
+                $$=$1;
+
+                $3->Append($else, Term::LEFT); 
+                $3->Append($body, Term::RIGHT); 
+
+                $$->AppendSequenceTerm($3);
+            } 
+      
+match_body: '{'  match_items_else  '}'
             {
                 $$ = $2;
                 $$->ConvertSequenceToBlock(TermID::BLOCK);
             }
+        | '{'  match_items_else  separator '}'
+            {
+                $$ = $2;
+                $$->ConvertSequenceToBlock(TermID::BLOCK);
+            }
+        | TRY_ALL_BEGIN  match_items_else  TRY_ALL_END
+            {
+                $$ = $2;
+                $$->ConvertSequenceToBlock(TermID::BLOCK_TRY);
+            }
+        | TRY_ALL_BEGIN  match_items_else  separator TRY_ALL_END
+            {
+                $$ = $2;
+                $$->ConvertSequenceToBlock(TermID::BLOCK_TRY);
+            }
+        | TRY_PLUS_BEGIN  match_items_else  TRY_PLUS_END
+            {
+                $$ = $2;
+                $$->ConvertSequenceToBlock(TermID::BLOCK_PLUS);
+            }
+        | TRY_PLUS_BEGIN  match_items_else  separator TRY_PLUS_END
+            {
+                $$ = $2;
+                $$->ConvertSequenceToBlock(TermID::BLOCK_PLUS);
+            }
+        | TRY_MINUS_BEGIN  match_items_else  TRY_MINUS_END
+            {
+                $$ = $2;
+                $$->ConvertSequenceToBlock(TermID::BLOCK_MINUS);
+            }
+        | TRY_MINUS_BEGIN  match_items_else  separator TRY_MINUS_END
+            {
+                $$ = $2;
+                $$->ConvertSequenceToBlock(TermID::BLOCK_MINUS);
+            }
 
-
-
+        
 match:  match_cond   MATCHING  match_body
             {
                 $$=$2;
@@ -1519,23 +2011,114 @@ interrupt: INT_PLUS
             {
                 $$ = $1;
             }
+        | INT_REPEAT
+            {
+                $$ = $1;
+            }
         
-        
-exit:  interrupt
+
+exit_part:  interrupt
         {
             $$ = $1;
         }
-    |  interrupt   rval   interrupt
-        {
-            $$ = $1;
-            $$->Append($2, Term::RIGHT); 
-        }
-    |  INT_REPEAT   rval   INT_REPEAT
+    |  interrupt   rval_var   interrupt
         {
             $$ = $1;
             $$->Append($2, Term::RIGHT); 
         }
 
+
+exit_prefix: ns_part
+        {
+            $$ = $1;
+        }
+
+    |  MACRO_NAMESPACE
+        {
+            $$ = $1;
+        }
+    |  ns_start
+        {
+            $$ = $1;
+        }
+    |  ns_start   ns_part
+        {
+            $$ = $2;
+            $$->m_text.insert(0, $1->m_text);
+        }
+    | ns_part  NAMESPACE
+        {
+            $$ = $2;
+            $$->m_text.insert(0, $1->m_text);
+        }
+    |  ns_start   ns_part  NAMESPACE
+        {
+            $$ = $3;
+            $$->m_text.insert(0, $2->m_text);
+            $$->m_text.insert(0, $1->m_text);
+        }
+            
+exit:   exit_part
+        {
+            $$ = $1;
+        }
+    | exit_prefix  exit_part 
+        {
+            $$ = $2;
+            $$->m_namespace = $1;
+        }
+
+
+with_op:  WITH
+        {
+            $$ = $1;
+        }
+
+with_arg: name  '='  rval_name
+        { // Именованный аргумент
+            $$ = $3;
+            $$->SetName($1->getText());
+        }
+
+with_args: with_arg
+        {
+            $$ = $1;
+        }
+    |  with_args  ','  with_arg
+        {
+            $$ = $1;
+            $$->Append($2, Term::RIGHT); 
+        }
+        
+    
+with: with_op  '('  rval_name  ')'   body
+        {
+                $$ = $1;
+                $$->SetArgs($3);
+                $$->Append($5, Term::RIGHT); 
+        }
+    | with_op  '('  with_args  ')'  body
+        {
+                $$ = $1; 
+                $$->SetArgs($3);
+                $$->Append($5, Term::RIGHT); 
+        }
+    |  with_op  '('  rval_name  ')'  body  body_else
+        {
+                $$ = $1; 
+                $$->SetArgs($3);
+                $$->Append($5, Term::RIGHT); 
+                $$->AppendFollow($body_else); 
+        }
+    |  with_op  '('  with_args  ')'  body  body_else
+        {
+                $$ = $1; 
+                $$->SetArgs($3);
+                $$->Append($5, Term::RIGHT); 
+                $$->AppendFollow($body_else); 
+        }
+
+    
 /*  expression - одна операция или результат <ОДНОГО выражения без завершающей точки с запятой !!!!!> */
 seq_item: assign_seq
             {
@@ -1558,27 +2141,26 @@ seq_item: assign_seq
             {
                 $$ = $1; 
             }
-        |  MACRO
-            {
-                $$ = $1;  // Их быть не должно, т.к. макросы должны раскрываться до парсинга синтаксиса
-            }
-        |  MACRO_BODY
-            {
-                $$ = $1;  // Их быть не должно, т.к. макросы должны раскрываться до парсинга синтаксиса
-            }
         | body_all
             {
                 $$ = $1;
             }
-        | try_catch  body_else
-            {
-                $$ = $1; 
-                $$->AppendFollow($body_else); 
+        |  with
+            {            
+                $$ = $1;
+            }
+        |  ESCAPE /* for pragma terms */
+            {            
+                $$ = $1;
+            }
+        |  symbolyc
+            {            
+                $$ = $1;
             }
         
 sequence:  seq_item
             {
-                $$ = $1;  
+                $$ = $1;
             }
         | seq_item  doc_after
             {
@@ -1599,8 +2181,6 @@ sequence:  seq_item
                 $$->AppendSequenceTerm($seq_item);
             }
 
-separator: ';' | separator  ';'        
-        
 
 ast:    END
         | separator
@@ -1616,6 +2196,19 @@ ast:    END
             {
                 Term::ListToVector($doc_after, $1->m_docs);
                 driver.AstAddTerm($1);
+            }
+        | separator  sequence
+            {
+                driver.AstAddTerm($2);
+            }
+        | separator  sequence separator
+            {
+                driver.AstAddTerm($2);
+            }
+        | separator  sequence separator  doc_after
+            {
+                Term::ListToVector($doc_after, $1->m_docs);
+                driver.AstAddTerm($2);
             }
 /*        | comment     Комменатарии не добавляются в AST, т.к. в парсере они не нужны, а
                         их потенциальное использование - документирование кода, решается 

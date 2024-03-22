@@ -1,14 +1,11 @@
 #include "pch.h"
 
-#include <syntax_help.cpp>
+//#include <syntax_help_en.cpp>
 
 #include <builtin.h>
-#include <newlang.h>
+#include <runtime.h>
 
 using namespace newlang;
-
-#define NEWLANG_FUNCTION(NAME)  newlang::ObjPtr NAME(newlang::Context *ctx, newlang::Obj &in) 
-#define NEWLANG_TRANSPARENT(NAME)  newlang::ObjPtr NAME(const newlang::Context *ctx, const newlang::Obj &in) 
 
 namespace newlang {
 
@@ -81,15 +78,15 @@ namespace newlang {
 //        return ctx->ExecFile(in.at(1).second->GetValueAsString().c_str(), &in, true);
 //    }
 
-    NEWLANG_TRANSPARENT(help) {
-
-        std::string help_str;
-        for (int i = 0; i < newlang_syntax_help_size; i++) {
-            help_str.append(newlang_syntax_help_arr[i]);
-            help_str.append("\n\r");
-        }
-        return Obj::CreateString(help_str);
-    }
+//    NEWLANG_TRANSPARENT(help) {
+//
+//        std::string help_str;
+//        for (int i = 0; i < newlang_syntax_help_en_size; i++) {
+//            help_str.append(newlang_syntax_help_en_arr[i]);
+//            help_str.append("\n\r");
+//        }
+//        return Obj::CreateString(help_str);
+//    }
 
 
 #undef NEWLANG_FUNCTION
