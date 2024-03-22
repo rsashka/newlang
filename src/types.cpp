@@ -96,18 +96,6 @@ const TermPtr newlang::getDefaultType(const std::string_view text) {
     return nullptr;
 }
 
-const char * IntAny::what() const noexcept {
-    assert(m_obj);
-    std::string temp = m_obj->toString();
-
-    size_t pos = temp.find("\n')");
-    if (pos == temp.size() - 3) {
-        temp = temp.replace(pos, 1, "");
-    }
-    snprintf((char *) m_buffer_message, sizeof (m_buffer_message), "%s", temp.c_str());
-    return m_buffer_message;
-}
-
 bool newlang::canCast(const TermPtr &from, const ObjType to) {
     if (!from->m_type) {
         return true; // Empty type cast any type

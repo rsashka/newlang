@@ -521,6 +521,16 @@ TEST_F(ParserTest, TensorType) {
     ASSERT_TRUE(Parse("term []= [2, 3,]:Int32;"));
     ASSERT_STREQ("term []= [2, 3,]:Int32;", ast->toString().c_str());
 
+    ASSERT_TRUE(Parse(":Bool();"));
+    ASSERT_TRUE(Parse(":Bool[...]();"));
+    ASSERT_TRUE(Parse(":Bool[1]();"));
+
+    ASSERT_TRUE(Parse(":Bool[_]();"));
+    ASSERT_TRUE(Parse("1.._..2"));
+    ASSERT_TRUE(Parse("1.._"));
+    ASSERT_TRUE(Parse(":Bool[1.._..2]();"));
+    ASSERT_TRUE(Parse(":Bool[1.._]();"));
+
     //    ASSERT_TRUE(Parse("term[1, 3] :$type []= [[1,2,3,],];"));
     //    ASSERT_STREQ("term[1, 3]:$type []= [[1, 2, 3,],];", ast->toString().c_str());
 
@@ -898,12 +908,36 @@ TEST_F(ParserTest, ArgsType) {
 
     ASSERT_TRUE(Parse("term(&bool:~Bool=term(100), &* int:~Int32=name::name, &? long:~~Int64=@term()):~~~Float64:={long;};"));
     ASSERT_EQ(TermID::CREATE_OVERLAP, ast->getTermID()) << newlang::toString(ast->getTermID());
-//    ASSERT_STREQ("term(bool:Bool=&term(100), int:Int32=&*name::name, long:Int64=&?@term()):Float64 := {long;};;", ast->toString().c_str());
+    //    ASSERT_STREQ("term(bool:Bool=&term(100), int:Int32=&*name::name, long:Int64=&?@term()):Float64 := {long;};;", ast->toString().c_str());
 }
 
 TEST_F(ParserTest, ArgsType1) {
     ASSERT_TRUE(Parse("term(long:Int64=@term());"));
     ASSERT_STREQ("term(long:Int64=@term())", ast->toString().c_str());
+}
+
+TEST_F(ParserTest, Any) {
+    ASSERT_TRUE(Parse("term((,));"));
+    ASSERT_TRUE(Parse("term([1,]);"));
+    ASSERT_TRUE(Parse("term((,):Class);"));
+    ASSERT_TRUE(Parse("term([1,]:Int8);"));
+    ASSERT_TRUE(Parse("term(1..2);"));
+    ASSERT_TRUE(Parse("term(1..2..1\\1);"));
+
+    ASSERT_TRUE(Parse("term(name=(,));"));
+    ASSERT_TRUE(Parse("term(name=[1,]);"));
+    ASSERT_TRUE(Parse("term(name=(,):Class);"));
+    ASSERT_TRUE(Parse("term(name=[1,]:Int8);"));
+    ASSERT_TRUE(Parse("term(name=1..2);"));
+    ASSERT_TRUE(Parse("term(name=1..2..1\\1);"));
+
+    ASSERT_TRUE(Parse("term(1, name=(,));"));
+    ASSERT_TRUE(Parse("term(1, name=[1,]);"));
+    ASSERT_TRUE(Parse("term(1, name=(,):Class);"));
+    ASSERT_TRUE(Parse("term(1, name=[1,]:Int8);"));
+    ASSERT_TRUE(Parse("term(1, name=1..2);"));
+    ASSERT_TRUE(Parse("term(1, name=1..2..1\\1);"));
+    
 }
 
 TEST_F(ParserTest, TermCall) {
@@ -1206,6 +1240,31 @@ TEST_F(ParserTest, CodeSimple2) {
     ASSERT_STREQ(" code+code ", ast->m_text.c_str());
 }
 
+TEST_F(ParserTest, Brakets1) {
+    ASSERT_TRUE(Parse("(1+2)"));
+    ASSERT_STREQ("1 + 2", ast->toString().c_str());
+}
+
+TEST_F(ParserTest, Brakets2) {
+    ASSERT_TRUE(Parse("(1==2)"));
+    ASSERT_STREQ("1 == 2", ast->toString().c_str());
+}
+
+TEST_F(ParserTest, Brakets3) {
+    ASSERT_TRUE(Parse("(call())"));
+    ASSERT_STREQ("call()", ast->toString().c_str());
+}
+
+TEST_F(ParserTest, Brakets4) {
+    ASSERT_TRUE(Parse("(:call())"));
+    ASSERT_STREQ(":call()", ast->toString().c_str());
+}
+
+TEST_F(ParserTest, Brakets5) {
+    ASSERT_TRUE(Parse("(:call()==0)"));
+    ASSERT_STREQ(":call() == 0", ast->toString().c_str());
+}
+
 TEST_F(ParserTest, AssignSimple) {
     ASSERT_TRUE(Parse("term := term2;"));
     ASSERT_STREQ("term := term2;", ast->toString().c_str());
@@ -1248,13 +1307,6 @@ TEST_F(ParserTest, Namespace) {
     ASSERT_TRUE(Parse("name::space{ func() := {}  };"));
     ASSERT_TRUE(Parse("::name::space{ func() := {}  };"));
     ASSERT_TRUE(Parse("::{ func() := {}  };"));
-}
-
-TEST_F(ParserTest, DISABLED_Namespace2) {
-    ASSERT_TRUE(Parse("name, name2 { func() := {}  };"));
-    ASSERT_TRUE(Parse("name::space, ns::name2{ func() := {}  };"));
-    ASSERT_TRUE(Parse("::name::space, ::name2 { func() := {}  };"));
-    ASSERT_TRUE(Parse("::, ::name2  { func() := {}  };"));
 }
 
 TEST_F(ParserTest, AssignFullName2) {
@@ -1643,10 +1695,10 @@ TEST_F(ParserTest, ArrayAdd7) {
     ASSERT_STREQ("name() := term2;", ast->toString().c_str());
 }
 
-TEST_F(ParserTest, DISABLED_Ellipsis1) {
+TEST_F(ParserTest, Ellipsis1) {
     ASSERT_TRUE(Parse("name  :=  term2(arg1  ,  ...    ...    dict);")); //
     ASSERT_EQ(TermID::CREATE_OVERLAP, ast->getTermID()) << newlang::toString(ast->getTermID());
-    ASSERT_STREQ("name := term2(arg1, ... ... dict);", ast->toString().c_str());
+    ASSERT_STREQ("name := term2(arg1, ... ...dict);", ast->toString().c_str());
 }
 
 //TEST_F(ParserTest, Complex1) {
@@ -1943,6 +1995,11 @@ TEST_F(ParserTest, CheckResult) {
     ASSERT_TRUE(Parse("{+ expr +}"));
     ASSERT_TRUE(Parse("{* expr *}"));
 
+    ASSERT_TRUE(Parse("{ expr }; "));
+    ASSERT_TRUE(Parse("** {- expr -}"));
+    ASSERT_TRUE(Parse("** {+ expr +}"));
+    ASSERT_TRUE(Parse("** {* expr *}"));
+
     ASSERT_TRUE(Parse("{ ++expr++ }; "));
     ASSERT_TRUE(Parse("{- +-expr-+ -}"));
     ASSERT_TRUE(Parse("{+ --expr-- +}"));
@@ -2034,6 +2091,12 @@ TEST_F(ParserTest, Operators) {
     ASSERT_TRUE(Parse("(val * val()) - (val - val());"));
     ASSERT_TRUE(Parse("_()::={val / val() + (val - val())};"));
     ASSERT_TRUE(Parse("_()::= {* val * val() / (val - val()); *} :None;"));
+    
+    ASSERT_TRUE(Parse("val + [1,2,];"));
+    ASSERT_TRUE(Parse("val * [1,]:Int8;"));
+    ASSERT_TRUE(Parse("val ~ (,)"));
+    ASSERT_TRUE(Parse("val ~ (,):Class"));
+   
 }
 
 TEST_F(ParserTest, Repeat0) {

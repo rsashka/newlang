@@ -231,6 +231,22 @@ namespace newlang {
             ListType::erase(at_index_const(index));
         }
 
+        virtual void erase(const size_t index_from, const size_t index_to) {
+            if (index_from <= index_to) {
+                if (index_from == index_to) {
+                    if (index_from < ListType::size()) {
+                        ListType::erase(at_index(index_from));
+                    }
+                } else {
+                    ListType::erase(at_index(index_from), (index_to < ListType::size() ? at_index(index_to) : ListType::end()));
+                }
+            } else {
+                ASSERT(index_to < index_from);
+                ListType::erase(at_index(index_to), ListType::end());
+                ListType::erase(ListType::begin(), (index_from < ListType::size() ? at_index(index_from) : ListType::end()));
+            }
+        }
+
         virtual ~Variable() {
         }
 

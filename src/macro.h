@@ -153,7 +153,7 @@ namespace newlang {
          * @param term - Термин макрос
          */
         TermPtr EvalOpMacros(const TermPtr &term);
-
+        bool CheckMacro(const TermPtr & term);
         bool RemoveMacro(const TermPtr & term);
 
         size_t GetCount() {

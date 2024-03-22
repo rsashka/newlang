@@ -71,6 +71,8 @@ namespace newlang {
         _(MACRO_TOSTR) \
         _(MACRO_CONCAT) \
         _(MACRO_ARGUMENT) \
+        _(MACRO_ARGNAME) \
+        _(MACRO_ARGPOS) \
         _(MACRO_ARGCOUNT) \
         \
         _(CREATE_ONCE) \
@@ -158,6 +160,10 @@ namespace newlang {
 
     class StorageTerm : public std::map<InternalName, TermPtr> {
     public:
+
+        StorageTerm() {
+        }
+        StorageTerm(const StorageTerm &clone);
 
         bool RegisterName(TermPtr term, const std::string_view syn = "");
 
@@ -273,7 +279,7 @@ namespace newlang {
          * @param local_only    Искать только в локальном хранилище (для чистых функций)
          * @return  Найденный объект (если он есть)
          */
-        TermPtr FindInternalName(std::string_view int_name, RunTime *rt = nullptr);
+        TermPtr FindInternalName(std::string_view int_name, RunTime *rt);
 
 
         /**
@@ -285,9 +291,6 @@ namespace newlang {
         TermPtr LookupName(std::string name, RunTime *rt = nullptr);
 
 
-        TermPtr GetObject(const TermPtr &term, RuntimePtr rt = nullptr);
-
-        //        std::string LookupName(const std::string_view name);
         std::string CreateVarName(const std::string_view name);
         std::string ExpandNamespace(std::string name);
 
@@ -329,6 +332,11 @@ namespace newlang {
         static TermPtr Create(parser::token_type lex_type, TermID id, const char *text, size_t len = std::string::npos, location *loc = nullptr, std::shared_ptr<std::string> source = nullptr) {
             return std::make_shared<Term>(lex_type, id, text, (len == std::string::npos ? strlen(text) : len), loc, source);
         }
+
+        static TermPtr CreateSymbol(char sym) {
+            return Create(static_cast<parser::token_type> (sym), TermID::SYMBOL, std::string(1, sym).c_str());
+        }
+
 
         static TermPtr CreateNone();
         static TermPtr CreateNil();
@@ -470,7 +478,7 @@ namespace newlang {
         }
 
         inline bool isNone() {
-            return m_text.compare("_") == 0;
+            return m_id == TermID::NAME && m_text.compare("_") == 0;
         }
 
         inline bool isMacro() {
@@ -678,9 +686,11 @@ namespace newlang {
                 case TermID::MACRO:
                 case TermID::LOCAL:
                 case TermID::STATIC:
+                case TermID::WITH:
+                case TermID::TAKE:
                 case TermID::NAME: // name=(1,second="two",3,<EMPTY>,5)
                     //                result(m_is_ref ? "&" : "");
-                    ASSERT(m_dims.empty());
+                    ASSERT(!(m_dims && m_dims->size()));
 
                     result = "";
                     temp = shared_from_this();
@@ -726,6 +736,13 @@ namespace newlang {
                     if (m_name.empty() && GetType() && !isDefaultType(GetType())) {
                         result += GetType()->asTypeString();
                     }
+
+                    if (!m_follow.empty()) {
+                        ASSERT(m_follow.size() == 1);
+                        result += ",[...]-->";
+                        result += m_follow[0]->toString();
+                    }
+
                     return result;
 
                 case TermID::STRCHAR:// name:="string"
@@ -863,13 +880,13 @@ namespace newlang {
                     } else {
                         result += m_text;
                     }
-                    if (m_dims.size()) {
+                    if (m_dims && m_dims->size()) {
                         result += "[";
-                        for (int i = 0; i < m_dims.size(); i++) {
+                        for (int i = 0; i < m_dims->size(); i++) {
                             if (i) {
                                 result += ",";
                             }
-                            result += m_dims[i]->toString();
+                            result += m_dims->at(i).second->toString();
                         }
                         result += "]";
                     }
@@ -1068,6 +1085,8 @@ namespace newlang {
                 case TermID::COMPLEX:
                 case TermID::MACRO_ARGCOUNT:
                 case TermID::MACRO_ARGUMENT:
+                case TermID::MACRO_ARGNAME:
+                case TermID::MACRO_ARGPOS:
                 case TermID::MACRO_TOSTR:
                     return m_text;
 
@@ -1488,14 +1507,14 @@ namespace newlang {
                 dump_items_(result);
                 result += ")";
             }
-            if (m_dims.size()) {
+            if (m_dims && m_dims->size()) {
                 result += "[";
                 bool first = true;
-                for (size_t i = 0; i < m_dims.size(); i++) {
+                for (size_t i = 0; i < m_dims->size(); i++) {
                     if (!first) {
                         result += ",";
                     }
-                    result += m_dims[i]->toString(true);
+                    result += m_dims->at(i).second->toString(true);
                     first = false;
                 }
                 result += "]";
@@ -1614,7 +1633,7 @@ namespace newlang {
         std::string m_name;
         std::string m_class;
         TermPtr m_namespace; ///< Текущая область имен в исходном файле при использовании данного термина
-        BlockType m_dims;
+        TermPtr m_dims;
         BlockType m_docs;
 
         TermPtr m_sys_prop;

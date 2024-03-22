@@ -16,7 +16,7 @@
 
 using namespace newlang;
 
-class NamedTest : public ::testing::Test {
+class MacroTest : public ::testing::Test {
 protected:
 
 
@@ -28,7 +28,7 @@ protected:
     std::string m_output;
 
     static void LoggerCallback(void *param, Logger::LogLevelType level, const char * str, bool flush) {
-        NamedTest *p = static_cast<NamedTest *> (param);
+        MacroTest *p = static_cast<MacroTest *> (param);
         fprintf(stdout, "%s", str);
         if (flush) {
             fflush(stdout);
@@ -86,7 +86,7 @@ protected:
  * так как создаются после обработки парсером по правилам стандратной грамматики.
  * 
  * Но анализ входных данных на предмет раскрытия макросов проиходит из потока (последовательности) лексем,
- * т.е. **ДО** обработки парсером, так как при раскрытии макросов может меняться грамматика выражений.
+ * т.е. **ДО** обработки парсером, так как при раскрытии макросов может меняться сама грамматика выражений.
  * 
  * Функция \ref IdentityMacro сравнивает входной буфер (последовательность лексем)
  * на предмет возможного соответствия одному конкретному макросу.
@@ -226,14 +226,14 @@ finally:
 @$name<#>
 
  *  */
-TEST_F(NamedTest, Escape) {
+TEST_F(MacroTest, Escape) {
 
     ASSERT_TRUE(Parse("@\\ {+"));
     ASSERT_EQ(TermID::ESCAPE, ast->getTermID());
     EXPECT_STREQ("{+", ast->m_text.c_str());
 }
 
-TEST_F(NamedTest, PredefMacro) {
+TEST_F(MacroTest, PredefMacro) {
     Parser p;
 
     ASSERT_TRUE(p.m_predef_macro.empty());
@@ -386,7 +386,7 @@ TEST_F(NamedTest, PredefMacro) {
 
 }
 
-TEST_F(NamedTest, ParseTerm) {
+TEST_F(MacroTest, ParseTerm) {
 
     TermPtr term;
     BlockType buff;
@@ -476,7 +476,7 @@ TEST_F(NamedTest, ParseTerm) {
 
 }
 
-TEST_F(NamedTest, Pragma) {
+TEST_F(MacroTest, Pragma) {
 
     DiagPtr diag = Diag::Init();
 
@@ -612,7 +612,7 @@ TEST_F(NamedTest, Pragma) {
 
 }
 
-TEST_F(NamedTest, Annotate) {
+TEST_F(MacroTest, Annotate) {
 
     m_output.clear();
     ASSERT_ANY_THROW(Parse("@__ANNOTATION_SET__"));
@@ -673,7 +673,7 @@ TEST_F(NamedTest, Annotate) {
     ASSERT_STREQ("2", LexOut().c_str());
 }
 
-TEST_F(NamedTest, Buffer) {
+TEST_F(MacroTest, Buffer) {
 
     ASSERT_STREQ("name", Macro::toMacroHashName("name").c_str());
     ASSERT_STREQ("$", Macro::toMacroHashName("$name").c_str());
@@ -838,7 +838,7 @@ TEST_F(NamedTest, Buffer) {
 
 }
 
-TEST_F(NamedTest, MacroMacro) {
+TEST_F(MacroTest, MacroMacro) {
     MacroPtr macro = std::make_shared<Macro>();
     ASSERT_EQ(0, macro->size());
 
@@ -944,7 +944,7 @@ TEST_F(NamedTest, MacroMacro) {
     //    ASSERT_TRUE(macro->GetMacro({"m2"})) << macro->Dump();
 }
 
-TEST_F(NamedTest, Simple) {
+TEST_F(MacroTest, Simple) {
     MacroPtr macro = std::make_shared<Macro>();
     ASSERT_EQ(0, macro->size());
 
@@ -960,7 +960,7 @@ TEST_F(NamedTest, Simple) {
     ASSERT_NO_THROW(Parse("@@second(...)@@ := @@second2(@$#, @$...)@@", macro));
     ASSERT_EQ(2, macro->GetCount()) << macro->Dump();
 
-    ASSERT_NO_THROW(Parse("@@second@@ := @@second2(@$#, @$...)@@", macro));
+    ASSERT_NO_THROW(Parse("@@second@@ := @@second2(@$#, @$*)@@", macro));
     ASSERT_EQ(2, macro->GetCount()) << macro->Dump();
 
     ASSERT_NO_THROW(Parse("@@text(...)@@ := @@text1(@$#, @$*)@@", macro));
@@ -1068,11 +1068,11 @@ TEST_F(NamedTest, Simple) {
     ASSERT_NO_THROW(Parse("second(123)", macro));
     ASSERT_EQ(TermID::NAME, ast->getTermID()) << newlang::toString(ast->getTermID());
     ASSERT_EQ(2, ast->size()) << LexOut();
-    ASSERT_STREQ("second2(1, 123)", ast->toString().c_str());
+    ASSERT_STREQ("second2(1, (123,))", ast->toString().c_str());
 
     ASSERT_NO_THROW(Parse("@second(123, 456)", macro));
     ASSERT_EQ(TermID::NAME, ast->getTermID()) << newlang::toString(ast->getTermID());
-    ASSERT_STREQ("second2(2, 123, 456)", ast->toString().c_str());
+    ASSERT_STREQ("second2(2, (123, 456,))", ast->toString().c_str());
 
     ASSERT_ANY_THROW(Parse("second", macro));
     ASSERT_ANY_THROW(Parse("@second", macro));
@@ -1219,7 +1219,7 @@ TEST_F(NamedTest, Simple) {
 //    //    ASSERT_TRUE(macro->GetMacro({"m2"})) << macro->Dump();
 //}
 
-TEST_F(NamedTest, MacroAlias) {
+TEST_F(MacroTest, MacroAlias) {
     MacroPtr macro = std::make_shared<Macro>();
     ASSERT_EQ(0, macro->size());
 
@@ -1332,7 +1332,7 @@ TEST_F(NamedTest, MacroAlias) {
     //    ASSERT_ANY_THROW(Parse("fail", macro));
 }
 
-TEST_F(NamedTest, MacroArgs) {
+TEST_F(MacroTest, MacroArgs) {
 
     MacroPtr macro = std::make_shared<Macro>();
     BlockType buffer;
@@ -1751,6 +1751,21 @@ TEST_F(NamedTest, MacroArgs) {
     //    ASSERT_EQ(0, args.size());
 }
 
+TEST_F(MacroTest, MacroCheck) {
+
+    MacroPtr macro = std::make_shared<Macro>();
+    BlockType buffer;
+
+    ASSERT_TRUE(macro->size() == 0);
+    ASSERT_ANY_THROW(Parse("@@testargs(arg)@@ ::= @@ @$bad_arg @@", macro)) << macro->Dump();
+    ASSERT_ANY_THROW(Parse("@@testargs(arg)@@ ::= @@ @$... @@", macro)) << macro->Dump();
+    ASSERT_ANY_THROW(Parse("@@testargs(arg, ...)@@ ::= @@ @$2 @@", macro)) << macro->Dump();
+    
+    ASSERT_NO_THROW(Parse("@@ macro2(...) @@ ::= @@ replace2( @$#, @$... ,@$* ) @@", macro)) << macro->Dump();
+    ASSERT_NO_THROW(Parse("macro2(1,9)", macro)) << macro->Dump() << LexOut().c_str();
+    ASSERT_STREQ("replace2 ( 2 , 1 , 9 , ( 1 , 9 , ) )", LexOut().c_str());
+    
+}
 //TEST_F(NamedTest, MacroExpand) {
 //
 //    std::string macro = "@macro 12345";
@@ -1862,7 +1877,7 @@ TEST_F(NamedTest, MacroArgs) {
 //
 //}
 
-TEST_F(NamedTest, NamedTest) {
+TEST_F(MacroTest, MacroTest) {
 
     MacroPtr macro = std::make_shared<Macro>();
     BlockType buffer;

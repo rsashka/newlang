@@ -531,7 +531,7 @@ TEST(Run, Tensor) {
     ASSERT_TRUE(ddd);
     ASSERT_STREQ("(1, 2, 3,)", ddd->GetValueAsString().c_str()) << ddd->GetValueAsString().c_str();
 
-    ASSERT_NO_THROW(ddd = rt->Run(":Tensor( (1,2,3,) )")); // << rt->Dump();
+    ASSERT_NO_THROW(ddd = rt->Run(":Tensor[...]( (1,2,3,) )")); // << rt->Dump();
     ASSERT_TRUE(ddd);
     ASSERT_STREQ("[1, 2, 3,]:Int8", ddd->GetValueAsString().c_str()) << ddd->GetValueAsString().c_str();
 
@@ -557,20 +557,24 @@ TEST(Run, Tensor) {
     ASSERT_TRUE(tensor);
     ASSERT_STREQ("(1, 2, 3,)", tensor->GetValueAsString().c_str()) << tensor->GetValueAsString().c_str();
 
-    ASSERT_NO_THROW(tensor = rt->Run(":Tensor([1,2,3,])"));
+    ASSERT_NO_THROW(tensor = rt->Run(":Tensor[...]([1,2,3,])"));
     ASSERT_TRUE(tensor);
     ASSERT_STREQ("[1, 2, 3,]:Int8", tensor->GetValueAsString().c_str()) << tensor->GetValueAsString().c_str();
 
-    ASSERT_NO_THROW(tensor = rt->Run(":Int32([1,])"));
+    ASSERT_NO_THROW(tensor = rt->Run(":Int32[_]([1,])"));
     ASSERT_TRUE(tensor);
     ASSERT_STREQ("[1,]:Int32", tensor->GetValueAsString().c_str()) << tensor->GetValueAsString().c_str();
+
+    ASSERT_NO_THROW(tensor = rt->Run(":Int32([1,])"));
+    ASSERT_TRUE(tensor);
+    ASSERT_STREQ("1", tensor->GetValueAsString().c_str()) << tensor->GetValueAsString().c_str();
 
     ObjPtr tt;
     ASSERT_NO_THROW(tt = rt->Run(":Tensor[3]( (1,2,3,) )"));
     ASSERT_TRUE(tt);
     ASSERT_STREQ("[1, 2, 3,]:Int8", tt->GetValueAsString().c_str()) << tt->GetValueAsString().c_str();
 
-    ASSERT_NO_THROW(tensor = rt->Run(":Int32((1,2,3,))"));
+    ASSERT_NO_THROW(tensor = rt->Run(":Int32[...]((1,2,3,))"));
     ASSERT_TRUE(tensor);
     ASSERT_STREQ("[1, 2, 3,]:Int32", tensor->GetValueAsString().c_str()) << tensor->GetValueAsString().c_str();
 
@@ -584,11 +588,11 @@ TEST(Run, Tensor) {
     ASSERT_STREQ("[\n  [1, 2, 3,], [4, 5, 6,],\n]:Int32", tensor->GetValueAsString().c_str());
 
     ObjPtr str;
-    ASSERT_NO_THROW(str = rt->Run(":Tensor('first second')"));
+    ASSERT_NO_THROW(str = rt->Run(":Tensor[_]('first second')"));
     ASSERT_TRUE(str);
     ASSERT_STREQ("[102, 105, 114, 115, 116, 32, 115, 101, 99, 111, 110, 100,]:Int8", str->GetValueAsString().c_str());
 
-    ASSERT_NO_THROW(tt = rt->Run(":Tensor((item1='first', space=32, item3='second',))"));
+    ASSERT_NO_THROW(tt = rt->Run(":Tensor[...]((item1='first', space=32, item3='second',))"));
     ASSERT_TRUE(tt);
     ASSERT_STREQ("[102, 105, 114, 115, 116, 32, 115, 101, 99, 111, 110, 100,]:Int8", tt->GetValueAsString().c_str());
 
@@ -653,7 +657,7 @@ TEST(Run, Comprehensions) {
     ASSERT_TRUE(tt);
     ASSERT_STREQ("0..1..0.1", tt->toString().c_str());
 
-    ASSERT_NO_THROW(tt = rt->Run(":Tensor( ... 0..0.99..0.1 )"));
+    ASSERT_NO_THROW(tt = rt->Run(":Tensor[_]( ... 0..0.99..0.1 )"));
     ASSERT_TRUE(tt);
     ASSERT_STREQ("[0, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9,]:Float64", tt->GetValueAsString().c_str());
 
@@ -1350,309 +1354,374 @@ TEST(Run, Comprehensions) {
 ////    ASSERT_EQ(42, result->GetValueAsInteger());
 ////    ASSERT_EQ(6, count->GetValueAsInteger());
 ////}
-////
-////TEST(Run, Iterator) {
-////
-////    Context::Reset();
-////    Context ctx(RunTime::Init());
-////
-////    ObjPtr dict = ctx.ExecStr("dict := ('1'=1, \"22\"=2, '333'=3, 4, \"555\"=5,)");
-////    ASSERT_TRUE(dict);
-////    ASSERT_EQ(5, dict->size());
-////    ASSERT_EQ(1, dict->at(0).second->GetValueAsInteger());
-////    ASSERT_EQ(2, dict->at(1).second->GetValueAsInteger());
-////    ASSERT_EQ(3, dict->at(2).second->GetValueAsInteger());
-////    ASSERT_EQ(4, dict->at(3).second->GetValueAsInteger());
-////    ASSERT_EQ(5, dict->at(4).second->GetValueAsInteger());
-////    ASSERT_STREQ("1", dict->at(0).first.c_str());
-////    ASSERT_STREQ("22", dict->at(1).first.c_str());
-////    ASSERT_STREQ("333", dict->at(2).first.c_str());
-////    ASSERT_STREQ("", dict->at(3).first.c_str());
-////    ASSERT_STREQ("555", dict->at(4).first.c_str());
-////
-////    ObjPtr dict1 = ctx.ExecStr("dict??");
-////    ASSERT_TRUE(dict1);
-////    ASSERT_EQ(5, dict1->size());
-////    ASSERT_EQ(1, dict1->at(0).second->GetValueAsInteger());
-////    ASSERT_EQ(2, dict1->at(1).second->GetValueAsInteger());
-////    ASSERT_EQ(3, dict1->at(2).second->GetValueAsInteger());
-////    ASSERT_EQ(4, dict1->at(3).second->GetValueAsInteger());
-////    ASSERT_EQ(5, dict1->at(4).second->GetValueAsInteger());
-////    ASSERT_STREQ("1", dict1->at(0).first.c_str());
-////    ASSERT_STREQ("22", dict1->at(1).first.c_str());
-////    ASSERT_STREQ("333", dict1->at(2).first.c_str());
-////    ASSERT_STREQ("", dict1->at(3).first.c_str());
-////    ASSERT_STREQ("555", dict1->at(4).first.c_str());
-////
-////
-////    ObjPtr iter_d = dict->IteratorMake();
-////
-////    ASSERT_TRUE(iter_d);
-////    ASSERT_EQ(iter_d->getType(), ObjType::Iterator);
-////
-////    ASSERT_STREQ("1", iter_d->IteratorData()->toString().c_str());
-////    ASSERT_STREQ("1", iter_d->IteratorNext(0)->toString().c_str());
-////
-////    ASSERT_STREQ("2", iter_d->IteratorData()->toString().c_str());
-////    ASSERT_STREQ("2", iter_d->IteratorNext(0)->toString().c_str());
-////
-////    ASSERT_STREQ("3", iter_d->IteratorData()->toString().c_str());
-////    ASSERT_STREQ("3", iter_d->IteratorNext(0)->toString().c_str());
-////
-////    ASSERT_STREQ("4", iter_d->IteratorData()->toString().c_str());
-////    ASSERT_STREQ("4", iter_d->IteratorNext(0)->toString().c_str());
-////
-////    ASSERT_STREQ("5", iter_d->IteratorData()->toString().c_str());
-////    ASSERT_STREQ("5", iter_d->IteratorNext(0)->toString().c_str());
-////
-////    ASSERT_STREQ(":IteratorEnd", iter_d->IteratorData()->toString().c_str());
-////    ObjPtr iter_end = iter_d->IteratorNext(0);
-////    ASSERT_TRUE(iter_end);
-////    EXPECT_EQ(ObjType::IteratorEnd, iter_end->getType()) << newlang::toString(iter_end->getType());
-////    EXPECT_FALSE(iter_end->GetValueAsBoolean());
-////    ASSERT_STREQ(":IteratorEnd", iter_end->IteratorData()->toString().c_str());
-////
-////    iter_end = iter_d->IteratorNext(0);
-////    ASSERT_TRUE(iter_end);
-////    ASSERT_EQ(ObjType::IteratorEnd, iter_end->getType());
-////    ASSERT_FALSE(iter_end->GetValueAsBoolean());
-////    ASSERT_STREQ(":IteratorEnd", iter_d->IteratorData()->toString().c_str());
-////
-////
-////    ObjPtr iter = ctx.ExecStr("iter := dict?");
-////
-////    ASSERT_TRUE(iter);
-////    ASSERT_EQ(ObjType::Iterator, iter->getType()) << toString(iter->getType());
-////    ASSERT_TRUE(iter->m_iterator);
-////
-////    ASSERT_TRUE(iter->m_iterator->begin() != iter->m_iterator->end());
-////    ASSERT_TRUE(*(iter->m_iterator) == iter->m_iterator->begin());
-////
-////    ObjPtr one = ctx.ExecStr("iter!");
-////    ASSERT_TRUE(one);
-////    ASSERT_EQ(1, dict->at(0).second->GetValueAsInteger());
-////
-////    one = ctx.ExecStr("iter!");
-////    ASSERT_TRUE(one);
-////    ASSERT_EQ(2, one->GetValueAsInteger());
-////
-////    one = ctx.ExecStr("iter!");
-////    ASSERT_TRUE(one);
-////    ASSERT_EQ(3, one->GetValueAsInteger());
-////
-////    one = ctx.ExecStr("iter!");
-////    ASSERT_TRUE(one);
-////    ASSERT_EQ(4, one->GetValueAsInteger());
-////
-////    one = ctx.ExecStr("iter!");
-////    ASSERT_TRUE(one);
-////    ASSERT_EQ(5, one->GetValueAsInteger());
-////
-////    one = ctx.ExecStr("iter!");
-////    ASSERT_TRUE(one);
-////    ASSERT_EQ(ObjType::IteratorEnd, one->getType()) << one << " " << toString(one->getType());
-////
-////    one = ctx.ExecStr("iter!");
-////    ASSERT_TRUE(one);
-////    ASSERT_EQ(ObjType::IteratorEnd, one->getType()) << one << " " << toString(one->getType());
-////
-////
-////    ASSERT_TRUE(*(iter->m_iterator) == iter->m_iterator->end());
-////    ctx.ExecStr("iter!!");
-////    ASSERT_TRUE(*(iter->m_iterator) != iter->m_iterator->end());
-////
-////    dict1 = ctx.ExecStr("iter??(-3)");
-////    ASSERT_TRUE(dict1);
-////    ASSERT_EQ(3, dict1->size());
-////    ASSERT_EQ(1, dict1->at(0).second->GetValueAsInteger());
-////    ASSERT_EQ(2, dict1->at(1).second->GetValueAsInteger());
-////    ASSERT_EQ(3, dict1->at(2).second->GetValueAsInteger());
-////
-////    ObjPtr dict2 = ctx.ExecStr("iter??(-3)");
-////    ASSERT_TRUE(dict2);
-////    ASSERT_EQ(3, dict2->size());
-////    ASSERT_EQ(4, dict2->at(0).second->GetValueAsInteger());
-////    ASSERT_EQ(5, dict2->at(1).second->GetValueAsInteger());
-////    ASSERT_EQ(ObjType::IteratorEnd, dict2->at(2).second->getType());
-////
-////    ObjPtr dict3 = ctx.ExecStr("iter??(-3)");
-////    ASSERT_TRUE(dict3);
-////    ASSERT_EQ(3, dict1->size());
-////    ASSERT_EQ(ObjType::IteratorEnd, dict3->at(0).second->getType());
-////    ASSERT_EQ(ObjType::IteratorEnd, dict3->at(1).second->getType());
-////    ASSERT_EQ(ObjType::IteratorEnd, dict3->at(2).second->getType());
-////
-////
-////
-////    ASSERT_TRUE(*(iter->m_iterator) == iter->m_iterator->end());
-////    ctx.ExecStr("iter!!");
-////    ASSERT_TRUE(*(iter->m_iterator) != iter->m_iterator->end());
-////
-////    dict1 = ctx.ExecStr("iter??(3)");
-////    ASSERT_TRUE(dict1);
-////    ASSERT_EQ(3, dict1->size());
-////    ASSERT_EQ(1, dict1->at(0).second->GetValueAsInteger());
-////    ASSERT_EQ(2, dict1->at(1).second->GetValueAsInteger());
-////    ASSERT_EQ(3, dict1->at(2).second->GetValueAsInteger());
-////
-////    dict2 = ctx.ExecStr("iter??(3)");
-////    ASSERT_TRUE(dict2);
-////    ASSERT_EQ(2, dict2->size());
-////    ASSERT_EQ(4, dict2->at(0).second->GetValueAsInteger());
-////    ASSERT_EQ(5, dict2->at(1).second->GetValueAsInteger());
-////
-////    dict3 = ctx.ExecStr("iter??(3)");
-////    ASSERT_TRUE(dict3);
-////    ASSERT_EQ(0, dict3->size());
-////
-////
-////
-////    ASSERT_TRUE(*(iter->m_iterator) == iter->m_iterator->end());
-////    ctx.ExecStr("iter!!");
-////    ASSERT_TRUE(*(iter->m_iterator) != iter->m_iterator->end());
-////
-////    ObjPtr flt_res = ctx.ExecStr("dict??('')");
-////    ASSERT_TRUE(flt_res);
-////    ASSERT_EQ(1, flt_res->size());
-////    ASSERT_EQ(4, flt_res->at(0).second->GetValueAsInteger());
-////
-////
-////    ObjPtr flt1_res = ctx.ExecStr("dict??('.',100)");
-////    ASSERT_TRUE(flt1_res);
-////    ASSERT_EQ(1, flt1_res->size());
-////    ASSERT_EQ(1, flt1_res->at(0).second->GetValueAsInteger());
-////
-////
-////    ObjPtr flt2_res = ctx.ExecStr("dict??('..',100)");
-////    ASSERT_TRUE(flt2_res);
-////    ASSERT_EQ(1, flt2_res->size());
-////    ASSERT_EQ(2, flt2_res->at(0).second->GetValueAsInteger());
-////
-////    ObjPtr flt3_res = ctx.ExecStr("dict??('...',100)");
-////    ASSERT_TRUE(flt3_res);
-////    ASSERT_EQ(2, flt3_res->size());
-////    ASSERT_EQ(3, flt3_res->at(0).second->GetValueAsInteger());
-////    ASSERT_EQ(5, flt3_res->at(1).second->GetValueAsInteger());
-////
-////
-////
-////    ObjPtr range_test = ctx.ExecStr("1\\1..1..-1", nullptr, Context::CatchType::CATCH_ALL);
-////    ASSERT_TRUE(range_test);
-////    ASSERT_EQ(3, range_test->size());
-////    ASSERT_STREQ("1\\1", range_test->at(0).second->GetValueAsString().c_str());
-////    ASSERT_STREQ("1", range_test->at(1).second->GetValueAsString().c_str());
-////    ASSERT_STREQ("-1", range_test->at(2).second->GetValueAsString().c_str());
-////    ASSERT_STREQ("1\\1..1..-1", range_test->GetValueAsString().c_str());
-////
-////    //    ObjPtr iter_test = ctx.ExecStr("(1,'sss',(,),2,3,)??", nullptr, true);
-////    //    ASSERT_TRUE(iter_test);
-////    //    ASSERT_STREQ("(1, 'sss', (,), 2, 3,)", iter_test->GetValueAsString().c_str());
-////
-////    ObjPtr iter_dict = ctx.ExecStr("1..1..(-1)??", nullptr);
-////    ASSERT_TRUE(iter_dict);
-////    ASSERT_STREQ("(,)", iter_dict->GetValueAsString().c_str());
-////
-////    iter_dict = ctx.ExecStr("2..1..(-1)??", nullptr);
-////    ASSERT_TRUE(iter_dict);
-////    ASSERT_STREQ("(2,)", iter_dict->GetValueAsString().c_str());
-////
-////    iter_dict = ctx.ExecStr("3..1..(-1)??", nullptr);
-////    ASSERT_TRUE(iter_dict);
-////    ASSERT_STREQ("(3, 2,)", iter_dict->GetValueAsString().c_str());
-////
-////    iter_dict = ctx.ExecStr("3\\1..1..(-1)??", nullptr);
-////    ASSERT_TRUE(iter_dict);
-////    ASSERT_STREQ("(3\\1, 2\\1,)", iter_dict->GetValueAsString().c_str());
-////
-////    ObjPtr iter_test = ctx.ExecStr("iter_test := 3\\1..1..-1?", nullptr);
-////    ASSERT_TRUE(iter_test);
-////    ASSERT_TRUE(iter_test->m_iterator);
-////    ASSERT_TRUE(iter_test->m_iterator->m_iter_obj);
-////    ASSERT_TRUE(iter_test->m_iterator->m_iter_obj->m_iter_range_value);
-////    ASSERT_STREQ("3\\1", iter_test->m_iterator->m_iter_obj->m_iter_range_value->GetValueAsString().c_str()) << iter_test->m_iterator->m_iter_obj->m_iter_range_value->GetValueAsString().c_str();
-////    ASSERT_EQ(iter_test->getType(), ObjType::Iterator);
-////
-////    ObjPtr while_test = ctx.ExecStr("[iter_test]<->{+ ++'PLUS'++ +}");
-////    ASSERT_TRUE(while_test);
-////    ASSERT_STREQ("PLUS", while_test->GetValueAsString().c_str()) << while_test->GetValueAsString().c_str();
-////
-////    while_test = ctx.ExecStr("[iter_test]<->{- --'EXIT'-- -}");
-////    ASSERT_TRUE(while_test);
-////    ASSERT_STREQ("EXIT", while_test->GetValueAsString().c_str()) << while_test->GetValueAsString().c_str();
-////
-////    iter_dict = ctx.ExecStr("iter_dict := (1,2,3,)?", nullptr);
-////    ASSERT_TRUE(iter_dict);
-////    //    ASSERT_TRUE(iter_dict->m_iterator->m_iter_obj->m_iter_range_value);
-////    //    ASSERT_STREQ("3\\1", iter_dict->m_iterator->m_iter_obj->m_iter_range_value->GetValueAsString().c_str()) << iter_test->m_iterator->m_iter_obj->m_iter_range_value->GetValueAsString().c_str();
-////    ASSERT_EQ(iter_dict->getType(), ObjType::Iterator);
-////
-////    while_test = ctx.ExecStr("[iter_dict]<->{+ ++'EXIT'++ +}");
-////    ASSERT_TRUE(while_test);
-////    ASSERT_STREQ("EXIT", while_test->GetValueAsString().c_str()) << while_test->GetValueAsString().c_str();
-////
-////    ObjPtr item_val = ctx.ExecStr("iter_test!?", nullptr);
-////    ASSERT_TRUE(item_val);
-////    ASSERT_STREQ("3\\1", item_val->GetValueAsString().c_str());
-////
-////    item_val = ctx.ExecStr("iter_test!", nullptr);
-////    ASSERT_TRUE(item_val);
-////    ASSERT_STREQ("3\\1", item_val->GetValueAsString().c_str());
-////
-////    item_val = ctx.ExecStr("iter_test!?", nullptr);
-////    ASSERT_TRUE(item_val);
-////    ASSERT_STREQ("2\\1", item_val->GetValueAsString().c_str());
-////
-////    item_val = ctx.ExecStr("iter_test?!", nullptr);
-////    ASSERT_TRUE(item_val);
-////    ASSERT_STREQ("2\\1", item_val->GetValueAsString().c_str());
-////
-////    ASSERT_STREQ(":Iterator", iter_test->GetValueAsString().c_str());
-////    ASSERT_TRUE(iter_test->m_iterator);
-////    ASSERT_TRUE(iter_test->m_iterator->m_iter_obj);
-////    ASSERT_STREQ("2\\1", iter_test->m_iterator->m_iter_obj->m_iter_range_value->GetValueAsString().c_str());
-////    ASSERT_STREQ("3\\1..1..-1", iter_test->m_iterator->m_iter_obj->GetValueAsString().c_str());
-////
-////    item_val = ctx.ExecStr("iter_test!", nullptr);
-////    ASSERT_TRUE(item_val);
-////    ASSERT_STREQ("2\\1", item_val->GetValueAsString().c_str());
-////    ASSERT_TRUE(item_val->GetValueAsBoolean());
-////
-////    ASSERT_STREQ(":Iterator", iter_test->GetValueAsString().c_str());
-////    ASSERT_TRUE(iter_test->m_iterator);
-////    ASSERT_TRUE(iter_test->m_iterator->m_iter_obj);
-////    ASSERT_STREQ("1\\1", iter_test->m_iterator->m_iter_obj->m_iter_range_value->GetValueAsString().c_str());
-////    ASSERT_STREQ("3\\1..1..-1", iter_test->m_iterator->m_iter_obj->GetValueAsString().c_str());
-////
-////    item_val = ctx.ExecStr("iter_test!", nullptr);
-////    ASSERT_TRUE(item_val);
-////
-////    ASSERT_STREQ(":Iterator", iter_test->GetValueAsString().c_str());
-////    ASSERT_TRUE(iter_test->m_iterator);
-////    ASSERT_TRUE(iter_test->m_iterator->m_iter_obj);
-////    ASSERT_STREQ("1\\1", iter_test->m_iterator->m_iter_obj->m_iter_range_value->GetValueAsString().c_str());
-////    ASSERT_STREQ("3\\1..1..-1", iter_test->m_iterator->m_iter_obj->GetValueAsString().c_str());
-////
-////
-////
-////    ASSERT_TRUE(iter_test->m_iterator->m_iter_obj);
-////    ASSERT_STREQ("3\\1..1..-1", iter_test->m_iterator->m_iter_obj->GetValueAsString().c_str());
-////
-////    ASSERT_STREQ(":IteratorEnd", item_val->GetValueAsString().c_str());
-////    ASSERT_FALSE(item_val->GetValueAsBoolean());
-////
-////    item_val = ctx.ExecStr("iter_test", nullptr);
-////    ASSERT_TRUE(item_val);
-////    ASSERT_STREQ(":Iterator", item_val->GetValueAsString().c_str());
-////
-////    ASSERT_STREQ(":IteratorEnd", item_val->IteratorData()->GetValueAsString().c_str());
-////    ASSERT_FALSE(item_val->IteratorNext(0)->GetValueAsBoolean());
-////
-////    while_test = ctx.ExecStr("[iter_test?!]<->{ --'EXIT'-- }", nullptr, Context::CatchType::CATCH_MINUS);
-////    ASSERT_TRUE(while_test);
-////    ASSERT_STRNE("EXIT", while_test->GetValueAsString().c_str()) << while_test->GetValueAsString().c_str();
-////
-////}
-////
+
+TEST(Run, Iterator) {
+
+    RuntimePtr rt = RunTime::Init();
+
+    ObjPtr dict;
+    ASSERT_NO_THROW(dict = rt->Run("dict := ('1'=1, \"22\"=2, '333'=3, 4, \"555\"=5,)"));
+    ASSERT_TRUE(dict);
+    ASSERT_EQ(5, dict->size());
+    ASSERT_EQ(1, dict->at(0).second->GetValueAsInteger());
+    ASSERT_EQ(2, dict->at(1).second->GetValueAsInteger());
+    ASSERT_EQ(3, dict->at(2).second->GetValueAsInteger());
+    ASSERT_EQ(4, dict->at(3).second->GetValueAsInteger());
+    ASSERT_EQ(5, dict->at(4).second->GetValueAsInteger());
+    ASSERT_STREQ("1", dict->at(0).first.c_str());
+    ASSERT_STREQ("22", dict->at(1).first.c_str());
+    ASSERT_STREQ("333", dict->at(2).first.c_str());
+    ASSERT_STREQ("", dict->at(3).first.c_str());
+    ASSERT_STREQ("555", dict->at(4).first.c_str());
+
+    ObjPtr dict1;
+    ASSERT_NO_THROW(dict1 = rt->Run("dict??"));
+    ASSERT_TRUE(dict1);
+    ASSERT_EQ(5, dict1->size());
+    ASSERT_EQ(1, dict1->at(0).second->GetValueAsInteger());
+    ASSERT_EQ(2, dict1->at(1).second->GetValueAsInteger());
+    ASSERT_EQ(3, dict1->at(2).second->GetValueAsInteger());
+    ASSERT_EQ(4, dict1->at(3).second->GetValueAsInteger());
+    ASSERT_EQ(5, dict1->at(4).second->GetValueAsInteger());
+    ASSERT_STREQ("1", dict1->at(0).first.c_str());
+    ASSERT_STREQ("22", dict1->at(1).first.c_str());
+    ASSERT_STREQ("333", dict1->at(2).first.c_str());
+    ASSERT_STREQ("", dict1->at(3).first.c_str());
+    ASSERT_STREQ("555", dict1->at(4).first.c_str());
+
+
+    ObjPtr iter_d = dict->IteratorMake();
+
+    ASSERT_TRUE(iter_d);
+    ASSERT_EQ(iter_d->getType(), ObjType::Iterator);
+
+    ASSERT_STREQ("1", iter_d->IteratorData()->toString().c_str());
+    ASSERT_STREQ("1", iter_d->IteratorNext(0)->toString().c_str());
+
+    ASSERT_STREQ("2", iter_d->IteratorData()->toString().c_str());
+    ASSERT_STREQ("2", iter_d->IteratorNext(0)->toString().c_str());
+
+    ASSERT_STREQ("3", iter_d->IteratorData()->toString().c_str());
+    ASSERT_STREQ("3", iter_d->IteratorNext(0)->toString().c_str());
+
+    ASSERT_STREQ("4", iter_d->IteratorData()->toString().c_str());
+    ASSERT_STREQ("4", iter_d->IteratorNext(0)->toString().c_str());
+
+    ASSERT_STREQ("5", iter_d->IteratorData()->toString().c_str());
+    ASSERT_STREQ("5", iter_d->IteratorNext(0)->toString().c_str());
+
+    ASSERT_STREQ(":IteratorEnd", iter_d->IteratorData()->toString().c_str());
+    ObjPtr iter_end = iter_d->IteratorNext(0);
+    ASSERT_TRUE(iter_end);
+    EXPECT_EQ(ObjType::IteratorEnd, iter_end->getType()) << newlang::toString(iter_end->getType());
+    EXPECT_FALSE(iter_end->GetValueAsBoolean());
+    ASSERT_STREQ(":IteratorEnd", iter_end->IteratorData()->toString().c_str());
+
+    iter_end = iter_d->IteratorNext(0);
+    ASSERT_TRUE(iter_end);
+    ASSERT_EQ(ObjType::IteratorEnd, iter_end->getType());
+    ASSERT_FALSE(iter_end->GetValueAsBoolean());
+    ASSERT_STREQ(":IteratorEnd", iter_d->IteratorData()->toString().c_str());
+
+
+    ObjPtr iter;
+    ASSERT_NO_THROW(iter = rt->Run("it := dict?"));
+
+    ASSERT_TRUE(iter);
+    ASSERT_EQ(ObjType::Iterator, iter->getType()) << toString(iter->getType());
+    ASSERT_TRUE(iter->m_iterator);
+
+    ASSERT_TRUE(iter->m_iterator->begin() != iter->m_iterator->end());
+    ASSERT_TRUE(*(iter->m_iterator) == iter->m_iterator->begin());
+
+    ObjPtr one;
+    ASSERT_NO_THROW(one = rt->Run("it!"));
+    ASSERT_TRUE(one);
+    ASSERT_EQ(1, dict->at(0).second->GetValueAsInteger());
+
+    ASSERT_NO_THROW(one = rt->Run("it!"));
+    ASSERT_TRUE(one);
+    ASSERT_EQ(2, one->GetValueAsInteger());
+
+    ASSERT_NO_THROW(one = rt->Run("@next(it)"));
+    ASSERT_TRUE(one);
+    ASSERT_EQ(3, one->GetValueAsInteger());
+
+    ASSERT_NO_THROW(one = rt->Run("it!"));
+    ASSERT_TRUE(one);
+    ASSERT_EQ(4, one->GetValueAsInteger());
+
+    ASSERT_NO_THROW(one = rt->Run("it!"));
+    ASSERT_TRUE(one);
+    ASSERT_EQ(5, one->GetValueAsInteger());
+
+    ASSERT_NO_THROW(one = rt->Run("it!"));
+    ASSERT_TRUE(one);
+    ASSERT_EQ(ObjType::IteratorEnd, one->getType()) << one << " " << toString(one->getType());
+
+    ASSERT_NO_THROW(one = rt->Run("it!"));
+    ASSERT_TRUE(one);
+    ASSERT_EQ(ObjType::IteratorEnd, one->getType()) << one << " " << toString(one->getType());
+
+    // "@@ iter( obj, ... ) @@ ::= @@ @$obj ? (@$...) @@"
+    // "@@ next( obj, ... ) @@ ::= @@ @$obj ! (@$...) @@"
+    // "@@ curr( obj ) @@ ::= @@ @$obj !? @@"
+    // "@@ first( obj ) @@ ::= @@ @$obj !! @@"
+    // "@@ all( obj ) @@ ::= @@ @$obj ?? @@"
+
+
+    ASSERT_TRUE(*(iter->m_iterator) == iter->m_iterator->end());
+    ASSERT_NO_THROW(one = rt->Run("it!!"));
+    ASSERT_TRUE(*(iter->m_iterator) != iter->m_iterator->end());
+
+    ASSERT_NO_THROW(dict1 = rt->Run("it??(-3)"));
+    ASSERT_TRUE(dict1);
+    ASSERT_EQ(3, dict1->size());
+    ASSERT_EQ(1, dict1->at(0).second->GetValueAsInteger());
+    ASSERT_EQ(2, dict1->at(1).second->GetValueAsInteger());
+    ASSERT_EQ(3, dict1->at(2).second->GetValueAsInteger());
+
+    ObjPtr dict2;
+    ASSERT_NO_THROW(dict2 = rt->Run("it??(-3)"));
+    ASSERT_TRUE(dict2);
+    ASSERT_EQ(3, dict2->size());
+    ASSERT_EQ(4, dict2->at(0).second->GetValueAsInteger());
+    ASSERT_EQ(5, dict2->at(1).second->GetValueAsInteger());
+    ASSERT_EQ(ObjType::IteratorEnd, dict2->at(2).second->getType());
+
+    ObjPtr dict3;
+    ASSERT_NO_THROW(dict3 = rt->Run("it??(-3)"));
+    ASSERT_TRUE(dict3);
+    ASSERT_EQ(3, dict1->size());
+    ASSERT_EQ(ObjType::IteratorEnd, dict3->at(0).second->getType());
+    ASSERT_EQ(ObjType::IteratorEnd, dict3->at(1).second->getType());
+    ASSERT_EQ(ObjType::IteratorEnd, dict3->at(2).second->getType());
+
+
+
+    ASSERT_TRUE(*(iter->m_iterator) == iter->m_iterator->end());
+    ASSERT_NO_THROW(rt->Run("it!!"));
+    ASSERT_TRUE(*(iter->m_iterator) != iter->m_iterator->end());
+
+    ASSERT_NO_THROW(dict1 = rt->Run("it??(3)"));
+    ASSERT_TRUE(dict1);
+    ASSERT_EQ(3, dict1->size());
+    ASSERT_EQ(1, dict1->at(0).second->GetValueAsInteger());
+    ASSERT_EQ(2, dict1->at(1).second->GetValueAsInteger());
+    ASSERT_EQ(3, dict1->at(2).second->GetValueAsInteger());
+
+    ASSERT_NO_THROW(dict2 = rt->Run("it??(3)"));
+    ASSERT_TRUE(dict2);
+    ASSERT_EQ(2, dict2->size());
+    ASSERT_EQ(4, dict2->at(0).second->GetValueAsInteger());
+    ASSERT_EQ(5, dict2->at(1).second->GetValueAsInteger());
+
+    ASSERT_NO_THROW(dict3 = rt->Run("it??(3)"));
+    ASSERT_TRUE(dict3);
+    ASSERT_EQ(0, dict3->size());
+
+
+
+    ASSERT_TRUE(*(iter->m_iterator) == iter->m_iterator->end());
+    ASSERT_NO_THROW(rt->Run("it!!"));
+    ASSERT_TRUE(*(iter->m_iterator) != iter->m_iterator->end());
+
+    ObjPtr flt_res;
+    ASSERT_NO_THROW(flt_res = rt->Run("dict??('')"));
+    ASSERT_TRUE(flt_res);
+    ASSERT_EQ(1, flt_res->size());
+    ASSERT_EQ(4, flt_res->at(0).second->GetValueAsInteger());
+
+
+    ObjPtr flt1_res;
+    ASSERT_NO_THROW(flt1_res = rt->Run("dict??('.',100)"));
+    ASSERT_TRUE(flt1_res);
+    ASSERT_EQ(1, flt1_res->size());
+    ASSERT_EQ(1, flt1_res->at(0).second->GetValueAsInteger());
+
+
+    ObjPtr flt2_res;
+    ASSERT_NO_THROW(flt2_res = rt->Run("dict??('..',100)"));
+    ASSERT_TRUE(flt2_res);
+    ASSERT_EQ(1, flt2_res->size());
+    ASSERT_EQ(2, flt2_res->at(0).second->GetValueAsInteger());
+
+    ObjPtr flt3_res;
+    ASSERT_NO_THROW(flt3_res = rt->Run("dict??('...',100)"));
+    ASSERT_TRUE(flt3_res);
+    ASSERT_EQ(2, flt3_res->size());
+    ASSERT_EQ(3, flt3_res->at(0).second->GetValueAsInteger());
+    ASSERT_EQ(5, flt3_res->at(1).second->GetValueAsInteger());
+
+
+
+    ObjPtr range_test;
+    ASSERT_NO_THROW(range_test = rt->Run("1\\1..1..-1"));
+    ASSERT_TRUE(range_test);
+    ASSERT_EQ(3, range_test->size());
+    ASSERT_STREQ("1\\1", range_test->at(0).second->GetValueAsString().c_str());
+    ASSERT_STREQ("1\\1", range_test->at(1).second->GetValueAsString().c_str());
+    ASSERT_STREQ("-1\\1", range_test->at(2).second->GetValueAsString().c_str());
+    ASSERT_STREQ("1\\1..1\\1..-1\\1", range_test->GetValueAsString().c_str());
+
+    //    ObjPtr iter_test = ctx.ExecStr("(1,'sss',(,),2,3,)??", nullptr, true);
+    //    ASSERT_TRUE(iter_test);
+    //    ASSERT_STREQ("(1, 'sss', (,), 2, 3,)", iter_test->GetValueAsString().c_str());
+
+    ObjPtr iter_dict;
+    ASSERT_NO_THROW(iter_dict = rt->Run("1..1..-1??"));
+    ASSERT_TRUE(iter_dict);
+    ASSERT_STREQ("(,)", iter_dict->GetValueAsString().c_str());
+
+    ASSERT_NO_THROW(iter_dict = rt->Run("2..1..-1??"));
+    ASSERT_TRUE(iter_dict);
+    ASSERT_STREQ("(2,)", iter_dict->GetValueAsString().c_str());
+
+    ASSERT_NO_THROW(iter_dict = rt->Run("3..1..-1??"));
+    ASSERT_TRUE(iter_dict);
+    ASSERT_STREQ("(3, 2,)", iter_dict->GetValueAsString().c_str());
+
+    ASSERT_NO_THROW(iter_dict = rt->Run("3\\1..1..-1??"));
+    ASSERT_TRUE(iter_dict);
+    ASSERT_STREQ("(3\\1, 2\\1,)", iter_dict->GetValueAsString().c_str());
+
+    ObjPtr iter_test;
+    ASSERT_NO_THROW(iter_test = rt->Run("iter_test := 3\\1..1..-1?"));
+    ASSERT_TRUE(iter_test);
+    ASSERT_TRUE(iter_test->m_iterator);
+    ASSERT_TRUE(iter_test->m_iterator->m_iter_obj);
+    ASSERT_TRUE(iter_test->m_iterator->m_iter_obj->m_iter_range_value);
+    ASSERT_STREQ("3\\1", iter_test->m_iterator->m_iter_obj->m_iter_range_value->GetValueAsString().c_str()) << iter_test->m_iterator->m_iter_obj->m_iter_range_value->GetValueAsString().c_str();
+    ASSERT_EQ(iter_test->getType(), ObjType::Iterator);
+
+    ObjPtr while_test;
+
+    ASSERT_NO_THROW(while_test = rt->Run("[@next(iter_test)]<->{- --'EXIT'-- -}"));
+    ASSERT_TRUE(while_test);
+    ASSERT_TRUE(while_test->is_return()) << while_test->toString();
+    ASSERT_STREQ(":RetMinus('EXIT')", while_test->toString().c_str()) << while_test->toString();
+    
+    ASSERT_NO_THROW(while_test = rt->Run("$^"));
+    ASSERT_TRUE(while_test);
+    ASSERT_TRUE(while_test->is_return()) << while_test->toString();
+    ASSERT_STREQ(":RetMinus('EXIT')", while_test->toString().c_str()) << while_test->toString();
+
+    ASSERT_NO_THROW(while_test = rt->Run("@latter"));
+    ASSERT_TRUE(while_test);
+    ASSERT_TRUE(while_test->is_return()) << while_test->toString();
+    ASSERT_STREQ(":RetMinus('EXIT')", while_test->toString().c_str()) << while_test->toString();
+
+    ASSERT_NO_THROW(while_test = rt->Run("* $^"));
+    ASSERT_TRUE(while_test);
+    ASSERT_TRUE(while_test->is_string_type()) << while_test->toString();
+    ASSERT_STREQ("'EXIT'", while_test->toString().c_str()) << while_test->toString();
+    
+
+    ASSERT_NO_THROW(while_test = rt->Run("[iter_test!]<->{+ ++'PLUS'++ +}"));
+    ASSERT_TRUE(while_test);
+    ASSERT_TRUE(while_test->is_return()) << while_test->toString();
+    ASSERT_STREQ(":RetPlus('PLUS')", while_test->toString().c_str()) << while_test->toString();
+
+
+    ASSERT_NO_THROW(iter_dict = rt->Run("iter_dict := (1,2,3,)?"));
+    ASSERT_TRUE(iter_dict);
+    //    ASSERT_TRUE(iter_dict->m_iterator->m_iter_obj->m_iter_range_value);
+    //    ASSERT_STREQ("3\\1", iter_dict->m_iterator->m_iter_obj->m_iter_range_value->GetValueAsString().c_str()) << iter_test->m_iterator->m_iter_obj->m_iter_range_value->GetValueAsString().c_str();
+    ASSERT_EQ(iter_dict->getType(), ObjType::Iterator);
+
+    ASSERT_NO_THROW(while_test = rt->Run("[iter_dict!]<->{+ ++'EXIT'++ +}"));
+    ASSERT_TRUE(while_test);
+    ASSERT_TRUE(while_test->is_return()) << while_test->toString();
+    ASSERT_STREQ(":RetPlus('EXIT')", while_test->toString().c_str()) << while_test->toString();
+    
+    ASSERT_NO_THROW(while_test = rt->Run("$^"));
+    ASSERT_TRUE(while_test);
+    ASSERT_TRUE(while_test->is_return()) << while_test->toString();
+    ASSERT_STREQ(":RetPlus('EXIT')", while_test->toString().c_str()) << while_test->toString();
+
+    ASSERT_NO_THROW(while_test = rt->Run("@latter"));
+    ASSERT_TRUE(while_test);
+    ASSERT_TRUE(while_test->is_return()) << while_test->toString();
+    ASSERT_STREQ(":RetPlus('EXIT')", while_test->toString().c_str()) << while_test->toString();
+
+    ASSERT_NO_THROW(while_test = rt->Run("*@latter"));
+    ASSERT_TRUE(while_test);
+    ASSERT_TRUE(while_test->is_string_type()) << while_test->toString();
+    ASSERT_STREQ("'EXIT'", while_test->toString().c_str()) << while_test->toString();
+
+    
+    ASSERT_NO_THROW(iter_test = rt->Run("iter_test := @iter(3\\1..1..-1)"));
+
+    ObjPtr item_val;
+    ASSERT_NO_THROW(item_val = rt->Run("@curr(iter_test)"));
+    ASSERT_TRUE(item_val);
+    ASSERT_STREQ("3\\1", item_val->GetValueAsString().c_str());
+
+    ASSERT_NO_THROW(item_val = rt->Run("@next(iter_test)"));
+    ASSERT_TRUE(item_val);
+    ASSERT_STREQ("3\\1", item_val->GetValueAsString().c_str());
+
+    ASSERT_NO_THROW(item_val = rt->Run("iter_test!?"));
+    ASSERT_TRUE(item_val);
+    ASSERT_STREQ("2\\1", item_val->GetValueAsString().c_str());
+
+    ASSERT_NO_THROW(item_val = rt->Run("iter_test?!"));
+    ASSERT_TRUE(item_val);
+    ASSERT_STREQ("2\\1", item_val->GetValueAsString().c_str());
+
+    ASSERT_STREQ(":Iterator", iter_test->GetValueAsString().c_str());
+    ASSERT_TRUE(iter_test->m_iterator);
+    ASSERT_TRUE(iter_test->m_iterator->m_iter_obj);
+    ASSERT_STREQ("2\\1", iter_test->m_iterator->m_iter_obj->m_iter_range_value->GetValueAsString().c_str());
+    ASSERT_STREQ("3\\1..1\\1..-1\\1", iter_test->m_iterator->m_iter_obj->GetValueAsString().c_str());
+
+    ASSERT_NO_THROW(item_val = rt->Run("@next(iter_test)"));
+    ASSERT_TRUE(item_val);
+    ASSERT_STREQ("2\\1", item_val->GetValueAsString().c_str());
+    ASSERT_TRUE(item_val->GetValueAsBoolean());
+
+    ASSERT_STREQ(":Iterator", iter_test->GetValueAsString().c_str());
+    ASSERT_TRUE(iter_test->m_iterator);
+    ASSERT_TRUE(iter_test->m_iterator->m_iter_obj);
+    ASSERT_STREQ("1\\1", iter_test->m_iterator->m_iter_obj->m_iter_range_value->GetValueAsString().c_str());
+    ASSERT_STREQ("3\\1..1\\1..-1\\1", iter_test->m_iterator->m_iter_obj->GetValueAsString().c_str());
+
+    ASSERT_NO_THROW(item_val = rt->Run("@next(iter_test)"));
+    ASSERT_TRUE(item_val);
+
+    ASSERT_STREQ(":Iterator", iter_test->GetValueAsString().c_str());
+    ASSERT_TRUE(iter_test->m_iterator);
+    ASSERT_TRUE(iter_test->m_iterator->m_iter_obj);
+    ASSERT_STREQ("1\\1", iter_test->m_iterator->m_iter_obj->m_iter_range_value->GetValueAsString().c_str());
+    ASSERT_STREQ("3\\1..1\\1..-1\\1", iter_test->m_iterator->m_iter_obj->GetValueAsString().c_str());
+
+
+
+    ASSERT_TRUE(iter_test->m_iterator->m_iter_obj);
+    ASSERT_STREQ("3\\1..1\\1..-1\\1", iter_test->m_iterator->m_iter_obj->GetValueAsString().c_str());
+
+    ASSERT_STREQ(":IteratorEnd", item_val->GetValueAsString().c_str());
+    ASSERT_FALSE(item_val->GetValueAsBoolean());
+
+    ASSERT_NO_THROW(item_val = rt->Run("iter_test"));
+    ASSERT_TRUE(item_val);
+    ASSERT_STREQ(":Iterator", item_val->GetValueAsString().c_str());
+
+    ASSERT_STREQ(":IteratorEnd", item_val->IteratorData()->GetValueAsString().c_str());
+    ASSERT_FALSE(item_val->IteratorNext(0)->GetValueAsBoolean());
+
+    ASSERT_NO_THROW(while_test = rt->Run("[iter_test?!]<->{ --'EXIT'-- }"));
+    ASSERT_TRUE(while_test);
+    ASSERT_STRNE("EXIT", while_test->GetValueAsString().c_str()) << while_test->GetValueAsString().c_str();
+    
+    
+    ASSERT_NO_THROW(item_val = rt->Run("@first(iter_test)"));
+    ASSERT_TRUE(item_val);
+    ASSERT_STREQ("3\\1", item_val->GetValueAsString().c_str());
+    
+
+}
+
 //////TEST(Run, Brother) {
 //////    /*
 //////     * 
@@ -1829,6 +1898,9 @@ TEST_F(RunTester, Ops) {
     ASSERT_STREQ("5", Test("10//2"));
     ASSERT_STREQ("5", Test("10.0 // 2"));
     ASSERT_STREQ("0", Test("1 // 10"));
+    ASSERT_STREQ("7", Test("15 // 2"));
+    ASSERT_STREQ("-8", Test("-15 // 2"));
+    ASSERT_STREQ("2", Test("25 // 10"));
     ASSERT_STREQ("-3", Test("-25 // 10"));
     ASSERT_STREQ("-3", Test("-30 // 10"));
     ASSERT_STREQ("-4", Test("-31 // 10"));
@@ -1837,9 +1909,9 @@ TEST_F(RunTester, Ops) {
 
     ASSERT_STREQ("", Test("\"\""));
     ASSERT_STREQ(" ", Test("\" \""));
-    ASSERT_STREQ("строка", Test("\"\"+\"строка\" "));
-    ASSERT_STREQ("строка 222", Test("\"строка \" + \"222\" "));
-//    ASSERT_STREQ("строка строка строка ", Test("\"строка \" * 3 "));
+    ASSERT_STREQ("строка", Test("\"\" \"строка\" "));
+    ASSERT_STREQ("строка 222", Test("\"строка \"  \"222\" "));
+    //    ASSERT_STREQ("строка строка строка ", Test("\"строка \" * 3 "));
 
     ASSERT_STREQ("100", Test("$var1:=100"));
     ObjPtr var1 = m_result;

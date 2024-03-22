@@ -52,8 +52,6 @@ OBJECTFILES= \
 	${OBJECTDIR}/parser.o \
 	${OBJECTDIR}/parser.yy.o \
 	${OBJECTDIR}/runtime.o \
-	${OBJECTDIR}/syntax_help_en.o \
-	${OBJECTDIR}/syntax_help_ru.o \
 	${OBJECTDIR}/system.o \
 	${OBJECTDIR}/term.o \
 	${OBJECTDIR}/test/alg_test.o \
@@ -204,16 +202,6 @@ ${OBJECTDIR}/runtime.o: runtime.cpp
 	${MKDIR} -p ${OBJECTDIR}
 	${RM} "$@.d"
 	$(COMPILE.cc) -g -DDEBUG -DLOG_LEVEL_NORMAL=LOG_LEVEL_DEBUG -DPDC_WIDE -DUNITTEST -I.. -I../contrib/googletest/googletest -I../contrib/googletest/googletest/include -I../contrib/Tensorflow/bazel-bin/tensorflow/include -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/runtime.o runtime.cpp
-
-${OBJECTDIR}/syntax_help_en.o: syntax_help_en.cpp
-	${MKDIR} -p ${OBJECTDIR}
-	${RM} "$@.d"
-	$(COMPILE.cc) -g -DDEBUG -DLOG_LEVEL_NORMAL=LOG_LEVEL_DEBUG -DPDC_WIDE -DUNITTEST -I.. -I../contrib/googletest/googletest -I../contrib/googletest/googletest/include -I../contrib/Tensorflow/bazel-bin/tensorflow/include -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/syntax_help_en.o syntax_help_en.cpp
-
-${OBJECTDIR}/syntax_help_ru.o: syntax_help_ru.cpp
-	${MKDIR} -p ${OBJECTDIR}
-	${RM} "$@.d"
-	$(COMPILE.cc) -g -DDEBUG -DLOG_LEVEL_NORMAL=LOG_LEVEL_DEBUG -DPDC_WIDE -DUNITTEST -I.. -I../contrib/googletest/googletest -I../contrib/googletest/googletest/include -I../contrib/Tensorflow/bazel-bin/tensorflow/include -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/syntax_help_ru.o syntax_help_ru.cpp
 
 ${OBJECTDIR}/system.o: system.cpp
 	${MKDIR} -p ${OBJECTDIR}

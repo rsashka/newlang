@@ -642,6 +642,21 @@ namespace newlang {
             return m_var_type_fixed != ObjType::None;
         }
 
+        [[nodiscard]]
+        inline bool is_any_size() {
+            return m_var_type_current == ObjType::None || m_var_type_current == ObjType::Ellipsis;
+        }
+
+        static ObjPtr Take(Obj &args) {
+            if (args.empty() || !args[0].second) {
+                LOG_RUNTIME("Take object not exist!");
+            }
+            if (args[0].second->is_return()) {
+                return args[0].second->m_return_obj;
+            }
+            LOG_RUNTIME("Take object for type %s not implemented!", newlang::toString(args[0].second->getType()));
+        }
+
         inline void SetTermProp(Term &term);
 
         virtual int64_t size() const {
@@ -861,12 +876,53 @@ namespace newlang {
             LOG_RUNTIME("Operator resize for object type %s not implemented!", newlang::toString(m_var_type_current));
         }
 
-        void erase(const int64_t index) override {
-            if (is_indexing()) {
-                Variable<Obj>::erase(index);
-                return;
+        void erase(const size_t from, const size_t to) override {
+            if (!is_indexing()) {
+                LOG_RUNTIME("Operator erase(from, to) for object type %s not implemented!", newlang::toString(m_var_type_current));
             }
-            LOG_RUNTIME("Operator erase(index) for object type %s not implemented!", newlang::toString(m_var_type_current));
+            if (is_tensor_type()) {
+                // For expand operator (val, tensor := ... tensor)
+                int64_t new_size = m_tensor.size(0) - 1;
+                if ((from == 0 && to == 1) || (from == 0 && to == 0 && new_size == 0)) {
+                    if (new_size > 0) {
+                        std::vector<int64_t> sizes(1);
+                        sizes[0] = new_size + 1;
+
+                        at::Tensor ind = torch::arange(sizes[0] - new_size - 1, sizes[0] - 1, at::ScalarType::Long);
+                        at::Tensor any = torch::zeros(sizes[0] - new_size, at::ScalarType::Long);
+                        //                LOG_DEBUG("arange %s    %s", TensorToString(ind).c_str(), TensorToString(any).c_str());
+
+                        ind = at::cat({any, ind});
+                        //                LOG_DEBUG("cat %s", TensorToString(ind).c_str());
+
+                        //                LOG_DEBUG("m_value %s", TensorToString(m_value).c_str());
+                        m_tensor.index_copy_(0, ind, m_tensor.clone());
+                        //                LOG_DEBUG("index_copy_ %s", TensorToString(m_value).c_str());
+
+                        sizes[0] = new_size;
+                        m_tensor.resize_(at::IntArrayRef(sizes));
+
+                    } else {
+                        m_tensor.reset();
+                        m_var_type_current = ObjType::None;
+                    }
+                } else {
+                    LOG_RUNTIME("Operator erase(%ld, %ld) for object type %s not implemented!", from, to, newlang::toString(m_var_type_current));
+                }
+            } else {
+                Variable<Obj>::erase(from, to);
+            }
+        }
+
+        void erase(const int64_t index) override {
+            if (!is_indexing()) {
+                LOG_RUNTIME("Operator erase(index) for object type %s not implemented!", newlang::toString(m_var_type_current));
+            }
+            if (is_tensor_type()) {
+                LOG_RUNTIME("Operator erase(index) for object type %s not implemented!", newlang::toString(m_var_type_current));
+            } else {
+                Variable<Obj>::erase(index);
+            }
         }
 
         void clear_() override {
@@ -1508,7 +1564,8 @@ namespace newlang {
         }
 
         inline bool GetValueAsBoolean() const {
-            if (!m_var_is_init || m_var_type_current == ObjType::IteratorEnd) {
+            TEST_INIT_();
+            if (m_var_type_current == ObjType::IteratorEnd) {
                 return false;
             }
             if (is_scalar()) {
@@ -2510,6 +2567,29 @@ namespace newlang {
         bool m_is_const; //< Признак константы (по умолчанию изменения разрешено)
         bool m_is_reference; //< Признак ссылки на объект
     };
+
+    class IntAny : public Obj {
+    public:
+        IntAny(const ObjPtr value, ObjType type);
+
+        virtual ~IntAny() {
+        }
+    };
+
+    class IntPlus : public IntAny {
+    public:
+
+        IntPlus(const ObjPtr value) : IntAny(value, ObjType::RetPlus) {
+        }
+    };
+
+    class IntMinus : public IntAny {
+    public:
+
+        IntMinus(const ObjPtr value) : IntAny(value, ObjType::RetMinus) {
+        }
+    };
+
 
 } // namespace newlang
 

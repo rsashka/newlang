@@ -86,67 +86,6 @@ protected:
     TermPtr ast;
 };
 
-/*
- * 
- *         std::vector<std::string> m_ns_stack;
-        std::map<std::string, TermPtr> m_prototypes;
-
- */
-
-/*
- * // ffi_abi  
- * // int printf(char * format, ...)
- * @native printf(format:FmtChar, ...): Int32;
- * @native printf(format:FmtChar, ...): Int32, FFI_DEFAULT_ABI;
- * @__PRAGMA_NATIVE__( printf(format:FmtChar, ...): Int32, FFI_DEFAULT_ABI)
- * 
- * @proto 
- * 
- */
-
-//TEST_F(ParserAnalysis, Native) {
-//
-//    ASSERT_ANY_THROW(Parse("@__PRAGMA_NATIVE__(printf(format:FmtChar, ...))"));
-//    ASSERT_ANY_THROW(Parse("@__PRAGMA_NATIVE__(printf(format:FmtChar, ...):Int32, FFI_DEFAULT_ABI)"));
-//    ASSERT_ANY_THROW(Parse("@__PRAGMA_NATIVE__(printf(format, ...):Int32)"));
-//
-//    ASSERT_NO_THROW(Parse("@__PRAGMA_NATIVE__(printf(format:FmtChar, ...):Int32)"));
-//
-//    ASSERT_TRUE(m_parser);
-//    ASSERT_EQ(1, m_parser->m_native.size());
-//    std::cout << m_parser->m_native.begin()->second->toString() << "\n";
-//
-//    TermPtr obj = m_parser->m_native.begin()->second;
-//    ASSERT_STREQ("printf", obj->m_text.c_str());
-//    ASSERT_TRUE(obj->isCall());
-//    ASSERT_TRUE(obj->m_type);
-//    ASSERT_STREQ(":Int32", obj->m_type->m_text.c_str());
-//    ASSERT_EQ(2, obj->size());
-//    ASSERT_STREQ("format", obj->at(0).second->m_text.c_str());
-//    ASSERT_STREQ("...", obj->at(1).second->m_text.c_str());
-//
-//
-//    ASSERT_ANY_THROW(Parse("@__PRAGMA_NATIVE__(printf(format:FmtChar='', ...):Int32)"));
-//
-//
-//    ASSERT_NO_THROW(Parse("@__PRAGMA_NATIVE__(variable:Double)"));
-//
-//    ASSERT_TRUE(m_parser);
-//    ASSERT_EQ(1, m_parser->m_native.size());
-//    std::cout << m_parser->m_native.begin()->second->toString() << "\n";
-//
-//    obj = m_parser->m_native.begin()->second;
-//    ASSERT_STREQ("variable", obj->m_text.c_str());
-//    ASSERT_FALSE(obj->isCall());
-//    ASSERT_EQ(0, obj->size());
-//    ASSERT_TRUE(obj->m_type);
-//    ASSERT_STREQ(":Double", obj->m_type->m_text.c_str());
-//
-//
-//    ASSERT_ANY_THROW(Parse("@__PRAGMA_NATIVE__(variable)"));
-//
-//}
-
 //TEST_F(ParserAnalysis, Declare) {
 //
 //    ASSERT_ANY_THROW(Parse("@__PRAGMA_DECLARE__(printf(format:FmtChar, ...):Int32, FFI_DEFAULT_ABI)"));
@@ -191,31 +130,11 @@ protected:
 //
 //}
 
-//TEST_F(ParserAnalysis, CheckArg) {
-//
-//    TermPtr term = Term::Create(parser::token_type::NAME, TermID::NAME, "%printf");
-//    ASSERT_TRUE(term);
-//
-//
-//    ASSERT_TRUE(LLVMLoadLibraryPermanently(nullptr) == 0);
-//
-//    TermPtr proto = Term::Create(parser::token_type::NAME, TermID::NAME, "%printf");
-//    ASSERT_NO_THROW(Term::CheckArgsProto(term, proto));
-//
-//    proto->Append(Term::Create(parser::token_type::ELLIPSIS, TermID::ELLIPSIS, "..."), Term::RIGHT);
-//    ASSERT_TRUE(Term::CheckArgsProto(term, proto));
-//
-//    ASSERT_NO_THROW(Term::CheckArgsProto(term, Term::Create(parser::token_type::NAME, TermID::NAME, "%printf")));
-//    ASSERT_ANY_THROW(Term::CheckArgsProto(term, Term::Create(parser::token_type::NAME, TermID::NAME, "%printfsssssssssssssssssss")));
-//    ASSERT_ANY_THROW(Term::CheckArgsProto(term, Term::Create(parser::token_type::NAME, TermID::NAME, "%printfsssssssssssssssssss...")));
-//    ASSERT_ANY_THROW(Term::CheckArgsProto(term, Term::Create(parser::token_type::NAME, TermID::NAME, "%printfsssssssssssssssssss...")));
-//
-//}
 
 TEST_F(ParserAnalysis, ErrorLimit1) {
 
     RuntimePtr rt_default = RunTime::Init();
-    AstAnalysis analysis(*rt_default, rt_default->m_diag.get());    
+    AstAnalysis analysis(*rt_default, rt_default->m_diag.get());
 
     ASSERT_EQ(10, rt_default->m_diag->m_error_limit);
 
@@ -230,7 +149,7 @@ TEST_F(ParserAnalysis, ErrorLimit1) {
 TEST_F(ParserAnalysis, ErrorLimit2) {
 
     RuntimePtr rt_default = RunTime::Init();
-    AstAnalysis analysis(*rt_default, rt_default->m_diag.get());    
+    AstAnalysis analysis(*rt_default, rt_default->m_diag.get());
 
     ASSERT_EQ(10, rt_default->m_diag->m_error_limit);
 
@@ -248,7 +167,7 @@ TEST_F(ParserAnalysis, ErrorLimit3) {
     TermPtr term;
 
     RuntimePtr rt = RunTime::Init({"--nlc-error-limit=1"});
-    AstAnalysis analysis(*rt, rt->m_diag.get());    
+    AstAnalysis analysis(*rt, rt->m_diag.get());
 
     ASSERT_EQ(1, rt->m_diag->m_error_limit);
 
@@ -263,7 +182,7 @@ TEST_F(ParserAnalysis, ErrorLimit4) {
     TermPtr term;
 
     RuntimePtr rt = RunTime::Init({"--nlc-error-limit=1"});
-    AstAnalysis analysis(*rt, rt->m_diag.get());    
+    AstAnalysis analysis(*rt, rt->m_diag.get());
 
     ASSERT_EQ(1, rt->m_diag->m_error_limit);
 

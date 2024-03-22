@@ -80,6 +80,7 @@ namespace newlang {
         bool CheckOpType(TermPtr &op, TermPtr &left, const TermPtr right);
         bool CheckCall(TermPtr &proto, TermPtr &call, ScopeStack & stack);
         bool CheckCallArg(TermPtr &call, size_t arg_pos, ScopeStack & stack);
+        void CheckDims(TermPtr &dims, ScopeStack & stack, bool allow_none, bool allow_ellipsis);
         bool CkeckRange_(TermPtr &term, ScopeStack & stack);
         bool CheckFollow_(TermPtr &term, ScopeStack & stack);
         bool CheckWhile_(TermPtr &term, ScopeStack & stack);

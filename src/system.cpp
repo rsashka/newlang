@@ -20,6 +20,7 @@ bool Buildin::AddMethod(const char * name, ObjPtr obj) {
     TermPtr proto = *const_cast<TermPtr *> (&obj->m_prototype);
     proto->m_text = fullname;
     proto->m_int_name = NormalizeName(fullname);
+//    proto->m_obj = obj;
 
     insert({fullname, {proto, obj}});
 
@@ -48,7 +49,7 @@ bool Buildin::CreateMethod(const char * proto, FunctionType & func, ObjType type
         LOG_ERROR("Fail parse '%s'!", proto);
         return false;
     }
-    return AddMethod(term->getText().c_str(), m_runtime->CreateNative(term, (void *) &func)); //, type
+    return AddMethod(term->getText().c_str(), m_runtime->CreateFunction(term, (void *) &func)); //, type
 }
 
 bool Buildin::CreateProperty(const char * proto, ObjPtr obj) {

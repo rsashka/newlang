@@ -52,8 +52,6 @@ OBJECTFILES= \
 	${OBJECTDIR}/parser.o \
 	${OBJECTDIR}/parser.yy.o \
 	${OBJECTDIR}/runtime.o \
-	${OBJECTDIR}/syntax_help_en.o \
-	${OBJECTDIR}/syntax_help_ru.o \
 	${OBJECTDIR}/system.o \
 	${OBJECTDIR}/term.o \
 	${OBJECTDIR}/test/alg_test.o \
@@ -206,16 +204,6 @@ ${OBJECTDIR}/runtime.o: runtime.cpp pch.h.pch
 	${MKDIR} -p ${OBJECTDIR}
 	${RM} "$@.d"
 	$(COMPILE.cc) -g -DBUILD_DEBUG -DLOG_LEVEL_NORMAL=LOG_LEVEL_DEBUG -DPDC_WIDE -I. -I.. -I/usr/lib/clang/16/include -I/usr/include/llvm -I/usr/include/llvm-c -I/usr/include/x86_64-linux-gnu/c++/10 -I/usr/include/c++/10 -I/usr/local/include -I/usr/include -I../contrib/googletest/googletest -I../contrib/googletest/googletest/include -I../contrib/Lyra/include -I../contrib/libtorch/include/torch/csrc/api/include -I../contrib/libtorch/include -I../contrib/fmt/include -include-pch pch.h.pch -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/runtime.o runtime.cpp
-
-${OBJECTDIR}/syntax_help_en.o: syntax_help_en.cpp
-	${MKDIR} -p ${OBJECTDIR}
-	${RM} "$@.d"
-	$(COMPILE.cc) -g -DBUILD_DEBUG -DLOG_LEVEL_NORMAL=LOG_LEVEL_DEBUG -DPDC_WIDE -I. -I.. -I/usr/lib/clang/16/include -I/usr/include/llvm -I/usr/include/llvm-c -I/usr/include/x86_64-linux-gnu/c++/10 -I/usr/include/c++/10 -I/usr/local/include -I/usr/include -I../contrib/googletest/googletest -I../contrib/googletest/googletest/include -I../contrib/Lyra/include -I../contrib/libtorch/include/torch/csrc/api/include -I../contrib/libtorch/include -I../contrib/fmt/include -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/syntax_help_en.o syntax_help_en.cpp
-
-${OBJECTDIR}/syntax_help_ru.o: syntax_help_ru.cpp
-	${MKDIR} -p ${OBJECTDIR}
-	${RM} "$@.d"
-	$(COMPILE.cc) -g -DBUILD_DEBUG -DLOG_LEVEL_NORMAL=LOG_LEVEL_DEBUG -DPDC_WIDE -I. -I.. -I/usr/lib/clang/16/include -I/usr/include/llvm -I/usr/include/llvm-c -I/usr/include/x86_64-linux-gnu/c++/10 -I/usr/include/c++/10 -I/usr/local/include -I/usr/include -I../contrib/googletest/googletest -I../contrib/googletest/googletest/include -I../contrib/Lyra/include -I../contrib/libtorch/include/torch/csrc/api/include -I../contrib/libtorch/include -I../contrib/fmt/include -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/syntax_help_ru.o syntax_help_ru.cpp
 
 ${OBJECTDIR}/system.o: system.cpp pch.h.pch
 	${MKDIR} -p ${OBJECTDIR}

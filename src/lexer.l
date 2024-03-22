@@ -142,7 +142,8 @@ native  %({ualpha}|[_])+({name}|{digit})?
 "@#\""          YY_TOKEN(MACRO_TOSTR);
 "@#"            YY_TOKEN(MACRO_TOSTR);
 
-"@$"{name}      YY_TOKEN(MACRO_ARGUMENT);
+"@$"{name}      YY_TOKEN(MACRO_ARGNAME);
+"@$"[0-9]+      YY_TOKEN(MACRO_ARGPOS);
 
 "@$..."         YY_TOKEN(MACRO_ARGUMENT);
 "@$*"           YY_TOKEN(MACRO_ARGUMENT);
@@ -239,6 +240,11 @@ native  %({ualpha}|[_])+({name}|{digit})?
 
 <state_SOURCE>{
 .                   buffer.append(yytext, yyleng);
+\n              {
+                    buffer.append(yytext, yyleng);
+                    yylloc->lines(yyleng); 
+                    yylloc->step();
+                }
 "%}"            {
                     BEGIN(INITIAL);
                     *yylval = Term::Create(token::EMBED, TermID::EMBED, buffer.c_str(), buffer.size(), yylloc, source_string);
@@ -290,7 +296,12 @@ native  %({ualpha}|[_])+({name}|{digit})?
 }
 
 <state_TEMPLATE1>{
-.           buffer.append(yytext, yyleng);
+.                   buffer.append(yytext, yyleng);
+\n              {
+                    buffer.append(yytext, yyleng);
+                    yylloc->lines(yyleng); 
+                    yylloc->step();
+                }
 "'''"       {
                 BEGIN(INITIAL);
                 *yylval = Term::Create(token::TEMPLATE, TermID::TEMPLATE, buffer.c_str(), buffer.size(), yylloc, source_string);
@@ -307,6 +318,12 @@ native  %({ualpha}|[_])+({name}|{digit})?
 
 <state_TEMPLATE2>{
 .                   buffer.append(yytext, yyleng);
+\n              {
+                    buffer.append(yytext, yyleng);
+                    yylloc->lines(yyleng); 
+                    yylloc->step();
+                }
+
 "\"\"\""        {
                     BEGIN(INITIAL);
                     *yylval = Term::Create(token::TEMPLATE, TermID::TEMPLATE, buffer.c_str(), buffer.size(), yylloc, source_string);

@@ -521,7 +521,7 @@ namespace newlang {
                     result = rt->Run(url_decode(command), main_args.get());
                     ret_code = 0;
                 } catch (IntAny &any) {
-                    result = any.m_obj;
+                    result = any.shared();
                     ret_code = 2;
                 } catch (Error &ret) {
                     result = ret.m_obj;

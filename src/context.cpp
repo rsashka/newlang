@@ -1310,9 +1310,12 @@ ObjPtr Context::Run(TermPtr term, Context *runner) {
         if (!runner) {
             LOG_RUNTIME("Can't calculate '%s' in static mode!", term->toString().c_str());
         }
-        runner->m_latter = runner->EvalBlock_(term, term);
+        runner->m_latter = runner->EvalBlock_(term, runner->m_static);
     } else {
+        LOG_TEST("eval: %s", RunTime::Escape(term->toString()).c_str());
         ObjPtr result = EvalTerm(term, runner);
+        ASSERT(result);
+        LOG_TEST("result: %s", result->toString().c_str());
         if (runner) {
             runner->m_latter = result;
         } else {
@@ -1351,28 +1354,53 @@ static bool HasReThrow(TermPtr &block, ScopeStack &stack, Obj &obj) {
     return true;
 }
 
-ObjPtr Context::EvalBlock_(TermPtr &block, TermPtr proto) {
+ObjPtr Context::EvalBlock_(TermPtr &block, StorageTerm &storage) {
     ASSERT(block->isBlock());
     m_latter = getNoneObj();
-    ScopePush scope_block(*this, block, &proto->m_int_vars);
+    ScopePush scope_block(*this, block, &storage);
+
+    std::string str;
+    for (auto &elem : storage) {
+        if (!str.empty()) {
+            str += ", ";
+        }
+        str += elem.first;
+        str += "->'";
+        str += elem.second->m_obj ? elem.second->m_obj->toString() : "nullptr";
+        str += "'";
+    }
+
+    LOG_TEST("Enter block: '%s' VARS: %s", block->m_text.c_str(), str.c_str());
+
     try {
         size_t i = 0;
         while (i < block->m_block.size()) {
 
             m_latter = Run(block->m_block[i], this);
 
-            //            LOG_DEBUG("iter: %d, value: %s", (int) i, m_latter->toString().c_str());
+            //            LOG_TEST("step: %d, value: %s", (int) i, m_latter->toString().c_str());
 
             if (isInterrupt(m_latter->getType())) {
-                ASSERT(!m_latter->m_value.empty());
-                if (CheckInterrupt(m_latter->m_value)) {
+
+                if (m_latter->m_value.empty()) {
+
+                    // Не именованное прерывание -> выход из блока
+                    break;
+
+                } else if (CheckInterrupt(m_latter->m_value)) {
                     if (m_latter->getType() == ObjType::RetPlus) {
                         m_latter = m_latter->m_return_obj;
+
+                        // Выход из блока
                         break;
+
                     } else if (m_latter->getType() == ObjType::RetMinus) {
                         m_latter = m_latter->m_return_obj;
+
+                        // На начало блока
                         i = 0;
                         continue;
+
                     } else {
                         LOG_RUNTIME("Interrupt type '%s' not implemented!", toString(m_latter->getType()));
                     }
@@ -1383,24 +1411,37 @@ ObjPtr Context::EvalBlock_(TermPtr &block, TermPtr proto) {
 
     } catch (IntPlus &plus) {
 
-        ASSERT(plus.m_obj);
-        if (HasReThrow(block, *this, *plus.m_obj)) {
+        if (HasReThrow(block, *this, plus)) {
             throw;
         }
-        m_latter = plus.m_obj->m_return_obj;
+        m_latter = plus.m_return_obj;
 
     } catch (IntMinus &minus) {
 
-        ASSERT(minus.m_obj);
-        if (HasReThrow(block, *this, *minus.m_obj)) {
+        if (HasReThrow(block, *this, minus)) {
             throw;
         }
-        m_latter = minus.m_obj->m_return_obj;
+        m_latter = minus.m_return_obj;
 
     } catch (...) {
 
         throw;
     }
+
+    if (isInterrupt(m_latter->getType())) {
+        bool return_value = false;
+        if (m_latter->getType() == ObjType::RetPlus && (block->m_id == TermID::BLOCK_PLUS || block->m_id == TermID::BLOCK_TRY)) {
+            return_value = true;
+        } else if (m_latter->getType() == ObjType::RetMinus && (block->m_id == TermID::BLOCK_MINUS || block->m_id == TermID::BLOCK_TRY)) {
+            return_value = true;
+        }
+
+        if (return_value && block->m_left) {
+            ASSERT(block->m_left->m_id == TermID::WITH);
+            m_latter = m_latter->m_return_obj;
+        }
+    }
+
     return m_latter;
 }
 
@@ -1409,13 +1450,13 @@ ObjPtr Context::EvalBlock_(TermPtr &block, TermPtr proto) {
 ObjPtr Context::Call(Context *runner, Obj &obj, TermPtr &term) {
     ObjPtr args = Obj::CreateDict();
 
-    if (term->m_dims.empty()) {
+    if (!term->m_dims) {
         obj.m_dimensions = nullptr;
     } else {
         // Размерность, если указана
         obj.m_dimensions = Obj::CreateType(ObjType::Dictionary, ObjType::Dictionary, true);
-        for (size_t i = 0; i < term->m_dims.size(); i++) {
-            obj.m_dimensions->push_back(EvalTerm(term->m_dims[i], runner));
+        for (size_t i = 0; i < term->m_dims->size(); i++) {
+            obj.m_dimensions->push_back(EvalTerm(term->m_dims->at(i).second, runner), term->m_dims->at(i).first);
         }
     }
 
@@ -1470,7 +1511,7 @@ ObjPtr Context::Call(Context *runner, Obj &obj, TermPtr &term) {
             // Filling - last operator in the args
             break;
 
-        } else if ((*term)[i].second->getTermID() == TermID::ELLIPSIS) {
+        } else if ((*term)[i].second->getTermID() == TermID::ELLIPSIS || (*term)[i].second->isNone()) {
 
             if (!term->name(i).empty()) {
                 LOG_RUNTIME("Named ellipsys not implemented!");
@@ -1639,8 +1680,52 @@ ObjPtr Context::Call(Context *runner, Obj &obj, Obj & args) {
     if (obj.is_function_type() || obj.is_type_name()) {
 
         if (obj.m_sequence) {
-            return runner->EvalBlock_(obj.m_sequence, obj.m_prototype);
+
+            /* Кол-во аргуметов у функции, их тип проверяются во время синтаксического анализа исходного текста.
+             * Число позиционных агрументов должно быть не меньше, чем в прототипе функции и они идут по порядку, 
+             * а именованные (во время вызова) могу быть в перемешку и идентифицируются по имени.
+             * 
+             * Значение по умолчанию подставляется во время анализа и вычислятся во время первого обращения?
+             * 
+             * Цикл перебора агрументов идет по прототипу функции.
+             * Во вермя цикла связывается внутренни имена, но новые имена создаваться не могут!!!!
+             * К дополнительным аргументам можно обратиться по индексу в переменной $$[0] $$[2] и т.д.
+             */
+
+            ASSERT(obj.m_prototype);
+            StorageTerm storage(obj.m_prototype->m_int_vars);
+            ScopePush stack(*runner, obj.m_prototype, &storage);
+
+            for (int i = 0; i < obj.m_prototype->size(); i++) {
+                std::string arg_name = "$"; //runner->GetNamespace(true);
+                if (obj.m_prototype->at(i).second->m_name.empty()) {
+                    arg_name += obj.m_prototype->at(i).second->m_text;
+                } else {
+                    arg_name += obj.m_prototype->at(i).second->m_name;
+                }
+                arg_name = NormalizeName(arg_name);
+                TermPtr argumet = runner->GetObject(arg_name);
+
+                argumet->m_obj = args[i + 1].second->toType(typeFromString(obj.m_prototype->at(i).second->m_type, runner->m_runtime.get()));
+
+            }
+
+            //            if (i >= proto->size()) {
+            //                NL_PARSER(proto, "Argument pos %ld not exist!", i);
+            //            }
+            //            TermPtr argument = proto->at(i).second;
+            //            if (argument->m_name.empty()) {
+            //                // No default value
+            //                args->push_back(EvalTerm((*term)[i].second, runner), argument->m_text);
+            //            } else {
+            //                args->push_back(EvalTerm((*term)[i].second, runner), argument->m_name);
+            //            }
+
+            return runner->EvalBlock_(obj.m_sequence, storage);
         } else {
+
+            //            LOG_TEST("Args: %s", args.toString().c_str());
+
             ASSERT(at::holds_alternative<void *>(obj.m_var));
             FunctionType * func_ptr = (FunctionType *) at::get<void *>(obj.m_var);
             ASSERT(func_ptr);
@@ -1966,7 +2051,8 @@ ObjPtr Context::CallNative_(Context *runner, Obj &obj, Obj * args) {
     return Obj::CreateNone();
 }
 
-ObjPtr Context::CreateArgs_(ObjPtr &args, TermPtr &term, Context * runner) {
+ObjPtr Context::CreateArgs_(TermPtr &term, Context * runner) {
+    ObjPtr args = Obj::CreateDict();
     for (int i = 0; i < term->size(); i++) {
         ASSERT((*term)[i].second);
         if (term->name(i).empty()) {
@@ -1980,17 +2066,13 @@ ObjPtr Context::CreateArgs_(ObjPtr &args, TermPtr &term, Context * runner) {
 }
 
 ObjPtr Context::CreateDict(TermPtr &term, Context * runner) {
-    ObjPtr result = Obj::CreateDict();
 
-    CreateArgs_(result, term, runner);
-    result->m_var_is_init = true;
-
+    ObjPtr result = CreateArgs_(term, runner);
     if (term->getTermID() == TermID::DICT) {
 
         result->m_var_type_fixed = ObjType::Class;
         result->m_class_name = term->m_class;
     }
-
     return result;
 }
 
@@ -2059,7 +2141,6 @@ ObjPtr Context::StringPrintf(std::string_view format, Obj & args) {
 
 ObjPtr Context::EvalTerm(TermPtr term, Context * runner, bool rvalue) {
     ASSERT(term);
-
     try {
         // Static calculate
         switch (term->m_id) {
@@ -2128,10 +2209,6 @@ ObjPtr Context::EvalTerm(TermPtr term, Context * runner, bool rvalue) {
                 return EvalOpLogical_(term, runner);
             case TermID::OP_BITWISE:
                 return EvalOpBitwise_(term, runner);
-            case TermID::WHILE:
-                return EvalWhile_(term, runner);
-            case TermID::DOWHILE:
-                return EvalDoWhile_(term, runner);
             case TermID::FOLLOW:
                 return EvalFollow_(term, runner);
             case TermID::NATIVE:
@@ -2140,6 +2217,10 @@ ObjPtr Context::EvalTerm(TermPtr term, Context * runner, bool rvalue) {
                 return getEllipsysObj();
             case TermID::END:
                 return Obj::CreateNone();
+            case TermID::NAME:
+                if (term->isNone()) {
+                    return Obj::CreateNone();
+                }
         }
 
         if (!runner) {
@@ -2150,7 +2231,7 @@ ObjPtr Context::EvalTerm(TermPtr term, Context * runner, bool rvalue) {
             return runner->EvalCreate_(term);
         } else if (term->isNamed()) {
 
-            TermPtr found = runner->GetObject(term, runner->m_runtime);
+            TermPtr found = runner->GetObject(term->m_int_name);
             if (!found->m_obj) {
                 NL_PARSER(term, "Object '%s' not calculated!", term->m_text.c_str());
             }
@@ -2181,6 +2262,13 @@ ObjPtr Context::EvalTerm(TermPtr term, Context * runner, bool rvalue) {
                     return runner->EvalIterator_(term);
                 case TermID::EVAL:
                     return runner->EvalEval_(term);
+                case TermID::WHILE:
+                    return runner->EvalWhile_(term);
+                case TermID::DOWHILE:
+                    return runner->EvalDoWhile_(term);
+                case TermID::TAKE:
+                    return runner->EvalTake_(term);
+
                 case TermID::INT_PLUS:
                 case TermID::INT_MINUS:
                 case TermID::INT_REPEAT:
@@ -2201,9 +2289,68 @@ ObjPtr Context::EvalTerm(TermPtr term, Context * runner, bool rvalue) {
     }
 }
 
+ObjPtr Context::EvalTake_(TermPtr & op) {
+    ASSERT(op->size());
+    CheckObjTerm_(op->at(0).second, this);
+    ObjPtr args;
+    if (op->isCall()) {
+        args = CreateArgs_(op, this);
+    } else {
+        args = Obj::CreateDict();
+        args->push_back(op->at(0).second->m_obj);
+    }
+
+    m_latter = Obj::Take(*args);
+    return m_latter;
+}
+
 ObjPtr Context::CreateNative_(TermPtr &proto, const char *module, bool lazzy, const char *mangle_name) {
     ObjPtr result = m_runtime->CreateNative(proto, module, lazzy, mangle_name);
     result->m_ctx = this;
+    return result;
+}
+
+TermPtr Context::GetObject(const std::string_view int_name) {
+
+    //    std::string int_name;
+    //    if (isInternalName(int_name)) {
+    //    }
+    //    int_name = NormalizeName(int_name);
+    //    ASSERT();
+    //
+    //    std::string int_name;
+    //    
+    //    if (term->isNone()) {
+    //        term->m_int_name = "_";
+    //    }
+    if (int_name.empty()) {
+        LOG_RUNTIME("Has no internal name! AST analysis required!");
+    }
+
+    TermPtr result;
+    if (int_name.compare("_") == 0) {
+        result = Term::CreateNone();
+    } else if (int_name.compare("$^") == 0) {
+        result = Term::CreateNone();
+        result->m_obj = m_latter;
+    } else {
+        result = FindInternalName(int_name, m_runtime.get());
+        if (!result && m_runtime && (isGlobalScope(int_name) || isTypeName(int_name))) {
+            result = m_runtime->GlobFindProto(int_name);
+        }
+    }
+    if (!result) {
+        //#ifdef BUILD_UNITTEST
+        //            if (term->m_text.compare("__STAT_RUNTIME_UNITTEST__") == 0) {
+        //                ASSERT(term->isCall());
+        //                ASSERT(term->size() == 2);
+        //                return Obj::CreateValue(RunTime::__STAT_RUNTIME_UNITTEST__(
+        //                        parseInteger(term->at(0).second->m_text.c_str()),
+        //                        parseInteger(term->at(1).second->m_text.c_str())));
+        //            }
+        //#endif
+        LOG_RUNTIME("Object with internal name '%s' not found!", int_name.begin());
+    }
 
     return result;
 }
@@ -2238,7 +2385,7 @@ ObjPtr Context::EvalCreate_(TermPtr & op) {
 
         } else {
 
-            var_found = GetObject(elem, m_runtime);
+            var_found = GetObject(elem->m_int_name);
 
             if (op->isCreateOnce() && var_found && var_found->m_obj) {
                 NL_PARSER(elem, "Object '%s' already exist", elem->m_text.c_str());
@@ -2250,13 +2397,19 @@ ObjPtr Context::EvalCreate_(TermPtr & op) {
                 if (var_found->isCall() && var_found->m_obj) {
                     NL_PARSER(elem, "The function cannot be overridden! '%s'", var_found->toString().c_str());
                 }
-                elem->m_int_name = var_found->m_int_name;
+                elem = var_found;
+                //                elem->m_int_name = var_found->m_int_name;
+                //                elem->m_obj = var_found->m_obj;
+                //                LOG_TEST("0: %s = %s (%p)", elem->m_text.c_str(), elem->m_obj ? elem->m_obj->toString().c_str() : "nullptr", elem->m_obj.get());
             }
         }
     }
 
     m_latter = AssignVars_(l_vars, op->m_right, op->isPure());
     for (auto &elem : l_vars) {
+
+        //        LOG_TEST("4: %s = %s (%p)", elem->m_text.c_str(), elem->m_obj ? elem->m_obj->toString().c_str() : "nullptr", elem->m_obj.get());
+
         if (isGlobalScope(elem->m_int_name)) {
             m_runtime->NameRegister(op->isCreateOnce(), elem->m_int_name.c_str(), elem, elem->m_obj);
         }
@@ -2266,6 +2419,7 @@ ObjPtr Context::EvalCreate_(TermPtr & op) {
 
 ObjPtr Context::AssignVars_(ArrayTermType &l_vars, const TermPtr &r_term, bool is_pure) {
 
+    ASSERT(l_vars.size());
     if (r_term->getTermID() == TermID::NATIVE) {
 
         ASSERT(l_vars.size() == 1);
@@ -2283,11 +2437,60 @@ ObjPtr Context::AssignVars_(ArrayTermType &l_vars, const TermPtr &r_term, bool i
         // var1, var2 = ... func(); Если функция вернула словарь с двумя элементами, 
         // то их значения записываются в var1 и var2. Если в словаре было больше двух элементов, 
         // то первый записывается в var1, а все оставшиеся элементы в var2. !!!!!!!!!!!!!
+        // item, dict = ... dict; Первый элементы записывается в item и удаялется из dict 
+
         // _, var1, ..., var2 = ... func(); 
         // Первый элемент словаря игнорируется, второй записывается в var1, а последний в var2.
 
         //@todo добавить поддержку многоточия с левой стороный оператора присвоения
-        NL_PARSER(r_term, "ELLIPSIS NOT implemented!");
+
+        bool is_named = !!r_term->m_left;
+        if (is_named) {
+            NL_PARSER(r_term, "Named ELLIPSIS NOT implemented!");
+            ASSERT(r_term->m_left->getTermID() == TermID::ELLIPSIS);
+        }
+
+        bool is_last = false;
+        ObjPtr right_obj = CheckObjTerm_(r_term->m_right, this);
+        for (size_t i = 0; i < l_vars.size(); i++) {
+            if (l_vars[i]->isNone()) {
+                // Ignore position
+                continue;
+            }
+            if (i + 1 == l_vars.size()) {
+                is_last = true;
+            }
+
+            //            LOG_TEST("1: %s = %s (%p)", l_vars[i]->m_text.c_str(), l_vars[i]->m_obj ? l_vars[i]->m_obj->toString().c_str() : "nullptr", l_vars[i]->m_obj.get());
+
+            if (i < right_obj->size()) {
+                if (is_last) {
+                    if (l_vars[i]->m_int_name.compare(r_term->m_right->m_int_name) == 0) {
+                        // Остаток элементов присваивается тому же словарю
+                        l_vars[i]->m_obj = right_obj;
+                    } else {
+                        l_vars[i]->m_obj = right_obj->Clone();
+                    }
+                    l_vars[i]->m_obj->erase(0, l_vars.size() - 1);
+                } else {
+                    l_vars[i]->m_obj = (*right_obj)[i].second;
+                }
+            } else {
+                if (is_last) {
+                    if (l_vars[i]->m_int_name.compare(r_term->m_right->m_int_name) == 0) {
+                        // Остаток элементов присваивается тому же словарю
+                        l_vars[i]->m_obj = right_obj;
+                    } else {
+                        l_vars[i]->m_obj = right_obj->Clone();
+                    }
+                    l_vars[i]->m_obj->erase(0, 0);
+                } else {
+                    l_vars[i]->m_obj = Obj::CreateNone();
+                }
+            }
+            //            LOG_TEST("2: %s = %s (%p)", l_vars[i]->m_text.c_str(), l_vars[i]->m_obj ? l_vars[i]->m_obj->toString().c_str() : "nullptr", l_vars[i]->m_obj.get());
+        }
+        m_latter = l_vars[l_vars.size() - 1]->m_obj;
 
     } else if (r_term->getTermID() == TermID::FILLING) {
         // Заполнение переменных значениями последовательным вызовом фукнции?
@@ -2700,8 +2903,9 @@ ObjPtr Context::EvalOpMath_(TermPtr & op, Context * runner) {
     ASSERT(op->m_id == TermID::OP_MATH);
     ASSERT(op->m_left);
     ASSERT(op->m_right);
-    CheckObjTerm_(op->m_left, runner);
-    CheckObjTerm_(op->m_right, runner);
+
+    op->m_left->m_obj = EvalTerm(op->m_left, runner);
+    op->m_right->m_obj = EvalTerm(op->m_right, runner);
 
     ObjPtr result = op->m_left->m_obj;
     if (op->m_text.rfind("=") == op->m_text.size() - 2) {
@@ -2709,7 +2913,9 @@ ObjPtr Context::EvalOpMath_(TermPtr & op, Context * runner) {
     }
 
     if (op->m_text.find("+") == 0) {
+        LOG_TEST_DUMP("before: %s + %s", result->GetValueAsString().c_str(), op->m_right->m_obj->GetValueAsString().c_str());
         (*result) += op->m_right->m_obj;
+        LOG_TEST_DUMP("after: %s + %s", result->GetValueAsString().c_str(), op->m_right->m_obj->GetValueAsString().c_str());
     } else if (op->m_text.find("-") == 0) {
         (*result) -= op->m_right->m_obj;
     } else if (op->m_text.find("*") == 0) {
@@ -2721,7 +2927,6 @@ ObjPtr Context::EvalOpMath_(TermPtr & op, Context * runner) {
     } else if (op->m_text.find("%") == 0) {
         (*result) %= op->m_right->m_obj;
     } else {
-
         NL_PARSER(op, "Math operator '%s' not implemented!", op->m_text.c_str());
     }
     return result;
@@ -2735,8 +2940,10 @@ ObjPtr Context::EvalOpCompare_(TermPtr & op, Context * runner) {
     CheckObjTerm_(op->m_left, runner);
     CheckObjTerm_(op->m_right, runner);
 
-    ObjPtr result;
 
+    LOG_TEST("Compare: %s  %s  %s", op->m_left->m_obj->toString().c_str(), op->m_text.c_str(), op->m_right->m_obj->toString().c_str());
+
+    ObjPtr result;
     if (op->m_text.compare("==") == 0) {
         result = Obj::CreateBool(op->m_left->m_obj->op_equal(op->m_right->m_obj));
     } else if (op->m_text.compare("!=") == 0) {
@@ -2760,57 +2967,107 @@ ObjPtr Context::EvalOpCompare_(TermPtr & op, Context * runner) {
     return result;
 }
 
-ObjPtr Context::EvalWhile_(TermPtr & term, Context * runner) {
+ObjPtr Context::EvalWhile_(TermPtr & term) {
     ASSERT(term->Left());
     ASSERT(term->Right());
 
-    ObjPtr result = Obj::CreateNone();
-    ObjPtr cond = Run(term->Left(), runner);
+    ObjPtr cond = Run(term->Left(), this);
     if (!cond->GetValueAsBoolean() && !term->m_follow.empty()) {
         // else
         ASSERT(term->m_follow.size() == 1);
         ASSERT(term->m_follow[0]->Left()->m_id == TermID::ELLIPSIS);
-        result = Run(term->m_follow[0]->Right(), runner);
+        m_latter = Run(term->m_follow[0]->Right(), this);
     } else {
+        size_t i = 0;
         while (cond->GetValueAsBoolean()) {
 
-            result = Run(term->Right(), runner);
+            m_latter = Run(term->Right(), this);
 
-            //            if (result->GetType() == ObjType::RetPlus) {
-            //                if (result->) {
-            //                }
-            //                break;
-            //            } else if (is_interrupt || result->op_class_test(Return::Continue, ctx)) {
-            //                continue;
-            //            }
+            //            LOG_TEST("while: %d, value: %s", (int) i, m_latter->toString().c_str());
 
-            cond = Run(term->Left(), runner);
+            if (isInterrupt(m_latter->getType())) {
+
+                if (m_latter->m_value.empty()) {
+
+                    // Не именованное прерывание -> выход из блока
+                    break;
+
+                } else if (CheckInterrupt(m_latter->m_value)) {
+                    if (m_latter->getType() == ObjType::RetPlus) {
+                        m_latter = m_latter->m_return_obj;
+
+                        // Выход из блока
+                        break;
+
+                    } else if (m_latter->getType() == ObjType::RetMinus) {
+                        m_latter = m_latter->m_return_obj;
+
+                        // На начало блока
+                        i = 0;
+                        goto while_continue;
+
+                    } else {
+                        LOG_RUNTIME("Interrupt type '%s' not implemented!", toString(m_latter->getType()));
+                    }
+                }
+            }
+            i++;
+
+while_continue:
+            cond = Run(term->Left(), this);
         }
     }
-    return result;
+    return m_latter;
 }
 
-ObjPtr Context::EvalDoWhile_(TermPtr & term, Context * runner) {
+ObjPtr Context::EvalDoWhile_(TermPtr & term) {
     ASSERT(term);
     ASSERT(term->Left());
     ASSERT(term->Right());
 
-    ObjPtr result;
     ObjPtr cond;
+    size_t i = 0;
     do {
 
-        result = Run(term->Left(), runner);
-        cond = Run(term->Right(), runner);
+        m_latter = Run(term->Left(), this);
 
-        //        if (is_interrupt && cond->op_class_test(Return::Break, ctx)) {
-        //            break;
-        //        } else if (is_interrupt && cond->op_class_test(Return::Continue, ctx)) {
-        //            continue;
-        //        }
+        LOG_TEST("dowhile: %d, value: %s", (int) i, m_latter->toString().c_str());
+
+        if (isInterrupt(m_latter->getType())) {
+
+            if (m_latter->m_value.empty()) {
+
+                // Не именованное прерывание -> выход из блока
+                break;
+
+            } else if (CheckInterrupt(m_latter->m_value)) {
+                if (m_latter->getType() == ObjType::RetPlus) {
+                    m_latter = m_latter->m_return_obj;
+
+                    // Выход из блока
+                    break;
+
+                } else if (m_latter->getType() == ObjType::RetMinus) {
+                    m_latter = m_latter->m_return_obj;
+
+                    // На начало блока
+                    i = 0;
+                    goto dowhile_continue;
+
+                } else {
+                    LOG_RUNTIME("Interrupt type '%s' not implemented!", toString(m_latter->getType()));
+                }
+            }
+        }
+        i++;
+
+dowhile_continue:
+
+        cond = Run(term->Right(), this);
 
     } while (cond->GetValueAsBoolean());
 
-    return result;
+    return m_latter;
 }
 
 ObjPtr Context::EvalFollow_(TermPtr & term, Context * runner) {
@@ -2882,52 +3139,121 @@ ObjPtr Context::EvalEval_(TermPtr & term) {
     return Obj::CreateString(result);
 }
 
+/*
+ * Создание итератора
+ * ?, ?(), ?("Фильтр"), ?(func), ?(func, args...)
+ * 
+ * Перебор элементов итератора
+ * !, !(), !(0), !(3), !(-3)
+ * 
+ * dict! и dict!(0) эквивалентны
+ * dict! -> 1,  dict! -> 2, dict! -> 3, dict! -> 4, dict! -> 5, dict! -> :IteratorEnd
+ * 
+ * Различия отрицательного размера возвращаемого словаря для итератора
+ * dict!(-1) -> (1,),  ...  dict!(-1) -> (5,),  dict!(-1) -> (:IteratorEnd,),  
+ * dict!(1) -> (1,),  ...  dict!(1) -> (5,),  dict!(1) -> (,),  
+ * dict!(-3) -> (1, 2, 3,),  dict!(-3) -> (4, 5, :IteratorEnd,)
+ * dict!(3) -> (1, 2, 3,), dict!(3) -> (4, 5,)
+ * 
+ * Операторы ?! и !? эквивалентны и возвращают текущие данные без перемещения указателя итератора.
+ * 
+ * Оператор ?? создает итератор и сразу его выполняет, возвращая все значения 
+ * в виде элементов словаря, т.е. аналог последовательности ?(LINQ); !(:Int64.__max__);
+ * 
+ * Оператор !! - сбрасывает итератор в начальное состояние и возвращает первый элемент
+ */
+
 ObjPtr Context::EvalIterator_(TermPtr & op) {
     ASSERT(op);
     ASSERT(op->m_left);
-    if (op->m_text.compare("?!") == 0 || op->m_text.compare("!?") == 0) {
-        if (isReservedName(op->m_left->m_text)) {
-            ObjPtr result;
-            if (op->m_left->m_text.compare("$") == 0) {
 
-                result = Obj::CreateDict();
-                for (auto &elem : getStorage_()) {
-                    ASSERT(elem.second);
-                    result->push_back(Obj::CreateString(elem.second->m_text));
-                }
-                return result;
+    ObjPtr object;
+    if (isReservedName(op->m_left->m_text)) {
+        if (op->m_left->m_text.compare("$") == 0) {
 
-            } else if (op->m_left->m_text.compare("@") == 0) {
-
-                result = Obj::CreateDict();
-                if (m_runtime && m_runtime->m_macro) {
-                    for (auto &elem : *(m_runtime->m_macro)) {
-                        result->push_back(Obj::CreateString(elem.first));
-                    }
-                }
-                return result;
-
-            } else if (op->m_left->m_text.compare("$^") == 0) {
-                return m_latter;
-            } else if (op->m_left->m_text.compare("@::") == 0) {
-
-                result = Obj::CreateDict();
-                for (auto &elem : m_static) {
-                    result->push_back(Obj::CreateString(elem.first));
-                }
-                return result;
-
-            } else if (op->m_left->m_text.compare("%") == 0) {
-            } else if (op->m_left->m_text.compare("$$") == 0) {
-            } else if (op->m_left->m_text.compare("@$") == 0) {
+            object = Obj::CreateDict();
+            for (auto &elem : getStorage_()) {
+                ASSERT(elem.second);
+                object->push_back(Obj::CreateString(elem.second->m_text));
             }
-        }
-        NL_PARSER(op, "Eval iterator for reserved word '%s' not implemented!", op->m_left->m_text.c_str());
-    } else {
+            return object;
 
-        NL_PARSER(op, "Eval iterator '%s' not implemented!", op->m_text.c_str());
+        } else if (op->m_left->m_text.compare("@") == 0) {
+
+            object = Obj::CreateDict();
+            if (m_runtime && m_runtime->m_macro) {
+                for (auto &elem : *(m_runtime->m_macro)) {
+                    object->push_back(Obj::CreateString(elem.first));
+                }
+            }
+            return object;
+
+        } else if (op->m_left->m_text.compare("$^") == 0) {
+            return m_latter;
+        } else if (op->m_left->m_text.compare("@::") == 0) {
+
+            object = Obj::CreateDict();
+            for (auto &elem : m_static) {
+                object->push_back(Obj::CreateString(elem.first));
+            }
+            return object;
+            //        } else if (op->m_left->m_text.compare("%") == 0) {
+            //        } else if (op->m_left->m_text.compare("$$") == 0) {
+            //        } else if (op->m_left->m_text.compare("@$") == 0) {
+            //        }
+        } else {
+            NL_PARSER(op, "Eval iterator for reserved word '%s' not implemented!", op->m_left->m_text.c_str());
+        }
+    } else {
+        object = EvalTerm(op->m_left, this);
     }
-    NL_PARSER(op, "Eval iterator not implemented!");
+
+    ObjPtr args = CreateArgs_(op, this);
+
+    //    args->insert(args->begin(), {
+    //        "", object
+    //    });
+
+    if (op->m_text.compare("?") == 0) {
+
+        return object->IteratorMake(args.get());
+
+    } else if (op->m_text.compare("!") == 0) {
+
+        ASSERT(!args->size() && "Argument processing not implemented");
+        return object->IteratorNext(0);
+
+    } else if (op->m_text.compare("!!") == 0) {
+
+        ASSERT(!args->size() && "Argument processing not implemented");
+        object->IteratorReset();
+        return object->IteratorData();
+
+    } else if (op->m_text.compare("?!") == 0 || op->m_text.compare("!?") == 0) {
+
+        return object->IteratorData();
+
+    } else if (op->m_text.compare("??") == 0) {
+
+        ObjPtr result;
+        int64_t val_int = std::numeric_limits<int64_t>::max();
+        if (args->empty() || (args->size() == 1 && args->at(0).second->is_integer())) {
+            result = object->IteratorMake(nullptr, false);
+            if (args->size()) {
+                val_int = args->at(0).second->GetValueAsInteger();
+            }
+        } else if (args->size() == 1 && args->at(0).second->is_string_type()) {
+            result = object->IteratorMake(args->at(0).second->GetValueAsString().c_str(), false);
+        } else if (args->size() == 2 && args->at(0).second->is_string_type() && args->at(1).second->is_integer()) {
+            result = object->IteratorMake(args->at(0).second->GetValueAsString().c_str(), false);
+            val_int = args->at(1).second->GetValueAsInteger();
+        } else {
+            LOG_RUNTIME("Iterator`s args '%s' not allowed!", args->toString().c_str());
+        }
+        return result->IteratorNext(val_int);
+
+    }
+    NL_PARSER(op, "Eval iterator '%s' not implemented!", op->m_text.c_str());
 }
 
 ObjPtr Context::EvalOpBitwise_(TermPtr & op, Context * runner) {

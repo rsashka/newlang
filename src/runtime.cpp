@@ -1335,6 +1335,7 @@ RuntimePtr RunTime::Init(StringArray args) {
     rt->GlobalNameBuildinRegister();
 
     //    nlc_prinft_sub_
+    //    LLVMAddSymbol("nlc_prinft_sub_", (void *) &nlc_prinft_sub_);
     VERIFY(rt->RegisterSystemFunc("::print(format:FmtChar, ... ):Int32 ::= %nlc_prinft_sub_ ..."));
 
 
@@ -2082,6 +2083,7 @@ ObjPtr RunTime::CreateNative(TermPtr proto, void *addr) {
                 NL_PARSER(proto, "Fail CreateNative object");
             }
     }
+    result->m_var_is_init = true;
     return result;
 }
 
@@ -2227,7 +2229,21 @@ ObjPtr RunTime::Run(TermPtr ast, Obj* args) {
     return Context::Run(m_main_ast, m_main_runner.get());
 }
 
-
+std::string RunTime::Escape(const std::string_view str) {
+    std::string result;
+    for (auto &c : str) {
+        if (c == '\n') {
+            result += "\\n";
+        } else if (c == '\t') {
+            result += "\\t";
+        } else if (c == '\r') {
+            result += "\\r";
+        } else {
+            result += c;
+        }
+    }
+    return result;
+}
 
 #if defined(__x86_64__) || defined(_M_X64) || defined(__amd64__) || defined(__amd64)
 ObjType RunTime::m_integer_type = ObjType::Int64;

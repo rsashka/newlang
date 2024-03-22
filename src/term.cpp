@@ -118,11 +118,14 @@ bool Term::CheckTermEq(const TermPtr &term1, const TermPtr &term2, bool type, Ru
     if (term1->isCall() != term2->isCall()) {
         return false;
     }
-    if (term1->m_dims.size() != term2->m_dims.size()) {
+    if (!!term1->m_dims != !!term2->m_dims) {
         return false;
     }
-    for (int i = 0; i < term1->m_dims.size(); i++) {
-        if (!CheckTermEq(term1->m_dims[i], term2->m_dims[i], false, rt)) {
+    if (term1->m_dims && term2->m_dims && term1->m_dims->size() != term2->m_dims->size()) {
+        return false;
+    }
+    for (int i = 0; term1->m_dims && i < term1->m_dims->size(); i++) {
+        if (!CheckTermEq(term1->m_dims->at(i).second, term2->m_dims->at(i).second, false, rt)) {
             return false;
         }
     }
@@ -139,7 +142,6 @@ bool Term::CheckTermEq(const TermPtr &term1, const TermPtr &term2, bool type, Ru
     }
     return CheckTermEq(term1->m_type, term2->m_type, true, rt);
 }
-
 
 void ScopeStack::PushScope(TermPtr ns, StorageTerm * storage, bool transaction) {
 
@@ -286,6 +288,7 @@ bool ScopeStack::AddName(const TermPtr var, const char * alt_name) {
 
     std::string name;
     if (alt_name) {
+        //        name = GetNamespace();
         name = alt_name;
     } else {
         name = var->m_int_name;
@@ -305,8 +308,7 @@ bool ScopeStack::AddName(const TermPtr var, const char * alt_name) {
     }
     StorageTerm &stor = getStorage_();
     if (stor.find(name) != stor.end()) {
-        NL_MESSAGE(LOG_LEVEL_INFO, var, "Var '%s' exist!", name.c_str());
-
+        NL_MESSAGE(LOG_LEVEL_INFO, var, "Var '%s' exist! (%s)", name.c_str(), stor.Dump().c_str());
         return false;
     }
     stor.insert({name, var});
@@ -324,56 +326,18 @@ bool ScopeStack::AddName(const TermPtr var, const char * alt_name) {
     return true;
 }
 
-TermPtr ScopeStack::GetObject(const TermPtr &term, RuntimePtr rt) {
-
-    //    std::string int_name;
-    //    if (isInternalName(int_name)) {
-    //    }
-    //    int_name = NormalizeName(int_name);
-    //    ASSERT();
-    //
-    //    std::string int_name;
-    //    
-    if (term->m_int_name.empty()) {
-        if (rt) {
-            LOG_RUNTIME("The term '%s' has no internal name! AST analysis required!", term->m_text.c_str());
-        } else {
-            NL_PARSER(term, "The term '%s' has no internal name! AST analysis required!", term->m_text.c_str());
-        }
-    }
-
-    TermPtr result;
-    if (term->m_int_name.compare("_") == 0) {
-        result = Term::CreateNone();
-    } else {
-        result = FindInternalName(term->m_int_name);
-        if (!result && rt && (isGlobalScope(term->m_int_name) || isTypeName(term->m_int_name))) {
-            result = rt->GlobFindProto(term->m_int_name.c_str());
-        }
-    }
-    if (!result) {
-        //#ifdef BUILD_UNITTEST
-        //            if (term->m_text.compare("__STAT_RUNTIME_UNITTEST__") == 0) {
-        //                ASSERT(term->isCall());
-        //                ASSERT(term->size() == 2);
-        //                return Obj::CreateValue(RunTime::__STAT_RUNTIME_UNITTEST__(
-        //                        parseInteger(term->at(0).second->m_text.c_str()),
-        //                        parseInteger(term->at(1).second->m_text.c_str())));
-        //            }
-        //#endif
-        NL_PARSER(term, "Object with internal name '%s' not found!", term->m_int_name.c_str());
-    }
-
-    return result;
-}
-
 TermPtr ScopeStack::FindInternalName(std::string_view int_name, RunTime *rt) {
 
     //    int_name = NormalizeName(int_name);
     if (!isInternalName(int_name)) {
-        ASSERT(isInternalName(int_name));
+        LOG_RUNTIME("'%s' is not an internal name!", int_name.begin());
     }
 
+
+    StorageTerm & stor = getStorage_();
+    if (&stor != &m_static && stor.find(int_name.begin()) != stor.end()) {
+        return stor.find(int_name.begin())->second;
+    }
 
     auto iter = rbegin();
     while (iter != rend()) {
@@ -382,9 +346,11 @@ TermPtr ScopeStack::FindInternalName(std::string_view int_name, RunTime *rt) {
         }
         iter++;
     }
+
     if (m_static.find(int_name.begin()) != m_static.end()) {
         return m_static.find(int_name.begin())->second;
     }
+
     if ((isGlobalScope(int_name) || isTypeName(int_name)) && rt) {
         return rt->GlobFindProto(int_name);
     }
@@ -605,3 +571,10 @@ bool StorageTerm::RegisterName(TermPtr term, const std::string_view syn) {
     insert({name, term});
     return true;
 }
+
+StorageTerm::StorageTerm(const StorageTerm &clone) : std::map<InternalName, TermPtr>(clone) {
+    for (auto &elem : * this) {
+        elem.second = elem.second->Clone();
+    }
+}
+

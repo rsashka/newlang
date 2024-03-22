@@ -4,11 +4,6 @@
 
 #include "pch.h"
 
-//#include "stdlib.h"
-//#include "stdio.h"
-//#include "string.h"
-//#include "sys/times.h"
-//#include "sys/vtimes.h"
 #include <sys/time.h>
 
 #include <compiler.h>
@@ -216,6 +211,8 @@ EXTERN_C int nlc_prinft_sub_(char const *format, ...);
         ObjPtr CreateFunction(TermPtr proto, TermPtr block);
         ObjPtr CreateFunction(TermPtr proto, void *addr);
 
+        
+        static std::string Escape(const std::string_view str);
         /*
          * class A {
         public:

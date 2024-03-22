@@ -331,8 +331,15 @@ bool AstAnalysis::CheckWith_(TermPtr &term, ScopeStack & stack) {
 }
 
 bool AstAnalysis::CheckTake_(TermPtr &term, ScopeStack & stack) {
-    NL_MESSAGE(LOG_LEVEL_INFO, term, "CheckTake not implemented!");
-    return false;
+
+    for (auto &elem : *term) {
+        RecursiveAnalyzer(elem.second, stack);
+    }
+    if (!term->m_follow.empty()) {
+        ASSERT(term->m_follow.size() == 1);
+        RecursiveAnalyzer(term->m_follow[0], stack);
+    }
+    return true;
 }
 
 bool AstAnalysis::CkeckRange_(TermPtr &term, ScopeStack & stack) {
@@ -418,23 +425,10 @@ bool AstAnalysis::Iterator_(TermPtr &term, ScopeStack &stack) {
     ASSERT(term->getTermID() == TermID::ITERATOR);
     ASSERT(term->m_left);
 
-    TermPtr found = LookupName(term->m_left, stack);
-
-    if (term->m_text.compare("!?") == 0 || term->m_text.compare("?!") == 0) {
-
-        return !!found && CheckError(CheckOpType(term, term, getDefaultType(ObjType::Dictionary)));
-
-    } else if (term->m_text.compare("?") == 0) {
-    } else if (term->m_text.compare("!") == 0) {
-    } else if (term->m_text.compare("??") == 0) {
-    } else if (term->m_text.compare("!!") == 0) {
-    } else {
-        NL_MESSAGE(LOG_LEVEL_INFO, term, "Unknown iterator '%s'!", term->m_text.c_str());
-        return false;
+    for (auto &elem : *term) {
+        RecursiveAnalyzer(elem.second, stack);
     }
-    NL_MESSAGE(LOG_LEVEL_INFO, term, "Iterator '%s' not implemented!", term->m_text.c_str());
-
-    return false;
+    return RecursiveAnalyzer(term->m_left, stack);
 }
 
 bool AstAnalysis::CheckOpType(TermPtr &op, TermPtr &left, TermPtr const right) {
@@ -574,13 +568,12 @@ bool AstAnalysis::CreateOp_(TermPtr &op, ScopeStack & stack) {
 
     if (!op->m_left->isCall()) {
         // Создание переменной
-        TermPtr term = op;
+        TermPtr term = op->m_left;
         TermPtr var;
         std::string int_name;
         bool name_exist;
-        while (term->m_left) {
+        while (term) {
 
-            term = op->m_left;
             int_name = stack.CreateVarName(term->m_text);
             var = LookupName(term, stack);
 
@@ -632,6 +625,15 @@ bool AstAnalysis::CreateOp_(TermPtr &op, ScopeStack & stack) {
                 if (!CheckNative_(term, op->m_right)) {
                     return false;
                 }
+            } else if (op->m_right->getTermID() == TermID::ELLIPSIS) {
+                if (!op->m_right->m_right) {
+                    NL_MESSAGE(LOG_LEVEL_INFO, op->m_right, "Object expansion not found!");
+                    return false;
+                }
+                if (!RecursiveAnalyzer(op->m_right->m_right, stack)) { //  && CheckOpType(op, term, op->m_right->m_right)
+                    return false;
+                }
+
             } else {
                 if (!RecursiveAnalyzer(op->m_right, stack) && CheckOpType(op, term, op->m_right)) {
                     return false;
@@ -672,7 +674,7 @@ bool AstAnalysis::CreateOp_(TermPtr &op, ScopeStack & stack) {
                 op->m_right->m_type = term->m_type;
             }
 
-
+            term = term->m_list;
         }
         return true;
 
@@ -693,7 +695,13 @@ bool AstAnalysis::CreateOp_(TermPtr &op, ScopeStack & stack) {
         proto->m_id = TermID::FUNCTION;
         proto->m_int_name = stack.CreateVarName(proto->m_text);
 
-        ScopePush block_args(stack, proto, nullptr, true);
+        ScopePush block_func(stack, proto, nullptr, true);
+
+        if (!stack.AddName(proto)) {
+            return false;
+        }
+
+        ScopePush block_args(stack, proto, &proto->m_int_vars, true);
 
         //  Add default args self and all args as dict
         TermPtr all = Term::CreateDict();
@@ -716,17 +724,18 @@ bool AstAnalysis::CreateOp_(TermPtr &op, ScopeStack & stack) {
                     NL_MESSAGE(LOG_LEVEL_INFO, proto->at(i).second, "Argument name expected!");
                     return false;
                 }
-                proto->at(i).first = proto->at(i).second->m_text;
-                all->push_back({stack.CreateVarName(proto->at(i).second->m_text), proto->at(i).second});
+                name = proto->at(i).second->m_text;
+                proto->at(i).first = name;
+                all->push_back({name, proto->at(i).second});
 
                 TermPtr none = Term::CreateNil();
-                none->m_int_name = stack.CreateVarName(proto->at(i).second->m_text);
+                none->m_int_name = NormalizeName(name);
                 if (!stack.AddName(none)) {
                     return false;
                 }
             } else {
-                proto->at(i).second->m_int_name = stack.CreateVarName(proto->at(i).first);
-                all->push_back({stack.CreateVarName(proto->at(i).first), proto->at(i).second});
+                proto->at(i).second->m_int_name = NormalizeName(proto->at(i).first);
+                all->push_back({proto->at(i).first, proto->at(i).second});
                 if (!stack.AddName(proto->at(i).second)) {
                     return false;
                 }
@@ -741,14 +750,10 @@ bool AstAnalysis::CreateOp_(TermPtr &op, ScopeStack & stack) {
 
         }
 
-        if (!stack.AddName(proto)) {
-            return false;
-        }
+//        ScopePush block(stack, proto, &proto->m_int_vars, true);
 
-        ScopePush block(stack, proto, &proto->m_int_vars, true);
-
-        TermPtr none = Term::CreateNil();
-        none->m_int_name = stack.CreateVarName("$0");
+        TermPtr none = Term::CreateName("$0");
+        none->m_int_name = NormalizeName(none->m_text);
 
         if (!stack.AddName(all, "$*") || !stack.AddName(none, "$0")) {
             return false;
@@ -781,6 +786,25 @@ bool AstAnalysis::CheckCall(TermPtr &proto, TermPtr &call, ScopeStack & stack) {
                 return false;
             }
             return true;
+        }
+    }
+
+    bool ell_count = false;
+    for (int i = 0; call->m_dims && i < call->m_dims->size(); i++) {
+        if (call->m_dims->at(i).second->m_id == TermID::ELLIPSIS) {
+            if (ell_count) {
+                NL_MESSAGE(LOG_LEVEL_INFO, call->m_dims->at(i).second, "Only one dimension of any size is possible!");
+                CheckError(false);
+            }
+            ell_count = true;
+        } else if (call->m_dims->at(i).second->isNone()) {
+            // Skip dim
+        } else {
+            RecursiveAnalyzer(call->m_dims->at(i).second, stack);
+            if (!(canCast(call->m_dims->at(i).second, ObjType::Integer) || canCast(call->m_dims->at(i).second, ObjType::Range))) {
+                NL_MESSAGE(LOG_LEVEL_INFO, call->m_dims->at(i).second, "Unsupported type for tensor dimension!");
+                CheckError(false);
+            }
         }
     }
 
@@ -937,6 +961,34 @@ bool AstAnalysis::CheckCall(TermPtr &proto, TermPtr &call, ScopeStack & stack) {
     return true;
 }
 
+void AstAnalysis::CheckDims(TermPtr &dims, ScopeStack & stack, bool allow_none, bool allow_ellipsis) {
+    bool is_ellipsis = false;
+    for (int index = 0; dims && index < dims->size(); index++) {
+        if (dims->at(index).second->isNone()) {
+            // Skip None
+            if (!allow_none) {
+                NL_MESSAGE(LOG_LEVEL_INFO, dims->at(index).second, "Empty dimension is not allowed!");
+                CheckError(false);
+            }
+
+        } else if (dims->at(index).second->m_id == TermID::ELLIPSIS) {
+            if (!allow_ellipsis) {
+                NL_MESSAGE(LOG_LEVEL_INFO, dims->at(index).second, "Unlimited dimension is not allowed!");
+                CheckError(false);
+            }
+            if (is_ellipsis) {
+                NL_MESSAGE(LOG_LEVEL_INFO, dims->at(index).second, "Only one dimension of unlimited is possible!");
+                CheckError(false);
+            }
+            is_ellipsis = true;
+        } else {
+            if (!RecursiveAnalyzer(dims->at(index).second, stack)) {
+                CheckError(false);
+            }
+        }
+    }
+}
+
 bool AstAnalysis::CheckCallArg(TermPtr &call, size_t arg_pos, ScopeStack & stack) {
     ASSERT(call);
     ASSERT(arg_pos < call->size());
@@ -969,30 +1021,12 @@ bool AstAnalysis::CheckCallArg(TermPtr &call, size_t arg_pos, ScopeStack & stack
             return false;
         }
 
-        if (!call->m_dims.size()) {
+        if (!call->m_dims || !call->m_dims->size()) {
             NL_MESSAGE(LOG_LEVEL_INFO, call, "Object has no dimensions!");
             return false;
         }
 
-        int64_t full_size = 1;
-        for (int dim_index = 0; dim_index < call->m_dims.size(); dim_index++) {
-
-            if (!RecursiveAnalyzer(call->m_dims[dim_index], stack)) {
-                return false;
-            }
-
-            ObjPtr size = Context::EvalTerm(call->m_dims[dim_index], nullptr);
-            if (!size || !size->is_integer()) {
-                NL_MESSAGE(LOG_LEVEL_INFO, call->m_dims[dim_index], "Dimension index support integer value only!");
-                return false;
-            }
-            full_size *= size->GetValueAsInteger();
-        }
-
-        if (full_size <= 0) {
-            NL_MESSAGE(LOG_LEVEL_INFO, fill_obj, "Items count '%ld' error for all dimensions!", full_size);
-            return false;
-        }
+        CheckDims(call->m_dims, stack, false, false);
 
         if (fill_obj->size()) {
             NL_MESSAGE(LOG_LEVEL_INFO, fill_obj, "Argument in function for filling not implemented!");
@@ -1132,7 +1166,7 @@ done:
     return result;
 }
 
-fmt::dynamic_format_arg_store<fmt::format_context> AstAnalysis::MakeFormatArgs(TermPtr args, RunTime *rt) {
+fmt::dynamic_format_arg_store<fmt::format_context> AstAnalysis::MakeFormatArgs(TermPtr args, RunTime * rt) {
 
     fmt::dynamic_format_arg_store<fmt::format_context> store;
 
@@ -1380,7 +1414,7 @@ bool AstAnalysis::Analyze(TermPtr &term, TermPtr & module) {
 
         return false;
     }
-    return true;
+    return !m_diag->m_error_count;
 }
 
 TermPtr AstAnalysis::LookupName(TermPtr &term, ScopeStack & stack) {

@@ -277,6 +277,112 @@ std::string Macro::GetMacroMaping(const std::string str, const char *separator) 
 //    return result;
 //}
 
+bool Macro::CheckMacro(const TermPtr & term) {
+    if (!term) {
+        ASSERT(term);
+    }
+    ASSERT(term->Left());
+    ASSERT(term->Right());
+
+
+    if (term->isPure()) {
+        NL_PARSER(term, "Hygienic macros are not implemented!");
+    }
+
+    TermPtr args; // Arguments @macro(name)
+    std::set<std::string> tmpl; // Templates $name
+
+    ASSERT(!term->Left()->m_macro_seq.empty());
+    for (auto &elem : Term::MakeMacroId(term->Left()->m_macro_seq)) {
+        if (elem->isCall()) {
+            if (args) {
+                NL_PARSER(elem, "Only one term in a macro can have arguments");
+            }
+            args = elem;
+        } else if (isLocalName(elem->m_text)) {
+            if (tmpl.find(elem->m_text) != tmpl.end()) {
+                NL_PARSER(elem, "Reuse of argument name!");
+            }
+            tmpl.insert(elem->m_text);
+        } else if (elem->m_id == TermID::NAME) {
+            if (isReservedName(elem->m_text)) {
+                NL_PARSER(elem, "Reserved term name used!");
+            }
+            // OK
+        } else {
+            NL_PARSER(elem, "Unexpected term in macro!");
+        }
+    }
+
+    std::set<std::string> args_name;
+
+    int arg_count = args ? args->size() : 0; // +1 to self object
+    bool named = false;
+    bool is_ellips = false;
+    for (int i = 0; args && i < args->size(); i++) {
+        if (!args->at(i).first.empty()) {
+            named = true;
+            if (args_name.find(args->at(i).first) != args_name.end()) {
+                NL_PARSER(args->at(i).second, "Reuse of argument name!");
+            }
+            args_name.insert(args->at(i).first);
+        } else {
+            if (args->at(i).second->m_id == TermID::ELLIPSIS) {
+                if (i + 1 != args->size()) {
+                    NL_PARSER(args->at(i).second, "The ellipsis can only be the last in the list of arguments!");
+                }
+                arg_count--;
+                is_ellips = true;
+                break;
+            }
+            if (named) {
+                NL_PARSER(args->at(i).second, "Positional arguments must come before named arguments!");
+            }
+        }
+        if (args_name.find(args->at(i).second->m_text) != args_name.end()) {
+            NL_PARSER(args->at(i).second, "Reuse of argument name!");
+        }
+        args_name.insert(args->at(i).second->m_text);
+    }
+
+
+    if (term->Right()->getTermID() == TermID::MACRO_SEQ) {
+
+
+        //"@$"{name}      YY_TOKEN(MACRO_ARGNAME);
+
+        //"@$..."         YY_TOKEN(MACRO_ARGUMENT);
+        //"@$*"           YY_TOKEN(MACRO_ARGUMENT); - All OK
+
+        //"@$"[0-9]+      YY_TOKEN(MACRO_ARGNUM);
+        //"@$#"           YY_TOKEN(MACRO_ARGCOUNT); - All OK
+
+        for (auto &elem : term->Right()->m_macro_seq) {
+            if (elem->m_id == TermID::MACRO_ARGUMENT && elem->m_text.compare("@$...") == 0) {
+                if (!is_ellips) {
+                    NL_PARSER(elem, "The macro has a fixed number of arguments, ellipsis cannot be used!");
+                }
+            } else if (elem->m_id == TermID::MACRO_ARGPOS) {
+                int64_t num = parseInteger(elem->m_text.substr(2).c_str());
+                if (num >= arg_count) {
+                    NL_PARSER(elem, "Invalid argument number!");
+                }
+            } else if (elem->m_id == TermID::MACRO_ARGNAME) {
+                if (args_name.find(elem->m_text.substr(2)) == args_name.end() && tmpl.find(elem->m_text.substr(1)) == tmpl.end()) {
+                    NL_PARSER(elem, "Macro argument name not found!");
+                }
+//            } else if (isLocalName(elem->m_text)) {
+//                if (args_name.find(elem->m_text.substr(1)) == args_name.end()) {
+//                    NL_PARSER(elem, "Local name without macro prefix!");
+//                }
+            }
+        }
+    }
+
+    return true;
+
+}
+
 TermPtr Macro::EvalOpMacros(const TermPtr & term) {
 
     ASSERT(term);
@@ -298,6 +404,8 @@ TermPtr Macro::EvalOpMacros(const TermPtr & term) {
     if (term->Right()->getTermID() == TermID::MACRO_DEL || term->Right()->getTermID() == TermID::END) {
         NL_PARSER(term, "For remove macro use operator @@@@ %s @@@@;)", term->Left()->m_text.c_str());
     }
+
+    CheckMacro(term);
 
 
     TermPtr macro = GetMacroById(term->GetMacroId());
@@ -335,12 +443,12 @@ TermPtr Macro::EvalOpMacros(const TermPtr & term) {
             }
         }
 
-        
+
         //@todo Сделать два типа макросов, явные и не явные (::- :- или ::= :=), что позволит 
         // контролировать обязательность указания признака макроса @ для явных макросов,
         // а не явные применять всегда (как сейчас)
-        
-        
+
+
         macro = term;
 
         iterator iter = map::find(toMacroHash(macro));
@@ -759,7 +867,8 @@ size_t Macro::ExtractArgs(BlockType &buffer, const TermPtr &term, MacroArgsType 
     int pos_id = 0; // Позиция в идентификаторе макроса
 
     std::string arg_name; // Имя аргумента
-    BlockType args_all; // Последовательность терминов для @$...
+    BlockType args_dict; // Последовательность терминов для @$*
+    BlockType args_exta; // Последовательность терминов для @$...
 
     size_t arg_count = 0; // Кол-во аругментов
     size_t arg_offset = 0; // Позиция аргумента во входном буфере
@@ -804,7 +913,7 @@ size_t Macro::ExtractArgs(BlockType &buffer, const TermPtr &term, MacroArgsType 
 
                 if (!arg_seq.empty()) {
 
-                    args_all.insert(args_all.end(), arg_seq.begin(), arg_seq.end());
+                    args_dict.insert(args_dict.end(), arg_seq.begin(), arg_seq.end());
 
                     pos_buf += arg_seq.size();
 
@@ -846,8 +955,15 @@ size_t Macro::ExtractArgs(BlockType &buffer, const TermPtr &term, MacroArgsType 
                         // }
                     }
 
+                    if (arg_ellipsys) {
+                        if (!args_exta.empty()) {
+                            args_exta.insert(args_exta.end(), Term::CreateSymbol(','));
+                        }
+                        args_exta.insert(args_exta.end(), arg_seq.begin(), arg_seq.end());
+                    }
+
                 } else if (buffer[pos_buf]->m_text == ",") {
-                    args_all.push_back(buffer[pos_buf]);
+                    args_dict.push_back(buffer[pos_buf]);
                     pos_buf++;
                 } else if (buffer[pos_buf]->m_text == ")") {
                     break;
@@ -867,17 +983,16 @@ size_t Macro::ExtractArgs(BlockType &buffer, const TermPtr &term, MacroArgsType 
     arg_name = "@$#";
     InsertArg_(args, arg_name, cnt);
 
-    arg_name = "@$...";
-    InsertArg_(args, arg_name, args_all);
-    //    LOG_DEBUG("args_all: %s", Dump(args_all).c_str());
+    InsertArg_(args, "@$...", args_exta);
+//    LOG_TEST_DUMP("args_exta: %s", Dump(args_exta).c_str());
 
     // As dictionary
-    arg_name = "@$*";
-    args_all.insert(args_all.begin(), Term::Create(parser::token_type::SYMBOL, TermID::SYMBOL, "("));
-    args_all.push_back(Term::Create(parser::token_type::SYMBOL, TermID::SYMBOL, ","));
-    args_all.push_back(Term::Create(parser::token_type::SYMBOL, TermID::SYMBOL, ")"));
+    args_dict.insert(args_dict.begin(), Term::CreateSymbol('('));
+    args_dict.push_back(Term::CreateSymbol(','));
+    args_dict.push_back(Term::CreateSymbol(')'));
+//    LOG_TEST_DUMP("args_dict: %s", Dump(args_dict).c_str());
 
-    InsertArg_(args, arg_name, args_all);
+    InsertArg_(args, "@$*", args_dict);
 
     std::string ttt;
     for (size_t j = 0; j < term->GetMacroId().size(); j++) {
@@ -1129,44 +1244,44 @@ next_escape_token:
             //                        
             //            } else 
 
-//            if (type == MACRO_MODULE) {
-//
-//                type = parser::token_type::MODULE;
-//                term->m_lexer_type = type;
-//                term->m_id = TermID::MODULE;
-//                term->m_text = GetCurrentModule();
-//
-//            }
+            //            if (type == MACRO_MODULE) {
+            //
+            //                type = parser::token_type::MODULE;
+            //                term->m_lexer_type = type;
+            //                term->m_id = TermID::MODULE;
+            //                term->m_text = GetCurrentModule();
+            //
+            //            }
 
 
-//            if (m_next_string != static_cast<uint8_t> (TermID::NONE)) {
-//
-//                if (m_next_string == static_cast<uint8_t> (TermID::STRCHAR)) {
-//                    type = parser::token_type::STRCHAR;
-//                } else {
-//                    ASSERT(m_next_string == static_cast<uint8_t> (TermID::STRWIDE));
-//                    type = parser::token_type::STRWIDE;
-//                }
-//
-//                term->m_lexer_type = type;
-//                term->m_id = static_cast<TermID> (m_next_string);
-//
-//                m_next_string = static_cast<uint8_t> (TermID::NONE);
-//
-//            } else if (type == parser::token_type::MACRO_TOSTR && lexer->m_macro_count == 0) {
-//
-//                if (term->m_text.compare("@#\"") == 0) {
-//                    m_next_string = static_cast<uint8_t> (TermID::STRWIDE);
-//                } else if (term->m_text.compare("@#'") == 0) {
-//                    m_next_string = static_cast<uint8_t> (TermID::STRCHAR);
-//                } else {
-//                    ASSERT(term->m_text.compare("@#") == 0);
-//                    //@todo Set string type default by global settings
-//                    m_next_string = static_cast<uint8_t> (TermID::STRWIDE);
-//                }
-//
-//                goto next_escape_token;
-//            }
+            //            if (m_next_string != static_cast<uint8_t> (TermID::NONE)) {
+            //
+            //                if (m_next_string == static_cast<uint8_t> (TermID::STRCHAR)) {
+            //                    type = parser::token_type::STRCHAR;
+            //                } else {
+            //                    ASSERT(m_next_string == static_cast<uint8_t> (TermID::STRWIDE));
+            //                    type = parser::token_type::STRWIDE;
+            //                }
+            //
+            //                term->m_lexer_type = type;
+            //                term->m_id = static_cast<TermID> (m_next_string);
+            //
+            //                m_next_string = static_cast<uint8_t> (TermID::NONE);
+            //
+            //            } else if (type == parser::token_type::MACRO_TOSTR && lexer->m_macro_count == 0) {
+            //
+            //                if (term->m_text.compare("@#\"") == 0) {
+            //                    m_next_string = static_cast<uint8_t> (TermID::STRWIDE);
+            //                } else if (term->m_text.compare("@#'") == 0) {
+            //                    m_next_string = static_cast<uint8_t> (TermID::STRCHAR);
+            //                } else {
+            //                    ASSERT(term->m_text.compare("@#") == 0);
+            //                    //@todo Set string type default by global settings
+            //                    m_next_string = static_cast<uint8_t> (TermID::STRWIDE);
+            //                }
+            //
+            //                goto next_escape_token;
+            //            }
 
 
 
@@ -1416,7 +1531,7 @@ next_escape_token:
                 Macro::MacroArgsType macro_args;
                 size_t size_remove = Macro::ExtractArgs(m_macro_analisys_buff, macro_done, macro_args);
 
-                //                LOG_DEBUG("buffer '%s' DumpArgs: %s", MacroBuffer::Dump(m_macro_analisys_buff).c_str(), MacroBuffer::Dump(macro_args).c_str());
+//                LOG_TEST_DUMP("buffer '%s' DumpArgs: %s", Macro::Dump(m_macro_analisys_buff).c_str(), Macro::Dump(macro_args).c_str());
 
 
                 ASSERT(size_remove);
@@ -1428,8 +1543,10 @@ next_escape_token:
                         temp += " ";
                     }
                     temp += elem->m_text;
+                    temp += ":";
+                    temp += toString(elem->m_id);
                 }
-                LOG_DEBUG("From: %s (remove %d)", temp.c_str(), (int) size_remove);
+//                LOG_TEST("From: %s (remove %d)", temp.c_str(), (int) size_remove);
 
                 m_macro_analisys_buff.erase(m_macro_analisys_buff.begin(), m_macro_analisys_buff.begin() + size_remove);
 
@@ -1467,8 +1584,10 @@ next_escape_token:
                             temp += " ";
                         }
                         temp += elem->m_text;
+                        temp += ":";
+                        temp += toString(elem->m_id);
                     }
-                    LOG_DEBUG("To: %s", temp.c_str());
+//                    LOG_TEST("To: %s", temp.c_str());
                 }
 
                 continue;
@@ -1504,7 +1623,7 @@ next_escape_token:
         *yylloc = m_macro_analisys_buff.at(0)->m_lexer_loc;
         result = m_macro_analisys_buff.at(0)->m_lexer_type;
 
-        //        LOG_DEBUG("Token (%d=%s): '%s'", result, toString((*yylval)->m_id), (*yylval)->m_text.c_str());
+//        LOG_TEST("Token (%d=%s): '%s'", result, toString((*yylval)->m_id), (*yylval)->m_text.c_str());
 
         if (m_postlex) {
 

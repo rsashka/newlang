@@ -42,6 +42,8 @@ namespace newlang {
         static ObjPtr Run(TermPtr ast, Context *runner);
 
         static ObjPtr EvalTerm(TermPtr term, Context *runner, bool rvalue = true);
+        TermPtr GetObject(const std::string_view int_name);
+        
 
         static ObjPtr StringFormat(std::string_view format, Obj &args);
         static ObjPtr StringPrintf(std::string_view format, Obj &args);
@@ -85,7 +87,7 @@ namespace newlang {
             return term->m_obj;
         }
 
-        static ObjPtr CreateArgs_(ObjPtr &args, TermPtr &term, Context * runner);
+        static ObjPtr CreateArgs_(TermPtr &term, Context * runner);
         static ObjPtr CreateDict(TermPtr &term, Context * runner);
         static ObjPtr CreateRange(TermPtr &term, Context * runner);
         static ObjPtr CreateTensor(TermPtr &term, Context * runner);
@@ -110,8 +112,9 @@ namespace newlang {
         static ObjPtr EvalOpBitwise_(TermPtr &op, Context * runner);
         static ObjPtr EvalRange_(TermPtr &op, Context * runner);
 
-        static ObjPtr EvalWhile_(TermPtr & op, Context * runner);
-        static ObjPtr EvalDoWhile_(TermPtr & op, Context * runner);
+        ObjPtr EvalTake_(TermPtr & op);
+        ObjPtr EvalWhile_(TermPtr & op);
+        ObjPtr EvalDoWhile_(TermPtr & op);
         static ObjPtr EvalFollow_(TermPtr & op, Context * runner);
 
         /**
@@ -120,7 +123,7 @@ namespace newlang {
          * @param run
          * @return 
          */
-        ObjPtr EvalBlock_(TermPtr &block, TermPtr proto);
+        ObjPtr EvalBlock_(TermPtr &block, StorageTerm &storage);
         ObjPtr EvalEval_(TermPtr & op);
 
     };

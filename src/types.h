@@ -33,6 +33,10 @@ class Context;
 class Context;
 class Module;
 
+class IntAny;
+class IntPlus;
+class IntMinus;
+
 namespace runtime {
     class  Buildin;
 }
@@ -113,30 +117,6 @@ class Error : public std::exception {
     const ObjPtr m_obj;
     char m_buffer_message[1000];
     
-};
-
-class IntAny : public std::exception {
-  public:
-
-    IntAny(const ObjPtr obj): m_obj(obj){
-    }
-
-    virtual const char *what() const noexcept override;
-    
-    const ObjPtr m_obj;
-    char m_buffer_message[1000];
-};
-
-class IntPlus : public IntAny {
-public:
-    IntPlus(const ObjPtr obj): IntAny(obj){
-    }
-};
-
-class IntMinus : public IntAny {
-public:
-    IntMinus(const ObjPtr obj): IntAny(obj){
-    }
 };
 
 
@@ -879,7 +859,7 @@ void ParserException(const char *msg, std::string &buffer, int row, int col);
     }
 
     ObjType typeFromString(TermPtr &term, RunTime *rt, bool *has_error = nullptr);
-//    ObjType typeFromString(const std::string type, RunTime *rt, bool *has_error = nullptr);
+    //    ObjType typeFromString(const std::string type, RunTime *rt, bool *has_error = nullptr);
 
     inline LLVMTypeRef toLLVMType(ObjType t, bool none_if_error = false) {
         switch (t) {
@@ -1097,7 +1077,9 @@ void ParserException(const char *msg, std::string &buffer, int row, int col);
     }
 
     inline bool isReservedName(const std::string_view name) {
-        ASSERT(name.size());
+        if (name.empty()) {
+            return false;
+        }
         if (name.size() > 3 || !(name[0] == '$' || name[0] == '@' || name[0] == '%')) {
             return name.compare("_") == 0;
         }

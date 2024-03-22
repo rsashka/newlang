@@ -235,12 +235,33 @@ TEST_F(SystemTest, Assert) {
     ASSERT_FALSE(rt->m_macro->find("assert") == rt->m_macro->end()) << rt->m_macro->Dump();
     ASSERT_FALSE(rt->m_macro->find("verify") == rt->m_macro->end()) << rt->m_macro->Dump();
 
+    ObjPtr result;
+
+    ASSERT_NO_THROW(result = rt->Run("1"));
+    ASSERT_TRUE(result);
+    ASSERT_STREQ("1", result->toString().c_str());
+
+    ASSERT_NO_THROW(result = rt->Run(":Bool(1)"));
+    ASSERT_TRUE(result);
+    ASSERT_STREQ("1", result->toString().c_str());
+
+    ASSERT_NO_THROW(result = rt->Run("1+1"));
+    ASSERT_TRUE(result);
+    ASSERT_STREQ("2", result->toString().c_str());
+
+    ASSERT_NO_THROW(result = rt->Run(":Bool(1+1)"));
+    ASSERT_TRUE(result);
+    ASSERT_STREQ("1", result->toString().c_str());
+
     TermPtr term;
+    ASSERT_NO_THROW(term = rt->GetParser()->Parse("  :Bool(1)")) << rt->Dump();
+    ASSERT_TRUE(term);
+    ASSERT_STREQ(":Bool(1)", term->toString().c_str());
 
-    ASSERT_NO_THROW(
-            term = rt->GetParser()->Parse("  :Bool(1)");
-            ) << rt->Dump();
+    ASSERT_NO_THROW(term = rt->GetParser()->Parse(":Bool(1+1)")) << rt->Dump();
+    ASSERT_TRUE(term);
 
+    
     ASSERT_NO_THROW(
             term = rt->GetParser()->Parse("@assert(1+1, 2, 'str')");
             ) << rt->Dump();
@@ -252,8 +273,6 @@ TEST_F(SystemTest, Assert) {
     ASSERT_TRUE(analisys.Analyze(term, term)) << rt->Dump();
 
     Obj args;
-    ObjPtr result;
-
     ASSERT_NO_THROW(result = rt->Run(term)) << rt->Dump();
 
     ASSERT_NO_THROW(

@@ -28,11 +28,13 @@
 
 #ifdef BUILD_UNITTEST
 // Определения только для юнит-тестов
-#define LOG_TEST(...)   LOG_MAKE(LOG_LEVEL_DEBUG, "T:", ##__VA_ARGS__)
+#define LOG_TEST(...)       LOG_MAKE(LOG_LEVEL_DEBUG, "T:", ##__VA_ARGS__)
+#define LOG_TEST_DUMP(...)  LOG_MAKE(LOG_LEVEL_DUMP, "TD:", ##__VA_ARGS__)
 #define SCOPE(scope) public
 #else
 // Исключаются при обычной сборке
 #define LOG_TEST(...)
+#define LOG_TEST_DUMP(...)
 #define SCOPE(scope) scope
 #endif
 

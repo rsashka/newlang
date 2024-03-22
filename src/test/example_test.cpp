@@ -107,11 +107,11 @@ TEST(Example, DISABLED_SpeedNewLang) {
     ObjPtr test_convert = rt->Run("test_convert(sym:Int8):Int8 := %convert ...");
     ASSERT_TRUE(test_convert);
 
-//    [c == 'A'] --> 'C',
-//    [c == 'C'] --> 'G',
-//    [c == 'G'] --> 'T',
-//    [c == 'T'] --> 'A',
-//    [_] --> ' ';    
+    //    [c == 'A'] --> 'C',
+    //    [c == 'C'] --> 'G',
+    //    [c == 'G'] --> 'T',
+    //    [c == 'T'] --> 'A',
+    //    [_] --> ' ';    
 
     test = rt->Run("test_convert(65)", nullptr);
     ASSERT_TRUE(test);
@@ -140,9 +140,9 @@ TEST(Example, DISABLED_SpeedNewLang) {
     ASSERT_TRUE(test);
     ASSERT_STREQ("65", test->GetValueAsString().c_str());
 
-//    ASSERT_NO_THROW(test = rt->Run("test_convert('A')"));
-//    ASSERT_TRUE(test);
-//    ASSERT_STREQ("C", test->GetValueAsString().c_str());
+    //    ASSERT_NO_THROW(test = rt->Run("test_convert('A')"));
+    //    ASSERT_TRUE(test);
+    //    ASSERT_STREQ("C", test->GetValueAsString().c_str());
 
     ASSERT_NO_THROW(test = rt->Run("test_convert(:Int8(str[0]))"));
     ASSERT_TRUE(test);
@@ -219,7 +219,7 @@ TEST(Example, DISABLED_SpeedNewLang) {
      */
 }
 
-TEST(Example, DISABLED_Rational) {
+TEST(Example, Rational) {
 
     RuntimePtr rt = RunTime::Init();
     ASSERT_TRUE(rt);
@@ -236,15 +236,18 @@ TEST(Example, DISABLED_Rational) {
     //    1;
     //};
 
-    ObjPtr str = rt->Run("str := 'ABCDEF\\n';");
+    ObjPtr str;
+    ASSERT_NO_THROW(str = rt->Run("str := 'ABCDEF\\n';"));
     ASSERT_TRUE(str);
     ASSERT_STREQ("ABCDEF\n", str->GetValueAsString().c_str());
 
-    ObjPtr test_printf = rt->Run("test_printf := :Pointer('printf(format:FmtChar, ...):Int32')");
+    ObjPtr test_printf;
+    ASSERT_NO_THROW(test_printf = rt->Run("test_printf(format:FmtChar, ...):Int32 := %printf...")) << rt->Dump() << "\n" << rt->m_main_ast->m_int_vars.Dump();
     ASSERT_TRUE(test_printf);
-    ASSERT_STREQ("test_printf={ }", test_printf->GetValueAsString().c_str());
+    ASSERT_STREQ("test_printf::(format:FmtChar, ...):Int32{ }", test_printf->toString().c_str());
 
-    ObjPtr iter = rt->Run("iterator := (1, 5, 9999,)?");
+    ObjPtr iter;
+    ASSERT_NO_THROW(iter = rt->Run("iterator := (1, 5, 9999,)?"));
     ASSERT_TRUE(iter);
     ASSERT_TRUE(iter->getType() == ObjType::Iterator);
     ASSERT_TRUE(iter->m_iterator);
@@ -261,59 +264,89 @@ TEST(Example, DISABLED_Rational) {
     ASSERT_TRUE(str_frac->getType() == ObjType::StrChar) << newlang::toString(str_frac->getType());
     ASSERT_STREQ("999\\123", str_frac->GetValueAsString().c_str()) << str_frac->GetValueAsString();
 
-    ObjPtr test_prn = rt->Run("test_printf('%s', :StrChar(test_frac))");
+    ObjPtr test_prn = rt->Run("test_printf('%s\\n', :StrChar(test_frac))");
     ASSERT_TRUE(test_prn);
-    ASSERT_STREQ("7", test_prn->GetValueAsString().c_str());
+    ASSERT_STREQ("8", test_prn->GetValueAsString().c_str());
 
-    ObjPtr test_arg = rt->Run("test_arg(arg:Rational) := {$arg}");
+    ObjPtr test_arg;
+    ASSERT_NO_THROW(test_arg = rt->Run("test_arg(arg:Rational) := {$arg*$arg}"));
     ASSERT_TRUE(test_arg);
     ASSERT_TRUE(test_arg->is_function_type());
     ASSERT_FALSE(test_arg->is_none_type());
-    ASSERT_STREQ("test_arg={ }", test_arg->GetValueAsString().c_str());
+    ASSERT_STREQ("test_arg::(arg:Rational){ }", test_arg->toString().c_str());
 
 
 
-    //    ObjPtr frac_test;
-    //    ASSERT_ANY_THROW(test_arg->Call(&ctx)); // Нет обязательно аргумента
-    //    ASSERT_ANY_THROW(test_arg->Call(&ctx, Obj::Arg("неправильный тип аругумента")));
-    //
-    //    frac_test = test_arg->Call(&ctx, Obj::Arg(1));
-    //    ASSERT_TRUE(frac_test);
-    //    ASSERT_EQ(ObjType::Rational, frac_test->getType()) << newlang::toString(frac_test->getType());
-    //
-    //    frac_test = rt->Run("test_arg(1)", nullptr);
-    //    ASSERT_TRUE(frac_test);
-    //    ASSERT_STREQ("1\\1", frac_test->GetValueAsString().c_str());
-    //
-    //
-    //
-    //    Logger::LogLevelType save = Logger::Instance()->SetLogLevel(LOG_LEVEL_INFO);
-    //    std::chrono::steady_clock::time_point begin = std::chrono::steady_clock::now();
-    //    ObjPtr result = rt->RunFile("../examples/rational.src");
-    //    std::chrono::steady_clock::time_point end = std::chrono::steady_clock::now();
-    //    Logger::Instance()->SetLogLevel(save);
-    //
-    //
-    //
-    //    ASSERT_TRUE(result);
-    //    ASSERT_TRUE(result->is_string_type()) << result->toString();
-    //    ASSERT_STREQ("OK", result->GetValueAsString().c_str());
-    //
-    //
-    //    int sec = (int) std::chrono::duration_cast<std::chrono::seconds>(end - begin).count();
-    //    int ms = (int) std::chrono::duration_cast<std::chrono::microseconds>(end - begin).count() % 1000000;
-    //    LOG_INFO("Test rational complete at %d.%d sec", sec, ms);
-    //
-    //    save = Logger::Instance()->SetLogLevel(LOG_LEVEL_INFO);
-    //    begin = std::chrono::steady_clock::now();
-    //    result = rt->RunFile("\\\\('../examples/rational.src')");
-    //    end = std::chrono::steady_clock::now();
-    //    Logger::Instance()->SetLogLevel(save);
-    //
-    //
-    //    ASSERT_TRUE(result);
-    //    ASSERT_TRUE(result->is_string_type()) << result->toString();
-    //    ASSERT_STREQ("OK", result->GetValueAsString().c_str());
+    ObjPtr frac_test;
+    ASSERT_ANY_THROW(frac_test = rt->Run("test_arg()"));
+    ASSERT_ANY_THROW(frac_test = rt->Run("test_arg('')"));
+
+    ASSERT_NO_THROW(frac_test = rt->Run("test_arg(1)"))
+            << rt->m_main_ast->m_int_vars.Dump() << "\n"
+            << rt->m_main_ast->m_int_vars.find("test_arg$")->second->m_int_vars.Dump();
+
+    ASSERT_TRUE(frac_test);
+    ASSERT_EQ(ObjType::Rational, frac_test->getType()) << newlang::toString(frac_test->getType());
+    ASSERT_STREQ("1\\1", frac_test->GetValueAsString().c_str());
+
+    ASSERT_NO_THROW(frac_test = rt->Run("test_arg(2\\1)"));
+    ASSERT_TRUE(frac_test);
+    ASSERT_STREQ("4\\1", frac_test->GetValueAsString().c_str());
+
+    ObjPtr iter_test;
+    ASSERT_NO_THROW(iter_test = rt->Run("iter_test := :Int64(5+1)..1..-1?"));
+    ASSERT_TRUE(iter_test);
+    ASSERT_STREQ(":Iterator", iter_test->toString().c_str());
+
+    ObjPtr fact_range_test;
+    ASSERT_NO_THROW(fact_range_test = rt->Run(""
+            "n:=1\\1;"
+            "iter_cnt := @iter(6..1..-1);"
+            "[ @curr(iter_cnt) ] <-> {"
+            "   print('1: n=%s, iter=%s\\n', :StrChar(n), :StrChar(@curr(iter_cnt)));"
+            "   n *= @next(iter_cnt);"
+            "   print('2: n=%s\\n', :StrChar(n));"
+            "};"
+            "n;"
+            ));
+    ASSERT_TRUE(fact_range_test);
+    ASSERT_STREQ("720\\1", fact_range_test->toString().c_str());
+
+    ObjPtr result;
+
+    ASSERT_NO_THROW(result = rt->RunFile("../examples/fact_40.src"));
+    ASSERT_TRUE(result);
+    ASSERT_STREQ("815915283247897734345611269596115894272000000000\\1", result->GetValueAsString().c_str());
+    
+    ASSERT_NO_THROW(result = rt->RunFile("../examples/fact_40_dsl.src"));
+    ASSERT_TRUE(result);
+    ASSERT_STREQ("815915283247897734345611269596115894272000000000\\1", result->GetValueAsString().c_str());
+    
+
+    Logger::LogLevelType save = Logger::Instance()->SetLogLevel(LOG_LEVEL_INFO);
+    std::chrono::steady_clock::time_point begin = std::chrono::steady_clock::now();
+    ASSERT_NO_THROW(result = rt->RunFile("../examples/rational.src"));
+    std::chrono::steady_clock::time_point end = std::chrono::steady_clock::now();
+    Logger::Instance()->SetLogLevel(save);
+
+    ASSERT_TRUE(result);
+    ASSERT_STREQ("402387260077093773543702433923003985719374864210714632543799910429938512398629020592044208486969404800479988610197196058631666872994808558901323829669944590997424504087073759918823627727188732519779505950995276120874975462497043601418278094646496291056393887437886487337119181045825783647849977012476632889835955735432513185323958463075557409114262417474349347553428646576611667797396668820291207379143853719588249808126867838374559731746136085379534524221586593201928090878297308431392844403281231558611036976801357304216168747609675871348312025478589320767169132448426236131412508780208000261683151027341827977704784635868170164365024153691398281264810213092761244896359928705114964975419909342221566832572080821333186116811553615836546984046708975602900950537616475847728421889679646244945160765353408198901385442487984959953319101723355556602139450399736280750137837615307127761926849034352625200015888535147331611702103968175921510907788019393178114194545257223865541461062892187960223838971476088506276862967146674697562911234082439208160153780889893964518263243671616762179168909779911903754031274622289988005195444414282012187361745992642956581746628302955570299024324153181617210465832036786906117260158783520751516284225540265170483304226143974286933061690897968482590125458327168226458066526769958652682272807075781391858178889652208164348344825993266043367660176999612831860788386150279465955131156552036093988180612138558600301435694527224206344631797460594682573103790084024432438465657245014402821885252470935190620929023136493273497565513958720559654228749774011413346962715422845862377387538230483865688976461927383814900140767310446640259899490222221765904339901886018566526485061799702356193897017860040811889729918311021171229845901641921068884387121855646124960798722908519296819372388642614839657382291123125024186649353143970137428531926649875337218940694281434118520158014123344828015051399694290153483077644569099073152433278288269864602789864321139083506217095002597389863554277196742822248757586765752344220207573630569498825087968928162753848863396909959826280956121450994871701244516461260379029309120889086942028510640182154399457156805941872748998094254742173582401063677404595741785160829230135358081840096996372524230560855903700624271243416909004153690105933983835777939410970027753472000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000\\1", result->GetValueAsString().c_str());
+
+    int sec = (int) std::chrono::duration_cast<std::chrono::seconds>(end - begin).count();
+    int ms = (int) std::chrono::duration_cast<std::chrono::microseconds>(end - begin).count() % 1000000;
+    LOG_INFO("Test factorial 1000! complete at %d.%d sec", sec, ms);
+    
+
+//    save = Logger::Instance()->SetLogLevel(LOG_LEVEL_INFO);
+//    begin = std::chrono::steady_clock::now();
+//    result = rt->RunFile("\\\\('../examples/rational.src')");
+//    end = std::chrono::steady_clock::now();
+//    Logger::Instance()->SetLogLevel(save);
+//
+//
+//    ASSERT_TRUE(result);
+//    ASSERT_TRUE(result->is_string_type()) << result->toString();
+//    ASSERT_STREQ("OK", result->GetValueAsString().c_str());
 
 }
 
@@ -401,7 +434,7 @@ TEST(Example, Tensor) {
 
     ASSERT_TRUE(result);
     ASSERT_TRUE(result->is_integer()) << result->toString();
-    ASSERT_TRUE(result->GetValueAsInteger() > 300) << result->toString();
+    ASSERT_TRUE(result->GetValueAsInteger() == 20) << result->toString();
 
 
     //    save = Logger::Instance()->SetLogLevel(LOG_LEVEL_INFO);

@@ -336,24 +336,24 @@ TEST(Ast, ScopeStack) {
     ASSERT_TRUE(ns_stack.AddName(name4)) << ns_stack.Dump();
 
     ASSERT_TRUE(temp = ns_stack.LookupName("name4")) << ns_stack.Dump();
-    ASSERT_EQ(temp.get(), name4.get());
+    ASSERT_EQ(temp.get(), name4.get()) << ns_stack.Dump();
     ASSERT_TRUE(temp = ns_stack.LookupName("$name4")) << ns_stack.Dump();
-    ASSERT_EQ(temp.get(), name4.get());
+    ASSERT_EQ(temp.get(), name4.get()) << ns_stack.Dump();
 
     ASSERT_TRUE(temp = ns_stack.LookupName("name1")) << ns_stack.Dump();
-    ASSERT_EQ(temp.get(), name1.get());
+    ASSERT_EQ(temp.get(), name1.get()) << ns_stack.Dump();
     ASSERT_TRUE(temp = ns_stack.LookupName("$name1")) << ns_stack.Dump();
-    ASSERT_EQ(temp.get(), name1.get());
+    ASSERT_EQ(temp.get(), name1.get()) << ns_stack.Dump();
 
     ASSERT_TRUE(temp = ns_stack.LookupName("name2")) << ns_stack.Dump();
-    ASSERT_EQ(temp.get(), name2.get());
+    ASSERT_EQ(temp.get(), name2.get()) << temp->toString() << " " << name2->toString() << " " << ns_stack.Dump();
     ASSERT_TRUE(temp = ns_stack.LookupName("$name2")) << ns_stack.Dump();
-    ASSERT_EQ(temp.get(), name2.get());
+    ASSERT_EQ(temp.get(), name2.get()) << ns_stack.Dump();
 
     ASSERT_TRUE(temp = ns_stack.LookupName("name3")) << ns_stack.Dump();
-    ASSERT_EQ(temp.get(), name3.get());
+    ASSERT_EQ(temp.get(), name3.get()) << ns_stack.Dump();
     ASSERT_TRUE(temp = ns_stack.LookupName("$name3")) << ns_stack.Dump();
-    ASSERT_EQ(temp.get(), name3.get());
+    ASSERT_EQ(temp.get(), name3.get()) << ns_stack.Dump();
 
 
 
@@ -1065,9 +1065,49 @@ TEST(Ast, Interruption) {
     //    //    ASSERT_EQ(3, rt->size() - buildin_count);
     //    //    ASSERT_EQ(1, ast->m_variables.size());
     //    //    ASSERT_STREQ("name$var", ast->m_variables.begin()->second.proto->m_text.c_str());
-
-
 }
+
+TEST(Ast, Dims) {
+    // :Bool[...]() - OK
+    // :Bool[0]() - Error !!!!!!!!!!!!!!!!!
+    // :Bool() - Ok
+    // :Bool[..., ...]() - Error !!!!!!!!!!!!!!!!!
+
+    RuntimePtr rt = RunTime::Init();
+    ASSERT_TRUE(rt);
+    AstAnalysis analysis(*rt, rt->m_diag.get());
+
+    TermPtr ast;
+    ast = rt->GetParser()->Parse(":Bool(1)");
+    ASSERT_TRUE(analysis.Analyze(ast, ast));
+
+    ASSERT_ANY_THROW(ast = rt->GetParser()->Parse(":Bool[](1)"));
+
+    AstAnalysis analysis2(*rt, rt->m_diag.get());
+    ast = rt->GetParser()->Parse(":Bool[...](1)");
+    ASSERT_TRUE(analysis2.Analyze(ast, ast));
+
+    AstAnalysis analysis3(*rt, rt->m_diag.get());
+    ast = rt->GetParser()->Parse(":Bool[ ..., ...](1)");
+    ASSERT_FALSE(analysis3.Analyze(ast, ast));
+
+    AstAnalysis analysis4(*rt, rt->m_diag.get());
+    ast = rt->GetParser()->Parse(":Bool[0](1)");
+    ASSERT_TRUE(analysis4.Analyze(ast, ast));
+
+    AstAnalysis analysis5(*rt, rt->m_diag.get());
+    ast = rt->GetParser()->Parse(":Bool[_](1)");
+    ASSERT_TRUE(analysis5.Analyze(ast, ast));
+
+    AstAnalysis analysis6(*rt, rt->m_diag.get());
+    ast = rt->GetParser()->Parse(":Bool[0..1..2](1)");
+    ASSERT_TRUE(analysis6.Analyze(ast, ast));
+
+    AstAnalysis analysis7(*rt, rt->m_diag.get());
+    ast = rt->GetParser()->Parse("0.._..2");
+    ASSERT_TRUE(analysis7.Analyze(ast, ast));
+}
+
 
 //TEST(Ast, ClassFunc) {
 //

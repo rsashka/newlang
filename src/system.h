@@ -155,7 +155,7 @@ namespace newlang {
                     VERIFY(CreateMacro("@@ and @@ ::= @@ && @@"));
                     VERIFY(CreateMacro("@@ or @@ ::= @@ || @@"));
                     VERIFY(CreateMacro("@@ xor @@ ::= @@ ^^ @@"));
-                    VERIFY(CreateMacro("@@ not(value) @@ ::= @@ (:Bool($value)==0) @@"));
+                    VERIFY(CreateMacro("@@ not(value) @@ ::= @@ (:Bool(@$value)==0) @@"));
 
 //                    VERIFY(CreateMacro("@@ root() @@ ::= @@ @# @\\\\ @@"));
 //                    VERIFY(CreateMacro("@@ module() @@ ::= @@ @# $\\\\ @@"));
@@ -163,10 +163,10 @@ namespace newlang {
 //                    VERIFY(CreateMacro("@@ namespace() @@ ::= @@ @# @:: @@"));
                     VERIFY(CreateMacro("@@ module() @@ ::= @@ @$$ @@"));
                     VERIFY(CreateMacro("@@ static @@ ::= @@ @:: @@"));
-                    VERIFY(CreateMacro("@@ package @@ ::= @@  @$$ = @# @$name @@"));
+                    VERIFY(CreateMacro("@@ package $name @@ ::= @@  @$$ = @# @$name @@"));
                     VERIFY(CreateMacro("@@ declare( obj ) @@ ::= @@ @$obj ::= ... @@  ##< Forward declaration of the object"));
 
-                    VERIFY(CreateMacro("@@ typedef($cnt) @@ ::= @@ @__PRAGMA_TYPE_DEFINE__(@$cnt) @@ ##< Disable warning when defining a type inside a namespace"));
+                    VERIFY(CreateMacro("@@ typedef(cnt) @@ ::= @@ @__PRAGMA_TYPE_DEFINE__(@$cnt) @@ ##< Disable warning when defining a type inside a namespace"));
 
                     VERIFY(CreateMacro("@@ coroutine @@ ::= @@ __ANNOTATION_SET__(coroutine) @@"));
                     VERIFY(CreateMacro("@@ co_yield  $val  @@ ::= @@ __ANNOTATION_CHECK__(coroutine) @__FUNC_BLOCK__ :: -- @$val -- @@"));
@@ -202,8 +202,8 @@ namespace newlang {
                 VERIFY(CreateMacro("@@ static_assert(...) @@ ::= @@ @__PRAGMA_STATIC_ASSERT__(@$... ) @@"));
 
                 if (assert_enable) {
-                    VERIFY(CreateMacro("@@ assert(value, ...) @@ ::= @@ [:Bool(@$value)==0]-->{ ::Base::__assert_abort__(@# @$value, @$... ) } @@"));
-                    VERIFY(CreateMacro("@@ verify(value, ...) @@ ::= @@ [:Bool(@$value)==0]-->{ ::Base::__assert_abort__(@# @$value, @$... ) } @@"));
+                    VERIFY(CreateMacro("@@ assert(value, ...) @@ ::= @@ [:Bool(@$value)==0]-->{ ::Base::__assert_abort__(@# @$value, @$value, @$... ) } @@"));
+                    VERIFY(CreateMacro("@@ verify(value, ...) @@ ::= @@ [:Bool(@$value)==0]-->{ ::Base::__assert_abort__(@# @$value, @$value, @$... ) } @@"));
                 } else {
                     VERIFY(CreateMacro("@@ assert(value, ...) @@ ::= @@ (_) @@"));
                     VERIFY(CreateMacro("@@ verify(value, ...) @@ ::= @@ (@$value) @@"));

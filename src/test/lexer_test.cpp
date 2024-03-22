@@ -86,38 +86,19 @@ TEST_F(Lexer, Word) {
     EXPECT_STREQ("three", tokens[2]->getText().c_str()) << tokens[2]->getText().c_str();
 }
 
-//TEST_F(Lexer, StrvarEmpty) {
-//    ASSERT_EQ(0, Parse(""));
-//    ASSERT_EQ(1, Parse("``"));
-//    EXPECT_EQ(1, Count(TermID::STRVAR));
-//    EXPECT_STREQ("", tokens[0]->getText().c_str()) << tokens[0]->getText();
-//}
-//
-//TEST_F(Lexer, StrvarSimple) {
-//    ASSERT_EQ(1, Parse("` `"));
-//    EXPECT_EQ(1, Count(TermID::STRVAR));
-//    EXPECT_STREQ(" ", tokens[0]->getText().c_str()) << tokens[0]->getText();
-//}
-//
-//TEST_F(Lexer, FullStrvar) {
-//    ASSERT_EQ(1, Parse("` ${123} \t \xFF\r@\"`"));
-//    EXPECT_EQ(1, Count(TermID::STRVAR));
-//    EXPECT_STREQ(" ${123} \t \xFF\r\"", tokens[0]->getText().c_str()) << tokens[0]->getText();
-//}
-
 TEST_F(Lexer, Template) {
     ASSERT_EQ(1, TokenParse("\"\"\"\"\"\""));
     EXPECT_EQ(1, Count(TermID::TEMPLATE));
     EXPECT_STREQ("", tokens[0]->getText().c_str()) << tokens[0]->getText();
 }
 
-TEST_F(Lexer, DISABLED_Template2) {
+TEST_F(Lexer, Template2) {
     ASSERT_EQ(1, TokenParse("\"\"\" ${123} \n \"\"\""));
     EXPECT_EQ(1, Count(TermID::TEMPLATE));
     EXPECT_STREQ(" ${123} \n ", tokens[0]->getText().c_str()) << tokens[0]->getText();
 }
 
-TEST_F(Lexer, DISABLED_Template3) {
+TEST_F(Lexer, Template3) {
     ASSERT_EQ(1, TokenParse("''' ${123} \n\t '''"));
     EXPECT_EQ(1, Count(TermID::TEMPLATE));
     EXPECT_STREQ(" ${123} \n\t ", tokens[0]->getText().c_str()) << tokens[0]->getText();
@@ -463,8 +444,11 @@ TEST_F(Lexer, Alias) {
 TEST_F(Lexer, Macro) {
 
     ASSERT_EQ(1, TokenParse("@$arg")) << Dump();
-    EXPECT_EQ(1, Count(TermID::MACRO_ARGUMENT)) << Dump();
+    EXPECT_EQ(1, Count(TermID::MACRO_ARGNAME)) << Dump();
 
+    ASSERT_EQ(1, TokenParse("@$1")) << Dump();
+    EXPECT_EQ(1, Count(TermID::MACRO_ARGPOS)) << Dump();
+    
     //    ASSERT_EQ(1, TokenParse("@$name(*)")) << Dump();
     //    EXPECT_EQ(1, Count(TermID::MACRO_ARGUMENT));
     //    ASSERT_EQ(1, TokenParse("@$name[*]")) << Dump();
@@ -530,7 +514,7 @@ TEST_F(Lexer, Macro) {
     EXPECT_EQ(1, Count(TermID::CREATE_OVERLAP));
     EXPECT_EQ(2, Count(TermID::MACRO_SEQ));
     EXPECT_EQ(1, Count(TermID::FOLLOW));
-    EXPECT_EQ(1, Count(TermID::MACRO_ARGUMENT)) << Dump();
+    EXPECT_EQ(1, Count(TermID::MACRO_ARGNAME)) << Dump();
 }
 
 TEST_F(Lexer, Ignore) {

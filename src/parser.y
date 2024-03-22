@@ -172,6 +172,9 @@
 %token			MACRO_TOSTR     "Macro to string"
 %token			MACRO_ARGUMENT  "Macro argument"
 %token			MACRO_ARGCOUNT  "Macro args count"
+%token			MACRO_ARGPOS    "Macro argument pos"
+%token			MACRO_ARGNAME   "Macro argument name"
+
 
 %token			MACRO_NAMESPACE
 
@@ -387,21 +390,31 @@ name:   ns_part
             {
                 $$ = $1;
             }
+        | MACRO_ARGPOS
+            {
+                $$ = $1;
+            }
+        | MACRO_ARGNAME
+            {
+                $$ = $1;
+            }
+        
+        
 
 /* Фиксированная размерность тензоров для использования в типах данных */
-type_dim: INTEGER
+type_dim: rval_var
         {
             $$ = $1;
+        }
+    | NAME  '='  rval_var
+        { // torch поддерживает именованные диапазоны, но пока незнаю, нужны ли они?
+            $$ = $3;
+            $$->SetName($1->getText());
         }
     |  ELLIPSIS
         {
             // Произвольное количество элементов
             $$ = $1; 
-        }
-    | NAME  '='  INTEGER
-        { // torch поддерживает именованные диапазоны, но пока незнаю, нужны ли они?
-            $$ = $3;
-            $$->SetName($1->getText());
         }
 
 type_dims: type_dim
@@ -454,7 +467,8 @@ type_name:  type_class
         |  type_class   '['  type_dims   ']'
             {
                 $$ = $1;
-                Term::ListToVector($type_dims, $$->m_dims);
+                $$->m_dims = $2;
+                $$->m_dims->SetArgs($type_dims);
             }
         | ':'  ptr  NAME
             {
@@ -468,7 +482,8 @@ type_name:  type_class
                 // Для функций, возвращаюющих ссылки
                 $$ = $3;
                 $$->m_text.insert(0, ":");
-                Term::ListToVector($type_dims, $$->m_dims);
+                $$->m_dims = $type_dims;
+                $$->m_dims->SetArgs($type_dims);
                 $$->MakeRef($ptr);
             }
 
@@ -585,6 +600,10 @@ range: range_val  RANGE  range_val
         
         
 name_to_concat:  MACRO_ARGUMENT  
+        {
+            $$ = $1;
+        }
+    |  MACRO_ARGNAME
         {
             $$ = $1;
         }
@@ -774,7 +793,7 @@ lval_obj: assign_name
             }        
         
         
-take:   TAKE 
+take:   TAKE  /*  *^  */
         {
             $$ = $1;
             $$->SetTermID(TermID::TAKE);
@@ -790,15 +809,15 @@ lval:  lval_obj
             {
                 $$ = $1; 
             }
-        |  take   lval_obj
+        |  take  rval_name
             {
                 $$ = $1;
-                $$->SetArgs($lval_obj);
+                $$->SetArgs($2);
             } 
-        |  take '('  lval_obj  ')'
+        |  take  call
             {
                 $$ = $1;
-                $$->SetArgs($lval_obj);
+                $$->SetArgs($call);
             } 
         |  type_item
             {   
@@ -918,6 +937,11 @@ iter_call:  iter  '('  args   ')'
             {
                 $$ = $1;
                 $$->SetArgs($args);
+            }
+        | iter  '('  ')'
+            {
+                $$ = $1;
+                $$->SetArgs(nullptr);
             }
 
         
@@ -1445,6 +1469,11 @@ block_any: block
             {
                 $$ = $1;
             }
+        |  WITH  try_any
+            {
+                $$ = $2;
+                $$->Append($1, Term::LEFT); 
+            }
 
 block_all: block_any
             {
@@ -1730,7 +1759,7 @@ factor:   rval_var
                 $$ = Term::Create(token::OP_MATH, TermID::OP_MATH, "-", 1,  & @$);
                 $$->Append($2, Term::RIGHT); 
             }
-        | '('  arithmetic  ')'
+        | '('  logical  ')'
             {
                 $$ = $2; 
             }
@@ -2064,27 +2093,27 @@ with_args: with_arg
     
 with: with_op  '('  rval_name  ')'   body
         {
-                $$ = $1; 
-                $$->Append($3, Term::LEFT); 
+                $$ = $1;
+                $$->SetArgs($3);
                 $$->Append($5, Term::RIGHT); 
         }
     | with_op  '('  with_args  ')'  body
         {
                 $$ = $1; 
-                $$->Append($3, Term::LEFT); 
+                $$->SetArgs($3);
                 $$->Append($5, Term::RIGHT); 
         }
     |  with_op  '('  rval_name  ')'  body  body_else
         {
                 $$ = $1; 
-                $$->Append($3, Term::LEFT); 
+                $$->SetArgs($3);
                 $$->Append($5, Term::RIGHT); 
                 $$->AppendFollow($body_else); 
         }
     |  with_op  '('  with_args  ')'  body  body_else
         {
                 $$ = $1; 
-                $$->Append($3, Term::LEFT); 
+                $$->SetArgs($3);
                 $$->Append($5, Term::RIGHT); 
                 $$->AppendFollow($body_else); 
         }
