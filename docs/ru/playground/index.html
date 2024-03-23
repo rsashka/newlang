@@ -134,6 +134,7 @@
 </div>
 <div>
     <button onclick="run_playground()">Playground run</button>
+    <progress id="progress" max="0" value="0" style="display:none">0%</progress>
 </div>
 <div id="pg_out_div" class="pg_out" style="display:none">
     <label class="pg_out" style="display:none" >Playground version:</label>
@@ -243,19 +244,35 @@ function keyup(obj, e)
 
 
 
-
+var reverse_counter;
+var downloadTimer;
 
 function run_playground(){   
+
+    var max_timeout = 10000;
+    reverse_counter = max_timeout ;
+    downloadTimer = setInterval(function(){
+        document.getElementById("progress").value = max_timeout - reverse_counter;
+        reverse_counter -= 100;
+        if(reverse_counter <= 0) {
+            clearInterval(downloadTimer);
+            document.getElementById('progress').style.display = "none";
+        }
+        document.getElementById("progress").innerHTML= reverse_counter;
+    },100);
+    document.getElementById('progress').value = 0;
+    document.getElementById('progress').max = max_timeout;
+    document.getElementById('progress').style.display = "";
 
     //document.getElementById('pg_out_div').style.display = 'none';
 
     for (let el of document.querySelectorAll('.pg_out')) {
         el.style.display="none";
     }
-
+    
     // 1. Создаём новый XMLHttpRequest-объект
     let xhr = new XMLHttpRequest();
-    xhr.timeout = 5000;
+    xhr.timeout = max_timeout;
     xhr.responseType = 'json';
     
     let server = 'http://81.200.157.226';
@@ -283,6 +300,10 @@ function run_playground(){
             el.style.display="";
         }
 
+        clearInterval(downloadTimer);
+        document.getElementById('progress').value = document.getElementById('progress').max;
+        document.getElementById('progress').style.display = "none";
+
         if (xhr.status != 200) { // анализируем HTTP-статус ответа, если статус не 200, то произошла ошибка
             alert(`Error ${xhr.status}: ${xhr.statusText}`); // Например, 404: Not Found
             out.classList.add("error");
@@ -303,8 +324,16 @@ function run_playground(){
     };
 
     xhr.onerror = function() {
+        clearInterval(downloadTimer);
+        document.getElementById('progress').style.display = "none";
         document.getElementById('playground_out').classList.add("error");
         alert("Request failed!");
+    };
+
+    xhr.ontimeout = (e) => {
+        clearInterval(downloadTimer);
+        document.getElementById('progress').style.display = "none";
+        alert("Run query timeout!");
     };
 }
 </script>
