@@ -1,0 +1,1113 @@
+<!doctype html>
+<html itemscope itemtype="http://schema.org/WebPage" lang="en" class="no-js">
+  <head><script src="/livereload.js?mindelay=10&amp;v=2&amp;port=1313&amp;path=livereload" data-no-instant defer></script>
+    <meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+<link rel="canonical" type="text/html" href="http://localhost:1313/docs/types/">
+<link rel="alternate" type="application/rss&#43;xml" href="http://localhost:1313/docs/types/index.xml">
+<meta name="robots" content="noindex, nofollow">
+
+
+<link rel="shortcut icon" href="/favicons/favicon.ico" >
+<link rel="apple-touch-icon" href="/favicons/apple-touch-icon-180x180.png" sizes="180x180">
+<link rel="icon" type="image/png" href="/favicons/favicon-16x16.png" sizes="16x16">
+<link rel="icon" type="image/png" href="/favicons/favicon-32x32.png" sizes="32x32">
+<link rel="icon" type="image/png" href="/favicons/android-36x36.png" sizes="36x36">
+<link rel="icon" type="image/png" href="/favicons/android-48x48.png" sizes="48x48">
+<link rel="icon" type="image/png" href="/favicons/android-72x72.png" sizes="72x72">
+<link rel="icon" type="image/png" href="/favicons/android-96x96.png" sizes="96x96">
+<link rel="icon" type="image/png" href="/favicons/android-144x144.png" sizes="144x144">
+<link rel="icon" type="image/png" href="/favicons/android-192x192.png" sizes="192x192">
+
+<title>Типы данных | NewLang</title>
+<meta name="description" content="NewLang site">
+<meta property="og:title" content="Типы данных" />
+<meta property="og:description" content="NewLang site" />
+<meta property="og:type" content="website" />
+<meta property="og:url" content="http://localhost:1313/docs/types/" /><meta property="og:site_name" content="NewLang" />
+<meta itemprop="name" content="Типы данных">
+<meta itemprop="description" content="NewLang site"><meta name="twitter:card" content="summary"/><meta name="twitter:title" content="Типы данных"/>
+<meta name="twitter:description" content="NewLang site"/>
+
+
+
+
+
+<link href="/scss/main.css" rel="stylesheet">
+
+<script
+  src="https://code.jquery.com/jquery-3.6.3.min.js"
+  integrity="sha512-STof4xm1wgkfm7heWqFJVn58Hm3EtS31XFaagaa8VMReCXAkQnJZ+jEy8PCC/iT18dFy95WcExNHFTqLyp72eQ=="
+  crossorigin="anonymous"></script>
+<script defer
+  src="https://unpkg.com/lunr@2.3.9/lunr.min.js"
+  integrity="sha384-203J0SNzyqHby3iU6hzvzltrWi/M41wOP5Gu+BiJMz5nwKykbkUx8Kp7iti0Lpli"
+  crossorigin="anonymous"></script>
+
+  </head>
+  <body class="td-section">
+    <header>
+      <nav class="td-navbar navbar-dark js-navbar-scroll">
+<div class="container-fluid flex-column flex-md-row">
+  <a class="navbar-brand" href="/"><span class="navbar-brand__logo navbar-logo"><svg id="Layer_1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" viewBox="0 0 500 500" style="enable-background:new 0 0 500 500"><g><path style="fill:#fff" d="M116.8525 421.9722c-5.7041.0-10.3442-4.3127-10.3442-9.6129V88.183c0-5.3002 4.6401-9.6117 10.3442-9.6117H320.858c3.0347.0 9.3959.5498 11.7506 2.6302l.3545.3442 58.905 63.2912c2.3101 2.491 2.9202 8.4928 2.9202 11.3184v256.2039c0 5.3002-4.6407 9.6129-10.3436 9.6129H116.8525z"/><g><g><g><path style="fill:#767676" d="M384.4445 423.2066H116.852c-6.3839.0-11.5786-4.8658-11.5786-10.8474V88.1831c0-5.9804 5.1947-10.8461 11.5786-10.8461h204.0062c.377.0 9.2786.0329 12.568 2.9389l.3947.3833 58.9508 63.337c3.2135 3.4652 3.2514 11.7924 3.2514 12.1593v256.2036C396.0231 418.3408 390.8284 423.2066 384.4445 423.2066zM116.5079 411.9189c.0848.0278.1999.0531.3441.0531h267.5925c.1442.0.2581-.0253.3441-.0531V156.1556c-.0076-.9033-.3593-3.7347-.7034-5.0037l-57.6527-61.9416c-1.4651-.3176-4.4533-.6389-5.5742-.6389H116.852c-.143.0-.2594.024-.3441.0531V411.9189zm267.4533-261.149zM327.0321 89.371v.0013V89.371z"/></g></g></g><g><g><path style="fill:#5b7fc0" d="M189.0874 210.1754l.0012-.0012c7.7751.0012 15.0295 4.1862 18.932 10.9234 1.9177 3.3159 2.9305 7.1011 2.9293 10.9378.0 5.8394-2.2733 11.3304-6.4032 15.4604-4.1288 4.1288-9.6186 6.4032-15.458 6.4032s-11.328-2.2733-15.458-6.4032-6.4032-9.6186-6.4056-15.4628c.0012-6.025 2.454-11.4897 6.4116-15.4473C177.5953 212.627 183.0601 210.1742 189.0874 210.1754zm7.993 21.8576c.0012-1.4042-.3687-2.7868-1.063-3.9887-1.4293-2.4684-4.0833-3.9995-6.9299-4.0019-4.4077.0024-7.993 3.5877-7.993 7.993.0 2.1356.832 4.1431 2.3427 5.6539 1.5083 1.5083 3.5159 2.3403 5.6503 2.3415 2.1356.0 4.1443-.8308 5.6539-2.3403S197.0816 234.1722 197.0804 232.033z"/><path style="opacity:.3;fill:#fff" d="M189.0898 210.176c7.7763.0 15.0283 4.1826 18.926 10.9151 1.9201 3.3136 2.9377 7.0988 2.9353 10.9462.0024 12.0643-9.8065 21.8636-21.8613 21.8613-12.0547.0024-21.8636-9.8066-21.8612-21.8613.0-6.0285 2.4516-11.4921 6.4116-15.452C177.5977 212.6276 183.0612 210.176 189.0898 210.176zm7.9941 21.8612c0-1.4078-.3711-2.7892-1.0702-3.9959-1.4269-2.466-4.0797-3.9983-6.924-3.9983-4.4005-.0048-7.9918 3.5817-7.9942 7.9942.0024 4.4077 3.5865 7.9918 7.9942 7.9942 2.2027.0 4.2018-.8978 5.6479-2.3439C196.1861 236.239 197.0839 234.2399 197.0839 232.0372z"/><g><defs><path id="SVGID_1_" d="M194.7376 237.6875c-1.4461 1.4461-3.4452 2.3439-5.6479 2.3439-4.4077-.0024-7.9918-3.5865-7.9942-7.9942.0024-4.4125 3.5937-7.999 7.9942-7.9942 2.8443.0 5.497 1.5323 6.924 3.9983.6991 1.2067 1.0702 2.5881 1.0702 3.9959C197.0839 234.2399 196.1861 236.239 194.7376 237.6875z"/></defs><clipPath id="SVGID_2_"><use xlink:href="#SVGID_1_" style="overflow:visible"/></clipPath><path style="clip-path:url(#SVGID_2_);fill:#fff" d="M190.0704 225.0237c-4.4005-.0048-7.9918 3.5817-7.9942 7.9942.0011 1.9546.7088 3.7452 1.8782 5.1354-1.7447-1.4674-2.8575-3.663-2.8588-6.116.0024-4.4125 3.5936-7.999 7.9942-7.9942 2.3802-1e-4 4.616 1.0833 6.1218 2.8788C193.7885 225.7247 191.9774 225.0237 190.0704 225.0237z"/><path style="opacity:.13;clip-path:url(#SVGID_2_);fill:#020202" d="M190.0704 225.0237c-4.4005-.0048-7.9918 3.5817-7.9942 7.9942.0011 1.9546.7088 3.7452 1.8782 5.1354-1.7447-1.4674-2.8575-3.663-2.8588-6.116.0024-4.4125 3.5936-7.999 7.9942-7.9942 2.3802-1e-4 4.616 1.0833 6.1218 2.8788C193.7885 225.7247 191.9774 225.0237 190.0704 225.0237z"/></g><g><defs><path id="SVGID_3_" d="M189.0898 210.176c7.7763.0 15.0283 4.1826 18.926 10.9151 1.9201 3.3136 2.9377 7.0988 2.9353 10.9462.0024 12.0643-9.8065 21.8636-21.8613 21.8613-12.0547.0024-21.8636-9.8066-21.8612-21.8613.0-6.0285 2.4516-11.4921 6.4116-15.452C177.5977 212.6276 183.0612 210.176 189.0898 210.176zm7.9941 21.8612c0-1.4078-.3711-2.7892-1.0702-3.9959-1.4269-2.466-4.0797-3.9983-6.924-3.9983-4.4005-.0048-7.9918 3.5817-7.9942 7.9942.0024 4.4077 3.5865 7.9918 7.9942 7.9942 2.2027.0 4.2018-.8978 5.6479-2.3439C196.1861 236.239 197.0839 234.2399 197.0839 232.0372z"/></defs><clipPath id="SVGID_4_"><use xlink:href="#SVGID_3_" style="overflow:visible"/></clipPath><path style="clip-path:url(#SVGID_4_);fill:#5b7fc0" d="M172.6595 215.6045c-3.96 3.96-6.4116 9.4235-6.4116 15.452-.0024 12.0547 9.8066 21.8636 21.8613 21.8612 12.0547.0024 21.8636-9.797 21.8613-21.8612.0024-3.8475-1.0151-7.6326-2.9353-10.9462-3.8977-6.7324-11.1497-10.9151-18.926-10.9151C182.0806 209.1953 176.6171 211.647 172.6595 215.6045z"/></g></g><rect x="198.8952" y="225.1043" style="fill:#5b7fc0" width="122.6266" height="13.8671"/></g><g><path style="fill:#d95140" d="M189.0874 155.7611l.0012-.0012c7.7751.0012 15.0295 4.1862 18.932 10.9234 1.9177 3.3159 2.9305 7.1011 2.9293 10.9378.0 5.8394-2.2733 11.3304-6.4032 15.4604-4.1288 4.1288-9.6186 6.4032-15.458 6.4032s-11.328-2.2733-15.458-6.4032-6.4032-9.6186-6.4056-15.4628c.0012-6.0249 2.454-11.4897 6.4116-15.4473C177.5953 158.2128 183.0601 155.7599 189.0874 155.7611zm7.993 21.8577c.0012-1.4042-.3687-2.7868-1.063-3.9887-1.4293-2.4684-4.0833-3.9995-6.9299-4.0019-4.4077.0024-7.993 3.5877-7.993 7.993.0 2.1356.832 4.1431 2.3427 5.6539 1.5083 1.5083 3.5159 2.3403 5.6503 2.3415 2.1356.0 4.1443-.8308 5.6539-2.3403C196.2508 181.7667 197.0816 179.758 197.0804 177.6188z"/><path style="opacity:.3;fill:#fff" d="M189.0898 155.7617c7.7763.0 15.0283 4.1826 18.926 10.9151 1.9201 3.3135 2.9377 7.0987 2.9353 10.9462.0024 12.0643-9.8065 21.8636-21.8613 21.8613-12.0547.0024-21.8636-9.8066-21.8612-21.8613.0-6.0285 2.4516-11.4921 6.4116-15.452C177.5977 158.2134 183.0612 155.7617 189.0898 155.7617zm7.9941 21.8613c0-1.4078-.3711-2.7892-1.0702-3.9959-1.4269-2.466-4.0797-3.9983-6.924-3.9983-4.4005-.0048-7.9918 3.5817-7.9942 7.9942.0024 4.4077 3.5865 7.9918 7.9942 7.9942 2.2027.0 4.2018-.8978 5.6479-2.3439C196.1861 181.8248 197.0839 179.8256 197.0839 177.623z"/><g><defs><path id="SVGID_5_" d="M194.7376 183.2733c-1.4461 1.4461-3.4452 2.3439-5.6479 2.3439-4.4077-.0024-7.9918-3.5865-7.9942-7.9942.0024-4.4125 3.5937-7.9989 7.9942-7.9942 2.8443.0 5.497 1.5323 6.924 3.9983.6991 1.2067 1.0702 2.5881 1.0702 3.9959C197.0839 179.8256 196.1861 181.8248 194.7376 183.2733z"/></defs><clipPath id="SVGID_6_"><use xlink:href="#SVGID_5_" style="overflow:visible"/></clipPath><path style="clip-path:url(#SVGID_6_);fill:#fff" d="M190.0704 170.6095c-4.4005-.0048-7.9918 3.5817-7.9942 7.9942.0011 1.9546.7088 3.7452 1.8782 5.1354-1.7447-1.4674-2.8575-3.663-2.8588-6.116.0024-4.4125 3.5936-7.999 7.9942-7.9942 2.3802-1e-4 4.616 1.0833 6.1218 2.8788C193.7885 171.3104 191.9774 170.6095 190.0704 170.6095z"/><path style="opacity:.13;clip-path:url(#SVGID_6_);fill:#020202" d="M190.0704 170.6095c-4.4005-.0048-7.9918 3.5817-7.9942 7.9942.0011 1.9546.7088 3.7452 1.8782 5.1354-1.7447-1.4674-2.8575-3.663-2.8588-6.116.0024-4.4125 3.5936-7.999 7.9942-7.9942 2.3802-1e-4 4.616 1.0833 6.1218 2.8788C193.7885 171.3104 191.9774 170.6095 190.0704 170.6095z"/></g><g><defs><path id="SVGID_7_" d="M189.0898 155.7617c7.7763.0 15.0283 4.1826 18.926 10.9151 1.9201 3.3135 2.9377 7.0987 2.9353 10.9462.0024 12.0643-9.8065 21.8636-21.8613 21.8613-12.0547.0024-21.8636-9.8066-21.8612-21.8613.0-6.0285 2.4516-11.4921 6.4116-15.452C177.5977 158.2134 183.0612 155.7617 189.0898 155.7617zm7.9941 21.8613c0-1.4078-.3711-2.7892-1.0702-3.9959-1.4269-2.466-4.0797-3.9983-6.924-3.9983-4.4005-.0048-7.9918 3.5817-7.9942 7.9942.0024 4.4077 3.5865 7.9918 7.9942 7.9942 2.2027.0 4.2018-.8978 5.6479-2.3439C196.1861 181.8248 197.0839 179.8256 197.0839 177.623z"/></defs><clipPath id="SVGID_8_"><use xlink:href="#SVGID_7_" style="overflow:visible"/></clipPath><path style="clip-path:url(#SVGID_8_);fill:#d95140" d="M172.6595 161.1903c-3.96 3.96-6.4116 9.4235-6.4116 15.452-.0024 12.0547 9.8066 21.8636 21.8613 21.8613 12.0547.0024 21.8636-9.797 21.8613-21.8613.0024-3.8474-1.0151-7.6326-2.9353-10.9462-3.8977-6.7324-11.1497-10.9151-18.926-10.9151C182.0806 154.7811 176.6171 157.2327 172.6595 161.1903z"/></g><rect x="198.8952" y="170.69" style="fill:#d95140" width="122.6266" height="13.8671"/></g><g><g><path style="fill:#56a55c" d="M189.5379 264.6147l.0012-.0012c7.7751.0012 15.0294 4.1862 18.932 10.9235 1.9177 3.3159 2.9305 7.1011 2.9293 10.9378.0 5.8394-2.2733 11.3304-6.4032 15.4604-4.1288 4.1288-9.6186 6.4032-15.458 6.4032-5.8394.0-11.3281-2.2733-15.458-6.4032-4.13-4.13-6.4032-9.6186-6.4056-15.4628.0012-6.0249 2.454-11.4897 6.4116-15.4472C178.0458 267.0663 183.5105 264.6135 189.5379 264.6147zm7.993 21.8576c.0012-1.4042-.3687-2.7868-1.063-3.9887-1.4293-2.4684-4.0833-3.9995-6.9299-4.0019-4.4077.0024-7.993 3.5877-7.993 7.993.0 2.1356.832 4.1431 2.3427 5.6538 1.5083 1.5083 3.5159 2.3403 5.6503 2.3415 2.1356.0 4.1443-.8308 5.6539-2.3403C196.7013 290.6202 197.5321 288.6115 197.5309 286.4723z"/><path style="opacity:.3;fill:#fff" d="M189.5403 264.6153c7.7763.0 15.0283 4.1826 18.926 10.9151 1.9201 3.3135 2.9377 7.0987 2.9353 10.9462.0024 12.0643-9.8065 21.8636-21.8613 21.8613-12.0547.0024-21.8636-9.8065-21.8612-21.8613.0-6.0285 2.4516-11.492 6.4116-15.452C178.0482 267.0669 183.5117 264.6153 189.5403 264.6153zm7.9941 21.8612c0-1.4078-.3711-2.7892-1.0702-3.9959-1.4269-2.466-4.0797-3.9983-6.924-3.9983-4.4005-.0048-7.9918 3.5817-7.9942 7.9941.0024 4.4077 3.5865 7.9918 7.9942 7.9942 2.2027.0 4.2018-.8978 5.6479-2.3439C196.6366 290.6783 197.5344 288.6792 197.5344 286.4765z"/><g><defs><path id="SVGID_9_" d="M195.1881 292.1268c-1.4461 1.4461-3.4452 2.3439-5.6479 2.3439-4.4077-.0024-7.9918-3.5865-7.9942-7.9942.0024-4.4125 3.5937-7.9989 7.9942-7.9941 2.8443.0 5.497 1.5323 6.924 3.9983.6991 1.2067 1.0702 2.5881 1.0702 3.9959C197.5344 288.6792 196.6366 290.6783 195.1881 292.1268z"/></defs><clipPath id="SVGID_10_"><use xlink:href="#SVGID_9_" style="overflow:visible"/></clipPath><path style="clip-path:url(#SVGID_10_);fill:#fff" d="M190.5209 279.463c-4.4005-.0048-7.9918 3.5817-7.9942 7.9941.0011 1.9547.7088 3.7452 1.8782 5.1354-1.7446-1.4674-2.8575-3.6631-2.8588-6.1161.0024-4.4125 3.5936-7.999 7.9942-7.9941 2.3802-1e-4 4.616 1.0833 6.1218 2.8788C194.239 280.164 192.4279 279.463 190.5209 279.463z"/><path style="opacity:.13;clip-path:url(#SVGID_10_);fill:#020202" d="M190.5209 279.463c-4.4005-.0048-7.9918 3.5817-7.9942 7.9941.0011 1.9547.7088 3.7452 1.8782 5.1354-1.7446-1.4674-2.8575-3.6631-2.8588-6.1161.0024-4.4125 3.5936-7.999 7.9942-7.9941 2.3802-1e-4 4.616 1.0833 6.1218 2.8788C194.239 280.164 192.4279 279.463 190.5209 279.463z"/></g><g><defs><path id="SVGID_11_" d="M189.5403 264.6153c7.7763.0 15.0283 4.1826 18.926 10.9151 1.9201 3.3135 2.9377 7.0987 2.9353 10.9462.0024 12.0643-9.8065 21.8636-21.8613 21.8613-12.0547.0024-21.8636-9.8065-21.8612-21.8613.0-6.0285 2.4516-11.492 6.4116-15.452C178.0482 267.0669 183.5117 264.6153 189.5403 264.6153zm7.9941 21.8612c0-1.4078-.3711-2.7892-1.0702-3.9959-1.4269-2.466-4.0797-3.9983-6.924-3.9983-4.4005-.0048-7.9918 3.5817-7.9942 7.9941.0024 4.4077 3.5865 7.9918 7.9942 7.9942 2.2027.0 4.2018-.8978 5.6479-2.3439C196.6366 290.6783 197.5344 288.6792 197.5344 286.4765z"/></defs><clipPath id="SVGID_12_"><use xlink:href="#SVGID_11_" style="overflow:visible"/></clipPath><path style="clip-path:url(#SVGID_12_);fill:#56a55c" d="M173.11 270.0439c-3.96 3.96-6.4116 9.4235-6.4116 15.452-.0024 12.0547 9.8066 21.8636 21.8613 21.8613 12.0547.0024 21.8636-9.797 21.8613-21.8613.0024-3.8474-1.0151-7.6326-2.9353-10.9462-3.8977-6.7325-11.1497-10.9151-18.926-10.9151C182.5311 263.6346 177.0676 266.0863 173.11 270.0439z"/></g></g><rect x="199.3456" y="279.5436" style="fill:#56a55c" width="122.6266" height="13.8671"/></g><g><g><path style="fill:#f1bc42" d="M189.0874 318.7208l.0012-.0012c7.7751.0012 15.0295 4.1862 18.932 10.9234 1.9177 3.3159 2.9305 7.1011 2.9293 10.9378.0 5.8394-2.2733 11.3305-6.4032 15.4604-4.1288 4.1288-9.6186 6.4032-15.458 6.4032s-11.328-2.2733-15.458-6.4032-6.4032-9.6186-6.4056-15.4628c.0012-6.025 2.454-11.4897 6.4116-15.4472C177.5953 321.1724 183.0601 318.7196 189.0874 318.7208zm7.993 21.8576c.0012-1.4042-.3687-2.7868-1.063-3.9887-1.4293-2.4684-4.0833-3.9995-6.9299-4.0019-4.4077.0024-7.993 3.5877-7.993 7.993.0 2.1356.832 4.1431 2.3427 5.6539 1.5083 1.5083 3.5159 2.3403 5.6503 2.3415 2.1356.0 4.1443-.8308 5.6539-2.3403S197.0816 342.7176 197.0804 340.5784z"/><path style="opacity:.3;fill:#fff" d="M189.0898 318.7214c7.7763.0 15.0283 4.1826 18.926 10.915 1.9201 3.3136 2.9377 7.0988 2.9353 10.9462.0024 12.0643-9.8065 21.8636-21.8613 21.8612-12.0547.0024-21.8636-9.8065-21.8612-21.8612.0-6.0285 2.4516-11.4921 6.4116-15.452C177.5977 321.173 183.0612 318.7214 189.0898 318.7214zm7.9941 21.8612c0-1.4078-.3711-2.7892-1.0702-3.9959-1.4269-2.466-4.0797-3.9983-6.924-3.9983-4.4005-.0048-7.9918 3.5817-7.9942 7.9942.0024 4.4077 3.5865 7.9918 7.9942 7.9942 2.2027.0 4.2018-.8978 5.6479-2.3439C196.1861 344.7844 197.0839 342.7853 197.0839 340.5826z"/><g><defs><path id="SVGID_13_" d="M194.7376 346.2329c-1.4461 1.4461-3.4452 2.3439-5.6479 2.3439-4.4077-.0024-7.9918-3.5865-7.9942-7.9942.0024-4.4125 3.5937-7.999 7.9942-7.9942 2.8443.0 5.497 1.5323 6.924 3.9983.6991 1.2067 1.0702 2.5881 1.0702 3.9959C197.0839 342.7853 196.1861 344.7844 194.7376 346.2329z"/></defs><clipPath id="SVGID_14_"><use xlink:href="#SVGID_13_" style="overflow:visible"/></clipPath><path style="clip-path:url(#SVGID_14_);fill:#fff" d="M190.0704 333.5691c-4.4005-.0048-7.9918 3.5817-7.9942 7.9942.0011 1.9547.7088 3.7452 1.8782 5.1354-1.7447-1.4674-2.8575-3.6631-2.8588-6.1161.0024-4.4125 3.5936-7.999 7.9942-7.9942 2.3802-1e-4 4.616 1.0834 6.1218 2.8788C193.7885 334.2701 191.9774 333.5691 190.0704 333.5691z"/><path style="opacity:.13;clip-path:url(#SVGID_14_);fill:#020202" d="M190.0704 333.5691c-4.4005-.0048-7.9918 3.5817-7.9942 7.9942.0011 1.9547.7088 3.7452 1.8782 5.1354-1.7447-1.4674-2.8575-3.6631-2.8588-6.1161.0024-4.4125 3.5936-7.999 7.9942-7.9942 2.3802-1e-4 4.616 1.0834 6.1218 2.8788C193.7885 334.2701 191.9774 333.5691 190.0704 333.5691z"/></g><g><defs><path id="SVGID_15_" d="M189.0898 318.7214c7.7763.0 15.0283 4.1826 18.926 10.915 1.9201 3.3136 2.9377 7.0988 2.9353 10.9462.0024 12.0643-9.8065 21.8636-21.8613 21.8612-12.0547.0024-21.8636-9.8065-21.8612-21.8612.0-6.0285 2.4516-11.4921 6.4116-15.452C177.5977 321.173 183.0612 318.7214 189.0898 318.7214zm7.9941 21.8612c0-1.4078-.3711-2.7892-1.0702-3.9959-1.4269-2.466-4.0797-3.9983-6.924-3.9983-4.4005-.0048-7.9918 3.5817-7.9942 7.9942.0024 4.4077 3.5865 7.9918 7.9942 7.9942 2.2027.0 4.2018-.8978 5.6479-2.3439C196.1861 344.7844 197.0839 342.7853 197.0839 340.5826z"/></defs><clipPath id="SVGID_16_"><use xlink:href="#SVGID_15_" style="overflow:visible"/></clipPath><path style="clip-path:url(#SVGID_16_);fill:#f1bc42" d="M172.6595 324.15c-3.96 3.96-6.4116 9.4235-6.4116 15.452-.0024 12.0547 9.8066 21.8636 21.8613 21.8612 12.0547.0024 21.8636-9.797 21.8613-21.8612.0024-3.8474-1.0151-7.6327-2.9353-10.9462-3.8977-6.7324-11.1497-10.9151-18.926-10.9151C182.0806 317.7407 176.6171 320.1924 172.6595 324.15z"/></g></g><rect x="198.8952" y="333.6497" style="fill:#f1bc42" width="122.6266" height="13.8671"/></g></g></svg></span><span class="navbar-brand__name">NewLang</span></a>
+  <div class="td-navbar-nav-scroll ms-md-auto" id="main_navbar">
+    <ul class="navbar-nav">
+      <li class="nav-item">
+        <a class="nav-link active" href="/docs/"><span>Documentation</span></a>
+      </li>
+      <li class="nav-item">
+        <a class="nav-link" href="/playground/"><span>Playground</span></a>
+      </li>
+      <li class="nav-item">
+        <a class="nav-link" href="/blog/"><span>Articles</span></a>
+      </li>
+      <li class="nav-item dropdown d-none d-lg-block">
+        <div class="dropdown">
+  <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false">English</a>
+  <ul class="dropdown-menu">
+    <li><a class="dropdown-item" href="/ru/docs/types/">Русский</a></li>
+    </ul>
+</div></li>
+      </ul>
+  </div>
+  <div class="d-none d-lg-block">
+    <div class="td-search td-search--offline">
+  <div class="td-search__icon"></div>
+  <input
+    type="search"
+    class="td-search__input form-control"
+    placeholder="Search this site…"
+    aria-label="Search this site…"
+    autocomplete="off"
+    
+    data-offline-search-index-json-src="/offline-search-index.json"
+    data-offline-search-base-href="/"
+    data-offline-search-max-results="10"
+  >
+</div>
+  </div>
+</div>
+</nav>
+    </header>
+    <div class="container-fluid td-outer">
+      <div class="td-main">
+        <div class="row flex-xl-nowrap">
+          <main class="col-12 col-md-9 col-xl-8 ps-md-5" role="main">
+            
+
+
+
+
+<div class="td-content">
+<div class="pageinfo pageinfo-primary d-print-none">
+<p>
+This is the multi-page printable view of this section.
+<a href="#" onclick="print();return false;">Click here to print</a>.
+</p><p>
+<a href="/docs/types/">Return to the regular view of this page</a>.
+</p>
+</div>
+
+
+
+<h1 class="title">Типы данных</h1>
+
+
+
+
+
+    <ul>
+    
+  
+  
+  
+  
+
+  
+    
+    
+	
+<li>1: <a href="#pg-285f8fb6ac5a1e49e354b7f2805d8d62">Иерархия типов и обобщения</a></li>
+
+
+    
+  
+    
+    
+	
+<li>2: <a href="#pg-2e71da5909e299fdc169437e317fcce8">Numbers</a></li>
+
+
+    
+  
+    
+    
+	
+<li>3: <a href="#pg-bbcf432d9aabb22fcdf6bdad4d9e0141">Character Strings</a></li>
+
+
+    
+  
+    
+    
+	
+<li>4: <a href="#pg-5ac59b818595ba90474e2331217a70e7">Словари</a></li>
+
+
+    
+  
+    
+    
+	
+<li>5: <a href="#pg-87e458c39073ef9693aae0a127efd7d4">Классы</a></li>
+
+
+    
+  
+    
+    
+	
+<li>6: <a href="#pg-ea2890614128a399adc17f3dd15e0474">Функции</a></li>
+
+
+    
+  
+    
+    
+	
+<li>7: <a href="#pg-4bc5f061692b860fd28bbd359babdf2c">Итераторы</a></li>
+
+
+    
+  
+    
+    
+	
+<li>8: <a href="#pg-55daef0bebbb47d29e197c70931395ea">Другие типы данных</a></li>
+
+
+    
+  
+    
+    
+	
+<li>9: <a href="#pg-cf08b42ee4f3746e6fd20919aa6660c8">Native Data Types</a></li>
+
+
+    
+  
+    
+    
+	
+<li>10: <a href="#pg-d0d4eee95920a518c7da7c14c155a4d6">Преобразование типов</a></li>
+
+
+    
+  
+
+    </ul>
+
+
+<div class="content">
+      <p><em>NewLang</em> является языком с динамической типизацией и явное указание типа переменной не обязательно
+и на прямую не влияет на размер памяти, котрую она занимает.
+Тип переменных используется при проверке их совместимости, когда существующему объекту присваивается другое значение.</p>
+<p>Присвоение нового значения переменной возможно только тогда, когда типы данных между собой совместимы или допускают автоматическое приведение.
+Это справедливо как во время компиляции исходного теста, так и во время выполнения.</p>
+<p><em>NewLang</em> имеет закрытую иерархическую систему типов, т.е. любой новый тип данных, которые создает пользователь,
+обязательно должен быть наследником от уже существующего.
+Это напоминает реализуцию ООП в яызке Java, где каждый класс имеет в своем составе наследников <em>Object</em>.</p>
+<p>За счет закрытой иерархии типов реализуется и парадигма <a href="/docs/types/generics/">обобщённого программирования (generics)</a>.</p>
+<p>Каждый тип данных имеет <em>краткое имя</em> и функцию - конструктор.</p>
+<p><em>Краткое имя</em> типа всегда начинается с символа двоеточия &ldquo;<strong>:</strong>&rdquo;
+и определяется в <a href="/docs/syntax/namespace/">глобальной области видимости</a>.</p>
+<p>Функция - конструктора типа, имеет тоже самое <em>краткое имя</em> типа, но без символа двоеточия &ldquo;<strong>:</strong>&rdquo;,
+и как и любая функция может располагаться в пользовательском <a href="/docs/syntax/namespace/">пространстве имен</a>.</p>
+<p>Создать новый экземпляр типа нужно вызвать функцию - конструтор типа.</p>
+<p>Создать новый экземпляр типа данных можно записав <em>краткое имя типа</em> как вызов функции,
+либо вызвать непосредственно функцию - конструтор типа, с указанием её полного пространства имен.</p>
+<p>Типы данных могут быть синонимами, т.е. два типа данных могут иметь одинаковое <em>краткое имя</em>,
+(соответствено, и одитнаковые функции конструкторы),
+но сами функции должны располагаться в разных областях <a href="/docs/syntax/namespace/">пространства имен</a>.</p>
+<p>В этом случае, создание объекта - синонима типа, требует вызова функции конструктора с указанием её полного пространства имен,
+в противном случае будет вызвана функция согласно алгоритму <a href="/docs/syntax/naming/">разрешения имен (name lookup). </a>.</p>
+<p>Возможно явное приведение одного типа данных к дргуому.
+Для этого применяется <em>краткое имя</em> (которое начинается с символа двоеточия &ldquo;<strong>:</strong>&rdquo;), как вызов функции,
+в параметрах которой передается один или несколько объектов, тип которых нужно привести к требуемому.</p>
+<p>Типы данных разделяются на простые и сложные (составные).</p>
+<p>Простые типы данных не могут  Поля у простых типов данных не могут быть расширены</p>
+<p>Создание типов происходит согласно <a href="/docs/ops/create/">правилам синтаксиса</a>.
+Имя типа всегда начинается с символа двоеточия &ldquo;<strong>:</strong>&rdquo; и определяется в <a href="/docs/syntax/namespace/">глобальной области видимости</a>.
+Создание сложных <a href="/docs/types/class/">типов (классов)</a>, может располагаться в пользовательском <a href="/docs/syntax/namespace/">пространстве имен</a>.</p>
+<h2 id="-в-том-числе-и-конструктор-классовdocstypesclass">, в том числе и <a href="/docs/types/class/">конструктор классов</a>,<a class="td-heading-self-link" href="#-%d0%b2-%d1%82%d0%be%d0%bc-%d1%87%d0%b8%d1%81%d0%bb%d0%b5-%d0%b8-%d0%ba%d0%be%d0%bd%d1%81%d1%82%d1%80%d1%83%d0%ba%d1%82%d0%be%d1%80-%d0%ba%d0%bb%d0%b0%d1%81%d1%81%d0%be%d0%b2docstypesclass" aria-label="Heading self-link"></a></h2>
+
+</div>
+</div>
+
+
+  
+  
+  
+  
+
+  
+  
+
+  
+    
+    
+	
+    
+
+<div class="td-content" style="page-break-before: always">
+    
+	<h1 id="pg-285f8fb6ac5a1e49e354b7f2805d8d62">1 - Иерархия типов и обобщения</h1>
+    
+	<p><em>NewLang</em> имеет закрытую систему типов. т.е. любой новый тип данных, которые создает пользователь,
+обязательно должен быть наследником одного из уже существующих, т.е. расширять один из них.
+Такой поход напоминает создание классов в языке Java, в котором каждый новый класс имеет в своих родителях класс Object.</p>
+<p>С помощью обобщений (generics) можно писать код, который может работать с любым совместимым типом данных.</p>
+<p>Фрагмент иерархии типов данных (<a href="/docs/types/strings/">строки</a> и <a href="/docs/types/numbers/">числа</a>,
+а в скобках указаны синонимы типов):</p>
+<pre tabindex="0"><code>:Any -+-&gt; :Arithmetic -+-&gt; :Tensor -+-&gt; :Integer --&gt; :Int64   ...  --&gt; :Int8 --&gt; :Bool
+      |                |            |               (:DWord64)        (:Char)
+      |                |            |                                 (:Byte)
+      |                |            |
+      |                |            +-&gt; :Number --&gt; :Float64 --&gt; :Float32 --&gt; :Float16 --&gt; ...
+      |                |            |              (:Double)    (:Single)
+      |                |            |
+      |                |            +-&gt; :Complex ...
+      |                | 
+      |                +-&gt; :Rational
+      | 
+      +-&gt; :String -+-&gt; :StrChar
+      |            |  (:FmtChar)
+      |            |
+      |            +-&gt; :StrWide
+      |               (:FmtWide)
+      |            
+      |
+     ...
+</code></pre><h3 id="обобщенные-типы">Обобщенные типы<a class="td-heading-self-link" href="#%d0%be%d0%b1%d0%be%d0%b1%d1%89%d0%b5%d0%bd%d0%bd%d1%8b%d0%b5-%d1%82%d0%b8%d0%bf%d1%8b" aria-label="Heading self-link"></a></h3>
+<ul>
+<li><strong>:Any</strong> - обобщенный тип для всех остальных типов данных</li>
+<li><strong>:Arithmetic</strong> - обобщенный тип для всех числовых типов</li>
+<li><strong>:Tensor</strong> - обобщенный тип для чисел, которые можно представить в машинном формате</li>
+<li><strong>:Integer</strong> - обощенный тип для всех <em>целочисленных</em> типов данных</li>
+<li><strong>:Number</strong> - обощенный тип для всех чисел с <em>плавающей точкой</em></li>
+<li><strong>:Complex</strong> - обощенный тип для всех <em>комплексных</em> чисел</li>
+<li><strong>:String</strong> - обощенный тип для текстовых строк</li>
+</ul>
+<h4 id="примеры-определения-функций-с-обобщенными-типами">Примеры определения функций с обобщенными типами<a class="td-heading-self-link" href="#%d0%bf%d1%80%d0%b8%d0%bc%d0%b5%d1%80%d1%8b-%d0%be%d0%bf%d1%80%d0%b5%d0%b4%d0%b5%d0%bb%d0%b5%d0%bd%d0%b8%d1%8f-%d1%84%d1%83%d0%bd%d0%ba%d1%86%d0%b8%d0%b9-%d1%81-%d0%be%d0%b1%d0%be%d0%b1%d1%89%d0%b5%d0%bd%d0%bd%d1%8b%d0%bc%d0%b8-%d1%82%d0%b8%d0%bf%d0%b0%d0%bc%d0%b8" aria-label="Heading self-link"></a></h4>
+<pre tabindex="0"><code>    only_int8(arg:Int8):Int8 :=  ... ;   # Функиця принимает и возвращает только :Int8
+
+    any_int(arg:Integer):Integer :=  ... ;  # Функиця принимает и возвращает только целые числа
+
+    any_tensor(arg:Tensor):Tensor :=  ... ;# Функиця принимает и возвращает любые машинные типы чисел
+    
+    any_any1(arg:Any):None :=  ... ; # Функиця принимает любой тип аргумента и ничего не возвращает 
+
+    any_any2(arg) :=  ... ;     # Тип не указан - функиця можен принимать и возвращать любой тип
+</code></pre>
+</div>
+
+
+
+    
+	
+  
+    
+    
+	
+    
+
+<div class="td-content" style="page-break-before: always">
+    
+	<h1 id="pg-2e71da5909e299fdc169437e317fcce8">2 - Numbers</h1>
+    
+	<p><em>NewLang</em> is a language with dynamic typing, and explicit type declaration does not affect the memory size occupied by a variable.
+Type information is used when checking their compatibility, when assigning a value of a different type to an existing object.
+This operation is possible only when the types are compatible and allow for automatic conversion.
+This is true both during parsing/compilation of the source text and during execution in interpreter and/or compiled file modes.</p>
+<h3 id="arithmetic-types">Arithmetic types<a class="td-heading-self-link" href="#arithmetic-types" aria-label="Heading self-link"></a></h3>
+<p>All numbers (except rational) in <em>NewLang</em> are tensors, i.e. arrays of one type with an arbitrary number of dimensions
+and the same column size in each. A unit number is also a tensor of zero size.</p>
+<p>Only signed integers are supported, as there is no special need for unsigned numbers,
+and there are many problems with them that can be found very easily.</p>
+<blockquote>
+<p><em>Issues with unsigned numbers (from the internet):</em>
+First, subtracting two unsigned numbers, for example 3 and 5.
+3 minus 5 equals 4294967294 because -2 cannot be represented as an unsigned number.
+Second, unexpected behavior may occur when mixing signed and unsigned integer values.
+C++ can freely convert signed and unsigned numbers,
+but does not check the range to ensure that you are not overflowing your data type.</p>
+</blockquote>
+<p>The names of the built-in arithmetic types: :Int8, :Int16, :Int32, :Int64, :Float16, :Float32, :Float64, :Complex16,
+:Complex32, :Complex64 speak for themselves.
+And although among them there are names that are inherent to unsigned numbers (:Byte, :Word, :DWord, etc.),
+they are synonyms and are used for interaction with <a href="/docs/types/native/">native C++ code</a>.</p>
+<h4 id="bool">Logical type<a class="td-heading-self-link" href="#bool" aria-label="Heading self-link"></a></h4>
+<p>A separate type is the logical type: Bool, which can only take values 0 or 1 (<em>false</em>/<em>true</em> respectively),
+and depending on the operation being performed, it can also be classified as integer types,
+or not included in their composition (this approach to interpreting the logical data type was taken from the Torch library).</p>
+<blockquote>
+<pre tabindex="0"><code>// Treat bool as a distinct &#34;category,&#34; to be consistent with type promotion
+// rules (e.g. `bool_tensor + 5 -&gt; int64_tensor`). If `5` was in the same
+// category as `bool_tensor`, we would not promote. Differing categories
+// implies `bool_tensor += 5` is disallowed.
+//
+// NB: numpy distinguishes &#34;unsigned&#34; as a category to get the desired
+// `bool_tensor + 5 -&gt; int64_tensor` behavior. We don&#39;t, because:
+// * We don&#39;t want the performance hit of checking the runtime sign of Scalars.
+// * `uint8_tensor + 5 -&gt; int64_tensor` would be undesirable.
+</code></pre></blockquote>
+<h3 id="indexing">Tensor Indexing<a class="td-heading-self-link" href="#indexing" aria-label="Heading self-link"></a></h3>
+<p>Access to tensor elements is done by an integer index starting from 0.
+For a multidimensional tensor, element indices are listed in square brackets separated by commas.
+Access to elements through a negative index is supported, which is handled in the same way as
+in Python (-1 is the last element, -2 is the second to last, and so on).</p>
+<p>Ranges can be used as tensor indices, which are handled the same way as in Python,
+as well as the value <code>:None</code> and ellipsis <code>...</code>. The value <code>:None</code>, meaning absence of an index,
+signifies an arbitrary size of the tensor in <em>one</em> specific dimension, while the ellipsis <code>...</code> denotes
+an arbitrary dimension in <em>any</em> number of dimensions (hence, it can appear in the tensor index only once).</p>
+<p>The tensor literal in the program text is written in square brackets with a mandatory closing comma, i.e. <code>[1, 2,]</code> - this is
+a literal one-dimensional tensor of two numbers. After the closing bracket, the tensor type can be explicitly specified.
+If the type is not specified, it is automatically output based on the specified data and the minimum possible byte size that allows
+all values to be saved without loss of accuracy is selected.</p>
+<p>Examples of creating tensors and transforming their dimensions can be found <a href="/docs/types/convert/">here</a>.</p>
+<h3 id="rational">Rational Numbers<a class="td-heading-self-link" href="#rational" aria-label="Heading self-link"></a></h3>
+<p>For calculations with unlimited precision in <em>NewLang</em>, a separate type is used - rational numbers.
+They are written in the form of a common fraction, in which the numerator must be an <em>integer</em>,
+and the denominator <em>natural</em> (an integer without zero).</p>
+<p>A backslash is used as the fraction separator, i.e. <code>1\1</code> - rational number 1, <code>-5\1</code> - rational number -5, etc.</p>
+
+</div>
+
+
+
+    
+	
+  
+    
+    
+	
+    
+
+<div class="td-content" style="page-break-before: always">
+    
+	<h1 id="pg-bbcf432d9aabb22fcdf6bdad4d9e0141">3 - Character Strings</h1>
+    
+	<p><em>NewLang</em> supports two types of strings:</p>
+<ul>
+<li><em>:StrChar</em> - universal byte UTF-8 strings</li>
+<li><em>:StrWide</em> - system character (wide characters)</li>
+</ul>
+<p>The single element of a universal UTF-8 string is one byte,
+while the single element of a system character string is a wide character <em>wchar_t</em>.
+And although the strings differ in the types of single string elements, the internal representation of both types of strings is the same.
+All data of character strings is stored as a universal byte UTF-8 sequence.</p>
+<h3 id="StrChar">Byte Strings <em>:StrChar</em><a class="td-heading-self-link" href="#StrChar" aria-label="Heading self-link"></a></h3>
+<p>The basic element of a universal byte string is one byte (specifically <em>:Int8</em>, i.e. an 8-bit signed integer).
+The number of characters in a byte string is returned in bytes, and accessing a string element by index is done by the byte of the character sequence.</p>
+<p><em>Since these strings are interpreted as a sequence of UTF-8 characters, caution must be taken when modifying individual bytes!</em></p>
+<h3 id="StrWide">System Strings <em>:StrWide</em><a class="td-heading-self-link" href="#StrWide" aria-label="Heading self-link"></a></h3>
+<p>The individual element of the system string is a wide character <em>wchar_t</em>, and the number of elements in the system character string is returned in wide characters.
+The size of the <em>wchar_t</em> type depends on the operating system, so the size of one character :StrWide in Windows will be 2 bytes, and in Linux 4 bytes,
+which is related to their implementation specifics.</p>
+<p>The main purpose of system strings is to simplify working in a text terminal,
+as one character always corresponds to one character cell without the need for constant conversion of UTF-8 code points.</p>
+<h3 id="format">String Formatting<a class="td-heading-self-link" href="#format" aria-label="Heading self-link"></a></h3>
+<p>Any variable can be accessed as a function (by specifying parentheses after its name) to create a copy/clone of the object,
+and for strings, this operation can be used as a template for formatting data.</p>
+<p>String formatting can be done in two ways:</p>
+<ul>
+<li>
+<p>Specify a format string with the types of data to be output (the format string corresponds to formatting in the standard <a href="https://en.wikipedia.org/wiki/Printf">printf</a> function).
+To apply this formatting variant, the format string must specify the corresponding data type
+(<em>: FmtChar</em> or <em>: FmtWide</em> for regular and wide characters, respectively).<br>
+With this formatting method, named arguments cannot be used, and the compiler checks the types of the passed values
+for compliance with the format string only <em>during compilation</em> of the program text.
+<em>This type of format string can be used as the last argument of a function to check the types of all subsequent arguments
+for compliance with the format string.</em></p>
+</li>
+<li>
+<p>In all other cases, any strings and named arguments can be used as the format string,
+and the format itself corresponds to the format string from the <a href="https://fmt.dev/latest/syntax.html">{fmt}</a> library.
+The only difference is the ability to specify not only the positional number of the argument, but also its name.
+Argument validation against the format string is performed during string cloning both at compile time and during program execution.</p>
+</li>
+</ul>
+<p>The formatting method is used by default for any type of string, but the format string is not checked in the function arguments.</p>
+<p>For example:</p>
+<div class="highlight"><pre tabindex="0" style="background-color:#f8f8f8;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-python" data-lang="python"><span style="display:flex;"><span>    <span style="color:#a40000">$</span><span style="color:#000">fmt</span> <span style="color:#ce5c00;font-weight:bold">:=</span> <span style="color:#4e9a06">&#39;</span><span style="color:#4e9a06">%s</span><span style="color:#4e9a06">: </span><span style="color:#4e9a06">%d</span><span style="color:#4e9a06">&#39;</span><span style="color:#000;font-weight:bold">:</span><span style="color:#000">FmtChar</span><span style="color:#000;font-weight:bold">;</span> <span style="color:#8f5902;font-style:italic"># Formatting like in printf</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#a40000">$</span><span style="color:#000">result</span> <span style="color:#ce5c00;font-weight:bold">:=</span> <span style="color:#a40000">$</span><span style="color:#000">fmt</span><span style="color:#000;font-weight:bold">(</span><span style="color:#4e9a06">&#39;value&#39;</span><span style="color:#000;font-weight:bold">,</span> <span style="color:#0000cf;font-weight:bold">123</span><span style="color:#000;font-weight:bold">);</span> <span style="color:#8f5902;font-style:italic"># &#34;value: 123&#34; - Check compile time only! </span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    <span style="color:#a40000">$</span><span style="color:#000">template</span> <span style="color:#ce5c00;font-weight:bold">:=</span> <span style="color:#4e9a06">&#34;</span><span style="color:#4e9a06">{name}</span><span style="color:#4e9a06"> </span><span style="color:#4e9a06">{0}</span><span style="color:#4e9a06">&#34;</span><span style="color:#000;font-weight:bold">;</span> <span style="color:#8f5902;font-style:italic"># fmt::format equivalent &#34;{1} {0}&#34;</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#a40000">$</span><span style="color:#000">result</span> <span style="color:#ce5c00;font-weight:bold">:=</span> <span style="color:#a40000">$</span><span style="color:#000">template</span><span style="color:#000;font-weight:bold">(</span><span style="color:#4e9a06">&#34;template&#34;</span><span style="color:#000;font-weight:bold">,</span> <span style="color:#000">name</span> <span style="color:#ce5c00;font-weight:bold">=</span> <span style="color:#4e9a06">&#34;String&#34;</span><span style="color:#000;font-weight:bold">);</span> <span style="color:#8f5902;font-style:italic"># result = &#34;String template&#34;</span>
+</span></span></code></pre></div>
+</div>
+
+
+
+    
+	
+  
+    
+    
+	
+    
+
+<div class="td-content" style="page-break-before: always">
+    
+	<h1 id="pg-5ac59b818595ba90474e2331217a70e7">4 - Словари</h1>
+    
+	<h2 id="объектно-ориентированное-программирование">Объектно ориентированное программирование<a class="td-heading-self-link" href="#%d0%be%d0%b1%d1%8a%d0%b5%d0%ba%d1%82%d0%bd%d0%be-%d0%be%d1%80%d0%b8%d0%b5%d0%bd%d1%82%d0%b8%d1%80%d0%be%d0%b2%d0%b0%d0%bd%d0%bd%d0%be%d0%b5-%d0%bf%d1%80%d0%be%d0%b3%d1%80%d0%b0%d0%bc%d0%bc%d0%b8%d1%80%d0%be%d0%b2%d0%b0%d0%bd%d0%b8%d0%b5" aria-label="Heading self-link"></a></h2>
+<p><em>NewLang</em> поддерживает следующую концепцию объектно-ориентированного программирования:</p>
+<p>Каждый объект представляет собой отдельный тип данных, который наследуется от другого типа или от одного из его наследников (что очень похоже на концепцию объектов в языке Java), а экземпляр конкретного класса создается путем вызова его типа.</p>
+<p>Наследование поддерживается для типов словарь (<em>:Dictionary</em>) и класс (<em>:Class</em>) и всех их потомков.</p>
+<h3 id="словарь">Словарь<a class="td-heading-self-link" href="#%d1%81%d0%bb%d0%be%d0%b2%d0%b0%d1%80%d1%8c" aria-label="Heading self-link"></a></h3>
+<p>Словарь (<em>:Dictionary</em>) — набор данных произвольного типа с доступом к отдельным элементам по целочисленному индексу или по имени элемента при его наличии (это похоже и на tuple и на структуру одновременно). Словари отличаются от <a href="https://newlang.net/type_nor.html">тензоров</a> тем, что всегда имеют только одно измерение, но каждый элемент может содержать произвольное количество элементов любого типа, в том числе и другие словари.</p>
+<p>Доступ к элементам словаря происходит по имени элемента, которое записывается через точку от имени переменной, либо по целочисленному индексу. Индекс начинается с 0 и как у тензоров, тоже может быть отрицательным (индекс элемента от &ldquo;конца&rdquo;).</p>
+<pre tabindex="0"><code># Новый тип (класс) :NewClass
+:Dict := :Dictionary() {
+    _ := 1; # У поля данных имя отсутствует
+    two := 2;
+    name := 3; 
+};
+dict := :Dict(); # Экземпляр класса (1, two=2, name=3,):Dict
+dict2 := :Dict(two=42); # Экземпляр класса (1, two=42, name=100,):Dict
+dict3 := dict2(99, name=0); # Копия объекта dict2 (99, two=42, name=0,):Dict
+</code></pre><p><em>В будущем можно будет добавить возможность указывать индексы элементов словаря с помощь диапазонов</em></p>
+<pre tabindex="0"><code>$dict = :Dict[10](first=1, 4..4 = 29, 2..3 = 15, , 2..3 = 15, 7..9..2 = 7); #(first=1, 0, 15, 15, 29, 0, 0, 7, 0, 7,)
+</code></pre><h4 id="словарь-как-литерал">Словарь как литерал<a class="td-heading-self-link" href="#%d1%81%d0%bb%d0%be%d0%b2%d0%b0%d1%80%d1%8c-%d0%ba%d0%b0%d0%ba-%d0%bb%d0%b8%d1%82%d0%b5%d1%80%d0%b0%d0%bb" aria-label="Heading self-link"></a></h4>
+<p>Литерал с типом «словарь» в тексте программы записывается в круглых скобках с обязательной завершающей запятой, т. е. <code>(,)</code> — пустой словарь, <code>(1, 2= «2», name=3,)</code>. Для указания конкретного типа объекта у литерала, его необходимо указать после закрывающей скобки, т.е. <code>(1, two= «2», name=3,):Dict</code>.</p>
+<p>Важный момент! Хоть такой объект и будет иметь указанный тип, но он будет &ldquo;неполноценным&rdquo; и содержать только те данные, которые были явно указаны в скобках, что не гарантирует корректного создания реального объекта, т.к. для создания &ldquo;правильного&rdquo; объекта требуется вызвать его тип, т.е. <code>:Dict();</code></p>
+<p>Такой способ создания литералов классов используется в основном в различных операциях сравнения типов и &ldquo;утиной типизации&rdquo;, т.к. не требует доступа к рантайму, да и сам класс может быть не определен.</p>
+<h3 id="перечисление-структура-и-объединение">Перечисление, структура и объединение<a class="td-heading-self-link" href="#%d0%bf%d0%b5%d1%80%d0%b5%d1%87%d0%b8%d1%81%d0%bb%d0%b5%d0%bd%d0%b8%d0%b5-%d1%81%d1%82%d1%80%d1%83%d0%ba%d1%82%d1%83%d1%80%d0%b0-%d0%b8-%d0%be%d0%b1%d1%8a%d0%b5%d0%b4%d0%b8%d0%bd%d0%b5%d0%bd%d0%b8%d0%b5" aria-label="Heading self-link"></a></h3>
+<p>Существуют три отдельных типа данных, <em>:Enum</em>, <em>:Struct</em> и <em>:Union</em> — которые так же являются словарями, но на их элементы накладываются определённые ограничения. Каждый элемент должен иметь уникальное имя, а его тип данных должен быть простым, т.е. числом или строкой фиксированного размера. Эти типы данных одновременно относятся к группе <a href="/docs/types/native/">нативных типов</a> и могут быть представлены в двоичном виде в одной области машинной памяти.</p>
+
+</div>
+
+
+
+    
+	
+  
+    
+    
+	
+    
+
+<div class="td-content" style="page-break-before: always">
+    
+	<h1 id="pg-87e458c39073ef9693aae0a127efd7d4">5 - Классы</h1>
+    
+	<blockquote>
+<p>Ответ прост: классы не строго необходимы для ООП. Знаю, это может шокировать.</p>
+<p>Разумеется, нам нужна возможность создания новых объектов,
+и языки на основе классов, очевидно, распространены сильнее. Однако это не единственный способ достижения цели.</p>
+<p>В языках наподобие JavaScript (хотя ES6 добавил в язык классы6, 7)
+и Lua используется концепция ООП на основе прототипов или прототипного ООП.
+Вместо создания схемы для конструирования новых объектов мы используем существующий объект в качестве прототипа.
+Такой подход даже может иметь реальные преимущества, поскольку снижает сложность языка8.</p>
+</blockquote>
+<p>Тип данных <em>:Class</em> аналогичен словарю, но все его поля обязаны иметь имена (хотя доступ к свойствам класса по индексу так же возможен).
+При создании экземпляра класса, создается новая переменная, для которой копируются свойства и методы всех родителей.</p>
+<p>Создание нового сложного типа (класса), происходит согласно <a href="/docs/ops/create/">правилам синтаксиса</a> как создание функции
+в пользовательском <a href="/docs/syntax/namespace/">пространстве имен</a>.
+Имя функции является именем нового класса, а сама функция будет выступает в роли конструктора экземпляров класса.</p>
+<p>Синтаксис создание класса выглядит следующим образом:</p>
+<div class="highlight"><pre tabindex="0" style="background-color:#f8f8f8;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-python" data-lang="python"><span style="display:flex;"><span><span style="color:#8f5902;font-style:italic"># Новый тип (класс) :NewClass</span>
+</span></span><span style="display:flex;"><span><span style="color:#000">ns</span><span style="color:#000;font-weight:bold">::</span><span style="color:#000">NewClass</span><span style="color:#000;font-weight:bold">()</span> <span style="color:#ce5c00;font-weight:bold">:=</span> <span style="color:#000;font-weight:bold">:</span><span style="color:#000">Class</span><span style="color:#000;font-weight:bold">()</span> <span style="color:#000;font-weight:bold">{</span> <span style="color:#8f5902;font-style:italic"># Родительские класс или несколько классов через запятую</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    <span style="color:#8f5902;font-style:italic"># Конструктор класса - весь блок кода с определением полей и методов</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    <span style="color:#ce5c00;font-weight:bold">@</span><span style="color:#000;font-weight:bold">::</span><span style="color:#000">static</span> <span style="color:#ce5c00;font-weight:bold">:=</span> <span style="color:#0000cf;font-weight:bold">1</span><span style="color:#000;font-weight:bold">;</span> <span style="color:#8f5902;font-style:italic"># Поле класса (у всех объектов одно значение)</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#000">static</span> <span style="color:#ce5c00;font-weight:bold">:=</span> <span style="color:#0000cf;font-weight:bold">1</span><span style="color:#000;font-weight:bold">;</span> <span style="color:#8f5902;font-style:italic"># Поле класса (у всех объектов одно значение)</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#ce5c00;font-weight:bold">.</span><span style="color:#000">field</span> <span style="color:#ce5c00;font-weight:bold">:=</span> <span style="color:#0000cf;font-weight:bold">1</span><span style="color:#000;font-weight:bold">;</span> <span style="color:#8f5902;font-style:italic"># Поле объекта</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#000">func</span><span style="color:#000;font-weight:bold">()</span> <span style="color:#ce5c00;font-weight:bold">:=</span> <span style="color:#000;font-weight:bold">{};</span> <span style="color:#8f5902;font-style:italic"># Метод класса всегда статический</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#8f5902;font-style:italic">#.method() := {}; # Метод объекта (у каждого объекта свой)</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    <span style="color:#ce5c00;font-weight:bold">~</span><span style="color:#000">NewClass</span><span style="color:#000;font-weight:bold">()</span> <span style="color:#000;font-weight:bold">:</span><span style="color:#ce5c00;font-weight:bold">:=</span> <span style="color:#000;font-weight:bold">{</span> <span style="color:#8f5902;font-style:italic"># Деструктор класса</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    <span style="color:#000;font-weight:bold">};</span>
+</span></span><span style="display:flex;"><span><span style="color:#000;font-weight:bold">};</span>
+</span></span><span style="display:flex;"><span><span style="color:#000">obj</span> <span style="color:#ce5c00;font-weight:bold">:=</span> <span style="color:#000">ns</span><span style="color:#000;font-weight:bold">::</span><span style="color:#000">NewClass</span><span style="color:#000;font-weight:bold">();</span> <span style="color:#8f5902;font-style:italic"># Экземпляр класса</span>
+</span></span></code></pre></div><p>Так как <em>NewLang</em> реализует полный набор вариантов проверок при создании объектов,
+то переопределения наследуемых функций не требует никаких ключевых слов:</p>
+<div class="highlight"><pre tabindex="0" style="background-color:#f8f8f8;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-python" data-lang="python"><span style="display:flex;"><span><span style="color:#000">NewClass2</span><span style="color:#000;font-weight:bold">()</span> <span style="color:#ce5c00;font-weight:bold">:=</span> <span style="color:#000">NewClass</span><span style="color:#000;font-weight:bold">()</span> <span style="color:#000;font-weight:bold">{</span> <span style="color:#8f5902;font-style:italic"># Новый класс на базе существующего</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#ce5c00;font-weight:bold">.</span><span style="color:#000">field</span> <span style="color:#000;font-weight:bold">:</span><span style="color:#ce5c00;font-weight:bold">:=</span> <span style="color:#0000cf;font-weight:bold">2</span><span style="color:#000;font-weight:bold">;</span>    <span style="color:#8f5902;font-style:italic"># Будет ошибка, т.к. поле field уже есть в базовом классе</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#000">method</span><span style="color:#000;font-weight:bold">()</span> <span style="color:#ce5c00;font-weight:bold">=</span> <span style="color:#000;font-weight:bold">{};</span>  <span style="color:#8f5902;font-style:italic"># Аналог override, т.к. method должен существовать в базовом классе</span>
+</span></span><span style="display:flex;"><span><span style="color:#000;font-weight:bold">};</span>
+</span></span></code></pre></div><h2 id="интерфейсы-именование-методов-классов-и-пространства-имен">Интерфейсы, именование методов классов и пространства имен<a class="td-heading-self-link" href="#%d0%b8%d0%bd%d1%82%d0%b5%d1%80%d1%84%d0%b5%d0%b9%d1%81%d1%8b-%d0%b8%d0%bc%d0%b5%d0%bd%d0%be%d0%b2%d0%b0%d0%bd%d0%b8%d0%b5-%d0%bc%d0%b5%d1%82%d0%be%d0%b4%d0%be%d0%b2-%d0%ba%d0%bb%d0%b0%d1%81%d1%81%d0%be%d0%b2-%d0%b8-%d0%bf%d1%80%d0%be%d1%81%d1%82%d1%80%d0%b0%d0%bd%d1%81%d1%82%d0%b2%d0%b0-%d0%b8%d0%bc%d0%b5%d0%bd" aria-label="Heading self-link"></a></h2>
+<p>Для создания уникальных идентификаторов на основе имен методов классов, <em>NewLang</em> использует подход, похожий на применяемый в языке Python.
+При создании метода класса, создается глобальная функция с именем класса и именем метода, объединенные через разделитель области имен.
+Например, в классе <code>NewClass2</code> при создании метода <code>method</code> будет создана функция с именем <code>::NewClass2::method</code>.</p>
+<p>Такая схема наименований методов полностью соответствует именованию функций в пространствах имен,
+и тем самым позволяет определять классы c чистыми виртуальными функциями (методами без реализации),
+а в последствии определять их в пространстве имен или указав полное имя в явном виде.</p>
+<div class="highlight"><pre tabindex="0" style="background-color:#f8f8f8;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-python" data-lang="python"><span style="display:flex;"><span><span style="color:#000">ns</span><span style="color:#000;font-weight:bold">::</span> <span style="color:#000;font-weight:bold">{</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#000">NewClass3</span> <span style="color:#ce5c00;font-weight:bold">:=</span> <span style="color:#000">NewClass</span><span style="color:#000;font-weight:bold">()</span> <span style="color:#000;font-weight:bold">{</span> <span style="color:#8f5902;font-style:italic"># Новый класс на базе существующего</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#000">virtual</span><span style="color:#000;font-weight:bold">()</span> <span style="color:#ce5c00;font-weight:bold">:=</span> <span style="color:#000">_</span><span style="color:#000;font-weight:bold">;</span> <span style="color:#8f5902;font-style:italic"># Виртуальный метод</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#000;font-weight:bold">};</span>
+</span></span><span style="display:flex;"><span><span style="color:#000;font-weight:bold">};</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#000">obj</span> <span style="color:#ce5c00;font-weight:bold">:=</span> <span style="color:#000">ns</span><span style="color:#000;font-weight:bold">::</span><span style="color:#000">NewClass3</span><span style="color:#000;font-weight:bold">();</span> <span style="color:#8f5902;font-style:italic"># объект создать нельзя, будет ошибка</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#8f5902;font-style:italic"># Определить функцию для виртуального метода</span>
+</span></span><span style="display:flex;"><span><span style="color:#000">ns</span><span style="color:#000;font-weight:bold">::</span><span style="color:#000">NewClass3</span><span style="color:#000;font-weight:bold">::</span><span style="color:#000">virtual</span><span style="color:#000;font-weight:bold">()</span> <span style="color:#ce5c00;font-weight:bold">:=</span> <span style="color:#000;font-weight:bold">{};</span> 
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#000">obj</span> <span style="color:#ce5c00;font-weight:bold">:=</span> <span style="color:#000">ns</span><span style="color:#000;font-weight:bold">::</span><span style="color:#000">NewClass3</span><span style="color:#000;font-weight:bold">();</span> <span style="color:#8f5902;font-style:italic"># ОК</span>
+</span></span></code></pre></div><h2 id="конструкторы-деструкторы-и-финализаторы-у-объектов">Конструкторы, деструкторы и финализаторы у объектов<a class="td-heading-self-link" href="#%d0%ba%d0%be%d0%bd%d1%81%d1%82%d1%80%d1%83%d0%ba%d1%82%d0%be%d1%80%d1%8b-%d0%b4%d0%b5%d1%81%d1%82%d1%80%d1%83%d0%ba%d1%82%d0%be%d1%80%d1%8b-%d0%b8-%d1%84%d0%b8%d0%bd%d0%b0%d0%bb%d0%b8%d0%b7%d0%b0%d1%82%d0%be%d1%80%d1%8b-%d1%83-%d0%be%d0%b1%d1%8a%d0%b5%d0%ba%d1%82%d0%be%d0%b2" aria-label="Heading self-link"></a></h2>
+<div class="highlight"><pre tabindex="0" style="background-color:#f8f8f8;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-python" data-lang="python"><span style="display:flex;"><span><span style="color:#000">ns</span><span style="color:#000;font-weight:bold">::</span><span style="color:#000">NewClass</span><span style="color:#000;font-weight:bold">()</span> <span style="color:#ce5c00;font-weight:bold">:=</span>  <span style="color:#000">Class</span><span style="color:#000;font-weight:bold">()</span> <span style="color:#000;font-weight:bold">{</span>    <span style="color:#8f5902;font-style:italic"># Новый класс на базе существующего</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    <span style="color:#8f5902;font-style:italic"># Блок кода функции - конструктор объекта</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    <span style="color:#000">__NewClass__</span><span style="color:#000;font-weight:bold">()</span> <span style="color:#ce5c00;font-weight:bold">=</span> <span style="color:#000;font-weight:bold">{</span><span style="color:#ce5c00;font-weight:bold">...</span><span style="color:#000;font-weight:bold">};</span> <span style="color:#8f5902;font-style:italic"># Метод с системным именем типа - деструктор объекта (вызывается сразу после удаления)</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    <span style="color:#000">_NewClass</span><span style="color:#000;font-weight:bold">()</span> <span style="color:#ce5c00;font-weight:bold">:=</span> <span style="color:#000;font-weight:bold">{</span><span style="color:#ce5c00;font-weight:bold">...</span><span style="color:#000;font-weight:bold">};</span> <span style="color:#8f5902;font-style:italic"># Скрытый метод с именем типа - защищенный конструктор объекта ?????????????????</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#000">__NewClass</span><span style="color:#000;font-weight:bold">()</span> <span style="color:#ce5c00;font-weight:bold">:=</span> <span style="color:#000;font-weight:bold">{</span><span style="color:#ce5c00;font-weight:bold">...</span><span style="color:#000;font-weight:bold">};</span> <span style="color:#8f5902;font-style:italic"># Скрытый метод с именем типа - приватный конструктор объекта ?????????????????</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    <span style="color:#000;font-weight:bold">:</span><span style="color:#000">NewClass</span><span style="color:#000;font-weight:bold">(</span><span style="color:#204a87">type</span><span style="color:#000;font-weight:bold">)</span> <span style="color:#000;font-weight:bold">:</span><span style="color:#ce5c00;font-weight:bold">:=</span> <span style="color:#000;font-weight:bold">{</span><span style="color:#ce5c00;font-weight:bold">...</span><span style="color:#000;font-weight:bold">}:</span><span style="color:#000">NewClass</span><span style="color:#000;font-weight:bold">;</span> <span style="color:#8f5902;font-style:italic"># Функция для приведения типа объекта $type к типу :NewClass</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#ce5c00;font-weight:bold">~</span><span style="color:#000">NewClass</span><span style="color:#000;font-weight:bold">()</span> <span style="color:#ce5c00;font-weight:bold">=</span> <span style="color:#000;font-weight:bold">{</span><span style="color:#ce5c00;font-weight:bold">...</span><span style="color:#000;font-weight:bold">};</span> <span style="color:#8f5902;font-style:italic"># Скрытый метод - финализатор (вызывается перед освобождением памяти)</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    <span style="color:#000">__equals__</span><span style="color:#000;font-weight:bold">(</span><span style="color:#000">obj</span><span style="color:#000;font-weight:bold">):</span><span style="color:#000">Bool</span> <span style="color:#ce5c00;font-weight:bold">=</span> <span style="color:#000;font-weight:bold">{</span> <span style="color:#000">__compare__</span><span style="color:#000;font-weight:bold">(</span><span style="color:#a40000">$</span><span style="color:#000">obj</span><span style="color:#000;font-weight:bold">)</span> <span style="color:#ce5c00;font-weight:bold">==</span> <span style="color:#0000cf;font-weight:bold">0</span> <span style="color:#000;font-weight:bold">};</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#000">__compare__</span><span style="color:#000;font-weight:bold">(</span><span style="color:#000">obj</span><span style="color:#000;font-weight:bold">):</span><span style="color:#000">Int8</span> <span style="color:#ce5c00;font-weight:bold">=</span>  <span style="color:#000;font-weight:bold">{</span> <span style="color:#000;font-weight:bold">::</span> <span style="color:#000">__compare__</span><span style="color:#000;font-weight:bold">(</span><span style="color:#5c35cc;font-weight:bold">@this</span><span style="color:#000;font-weight:bold">,</span> <span style="color:#a40000">$</span><span style="color:#000">obj</span><span style="color:#000;font-weight:bold">)</span> <span style="color:#000;font-weight:bold">};</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    <span style="color:#000">_</span><span style="color:#000;font-weight:bold">()</span> <span style="color:#ce5c00;font-weight:bold">:=</span> <span style="color:#000;font-weight:bold">{</span><span style="color:#ce5c00;font-weight:bold">...</span><span style="color:#000;font-weight:bold">};</span> <span style="color:#8f5902;font-style:italic"># ?????????????????????????????????????</span>
+</span></span><span style="display:flex;"><span>    
+</span></span><span style="display:flex;"><span><span style="color:#000;font-weight:bold">};</span>
+</span></span></code></pre></div><p>extension methods !</p>
+<blockquote>
+<p>Пишу на С++ последние лет 20, до этого ещё Delphi лет 10. С годами полностью отошёл от ООП в сторону data-driven design.
+Классы — практически структуры, из методов как правило только декоративные геттеры.
+Всё остальное — это просто функции с понятными названиями, сигнатурами и операндами-объектами таких вот классов-носителей данных и состояния.
+Получается, очень легко дышится и чистенько — состояния изолированы в структуры, логика изолирована в функции.
+Конечно, в C++ всё довольно печально с ООП как таковым, поскольку нет механизма <strong>extension methods — это когда вы собираете методы в класс из разных единиц трансляции</strong>
+из-за этого, обычные функции C++ значительно удобнее методов класса</p>
+</blockquote>
+<blockquote>
+<p>Основная мысль, которая почти всегда теряется при обсуждении ООП, это то, зачем он нужен и в чем его суть. Все сводится к инструментам, их правильном и неправильном использовании, практичных архитектурах и оверинженеринге.</p>
+<p>Мне кажется самая главная мысль очень проста. Сложная программа это сложное состояние.
+Проблема в том, что сложно следить за всей возможной суперпозицией всех деталей состояния.
+Небольшое состояние гораздо проще валидировать и постоянно поддерживать целостным.
+Если ты собираешь сложное состояние из простых целостных состояний, то его тоже проще поддерживать целостным (потому что нужно следить только за высокоуровневым состоянием, но не за всеми деталями)</p>
+<p>Соответственно ООП - это способ описания программы как набора иерархии изолированных состояний, где операции по изменению состояний максимально приближены к состоянию.</p>
+<p>Точно так же как сложную функцию можно представить как последовательность простых, так и сложное состояние можно представить комбинацией простых состояний.
+Изоляция и контроль состояний и есть основная идея ООП.</p>
+<p>ФП подходит с другой стороны - максимально старается избежать состояния и работать только с текущим контекстом. Подход не лишен логики, но любая программа - это прежде всего состояние.</p>
+<p>Все остальное - лишь инструменты и особенности реализации. ООП может быть реализовано почти на любом языке самыми разными инструментами и не обязательно требует интерфейсов, классов, сообщений, инкапсуляции и т.д. Но разумеется современные ООП языки хорошо адаптированы для такого способа описания. В конечном итоге если подсказки или области видимости действительно не дают тебе менять состояние объекта - это и есть прямая польза на этапе понимания и доработки твоего кода. Тебе просто не нужно думать и знать о состоянии объекта, когда ты с ним не работаешь.</p>
+</blockquote>
+<blockquote>
+<p>Главное в ООП - это то, что есть данные, и есть методы которые напрямую работают с этими данными. Это то, что можно засунуть в один объект. Другой объект, который хочет получить данные из первого объекта, обязан пользоваться публичными методами.</p>
+<p>Это упрощает поддержку обратной совместимости, упрощает изоляцию объектов, упрощает версионирование в случае многократного использования одними объектами других объектов.</p>
+<p>И опять таки, суть не в том, что это чем-то напоминает рест-апи или библиотеки, а в том, что это парадигма программирования, которая упрощает организацию разработки сложных проектов, в которых задействовано много разработчиков.</p>
+<p>Все остальные штуки - наследование, интерфейсы и все другое - это не суть ООП, а различные варианты решения или оптимизации различных кейсов</p>
+</blockquote>
+
+</div>
+
+
+
+    
+	
+  
+    
+    
+	
+    
+
+<div class="td-content" style="page-break-before: always">
+    
+	<h1 id="pg-ea2890614128a399adc17f3dd15e0474">6 - Функции</h1>
+    
+	<p>Определение функции происходит с помощью операторов <a href="/docs/ops/create/">создания объектов</a>,
+имя функции должно соответствовать <a href="/docs/syntax/naming/">правилам именования</a>,
+после которого указываются круглые скобки. <em>В настоящий момент поддерживается создание функций только в качестве статических объектов
+с однократной инициализацией с помощью оператора &lsquo;<strong>::=</strong>&rsquo;</em>;</p>
+<p>Телом функции должен быть <a href="/docs/ops/block/">блок кода</a>, который располагается в пространстве имен определения этой функции.</p>
+<p>Функции поддерживают аргументы по умолчанию, а сами аргументы указываются как в Python,
+т.е. вначале идут обязательные, далее идут аргументы со значениями по умолчанию,
+где его имя отделяется от дефолтного значения знаком равно &ldquo;<strong>=</strong>&rdquo;.</p>
+<p>Если функция допускает обработку произвольного количества аргументов,
+то последним в списке параметров должно быть указано многоточие &ldquo;<strong>&hellip;</strong>&rdquo;.</p>
+<p>У аргументов функции может быть указан допустимый тип данных.
+Тип возвращаемого значения указывается после закрывающей скобки.</p>
+<p><em>У аргументов и у типа возвращаемого значения можно указать сразу несколько допустимых типов данных.</em></p>
+<p><em>Для этого их необходимо перечислить через запятую и заключить в угловые скобки, т.е.</em>*</p>
+<pre tabindex="0"><code>func(arg:&lt;:Int8, :Int16, :Int32&gt;): &lt;:Int8, :Int16, :Int32&gt; ::= {$arg*$arg};
+</code></pre><hr>
+<p>*) Данная функциональность запланирована, но пока не реализована</p>
+<p>Для создания функций используются те же правила синтаксиса и операторы, что и для создания переменных, только после имени функции обязательно должны быть указаны круглые скобки.</p>
+<p>Синтаксис <em>NewLang</em> поддерживает два типа функций: обычные и чистые функции.</p>
+<h2 id="обычные-функции">Обычные функции<a class="td-heading-self-link" href="#%d0%be%d0%b1%d1%8b%d1%87%d0%bd%d1%8b%d0%b5-%d1%84%d1%83%d0%bd%d0%ba%d1%86%d0%b8%d0%b8" aria-label="Heading self-link"></a></h2>
+<p>Обычная функция — такие функции являются именно обычными функциями в понимании С/С++.
+Внутри них можно писать совершенно любой код, включая проверки условий, циклы, вызовы других функций и т.д.
+?????????????????????????????</p>
+<pre tabindex="0"><code>hello(str) ::= { 
+  $printf ::= :Pointer(&#39;printf(format:FmtChar, ...):Int32&#39;);
+  $printf(&#39;call: %s&#39;, $str);
+  $str;
+};
+hello(&#39;Привет, мир!&#39;);
+</code></pre><h2 id="чистые-функции">Чистые функции<a class="td-heading-self-link" href="#%d1%87%d0%b8%d1%81%d1%82%d1%8b%d0%b5-%d1%84%d1%83%d0%bd%d0%ba%d1%86%d0%b8%d0%b8" aria-label="Heading self-link"></a></h2>
+<p>Чистая функция — это тоже обычная функция, только в том смысле, какой в него вкладывает функциональное программирование.</p>
+<p><em>У чистой функции отсутствует доступ к контексту и глобальным переменным, поэтому она может обрабатывать только те данные,
+которые были ей переданы в качестве аргументов</em>.</p>
+<p>Создание чистой функции происходит с помощью операторов <strong>:-</strong> или <strong>::-</strong>, а сам оператор заимствован из языка Пролог.
+????????????????????????????????
+Чистые фунции, так же как и обычные, тоже могут быть только статическими объектами, поэтому их нельзя определять с именами лоакльных объектов.</p>
+<pre tabindex="0"><code>Sum2(arg1, arg2) ::- {$arg1+$arg2;}; # Тоже самое, но если функция с таким именем уже существует, то будет ошибка
+
+???????????????????????????????????????????????????
+Sum1(arg1, arg2) :- {$arg1+$arg2;}; # Создать или переопределить простую функцию, которая возвращает сумму аргументов
+</code></pre><h3 id="лямбда-функции">Лямбда функции<a class="td-heading-self-link" href="#%d0%bb%d1%8f%d0%bc%d0%b1%d0%b4%d0%b0-%d1%84%d1%83%d0%bd%d0%ba%d1%86%d0%b8%d0%b8" aria-label="Heading self-link"></a></h3>
+<p>Лямбда функции, это анонимная функция без указания имени, т.е. вместо имени функции стоит подчерк, и её нельзя вызвать по имени.
+Но зато лямбда функцию можно передавать как аругмент в другие функции, например при создании <a href="/docs/types/iter/">итератора</a>.</p>
+<pre tabindex="0"><code>  _()::={ ... };
+</code></pre><h3 id="корутины">Корутины<a class="td-heading-self-link" href="#%d0%ba%d0%be%d1%80%d1%83%d1%82%d0%b8%d0%bd%d1%8b" aria-label="Heading self-link"></a></h3>
+<p>Любую функцию можно определить как корутину (сопрограмма, Coroutine) - функция, выполнение которой можно прерываться явно методами языка программирования.
+В отличие от прерывания выполнения потока (thread), который реализован средствами ОС и его переключение происходит неявно и в произвольный момент времени.</p>
+<pre tabindex="0"><code>  func() ::= (){ ... };
+</code></pre><h2 id="переопределение-функций">Переопределение функций<a class="td-heading-self-link" href="#%d0%bf%d0%b5%d1%80%d0%b5%d0%be%d0%bf%d1%80%d0%b5%d0%b4%d0%b5%d0%bb%d0%b5%d0%bd%d0%b8%d0%b5-%d1%84%d1%83%d0%bd%d0%ba%d1%86%d0%b8%d0%b9" aria-label="Heading self-link"></a></h2>
+<p>Перегрузка функций по типам аргументов <em>NewLang</em> отсуствует, поэтому нельзя создать несколько функций с однинаковым именем, но разными типами аругментов.
+Но можно переопределить функцию с помощью оператора &ldquo;<strong>[]=</strong>&rdquo;, а в теле новой функции обратиться к первоначальной функции по системному имени &ldquo;<strong>$$</strong>&rdquo;.</p>
+<blockquote>
+<p>«Требование от субтипов: пусть φ(x) — свойство, доказуемое относительно объектов x типа T. Тогда φ(y) должно быть истинно для объектов y типа S, где S — субтип T»12.</p>
+</blockquote>
+<blockquote>
+<p>Это называется принципом подстановки Лисков.
+Я не буду вдаваться в подробности, но основной смысл в том, что любое предусловие (для типов, данных или состояния)
+параметров не может быть строже, чем для супертипа, а любое постусловие не может быть слабее, чем у супертипа13.
+Эта формулировка связана с методологией контрактного программирования, зародившегося примерно в то же время.</p>
+</blockquote>
+<p>Новая функция должна иметь аргументы, <a href="/docs/types/generics/">совместимые</a> с типом аргумента первоначальной функцией.</p>
+<pre tabindex="0"><code>    func(arg:Int8):Int8 ::=  ... ;
+
+    func(arg:Int16):Int16 =  ... ; # ОК Int8 -&gt; Int16
+
+    func(arg:String):Int16 =  ... ;  # Ошибка String -&gt; Int16
+
+    func(arg:Int16, arg2:Int16):Int16 =  ... ;
+
+    func(arg:Integer, ...):Integer =  ... ; # ОК обобщенные тип
+</code></pre>
+</div>
+
+
+
+    
+	
+  
+    
+    
+	
+    
+
+<div class="td-content" style="page-break-before: always">
+    
+	<h1 id="pg-4bc5f061692b860fd28bbd359babdf2c">7 - Итераторы</h1>
+    
+	<p>Итераторы в <em>NewLang</em>, как и в остальных языках программирования, предназначены для перебора элементов. Но, в отличии от итераторов в С++, итераторы <em>NewLang</em> являются самостоятельными объектами, а не указателями на отдельные элементы объекта-контейнера. Итераторы <em>NewLang</em> поддерживают фильтрацию элементов по имени за счет использования функций обратного вызова.</p>
+<p>Для работы с итераторами используется следующий синтаксис:</p>
+<ul>
+<li><strong>?</strong> или <strong>?(</strong> текст <strong>)</strong> - создание итератора без фильтра или с <em>regex</em> фильтрацией по имени поля</li>
+<li><strong>?(</strong> func, args&hellip; <strong>)</strong> - создание итератора с использованием <a href="/docs/types/funcs/">лямбда функции или функции обратного вызова</a></li>
+<li><strong>!</strong> или <strong>!(</strong> количество возвращаемых элементов <strong>)</strong> - перебор элементов итератора</li>
+<li><strong>?!</strong> или <strong>!?</strong> - получить текущий элемент без перемещение курсора</li>
+<li><strong>!!</strong> - сбросить указатель итератора в начальное состояние (на первый элемент)</li>
+<li><strong>??</strong> - создать итератор и сразу его выполнить, возвращая все значения в виде элементов словаря максимально возможного размера.
+Это своего рода синтаксический сахар для краткой записи последовательности команд <code>?; !(9223372036854775807);</code>,
+что удобно использовать при отладке для вывода значений переменных.</li>
+</ul>
+<p>Для работы с итераторами можно использовании DSL операторы:</p>
+<ul>
+<li><strong>iter()</strong> - Создать итератор (<strong>?</strong>)</li>
+<li><strong>next()</strong> - перебор элементов итератора (<strong>!</strong> или <strong>!(</strong> количество возвращаемых элементов <strong>)</strong>)</li>
+<li><strong>curr()</strong> -  Получить текущий элемент без перемещение курсора (<strong>?!</strong> или <strong>!?</strong>)</li>
+<li><strong>first()</strong> - Сбросить указатель итератора на первый элемент (<strong>!!</strong>)</li>
+<li><strong>all()</strong> - Создать итератор и сразу его выполнить (<strong>??</strong>)</li>
+</ul>
+<p>Примеры создания итераторов с разными фильтрами отбора данных:</p>
+<div class="highlight"><pre tabindex="0" style="background-color:#f8f8f8;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-python" data-lang="python"><span style="display:flex;"><span><span style="color:#204a87">iter</span> <span style="color:#ce5c00;font-weight:bold">:=</span> <span style="color:#204a87">dict</span> <span style="color:#a40000">?</span> <span style="color:#000;font-weight:bold">(</span><span style="color:#4e9a06">&#34;name&#34;</span><span style="color:#000;font-weight:bold">);</span> <span style="color:#8f5902;font-style:italic"># Создание итератора для значений с указанным именем</span>
+</span></span><span style="display:flex;"><span><span style="color:#204a87">iter</span> <span style="color:#ce5c00;font-weight:bold">:=</span> <span style="color:#204a87">dict</span> <span style="color:#a40000">?</span> <span style="color:#000;font-weight:bold">(</span><span style="color:#4e9a06">&#34;regex.&#34;</span><span style="color:#000;font-weight:bold">);</span> <span style="color:#8f5902;font-style:italic"># Создание итератора для полей с префиксом &#34;regex&#34;</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#8f5902;font-style:italic"># Чистая функция для фильтрации по значению</span>
+</span></span><span style="display:flex;"><span><span style="color:#204a87">filter</span><span style="color:#000;font-weight:bold">(</span><span style="color:#000">value</span><span style="color:#000;font-weight:bold">)</span> <span style="color:#000;font-weight:bold">:</span><span style="color:#ce5c00;font-weight:bold">-</span> <span style="color:#000;font-weight:bold">{</span> <span style="color:#a40000">$</span><span style="color:#000">value</span> <span style="color:#ce5c00;font-weight:bold">&amp;&amp;</span> <span style="color:#a40000">$</span><span style="color:#000">value</span> <span style="color:#ce5c00;font-weight:bold">&lt;</span> <span style="color:#0000cf;font-weight:bold">10</span><span style="color:#000;font-weight:bold">;</span> <span style="color:#000;font-weight:bold">};</span> 
+</span></span><span style="display:flex;"><span><span style="color:#204a87">iter</span> <span style="color:#ce5c00;font-weight:bold">:=</span> <span style="color:#204a87">dict</span> <span style="color:#a40000">?</span> <span style="color:#000;font-weight:bold">(</span><span style="color:#204a87">filter</span><span style="color:#000;font-weight:bold">);</span> <span style="color:#8f5902;font-style:italic"># Создание итератора для значений меньше 10</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#000">equal</span><span style="color:#000;font-weight:bold">(</span><span style="color:#000">value</span><span style="color:#000;font-weight:bold">,</span> <span style="color:#000">arg</span><span style="color:#000;font-weight:bold">)</span> <span style="color:#ce5c00;font-weight:bold">:=</span> <span style="color:#000;font-weight:bold">{</span> <span style="color:#a40000">$</span><span style="color:#000">value</span> <span style="color:#ce5c00;font-weight:bold">==</span> <span style="color:#000">arg</span> <span style="color:#000;font-weight:bold">};</span> <span style="color:#8f5902;font-style:italic"># Обычная функция</span>
+</span></span><span style="display:flex;"><span><span style="color:#204a87">iter</span> <span style="color:#ce5c00;font-weight:bold">:=</span> <span style="color:#204a87">dict</span> <span style="color:#a40000">?</span> <span style="color:#000;font-weight:bold">(</span><span style="color:#000">equal</span><span style="color:#000;font-weight:bold">,</span> <span style="color:#0000cf;font-weight:bold">100</span><span style="color:#000;font-weight:bold">);</span> <span style="color:#8f5902;font-style:italic"># Создать итератор только для значений 100</span>
+</span></span></code></pre></div><p>Оператор перебора элементов итератора <strong>!</strong> возвращает текущий элемент и сдвигает указатель на следующий. Точнее, на количество считанных элементов, так как прочитать элементы из итератора можно не только по одному, а и заданными порциями, например по 10 за один раз, <code>iter ! (10);</code>.</p>
+<p>Если указать количество считываемых элементов <strong>!(0)</strong>, то будет возвращен сам элемент, но для значений отличных от нуля будет возвращаться не элемент данных, а словарь с данными, считанными из итератора. Из-за этого операторы <strong>!</strong> и <strong>!(0)</strong> <strong>НЕ</strong> эквивалентны, т.к. по разному обрабатывают конец данных.</p>
+<p>Лучше всего это показать на примерах для словаря с пятью элементами:</p>
+<div class="highlight"><pre tabindex="0" style="background-color:#f8f8f8;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-python" data-lang="python"><span style="display:flex;"><span><span style="color:#204a87">dict</span> <span style="color:#ce5c00;font-weight:bold">:=</span> <span style="color:#000;font-weight:bold">(</span><span style="color:#0000cf;font-weight:bold">1</span><span style="color:#000;font-weight:bold">,</span><span style="color:#0000cf;font-weight:bold">2</span><span style="color:#000;font-weight:bold">,</span><span style="color:#0000cf;font-weight:bold">3</span><span style="color:#000;font-weight:bold">,</span><span style="color:#0000cf;font-weight:bold">4</span><span style="color:#000;font-weight:bold">,</span><span style="color:#0000cf;font-weight:bold">5</span><span style="color:#000;font-weight:bold">,)</span><span style="color:#a40000">?</span><span style="color:#000;font-weight:bold">;</span> <span style="color:#8f5902;font-style:italic"># Создать итератор для словаря</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#204a87">dict</span><span style="color:#a40000">!</span><span style="color:#000;font-weight:bold">;</span> <span style="color:#8f5902;font-style:italic"># -&gt; 1</span>
+</span></span><span style="display:flex;"><span><span style="color:#204a87">dict</span><span style="color:#a40000">!</span><span style="color:#000;font-weight:bold">;</span> <span style="color:#8f5902;font-style:italic"># -&gt; 2</span>
+</span></span><span style="display:flex;"><span><span style="color:#204a87">dict</span><span style="color:#a40000">!</span><span style="color:#000;font-weight:bold">;</span> <span style="color:#8f5902;font-style:italic"># -&gt; 3</span>
+</span></span><span style="display:flex;"><span><span style="color:#204a87">dict</span><span style="color:#a40000">!</span><span style="color:#000;font-weight:bold">;</span> <span style="color:#8f5902;font-style:italic"># -&gt; 4</span>
+</span></span><span style="display:flex;"><span><span style="color:#204a87">dict</span><span style="color:#a40000">!</span><span style="color:#000;font-weight:bold">;</span> <span style="color:#8f5902;font-style:italic"># -&gt; 5</span>
+</span></span><span style="display:flex;"><span><span style="color:#204a87">dict</span><span style="color:#a40000">!</span><span style="color:#000;font-weight:bold">;</span> <span style="color:#8f5902;font-style:italic"># -&gt; будет исключение &#34;конец итератора&#34;</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#8f5902;font-style:italic"># Но</span>
+</span></span><span style="display:flex;"><span><span style="color:#204a87">dict</span> <span style="color:#a40000">!</span><span style="color:#000;font-weight:bold">(</span><span style="color:#0000cf;font-weight:bold">0</span><span style="color:#000;font-weight:bold">);</span> <span style="color:#8f5902;font-style:italic"># -&gt; (1,)</span>
+</span></span><span style="display:flex;"><span><span style="color:#204a87">dict</span> <span style="color:#a40000">!</span><span style="color:#000;font-weight:bold">(</span><span style="color:#0000cf;font-weight:bold">0</span><span style="color:#000;font-weight:bold">);</span> <span style="color:#8f5902;font-style:italic"># -&gt; (2,)</span>
+</span></span><span style="display:flex;"><span><span style="color:#204a87">dict</span> <span style="color:#a40000">!</span><span style="color:#000;font-weight:bold">(</span><span style="color:#0000cf;font-weight:bold">0</span><span style="color:#000;font-weight:bold">);</span> <span style="color:#8f5902;font-style:italic"># -&gt; (3,)</span>
+</span></span><span style="display:flex;"><span><span style="color:#204a87">dict</span> <span style="color:#a40000">!</span><span style="color:#000;font-weight:bold">(</span><span style="color:#0000cf;font-weight:bold">0</span><span style="color:#000;font-weight:bold">);</span> <span style="color:#8f5902;font-style:italic"># -&gt; (4,)</span>
+</span></span><span style="display:flex;"><span><span style="color:#204a87">dict</span> <span style="color:#a40000">!</span><span style="color:#000;font-weight:bold">(</span><span style="color:#0000cf;font-weight:bold">0</span><span style="color:#000;font-weight:bold">);</span> <span style="color:#8f5902;font-style:italic"># -&gt; (5,)</span>
+</span></span><span style="display:flex;"><span><span style="color:#204a87">dict</span> <span style="color:#a40000">!</span><span style="color:#000;font-weight:bold">(</span><span style="color:#0000cf;font-weight:bold">0</span><span style="color:#000;font-weight:bold">);</span> <span style="color:#8f5902;font-style:italic"># -&gt; (,) - вернется пустой словарь</span>
+</span></span></code></pre></div><p>Так же для чтения итератора можно указывать и отрицательное количество элементов. В этом случае будет возвращаться словарь всегда указанного размера, но элементы в словаре будут присутствовать только в случае чтения реальных данных из итератора:</p>
+<div class="highlight"><pre tabindex="0" style="background-color:#f8f8f8;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-python" data-lang="python"><span style="display:flex;"><span><span style="color:#204a87">dict</span> <span style="color:#ce5c00;font-weight:bold">:=</span> <span style="color:#000;font-weight:bold">(</span><span style="color:#0000cf;font-weight:bold">1</span><span style="color:#000;font-weight:bold">,</span><span style="color:#0000cf;font-weight:bold">2</span><span style="color:#000;font-weight:bold">,</span><span style="color:#0000cf;font-weight:bold">3</span><span style="color:#000;font-weight:bold">,</span><span style="color:#0000cf;font-weight:bold">4</span><span style="color:#000;font-weight:bold">,</span><span style="color:#0000cf;font-weight:bold">5</span><span style="color:#000;font-weight:bold">,)</span> <span style="color:#a40000">?</span><span style="color:#000;font-weight:bold">;</span> <span style="color:#8f5902;font-style:italic"># Итератор для словаря с пятью элементами</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#204a87">dict</span> <span style="color:#a40000">!</span><span style="color:#000;font-weight:bold">(</span><span style="color:#0000cf;font-weight:bold">3</span><span style="color:#000;font-weight:bold">);</span> <span style="color:#8f5902;font-style:italic"># -&gt; (1,2,3,)</span>
+</span></span><span style="display:flex;"><span><span style="color:#204a87">dict</span> <span style="color:#a40000">!</span><span style="color:#000;font-weight:bold">(</span><span style="color:#0000cf;font-weight:bold">3</span><span style="color:#000;font-weight:bold">);</span> <span style="color:#8f5902;font-style:italic"># -&gt; (4,5,)</span>
+</span></span><span style="display:flex;"><span><span style="color:#204a87">dict</span> <span style="color:#a40000">!</span><span style="color:#000;font-weight:bold">(</span><span style="color:#0000cf;font-weight:bold">3</span><span style="color:#000;font-weight:bold">);</span> <span style="color:#8f5902;font-style:italic"># -&gt; (,)</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#8f5902;font-style:italic"># Но</span>
+</span></span><span style="display:flex;"><span><span style="color:#204a87">dict</span> <span style="color:#a40000">!</span><span style="color:#000;font-weight:bold">(</span><span style="color:#ce5c00;font-weight:bold">-</span><span style="color:#0000cf;font-weight:bold">3</span><span style="color:#000;font-weight:bold">);</span> <span style="color:#8f5902;font-style:italic"># -&gt; (1,2,3,)</span>
+</span></span><span style="display:flex;"><span><span style="color:#204a87">dict</span> <span style="color:#a40000">!</span><span style="color:#000;font-weight:bold">(</span><span style="color:#ce5c00;font-weight:bold">-</span><span style="color:#0000cf;font-weight:bold">3</span><span style="color:#000;font-weight:bold">);</span> <span style="color:#8f5902;font-style:italic"># -&gt; (4,5, :IteratorEnd)</span>
+</span></span><span style="display:flex;"><span><span style="color:#204a87">dict</span> <span style="color:#a40000">!</span><span style="color:#000;font-weight:bold">(</span><span style="color:#ce5c00;font-weight:bold">-</span><span style="color:#0000cf;font-weight:bold">3</span><span style="color:#000;font-weight:bold">);</span> <span style="color:#8f5902;font-style:italic"># -&gt; (:IteratorEnd, :IteratorEnd, :IteratorEnd)</span>
+</span></span></code></pre></div>
+</div>
+
+
+
+    
+	
+  
+    
+    
+	
+    
+
+<div class="td-content" style="page-break-before: always">
+    
+	<h1 id="pg-55daef0bebbb47d29e197c70931395ea">8 - Другие типы данных</h1>
+    
+	<h3 id="пусто-none">Пусто (:None)<a class="td-heading-self-link" href="#%d0%bf%d1%83%d1%81%d1%82%d0%be-none" aria-label="Heading self-link"></a></h3>
+<p><em>:None</em> (пусто) — не содержит значения (точнее имеет одно значение <em>:None</em>). Указывается в тексте программы как один подчерк «_». Значение <em>None</em> имеют не инициализированные переменные и при попытке чтения из такой переменной возникает ошибка.</p>
+<p>Тип переменной может быть явно указан или выведен автоматически из присваиваемого значения. Присвоить новое значение уже инициализированной переменной можно только для совместимого типа, так как неявное преобразование типов не допускаются.</p>
+<div class="highlight"><pre tabindex="0" style="background-color:#f8f8f8;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>    <span style="color:#000">$var</span> :<span style="color:#ce5c00;font-weight:bold">=</span> _<span style="color:#000;font-weight:bold">;</span> <span style="color:#8f5902;font-style:italic"># Создать не инициализированную переменную</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#000">$var2</span> :<span style="color:#ce5c00;font-weight:bold">=</span> var<span style="color:#000;font-weight:bold">;</span> <span style="color:#8f5902;font-style:italic"># Ошибка!!! Нельзя прочитать не инициализированную переменную var</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#000">$var</span> <span style="color:#ce5c00;font-weight:bold">=</span> 1000<span style="color:#000;font-weight:bold">;</span> <span style="color:#8f5902;font-style:italic"># У переменной будет тип Short (минимальный размер для хранения значения)</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#000">$var</span> <span style="color:#ce5c00;font-weight:bold">=</span> 0,5<span style="color:#000;font-weight:bold">;</span> <span style="color:#8f5902;font-style:italic"># Ошибка!!! Short ← Float не совместимы</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#000">$var</span> <span style="color:#ce5c00;font-weight:bold">=</span> _<span style="color:#000;font-weight:bold">;</span> <span style="color:#8f5902;font-style:italic"># Очистить значение переменной</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#000">$var</span> <span style="color:#ce5c00;font-weight:bold">=</span> 0,5<span style="color:#000;font-weight:bold">;</span> <span style="color:#8f5902;font-style:italic"># Теперь можно, т. к. None совместим с любым типом</span>
+</span></span></code></pre></div><h3 id="диапазон-range">Диапазон (:Range)<a class="td-heading-self-link" href="#%d0%b4%d0%b8%d0%b0%d0%bf%d0%b0%d0%b7%d0%be%d0%bd-range" aria-label="Heading self-link"></a></h3>
+<p>Диапазон — специальный тип данных, являющейся приблизительным аналогом типа «генератор» в Python. К диапазону можно обращаться как к итератору и он будет поочередно выдавать элементы в указанном интервале с заданным шагом. Диапазон в тексте программы указывается как два или три элемента через две точки, например 1..5 — диапазон от единицы до пяти с шагом по умолчанию 1. В качестве параметров диапазона можно указывать не только литералы, но и имена переменных и даже рациональные числа. Например, 0,1..$stop..0,1 — диапазон от 0,1 до значения, указанного в переменной $stop с шагом 0,1 или 0..1\10 - диапазон рациональных числе от 0 до 10.</p>
+<p>Диапазон целых чисел можно использовать в качестве индекса у тензоров (точнее, у любых объектов, которые допускают доступ к своим элементам по индексу, т.е. тензоры, словари и текстовые строки). Фактический, это поведение аналогично slice в языке Python и array[1:5] в Python означает тоже самое, что и array[1..5] в <em>NewLang</em>.</p>
+<p>В качестве индекса у тензоров еще можно указать произвольное количество измерений с помощью многоточия, т.е.</p>
+<div class="highlight"><pre tabindex="0" style="background-color:#f8f8f8;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>    <span style="color:#000">$tensor</span><span style="color:#ce5c00;font-weight:bold">[</span>…, 0<span style="color:#ce5c00;font-weight:bold">]</span> <span style="color:#ce5c00;font-weight:bold">=</span> 0<span style="color:#000;font-weight:bold">;</span> <span style="color:#8f5902;font-style:italic"># Обнулить все первые элементы в каждом измерении.</span>
+</span></span></code></pre></div><p><em>В будущем можно будет добавить возможность указывать индексы элементов с помощь диапазонов</em></p>
+<pre tabindex="0"><code>$tensor = :Tensor[12](4..4 = 29, 2..3 = 15, , 7..9..2 = 7, 10 ...); # [0, 0, 15, 15, 29, 0, 0, 7, 0, 7, 10, 10,]
+</code></pre><h3 id="поток-thread">Поток (:Thread)<a class="td-heading-self-link" href="#%d0%bf%d0%be%d1%82%d0%be%d0%ba-thread" aria-label="Heading self-link"></a></h3>
+<p>Поток — специальный тип данных, который запускает функцию в отдельном потоке, который выполнтеся паралельно основному потоку приложения.
+Поток созадется в остановленном виде и для его запуска необходимо вызвать метод start(), а чтобы дождаться завершения потока вызывается метод join().</p>
+<pre tabindex="0"><code>    rand():Int32 := %rand;
+    usleep(usec:DWord64):None := %usleep;
+    printf(format:FmtChar, ...):Int32 := %printf;
+
+    func(count:Integer, target:String) := {
+        $iter := 1..$count?; # Итератор для диапазона от 1 до $count
+        [ $iter ?! ] &lt;-&gt; {   # Цикл, пока итератор валидный
+            
+            $step := $iter!;  # Получить текущий и перейти на следующий элемент итератора
+            
+            printf(&#39;Number %d from %s!&#39;, $step, $target);
+                
+            usleep( rand() % 1000 );    # Случайная задержка
+
+        }
+    }
+
+    thread = :Thread(func, 5, &#39;thread&#39;);
+
+    thread.start();
+
+    func(5, &#39;main&#39;);
+
+    thread.join();
+</code></pre><p>Number 1 from the thread!
+Number 1 from the main!
+Number 2 from the thread!
+Number 2 from the main!
+Number 3 from the thread!
+Number 4 from the thread!
+Number 3 from the main!
+Number 4 from the main!
+Number 5 from the main!
+Number 5 from the thread!</p>
+<p>Условные переменные (condvars).
+Сходны с событиями, но не являются объектами, занимающими память — используется только адрес переменной,
+понятие «содержимое переменной» не существует, в качестве условной переменной может использоваться адрес произвольного объекта.
+В отличие от событий, установка условной переменной в просигнализированное состояние не влечёт за собой никаких последствий в случае,
+если на данный момент нет потоков, ожидающих на переменной. Установка события в аналогичном случае влечёт за собой запоминание состояния
+«просигнализировано» внутри самого события, после чего следующие потоки, желающие ожидать события, продолжают исполнение немедленно без остановки.
+Для полноценного использования такого объекта необходима также операция «освободить mutex и ожидать условную переменную атомарно».
+Активно используются в UNIX-подобных ОС.
+Дискуссии о преимуществах и недостатках событий и условных переменных являются заметной частью дискуссий о преимуществах и недостатках Windows и UNIX.</p>
+<p>ERESOURCE. Мьютекс, поддерживающий рекурсивный захват, с семантикой разделяемого или эксклюзивного захвата.
+Семантика: объект может быть либо свободен, либо захвачен произвольным числом потоков разделяемым образом,
+либо захвачен всего одним потоком эксклюзивным образом. Любые попытки осуществить захваты, нарушающее это правило,
+приводят к блокировке потока до тех пор, пока объект не освободится так, чтобы сделать захват разрешённым.
+Также есть операции вида TryToAcquire — никогда не блокирует поток, либо захватывает, либо (если нужна блокировка) возвращает FALSE,
+ничего не делая. Используется в ядре Windows, особенно в файловых системах — так, например,
+любому кем-то открытому дисковому файлу соответствует структура FCB, в которой есть 2 таких объекта для синхронизации доступа к размеру файла.
+Один из них — paging IO resource — захватывается эксклюзивно только в пути обрезания файла, и гарантирует,
+что в момент обрезания на файле нет активного ввода-вывода от кэша и от отображения в память.</p>
+<h3 id="интерфейс-операционной-системы-system">Интерфейс операционной системы (:System)<a class="td-heading-self-link" href="#%d0%b8%d0%bd%d1%82%d0%b5%d1%80%d1%84%d0%b5%d0%b9%d1%81-%d0%be%d0%bf%d0%b5%d1%80%d0%b0%d1%86%d0%b8%d0%be%d0%bd%d0%bd%d0%be%d0%b9-%d1%81%d0%b8%d1%81%d1%82%d0%b5%d0%bc%d1%8b-system" aria-label="Heading self-link"></a></h3>
+<p>Для доступа к различным функциям операционной системы <em>NewLang</em> предоставляет специальный тип данных <strong>:System</strong>.
+Он позволяет запускать системные команды и переопределять для них параметры системного окружения.</p>
+<p>Выполнение команды происходит при вызове метода <code>run()</code>, которому нужно передать имя системной команды и при необходимости дополнительные аргументы командной строки.</p>
+<p>Результат выполнения команды (текстовый вывод, код завершения и т.д.) доступен как отдельные свойства объекта.</p>
+<p>Пример:</p>
+<pre tabindex="0"><code>    :System().run(&#34;echo&#34;, &#34;Hello from the other side!&#34;);
+
+    os := :System();
+    
+    home_dir := os.run(&#34;cd&#34;, &#34;~&#34;);
+    printf(&#34;`cd ~` ran with exit code %d&#34;, os.exitcode());
+
+    unknown_dir := os.run(&#34;cd&#34;, &#34;doesnotexist&#34;);
+    printf(&#34;`cd doesnotexis` ran with exit code %d&#34;, os.exitcode());
+</code></pre><p>Первая строка делает запускает команду echo.</p>
+<p>Потом создается объект :System и далее мы создаем две переменные, в которых хранятся результаты этой выполнения команды <code>cd</code>,
+которые изменяют каталог на домашнюю папку и на несуществующую папку.</p>
+<p>Запустив этот файл, мы увидим:</p>
+<pre tabindex="0"><code>    Hello from the other side!
+    `cd ~` ran with exit code 0
+    sh: line 0: cd: doesnotexist: No such file or directory
+    `cd doesnotexist` ran with exit code 256
+</code></pre><p>Первая строка - результат выполнения команды echo.</p>
+<p>Далее команда <code>cd</code> выполняется успешно и изменяет каталог на домашний. Следовательно, код возврата ноль, который получаем с помощью вызова метода exitcode().</p>
+<p>Последняя команда <code>cd</code> выполняется с ошибкой, так как пытается изменить каталог на несуществующую папку.</p>
+<h4 id="простой-варинат-выполнение-системной-команды">Простой варинат выполнение системной команды<a class="td-heading-self-link" href="#%d0%bf%d1%80%d0%be%d1%81%d1%82%d0%be%d0%b9-%d0%b2%d0%b0%d1%80%d0%b8%d0%bd%d0%b0%d1%82-%d0%b2%d1%8b%d0%bf%d0%be%d0%bb%d0%bd%d0%b5%d0%bd%d0%b8%d0%b5-%d1%81%d0%b8%d1%81%d1%82%d0%b5%d0%bc%d0%bd%d0%be%d0%b9-%d0%ba%d0%be%d0%bc%d0%b0%d0%bd%d0%b4%d1%8b" aria-label="Heading self-link"></a></h4>
+<p>Есть упрощенный вариант выполнения системной команды с помощью заключения строки выполнения в обратные кавычки (как в bash).</p>
+<pre tabindex="0"><code>    `echo Hello from the other side!`;
+</code></pre><p>В этом случае системная команда <code>:System.run()</code> сразу выполняется, а её текстовый вывод сохраняется в текстовую строку с широкими символами (:StrWide).</p>
+<p>Чтобы получить код возврата (например, чтобы проверить результат завершения на ошибки), можно обратится к результату выполнения последней команды <code>$^.exitcode()</code>
+или сохранить результат выполнения предыдущей команды в отдельную переменню, которая будет иметь тип <em>:System</em>.</p>
+<pre tabindex="0"><code>    `echo Hello from the other side!`;
+    res := $^;
+    printf(&#34;`cd doesnotexis` ran with exit code %d&#34;, res.exitcode());
+</code></pre><h2 id="в-дальнейшем-планируется-расширить-возможности-интерфейса-с-операционной-системой">В дальнейшем планируется расширить возможности интерфейса с операционной системой<a class="td-heading-self-link" href="#%d0%b2-%d0%b4%d0%b0%d0%bb%d1%8c%d0%bd%d0%b5%d0%b9%d1%88%d0%b5%d0%bc-%d0%bf%d0%bb%d0%b0%d0%bd%d0%b8%d1%80%d1%83%d0%b5%d1%82%d1%81%d1%8f-%d1%80%d0%b0%d1%81%d1%88%d0%b8%d1%80%d0%b8%d1%82%d1%8c-%d0%b2%d0%be%d0%b7%d0%bc%d0%be%d0%b6%d0%bd%d0%be%d1%81%d1%82%d0%b8-%d0%b8%d0%bd%d1%82%d0%b5%d1%80%d1%84%d0%b5%d0%b9%d1%81%d0%b0-%d1%81-%d0%be%d0%bf%d0%b5%d1%80%d0%b0%d1%86%d0%b8%d0%be%d0%bd%d0%bd%d0%be%d0%b9-%d1%81%d0%b8%d1%81%d1%82%d0%b5%d0%bc%d0%be%d0%b9" aria-label="Heading self-link"></a></h2>
+<ul>
+<li>фоновое выполнение программ (useless_cat_call = subprocess.run([&ldquo;cat&rdquo;], stdout=subprocess.PIPE, text=True, input=&ldquo;Hello from the other side&rdquo;))</li>
+<li>переназначение ввода/вывода (list_dir = subprocess.Popen([&ldquo;ls&rdquo;, &ldquo;-l&rdquo;]); list_dir.wait())</li>
+<li>чтение/изменние перемнных окржения</li>
+</ul>
+<h3 id="еще-пример-возможностей-для-расширения">Еще пример возможностей для расширения<a class="td-heading-self-link" href="#%d0%b5%d1%89%d0%b5-%d0%bf%d1%80%d0%b8%d0%bc%d0%b5%d1%80-%d0%b2%d0%be%d0%b7%d0%bc%d0%be%d0%b6%d0%bd%d0%be%d1%81%d1%82%d0%b5%d0%b9-%d0%b4%d0%bb%d1%8f-%d1%80%d0%b0%d1%81%d1%88%d0%b8%d1%80%d0%b5%d0%bd%d0%b8%d1%8f" aria-label="Heading self-link"></a></h3>
+<ul>
+<li>os.name - имя операционной системы. Доступные варианты: &lsquo;posix&rsquo;, &rsquo;nt&rsquo;, &lsquo;mac&rsquo;, &lsquo;os2&rsquo;, &lsquo;ce&rsquo;, &lsquo;java&rsquo;.</li>
+<li>os.environ - словарь переменных окружения. Изменяемый (можно добавлять и удалять переменные окружения).</li>
+<li>os.getlogin() - имя пользователя, вошедшего в терминал (Unix).</li>
+<li>os.getpid() - текущий id процесса.</li>
+<li>os.uname() - информация об ОС. возвращает объект с атрибутами: sysname - имя операционной системы, nodename - имя машины в сети (определяется реализацией), release - релиз, version - версия, machine - идентификатор машины.</li>
+<li>os.access(path, mode, *, dir_fd=None, effective_ids=False, follow_symlinks=True) - проверка доступа к объекту у текущего пользователя. Флаги: os.F_OK - объект существует, os.R_OK - доступен на чтение, os.W_OK - доступен на запись, os.X_OK - доступен на исполнение.</li>
+<li>os.chdir(path) - смена текущей директории.</li>
+<li>os.chmod(path, mode, *, dir_fd=None, follow_symlinks=True) - смена прав доступа к объекту (mode - восьмеричное число).</li>
+<li>os.chown(path, uid, gid, *, dir_fd=None, follow_symlinks=True) - меняет id владельца и группы (Unix).</li>
+<li>os.getcwd() - текущая рабочая директория.</li>
+<li>os.link(src, dst, *, src_dir_fd=None, dst_dir_fd=None, follow_symlinks=True) - создаёт жёсткую ссылку.</li>
+<li>os.listdir(path=&quot;.&quot;) - список файлов и директорий в папке.</li>
+<li>os.mkdir(path, mode=0o777, *, dir_fd=None) - создаёт директорию. OSError, если директория существует.</li>
+<li>os.makedirs(path, mode=0o777, exist_ok=False) - создаёт директорию, создавая при этом промежуточные директории.</li>
+<li>os.remove(path, *, dir_fd=None) - удаляет путь к файлу.</li>
+<li>os.rename(src, dst, *, src_dir_fd=None, dst_dir_fd=None) - переименовывает файл или директорию из src в dst.</li>
+<li>os.renames(old, new) - переименовывает old в new, создавая промежуточные директории.</li>
+<li>os.replace(src, dst, *, src_dir_fd=None, dst_dir_fd=None) - переименовывает из src в dst с принудительной заменой.</li>
+<li>os.rmdir(path, *, dir_fd=None) - удаляет пустую директорию.</li>
+<li>os.removedirs(path) - удаляет директорию, затем пытается удалить родительские директории, и удаляет их рекурсивно, пока они пусты.</li>
+<li>os.symlink(source, link_name, target_is_directory=False, *, dir_fd=None) - создаёт символическую ссылку на объект.</li>
+<li>os.sync() - записывает все данные на диск (Unix).</li>
+<li>os.truncate(path, length) - обрезает файл до длины length.</li>
+<li>os.utime(path, times=None, *, ns=None, dir_fd=None, follow_symlinks=True) - модификация времени последнего доступа и изменения файла. Либо times - кортеж (время доступа в секундах, время изменения в секундах), либо ns - кортеж (время доступа в наносекундах, время изменения в наносекундах).</li>
+<li>os.walk(top, topdown=True, onerror=None, followlinks=False) - генерация имён файлов в дереве каталогов, сверху вниз (если topdown равен True), либо снизу вверх (если False). Для каждого каталога функция walk возвращает кортеж (путь к каталогу, список каталогов, список файлов).</li>
+<li>os.system(command) - исполняет системную команду, возвращает код её завершения (в случае успеха 0).</li>
+<li>os.urandom(n) - n случайных байт. Возможно использование этой функции в криптографических целях.</li>
+</ul>
+
+</div>
+
+
+
+    
+	
+  
+    
+    
+	
+    
+
+<div class="td-content" style="page-break-before: always">
+    
+	<h1 id="pg-cf08b42ee4f3746e6fd20919aa6660c8">9 - Native Data Types</h1>
+    
+	<p>Native (machine) data can be variables or functions, and the names of native objects start with the percent symbol &ldquo;<strong>%</strong>&rdquo;.</p>
+<p>In the case of variables, these are binary data located in a single continuous area of machine memory at a specific address and have a strictly defined format.</p>
+<p>To use existing libraries, you need to import the native object, thereby creating an object NewLang,
+but with an implementation in another language, for example, in C/C++.</p>
+<p>The syntax for importing native objects is the same as for <a href="/docs/ops/create/">creating</a> regular language objects,
+only the name of the native object needs to be specified as the right operand in the creation operator.</p>
+<p>When importing a native object, it is necessary to always specify the variable types,
+as well as the types of arguments and return values for functions.</p>
+<p>If the data types of the created object and the native object match (i.e., no type conversion is required),
+then the native object name can be specified with an ellipsis,
+which means that the data types will replicate those specified at the left operand.</p>
+<div class="highlight"><pre tabindex="0" style="background-color:#f8f8f8;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-python" data-lang="python"><span style="display:flex;"><span><span style="color:#000;font-weight:bold">:</span><span style="color:#000">FILE</span> <span style="color:#000;font-weight:bold">:</span><span style="color:#ce5c00;font-weight:bold">:=</span> <span style="color:#000;font-weight:bold">:</span><span style="color:#000">Plain</span><span style="color:#000;font-weight:bold">;</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#000">fopen</span><span style="color:#000;font-weight:bold">(</span><span style="color:#000">filename</span><span style="color:#000;font-weight:bold">:</span><span style="color:#000">StrChar</span><span style="color:#000;font-weight:bold">,</span> <span style="color:#000">modes</span><span style="color:#000;font-weight:bold">:</span><span style="color:#000">StrChar</span><span style="color:#000;font-weight:bold">):</span><span style="color:#000">FILE</span> <span style="color:#000;font-weight:bold">:</span><span style="color:#ce5c00;font-weight:bold">:=</span> <span style="color:#ce5c00;font-weight:bold">%</span><span style="color:#000">fopen</span><span style="color:#ce5c00;font-weight:bold">...</span><span style="color:#000;font-weight:bold">;</span>
+</span></span><span style="display:flex;"><span><span style="color:#000">fclose</span><span style="color:#000;font-weight:bold">(</span><span style="color:#000">f</span><span style="color:#000;font-weight:bold">:</span><span style="color:#000">FILE</span><span style="color:#000;font-weight:bold">):</span><span style="color:#000">Int32</span> <span style="color:#000;font-weight:bold">:</span><span style="color:#ce5c00;font-weight:bold">:=</span> <span style="color:#ce5c00;font-weight:bold">%</span><span style="color:#000">fclose</span><span style="color:#ce5c00;font-weight:bold">...</span><span style="color:#000;font-weight:bold">;</span>
+</span></span><span style="display:flex;"><span><span style="color:#000">fflush</span><span style="color:#000;font-weight:bold">(</span><span style="color:#000">f</span><span style="color:#000;font-weight:bold">:</span><span style="color:#000">FILE</span><span style="color:#000;font-weight:bold">):</span><span style="color:#000">Int32</span> <span style="color:#000;font-weight:bold">:</span><span style="color:#ce5c00;font-weight:bold">:=</span> <span style="color:#ce5c00;font-weight:bold">%</span><span style="color:#000">fflush</span><span style="color:#ce5c00;font-weight:bold">...</span><span style="color:#000;font-weight:bold">;</span>
+</span></span><span style="display:flex;"><span><span style="color:#000">fprintf</span><span style="color:#000;font-weight:bold">(</span><span style="color:#000">f</span><span style="color:#000;font-weight:bold">:</span><span style="color:#000">FILE</span><span style="color:#000;font-weight:bold">,</span> <span style="color:#204a87">format</span><span style="color:#000;font-weight:bold">:</span><span style="color:#000">FmtChar</span><span style="color:#000;font-weight:bold">,</span> <span style="color:#ce5c00;font-weight:bold">...</span><span style="color:#000;font-weight:bold">):</span><span style="color:#000">Int32</span> <span style="color:#000;font-weight:bold">:</span><span style="color:#ce5c00;font-weight:bold">:=</span> <span style="color:#ce5c00;font-weight:bold">%</span><span style="color:#000">fprintf</span><span style="color:#ce5c00;font-weight:bold">...</span><span style="color:#000;font-weight:bold">;</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#000">fremove</span><span style="color:#000;font-weight:bold">(</span><span style="color:#000">filename</span><span style="color:#000;font-weight:bold">:</span><span style="color:#000">String</span><span style="color:#000;font-weight:bold">):</span><span style="color:#000">Int32</span> <span style="color:#000;font-weight:bold">:</span><span style="color:#ce5c00;font-weight:bold">:=</span> <span style="color:#ce5c00;font-weight:bold">%</span><span style="color:#000">remove</span><span style="color:#ce5c00;font-weight:bold">...</span><span style="color:#000;font-weight:bold">;</span>
+</span></span><span style="display:flex;"><span><span style="color:#000">frename</span><span style="color:#000;font-weight:bold">(</span><span style="color:#000">old</span><span style="color:#000;font-weight:bold">:</span><span style="color:#000">String</span><span style="color:#000;font-weight:bold">,</span> <span style="color:#000">new</span><span style="color:#000;font-weight:bold">:</span><span style="color:#000">String</span><span style="color:#000;font-weight:bold">):</span><span style="color:#000">Int32</span> <span style="color:#000;font-weight:bold">:</span><span style="color:#ce5c00;font-weight:bold">:=</span> <span style="color:#ce5c00;font-weight:bold">%</span><span style="color:#000">rename</span><span style="color:#ce5c00;font-weight:bold">...</span><span style="color:#000;font-weight:bold">;</span>
+</span></span></code></pre></div>
+
+<div class="pageinfo pageinfo-primary">
+<p>The following description is under development.</p>
+
+</div>
+
+
+</div>
+
+
+
+    
+	
+  
+    
+    
+	
+    
+
+<div class="td-content" style="page-break-before: always">
+    
+	<h1 id="pg-d0d4eee95920a518c7da7c14c155a4d6">10 - Преобразование типов</h1>
+    
+	<p>Несмотря на динамическую типизацию языка, если тип переменной указан явно, то автоматическое приведение типов не выполняется,
+и чтобы присвоить переменой значение не совместимого типа, требуется его явное преобразование.</p>
+<p>Так как символьные названия типов относятся к деталям реализации, то явное преобразование в конкретный тип данных производится
+с помощью вызова функции с именем типа, т.е. :Bool(), :StrWide(), :Int64() и т.д.</p>
+<p>Примеры:</p>
+<h2 id="строки-и-тензоры">Строки и тензоры<a class="td-heading-self-link" href="#%d1%81%d1%82%d1%80%d0%be%d0%ba%d0%b8-%d0%b8-%d1%82%d0%b5%d0%bd%d0%b7%d0%be%d1%80%d1%8b" aria-label="Heading self-link"></a></h2>
+<pre tabindex="0"><code># Создать тензор из строки широких символов с автоматическим выводом типа
+#(тип Int32 будет на системах с Linux, а под Windows тип тензора будет Int16)
+&gt; tstr := :Tensor(&#34;Тест&#34;); 
+[1058, 1077, 1089, 1090,]:Int32
+
+# Тоже самое, но тензор заданной размерности
+&gt; t2 := :Tensor[2,2](&#34;Тест&#34;);
+[
+  [1058, 1077,], [1089, 1090,],
+]:Int32
+
+# Создать символьную строку из тензора
+&gt; :StrWide(tstr) 
+Тест
+
+# Изменить тип данных тензора без изменения размерности
+&gt; :Float64(t2) 
+[
+  [1058, 1077,], [1089, 1090,],
+]:Float64
+
+# Изменить размерность тензора и его тип 
+# (в данном случае с частичной потерей данных)
+&gt; t3 := :Int8[4]( t2 ) 
+[34, 53, 65, 66,]:Int8
+</code></pre><h2 id="словари">Словари<a class="td-heading-self-link" href="#%d1%81%d0%bb%d0%be%d0%b2%d0%b0%d1%80%d0%b8" aria-label="Heading self-link"></a></h2>
+<pre tabindex="0"><code># Создать тензор из словаря
+&gt;:Tensor( (1,2,3,) ); 
+[1, 2, 3,]:Int8
+
+# Преобразовать байтовую строку в тензор
+&gt;:Tensor( &#39;first second&#39; ) 
+[102, 105, 114, 115, 116, 32, 115, 101, 99, 111, 110, 100,]:Int8
+
+# Получаем тензор из словаря с такими же данными
+&gt;:Tensor( (&#39;first&#39;, space=32, second=&#39;second&#39;,) ) 
+[102, 105, 114, 115, 116, 32, 115, 101, 99, 111, 110, 100,]:Int8
+</code></pre>
+</div>
+
+
+
+    
+	
+  
+
+
+
+          </main>
+        </div>
+      </div>
+      <footer class="td-footer row d-print-none">
+  <div class="container-fluid">
+    <div class="row mx-md-2">
+      <div class="td-footer__left col-6 col-sm-4 order-sm-1">
+        <ul class="td-footer__links-list">
+  
+  <li class="td-footer__links-item" data-bs-toggle="tooltip" title="User mailing list" aria-label="User mailing list">
+    <a target="_blank" rel="noopener" href="mailto:mail@newlang.net" aria-label="User mailing list">
+      <i class="fa fa-envelope"></i>
+    </a>
+  </li>
+  
+  <li class="td-footer__links-item" data-bs-toggle="tooltip" title="" aria-label="">
+    <a target="_blank" rel="noopener" href="" aria-label="">
+      <i class=""></i>
+    </a>
+  </li>
+  
+  <li class="td-footer__links-item" data-bs-toggle="tooltip" title="" aria-label="">
+    <a target="_blank" rel="noopener" href="" aria-label="">
+      <i class=""></i>
+    </a>
+  </li>
+  
+</ul>
+
+      </div><div class="td-footer__right col-6 col-sm-4 order-sm-3">
+        <ul class="td-footer__links-list">
+  
+  <li class="td-footer__links-item" data-bs-toggle="tooltip" title="GitHub" aria-label="GitHub">
+    <a target="_blank" rel="noopener" href="https://github.com/rsashka/newlang" aria-label="GitHub">
+      <i class="fab fa-github"></i>
+    </a>
+  </li>
+  
+  <li class="td-footer__links-item" data-bs-toggle="tooltip" title="" aria-label="">
+    <a target="_blank" rel="noopener" href="" aria-label="">
+      <i class=""></i>
+    </a>
+  </li>
+  
+  <li class="td-footer__links-item" data-bs-toggle="tooltip" title="" aria-label="">
+    <a target="_blank" rel="noopener" href="" aria-label="">
+      <i class=""></i>
+    </a>
+  </li>
+  
+</ul>
+
+      </div><div class="td-footer__center col-12 col-sm-4 py-2 order-sm-2">
+        <span class="td-footer__copyright">&copy;
+    2024
+    <span class="td-footer__authors">The NewLang Authors</span></span><span class="td-footer__all_rights_reserved">All Rights Reserved</span>
+      </div>
+    </div>
+  </div>
+</footer>
+
+    </div>
+    <script src="/js/main.js"></script>
+<script defer src="/js/click-to-copy.js" crossorigin="anonymous"></script>
+<script src='/js/tabpane-persist.js'></script>
+
+  </body>
+</html>

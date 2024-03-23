@@ -502,7 +502,7 @@ namespace newlang {
                 m_is_silent = true;
 
                 std::string header = \
-                        "Content-type: application/text/plain;\n"
+                        "Content-Type: text/plain;\n"
                         "Access-Control-Allow-Origin: *\n\n";
 
                 std::ofstream f;

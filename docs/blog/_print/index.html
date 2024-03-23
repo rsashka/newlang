@@ -1,0 +1,469 @@
+<!doctype html>
+<html itemscope itemtype="http://schema.org/WebPage" lang="en" class="no-js">
+  <head><script src="/livereload.js?mindelay=10&amp;v=2&amp;port=1313&amp;path=livereload" data-no-instant defer></script>
+    <meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+<link rel="canonical" type="text/html" href="http://localhost:1313/blog/">
+<link rel="alternate" type="application/rss&#43;xml" href="http://localhost:1313/blog/index.xml">
+<meta name="robots" content="noindex, nofollow">
+
+
+<link rel="shortcut icon" href="/favicons/favicon.ico" >
+<link rel="apple-touch-icon" href="/favicons/apple-touch-icon-180x180.png" sizes="180x180">
+<link rel="icon" type="image/png" href="/favicons/favicon-16x16.png" sizes="16x16">
+<link rel="icon" type="image/png" href="/favicons/favicon-32x32.png" sizes="32x32">
+<link rel="icon" type="image/png" href="/favicons/android-36x36.png" sizes="36x36">
+<link rel="icon" type="image/png" href="/favicons/android-48x48.png" sizes="48x48">
+<link rel="icon" type="image/png" href="/favicons/android-72x72.png" sizes="72x72">
+<link rel="icon" type="image/png" href="/favicons/android-96x96.png" sizes="96x96">
+<link rel="icon" type="image/png" href="/favicons/android-144x144.png" sizes="144x144">
+<link rel="icon" type="image/png" href="/favicons/android-192x192.png" sizes="192x192">
+
+<title>Articles | NewLang</title>
+<meta name="description" content="NewLang site">
+<meta property="og:title" content="Articles" />
+<meta property="og:description" content="NewLang site" />
+<meta property="og:type" content="website" />
+<meta property="og:url" content="http://localhost:1313/blog/" /><meta property="og:site_name" content="NewLang" />
+<meta itemprop="name" content="Articles">
+<meta itemprop="description" content="NewLang site"><meta name="twitter:card" content="summary"/><meta name="twitter:title" content="Articles"/>
+<meta name="twitter:description" content="NewLang site"/>
+
+
+
+
+
+<link href="/scss/main.css" rel="stylesheet">
+
+<script
+  src="https://code.jquery.com/jquery-3.6.3.min.js"
+  integrity="sha512-STof4xm1wgkfm7heWqFJVn58Hm3EtS31XFaagaa8VMReCXAkQnJZ+jEy8PCC/iT18dFy95WcExNHFTqLyp72eQ=="
+  crossorigin="anonymous"></script>
+<script defer
+  src="https://unpkg.com/lunr@2.3.9/lunr.min.js"
+  integrity="sha384-203J0SNzyqHby3iU6hzvzltrWi/M41wOP5Gu+BiJMz5nwKykbkUx8Kp7iti0Lpli"
+  crossorigin="anonymous"></script>
+
+  </head>
+  <body class="td-section td-blog">
+    <header>
+      <nav class="td-navbar navbar-dark js-navbar-scroll">
+<div class="container-fluid flex-column flex-md-row">
+  <a class="navbar-brand" href="/"><span class="navbar-brand__logo navbar-logo"><svg id="Layer_1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" viewBox="0 0 500 500" style="enable-background:new 0 0 500 500"><g><path style="fill:#fff" d="M116.8525 421.9722c-5.7041.0-10.3442-4.3127-10.3442-9.6129V88.183c0-5.3002 4.6401-9.6117 10.3442-9.6117H320.858c3.0347.0 9.3959.5498 11.7506 2.6302l.3545.3442 58.905 63.2912c2.3101 2.491 2.9202 8.4928 2.9202 11.3184v256.2039c0 5.3002-4.6407 9.6129-10.3436 9.6129H116.8525z"/><g><g><g><path style="fill:#767676" d="M384.4445 423.2066H116.852c-6.3839.0-11.5786-4.8658-11.5786-10.8474V88.1831c0-5.9804 5.1947-10.8461 11.5786-10.8461h204.0062c.377.0 9.2786.0329 12.568 2.9389l.3947.3833 58.9508 63.337c3.2135 3.4652 3.2514 11.7924 3.2514 12.1593v256.2036C396.0231 418.3408 390.8284 423.2066 384.4445 423.2066zM116.5079 411.9189c.0848.0278.1999.0531.3441.0531h267.5925c.1442.0.2581-.0253.3441-.0531V156.1556c-.0076-.9033-.3593-3.7347-.7034-5.0037l-57.6527-61.9416c-1.4651-.3176-4.4533-.6389-5.5742-.6389H116.852c-.143.0-.2594.024-.3441.0531V411.9189zm267.4533-261.149zM327.0321 89.371v.0013V89.371z"/></g></g></g><g><g><path style="fill:#5b7fc0" d="M189.0874 210.1754l.0012-.0012c7.7751.0012 15.0295 4.1862 18.932 10.9234 1.9177 3.3159 2.9305 7.1011 2.9293 10.9378.0 5.8394-2.2733 11.3304-6.4032 15.4604-4.1288 4.1288-9.6186 6.4032-15.458 6.4032s-11.328-2.2733-15.458-6.4032-6.4032-9.6186-6.4056-15.4628c.0012-6.025 2.454-11.4897 6.4116-15.4473C177.5953 212.627 183.0601 210.1742 189.0874 210.1754zm7.993 21.8576c.0012-1.4042-.3687-2.7868-1.063-3.9887-1.4293-2.4684-4.0833-3.9995-6.9299-4.0019-4.4077.0024-7.993 3.5877-7.993 7.993.0 2.1356.832 4.1431 2.3427 5.6539 1.5083 1.5083 3.5159 2.3403 5.6503 2.3415 2.1356.0 4.1443-.8308 5.6539-2.3403S197.0816 234.1722 197.0804 232.033z"/><path style="opacity:.3;fill:#fff" d="M189.0898 210.176c7.7763.0 15.0283 4.1826 18.926 10.9151 1.9201 3.3136 2.9377 7.0988 2.9353 10.9462.0024 12.0643-9.8065 21.8636-21.8613 21.8613-12.0547.0024-21.8636-9.8066-21.8612-21.8613.0-6.0285 2.4516-11.4921 6.4116-15.452C177.5977 212.6276 183.0612 210.176 189.0898 210.176zm7.9941 21.8612c0-1.4078-.3711-2.7892-1.0702-3.9959-1.4269-2.466-4.0797-3.9983-6.924-3.9983-4.4005-.0048-7.9918 3.5817-7.9942 7.9942.0024 4.4077 3.5865 7.9918 7.9942 7.9942 2.2027.0 4.2018-.8978 5.6479-2.3439C196.1861 236.239 197.0839 234.2399 197.0839 232.0372z"/><g><defs><path id="SVGID_1_" d="M194.7376 237.6875c-1.4461 1.4461-3.4452 2.3439-5.6479 2.3439-4.4077-.0024-7.9918-3.5865-7.9942-7.9942.0024-4.4125 3.5937-7.999 7.9942-7.9942 2.8443.0 5.497 1.5323 6.924 3.9983.6991 1.2067 1.0702 2.5881 1.0702 3.9959C197.0839 234.2399 196.1861 236.239 194.7376 237.6875z"/></defs><clipPath id="SVGID_2_"><use xlink:href="#SVGID_1_" style="overflow:visible"/></clipPath><path style="clip-path:url(#SVGID_2_);fill:#fff" d="M190.0704 225.0237c-4.4005-.0048-7.9918 3.5817-7.9942 7.9942.0011 1.9546.7088 3.7452 1.8782 5.1354-1.7447-1.4674-2.8575-3.663-2.8588-6.116.0024-4.4125 3.5936-7.999 7.9942-7.9942 2.3802-1e-4 4.616 1.0833 6.1218 2.8788C193.7885 225.7247 191.9774 225.0237 190.0704 225.0237z"/><path style="opacity:.13;clip-path:url(#SVGID_2_);fill:#020202" d="M190.0704 225.0237c-4.4005-.0048-7.9918 3.5817-7.9942 7.9942.0011 1.9546.7088 3.7452 1.8782 5.1354-1.7447-1.4674-2.8575-3.663-2.8588-6.116.0024-4.4125 3.5936-7.999 7.9942-7.9942 2.3802-1e-4 4.616 1.0833 6.1218 2.8788C193.7885 225.7247 191.9774 225.0237 190.0704 225.0237z"/></g><g><defs><path id="SVGID_3_" d="M189.0898 210.176c7.7763.0 15.0283 4.1826 18.926 10.9151 1.9201 3.3136 2.9377 7.0988 2.9353 10.9462.0024 12.0643-9.8065 21.8636-21.8613 21.8613-12.0547.0024-21.8636-9.8066-21.8612-21.8613.0-6.0285 2.4516-11.4921 6.4116-15.452C177.5977 212.6276 183.0612 210.176 189.0898 210.176zm7.9941 21.8612c0-1.4078-.3711-2.7892-1.0702-3.9959-1.4269-2.466-4.0797-3.9983-6.924-3.9983-4.4005-.0048-7.9918 3.5817-7.9942 7.9942.0024 4.4077 3.5865 7.9918 7.9942 7.9942 2.2027.0 4.2018-.8978 5.6479-2.3439C196.1861 236.239 197.0839 234.2399 197.0839 232.0372z"/></defs><clipPath id="SVGID_4_"><use xlink:href="#SVGID_3_" style="overflow:visible"/></clipPath><path style="clip-path:url(#SVGID_4_);fill:#5b7fc0" d="M172.6595 215.6045c-3.96 3.96-6.4116 9.4235-6.4116 15.452-.0024 12.0547 9.8066 21.8636 21.8613 21.8612 12.0547.0024 21.8636-9.797 21.8613-21.8612.0024-3.8475-1.0151-7.6326-2.9353-10.9462-3.8977-6.7324-11.1497-10.9151-18.926-10.9151C182.0806 209.1953 176.6171 211.647 172.6595 215.6045z"/></g></g><rect x="198.8952" y="225.1043" style="fill:#5b7fc0" width="122.6266" height="13.8671"/></g><g><path style="fill:#d95140" d="M189.0874 155.7611l.0012-.0012c7.7751.0012 15.0295 4.1862 18.932 10.9234 1.9177 3.3159 2.9305 7.1011 2.9293 10.9378.0 5.8394-2.2733 11.3304-6.4032 15.4604-4.1288 4.1288-9.6186 6.4032-15.458 6.4032s-11.328-2.2733-15.458-6.4032-6.4032-9.6186-6.4056-15.4628c.0012-6.0249 2.454-11.4897 6.4116-15.4473C177.5953 158.2128 183.0601 155.7599 189.0874 155.7611zm7.993 21.8577c.0012-1.4042-.3687-2.7868-1.063-3.9887-1.4293-2.4684-4.0833-3.9995-6.9299-4.0019-4.4077.0024-7.993 3.5877-7.993 7.993.0 2.1356.832 4.1431 2.3427 5.6539 1.5083 1.5083 3.5159 2.3403 5.6503 2.3415 2.1356.0 4.1443-.8308 5.6539-2.3403C196.2508 181.7667 197.0816 179.758 197.0804 177.6188z"/><path style="opacity:.3;fill:#fff" d="M189.0898 155.7617c7.7763.0 15.0283 4.1826 18.926 10.9151 1.9201 3.3135 2.9377 7.0987 2.9353 10.9462.0024 12.0643-9.8065 21.8636-21.8613 21.8613-12.0547.0024-21.8636-9.8066-21.8612-21.8613.0-6.0285 2.4516-11.4921 6.4116-15.452C177.5977 158.2134 183.0612 155.7617 189.0898 155.7617zm7.9941 21.8613c0-1.4078-.3711-2.7892-1.0702-3.9959-1.4269-2.466-4.0797-3.9983-6.924-3.9983-4.4005-.0048-7.9918 3.5817-7.9942 7.9942.0024 4.4077 3.5865 7.9918 7.9942 7.9942 2.2027.0 4.2018-.8978 5.6479-2.3439C196.1861 181.8248 197.0839 179.8256 197.0839 177.623z"/><g><defs><path id="SVGID_5_" d="M194.7376 183.2733c-1.4461 1.4461-3.4452 2.3439-5.6479 2.3439-4.4077-.0024-7.9918-3.5865-7.9942-7.9942.0024-4.4125 3.5937-7.9989 7.9942-7.9942 2.8443.0 5.497 1.5323 6.924 3.9983.6991 1.2067 1.0702 2.5881 1.0702 3.9959C197.0839 179.8256 196.1861 181.8248 194.7376 183.2733z"/></defs><clipPath id="SVGID_6_"><use xlink:href="#SVGID_5_" style="overflow:visible"/></clipPath><path style="clip-path:url(#SVGID_6_);fill:#fff" d="M190.0704 170.6095c-4.4005-.0048-7.9918 3.5817-7.9942 7.9942.0011 1.9546.7088 3.7452 1.8782 5.1354-1.7447-1.4674-2.8575-3.663-2.8588-6.116.0024-4.4125 3.5936-7.999 7.9942-7.9942 2.3802-1e-4 4.616 1.0833 6.1218 2.8788C193.7885 171.3104 191.9774 170.6095 190.0704 170.6095z"/><path style="opacity:.13;clip-path:url(#SVGID_6_);fill:#020202" d="M190.0704 170.6095c-4.4005-.0048-7.9918 3.5817-7.9942 7.9942.0011 1.9546.7088 3.7452 1.8782 5.1354-1.7447-1.4674-2.8575-3.663-2.8588-6.116.0024-4.4125 3.5936-7.999 7.9942-7.9942 2.3802-1e-4 4.616 1.0833 6.1218 2.8788C193.7885 171.3104 191.9774 170.6095 190.0704 170.6095z"/></g><g><defs><path id="SVGID_7_" d="M189.0898 155.7617c7.7763.0 15.0283 4.1826 18.926 10.9151 1.9201 3.3135 2.9377 7.0987 2.9353 10.9462.0024 12.0643-9.8065 21.8636-21.8613 21.8613-12.0547.0024-21.8636-9.8066-21.8612-21.8613.0-6.0285 2.4516-11.4921 6.4116-15.452C177.5977 158.2134 183.0612 155.7617 189.0898 155.7617zm7.9941 21.8613c0-1.4078-.3711-2.7892-1.0702-3.9959-1.4269-2.466-4.0797-3.9983-6.924-3.9983-4.4005-.0048-7.9918 3.5817-7.9942 7.9942.0024 4.4077 3.5865 7.9918 7.9942 7.9942 2.2027.0 4.2018-.8978 5.6479-2.3439C196.1861 181.8248 197.0839 179.8256 197.0839 177.623z"/></defs><clipPath id="SVGID_8_"><use xlink:href="#SVGID_7_" style="overflow:visible"/></clipPath><path style="clip-path:url(#SVGID_8_);fill:#d95140" d="M172.6595 161.1903c-3.96 3.96-6.4116 9.4235-6.4116 15.452-.0024 12.0547 9.8066 21.8636 21.8613 21.8613 12.0547.0024 21.8636-9.797 21.8613-21.8613.0024-3.8474-1.0151-7.6326-2.9353-10.9462-3.8977-6.7324-11.1497-10.9151-18.926-10.9151C182.0806 154.7811 176.6171 157.2327 172.6595 161.1903z"/></g><rect x="198.8952" y="170.69" style="fill:#d95140" width="122.6266" height="13.8671"/></g><g><g><path style="fill:#56a55c" d="M189.5379 264.6147l.0012-.0012c7.7751.0012 15.0294 4.1862 18.932 10.9235 1.9177 3.3159 2.9305 7.1011 2.9293 10.9378.0 5.8394-2.2733 11.3304-6.4032 15.4604-4.1288 4.1288-9.6186 6.4032-15.458 6.4032-5.8394.0-11.3281-2.2733-15.458-6.4032-4.13-4.13-6.4032-9.6186-6.4056-15.4628.0012-6.0249 2.454-11.4897 6.4116-15.4472C178.0458 267.0663 183.5105 264.6135 189.5379 264.6147zm7.993 21.8576c.0012-1.4042-.3687-2.7868-1.063-3.9887-1.4293-2.4684-4.0833-3.9995-6.9299-4.0019-4.4077.0024-7.993 3.5877-7.993 7.993.0 2.1356.832 4.1431 2.3427 5.6538 1.5083 1.5083 3.5159 2.3403 5.6503 2.3415 2.1356.0 4.1443-.8308 5.6539-2.3403C196.7013 290.6202 197.5321 288.6115 197.5309 286.4723z"/><path style="opacity:.3;fill:#fff" d="M189.5403 264.6153c7.7763.0 15.0283 4.1826 18.926 10.9151 1.9201 3.3135 2.9377 7.0987 2.9353 10.9462.0024 12.0643-9.8065 21.8636-21.8613 21.8613-12.0547.0024-21.8636-9.8065-21.8612-21.8613.0-6.0285 2.4516-11.492 6.4116-15.452C178.0482 267.0669 183.5117 264.6153 189.5403 264.6153zm7.9941 21.8612c0-1.4078-.3711-2.7892-1.0702-3.9959-1.4269-2.466-4.0797-3.9983-6.924-3.9983-4.4005-.0048-7.9918 3.5817-7.9942 7.9941.0024 4.4077 3.5865 7.9918 7.9942 7.9942 2.2027.0 4.2018-.8978 5.6479-2.3439C196.6366 290.6783 197.5344 288.6792 197.5344 286.4765z"/><g><defs><path id="SVGID_9_" d="M195.1881 292.1268c-1.4461 1.4461-3.4452 2.3439-5.6479 2.3439-4.4077-.0024-7.9918-3.5865-7.9942-7.9942.0024-4.4125 3.5937-7.9989 7.9942-7.9941 2.8443.0 5.497 1.5323 6.924 3.9983.6991 1.2067 1.0702 2.5881 1.0702 3.9959C197.5344 288.6792 196.6366 290.6783 195.1881 292.1268z"/></defs><clipPath id="SVGID_10_"><use xlink:href="#SVGID_9_" style="overflow:visible"/></clipPath><path style="clip-path:url(#SVGID_10_);fill:#fff" d="M190.5209 279.463c-4.4005-.0048-7.9918 3.5817-7.9942 7.9941.0011 1.9547.7088 3.7452 1.8782 5.1354-1.7446-1.4674-2.8575-3.6631-2.8588-6.1161.0024-4.4125 3.5936-7.999 7.9942-7.9941 2.3802-1e-4 4.616 1.0833 6.1218 2.8788C194.239 280.164 192.4279 279.463 190.5209 279.463z"/><path style="opacity:.13;clip-path:url(#SVGID_10_);fill:#020202" d="M190.5209 279.463c-4.4005-.0048-7.9918 3.5817-7.9942 7.9941.0011 1.9547.7088 3.7452 1.8782 5.1354-1.7446-1.4674-2.8575-3.6631-2.8588-6.1161.0024-4.4125 3.5936-7.999 7.9942-7.9941 2.3802-1e-4 4.616 1.0833 6.1218 2.8788C194.239 280.164 192.4279 279.463 190.5209 279.463z"/></g><g><defs><path id="SVGID_11_" d="M189.5403 264.6153c7.7763.0 15.0283 4.1826 18.926 10.9151 1.9201 3.3135 2.9377 7.0987 2.9353 10.9462.0024 12.0643-9.8065 21.8636-21.8613 21.8613-12.0547.0024-21.8636-9.8065-21.8612-21.8613.0-6.0285 2.4516-11.492 6.4116-15.452C178.0482 267.0669 183.5117 264.6153 189.5403 264.6153zm7.9941 21.8612c0-1.4078-.3711-2.7892-1.0702-3.9959-1.4269-2.466-4.0797-3.9983-6.924-3.9983-4.4005-.0048-7.9918 3.5817-7.9942 7.9941.0024 4.4077 3.5865 7.9918 7.9942 7.9942 2.2027.0 4.2018-.8978 5.6479-2.3439C196.6366 290.6783 197.5344 288.6792 197.5344 286.4765z"/></defs><clipPath id="SVGID_12_"><use xlink:href="#SVGID_11_" style="overflow:visible"/></clipPath><path style="clip-path:url(#SVGID_12_);fill:#56a55c" d="M173.11 270.0439c-3.96 3.96-6.4116 9.4235-6.4116 15.452-.0024 12.0547 9.8066 21.8636 21.8613 21.8613 12.0547.0024 21.8636-9.797 21.8613-21.8613.0024-3.8474-1.0151-7.6326-2.9353-10.9462-3.8977-6.7325-11.1497-10.9151-18.926-10.9151C182.5311 263.6346 177.0676 266.0863 173.11 270.0439z"/></g></g><rect x="199.3456" y="279.5436" style="fill:#56a55c" width="122.6266" height="13.8671"/></g><g><g><path style="fill:#f1bc42" d="M189.0874 318.7208l.0012-.0012c7.7751.0012 15.0295 4.1862 18.932 10.9234 1.9177 3.3159 2.9305 7.1011 2.9293 10.9378.0 5.8394-2.2733 11.3305-6.4032 15.4604-4.1288 4.1288-9.6186 6.4032-15.458 6.4032s-11.328-2.2733-15.458-6.4032-6.4032-9.6186-6.4056-15.4628c.0012-6.025 2.454-11.4897 6.4116-15.4472C177.5953 321.1724 183.0601 318.7196 189.0874 318.7208zm7.993 21.8576c.0012-1.4042-.3687-2.7868-1.063-3.9887-1.4293-2.4684-4.0833-3.9995-6.9299-4.0019-4.4077.0024-7.993 3.5877-7.993 7.993.0 2.1356.832 4.1431 2.3427 5.6539 1.5083 1.5083 3.5159 2.3403 5.6503 2.3415 2.1356.0 4.1443-.8308 5.6539-2.3403S197.0816 342.7176 197.0804 340.5784z"/><path style="opacity:.3;fill:#fff" d="M189.0898 318.7214c7.7763.0 15.0283 4.1826 18.926 10.915 1.9201 3.3136 2.9377 7.0988 2.9353 10.9462.0024 12.0643-9.8065 21.8636-21.8613 21.8612-12.0547.0024-21.8636-9.8065-21.8612-21.8612.0-6.0285 2.4516-11.4921 6.4116-15.452C177.5977 321.173 183.0612 318.7214 189.0898 318.7214zm7.9941 21.8612c0-1.4078-.3711-2.7892-1.0702-3.9959-1.4269-2.466-4.0797-3.9983-6.924-3.9983-4.4005-.0048-7.9918 3.5817-7.9942 7.9942.0024 4.4077 3.5865 7.9918 7.9942 7.9942 2.2027.0 4.2018-.8978 5.6479-2.3439C196.1861 344.7844 197.0839 342.7853 197.0839 340.5826z"/><g><defs><path id="SVGID_13_" d="M194.7376 346.2329c-1.4461 1.4461-3.4452 2.3439-5.6479 2.3439-4.4077-.0024-7.9918-3.5865-7.9942-7.9942.0024-4.4125 3.5937-7.999 7.9942-7.9942 2.8443.0 5.497 1.5323 6.924 3.9983.6991 1.2067 1.0702 2.5881 1.0702 3.9959C197.0839 342.7853 196.1861 344.7844 194.7376 346.2329z"/></defs><clipPath id="SVGID_14_"><use xlink:href="#SVGID_13_" style="overflow:visible"/></clipPath><path style="clip-path:url(#SVGID_14_);fill:#fff" d="M190.0704 333.5691c-4.4005-.0048-7.9918 3.5817-7.9942 7.9942.0011 1.9547.7088 3.7452 1.8782 5.1354-1.7447-1.4674-2.8575-3.6631-2.8588-6.1161.0024-4.4125 3.5936-7.999 7.9942-7.9942 2.3802-1e-4 4.616 1.0834 6.1218 2.8788C193.7885 334.2701 191.9774 333.5691 190.0704 333.5691z"/><path style="opacity:.13;clip-path:url(#SVGID_14_);fill:#020202" d="M190.0704 333.5691c-4.4005-.0048-7.9918 3.5817-7.9942 7.9942.0011 1.9547.7088 3.7452 1.8782 5.1354-1.7447-1.4674-2.8575-3.6631-2.8588-6.1161.0024-4.4125 3.5936-7.999 7.9942-7.9942 2.3802-1e-4 4.616 1.0834 6.1218 2.8788C193.7885 334.2701 191.9774 333.5691 190.0704 333.5691z"/></g><g><defs><path id="SVGID_15_" d="M189.0898 318.7214c7.7763.0 15.0283 4.1826 18.926 10.915 1.9201 3.3136 2.9377 7.0988 2.9353 10.9462.0024 12.0643-9.8065 21.8636-21.8613 21.8612-12.0547.0024-21.8636-9.8065-21.8612-21.8612.0-6.0285 2.4516-11.4921 6.4116-15.452C177.5977 321.173 183.0612 318.7214 189.0898 318.7214zm7.9941 21.8612c0-1.4078-.3711-2.7892-1.0702-3.9959-1.4269-2.466-4.0797-3.9983-6.924-3.9983-4.4005-.0048-7.9918 3.5817-7.9942 7.9942.0024 4.4077 3.5865 7.9918 7.9942 7.9942 2.2027.0 4.2018-.8978 5.6479-2.3439C196.1861 344.7844 197.0839 342.7853 197.0839 340.5826z"/></defs><clipPath id="SVGID_16_"><use xlink:href="#SVGID_15_" style="overflow:visible"/></clipPath><path style="clip-path:url(#SVGID_16_);fill:#f1bc42" d="M172.6595 324.15c-3.96 3.96-6.4116 9.4235-6.4116 15.452-.0024 12.0547 9.8066 21.8636 21.8613 21.8612 12.0547.0024 21.8636-9.797 21.8613-21.8612.0024-3.8474-1.0151-7.6327-2.9353-10.9462-3.8977-6.7324-11.1497-10.9151-18.926-10.9151C182.0806 317.7407 176.6171 320.1924 172.6595 324.15z"/></g></g><rect x="198.8952" y="333.6497" style="fill:#f1bc42" width="122.6266" height="13.8671"/></g></g></svg></span><span class="navbar-brand__name">NewLang</span></a>
+  <div class="td-navbar-nav-scroll ms-md-auto" id="main_navbar">
+    <ul class="navbar-nav">
+      <li class="nav-item">
+        <a class="nav-link" href="/docs/"><span>Documentation</span></a>
+      </li>
+      <li class="nav-item">
+        <a class="nav-link" href="/playground/"><span>Playground</span></a>
+      </li>
+      <li class="nav-item">
+        <a class="nav-link active" href="/blog/"><span>Articles</span></a>
+      </li>
+      <li class="nav-item dropdown d-none d-lg-block">
+        <div class="dropdown">
+  <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false">English</a>
+  <ul class="dropdown-menu">
+    <li><a class="dropdown-item" href="/ru/blog/">Русский</a></li>
+    </ul>
+</div></li>
+      </ul>
+  </div>
+  <div class="d-none d-lg-block">
+    <div class="td-search td-search--offline">
+  <div class="td-search__icon"></div>
+  <input
+    type="search"
+    class="td-search__input form-control"
+    placeholder="Search this site…"
+    aria-label="Search this site…"
+    autocomplete="off"
+    
+    data-offline-search-index-json-src="/offline-search-index.json"
+    data-offline-search-base-href="/"
+    data-offline-search-max-results="10"
+  >
+</div>
+  </div>
+</div>
+</nav>
+    </header>
+    <div class="container-fluid td-outer">
+      <div class="td-main">
+        <div class="row flex-xl-nowrap">
+          <div class="col-12 col-md-3 col-xl-2 td-sidebar d-print-none">
+          </div>
+          <div class="d-none d-xl-block col-xl-2 td-toc d-print-none">
+          </div>
+          <main class="col-12 col-md-9 col-xl-8 ps-md-5 pe-md-4" role="main">
+            
+
+
+
+
+<div class="td-content">
+<div class="pageinfo pageinfo-primary d-print-none">
+<p>
+This is the multi-page printable view of this section.
+<a href="#" onclick="print();return false;">Click here to print</a>.
+</p><p>
+<a href="/blog/">Return to the regular view of this page</a>.
+</p>
+</div>
+
+
+
+<h1 class="title">Articles</h1>
+
+
+
+
+
+    <ul>
+    
+  
+  
+  
+  
+
+  
+    
+    
+	
+
+    <li><a href="#pg-24881a51c9b3aaca484fa4a88ded08d7">Release of the programming language NewLang 0.4</a></li>
+
+
+
+    
+  
+    
+    
+	
+
+    <li><a href="#pg-f680f4cb16c8fa24751021c7fb6a9994">DSL (domain-specific language) implementation with macros</a></li>
+
+
+
+    
+  
+
+    </ul>
+
+
+<div class="content">
+      
+</div>
+</div>
+
+
+  
+  
+  
+  
+
+  
+  
+
+  
+    
+    
+	
+    
+
+
+  
+
+<div class="td-content" style="">
+    <h1 id="pg-24881a51c9b3aaca484fa4a88ded08d7">Release of the programming language NewLang 0.4</h1>
+	
+	<div class="td-byline mb-4">
+		
+        
+		<time datetime="2023-06-06" class="text-muted">Tuesday, June 06, 2023</time>
+        
+	</div>
+	<h2 id="new-features-and-changes-in-the-syntax-of-newlang">New features and changes in the syntax of NewLang<a class="td-heading-self-link" href="#new-features-and-changes-in-the-syntax-of-newlang" aria-label="Heading self-link"></a></h2>
+<ul>
+<li>Reworked the definition of object types using <a href="https://newlang.net/docs/syntax/naming/">prefix naming (sigils)</a></li>
+<li>Interrupting the execution flow and returning can now be done for <a href="https://newlang.net/docs/ops/throw/">named code blocks</a>.</li>
+<li>Simplified the syntax for importing <a href="https://newlang.net/docs/types/native/">native variables and functions (C/C++)</a></li>
+<li>Stabilized the syntax for <a href="https://newlang.net/docs/ops/create/#comprehensions">initializing tensor, dictionary, and function argument values</a> with initial data.</li>
+<li>Added built-in macros for writing code using keywords in a <a href="https://newlang.net/docs/syntax/dsl/">DSL style</a></li>
+</ul>
+<h2 id="new-compiler-features-nlc">New compiler features (nlc)<a class="td-heading-self-link" href="#new-compiler-features-nlc" aria-label="Heading self-link"></a></h2>
+<ul>
+<li>Completely redesigned the macroprocessor.</li>
+<li>Reworked the compiler architecture with division into parser, macroprocessor, syntax analyzer, interpreter, and code generator.</li>
+</ul>
+<h2 id="miscellaneous">Miscellaneous<a class="td-heading-self-link" href="#miscellaneous" aria-label="Heading self-link"></a></h2>
+<ul>
+<li>The documentation <a href="http://newlang.net">website</a> has been translated to <a href="https://gohugo.io/">Hugo</a> and made bilingual.</li>
+<li>Instead of binary builds, a section <a href="https://newlang.net/playground/">Playground and example code</a> has been added to the website for small experiments.</li>
+<li>Transition to clang-16 has been completed (transition to clang-17 and newer is planned after full implementation of coroutines and support for extended floating-point number formats).</li>
+<li>The number of project contributors has increased to more than one!</li>
+</ul>
+
+</div>
+
+
+
+
+
+    
+	
+  
+    
+    
+	
+    
+
+
+  
+
+<div class="td-content" style="page-break-before: always">
+    <h1 id="pg-f680f4cb16c8fa24751021c7fb6a9994">DSL (domain-specific language) implementation with macros</h1>
+	<div class="lead">A short lead description about this content page. Text here can also be <strong>bold</strong> or <em>italic</em> and can even be split over multiple paragraphs.</div>
+	<div class="td-byline mb-4">
+		
+        
+		<time datetime="2023-03-01" class="text-muted">Wednesday, March 01, 2023</time>
+        
+	</div>
+	
+
+<div class="pageinfo pageinfo-primary">
+<p>Attention!!!</p>
+<p>This article contains a description of the NewLnag syntax of the previous version.</p>
+<p>Publication source <a href="https://habr.com/articles/720416/">https://habr.com/articles/720416/</a></p>
+
+</div>
+
+<p><img alt="image" src="https://habrastorage.org/webt/r9/4d/tu/r94dtuimvtiiuntx5xpunndaetq.jpeg"></p>
+<p><a href="https://habr.com/company/timeweb/blog/719332/">This is a translation of my own article</a></p>
+<p>The release of <strong><a href="https://newlang.net/">NewLang</a></strong> language with a brand new &ldquo;feature&rdquo; is coming, a remodeled version of the preprocessor that allows you to extend the language syntax to create different DSL dialects using macros.</p>
+<h3 id="what-is-it-about">What is it about?<a class="td-heading-self-link" href="#what-is-it-about" aria-label="Heading self-link"></a></h3>
+<blockquote>
+<p><a href="https://en.wikipedia.org/wiki/Domain-specific_language">DSL</a> (Subject Oriented Language) is a programming language specialized for a specific application area. It is believed that the use of DSL significantly increases the level of abstractness of the code, and this allows to develop more quickly and efficiently and greatly simplifies the solution of many problems.</p>
+</blockquote>
+<h4 id="conditionally-we-can-distinguish-two-approaches-to-dsl-implementation">Conditionally, we can distinguish two approaches to DSL implementation:<a class="td-heading-self-link" href="#conditionally-we-can-distinguish-two-approaches-to-dsl-implementation" aria-label="Heading self-link"></a></h4>
+<ul>
+<li>Development of independent syntax translators using lexer and parser generators to define the grammar of the target language through BNF (Backus–Naur form) and regular expressions (Lex, Yacc, ANTLR, etc.) and then compiling the resulting grammar into machine code.</li>
+<li>Development or integration of the DSL dialect into a general-purpose language (metalanguage), including the use of various libraries or special parsers / preprocessors.</li>
+</ul>
+<p>We will talk about the second option, namely the implementation of DSL on the basis of general-purpose languages (metalanguages) and the new implementation of macros in <strong>NewLang</strong> as the basis for DSL development.</p>
+<cut />
+<h2 id="two-extremes">Two extremes<a class="td-heading-self-link" href="#two-extremes" aria-label="Heading self-link"></a></h2>
+<p>It probably makes sense to start by describing two extremes in the implementation of a DSL based on a general-purpose language (metalanguage):</p>
+<h3 id="limited-grammar">Limited grammar.<a class="td-heading-self-link" href="#limited-grammar" aria-label="Heading self-link"></a></h3>
+<p>If a programming language is limited to its own fixed grammar and does not allow for its expansion, when implementing DSL the developer will be forced to use the existing grammar, the rules for recording operations and generally all syntax will remain the same as in the implementation language. For example, when using C/C++ as a base language, or using various libraries and frameworks in other general-purpose programming languages.</p>
+<p><em>In this case, the term &ldquo;DSL&rdquo; will simply be a set of domain-specific terms, overridden macros and/or operators, but the use of which will be restricted by the implementation language grammar.</em></p>
+<h3 id="unrestricted-grammar">Unrestricted grammar.<a class="td-heading-self-link" href="#unrestricted-grammar" aria-label="Heading self-link"></a></h3>
+<p>If a language (metalanguage) allows you to modify its own grammar (for example at the level of <a href="https://en.wikipedia.org/wiki/Abstract_syntax_tree">AST</a>), then DSL will no longer be strictly bounded by the syntax of the underlying programming language, and as a result its grammar can be whatever you want. Up to the point that &ldquo;for every new project you will have to learn a new language&hellip;&rdquo;. This can be done by using specialized metalanguages (Lisp, ML, Haskell, Nemerle, Forth, Tcl, Rebol, etc.).</p>
+<p>I strongly recommend you to read an excellent article on metaprogramming by @NeoCode [Metaprogramming: what it is and what it should be] (<a href="https://habr.com/post/258667/)">https://habr.com/post/258667/)</a>.</p>
+<h2 id="the-following-implementation-of-macros-is-offered-for-discussion">The following implementation of macros is offered for discussion<a class="td-heading-self-link" href="#the-following-implementation-of-macros-is-offered-for-discussion" aria-label="Heading self-link"></a></h2>
+<p>&ldquo;There is no perfection in the world&rdquo;, and after the release of <strong>NewLang 0.2</strong>, I received a lot of feedback (mostly negative), about the first version of <a href="https://github.com/rsashka/newlang/blob/v0.3.0/docs/syntax.md#%D0%BC%D0%B0%D0%BA%D1%80%D0%BE%D1%81%D1%8B">macro implementation</a> and <a href="https://github.com/rsashka/newlang/blob/v0.3.0/docs/syntax_dsl.md">DSL based on it</a>. And those criticisms were often valid. So I decided to try to redesign the macros a bit, in hopes of getting a &ldquo;middle ground&rdquo; between the two extremes described above when describing the DSL.</p>
+<h3 id="terminology-used">Terminology Used<a class="td-heading-self-link" href="#terminology-used" aria-label="Heading self-link"></a></h3>
+<p>Macros in <em>NewLang</em>, are one or more terms that are replaced by another term or by an entire lexical construct (a sequence of tokens). Macros are both an extension of basic language syntax, when implementing DSL&rsquo;s own dialects, and a syntax sugar.</p>
+<p>The main feature of macros is that they allow expressions to be changed before they are evaluated at runtime. Macros are expanded at runtime <strong>lexer</strong>, which allows you to substitute any other terms with them and even modify the language syntax itself.</p>
+<p>That&rsquo;s why if you don&rsquo;t specify a modifier before the <strong>NewLang</strong> object name (****macros, **$**local_variable or **@**module), the program will first search among macros, then among local variables and finally among modules (object from module). This allows you to use terms without modifiers to specify types of objects.</p>
+<h4 id="macro-definitions">Macro definitions<a class="td-heading-self-link" href="#macro-definitions" aria-label="Heading self-link"></a></h4>
+<p>The definition of macros uses exactly the same <a href="https://newlang.net/ops.html">syntax</a> as for other language objects (the operators &ldquo;<strong>::=</strong>&rdquo;, &ldquo;<strong>=</strong>&rdquo; or &ldquo;<strong>:=</strong>&rdquo; are used respectively to create a new object, assign a new value to an existing object or to create/assign a new value to an object regardless of its presence or absence).</p>
+<p>In general, a macro definition consists of three parts <strong>&lt;</strong> macro name <strong>&gt;</strong> <strong>&lt;</strong> creating/assignment operator <strong>&gt;</strong> <strong>&lt;</strong> macro body <em><em>&gt;</em> and final semicolon &ldquo;</em><em>;</em>*&rdquo;.</p>
+<h4 id="macro-body">Macro body<a class="td-heading-self-link" href="#macro-body" aria-label="Heading self-link"></a></h4>
+<p>The macro body can be a correct language expression, a sequence of tokens (framed in double backslashes, i.e. <strong>\\</strong> lexem1 lexem2 <strong>\\</strong>) or a plain text string (framed in triple backslashes, i.e. <strong>\\\</strong> text string <strong>\\\</strong>).</p>
+<p>To connect two tokens into one (analogous to the <strong>##</strong> operation in the C/C++ preprocessor), used by analogy syntax <strong>##</strong>. A similar operator is used to frame a lexeme in quotes <strong>#</strong>, for example, <code>\macro($arg) := \\\ func_ \## \$arg(\#arg) \;</code>,  then a call to macro(arg) will be expanded to <code>func_arg (&quot;arg&quot;)</code>;</p>
+<h4 id="macro-name">Macro Name<a class="td-heading-self-link" href="#macro-name" aria-label="Heading self-link"></a></h4>
+<p>The macro name can be a single identifier with the macro prefix &ldquo;<strong>\</strong>&rdquo; or a sequence of several lexem. If a sequence of lexem is used as the macro name there must be at least one identifier among them and there can be one or more templates.</p>
+<p>A template is a special identifier that can be replaced by any single term during matching. With the help of templates the search by pattern and replacement of the set sequences of lexemes on a body of a macro is made.</p>
+<p>To specify a template, you need to put a dollar sign at the beginning of the identifier (which corresponds to the local variable name record), i.e. <strong>\\<strong>one_lexem</strong>\\</strong>, <strong>\\<strong>total three tokens</strong>\\</strong> <strong>\\</strong> lexem <em>$template1</em> <em>$template2</em> <strong>\\</strong>.</p>
+<p>Macros are considered identical if their identifiers are equal, the number of elements in their names is the same, and identifiers and templates are in the same places.</p>
+<h4 id="macro-arguments">Macro Arguments<a class="td-heading-self-link" href="#macro-arguments" aria-label="Heading self-link"></a></h4>
+<p>Terms or templates in a macro name can have arguments, which are specified in parentheses. The passed arguments in the body of macro are written in the disclosure space as a local variable name, but a backslash must be added before the name, i.e. <code>\$name</code>.</p>
+<p>An arbitrary number of parameters in a macro is marked with a triple colon &ldquo;&hellip;&rdquo;, and the place for inserting these arguments is marked with the token <strong>$&hellip;</strong>. If a macro has several identifiers with arguments, the place marked with the desired identifier to insert arguments from a marked identifier, for example, <strong>$name&hellip;</strong>.</p>
+<p>To insert the number of actually passed arguments, the lexeme <strong>$#</strong> is used, or with the marked identifier, for example, <strong>$#name</strong>.</p>
+<p>*Macros work with lexem that contain various information, including the data type if it is specified. But at the moment data types in macro arguments are not handled in any way, and this is one of the mandatory features that will be implemented in the future.</p>
+<h3 id="examples">Examples:<a class="td-heading-self-link" href="#examples" aria-label="Heading self-link"></a></h3>
+<pre tabindex="0"><code>   \macros1 := 123;
+   \macros2(arg) := { func( \$arg ); func2(123);};
+   \\ macros of(...) tokens \\ := \\ call1(); call2( \$... ); call3() \\;
+   \text_macros := \\\ string for the lexer \\\;
+
+    # Ordinary macros (macro body is a valid expression)
+    \macro := replace();
+    \macro2($arg) := { call( \$arg ); call() };
+    # The function takes the number of arguments and the arguments themselves
+    \\func name1(...)\\ := name2( \$#, \$name1... ); 
+
+    # macro body from a sequence of tokens
+    \if(...) := \\ [ \$... ] --&gt; \\; # Expression may not be complete
+    \else := \\ ,[ _ ] --&gt; \\; # Expression may not be complete
+ 
+    # Macro body from text string (like in C/C++ preprocessor)
+    \macro_str := \\\ string - macro body \\\; # String for the lexer
+    \macro($arg) := \\ func_ \## \#arg(\#arg)\\; # macro(arg) -&gt; func_arg (&#34;arg&#34;)
+</code></pre><h2 id="what-possibilities-does-this-offer">What possibilities does this offer?<a class="td-heading-self-link" href="#what-possibilities-does-this-offer" aria-label="Heading self-link"></a></h2>
+<p>You can define macros in the following combinations this way:</p>
+<pre tabindex="0"><code>№   Macro name         Macro body
+----------------------------------------------------------------
+   1.   \identifier                     expression
+   2.   \identifier                     \\lexem1 lexeme2\\
+   3.   \Identifier                     \\\string for the lexer\\\.
+   4.   \\lexeme1 lexeme2\\    expression
+   5.   \\lexeme1 lexeme2\\    \\lexeme1 lexeme2\\
+   6.   \\lexeme1 lexeme2\\    \\\ line for the lexer \\\
+</code></pre><h3 id="each-of-the-above-combinations-has-its-own-properties-and-limitations">Each of the above combinations has its own properties and limitations:<a class="td-heading-self-link" href="#each-of-the-above-combinations-has-its-own-properties-and-limitations" aria-label="Heading self-link"></a></h3>
+<ol>
+<li>
+<p>Classic replacement of one term with another term or integer expression. It is handled by lexer and parser once during definition. The expression in the macro body has to be correct in terms of syntax, and if there are errors in it, a message about this is generated immediately, while still defining the macro.</p>
+</li>
+<li>
+<p>Classical replacement of one term by sequences of tokens, including incomplete syntactic constructions. It is processed by the lexer once during macro definition. The body of the macro is parsed by the parser when it is used, so possible syntax errors will be noticed only when the macro is expanded.</p>
+</li>
+<li>
+<p>Classic replacement of a single term with a text string, which is fed to the lexer&rsquo;s input. Only the macro name is once processed by the lexer when it is defined, allowing you to modify the macro body and change/combine/modify lexemes before feeding them into the analyzer. Syntax errors will be noticed only when the macro is expanded.</p>
+</li>
+</ol>
+<p>4, 5 и 6. Replacing a sequence of several tokens (templates) with an expression, a sequence of tokens or a text string, respectively.</p>
+<h2 id="purpose-and-examples-of-use">Purpose and examples of use<a class="td-heading-self-link" href="#purpose-and-examples-of-use" aria-label="Heading self-link"></a></h2>
+<p>Macros are also used to convert the basic <em>NewLang</em> syntax into a more familiar keyword-based syntax, because such text is much easier to understand when reading the source code later.</p>
+<p>If no modifier is specified before the name of NewLang object (**\**macros, **$**local_variable or **@**module), then macros name is searched first, then the name of local variable and last, the name of module (module object). This makes it possible to define DSL syntax in the usual way without the obligatory prefixes for different types of objects.</p>
+<p>For example, writing a conditional statement in the basic syntax <strong>NewLang</strong>:</p>
+<pre tabindex="0"><code>    [condition] --&gt; {
+        ...
+    } [ condition2 ] --&gt; {
+        ...
+    } [ _ ] {
+        ...
+    };
+
+# With macros
+    \if(...) := \\ [ \$... ]--&gt; \\;
+    \elif(...) := \\ ,[ \$... ]--&gt; \\;
+    \else := \\ ,[ _ ]--&gt; \\;
+
+# Turns into classical notation
+    if( condition ){
+        ...
+    } elif( condition2 ){
+        ...
+    } else {
+        ...
+    };
+</code></pre><p>Or loop to 5:</p>
+<pre tabindex="0"><code>count := 1;
+[ 1 ] &lt;-&gt; {
+    [ count&gt;5 ] --&gt; {
+        ++ 42 ++;
+    };
+    count += 1;
+};
+</code></pre><p>will look more familiar with the use of appropriate macros:</p>
+<pre tabindex="0"><code>\while(...) := \\ [ \$... ] &lt;-&gt; \\;
+\return(...) := ++ \$... ++;
+\true := 1;
+
+count := 1;
+while( true ) {
+    if( count &gt; 5 ) {
+        return 42;
+    };
+    count += 1;
+};
+</code></pre><h3 id="deleting-macros">Deleting macros<a class="td-heading-self-link" href="#deleting-macros" aria-label="Heading self-link"></a></h3>
+<p>To delete a macro, you have to assign it an empty sequence of tokens <code>\macro_str := \\\\;</code>. You can use a special syntax to delete it: <code>\\\\ name \\\\;</code> or <code>\\\\ \\two terms\\ \\\\;</code>, i.e. specify the macro name between four backslashes.</p>
+<p>The necessity to use a separate syntax construct to remove macros is caused by the fact that macro names are processed by the lexer even before the parsing stage in the parser.</p>
+<h2 id="whats-the-upside">What&rsquo;s the upside?<a class="td-heading-self-link" href="#whats-the-upside" aria-label="Heading self-link"></a></h2>
+<ol>
+<li>You can dilute the basic language syntax with additional keywords and turn it into a familiar &ldquo;keyword-based&rdquo; syntax.</li>
+<li>Macros are defined according to the language&rsquo;s vocabulary, and macros are treated as normal objects.</li>
+<li>Ease of source code analysis and debugging.</li>
+<li>You can make explicit use of DSL terms and metaprogramming techniques, for example, always prefix the macro name. That way the compiler will know very well that the macro needs to be expanded.</li>
+<li>Although you can modify the language syntax significantly at your own risk, you can only do so within certain constraints (AST cannot be modified directly), which does not allow you to go very far and, for example, crash or hang the compiler.</li>
+<li>In spite of very big possibilities to modify the syntax, you get a very simple, fast and unambiguous implementation. And this positively affects the speed of source code analysis, detection and processing of possible errors and simultaneously represents a reasonable compromise between the complexity of implementation of this functionality and possibilities of defining own DSL dialects.</li>
+<li>If desired, there is room to develop metaprogramming capabilities. In the future we could add pattern-matching (e.g. based on regular expressions), make string parametrization for generating syntax in the body of a macro, including in runtime, and many other different ways to elegantly shoot yourself or your comrade in the foot.</li>
+</ol>
+<h2 id="conclusion">Conclusion<a class="td-heading-self-link" href="#conclusion" aria-label="Heading self-link"></a></h2>
+<p>Any feedback on this macro implementation would be appreciated. And twice as grateful if, in addition to criticism, there are suggestions for its improvement and refinement, if any point has been missed.</p>
+
+</div>
+
+
+
+
+
+    
+	
+  
+
+
+
+          </main>
+        </div>
+      </div>
+      <footer class="td-footer row d-print-none">
+  <div class="container-fluid">
+    <div class="row mx-md-2">
+      <div class="td-footer__left col-6 col-sm-4 order-sm-1">
+        <ul class="td-footer__links-list">
+  
+  <li class="td-footer__links-item" data-bs-toggle="tooltip" title="User mailing list" aria-label="User mailing list">
+    <a target="_blank" rel="noopener" href="mailto:mail@newlang.net" aria-label="User mailing list">
+      <i class="fa fa-envelope"></i>
+    </a>
+  </li>
+  
+  <li class="td-footer__links-item" data-bs-toggle="tooltip" title="" aria-label="">
+    <a target="_blank" rel="noopener" href="" aria-label="">
+      <i class=""></i>
+    </a>
+  </li>
+  
+  <li class="td-footer__links-item" data-bs-toggle="tooltip" title="" aria-label="">
+    <a target="_blank" rel="noopener" href="" aria-label="">
+      <i class=""></i>
+    </a>
+  </li>
+  
+</ul>
+
+      </div><div class="td-footer__right col-6 col-sm-4 order-sm-3">
+        <ul class="td-footer__links-list">
+  
+  <li class="td-footer__links-item" data-bs-toggle="tooltip" title="GitHub" aria-label="GitHub">
+    <a target="_blank" rel="noopener" href="https://github.com/rsashka/newlang" aria-label="GitHub">
+      <i class="fab fa-github"></i>
+    </a>
+  </li>
+  
+  <li class="td-footer__links-item" data-bs-toggle="tooltip" title="" aria-label="">
+    <a target="_blank" rel="noopener" href="" aria-label="">
+      <i class=""></i>
+    </a>
+  </li>
+  
+  <li class="td-footer__links-item" data-bs-toggle="tooltip" title="" aria-label="">
+    <a target="_blank" rel="noopener" href="" aria-label="">
+      <i class=""></i>
+    </a>
+  </li>
+  
+</ul>
+
+      </div><div class="td-footer__center col-12 col-sm-4 py-2 order-sm-2">
+        <span class="td-footer__copyright">&copy;
+    2024
+    <span class="td-footer__authors">The NewLang Authors</span></span><span class="td-footer__all_rights_reserved">All Rights Reserved</span>
+      </div>
+    </div>
+  </div>
+</footer>
+
+    </div>
+    <script src="/js/main.js"></script>
+<script defer src="/js/click-to-copy.js" crossorigin="anonymous"></script>
+<script src='/js/tabpane-persist.js'></script>
+
+  </body>
+</html>

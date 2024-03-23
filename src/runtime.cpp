@@ -1409,7 +1409,7 @@ m_diag(std::make_shared<Diag>()) {
     m_load_dsl = true;
     m_embed_source = false;
     m_import_module = true;
-    m_import_natime = true;
+    m_import_native = true;
     m_eval_enable = true;
     m_load_runtime = true;
     //    m_error_limit = 10;

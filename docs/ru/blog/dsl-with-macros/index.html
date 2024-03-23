@@ -1,0 +1,493 @@
+<!doctype html>
+<html itemscope itemtype="http://schema.org/WebPage" lang="ru" class="no-js">
+  <head><script src="/livereload.js?mindelay=10&amp;v=2&amp;port=1313&amp;path=livereload" data-no-instant defer></script>
+    <meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+<meta name="robots" content="noindex, nofollow">
+
+
+<link rel="shortcut icon" href="/favicons/favicon.ico" >
+<link rel="apple-touch-icon" href="/favicons/apple-touch-icon-180x180.png" sizes="180x180">
+<link rel="icon" type="image/png" href="/favicons/favicon-16x16.png" sizes="16x16">
+<link rel="icon" type="image/png" href="/favicons/favicon-32x32.png" sizes="32x32">
+<link rel="icon" type="image/png" href="/favicons/android-36x36.png" sizes="36x36">
+<link rel="icon" type="image/png" href="/favicons/android-48x48.png" sizes="48x48">
+<link rel="icon" type="image/png" href="/favicons/android-72x72.png" sizes="72x72">
+<link rel="icon" type="image/png" href="/favicons/android-96x96.png" sizes="96x96">
+<link rel="icon" type="image/png" href="/favicons/android-144x144.png" sizes="144x144">
+<link rel="icon" type="image/png" href="/favicons/android-192x192.png" sizes="192x192">
+
+<title>Вариант реализации DSL (domain-specific language) с помощью макросов | NewLang</title>
+<meta name="description" content="Внимание!!!
+Данная статья содержит описание синтаксиса NewLnag предыдущей версии.
+Актуальную версию синтаксиса языка можно посмотреть тут.
+Близится релиз языка NewLang с принципиальной новой «фишкой», переделанным вариантом препроцессора, который позволяет расширять синтаксиса языка для создания различных диалектов DSL за счет макросов.
+И, как всегда, используя ранее найденный лайфхак Хабр — ума палата, хотелось бы получить от читателей обратную связь насчет предлагаемого ниже подхода, который планируется к реализации в новом препроцессоре NewLang.">
+<meta property="og:title" content="Вариант реализации DSL (domain-specific language) с помощью макросов" />
+<meta property="og:description" content="Внимание!!!
+Данная статья содержит описание синтаксиса NewLnag предыдущей версии.
+Актуальную версию синтаксиса языка можно посмотреть тут.
+Близится релиз языка NewLang с принципиальной новой «фишкой», переделанным вариантом препроцессора, который позволяет расширять синтаксиса языка для создания различных диалектов DSL за счет макросов.
+И, как всегда, используя ранее найденный лайфхак Хабр — ума палата, хотелось бы получить от читателей обратную связь насчет предлагаемого ниже подхода, который планируется к реализации в новом препроцессоре NewLang." />
+<meta property="og:type" content="article" />
+<meta property="og:url" content="http://localhost:1313/ru/blog/dsl-with-macros/" /><meta property="article:section" content="blog" />
+<meta property="article:published_time" content="2023-03-01T00:00:00+00:00" />
+<meta property="article:modified_time" content="2024-03-22T23:57:08+03:00" /><meta property="og:site_name" content="NewLang" />
+<meta itemprop="name" content="Вариант реализации DSL (domain-specific language) с помощью макросов">
+<meta itemprop="description" content="Внимание!!!
+Данная статья содержит описание синтаксиса NewLnag предыдущей версии.
+Актуальную версию синтаксиса языка можно посмотреть тут.
+Близится релиз языка NewLang с принципиальной новой «фишкой», переделанным вариантом препроцессора, который позволяет расширять синтаксиса языка для создания различных диалектов DSL за счет макросов.
+И, как всегда, используя ранее найденный лайфхак Хабр — ума палата, хотелось бы получить от читателей обратную связь насчет предлагаемого ниже подхода, который планируется к реализации в новом препроцессоре NewLang."><meta itemprop="datePublished" content="2023-03-01T00:00:00+00:00" />
+<meta itemprop="dateModified" content="2024-03-22T23:57:08+03:00" />
+<meta itemprop="wordCount" content="1805">
+<meta itemprop="keywords" content="" /><meta name="twitter:card" content="summary"/><meta name="twitter:title" content="Вариант реализации DSL (domain-specific language) с помощью макросов"/>
+<meta name="twitter:description" content="Внимание!!!
+Данная статья содержит описание синтаксиса NewLnag предыдущей версии.
+Актуальную версию синтаксиса языка можно посмотреть тут.
+Близится релиз языка NewLang с принципиальной новой «фишкой», переделанным вариантом препроцессора, который позволяет расширять синтаксиса языка для создания различных диалектов DSL за счет макросов.
+И, как всегда, используя ранее найденный лайфхак Хабр — ума палата, хотелось бы получить от читателей обратную связь насчет предлагаемого ниже подхода, который планируется к реализации в новом препроцессоре NewLang."/>
+
+
+
+
+
+<link href="/scss/main.css" rel="stylesheet">
+
+<script
+  src="https://code.jquery.com/jquery-3.6.3.min.js"
+  integrity="sha512-STof4xm1wgkfm7heWqFJVn58Hm3EtS31XFaagaa8VMReCXAkQnJZ+jEy8PCC/iT18dFy95WcExNHFTqLyp72eQ=="
+  crossorigin="anonymous"></script>
+<script defer
+  src="https://unpkg.com/lunr@2.3.9/lunr.min.js"
+  integrity="sha384-203J0SNzyqHby3iU6hzvzltrWi/M41wOP5Gu+BiJMz5nwKykbkUx8Kp7iti0Lpli"
+  crossorigin="anonymous"></script>
+
+  </head>
+  <body class="td-page td-blog">
+    <header>
+      <nav class="td-navbar navbar-dark js-navbar-scroll">
+<div class="container-fluid flex-column flex-md-row">
+  <a class="navbar-brand" href="/ru/"><span class="navbar-brand__logo navbar-logo"><svg id="Layer_1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" viewBox="0 0 500 500" style="enable-background:new 0 0 500 500"><g><path style="fill:#fff" d="M116.8525 421.9722c-5.7041.0-10.3442-4.3127-10.3442-9.6129V88.183c0-5.3002 4.6401-9.6117 10.3442-9.6117H320.858c3.0347.0 9.3959.5498 11.7506 2.6302l.3545.3442 58.905 63.2912c2.3101 2.491 2.9202 8.4928 2.9202 11.3184v256.2039c0 5.3002-4.6407 9.6129-10.3436 9.6129H116.8525z"/><g><g><g><path style="fill:#767676" d="M384.4445 423.2066H116.852c-6.3839.0-11.5786-4.8658-11.5786-10.8474V88.1831c0-5.9804 5.1947-10.8461 11.5786-10.8461h204.0062c.377.0 9.2786.0329 12.568 2.9389l.3947.3833 58.9508 63.337c3.2135 3.4652 3.2514 11.7924 3.2514 12.1593v256.2036C396.0231 418.3408 390.8284 423.2066 384.4445 423.2066zM116.5079 411.9189c.0848.0278.1999.0531.3441.0531h267.5925c.1442.0.2581-.0253.3441-.0531V156.1556c-.0076-.9033-.3593-3.7347-.7034-5.0037l-57.6527-61.9416c-1.4651-.3176-4.4533-.6389-5.5742-.6389H116.852c-.143.0-.2594.024-.3441.0531V411.9189zm267.4533-261.149zM327.0321 89.371v.0013V89.371z"/></g></g></g><g><g><path style="fill:#5b7fc0" d="M189.0874 210.1754l.0012-.0012c7.7751.0012 15.0295 4.1862 18.932 10.9234 1.9177 3.3159 2.9305 7.1011 2.9293 10.9378.0 5.8394-2.2733 11.3304-6.4032 15.4604-4.1288 4.1288-9.6186 6.4032-15.458 6.4032s-11.328-2.2733-15.458-6.4032-6.4032-9.6186-6.4056-15.4628c.0012-6.025 2.454-11.4897 6.4116-15.4473C177.5953 212.627 183.0601 210.1742 189.0874 210.1754zm7.993 21.8576c.0012-1.4042-.3687-2.7868-1.063-3.9887-1.4293-2.4684-4.0833-3.9995-6.9299-4.0019-4.4077.0024-7.993 3.5877-7.993 7.993.0 2.1356.832 4.1431 2.3427 5.6539 1.5083 1.5083 3.5159 2.3403 5.6503 2.3415 2.1356.0 4.1443-.8308 5.6539-2.3403S197.0816 234.1722 197.0804 232.033z"/><path style="opacity:.3;fill:#fff" d="M189.0898 210.176c7.7763.0 15.0283 4.1826 18.926 10.9151 1.9201 3.3136 2.9377 7.0988 2.9353 10.9462.0024 12.0643-9.8065 21.8636-21.8613 21.8613-12.0547.0024-21.8636-9.8066-21.8612-21.8613.0-6.0285 2.4516-11.4921 6.4116-15.452C177.5977 212.6276 183.0612 210.176 189.0898 210.176zm7.9941 21.8612c0-1.4078-.3711-2.7892-1.0702-3.9959-1.4269-2.466-4.0797-3.9983-6.924-3.9983-4.4005-.0048-7.9918 3.5817-7.9942 7.9942.0024 4.4077 3.5865 7.9918 7.9942 7.9942 2.2027.0 4.2018-.8978 5.6479-2.3439C196.1861 236.239 197.0839 234.2399 197.0839 232.0372z"/><g><defs><path id="SVGID_1_" d="M194.7376 237.6875c-1.4461 1.4461-3.4452 2.3439-5.6479 2.3439-4.4077-.0024-7.9918-3.5865-7.9942-7.9942.0024-4.4125 3.5937-7.999 7.9942-7.9942 2.8443.0 5.497 1.5323 6.924 3.9983.6991 1.2067 1.0702 2.5881 1.0702 3.9959C197.0839 234.2399 196.1861 236.239 194.7376 237.6875z"/></defs><clipPath id="SVGID_2_"><use xlink:href="#SVGID_1_" style="overflow:visible"/></clipPath><path style="clip-path:url(#SVGID_2_);fill:#fff" d="M190.0704 225.0237c-4.4005-.0048-7.9918 3.5817-7.9942 7.9942.0011 1.9546.7088 3.7452 1.8782 5.1354-1.7447-1.4674-2.8575-3.663-2.8588-6.116.0024-4.4125 3.5936-7.999 7.9942-7.9942 2.3802-1e-4 4.616 1.0833 6.1218 2.8788C193.7885 225.7247 191.9774 225.0237 190.0704 225.0237z"/><path style="opacity:.13;clip-path:url(#SVGID_2_);fill:#020202" d="M190.0704 225.0237c-4.4005-.0048-7.9918 3.5817-7.9942 7.9942.0011 1.9546.7088 3.7452 1.8782 5.1354-1.7447-1.4674-2.8575-3.663-2.8588-6.116.0024-4.4125 3.5936-7.999 7.9942-7.9942 2.3802-1e-4 4.616 1.0833 6.1218 2.8788C193.7885 225.7247 191.9774 225.0237 190.0704 225.0237z"/></g><g><defs><path id="SVGID_3_" d="M189.0898 210.176c7.7763.0 15.0283 4.1826 18.926 10.9151 1.9201 3.3136 2.9377 7.0988 2.9353 10.9462.0024 12.0643-9.8065 21.8636-21.8613 21.8613-12.0547.0024-21.8636-9.8066-21.8612-21.8613.0-6.0285 2.4516-11.4921 6.4116-15.452C177.5977 212.6276 183.0612 210.176 189.0898 210.176zm7.9941 21.8612c0-1.4078-.3711-2.7892-1.0702-3.9959-1.4269-2.466-4.0797-3.9983-6.924-3.9983-4.4005-.0048-7.9918 3.5817-7.9942 7.9942.0024 4.4077 3.5865 7.9918 7.9942 7.9942 2.2027.0 4.2018-.8978 5.6479-2.3439C196.1861 236.239 197.0839 234.2399 197.0839 232.0372z"/></defs><clipPath id="SVGID_4_"><use xlink:href="#SVGID_3_" style="overflow:visible"/></clipPath><path style="clip-path:url(#SVGID_4_);fill:#5b7fc0" d="M172.6595 215.6045c-3.96 3.96-6.4116 9.4235-6.4116 15.452-.0024 12.0547 9.8066 21.8636 21.8613 21.8612 12.0547.0024 21.8636-9.797 21.8613-21.8612.0024-3.8475-1.0151-7.6326-2.9353-10.9462-3.8977-6.7324-11.1497-10.9151-18.926-10.9151C182.0806 209.1953 176.6171 211.647 172.6595 215.6045z"/></g></g><rect x="198.8952" y="225.1043" style="fill:#5b7fc0" width="122.6266" height="13.8671"/></g><g><path style="fill:#d95140" d="M189.0874 155.7611l.0012-.0012c7.7751.0012 15.0295 4.1862 18.932 10.9234 1.9177 3.3159 2.9305 7.1011 2.9293 10.9378.0 5.8394-2.2733 11.3304-6.4032 15.4604-4.1288 4.1288-9.6186 6.4032-15.458 6.4032s-11.328-2.2733-15.458-6.4032-6.4032-9.6186-6.4056-15.4628c.0012-6.0249 2.454-11.4897 6.4116-15.4473C177.5953 158.2128 183.0601 155.7599 189.0874 155.7611zm7.993 21.8577c.0012-1.4042-.3687-2.7868-1.063-3.9887-1.4293-2.4684-4.0833-3.9995-6.9299-4.0019-4.4077.0024-7.993 3.5877-7.993 7.993.0 2.1356.832 4.1431 2.3427 5.6539 1.5083 1.5083 3.5159 2.3403 5.6503 2.3415 2.1356.0 4.1443-.8308 5.6539-2.3403C196.2508 181.7667 197.0816 179.758 197.0804 177.6188z"/><path style="opacity:.3;fill:#fff" d="M189.0898 155.7617c7.7763.0 15.0283 4.1826 18.926 10.9151 1.9201 3.3135 2.9377 7.0987 2.9353 10.9462.0024 12.0643-9.8065 21.8636-21.8613 21.8613-12.0547.0024-21.8636-9.8066-21.8612-21.8613.0-6.0285 2.4516-11.4921 6.4116-15.452C177.5977 158.2134 183.0612 155.7617 189.0898 155.7617zm7.9941 21.8613c0-1.4078-.3711-2.7892-1.0702-3.9959-1.4269-2.466-4.0797-3.9983-6.924-3.9983-4.4005-.0048-7.9918 3.5817-7.9942 7.9942.0024 4.4077 3.5865 7.9918 7.9942 7.9942 2.2027.0 4.2018-.8978 5.6479-2.3439C196.1861 181.8248 197.0839 179.8256 197.0839 177.623z"/><g><defs><path id="SVGID_5_" d="M194.7376 183.2733c-1.4461 1.4461-3.4452 2.3439-5.6479 2.3439-4.4077-.0024-7.9918-3.5865-7.9942-7.9942.0024-4.4125 3.5937-7.9989 7.9942-7.9942 2.8443.0 5.497 1.5323 6.924 3.9983.6991 1.2067 1.0702 2.5881 1.0702 3.9959C197.0839 179.8256 196.1861 181.8248 194.7376 183.2733z"/></defs><clipPath id="SVGID_6_"><use xlink:href="#SVGID_5_" style="overflow:visible"/></clipPath><path style="clip-path:url(#SVGID_6_);fill:#fff" d="M190.0704 170.6095c-4.4005-.0048-7.9918 3.5817-7.9942 7.9942.0011 1.9546.7088 3.7452 1.8782 5.1354-1.7447-1.4674-2.8575-3.663-2.8588-6.116.0024-4.4125 3.5936-7.999 7.9942-7.9942 2.3802-1e-4 4.616 1.0833 6.1218 2.8788C193.7885 171.3104 191.9774 170.6095 190.0704 170.6095z"/><path style="opacity:.13;clip-path:url(#SVGID_6_);fill:#020202" d="M190.0704 170.6095c-4.4005-.0048-7.9918 3.5817-7.9942 7.9942.0011 1.9546.7088 3.7452 1.8782 5.1354-1.7447-1.4674-2.8575-3.663-2.8588-6.116.0024-4.4125 3.5936-7.999 7.9942-7.9942 2.3802-1e-4 4.616 1.0833 6.1218 2.8788C193.7885 171.3104 191.9774 170.6095 190.0704 170.6095z"/></g><g><defs><path id="SVGID_7_" d="M189.0898 155.7617c7.7763.0 15.0283 4.1826 18.926 10.9151 1.9201 3.3135 2.9377 7.0987 2.9353 10.9462.0024 12.0643-9.8065 21.8636-21.8613 21.8613-12.0547.0024-21.8636-9.8066-21.8612-21.8613.0-6.0285 2.4516-11.4921 6.4116-15.452C177.5977 158.2134 183.0612 155.7617 189.0898 155.7617zm7.9941 21.8613c0-1.4078-.3711-2.7892-1.0702-3.9959-1.4269-2.466-4.0797-3.9983-6.924-3.9983-4.4005-.0048-7.9918 3.5817-7.9942 7.9942.0024 4.4077 3.5865 7.9918 7.9942 7.9942 2.2027.0 4.2018-.8978 5.6479-2.3439C196.1861 181.8248 197.0839 179.8256 197.0839 177.623z"/></defs><clipPath id="SVGID_8_"><use xlink:href="#SVGID_7_" style="overflow:visible"/></clipPath><path style="clip-path:url(#SVGID_8_);fill:#d95140" d="M172.6595 161.1903c-3.96 3.96-6.4116 9.4235-6.4116 15.452-.0024 12.0547 9.8066 21.8636 21.8613 21.8613 12.0547.0024 21.8636-9.797 21.8613-21.8613.0024-3.8474-1.0151-7.6326-2.9353-10.9462-3.8977-6.7324-11.1497-10.9151-18.926-10.9151C182.0806 154.7811 176.6171 157.2327 172.6595 161.1903z"/></g><rect x="198.8952" y="170.69" style="fill:#d95140" width="122.6266" height="13.8671"/></g><g><g><path style="fill:#56a55c" d="M189.5379 264.6147l.0012-.0012c7.7751.0012 15.0294 4.1862 18.932 10.9235 1.9177 3.3159 2.9305 7.1011 2.9293 10.9378.0 5.8394-2.2733 11.3304-6.4032 15.4604-4.1288 4.1288-9.6186 6.4032-15.458 6.4032-5.8394.0-11.3281-2.2733-15.458-6.4032-4.13-4.13-6.4032-9.6186-6.4056-15.4628.0012-6.0249 2.454-11.4897 6.4116-15.4472C178.0458 267.0663 183.5105 264.6135 189.5379 264.6147zm7.993 21.8576c.0012-1.4042-.3687-2.7868-1.063-3.9887-1.4293-2.4684-4.0833-3.9995-6.9299-4.0019-4.4077.0024-7.993 3.5877-7.993 7.993.0 2.1356.832 4.1431 2.3427 5.6538 1.5083 1.5083 3.5159 2.3403 5.6503 2.3415 2.1356.0 4.1443-.8308 5.6539-2.3403C196.7013 290.6202 197.5321 288.6115 197.5309 286.4723z"/><path style="opacity:.3;fill:#fff" d="M189.5403 264.6153c7.7763.0 15.0283 4.1826 18.926 10.9151 1.9201 3.3135 2.9377 7.0987 2.9353 10.9462.0024 12.0643-9.8065 21.8636-21.8613 21.8613-12.0547.0024-21.8636-9.8065-21.8612-21.8613.0-6.0285 2.4516-11.492 6.4116-15.452C178.0482 267.0669 183.5117 264.6153 189.5403 264.6153zm7.9941 21.8612c0-1.4078-.3711-2.7892-1.0702-3.9959-1.4269-2.466-4.0797-3.9983-6.924-3.9983-4.4005-.0048-7.9918 3.5817-7.9942 7.9941.0024 4.4077 3.5865 7.9918 7.9942 7.9942 2.2027.0 4.2018-.8978 5.6479-2.3439C196.6366 290.6783 197.5344 288.6792 197.5344 286.4765z"/><g><defs><path id="SVGID_9_" d="M195.1881 292.1268c-1.4461 1.4461-3.4452 2.3439-5.6479 2.3439-4.4077-.0024-7.9918-3.5865-7.9942-7.9942.0024-4.4125 3.5937-7.9989 7.9942-7.9941 2.8443.0 5.497 1.5323 6.924 3.9983.6991 1.2067 1.0702 2.5881 1.0702 3.9959C197.5344 288.6792 196.6366 290.6783 195.1881 292.1268z"/></defs><clipPath id="SVGID_10_"><use xlink:href="#SVGID_9_" style="overflow:visible"/></clipPath><path style="clip-path:url(#SVGID_10_);fill:#fff" d="M190.5209 279.463c-4.4005-.0048-7.9918 3.5817-7.9942 7.9941.0011 1.9547.7088 3.7452 1.8782 5.1354-1.7446-1.4674-2.8575-3.6631-2.8588-6.1161.0024-4.4125 3.5936-7.999 7.9942-7.9941 2.3802-1e-4 4.616 1.0833 6.1218 2.8788C194.239 280.164 192.4279 279.463 190.5209 279.463z"/><path style="opacity:.13;clip-path:url(#SVGID_10_);fill:#020202" d="M190.5209 279.463c-4.4005-.0048-7.9918 3.5817-7.9942 7.9941.0011 1.9547.7088 3.7452 1.8782 5.1354-1.7446-1.4674-2.8575-3.6631-2.8588-6.1161.0024-4.4125 3.5936-7.999 7.9942-7.9941 2.3802-1e-4 4.616 1.0833 6.1218 2.8788C194.239 280.164 192.4279 279.463 190.5209 279.463z"/></g><g><defs><path id="SVGID_11_" d="M189.5403 264.6153c7.7763.0 15.0283 4.1826 18.926 10.9151 1.9201 3.3135 2.9377 7.0987 2.9353 10.9462.0024 12.0643-9.8065 21.8636-21.8613 21.8613-12.0547.0024-21.8636-9.8065-21.8612-21.8613.0-6.0285 2.4516-11.492 6.4116-15.452C178.0482 267.0669 183.5117 264.6153 189.5403 264.6153zm7.9941 21.8612c0-1.4078-.3711-2.7892-1.0702-3.9959-1.4269-2.466-4.0797-3.9983-6.924-3.9983-4.4005-.0048-7.9918 3.5817-7.9942 7.9941.0024 4.4077 3.5865 7.9918 7.9942 7.9942 2.2027.0 4.2018-.8978 5.6479-2.3439C196.6366 290.6783 197.5344 288.6792 197.5344 286.4765z"/></defs><clipPath id="SVGID_12_"><use xlink:href="#SVGID_11_" style="overflow:visible"/></clipPath><path style="clip-path:url(#SVGID_12_);fill:#56a55c" d="M173.11 270.0439c-3.96 3.96-6.4116 9.4235-6.4116 15.452-.0024 12.0547 9.8066 21.8636 21.8613 21.8613 12.0547.0024 21.8636-9.797 21.8613-21.8613.0024-3.8474-1.0151-7.6326-2.9353-10.9462-3.8977-6.7325-11.1497-10.9151-18.926-10.9151C182.5311 263.6346 177.0676 266.0863 173.11 270.0439z"/></g></g><rect x="199.3456" y="279.5436" style="fill:#56a55c" width="122.6266" height="13.8671"/></g><g><g><path style="fill:#f1bc42" d="M189.0874 318.7208l.0012-.0012c7.7751.0012 15.0295 4.1862 18.932 10.9234 1.9177 3.3159 2.9305 7.1011 2.9293 10.9378.0 5.8394-2.2733 11.3305-6.4032 15.4604-4.1288 4.1288-9.6186 6.4032-15.458 6.4032s-11.328-2.2733-15.458-6.4032-6.4032-9.6186-6.4056-15.4628c.0012-6.025 2.454-11.4897 6.4116-15.4472C177.5953 321.1724 183.0601 318.7196 189.0874 318.7208zm7.993 21.8576c.0012-1.4042-.3687-2.7868-1.063-3.9887-1.4293-2.4684-4.0833-3.9995-6.9299-4.0019-4.4077.0024-7.993 3.5877-7.993 7.993.0 2.1356.832 4.1431 2.3427 5.6539 1.5083 1.5083 3.5159 2.3403 5.6503 2.3415 2.1356.0 4.1443-.8308 5.6539-2.3403S197.0816 342.7176 197.0804 340.5784z"/><path style="opacity:.3;fill:#fff" d="M189.0898 318.7214c7.7763.0 15.0283 4.1826 18.926 10.915 1.9201 3.3136 2.9377 7.0988 2.9353 10.9462.0024 12.0643-9.8065 21.8636-21.8613 21.8612-12.0547.0024-21.8636-9.8065-21.8612-21.8612.0-6.0285 2.4516-11.4921 6.4116-15.452C177.5977 321.173 183.0612 318.7214 189.0898 318.7214zm7.9941 21.8612c0-1.4078-.3711-2.7892-1.0702-3.9959-1.4269-2.466-4.0797-3.9983-6.924-3.9983-4.4005-.0048-7.9918 3.5817-7.9942 7.9942.0024 4.4077 3.5865 7.9918 7.9942 7.9942 2.2027.0 4.2018-.8978 5.6479-2.3439C196.1861 344.7844 197.0839 342.7853 197.0839 340.5826z"/><g><defs><path id="SVGID_13_" d="M194.7376 346.2329c-1.4461 1.4461-3.4452 2.3439-5.6479 2.3439-4.4077-.0024-7.9918-3.5865-7.9942-7.9942.0024-4.4125 3.5937-7.999 7.9942-7.9942 2.8443.0 5.497 1.5323 6.924 3.9983.6991 1.2067 1.0702 2.5881 1.0702 3.9959C197.0839 342.7853 196.1861 344.7844 194.7376 346.2329z"/></defs><clipPath id="SVGID_14_"><use xlink:href="#SVGID_13_" style="overflow:visible"/></clipPath><path style="clip-path:url(#SVGID_14_);fill:#fff" d="M190.0704 333.5691c-4.4005-.0048-7.9918 3.5817-7.9942 7.9942.0011 1.9547.7088 3.7452 1.8782 5.1354-1.7447-1.4674-2.8575-3.6631-2.8588-6.1161.0024-4.4125 3.5936-7.999 7.9942-7.9942 2.3802-1e-4 4.616 1.0834 6.1218 2.8788C193.7885 334.2701 191.9774 333.5691 190.0704 333.5691z"/><path style="opacity:.13;clip-path:url(#SVGID_14_);fill:#020202" d="M190.0704 333.5691c-4.4005-.0048-7.9918 3.5817-7.9942 7.9942.0011 1.9547.7088 3.7452 1.8782 5.1354-1.7447-1.4674-2.8575-3.6631-2.8588-6.1161.0024-4.4125 3.5936-7.999 7.9942-7.9942 2.3802-1e-4 4.616 1.0834 6.1218 2.8788C193.7885 334.2701 191.9774 333.5691 190.0704 333.5691z"/></g><g><defs><path id="SVGID_15_" d="M189.0898 318.7214c7.7763.0 15.0283 4.1826 18.926 10.915 1.9201 3.3136 2.9377 7.0988 2.9353 10.9462.0024 12.0643-9.8065 21.8636-21.8613 21.8612-12.0547.0024-21.8636-9.8065-21.8612-21.8612.0-6.0285 2.4516-11.4921 6.4116-15.452C177.5977 321.173 183.0612 318.7214 189.0898 318.7214zm7.9941 21.8612c0-1.4078-.3711-2.7892-1.0702-3.9959-1.4269-2.466-4.0797-3.9983-6.924-3.9983-4.4005-.0048-7.9918 3.5817-7.9942 7.9942.0024 4.4077 3.5865 7.9918 7.9942 7.9942 2.2027.0 4.2018-.8978 5.6479-2.3439C196.1861 344.7844 197.0839 342.7853 197.0839 340.5826z"/></defs><clipPath id="SVGID_16_"><use xlink:href="#SVGID_15_" style="overflow:visible"/></clipPath><path style="clip-path:url(#SVGID_16_);fill:#f1bc42" d="M172.6595 324.15c-3.96 3.96-6.4116 9.4235-6.4116 15.452-.0024 12.0547 9.8066 21.8636 21.8613 21.8612 12.0547.0024 21.8636-9.797 21.8613-21.8612.0024-3.8474-1.0151-7.6327-2.9353-10.9462-3.8977-6.7324-11.1497-10.9151-18.926-10.9151C182.0806 317.7407 176.6171 320.1924 172.6595 324.15z"/></g></g><rect x="198.8952" y="333.6497" style="fill:#f1bc42" width="122.6266" height="13.8671"/></g></g></svg></span><span class="navbar-brand__name">NewLang</span></a>
+  <div class="td-navbar-nav-scroll ms-md-auto" id="main_navbar">
+    <ul class="navbar-nav">
+      <li class="nav-item">
+        <a class="nav-link" href="/ru/docs/"><span>Документация</span></a>
+      </li>
+      <li class="nav-item">
+        <a class="nav-link" href="/ru/playground/"><span>Playground</span></a>
+      </li>
+      <li class="nav-item">
+        <a class="nav-link active" href="/ru/blog/"><span>Статьи</span></a>
+      </li>
+      <li class="nav-item dropdown d-none d-lg-block">
+        <div class="dropdown">
+  <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false">Русский</a>
+  <ul class="dropdown-menu">
+    <li><a class="dropdown-item" href="/blog/dsl-domain-specific-language-implementation-with-macros/">English</a></li>
+    </ul>
+</div></li>
+      </ul>
+  </div>
+  <div class="d-none d-lg-block">
+    <div class="td-search td-search--offline">
+  <div class="td-search__icon"></div>
+  <input
+    type="search"
+    class="td-search__input form-control"
+    placeholder="Поиск по сайту…"
+    aria-label="Поиск по сайту…"
+    autocomplete="off"
+    
+    data-offline-search-index-json-src="/offline-search-index.json"
+    data-offline-search-base-href="/"
+    data-offline-search-max-results="10"
+  >
+</div>
+  </div>
+</div>
+</nav>
+    </header>
+    <div class="container-fluid td-outer">
+      <div class="td-main">
+        <div class="row flex-xl-nowrap">
+          <aside class="col-12 col-md-3 col-xl-2 td-sidebar d-print-none">
+            <div id="td-sidebar-menu" class="td-sidebar__inner">
+  <form class="td-sidebar__search d-flex align-items-center">
+    <div class="td-search td-search--offline">
+  <div class="td-search__icon"></div>
+  <input
+    type="search"
+    class="td-search__input form-control"
+    placeholder="Поиск по сайту…"
+    aria-label="Поиск по сайту…"
+    autocomplete="off"
+    
+    data-offline-search-index-json-src="/offline-search-index.json"
+    data-offline-search-base-href="/"
+    data-offline-search-max-results="10"
+  >
+</div>
+    <button class="btn btn-link td-sidebar__toggle d-md-none p-0 ms-3 fas fa-bars" type="button" data-bs-toggle="collapse" data-bs-target="#td-section-nav" aria-controls="td-section-nav" aria-expanded="false" aria-label="Toggle section navigation">
+    </button>
+  </form>
+  <nav class="td-sidebar-nav collapse" id="td-section-nav">
+    <div class="td-sidebar-nav__section nav-item dropdown d-block d-lg-none">
+      <div class="dropdown">
+  <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false">Русский</a>
+  <ul class="dropdown-menu">
+    <li><a class="dropdown-item" href="/blog/dsl-domain-specific-language-implementation-with-macros/">English</a></li>
+    </ul>
+</div>
+    </div>
+    <ul class="td-sidebar-nav__section pe-md-3 ul-0">
+      <li class="td-sidebar-nav__section-title td-sidebar-nav__section with-child active-path" id="m-rublog-li">
+  <a href="/ru/blog/" class="align-left ps-0 td-sidebar-link td-sidebar-link__section tree-root" id="m-rublog"><span class="">Статьи</span></a>
+  <ul class="ul-1">
+    <li class="td-sidebar-nav__section-title td-sidebar-nav__section without-child" id="m-rublogrelease-v04-li">
+  <a href="/ru/blog/release-v0.4/" class="align-left ps-0 td-sidebar-link td-sidebar-link__page" id="m-rublogrelease-v04"><span class="">Релиз языка программирования NewLang 0.4</span></a>
+</li><li class="td-sidebar-nav__section-title td-sidebar-nav__section without-child" id="m-rublogparser-nuances-li">
+  <a href="/ru/blog/parser-nuances/" class="align-left ps-0 td-sidebar-link td-sidebar-link__page" id="m-rublogparser-nuances"><span class="">Нюансы разработки парсера для своего языка программирования</span></a>
+</li><li class="td-sidebar-nav__section-title td-sidebar-nav__section without-child active-path" id="m-rublogdsl-with-macros-li">
+  <a href="/ru/blog/dsl-with-macros/" class="align-left ps-0 active td-sidebar-link td-sidebar-link__page" id="m-rublogdsl-with-macros"><span class="td-sidebar-nav-active-item">Вариант реализации DSL (domain-specific language) с помощью макросов</span></a>
+</li><li class="td-sidebar-nav__section-title td-sidebar-nav__section without-child" id="m-rublogrelease-v03-li">
+  <a href="/ru/blog/release-v0.3/" class="align-left ps-0 td-sidebar-link td-sidebar-link__page" id="m-rublogrelease-v03"><span class="">Релиз языка программрования NewLang 0.3</span></a>
+</li><li class="td-sidebar-nav__section-title td-sidebar-nav__section without-child" id="m-rublogrelease-v02-li">
+  <a href="/ru/blog/release-v0.2/" class="align-left ps-0 td-sidebar-link td-sidebar-link__page" id="m-rublogrelease-v02"><span class="">Релиз языка программрования NewLang 0.2</span></a>
+</li><li class="td-sidebar-nav__section-title td-sidebar-nav__section without-child" id="m-rublogrelease-v01-li">
+  <a href="/ru/blog/release-v0.1/" class="align-left ps-0 td-sidebar-link td-sidebar-link__page" id="m-rublogrelease-v01"><span class="">Релиз языка программрования NewLang</span></a>
+</li><li class="td-sidebar-nav__section-title td-sidebar-nav__section without-child" id="m-rublognewlang-li">
+  <a href="/ru/blog/newlang/" class="align-left ps-0 td-sidebar-link td-sidebar-link__page" id="m-rublognewlang"><span class="">Новый язык программирования</span></a>
+</li><li class="td-sidebar-nav__section-title td-sidebar-nav__section without-child" id="m-rublogprog-styles-same-time-li">
+  <a href="/ru/blog/prog-styles-same-time/" class="align-left ps-0 td-sidebar-link td-sidebar-link__page" id="m-rublogprog-styles-same-time"><span class="">Можно ли использовать декларативный и императивный стили написания программ одновременно?</span></a>
+</li><li class="td-sidebar-nav__section-title td-sidebar-nav__section without-child" id="m-rublogunusual-prog-li">
+  <a href="/ru/blog/unusual-prog/" class="align-left ps-0 td-sidebar-link td-sidebar-link__page" id="m-rublogunusual-prog"><span class="">Необычная концепция синтаксиса языка программирования</span></a>
+</li><li class="td-sidebar-nav__section-title td-sidebar-nav__section without-child" id="m-rublogcomplex-prog-li">
+  <a href="/ru/blog/complex-prog/" class="align-left ps-0 td-sidebar-link td-sidebar-link__page" id="m-rublogcomplex-prog"><span class="">Простое сложное программирование</span></a>
+</li><li class="td-sidebar-nav__section-title td-sidebar-nav__section without-child" id="m-rubloglang-final-li">
+  <a href="/ru/blog/lang-final/" class="align-left ps-0 td-sidebar-link td-sidebar-link__page" id="m-rubloglang-final"><span class="">Какая «идеальная» цель развития у языков программирования?</span></a>
+</li><li class="td-sidebar-nav__section-title td-sidebar-nav__section without-child" id="m-rubloglogic-prog-li">
+  <a href="/ru/blog/logic-prog/" class="align-left ps-0 td-sidebar-link td-sidebar-link__page" id="m-rubloglogic-prog"><span class="">Проблема логических языков программирования</span></a>
+</li><li class="td-sidebar-nav__section-title td-sidebar-nav__section without-child" id="m-rubloginter-prog-li">
+  <a href="/ru/blog/inter-prog/" class="align-left ps-0 td-sidebar-link td-sidebar-link__page" id="m-rubloginter-prog"><span class="">Интернациональное программирование на естественных языках</span></a>
+</li>
+  </ul>
+</li>
+    </ul>
+  </nav>
+</div>
+
+          </aside>
+          <aside class="d-none d-xl-block col-xl-2 td-sidebar-toc d-print-none">
+            <div class="td-page-meta ms-2 pb-1 pt-2 mb-0">
+<a id="print" href="/ru/blog/_print/"><i class="fa-solid fa-print fa-fw"></i> Печатать весь раздел</a>
+
+</div>
+
+            <div class="td-toc">
+        <nav id="TableOfContents">
+  <ul>
+    <li>
+      <ul>
+        <li><a href="#о-чем-идет-речь">О чем идет речь?</a></li>
+      </ul>
+    </li>
+    <li><a href="#две-крайности">Две крайности</a>
+      <ul>
+        <li><a href="#ограниченная-грамматика">Ограниченная грамматика</a></li>
+        <li><a href="#неограниченная-грамматика">Неограниченная грамматика</a></li>
+      </ul>
+    </li>
+    <li><a href="#для-обсуждения-предлагается-следующая-реализация-макросов">Для обсуждения предлагается следующая реализация макросов</a>
+      <ul>
+        <li><a href="#используемая-терминология">Используемая терминология</a></li>
+        <li><a href="#примеры">Примеры:</a></li>
+      </ul>
+    </li>
+    <li><a href="#какие-возможности-это-дает">Какие возможности это дает?</a></li>
+    <li><a href="#назначение-и-примеры-использования">Назначение и примеры использования</a>
+      <ul>
+        <li><a href="#удаление-макросов">Удаление макросов</a></li>
+      </ul>
+    </li>
+    <li><a href="#в-чем-профит">В чем профит?</a></li>
+    <li><a href="#заключение">Заключение</a></li>
+  </ul>
+</nav>
+      </div>
+    
+            <div class="taxonomy taxonomy-terms-cloud taxo-tags">
+      <h5 class="taxonomy-title">Tag Cloud</h5>
+      <ul class="taxonomy-terms">
+        <li><a class="taxonomy-term" href="http://localhost:1313/ru/tags/%D0%B8%D1%82%D0%B5%D1%80%D0%B0%D1%82%D0%BE%D1%80%D1%8B/" data-taxonomy-term="%D0%B8%D1%82%D0%B5%D1%80%D0%B0%D1%82%D0%BE%D1%80%D1%8B"><span class="taxonomy-label">Итераторы</span><span class="taxonomy-count">1</span></a></li>
+        <li><a class="taxonomy-term" href="http://localhost:1313/ru/tags/%D0%BA%D0%BE%D0%BB%D0%BB%D0%B5%D0%BA%D1%86%D0%B8%D0%B8/" data-taxonomy-term="%D0%BA%D0%BE%D0%BB%D0%BB%D0%B5%D0%BA%D1%86%D0%B8%D0%B8"><span class="taxonomy-label">Коллекции</span><span class="taxonomy-count">4</span></a></li>
+        <li><a class="taxonomy-term" href="http://localhost:1313/ru/tags/%D0%BE%D0%BE%D0%BF/" data-taxonomy-term="%D0%BE%D0%BE%D0%BF"><span class="taxonomy-label">ООП</span><span class="taxonomy-count">3</span></a></li>
+        <li><a class="taxonomy-term" href="http://localhost:1313/ru/tags/%D1%81%D0%B8%D1%81%D1%82%D0%B5%D0%BC%D1%8B%D0%B5-%D1%82%D0%B8%D0%BF%D1%8B/" data-taxonomy-term="%D1%81%D0%B8%D1%81%D1%82%D0%B5%D0%BC%D1%8B%D0%B5-%D1%82%D0%B8%D0%BF%D1%8B"><span class="taxonomy-label">Системые Типы</span><span class="taxonomy-count">1</span></a></li>
+        <li><a class="taxonomy-term" href="http://localhost:1313/ru/tags/%D1%81%D1%82%D1%80%D0%BE%D0%BA%D0%B8/" data-taxonomy-term="%D1%81%D1%82%D1%80%D0%BE%D0%BA%D0%B8"><span class="taxonomy-label">Строки</span><span class="taxonomy-count">1</span></a></li>
+        <li><a class="taxonomy-term" href="http://localhost:1313/ru/tags/%D1%82%D0%B8%D0%BF%D1%8B-%D0%B4%D0%B0%D0%BD%D0%BD%D1%8B%D1%85/" data-taxonomy-term="%D1%82%D0%B8%D0%BF%D1%8B-%D0%B4%D0%B0%D0%BD%D0%BD%D1%8B%D1%85"><span class="taxonomy-label">Типы Данных</span><span class="taxonomy-count">9</span></a></li>
+        <li><a class="taxonomy-term" href="http://localhost:1313/ru/tags/%D1%84%D1%83%D0%BD%D0%BA%D1%86%D0%B8%D0%B8/" data-taxonomy-term="%D1%84%D1%83%D0%BD%D0%BA%D1%86%D0%B8%D0%B8"><span class="taxonomy-label">Функции</span><span class="taxonomy-count">1</span></a></li>
+        </ul>
+    </div>
+  
+	
+          </aside>
+          <main class="col-12 col-md-9 col-xl-8 ps-md-5 pe-md-4" role="main">
+            <a class="td-rss-button" title="RSS" href="/ru/blog/index.xml" target="_blank" rel="noopener">
+              <i class="fa-solid fa-rss" aria-hidden="true"></i>
+            </a>
+            
+<div class="td-content">
+	<h1>Вариант реализации DSL (domain-specific language) с помощью макросов</h1>
+	
+	<div class="td-byline mb-4">
+		
+		<time datetime="2023-03-01" class="text-muted">01.03.2023</time>
+	</div>
+	<header class="article-meta">
+		
+  </header>
+	<p><img alt="КДПВ" src="/ru/blog/dsl.jpeg"></p>
+
+
+<div class="pageinfo pageinfo-primary">
+<p>Внимание!!!</p>
+<p>Данная статья содержит описание синтаксиса NewLnag предыдущей версии.</p>
+<p>Актуальную версию синтаксиса языка можно посмотреть <a href="/ru/docs/">тут</a>.</p>
+
+</div>
+
+<p>Близится релиз языка <strong><a href="https://newlang.net/">NewLang</a></strong> с принципиальной новой «фишкой», переделанным вариантом препроцессора, который позволяет расширять синтаксиса языка для создания различных диалектов DSL за счет макросов.</p>
+<p>И, как всегда, используя ранее найденный лайфхак <a href="https://habr.com/ru/post/539674/">Хабр — ума палата</a>, хотелось бы получить от читателей обратную связь насчет предлагаемого ниже подхода, который планируется к реализации в новом препроцессоре <strong>NewLang</strong>.</p>
+<h3 id="о-чем-идет-речь">О чем идет речь?<a class="td-heading-self-link" href="#%d0%be-%d1%87%d0%b5%d0%bc-%d0%b8%d0%b4%d0%b5%d1%82-%d1%80%d0%b5%d1%87%d1%8c" aria-label="Heading self-link"></a></h3>
+<blockquote>
+<p><a href="https://ru.wikipedia.org/wiki/%D0%9F%D1%80%D0%B5%D0%B4%D0%BC%D0%B5%D1%82%D0%BD%D0%BE-%D0%BE%D1%80%D0%B8%D0%B5%D0%BD%D1%82%D0%B8%D1%80%D0%BE%D0%B2%D0%B0%D0%BD%D0%BD%D1%8B%D0%B9_%D1%8F%D0%B7%D1%8B%D0%BA">DSL</a> (Предметно-ориентированный язык) - язык программирования, специализированный для конкретной области применения. Считается, что использование DSL существенно повышает уровень абстрактности кода, а это позволяет вести разработку более быстро и эффективно и существенно упрощает решение многих задач.</p>
+</blockquote>
+<h4 id="условно-можно-выделить-два-подхода-к-реализации-dsl">Условно, можно выделить два подхода к реализации DSL:<a class="td-heading-self-link" href="#%d1%83%d1%81%d0%bb%d0%be%d0%b2%d0%bd%d0%be-%d0%bc%d0%be%d0%b6%d0%bd%d0%be-%d0%b2%d1%8b%d0%b4%d0%b5%d0%bb%d0%b8%d1%82%d1%8c-%d0%b4%d0%b2%d0%b0-%d0%bf%d0%be%d0%b4%d1%85%d0%be%d0%b4%d0%b0-%d0%ba-%d1%80%d0%b5%d0%b0%d0%bb%d0%b8%d0%b7%d0%b0%d1%86%d0%b8%d0%b8-dsl" aria-label="Heading self-link"></a></h4>
+<ul>
+<li>Разработка независимых трансляторов синтаксиса с помощью генераторов лексеров и парсеров для определения грамматики целевого языка посредством БНФ и регулярных выражений (Lex, Yacc, ANTLR и т. д.) и последующей компиляцией полученной грамматики в машинный код.</li>
+<li>Разработка или встраивание диалекта DSL на языке (метаязыке) общего назначения, в том числе за счет применения различных библиотек или специальных парсеров / препроцессоров.</li>
+</ul>
+<p>Далее речь пойдет о втором варианте, а именно, о реализации DSL на базе языков (метаязыков) общего назначения и новом варианте реализации макросов в <strong>NewLang</strong> как основы для разработки DSL.</p>
+<h2 id="две-крайности">Две крайности<a class="td-heading-self-link" href="#%d0%b4%d0%b2%d0%b5-%d0%ba%d1%80%d0%b0%d0%b9%d0%bd%d0%be%d1%81%d1%82%d0%b8" aria-label="Heading self-link"></a></h2>
+<p>Наверно имеет смысл начать с описания о двух крайностях при реализации DSL на базе языка (метаязыка) общего назначения:</p>
+<h3 id="ограниченная-грамматика">Ограниченная грамматика<a class="td-heading-self-link" href="#%d0%be%d0%b3%d1%80%d0%b0%d0%bd%d0%b8%d1%87%d0%b5%d0%bd%d0%bd%d0%b0%d1%8f-%d0%b3%d1%80%d0%b0%d0%bc%d0%bc%d0%b0%d1%82%d0%b8%d0%ba%d0%b0" aria-label="Heading self-link"></a></h3>
+<p>Если язык программирования ограничен собственной фиксированной грамматикой и не допускает её расширения,
+то при реализации DSL разработчик будет вынужден использовать уже существующую грамматику, правила записи операций и вообще весь синтаксис будет оставаться такими же, как в языке реализации. Например, при использовании в качестве базового языка С/С++ или применении различных библиотек и фреймворков в других языках программирования общего назначения.</p>
+<p><em>В этом случае под термином &ldquo;DSL&rdquo; будет скрываться просто набор специфических терминов предметной области, переопределенных макросов и/или операторов, но использование которых будет ограничено грамматикой языка реализации.</em></p>
+<h3 id="неограниченная-грамматика">Неограниченная грамматика<a class="td-heading-self-link" href="#%d0%bd%d0%b5%d0%be%d0%b3%d1%80%d0%b0%d0%bd%d0%b8%d1%87%d0%b5%d0%bd%d0%bd%d0%b0%d1%8f-%d0%b3%d1%80%d0%b0%d0%bc%d0%bc%d0%b0%d1%82%d0%b8%d0%ba%d0%b0" aria-label="Heading self-link"></a></h3>
+<p>Если же язык (метаязык) позволяет модифицировать собственную грамматику (например на уровне <a href="https://ru.wikipedia.org/wiki/%D0%90%D0%B1%D1%81%D1%82%D1%80%D0%B0%D0%BA%D1%82%D0%BD%D0%BE%D0%B5_%D1%81%D0%B8%D0%BD%D1%82%D0%B0%D0%BA%D1%81%D0%B8%D1%87%D0%B5%D1%81%D0%BA%D0%BE%D0%B5_%D0%B4%D0%B5%D1%80%D0%B5%D0%B2%D0%BE">AST</a>), то DSL уже не будет жестко огранен синтаксисом базового языка программирования, и в результате его грамматика может быть какой угодно. Вплоть до того, что «для каждого нового проекта придется изучать новый язык… ».
+Это можно сделать с помощью использования специализированных метаязыков (Lisp, ML, Haskell, Nemerle, Forth, Tcl, Rebol и пр.)</p>
+<p>Очень рекомендую прочитать о метапрограммровании великолепную статью @NeoCode <a href="https://habr.com/ru/post/258667/">Метапрограммирование: какое оно есть и каким должно быть</a>.</p>
+<h2 id="для-обсуждения-предлагается-следующая-реализация-макросов">Для обсуждения предлагается следующая реализация макросов<a class="td-heading-self-link" href="#%d0%b4%d0%bb%d1%8f-%d0%be%d0%b1%d1%81%d1%83%d0%b6%d0%b4%d0%b5%d0%bd%d0%b8%d1%8f-%d0%bf%d1%80%d0%b5%d0%b4%d0%bb%d0%b0%d0%b3%d0%b0%d0%b5%d1%82%d1%81%d1%8f-%d1%81%d0%bb%d0%b5%d0%b4%d1%83%d1%8e%d1%89%d0%b0%d1%8f-%d1%80%d0%b5%d0%b0%d0%bb%d0%b8%d0%b7%d0%b0%d1%86%d0%b8%d1%8f-%d0%bc%d0%b0%d0%ba%d1%80%d0%be%d1%81%d0%be%d0%b2" aria-label="Heading self-link"></a></h2>
+<p>«Нет в мире совершенства», и после выпуска релиза <strong>NewLang 0.2</strong> я получил много отзывов (по большей части негативных),
+по поводу первого варианта <a href="https://github.com/rsashka/newlang/blob/v0.3.0/docs/syntax.md#%D0%BC%D0%B0%D0%BA%D1%80%D0%BE%D1%81%D1%8B">реализации макросов</a> и <a href="https://github.com/rsashka/newlang/blob/v0.3.0/docs/syntax_dsl.md">DSL на их основе</a>. И если положить руку на сердце, эта критика часто была обоснованной.
+Поэтому я решил попробовать немного переделать макросы, в надежде получить «золотую середину» между двумя описанными выше крайностями при описании DSL.</p>
+<h3 id="используемая-терминология">Используемая терминология<a class="td-heading-self-link" href="#%d0%b8%d1%81%d0%bf%d0%be%d0%bb%d1%8c%d0%b7%d1%83%d0%b5%d0%bc%d0%b0%d1%8f-%d1%82%d0%b5%d1%80%d0%bc%d0%b8%d0%bd%d0%be%d0%bb%d0%be%d0%b3%d0%b8%d1%8f" aria-label="Heading self-link"></a></h3>
+<p>Макросы в <em>NewLang</em>, это один или несколько терминов, которые заменяются на другой термин или на целую синтаксическую конструкцию (последовательность лексем).
+Макросы являются одновременно и расширением базового синтаксиса языка, при реализации собственных диалектов DSL, и синтаксическим сахаром.</p>
+<p>Главная особенность макросов в том, что они позволяют изменять выражения еще до их вычисления во время выполнения.
+Раскрытие макросов происходит во время работы <strong>лексера</strong>, что позволяет подменять ими любые другие термины и даже модифицировать сам синтаксис языка.</p>
+<p>Поэтому, если перед именем объекта <strong>NewLang</strong> модификатор не указывать (**\**макрос, **$**локальная_переменная или **@**модуль),
+то сперва будет производиться поиск объекта среди макросов, потом среди локальных переменных и в последнюю очередь среди модулей (объектов модуля).
+За счет этого можно использовать термины без обязательных модификаторов для указания конкретных типов объектов.</p>
+<h4 id="определение-макросов">Определение макросов<a class="td-heading-self-link" href="#%d0%be%d0%bf%d1%80%d0%b5%d0%b4%d0%b5%d0%bb%d0%b5%d0%bd%d0%b8%d0%b5-%d0%bc%d0%b0%d0%ba%d1%80%d0%be%d1%81%d0%be%d0%b2" aria-label="Heading self-link"></a></h4>
+<p>Для определения макросов используется точно такой <a href="https://newlang.net/ops.html">синтаксис</a>, как и для других объектов языка
+(применяются операторы «<strong>::=</strong>», «<strong>=</strong>» или «<strong>:=</strong>», соответственно для создания нового объекта, присвоение нового значения уже существующему или для создания объекта / присвоения нового значения объекту не зависимо от его наличия или отсутствия).</p>
+<p>В общем виде, определение макроса состоит из трех частей <strong>&lt;<strong>имя макроса</strong>&gt;</strong> <strong>&lt;<strong>оператор создания/присвоения</strong>&gt;</strong> <strong>&lt;<strong>тело макроса</strong>&gt;</strong>  и завершающая точка с запятой &ldquo;<strong>;</strong>&rdquo;.</p>
+<h4 id="тело-макроса">Тело макроса<a class="td-heading-self-link" href="#%d1%82%d0%b5%d0%bb%d0%be-%d0%bc%d0%b0%d0%ba%d1%80%d0%be%d1%81%d0%b0" aria-label="Heading self-link"></a></h4>
+<p>Телом макроса могут быть корректное выражение языка, последовательность лексем (которые заключается в двойные обратные слеши, т.е. <strong>\\<strong>лексема1 лексема1</strong>\\</strong>) или обычная текстовая строка (обрамленная в тройные обратные слеши, т.е. <strong>\\\</strong> текстовая строка <strong>\\\</strong>).</p>
+<p>Для соединения двух лексем в одну (аналог операции ## в препроцессоре С/С++), используется по аналогии синтаксис <strong>##</strong>. Похожий оператор применяется и для обрамления лексемы в кавычки <strong>#</strong>, например, <code>\macro($arg)  := \\ func_ \## \#arg(\#arg) \\;</code>? тогда вызов macro(arg) будет преобразован в <code>func_arg (&quot;arg&quot;)</code>;</p>
+<h4 id="имя-макроса">Имя макроса<a class="td-heading-self-link" href="#%d0%b8%d0%bc%d1%8f-%d0%bc%d0%b0%d0%ba%d1%80%d0%be%d1%81%d0%b0" aria-label="Heading self-link"></a></h4>
+<p>Именем макроса может быть одиночный идентификатор с префиксом макроса &ldquo;<strong>\</strong>&rdquo; или последовательность из нескольких лексем. Если в качестве имени макроса используется  последовательность лексем, то среди них должен быть как минимум один идентификатор и может присутствовать один или несколько шаблонов.</p>
+<p>Шаблон — это специальный идентификатор который при сопоставлении может заменяться любым одиночным термином. С помощью шаблонов производится поиск по образцу и замена заданных последовательностей лексем на тело макроса.</p>
+<p>Для указания шаблона в начале идентификатора нужно поставить знак доллара (что соответствует записи имени локальной переменой), т. е. <strong>\\<strong>одна_лексема</strong>\\</strong>, <strong>\\<strong>целых три лексемы</strong>\\</strong> **\\**лексема <em>$шаблон1</em> <em>$шаблон2</em> <strong>\\</strong>.</p>
+<p>Макросы считаются одинаковыми, если их идентификаторы равны, количество элементов в их именах совпадает, а идентификаторы и шаблоны располагаются на тех же самых местах.</p>
+<h4 id="аргументы-макросов">Аргументы макросов<a class="td-heading-self-link" href="#%d0%b0%d1%80%d0%b3%d1%83%d0%bc%d0%b5%d0%bd%d1%82%d1%8b-%d0%bc%d0%b0%d0%ba%d1%80%d0%be%d1%81%d0%be%d0%b2" aria-label="Heading self-link"></a></h4>
+<p>Термины или шаблоны в имени макроса могут иметь аргументы, которые указываются в круглых скобках. Переданные аргументы в теле макроса записываются в месте для раскрытия как имя локальной переменой, но перед именем нужно добавить обратный слеш, т.е. <code>\$name</code>.</p>
+<p>Произвольное количество параметров у макроса отмечается троеточием &ldquo;&hellip;&rdquo;, а место для вставки этих аргументов отмечается лексемой <strong>$&hellip;</strong>. Если у макроса есть несколько идентификаторов с аргументами, то для вставки аргументов из конкретного идентификатора используется лексема с указанием нужного идентификатора, например, <strong>$name&hellip;</strong>.</p>
+<p>Чтобы вставить количество реально переданных аргументов используется лексема <strong>$#</strong>, или с указанием нужного идентификатора, например, <strong>$#name</strong>.</p>
+<p><em>Макросы работают с лексемами, которые содержат различную информацию, в том числе и о типе данных, если она указана. Но на текущий момент типы данных в аргументах макросов никак не обрабатываются и это одна из обязательных фич, которая будет реализована в будущем.</em></p>
+<h3 id="примеры">Примеры:<a class="td-heading-self-link" href="#%d0%bf%d1%80%d0%b8%d0%bc%d0%b5%d1%80%d1%8b" aria-label="Heading self-link"></a></h3>
+<pre tabindex="0"><code>   \макрос1 := 123;
+   \макрос2(arg) := {func( \$arg ); func2(123);};
+   \\макрос из(...) лексем\\ := \\ call1(); call2( \$... ); call3() \\;
+   \текстовый_макрос := \\\ строка для для лексера \\\;
+
+    # Обычные макросы (тело макроса корректное выражение)
+    \macro      := replace();
+    \macro2($arg)   := { call( \$arg ); call()};
+    # В функцию передается кол-во аргументов и сами аргументы
+    \\func name1(...)\\  := name2( \$#, \$name1... ); 
+
+    # Тело макросов из последовательности лексем
+    \if(...)    := \\ [ \$... ] --&gt; \\; # Выражение может быть не полным
+    \else       := \\ ,[ _ ] --&gt; \\; # Выражение может быть не полным
+ 
+    # Тело макроса из текстовой строки (как в препроцессоре С/С++)
+    \macro_str  := \\\ строка - тело макроса \\\; # Строка для лексера
+    \macro($arg)  := \\\ func_ \## \#arg(\#arg)\\\; # macro(arg) -&gt; func_arg (&#34;arg&#34;)
+</code></pre><h2 id="какие-возможности-это-дает">Какие возможности это дает?<a class="td-heading-self-link" href="#%d0%ba%d0%b0%d0%ba%d0%b8%d0%b5-%d0%b2%d0%be%d0%b7%d0%bc%d0%be%d0%b6%d0%bd%d0%be%d1%81%d1%82%d0%b8-%d1%8d%d1%82%d0%be-%d0%b4%d0%b0%d0%b5%d1%82" aria-label="Heading self-link"></a></h2>
+<p>Таким образом можно определить макросы в следующих комбинациях:</p>
+<pre tabindex="0"><code>№ п/п        Имя макроса                     Тело макроса
+----------------------------------------------------------------
+   1.       \идентификатор                     выражение
+   2.       \идентификатор             \\лексема1 лексема2\\
+   3.       \идентификатор             \\\строка для лексера\\\
+   4.   \\лексема1 лексема2\\                выражение
+   5.   \\лексема1 лексема2\\        \\лексема1 лексема2\\
+   6.   \\лексема1 лексема2\\        \\\строка для лексера\\\
+</code></pre><p>Каждая из перечисленных выше комбинации имеет свои свойства и ограничения:</p>
+<ol>
+<li>
+<p>Классическая замена одного термина на другой термин или целое выражение. Однократно обрабатывается лексером и парсером при определении. Выражение в теле макроса должно быть корректным с точки зрения синтаксиса и при наличии в нем ошибок, сообщение об этом формируется сразу, еще при определении макроса.</p>
+</li>
+<li>
+<p>Классическая замена одного термина на последовательности лексем, в том числе и не полные синтаксические конструкции. Однократно обрабатывается лексером при определении макроса. Тело макроса анализируется парсером при его использовании, поэтому возможные синтаксические ошибки будут замечены только при раскрытии макроса.</p>
+</li>
+<li>
+<p>Классическая замена одного термина на текстовую строку, которая подается на вход лексера. Однократно обрабатывается лексером только имя макроса при его определении, что позволяет модифицировать тело макроса и изменять/комбинировать/модифицировать лексемы до их подачи в анализатор. Синтаксические ошибки будут замечены только при раскрытии макроса.</p>
+</li>
+</ol>
+<p>4, 5 и 6. Замена последовательности из нескольких лексем (шаблонов) на выражение, последовательность лексем или текстовую строку соответственно.</p>
+<h2 id="назначение-и-примеры-использования">Назначение и примеры использования<a class="td-heading-self-link" href="#%d0%bd%d0%b0%d0%b7%d0%bd%d0%b0%d1%87%d0%b5%d0%bd%d0%b8%d0%b5-%d0%b8-%d0%bf%d1%80%d0%b8%d0%bc%d0%b5%d1%80%d1%8b-%d0%b8%d1%81%d0%bf%d0%be%d0%bb%d1%8c%d0%b7%d0%be%d0%b2%d0%b0%d0%bd%d0%b8%d1%8f" aria-label="Heading self-link"></a></h2>
+<p>Макросы используются и для преобразования базового синтаксиса <em>NewLang</em> в более привычный синтаксис на основе ключевых слов, так как такой текст гораздо легче воспринимается при последующем чтении исходного кода.</p>
+<p>Если перед именем объекта NewLang модификатор не указан (**\**макрос, **$**локальная_переменная или **@**модуль), то сперва ищется имя макроса, потом имя локальной переменной и в последнюю очередь имя модуля (объекта модуля). За счет этого получается определять синтаксис DSL  в привычной записи без обязательных префиксов у разных типов объектов.</p>
+<p>Например, запись условного оператора на основном синтаксисе <strong>NewLang</strong>:</p>
+<pre tabindex="0"><code>    [condition] --&gt; {
+        ...
+    } [ condition2 ] --&gt; {
+        ...
+    } [ _ ] {
+        ...
+    };
+
+# С помощью макросов
+    \if(...)    := \\ [ \$... ]--&gt; \\;
+    \elif(...)  := \\ ,[ \$... ]--&gt; \\;
+    \else       := \\ ,[ _ ]--&gt; \\;
+
+# Превращается в классическую запись
+    if( condition ){
+        ...
+    } elif( condition2 ) {
+        ...
+    } else {
+        ...
+    };
+</code></pre><p>Или  цикл до 5:</p>
+<pre tabindex="0"><code>count:=1;
+[ 1 ] &lt;-&gt; {
+    [count&gt;5] --&gt; {
+        ++ 42 ++;
+    };
+    count+=1;
+};
+</code></pre><p>будет выглядеть более привычно с использованием соответствующих макросов:</p>
+<pre tabindex="0"><code>\while(...) := \\ [ \$... ] &lt;-&gt; \\;
+\return(...) := ++ \$... ++;
+\true := 1;
+
+count := 1;
+while( true ) {
+    if( count &gt; 5 ) {
+        return 42;
+    };
+    count += 1;
+};
+</code></pre><h3 id="удаление-макросов">Удаление макросов<a class="td-heading-self-link" href="#%d1%83%d0%b4%d0%b0%d0%bb%d0%b5%d0%bd%d0%b8%d0%b5-%d0%bc%d0%b0%d0%ba%d1%80%d0%be%d1%81%d0%be%d0%b2" aria-label="Heading self-link"></a></h3>
+<p>Для удаления макроса нужно присвоить ему пустую последовательность лексем <code>\macro_str  := \\\\;</code>. Так же для удаления можно использовать специальный синтаксис: <code>\\\\ name \\\\;</code> или <code>\\\\ \\два термина\\ \\\\;</code>, т.е. указать имя макроса между четырьмя обратными слешами.</p>
+<p>Необходимость использования отдельной синтаксической конструкции для удаления макросов вызвана тем, что имена макросов обрабатываются лексером еще до этапа анализа в парсере.</p>
+<h2 id="в-чем-профит">В чем профит?<a class="td-heading-self-link" href="#%d0%b2-%d1%87%d0%b5%d0%bc-%d0%bf%d1%80%d0%be%d1%84%d0%b8%d1%82" aria-label="Heading self-link"></a></h2>
+<ol>
+<li>Базовый синтаксис языка можно разбавлять дополнительными ключевыми словами и превратить его в привычный «keyword-based».</li>
+<li>Определение макросов соответствует лексике языка, а сами макросы обрабатываются как обычные объекты.</li>
+<li>Простота анализа исходного кода и его отладки.</li>
+<li>Использование терминов DSL и приемов метапрограммирование можно сделать явным, например, всегда перед именем макроса указывать префикс. В этом случае компилятор будет однозначно знать, что требуется выполнить раскрытие макроса.</li>
+<li>Несмотря на то, что синтаксис языка на свой страх и риск можно значительно модифицировать, но это можно сделать только в рамках определенные ограничений (AST нельзя модифицировать напрямую), что не позволяется очень сильно разгуляться и, например, обрушить или подвесить компилятор.</li>
+<li>Несмотря на очень большие возможности по модификации синтаксиса, получается очень простая, быстрая и однозначная реализация. А это положительно сказывается на скорости анализа исходников, детектирования и обработки возможных ошибок и одновременно является разумным компромиссом между сложностью реализации данного функционала и  возможностями определения собственных диалектов DSL.</li>
+<li>При желании есть куда развивать возможности метапрограммирования. В будущем можно добавить сопоставление шаблона с образцом (например, на основе регулярных выражений), сделать параметризацию строки для генерации синтаксиса в теле макроса, в том числе и в рантайме, и много других разных способов изящно выстрелить себе в ногу или ногу своего товарища.</li>
+</ol>
+<h2 id="заключение">Заключение<a class="td-heading-self-link" href="#%d0%b7%d0%b0%d0%ba%d0%bb%d1%8e%d1%87%d0%b5%d0%bd%d0%b8%d0%b5" aria-label="Heading self-link"></a></h2>
+<p>Буду благодарен за любую обратную связь по данной реализации макросов. И дважды благодарен, если кроме критики будут высказаны еще и предложения по её улучшению и доработкам, если какой-то момент был упущен.</p>
+<p><a href="https://habr.com/ru/companies/timeweb/articles/719332/">Ссылка на первую публикаци</a></p>
+
+	<ul class="list-unstyled d-flex justify-content-between align-items-center mb-0 pt-5">
+  <li>
+    <a href="/ru/blog/release-v0.3/" aria-label="Предыдущая - Релиз языка программрования NewLang 0.3" class="btn btn-primary"><span class="me-1">←</span>Предыдущая</a>
+  </li>
+  <li>
+    <a href="/ru/blog/parser-nuances/" aria-label="Следующая - Нюансы разработки парсера для своего языка программирования" class="btn btn-primary">Следующая<span class="ms-1">→</span></a>
+  </li>
+</ul>
+
+	</div>
+
+
+          </main>
+        </div>
+      </div>
+      <footer class="td-footer row d-print-none">
+  <div class="container-fluid">
+    <div class="row mx-md-2">
+      <div class="td-footer__left col-6 col-sm-4 order-sm-1">
+        <ul class="td-footer__links-list">
+  
+  <li class="td-footer__links-item" data-bs-toggle="tooltip" title="User mailing list" aria-label="User mailing list">
+    <a target="_blank" rel="noopener" href="mailto:mail@newlang.net" aria-label="User mailing list">
+      <i class="fa fa-envelope"></i>
+    </a>
+  </li>
+  
+  <li class="td-footer__links-item" data-bs-toggle="tooltip" title="" aria-label="">
+    <a target="_blank" rel="noopener" href="" aria-label="">
+      <i class=""></i>
+    </a>
+  </li>
+  
+  <li class="td-footer__links-item" data-bs-toggle="tooltip" title="" aria-label="">
+    <a target="_blank" rel="noopener" href="" aria-label="">
+      <i class=""></i>
+    </a>
+  </li>
+  
+</ul>
+
+      </div><div class="td-footer__right col-6 col-sm-4 order-sm-3">
+        <ul class="td-footer__links-list">
+  
+  <li class="td-footer__links-item" data-bs-toggle="tooltip" title="GitHub" aria-label="GitHub">
+    <a target="_blank" rel="noopener" href="https://github.com/rsashka/newlang" aria-label="GitHub">
+      <i class="fab fa-github"></i>
+    </a>
+  </li>
+  
+  <li class="td-footer__links-item" data-bs-toggle="tooltip" title="" aria-label="">
+    <a target="_blank" rel="noopener" href="" aria-label="">
+      <i class=""></i>
+    </a>
+  </li>
+  
+  <li class="td-footer__links-item" data-bs-toggle="tooltip" title="" aria-label="">
+    <a target="_blank" rel="noopener" href="" aria-label="">
+      <i class=""></i>
+    </a>
+  </li>
+  
+</ul>
+
+      </div><div class="td-footer__center col-12 col-sm-4 py-2 order-sm-2">
+        <span class="td-footer__copyright">&copy;
+    2024
+    <span class="td-footer__authors">The NewLang Authors</span></span><span class="td-footer__all_rights_reserved">Все права защищены</span>
+      </div>
+    </div>
+  </div>
+</footer>
+
+    </div>
+    <script src="/js/main.js"></script>
+<script defer src="/js/click-to-copy.js" crossorigin="anonymous"></script>
+<script src='/js/tabpane-persist.js'></script>
+
+  </body>
+</html>

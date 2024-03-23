@@ -1,0 +1,28 @@
+#!../output/nlc --eval
+
+# Create a tensor and fill it with values. 
+# The last value is repeated up to the required tensor size
+tensor := :Single[2,5](-1, 0, 1, 2, 3, ... );
+print('1: tensor = %s\n', :StrChar(tensor));
+
+mult := tensor * 10;
+print('2: tensor *= 10 -> %s\n', :StrChar(mult));
+
+mult += 11;
+print('3: tensor += 11 -> %s\n', :StrChar(mult));
+
+# Import srand function and init random generator
+srand(seed:Int32):None := %srand ...;
+srand(100);
+
+# Import rand function to get random values
+rnd():Int32 := %rand ...;
+print('4: %d, %d, %d, %d\n', rnd(), rnd(), rnd(), rnd());
+
+# Create a tensor where the rand function is called for every element except the first
+matrix := :Tensor[10,10]( 0, 42, ... rnd() ...);
+print('5: matrix = %s\n', :StrChar(matrix));
+
+matrix //= 42;
+print('6: matrix %%= 2 -> %s\n', :StrChar(matrix));
+print('7: matrix %%= 2 -> %s\n', :StrChar(:Bool(matrix)));

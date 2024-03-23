@@ -1,0 +1,1220 @@
+<!doctype html>
+<html itemscope itemtype="http://schema.org/WebPage" lang="en" class="no-js">
+  <head><script src="/livereload.js?mindelay=10&amp;v=2&amp;port=1313&amp;path=livereload" data-no-instant defer></script>
+    <meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+<link rel="canonical" type="text/html" href="http://localhost:1313/docs/ops/">
+<link rel="alternate" type="application/rss&#43;xml" href="http://localhost:1313/docs/ops/index.xml">
+<meta name="robots" content="noindex, nofollow">
+
+
+<link rel="shortcut icon" href="/favicons/favicon.ico" >
+<link rel="apple-touch-icon" href="/favicons/apple-touch-icon-180x180.png" sizes="180x180">
+<link rel="icon" type="image/png" href="/favicons/favicon-16x16.png" sizes="16x16">
+<link rel="icon" type="image/png" href="/favicons/favicon-32x32.png" sizes="32x32">
+<link rel="icon" type="image/png" href="/favicons/android-36x36.png" sizes="36x36">
+<link rel="icon" type="image/png" href="/favicons/android-48x48.png" sizes="48x48">
+<link rel="icon" type="image/png" href="/favicons/android-72x72.png" sizes="72x72">
+<link rel="icon" type="image/png" href="/favicons/android-96x96.png" sizes="96x96">
+<link rel="icon" type="image/png" href="/favicons/android-144x144.png" sizes="144x144">
+<link rel="icon" type="image/png" href="/favicons/android-192x192.png" sizes="192x192">
+
+<title>Операторы и управляющие конструкции | NewLang</title>
+<meta name="description" content="NewLang site">
+<meta property="og:title" content="Операторы и управляющие конструкции" />
+<meta property="og:description" content="NewLang site" />
+<meta property="og:type" content="website" />
+<meta property="og:url" content="http://localhost:1313/docs/ops/" /><meta property="og:site_name" content="NewLang" />
+<meta itemprop="name" content="Операторы и управляющие конструкции">
+<meta itemprop="description" content="NewLang site"><meta name="twitter:card" content="summary"/><meta name="twitter:title" content="Операторы и управляющие конструкции"/>
+<meta name="twitter:description" content="NewLang site"/>
+
+
+
+
+
+<link href="/scss/main.css" rel="stylesheet">
+
+<script
+  src="https://code.jquery.com/jquery-3.6.3.min.js"
+  integrity="sha512-STof4xm1wgkfm7heWqFJVn58Hm3EtS31XFaagaa8VMReCXAkQnJZ+jEy8PCC/iT18dFy95WcExNHFTqLyp72eQ=="
+  crossorigin="anonymous"></script>
+<script defer
+  src="https://unpkg.com/lunr@2.3.9/lunr.min.js"
+  integrity="sha384-203J0SNzyqHby3iU6hzvzltrWi/M41wOP5Gu+BiJMz5nwKykbkUx8Kp7iti0Lpli"
+  crossorigin="anonymous"></script>
+
+  </head>
+  <body class="td-section">
+    <header>
+      <nav class="td-navbar navbar-dark js-navbar-scroll">
+<div class="container-fluid flex-column flex-md-row">
+  <a class="navbar-brand" href="/"><span class="navbar-brand__logo navbar-logo"><svg id="Layer_1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" viewBox="0 0 500 500" style="enable-background:new 0 0 500 500"><g><path style="fill:#fff" d="M116.8525 421.9722c-5.7041.0-10.3442-4.3127-10.3442-9.6129V88.183c0-5.3002 4.6401-9.6117 10.3442-9.6117H320.858c3.0347.0 9.3959.5498 11.7506 2.6302l.3545.3442 58.905 63.2912c2.3101 2.491 2.9202 8.4928 2.9202 11.3184v256.2039c0 5.3002-4.6407 9.6129-10.3436 9.6129H116.8525z"/><g><g><g><path style="fill:#767676" d="M384.4445 423.2066H116.852c-6.3839.0-11.5786-4.8658-11.5786-10.8474V88.1831c0-5.9804 5.1947-10.8461 11.5786-10.8461h204.0062c.377.0 9.2786.0329 12.568 2.9389l.3947.3833 58.9508 63.337c3.2135 3.4652 3.2514 11.7924 3.2514 12.1593v256.2036C396.0231 418.3408 390.8284 423.2066 384.4445 423.2066zM116.5079 411.9189c.0848.0278.1999.0531.3441.0531h267.5925c.1442.0.2581-.0253.3441-.0531V156.1556c-.0076-.9033-.3593-3.7347-.7034-5.0037l-57.6527-61.9416c-1.4651-.3176-4.4533-.6389-5.5742-.6389H116.852c-.143.0-.2594.024-.3441.0531V411.9189zm267.4533-261.149zM327.0321 89.371v.0013V89.371z"/></g></g></g><g><g><path style="fill:#5b7fc0" d="M189.0874 210.1754l.0012-.0012c7.7751.0012 15.0295 4.1862 18.932 10.9234 1.9177 3.3159 2.9305 7.1011 2.9293 10.9378.0 5.8394-2.2733 11.3304-6.4032 15.4604-4.1288 4.1288-9.6186 6.4032-15.458 6.4032s-11.328-2.2733-15.458-6.4032-6.4032-9.6186-6.4056-15.4628c.0012-6.025 2.454-11.4897 6.4116-15.4473C177.5953 212.627 183.0601 210.1742 189.0874 210.1754zm7.993 21.8576c.0012-1.4042-.3687-2.7868-1.063-3.9887-1.4293-2.4684-4.0833-3.9995-6.9299-4.0019-4.4077.0024-7.993 3.5877-7.993 7.993.0 2.1356.832 4.1431 2.3427 5.6539 1.5083 1.5083 3.5159 2.3403 5.6503 2.3415 2.1356.0 4.1443-.8308 5.6539-2.3403S197.0816 234.1722 197.0804 232.033z"/><path style="opacity:.3;fill:#fff" d="M189.0898 210.176c7.7763.0 15.0283 4.1826 18.926 10.9151 1.9201 3.3136 2.9377 7.0988 2.9353 10.9462.0024 12.0643-9.8065 21.8636-21.8613 21.8613-12.0547.0024-21.8636-9.8066-21.8612-21.8613.0-6.0285 2.4516-11.4921 6.4116-15.452C177.5977 212.6276 183.0612 210.176 189.0898 210.176zm7.9941 21.8612c0-1.4078-.3711-2.7892-1.0702-3.9959-1.4269-2.466-4.0797-3.9983-6.924-3.9983-4.4005-.0048-7.9918 3.5817-7.9942 7.9942.0024 4.4077 3.5865 7.9918 7.9942 7.9942 2.2027.0 4.2018-.8978 5.6479-2.3439C196.1861 236.239 197.0839 234.2399 197.0839 232.0372z"/><g><defs><path id="SVGID_1_" d="M194.7376 237.6875c-1.4461 1.4461-3.4452 2.3439-5.6479 2.3439-4.4077-.0024-7.9918-3.5865-7.9942-7.9942.0024-4.4125 3.5937-7.999 7.9942-7.9942 2.8443.0 5.497 1.5323 6.924 3.9983.6991 1.2067 1.0702 2.5881 1.0702 3.9959C197.0839 234.2399 196.1861 236.239 194.7376 237.6875z"/></defs><clipPath id="SVGID_2_"><use xlink:href="#SVGID_1_" style="overflow:visible"/></clipPath><path style="clip-path:url(#SVGID_2_);fill:#fff" d="M190.0704 225.0237c-4.4005-.0048-7.9918 3.5817-7.9942 7.9942.0011 1.9546.7088 3.7452 1.8782 5.1354-1.7447-1.4674-2.8575-3.663-2.8588-6.116.0024-4.4125 3.5936-7.999 7.9942-7.9942 2.3802-1e-4 4.616 1.0833 6.1218 2.8788C193.7885 225.7247 191.9774 225.0237 190.0704 225.0237z"/><path style="opacity:.13;clip-path:url(#SVGID_2_);fill:#020202" d="M190.0704 225.0237c-4.4005-.0048-7.9918 3.5817-7.9942 7.9942.0011 1.9546.7088 3.7452 1.8782 5.1354-1.7447-1.4674-2.8575-3.663-2.8588-6.116.0024-4.4125 3.5936-7.999 7.9942-7.9942 2.3802-1e-4 4.616 1.0833 6.1218 2.8788C193.7885 225.7247 191.9774 225.0237 190.0704 225.0237z"/></g><g><defs><path id="SVGID_3_" d="M189.0898 210.176c7.7763.0 15.0283 4.1826 18.926 10.9151 1.9201 3.3136 2.9377 7.0988 2.9353 10.9462.0024 12.0643-9.8065 21.8636-21.8613 21.8613-12.0547.0024-21.8636-9.8066-21.8612-21.8613.0-6.0285 2.4516-11.4921 6.4116-15.452C177.5977 212.6276 183.0612 210.176 189.0898 210.176zm7.9941 21.8612c0-1.4078-.3711-2.7892-1.0702-3.9959-1.4269-2.466-4.0797-3.9983-6.924-3.9983-4.4005-.0048-7.9918 3.5817-7.9942 7.9942.0024 4.4077 3.5865 7.9918 7.9942 7.9942 2.2027.0 4.2018-.8978 5.6479-2.3439C196.1861 236.239 197.0839 234.2399 197.0839 232.0372z"/></defs><clipPath id="SVGID_4_"><use xlink:href="#SVGID_3_" style="overflow:visible"/></clipPath><path style="clip-path:url(#SVGID_4_);fill:#5b7fc0" d="M172.6595 215.6045c-3.96 3.96-6.4116 9.4235-6.4116 15.452-.0024 12.0547 9.8066 21.8636 21.8613 21.8612 12.0547.0024 21.8636-9.797 21.8613-21.8612.0024-3.8475-1.0151-7.6326-2.9353-10.9462-3.8977-6.7324-11.1497-10.9151-18.926-10.9151C182.0806 209.1953 176.6171 211.647 172.6595 215.6045z"/></g></g><rect x="198.8952" y="225.1043" style="fill:#5b7fc0" width="122.6266" height="13.8671"/></g><g><path style="fill:#d95140" d="M189.0874 155.7611l.0012-.0012c7.7751.0012 15.0295 4.1862 18.932 10.9234 1.9177 3.3159 2.9305 7.1011 2.9293 10.9378.0 5.8394-2.2733 11.3304-6.4032 15.4604-4.1288 4.1288-9.6186 6.4032-15.458 6.4032s-11.328-2.2733-15.458-6.4032-6.4032-9.6186-6.4056-15.4628c.0012-6.0249 2.454-11.4897 6.4116-15.4473C177.5953 158.2128 183.0601 155.7599 189.0874 155.7611zm7.993 21.8577c.0012-1.4042-.3687-2.7868-1.063-3.9887-1.4293-2.4684-4.0833-3.9995-6.9299-4.0019-4.4077.0024-7.993 3.5877-7.993 7.993.0 2.1356.832 4.1431 2.3427 5.6539 1.5083 1.5083 3.5159 2.3403 5.6503 2.3415 2.1356.0 4.1443-.8308 5.6539-2.3403C196.2508 181.7667 197.0816 179.758 197.0804 177.6188z"/><path style="opacity:.3;fill:#fff" d="M189.0898 155.7617c7.7763.0 15.0283 4.1826 18.926 10.9151 1.9201 3.3135 2.9377 7.0987 2.9353 10.9462.0024 12.0643-9.8065 21.8636-21.8613 21.8613-12.0547.0024-21.8636-9.8066-21.8612-21.8613.0-6.0285 2.4516-11.4921 6.4116-15.452C177.5977 158.2134 183.0612 155.7617 189.0898 155.7617zm7.9941 21.8613c0-1.4078-.3711-2.7892-1.0702-3.9959-1.4269-2.466-4.0797-3.9983-6.924-3.9983-4.4005-.0048-7.9918 3.5817-7.9942 7.9942.0024 4.4077 3.5865 7.9918 7.9942 7.9942 2.2027.0 4.2018-.8978 5.6479-2.3439C196.1861 181.8248 197.0839 179.8256 197.0839 177.623z"/><g><defs><path id="SVGID_5_" d="M194.7376 183.2733c-1.4461 1.4461-3.4452 2.3439-5.6479 2.3439-4.4077-.0024-7.9918-3.5865-7.9942-7.9942.0024-4.4125 3.5937-7.9989 7.9942-7.9942 2.8443.0 5.497 1.5323 6.924 3.9983.6991 1.2067 1.0702 2.5881 1.0702 3.9959C197.0839 179.8256 196.1861 181.8248 194.7376 183.2733z"/></defs><clipPath id="SVGID_6_"><use xlink:href="#SVGID_5_" style="overflow:visible"/></clipPath><path style="clip-path:url(#SVGID_6_);fill:#fff" d="M190.0704 170.6095c-4.4005-.0048-7.9918 3.5817-7.9942 7.9942.0011 1.9546.7088 3.7452 1.8782 5.1354-1.7447-1.4674-2.8575-3.663-2.8588-6.116.0024-4.4125 3.5936-7.999 7.9942-7.9942 2.3802-1e-4 4.616 1.0833 6.1218 2.8788C193.7885 171.3104 191.9774 170.6095 190.0704 170.6095z"/><path style="opacity:.13;clip-path:url(#SVGID_6_);fill:#020202" d="M190.0704 170.6095c-4.4005-.0048-7.9918 3.5817-7.9942 7.9942.0011 1.9546.7088 3.7452 1.8782 5.1354-1.7447-1.4674-2.8575-3.663-2.8588-6.116.0024-4.4125 3.5936-7.999 7.9942-7.9942 2.3802-1e-4 4.616 1.0833 6.1218 2.8788C193.7885 171.3104 191.9774 170.6095 190.0704 170.6095z"/></g><g><defs><path id="SVGID_7_" d="M189.0898 155.7617c7.7763.0 15.0283 4.1826 18.926 10.9151 1.9201 3.3135 2.9377 7.0987 2.9353 10.9462.0024 12.0643-9.8065 21.8636-21.8613 21.8613-12.0547.0024-21.8636-9.8066-21.8612-21.8613.0-6.0285 2.4516-11.4921 6.4116-15.452C177.5977 158.2134 183.0612 155.7617 189.0898 155.7617zm7.9941 21.8613c0-1.4078-.3711-2.7892-1.0702-3.9959-1.4269-2.466-4.0797-3.9983-6.924-3.9983-4.4005-.0048-7.9918 3.5817-7.9942 7.9942.0024 4.4077 3.5865 7.9918 7.9942 7.9942 2.2027.0 4.2018-.8978 5.6479-2.3439C196.1861 181.8248 197.0839 179.8256 197.0839 177.623z"/></defs><clipPath id="SVGID_8_"><use xlink:href="#SVGID_7_" style="overflow:visible"/></clipPath><path style="clip-path:url(#SVGID_8_);fill:#d95140" d="M172.6595 161.1903c-3.96 3.96-6.4116 9.4235-6.4116 15.452-.0024 12.0547 9.8066 21.8636 21.8613 21.8613 12.0547.0024 21.8636-9.797 21.8613-21.8613.0024-3.8474-1.0151-7.6326-2.9353-10.9462-3.8977-6.7324-11.1497-10.9151-18.926-10.9151C182.0806 154.7811 176.6171 157.2327 172.6595 161.1903z"/></g><rect x="198.8952" y="170.69" style="fill:#d95140" width="122.6266" height="13.8671"/></g><g><g><path style="fill:#56a55c" d="M189.5379 264.6147l.0012-.0012c7.7751.0012 15.0294 4.1862 18.932 10.9235 1.9177 3.3159 2.9305 7.1011 2.9293 10.9378.0 5.8394-2.2733 11.3304-6.4032 15.4604-4.1288 4.1288-9.6186 6.4032-15.458 6.4032-5.8394.0-11.3281-2.2733-15.458-6.4032-4.13-4.13-6.4032-9.6186-6.4056-15.4628.0012-6.0249 2.454-11.4897 6.4116-15.4472C178.0458 267.0663 183.5105 264.6135 189.5379 264.6147zm7.993 21.8576c.0012-1.4042-.3687-2.7868-1.063-3.9887-1.4293-2.4684-4.0833-3.9995-6.9299-4.0019-4.4077.0024-7.993 3.5877-7.993 7.993.0 2.1356.832 4.1431 2.3427 5.6538 1.5083 1.5083 3.5159 2.3403 5.6503 2.3415 2.1356.0 4.1443-.8308 5.6539-2.3403C196.7013 290.6202 197.5321 288.6115 197.5309 286.4723z"/><path style="opacity:.3;fill:#fff" d="M189.5403 264.6153c7.7763.0 15.0283 4.1826 18.926 10.9151 1.9201 3.3135 2.9377 7.0987 2.9353 10.9462.0024 12.0643-9.8065 21.8636-21.8613 21.8613-12.0547.0024-21.8636-9.8065-21.8612-21.8613.0-6.0285 2.4516-11.492 6.4116-15.452C178.0482 267.0669 183.5117 264.6153 189.5403 264.6153zm7.9941 21.8612c0-1.4078-.3711-2.7892-1.0702-3.9959-1.4269-2.466-4.0797-3.9983-6.924-3.9983-4.4005-.0048-7.9918 3.5817-7.9942 7.9941.0024 4.4077 3.5865 7.9918 7.9942 7.9942 2.2027.0 4.2018-.8978 5.6479-2.3439C196.6366 290.6783 197.5344 288.6792 197.5344 286.4765z"/><g><defs><path id="SVGID_9_" d="M195.1881 292.1268c-1.4461 1.4461-3.4452 2.3439-5.6479 2.3439-4.4077-.0024-7.9918-3.5865-7.9942-7.9942.0024-4.4125 3.5937-7.9989 7.9942-7.9941 2.8443.0 5.497 1.5323 6.924 3.9983.6991 1.2067 1.0702 2.5881 1.0702 3.9959C197.5344 288.6792 196.6366 290.6783 195.1881 292.1268z"/></defs><clipPath id="SVGID_10_"><use xlink:href="#SVGID_9_" style="overflow:visible"/></clipPath><path style="clip-path:url(#SVGID_10_);fill:#fff" d="M190.5209 279.463c-4.4005-.0048-7.9918 3.5817-7.9942 7.9941.0011 1.9547.7088 3.7452 1.8782 5.1354-1.7446-1.4674-2.8575-3.6631-2.8588-6.1161.0024-4.4125 3.5936-7.999 7.9942-7.9941 2.3802-1e-4 4.616 1.0833 6.1218 2.8788C194.239 280.164 192.4279 279.463 190.5209 279.463z"/><path style="opacity:.13;clip-path:url(#SVGID_10_);fill:#020202" d="M190.5209 279.463c-4.4005-.0048-7.9918 3.5817-7.9942 7.9941.0011 1.9547.7088 3.7452 1.8782 5.1354-1.7446-1.4674-2.8575-3.6631-2.8588-6.1161.0024-4.4125 3.5936-7.999 7.9942-7.9941 2.3802-1e-4 4.616 1.0833 6.1218 2.8788C194.239 280.164 192.4279 279.463 190.5209 279.463z"/></g><g><defs><path id="SVGID_11_" d="M189.5403 264.6153c7.7763.0 15.0283 4.1826 18.926 10.9151 1.9201 3.3135 2.9377 7.0987 2.9353 10.9462.0024 12.0643-9.8065 21.8636-21.8613 21.8613-12.0547.0024-21.8636-9.8065-21.8612-21.8613.0-6.0285 2.4516-11.492 6.4116-15.452C178.0482 267.0669 183.5117 264.6153 189.5403 264.6153zm7.9941 21.8612c0-1.4078-.3711-2.7892-1.0702-3.9959-1.4269-2.466-4.0797-3.9983-6.924-3.9983-4.4005-.0048-7.9918 3.5817-7.9942 7.9941.0024 4.4077 3.5865 7.9918 7.9942 7.9942 2.2027.0 4.2018-.8978 5.6479-2.3439C196.6366 290.6783 197.5344 288.6792 197.5344 286.4765z"/></defs><clipPath id="SVGID_12_"><use xlink:href="#SVGID_11_" style="overflow:visible"/></clipPath><path style="clip-path:url(#SVGID_12_);fill:#56a55c" d="M173.11 270.0439c-3.96 3.96-6.4116 9.4235-6.4116 15.452-.0024 12.0547 9.8066 21.8636 21.8613 21.8613 12.0547.0024 21.8636-9.797 21.8613-21.8613.0024-3.8474-1.0151-7.6326-2.9353-10.9462-3.8977-6.7325-11.1497-10.9151-18.926-10.9151C182.5311 263.6346 177.0676 266.0863 173.11 270.0439z"/></g></g><rect x="199.3456" y="279.5436" style="fill:#56a55c" width="122.6266" height="13.8671"/></g><g><g><path style="fill:#f1bc42" d="M189.0874 318.7208l.0012-.0012c7.7751.0012 15.0295 4.1862 18.932 10.9234 1.9177 3.3159 2.9305 7.1011 2.9293 10.9378.0 5.8394-2.2733 11.3305-6.4032 15.4604-4.1288 4.1288-9.6186 6.4032-15.458 6.4032s-11.328-2.2733-15.458-6.4032-6.4032-9.6186-6.4056-15.4628c.0012-6.025 2.454-11.4897 6.4116-15.4472C177.5953 321.1724 183.0601 318.7196 189.0874 318.7208zm7.993 21.8576c.0012-1.4042-.3687-2.7868-1.063-3.9887-1.4293-2.4684-4.0833-3.9995-6.9299-4.0019-4.4077.0024-7.993 3.5877-7.993 7.993.0 2.1356.832 4.1431 2.3427 5.6539 1.5083 1.5083 3.5159 2.3403 5.6503 2.3415 2.1356.0 4.1443-.8308 5.6539-2.3403S197.0816 342.7176 197.0804 340.5784z"/><path style="opacity:.3;fill:#fff" d="M189.0898 318.7214c7.7763.0 15.0283 4.1826 18.926 10.915 1.9201 3.3136 2.9377 7.0988 2.9353 10.9462.0024 12.0643-9.8065 21.8636-21.8613 21.8612-12.0547.0024-21.8636-9.8065-21.8612-21.8612.0-6.0285 2.4516-11.4921 6.4116-15.452C177.5977 321.173 183.0612 318.7214 189.0898 318.7214zm7.9941 21.8612c0-1.4078-.3711-2.7892-1.0702-3.9959-1.4269-2.466-4.0797-3.9983-6.924-3.9983-4.4005-.0048-7.9918 3.5817-7.9942 7.9942.0024 4.4077 3.5865 7.9918 7.9942 7.9942 2.2027.0 4.2018-.8978 5.6479-2.3439C196.1861 344.7844 197.0839 342.7853 197.0839 340.5826z"/><g><defs><path id="SVGID_13_" d="M194.7376 346.2329c-1.4461 1.4461-3.4452 2.3439-5.6479 2.3439-4.4077-.0024-7.9918-3.5865-7.9942-7.9942.0024-4.4125 3.5937-7.999 7.9942-7.9942 2.8443.0 5.497 1.5323 6.924 3.9983.6991 1.2067 1.0702 2.5881 1.0702 3.9959C197.0839 342.7853 196.1861 344.7844 194.7376 346.2329z"/></defs><clipPath id="SVGID_14_"><use xlink:href="#SVGID_13_" style="overflow:visible"/></clipPath><path style="clip-path:url(#SVGID_14_);fill:#fff" d="M190.0704 333.5691c-4.4005-.0048-7.9918 3.5817-7.9942 7.9942.0011 1.9547.7088 3.7452 1.8782 5.1354-1.7447-1.4674-2.8575-3.6631-2.8588-6.1161.0024-4.4125 3.5936-7.999 7.9942-7.9942 2.3802-1e-4 4.616 1.0834 6.1218 2.8788C193.7885 334.2701 191.9774 333.5691 190.0704 333.5691z"/><path style="opacity:.13;clip-path:url(#SVGID_14_);fill:#020202" d="M190.0704 333.5691c-4.4005-.0048-7.9918 3.5817-7.9942 7.9942.0011 1.9547.7088 3.7452 1.8782 5.1354-1.7447-1.4674-2.8575-3.6631-2.8588-6.1161.0024-4.4125 3.5936-7.999 7.9942-7.9942 2.3802-1e-4 4.616 1.0834 6.1218 2.8788C193.7885 334.2701 191.9774 333.5691 190.0704 333.5691z"/></g><g><defs><path id="SVGID_15_" d="M189.0898 318.7214c7.7763.0 15.0283 4.1826 18.926 10.915 1.9201 3.3136 2.9377 7.0988 2.9353 10.9462.0024 12.0643-9.8065 21.8636-21.8613 21.8612-12.0547.0024-21.8636-9.8065-21.8612-21.8612.0-6.0285 2.4516-11.4921 6.4116-15.452C177.5977 321.173 183.0612 318.7214 189.0898 318.7214zm7.9941 21.8612c0-1.4078-.3711-2.7892-1.0702-3.9959-1.4269-2.466-4.0797-3.9983-6.924-3.9983-4.4005-.0048-7.9918 3.5817-7.9942 7.9942.0024 4.4077 3.5865 7.9918 7.9942 7.9942 2.2027.0 4.2018-.8978 5.6479-2.3439C196.1861 344.7844 197.0839 342.7853 197.0839 340.5826z"/></defs><clipPath id="SVGID_16_"><use xlink:href="#SVGID_15_" style="overflow:visible"/></clipPath><path style="clip-path:url(#SVGID_16_);fill:#f1bc42" d="M172.6595 324.15c-3.96 3.96-6.4116 9.4235-6.4116 15.452-.0024 12.0547 9.8066 21.8636 21.8613 21.8612 12.0547.0024 21.8636-9.797 21.8613-21.8612.0024-3.8474-1.0151-7.6327-2.9353-10.9462-3.8977-6.7324-11.1497-10.9151-18.926-10.9151C182.0806 317.7407 176.6171 320.1924 172.6595 324.15z"/></g></g><rect x="198.8952" y="333.6497" style="fill:#f1bc42" width="122.6266" height="13.8671"/></g></g></svg></span><span class="navbar-brand__name">NewLang</span></a>
+  <div class="td-navbar-nav-scroll ms-md-auto" id="main_navbar">
+    <ul class="navbar-nav">
+      <li class="nav-item">
+        <a class="nav-link active" href="/docs/"><span>Documentation</span></a>
+      </li>
+      <li class="nav-item">
+        <a class="nav-link" href="/playground/"><span>Playground</span></a>
+      </li>
+      <li class="nav-item">
+        <a class="nav-link" href="/blog/"><span>Articles</span></a>
+      </li>
+      <li class="nav-item dropdown d-none d-lg-block">
+        <div class="dropdown">
+  <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false">English</a>
+  <ul class="dropdown-menu">
+    <li><a class="dropdown-item" href="/ru/docs/ops/">Русский</a></li>
+    </ul>
+</div></li>
+      </ul>
+  </div>
+  <div class="d-none d-lg-block">
+    <div class="td-search td-search--offline">
+  <div class="td-search__icon"></div>
+  <input
+    type="search"
+    class="td-search__input form-control"
+    placeholder="Search this site…"
+    aria-label="Search this site…"
+    autocomplete="off"
+    
+    data-offline-search-index-json-src="/offline-search-index.json"
+    data-offline-search-base-href="/"
+    data-offline-search-max-results="10"
+  >
+</div>
+  </div>
+</div>
+</nav>
+    </header>
+    <div class="container-fluid td-outer">
+      <div class="td-main">
+        <div class="row flex-xl-nowrap">
+          <main class="col-12 col-md-9 col-xl-8 ps-md-5" role="main">
+            
+
+
+
+
+<div class="td-content">
+<div class="pageinfo pageinfo-primary d-print-none">
+<p>
+This is the multi-page printable view of this section.
+<a href="#" onclick="print();return false;">Click here to print</a>.
+</p><p>
+<a href="/docs/ops/">Return to the regular view of this page</a>.
+</p>
+</div>
+
+
+
+<h1 class="title">Операторы и управляющие конструкции</h1>
+
+
+
+
+
+    <ul>
+    
+  
+  
+  
+  
+
+  
+    
+    
+	
+<li>1: <a href="#pg-4b708f286c358df8314115b9ab6f3495">Создание объектов</a></li>
+
+
+    
+  
+    
+    
+	
+<li>2: <a href="#pg-f89914599a84d0afcac7c4658db62778">Блоки кода</a></li>
+
+
+    
+  
+    
+    
+	
+<li>3: <a href="#pg-d3e59c3a58123ba89df95ba6f3f2e4c2">Математические операторы</a></li>
+
+
+    
+  
+    
+    
+	
+<li>4: <a href="#pg-4c5f23e30e3baaec755b982700349e58">Операторы сравнения и типизация</a></li>
+
+
+    
+  
+    
+    
+	
+<li>5: <a href="#pg-baeb4815377e55e87e33ba78dbb8d2b1">Условный оператор</a></li>
+
+
+    
+  
+    
+    
+	
+<li>6: <a href="#pg-7257e6b33d78b199fd60804216e19236">Оценка выражения</a></li>
+
+
+    
+  
+    
+    
+	
+<li>7: <a href="#pg-3dc86b17aec2b74ca5a44690abb43951">Операторы циклов</a></li>
+
+
+    
+  
+    
+    
+	
+<li>8: <a href="#pg-bd50d502b62e28893b4b0c4746f52c78">Менеджер контекста</a></li>
+
+
+    
+  
+    
+    
+	
+<li>9: <a href="#pg-d59803d976382d82f70daf58daf9ac0c">Ввозврат, прерывания и обработка ошибок</a></li>
+
+
+    
+  
+
+    </ul>
+
+
+<div class="content">
+      <p>Один из самых недооценных операторов, которй отсутствует в большинстве высокоуровневых языков программирования,
+это переменная с результатом выполнения предыдущей операции. В <em>NewLang</em> это системная переменная <strong>$^</strong> (или DSL макрос <strong>@result</strong>),
+в которой всегда хранится результат выполнения последней операции (оператора).</p>
+<p>Это чем-то похоже на глобальное значние error(), но не только для кода ошибки, а для значения любого оператора.</p>
+<p>При её использовании многие синтаксические конструкции языка значительно упрощаются, так как не требуется предусматривать определение
+локальных переменных для сохранения промежуточных данных, например при возникновении ошибки.</p>
+
+</div>
+</div>
+
+
+  
+  
+  
+  
+
+  
+  
+
+  
+    
+    
+	
+    
+
+<div class="td-content" style="page-break-before: always">
+    
+	<h1 id="pg-4b708f286c358df8314115b9ab6f3495">1 - Создание объектов</h1>
+    
+	
+
+<div class="pageinfo pageinfo-primary">
+<h5 id="область-видимости-объекта--время-жизни-объекта">Область видимости объекта =/= время жизни объекта<a class="td-heading-self-link" href="#%d0%be%d0%b1%d0%bb%d0%b0%d1%81%d1%82%d1%8c-%d0%b2%d0%b8%d0%b4%d0%b8%d0%bc%d0%be%d1%81%d1%82%d0%b8-%d0%be%d0%b1%d1%8a%d0%b5%d0%ba%d1%82%d0%b0--%d0%b2%d1%80%d0%b5%d0%bc%d1%8f-%d0%b6%d0%b8%d0%b7%d0%bd%d0%b8-%d0%be%d0%b1%d1%8a%d0%b5%d0%ba%d1%82%d0%b0" aria-label="Heading self-link"></a></h5>
+<p>Область видимости объекта определяется его расположением в программном коде (блоки кода, пространство имен, модели и т.д.)
+Объект может существовать, но может быть не доступен из текущей области видимости.</p>
+<h5 id="имя-объекта-создание-объекта-и-его-расположение">Имя объекта, создание объекта и его расположение<a class="td-heading-self-link" href="#%d0%b8%d0%bc%d1%8f-%d0%be%d0%b1%d1%8a%d0%b5%d0%ba%d1%82%d0%b0-%d1%81%d0%be%d0%b7%d0%b4%d0%b0%d0%bd%d0%b8%d0%b5-%d0%be%d0%b1%d1%8a%d0%b5%d0%ba%d1%82%d0%b0-%d0%b8-%d0%b5%d0%b3%d0%be-%d1%80%d0%b0%d1%81%d0%bf%d0%be%d0%bb%d0%be%d0%b6%d0%b5%d0%bd%d0%b8%d0%b5" aria-label="Heading self-link"></a></h5>
+<p>Имя объекта - его уникальный идентификатор, который однозначно определяется местом его расположения (нахождение сильной ссылки на объект).
+Имя у объекта может быть всегда, даже тогда, когда сам объект физически еще не создан (например при предварительном объявлении).</p>
+
+</div>
+
+<h3 id="создания-объектов-и-присвоения-новых-значений">Создания объектов и присвоения новых значений<a class="td-heading-self-link" href="#%d1%81%d0%be%d0%b7%d0%b4%d0%b0%d0%bd%d0%b8%d1%8f-%d0%be%d0%b1%d1%8a%d0%b5%d0%ba%d1%82%d0%be%d0%b2-%d0%b8-%d0%bf%d1%80%d0%b8%d1%81%d0%b2%d0%be%d0%b5%d0%bd%d0%b8%d1%8f-%d0%bd%d0%be%d0%b2%d1%8b%d1%85-%d0%b7%d0%bd%d0%b0%d1%87%d0%b5%d0%bd%d0%b8%d0%b9" aria-label="Heading self-link"></a></h3>
+<p>Для создания объектов и присвоения им новых значений в NewLang используется несколько операторов:</p>
+<ul>
+<li>&ldquo;<strong>::=</strong>&rdquo; или &ldquo;<strong>::-</strong>&rdquo; - используется для создания только новых объектов.
+Если объект с таким именем был определен ранее, то произойдет ошибка компиляции.</li>
+<li>&ldquo;<strong>:=</strong>&rdquo; или &ldquo;<strong>:-</strong>&rdquo; - используется для создания новых объектов с возможностью перекрытия имен.
+Если локальный объект с таким именем был определен ранее, то новый объект будет его перекрывать.</li>
+<li>&ldquo;<strong>=</strong>&rdquo; - применяется только для присвоения значения уже существующим объектам.
+Если объект с указанным именем отсутствует, то возникает ошибка компиляции.</li>
+<li>&ldquo;<strong>:=:</strong>&rdquo; - Оператор не создает нового объекта, а обменивает значения уже существуюих (переменные должны иметь одинаковые/совместимые типы данных).</li>
+</ul>
+<p>?????????????????????????????????????</p>
+<ul>
+<li>&ldquo;<strong>[]=</strong>&rdquo; - добавлеят новый элемент к словарю или переопределяет созданное ранее имя <a href="/docs/types/funcs/">функции</a> или <a href="/docs/types/class/">метод класса</a>.
+Похож на оператор присвоения значения &ldquo;<strong>=</strong>&rdquo;, но в отличии от него не <em>удаляет</em> старое значение, а сохраняет его в стек переопределнных имен,
+и к старому значению можно обратиться по системному имени &ldquo;<strong>$$</strong>&rdquo; ????????????????? <a href="/">*)</a>. Не может применяться к макросам.</li>
+</ul>
+<p>Использование трех разных видов операторов для создания/изменения объектов позволяет более гибко контролировать подобные операции и выявлять логические ошибки в коде на более раннем этапе.</p>
+<p>Например, при определении класса <code>:NewClass2</code>:</p>
+<div class="highlight"><pre tabindex="0" style="background-color:#f8f8f8;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>    :NewClass :<span style="color:#ce5c00;font-weight:bold">=</span> :Class<span style="color:#ce5c00;font-weight:bold">()</span> <span style="color:#ce5c00;font-weight:bold">{</span> <span style="color:#8f5902;font-style:italic"># Базовый класс</span>
+</span></span><span style="display:flex;"><span>        filed ::<span style="color:#ce5c00;font-weight:bold">=</span> 2<span style="color:#000;font-weight:bold">;</span> <span style="color:#8f5902;font-style:italic"># Однократная инициализация (статическоого) члена класса</span>
+</span></span><span style="display:flex;"><span>        method<span style="color:#ce5c00;font-weight:bold">()</span> ::<span style="color:#ce5c00;font-weight:bold">=</span> <span style="color:#ce5c00;font-weight:bold">{}</span><span style="color:#000;font-weight:bold">;</span> <span style="color:#8f5902;font-style:italic"># Регистрация метода</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#ce5c00;font-weight:bold">}</span><span style="color:#000;font-weight:bold">;</span>
+</span></span><span style="display:flex;"><span>    :NewClass2 :<span style="color:#ce5c00;font-weight:bold">=</span> :NewClass<span style="color:#ce5c00;font-weight:bold">()</span> <span style="color:#ce5c00;font-weight:bold">{</span>
+</span></span><span style="display:flex;"><span>        filed ::<span style="color:#ce5c00;font-weight:bold">=</span> 2<span style="color:#000;font-weight:bold">;</span> <span style="color:#8f5902;font-style:italic"># Будет ошибка, т.к. field уже есть в базовом классе</span>
+</span></span><span style="display:flex;"><span>        method<span style="color:#ce5c00;font-weight:bold">()</span> <span style="color:#ce5c00;font-weight:bold">=</span> <span style="color:#ce5c00;font-weight:bold">{}</span><span style="color:#000;font-weight:bold">;</span> <span style="color:#8f5902;font-style:italic"># Аналог override, т.к. method должен существовать в базовом классе</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#ce5c00;font-weight:bold">}</span><span style="color:#000;font-weight:bold">;</span>
+</span></span></code></pre></div><p>Если же контролировать момент создание объектов и присвоения им значений не требуется, то можно пользоваться единственным оператором <strong>:=</strong>.</p>
+<div class="highlight"><pre tabindex="0" style="background-color:#f8f8f8;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-python" data-lang="python"><span style="display:flex;"><span>    <span style="color:#000">var</span> <span style="color:#ce5c00;font-weight:bold">:=</span> <span style="color:#0000cf;font-weight:bold">1.0</span><span style="color:#000;font-weight:bold">;</span> <span style="color:#8f5902;font-style:italic"># Создать новую переменную var без явного указания типа</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#000">var</span> <span style="color:#ce5c00;font-weight:bold">:=</span> <span style="color:#0000cf;font-weight:bold">100</span><span style="color:#000;font-weight:bold">;</span> <span style="color:#8f5902;font-style:italic"># Присвоить новое значение уже существующей переменной</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#000">printf</span><span style="color:#000;font-weight:bold">(</span><span style="color:#204a87">format</span><span style="color:#000;font-weight:bold">:</span><span style="color:#000">FmtChar</span><span style="color:#000;font-weight:bold">,</span> <span style="color:#ce5c00;font-weight:bold">...</span><span style="color:#000;font-weight:bold">):</span><span style="color:#000">Int32</span> <span style="color:#000;font-weight:bold">:</span><span style="color:#ce5c00;font-weight:bold">:=</span> <span style="color:#ce5c00;font-weight:bold">%</span><span style="color:#000">printf</span><span style="color:#ce5c00;font-weight:bold">...</span><span style="color:#000;font-weight:bold">;</span> 
+</span></span><span style="display:flex;"><span><span style="color:#8f5902;font-style:italic"># Создать новый или переопределить printf ???????????????????????????????????????????</span>
+</span></span></code></pre></div><h3 id="expand">Присваивание значения сразу нескольким переменным и оператор распаковки словаря<a class="td-heading-self-link" href="#expand" aria-label="Heading self-link"></a></h3>
+<p><em>NewLang</em> поддерживает операцию присваивания значения сразу нескольким переменным,
+которые должны быть перечислены через запятую слева от оператора присвоения.
+С правой стороны от оператора присвоения может находится только одно значение.
+А для обмена занчениями двух переменных, вместо традиционной записи:</p>
+<div class="highlight"><pre tabindex="0" style="background-color:#f8f8f8;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-python" data-lang="python"><span style="display:flex;"><span>    <span style="color:#000">a</span><span style="color:#000;font-weight:bold">,</span><span style="color:#000">b</span> <span style="color:#ce5c00;font-weight:bold">=</span> <span style="color:#000">b</span><span style="color:#000;font-weight:bold">,</span><span style="color:#000">a</span><span style="color:#000;font-weight:bold">;</span>
+</span></span></code></pre></div><p>Нужно использовать отдельный оператор обмена:</p>
+<div class="highlight"><pre tabindex="0" style="background-color:#f8f8f8;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-python" data-lang="python"><span style="display:flex;"><span>    <span style="color:#000">a</span> <span style="color:#ce5c00;font-weight:bold">:=</span><span style="color:#000;font-weight:bold">:</span> <span style="color:#000">b</span><span style="color:#000;font-weight:bold">;</span>
+</span></span></code></pre></div><p>В качестве правого операнда в операторе присвоения допускается использовать оператор распаковки словаря <strong>&hellip;</strong> (многоточие),
+который можно использовать и при передаче аргументов в функцию.</p>
+<div class="highlight"><pre tabindex="0" style="background-color:#f8f8f8;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-python" data-lang="python"><span style="display:flex;"><span>    <span style="color:#000">args</span> <span style="color:#ce5c00;font-weight:bold">:=</span> <span style="color:#000;font-weight:bold">(</span><span style="color:#000">arg1</span><span style="color:#ce5c00;font-weight:bold">=</span><span style="color:#0000cf;font-weight:bold">1</span><span style="color:#000;font-weight:bold">,</span> <span style="color:#000">arg2</span><span style="color:#ce5c00;font-weight:bold">=</span><span style="color:#0000cf;font-weight:bold">2</span><span style="color:#000;font-weight:bold">,</span> <span style="color:#0000cf;font-weight:bold">3</span><span style="color:#000;font-weight:bold">,</span><span style="color:#0000cf;font-weight:bold">4</span><span style="color:#000;font-weight:bold">,);</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#000">call</span><span style="color:#000;font-weight:bold">(</span><span style="color:#000">arg</span><span style="color:#ce5c00;font-weight:bold">=</span><span style="color:#0000cf;font-weight:bold">0</span><span style="color:#000;font-weight:bold">,</span> <span style="color:#ce5c00;font-weight:bold">...</span> <span style="color:#000">args</span><span style="color:#000;font-weight:bold">);</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    <span style="color:#8f5902;font-style:italic"># Что равносильно вызову</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#000">call</span><span style="color:#000;font-weight:bold">(</span><span style="color:#000">arg</span><span style="color:#ce5c00;font-weight:bold">=</span><span style="color:#0000cf;font-weight:bold">0</span><span style="color:#000;font-weight:bold">,</span> <span style="color:#000">arg1</span><span style="color:#ce5c00;font-weight:bold">=</span><span style="color:#0000cf;font-weight:bold">1</span><span style="color:#000;font-weight:bold">,</span> <span style="color:#000">arg2</span><span style="color:#ce5c00;font-weight:bold">=</span><span style="color:#0000cf;font-weight:bold">2</span><span style="color:#000;font-weight:bold">,</span> <span style="color:#0000cf;font-weight:bold">3</span><span style="color:#000;font-weight:bold">,</span> <span style="color:#0000cf;font-weight:bold">4</span><span style="color:#000;font-weight:bold">);</span>
+</span></span></code></pre></div><p>Словарь может быть указан и с левой стороны от оператора присвоения.
+Таким образом можно записать самый простой способ перебора всех его элементов:
+<code>item, dictionary := ... dictionary;</code>, т.е. когда первый элемент словаря сохраняется в переменную <code>item</code>, а из самого словаря удаляется,
+и так в цикле пока словарь не станет пустым.</p>
+<p>Пример реализации цикла <em>foreach</em> для суммирования всех элементов словаря (или одномерного тензора)
+с использованием оператора раскрытия словаря (списка):</p>
+<div class="highlight"><pre tabindex="0" style="background-color:#f8f8f8;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-python" data-lang="python"><span style="display:flex;"><span>    <span style="color:#000">summa</span> <span style="color:#ce5c00;font-weight:bold">:=</span> <span style="color:#0000cf;font-weight:bold">0</span><span style="color:#000;font-weight:bold">;</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#000">dictionary</span> <span style="color:#ce5c00;font-weight:bold">:=</span> <span style="color:#000;font-weight:bold">(</span><span style="color:#0000cf;font-weight:bold">1</span><span style="color:#000;font-weight:bold">,</span><span style="color:#0000cf;font-weight:bold">2</span><span style="color:#000;font-weight:bold">,</span><span style="color:#0000cf;font-weight:bold">3</span><span style="color:#000;font-weight:bold">,</span><span style="color:#0000cf;font-weight:bold">4</span><span style="color:#000;font-weight:bold">,</span><span style="color:#0000cf;font-weight:bold">5</span><span style="color:#000;font-weight:bold">,);</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#5c35cc;font-weight:bold">@while</span><span style="color:#000;font-weight:bold">(</span> <span style="color:#000">dictionary</span> <span style="color:#000;font-weight:bold">)</span> <span style="color:#000;font-weight:bold">{</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#8f5902;font-style:italic"># Первый элемент словаря перемещается в item</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#000">item</span><span style="color:#000;font-weight:bold">,</span> <span style="color:#000">dictionary</span> <span style="color:#ce5c00;font-weight:bold">:=</span> <span style="color:#ce5c00;font-weight:bold">...</span> <span style="color:#000">dictionary</span><span style="color:#000;font-weight:bold">;</span> 
+</span></span><span style="display:flex;"><span>        <span style="color:#000">summa</span> <span style="color:#ce5c00;font-weight:bold">+=</span> <span style="color:#000">item</span><span style="color:#000;font-weight:bold">;</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#000;font-weight:bold">};</span>
+</span></span></code></pre></div><h2 id="comprehensions">Заполнение данными<a class="td-heading-self-link" href="#comprehensions" aria-label="Heading self-link"></a></h2>
+<p>При заполнении данными <em>размерных</em> тензоров существует краткий способ указания их начальных значений.
+Для этого используется многоточие в следующих вариантах:</p>
+<ul>
+<li>
+<p><code>:Tensor[10](2,3, ...)</code> - повторение <em><strong>всех</strong></em> предыдущих данных до полного заполнения тензора,
+что равносильно записи <code>:Tensor[10](2,3,  2,3,  2,3,  2,3,  2,3)</code>.</p>
+</li>
+<li>
+<p><code>:Tensor[10](2, 3, ... 42 ...)</code> - заполнение значением <code>42</code> до конца тензора,
+что равносильно записи <code>:Tensor[10](2,3, 42,42,42,42,42,42,42,42)</code>.</p>
+</li>
+<li>
+<p><code>:Tensor[10](2, 3, ... rand() ...)</code> - заполнение до конца тензора значением, которое будет возвращать функция.
+Указанная функция будет вызываться для <strong>каждого элемента</strong> до полного заполнения тензора (8 раз).</p>
+</li>
+<li>
+<p><code>:Tensor[10]( rand(), rand(), ...)</code> - заполнение тензора <em>двумя</em> произвольными заначениями,
+то есть функция <code>rand()</code> будет вызвана дважды для двух первых элементов,
+после чего эти значения будут использоваться до полного заполнения тензора (как в первом примере).</p>
+</li>
+<li>
+<p><code>:Tensor[10]( ... 0..0.99..0.1 )</code> - заполнение тензора элементами диапазона, что равносильно записи<br>
+<code>:Tensor[10](0, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9)</code>. Раскрытие диапазона создает
+фиксированное количество значений. Поэтому в данном примере размерность тензора можно не указывать,
+так как она будет создана автоматически.</p>
+</li>
+<li>
+<p><code>:Tensor[15]( ... 0..5  ,  ... )</code> - заполнение тензора элементами диапазона с их повторением до заданного размера тензора:
+<code>:Tensor(0, 1, 2, 3, 4, 0, 1, 2, 3, 4, 0, 1, 2, 3, 4)</code></p>
+</li>
+</ul>
+<h3 id="заполнение-данными-в-словарях-и-аргументах-функций">Заполнение данными в словарях и аргументах функций<a class="td-heading-self-link" href="#%d0%b7%d0%b0%d0%bf%d0%be%d0%bb%d0%bd%d0%b5%d0%bd%d0%b8%d0%b5-%d0%b4%d0%b0%d0%bd%d0%bd%d1%8b%d0%bc%d0%b8-%d0%b2-%d1%81%d0%bb%d0%be%d0%b2%d0%b0%d1%80%d1%8f%d1%85-%d0%b8-%d0%b0%d1%80%d0%b3%d1%83%d0%bc%d0%b5%d0%bd%d1%82%d0%b0%d1%85-%d1%84%d1%83%d0%bd%d0%ba%d1%86%d0%b8%d0%b9" aria-label="Heading self-link"></a></h3>
+<p>Предыдущие способы заполнения данными возможны только для тензоров фиксированного размера,
+так как позволяют получить произвольное количество значений,
+но их можно применять только в конце списка значения для инициализации.</p>
+<p>Операторы раскрытия словаря или диапазона создают ограниченное количество значений,
+но за счет этого их можно использовать не только для инициализации тензоров,
+но и в качестве начальных значений у словарей или создания аргументов при вызове функций,
+причем в произвольном месте, а не только в конце списка инициализации:</p>
+<ul>
+<li>
+<p><code>:Tensor( ... 0..0.99..0.1 )</code> - заполнение тензора без указания его размера элементами диапазона,
+что равносильно записи  <code>:Tensor(0, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9)</code></p>
+</li>
+<li>
+<p><code>funtcion( 0, ... dict, 42 )</code> - раскрытие словаря как индивидуальных <em>не именованных</em> аргументов функции,
+к примеру funtcion( 0, 1, 2, 3, 42), если словарь <code>dict</code> содержал три элемента <code>1</code>, <code>2</code> и <code>3</code>.</p>
+</li>
+<li>
+<p><code>funtcion( ...  ... dict, end=4)</code> - раскрытие словаря как индивидуальных <strong>именованных</strong> аргументов функции.
+Если словарь <em>dict</em> будет содержать элементы <code>(1, two=2, three=3,)</code>,
+то это будет равносильно вызову функции <code>funtcion( 1, two=2, three=3, end=4)</code>.</p>
+</li>
+</ul>
+
+</div>
+
+
+
+    
+	
+  
+    
+    
+	
+    
+
+<div class="td-content" style="page-break-before: always">
+    
+	<h1 id="pg-f89914599a84d0afcac7c4658db62778">2 - Блоки кода</h1>
+    
+	<p>Блок кода, это сгруппированный набор идущих подряд инструкций, которые выполняются как единое целое
+с возвращением результата выполнения последней из них.
+Блок кода, как и любая синтаксическая конструкция языка, должен завершаться точкой с запятой &ldquo;<strong>;</strong>&rdquo;.</p>
+<p>Блоки кода используются для ограничения области видимости переменных.
+С их помощью определяется иерархия области имен и реализуется система именования свойств и методов для классов.
+Именованные блоки кода могут выступать в качестве локальных меток для передачи потока выполнения.</p>
+<p>За счет того, что к блоку кода можно обратится как к единой инструкции, они могут использоваться в других операторах.
+Тело функции, также представляет собой блока кода, который располагается в пространстве имен определения этой функции.</p>
+<div class="highlight"><pre tabindex="0" style="background-color:#f8f8f8;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-python" data-lang="python"><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#000">ns</span><span style="color:#000;font-weight:bold">::</span> <span style="color:#000;font-weight:bold">{</span> <span style="color:#8f5902;font-style:italic"># Пространство имен ns</span>
+</span></span><span style="display:flex;"><span>    
+</span></span><span style="display:flex;"><span>    <span style="color:#000">name</span> <span style="color:#000;font-weight:bold">{</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#8f5902;font-style:italic"># Пространство имен ns::name</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#8f5902;font-style:italic"># В конце имени &#34;::&#34; можно не указывать</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#000;font-weight:bold">};</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    <span style="color:#000;font-weight:bold">::</span> <span style="color:#000;font-weight:bold">{</span> 
+</span></span><span style="display:flex;"><span>        <span style="color:#8f5902;font-style:italic"># Глобальное пространство имен</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#ce5c00;font-weight:bold">...</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#000;font-weight:bold">};</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    <span style="color:#000;font-weight:bold">{</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#8f5902;font-style:italic"># Локальная переменная до завершения блока кода</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#a40000">$</span><span style="color:#000">local</span> <span style="color:#000;font-weight:bold">:</span><span style="color:#ce5c00;font-weight:bold">:=</span> <span style="color:#0000cf;font-weight:bold">0</span><span style="color:#000;font-weight:bold">;</span> 
+</span></span><span style="display:flex;"><span>    <span style="color:#000;font-weight:bold">};</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    <span style="color:#a40000">$</span><span style="color:#000">local</span><span style="color:#000;font-weight:bold">;</span> <span style="color:#8f5902;font-style:italic"># &lt;-- Ошибка! Локальная переменная не видна</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#000;font-weight:bold">};</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#000">func_name</span><span style="color:#000;font-weight:bold">(</span><span style="color:#000">val</span><span style="color:#000;font-weight:bold">)</span> <span style="color:#000;font-weight:bold">:</span><span style="color:#ce5c00;font-weight:bold">:=</span> <span style="color:#000;font-weight:bold">{</span>  
+</span></span><span style="display:flex;"><span>    <span style="color:#8f5902;font-style:italic"># Блок кода func_name::</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#5c35cc;font-weight:bold">@if</span><span style="color:#000;font-weight:bold">(</span><span style="color:#a40000">$</span><span style="color:#000">val</span><span style="color:#000;font-weight:bold">)</span> <span style="color:#000;font-weight:bold">{</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#ce5c00;font-weight:bold">...</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#000;font-weight:bold">}</span> <span style="color:#5c35cc;font-weight:bold">@else</span> <span style="color:#000;font-weight:bold">{</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#ce5c00;font-weight:bold">...</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#000;font-weight:bold">};</span>
+</span></span><span style="display:flex;"><span><span style="color:#000;font-weight:bold">};</span>
+</span></span></code></pre></div><h3 id="typed">Оформление блока кода<a class="td-heading-self-link" href="#typed" aria-label="Heading self-link"></a></h3>
+<p>Блок кода всегда начинается и заканчивается на фигурные скобки («<strong>{</strong>» и «<strong>}</strong>») и завершается точкой с запятой &ldquo;<strong>;</strong>&rdquo;.
+Существуют блоки кода, которые перехватывают потоки выполнения, с помощью которых реализуются <a href="/docs/ops/throw/">возврат и обработка ошибок</a>.</p>
+<p>Тип возвращаемого значения блоком кода можно указать в явном виде.
+Для этого, после завершающей фигурной скобки, нужно указать разрешенный тип,
+после чего компилятор будет проверят корретность данных внутрие блока кода, которые могут быть возвращены.</p>
+<p>Можно указать сразу несколько типов, перечислив их через запятую в угловых скобрах.</p>
+<div class="highlight"><pre tabindex="0" style="background-color:#f8f8f8;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-python" data-lang="python"><span style="display:flex;"><span>    <span style="color:#000;font-weight:bold">{</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#000">op1</span><span style="color:#000;font-weight:bold">;</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#000">op2</span><span style="color:#000;font-weight:bold">;</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#000;font-weight:bold">};</span>   <span style="color:#8f5902;font-style:italic"># &lt;--- Контроль типа возврата не производится</span>
+</span></span><span style="display:flex;"><span>    
+</span></span><span style="display:flex;"><span>    <span style="color:#000;font-weight:bold">{</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#000">op1</span><span style="color:#000;font-weight:bold">;</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#000">op2</span><span style="color:#000;font-weight:bold">;</span>    <span style="color:#8f5902;font-style:italic"># &lt;--- Проверка типа возвращаемого значения</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#000;font-weight:bold">}</span> <span style="color:#000;font-weight:bold">:</span><span style="color:#000">Type</span><span style="color:#000;font-weight:bold">;</span>    <span style="color:#8f5902;font-style:italic"># &lt;--- Разрешенный тип</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    <span style="color:#000;font-weight:bold">{</span>     
+</span></span><span style="display:flex;"><span>        <span style="color:#000">op1</span><span style="color:#000;font-weight:bold">;</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#000">op2</span><span style="color:#000;font-weight:bold">;</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#ce5c00;font-weight:bold">...</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#000;font-weight:bold">}:</span> <span style="color:#ce5c00;font-weight:bold">&lt;</span><span style="color:#000;font-weight:bold">:</span><span style="color:#000">Type1</span><span style="color:#000;font-weight:bold">,</span> <span style="color:#000;font-weight:bold">:</span><span style="color:#000">Type2</span><span style="color:#000;font-weight:bold">,</span> <span style="color:#000;font-weight:bold">:</span><span style="color:#000">Type3</span><span style="color:#ce5c00;font-weight:bold">&gt;</span><span style="color:#000;font-weight:bold">;</span>  <span style="color:#8f5902;font-style:italic"># &lt;--- Несколько разрешенных типов возврата</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    <span style="color:#000;font-weight:bold">{</span>     
+</span></span><span style="display:flex;"><span>        <span style="color:#000">op1</span><span style="color:#000;font-weight:bold">;</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#000">op2</span><span style="color:#000;font-weight:bold">;</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#ce5c00;font-weight:bold">...</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#000;font-weight:bold">}:</span> <span style="color:#ce5c00;font-weight:bold">&lt;</span> <span style="color:#ce5c00;font-weight:bold">...</span> <span style="color:#ce5c00;font-weight:bold">&gt;</span><span style="color:#000;font-weight:bold">;</span>  <span style="color:#8f5902;font-style:italic"># &lt;--- Разрешен любой тип возвращаемого значения</span>
+</span></span></code></pre></div><h3 id="embed">Расширенный синтаксис<a class="td-heading-self-link" href="#embed" aria-label="Heading self-link"></a></h3>
+<p>Расширенный синтаксис с нативным исходным кодом на языке реализации (С++), это тоже блок кода.
+Он начинается и заканчивается на фигурные скобки со знаком процента («<strong>{%</strong>» и «<strong>%}</strong>»).</p>
+<p>Внутри блока кода с расширенным синтаксисом можно применять произвольные элементы языка реализации (С++),
+но нужно иметь ввиду, что расширенный синтаксис является исходным текстом программы и напрямую подстваляется
+и выходной текст трансплайтера во время компиляции файла.</p>
+<p>С помощью блока кода с расширенным синтаксисом можно реализовать разные элементы, которые отсуствуют в основном синтаксисе,
+например, безусловный переход на заданную метку.</p>
+<div class="highlight"><pre tabindex="0" style="background-color:#f8f8f8;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-python" data-lang="python"><span style="display:flex;"><span>    <span style="color:#ce5c00;font-weight:bold">@@</span> <span style="color:#000">label</span> <span style="color:#a40000">$</span><span style="color:#000">name</span> <span style="color:#ce5c00;font-weight:bold">@@</span> <span style="color:#000;font-weight:bold">:</span><span style="color:#ce5c00;font-weight:bold">:=</span> <span style="color:#ce5c00;font-weight:bold">@@@</span> <span style="color:#000;font-weight:bold">{</span><span style="color:#ce5c00;font-weight:bold">%</span>  <span style="color:#ce5c00;font-weight:bold">@</span><span style="color:#a40000">$</span><span style="color:#000">name</span><span style="color:#000;font-weight:bold">:;</span>  <span style="color:#ce5c00;font-weight:bold">%</span><span style="color:#000;font-weight:bold">}</span>  <span style="color:#ce5c00;font-weight:bold">@@@</span><span style="color:#000;font-weight:bold">;</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#ce5c00;font-weight:bold">@@</span> <span style="color:#000">goto</span> <span style="color:#a40000">$</span><span style="color:#000">label</span> <span style="color:#ce5c00;font-weight:bold">@@</span> <span style="color:#000;font-weight:bold">:</span><span style="color:#ce5c00;font-weight:bold">:=</span> <span style="color:#ce5c00;font-weight:bold">@@@</span> <span style="color:#000;font-weight:bold">{</span><span style="color:#ce5c00;font-weight:bold">%</span>  <span style="color:#000">goto</span> <span style="color:#ce5c00;font-weight:bold">@</span><span style="color:#a40000">$</span><span style="color:#000">label</span><span style="color:#000;font-weight:bold">;</span>  <span style="color:#ce5c00;font-weight:bold">%</span><span style="color:#000;font-weight:bold">}</span>  <span style="color:#ce5c00;font-weight:bold">@@@</span><span style="color:#000;font-weight:bold">;</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    <span style="color:#5c35cc;font-weight:bold">@goto</span> <span style="color:#000">label_for_goto</span><span style="color:#000;font-weight:bold">;</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    <span style="color:#8f5902;font-style:italic"># Skip this code</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    <span style="color:#5c35cc;font-weight:bold">@label</span> <span style="color:#000">label_for_goto</span><span style="color:#000;font-weight:bold">;</span>
+</span></span><span style="display:flex;"><span>    
+</span></span></code></pre></div><p>Взаимодействие расширенного синтаксиса с основным кодом программы происходит
+путем обращения к локальным объектам или макросам программы изнутри блока кода.
+Но для этого, имя объекта должно быть указано полностью, включая все квалификаторы имени.</p>
+<p>Если есть необходимость обратится к статическому объекту, его имя нужно заменить макросом,
+так как символ двоеточия используется в синтаксисе языков C/C++.</p>
+
+
+<div class="pageinfo pageinfo-primary">
+<p>Начиная с версии C++26 взаимодействие с расширенным синтаксисом может быть нарушено!</p>
+<blockquote>
+<p>Add the same characters @, $, and ` to the basic character set [C++26] P2558R2</p>
+</blockquote>
+
+</div>
+
+<div class="highlight"><pre tabindex="0" style="background-color:#f8f8f8;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-cpp" data-lang="cpp"><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    <span style="color:#f57900">factorial</span> <span style="color:#000;font-weight:bold">:</span><span style="color:#ce5c00;font-weight:bold">=</span> <span style="color:#0000cf;font-weight:bold">1000</span><span style="color:#000;font-weight:bold">;</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#ce5c00;font-weight:bold">::</span><span style="color:#f57900">result</span> <span style="color:#000;font-weight:bold">:</span><span style="color:#ce5c00;font-weight:bold">=</span> <span style="color:#0000cf;font-weight:bold">1</span><span style="color:#a40000">\</span><span style="color:#0000cf;font-weight:bold">1</span><span style="color:#000;font-weight:bold">;</span>  <span style="color:#8f5902;font-style:italic">/* Rational number */</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    <span style="color:#a40000">@@</span> <span style="color:#000">res</span> <span style="color:#a40000">@@</span> <span style="color:#ce5c00;font-weight:bold">::=</span> <span style="color:#ce5c00;font-weight:bold">::</span><span style="color:#000">result</span><span style="color:#000;font-weight:bold">;</span>
+</span></span><span style="display:flex;"><span>    
+</span></span><span style="display:flex;"><span>    <span style="color:#000;font-weight:bold">{</span><span style="color:#ce5c00;font-weight:bold">%</span>  
+</span></span><span style="display:flex;"><span>        <span style="color:#8f5902;font-style:italic">// Source on the C++
+</span></span></span><span style="display:flex;"><span><span style="color:#8f5902;font-style:italic"></span>        <span style="color:#204a87;font-weight:bold">for</span><span style="color:#000;font-weight:bold">(</span> <span style="color:#204a87;font-weight:bold">int</span> <span style="color:#000">i</span><span style="color:#ce5c00;font-weight:bold">=</span><span style="color:#0000cf;font-weight:bold">2</span><span style="color:#000;font-weight:bold">;</span> <span style="color:#000">i</span> <span style="color:#ce5c00;font-weight:bold">&lt;=</span> <span style="color:#204a87;font-weight:bold">static_cast</span><span style="color:#ce5c00;font-weight:bold">&lt;</span><span style="color:#204a87;font-weight:bold">unsigned</span> <span style="color:#204a87;font-weight:bold">int</span><span style="color:#ce5c00;font-weight:bold">&gt;</span><span style="color:#000;font-weight:bold">(</span> <span style="color:#a40000">$</span><span style="color:#000">factorial</span> <span style="color:#000;font-weight:bold">);</span> <span style="color:#000">i</span><span style="color:#ce5c00;font-weight:bold">++</span> <span style="color:#000;font-weight:bold">){</span>
+</span></span><span style="display:flex;"><span>            <span style="color:#a40000">@</span><span style="color:#000">res</span> <span style="color:#ce5c00;font-weight:bold">*=</span> <span style="color:#000">i</span><span style="color:#000;font-weight:bold">;</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#000;font-weight:bold">}</span>
+</span></span><span style="display:flex;"><span>        
+</span></span><span style="display:flex;"><span>        <span style="color:#000">printf</span><span style="color:#000;font-weight:bold">(</span><span style="color:#4e9a06">&#34;</span><span style="color:#4e9a06">\n</span><span style="color:#4e9a06">Factorial %i! = %s</span><span style="color:#4e9a06">\n</span><span style="color:#4e9a06">&#34;</span><span style="color:#000;font-weight:bold">,</span> 
+</span></span><span style="display:flex;"><span>            <span style="color:#204a87;font-weight:bold">static_cast</span><span style="color:#ce5c00;font-weight:bold">&lt;</span><span style="color:#204a87;font-weight:bold">unsigned</span> <span style="color:#204a87;font-weight:bold">int</span><span style="color:#ce5c00;font-weight:bold">&gt;</span><span style="color:#000;font-weight:bold">(</span> <span style="color:#a40000">$</span><span style="color:#000">factorial</span> <span style="color:#000;font-weight:bold">),</span> 
+</span></span><span style="display:flex;"><span>            <span style="color:#204a87;font-weight:bold">static_cast</span><span style="color:#ce5c00;font-weight:bold">&lt;</span><span style="color:#204a87;font-weight:bold">const</span> <span style="color:#204a87;font-weight:bold">char</span> <span style="color:#ce5c00;font-weight:bold">*&gt;</span><span style="color:#000;font-weight:bold">(</span> <span style="color:#a40000">@</span><span style="color:#000">res</span> <span style="color:#000;font-weight:bold">));</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#8f5902;font-style:italic"># std::cout &lt;&lt; &#34;Factorial &#34; &lt;&lt;  static_cast&lt;unsigned int&gt;( $factorial );
+</span></span></span><span style="display:flex;"><span><span style="color:#8f5902;font-style:italic"></span>        <span style="color:#8f5902;font-style:italic"># std::cout &lt;&lt; &#34;! = &#34; &lt;&lt; static_cast&lt;const char *&gt;( @res ) &lt;&lt; std::endl;
+</span></span></span><span style="display:flex;"><span><span style="color:#8f5902;font-style:italic"></span>    <span style="color:#ce5c00;font-weight:bold">%</span><span style="color:#000;font-weight:bold">}</span>
+</span></span></code></pre></div>
+</div>
+
+
+
+    
+	
+  
+    
+    
+	
+    
+
+<div class="td-content" style="page-break-before: always">
+    
+	<h1 id="pg-d3e59c3a58123ba89df95ba6f3f2e4c2">3 - Математические операторы</h1>
+    
+	<p>Все математические операторы имеют парный аналог с присвоением значения:</p>
+<ul>
+<li><strong>+</strong> и <strong>+=</strong> — сложение арифметических типов данных;</li>
+<li><strong>-</strong> и <strong>-=</strong> — вычитание арифметических типов данных;</li>
+<li><strong>/</strong> и <strong>/=</strong> — деление (результат число с плавающей точкой);</li>
+<li><strong>//</strong> и <strong>//=</strong> — целочисленное деление с округлением к меньшему числу (как в Python);</li>
+<li><strong>*</strong> и <strong>*=</strong> — умножение (он же используется и для повторения текстовых строк);</li>
+<li><strong>%</strong> и <strong>%=</strong> — остаток от целочисленного деления;</li>
+</ul>
+<p>Отдельный оператор для возведения в степень отсуствует.</p>
+<h3 id="операторы-двоичного-сдвига--пока-не-реализованы">Операторы двоичного сдвига <em>*) пока не реализованы</em><a class="td-heading-self-link" href="#%d0%be%d0%bf%d0%b5%d1%80%d0%b0%d1%82%d0%be%d1%80%d1%8b-%d0%b4%d0%b2%d0%be%d0%b8%d1%87%d0%bd%d0%be%d0%b3%d0%be-%d1%81%d0%b4%d0%b2%d0%b8%d0%b3%d0%b0--%d0%bf%d0%be%d0%ba%d0%b0-%d0%bd%d0%b5-%d1%80%d0%b5%d0%b0%d0%bb%d0%b8%d0%b7%d0%be%d0%b2%d0%b0%d0%bd%d1%8b" aria-label="Heading self-link"></a></h3>
+<ul>
+<li><strong>.&lt;.</strong> - Битовый сдвиг влево</li>
+<li><strong>.&gt;.</strong> - Битовый сдвиг вправо</li>
+<li><strong>.&gt;&gt;.</strong> - Битовый сдвиг вправо с заполнением знакового бита</li>
+<li><strong>.&amp;.</strong> - Битовый оператор И</li>
+<li><strong>.|.</strong> - Битовый оператор ИЛИ</li>
+<li><strong>.^.</strong> - Битовый оператор ИСКЛЮЧАЮЩЕЕ ИЛИ</li>
+<li><strong>.~.</strong> - Битовый унарный оператор НЕ (инверсии)</li>
+</ul>
+
+</div>
+
+
+
+    
+	
+  
+    
+    
+	
+    
+
+<div class="td-content" style="page-break-before: always">
+    
+	<h1 id="pg-4c5f23e30e3baaec755b982700349e58">4 - Операторы сравнения и типизация</h1>
+    
+	<h3 id="арифметическое-сравнение">Арифметическое сравнение<a class="td-heading-self-link" href="#%d0%b0%d1%80%d0%b8%d1%84%d0%bc%d0%b5%d1%82%d0%b8%d1%87%d0%b5%d1%81%d0%ba%d0%be%d0%b5-%d1%81%d1%80%d0%b0%d0%b2%d0%bd%d0%b5%d0%bd%d0%b8%d0%b5" aria-label="Heading self-link"></a></h3>
+<p>Операторы арифметического сравнения представленными классическими <strong>&lt;</strong>, <strong>&gt;</strong>, <strong>&lt;=</strong>, <strong>&gt;=</strong>, <strong>==</strong> и <strong>!=</strong>.
+Они использются для сравнения между собой скаляров и рациональных чисел, а операторы сранвения на равенство <strong>==</strong> и <strong>!=</strong>,
+позвоялют сравнивать между собой в том числе и матрицы.</p>
+<h3 id="операторы-сравнения">Операторы сравнения<a class="td-heading-self-link" href="#%d0%be%d0%bf%d0%b5%d1%80%d0%b0%d1%82%d0%be%d1%80%d1%8b-%d1%81%d1%80%d0%b0%d0%b2%d0%bd%d0%b5%d0%bd%d0%b8%d1%8f" aria-label="Heading self-link"></a></h3>
+<ul>
+<li>
+<p><strong>==</strong> и <strong>!=</strong> — операторы сравнения с автоматическим приведением совместимых типов для любых объектов</p>
+</li>
+<li>
+<p><strong>==</strong> и <strong>!=</strong> — операторы сравнения с автоматическим приведением совместимых типов для любых объектов</p>
+</li>
+<li>
+<p><strong>===</strong> и <strong>!==</strong> — операторы точного сравнения для любых объектов (автоматического приведения типов не выполняется).
+Для объектов сравниваются адреса размещения</p>
+</li>
+</ul>
+<h3 id="строгая-статическая-номинальная-типизация">Строгая статическая (номинальная) типизация<a class="td-heading-self-link" href="#%d1%81%d1%82%d1%80%d0%be%d0%b3%d0%b0%d1%8f-%d1%81%d1%82%d0%b0%d1%82%d0%b8%d1%87%d0%b5%d1%81%d0%ba%d0%b0%d1%8f-%d0%bd%d0%be%d0%bc%d0%b8%d0%bd%d0%b0%d0%bb%d1%8c%d0%bd%d0%b0%d1%8f-%d1%82%d0%b8%d0%bf%d0%b8%d0%b7%d0%b0%d1%86%d0%b8%d1%8f" aria-label="Heading self-link"></a></h3>
+<p>Строгая статическая номинальная проверка типа объектов во время любых операций производится автоматически
+во время компиляции исходного текста программы, если хотя бы у одной из переменных
+при опеределении был указан её тип в явном виде.</p>
+<p>Результат статической номинальной проверки типов будет успешным, если тип правого объекта может быть автоматически преобразован
+к типу левого операнда или тип правого операнада присутствует у левого в иерархии наследования.</p>
+<h3 id="instanceof">Динамическая номинальная типизация<a class="td-heading-self-link" href="#instanceof" aria-label="Heading self-link"></a></h3>
+<p>Для проверки имени типа (класса) объекта во время выполнения используется оператор тильда &ldquo;<strong>~</strong>&rdquo;.
+Это таже номинальная проверка типов, но только во время выполнения приложения.
+Левым операндом должен быть проверяемый объект, а правым — тип с которым сравнивается левый оператор.</p>
+<p>Правый оператор может быть строкой литералом, переменной строкового типа или именем проверяемого класса непосредственно.
+Результатом операции будет истина, если правый операнд содержит название класса проверяемого объекта
+или он присутствует у него в иерархии наследования.</p>
+<div class="highlight"><pre tabindex="0" style="background-color:#f8f8f8;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-python" data-lang="python"><span style="display:flex;"><span>    <span style="color:#000">name</span> <span style="color:#ce5c00;font-weight:bold">:=</span> <span style="color:#4e9a06">&#34;class&#34;</span><span style="color:#000;font-weight:bold">;</span> <span style="color:#8f5902;font-style:italic"># Строковая переменная с именем класса</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#000">var</span> <span style="color:#ce5c00;font-weight:bold">~</span> <span style="color:#000">name</span><span style="color:#000;font-weight:bold">;</span> 
+</span></span><span style="display:flex;"><span>    <span style="color:#000">var</span> <span style="color:#ce5c00;font-weight:bold">~</span> <span style="color:#000;font-weight:bold">:</span><span style="color:#000">class</span><span style="color:#000;font-weight:bold">;</span> <span style="color:#8f5902;font-style:italic"># Сравнение с типом</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#000">var</span> <span style="color:#ce5c00;font-weight:bold">~</span> <span style="color:#4e9a06">&#34;class&#34;</span><span style="color:#000;font-weight:bold">;</span> <span style="color:#8f5902;font-style:italic"># Имя типа как строка литерал</span>
+</span></span></code></pre></div><h3 id="duck-typing">Динамическая утиная типизация<a class="td-heading-self-link" href="#duck-typing" aria-label="Heading self-link"></a></h3>
+<p>Оператор утиной типизации, два символа тильды &ldquo;<strong>~~</strong>&rdquo;.
+Проверяемым типом является левый оператор, а правый выступает в роли облазца для сравнения.
+Для простых типов сравнивается совместимость типа левого операнда по отношению к правому.
+А для словарей и классов в левом операнде проверяется наличие всех имен полей, присутствующих у правого операнда, т.е.:</p>
+<div class="highlight"><pre tabindex="0" style="background-color:#f8f8f8;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-python" data-lang="python"><span style="display:flex;"><span>    <span style="color:#8f5902;font-style:italic"># Истина (т. е. левый операнд словарь)</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#000;font-weight:bold">(</span><span style="color:#000">field1</span><span style="color:#ce5c00;font-weight:bold">=</span><span style="color:#4e9a06">&#34;value&#34;</span><span style="color:#000;font-weight:bold">,</span> <span style="color:#000">field2</span><span style="color:#ce5c00;font-weight:bold">=</span><span style="color:#0000cf;font-weight:bold">2</span><span style="color:#000;font-weight:bold">,)</span> <span style="color:#ce5c00;font-weight:bold">~~</span> <span style="color:#000;font-weight:bold">();</span> 
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    <span style="color:#8f5902;font-style:italic"># Тоже истина (т. к. поле field1 присутствует у левого операнда)</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#000;font-weight:bold">(</span><span style="color:#000">field1</span><span style="color:#ce5c00;font-weight:bold">=</span><span style="color:#4e9a06">&#34;value&#34;</span><span style="color:#000;font-weight:bold">,</span> <span style="color:#000">field2</span><span style="color:#ce5c00;font-weight:bold">=</span><span style="color:#0000cf;font-weight:bold">2</span><span style="color:#000;font-weight:bold">,)</span> <span style="color:#ce5c00;font-weight:bold">~~</span> <span style="color:#000;font-weight:bold">(</span><span style="color:#000">field1</span><span style="color:#ce5c00;font-weight:bold">=</span><span style="color:#000">_</span><span style="color:#000;font-weight:bold">);</span> 
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    <span style="color:#8f5902;font-style:italic"># Ложь, т.к. поле not_found у левого операнда отсутствует</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#000;font-weight:bold">(</span><span style="color:#000">field1</span><span style="color:#ce5c00;font-weight:bold">=</span><span style="color:#4e9a06">&#34;value&#34;</span><span style="color:#000;font-weight:bold">,</span> <span style="color:#000">field2</span><span style="color:#ce5c00;font-weight:bold">=</span><span style="color:#0000cf;font-weight:bold">2</span><span style="color:#000;font-weight:bold">,)</span> <span style="color:#ce5c00;font-weight:bold">~~</span> <span style="color:#000;font-weight:bold">(</span><span style="color:#000">not_found</span><span style="color:#ce5c00;font-weight:bold">=</span><span style="color:#000">_</span><span style="color:#000;font-weight:bold">);</span> 
+</span></span></code></pre></div><h3 id="строгая-утиная-типизация">Строгая утиная типизация<a class="td-heading-self-link" href="#%d1%81%d1%82%d1%80%d0%be%d0%b3%d0%b0%d1%8f-%d1%83%d1%82%d0%b8%d0%bd%d0%b0%d1%8f-%d1%82%d0%b8%d0%bf%d0%b8%d0%b7%d0%b0%d1%86%d0%b8%d1%8f" aria-label="Heading self-link"></a></h3>
+<p>Строгая утиная типизация &ldquo;<strong>~~~</strong>&rdquo; для простых типов сравнивается идентичности типов без учета совместимости,
+а для составных типов происходит сравнение всех свойств с помощью оператора строгого равенства.</p>
+<p>Для данной операции, пустой тип совместим только с другим пустим типом.</p>
+
+</div>
+
+
+
+    
+	
+  
+    
+    
+	
+    
+
+<div class="td-content" style="page-break-before: always">
+    
+	<h1 id="pg-baeb4815377e55e87e33ba78dbb8d2b1">5 - Условный оператор</h1>
+    
+	<p>В качестве оператора проверки условия используется синтаксическая конструкция, которая соответствует по смыслу термину «следует»,
+т.е. два тире и угловая скобка <strong>--&gt;</strong>. Такая запись условного оператора очень похожа на математическую и легко объединяется
+в последовательности для проверки множественных условий вида «else if».</p>
+<p>В общем случае условный оператор имеет вид: <strong>[</strong> условие <strong>] --&gt; {</strong> действие <strong>};</strong> или
+с условием иначе <strong>[</strong> условие <strong>] --&gt; {</strong> действие <strong>}, [&hellip;] --&gt; {</strong> действие иначе <strong>};</strong></p>
+<p>Для наглядности записанный с отступами:</p>
+<div class="highlight"><pre tabindex="0" style="background-color:#f8f8f8;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-python" data-lang="python"><span style="display:flex;"><span>    <span style="color:#000;font-weight:bold">[</span> <span style="color:#000">условие1</span> <span style="color:#000;font-weight:bold">]</span> <span style="color:#ce5c00;font-weight:bold">--&gt;</span> <span style="color:#000;font-weight:bold">{</span> <span style="color:#000">действие1</span> <span style="color:#000;font-weight:bold">},</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#000;font-weight:bold">[</span> <span style="color:#000">условие2</span> <span style="color:#000;font-weight:bold">]</span> <span style="color:#ce5c00;font-weight:bold">--&gt;</span> <span style="color:#000">действие2</span><span style="color:#000;font-weight:bold">,</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#000;font-weight:bold">[</span> <span style="color:#000">условие3</span> <span style="color:#000;font-weight:bold">]</span> <span style="color:#ce5c00;font-weight:bold">--&gt;</span> <span style="color:#000">действие3</span><span style="color:#000;font-weight:bold">,</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#000;font-weight:bold">[</span><span style="color:#ce5c00;font-weight:bold">...</span><span style="color:#000;font-weight:bold">]</span> <span style="color:#ce5c00;font-weight:bold">--&gt;</span> <span style="color:#000;font-weight:bold">{</span><span style="color:#000">действие_иначе</span><span style="color:#000;font-weight:bold">};</span>
+</span></span></code></pre></div><p>Или тоже самое, но с использованием <a href="/docs/syntax/dsl/">макросов DSL</a>.:</p>
+<div class="highlight"><pre tabindex="0" style="background-color:#f8f8f8;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-python" data-lang="python"><span style="display:flex;"><span>    <span style="color:#5c35cc;font-weight:bold">@if</span><span style="color:#000;font-weight:bold">(</span> <span style="color:#000">условие1</span> <span style="color:#000;font-weight:bold">)</span> <span style="color:#000;font-weight:bold">{</span> 
+</span></span><span style="display:flex;"><span>        <span style="color:#000">действие1</span> 
+</span></span><span style="display:flex;"><span>    <span style="color:#000;font-weight:bold">}</span> <span style="color:#5c35cc;font-weight:bold">@elif</span><span style="color:#000;font-weight:bold">(</span> <span style="color:#000">условие2</span> <span style="color:#000;font-weight:bold">)</span> <span style="color:#000">действие2</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#5c35cc;font-weight:bold">@elif</span><span style="color:#000;font-weight:bold">(</span> <span style="color:#000">условие3</span> <span style="color:#000;font-weight:bold">)</span> <span style="color:#000">действие3</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#5c35cc;font-weight:bold">@else</span> <span style="color:#000;font-weight:bold">{</span> 
+</span></span><span style="display:flex;"><span>        <span style="color:#000">действие_иначе</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#000;font-weight:bold">};</span>
+</span></span></code></pre></div>
+</div>
+
+
+
+    
+	
+  
+    
+    
+	
+    
+
+<div class="td-content" style="page-break-before: always">
+    
+	<h1 id="pg-7257e6b33d78b199fd60804216e19236">6 - Оценка выражения</h1>
+    
+	<p>Синтаксическая конструкция с помощью которой реализуется примерный аналог оператора <em>switch</em> или <em>match</em> выглядит следующим образом:</p>
+<div class="highlight"><pre tabindex="0" style="background-color:#f8f8f8;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-python" data-lang="python"><span style="display:flex;"><span>    <span style="color:#000;font-weight:bold">[</span> <span style="color:#a40000">$</span><span style="color:#000">var</span> <span style="color:#000;font-weight:bold">]</span> <span style="color:#ce5c00;font-weight:bold">==&gt;</span> <span style="color:#000;font-weight:bold">{</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#000;font-weight:bold">[</span><span style="color:#0000cf;font-weight:bold">1</span><span style="color:#000;font-weight:bold">]</span> <span style="color:#ce5c00;font-weight:bold">--&gt;</span> <span style="color:#000;font-weight:bold">{</span> <span style="color:#000">code</span> <span style="color:#000;font-weight:bold">};</span> <span style="color:#8f5902;font-style:italic"># Выполнится проверка условия $var == 1</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#000;font-weight:bold">[</span><span style="color:#0000cf;font-weight:bold">1</span><span style="color:#000;font-weight:bold">,</span> <span style="color:#0000cf;font-weight:bold">2</span><span style="color:#000;font-weight:bold">]</span> <span style="color:#ce5c00;font-weight:bold">--&gt;</span> <span style="color:#000;font-weight:bold">{</span> <span style="color:#000">code</span> <span style="color:#000;font-weight:bold">};</span> <span style="color:#8f5902;font-style:italic"># Выполнится проверка условия ($var == 1 || $var == 2)</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#000;font-weight:bold">[</span><span style="color:#ce5c00;font-weight:bold">...</span><span style="color:#000;font-weight:bold">]</span> <span style="color:#ce5c00;font-weight:bold">--&gt;</span> <span style="color:#000;font-weight:bold">{</span> <span style="color:#000">code</span> <span style="color:#000">default</span> <span style="color:#000;font-weight:bold">};</span> <span style="color:#8f5902;font-style:italic"># Ветка условия иначе</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#000;font-weight:bold">};</span>
+</span></span></code></pre></div><p>Или тоже самое, но с использованием <a href="/docs/syntax/dsl/">макросов из модуля dsl</a>:</p>
+<div class="highlight"><pre tabindex="0" style="background-color:#f8f8f8;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-python" data-lang="python"><span style="display:flex;"><span>    <span style="color:#5c35cc;font-weight:bold">@match</span><span style="color:#000;font-weight:bold">(</span> <span style="color:#a40000">$</span><span style="color:#000">var</span> <span style="color:#000;font-weight:bold">)</span> <span style="color:#ce5c00;font-weight:bold">==&gt;</span> <span style="color:#000;font-weight:bold">{</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#5c35cc;font-weight:bold">@case</span><span style="color:#000;font-weight:bold">(</span> <span style="color:#0000cf;font-weight:bold">1</span> <span style="color:#000;font-weight:bold">)</span> <span style="color:#000;font-weight:bold">{</span> <span style="color:#000">code</span> <span style="color:#000;font-weight:bold">};</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#5c35cc;font-weight:bold">@case</span><span style="color:#000;font-weight:bold">(</span> <span style="color:#0000cf;font-weight:bold">1</span><span style="color:#000;font-weight:bold">,</span> <span style="color:#0000cf;font-weight:bold">2</span> <span style="color:#000;font-weight:bold">)</span> <span style="color:#000;font-weight:bold">{</span> <span style="color:#000">code</span> <span style="color:#000;font-weight:bold">};</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#5c35cc;font-weight:bold">@default</span> <span style="color:#000;font-weight:bold">{</span> <span style="color:#000">code</span> <span style="color:#000">default</span> <span style="color:#000;font-weight:bold">};</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#000;font-weight:bold">};</span>
+</span></span></code></pre></div><p>Этот оператор очень похож на <em>Pattern Matching</em>, но все же не является сопоставлением с образцом,
+а скорее более краткая запись множественного оператора сравнения,
+так как в качестве оператора для оценки могут быть использован любые имеющиеся операторы сравнения на равенство:</p>
+<ul>
+<li><strong>==&gt;</strong> — проверка на равенство с приведением типов;</li>
+<li><strong>===&gt;</strong> — проверка на точное равенство;</li>
+<li><strong>~&gt;</strong> — проверка типа (имени класса);</li>
+<li><strong>~~&gt;</strong> — утиная типизация;</li>
+<li><strong>~~~&gt;</strong> — строгая утиная типизация.</li>
+</ul>
+<p>Но если в качестве оператора сравнения использовать оператор утиной типизации, то оценка выражения превращается в классический <em>Pattern Matching</em>:</p>
+<div class="highlight"><pre tabindex="0" style="background-color:#f8f8f8;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-python" data-lang="python"><span style="display:flex;"><span>    <span style="color:#a40000">$</span><span style="color:#000">value</span> <span style="color:#ce5c00;font-weight:bold">:=</span> <span style="color:#000;font-weight:bold">(</span><span style="color:#000">f1</span><span style="color:#ce5c00;font-weight:bold">=</span><span style="color:#0000cf;font-weight:bold">1</span><span style="color:#000;font-weight:bold">,</span> <span style="color:#000">f2</span><span style="color:#ce5c00;font-weight:bold">=</span><span style="color:#4e9a06">&#34;2&#34;</span><span style="color:#000;font-weight:bold">,);</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#5c35cc;font-weight:bold">@match</span><span style="color:#000;font-weight:bold">(</span> <span style="color:#a40000">$</span><span style="color:#000">value</span> <span style="color:#000;font-weight:bold">)</span> <span style="color:#ce5c00;font-weight:bold">~~&gt;</span> <span style="color:#000;font-weight:bold">{</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#5c35cc;font-weight:bold">@case</span><span style="color:#000;font-weight:bold">((</span><span style="color:#000">f1</span><span style="color:#ce5c00;font-weight:bold">=</span><span style="color:#000">_</span><span style="color:#000;font-weight:bold">,</span> <span style="color:#000;font-weight:bold">),</span> <span style="color:#000;font-weight:bold">(</span><span style="color:#000">f1</span><span style="color:#ce5c00;font-weight:bold">=</span><span style="color:#000">_</span><span style="color:#000;font-weight:bold">,</span> <span style="color:#000">f2</span><span style="color:#ce5c00;font-weight:bold">=</span><span style="color:#0000cf;font-weight:bold">0</span><span style="color:#000;font-weight:bold">,</span> <span style="color:#000;font-weight:bold">))</span> <span style="color:#000;font-weight:bold">{</span> <span style="color:#ce5c00;font-weight:bold">...</span> <span style="color:#000">code</span> <span style="color:#ce5c00;font-weight:bold">...</span> <span style="color:#000;font-weight:bold">};</span> <span style="color:#8f5902;font-style:italic"># Поле f2 отсутствует или число </span>
+</span></span><span style="display:flex;"><span>        <span style="color:#5c35cc;font-weight:bold">@case</span><span style="color:#000;font-weight:bold">((</span><span style="color:#000">f1</span><span style="color:#ce5c00;font-weight:bold">=</span><span style="color:#000">_</span><span style="color:#000;font-weight:bold">,</span> <span style="color:#000">f2</span><span style="color:#ce5c00;font-weight:bold">=</span><span style="color:#4e9a06">&#34;&#34;</span><span style="color:#000;font-weight:bold">,),</span> <span style="color:#000;font-weight:bold">(</span><span style="color:#000">f1</span><span style="color:#ce5c00;font-weight:bold">=</span><span style="color:#000">_</span><span style="color:#000;font-weight:bold">,</span> <span style="color:#000">f2</span><span style="color:#ce5c00;font-weight:bold">=</span><span style="color:#4e9a06">&#39;&#39;</span><span style="color:#000;font-weight:bold">,))</span> <span style="color:#000;font-weight:bold">{</span> <span style="color:#ce5c00;font-weight:bold">...</span> <span style="color:#000">code</span> <span style="color:#ce5c00;font-weight:bold">...</span> <span style="color:#000;font-weight:bold">};</span> <span style="color:#8f5902;font-style:italic"># Поле f2 строка</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#5c35cc;font-weight:bold">@default</span> <span style="color:#000;font-weight:bold">{</span> <span style="color:#ce5c00;font-weight:bold">...</span> <span style="color:#000">code</span> <span style="color:#000">default</span> <span style="color:#ce5c00;font-weight:bold">...</span> <span style="color:#000;font-weight:bold">};</span> <span style="color:#8f5902;font-style:italic"># Код по умолчанию</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#000;font-weight:bold">};</span>
+</span></span></code></pre></div>
+</div>
+
+
+
+    
+	
+  
+    
+    
+	
+    
+
+<div class="td-content" style="page-break-before: always">
+    
+	<h1 id="pg-3dc86b17aec2b74ca5a44690abb43951">7 - Операторы циклов</h1>
+    
+	<p>Для записи циклов используются оператор <strong>&lt;-&gt;</strong>, который ставится между условием цикла (проверкой логического выражения) и телом цикла.
+Условие цикла записывается в квадратных скобках и в зависимости от взаимного расположения цикл может быть с предусловием (while)
+или постусловием (dowhile):</p>
+<div class="highlight"><pre tabindex="0" style="background-color:#f8f8f8;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>    <span style="color:#ce5c00;font-weight:bold">[</span>условие <span style="color:#204a87;font-weight:bold">while</span><span style="color:#ce5c00;font-weight:bold">]</span> &lt;-&gt; <span style="color:#ce5c00;font-weight:bold">{</span>
+</span></span><span style="display:flex;"><span>        тело цикла <span style="color:#204a87;font-weight:bold">while</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#ce5c00;font-weight:bold">}</span><span style="color:#000;font-weight:bold">;</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    <span style="color:#ce5c00;font-weight:bold">{</span>
+</span></span><span style="display:flex;"><span>        тело цикла <span style="color:#204a87;font-weight:bold">do</span> <span style="color:#204a87;font-weight:bold">while</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#ce5c00;font-weight:bold">}</span> &lt;-&gt; <span style="color:#ce5c00;font-weight:bold">[</span>условие <span style="color:#204a87;font-weight:bold">do</span> <span style="color:#204a87;font-weight:bold">while</span><span style="color:#ce5c00;font-weight:bold">]</span><span style="color:#000;font-weight:bold">;</span>
+</span></span></code></pre></div><p>Цикл с предусловием (<strong>while</strong>) поддерживает конструкцию <strong>else</strong>, которая выполняется, если условие входа в цикл не было выполнено.</p>
+<blockquote>
+<p><em>Внимание!</em>
+<em>Это поведение отличается от аналогичных конструкций в языке Python, у которого секция <strong>else</strong> выполняется всегда, кроме прерывания цикла по break.</em></p>
+</blockquote>
+<p>Ветка <strong>else</strong> у оператора цикла записывается так же как и ветка <em>иначе</em> в условном операторе, т.е.</p>
+<div class="highlight"><pre tabindex="0" style="background-color:#f8f8f8;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-python" data-lang="python"><span style="display:flex;"><span>    <span style="color:#000;font-weight:bold">[</span> <span style="color:#000">cond</span> <span style="color:#000;font-weight:bold">]</span> <span style="color:#ce5c00;font-weight:bold">&lt;-&gt;</span> <span style="color:#000;font-weight:bold">{</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#ce5c00;font-weight:bold">...</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#000;font-weight:bold">},[</span><span style="color:#ce5c00;font-weight:bold">...</span><span style="color:#000;font-weight:bold">]</span> <span style="color:#ce5c00;font-weight:bold">--&gt;</span> <span style="color:#000;font-weight:bold">{</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#ce5c00;font-weight:bold">...</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#000;font-weight:bold">};</span>
+</span></span></code></pre></div><p>Или тоже самое, но с использованием <a href="/docs/syntax/dsl/">макросов из модуля dsl</a>:</p>
+<div class="highlight"><pre tabindex="0" style="background-color:#f8f8f8;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-python" data-lang="python"><span style="display:flex;"><span>    <span style="color:#5c35cc;font-weight:bold">@while</span><span style="color:#000;font-weight:bold">(</span><span style="color:#000">cond</span><span style="color:#000;font-weight:bold">)</span> <span style="color:#000;font-weight:bold">{</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#ce5c00;font-weight:bold">...</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#000;font-weight:bold">}</span> <span style="color:#5c35cc;font-weight:bold">@else</span> <span style="color:#000;font-weight:bold">{</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#ce5c00;font-weight:bold">...</span> <span style="color:#8f5902;font-style:italic"># Выполнится, только если cond будет false при входе в цикл</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#000;font-weight:bold">};</span>
+</span></span></code></pre></div><p>Пример реализации цикла foreach для суммирования всех элементов словаря (или одномерного тензора) с использованием оператора раскрытия списка:</p>
+<div class="highlight"><pre tabindex="0" style="background-color:#f8f8f8;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-python" data-lang="python"><span style="display:flex;"><span>    <span style="color:#000">summa</span> <span style="color:#ce5c00;font-weight:bold">:=</span> <span style="color:#0000cf;font-weight:bold">0</span><span style="color:#000;font-weight:bold">;</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#204a87">dict</span> <span style="color:#ce5c00;font-weight:bold">:=</span> <span style="color:#000;font-weight:bold">(</span><span style="color:#0000cf;font-weight:bold">1</span><span style="color:#000;font-weight:bold">,</span><span style="color:#0000cf;font-weight:bold">2</span><span style="color:#000;font-weight:bold">,</span><span style="color:#0000cf;font-weight:bold">3</span><span style="color:#000;font-weight:bold">,</span><span style="color:#0000cf;font-weight:bold">4</span><span style="color:#000;font-weight:bold">,</span><span style="color:#0000cf;font-weight:bold">5</span><span style="color:#000;font-weight:bold">,);</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#000;font-weight:bold">[</span> <span style="color:#204a87">dict</span> <span style="color:#000;font-weight:bold">]</span> <span style="color:#ce5c00;font-weight:bold">&lt;-&gt;</span> <span style="color:#000;font-weight:bold">{</span> <span style="color:#8f5902;font-style:italic"># Условие цикла, пока есть данные</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#8f5902;font-style:italic"># Результат оператора распаковка словаря - первый элемент перемещается в item</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#000">item</span><span style="color:#000;font-weight:bold">,</span> <span style="color:#204a87">dict</span> <span style="color:#ce5c00;font-weight:bold">:=</span> <span style="color:#ce5c00;font-weight:bold">...</span> <span style="color:#204a87">dict</span><span style="color:#000;font-weight:bold">;</span> 
+</span></span><span style="display:flex;"><span>        <span style="color:#000">summa</span> <span style="color:#ce5c00;font-weight:bold">+=</span> <span style="color:#000">item</span><span style="color:#000;font-weight:bold">;</span> <span style="color:#8f5902;font-style:italic"># Вычисление суммы всех элементов словаря</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#000;font-weight:bold">};</span>
+</span></span></code></pre></div>
+</div>
+
+
+
+    
+	
+  
+    
+    
+	
+    
+
+<div class="td-content" style="page-break-before: always">
+    
+	<h1 id="pg-bd50d502b62e28893b4b0c4746f52c78">8 - Менеджер контекста</h1>
+    
+	<p>Одиночный оператор захвата <a href="/docs/syntax/memory/">ссылки и синхронизации доступа</a> к объекту &lsquo;<strong>*</strong>&rsquo; или &lsquo;<strong>*(&hellip;)</strong>&rsquo;
+выполняется только для одной переменной при использовании в одном действии.
+Но захват ссылки и объекта синхронизации, это относительно медленная операция и выполнять её для каждого действия над переменной не рационально.</p>
+<p>Для того, чтобы захватить одновременно сразу несколько объектов синхронизации
+для выполнения группы последовательных действий используется менеджер контекста.</p>
+<div class="highlight"><pre tabindex="0" style="background-color:#f8f8f8;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-python" data-lang="python"><span style="display:flex;"><span>    <span style="color:#ce5c00;font-weight:bold">**</span><span style="color:#000;font-weight:bold">(</span> <span style="color:#000">val1</span> <span style="color:#ce5c00;font-weight:bold">=</span> <span style="color:#ce5c00;font-weight:bold">*</span><span style="color:#000">ref1</span><span style="color:#000;font-weight:bold">,</span> <span style="color:#000">val2</span> <span style="color:#ce5c00;font-weight:bold">=</span> <span style="color:#ce5c00;font-weight:bold">*</span><span style="color:#000">ref2</span><span style="color:#000;font-weight:bold">,</span> <span style="color:#000">__timeout__</span> <span style="color:#ce5c00;font-weight:bold">=</span> <span style="color:#0000cf;font-weight:bold">10000</span> <span style="color:#000;font-weight:bold">){</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#ce5c00;font-weight:bold">...</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#000;font-weight:bold">};</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    <span style="color:#ce5c00;font-weight:bold">**</span><span style="color:#000;font-weight:bold">(</span> <span style="color:#ce5c00;font-weight:bold">...</span> <span style="color:#000;font-weight:bold">){</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#ce5c00;font-weight:bold">...</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#000;font-weight:bold">}</span> <span style="color:#000;font-weight:bold">,</span> <span style="color:#000;font-weight:bold">[</span><span style="color:#ce5c00;font-weight:bold">...</span><span style="color:#000;font-weight:bold">]</span> <span style="color:#000;font-weight:bold">{</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#8f5902;font-style:italic"># Ветка else при ошибке захвата ссылки</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#8f5902;font-style:italic"># Информация об ошибке в переменной $^</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#ce5c00;font-weight:bold">...</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#000;font-weight:bold">};</span>
+</span></span></code></pre></div><p>Или таже самая запись с использованием <a href="/docs/syntax/dsl/">макросов DSL</a>:</p>
+<div class="highlight"><pre tabindex="0" style="background-color:#f8f8f8;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-python" data-lang="python"><span style="display:flex;"><span>    <span style="color:#5c35cc;font-weight:bold">@with</span><span style="color:#000;font-weight:bold">(</span> <span style="color:#000">val1</span> <span style="color:#ce5c00;font-weight:bold">=</span> <span style="color:#ce5c00;font-weight:bold">*</span><span style="color:#000">ref1</span><span style="color:#000;font-weight:bold">,</span> <span style="color:#000">val2</span> <span style="color:#ce5c00;font-weight:bold">=</span> <span style="color:#ce5c00;font-weight:bold">*</span><span style="color:#000">ref2</span><span style="color:#000;font-weight:bold">,</span> <span style="color:#000">__timeout__</span> <span style="color:#ce5c00;font-weight:bold">=</span> <span style="color:#0000cf;font-weight:bold">10000</span> <span style="color:#000;font-weight:bold">){</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#ce5c00;font-weight:bold">...</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#000;font-weight:bold">};</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    <span style="color:#5c35cc;font-weight:bold">@with</span><span style="color:#000;font-weight:bold">(</span> <span style="color:#ce5c00;font-weight:bold">...</span> <span style="color:#000;font-weight:bold">){</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#ce5c00;font-weight:bold">...</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#000;font-weight:bold">}</span> <span style="color:#5c35cc;font-weight:bold">@else</span> <span style="color:#000;font-weight:bold">{</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#8f5902;font-style:italic"># Ветка else при ошибке захвата ссылки</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#8f5902;font-style:italic"># Информация об ошибке в переменной $^</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#ce5c00;font-weight:bold">...</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#000;font-weight:bold">};</span>
+</span></span></code></pre></div><h3 id="захват-легких-ссылок-совместного-доступа">Захват легких ссылок совместного доступа<a class="td-heading-self-link" href="#%d0%b7%d0%b0%d1%85%d0%b2%d0%b0%d1%82-%d0%bb%d0%b5%d0%b3%d0%ba%d0%b8%d1%85-%d1%81%d1%81%d1%8b%d0%bb%d0%be%d0%ba-%d1%81%d0%be%d0%b2%d0%bc%d0%b5%d1%81%d1%82%d0%bd%d0%be%d0%b3%d0%be-%d0%b4%d0%be%d1%81%d1%82%d1%83%d0%bf%d0%b0" aria-label="Heading self-link"></a></h3>
+<p>При захвате обычной легкой ссылки всегда сравнивается идентификатор текущего потока с идентифкатором потока - владельца объекта.
+Использование обычных легких ссылок допускается только в рамках одного потока - владельца объекта.</p>
+<p>Чтобы можно было использовать ссылки на легкие объекты в других потоках, для них требуется создать легкие ссылки для совместного доступа (&quot;<strong>&amp;?</strong>&quot;).</p>
+<p>Захват легких ссылок для совместного доступа возможен только с помощью оператора группового захвата,
+при условии, что как миниму одна из первых ссылок будет <em>тяжелой</em>. т.е. с реализованным объектом синхронизации.</p>
+<p>Пример реализации критической секции с помощью оператора группового захвата <em>@with</em>
+и статической переменной <em>@::sync</em> в качестве флага блокировки доступа:</p>
+<div class="highlight"><pre tabindex="0" style="background-color:#f8f8f8;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-python" data-lang="python"><span style="display:flex;"><span>    <span style="color:#8f5902;font-style:italic"># Функция для вызова в разных потоках</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#000">show</span><span style="color:#000;font-weight:bold">(</span> <span style="color:#ce5c00;font-weight:bold">&amp;</span><span style="color:#a40000">?</span> <span style="color:#000">win1</span><span style="color:#000;font-weight:bold">,</span> <span style="color:#ce5c00;font-weight:bold">&amp;</span><span style="color:#a40000">?</span> <span style="color:#000">win2</span><span style="color:#000;font-weight:bold">)</span> <span style="color:#ce5c00;font-weight:bold">:=</span> <span style="color:#000;font-weight:bold">{</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>        <span style="color:#ce5c00;font-weight:bold">&amp;&amp;</span> <span style="color:#ce5c00;font-weight:bold">@</span><span style="color:#000;font-weight:bold">::</span><span style="color:#000">sync</span> <span style="color:#ce5c00;font-weight:bold">:=</span> <span style="color:#5c35cc;font-weight:bold">@false</span><span style="color:#000;font-weight:bold">;</span> <span style="color:#8f5902;font-style:italic"># Global (static) synchronization object</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#5c35cc;font-weight:bold">@with</span> <span style="color:#000;font-weight:bold">(</span><span style="color:#ce5c00;font-weight:bold">*</span><span style="color:#000">sync</span><span style="color:#000;font-weight:bold">,</span> <span style="color:#000">w1</span> <span style="color:#ce5c00;font-weight:bold">=</span> <span style="color:#ce5c00;font-weight:bold">*</span><span style="color:#000">win1</span><span style="color:#000;font-weight:bold">,</span> <span style="color:#000">w2</span> <span style="color:#ce5c00;font-weight:bold">=</span> <span style="color:#ce5c00;font-weight:bold">*</span><span style="color:#000">win2</span><span style="color:#000;font-weight:bold">){</span>
+</span></span><span style="display:flex;"><span>            <span style="color:#ce5c00;font-weight:bold">...</span> <span style="color:#8f5902;font-style:italic"># Критическая  секция</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#000;font-weight:bold">}</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#000;font-weight:bold">}</span>
+</span></span></code></pre></div><h3 id="расширенный-синтаксис-определения-ссылок">Расширенный синтаксис определения ссылок<a class="td-heading-self-link" href="#%d1%80%d0%b0%d1%81%d1%88%d0%b8%d1%80%d0%b5%d0%bd%d0%bd%d1%8b%d0%b9-%d1%81%d0%b8%d0%bd%d1%82%d0%b0%d0%ba%d1%81%d0%b8%d1%81-%d0%be%d0%bf%d1%80%d0%b5%d0%b4%d0%b5%d0%bb%d0%b5%d0%bd%d0%b8%d1%8f-%d1%81%d1%81%d1%8b%d0%bb%d0%be%d0%ba" aria-label="Heading self-link"></a></h3>
+<p>При определении переменной, у которой допускается создание ссылок и синхронизация доступа, можно указать дополнительные параметры работы.
+Это делается с помощью указания системных параметров в типе разрешенных ссылок при определении объекта.</p>
+<p>Условный пример:</p>
+<div class="highlight"><pre tabindex="0" style="background-color:#f8f8f8;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-python" data-lang="python"><span style="display:flex;"><span>    
+</span></span><span style="display:flex;"><span>    <span style="color:#ce5c00;font-weight:bold">&amp;&amp;</span> <span style="color:#000">sync</span><span style="color:#000;font-weight:bold">;</span> <span style="color:#8f5902;font-style:italic"># Объект синхронизации</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#ce5c00;font-weight:bold">&amp;&amp;</span><span style="color:#000;font-weight:bold">(</span><span style="color:#000">__timeout__</span><span style="color:#ce5c00;font-weight:bold">=</span><span style="color:#0000cf;font-weight:bold">1000</span><span style="color:#000;font-weight:bold">)</span> <span style="color:#000">sync_other</span><span style="color:#000;font-weight:bold">;</span> <span style="color:#8f5902;font-style:italic"># Объект синхронизации c таймаутом на блокировку</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    <span style="color:#204a87;font-weight:bold">with</span><span style="color:#000;font-weight:bold">(</span><span style="color:#ce5c00;font-weight:bold">*</span><span style="color:#000">sync_other</span><span style="color:#000;font-weight:bold">)</span> <span style="color:#000;font-weight:bold">{</span> <span style="color:#8f5902;font-style:italic"># Блокировка с таймаутом</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#ce5c00;font-weight:bold">...</span> 
+</span></span><span style="display:flex;"><span>    <span style="color:#000;font-weight:bold">}</span> 
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    <span style="color:#8f5902;font-style:italic"># Переменная value с конкретным объектом синхроинзации</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#ce5c00;font-weight:bold">&amp;</span><span style="color:#a40000">?</span><span style="color:#000;font-weight:bold">(</span><span style="color:#000">sync</span><span style="color:#000;font-weight:bold">)</span> <span style="color:#000">value</span> <span style="color:#ce5c00;font-weight:bold">:=</span> <span style="color:#0000cf;font-weight:bold">123</span><span style="color:#000;font-weight:bold">;</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    <span style="color:#204a87;font-weight:bold">with</span><span style="color:#000;font-weight:bold">(</span><span style="color:#ce5c00;font-weight:bold">*</span><span style="color:#000">sync</span><span style="color:#000;font-weight:bold">,</span> <span style="color:#000">lock</span> <span style="color:#ce5c00;font-weight:bold">=</span> <span style="color:#ce5c00;font-weight:bold">*</span><span style="color:#000">value</span><span style="color:#000;font-weight:bold">)</span> <span style="color:#000;font-weight:bold">{</span> <span style="color:#8f5902;font-style:italic"># ОК</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#ce5c00;font-weight:bold">...</span> 
+</span></span><span style="display:flex;"><span>    <span style="color:#000;font-weight:bold">}</span> 
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    <span style="color:#204a87;font-weight:bold">with</span><span style="color:#000;font-weight:bold">(</span><span style="color:#ce5c00;font-weight:bold">*</span><span style="color:#000">sync_other</span><span style="color:#000;font-weight:bold">,</span> <span style="color:#000">val</span> <span style="color:#ce5c00;font-weight:bold">=</span> <span style="color:#ce5c00;font-weight:bold">*</span><span style="color:#000">value</span><span style="color:#000;font-weight:bold">)</span> <span style="color:#000;font-weight:bold">{</span> <span style="color:#8f5902;font-style:italic"># Ошибка компиляции </span>
+</span></span><span style="display:flex;"><span>        <span style="color:#8f5902;font-style:italic"># для синхронизации должен использоваться sync</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#ce5c00;font-weight:bold">...</span> 
+</span></span><span style="display:flex;"><span>    <span style="color:#000;font-weight:bold">}</span> 
+</span></span></code></pre></div><h3 id="автоматическое-освобождение-ресурсов">Автоматическое освобождение ресурсов<a class="td-heading-self-link" href="#%d0%b0%d0%b2%d1%82%d0%be%d0%bc%d0%b0%d1%82%d0%b8%d1%87%d0%b5%d1%81%d0%ba%d0%be%d0%b5-%d0%be%d1%81%d0%b2%d0%be%d0%b1%d0%be%d0%b6%d0%b4%d0%b5%d0%bd%d0%b8%d0%b5-%d1%80%d0%b5%d1%81%d1%83%d1%80%d1%81%d0%be%d0%b2" aria-label="Heading self-link"></a></h3>
+<p>Менеджер контекста, кроме захвата слабых ссылок в локальные переменные и блокировки доступа,
+одновременно с этим позволяет выделять и освобождать ресурсы,
+автоматически вызывая декструктор локального объекта при выходе из блока кода оператора.</p>
+<p>Освобождение ресурсов (вызов <a href="/docs/types/class/">деструктора у объекта</a>) происходит до попадания в ветку <em>else</em>, если она присутствует.</p>
+<p>Самый популярный пример использования менеджера контекста -
+связанные операции открытия, чтения/записи и закрытия файла в одном блоке кода.</p>
+<p>Например:</p>
+<div class="highlight"><pre tabindex="0" style="background-color:#f8f8f8;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-python" data-lang="python"><span style="display:flex;"><span>    <span style="color:#8f5902;font-style:italic"># Фрагмент определения класса File</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#000">File</span><span style="color:#000;font-weight:bold">(</span><span style="color:#000">name</span><span style="color:#000;font-weight:bold">,</span> <span style="color:#000">mode</span><span style="color:#000;font-weight:bold">)</span> <span style="color:#ce5c00;font-weight:bold">:=</span> <span style="color:#000;font-weight:bold">:</span><span style="color:#000">Class</span><span style="color:#000;font-weight:bold">()</span> <span style="color:#000;font-weight:bold">{</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>        <span style="color:#ce5c00;font-weight:bold">.</span><span style="color:#000">file</span> <span style="color:#000;font-weight:bold">:</span><span style="color:#ce5c00;font-weight:bold">:=</span> <span style="color:#000">fopen</span><span style="color:#000;font-weight:bold">(</span><span style="color:#a40000">$</span><span style="color:#000">name</span><span style="color:#000;font-weight:bold">,</span> <span style="color:#a40000">$</span><span style="color:#000">mode</span><span style="color:#000;font-weight:bold">);</span> <span style="color:#8f5902;font-style:italic"># Handle file</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>        <span style="color:#ce5c00;font-weight:bold">~</span><span style="color:#000">File</span><span style="color:#000;font-weight:bold">()</span> <span style="color:#ce5c00;font-weight:bold">:=</span> <span style="color:#000;font-weight:bold">{</span> <span style="color:#8f5902;font-style:italic"># Destructor of class</span>
+</span></span><span style="display:flex;"><span>            <span style="color:#5c35cc;font-weight:bold">@if</span><span style="color:#000;font-weight:bold">(</span><span style="color:#5c35cc;font-weight:bold">@this.file</span><span style="color:#000;font-weight:bold">){</span>
+</span></span><span style="display:flex;"><span>                <span style="color:#000">fclose</span><span style="color:#000;font-weight:bold">(</span><span style="color:#5c35cc;font-weight:bold">@this.file</span><span style="color:#000;font-weight:bold">);</span>
+</span></span><span style="display:flex;"><span>                <span style="color:#5c35cc;font-weight:bold">@this.file</span> <span style="color:#ce5c00;font-weight:bold">:=</span> <span style="color:#000">_</span><span style="color:#000;font-weight:bold">;</span>
+</span></span><span style="display:flex;"><span>            <span style="color:#000;font-weight:bold">}</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#000;font-weight:bold">}</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#ce5c00;font-weight:bold">...</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#000;font-weight:bold">};</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    <span style="color:#5c35cc;font-weight:bold">@with</span><span style="color:#000;font-weight:bold">(</span> <span style="color:#000">file</span> <span style="color:#ce5c00;font-weight:bold">=</span> <span style="color:#000;font-weight:bold">:</span><span style="color:#000">File</span><span style="color:#000;font-weight:bold">(</span><span style="color:#4e9a06">&#39;some_file&#39;</span><span style="color:#000;font-weight:bold">,</span> <span style="color:#4e9a06">&#39;w&#39;</span><span style="color:#000;font-weight:bold">)</span> <span style="color:#000;font-weight:bold">)</span> <span style="color:#000;font-weight:bold">{</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#000">file</span><span style="color:#ce5c00;font-weight:bold">.</span><span style="color:#000">write</span><span style="color:#000;font-weight:bold">(</span><span style="color:#4e9a06">&#39;Oppa!&#39;</span><span style="color:#000;font-weight:bold">);</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#000;font-weight:bold">};</span>
+</span></span></code></pre></div><p>Код выше открывает файл, записывает в него данные и закрывает файл при выходе из блока кода.</p>
+<p>Этот код эквивалентен следующему на Python:</p>
+<div class="highlight"><pre tabindex="0" style="background-color:#f8f8f8;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-python" data-lang="python"><span style="display:flex;"><span>    <span style="color:#204a87;font-weight:bold">with</span> <span style="color:#204a87">open</span><span style="color:#000;font-weight:bold">(</span><span style="color:#4e9a06">&#39;some_file&#39;</span><span style="color:#000;font-weight:bold">,</span> <span style="color:#4e9a06">&#39;w&#39;</span><span style="color:#000;font-weight:bold">)</span> <span style="color:#204a87;font-weight:bold">as</span> <span style="color:#000">file</span><span style="color:#000;font-weight:bold">:</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#000">file</span><span style="color:#ce5c00;font-weight:bold">.</span><span style="color:#000">write</span><span style="color:#000;font-weight:bold">(</span><span style="color:#4e9a06">&#39;Oppa!&#39;</span><span style="color:#000;font-weight:bold">)</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    <span style="color:#8f5902;font-style:italic"># Или без менеджера контекста</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#000">file</span> <span style="color:#ce5c00;font-weight:bold">=</span> <span style="color:#204a87">open</span><span style="color:#000;font-weight:bold">(</span><span style="color:#4e9a06">&#39;some_file&#39;</span><span style="color:#000;font-weight:bold">,</span> <span style="color:#4e9a06">&#39;w&#39;</span><span style="color:#000;font-weight:bold">)</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#204a87;font-weight:bold">try</span><span style="color:#000;font-weight:bold">:</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#000">file</span><span style="color:#ce5c00;font-weight:bold">.</span><span style="color:#000">write</span><span style="color:#000;font-weight:bold">(</span><span style="color:#4e9a06">&#39;Oppa!&#39;</span><span style="color:#000;font-weight:bold">)</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#204a87;font-weight:bold">finally</span><span style="color:#000;font-weight:bold">:</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#000">file</span><span style="color:#ce5c00;font-weight:bold">.</span><span style="color:#000">close</span><span style="color:#000;font-weight:bold">()</span>
+</span></span></code></pre></div><p>Более сложный пример чтение файла с одновремнным захватом ссылки на буфер и обработкой ошибок:</p>
+<div class="highlight"><pre tabindex="0" style="background-color:#f8f8f8;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-python" data-lang="python"><span style="display:flex;"><span>    <span style="color:#5c35cc;font-weight:bold">@with</span><span style="color:#000;font-weight:bold">(</span> <span style="color:#000">file</span> <span style="color:#ce5c00;font-weight:bold">=</span> <span style="color:#000;font-weight:bold">:</span><span style="color:#000">File</span><span style="color:#000;font-weight:bold">(</span><span style="color:#4e9a06">&#39;some_file&#39;</span><span style="color:#000;font-weight:bold">,</span> <span style="color:#4e9a06">&#39;r&#39;</span><span style="color:#000;font-weight:bold">),</span> <span style="color:#000">buffer</span> <span style="color:#ce5c00;font-weight:bold">=</span> <span style="color:#ce5c00;font-weight:bold">*</span><span style="color:#000">ref_buffer</span> <span style="color:#000;font-weight:bold">)</span> <span style="color:#000;font-weight:bold">{</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#000">file</span><span style="color:#ce5c00;font-weight:bold">.</span><span style="color:#000">read</span><span style="color:#000;font-weight:bold">(</span><span style="color:#000">buffer</span><span style="color:#000;font-weight:bold">);</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#000;font-weight:bold">}</span> <span style="color:#5c35cc;font-weight:bold">@else</span> <span style="color:#000;font-weight:bold">{</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#5c35cc;font-weight:bold">@match</span><span style="color:#000;font-weight:bold">(</span><span style="color:#5c35cc;font-weight:bold">@latter</span><span style="color:#000;font-weight:bold">){</span>
+</span></span><span style="display:flex;"><span>            <span style="color:#5c35cc;font-weight:bold">@case</span><span style="color:#000;font-weight:bold">(</span> <span style="color:#000;font-weight:bold">:</span><span style="color:#000">ErrorLock</span> <span style="color:#000;font-weight:bold">)</span> <span style="color:#000;font-weight:bold">{</span> <span style="color:#ce5c00;font-weight:bold">/*</span> <span style="color:#000">Ошибка</span> <span style="color:#000">захвата</span> <span style="color:#000">ссылки</span> <span style="color:#000">ref_buffer</span> <span style="color:#ce5c00;font-weight:bold">*/</span> <span style="color:#000;font-weight:bold">};</span>
+</span></span><span style="display:flex;"><span>            <span style="color:#5c35cc;font-weight:bold">@case</span><span style="color:#000;font-weight:bold">(</span> <span style="color:#000;font-weight:bold">:</span><span style="color:#000">ErrorOpenFile</span> <span style="color:#000;font-weight:bold">)</span> <span style="color:#000;font-weight:bold">{</span> <span style="color:#ce5c00;font-weight:bold">/*</span> <span style="color:#000">Ошибка</span> <span style="color:#000">открытия</span> <span style="color:#000">для</span> <span style="color:#000">записи</span> <span style="color:#000">файла</span> <span style="color:#000">some_file</span> <span style="color:#ce5c00;font-weight:bold">*/</span> <span style="color:#000;font-weight:bold">};</span>
+</span></span><span style="display:flex;"><span>            <span style="color:#5c35cc;font-weight:bold">@case</span><span style="color:#000;font-weight:bold">(</span> <span style="color:#000;font-weight:bold">:</span><span style="color:#000">ErrorReadWrite</span> <span style="color:#000;font-weight:bold">)</span> <span style="color:#000;font-weight:bold">{</span> <span style="color:#ce5c00;font-weight:bold">/*</span> <span style="color:#000">Ошибка</span> <span style="color:#000">чтения</span><span style="color:#ce5c00;font-weight:bold">-</span><span style="color:#000">записи</span> <span style="color:#000">в</span> <span style="color:#000">файл</span> <span style="color:#000">some_file</span> <span style="color:#ce5c00;font-weight:bold">*/</span> <span style="color:#000;font-weight:bold">};</span>
+</span></span><span style="display:flex;"><span>            <span style="color:#5c35cc;font-weight:bold">@default</span> <span style="color:#5c35cc;font-weight:bold">@forward</span><span style="color:#000;font-weight:bold">;</span> <span style="color:#ce5c00;font-weight:bold">/*</span> <span style="color:#000">Остальные</span> <span style="color:#000">ошибки</span> <span style="color:#000">пробросить</span> <span style="color:#000">дальше</span> <span style="color:#ce5c00;font-weight:bold">*/</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#000;font-weight:bold">};</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#000;font-weight:bold">};</span>
+</span></span></code></pre></div><p>Использование менеджера контекста - это гарантия закрытия файла и освобождения буфера вне зависимости от того,
+как будет завершён вложенный код. Распространенный паттерн использования контекстных менеджеров - блокирование и разблокирование ресурсов
+при многопоточном доступе к объетам, а также закрытие открытых файлов или освобождение захваченных ресурсов.</p>
+<div class="highlight"><pre tabindex="0" style="background-color:#f8f8f8;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-python" data-lang="python"><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    <span style="color:#000">printf</span><span style="color:#000;font-weight:bold">(</span><span style="color:#204a87">format</span><span style="color:#000;font-weight:bold">:</span><span style="color:#000">FmtChar</span><span style="color:#000;font-weight:bold">,</span> <span style="color:#ce5c00;font-weight:bold">...</span><span style="color:#000;font-weight:bold">):</span><span style="color:#000">Int32</span> <span style="color:#ce5c00;font-weight:bold">:=</span> <span style="color:#ce5c00;font-weight:bold">%</span><span style="color:#000">printf</span><span style="color:#ce5c00;font-weight:bold">...</span><span style="color:#000;font-weight:bold">;</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    <span style="color:#ce5c00;font-weight:bold">&amp;&amp;</span> <span style="color:#000">holder</span><span style="color:#000;font-weight:bold">:</span> <span style="color:#000">Integer</span><span style="color:#000;font-weight:bold">[]</span> <span style="color:#ce5c00;font-weight:bold">=</span> <span style="color:#000;font-weight:bold">[,];</span> <span style="color:#8f5902;font-style:italic"># Empty tensor</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    <span style="color:#000">Runnable</span><span style="color:#000;font-weight:bold">(</span><span style="color:#000">cnt</span><span style="color:#000;font-weight:bold">:</span><span style="color:#000">Integer</span><span style="color:#000;font-weight:bold">)</span> <span style="color:#ce5c00;font-weight:bold">:=</span> <span style="color:#000;font-weight:bold">{</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#a40000">$</span><span style="color:#000">i</span> <span style="color:#ce5c00;font-weight:bold">:=</span> <span style="color:#0000cf;font-weight:bold">1</span><span style="color:#000;font-weight:bold">;</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#5c35cc;font-weight:bold">@while</span><span style="color:#000;font-weight:bold">(</span> <span style="color:#a40000">$</span><span style="color:#000">i</span> <span style="color:#ce5c00;font-weight:bold">&lt;=</span> <span style="color:#a40000">$</span><span style="color:#000">cnt</span> <span style="color:#000;font-weight:bold">)</span> <span style="color:#000;font-weight:bold">{</span>
+</span></span><span style="display:flex;"><span>            <span style="color:#ce5c00;font-weight:bold">*</span><span style="color:#000">holder</span> <span style="color:#000;font-weight:bold">[]</span><span style="color:#ce5c00;font-weight:bold">=</span> <span style="color:#a40000">$</span><span style="color:#000">i</span><span style="color:#000;font-weight:bold">;</span>  <span style="color:#8f5902;font-style:italic"># Lock and add new value</span>
+</span></span><span style="display:flex;"><span>            <span style="color:#a40000">$</span><span style="color:#000">i</span> <span style="color:#ce5c00;font-weight:bold">+=</span> <span style="color:#0000cf;font-weight:bold">1</span><span style="color:#000;font-weight:bold">;</span>
+</span></span><span style="display:flex;"><span>            <span style="color:#5c35cc;font-weight:bold">@if</span><span style="color:#000;font-weight:bold">(</span> <span style="color:#a40000">$</span><span style="color:#000">i</span> <span style="color:#ce5c00;font-weight:bold">%</span> <span style="color:#000;font-weight:bold">(</span><span style="color:#a40000">$</span><span style="color:#000">cnt</span> <span style="color:#ce5c00;font-weight:bold">//</span> <span style="color:#0000cf;font-weight:bold">10</span><span style="color:#000;font-weight:bold">)</span> <span style="color:#ce5c00;font-weight:bold">==</span> <span style="color:#0000cf;font-weight:bold">0</span><span style="color:#000;font-weight:bold">)</span> <span style="color:#000;font-weight:bold">{</span>
+</span></span><span style="display:flex;"><span>                <span style="color:#5c35cc;font-weight:bold">@with</span><span style="color:#000;font-weight:bold">(</span><span style="color:#ce5c00;font-weight:bold">*</span><span style="color:#000">holder</span><span style="color:#000;font-weight:bold">){</span> <span style="color:#8f5902;font-style:italic"># Lock only</span>
+</span></span><span style="display:flex;"><span>                    <span style="color:#000">printf</span><span style="color:#000;font-weight:bold">(</span><span style="color:#4e9a06">&#34;.&#34;</span><span style="color:#000;font-weight:bold">);</span>
+</span></span><span style="display:flex;"><span>                <span style="color:#000;font-weight:bold">}</span>
+</span></span><span style="display:flex;"><span>            <span style="color:#000;font-weight:bold">}</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#000;font-weight:bold">}</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#000;font-weight:bold">}</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    <span style="color:#a40000">$</span><span style="color:#000">count</span> <span style="color:#ce5c00;font-weight:bold">=</span> <span style="color:#0000cf;font-weight:bold">10000</span><span style="color:#000;font-weight:bold">;</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    <span style="color:#000">thread1</span> <span style="color:#ce5c00;font-weight:bold">=</span> <span style="color:#000;font-weight:bold">:</span><span style="color:#000">Thread</span><span style="color:#000;font-weight:bold">(</span><span style="color:#000">Runnable</span><span style="color:#000;font-weight:bold">,</span> <span style="color:#a40000">$</span><span style="color:#000">count</span><span style="color:#000;font-weight:bold">);</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#000">thread2</span> <span style="color:#ce5c00;font-weight:bold">=</span> <span style="color:#000;font-weight:bold">:</span><span style="color:#000">Thread</span><span style="color:#000;font-weight:bold">(</span><span style="color:#000">Runnable</span><span style="color:#000;font-weight:bold">,</span> <span style="color:#a40000">$</span><span style="color:#000">count</span><span style="color:#000;font-weight:bold">);</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#000">thread3</span> <span style="color:#ce5c00;font-weight:bold">=</span> <span style="color:#000;font-weight:bold">:</span><span style="color:#000">Thread</span><span style="color:#000;font-weight:bold">(</span><span style="color:#000">Runnable</span><span style="color:#000;font-weight:bold">,</span> <span style="color:#a40000">$</span><span style="color:#000">count</span><span style="color:#000;font-weight:bold">);</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#000">thread4</span> <span style="color:#ce5c00;font-weight:bold">=</span> <span style="color:#000;font-weight:bold">:</span><span style="color:#000">Thread</span><span style="color:#000;font-weight:bold">(</span><span style="color:#000">Runnable</span><span style="color:#000;font-weight:bold">,</span> <span style="color:#a40000">$</span><span style="color:#000">count</span><span style="color:#000;font-weight:bold">);</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#000">thread5</span> <span style="color:#ce5c00;font-weight:bold">=</span> <span style="color:#000;font-weight:bold">:</span><span style="color:#000">Thread</span><span style="color:#000;font-weight:bold">(</span><span style="color:#000">Runnable</span><span style="color:#000;font-weight:bold">,</span> <span style="color:#a40000">$</span><span style="color:#000">count</span><span style="color:#000;font-weight:bold">);</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    <span style="color:#000">thread1</span><span style="color:#ce5c00;font-weight:bold">.</span><span style="color:#000">start</span><span style="color:#000;font-weight:bold">();</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#000">thread2</span><span style="color:#ce5c00;font-weight:bold">.</span><span style="color:#000">start</span><span style="color:#000;font-weight:bold">();</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#000">thread3</span><span style="color:#ce5c00;font-weight:bold">.</span><span style="color:#000">start</span><span style="color:#000;font-weight:bold">();</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#000">thread4</span><span style="color:#ce5c00;font-weight:bold">.</span><span style="color:#000">start</span><span style="color:#000;font-weight:bold">();</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#000">thread5</span><span style="color:#ce5c00;font-weight:bold">.</span><span style="color:#000">start</span><span style="color:#000;font-weight:bold">();</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    <span style="color:#000">thread1</span><span style="color:#ce5c00;font-weight:bold">.</span><span style="color:#000">join</span><span style="color:#000;font-weight:bold">();</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#000">thread2</span><span style="color:#ce5c00;font-weight:bold">.</span><span style="color:#000">join</span><span style="color:#000;font-weight:bold">();</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#000">thread3</span><span style="color:#ce5c00;font-weight:bold">.</span><span style="color:#000">join</span><span style="color:#000;font-weight:bold">();</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#000">thread4</span><span style="color:#ce5c00;font-weight:bold">.</span><span style="color:#000">join</span><span style="color:#000;font-weight:bold">();</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#000">thread5</span><span style="color:#ce5c00;font-weight:bold">.</span><span style="color:#000">join</span><span style="color:#000;font-weight:bold">();</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    <span style="color:#5c35cc;font-weight:bold">@assert</span><span style="color:#000;font-weight:bold">(</span><span style="color:#ce5c00;font-weight:bold">*</span><span style="color:#000">holder</span><span style="color:#ce5c00;font-weight:bold">.</span><span style="color:#000">size</span><span style="color:#000;font-weight:bold">()</span> <span style="color:#ce5c00;font-weight:bold">==</span> <span style="color:#0000cf;font-weight:bold">5</span><span style="color:#ce5c00;font-weight:bold">*</span><span style="color:#a40000">$</span><span style="color:#000">count</span><span style="color:#000;font-weight:bold">);</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#000">printf</span><span style="color:#000;font-weight:bold">(</span><span style="color:#4e9a06">&#34;Complete </span><span style="color:#4e9a06">%d</span><span style="color:#4e9a06">!</span><span style="color:#4e9a06">\n</span><span style="color:#4e9a06">&#34;</span><span style="color:#000;font-weight:bold">,</span> <span style="color:#ce5c00;font-weight:bold">*</span><span style="color:#000">holder</span><span style="color:#ce5c00;font-weight:bold">.</span><span style="color:#000">size</span><span style="color:#000;font-weight:bold">());</span>
+</span></span></code></pre></div><p>Вывод:</p>
+<div class="highlight"><pre tabindex="0" style="background-color:#f8f8f8;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>    &gt;..................................................
+</span></span><span style="display:flex;"><span>    &gt;Complete 50000!
+</span></span><span style="display:flex;"><span>    &gt;_
+</span></span></code></pre></div>
+</div>
+
+
+
+    
+	
+  
+    
+    
+	
+    
+
+<div class="td-content" style="page-break-before: always">
+    
+	<h1 id="pg-d59803d976382d82f70daf58daf9ac0c">9 - Ввозврат, прерывания и обработка ошибок</h1>
+    
+	<p>Последовательность команд <a href="/docs/ops/block/">(блок кода)</a> можно прервать в любом месте с помощью специальных операторов.</p>
+<p>Для этого используются две разные команды, которые условно можно назвать <em>положительным</em> и <em>отрицательным</em> прерыванием потока выполнения,
+что примерно соответствует семантике их записи.
+&ldquo;Отрицательное&rdquo; прерывание записывается в виде двух минусов, а &ldquo;положительное&rdquo; прерывание в виде двух плюсов, т.е. <strong>--</strong> или <strong>++</strong>.</p>
+<p>Оператор прерывания не возвращает никакого значения (точнее, возвращает пустое значение).
+Чтобы прерывание вернуло другое значение, возвращаемые данные нужно записать между парой соответствующих символов,
+т.е. <strong>--</strong> 100 <strong>--</strong>, что является примерным аналогом оператора <code>return 100;</code>
+в других языках программирования, а <strong>++</strong>&lsquo;Строка&rsquo;<strong>++</strong> - аналогом <code>return 'Строка';</code>.</p>
+<h3 id="local">Локальный переход<a class="td-heading-self-link" href="#local" aria-label="Heading self-link"></a></h3>
+<p>Именованные <a href="/docs/ops/block/">блоки кода</a> могут выступать в качестве локальных меток для передачи потока выполнения.
+Если перед оператором прерывания указать <a href="/docs/syntax/namespace/">пространство имен</a>,
+то оператор прерывания станет <em>именованным</em> и будет действовать только для указанного блока кода.</p>
+<p>В этом случае <em>отрицательное</em> прерывание будет работать как оператор <strong>continue</strong>,
+передавая поток выполнения на первую инструкцию блока кода,
+а <em>положительное</em> прерывание как оператор <strong>break</strong>, выходя из него.</p>
+<p>Локальная передача потока управления работает с <em>именованными</em> блоками кода,
+поэтому переход в начало блока кода или выход из него,
+возможны в том числе и изнутри нескольких вложенных именнованных блоков кода.</p>
+<div class="highlight"><pre tabindex="0" style="background-color:#f8f8f8;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-python" data-lang="python"><span style="display:flex;"><span>    <span style="color:#000">b1</span> <span style="color:#ce5c00;font-weight:bold">:=</span> <span style="color:#0000cf;font-weight:bold">1</span><span style="color:#000;font-weight:bold">;</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    <span style="color:#8f5902;font-style:italic"># Бесконечный цикл с именованным блоком кода</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#000;font-weight:bold">[</span><span style="color:#0000cf;font-weight:bold">1</span><span style="color:#000;font-weight:bold">]</span> <span style="color:#ce5c00;font-weight:bold">&lt;-&gt;</span> <span style="color:#000">outer_loop</span><span style="color:#000;font-weight:bold">::</span> <span style="color:#000;font-weight:bold">{</span> 
+</span></span><span style="display:flex;"><span>        <span style="color:#8f5902;font-style:italic"># Именованный блок кода outer_loop</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>        <span style="color:#000">b2</span> <span style="color:#ce5c00;font-weight:bold">:=</span> <span style="color:#0000cf;font-weight:bold">1</span><span style="color:#000;font-weight:bold">;</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#000;font-weight:bold">[</span><span style="color:#0000cf;font-weight:bold">1</span><span style="color:#000;font-weight:bold">]</span> <span style="color:#ce5c00;font-weight:bold">&lt;-&gt;</span> <span style="color:#000">inner_loop</span> <span style="color:#000;font-weight:bold">{</span>
+</span></span><span style="display:flex;"><span>            <span style="color:#8f5902;font-style:italic"># Именованный блок кода inner_loop</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>            <span style="color:#000">printf</span><span style="color:#000;font-weight:bold">(</span><span style="color:#4e9a06">&#34;Values: b1=</span><span style="color:#4e9a06">%d</span><span style="color:#4e9a06">, b2=</span><span style="color:#4e9a06">%d</span><span style="color:#4e9a06">&#34;</span><span style="color:#000;font-weight:bold">,</span> <span style="color:#000">b1</span><span style="color:#000;font-weight:bold">,</span> <span style="color:#000">b2</span><span style="color:#000;font-weight:bold">);</span>
+</span></span><span style="display:flex;"><span>            
+</span></span><span style="display:flex;"><span>            <span style="color:#8f5902;font-style:italic"># Проверка условий</span>
+</span></span><span style="display:flex;"><span>            <span style="color:#000;font-weight:bold">[</span><span style="color:#000">b1</span> <span style="color:#ce5c00;font-weight:bold">==</span> <span style="color:#0000cf;font-weight:bold">2</span> <span style="color:#ce5c00;font-weight:bold">&amp;&amp;</span> <span style="color:#000">b2</span> <span style="color:#ce5c00;font-weight:bold">==</span> <span style="color:#0000cf;font-weight:bold">2</span><span style="color:#000;font-weight:bold">]</span> <span style="color:#ce5c00;font-weight:bold">--&gt;</span> <span style="color:#000;font-weight:bold">{</span>
+</span></span><span style="display:flex;"><span>                <span style="color:#000">outer_loop</span><span style="color:#000;font-weight:bold">::</span> <span style="color:#ce5c00;font-weight:bold">++</span><span style="color:#000;font-weight:bold">;</span>    <span style="color:#8f5902;font-style:italic"># Прерываем outer_loop</span>
+</span></span><span style="display:flex;"><span>            <span style="color:#000;font-weight:bold">},</span> <span style="color:#000;font-weight:bold">[</span><span style="color:#000">b2</span> <span style="color:#ce5c00;font-weight:bold">==</span> <span style="color:#0000cf;font-weight:bold">5</span><span style="color:#000;font-weight:bold">]</span> <span style="color:#ce5c00;font-weight:bold">--&gt;</span> <span style="color:#000;font-weight:bold">{</span>
+</span></span><span style="display:flex;"><span>                <span style="color:#000">inner_loop</span><span style="color:#000;font-weight:bold">::</span> <span style="color:#ce5c00;font-weight:bold">++</span><span style="color:#000;font-weight:bold">;</span>    <span style="color:#8f5902;font-style:italic"># Прерываем inner_loop</span>
+</span></span><span style="display:flex;"><span>            <span style="color:#000;font-weight:bold">}</span>
+</span></span><span style="display:flex;"><span>            <span style="color:#000">b2</span> <span style="color:#ce5c00;font-weight:bold">+=</span> <span style="color:#0000cf;font-weight:bold">1</span><span style="color:#000;font-weight:bold">;</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#000;font-weight:bold">}</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#000">b1</span> <span style="color:#ce5c00;font-weight:bold">+=</span> <span style="color:#0000cf;font-weight:bold">1</span><span style="color:#000;font-weight:bold">;</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#000;font-weight:bold">}</span>
+</span></span></code></pre></div><p>Тоже самое с использованием <a href="/docs/syntax/dsl/">макросов DSL</a>.:</p>
+<div class="highlight"><pre tabindex="0" style="background-color:#f8f8f8;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-python" data-lang="python"><span style="display:flex;"><span>    <span style="color:#000">b1</span> <span style="color:#ce5c00;font-weight:bold">:=</span> <span style="color:#0000cf;font-weight:bold">1</span><span style="color:#000;font-weight:bold">;</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#5c35cc;font-weight:bold">@loop</span> <span style="color:#000">outer_loop</span><span style="color:#000;font-weight:bold">::</span> <span style="color:#000;font-weight:bold">{</span> <span style="color:#8f5902;font-style:italic"># @while(@true)</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>        <span style="color:#000">b2</span> <span style="color:#ce5c00;font-weight:bold">:=</span> <span style="color:#0000cf;font-weight:bold">1</span><span style="color:#000;font-weight:bold">;</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#5c35cc;font-weight:bold">@loop</span> <span style="color:#000">inner_loop</span> <span style="color:#000;font-weight:bold">{</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>            <span style="color:#000">printf</span><span style="color:#000;font-weight:bold">(</span><span style="color:#4e9a06">&#34;Values: b1=</span><span style="color:#4e9a06">%d</span><span style="color:#4e9a06">, b2=</span><span style="color:#4e9a06">%d</span><span style="color:#4e9a06">&#34;</span><span style="color:#000;font-weight:bold">,</span> <span style="color:#000">b1</span><span style="color:#000;font-weight:bold">,</span> <span style="color:#000">b2</span><span style="color:#000;font-weight:bold">);</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>            <span style="color:#5c35cc;font-weight:bold">@if</span><span style="color:#000;font-weight:bold">(</span> <span style="color:#000">b1</span> <span style="color:#ce5c00;font-weight:bold">==</span> <span style="color:#0000cf;font-weight:bold">2</span> <span style="color:#5c35cc;font-weight:bold">@and</span> <span style="color:#000">b2</span> <span style="color:#ce5c00;font-weight:bold">==</span> <span style="color:#0000cf;font-weight:bold">2</span><span style="color:#000;font-weight:bold">)</span> <span style="color:#000;font-weight:bold">{</span>
+</span></span><span style="display:flex;"><span>                <span style="color:#5c35cc;font-weight:bold">@break</span> <span style="color:#000">outer_loop</span><span style="color:#000;font-weight:bold">;</span>
+</span></span><span style="display:flex;"><span>            <span style="color:#000;font-weight:bold">}</span> <span style="color:#5c35cc;font-weight:bold">@elif</span><span style="color:#000;font-weight:bold">(</span> <span style="color:#000">b2</span> <span style="color:#ce5c00;font-weight:bold">==</span> <span style="color:#0000cf;font-weight:bold">5</span> <span style="color:#000;font-weight:bold">)</span> <span style="color:#000;font-weight:bold">{</span>
+</span></span><span style="display:flex;"><span>                <span style="color:#5c35cc;font-weight:bold">@break</span> <span style="color:#000">inner_loop</span><span style="color:#000;font-weight:bold">;</span>
+</span></span><span style="display:flex;"><span>            <span style="color:#000;font-weight:bold">}</span>
+</span></span><span style="display:flex;"><span>            <span style="color:#000">b2</span> <span style="color:#ce5c00;font-weight:bold">+=</span> <span style="color:#0000cf;font-weight:bold">1</span><span style="color:#000;font-weight:bold">;</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#000;font-weight:bold">}</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#000">b1</span> <span style="color:#ce5c00;font-weight:bold">+=</span> <span style="color:#0000cf;font-weight:bold">1</span><span style="color:#000;font-weight:bold">;</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#000;font-weight:bold">}</span>
+</span></span></code></pre></div><h3 id="return">Возврат результата<a class="td-heading-self-link" href="#return" aria-label="Heading self-link"></a></h3>
+<p>Для возврата результата из тела функции используется <em>положительное</em> прерывание из блока кода,
+меткой которого является полное имя функции, включая текущую область имен.
+Имя блока кода тела функции соответствует её имени.</p>
+<div class="highlight"><pre tabindex="0" style="background-color:#f8f8f8;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-python" data-lang="python"><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#000">ns</span><span style="color:#000;font-weight:bold">::</span> <span style="color:#000;font-weight:bold">{</span> <span style="color:#8f5902;font-style:italic"># Пространство имен ns</span>
+</span></span><span style="display:flex;"><span>    
+</span></span><span style="display:flex;"><span>    <span style="color:#000">func_name</span><span style="color:#000;font-weight:bold">(</span><span style="color:#000">val</span><span style="color:#000;font-weight:bold">):</span><span style="color:#000">Int32</span> <span style="color:#000;font-weight:bold">:</span><span style="color:#ce5c00;font-weight:bold">:=</span> <span style="color:#000;font-weight:bold">{</span>  
+</span></span><span style="display:flex;"><span>        <span style="color:#8f5902;font-style:italic"># Блок кода тела функции ns::func_name::</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#ce5c00;font-weight:bold">...</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>        <span style="color:#8f5902;font-style:italic"># Возврат из функции</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#000">func_name</span> <span style="color:#ce5c00;font-weight:bold">++</span> <span style="color:#0000cf;font-weight:bold">0</span> <span style="color:#ce5c00;font-weight:bold">++</span><span style="color:#000;font-weight:bold">;</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#8f5902;font-style:italic"># Или @return(0); с ипользованием DSL</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>        <span style="color:#000;font-weight:bold">::</span> <span style="color:#ce5c00;font-weight:bold">++</span> <span style="color:#0000cf;font-weight:bold">0</span> <span style="color:#ce5c00;font-weight:bold">++</span><span style="color:#000;font-weight:bold">;</span> <span style="color:#8f5902;font-style:italic"># Завершение программы? exit(0)</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#000;font-weight:bold">::</span> <span style="color:#ce5c00;font-weight:bold">--</span> <span style="color:#000;font-weight:bold">;</span> <span style="color:#8f5902;font-style:italic"># Прерывание выполенения программы? abort()</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#000;font-weight:bold">};</span>
+</span></span><span style="display:flex;"><span><span style="color:#000;font-weight:bold">};</span>
+</span></span></code></pre></div><p>Для оператора прерывания выполенения можно указать и глобальную область видимости.
+Тогда при выполнении такого прерывания происходит выход из самого верхнеуровневого блока кода,
+что приводит к завершение работы приложения.</p>
+<p>Аналогом такого поведения являются функции <code>exit()</code> для <em>положительного</em> прерывания
+и <code>abort()</code> для <em>отрицательного</em>, что отражено в <a href="/docs/syntax/dsl/">DSL</a>.</p>
+<h3 id="catch">Перехват прерывааний<a class="td-heading-self-link" href="#catch" aria-label="Heading self-link"></a></h3>
+<p>Именованные прерывания потока выполнения можно использовать только внутри именованных блоков кода,
+что контроллируется во время компиляции программы на уровне исходного кода.</p>
+<p>Для не именованных прерываний такое ограничение отсуствует,
+поэтому более точным аналогом не именованного прерывания будет не <em>return</em> или <em>break</em>, а <em><strong>throw</strong></em>,
+т.к. эти операторы не только прерывают выполнение последовательности команд
+в любом <a href="/docs/ops/block/">блоке кода</a> и возвращают результат, но их еще и можно <em>&ldquo;ловить&rdquo;</em>.</p>
+<p>Для перехвата <em>не именованных</em> прерываний используются блоки кода с соответствующей семантикой,
+<strong>{+</strong> &hellip; <strong>+}</strong> - блок кода, который перехватывает положительные прерывания
+и <strong>{-</strong> &hellip; <strong>-}</strong> - блок кода, который перехватывает отрицательные прерывания, созданные операторами <strong>--</strong>,
+и блок кода <strong>{*</strong> &hellip; <strong>*}</strong>, который перехватывает сразу оба типа прерываний.</p>
+<p>Например, возврат из нескольких вложенных функций без необходимости обрабатывать результат возврата в каждой из них.
+В этом примере функция <em>Test</em> перехватывает &ldquo;положительные&rdquo; прерывания из вложенных функций:</p>
+<div class="highlight"><pre tabindex="0" style="background-color:#f8f8f8;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-python" data-lang="python"><span style="display:flex;"><span>    <span style="color:#000">Level2</span><span style="color:#000;font-weight:bold">(</span><span style="color:#000">arg</span><span style="color:#000;font-weight:bold">)</span> <span style="color:#ce5c00;font-weight:bold">:=</span> <span style="color:#000;font-weight:bold">{</span> 
+</span></span><span style="display:flex;"><span>        <span style="color:#204a87;font-weight:bold">if</span><span style="color:#000;font-weight:bold">(</span><span style="color:#a40000">$</span><span style="color:#000">arg</span><span style="color:#ce5c00;font-weight:bold">==</span><span style="color:#0000cf;font-weight:bold">2</span><span style="color:#000;font-weight:bold">)</span> <span style="color:#000;font-weight:bold">{</span>
+</span></span><span style="display:flex;"><span>            <span style="color:#ce5c00;font-weight:bold">++</span> <span style="color:#4e9a06">&#34;Level - 2&#34;</span> <span style="color:#ce5c00;font-weight:bold">++</span><span style="color:#000;font-weight:bold">;</span> 
+</span></span><span style="display:flex;"><span>        <span style="color:#000;font-weight:bold">};</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#4e9a06">&#34;Level2 - DONE&#34;</span><span style="color:#000;font-weight:bold">;</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#000;font-weight:bold">};</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    <span style="color:#000">Level1</span><span style="color:#000;font-weight:bold">(</span><span style="color:#000">arg</span><span style="color:#000;font-weight:bold">)</span> <span style="color:#ce5c00;font-weight:bold">:=</span> <span style="color:#000;font-weight:bold">{</span> 
+</span></span><span style="display:flex;"><span>        <span style="color:#204a87;font-weight:bold">if</span><span style="color:#000;font-weight:bold">(</span><span style="color:#a40000">$</span><span style="color:#000">arg</span><span style="color:#ce5c00;font-weight:bold">==</span><span style="color:#0000cf;font-weight:bold">1</span><span style="color:#000;font-weight:bold">)</span> <span style="color:#000;font-weight:bold">{</span>
+</span></span><span style="display:flex;"><span>            <span style="color:#ce5c00;font-weight:bold">++</span> <span style="color:#4e9a06">&#34;Level - 1&#34;</span> <span style="color:#ce5c00;font-weight:bold">++</span><span style="color:#000;font-weight:bold">;</span> 
+</span></span><span style="display:flex;"><span>        <span style="color:#000;font-weight:bold">};</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#000">Level2</span><span style="color:#000;font-weight:bold">(</span><span style="color:#a40000">$</span><span style="color:#000">arg</span><span style="color:#000;font-weight:bold">);</span> 
+</span></span><span style="display:flex;"><span>    <span style="color:#000;font-weight:bold">};</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    <span style="color:#000">Test</span><span style="color:#000;font-weight:bold">(</span><span style="color:#000">arg</span><span style="color:#000;font-weight:bold">)</span> <span style="color:#ce5c00;font-weight:bold">:=</span> <span style="color:#000;font-weight:bold">{</span><span style="color:#ce5c00;font-weight:bold">+</span> 
+</span></span><span style="display:flex;"><span>        <span style="color:#204a87;font-weight:bold">if</span><span style="color:#000;font-weight:bold">(</span><span style="color:#a40000">$</span><span style="color:#000">arg</span> <span style="color:#ce5c00;font-weight:bold">&gt;=</span> <span style="color:#0000cf;font-weight:bold">0</span><span style="color:#000;font-weight:bold">)</span> <span style="color:#000;font-weight:bold">{</span>
+</span></span><span style="display:flex;"><span>            <span style="color:#000">Level1</span><span style="color:#000;font-weight:bold">(</span><span style="color:#a40000">$</span><span style="color:#000">arg</span><span style="color:#000;font-weight:bold">);</span> 
+</span></span><span style="display:flex;"><span>        <span style="color:#000;font-weight:bold">}</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#a40000">$</span><span style="color:#000">arg</span><span style="color:#000;font-weight:bold">;</span> 
+</span></span><span style="display:flex;"><span>    <span style="color:#ce5c00;font-weight:bold">+</span><span style="color:#000;font-weight:bold">};</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    <span style="color:#000">Test</span><span style="color:#000;font-weight:bold">(</span><span style="color:#0000cf;font-weight:bold">2</span><span style="color:#000;font-weight:bold">);</span> <span style="color:#8f5902;font-style:italic"># Вернет &#34;Level — 2&#34; возврат из вложенной функции Level2</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#000">Test</span><span style="color:#000;font-weight:bold">(</span><span style="color:#0000cf;font-weight:bold">1</span><span style="color:#000;font-weight:bold">);</span> <span style="color:#8f5902;font-style:italic"># Вернет &#34;Level — 1&#34; возврат из вложенной функции Level1</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#000">Test</span><span style="color:#000;font-weight:bold">(</span><span style="color:#0000cf;font-weight:bold">0</span><span style="color:#000;font-weight:bold">);</span> <span style="color:#8f5902;font-style:italic"># Вернет &#34;Level2 - DONE&#34; возврат из вложенной функции Level2</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#000">Test</span><span style="color:#000;font-weight:bold">(</span><span style="color:#ce5c00;font-weight:bold">-</span><span style="color:#0000cf;font-weight:bold">2</span><span style="color:#000;font-weight:bold">);</span> <span style="color:#8f5902;font-style:italic"># Вернет -2 — возврат из функции Test</span>
+</span></span></code></pre></div><h3 id="error">Обработка ошибок <a class="td-heading-self-link" href="#error" aria-label="Heading self-link"></a></h3>
+<p>Оба варианта прерываний равнозначны и &ldquo;отрицательное&rdquo; прерывание для возврата ошибки используется только условно.
+Блоки кода с перехватом прерываний, совместно с оператором <a href="/docs/ops/match/">оценки выражения</a>,
+можно использовать для обработки исключений в классическом стиле.</p>
+<div class="highlight"><pre tabindex="0" style="background-color:#f8f8f8;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-python" data-lang="python"><span style="display:flex;"><span>    <span style="color:#000;font-weight:bold">[</span> <span style="color:#000;font-weight:bold">{</span><span style="color:#ce5c00;font-weight:bold">*</span>  <span style="color:#8f5902;font-style:italic"># Перехват всех исключений на базовом синтаксисе</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#000">op1</span><span style="color:#000;font-weight:bold">;</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#000">op2</span><span style="color:#000;font-weight:bold">;</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#ce5c00;font-weight:bold">...</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    <span style="color:#ce5c00;font-weight:bold">*</span><span style="color:#000;font-weight:bold">}</span> <span style="color:#000;font-weight:bold">]</span> <span style="color:#ce5c00;font-weight:bold">~&gt;</span> <span style="color:#000;font-weight:bold">{</span> <span style="color:#8f5902;font-style:italic"># Сопоставление по типу возвращенного значения</span>
+</span></span><span style="display:flex;"><span>    
+</span></span><span style="display:flex;"><span>        <span style="color:#000;font-weight:bold">[:</span><span style="color:#000">ErrorType1</span><span style="color:#000;font-weight:bold">]</span> <span style="color:#ce5c00;font-weight:bold">--&gt;</span> <span style="color:#000;font-weight:bold">{</span> <span style="color:#000">code</span> <span style="color:#000;font-weight:bold">};</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#000;font-weight:bold">[:</span><span style="color:#000">ErrorType2</span><span style="color:#000;font-weight:bold">,</span> <span style="color:#000;font-weight:bold">:</span><span style="color:#000">ErrorType3</span><span style="color:#000;font-weight:bold">]</span> <span style="color:#ce5c00;font-weight:bold">--&gt;</span> <span style="color:#000;font-weight:bold">{</span> <span style="color:#000">code</span> <span style="color:#000;font-weight:bold">};</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#000;font-weight:bold">[</span><span style="color:#ce5c00;font-weight:bold">...</span><span style="color:#000;font-weight:bold">]</span> <span style="color:#ce5c00;font-weight:bold">--&gt;</span> <span style="color:#000;font-weight:bold">{</span> <span style="color:#000">code</span> <span style="color:#000">default</span> <span style="color:#000;font-weight:bold">};</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#000;font-weight:bold">};</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    <span style="color:#8f5902;font-style:italic"># Семантика с применением DSL</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#5c35cc;font-weight:bold">@try</span> <span style="color:#000;font-weight:bold">{</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>        <span style="color:#000">op1</span><span style="color:#000;font-weight:bold">;</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#000">op2</span><span style="color:#000;font-weight:bold">;</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#ce5c00;font-weight:bold">...</span>
+</span></span><span style="display:flex;"><span>        
+</span></span><span style="display:flex;"><span>    <span style="color:#000;font-weight:bold">}</span> <span style="color:#5c35cc;font-weight:bold">@catch</span> <span style="color:#000;font-weight:bold">(</span><span style="color:#ce5c00;font-weight:bold">...</span><span style="color:#000;font-weight:bold">)</span> <span style="color:#000;font-weight:bold">{</span> <span style="color:#8f5902;font-style:italic"># Перехват всех исключений</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#5c35cc;font-weight:bold">@case</span><span style="color:#000;font-weight:bold">(:</span><span style="color:#000">Error</span><span style="color:#000;font-weight:bold">){</span> 
+</span></span><span style="display:flex;"><span>            <span style="color:#ce5c00;font-weight:bold">...</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#000;font-weight:bold">};</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#5c35cc;font-weight:bold">@default</span> <span style="color:#5c35cc;font-weight:bold">@forward</span><span style="color:#000;font-weight:bold">;</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#000;font-weight:bold">};</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    <span style="color:#8f5902;font-style:italic"># Тоже самое, только для заданных типов</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#5c35cc;font-weight:bold">@try</span> <span style="color:#000;font-weight:bold">{</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>        <span style="color:#000">op1</span><span style="color:#000;font-weight:bold">;</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#000">op2</span><span style="color:#000;font-weight:bold">;</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#ce5c00;font-weight:bold">...</span>
+</span></span><span style="display:flex;"><span>        
+</span></span><span style="display:flex;"><span>    <span style="color:#000;font-weight:bold">}</span> <span style="color:#5c35cc;font-weight:bold">@catch</span> <span style="color:#000;font-weight:bold">(:</span><span style="color:#000">Type</span><span style="color:#000;font-weight:bold">,</span> <span style="color:#000;font-weight:bold">:</span><span style="color:#000">Type2</span><span style="color:#000;font-weight:bold">,</span> <span style="color:#000;font-weight:bold">:</span><span style="color:#000">Type3</span><span style="color:#000;font-weight:bold">)</span> <span style="color:#000;font-weight:bold">{</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#5c35cc;font-weight:bold">@case</span><span style="color:#000;font-weight:bold">(:</span><span style="color:#000">Type</span><span style="color:#000;font-weight:bold">){</span> 
+</span></span><span style="display:flex;"><span>            <span style="color:#ce5c00;font-weight:bold">...</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#000;font-weight:bold">};</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#5c35cc;font-weight:bold">@case</span><span style="color:#000;font-weight:bold">(:</span><span style="color:#000">Type2</span><span style="color:#000;font-weight:bold">,</span> <span style="color:#000;font-weight:bold">:</span><span style="color:#000">Type3</span><span style="color:#000;font-weight:bold">){</span> 
+</span></span><span style="display:flex;"><span>            <span style="color:#ce5c00;font-weight:bold">...</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#000;font-weight:bold">};</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#5c35cc;font-weight:bold">@default</span> <span style="color:#5c35cc;font-weight:bold">@forward</span><span style="color:#000;font-weight:bold">;</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#000;font-weight:bold">};</span>
+</span></span></code></pre></div><h3 id="coroutine">Расширенные варинаты прерывания выполнения <a class="td-heading-self-link" href="#coroutine" aria-label="Heading self-link"></a></h3>
+<p>Добавить реализациию для короутин после их полной реализации в clang (скорее всего на уровне аннотаций)</p>
+<div class="highlight"><pre tabindex="0" style="background-color:#f8f8f8;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-python" data-lang="python"><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#ce5c00;font-weight:bold">@@</span> <span style="color:#000">coroutine</span> <span style="color:#ce5c00;font-weight:bold">@@</span> <span style="color:#000;font-weight:bold">:</span><span style="color:#ce5c00;font-weight:bold">:=</span> <span style="color:#ce5c00;font-weight:bold">@@</span> <span style="color:#000">__ANNOTATION_SET__</span><span style="color:#000;font-weight:bold">(</span><span style="color:#000">coroutine</span><span style="color:#000;font-weight:bold">)</span> <span style="color:#ce5c00;font-weight:bold">@@</span><span style="color:#000;font-weight:bold">;</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#ce5c00;font-weight:bold">@@</span> <span style="color:#000">co_yield</span><span style="color:#000;font-weight:bold">(</span><span style="color:#ce5c00;font-weight:bold">...</span><span style="color:#000;font-weight:bold">)</span>    <span style="color:#ce5c00;font-weight:bold">@@</span> <span style="color:#000;font-weight:bold">:</span><span style="color:#ce5c00;font-weight:bold">:=</span> <span style="color:#ce5c00;font-weight:bold">@@</span> <span style="color:#000">__ANNOTATION_CHECK__</span><span style="color:#000;font-weight:bold">(</span><span style="color:#000">coroutine</span><span style="color:#000;font-weight:bold">)</span> <span style="color:#5c35cc;font-weight:bold">@__FUNC_BLOCK__</span> <span style="color:#000;font-weight:bold">::</span> <span style="color:#ce5c00;font-weight:bold">--</span> <span style="color:#ce5c00;font-weight:bold">@</span><span style="color:#a40000">$</span><span style="color:#ce5c00;font-weight:bold">...</span> <span style="color:#ce5c00;font-weight:bold">--</span>
+</span></span><span style="display:flex;"><span><span style="color:#ce5c00;font-weight:bold">@@</span> <span style="color:#000">co_await</span>         <span style="color:#ce5c00;font-weight:bold">@@</span> <span style="color:#000;font-weight:bold">:</span><span style="color:#ce5c00;font-weight:bold">:=</span> <span style="color:#ce5c00;font-weight:bold">@@</span> <span style="color:#000">__ANNOTATION_CHECK__</span><span style="color:#000;font-weight:bold">(</span><span style="color:#000">coroutine</span><span style="color:#000;font-weight:bold">)</span> <span style="color:#5c35cc;font-weight:bold">@__FUNC_BLOCK__</span> <span style="color:#000;font-weight:bold">::</span> <span style="color:#ce5c00;font-weight:bold">+-</span>
+</span></span><span style="display:flex;"><span><span style="color:#ce5c00;font-weight:bold">@@</span> <span style="color:#000">co_return</span><span style="color:#000;font-weight:bold">(</span><span style="color:#ce5c00;font-weight:bold">...</span><span style="color:#000;font-weight:bold">)</span>   <span style="color:#ce5c00;font-weight:bold">@@</span> <span style="color:#000;font-weight:bold">:</span><span style="color:#ce5c00;font-weight:bold">:=</span> <span style="color:#ce5c00;font-weight:bold">@@</span> <span style="color:#000">__ANNOTATION_CHECK__</span><span style="color:#000;font-weight:bold">(</span><span style="color:#000">coroutine</span><span style="color:#000;font-weight:bold">)</span> <span style="color:#5c35cc;font-weight:bold">@__FUNC_BLOCK__</span> <span style="color:#000;font-weight:bold">::</span> <span style="color:#ce5c00;font-weight:bold">++</span> <span style="color:#ce5c00;font-weight:bold">@</span><span style="color:#a40000">$</span><span style="color:#ce5c00;font-weight:bold">...</span> <span style="color:#ce5c00;font-weight:bold">++</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#000">ns</span> <span style="color:#000;font-weight:bold">{</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    <span style="color:#5c35cc;font-weight:bold">@coroutine</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#000">co_func</span><span style="color:#000;font-weight:bold">(</span><span style="color:#000">val</span><span style="color:#000;font-weight:bold">):</span><span style="color:#000">Int32</span> <span style="color:#000;font-weight:bold">:</span><span style="color:#ce5c00;font-weight:bold">:=</span> <span style="color:#000;font-weight:bold">{</span>  
+</span></span><span style="display:flex;"><span>        <span style="color:#8f5902;font-style:italic"># Блок кода тела функции</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#ce5c00;font-weight:bold">...</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>        <span style="color:#8f5902;font-style:italic"># Возврат и приостановка выполнения функции</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#5c35cc;font-weight:bold">@__FUNC_BLOCK__</span> <span style="color:#000;font-weight:bold">::</span> <span style="color:#ce5c00;font-weight:bold">--</span> <span style="color:#0000cf;font-weight:bold">0</span> <span style="color:#ce5c00;font-weight:bold">--</span><span style="color:#000;font-weight:bold">;</span> <span style="color:#8f5902;font-style:italic"># ns::co_func::  -- 0 --;  </span>
+</span></span><span style="display:flex;"><span>        <span style="color:#8f5902;font-style:italic"># Или @co_yield(0); с ипользованием DSL</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>        <span style="color:#8f5902;font-style:italic"># Приостановить и вернуть управление</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#5c35cc;font-weight:bold">@__FUNC_BLOCK__</span> <span style="color:#000;font-weight:bold">::</span> <span style="color:#ce5c00;font-weight:bold">+-</span><span style="color:#000;font-weight:bold">;</span> <span style="color:#8f5902;font-style:italic"># ns::co_func::  +-;  </span>
+</span></span><span style="display:flex;"><span>        <span style="color:#8f5902;font-style:italic"># Или @co_await; с ипользованием DSL</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>        <span style="color:#8f5902;font-style:italic"># Возврат и завершение функции</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#5c35cc;font-weight:bold">@__FUNC_BLOCK__</span> <span style="color:#000;font-weight:bold">::</span> <span style="color:#ce5c00;font-weight:bold">++</span> <span style="color:#0000cf;font-weight:bold">0</span> <span style="color:#ce5c00;font-weight:bold">++</span><span style="color:#000;font-weight:bold">;</span> <span style="color:#8f5902;font-style:italic"># ns::co_func::  ++ 0 ++;  </span>
+</span></span><span style="display:flex;"><span>        <span style="color:#8f5902;font-style:italic"># Или @co_return(0); с ипользованием DSL</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#000;font-weight:bold">};</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#000;font-weight:bold">};</span>
+</span></span></code></pre></div><blockquote>
+<p>Выражение co_yield возвращает значение вызывающей стороне и приостанавливает текущую сопрограмму:
+это общий строительный блок возобновляемых функций-генераторов.</p>
+</blockquote>
+<p>co_await  <strong>+-</strong></p>
+<blockquote>
+<p>Унарный оператор co_await приостанавливает сопрограмму и возвращает управление вызывающей стороне.
+Его операнд представляет собой выражение, которое либо (1) относится к типу класса, определяющему оператор-член co_await,
+либо может быть передано оператору, не являющемуся членом co_await, либо (2) может быть преобразовано в такой тип класса с помощью текущей сопрограммы.</p>
+</blockquote>
+<div class="highlight"><pre tabindex="0" style="background-color:#f8f8f8;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-cpp" data-lang="cpp"><span style="display:flex;"><span>    <span style="color:#204a87;font-weight:bold">auto</span> <span style="color:#000">request</span> <span style="color:#ce5c00;font-weight:bold">=</span> <span style="color:#000">await</span> <span style="color:#000">socket</span><span style="color:#000;font-weight:bold">.</span><span style="color:#000">read</span><span style="color:#000;font-weight:bold">(...);</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#204a87;font-weight:bold">auto</span> <span style="color:#000">result</span> <span style="color:#ce5c00;font-weight:bold">=</span> <span style="color:#000">await</span> <span style="color:#000">db_client</span><span style="color:#000;font-weight:bold">.</span><span style="color:#000">do_query</span><span style="color:#000;font-weight:bold">(</span><span style="color:#000">prepare_request</span><span style="color:#000;font-weight:bold">(</span><span style="color:#000">request</span><span style="color:#000;font-weight:bold">));</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#000">await</span> <span style="color:#000">socket</span><span style="color:#000;font-weight:bold">.</span><span style="color:#000">write</span><span style="color:#000;font-weight:bold">(</span><span style="color:#000">prepare_result</span><span style="color:#000;font-weight:bold">(</span><span style="color:#000">result</span><span style="color:#000;font-weight:bold">));</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#000">socket</span><span style="color:#000;font-weight:bold">.</span><span style="color:#000">close</span><span style="color:#000;font-weight:bold">();</span>
+</span></span></code></pre></div><div class="highlight"><pre tabindex="0" style="background-color:#f8f8f8;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-python" data-lang="python"><span style="display:flex;"><span>    <span style="color:#000">request</span> <span style="color:#ce5c00;font-weight:bold">:=</span> <span style="color:#000;font-weight:bold">(){</span> <span style="color:#000">socket</span><span style="color:#ce5c00;font-weight:bold">.</span><span style="color:#000">read</span><span style="color:#000;font-weight:bold">(</span><span style="color:#ce5c00;font-weight:bold">...</span><span style="color:#000;font-weight:bold">)</span> <span style="color:#000;font-weight:bold">};</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#000">auto</span> <span style="color:#000">result</span> <span style="color:#ce5c00;font-weight:bold">=</span> <span style="color:#000;font-weight:bold">(){</span> <span style="color:#000">request</span><span style="color:#000;font-weight:bold">,</span> <span style="color:#000">db_client</span><span style="color:#ce5c00;font-weight:bold">.</span><span style="color:#000">do_query</span><span style="color:#000;font-weight:bold">(</span><span style="color:#000">prepare_request</span><span style="color:#000;font-weight:bold">(</span><span style="color:#000">request</span><span style="color:#000;font-weight:bold">))</span> <span style="color:#000;font-weight:bold">};</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#000;font-weight:bold">(){</span> <span style="color:#000">socket</span><span style="color:#ce5c00;font-weight:bold">.</span><span style="color:#000">write</span><span style="color:#000;font-weight:bold">(</span><span style="color:#000">prepare_result</span><span style="color:#000;font-weight:bold">(</span><span style="color:#000">result</span><span style="color:#000;font-weight:bold">))</span> <span style="color:#000;font-weight:bold">};</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#000">socket</span><span style="color:#ce5c00;font-weight:bold">.</span><span style="color:#000">close</span><span style="color:#000;font-weight:bold">();</span>
+</span></span></code></pre></div>
+</div>
+
+
+
+    
+	
+  
+
+
+
+          </main>
+        </div>
+      </div>
+      <footer class="td-footer row d-print-none">
+  <div class="container-fluid">
+    <div class="row mx-md-2">
+      <div class="td-footer__left col-6 col-sm-4 order-sm-1">
+        <ul class="td-footer__links-list">
+  
+  <li class="td-footer__links-item" data-bs-toggle="tooltip" title="User mailing list" aria-label="User mailing list">
+    <a target="_blank" rel="noopener" href="mailto:mail@newlang.net" aria-label="User mailing list">
+      <i class="fa fa-envelope"></i>
+    </a>
+  </li>
+  
+  <li class="td-footer__links-item" data-bs-toggle="tooltip" title="" aria-label="">
+    <a target="_blank" rel="noopener" href="" aria-label="">
+      <i class=""></i>
+    </a>
+  </li>
+  
+  <li class="td-footer__links-item" data-bs-toggle="tooltip" title="" aria-label="">
+    <a target="_blank" rel="noopener" href="" aria-label="">
+      <i class=""></i>
+    </a>
+  </li>
+  
+</ul>
+
+      </div><div class="td-footer__right col-6 col-sm-4 order-sm-3">
+        <ul class="td-footer__links-list">
+  
+  <li class="td-footer__links-item" data-bs-toggle="tooltip" title="GitHub" aria-label="GitHub">
+    <a target="_blank" rel="noopener" href="https://github.com/rsashka/newlang" aria-label="GitHub">
+      <i class="fab fa-github"></i>
+    </a>
+  </li>
+  
+  <li class="td-footer__links-item" data-bs-toggle="tooltip" title="" aria-label="">
+    <a target="_blank" rel="noopener" href="" aria-label="">
+      <i class=""></i>
+    </a>
+  </li>
+  
+  <li class="td-footer__links-item" data-bs-toggle="tooltip" title="" aria-label="">
+    <a target="_blank" rel="noopener" href="" aria-label="">
+      <i class=""></i>
+    </a>
+  </li>
+  
+</ul>
+
+      </div><div class="td-footer__center col-12 col-sm-4 py-2 order-sm-2">
+        <span class="td-footer__copyright">&copy;
+    2024
+    <span class="td-footer__authors">The NewLang Authors</span></span><span class="td-footer__all_rights_reserved">All Rights Reserved</span>
+      </div>
+    </div>
+  </div>
+</footer>
+
+    </div>
+    <script src="/js/main.js"></script>
+<script defer src="/js/click-to-copy.js" crossorigin="anonymous"></script>
+<script src='/js/tabpane-persist.js'></script>
+
+  </body>
+</html>
