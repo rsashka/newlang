@@ -12,6 +12,7 @@
             <sourceRootList>
                 <sourceRootElem>/home/rsashka/SOURCE/PUBLIC/NewLang/newlang/test</sourceRootElem>
                 <sourceRootElem>../docs</sourceRootElem>
+                <sourceRootElem>../site/content</sourceRootElem>
             </sourceRootList>
             <confList>
                 <confElem>

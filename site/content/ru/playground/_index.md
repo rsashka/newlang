@@ -68,25 +68,32 @@ weight: 25
 
 <script>
 
+if(window.location.search){
+    const params = new Proxy(new URLSearchParams(window.location.search), {
+      get: (searchParams, prop) => searchParams.get(prop),
+    });
+    // Get the value of "src" in eg "https://example.com/?src=source"
+    if(params.src){
+        document.getElementById('playground').value = unescape(params.src);
+    }
+    //alert(escape('#!../output/nlc \n\nprint(\'Hello, world!\\n\');\n'));
+    // %23%21../output/nlc%20%0A%0Aprint%28%27Hello%2C%20world%21%5Cn%27%29%3B%0A
+}
+
 locations =[ "",
     "{{< source "hello.src" >}}",
     "{{< source "rational.src" >}}",
     "{{< source "fact_40.src" >}}",
     "{{< source "fact_40_dsl.src" >}}",
     "{{< source "tensor.src" >}}",
-
-    /*option 4*/                 
-    "#!../output/nlc --eval-file\n\nprintf('Hello, world!');\n",
-
-    /*option 5*/                 
-    "etc...", ];
+    ];
 
 function SelectExample(sel){   
 
     srcLocation = locations[sel.selectedIndex];
     if (srcLocation != undefined && srcLocation != "") {
         obj = document.getElementById('playground');
-        obj.value= locations    [sel.selectedIndex];
+        obj.value = locations[sel.selectedIndex];
         input_changed(obj);
     } 
 }
@@ -172,11 +179,15 @@ function run_playground(){
 
     // 1. Создаём новый XMLHttpRequest-объект
     let xhr = new XMLHttpRequest();
-    xhr.timeout = 10000;
+    xhr.timeout = 5000;
     xhr.responseType = 'json';
+    
+    let server = 'http://81.200.157.226';
+    if(window.location.hostname == 'localhost'){
+        server = 'http://localhost:80';
+    }
 
-    let url =  new URL('/cgi-bin/playground.cgi?'+escape(document.getElementById('playground').value), 'http://localhost');
-    //url.searchParams.set('q', document.getElementById('playground').value);
+    let url =  new URL('/cgi-bin/playground.cgi?'+escape(document.getElementById('playground').value), server);
 
     // 2. Настраиваем его: GET-запрос по URL /article/.../load
     xhr.open('GET', url);
@@ -197,11 +208,12 @@ function run_playground(){
         }
 
         if (xhr.status != 200) { // анализируем HTTP-статус ответа, если статус не 200, то произошла ошибка
-              //alert(`Ошибка ${xhr.status}: ${xhr.statusText}`); // Например, 404: Not Found
-            //out.classList.add("error");
+            alert(`Error ${xhr.status}: ${xhr.statusText}`); // Например, 404: Not Found
+            out.classList.add("error");
+            //document.getElementById('playground_out').value = unescape(xhr.response.out);
         } else { // если всё прошло гладко, выводим результат
-              //alert(`Готово, получили ${xhr.response.length} байт`); // response -- это ответ сервера
-            //out.classList.remove("error");
+            //alert(`Готово, получили ${xhr.response.length} байт`); // response -- это ответ сервера
+            out.classList.remove("error");
         }
     };
 
@@ -216,8 +228,7 @@ function run_playground(){
 
     xhr.onerror = function() {
         document.getElementById('playground_out').classList.add("error");
-        
-      //alert("Запрос не удался");
+        alert("Request failed!");
     };
 }
 </script>
