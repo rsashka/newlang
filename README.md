@@ -22,16 +22,16 @@ Current version 0.4 of 23.03.2024 ([New in current version and release history](
 **\***) These features are planned for implementation when the compiler is created.
 
 **\*\***) Symbolic calculations are supported at the syntax level, but not implemented.
----
 
 ---
+
 [Language syntax](http://newlang.net/docs/syntax/)
 
 [Detailed description of the type system](http://newlang.net/docs/types/)
 
 [Operators and control structures](http://newlang.net/docs/ops/)
 
-[Playground and example code](https://newlang.net/playground/?id=1)
+[Playground and example code](http://newlang.net/playground/?id=1)
 
 ### Example of "Hello world!" script in NewLang language
 
