@@ -15,7 +15,7 @@
     
     
     <item>
-      <title>Blog: Релиз языка программрования NewLang 0.4</title>
+      <title>Blog: Релиз языка программирования NewLang 0.4</title>
       <link>http://localhost:1313/ru/blog/release-v0.4/</link>
       <pubDate>Tue, 06 Jun 2023 00:00:00 +0000</pubDate>
       
@@ -23,17 +23,26 @@
       <description>
         
         
-        &lt;p&gt;&lt;img alt=&#34;КДПВ&#34; src=&#34;http://localhost:1313/ru/blog/langs.jpeg&#34;&gt;&lt;/p&gt;
-
-
-&lt;div class=&#34;pageinfo pageinfo-primary&#34;&gt;
-&lt;p&gt;Внимание!!!&lt;/p&gt;
-&lt;p&gt;&amp;ldquo;nj pfujnДанная статья содержит описание синтаксиса NewLnag предыдущей версии.&lt;/p&gt;
-&lt;p&gt;Актуальную версию синтаксиса языка можно посмотреть &lt;a href=&#34;http://localhost:1313/ru/docs/&#34;&gt;тут&lt;/a&gt;.&lt;/p&gt;
-
-&lt;/div&gt;
-
-&lt;p&gt;ssssssssssssssssssssssssssssssssssssssssssssss&lt;/p&gt;
+        &lt;h2 id=&#34;новые-возможности-и-изменения-в-синтаксисе-newlang&#34;&gt;Новые возможности и изменения в синтаксисе NewLang&lt;a class=&#34;td-heading-self-link&#34; href=&#34;#%d0%bd%d0%be%d0%b2%d1%8b%d0%b5-%d0%b2%d0%be%d0%b7%d0%bc%d0%be%d0%b6%d0%bd%d0%be%d1%81%d1%82%d0%b8-%d0%b8-%d0%b8%d0%b7%d0%bc%d0%b5%d0%bd%d0%b5%d0%bd%d0%b8%d1%8f-%d0%b2-%d1%81%d0%b8%d0%bd%d1%82%d0%b0%d0%ba%d1%81%d0%b8%d1%81%d0%b5-newlang&#34; aria-label=&#34;Heading self-link&#34;&gt;&lt;/a&gt;&lt;/h2&gt;
+&lt;ul&gt;
+&lt;li&gt;Переработано определение типов объектов с помощью &lt;a href=&#34;https://newlang.net/docs/syntax/naming/&#34;&gt;префикса имен (сигила)&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;Прерывание потока выполнения и возврат теперь может выполняться для &lt;a href=&#34;https://newlang.net/docs/ops/throw/&#34;&gt;именованных блоков кода&lt;/a&gt;.&lt;/li&gt;
+&lt;li&gt;Упрощен синтаксис импорта &lt;a href=&#34;https://newlang.net/docs/types/native/&#34;&gt;нативных переменных и функций (С/С++)&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;Стабилизирован синтаксис для &lt;a href=&#34;https://newlang.net/docs/ops/create/#comprehensions&#34;&gt;заполнение начальными данными&lt;/a&gt; значений тензоров, словарей и аргументов при вызове функций.&lt;/li&gt;
+&lt;li&gt;Появились встроенные макросы для написания кода с использованием ключевых слов в стиле &lt;a href=&#34;https://newlang.net/docs/syntax/dsl/&#34;&gt;DSL&lt;/a&gt;&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h2 id=&#34;новые-возможности-компилятора-nlc&#34;&gt;Новые возможности компилятора (nlc)&lt;a class=&#34;td-heading-self-link&#34; href=&#34;#%d0%bd%d0%be%d0%b2%d1%8b%d0%b5-%d0%b2%d0%be%d0%b7%d0%bc%d0%be%d0%b6%d0%bd%d0%be%d1%81%d1%82%d0%b8-%d0%ba%d0%be%d0%bc%d0%bf%d0%b8%d0%bb%d1%8f%d1%82%d0%be%d1%80%d0%b0-nlc&#34; aria-label=&#34;Heading self-link&#34;&gt;&lt;/a&gt;&lt;/h2&gt;
+&lt;ul&gt;
+&lt;li&gt;Полностью переделан макропроцессор.&lt;/li&gt;
+&lt;li&gt;Переработана архитектура компилятора с разделением на парсер, макропроцессор, синтаксический анализатор, интерпретатор и генератор кода.&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h2 id=&#34;разное&#34;&gt;Разное&lt;a class=&#34;td-heading-self-link&#34; href=&#34;#%d1%80%d0%b0%d0%b7%d0%bd%d0%be%d0%b5&#34; aria-label=&#34;Heading self-link&#34;&gt;&lt;/a&gt;&lt;/h2&gt;
+&lt;ul&gt;
+&lt;li&gt;&lt;a href=&#34;http://newlang.net&#34;&gt;Сайт&lt;/a&gt; с документацией переведен на &lt;a href=&#34;https://gohugo.io/&#34;&gt;Hugo&lt;/a&gt; и сделан двуязычным.&lt;/li&gt;
+&lt;li&gt;Вместо бинарных сборок на сайт добавлен раздел &lt;a href=&#34;https://newlang.net/playground/&#34;&gt;Playground and example code&lt;/a&gt; для небольших экспериментов.&lt;/li&gt;
+&lt;li&gt;Выполнен переход на clang-16 (переход на clang-17 и старше планируется после полной реализации корутин и поддержки расширенных форматов чисел с плавающей запятой).&lt;/li&gt;
+&lt;li&gt;Количество контрибуторов проекта стало больше одного!&lt;/li&gt;
+&lt;/ul&gt;
 
       </description>
     </item>

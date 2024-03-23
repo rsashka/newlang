@@ -4,37 +4,10 @@
     <logicalFolder name="content" displayName="content" projectFiles="true">
       <logicalFolder name="en" displayName="en" projectFiles="true">
         <logicalFolder name="blog" displayName="blog" projectFiles="true">
-          <logicalFolder name="complex-prog"
-                         displayName="complex-prog"
-                         projectFiles="true">
-            <itemPath>../site/content/en/blog/complex-prog/bag.jpeg</itemPath>
-            <itemPath>../site/content/en/blog/complex-prog/complex-prog.jpeg</itemPath>
-            <itemPath>../site/content/en/blog/complex-prog/drupal.jpeg</itemPath>
-            <itemPath>../site/content/en/blog/complex-prog/graph1.jpeg</itemPath>
-            <itemPath>../site/content/en/blog/complex-prog/graph2.png</itemPath>
-            <itemPath>../site/content/en/blog/complex-prog/graph3.jpeg</itemPath>
-            <itemPath>../site/content/en/blog/complex-prog/index.md</itemPath>
-          </logicalFolder>
-          <logicalFolder name="lang-final" displayName="lang-final" projectFiles="true">
-            <itemPath>../site/content/en/blog/lang-final/index.md</itemPath>
-            <itemPath>../site/content/en/blog/lang-final/lang-final.jpeg</itemPath>
-          </logicalFolder>
           <itemPath>../site/content/en/blog/_index.md</itemPath>
           <itemPath>../site/content/en/blog/dsl-with-macros.en.md</itemPath>
-          <itemPath>../site/content/en/blog/dsl-with-macros.md</itemPath>
           <itemPath>../site/content/en/blog/dsl.jpeg</itemPath>
-          <itemPath>../site/content/en/blog/inter-prog.md</itemPath>
-          <itemPath>../site/content/en/blog/langs.jpeg</itemPath>
-          <itemPath>../site/content/en/blog/logic-prog.md</itemPath>
-          <itemPath>../site/content/en/blog/matrix.jpeg</itemPath>
-          <itemPath>../site/content/en/blog/newlang.md</itemPath>
-          <itemPath>../site/content/en/blog/parser-nuances.md</itemPath>
-          <itemPath>../site/content/en/blog/prog-styles-same-time.md</itemPath>
-          <itemPath>../site/content/en/blog/release-0.1.md</itemPath>
-          <itemPath>../site/content/en/blog/release-0.2.md</itemPath>
-          <itemPath>../site/content/en/blog/release-0.3.md</itemPath>
           <itemPath>../site/content/en/blog/release-0.4.md</itemPath>
-          <itemPath>../site/content/en/blog/unusual-prog.md</itemPath>
         </logicalFolder>
         <logicalFolder name="docs" displayName="docs" projectFiles="true">
           <logicalFolder name="arch" displayName="arch" projectFiles="true">
@@ -447,113 +420,14 @@
       </item>
       <item path="../site/content/en/blog/_index.md" ex="false" tool="3" flavor2="0">
       </item>
-      <item path="../site/content/en/blog/complex-prog/bag.jpeg"
-            ex="false"
-            tool="3"
-            flavor2="0">
-      </item>
-      <item path="../site/content/en/blog/complex-prog/complex-prog.jpeg"
-            ex="false"
-            tool="3"
-            flavor2="0">
-      </item>
-      <item path="../site/content/en/blog/complex-prog/drupal.jpeg"
-            ex="false"
-            tool="3"
-            flavor2="0">
-      </item>
-      <item path="../site/content/en/blog/complex-prog/graph1.jpeg"
-            ex="false"
-            tool="3"
-            flavor2="0">
-      </item>
-      <item path="../site/content/en/blog/complex-prog/graph2.png"
-            ex="false"
-            tool="3"
-            flavor2="0">
-      </item>
-      <item path="../site/content/en/blog/complex-prog/graph3.jpeg"
-            ex="false"
-            tool="3"
-            flavor2="0">
-      </item>
-      <item path="../site/content/en/blog/complex-prog/index.md"
-            ex="false"
-            tool="3"
-            flavor2="0">
-      </item>
       <item path="../site/content/en/blog/dsl-with-macros.en.md"
-            ex="false"
-            tool="3"
-            flavor2="0">
-      </item>
-      <item path="../site/content/en/blog/dsl-with-macros.md"
             ex="false"
             tool="3"
             flavor2="0">
       </item>
       <item path="../site/content/en/blog/dsl.jpeg" ex="false" tool="3" flavor2="0">
       </item>
-      <item path="../site/content/en/blog/inter-prog.md"
-            ex="false"
-            tool="3"
-            flavor2="0">
-      </item>
-      <item path="../site/content/en/blog/lang-final/index.md"
-            ex="false"
-            tool="3"
-            flavor2="0">
-      </item>
-      <item path="../site/content/en/blog/lang-final/lang-final.jpeg"
-            ex="false"
-            tool="3"
-            flavor2="0">
-      </item>
-      <item path="../site/content/en/blog/langs.jpeg" ex="false" tool="3" flavor2="0">
-      </item>
-      <item path="../site/content/en/blog/logic-prog.md"
-            ex="false"
-            tool="3"
-            flavor2="0">
-      </item>
-      <item path="../site/content/en/blog/matrix.jpeg"
-            ex="false"
-            tool="3"
-            flavor2="0">
-      </item>
-      <item path="../site/content/en/blog/newlang.md" ex="false" tool="3" flavor2="0">
-      </item>
-      <item path="../site/content/en/blog/parser-nuances.md"
-            ex="false"
-            tool="3"
-            flavor2="0">
-      </item>
-      <item path="../site/content/en/blog/prog-styles-same-time.md"
-            ex="false"
-            tool="3"
-            flavor2="0">
-      </item>
-      <item path="../site/content/en/blog/release-0.1.md"
-            ex="false"
-            tool="3"
-            flavor2="0">
-      </item>
-      <item path="../site/content/en/blog/release-0.2.md"
-            ex="false"
-            tool="3"
-            flavor2="0">
-      </item>
-      <item path="../site/content/en/blog/release-0.3.md"
-            ex="false"
-            tool="3"
-            flavor2="0">
-      </item>
       <item path="../site/content/en/blog/release-0.4.md"
-            ex="false"
-            tool="3"
-            flavor2="0">
-      </item>
-      <item path="../site/content/en/blog/unusual-prog.md"
             ex="false"
             tool="3"
             flavor2="0">
@@ -1550,113 +1424,14 @@
       </item>
       <item path="../site/content/en/blog/_index.md" ex="false" tool="3" flavor2="0">
       </item>
-      <item path="../site/content/en/blog/complex-prog/bag.jpeg"
-            ex="false"
-            tool="3"
-            flavor2="0">
-      </item>
-      <item path="../site/content/en/blog/complex-prog/complex-prog.jpeg"
-            ex="false"
-            tool="3"
-            flavor2="0">
-      </item>
-      <item path="../site/content/en/blog/complex-prog/drupal.jpeg"
-            ex="false"
-            tool="3"
-            flavor2="0">
-      </item>
-      <item path="../site/content/en/blog/complex-prog/graph1.jpeg"
-            ex="false"
-            tool="3"
-            flavor2="0">
-      </item>
-      <item path="../site/content/en/blog/complex-prog/graph2.png"
-            ex="false"
-            tool="3"
-            flavor2="0">
-      </item>
-      <item path="../site/content/en/blog/complex-prog/graph3.jpeg"
-            ex="false"
-            tool="3"
-            flavor2="0">
-      </item>
-      <item path="../site/content/en/blog/complex-prog/index.md"
-            ex="false"
-            tool="3"
-            flavor2="0">
-      </item>
       <item path="../site/content/en/blog/dsl-with-macros.en.md"
-            ex="false"
-            tool="3"
-            flavor2="0">
-      </item>
-      <item path="../site/content/en/blog/dsl-with-macros.md"
             ex="false"
             tool="3"
             flavor2="0">
       </item>
       <item path="../site/content/en/blog/dsl.jpeg" ex="false" tool="3" flavor2="0">
       </item>
-      <item path="../site/content/en/blog/inter-prog.md"
-            ex="false"
-            tool="3"
-            flavor2="0">
-      </item>
-      <item path="../site/content/en/blog/lang-final/index.md"
-            ex="false"
-            tool="3"
-            flavor2="0">
-      </item>
-      <item path="../site/content/en/blog/lang-final/lang-final.jpeg"
-            ex="false"
-            tool="3"
-            flavor2="0">
-      </item>
-      <item path="../site/content/en/blog/langs.jpeg" ex="false" tool="3" flavor2="0">
-      </item>
-      <item path="../site/content/en/blog/logic-prog.md"
-            ex="false"
-            tool="3"
-            flavor2="0">
-      </item>
-      <item path="../site/content/en/blog/matrix.jpeg"
-            ex="false"
-            tool="3"
-            flavor2="0">
-      </item>
-      <item path="../site/content/en/blog/newlang.md" ex="false" tool="3" flavor2="0">
-      </item>
-      <item path="../site/content/en/blog/parser-nuances.md"
-            ex="false"
-            tool="3"
-            flavor2="0">
-      </item>
-      <item path="../site/content/en/blog/prog-styles-same-time.md"
-            ex="false"
-            tool="3"
-            flavor2="0">
-      </item>
-      <item path="../site/content/en/blog/release-0.1.md"
-            ex="false"
-            tool="3"
-            flavor2="0">
-      </item>
-      <item path="../site/content/en/blog/release-0.2.md"
-            ex="false"
-            tool="3"
-            flavor2="0">
-      </item>
-      <item path="../site/content/en/blog/release-0.3.md"
-            ex="false"
-            tool="3"
-            flavor2="0">
-      </item>
       <item path="../site/content/en/blog/release-0.4.md"
-            ex="false"
-            tool="3"
-            flavor2="0">
-      </item>
-      <item path="../site/content/en/blog/unusual-prog.md"
             ex="false"
             tool="3"
             flavor2="0">
@@ -2627,113 +2402,14 @@
       </item>
       <item path="../site/content/en/blog/_index.md" ex="false" tool="3" flavor2="0">
       </item>
-      <item path="../site/content/en/blog/complex-prog/bag.jpeg"
-            ex="false"
-            tool="3"
-            flavor2="0">
-      </item>
-      <item path="../site/content/en/blog/complex-prog/complex-prog.jpeg"
-            ex="false"
-            tool="3"
-            flavor2="0">
-      </item>
-      <item path="../site/content/en/blog/complex-prog/drupal.jpeg"
-            ex="false"
-            tool="3"
-            flavor2="0">
-      </item>
-      <item path="../site/content/en/blog/complex-prog/graph1.jpeg"
-            ex="false"
-            tool="3"
-            flavor2="0">
-      </item>
-      <item path="../site/content/en/blog/complex-prog/graph2.png"
-            ex="false"
-            tool="3"
-            flavor2="0">
-      </item>
-      <item path="../site/content/en/blog/complex-prog/graph3.jpeg"
-            ex="false"
-            tool="3"
-            flavor2="0">
-      </item>
-      <item path="../site/content/en/blog/complex-prog/index.md"
-            ex="false"
-            tool="3"
-            flavor2="0">
-      </item>
       <item path="../site/content/en/blog/dsl-with-macros.en.md"
-            ex="false"
-            tool="3"
-            flavor2="0">
-      </item>
-      <item path="../site/content/en/blog/dsl-with-macros.md"
             ex="false"
             tool="3"
             flavor2="0">
       </item>
       <item path="../site/content/en/blog/dsl.jpeg" ex="false" tool="3" flavor2="0">
       </item>
-      <item path="../site/content/en/blog/inter-prog.md"
-            ex="false"
-            tool="3"
-            flavor2="0">
-      </item>
-      <item path="../site/content/en/blog/lang-final/index.md"
-            ex="false"
-            tool="3"
-            flavor2="0">
-      </item>
-      <item path="../site/content/en/blog/lang-final/lang-final.jpeg"
-            ex="false"
-            tool="3"
-            flavor2="0">
-      </item>
-      <item path="../site/content/en/blog/langs.jpeg" ex="false" tool="3" flavor2="0">
-      </item>
-      <item path="../site/content/en/blog/logic-prog.md"
-            ex="false"
-            tool="3"
-            flavor2="0">
-      </item>
-      <item path="../site/content/en/blog/matrix.jpeg"
-            ex="false"
-            tool="3"
-            flavor2="0">
-      </item>
-      <item path="../site/content/en/blog/newlang.md" ex="false" tool="3" flavor2="0">
-      </item>
-      <item path="../site/content/en/blog/parser-nuances.md"
-            ex="false"
-            tool="3"
-            flavor2="0">
-      </item>
-      <item path="../site/content/en/blog/prog-styles-same-time.md"
-            ex="false"
-            tool="3"
-            flavor2="0">
-      </item>
-      <item path="../site/content/en/blog/release-0.1.md"
-            ex="false"
-            tool="3"
-            flavor2="0">
-      </item>
-      <item path="../site/content/en/blog/release-0.2.md"
-            ex="false"
-            tool="3"
-            flavor2="0">
-      </item>
-      <item path="../site/content/en/blog/release-0.3.md"
-            ex="false"
-            tool="3"
-            flavor2="0">
-      </item>
       <item path="../site/content/en/blog/release-0.4.md"
-            ex="false"
-            tool="3"
-            flavor2="0">
-      </item>
-      <item path="../site/content/en/blog/unusual-prog.md"
             ex="false"
             tool="3"
             flavor2="0">
@@ -3608,113 +3284,14 @@
       </item>
       <item path="../site/content/en/blog/_index.md" ex="false" tool="3" flavor2="0">
       </item>
-      <item path="../site/content/en/blog/complex-prog/bag.jpeg"
-            ex="false"
-            tool="3"
-            flavor2="0">
-      </item>
-      <item path="../site/content/en/blog/complex-prog/complex-prog.jpeg"
-            ex="false"
-            tool="3"
-            flavor2="0">
-      </item>
-      <item path="../site/content/en/blog/complex-prog/drupal.jpeg"
-            ex="false"
-            tool="3"
-            flavor2="0">
-      </item>
-      <item path="../site/content/en/blog/complex-prog/graph1.jpeg"
-            ex="false"
-            tool="3"
-            flavor2="0">
-      </item>
-      <item path="../site/content/en/blog/complex-prog/graph2.png"
-            ex="false"
-            tool="3"
-            flavor2="0">
-      </item>
-      <item path="../site/content/en/blog/complex-prog/graph3.jpeg"
-            ex="false"
-            tool="3"
-            flavor2="0">
-      </item>
-      <item path="../site/content/en/blog/complex-prog/index.md"
-            ex="false"
-            tool="3"
-            flavor2="0">
-      </item>
       <item path="../site/content/en/blog/dsl-with-macros.en.md"
-            ex="false"
-            tool="3"
-            flavor2="0">
-      </item>
-      <item path="../site/content/en/blog/dsl-with-macros.md"
             ex="false"
             tool="3"
             flavor2="0">
       </item>
       <item path="../site/content/en/blog/dsl.jpeg" ex="false" tool="3" flavor2="0">
       </item>
-      <item path="../site/content/en/blog/inter-prog.md"
-            ex="false"
-            tool="3"
-            flavor2="0">
-      </item>
-      <item path="../site/content/en/blog/lang-final/index.md"
-            ex="false"
-            tool="3"
-            flavor2="0">
-      </item>
-      <item path="../site/content/en/blog/lang-final/lang-final.jpeg"
-            ex="false"
-            tool="3"
-            flavor2="0">
-      </item>
-      <item path="../site/content/en/blog/langs.jpeg" ex="false" tool="3" flavor2="0">
-      </item>
-      <item path="../site/content/en/blog/logic-prog.md"
-            ex="false"
-            tool="3"
-            flavor2="0">
-      </item>
-      <item path="../site/content/en/blog/matrix.jpeg"
-            ex="false"
-            tool="3"
-            flavor2="0">
-      </item>
-      <item path="../site/content/en/blog/newlang.md" ex="false" tool="3" flavor2="0">
-      </item>
-      <item path="../site/content/en/blog/parser-nuances.md"
-            ex="false"
-            tool="3"
-            flavor2="0">
-      </item>
-      <item path="../site/content/en/blog/prog-styles-same-time.md"
-            ex="false"
-            tool="3"
-            flavor2="0">
-      </item>
-      <item path="../site/content/en/blog/release-0.1.md"
-            ex="false"
-            tool="3"
-            flavor2="0">
-      </item>
-      <item path="../site/content/en/blog/release-0.2.md"
-            ex="false"
-            tool="3"
-            flavor2="0">
-      </item>
-      <item path="../site/content/en/blog/release-0.3.md"
-            ex="false"
-            tool="3"
-            flavor2="0">
-      </item>
       <item path="../site/content/en/blog/release-0.4.md"
-            ex="false"
-            tool="3"
-            flavor2="0">
-      </item>
-      <item path="../site/content/en/blog/unusual-prog.md"
             ex="false"
             tool="3"
             flavor2="0">
@@ -4708,113 +4285,14 @@
       </item>
       <item path="../site/content/en/blog/_index.md" ex="false" tool="3" flavor2="0">
       </item>
-      <item path="../site/content/en/blog/complex-prog/bag.jpeg"
-            ex="false"
-            tool="3"
-            flavor2="0">
-      </item>
-      <item path="../site/content/en/blog/complex-prog/complex-prog.jpeg"
-            ex="false"
-            tool="3"
-            flavor2="0">
-      </item>
-      <item path="../site/content/en/blog/complex-prog/drupal.jpeg"
-            ex="false"
-            tool="3"
-            flavor2="0">
-      </item>
-      <item path="../site/content/en/blog/complex-prog/graph1.jpeg"
-            ex="false"
-            tool="3"
-            flavor2="0">
-      </item>
-      <item path="../site/content/en/blog/complex-prog/graph2.png"
-            ex="false"
-            tool="3"
-            flavor2="0">
-      </item>
-      <item path="../site/content/en/blog/complex-prog/graph3.jpeg"
-            ex="false"
-            tool="3"
-            flavor2="0">
-      </item>
-      <item path="../site/content/en/blog/complex-prog/index.md"
-            ex="false"
-            tool="3"
-            flavor2="0">
-      </item>
       <item path="../site/content/en/blog/dsl-with-macros.en.md"
-            ex="false"
-            tool="3"
-            flavor2="0">
-      </item>
-      <item path="../site/content/en/blog/dsl-with-macros.md"
             ex="false"
             tool="3"
             flavor2="0">
       </item>
       <item path="../site/content/en/blog/dsl.jpeg" ex="false" tool="3" flavor2="0">
       </item>
-      <item path="../site/content/en/blog/inter-prog.md"
-            ex="false"
-            tool="3"
-            flavor2="0">
-      </item>
-      <item path="../site/content/en/blog/lang-final/index.md"
-            ex="false"
-            tool="3"
-            flavor2="0">
-      </item>
-      <item path="../site/content/en/blog/lang-final/lang-final.jpeg"
-            ex="false"
-            tool="3"
-            flavor2="0">
-      </item>
-      <item path="../site/content/en/blog/langs.jpeg" ex="false" tool="3" flavor2="0">
-      </item>
-      <item path="../site/content/en/blog/logic-prog.md"
-            ex="false"
-            tool="3"
-            flavor2="0">
-      </item>
-      <item path="../site/content/en/blog/matrix.jpeg"
-            ex="false"
-            tool="3"
-            flavor2="0">
-      </item>
-      <item path="../site/content/en/blog/newlang.md" ex="false" tool="3" flavor2="0">
-      </item>
-      <item path="../site/content/en/blog/parser-nuances.md"
-            ex="false"
-            tool="3"
-            flavor2="0">
-      </item>
-      <item path="../site/content/en/blog/prog-styles-same-time.md"
-            ex="false"
-            tool="3"
-            flavor2="0">
-      </item>
-      <item path="../site/content/en/blog/release-0.1.md"
-            ex="false"
-            tool="3"
-            flavor2="0">
-      </item>
-      <item path="../site/content/en/blog/release-0.2.md"
-            ex="false"
-            tool="3"
-            flavor2="0">
-      </item>
-      <item path="../site/content/en/blog/release-0.3.md"
-            ex="false"
-            tool="3"
-            flavor2="0">
-      </item>
       <item path="../site/content/en/blog/release-0.4.md"
-            ex="false"
-            tool="3"
-            flavor2="0">
-      </item>
-      <item path="../site/content/en/blog/unusual-prog.md"
             ex="false"
             tool="3"
             flavor2="0">

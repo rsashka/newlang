@@ -32,5 +32,5 @@ done
 
 cd  $root/site
 
-hugo server --cleanDestinationDir -d ../docs
+hugo server -d ../docs
 

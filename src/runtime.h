@@ -21,11 +21,11 @@
 
 
 namespace newlang {
-    
+
 #ifdef __GNUC__
-extern "C" int nlc_prinft_sub_(char const *format, ...) __attribute__ ((format(printf, 1, 2)));
+    extern "C" int nlc_prinft_sub_(char const *format, ...) __attribute__ ((format(printf, 1, 2)));
 #else
-EXTERN_C int nlc_prinft_sub_(char const *format, ...);
+    EXTERN_C int nlc_prinft_sub_(char const *format, ...);
 #endif    
 
     template <typename T>
@@ -211,7 +211,7 @@ EXTERN_C int nlc_prinft_sub_(char const *format, ...);
         ObjPtr CreateFunction(TermPtr proto, TermPtr block);
         ObjPtr CreateFunction(TermPtr proto, void *addr);
 
-        
+
         static std::string Escape(const std::string_view str);
         /*
          * class A {
@@ -363,7 +363,7 @@ EXTERN_C int nlc_prinft_sub_(char const *format, ...);
         bool m_load_dsl;
         bool m_embed_source;
         bool m_import_module;
-        bool m_import_natime;
+        bool m_import_native;
         bool m_eval_enable;
         bool m_load_runtime;
         int m_typedef_limit;
@@ -436,13 +436,14 @@ EXTERN_C int nlc_prinft_sub_(char const *format, ...);
                     //                    m_main_args = EvalStatic(MakeAst(call, true), false);
 
                 } else if (args[i].compare("--nlc-embed-source") == 0) {
+                    LOG_RUNTIME("Flag '--nlc-embed-source' not implemented!");
                     m_embed_source = true;
                 } else if (args[i].compare("--nlc-no-embed-source") == 0) {
                     m_embed_source = false;
                 } else if (args[i].compare("--nlc-no-import-module") == 0) {
                     m_import_module = false;
                 } else if (args[i].compare("--nlc-no-import-native") == 0) {
-                    m_import_natime = false;
+                    m_import_native = false;
                 } else if (args[i].compare("--nlc-no-eval-enable") == 0) {
                     m_eval_enable = false;
                 } else if (args[i].compare("--nlc-no-assert") == 0) {

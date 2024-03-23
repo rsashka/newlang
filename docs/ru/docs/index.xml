@@ -1700,7 +1700,8 @@ Sum1(arg1, arg2) :- {$arg1+$arg2;}; # Создать или переопреде
       <description>
         
         
-        &lt;p&gt;Макросы в &lt;strong&gt;NewLang&lt;/strong&gt;, это один или несколько последовательных терминов, которые заменяются на другой термин
+        &lt;p&gt;Макросы используются и для превращеня исходного кода &lt;em&gt;NewLang&lt;/em&gt; в более привычный синтаксис на основе &lt;a href=&#34;https://newlang.net/syntax_dsl.html&#34;&gt;ключевых слов&lt;/a&gt;, так как такой тест гораздо легче воспринимается при последующем чтении исходного кода.&lt;/p&gt;
+&lt;p&gt;Макросы в &lt;strong&gt;NewLang&lt;/strong&gt;, это один или несколько последовательных терминов, которые заменяются на другой термин
 или на целую синтаксическую конструкцию (последовательность лексем).&lt;/p&gt;
 &lt;p&gt;Макросы обработываются во время работы &lt;strong&gt;лексера&lt;/strong&gt;, т.е. перед передачей последовательности лексем в парсер,
 что позволяет с помощью маросов изменять фрагменты синтаксиса языка, например, при реализации собственных диалектов DSL.&lt;/p&gt;
@@ -1735,13 +1736,13 @@ Sum1(arg1, arg2) :- {$arg1+$arg2;}; # Создать или переопреде
 с одинаковыми именами, один из которых будет с аргументами (скобками), а другой без них.&lt;/p&gt;
 &lt;p&gt;Поэтому, если требуется использовать макрос в двух разных вариантах (с аргументами и без оных),
 следует определять макрос без аргументов и в этом случае контроль параметров будет выполнятся компилятором.&lt;/p&gt;
-&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;background-color:#f8f8f8;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;&lt;code class=&#34;language-bash&#34; data-lang=&#34;bash&#34;&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    @@macro@@ :&lt;span style=&#34;color:#ce5c00;font-weight:bold&#34;&gt;=&lt;/span&gt; term&lt;span style=&#34;color:#000;font-weight:bold&#34;&gt;;&lt;/span&gt; &lt;span style=&#34;color:#8f5902;font-style:italic&#34;&gt;# Макрос без аргументов&lt;/span&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;background-color:#f8f8f8;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;&lt;code class=&#34;language-bash&#34; data-lang=&#34;bash&#34;&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    @@ macro @@ :&lt;span style=&#34;color:#ce5c00;font-weight:bold&#34;&gt;=&lt;/span&gt; term&lt;span style=&#34;color:#000;font-weight:bold&#34;&gt;;&lt;/span&gt; &lt;span style=&#34;color:#8f5902;font-style:italic&#34;&gt;# Макрос без аргументов&lt;/span&gt;
 &lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    
 &lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    macro&lt;span style=&#34;color:#ce5c00;font-weight:bold&#34;&gt;(&lt;/span&gt;args&lt;span style=&#34;color:#ce5c00;font-weight:bold&#34;&gt;)&lt;/span&gt;&lt;span style=&#34;color:#000;font-weight:bold&#34;&gt;;&lt;/span&gt; &lt;span style=&#34;color:#8f5902;font-style:italic&#34;&gt;# ОК -&amp;gt; term(args);&lt;/span&gt;
 &lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    macro&lt;span style=&#34;color:#000;font-weight:bold&#34;&gt;;&lt;/span&gt; &lt;span style=&#34;color:#8f5902;font-style:italic&#34;&gt;# ОК -&amp;gt; term;&lt;/span&gt;
 &lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;
 &lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    &lt;span style=&#34;color:#8f5902;font-style:italic&#34;&gt;# Но &lt;/span&gt;
-&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    @@call&lt;span style=&#34;color:#ce5c00;font-weight:bold&#34;&gt;()&lt;/span&gt;@@ :&lt;span style=&#34;color:#ce5c00;font-weight:bold&#34;&gt;=&lt;/span&gt; term&lt;span style=&#34;color:#ce5c00;font-weight:bold&#34;&gt;()&lt;/span&gt;&lt;span style=&#34;color:#000;font-weight:bold&#34;&gt;;&lt;/span&gt; 
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    @@ call&lt;span style=&#34;color:#ce5c00;font-weight:bold&#34;&gt;()&lt;/span&gt; @@ :&lt;span style=&#34;color:#ce5c00;font-weight:bold&#34;&gt;=&lt;/span&gt; term&lt;span style=&#34;color:#ce5c00;font-weight:bold&#34;&gt;()&lt;/span&gt;&lt;span style=&#34;color:#000;font-weight:bold&#34;&gt;;&lt;/span&gt; 
 &lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;
 &lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    call&lt;span style=&#34;color:#ce5c00;font-weight:bold&#34;&gt;()&lt;/span&gt;&lt;span style=&#34;color:#000;font-weight:bold&#34;&gt;;&lt;/span&gt; &lt;span style=&#34;color:#8f5902;font-style:italic&#34;&gt;# ОК -&amp;gt; term();&lt;/span&gt;
 &lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    call&lt;span style=&#34;color:#000;font-weight:bold&#34;&gt;;&lt;/span&gt; &lt;span style=&#34;color:#8f5902;font-style:italic&#34;&gt;# Ошибка (@call определен с аргументами) &lt;/span&gt;
@@ -1754,286 +1755,49 @@ Sum1(arg1, arg2) :- {$arg1+$arg2;}; # Создать или переопреде
 &lt;p&gt;По аналогии с препроцессором С/С++, для соединения двух лексем в одну, в теле макроса используется оператор &lt;strong&gt;&amp;quot;@##&amp;quot;&lt;/strong&gt;,
 а для преобразование лексемы в текстову строку применяется операторы &lt;strong&gt;@#&lt;/strong&gt;, &lt;strong&gt;@#&amp;quot;&lt;/strong&gt; или &lt;strong&gt;@#&amp;rsquo;&lt;/strong&gt;, например,
 &lt;code&gt;@@macro($arg)@@ := @@ func_ @## @$arg( @#&amp;quot; arg ) @;&lt;/code&gt;, тогда вызов &lt;code&gt;macro(name);&lt;/code&gt; будет преобразован в &lt;code&gt;func_name (&amp;quot;name&amp;quot;);&lt;/code&gt;&lt;/p&gt;
-
-
-&lt;div class=&#34;pageinfo pageinfo-primary&#34;&gt;
-&lt;h4 id=&#34;ограничения-макропроцессора-в-текущей-версии&#34;&gt;Ограничения макропроцессора в текущей версии&lt;a class=&#34;td-heading-self-link&#34; href=&#34;#%d0%be%d0%b3%d1%80%d0%b0%d0%bd%d0%b8%d1%87%d0%b5%d0%bd%d0%b8%d1%8f-%d0%bc%d0%b0%d0%ba%d1%80%d0%be%d0%bf%d1%80%d0%be%d1%86%d0%b5%d1%81%d1%81%d0%be%d1%80%d0%b0-%d0%b2-%d1%82%d0%b5%d0%ba%d1%83%d1%89%d0%b5%d0%b9-%d0%b2%d0%b5%d1%80%d1%81%d0%b8%d0%b8&#34; aria-label=&#34;Heading self-link&#34;&gt;&lt;/a&gt;&lt;/h4&gt;
-&lt;p&gt;На текущий момент макросы реализованы в минимальном объеме для самых простых сценариев использования:&lt;/p&gt;
-&lt;ul&gt;
-&lt;li&gt;DSL для keyword based syntax (if, else, return, match, while  и т.д.) - (1 термин с произвольными аргументами и без) - требуется сейчас !!!&lt;/li&gt;
-&lt;/ul&gt;
-&lt;p&gt;&lt;em&gt;Парсер при обработке макросов может анализировать информацию о типах данных, если она указана.&lt;/em&gt;
-&lt;em&gt;Но на текущий момент типы данных в макросах никак не обрабатываются и это одна из обязательных фич, которая будет реализована в будущем.&lt;/em&gt;&lt;/p&gt;
-&lt;ul&gt;
-&lt;li&gt;Определения (func, class) - (несколько терминов с аргументами и без аргументов) - Реализация ООП и импорт С++ классов&lt;/li&gt;
-&lt;li&gt;Модификации при определениях (override) - (несколько терминов и шаблоны с аргументами и без аргументов) - Реализация ООП и импорт С++ классов&lt;/li&gt;
-&lt;/ul&gt;
-
-&lt;/div&gt;
-
-&lt;h1 id=&#34;макросы-без-аргументов-или-все-аргументы-сразу-&#34;&gt;МАКРОСЫ БЕЗ АРГУМЕНТОВ ИЛИ ВСЕ АРГУМЕНТЫ СРАЗУ !!!!!&lt;a class=&#34;td-heading-self-link&#34; href=&#34;#%d0%bc%d0%b0%d0%ba%d1%80%d0%be%d1%81%d1%8b-%d0%b1%d0%b5%d0%b7-%d0%b0%d1%80%d0%b3%d1%83%d0%bc%d0%b5%d0%bd%d1%82%d0%be%d0%b2-%d0%b8%d0%bb%d0%b8-%d0%b2%d1%81%d0%b5-%d0%b0%d1%80%d0%b3%d1%83%d0%bc%d0%b5%d0%bd%d1%82%d1%8b-%d1%81%d1%80%d0%b0%d0%b7%d1%83-&#34; aria-label=&#34;Heading self-link&#34;&gt;&lt;/a&gt;&lt;/h1&gt;
-&lt;h1 id=&#34;анализа-аргументов-или-их-типов-не-производится-&#34;&gt;анализа аргументов или их типов не производится !!!&lt;a class=&#34;td-heading-self-link&#34; href=&#34;#%d0%b0%d0%bd%d0%b0%d0%bb%d0%b8%d0%b7%d0%b0-%d0%b0%d1%80%d0%b3%d1%83%d0%bc%d0%b5%d0%bd%d1%82%d0%be%d0%b2-%d0%b8%d0%bb%d0%b8-%d0%b8%d1%85-%d1%82%d0%b8%d0%bf%d0%be%d0%b2-%d0%bd%d0%b5-%d0%bf%d1%80%d0%be%d0%b8%d0%b7%d0%b2%d0%be%d0%b4%d0%b8%d1%82%d1%81%d1%8f-&#34; aria-label=&#34;Heading self-link&#34;&gt;&lt;/a&gt;&lt;/h1&gt;
-&lt;p&gt;Lambda
-@@ lambda $name(&amp;hellip;) @@ ::= @@  @$name( @$&amp;hellip; ) ::= ( _( @$&amp;hellip; ) ::=  @&lt;strong&gt;PRAGMA_FINALIZE&lt;/strong&gt;( @), {, {+, {-, {* ) @@&lt;/p&gt;
-&lt;h3 id=&#34;примеры-использования-макросов&#34;&gt;Примеры использования макросов&lt;a class=&#34;td-heading-self-link&#34; href=&#34;#%d0%bf%d1%80%d0%b8%d0%bc%d0%b5%d1%80%d1%8b-%d0%b8%d1%81%d0%bf%d0%be%d0%bb%d1%8c%d0%b7%d0%be%d0%b2%d0%b0%d0%bd%d0%b8%d1%8f-%d0%bc%d0%b0%d0%ba%d1%80%d0%be%d1%81%d0%be%d0%b2&#34; aria-label=&#34;Heading self-link&#34;&gt;&lt;/a&gt;&lt;/h3&gt;
-&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;background-color:#f8f8f8;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;&lt;code class=&#34;language-bash&#34; data-lang=&#34;bash&#34;&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    &lt;span style=&#34;color:#8f5902;font-style:italic&#34;&gt;# Обычные макросы (тело макроса корректное выражение)&lt;/span&gt;
-&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    @@macro@@        :&lt;span style=&#34;color:#ce5c00;font-weight:bold&#34;&gt;=&lt;/span&gt; replace&lt;span style=&#34;color:#ce5c00;font-weight:bold&#34;&gt;()&lt;/span&gt;&lt;span style=&#34;color:#000;font-weight:bold&#34;&gt;;&lt;/span&gt;
-&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    @@macro2&lt;span style=&#34;color:#ce5c00;font-weight:bold&#34;&gt;(&lt;/span&gt;arg&lt;span style=&#34;color:#ce5c00;font-weight:bold&#34;&gt;)&lt;/span&gt;@@  :&lt;span style=&#34;color:#ce5c00;font-weight:bold&#34;&gt;=&lt;/span&gt; &lt;span style=&#34;color:#ce5c00;font-weight:bold&#34;&gt;{&lt;/span&gt; call&lt;span style=&#34;color:#ce5c00;font-weight:bold&#34;&gt;(&lt;/span&gt;@&lt;span style=&#34;color:#000&#34;&gt;$arg&lt;/span&gt;&lt;span style=&#34;color:#ce5c00;font-weight:bold&#34;&gt;)&lt;/span&gt;&lt;span style=&#34;color:#000;font-weight:bold&#34;&gt;;&lt;/span&gt; call&lt;span style=&#34;color:#ce5c00;font-weight:bold&#34;&gt;()}&lt;/span&gt;&lt;span style=&#34;color:#000;font-weight:bold&#34;&gt;;&lt;/span&gt;
+&lt;p&gt;Примеры использования макросов:&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;background-color:#f8f8f8;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;&lt;code class=&#34;language-python&#34; data-lang=&#34;python&#34;&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    &lt;span style=&#34;color:#8f5902;font-style:italic&#34;&gt;# Обычные макросы (тело макроса корректное выражение)&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    &lt;span style=&#34;color:#ce5c00;font-weight:bold&#34;&gt;@@&lt;/span&gt; &lt;span style=&#34;color:#000&#34;&gt;macro&lt;/span&gt; &lt;span style=&#34;color:#ce5c00;font-weight:bold&#34;&gt;@@&lt;/span&gt;        &lt;span style=&#34;color:#ce5c00;font-weight:bold&#34;&gt;:=&lt;/span&gt; &lt;span style=&#34;color:#000&#34;&gt;replace&lt;/span&gt;&lt;span style=&#34;color:#000;font-weight:bold&#34;&gt;();&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    &lt;span style=&#34;color:#ce5c00;font-weight:bold&#34;&gt;@@&lt;/span&gt; &lt;span style=&#34;color:#000&#34;&gt;macro2&lt;/span&gt;&lt;span style=&#34;color:#000;font-weight:bold&#34;&gt;(&lt;/span&gt;&lt;span style=&#34;color:#000&#34;&gt;arg&lt;/span&gt;&lt;span style=&#34;color:#000;font-weight:bold&#34;&gt;)&lt;/span&gt; &lt;span style=&#34;color:#ce5c00;font-weight:bold&#34;&gt;@@&lt;/span&gt;  &lt;span style=&#34;color:#ce5c00;font-weight:bold&#34;&gt;:=&lt;/span&gt; &lt;span style=&#34;color:#000;font-weight:bold&#34;&gt;{&lt;/span&gt; &lt;span style=&#34;color:#000&#34;&gt;call&lt;/span&gt;&lt;span style=&#34;color:#000;font-weight:bold&#34;&gt;(&lt;/span&gt;&lt;span style=&#34;color:#ce5c00;font-weight:bold&#34;&gt;@&lt;/span&gt;&lt;span style=&#34;color:#a40000&#34;&gt;$&lt;/span&gt;&lt;span style=&#34;color:#000&#34;&gt;arg&lt;/span&gt;&lt;span style=&#34;color:#000;font-weight:bold&#34;&gt;);&lt;/span&gt; &lt;span style=&#34;color:#000&#34;&gt;call&lt;/span&gt;&lt;span style=&#34;color:#000;font-weight:bold&#34;&gt;()};&lt;/span&gt;
 &lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;
 &lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    &lt;span style=&#34;color:#8f5902;font-style:italic&#34;&gt;# Тело макросов из последовательности лексем&lt;/span&gt;
-&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    @@if&lt;span style=&#34;color:#ce5c00;font-weight:bold&#34;&gt;(&lt;/span&gt;...&lt;span style=&#34;color:#ce5c00;font-weight:bold&#34;&gt;)&lt;/span&gt;@@    :&lt;span style=&#34;color:#ce5c00;font-weight:bold&#34;&gt;=&lt;/span&gt; @@ &lt;span style=&#34;color:#ce5c00;font-weight:bold&#34;&gt;[&lt;/span&gt; &lt;span style=&#34;color:#4e9a06&#34;&gt;\$&lt;/span&gt;&lt;span style=&#34;color:#204a87;font-weight:bold&#34;&gt;if&lt;/span&gt;&lt;span style=&#34;color:#ce5c00;font-weight:bold&#34;&gt;(&lt;/span&gt;*&lt;span style=&#34;color:#ce5c00;font-weight:bold&#34;&gt;)&lt;/span&gt; &lt;span style=&#34;color:#ce5c00;font-weight:bold&#34;&gt;]&lt;/span&gt;--&amp;gt; @@&lt;span style=&#34;color:#000;font-weight:bold&#34;&gt;;&lt;/span&gt; &lt;span style=&#34;color:#8f5902;font-style:italic&#34;&gt;# Выражение может быть не полным&lt;/span&gt;
-&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    @@elif&lt;span style=&#34;color:#ce5c00;font-weight:bold&#34;&gt;(&lt;/span&gt;...&lt;span style=&#34;color:#ce5c00;font-weight:bold&#34;&gt;)&lt;/span&gt;@@  :&lt;span style=&#34;color:#ce5c00;font-weight:bold&#34;&gt;=&lt;/span&gt; @@ ,&lt;span style=&#34;color:#ce5c00;font-weight:bold&#34;&gt;[&lt;/span&gt; &lt;span style=&#34;color:#4e9a06&#34;&gt;\$&lt;/span&gt;&lt;span style=&#34;color:#204a87;font-weight:bold&#34;&gt;elif&lt;/span&gt;&lt;span style=&#34;color:#ce5c00;font-weight:bold&#34;&gt;(&lt;/span&gt;*&lt;span style=&#34;color:#ce5c00;font-weight:bold&#34;&gt;)&lt;/span&gt; &lt;span style=&#34;color:#ce5c00;font-weight:bold&#34;&gt;]&lt;/span&gt;--&amp;gt; @@&lt;span style=&#34;color:#000;font-weight:bold&#34;&gt;;&lt;/span&gt;
-&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    @@else@@       :&lt;span style=&#34;color:#ce5c00;font-weight:bold&#34;&gt;=&lt;/span&gt; @@ ,&lt;span style=&#34;color:#ce5c00;font-weight:bold&#34;&gt;[&lt;/span&gt;_&lt;span style=&#34;color:#ce5c00;font-weight:bold&#34;&gt;]&lt;/span&gt;--&amp;gt; @@&lt;span style=&#34;color:#000;font-weight:bold&#34;&gt;;&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    &lt;span style=&#34;color:#ce5c00;font-weight:bold&#34;&gt;@@&lt;/span&gt; &lt;span style=&#34;color:#204a87;font-weight:bold&#34;&gt;if&lt;/span&gt;&lt;span style=&#34;color:#000;font-weight:bold&#34;&gt;(&lt;/span&gt;&lt;span style=&#34;color:#ce5c00;font-weight:bold&#34;&gt;...&lt;/span&gt;&lt;span style=&#34;color:#000;font-weight:bold&#34;&gt;)&lt;/span&gt; &lt;span style=&#34;color:#ce5c00;font-weight:bold&#34;&gt;@@&lt;/span&gt;    &lt;span style=&#34;color:#ce5c00;font-weight:bold&#34;&gt;:=&lt;/span&gt; &lt;span style=&#34;color:#ce5c00;font-weight:bold&#34;&gt;@@&lt;/span&gt; &lt;span style=&#34;color:#000;font-weight:bold&#34;&gt;[&lt;/span&gt; &lt;span style=&#34;color:#ce5c00;font-weight:bold&#34;&gt;@&lt;/span&gt;&lt;span style=&#34;color:#a40000&#34;&gt;$&lt;/span&gt;&lt;span style=&#34;color:#ce5c00;font-weight:bold&#34;&gt;...&lt;/span&gt; &lt;span style=&#34;color:#000;font-weight:bold&#34;&gt;]&lt;/span&gt;&lt;span style=&#34;color:#ce5c00;font-weight:bold&#34;&gt;--&amp;gt;&lt;/span&gt; &lt;span style=&#34;color:#ce5c00;font-weight:bold&#34;&gt;@@&lt;/span&gt;&lt;span style=&#34;color:#000;font-weight:bold&#34;&gt;;&lt;/span&gt; &lt;span style=&#34;color:#8f5902;font-style:italic&#34;&gt;# Выражение может быть не полным&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    &lt;span style=&#34;color:#ce5c00;font-weight:bold&#34;&gt;@@&lt;/span&gt; &lt;span style=&#34;color:#204a87;font-weight:bold&#34;&gt;elif&lt;/span&gt;&lt;span style=&#34;color:#000;font-weight:bold&#34;&gt;(&lt;/span&gt;&lt;span style=&#34;color:#ce5c00;font-weight:bold&#34;&gt;...&lt;/span&gt;&lt;span style=&#34;color:#000;font-weight:bold&#34;&gt;)&lt;/span&gt; &lt;span style=&#34;color:#ce5c00;font-weight:bold&#34;&gt;@@&lt;/span&gt;  &lt;span style=&#34;color:#ce5c00;font-weight:bold&#34;&gt;:=&lt;/span&gt; &lt;span style=&#34;color:#ce5c00;font-weight:bold&#34;&gt;@@&lt;/span&gt; &lt;span style=&#34;color:#000;font-weight:bold&#34;&gt;,[&lt;/span&gt; &lt;span style=&#34;color:#ce5c00;font-weight:bold&#34;&gt;@&lt;/span&gt;&lt;span style=&#34;color:#a40000&#34;&gt;$&lt;/span&gt;&lt;span style=&#34;color:#ce5c00;font-weight:bold&#34;&gt;...&lt;/span&gt; &lt;span style=&#34;color:#000;font-weight:bold&#34;&gt;]&lt;/span&gt;&lt;span style=&#34;color:#ce5c00;font-weight:bold&#34;&gt;--&amp;gt;&lt;/span&gt; &lt;span style=&#34;color:#ce5c00;font-weight:bold&#34;&gt;@@&lt;/span&gt;&lt;span style=&#34;color:#000;font-weight:bold&#34;&gt;;&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    &lt;span style=&#34;color:#ce5c00;font-weight:bold&#34;&gt;@@&lt;/span&gt; &lt;span style=&#34;color:#204a87;font-weight:bold&#34;&gt;else&lt;/span&gt; &lt;span style=&#34;color:#ce5c00;font-weight:bold&#34;&gt;@@&lt;/span&gt;       &lt;span style=&#34;color:#ce5c00;font-weight:bold&#34;&gt;:=&lt;/span&gt; &lt;span style=&#34;color:#ce5c00;font-weight:bold&#34;&gt;@@&lt;/span&gt; &lt;span style=&#34;color:#000;font-weight:bold&#34;&gt;,[&lt;/span&gt;&lt;span style=&#34;color:#ce5c00;font-weight:bold&#34;&gt;...&lt;/span&gt;&lt;span style=&#34;color:#000;font-weight:bold&#34;&gt;]&lt;/span&gt;&lt;span style=&#34;color:#ce5c00;font-weight:bold&#34;&gt;--&amp;gt;&lt;/span&gt; &lt;span style=&#34;color:#ce5c00;font-weight:bold&#34;&gt;@@&lt;/span&gt;&lt;span style=&#34;color:#000;font-weight:bold&#34;&gt;;&lt;/span&gt;
 &lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt; 
 &lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    &lt;span style=&#34;color:#8f5902;font-style:italic&#34;&gt;# Запись условного оператора с использованием &lt;/span&gt;
 &lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    &lt;span style=&#34;color:#8f5902;font-style:italic&#34;&gt;# определенных выше макросов&lt;/span&gt;
-&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    &lt;span style=&#34;color:#204a87;font-weight:bold&#34;&gt;if&lt;/span&gt;&lt;span style=&#34;color:#ce5c00;font-weight:bold&#34;&gt;(&lt;/span&gt; condition &lt;span style=&#34;color:#ce5c00;font-weight:bold&#34;&gt;){&lt;/span&gt;
-&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;        ...
-&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    &lt;span style=&#34;color:#ce5c00;font-weight:bold&#34;&gt;}&lt;/span&gt; &lt;span style=&#34;color:#204a87;font-weight:bold&#34;&gt;elif&lt;/span&gt;&lt;span style=&#34;color:#ce5c00;font-weight:bold&#34;&gt;(&lt;/span&gt; condition2 &lt;span style=&#34;color:#ce5c00;font-weight:bold&#34;&gt;)&lt;/span&gt; &lt;span style=&#34;color:#ce5c00;font-weight:bold&#34;&gt;{&lt;/span&gt;
-&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;        ...
-&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    &lt;span style=&#34;color:#ce5c00;font-weight:bold&#34;&gt;}&lt;/span&gt; &lt;span style=&#34;color:#204a87;font-weight:bold&#34;&gt;else&lt;/span&gt; &lt;span style=&#34;color:#ce5c00;font-weight:bold&#34;&gt;{&lt;/span&gt;
-&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;        ...
-&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    &lt;span style=&#34;color:#ce5c00;font-weight:bold&#34;&gt;}&lt;/span&gt;&lt;span style=&#34;color:#000;font-weight:bold&#34;&gt;;&lt;/span&gt;
-&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;Зачем нужна трансформация синтаксиса?
-Нативная поддержка других языков нужна чтобы не переписывать легаси код на этих языках.&lt;/p&gt;
-&lt;p&gt;Чтобы можно было использовать существующие исходники как собственные требуется настройка работы
-препроцессора и лексера под конкретный язык программирования (описание DSL).
-Для &lt;strong&gt;С/С++&lt;/strong&gt; потребуется выделять лексером комментарии из-за пересечения синтаксиса (которые сейчас игнорируются).
-Для &lt;strong&gt;Python&lt;/strong&gt; требуется выделять лексером отступы (которые сейчас тоже игнорируются), причем потребуется реализация не только синтаксиса,
-но и зависимых пакетов с последующая трансляцией этого кода в С++, что в настоящий момент делать не целесообразно (cython ???).&lt;/p&gt;
-&lt;p&gt;Но так как возможность трансформации кода с других языков программирования принципиальная возможна,
-стоит над этим думать только после полноценного релиза NewLang и его перехода в прод.&lt;/p&gt;
-&lt;p&gt;Для реализации DSL требуется передача команд в парсер для управления его работой (по аналогии с командой #pragma)
-Но так как обработка таких команд должна происходить в лексере до передачи данных в парсер (анализатор),
-то команды для макропроцессора должны быть в максимально простом виде и состоять из элементов,
-которые лексер может самостоятельно идентифицировать, т.е. термины, строки и цифры (без выражений и именованных аргументов).&lt;/p&gt;
-&lt;p&gt;После обработки такой команды она анализируется макропроцессором и удаляется из потока лексем, т.е. в парсер (анализатор) не передается.
-Но в случае ошибки с синтаксисе, данные команды нужно уметь однозначно идентифировать и самый простой способ,
-комбинация признака макроса и системного имени, т.е. что-то вроде&lt;/p&gt;
-&lt;pre tabindex=&#34;0&#34;&gt;&lt;code&gt;    @__PRAGMA_DIAG__(push)
-    @__PRAGMA_DIAG__(ignored, &amp;#34;-Wundef&amp;#34;)
-    @__PRAGMA_DIAG__(warning, &amp;#34;-Wformat&amp;#34;)
-    @__PRAGMA_DIAG__(error &amp;#34;-Wuninitialized&amp;#34;)
-    @__PRAGMA_DIAG__(pop)
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    &lt;span style=&#34;color:#5c35cc;font-weight:bold&#34;&gt;@if&lt;/span&gt;&lt;span style=&#34;color:#000;font-weight:bold&#34;&gt;(&lt;/span&gt; &lt;span style=&#34;color:#000&#34;&gt;condition&lt;/span&gt; &lt;span style=&#34;color:#000;font-weight:bold&#34;&gt;){&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;        &lt;span style=&#34;color:#ce5c00;font-weight:bold&#34;&gt;...&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    &lt;span style=&#34;color:#000;font-weight:bold&#34;&gt;}&lt;/span&gt; &lt;span style=&#34;color:#5c35cc;font-weight:bold&#34;&gt;@elif&lt;/span&gt;&lt;span style=&#34;color:#000;font-weight:bold&#34;&gt;(&lt;/span&gt; &lt;span style=&#34;color:#000&#34;&gt;condition2&lt;/span&gt; &lt;span style=&#34;color:#000;font-weight:bold&#34;&gt;)&lt;/span&gt; &lt;span style=&#34;color:#000;font-weight:bold&#34;&gt;{&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;        &lt;span style=&#34;color:#ce5c00;font-weight:bold&#34;&gt;...&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    &lt;span style=&#34;color:#000;font-weight:bold&#34;&gt;}&lt;/span&gt; &lt;span style=&#34;color:#5c35cc;font-weight:bold&#34;&gt;@else&lt;/span&gt; &lt;span style=&#34;color:#000;font-weight:bold&#34;&gt;{&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;        &lt;span style=&#34;color:#ce5c00;font-weight:bold&#34;&gt;...&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    &lt;span style=&#34;color:#000;font-weight:bold&#34;&gt;};&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;Например цикл до 5:&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;background-color:#f8f8f8;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;&lt;code class=&#34;language-python&#34; data-lang=&#34;python&#34;&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    &lt;span style=&#34;color:#000&#34;&gt;count&lt;/span&gt; &lt;span style=&#34;color:#ce5c00;font-weight:bold&#34;&gt;:=&lt;/span&gt; &lt;span style=&#34;color:#0000cf;font-weight:bold&#34;&gt;1&lt;/span&gt;&lt;span style=&#34;color:#000;font-weight:bold&#34;&gt;;&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    &lt;span style=&#34;color:#000;font-weight:bold&#34;&gt;[&lt;/span&gt; &lt;span style=&#34;color:#0000cf;font-weight:bold&#34;&gt;1&lt;/span&gt; &lt;span style=&#34;color:#000;font-weight:bold&#34;&gt;]&lt;/span&gt; &lt;span style=&#34;color:#ce5c00;font-weight:bold&#34;&gt;&amp;lt;-&amp;gt;&lt;/span&gt; &lt;span style=&#34;color:#000;font-weight:bold&#34;&gt;{&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;        &lt;span style=&#34;color:#000;font-weight:bold&#34;&gt;[&lt;/span&gt; &lt;span style=&#34;color:#000&#34;&gt;count&lt;/span&gt; &lt;span style=&#34;color:#ce5c00;font-weight:bold&#34;&gt;&amp;gt;&lt;/span&gt; &lt;span style=&#34;color:#0000cf;font-weight:bold&#34;&gt;5&lt;/span&gt; &lt;span style=&#34;color:#000;font-weight:bold&#34;&gt;]&lt;/span&gt; &lt;span style=&#34;color:#ce5c00;font-weight:bold&#34;&gt;--&amp;gt;&lt;/span&gt; &lt;span style=&#34;color:#000;font-weight:bold&#34;&gt;{&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;            &lt;span style=&#34;color:#ce5c00;font-weight:bold&#34;&gt;--&lt;/span&gt; &lt;span style=&#34;color:#0000cf;font-weight:bold&#34;&gt;42&lt;/span&gt; &lt;span style=&#34;color:#ce5c00;font-weight:bold&#34;&gt;--&lt;/span&gt;&lt;span style=&#34;color:#000;font-weight:bold&#34;&gt;;&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;        &lt;span style=&#34;color:#000;font-weight:bold&#34;&gt;};&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;        &lt;span style=&#34;color:#000&#34;&gt;count&lt;/span&gt;&lt;span style=&#34;color:#ce5c00;font-weight:bold&#34;&gt;+=&lt;/span&gt;&lt;span style=&#34;color:#0000cf;font-weight:bold&#34;&gt;1&lt;/span&gt;&lt;span style=&#34;color:#000;font-weight:bold&#34;&gt;;&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    &lt;span style=&#34;color:#000;font-weight:bold&#34;&gt;};&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;Будет выглядеть более привычно:&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;background-color:#f8f8f8;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;&lt;code class=&#34;language-python&#34; data-lang=&#34;python&#34;&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    &lt;span style=&#34;color:#000&#34;&gt;count&lt;/span&gt; &lt;span style=&#34;color:#ce5c00;font-weight:bold&#34;&gt;:=&lt;/span&gt; &lt;span style=&#34;color:#0000cf;font-weight:bold&#34;&gt;1&lt;/span&gt;&lt;span style=&#34;color:#000;font-weight:bold&#34;&gt;;&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    &lt;span style=&#34;color:#5c35cc;font-weight:bold&#34;&gt;@while&lt;/span&gt;&lt;span style=&#34;color:#000;font-weight:bold&#34;&gt;(&lt;/span&gt; &lt;span style=&#34;color:#000&#34;&gt;true&lt;/span&gt; &lt;span style=&#34;color:#000;font-weight:bold&#34;&gt;)&lt;/span&gt; &lt;span style=&#34;color:#000;font-weight:bold&#34;&gt;{&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;        &lt;span style=&#34;color:#5c35cc;font-weight:bold&#34;&gt;@if&lt;/span&gt;&lt;span style=&#34;color:#000;font-weight:bold&#34;&gt;(&lt;/span&gt; &lt;span style=&#34;color:#000&#34;&gt;count&lt;/span&gt; &lt;span style=&#34;color:#ce5c00;font-weight:bold&#34;&gt;&amp;gt;&lt;/span&gt; &lt;span style=&#34;color:#0000cf;font-weight:bold&#34;&gt;5&lt;/span&gt; &lt;span style=&#34;color:#000;font-weight:bold&#34;&gt;)&lt;/span&gt; &lt;span style=&#34;color:#000;font-weight:bold&#34;&gt;{&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;            &lt;span style=&#34;color:#5c35cc;font-weight:bold&#34;&gt;@return&lt;/span&gt; &lt;span style=&#34;color:#0000cf;font-weight:bold&#34;&gt;42&lt;/span&gt;&lt;span style=&#34;color:#000;font-weight:bold&#34;&gt;;&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;        &lt;span style=&#34;color:#000;font-weight:bold&#34;&gt;};&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;        &lt;span style=&#34;color:#000&#34;&gt;count&lt;/span&gt; &lt;span style=&#34;color:#ce5c00;font-weight:bold&#34;&gt;+=&lt;/span&gt; &lt;span style=&#34;color:#0000cf;font-weight:bold&#34;&gt;1&lt;/span&gt;&lt;span style=&#34;color:#000;font-weight:bold&#34;&gt;;&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    &lt;span style=&#34;color:#000;font-weight:bold&#34;&gt;};&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
 
-    #pragma message &amp;#34;Compiling &amp;#34; __FILE__ &amp;#34;...&amp;#34;
-    @__PRAGMA_MESSAGE__(&amp;#34;Compiling &amp;#34;, __FILE__, &amp;#34;...&amp;#34;)
-
-    #pragma error &amp;#34;Error &amp;#34; __FILE__ &amp;#34;...&amp;#34;
-    @__PRAGMA_ERROR__(&amp;#34;Error &amp;#34;, __FILE__, &amp;#34;...&amp;#34;)
-
-
-#define DO_PRAGMA(x) _Pragma (#x)
-#define TODO(x) DO_PRAGMA(message (&amp;#34;TODO - &amp;#34; #x))
-
-@@TODO( ... )@@ := @__PRAGMA_MESSAGE__(&amp;#34;TODO - &amp;#34;, @*)
-
-@TODO(Remember to fix this)  # note: TODO - Remember to fix this
-
-\\.__lexer__ignore_space__ = 1;
-\\.__lexer__ignore_indent__ = 1;
-\\.__lexer__ignore_comment__ = 1;
-\\.__lexer__ignore_crlf__ = 1;
-&lt;/code&gt;&lt;/pre&gt;&lt;p&gt;Таким образом можно трансформировать условный оператор на питоне в синтаксис NewLang следующим макросом:&lt;/p&gt;
-&lt;pre tabindex=&#34;0&#34;&gt;&lt;code&gt;
-#pragma clang attribute push
-#pragma clang diagnostic ignored &amp;#34;-Wundef&amp;#34;
-#pragma clang diagnostic ignored &amp;#34;-Wunused-variable&amp;#34;
-
-
-#elif __GNUC__
-
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored &amp;#34;-Wuninitialized&amp;#34;
-
-#pragma GCC diagnostic ignored &amp;#34;-Wall&amp;#34;
-#pragma GCC diagnostic ignored &amp;#34;-Wextra&amp;#34;
-    
-    @pragma warning(pop)
-
-    @@ pragma warning(...) @@ := __PRAGMA_TERM_DIAG_WARNING__();
-@__PRAGMA_DIAG__(warning, pop);
-
-Обработка терминов в макропроцессоре в максимально простом виде. 
-Агрументы только термины, строки и цифры без вложенных выражений и именованных аргументов, 
-т.е. только элементы, которые может самостоятельно идентифицировать лексер.
-
-@warning(&amp;#34;--&amp;#34;)
-    @@ if ... : @@ := @@ [ @$* ]-&amp;gt; __TERM_BLOCK_INDENT__(&amp;#34;{&amp;#34;, force_semicolon=1) @@
-    
-    if __name__ == &amp;#34;__main__&amp;#34;:
-        run1()
-        run2()
-
-    [ __name__ == &amp;#34;__main__&amp;#34; ]-&amp;gt; {
-        run1();
-        run2();
-    };
-    
-        
-&lt;/code&gt;&lt;/pre&gt;&lt;p&gt;Ключ &amp;ndash;parser-syntax-only только текстовый парсинг исходного кода без загрузки модулей, раскрытия макросов и проверки имен.&lt;/p&gt;
-&lt;p&gt;Ключ &amp;ndash;parser-no-macros - без раскрытия макросов
-Ключ &amp;ndash;parser-no-module - без загрузки модулей (и мокросов, если они в них определяются)
-Ключ &amp;ndash;parser-no-check-prototype - без проверки имен при обращении&lt;/p&gt;
-&lt;p&gt;prototype
-@&lt;strong&gt;PRAGMA_PROTOTYPE&lt;/strong&gt;(define)
-@&lt;strong&gt;PRAGMA_PROTOTYPE&lt;/strong&gt;(implement)&lt;/p&gt;
-&lt;p&gt;$$&lt;/p&gt;
-&lt;p&gt;\$ - корень системы (система)&lt;/p&gt;
-&lt;p&gt;$ - текущий модуль&lt;/p&gt;
-&lt;h1 id=&#34;макросы-для-конвертора-проверки-в-python&#34;&gt;Макросы для конвертора проверки в Python&lt;a class=&#34;td-heading-self-link&#34; href=&#34;#%d0%bc%d0%b0%d0%ba%d1%80%d0%be%d1%81%d1%8b-%d0%b4%d0%bb%d1%8f-%d0%ba%d0%be%d0%bd%d0%b2%d0%b5%d1%80%d1%82%d0%be%d1%80%d0%b0-%d0%bf%d1%80%d0%be%d0%b2%d0%b5%d1%80%d0%ba%d0%b8-%d0%b2-python&#34; aria-label=&#34;Heading self-link&#34;&gt;&lt;/a&gt;&lt;/h1&gt;
-&lt;h1 id=&#34;if-__name__--__main__&#34;&gt;if &lt;strong&gt;name&lt;/strong&gt; == &amp;ldquo;&lt;strong&gt;main&lt;/strong&gt;&amp;rdquo;:&lt;a class=&#34;td-heading-self-link&#34; href=&#34;#if-__name__--__main__&#34; aria-label=&#34;Heading self-link&#34;&gt;&lt;/a&gt;&lt;/h1&gt;
-&lt;p&gt;@@ &lt;strong&gt;name&lt;/strong&gt; @@ ::= @@   $. @&lt;strong&gt;PRAGMA_NO_MACRO&lt;/strong&gt;() &lt;strong&gt;name&lt;/strong&gt; @@
-@@ if $&amp;hellip; @: @@ ::= @@ [ @$&amp;hellip; ] &amp;ndash;&amp;gt;  @@&lt;/p&gt;
-&lt;p&gt;@if( $.&lt;strong&gt;name&lt;/strong&gt; == &amp;ldquo;&lt;strong&gt;main&lt;/strong&gt;&amp;rdquo; ) {&lt;/p&gt;
-&lt;p&gt;}&lt;/p&gt;
-&lt;p&gt;\каталог\модуль() - статический импорт модуля
-\(&amp;ldquo;каталог\модуль&amp;rdquo;)() - динамический импорт модуля&lt;/p&gt;
-&lt;p&gt;printf := :Pointer(&amp;lsquo;printf(format:FmtChar, &amp;hellip;):Int32&amp;rsquo;);
-printf := %printf(format:FmtChar, &amp;hellip;):Int32;&lt;/p&gt;
-&lt;h1 id=&#34;регистрация-прототипа-нативной-функции&#34;&gt;Регистрация прототипа нативной функции&lt;a class=&#34;td-heading-self-link&#34; href=&#34;#%d1%80%d0%b5%d0%b3%d0%b8%d1%81%d1%82%d1%80%d0%b0%d1%86%d0%b8%d1%8f-%d0%bf%d1%80%d0%be%d1%82%d0%be%d1%82%d0%b8%d0%bf%d0%b0-%d0%bd%d0%b0%d1%82%d0%b8%d0%b2%d0%bd%d0%be%d0%b9-%d1%84%d1%83%d0%bd%d0%ba%d1%86%d0%b8%d0%b8&#34; aria-label=&#34;Heading self-link&#34;&gt;&lt;/a&gt;&lt;/h1&gt;
-&lt;p&gt;@prototype
-%puts(format:StrChar):Int32;&lt;/p&gt;
-&lt;h1 id=&#34;импорт-нативной-функции-с-предварительной-проверкой-её-наличия-во-время-компиляции-статическая-линковка&#34;&gt;Импорт нативной функции с предварительной проверкой её наличия во время компиляции (статическая линковка)&lt;a class=&#34;td-heading-self-link&#34; href=&#34;#%d0%b8%d0%bc%d0%bf%d0%be%d1%80%d1%82-%d0%bd%d0%b0%d1%82%d0%b8%d0%b2%d0%bd%d0%be%d0%b9-%d1%84%d1%83%d0%bd%d0%ba%d1%86%d0%b8%d0%b8-%d1%81-%d0%bf%d1%80%d0%b5%d0%b4%d0%b2%d0%b0%d1%80%d0%b8%d1%82%d0%b5%d0%bb%d1%8c%d0%bd%d0%be%d0%b9-%d0%bf%d1%80%d0%be%d0%b2%d0%b5%d1%80%d0%ba%d0%be%d0%b9-%d0%b5%d1%91-%d0%bd%d0%b0%d0%bb%d0%b8%d1%87%d0%b8%d1%8f-%d0%b2%d0%be-%d0%b2%d1%80%d0%b5%d0%bc%d1%8f-%d0%ba%d0%be%d0%bc%d0%bf%d0%b8%d0%bb%d1%8f%d1%86%d0%b8%d0%b8-%d1%81%d1%82%d0%b0%d1%82%d0%b8%d1%87%d0%b5%d1%81%d0%ba%d0%b0%d1%8f-%d0%bb%d0%b8%d0%bd%d0%ba%d0%be%d0%b2%d0%ba%d0%b0&#34; aria-label=&#34;Heading self-link&#34;&gt;&lt;/a&gt;&lt;/h1&gt;
-&lt;p&gt;puts2(format:StrChar):Int32 := %puts(format:StrChar):Int32;&lt;/p&gt;
-&lt;h1 id=&#34;импорт-нативной-функции-по-её-прототипу-во-время-выполнения-динамическая-линковка&#34;&gt;Импорт нативной функции по её прототипу во время выполнения (динамическая линковка)&lt;a class=&#34;td-heading-self-link&#34; href=&#34;#%d0%b8%d0%bc%d0%bf%d0%be%d1%80%d1%82-%d0%bd%d0%b0%d1%82%d0%b8%d0%b2%d0%bd%d0%be%d0%b9-%d1%84%d1%83%d0%bd%d0%ba%d1%86%d0%b8%d0%b8-%d0%bf%d0%be-%d0%b5%d1%91-%d0%bf%d1%80%d0%be%d1%82%d0%be%d1%82%d0%b8%d0%bf%d1%83-%d0%b2%d0%be-%d0%b2%d1%80%d0%b5%d0%bc%d1%8f-%d0%b2%d1%8b%d0%bf%d0%be%d0%bb%d0%bd%d0%b5%d0%bd%d0%b8%d1%8f-%d0%b4%d0%b8%d0%bd%d0%b0%d0%bc%d0%b8%d1%87%d0%b5%d1%81%d0%ba%d0%b0%d1%8f-%d0%bb%d0%b8%d0%bd%d0%ba%d0%be%d0%b2%d0%ba%d0%b0&#34; aria-label=&#34;Heading self-link&#34;&gt;&lt;/a&gt;&lt;/h1&gt;
-&lt;p&gt;puts3(format:StrChar):Int32 := :Pointer(&amp;lsquo;puts(format:StrChar):Int32&amp;rsquo;);&lt;/p&gt;
-&lt;p&gt;%puts(&amp;lsquo;Тест вывода строки&amp;rsquo;); # Линковка с нативной функцией во время компиляции и непосредственный вызов с оптимизацией передачи параметров
-puts2(&amp;lsquo;Тест 2 вывода строки&amp;rsquo;); # Линковка с нативной функцией во время компиляции
-puts3(&amp;lsquo;Тест 3 вывода строки&amp;rsquo;); # Линковка с нативной функцией во время выполнения при первом вызове puts3&lt;/p&gt;
-&lt;ul&gt;
-&lt;li&gt;Парсинг исходного текста без раскрытия макросов и загрузки модулей&lt;/li&gt;
-&lt;li&gt;Парсинг исходного текста с раскрытием макросов (требуется загрузка модулей для зависимых и переопределяемых макросов)&lt;/li&gt;
-&lt;li&gt;Загружатся модули могут как в виде исходников (которые требуется парсить и компилировть/выполнять)
-или в виде бинарников (в них должны быть список макросов, типов и имена объектов)&lt;/li&gt;
-&lt;li&gt;После парсинга получается список &lt;strong&gt;имен&lt;/strong&gt; макросов, типов и объектов (TermPtr)&lt;/li&gt;
-&lt;li&gt;После выполнения модуля - список &lt;strong&gt;имен&lt;/strong&gt; заполняется реальными объектами (ObjPtr).&lt;/li&gt;
-&lt;/ul&gt;
-&lt;h1 id=&#34;компиляция-файла&#34;&gt;Компиляция файла&lt;a class=&#34;td-heading-self-link&#34; href=&#34;#%d0%ba%d0%be%d0%bc%d0%bf%d0%b8%d0%bb%d1%8f%d1%86%d0%b8%d1%8f-%d1%84%d0%b0%d0%b9%d0%bb%d0%b0&#34; aria-label=&#34;Heading self-link&#34;&gt;&lt;/a&gt;&lt;/h1&gt;
-&lt;ul&gt;
-&lt;li&gt;Парсинг исходника для построения AST (без анализа имен, связей, загрузки модулей и пр. только исходые тексты с раскрытием макросов&lt;/li&gt;
-&lt;li&gt;&lt;/li&gt;
-&lt;/ul&gt;
-&lt;h1 id=&#34;систематизация-реализации-макросов&#34;&gt;Систематизация реализации макросов&lt;a class=&#34;td-heading-self-link&#34; href=&#34;#%d1%81%d0%b8%d1%81%d1%82%d0%b5%d0%bc%d0%b0%d1%82%d0%b8%d0%b7%d0%b0%d1%86%d0%b8%d1%8f-%d1%80%d0%b5%d0%b0%d0%bb%d0%b8%d0%b7%d0%b0%d1%86%d0%b8%d0%b8-%d0%bc%d0%b0%d0%ba%d1%80%d0%be%d1%81%d0%be%d0%b2&#34; aria-label=&#34;Heading self-link&#34;&gt;&lt;/a&gt;&lt;/h1&gt;
-&lt;p&gt;последовательность лексем MACRO_SEQ мужду @@  @@ сохраняется в m_block, так как фрагменты блоков не могут быть идентификаторами&lt;/p&gt;
-&lt;p&gt;Разбор макросов происходит в лексере. Определением макроса всегда является целая строка,
-которая заканчивается точкой с запятой, а идентификатором макроса всегда выступает последовательность лексем:&lt;/p&gt;
-&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;background-color:#f8f8f8;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;&lt;code class=&#34;language-bash&#34; data-lang=&#34;bash&#34;&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    @@ id @@ :&lt;span style=&#34;color:#ce5c00;font-weight:bold&#34;&gt;=&lt;/span&gt; macro&lt;span style=&#34;color:#000;font-weight:bold&#34;&gt;;&lt;/span&gt;
-&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    @@ id @@ :&lt;span style=&#34;color:#ce5c00;font-weight:bold&#34;&gt;=&lt;/span&gt; @@ @@&lt;span style=&#34;color:#000;font-weight:bold&#34;&gt;;&lt;/span&gt;
-&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    @@ id @@ :&lt;span style=&#34;color:#ce5c00;font-weight:bold&#34;&gt;=&lt;/span&gt; @@@ @@@&lt;span style=&#34;color:#000;font-weight:bold&#34;&gt;;&lt;/span&gt;
-&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;Хранилищем текущих максросов является объект класса MacroBuffer.
-Последовательность лексем идентификатора (id) макроса должна сохраняется в отдельном поле термина и однозначно его идентифицирует.
-Первый термин в идентификаторе хранится как ключ hashmap, а дальше происходит поиск полным перебором.
-Этапы работы с макросами&lt;/p&gt;
-&lt;ul&gt;
-&lt;li&gt;
-&lt;p&gt;Входные термины из лексера получаются вызовом GetNextToken, внутри которой и происходит раскрытие макросов.
-Внутренний буфер заполняется до окончания строки (выражения), т.е. до символа &amp;lsquo;;&amp;rsquo; или &lt;END&gt;, после чего производится
-поиск макросов в объекте MacroBuffer для текущей последовательности лексем в буфере.&lt;/p&gt;
-&lt;/li&gt;
-&lt;li&gt;
-&lt;p&gt;Если макрос найден, то соответствющая ему последоваетльность заменяется на тело макроса и происходит переход
-на повторный анализ входного буфера.&lt;/p&gt;
-&lt;/li&gt;
-&lt;li&gt;
-&lt;p&gt;Если макрос не найден, то данные передаются в парсер для дальнейшего синтаксическго анализа.&lt;/p&gt;
-&lt;/li&gt;
-&lt;li&gt;
-&lt;p&gt;Для этого во входном потоке лексем (parser.y) во время оператората создания/присвоения вызывается функция проверки на макрос.
-MacroBuffer::CheckMacroAndConvertDel($$), и после этого выходному значению присваивается результат выполнения driver.MacroEval($$),
-и в дальнейшем этот макрос никак не обработывается.&lt;/p&gt;
-&lt;/li&gt;
-&lt;li&gt;
-&lt;p&gt;Создание макросов, проверка на дубликаты и логические ошибки в определении происходит путем обращения к методам объекта MacroBuffer.&lt;/p&gt;
-&lt;p&gt;/*&lt;/p&gt;
-&lt;ul&gt;
-&lt;li&gt;Макросы хрянтся как фрагменты AST в виде объектов типа Term,&lt;/li&gt;
-&lt;li&gt;так как создаются после обработки парсером по правилам стандратной грамматики.&lt;/li&gt;
-&lt;li&gt;&lt;/li&gt;
-&lt;li&gt;Но анализ входных данных на предмет раскрытия макросов проиходит из потока (последовательности) лексем,&lt;/li&gt;
-&lt;li&gt;т.е. &lt;strong&gt;ДО&lt;/strong&gt; обработки парсером, так как при раскрытии макросов может меняться грамматика выражений.&lt;/li&gt;
-&lt;li&gt;&lt;/li&gt;
-&lt;li&gt;Функция \ref CompareMacro сравнивает входной буфер (последовательность лексем)&lt;/li&gt;
-&lt;li&gt;на предмет возможного соответствия одному конкретному макросу.&lt;/li&gt;
-&lt;li&gt;Сравниваются только ключевые словам без учета аргументов в скобках,&lt;/li&gt;
-&lt;li&gt;но само наличие аргументов проверяется ??????????????????&lt;/li&gt;
-&lt;li&gt;&lt;/li&gt;
-&lt;li&gt;Проблема:&lt;/li&gt;
-&lt;li&gt;К функции можно обратится с целью её вызова (указав после имени скобки),&lt;/li&gt;
-&lt;li&gt;так и по имени без скобок (например для получения ссылки на объект).&lt;/li&gt;
-&lt;li&gt;Так и к переменной можно обратиться только по имени,&lt;/li&gt;
-&lt;li&gt;так и указав скобки после имени как к функции (при копировании объекта).&lt;/li&gt;
-&lt;li&gt;&lt;/li&gt;
-&lt;li&gt;Сделать один макрос под оба сценария (со скобками и без скобок) не получится, так как непонятно,&lt;/li&gt;
-&lt;li&gt;что делать с аргументами при раскрытии тела макроса, когда они не указаны.&lt;/li&gt;
-&lt;li&gt;&lt;/li&gt;
-&lt;li&gt;Но может быть следует переименовывать только одно имя без учета скобок,&lt;/li&gt;
-&lt;li&gt;например, оставив такую возможность только для одиночных макросов.&lt;/li&gt;
-&lt;li&gt;&lt;/li&gt;
-&lt;li&gt;\name -&amp;gt; name или name (&amp;hellip;), hash: name&lt;/li&gt;
-&lt;li&gt;но \name(&amp;hellip;) -&amp;gt; name(&amp;hellip;), а name - ошибка !!!!  hash: name&lt;/li&gt;
-&lt;li&gt;&lt;/li&gt;
-&lt;li&gt;Или все же следует различать макросы со скобками и без скобок как два разных объекта???&lt;/li&gt;
-&lt;li&gt;\name := name2;  и \name(&amp;hellip;) := name2(&amp;hellip;); будут разными объектами&lt;/li&gt;
-&lt;li&gt;&lt;/li&gt;
-&lt;li&gt;Или добавить макросы-алиасы без аргументов только для переименования отдельных терминов?&lt;/li&gt;
-&lt;li&gt;\alias :- name2; но как их отличать от обычных макросов в операции удаления?&lt;/li&gt;
-&lt;li&gt;Или вообще не нужно отличать и оставить только один варинат (либо макрос, либо алиас)&lt;/li&gt;
-&lt;li&gt;Тода вопрос со скобками закрывается сам собой, алиасы всегда без скобок,&lt;/li&gt;
-&lt;li&gt;макросы со скбками или без скобок, но должно быть полное соответствие.&lt;/li&gt;
-&lt;li&gt;&lt;/li&gt;
-&lt;li&gt;@ name name2 @ -&amp;gt; name name2, но name name2(&amp;hellip;) - ошибка!!! (hash: name,name2)&lt;/li&gt;
-&lt;li&gt;@ name name2(&amp;hellip;) @ -&amp;gt; name name2(&amp;hellip;), но name name2 - ошибка !!!! (hash: name,name2)&lt;/li&gt;
-&lt;li&gt;@ name name2&lt;a href=&#34;...&#34;&gt;&amp;hellip;&lt;/a&gt; @ -&amp;gt; name name2&lt;a href=&#34;...&#34;&gt;&amp;hellip;&lt;/a&gt;, но name name2 - ошибка !!!!  ( hash: name,name2 )&lt;/li&gt;
-&lt;li&gt;@ name $tmpl&lt;a href=&#34;...&#34;&gt;&amp;hellip;&lt;/a&gt; name3@ -&amp;gt; name $tmpl&lt;a href=&#34;...&#34;&gt;&amp;hellip;&lt;/a&gt; name3, но name $tmpl name3 - ошибка !!!!  ( hash: name,$,name3 )&lt;/li&gt;
-&lt;li&gt;&lt;/li&gt;
-&lt;li&gt;Но!&lt;/li&gt;
-&lt;li&gt;@ name name2 @ ::-  -&amp;gt; name name2 - ок, но name name2(&amp;hellip;) - ок&lt;/li&gt;
-&lt;li&gt;@ name $tmpl name3@ ::- -&amp;gt; name $tmpl&lt;a href=&#34;...&#34;&gt;&amp;hellip;&lt;/a&gt; name3 - ок, name $tmpl(&amp;hellip;) name3[&amp;hellip;] - ок&lt;/li&gt;
-&lt;li&gt;&lt;/li&gt;
-&lt;li&gt;&lt;/li&gt;
-&lt;li&gt;&lt;/li&gt;
-&lt;li&gt;Для последовательности лексем требуется полное соответствие с учетом скобок ???&lt;/li&gt;
-&lt;li&gt;и может ли быть несколько скобок одного типа (несколько крыглях, или несколько квардратных????&lt;/li&gt;
-&lt;li&gt;&amp;lt;Может быть несколько скобок одного типа, например, при указании типа у аргументов или типа возвращаемого значения.&amp;gt;&lt;/li&gt;
-&lt;li&gt;&lt;/li&gt;
-&lt;li&gt;@ name name2 @ -&amp;gt; name name2, но name name2(&amp;hellip;) - ошибка!!! (hash: name,name2)&lt;/li&gt;
-&lt;li&gt;@ name name2(&amp;hellip;) @ -&amp;gt; name name2(&amp;hellip;), но name name2 - ошибка !!!! (hash: name,name2)&lt;/li&gt;
-&lt;li&gt;@ name name2&lt;a href=&#34;...&#34;&gt;&amp;hellip;&lt;/a&gt; @ -&amp;gt; name name2&lt;a href=&#34;...&#34;&gt;&amp;hellip;&lt;/a&gt;, но name name2 - ошибка !!!!  ( hash: name,name2 )&lt;/li&gt;
-&lt;li&gt;@ name $tmpl&lt;a href=&#34;...&#34;&gt;&amp;hellip;&lt;/a&gt; name3@ -&amp;gt; name $tmpl&lt;a href=&#34;...&#34;&gt;&amp;hellip;&lt;/a&gt; name3, но name $tmpl name3 - ошибка !!!!  ( hash: name,$,name3 )&lt;/li&gt;
-&lt;li&gt;&lt;/li&gt;
-&lt;li&gt;Проблема скобок возникает из-за сценария замены одного термина на другой,&lt;/li&gt;
-&lt;li&gt;который есть в препроцессоре С/С++, но отсутствует при реализации с использованием шаблонов.&lt;/li&gt;
-&lt;li&gt;&lt;/li&gt;
-&lt;li&gt;&lt;/li&gt;
-&lt;/ul&gt;
-&lt;p&gt;*/&lt;/p&gt;
-&lt;/li&gt;
-&lt;/ul&gt;
-&lt;p&gt;Макросы используются и для превращеня исходного кода &lt;em&gt;NewLang&lt;/em&gt; в более привычный синтаксис на основе &lt;a href=&#34;https://newlang.net/syntax_dsl.html&#34;&gt;ключевых слов&lt;/a&gt;, так как такой тест гораздо легче воспринимается при последующем чтении исходного кода.&lt;/p&gt;
-&lt;p&gt;&lt;a href=&#34;https://newlang.net/syntax_dsl.html&#34;&gt;Например:&lt;/a&gt;.&lt;/p&gt;
-&lt;pre tabindex=&#34;0&#34;&gt;&lt;code&gt;    @@if(...)@@    ::= @@ [ \$* ]--&amp;gt; @@;
-    @@while(...)@@ ::= @@ [\$*] &amp;lt;-&amp;gt; @@;
-    @@return $arg@@::=  @@ -- \$arg -- @@;
-    @@true@@ ::= 1;
-&lt;/code&gt;&lt;/pre&gt;&lt;p&gt;Тогда цикл до 5:&lt;/p&gt;
-&lt;pre tabindex=&#34;0&#34;&gt;&lt;code&gt;count:=1;
-[ 1 ] &amp;lt;-&amp;gt; {
-    [count&amp;gt;5] --&amp;gt; {
-        -- 42 --;
-    };
-    count+=1;
-};
-&lt;/code&gt;&lt;/pre&gt;&lt;p&gt;будет выглядеть более привычно&lt;/p&gt;
-&lt;pre tabindex=&#34;0&#34;&gt;&lt;code&gt;count:=1;
-while( true ) {
-    if(count&amp;gt;5) {
-        return 42;
-    };
-    count+=1;
-};
-&lt;/code&gt;&lt;/pre&gt;&lt;h2 id=&#34;идеи-на-будущее&#34;&gt;Идеи на будущее&lt;a class=&#34;td-heading-self-link&#34; href=&#34;#%d0%b8%d0%b4%d0%b5%d0%b8-%d0%bd%d0%b0-%d0%b1%d1%83%d0%b4%d1%83%d1%89%d0%b5%d0%b5&#34; aria-label=&#34;Heading self-link&#34;&gt;&lt;/a&gt;&lt;/h2&gt;
+&lt;div class=&#34;pageinfo pageinfo-primary&#34;&gt;
+&lt;h3 id=&#34;далее-идеи-на-будущее&#34;&gt;Далее идеи на будущее&lt;a class=&#34;td-heading-self-link&#34; href=&#34;#%d0%b4%d0%b0%d0%bb%d0%b5%d0%b5-%d0%b8%d0%b4%d0%b5%d0%b8-%d0%bd%d0%b0-%d0%b1%d1%83%d0%b4%d1%83%d1%89%d0%b5%d0%b5&#34; aria-label=&#34;Heading self-link&#34;&gt;&lt;/a&gt;&lt;/h3&gt;
 &lt;h3 id=&#34;символьное-программирование&#34;&gt;Символьное программирование&lt;a class=&#34;td-heading-self-link&#34; href=&#34;#%d1%81%d0%b8%d0%bc%d0%b2%d0%be%d0%bb%d1%8c%d0%bd%d0%be%d0%b5-%d0%bf%d1%80%d0%be%d0%b3%d1%80%d0%b0%d0%bc%d0%bc%d0%b8%d1%80%d0%be%d0%b2%d0%b0%d0%bd%d0%b8%d0%b5&#34; aria-label=&#34;Heading self-link&#34;&gt;&lt;/a&gt;&lt;/h3&gt;
+
+&lt;/div&gt;
+
 &lt;blockquote&gt;
 &lt;p&gt;Символьное программирование, часто называемое декларативным программированием, представляет собой парадигму программирования, которая использует математическую логику, отношения и символы для представления знаний и помощи в решении проблем. Вместо того, чтобы сосредотачиваться на описании последовательности операций, необходимых для выполнения вычислений, как в императивном программировании, символическое программирование делает упор на выражении отношений и ограничений между структурами данных, уделяя особое внимание «что», а не «как».&lt;/p&gt;
 &lt;p&gt;В контексте парадигм программирования символическое программирование часто противопоставляется процедурному или императивному программированию, где программы определяют пошаговые процедуры для достижения своих целей. В то время как императивное программирование фокусируется на описании потока управления с использованием таких конструкций, как циклы и условные выражения, для управления выполнением, символическое программирование сосредоточено на выражении фактов о проблеме и позволяет выполнению естественным образом выводить последующие последствия из предоставленной информации.&lt;/p&gt;
@@ -2284,11 +2048,34 @@ Number 5 from the thread!&lt;/p&gt;
         
         
         &lt;h2 id=&#34;нативные-типы-данных&#34;&gt;Нативные типы данных&lt;a class=&#34;td-heading-self-link&#34; href=&#34;#%d0%bd%d0%b0%d1%82%d0%b8%d0%b2%d0%bd%d1%8b%d0%b5-%d1%82%d0%b8%d0%bf%d1%8b-%d0%b4%d0%b0%d0%bd%d0%bd%d1%8b%d1%85&#34; aria-label=&#34;Heading self-link&#34;&gt;&lt;/a&gt;&lt;/h2&gt;
-&lt;p&gt;Нативными (машинные) данными могут быть как переменные, так и функции, а имя нативных объектов начинается на символ процента &amp;ldquo;&lt;strong&gt;%&lt;/strong&gt;&amp;rdquo;.
-В случае пемеенных, это двоичные данные, которые располагаются в одной неразрывной области машинной памяти по определенному адресу и имеют строго определнный формат.&lt;/p&gt;
+&lt;p&gt;Нативными (машинные) данными могут быть как переменные, так и функции, а имя нативных объектов начинается на символ процента &amp;ldquo;&lt;strong&gt;%&lt;/strong&gt;&amp;rdquo;.&lt;/p&gt;
+&lt;p&gt;В случае переменных, это двоичные данные, которые располагаются в одной неразрывной области машинной памяти по определенному адресу и имеют строго определенный формат.&lt;/p&gt;
+&lt;p&gt;Чтобы использовать уже существующие библиотеки, нужно импортировать нативный объект,
+тем самым создав объкт NewLang, но с реализацией на другом языке, например на С/С++.&lt;/p&gt;
+&lt;p&gt;Синтаксис импорта нативных объектов такой же, как и для &lt;a href=&#34;http://localhost:1313/ru/docs/ops/create/&#34;&gt;создания&lt;/a&gt; обычных объектов языка,
+только в качестве правого операнда в операторе создания требуется указать имя нативнного объекта.&lt;/p&gt;
+&lt;p&gt;При импорте нативного объекта необходимо всегда указывать типы переменных, а также типы аргументов и возвращаемых значений для функций.&lt;/p&gt;
+&lt;p&gt;Если типы данных у создаваемого и нативного объекта совпадают (т.е. не требуется преобразование типов),
+то нативное имя объекта можно указать с многоточием, которое означает, что типы данных будут повторять заданные у левого операнда.&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;background-color:#f8f8f8;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;&lt;code class=&#34;language-python&#34; data-lang=&#34;python&#34;&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#000;font-weight:bold&#34;&gt;:&lt;/span&gt;&lt;span style=&#34;color:#000&#34;&gt;FILE&lt;/span&gt; &lt;span style=&#34;color:#000;font-weight:bold&#34;&gt;:&lt;/span&gt;&lt;span style=&#34;color:#ce5c00;font-weight:bold&#34;&gt;:=&lt;/span&gt; &lt;span style=&#34;color:#000;font-weight:bold&#34;&gt;:&lt;/span&gt;&lt;span style=&#34;color:#000&#34;&gt;Plain&lt;/span&gt;&lt;span style=&#34;color:#000;font-weight:bold&#34;&gt;;&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#000&#34;&gt;fopen&lt;/span&gt;&lt;span style=&#34;color:#000;font-weight:bold&#34;&gt;(&lt;/span&gt;&lt;span style=&#34;color:#000&#34;&gt;filename&lt;/span&gt;&lt;span style=&#34;color:#000;font-weight:bold&#34;&gt;:&lt;/span&gt;&lt;span style=&#34;color:#000&#34;&gt;StrChar&lt;/span&gt;&lt;span style=&#34;color:#000;font-weight:bold&#34;&gt;,&lt;/span&gt; &lt;span style=&#34;color:#000&#34;&gt;modes&lt;/span&gt;&lt;span style=&#34;color:#000;font-weight:bold&#34;&gt;:&lt;/span&gt;&lt;span style=&#34;color:#000&#34;&gt;StrChar&lt;/span&gt;&lt;span style=&#34;color:#000;font-weight:bold&#34;&gt;):&lt;/span&gt;&lt;span style=&#34;color:#000&#34;&gt;FILE&lt;/span&gt; &lt;span style=&#34;color:#000;font-weight:bold&#34;&gt;:&lt;/span&gt;&lt;span style=&#34;color:#ce5c00;font-weight:bold&#34;&gt;:=&lt;/span&gt; &lt;span style=&#34;color:#ce5c00;font-weight:bold&#34;&gt;%&lt;/span&gt;&lt;span style=&#34;color:#000&#34;&gt;fopen&lt;/span&gt;&lt;span style=&#34;color:#ce5c00;font-weight:bold&#34;&gt;...&lt;/span&gt;&lt;span style=&#34;color:#000;font-weight:bold&#34;&gt;;&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#000&#34;&gt;fclose&lt;/span&gt;&lt;span style=&#34;color:#000;font-weight:bold&#34;&gt;(&lt;/span&gt;&lt;span style=&#34;color:#000&#34;&gt;f&lt;/span&gt;&lt;span style=&#34;color:#000;font-weight:bold&#34;&gt;:&lt;/span&gt;&lt;span style=&#34;color:#000&#34;&gt;FILE&lt;/span&gt;&lt;span style=&#34;color:#000;font-weight:bold&#34;&gt;):&lt;/span&gt;&lt;span style=&#34;color:#000&#34;&gt;Int32&lt;/span&gt; &lt;span style=&#34;color:#000;font-weight:bold&#34;&gt;:&lt;/span&gt;&lt;span style=&#34;color:#ce5c00;font-weight:bold&#34;&gt;:=&lt;/span&gt; &lt;span style=&#34;color:#ce5c00;font-weight:bold&#34;&gt;%&lt;/span&gt;&lt;span style=&#34;color:#000&#34;&gt;fclose&lt;/span&gt;&lt;span style=&#34;color:#ce5c00;font-weight:bold&#34;&gt;...&lt;/span&gt;&lt;span style=&#34;color:#000;font-weight:bold&#34;&gt;;&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#000&#34;&gt;fflush&lt;/span&gt;&lt;span style=&#34;color:#000;font-weight:bold&#34;&gt;(&lt;/span&gt;&lt;span style=&#34;color:#000&#34;&gt;f&lt;/span&gt;&lt;span style=&#34;color:#000;font-weight:bold&#34;&gt;:&lt;/span&gt;&lt;span style=&#34;color:#000&#34;&gt;FILE&lt;/span&gt;&lt;span style=&#34;color:#000;font-weight:bold&#34;&gt;):&lt;/span&gt;&lt;span style=&#34;color:#000&#34;&gt;Int32&lt;/span&gt; &lt;span style=&#34;color:#000;font-weight:bold&#34;&gt;:&lt;/span&gt;&lt;span style=&#34;color:#ce5c00;font-weight:bold&#34;&gt;:=&lt;/span&gt; &lt;span style=&#34;color:#ce5c00;font-weight:bold&#34;&gt;%&lt;/span&gt;&lt;span style=&#34;color:#000&#34;&gt;fflush&lt;/span&gt;&lt;span style=&#34;color:#ce5c00;font-weight:bold&#34;&gt;...&lt;/span&gt;&lt;span style=&#34;color:#000;font-weight:bold&#34;&gt;;&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#000&#34;&gt;fprintf&lt;/span&gt;&lt;span style=&#34;color:#000;font-weight:bold&#34;&gt;(&lt;/span&gt;&lt;span style=&#34;color:#000&#34;&gt;f&lt;/span&gt;&lt;span style=&#34;color:#000;font-weight:bold&#34;&gt;:&lt;/span&gt;&lt;span style=&#34;color:#000&#34;&gt;FILE&lt;/span&gt;&lt;span style=&#34;color:#000;font-weight:bold&#34;&gt;,&lt;/span&gt; &lt;span style=&#34;color:#204a87&#34;&gt;format&lt;/span&gt;&lt;span style=&#34;color:#000;font-weight:bold&#34;&gt;:&lt;/span&gt;&lt;span style=&#34;color:#000&#34;&gt;FmtChar&lt;/span&gt;&lt;span style=&#34;color:#000;font-weight:bold&#34;&gt;,&lt;/span&gt; &lt;span style=&#34;color:#ce5c00;font-weight:bold&#34;&gt;...&lt;/span&gt;&lt;span style=&#34;color:#000;font-weight:bold&#34;&gt;):&lt;/span&gt;&lt;span style=&#34;color:#000&#34;&gt;Int32&lt;/span&gt; &lt;span style=&#34;color:#000;font-weight:bold&#34;&gt;:&lt;/span&gt;&lt;span style=&#34;color:#ce5c00;font-weight:bold&#34;&gt;:=&lt;/span&gt; &lt;span style=&#34;color:#ce5c00;font-weight:bold&#34;&gt;%&lt;/span&gt;&lt;span style=&#34;color:#000&#34;&gt;fprintf&lt;/span&gt;&lt;span style=&#34;color:#ce5c00;font-weight:bold&#34;&gt;...&lt;/span&gt;&lt;span style=&#34;color:#000;font-weight:bold&#34;&gt;;&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#000&#34;&gt;fremove&lt;/span&gt;&lt;span style=&#34;color:#000;font-weight:bold&#34;&gt;(&lt;/span&gt;&lt;span style=&#34;color:#000&#34;&gt;filename&lt;/span&gt;&lt;span style=&#34;color:#000;font-weight:bold&#34;&gt;:&lt;/span&gt;&lt;span style=&#34;color:#000&#34;&gt;String&lt;/span&gt;&lt;span style=&#34;color:#000;font-weight:bold&#34;&gt;):&lt;/span&gt;&lt;span style=&#34;color:#000&#34;&gt;Int32&lt;/span&gt; &lt;span style=&#34;color:#000;font-weight:bold&#34;&gt;:&lt;/span&gt;&lt;span style=&#34;color:#ce5c00;font-weight:bold&#34;&gt;:=&lt;/span&gt; &lt;span style=&#34;color:#ce5c00;font-weight:bold&#34;&gt;%&lt;/span&gt;&lt;span style=&#34;color:#000&#34;&gt;remove&lt;/span&gt;&lt;span style=&#34;color:#ce5c00;font-weight:bold&#34;&gt;...&lt;/span&gt;&lt;span style=&#34;color:#000;font-weight:bold&#34;&gt;;&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#000&#34;&gt;frename&lt;/span&gt;&lt;span style=&#34;color:#000;font-weight:bold&#34;&gt;(&lt;/span&gt;&lt;span style=&#34;color:#000&#34;&gt;old&lt;/span&gt;&lt;span style=&#34;color:#000;font-weight:bold&#34;&gt;:&lt;/span&gt;&lt;span style=&#34;color:#000&#34;&gt;String&lt;/span&gt;&lt;span style=&#34;color:#000;font-weight:bold&#34;&gt;,&lt;/span&gt; &lt;span style=&#34;color:#000&#34;&gt;new&lt;/span&gt;&lt;span style=&#34;color:#000;font-weight:bold&#34;&gt;:&lt;/span&gt;&lt;span style=&#34;color:#000&#34;&gt;String&lt;/span&gt;&lt;span style=&#34;color:#000;font-weight:bold&#34;&gt;):&lt;/span&gt;&lt;span style=&#34;color:#000&#34;&gt;Int32&lt;/span&gt; &lt;span style=&#34;color:#000;font-weight:bold&#34;&gt;:&lt;/span&gt;&lt;span style=&#34;color:#ce5c00;font-weight:bold&#34;&gt;:=&lt;/span&gt; &lt;span style=&#34;color:#ce5c00;font-weight:bold&#34;&gt;%&lt;/span&gt;&lt;span style=&#34;color:#000&#34;&gt;rename&lt;/span&gt;&lt;span style=&#34;color:#ce5c00;font-weight:bold&#34;&gt;...&lt;/span&gt;&lt;span style=&#34;color:#000;font-weight:bold&#34;&gt;;&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+
+&lt;div class=&#34;pageinfo pageinfo-primary&#34;&gt;
+&lt;p&gt;Последующее описание находится в процессе разработки.&lt;/p&gt;
+
+&lt;/div&gt;
+
 &lt;h3 id=&#34;pointer--указатель-на-системную-область-памяти-или-нативную-функцию&#34;&gt;:Pointer — указатель на системную область памяти или нативную функцию&lt;a class=&#34;td-heading-self-link&#34; href=&#34;#pointer--%d1%83%d0%ba%d0%b0%d0%b7%d0%b0%d1%82%d0%b5%d0%bb%d1%8c-%d0%bd%d0%b0-%d1%81%d0%b8%d1%81%d1%82%d0%b5%d0%bc%d0%bd%d1%83%d1%8e-%d0%be%d0%b1%d0%bb%d0%b0%d1%81%d1%82%d1%8c-%d0%bf%d0%b0%d0%bc%d1%8f%d1%82%d0%b8-%d0%b8%d0%bb%d0%b8-%d0%bd%d0%b0%d1%82%d0%b8%d0%b2%d0%bd%d1%83%d1%8e-%d1%84%d1%83%d0%bd%d0%ba%d1%86%d0%b8%d1%8e&#34; aria-label=&#34;Heading self-link&#34;&gt;&lt;/a&gt;&lt;/h3&gt;
-&lt;p&gt;Так как любой программе приходится взаимодействовать с внешним миром, т
-о по неволе приходится закладывать возможность использования других библиотек и системы типов данных,
+&lt;p&gt;Так как любой программе приходится взаимодействовать с внешним миром,
+то по неволе приходится закладывать возможность использования других библиотек и системы типов данных,
 и для этих целей служит тип &lt;em&gt;:Pointer&lt;/em&gt;. Он создается при импорте функций из внешних библиотек и вручную его создать нельзя.
 Но можно вывести его значение, например для отладки.&lt;/p&gt;
 &lt;h3 id=&#34;plain--указатель-на-представление-данных-в-бинарном-виде&#34;&gt;:Plain — указатель на представление данных в бинарном виде&lt;a class=&#34;td-heading-self-link&#34; href=&#34;#plain--%d1%83%d0%ba%d0%b0%d0%b7%d0%b0%d1%82%d0%b5%d0%bb%d1%8c-%d0%bd%d0%b0-%d0%bf%d1%80%d0%b5%d0%b4%d1%81%d1%82%d0%b0%d0%b2%d0%bb%d0%b5%d0%bd%d0%b8%d0%b5-%d0%b4%d0%b0%d0%bd%d0%bd%d1%8b%d1%85-%d0%b2-%d0%b1%d0%b8%d0%bd%d0%b0%d1%80%d0%bd%d0%be%d0%bc-%d0%b2%d0%b8%d0%b4%d0%b5&#34; aria-label=&#34;Heading self-link&#34;&gt;&lt;/a&gt;&lt;/h3&gt;
@@ -3050,195 +2837,105 @@ my_file.write(&amp;lsquo;hello world&amp;rsquo;)&lt;/p&gt;
       <description>
         
         
-        &lt;h2 id=&#34;dsl&#34;&gt;DSL&lt;a class=&#34;td-heading-self-link&#34; href=&#34;#dsl&#34; aria-label=&#34;Heading self-link&#34;&gt;&lt;/a&gt;&lt;/h2&gt;
-&lt;h3 id=&#34;особенности-ассоциативной-памяти&#34;&gt;Особенности ассоциативной памяти&lt;a class=&#34;td-heading-self-link&#34; href=&#34;#%d0%be%d1%81%d0%be%d0%b1%d0%b5%d0%bd%d0%bd%d0%be%d1%81%d1%82%d0%b8-%d0%b0%d1%81%d1%81%d0%be%d1%86%d0%b8%d0%b0%d1%82%d0%b8%d0%b2%d0%bd%d0%be%d0%b9-%d0%bf%d0%b0%d0%bc%d1%8f%d1%82%d0%b8&#34; aria-label=&#34;Heading self-link&#34;&gt;&lt;/a&gt;&lt;/h3&gt;
+        &lt;h3 id=&#34;особенности-ассоциативной-памяти&#34;&gt;Особенности ассоциативной памяти&lt;a class=&#34;td-heading-self-link&#34; href=&#34;#%d0%be%d1%81%d0%be%d0%b1%d0%b5%d0%bd%d0%bd%d0%be%d1%81%d1%82%d0%b8-%d0%b0%d1%81%d1%81%d0%be%d1%86%d0%b8%d0%b0%d1%82%d0%b8%d0%b2%d0%bd%d0%be%d0%b9-%d0%bf%d0%b0%d0%bc%d1%8f%d1%82%d0%b8&#34; aria-label=&#34;Heading self-link&#34;&gt;&lt;/a&gt;&lt;/h3&gt;
 &lt;p&gt;Синтаксис языка &lt;em&gt;NewLang&lt;/em&gt; основан на строгих правилах без использования ключевых слов,
 и как бы он не выглядел логичным, ассоциация по ключевым словам вспоминается гораздо легче, например &lt;strong&gt;if&lt;/strong&gt;,
 чем комбинация &lt;em&gt;минус минус правая угловая скобка&lt;/em&gt; &lt;strong&gt;&amp;ndash;&amp;gt;&lt;/strong&gt;.
 Из-за этого имеет смысл использовать не &amp;ldquo;чистый&amp;rdquo; базовый синтаксис, а более привычный диалект с использованием ключевых слов.&lt;/p&gt;
-&lt;h3 id=&#34;синтаксис-на-ключевых-словах&#34;&gt;Синтаксис на ключевых словах&lt;a class=&#34;td-heading-self-link&#34; href=&#34;#%d1%81%d0%b8%d0%bd%d1%82%d0%b0%d0%ba%d1%81%d0%b8%d1%81-%d0%bd%d0%b0-%d0%ba%d0%bb%d1%8e%d1%87%d0%b5%d0%b2%d1%8b%d1%85-%d1%81%d0%bb%d0%be%d0%b2%d0%b0%d1%85&#34; aria-label=&#34;Heading self-link&#34;&gt;&lt;/a&gt;&lt;/h3&gt;
-&lt;p&gt;В файле dsl.nlp находится набор макросов, которые расширяют базовый синтаксис &lt;em&gt;NewLang&lt;/em&gt;, основанный на правилах,
-набором предопределенных ключевых слов как в классических языках программирования.
-А при необходимости, их можно адаптировать или дополнить под собственную предметную область.&lt;/p&gt;
-&lt;h2 id=&#34;константы&#34;&gt;Константы&lt;a class=&#34;td-heading-self-link&#34; href=&#34;#%d0%ba%d0%be%d0%bd%d1%81%d1%82%d0%b0%d0%bd%d1%82%d1%8b&#34; aria-label=&#34;Heading self-link&#34;&gt;&lt;/a&gt;&lt;/h2&gt;
-&lt;h3 id=&#34;логические&#34;&gt;Логические&lt;a class=&#34;td-heading-self-link&#34; href=&#34;#%d0%bb%d0%be%d0%b3%d0%b8%d1%87%d0%b5%d1%81%d0%ba%d0%b8%d0%b5&#34; aria-label=&#34;Heading self-link&#34;&gt;&lt;/a&gt;&lt;/h3&gt;
+&lt;p&gt;&lt;em&gt;NewLang&lt;/em&gt; уже содержит набор макросов, которые расширяют базовый синтаксис &lt;em&gt;NewLang&lt;/em&gt;, основанный на правилах,
+набором предопределенных ключевых слов как в классических языках программирования,
+которые можно адаптировать или дополнить под собственную предметную область.&lt;/p&gt;
+&lt;h3 id=&#34;константы&#34;&gt;Константы&lt;a class=&#34;td-heading-self-link&#34; href=&#34;#%d0%ba%d0%be%d0%bd%d1%81%d1%82%d0%b0%d0%bd%d1%82%d1%8b&#34; aria-label=&#34;Heading self-link&#34;&gt;&lt;/a&gt;&lt;/h3&gt;
 &lt;ul&gt;
-&lt;li&gt;&lt;strong&gt;true&lt;/strong&gt; - 1&lt;/li&gt;
-&lt;li&gt;&lt;strong&gt;yes&lt;/strong&gt;  - 1&lt;/li&gt;
-&lt;li&gt;&lt;strong&gt;false&lt;/strong&gt; - 0&lt;/li&gt;
-&lt;li&gt;&lt;strong&gt;no&lt;/strong&gt; - 0&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;&lt;em&gt;@true&lt;/em&gt; - 1&lt;/p&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;&lt;em&gt;@yes&lt;/em&gt;  - 1&lt;/p&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;&lt;em&gt;@false&lt;/em&gt; - 0&lt;/p&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;&lt;em&gt;@no&lt;/em&gt; - 0&lt;/p&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;&lt;em&gt;@this&lt;/em&gt; или &lt;em&gt;@self&lt;/em&gt; - Текущий объект&lt;/p&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;&lt;em&gt;@super&lt;/em&gt; - Родительский объект&lt;/p&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;&lt;em&gt;@latter&lt;/em&gt; или &lt;em&gt;@last&lt;/em&gt;- Результат выполенения последнего оператора Result of the last operation&lt;/p&gt;
+&lt;/li&gt;
 &lt;/ul&gt;
-&lt;h3 id=&#34;системные-имена&#34;&gt;Системные имена&lt;a class=&#34;td-heading-self-link&#34; href=&#34;#%d1%81%d0%b8%d1%81%d1%82%d0%b5%d0%bc%d0%bd%d1%8b%d0%b5-%d0%b8%d0%bc%d0%b5%d0%bd%d0%b0&#34; aria-label=&#34;Heading self-link&#34;&gt;&lt;/a&gt;&lt;/h3&gt;
+&lt;h3 id=&#34;логические-операторы&#34;&gt;Логические операторы&lt;a class=&#34;td-heading-self-link&#34; href=&#34;#%d0%bb%d0%be%d0%b3%d0%b8%d1%87%d0%b5%d1%81%d0%ba%d0%b8%d0%b5-%d0%be%d0%bf%d0%b5%d1%80%d0%b0%d1%82%d0%be%d1%80%d1%8b&#34; aria-label=&#34;Heading self-link&#34;&gt;&lt;/a&gt;&lt;/h3&gt;
 &lt;ul&gt;
-&lt;li&gt;&lt;strong&gt;this&lt;/strong&gt; - Текущий объект (&lt;strong&gt;$0&lt;/strong&gt;)&lt;/li&gt;
-&lt;li&gt;&lt;strong&gt;parent&lt;/strong&gt; - Родительский объект (&lt;strong&gt;$$&lt;/strong&gt;)&lt;/li&gt;
-&lt;li&gt;&lt;strong&gt;last&lt;/strong&gt; - Результат выполнения последнего оператора (&lt;strong&gt;$^&lt;/strong&gt;)&lt;/li&gt;
+&lt;li&gt;&lt;em&gt;@and&lt;/em&gt; - Логическое &lt;strong&gt;И&lt;/strong&gt;&lt;/li&gt;
+&lt;li&gt;&lt;em&gt;@or&lt;/em&gt; - Логическое &lt;strong&gt;ИЛИ&lt;/strong&gt;&lt;/li&gt;
+&lt;li&gt;&lt;em&gt;@xor&lt;/em&gt; - Логическое &lt;strong&gt;Исключающее ИЛИ&lt;/strong&gt;&lt;/li&gt;
+&lt;li&gt;&lt;em&gt;@not(value)&lt;/em&gt; - Логическое отрицание&lt;/li&gt;
 &lt;/ul&gt;
-&lt;p&gt;!!!!!!!!- &lt;strong&gt;args&lt;/strong&gt; - Все аргументы функции (&lt;strong&gt;$*&lt;/strong&gt;)&lt;/p&gt;
-&lt;p&gt;!!!!!!!!- &lt;strong&gt;sys&lt;/strong&gt; - Системный контекст запущенной программы (&lt;strong&gt;@@&lt;/strong&gt;)
-!!!!!!!!- &lt;strong&gt;current&lt;/strong&gt; - Текущий модуль (&lt;strong&gt;@$&lt;/strong&gt;)
-!!!!!!!!- &lt;strong&gt;cmd&lt;/strong&gt; - Все аргументы выполняющегося приложения из командной строки (&lt;strong&gt;@*&lt;/strong&gt;)&lt;/p&gt;
-&lt;p&gt;!!!!!!!!!!1### Типовые функции и проверки
-!!!!!!!!!!- &lt;strong&gt;run(&amp;lsquo;filename&amp;rsquo;)&lt;/strong&gt; - Выполнить указанный файл (&lt;strong&gt;@@(&amp;lsquo;filename&amp;rsquo;)&lt;/strong&gt;)
-!!!!!!!!!!- &lt;strong&gt;ifmain&lt;/strong&gt; - Проверка, если текущий модуль основной (&lt;strong&gt;[@$.$0] &amp;ndash;&amp;gt;&lt;/strong&gt; { &amp;hellip; })
-!!!!!!!!!!- &lt;strong&gt;ifload&lt;/strong&gt; - Проверка, если текущий модуль загружается впервые (&lt;strong&gt;[@$.&lt;strong&gt;load&lt;/strong&gt;] &amp;ndash;&amp;gt;&lt;/strong&gt; { &amp;hellip; })&lt;/p&gt;
 &lt;h3 id=&#34;операторы&#34;&gt;Операторы&lt;a class=&#34;td-heading-self-link&#34; href=&#34;#%d0%be%d0%bf%d0%b5%d1%80%d0%b0%d1%82%d0%be%d1%80%d1%8b&#34; aria-label=&#34;Heading self-link&#34;&gt;&lt;/a&gt;&lt;/h3&gt;
 &lt;ul&gt;
 &lt;li&gt;
-&lt;p&gt;&lt;strong&gt;match(cond)&lt;/strong&gt; - Оператор &lt;a href=&#34;https://newlang.net/ops.html#%D0%BE%D1%86%D0%B5%D0%BD%D0%BA%D0%B0-%D0%B2%D1%8B%D1%80%D0%B0%D0%B6%D0%B5%D0%BD%D0%B8%D1%8F&#34;&gt;оценки выражения&lt;/a&gt;&lt;/p&gt;
+&lt;p&gt;&lt;em&gt;@if(&amp;hellip;)&lt;/em&gt; - Первый условный оператор&lt;/p&gt;
 &lt;/li&gt;
 &lt;li&gt;
-&lt;p&gt;&lt;strong&gt;if(&amp;hellip;)&lt;/strong&gt; - Первый условный оператор (&lt;strong&gt;[$*]&amp;ndash;&amp;gt;&lt;/strong&gt; { &amp;hellip; })&lt;/p&gt;
+&lt;p&gt;&lt;em&gt;@elif(&amp;hellip;)&lt;/em&gt; - Второй и все последующие условные операторы&lt;/p&gt;
 &lt;/li&gt;
 &lt;li&gt;
-&lt;p&gt;&lt;strong&gt;elif(&amp;hellip;)&lt;/strong&gt; - Второй и все последующие (&lt;strong&gt;,[$*]&amp;ndash;&amp;gt;&lt;/strong&gt; { &amp;hellip; })&lt;/p&gt;
+&lt;p&gt;&lt;em&gt;@else&lt;/em&gt; - Оператор &lt;em&gt;иначе&lt;/em&gt;&lt;/p&gt;
 &lt;/li&gt;
 &lt;li&gt;
-&lt;p&gt;&lt;strong&gt;else&lt;/strong&gt; - Оператор &lt;em&gt;иначе&lt;/em&gt; (&lt;strong&gt;,[_]&amp;ndash;&amp;gt;&lt;/strong&gt; { &amp;hellip; })&lt;/p&gt;
+&lt;p&gt;&lt;em&gt;@while(&amp;hellip;)&lt;/em&gt; - Оператор цикла с предусловием&lt;/p&gt;
 &lt;/li&gt;
 &lt;li&gt;
-&lt;p&gt;&lt;strong&gt;while(cond)&lt;/strong&gt; - Оператор цикла с предусловием (&lt;strong&gt;[@$cond] &amp;lt;-&amp;gt;&lt;/strong&gt; { &amp;hellip; } )&lt;/p&gt;
+&lt;p&gt;&lt;em&gt;@dowhile(&amp;hellip;)&lt;/em&gt; - Оператор цикла с постусловием&lt;/p&gt;
 &lt;/li&gt;
 &lt;li&gt;
-&lt;p&gt;&lt;strong&gt;dowhile(cond)&lt;/strong&gt; - Оператор цикла с постусловием ({ &amp;hellip; } &lt;strong&gt;&amp;lt;-&amp;gt;[@$cond]&lt;/strong&gt;)&lt;/p&gt;
+&lt;p&gt;&lt;em&gt;@loop&lt;/em&gt; - Оператор безконечного цикла&lt;/p&gt;
 &lt;/li&gt;
 &lt;li&gt;
-&lt;p&gt;&lt;strong&gt;iter(obj, &amp;hellip; )&lt;/strong&gt; - Создание итератора ( &lt;strong&gt;@$obj&lt;/strong&gt; ? (@$*) )&lt;/p&gt;
+&lt;p&gt;&lt;em&gt;@break $label&lt;/em&gt; - Оператор выхода из именованного именованного блока кода&lt;/p&gt;
 &lt;/li&gt;
 &lt;li&gt;
-&lt;p&gt;&lt;strong&gt;next(obj, &amp;hellip; )&lt;/strong&gt; - Следующий элемент итератора ( &lt;strong&gt;@$obj&lt;/strong&gt; ! ($*) )&lt;/p&gt;
+&lt;p&gt;&lt;em&gt;@continue $label&lt;/em&gt; - Оператор прехода на начало именованного блока кода&lt;/p&gt;
 &lt;/li&gt;
 &lt;li&gt;
-&lt;p&gt;&lt;strong&gt;curr(obj, &amp;hellip; )&lt;/strong&gt; - Текущий элемент итератора ( &lt;strong&gt;@$obj&lt;/strong&gt; !? ($*) )&lt;/p&gt;
+&lt;p&gt;&lt;em&gt;@return( result )&lt;/em&gt; - Оператор возврата значения и выхода из функции&lt;/p&gt;
 &lt;/li&gt;
 &lt;li&gt;
-&lt;p&gt;&lt;strong&gt;first(obj)&lt;/strong&gt; - Перейти на первый элемент итератора ( &lt;strong&gt;@$obj&lt;/strong&gt; !! )&lt;/p&gt;
+&lt;p&gt;&lt;em&gt;@throw( error )&lt;/em&gt; - Оператор создания исключения и возврата ошибки&lt;/p&gt;
 &lt;/li&gt;
 &lt;li&gt;
-&lt;p&gt;&lt;strong&gt;all(obj)&lt;/strong&gt; - Получить сразу все элементы итератора ( &lt;strong&gt;@$obj&lt;/strong&gt; ??)&lt;/p&gt;
+&lt;p&gt;&lt;em&gt;@match( &amp;hellip; )&lt;/em&gt; - Оператор оценки выражения&lt;/p&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;&lt;em&gt;@case( &amp;hellip; )&lt;/em&gt; - Оператор сравнения с образцом&lt;/p&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;&lt;em&gt;@default&lt;/em&gt; - Оператор выбора по улочанию&lt;/p&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;&lt;em&gt;@iter(obj, &amp;hellip; )&lt;/em&gt; - Создание итератора&lt;/p&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;&lt;em&gt;@next(obj, &amp;hellip; )&lt;/em&gt; - Получить следующий элемент итератора&lt;/p&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;&lt;em&gt;@curr(obj, &amp;hellip; )&lt;/em&gt; - Получить текущий элемент итератора&lt;/p&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;&lt;em&gt;@first(obj)&lt;/em&gt; - Перейти на первый элемент итератора&lt;/p&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;&lt;em&gt;@all(obj)&lt;/em&gt; - Получить сразу все элементы итератора&lt;/p&gt;
 &lt;/li&gt;
 &lt;/ul&gt;
-&lt;h3 id=&#34;прерывания&#34;&gt;Прерывания&lt;a class=&#34;td-heading-self-link&#34; href=&#34;#%d0%bf%d1%80%d0%b5%d1%80%d1%8b%d0%b2%d0%b0%d0%bd%d0%b8%d1%8f&#34; aria-label=&#34;Heading self-link&#34;&gt;&lt;/a&gt;&lt;/h3&gt;
-&lt;ul&gt;
-&lt;li&gt;
-&lt;p&gt;&lt;strong&gt;return&lt;/strong&gt; - Положительное прерывание (&lt;strong&gt;++&lt;/strong&gt;)&lt;/p&gt;
-&lt;/li&gt;
-&lt;li&gt;
-&lt;p&gt;&lt;strong&gt;return(&amp;hellip;)&lt;/strong&gt;- Положительное прерывание с возвратом значения (&lt;strong&gt;++&lt;/strong&gt; @$value &lt;strong&gt;++&lt;/strong&gt;)&lt;/p&gt;
-&lt;/li&gt;
-&lt;li&gt;
-&lt;p&gt;&lt;strong&gt;error&lt;/strong&gt; - Отрицательное прерывание (&lt;strong&gt;--&lt;/strong&gt;)&lt;/p&gt;
-&lt;/li&gt;
-&lt;li&gt;
-&lt;p&gt;&lt;strong&gt;error(&amp;hellip;)&lt;/strong&gt; - Отрицательное прерывание с возвратом значения (&lt;strong&gt;--&lt;/strong&gt; @$value &lt;strong&gt;--&lt;/strong&gt;)&lt;/p&gt;
-&lt;/li&gt;
-&lt;li&gt;
-&lt;p&gt;&lt;strong&gt;break+&lt;/strong&gt; и &lt;strong&gt;break-&lt;/strong&gt; - Выход из цикла:&lt;/p&gt;
-&lt;/li&gt;
-&lt;/ul&gt;
-&lt;pre tabindex=&#34;0&#34;&gt;&lt;code&gt;    while(...) {+
-        ++ :Break ++   
-    +}
-    while(...) {-
-        -- :Break --
-    -}
-&lt;/code&gt;&lt;/pre&gt;&lt;ul&gt;
-&lt;li&gt;&lt;strong&gt;continue+&lt;/strong&gt; и &lt;strong&gt;continue-&lt;/strong&gt; - В начало цикла:&lt;/li&gt;
-&lt;/ul&gt;
-&lt;pre tabindex=&#34;0&#34;&gt;&lt;code&gt;    while(...) {+
-        ++ :Continue ++   
-    +}
-    while(...) {-
-        -- :Continue --
-    -}
-&lt;/code&gt;&lt;/pre&gt;&lt;p&gt;obj {
-.field = 1;
-.prop();
-};&lt;/p&gt;
-&lt;p&gt;#Python&lt;/p&gt;
-&lt;h1 id=&#34;1-without-using-with-statement&#34;&gt;1) without using with statement&lt;a class=&#34;td-heading-self-link&#34; href=&#34;#1-without-using-with-statement&#34; aria-label=&#34;Heading self-link&#34;&gt;&lt;/a&gt;&lt;/h1&gt;
-&lt;p&gt;file = open(&amp;lsquo;file_path&amp;rsquo;, &amp;lsquo;w&amp;rsquo;)
-file.write(&amp;lsquo;hello world !&amp;rsquo;)
-file.close()&lt;/p&gt;
-&lt;h1 id=&#34;2-without-using-with-statement&#34;&gt;2) without using with statement&lt;a class=&#34;td-heading-self-link&#34; href=&#34;#2-without-using-with-statement&#34; aria-label=&#34;Heading self-link&#34;&gt;&lt;/a&gt;&lt;/h1&gt;
-&lt;p&gt;file = open(&amp;lsquo;file_path&amp;rsquo;, &amp;lsquo;w&amp;rsquo;)
-try:
-file.write(&amp;lsquo;hello world&amp;rsquo;)
-finally:
-file.close()&lt;/p&gt;
-&lt;p&gt;open(&amp;lsquo;file_path&amp;rsquo;, &amp;lsquo;w&amp;rsquo;) {
-.write(&amp;lsquo;hello world !&amp;rsquo;);
-.close();
-}&lt;/p&gt;
-&lt;p&gt;Python3&lt;/p&gt;
-&lt;h1 id=&#34;using-with-statement&#34;&gt;using with statement&lt;a class=&#34;td-heading-self-link&#34; href=&#34;#using-with-statement&#34; aria-label=&#34;Heading self-link&#34;&gt;&lt;/a&gt;&lt;/h1&gt;
-&lt;p&gt;with open(&amp;lsquo;file_path&amp;rsquo;, &amp;lsquo;w&amp;rsquo;) as file:
-file.write(&amp;lsquo;hello world !&amp;rsquo;)&lt;/p&gt;
-&lt;h1 id=&#34;a-simple-file-writer-object&#34;&gt;a simple file writer object&lt;a class=&#34;td-heading-self-link&#34; href=&#34;#a-simple-file-writer-object&#34; aria-label=&#34;Heading self-link&#34;&gt;&lt;/a&gt;&lt;/h1&gt;
-&lt;p&gt;class MessageWriter(object):
-def &lt;strong&gt;init&lt;/strong&gt;(self, file_name):
-self.file_name = file_name&lt;/p&gt;
-&lt;pre&gt;&lt;code&gt;def __enter__(self):
-    self.file = open(self.file_name, &#39;w&#39;)
-    return self.file
-
-def __exit__(self, *args):
-    self.file.close()
-&lt;/code&gt;&lt;/pre&gt;
-&lt;h1 id=&#34;using-with-statement-with-messagewriter&#34;&gt;using with statement with MessageWriter&lt;a class=&#34;td-heading-self-link&#34; href=&#34;#using-with-statement-with-messagewriter&#34; aria-label=&#34;Heading self-link&#34;&gt;&lt;/a&gt;&lt;/h1&gt;
-&lt;p&gt;with MessageWriter(&amp;lsquo;my_file.txt&amp;rsquo;) as xfile:
-xfile.write(&amp;lsquo;hello world&amp;rsquo;)&lt;/p&gt;
-&lt;h1 id=&#34;a-simple-file-writer-object-1&#34;&gt;a simple file writer object&lt;a class=&#34;td-heading-self-link&#34; href=&#34;#a-simple-file-writer-object-1&#34; aria-label=&#34;Heading self-link&#34;&gt;&lt;/a&gt;&lt;/h1&gt;
-&lt;p&gt;:MessageWriter {
-def &lt;strong&gt;init&lt;/strong&gt;(self, file_name):
-self.file_name = file_name&lt;/p&gt;
-&lt;pre&gt;&lt;code&gt;def __enter__(self):
-    self.file = open(self.file_name, &#39;w&#39;)
-    return self.file
-
-def __exit__(self, *args):
-    self.file.close()
-&lt;/code&gt;&lt;/pre&gt;
-&lt;p&gt;}&lt;/p&gt;
-&lt;h1 id=&#34;using-with-statement-with-messagewriter-1&#34;&gt;using with statement with MessageWriter&lt;a class=&#34;td-heading-self-link&#34; href=&#34;#using-with-statement-with-messagewriter-1&#34; aria-label=&#34;Heading self-link&#34;&gt;&lt;/a&gt;&lt;/h1&gt;
-&lt;p&gt;MessageWriter(&amp;lsquo;my_file.txt&amp;rsquo;) {
-.write(&amp;lsquo;hello world&amp;rsquo;);
-};&lt;/p&gt;
-&lt;p&gt;from contextlib import contextmanager&lt;/p&gt;
-&lt;p&gt;class MessageWriter(object):
-def &lt;strong&gt;init&lt;/strong&gt;(self, filename):
-self.file_name = filename&lt;/p&gt;
-&lt;pre&gt;&lt;code&gt;@contextmanager
-def open_file(self):
-    try:
-        file = open(self.file_name, &#39;w&#39;)
-        yield file
-    finally:
-        file.close()
-&lt;/code&gt;&lt;/pre&gt;
-&lt;h1 id=&#34;usage&#34;&gt;usage&lt;a class=&#34;td-heading-self-link&#34; href=&#34;#usage&#34; aria-label=&#34;Heading self-link&#34;&gt;&lt;/a&gt;&lt;/h1&gt;
-&lt;p&gt;message_writer = MessageWriter(&amp;lsquo;hello.txt&amp;rsquo;)
-with message_writer.open_file() as my_file:
-my_file.write(&amp;lsquo;hello world&amp;rsquo;)&lt;/p&gt;
-&lt;p&gt;:MessageWriter(object) {
-def &lt;strong&gt;init&lt;/strong&gt;(self, filename):
-self.file_name = filename&lt;/p&gt;
-&lt;pre&gt;&lt;code&gt;@contextmanager
-def open_file(self):
-    try:
-        file = open(self.file_name, &#39;w&#39;)
-        yield file
-    finally:
-        file.close()
-&lt;/code&gt;&lt;/pre&gt;
-&lt;p&gt;}&lt;/p&gt;
-&lt;h1 id=&#34;usage-1&#34;&gt;usage&lt;a class=&#34;td-heading-self-link&#34; href=&#34;#usage-1&#34; aria-label=&#34;Heading self-link&#34;&gt;&lt;/a&gt;&lt;/h1&gt;
-&lt;p&gt;message_writer = MessageWriter(&amp;lsquo;hello.txt&amp;rsquo;)
-with message_writer.open_file() as my_file:
-my_file.write(&amp;lsquo;hello world&amp;rsquo;)&lt;/p&gt;
-&lt;h1 id=&#34;приложения&#34;&gt;Приложения&lt;a class=&#34;td-heading-self-link&#34; href=&#34;#%d0%bf%d1%80%d0%b8%d0%bb%d0%be%d0%b6%d0%b5%d0%bd%d0%b8%d1%8f&#34; aria-label=&#34;Heading self-link&#34;&gt;&lt;/a&gt;&lt;/h1&gt;
 &lt;h2 id=&#34;предопределенные-макросы&#34;&gt;Предопределенные макросы&lt;a class=&#34;td-heading-self-link&#34; href=&#34;#%d0%bf%d1%80%d0%b5%d0%b4%d0%be%d0%bf%d1%80%d0%b5%d0%b4%d0%b5%d0%bb%d0%b5%d0%bd%d0%bd%d1%8b%d0%b5-%d0%bc%d0%b0%d0%ba%d1%80%d0%be%d1%81%d1%8b&#34; aria-label=&#34;Heading self-link&#34;&gt;&lt;/a&gt;&lt;/h2&gt;
-&lt;p&gt;При работе парсера &lt;em&gt;NewLang&lt;/em&gt; автоматически формируются несколько зарезервированных макросов, часть из которых соответствуют макросам препроцессора у С/С++.
+&lt;p&gt;При работе парсера &lt;em&gt;NewLang&lt;/em&gt; автоматически формируются несколько зарезервированных макросов,
+часть из которых соответствуют макросам препроцессора у С/С++.
 Данные предопределенные макросы можно использовать как обычные константы.&lt;/p&gt;
 &lt;ul&gt;
 &lt;li&gt;

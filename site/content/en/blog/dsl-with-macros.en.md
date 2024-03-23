@@ -7,12 +7,21 @@ description: >
 ---
 
 
+{{% pageinfo %}}
 
-https://habr.com/articles/720416/
+Attention!!!
+
+This article contains a description of the NewLnag syntax of the previous version.
+
+Publication source https://habr.com/articles/720416/
+
+{{% /pageinfo %}}
 
 
 ![image](https://habrastorage.org/webt/r9/4d/tu/r94dtuimvtiiuntx5xpunndaetq.jpeg)
+
 [This is a translation of my own article](https://habr.com/company/timeweb/blog/719332/)
+
 
 The release of **[NewLang](https://newlang.net/)** language with a brand new "feature" is coming, a remodeled version of the preprocessor that allows you to extend the language syntax to create different DSL dialects using macros.
 

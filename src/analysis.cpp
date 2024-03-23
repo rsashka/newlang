@@ -380,6 +380,11 @@ bool AstAnalysis::CheckNative_(TermPtr &proto, TermPtr &native) {
         return false;
     }
 
+    if (!m_rt.m_import_native) {
+        NL_MESSAGE(LOG_LEVEL_INFO, native, "Used flag '--nlc-no-import-native' to disabled import any native objects!");
+        return false;
+    }
+
     if (proto->isCall() != native->isCall()) {
         // Нативная функция с частичным прототипом
         TermPtr from;
@@ -750,7 +755,7 @@ bool AstAnalysis::CreateOp_(TermPtr &op, ScopeStack & stack) {
 
         }
 
-//        ScopePush block(stack, proto, &proto->m_int_vars, true);
+        //        ScopePush block(stack, proto, &proto->m_int_vars, true);
 
         TermPtr none = Term::CreateName("$0");
         none->m_int_name = NormalizeName(none->m_text);
@@ -1462,13 +1467,18 @@ bool AstAnalysis::RecursiveAnalyzer(TermPtr term, ScopeStack & stack) {
             return true;
         }
 
+        case TermID::MODULE:
+            if (!m_rt.m_import_module) {
+                NL_MESSAGE(LOG_LEVEL_INFO, term, "Used flag '--nlc-no-import-module' to disabled import any modules!");
+                return false;
+            }
+
         case TermID::NAME:
         case TermID::TYPE:
         case TermID::ARGS:
         case TermID::ARGUMENT:
         case TermID::LOCAL:
         case TermID::STATIC:
-        case TermID::MODULE:
         case TermID::NAMESPACE:
         {
             found = LookupName(term, stack);
@@ -1554,6 +1564,14 @@ bool AstAnalysis::RecursiveAnalyzer(TermPtr term, ScopeStack & stack) {
             return CheckError(CheckTake_(term, stack));
         case TermID::ITERATOR:
             return CheckError(Iterator_(term, stack));
+
+
+        case TermID::EMBED:
+            if (!m_rt.m_embed_source) {
+                NL_MESSAGE(LOG_LEVEL_INFO, term, "Use flag '--nlc-embed-source' to enable embedded source code!");
+                return false;
+            }
+            return false; // Not implemented
 
         default:
             NL_MESSAGE(LOG_LEVEL_INFO, term, "AstRecursiveAnalyzer for type '%s' not implemented!", toString(term->getTermID()));

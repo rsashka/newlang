@@ -110,7 +110,7 @@
   <div class="col-12">
     <div class="container td-overlay__inner">
       <div class="text-center">
-        <h1 class="display-1 mt-0 mt-md-5 pb-4">Добро пожаловать на сайт проекта NewLang!</h1>
+        <h1 class="display-1 mt-0 mt-md-5 pb-4">Welcome to the NewLang project website!</h1>
         
         <div class="pt-3 lead">
           
@@ -156,14 +156,14 @@
 
 
 
-<p class="lead"><em>NewLang</em> — это язык программирования высокого уровня общего назначения c базовым синтаксисом на основе грамматических правил.
-    С помощью макросов препроцесора, базовый синтаксис легко преобразуется в DSL на основе ключевых слов.</p>
+<p class="lead"><em>NewLang</em> — NewLang is a general-purpose high-level programming language with a syntax based on a strict system of grammatical rules.
+<br>But with the help of preprocessor macros, the syntax is turned into DSL based on keywords..</p>
 
-<p class="lead">Тензорные вычисления и рациональные числа не ограниченной точности поддерживаются 
-    на уровне синтаксиса языка и базовых типов данных без использования дополнительных библиотек.</p>
+<p class="lead">Tensor calculations and rationals of unlimited precision are supported at the level of language syntax and basic 
+    data types without the use of additional libraries.</p>
 
-<p class="lead">Модель управления памятью на основе владения не трубет использования сборщика мусора 
-    и исключет основные ошибки еще на этапе компиляции исходного текста программы.</p>
+<p class="lead">The ownership-based memory management model does not require the use of 
+    a garbage collector and eliminates major errors at the stage of compiling the source code of the program.</p>
 
 
 </div>
@@ -181,48 +181,49 @@
 
 
 <h3>
-    Основные свойства и особенности языка:
+The main properties and features:
 </h3>
 
 <ul>
-    <li>возможность работы как в режиме интерпретатора, так и компилятора<b>*</b>
-    </li>
+<li>the ability to work both in interpreter and compiler mode<b>*</b>
+</li>
 
-    <li>динамическая и статическая типизация с возможностью указания типов в явном виде
-    </li>
+<li>dynamic and static typing with the ability to specify types explicitly
+</li>
 
-    <li>статическая типизация является условно-строгой 
-        <em>(автоматическое приведение типов отсутствует, но допускается преобразование между некоторыми типами данных. 
-            Например, целое число может быть автоматически преобразовано в вещественное или рациональное, но не наоборот)</em>
-    </li>
+<li>static typing is conditionally strong (there is no automatic type casting, but conversion between some data types is allowed. 
+    For example, an integer can be automatically converted to real or rational, but not vice versa)
+</li>
 
-    <li>автоматическое управление памятью без сборщика мусора на основе владения<b>*</b>
-    </li>
+<li>automatic memory management without garbage collector<b>*</b>
+</li>
 
-    <li>ООП* в виде явного наследования классов и «утиная типизация»
-    </li>
+<li>bject-oriented programming in the form of explicit class inheritance and "duck typing"<b>*</b>
+</li>
 
-    <li>на уровне синтаксиса поддерживается несколько типов функций (обычные и чистые функции без побочных эффектов)
-    </li>
+<li>several types of functions (regular and pure functions without side effects) are supported at the syntax level of the language
+</li>
 
-    <li>необязательные и именованные параметры функций
-    </li>
+<li>optional and named function arguments
+</li>
 
-    <li>простая интеграция с уже существующими программными библиотеками 
-        (в том числе импорт нативных переменных, функций и классов* из С/С++.)
-    </li>
+<li>direct insertion of C/C++ code is possible<b>*</b>
+</li>
 
-    <li>имеется <a href="https://ru.wikipedia.org/wiki/REPL">REPL (read-eval-print loop — «цикл: чтение — вычисление — вывод»)</a>
-    </li>
-    
-    <li>символьные вычисления<b>**</b>
-    </li>
+<li>easy integration with existing software libraries (including import of native variables, functions and classes* from C/C++).
+</li>
+
+<li>there is a <a href="https://en.wikipedia.org/wiki/REPL">REPL (read-eval-print loop)</a>
+</li>
+
+<li>symbolic calculations<b>**</b>
+</li>
 </ul>
 
 <hr>
-<b>*</b>) Данные возможности запланированы к реализации
+<b>*</b>) These features are planned for implementation when the compiler is created.
 <br>
-<b>**</b>) Символьные вычисления поддерживаются на уровне синтаксиса, но не реализованы
+<b>**</b>) Symbolic calculations are supported at the syntax level, but not implemented.
 
 
 </div>
@@ -237,59 +238,53 @@
 
 
 
-<h2>Зачем нужен <em>NewLang</em>?
+<h2>Why do we need <em>NewLang</em>?
 </h2>
 
 <p>
-    У всех современных языков программирования происходит постоянное <a href="/blog/complex-prog/">развитие (усложнение) синтаксиса</a> по мере выхода новых версий.<br> 
-    Это является своего рода платой за появление новых возможностей языка и воспринимается пользователями как естественное явление.
+All modern programming languages have a constant <a href="/blog/complex-prog/">development (complication) of syntax</a> as new versions are released.<br>
+This is a kind of payment for the emergence of new features and is perceived by users as a natural process.
 <p>
 
 <p>
-    Но одновременно является и серьезной проблемой, так как с выходом новых версий языка в него добавляются новые ключевые слова и синтаксические конструкции, 
-    что неизбежно повышает порог входа для всех новых пользователей.
-<p>    
-<p>
-    Еще одним следствием этого процесса становится постоянное увеличение сложности разработки и поддержки уже созданных программных продуктов, 
-    когда старый программный код дорабатывается с применением уже новых стандартов и постоянным увеличением старого легаси кода.
+But at the same time it is also a serious problem, since with the release of versions new keywords and syntactic constructions are added,
+which inevitably raises the entry threshold for new users.
 </p>
 
 <p>
-    У <em>NewLang</em> сложность языковых конструкций ограничена естественным образом 
-    за счет разделения синтаксиса языка на несколько частей, что упрощает его изучение и использование.
+Another consequence of this process is the constant increase in the complexity of developing and supporting already created software products,
+when the old code is being finalized using the already new standards.
 </p>
 
 <p>
-    <em>Основной (базовый) синтаксис</em> — на системе строгих <a href="/docs/syntax/">грамматических правил</a>.
+<em>NewLang</em> naturally limits the complexity of language constructs by splitting the syntax of the language into two parts, 
+making it easier to learn and use.
 </p>
-<p>
-    <em>Синтаксис DSL (domain-specific language)</em> — хотя базовый синтаксис самодостаточен и полснотью покрывает все возможные сценарии использования, 
-    но его применение разработчиками напрямую не всегда эффекстивно с точки зрения последующего чтения исходноиков.
-    <br>
-    Поэтому более правильным вариантом написания исходного кода программы будет применение <a href="/docs/syntax/dsl/">предметно-ориентированного языка</a>, 
-    который реализуется с помощью макросов препроцессора и превращает базовый синтаксис на основе <a href="/docs/syntax/">грамматических правил</a>
-    в синтаксис на основе <a href="/docs/syntax/dsl/">ключевых слов</a>.
 
-</p>
 <p>
-    <em>Расширенный синтаксис</em> — программные вставки на языке реализации (С/С++), когда основного или DSL синтаксиса становится недостаточно.
+<em>Basic syntax</em> - for writing programs in object-oriented (imperative) and declarative styles,
+which is based not on reserved keywords, but on a system of strict <a href="/docs/syntax/">grammar rules</a>.
+It is possible to extend the basic syntax through the use of macros.<br>
+
+<em>Extended syntax</em> - program inserts in the implementation language (C / C ++), when the main syntax becomes insufficient.
 </p>
+
 
 <br> 
 <p>
-    Еще одно неудобство современных языков в том, что большинство из них были созданы еще до начала эпохи машинного обучения, 
-    поэтому тензорные вычисления у них выполнены в виде отдельных библиотек. 
-    Это же касается и вычислений с неограниченной точностью, которые также требуют использования дополнительных библиотечных функций.
+Another disadvantage of modern languages is that most of them were created before the era of machine learning,
+therefore, tensor calculations are performed in the form of separate libraries.<br>
+The same applies to calculations with unlimited precision, which also require the use of additional library functions.
 </p>
 
 <p>
-    У <em>NewLang</em> тензорные вычисления и рациональные числа неограниченной точности доступны «из коробки».
-    Они поддерживаются на уровне синтаксиса для удобной записи литералов, 
-    а простые арифметические типы данных являются скалярами (тензорами нулевой размерности).
-    <br> 
-    <br> 
-    Реализация тензорных вычислений сделана на базе библиотеки <a href="https://pytorch.org/">libtorch</a>, 
-    а рациональные числа с использованием <a href="https://github.com/openssl/openssl/blob/master/crypto/bn/README.pod">OpenSSL</a>.
+<em>NewLang</em> has tensor calculus and unlimited-precision rationals out of the box.<br>
+
+They are supported at the syntax level for writing literals of the corresponding types,
+and simple arithmetic data types are scalars (tensors of dimension zero).<br>
+
+The implementation of tensor calculations is based on the library <a href="https://pytorch.org/">libtorch</a>,
+and rational numbers using <a href="https://github.com/openssl/openssl/blob/master/crypto/bn/README.pod">OpenSSL</a>.
 </p>
 
 
@@ -305,48 +300,46 @@
 
 
 
-<h4>Пример скрипта Hello world! на NewLang</h4>
+<h4>Hello world script example in NewLang</h4>
 
 <br>
 <code>
     <pre>
-    #!../output/nlc --eval
+    #!../output/nlc
 
-    hello(str) := {
-        # Импорт и вызов функции printf стандартной библиотеки
-        printf(format:FmtChar, ...):Int32 := %printf...;
-        printf('call: %s', $str);
-        $str;
-    };
-    hello('Привет, мир!');
+    printf('Hello, world!');
     </pre>
 </code>
 
-Вывод:   
+Output:
 <code><pre>
-    call: Привет, мир!
-    Привет, мир!
-    </pre></code>
+    Hello, world!
+    14
+</pre></code>
 
 
-<h4>Пример вычисления факториала 40 на NewLang (базовый синтаксис)</h4>
+<h4>An example of calculating factorial 40 on NewLang (base syntax)</h4>
 
 <br>
 <code>
     <pre>
-    #!../output/nlc --eval
+        #!../output/nlc 
 
-    fact := 1\1; # Рациональное число 1 (без ограничения точности)
-    mult := 40..1..-1?; # Итератор из диапазона для множителей от 40 до 2
-    [mult ?!] <-> { # Цикл, пока не закончатся данные итератора
-        fact *= mult !; # Получить текущий множитель и перейти на следующий элемент итератора
-    };
+        ### Example of calculating factorial of 40 using basic syntax
 
-    fact # Вывести итоговый результат
+        fact := 1\1;        # Rational number 1 (no precision limit)
+        mult := 40..1..-1?; # Iterator from range for factors from 40 to 2
+        [mult ?!] <-> {     # Loop until the iterator data runs out
+            fact *= mult !; # Get the current multiplier and move to the next iterator element
+        };
+
+        @assert(fact == 815915283247897734345611269596115894272000000000\1);
+
+        fact    # Return final result
     </pre>
 </code>
 
-Вывод:
+Output:
 <code>
     <pre>
     815915283247897734345611269596115894272000000000\1
@@ -354,25 +347,30 @@
 </code>
 
 
-<h4>Тот же код с использованием DSL синтаксиса</h4>
+
+<h4>Same code using <a href="/docs/syntax/dsl/">DSL syntax</a></h4>
 
 <br>
 <code>
     <pre>
-    #!../output/nlc --eval
+        #!../output/nlc 
 
-    fact := 1\1;
-    mult := iter( 40..1..-1 );
-    while( curr(mult) ) {
-        fact *= next(mult);
-    };
+        ### Example of calculating factorial 40 using DSL syntax
 
-    fact;
+        fact := 1\1;                # Rational number 1 (no precision limit)
+        mult := @iter( 40..1..-1 ); # Iterator from range for factors from 40 to 2
+        @while( @curr(mult)) {      # Loop until the iterator data runs out
+            fact *= @next(mult);    # Get the current multiplier and move to the next iterator element
+        };
+
+        @assert(fact == 815915283247897734345611269596115894272000000000\1);
+
+        fact    # Return final result    
     </pre>
 </code>
 
 
-Вывод:
+Output:
 <code>
     <pre>
     815915283247897734345611269596115894272000000000\1
@@ -386,14 +384,14 @@
 <div class="col">
 <div class="container">
 
-<a class="btn btn-lg btn-primary me-3 mb-4" href="/docs/examples/">
-    Еще примеры кода<i class="fas fa-arrow-alt-circle-right ms-2"></i>
+<a class="btn btn-lg btn-primary me-3 mb-4" href="/playground/">
+    More code examples<i class="fas fa-arrow-alt-circle-right ms-2"></i>
 </a>
 <a class="btn btn-lg btn-primary me-3 mb-4" href="/docs/syntax/">
-    Описание синтаксиса<i class="fas fa-arrow-alt-circle-right ms-2"></i>
+    Syntax description<i class="fas fa-arrow-alt-circle-right ms-2"></i>
 </a>
 <a class="btn btn-lg btn-primary me-3 mb-4" href="/docs/">
-    Вся документация<i class="fas fa-arrow-alt-circle-right ms-2"></i>
+    All documentation<i class="fas fa-arrow-alt-circle-right ms-2"></i>
 </a>
 <a class="btn btn-lg btn-secondary me-3 mb-4" href="/blog/">
     Articles<i class="fas fa-arrow-alt-circle-right ms-2 "></i>

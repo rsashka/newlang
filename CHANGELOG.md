@@ -1,25 +1,27 @@
-# История версий
+# Version history
 
-## [Релиз v0.4 (в разработке)](https://github.com/rsashka/newlang/tree/dev)
+## [Release v0.4 (23.03.2024) - current version](https://github.com/rsashka/newlang/releases/tag/v0.4.0))
 
-Версия c новым вариантом препроцессора, который может изменять входные данные непосредственно во время синтаксического анализа исходного кода. 
+## New features and changes in the syntax of NewLang v0.4
+- Reworked the definition of object types using [prefix naming (sigils)](https://newlang.net/docs/syntax/naming/)
+- Interrupting the execution flow and returning can now be done for [named code blocks](https://newlang.net/docs/ops/throw/).
+- Simplified the syntax for importing [native variables and functions (C/C++)](https://newlang.net/docs/types/native/)
+- Stabilized the syntax for [initializing tensor, dictionary, and function argument values](https://newlang.net/docs/ops/create/#comprehensions) with initial data.
+- Added built-in macros for writing code using keywords in a [DSL style](https://newlang.net/docs/syntax/dsl/)
 
-### Новые возможности и изменения в синтаксисе NewLang v0.4
-- В лексер встроен новый препроцессор для анализа макросов.
-- Изменены префиксы у макросов и модулей. Теперь [префиксы](https://newlang.net/en/syntax.html#prefix) у модулей обратный слеш **\\**, а у макросов собачка **@** как аннотации в Java.
-- Синтаксис создания макросов [унифицирован](https://newlang.net/en/syntax.html#macro) с остальными операторами создания объектов.
-????????? - Упрощенный синтаксис доступа к полям объекта
-?????????? - Возможность выводы текста после обработки препроцессора (все макросы раскрыты).
+## New compiler features (nlc)
+- Completely redesigned the macroprocessor.
+- Reworked the compiler architecture with division into parser, macroprocessor, syntax analyzer, interpreter, and code generator.
 
-
-### Разное в NewLang v0.4
-- Новая версия [сайта](https://newlang.net/)
-- Раздел c документацией на Английском
-- Выполнен переход на clang 16
+## Miscellaneous
+- The documentation [website](http://newlang.net) has been translated to [Hugo](https://gohugo.io/) and made bilingual.
+- Instead of binary builds, a section [Playground and example code](https://newlang.net/playground/) has been added to the website for small experiments.
+- Transition to clang-16 has been completed (transition to clang-17 and newer is planned after full implementation of coroutines and support for extended floating-point number formats).
+- The number of project contributors has increased to more than one!
 
 ------
 
-## [Релиз v0.3 (07.11.2022) - текущая версия](https://github.com/rsashka/newlang/releases/tag/v0.3.0)
+## [Релиз v0.3 (07.11.2022)](https://github.com/rsashka/newlang/releases/tag/v0.3.0)
 
 ### Новые возможности и изменения в синтаксисе NewLang v0.3
 

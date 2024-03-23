@@ -6,239 +6,78 @@ weight: 200
 ---
 
 
-## DSL
-
 ### Features of associative memory
 The syntax of the *NewLang* language is based on strict rules without the use of keywords,
 and no matter how logical it may seem, association by keywords is much easier to remember, for example, **if**,
 than the combination *minus minus right angle bracket* **-->**. 
 Because of this, it makes sense to use not a "pure" basic syntax, but a more familiar dialect with the use of keywords.
 
-### Syntax based on keywords
-In the dsl.nlp file, there is a set of macros that expand the basic syntax of *NewLang*, based on rules,
-with a set of predefined keywords as in classical programming languages. 
-And if necessary, they can be adapted or supplemented for your own domain.
+*NewLang* already contains a set of macros that extend the basic rule-based syntax of *NewLang*,
+a set of predefined keywords as in classical programming languages,
+which can be adapted or supplemented to suit your own subject area.
+
+### Constants
+- *@true* - 1
+- *@yes*  - 1
+- *@false* - 0
+- *@no* - 0
+
+- *@this* или *@self* - Current object
+- *@super* - Parent object
+- *@latter* or *@last*- Result of the last operation
+
+### Logical operators
+
+- *@and* - Logical **AND**
+- *@or* - Logical **OR**
+- *@xor* - Logical **Exclusive OR**
+- *@not(value)* - Logical negation
 
 
-## Константы
-### Логические
-- **true** - 1
-- **yes**  - 1
-- **false** - 0
-- **no** - 0
+### Operators
+- *@if(...)* - First conditional statement
+- *@elif(...)* - Second and all subsequent conditional statements
+- *@else* - Operator *otherwise*
 
-### Системные имена
-- **this** - Текущий объект (**$0**)
-- **parent** - Родительский объект (**$$**)
-- **last** - Результат выполнения последнего оператора (**$^**)
+- *@while(...)* - Loop operator with precondition
+- *@dowhile(...)* - Loop operator with postcondition
+- *@loop* - Infinite loop operator
 
-!!!!!!!!- **args** - Все аргументы функции (**$\***)
+- *@break $label* - Operator to break out of a named named block of code
+- *@continue $label* - Jump operator to the beginning of a named block of code
+- *@return( result )* - Operator for returning a value and exiting a function
+- *@throw( error )* - Operator for creating an exception and returning an error
 
-!!!!!!!!- **sys** - Системный контекст запущенной программы (**@@**)
-!!!!!!!!- **current** - Текущий модуль (**@$**)
-!!!!!!!!- **cmd** - Все аргументы выполняющегося приложения из командной строки (**@\***)
+- *@match( ... )* - Expression evaluation operator
+- *@case( ... )* - Pattern comparison operator
+- *@default* - Selection operator
 
-!!!!!!!!!!1### Типовые функции и проверки 
-!!!!!!!!!!- **run('filename')** - Выполнить указанный файл (**@@('filename')**)
-!!!!!!!!!!- **ifmain** - Проверка, если текущий модуль основной (**[@$.$0] -->** { ... })
-!!!!!!!!!!- **ifload** - Проверка, если текущий модуль загружается впервые (**[@$.__load__] -->** { ... })
-
-### Операторы
-- **match(cond)** - Оператор [оценки выражения](https://newlang.net/ops.html#оценка-выражения)
-- **if(...)** - Первый условный оператор (**[\$*]-->** { ... })
-- **elif(...)** - Второй и все последующие (**,[\$*]-->** { ... })
-- **else** - Оператор *иначе* (**,[_]-->** { ... })
-
-- **while(cond)** - Оператор цикла с предусловием (**[@$cond] <->** { ... } )
-- **dowhile(cond)** - Оператор цикла с постусловием ({ ... } **<->[@$cond]**)
-
-- **iter(obj, ... )** - Создание итератора ( **@$obj** ? (@$*) )
-- **next(obj, ... )** - Следующий элемент итератора ( **@$obj** ! (\$*) )
-- **curr(obj, ... )** - Текущий элемент итератора ( **@$obj** !? (\$*) )
-- **first(obj)** - Перейти на первый элемент итератора ( **@$obj** !! )
-- **all(obj)** - Получить сразу все элементы итератора ( **@$obj** ??)
+- *@iter(obj, ... )* - Creating an iterator
+- *@next(obj, ... )* - Get the next element of the iterator
+- *@curr(obj, ... )* - Get the current iterator element
+- *@first(obj)* - Go to the first element of the iterator
+- *@all(obj)* - Get all elements of the iterator at once
 
 
-### Прерывания
-- **return** - Положительное прерывание (**++**)
-- **return(...)**- Положительное прерывание с возвратом значения (**++** @$value **++**) 
+## Predefined macros
 
-- **error** - Отрицательное прерывание (**-\-**)
-- **error(...)** - Отрицательное прерывание с возвратом значения (**-\-** @$value **-\-**)
+When the *NewLang* parser is running, several reserved macros are automatically generated,
+some of which correspond to preprocessor macros in C/C++.
+These predefined macros can be used as regular constants.
 
-- **break+** и **break-** - Выход из цикла:
-```
-    while(...) {+
-        ++ :Break ++   
-    +}
-    while(...) {-
-        -- :Break --
-    -}
-```
-- **continue+** и **continue-** - В начало цикла:
-```
-    while(...) {+
-        ++ :Continue ++   
-    +}
-    while(...) {-
-        -- :Continue --
-    -}
-```
+- \_\_FILE\_\_ or \_\_FILE_NAME\_\_ - name and full path of the current file
+- \_\_LINE\_\_ or \_\_FILE_LINE\_\_ - contains the number of the current line in the file
+- \_\_FILE_TIMESTAMP\_\_ - date and time of the last modification of the current file in string representation
+- \_\_FILE_MD5\_\_ - md5 hash of the current file in string form
+- \_\_COUNTER\_\_ - an integer counter that increases its value with each access
 
 
+- \_\_DATE\_\_ - start date of the compiler launch (has the same value for all processed files)
+- \_\_TIME\_\_ - start time of the compiler launch (has the same value for all processed files)
+- \_\_TIMESTAMP\_\_ - date and time when the compiler started running (for example: "Fri 19 Aug 13:32:58 2016")
+- \_\_TIMESTAMP_ISO\_\_ - date and time when the compiler started running in ISO format (for example: "2013-07-06T00:50:06Z")
 
-
-
-obj {
-    .field = 1; 
-    .prop();
-};
-
-#Python
-# 1) without using with statement
-file = open('file_path', 'w')
-file.write('hello world !')
-file.close()
-
-
- 
-# 2) without using with statement
-file = open('file_path', 'w')
-try:
-    file.write('hello world')
-finally:
-    file.close()
-
-open('file_path', 'w') {
-    .write('hello world !');
-    .close();
-}
-
-  
-Python3
-
-# using with statement
-with open('file_path', 'w') as file:
-    file.write('hello world !')
-
-
-# a simple file writer object
- 
-class MessageWriter(object):
-    def __init__(self, file_name):
-        self.file_name = file_name
-     
-    def __enter__(self):
-        self.file = open(self.file_name, 'w')
-        return self.file
- 
-    def __exit__(self, *args):
-        self.file.close()
- 
-# using with statement with MessageWriter
- 
-with MessageWriter('my_file.txt') as xfile:
-    xfile.write('hello world')
-
-
-
-
-
-# a simple file writer object
-:MessageWriter {
-    def __init__(self, file_name):
-        self.file_name = file_name
-     
-    def __enter__(self):
-        self.file = open(self.file_name, 'w')
-        return self.file
- 
-    def __exit__(self, *args):
-        self.file.close()
-}
-
-# using with statement with MessageWriter
- 
-MessageWriter('my_file.txt') {
-    .write('hello world');
-};
-
-
-
-
-
-
-
-from contextlib import contextmanager
- 
- 
-class MessageWriter(object):
-    def __init__(self, filename):
-        self.file_name = filename
- 
-    @contextmanager
-    def open_file(self):
-        try:
-            file = open(self.file_name, 'w')
-            yield file
-        finally:
-            file.close()
- 
- 
-# usage
-message_writer = MessageWriter('hello.txt')
-with message_writer.open_file() as my_file:
-    my_file.write('hello world')
-
-
-
-
-:MessageWriter(object) {
-    def __init__(self, filename):
-        self.file_name = filename
- 
-    @contextmanager
-    def open_file(self):
-        try:
-            file = open(self.file_name, 'w')
-            yield file
-        finally:
-            file.close()
- 
-}
-
-# usage
-message_writer = MessageWriter('hello.txt')
-with message_writer.open_file() as my_file:
-    my_file.write('hello world')
-
-
-
-
-
-# Приложения
-
-
-## Предопределенные макросы
-
-При работе парсера *NewLang* автоматически формируются несколько зарезервированных макросов, часть из которых соответствуют макросам препроцессора у С/С++.
-Данные предопределенные макросы можно использовать как обычные константы. 
-
-- \_\_FILE\_\_ или \_\_FILE_NAME\_\_ - имя и полный путь текущего файла
-- \_\_LINE\_\_ или \_\_FILE_LINE\_\_ - содержит номер текущей строки в файле 
-- \_\_FILE_TIMESTAMP\_\_ - дату и время последней модификации текущего файла в строковом представлении
-- \_\_FILE_MD5\_\_ - md5 хеш текущего файла в строковом виде
-- \_\_COUNTER\_\_ - целочисленный счетчик, который увеличивает свое значение при каждом обращении
-
-
-- \_\_DATE\_\_ - дата начала запуска компилятора (имеет одно и тоже значение для всех обрабатываемых файлов)
-- \_\_TIME\_\_ - время начала запуска компилятора (имеет одно и тоже значение для всех обрабатываемых файлов)
-- \_\_TIMESTAMP\_\_ - дату и время начала запуска компилятора (например: "Fri 19 Aug 13:32:58 2016") 
-- \_\_TIMESTAMP_ISO\_\_ - дату и время начала запуска компилятора в формате ISO (например: "2013-07-06T00:50:06Z")
-
-
-- \_\_NLC_VER\_\_ - Страшая и младшая версия компилятора NewLang (8 битное число, по 4 бита на цифру)
-- \_\_NLC_DATE_BUILD\_\_ - текстовая строка с датой сборки компилятора NewLang (например, "23.06.04 20:51:39")
-- \_\_NLC_SOURCE_GIT\_\_ - текстовая строка с идентификатором исходных файлов NewLang git репозитория, использованных при сборке компилятора (например, "v0.3.0-fef8c371")
-- \_\_NLC_SOURCE_BUILD\_\_ - дата сборки и git идентификатор исходных файлов NewLang одной текстовой строкой (например, "v0.3.0-fef8c371 23.06.04 20:51:39")
-
+- \_\_NLC_VER\_\_ - Older and younger version of the NewLang compiler (8-bit number, 4 bits per digit)
+- \_\_NLC_DATE_BUILD\_\_ - text string with the build date of the NewLang compiler (for example, "06/23/04 20:51:39")
+- \_\_NLC_SOURCE_GIT\_\_ - text string with the identifier of the NewLang git repository source files used to build the compiler (for example, "v0.3.0-fef8c371")
+- \_\_NLC_SOURCE_BUILD\_\_ - build date and git identifier of NewLang source files in one text line (for example, "v0.3.0-fef8c371 06/23/04 20:51:39")

@@ -7,12 +7,9 @@ weight: 1
 simple_list: true
 ---
 
-- Операторы разделяются точкой с запятой «;».
-- Отступы и переводы строк игнорируются.
-- Однострочные комментарии начинаются с символа «#» до перевода строки, что соответствует комментариям в стиле Python и Bash.
-- Многострочные комментарии соответствуют стилю С/С++ и должны располагаться между символами /\* и \*/. Многосточные комментарии могут быть вложенными.
-- Последовательность команд [(блок кода)](/docs/ops/block/) заключаются в фигурные скобки "**{**" и "**}**". 
-- Большинство операторов являются выражениями и возвращают результат выполнения последней операции.
-
-
-
+- Operators are separated by a semicolon ";".
+- Indentations and line breaks are ignored.
+- Single-line comments start with the symbol "#" until the end of the line, following the style of Python and Bash comments.
+- Multi-line comments follow the C/C++ style and should be enclosed between "/\*" and "\*/". Multi-line comments can be *nested*.
+- Command sequences [(code block)](/docs/ops/block/) are enclosed in curly braces "**{**" and "**}**".
+- Most operators are expressions and return the result of the last operation.

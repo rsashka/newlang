@@ -8,9 +8,6 @@ menu: main
 weight: 25
 ---
 
-Примеры программ на NewLang
-
-
 <style>
     .rownr {width: 5%; overflow-y: hidden; background-color: rgb(105,105,105); color: white; 
            text-align: right; vertical-align:top; resize: none;}
@@ -19,6 +16,10 @@ weight: 25
     .error {background-color: rgb(255, 180, 180); }
     .pgbox {margin-top: 4rem;}
 </style>
+
+<p>
+<br>
+</p>
 
 <div class="pgbox">
 <select class="c10" style="width: 95%;" onchange="SelectExample(this);" id="example_list"> 
@@ -69,18 +70,6 @@ weight: 25
 
 <script>
 
-if(window.location.search){
-    const params = new Proxy(new URLSearchParams(window.location.search), {
-      get: (searchParams, prop) => searchParams.get(prop),
-    });
-    // Get the value of "src" in eg "https://example.com/?src=source"
-    if(params.src){
-        document.getElementById('playground').value = unescape(params.src);
-    }
-    //alert(escape('#!../output/nlc \n\nprint(\'Hello, world!\\n\');\n'));
-    // %23%21../output/nlc%20%0A%0Aprint%28%27Hello%2C%20world%21%5Cn%27%29%3B%0A
-}
-
 locations =[ "",
     "{{< source "hello.src" >}}",
     "{{< source "rational.src" >}}",
@@ -89,14 +78,17 @@ locations =[ "",
     "{{< source "tensor.src" >}}",
     ];
 
-function SelectExample(sel){   
-
-    srcLocation = locations[sel.selectedIndex];
-    if (srcLocation != undefined && srcLocation != "") {
-        obj = document.getElementById('playground');
-        obj.value = locations[sel.selectedIndex];
-        input_changed(obj);
-    } 
+function SelectExample(sel){
+    obj = document.getElementById('playground');
+    if(Number.isInteger(sel) && locations[sel]){
+        obj.value = locations[sel];
+    } else {
+        srcLocation = locations[sel.selectedIndex];
+        if (srcLocation != undefined && srcLocation != "") {
+            obj.value = locations[sel.selectedIndex];
+        } 
+    }
+    input_changed(obj);
 }
 
 
@@ -251,7 +243,7 @@ function run_playground(){
         clearInterval(downloadTimer);
         document.getElementById('progress').style.display = "none";
         document.getElementById('playground_out').classList.add("error");
-        alert("Request failed!");
+        alert("Request failed!\n\nCheck the connection protocol!\n\nThe site should open using the regular HTTP protocol without using SSL! Because browsers typically block unsecured connections on HTTPS pages.");
     };
 
     xhr.ontimeout = (e) => {
@@ -260,4 +252,20 @@ function run_playground(){
         alert("Run query timeout!");
     };
 }
+
+
+if(window.location.search){
+    const params = new Proxy(new URLSearchParams(window.location.search), {
+      get: (searchParams, prop) => searchParams.get(prop),
+    });
+    // Get the value of "src" in eg "https://example.com/?src=source"
+    if(params.id){
+        SelectExample(parseInt(params.id));
+    } else if(params.src){
+        document.getElementById('playground').value = unescape(params.src);
+    }
+    //alert(escape('#!../output/nlc \n\nprint(\'Hello, world!\\n\');\n'));
+    // %23%21../output/nlc%20%0A%0Aprint%28%27Hello%2C%20world%21%5Cn%27%29%3B%0A
+}
+
 </script>

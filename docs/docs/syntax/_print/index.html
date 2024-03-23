@@ -163,7 +163,7 @@ This is the multi-page printable view of this section.
     
     
 	
-<li>5: <a href="#pg-66431dc9242fce562d24bb69bdc576f3">Макросы</a></li>
+<li>5: <a href="#pg-66431dc9242fce562d24bb69bdc576f3">Macros</a></li>
 
 
     
@@ -206,12 +206,12 @@ This is the multi-page printable view of this section.
 
 <div class="content">
       <ul>
-<li>Операторы разделяются точкой с запятой «;».</li>
-<li>Отступы и переводы строк игнорируются.</li>
-<li>Однострочные комментарии начинаются с символа «#» до перевода строки, что соответствует комментариям в стиле Python и Bash.</li>
-<li>Многострочные комментарии соответствуют стилю С/С++ и должны располагаться между символами /* и */. Многосточные комментарии могут быть вложенными.</li>
-<li>Последовательность команд <a href="/docs/ops/block/">(блок кода)</a> заключаются в фигурные скобки &ldquo;<strong>{</strong>&rdquo; и &ldquo;<strong>}</strong>&rdquo;.</li>
-<li>Большинство операторов являются выражениями и возвращают результат выполнения последней операции.</li>
+<li>Operators are separated by a semicolon &ldquo;;&rdquo;.</li>
+<li>Indentations and line breaks are ignored.</li>
+<li>Single-line comments start with the symbol &ldquo;#&rdquo; until the end of the line, following the style of Python and Bash comments.</li>
+<li>Multi-line comments follow the C/C++ style and should be enclosed between &ldquo;/*&rdquo; and &ldquo;*/&rdquo;. Multi-line comments can be <em>nested</em>.</li>
+<li>Command sequences <a href="/docs/ops/block/">(code block)</a> are enclosed in curly braces &ldquo;<strong>{</strong>&rdquo; and &ldquo;<strong>}</strong>&rdquo;.</li>
+<li>Most operators are expressions and return the result of the last operation.</li>
 </ul>
 
 </div>
@@ -774,425 +774,100 @@ allowing class methods to be defined outside the body of the class simply by spe
 
 <div class="td-content" style="page-break-before: always">
     
-	<h1 id="pg-66431dc9242fce562d24bb69bdc576f3">5 - Макросы</h1>
+	<h1 id="pg-66431dc9242fce562d24bb69bdc576f3">5 - Macros</h1>
     
-	<p>Макросы в <strong>NewLang</strong>, это один или несколько последовательных терминов, которые заменяются на другой термин
-или на целую синтаксическую конструкцию (последовательность лексем).</p>
-<p>Макросы обработываются во время работы <strong>лексера</strong>, т.е. перед передачей последовательности лексем в парсер,
-что позволяет с их помощью изменять даже сам синтаксис языка, например, при реализации собственных диалектов DSL.</p>
-<h3 id="определение-макросов">Определение макросов<a class="td-heading-self-link" href="#%d0%be%d0%bf%d1%80%d0%b5%d0%b4%d0%b5%d0%bb%d0%b5%d0%bd%d0%b8%d0%b5-%d0%bc%d0%b0%d0%ba%d1%80%d0%be%d1%81%d0%be%d0%b2" aria-label="Heading self-link"></a></h3>
-<p>Определение макросов аналогично <a href="/docs/ops/create/">определению</a> других объектов и состоит из трех частей
-<strong>&lt;имя макроса&gt; &lt;оператор создания/присвоения&gt; &lt;тело макроса&gt;</strong> и завершающая точка с запятой &ldquo;<strong>;</strong>&rdquo;,
-т.е. применяются обычные операторы <strong>::=</strong>, <strong>=</strong> или <strong>:=</strong> для создания нового или переопределения уже существующего объекта,
-а имя макроса указывается между двумя символами <strong>&quot;@@&quot;</strong> и может содержать одну или нескольких лексем (терминов).</p>
-<p>Все макросы относятся к глобальному пространству имен, поэтому первый термин в имени макроса должен быть уникальным,
-иначе он будет прекрывать имена локальных и глобальных переменных при <a href="/docs/syntax/naming/">разрешении имен</a>,
-если они указаны в коде без квалификаторов.</p>
-<p>???????????????????????
-Чистые (гигиеничные) макросы, <strong>::-</strong> <strong>:-</strong>, аргумента и переммые в которых гарантиованно не пересекаются с пространством имен программы?????????????????</p>
-<p>Телом макроса могут быть корректное выражение языка, последовательность лексем (которые заключается в двойные собачки <strong>&quot;@@&quot;</strong>,
-т.е. <strong><code>@@ лексема1 лексема1 @@</code></strong>) или обычная текстовая строка (которую нужно указать между тройными собачками <strong>&quot;@@@&quot;</strong>, т.е. <strong><code>@@@ текстовая строка @@@</code></strong>).</p>
-<p>В имени макроса, кроме первого термина, могут присутствовать один или несколько шаблонов.
-<em>Шаблон</em> — это термин, который при сопоставлении последовательности лексем с идентификатором макроса
-может заменяться любым другим одиночным термином (т.е. фактически это сопоставление по образцу/шаблону).</p>
-<p>Для создания термина-шаблона в начале его идентификатора нужно поставить знак доллара (что соответствует квалификатору локальной переменой),
-т.е. имя макроса <code>@@ FUNC $name @@</code> будет соответствовать последовательности лексем как <code>FUNC my_func_name</code>, так и <code>FUNC other_name_func</code>.</p>
-<p>Для удаления макроса используется специальный синтаксис: <code>@@@@ name @@@@;</code> или <code>@@@@ два термина @@@@;</code>,
-т.е. необходимо указать идентификатор макроса между четырмя символами <strong>&quot;@@@@&quot;</strong>.</p>
-<div class="highlight"><pre tabindex="0" style="background-color:#f8f8f8;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>    <span style="color:#8f5902;font-style:italic"># Тело макроса из текстовой строки (как в препроцессоре С/С++)</span>
-</span></span><span style="display:flex;"><span>    @@macro_str@@ :<span style="color:#ce5c00;font-weight:bold">=</span> @@@ строка - тело макроса @@@<span style="color:#000;font-weight:bold">;</span> <span style="color:#8f5902;font-style:italic"># Строка для лексера</span>
+	<p>Macros are also used to transform the original code of <em>NewLang</em> into a more familiar syntax based on <a href="/docs/syntax/dsl/">keywords</a>,
+as such text is much easier to understand when reading the original code later.</p>
+<p>In <strong>NewLang</strong>, macros are one or more consecutive terms that are replaced with another term or a whole syntactic construction (a sequence of lexemes).</p>
+<p>Macros are processed during the operation of the <strong>lexer</strong>, i.e., before passing the sequence of lexemes to the parser,
+allowing fragments of the language syntax to be modified using macros, for example, when implementing custom DSL dialects.</p>
+<h3 id="defining-macros">Defining Macros<a class="td-heading-self-link" href="#defining-macros" aria-label="Heading self-link"></a></h3>
+<p>The definition of macros is similar to the <a href="/docs/ops/create/">definition</a> of other objects and consists of three parts
+<strong><macro name> &lt;creation/assignment operator&gt; <macro body></strong> and ends with a semicolon &ldquo;<strong>;</strong>&rdquo;, i.e.,
+normal operators <strong>::=</strong>(<strong>::-</strong>), <strong>=</strong>, or <strong>:=</strong>(<strong>:-</strong>) are used to create a new or redefine an existing object,
+and the macro name is indicated between two symbols <strong>&quot;@@&quot;</strong> and can contain one or more lexemes (terms).</p>
+<p>All macros belong to the global namespace, so the first term in the macro name must be unique,
+otherwise it will override local and global variables during <a href="/docs/syntax/naming/#name-lookup">name lookup</a>
+if they are written in the program text without <a href="/docs/syntax/naming/#sigil">qualifiers (sigils)</a>.</p>
+<p>Using the operators <strong>::-</strong> and <strong>:-</strong> creates pure (hygienic) macros, arguments and variables in which are guaranteed not to intersect with the program&rsquo;s namespace.</p>
+<p>The body of a macro can be a valid language expression, a sequence of lexemes (enclosed in double at symbols <strong>&quot;@@&quot;</strong>,
+i.e. <strong><code>@@ lexeme1 lexeme2 @@</code></strong>), or a regular text string (which should be specified between triple at symbols <strong>&quot;@@@&quot;</strong>,
+i.e. <strong><code>@@@ text string @@@</code></strong>).</p>
+<p>In the macro name after the first term, one or more templates may be present.
+A <em>template</em> is a term that, when matching a sequence of lexemes with the macro identifier,
+can be replaced by any other single term (effectively, this is pattern/template matching).</p>
+<p>To create a template term, a dollar sign should be placed at the beginning of its identifier (which corresponds to a qualifier of a local variable),
+i.e. the macro name <code>@@ FUNC $name @@</code> will correspond to the sequence of lexemes as <code>FUNC my_func_name</code> as well as <code>FUNC other_name_func</code>.</p>
+<p>To remove a macro, a special syntax is used: <code>@@@@ name @@@@;</code> or <code>@@@@ two terms @@@@;</code>,
+i.e. you need to specify the macro identifier between four characters <strong>&quot;@@@@&quot;</strong>.</p>
+<div class="highlight"><pre tabindex="0" style="background-color:#f8f8f8;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-python" data-lang="python"><span style="display:flex;"><span>    <span style="color:#8f5902;font-style:italic"># Macro body from a text string (as in C/C++ preprocessor)</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#ce5c00;font-weight:bold">@</span><span style="color:#5c35cc;font-weight:bold">@macro_str</span><span style="color:#ce5c00;font-weight:bold">@@</span> <span style="color:#ce5c00;font-weight:bold">:=</span> <span style="color:#ce5c00;font-weight:bold">@@@</span> <span style="color:#000">string</span> <span style="color:#ce5c00;font-weight:bold">-</span> <span style="color:#000">macro</span> <span style="color:#000">body</span> <span style="color:#ce5c00;font-weight:bold">@@@</span><span style="color:#000;font-weight:bold">;</span> <span style="color:#8f5902;font-style:italic"># String for the lexer</span>
 </span></span><span style="display:flex;"><span>
-</span></span><span style="display:flex;"><span>    <span style="color:#8f5902;font-style:italic"># Удаления макроса @macro_str</span>
-</span></span><span style="display:flex;"><span>    @@@@ macro_str @@@@<span style="color:#000;font-weight:bold">;</span>
-</span></span></code></pre></div><h3 id="аргументы-макросов-и-их-раскрытие">Аргументы макросов и их раскрытие<a class="td-heading-self-link" href="#%d0%b0%d1%80%d0%b3%d1%83%d0%bc%d0%b5%d0%bd%d1%82%d1%8b-%d0%bc%d0%b0%d0%ba%d1%80%d0%be%d1%81%d0%be%d0%b2-%d0%b8-%d0%b8%d1%85-%d1%80%d0%b0%d1%81%d0%ba%d1%80%d1%8b%d1%82%d0%b8%d0%b5" aria-label="Heading self-link"></a></h3>
-<p>Макросы можно определять как с аргументами (параметрами в скобках), так и без них.
-Если макрос был определен с аргументами, то их проверка будет выполнятся макропроцессором при определении и раскрытии макроса.
-Если макрос был определен без аргументов, то их наличие макропроцессором игнорируется.</p>
-<p>Так как макропроцессор считает макросы с аргументами и без оных идентичными, то нельзя создать два макроса
-с одинаковыми именами, один из которых будет с аргументами (скобками), а другой без них.</p>
-<p>Поэтому, если требуется использовать макрос в двух разных вариантах (с аргументами и без них),
-тогда следует определять макрос без аргументов и в этом случае контроль параметров будет производить компилятор.</p>
-<div class="highlight"><pre tabindex="0" style="background-color:#f8f8f8;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>    @@macro@@ :<span style="color:#ce5c00;font-weight:bold">=</span> term<span style="color:#000;font-weight:bold">;</span> <span style="color:#8f5902;font-style:italic"># Макрос без аргументов</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#8f5902;font-style:italic"># Removing macro @macro_str</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#ce5c00;font-weight:bold">@@@@</span> <span style="color:#000">macro_str</span> <span style="color:#ce5c00;font-weight:bold">@@@@</span><span style="color:#000;font-weight:bold">;</span>
+</span></span></code></pre></div><h3 id="args">Macro Arguments and Expansion<a class="td-heading-self-link" href="#args" aria-label="Heading self-link"></a></h3>
+<p>Macros can be defined with arguments (parameters in parentheses) or without them.
+If a macro was defined with arguments, their validation will be performed by the macro processor during definition and expansion of the macro.
+If a macro was defined without arguments, the presence of arguments will be ignored by the macro processor.</p>
+<p>The macroprocessor considers macros with and without arguments identical,
+so it is not possible to create two macros with the same name, one with arguments (in parentheses) and the other without.</p>
+<p>Therefore, if you need to use a macro in two different ways (with arguments and without),
+you should define the macro without arguments, and in this case, the parameter control will be done by the compiler.</p>
+<div class="highlight"><pre tabindex="0" style="background-color:#f8f8f8;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>    @@ macro @@ :<span style="color:#ce5c00;font-weight:bold">=</span> term<span style="color:#000;font-weight:bold">;</span> <span style="color:#8f5902;font-style:italic"># Macro without arguments</span>
 </span></span><span style="display:flex;"><span>    
-</span></span><span style="display:flex;"><span>    macro<span style="color:#ce5c00;font-weight:bold">(</span>args<span style="color:#ce5c00;font-weight:bold">)</span><span style="color:#000;font-weight:bold">;</span> <span style="color:#8f5902;font-style:italic"># ОК -&gt; term(args);</span>
-</span></span><span style="display:flex;"><span>    macro<span style="color:#000;font-weight:bold">;</span> <span style="color:#8f5902;font-style:italic"># ОК -&gt; term;</span>
+</span></span><span style="display:flex;"><span>    macro<span style="color:#ce5c00;font-weight:bold">(</span>args<span style="color:#ce5c00;font-weight:bold">)</span><span style="color:#000;font-weight:bold">;</span> <span style="color:#8f5902;font-style:italic"># OK -&gt; term(args);</span>
+</span></span><span style="display:flex;"><span>    macro<span style="color:#000;font-weight:bold">;</span> <span style="color:#8f5902;font-style:italic"># OK -&gt; term;</span>
 </span></span><span style="display:flex;"><span>
-</span></span><span style="display:flex;"><span>    <span style="color:#8f5902;font-style:italic"># Но </span>
-</span></span><span style="display:flex;"><span>    @@call<span style="color:#ce5c00;font-weight:bold">()</span>@@ :<span style="color:#ce5c00;font-weight:bold">=</span> term<span style="color:#ce5c00;font-weight:bold">()</span><span style="color:#000;font-weight:bold">;</span> 
+</span></span><span style="display:flex;"><span>    <span style="color:#8f5902;font-style:italic"># But</span>
+</span></span><span style="display:flex;"><span>    @@ call<span style="color:#ce5c00;font-weight:bold">()</span> @@ :<span style="color:#ce5c00;font-weight:bold">=</span> term<span style="color:#ce5c00;font-weight:bold">()</span><span style="color:#000;font-weight:bold">;</span> 
 </span></span><span style="display:flex;"><span>
-</span></span><span style="display:flex;"><span>    call<span style="color:#ce5c00;font-weight:bold">()</span><span style="color:#000;font-weight:bold">;</span> <span style="color:#8f5902;font-style:italic"># ОК -&gt; term();</span>
-</span></span><span style="display:flex;"><span>    call<span style="color:#000;font-weight:bold">;</span> <span style="color:#8f5902;font-style:italic"># Ошибка (@call определен с аргументами) </span>
-</span></span></code></pre></div><p>Если при определении макроса указаны аргументы, то место для их вставки в теле макроса
-записывается как имя локальной переменой, перед которой добавлен символ <strong>&quot;@&quot;</strong>, т.е. <strong>@$arg</strong>.</p>
-<p>Произвольное количество аргументов у макроса отмечается троеточием <strong>&quot;&hellip;&quot;</strong>, а место для их вставки отмечается в теле макроса лексемой <strong>&quot;@$&hellip;&quot;</strong>.</p>
-<p>Место для вставки числа реально переданных аргументов отмечается лексемой <strong>&quot;@$#&quot;</strong>.
-Если требуется вставить переданные аргументы в виде элементов словаря,
-то место для вставки отмечается лексемой <strong>&quot;@$*&quot;</strong>.</p>
-<p>По аналогии с препроцессором С/С++, для соединения двух лексем в одну, в теле макроса используется оператор <strong>&quot;@##&quot;</strong>,
-а для преобразование лексемы в текстову строку применяется операторы <strong>@#</strong>, <strong>@#&quot;</strong> или <strong>@#&rsquo;</strong>, например,
-<code>@@macro($arg)@@ := @@ func_ @## @$arg( @#&quot; arg ) @;</code>, тогда вызов <code>macro(name);</code> будет преобразован в <code>func_name (&quot;name&quot;);</code></p>
-
-
-<div class="pageinfo pageinfo-primary">
-<h4 id="ограничения-макропроцессора-в-текущей-версии">Ограничения макропроцессора в текущей версии<a class="td-heading-self-link" href="#%d0%be%d0%b3%d1%80%d0%b0%d0%bd%d0%b8%d1%87%d0%b5%d0%bd%d0%b8%d1%8f-%d0%bc%d0%b0%d0%ba%d1%80%d0%be%d0%bf%d1%80%d0%be%d1%86%d0%b5%d1%81%d1%81%d0%be%d1%80%d0%b0-%d0%b2-%d1%82%d0%b5%d0%ba%d1%83%d1%89%d0%b5%d0%b9-%d0%b2%d0%b5%d1%80%d1%81%d0%b8%d0%b8" aria-label="Heading self-link"></a></h4>
-<p>На текущий момент макросы реализованы в минимальном объеме для самых простых сценариев использования:</p>
-<ul>
-<li>DSL для keyword based syntax (if, else, return, match, while  и т.д.) - (1 термин с произвольными аргументами и без) - требуется сейчас !!!</li>
-</ul>
-<p><em>Парсер при обработке макросов может анализировать информацию о типах данных, если она указана.</em>
-<em>Но на текущий момент типы данных в макросах никак не обрабатываются и это одна из обязательных фич, которая будет реализована в будущем.</em></p>
-<ul>
-<li>Определения (func, class) - (несколько терминов с аргументами и без аргументов) - Реализация ООП и импорт С++ классов</li>
-<li>Модификации при определениях (override) - (несколько терминов и шаблоны с аргументами и без аргументов) - Реализация ООП и импорт С++ классов</li>
-</ul>
-
-</div>
-
-<h1 id="макросы-без-аргументов-или-все-аргументы-сразу-">МАКРОСЫ БЕЗ АРГУМЕНТОВ ИЛИ ВСЕ АРГУМЕНТЫ СРАЗУ !!!!!<a class="td-heading-self-link" href="#%d0%bc%d0%b0%d0%ba%d1%80%d0%be%d1%81%d1%8b-%d0%b1%d0%b5%d0%b7-%d0%b0%d1%80%d0%b3%d1%83%d0%bc%d0%b5%d0%bd%d1%82%d0%be%d0%b2-%d0%b8%d0%bb%d0%b8-%d0%b2%d1%81%d0%b5-%d0%b0%d1%80%d0%b3%d1%83%d0%bc%d0%b5%d0%bd%d1%82%d1%8b-%d1%81%d1%80%d0%b0%d0%b7%d1%83-" aria-label="Heading self-link"></a></h1>
-<h1 id="анализа-аргументов-или-их-типов-не-производится-">анализа аргументов или их типов не производится !!!<a class="td-heading-self-link" href="#%d0%b0%d0%bd%d0%b0%d0%bb%d0%b8%d0%b7%d0%b0-%d0%b0%d1%80%d0%b3%d1%83%d0%bc%d0%b5%d0%bd%d1%82%d0%be%d0%b2-%d0%b8%d0%bb%d0%b8-%d0%b8%d1%85-%d1%82%d0%b8%d0%bf%d0%be%d0%b2-%d0%bd%d0%b5-%d0%bf%d1%80%d0%be%d0%b8%d0%b7%d0%b2%d0%be%d0%b4%d0%b8%d1%82%d1%81%d1%8f-" aria-label="Heading self-link"></a></h1>
-<p>Lambda
-@@ lambda $name(&hellip;) @@ ::= @@  @$name( @$&hellip; ) ::= ( _( @$&hellip; ) ::=  @<strong>PRAGMA_FINALIZE</strong>( @), {, {+, {-, {* ) @@</p>
-<h3 id="примеры-использования-макросов">Примеры использования макросов<a class="td-heading-self-link" href="#%d0%bf%d1%80%d0%b8%d0%bc%d0%b5%d1%80%d1%8b-%d0%b8%d1%81%d0%bf%d0%be%d0%bb%d1%8c%d0%b7%d0%be%d0%b2%d0%b0%d0%bd%d0%b8%d1%8f-%d0%bc%d0%b0%d0%ba%d1%80%d0%be%d1%81%d0%be%d0%b2" aria-label="Heading self-link"></a></h3>
-<div class="highlight"><pre tabindex="0" style="background-color:#f8f8f8;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>    <span style="color:#8f5902;font-style:italic"># Обычные макросы (тело макроса корректное выражение)</span>
-</span></span><span style="display:flex;"><span>    @@macro@@        :<span style="color:#ce5c00;font-weight:bold">=</span> replace<span style="color:#ce5c00;font-weight:bold">()</span><span style="color:#000;font-weight:bold">;</span>
-</span></span><span style="display:flex;"><span>    @@macro2<span style="color:#ce5c00;font-weight:bold">(</span>arg<span style="color:#ce5c00;font-weight:bold">)</span>@@  :<span style="color:#ce5c00;font-weight:bold">=</span> <span style="color:#ce5c00;font-weight:bold">{</span> call<span style="color:#ce5c00;font-weight:bold">(</span>@<span style="color:#000">$arg</span><span style="color:#ce5c00;font-weight:bold">)</span><span style="color:#000;font-weight:bold">;</span> call<span style="color:#ce5c00;font-weight:bold">()}</span><span style="color:#000;font-weight:bold">;</span>
+</span></span><span style="display:flex;"><span>    call<span style="color:#ce5c00;font-weight:bold">()</span><span style="color:#000;font-weight:bold">;</span> <span style="color:#8f5902;font-style:italic"># OK -&gt; term();</span>
+</span></span><span style="display:flex;"><span>    call<span style="color:#000;font-weight:bold">;</span> <span style="color:#8f5902;font-style:italic"># Error (@call is defined with arguments) </span>
+</span></span></code></pre></div><p>If arguments are specified when defining a macro, the place for their insertion in the body of the macro is written
+as the name of a local variable with the symbol <strong>&quot;@&quot;</strong> added before it, i.e. <strong>@$arg</strong>.</p>
+<p>The place for inserting the number of actual arguments passed is marked by the lexeme <strong>&quot;@$#&quot;</strong>.
+If it is necessary to insert the passed arguments as a dictionary, the place for insertion is marked by the lexeme <strong>&quot;@$*&quot;</strong>.</p>
+<p>If the macro takes an arbitrary number of arguments (the macro arguments are terminated by an ellipsis),
+the place for their insertion in the body of the macro is marked by the lexeme <strong>&quot;@$&hellip;&quot;</strong>.</p>
+<p>Analogous to the C/C++ preprocessor, to concatenate two lexemes into one, the operator <strong>&quot;@##&quot;</strong> is used in the body of the macro,
+and to convert a lexeme into a text string, the operators <strong>@#</strong>, <strong>@#&quot;</strong>, or <strong>@#&rsquo;</strong> are applied, for example,
+<code>@@macro($arg)@@ := @@ func_ @## @$arg( @#&quot; arg ) @;</code>, then the call <code>macro(name);</code> will be transformed into <code>func_name (&quot;name&quot;);</code></p>
+<p>Examples of using macros:</p>
+<div class="highlight"><pre tabindex="0" style="background-color:#f8f8f8;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-python" data-lang="python"><span style="display:flex;"><span>    <span style="color:#8f5902;font-style:italic"># Ordinary macros (the body of the macro is a correct expression)</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#ce5c00;font-weight:bold">@@</span> <span style="color:#000">macro</span> <span style="color:#ce5c00;font-weight:bold">@@</span>        <span style="color:#ce5c00;font-weight:bold">:=</span> <span style="color:#000">replace</span><span style="color:#000;font-weight:bold">();</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#ce5c00;font-weight:bold">@@</span> <span style="color:#000">macro2</span><span style="color:#000;font-weight:bold">(</span><span style="color:#000">arg</span><span style="color:#000;font-weight:bold">)</span> <span style="color:#ce5c00;font-weight:bold">@@</span>  <span style="color:#ce5c00;font-weight:bold">:=</span> <span style="color:#000;font-weight:bold">{</span> <span style="color:#000">call</span><span style="color:#000;font-weight:bold">(</span><span style="color:#ce5c00;font-weight:bold">@</span><span style="color:#a40000">$</span><span style="color:#000">arg</span><span style="color:#000;font-weight:bold">);</span> <span style="color:#000">call</span><span style="color:#000;font-weight:bold">()};</span>
 </span></span><span style="display:flex;"><span>
-</span></span><span style="display:flex;"><span>    <span style="color:#8f5902;font-style:italic"># Тело макросов из последовательности лексем</span>
-</span></span><span style="display:flex;"><span>    @@if<span style="color:#ce5c00;font-weight:bold">(</span>...<span style="color:#ce5c00;font-weight:bold">)</span>@@    :<span style="color:#ce5c00;font-weight:bold">=</span> @@ <span style="color:#ce5c00;font-weight:bold">[</span> <span style="color:#4e9a06">\$</span><span style="color:#204a87;font-weight:bold">if</span><span style="color:#ce5c00;font-weight:bold">(</span>*<span style="color:#ce5c00;font-weight:bold">)</span> <span style="color:#ce5c00;font-weight:bold">]</span>--&gt; @@<span style="color:#000;font-weight:bold">;</span> <span style="color:#8f5902;font-style:italic"># Выражение может быть не полным</span>
-</span></span><span style="display:flex;"><span>    @@elif<span style="color:#ce5c00;font-weight:bold">(</span>...<span style="color:#ce5c00;font-weight:bold">)</span>@@  :<span style="color:#ce5c00;font-weight:bold">=</span> @@ ,<span style="color:#ce5c00;font-weight:bold">[</span> <span style="color:#4e9a06">\$</span><span style="color:#204a87;font-weight:bold">elif</span><span style="color:#ce5c00;font-weight:bold">(</span>*<span style="color:#ce5c00;font-weight:bold">)</span> <span style="color:#ce5c00;font-weight:bold">]</span>--&gt; @@<span style="color:#000;font-weight:bold">;</span>
-</span></span><span style="display:flex;"><span>    @@else@@       :<span style="color:#ce5c00;font-weight:bold">=</span> @@ ,<span style="color:#ce5c00;font-weight:bold">[</span>_<span style="color:#ce5c00;font-weight:bold">]</span>--&gt; @@<span style="color:#000;font-weight:bold">;</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#8f5902;font-style:italic"># The body of the macros from a sequence of tokens</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#ce5c00;font-weight:bold">@@</span> <span style="color:#204a87;font-weight:bold">if</span><span style="color:#000;font-weight:bold">(</span><span style="color:#ce5c00;font-weight:bold">...</span><span style="color:#000;font-weight:bold">)</span> <span style="color:#ce5c00;font-weight:bold">@@</span>    <span style="color:#ce5c00;font-weight:bold">:=</span> <span style="color:#ce5c00;font-weight:bold">@@</span> <span style="color:#000;font-weight:bold">[</span> <span style="color:#ce5c00;font-weight:bold">@</span><span style="color:#a40000">$</span><span style="color:#ce5c00;font-weight:bold">...</span> <span style="color:#000;font-weight:bold">]</span><span style="color:#ce5c00;font-weight:bold">--&gt;</span> <span style="color:#ce5c00;font-weight:bold">@@</span><span style="color:#000;font-weight:bold">;</span> <span style="color:#8f5902;font-style:italic"># The expression may not be complete</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#ce5c00;font-weight:bold">@@</span> <span style="color:#204a87;font-weight:bold">elif</span><span style="color:#000;font-weight:bold">(</span><span style="color:#ce5c00;font-weight:bold">...</span><span style="color:#000;font-weight:bold">)</span> <span style="color:#ce5c00;font-weight:bold">@@</span>  <span style="color:#ce5c00;font-weight:bold">:=</span> <span style="color:#ce5c00;font-weight:bold">@@</span> <span style="color:#000;font-weight:bold">,[</span> <span style="color:#ce5c00;font-weight:bold">@</span><span style="color:#a40000">$</span><span style="color:#ce5c00;font-weight:bold">...</span> <span style="color:#000;font-weight:bold">]</span><span style="color:#ce5c00;font-weight:bold">--&gt;</span> <span style="color:#ce5c00;font-weight:bold">@@</span><span style="color:#000;font-weight:bold">;</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#ce5c00;font-weight:bold">@@</span> <span style="color:#204a87;font-weight:bold">else</span> <span style="color:#ce5c00;font-weight:bold">@@</span>       <span style="color:#ce5c00;font-weight:bold">:=</span> <span style="color:#ce5c00;font-weight:bold">@@</span> <span style="color:#000;font-weight:bold">,[</span><span style="color:#ce5c00;font-weight:bold">...</span><span style="color:#000;font-weight:bold">]</span><span style="color:#ce5c00;font-weight:bold">--&gt;</span> <span style="color:#ce5c00;font-weight:bold">@@</span><span style="color:#000;font-weight:bold">;</span>
 </span></span><span style="display:flex;"><span> 
-</span></span><span style="display:flex;"><span>    <span style="color:#8f5902;font-style:italic"># Запись условного оператора с использованием </span>
-</span></span><span style="display:flex;"><span>    <span style="color:#8f5902;font-style:italic"># определенных выше макросов</span>
-</span></span><span style="display:flex;"><span>    <span style="color:#204a87;font-weight:bold">if</span><span style="color:#ce5c00;font-weight:bold">(</span> condition <span style="color:#ce5c00;font-weight:bold">){</span>
-</span></span><span style="display:flex;"><span>        ...
-</span></span><span style="display:flex;"><span>    <span style="color:#ce5c00;font-weight:bold">}</span> <span style="color:#204a87;font-weight:bold">elif</span><span style="color:#ce5c00;font-weight:bold">(</span> condition2 <span style="color:#ce5c00;font-weight:bold">)</span> <span style="color:#ce5c00;font-weight:bold">{</span>
-</span></span><span style="display:flex;"><span>        ...
-</span></span><span style="display:flex;"><span>    <span style="color:#ce5c00;font-weight:bold">}</span> <span style="color:#204a87;font-weight:bold">else</span> <span style="color:#ce5c00;font-weight:bold">{</span>
-</span></span><span style="display:flex;"><span>        ...
-</span></span><span style="display:flex;"><span>    <span style="color:#ce5c00;font-weight:bold">}</span><span style="color:#000;font-weight:bold">;</span>
-</span></span></code></pre></div><p>Зачем нужна трансформация синтаксиса?
-Нативная поддержка других языков нужна чтобы не переписывать легаси код на этих языках.</p>
-<p>Чтобы можно было использовать существующие исходники как собственные требуется настройка работы
-препроцессора и лексера под конкретный язык программирования (описание DSL).
-Для <strong>С/С++</strong> потребуется выделять лексером комментарии из-за пересечения синтаксиса (которые сейчас игнорируются).
-Для <strong>Python</strong> требуется выделять лексером отступы (которые сейчас тоже игнорируются), причем потребуется реализация не только синтаксиса,
-но и зависимых пакетов с последующая трансляцией этого кода в С++, что в настоящий момент делать не целесообразно (cython ???).</p>
-<p>Но так как возможность трансформации кода с других языков программирования принципиальная возможна,
-стоит над этим думать только после полноценного релиза NewLang и его перехода в прод.</p>
-<p>Для реализации DSL требуется передача команд в парсер для управления его работой (по аналогии с командой #pragma)
-Но так как обработка таких команд должна происходить в лексере до передачи данных в парсер (анализатор),
-то команды для макропроцессора должны быть в максимально простом виде и состоять из элементов,
-которые лексер может самостоятельно идентифицировать, т.е. термины, строки и цифры (без выражений и именованных аргументов).</p>
-<p>После обработки такой команды она анализируется макропроцессором и удаляется из потока лексем, т.е. в парсер (анализатор) не передается.
-Но в случае ошибки с синтаксисе, данные команды нужно уметь однозначно идентифировать и самый простой способ,
-комбинация признака макроса и системного имени, т.е. что-то вроде</p>
-<pre tabindex="0"><code>    @__PRAGMA_DIAG__(push)
-    @__PRAGMA_DIAG__(ignored, &#34;-Wundef&#34;)
-    @__PRAGMA_DIAG__(warning, &#34;-Wformat&#34;)
-    @__PRAGMA_DIAG__(error &#34;-Wuninitialized&#34;)
-    @__PRAGMA_DIAG__(pop)
-
-    #pragma message &#34;Compiling &#34; __FILE__ &#34;...&#34;
-    @__PRAGMA_MESSAGE__(&#34;Compiling &#34;, __FILE__, &#34;...&#34;)
-
-    #pragma error &#34;Error &#34; __FILE__ &#34;...&#34;
-    @__PRAGMA_ERROR__(&#34;Error &#34;, __FILE__, &#34;...&#34;)
-
-
-#define DO_PRAGMA(x) _Pragma (#x)
-#define TODO(x) DO_PRAGMA(message (&#34;TODO - &#34; #x))
-
-@@TODO( ... )@@ := @__PRAGMA_MESSAGE__(&#34;TODO - &#34;, @*)
-
-@TODO(Remember to fix this)  # note: TODO - Remember to fix this
-
-\\.__lexer__ignore_space__ = 1;
-\\.__lexer__ignore_indent__ = 1;
-\\.__lexer__ignore_comment__ = 1;
-\\.__lexer__ignore_crlf__ = 1;
-</code></pre><p>Таким образом можно трансформировать условный оператор на питоне в синтаксис NewLang следующим макросом:</p>
-<pre tabindex="0"><code>
-#pragma clang attribute push
-#pragma clang diagnostic ignored &#34;-Wundef&#34;
-#pragma clang diagnostic ignored &#34;-Wunused-variable&#34;
-
-
-#elif __GNUC__
-
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored &#34;-Wuninitialized&#34;
-
-#pragma GCC diagnostic ignored &#34;-Wall&#34;
-#pragma GCC diagnostic ignored &#34;-Wextra&#34;
-    
-    @pragma warning(pop)
-
-    @@ pragma warning(...) @@ := __PRAGMA_TERM_DIAG_WARNING__();
-@__PRAGMA_DIAG__(warning, pop);
-
-Обработка терминов в макропроцессоре в максимально простом виде. 
-Агрументы только термины, строки и цифры без вложенных выражений и именованных аргументов, 
-т.е. только элементы, которые может самостоятельно идентифицировать лексер.
-
-@warning(&#34;--&#34;)
-    @@ if ... : @@ := @@ [ @$* ]-&gt; __TERM_BLOCK_INDENT__(&#34;{&#34;, force_semicolon=1) @@
-    
-    if __name__ == &#34;__main__&#34;:
-        run1()
-        run2()
-
-    [ __name__ == &#34;__main__&#34; ]-&gt; {
-        run1();
-        run2();
-    };
-    
-        
-</code></pre><p>Ключ &ndash;parser-syntax-only только текстовый парсинг исходного кода без загрузки модулей, раскрытия макросов и проверки имен.</p>
-<p>Ключ &ndash;parser-no-macros - без раскрытия макросов
-Ключ &ndash;parser-no-module - без загрузки модулей (и мокросов, если они в них определяются)
-Ключ &ndash;parser-no-check-prototype - без проверки имен при обращении</p>
-<p>prototype
-@<strong>PRAGMA_PROTOTYPE</strong>(define)
-@<strong>PRAGMA_PROTOTYPE</strong>(implement)</p>
-<p>$$</p>
-<p>\$ - корень системы (система)</p>
-<p>$ - текущий модуль</p>
-<h1 id="макросы-для-конвертора-проверки-в-python">Макросы для конвертора проверки в Python<a class="td-heading-self-link" href="#%d0%bc%d0%b0%d0%ba%d1%80%d0%be%d1%81%d1%8b-%d0%b4%d0%bb%d1%8f-%d0%ba%d0%be%d0%bd%d0%b2%d0%b5%d1%80%d1%82%d0%be%d1%80%d0%b0-%d0%bf%d1%80%d0%be%d0%b2%d0%b5%d1%80%d0%ba%d0%b8-%d0%b2-python" aria-label="Heading self-link"></a></h1>
-<h1 id="if-__name__--__main__">if <strong>name</strong> == &ldquo;<strong>main</strong>&rdquo;:<a class="td-heading-self-link" href="#if-__name__--__main__" aria-label="Heading self-link"></a></h1>
-<p>@@ <strong>name</strong> @@ ::= @@   $. @<strong>PRAGMA_NO_MACRO</strong>() <strong>name</strong> @@
-@@ if $&hellip; @: @@ ::= @@ [ @$&hellip; ] &ndash;&gt;  @@</p>
-<p>@if( $.<strong>name</strong> == &ldquo;<strong>main</strong>&rdquo; ) {</p>
-<p>}</p>
-<p>\каталог\модуль() - статический импорт модуля
-\(&ldquo;каталог\модуль&rdquo;)() - динамический импорт модуля</p>
-<p>printf := :Pointer(&lsquo;printf(format:FmtChar, &hellip;):Int32&rsquo;);
-printf := %printf(format:FmtChar, &hellip;):Int32;</p>
-<h1 id="регистрация-прототипа-нативной-функции">Регистрация прототипа нативной функции<a class="td-heading-self-link" href="#%d1%80%d0%b5%d0%b3%d0%b8%d1%81%d1%82%d1%80%d0%b0%d1%86%d0%b8%d1%8f-%d0%bf%d1%80%d0%be%d1%82%d0%be%d1%82%d0%b8%d0%bf%d0%b0-%d0%bd%d0%b0%d1%82%d0%b8%d0%b2%d0%bd%d0%be%d0%b9-%d1%84%d1%83%d0%bd%d0%ba%d1%86%d0%b8%d0%b8" aria-label="Heading self-link"></a></h1>
-<p>@prototype
-%puts(format:StrChar):Int32;</p>
-<h1 id="импорт-нативной-функции-с-предварительной-проверкой-её-наличия-во-время-компиляции-статическая-линковка">Импорт нативной функции с предварительной проверкой её наличия во время компиляции (статическая линковка)<a class="td-heading-self-link" href="#%d0%b8%d0%bc%d0%bf%d0%be%d1%80%d1%82-%d0%bd%d0%b0%d1%82%d0%b8%d0%b2%d0%bd%d0%be%d0%b9-%d1%84%d1%83%d0%bd%d0%ba%d1%86%d0%b8%d0%b8-%d1%81-%d0%bf%d1%80%d0%b5%d0%b4%d0%b2%d0%b0%d1%80%d0%b8%d1%82%d0%b5%d0%bb%d1%8c%d0%bd%d0%be%d0%b9-%d0%bf%d1%80%d0%be%d0%b2%d0%b5%d1%80%d0%ba%d0%be%d0%b9-%d0%b5%d1%91-%d0%bd%d0%b0%d0%bb%d0%b8%d1%87%d0%b8%d1%8f-%d0%b2%d0%be-%d0%b2%d1%80%d0%b5%d0%bc%d1%8f-%d0%ba%d0%be%d0%bc%d0%bf%d0%b8%d0%bb%d1%8f%d1%86%d0%b8%d0%b8-%d1%81%d1%82%d0%b0%d1%82%d0%b8%d1%87%d0%b5%d1%81%d0%ba%d0%b0%d1%8f-%d0%bb%d0%b8%d0%bd%d0%ba%d0%be%d0%b2%d0%ba%d0%b0" aria-label="Heading self-link"></a></h1>
-<p>puts2(format:StrChar):Int32 := %puts(format:StrChar):Int32;</p>
-<h1 id="импорт-нативной-функции-по-её-прототипу-во-время-выполнения-динамическая-линковка">Импорт нативной функции по её прототипу во время выполнения (динамическая линковка)<a class="td-heading-self-link" href="#%d0%b8%d0%bc%d0%bf%d0%be%d1%80%d1%82-%d0%bd%d0%b0%d1%82%d0%b8%d0%b2%d0%bd%d0%be%d0%b9-%d1%84%d1%83%d0%bd%d0%ba%d1%86%d0%b8%d0%b8-%d0%bf%d0%be-%d0%b5%d1%91-%d0%bf%d1%80%d0%be%d1%82%d0%be%d1%82%d0%b8%d0%bf%d1%83-%d0%b2%d0%be-%d0%b2%d1%80%d0%b5%d0%bc%d1%8f-%d0%b2%d1%8b%d0%bf%d0%be%d0%bb%d0%bd%d0%b5%d0%bd%d0%b8%d1%8f-%d0%b4%d0%b8%d0%bd%d0%b0%d0%bc%d0%b8%d1%87%d0%b5%d1%81%d0%ba%d0%b0%d1%8f-%d0%bb%d0%b8%d0%bd%d0%ba%d0%be%d0%b2%d0%ba%d0%b0" aria-label="Heading self-link"></a></h1>
-<p>puts3(format:StrChar):Int32 := :Pointer(&lsquo;puts(format:StrChar):Int32&rsquo;);</p>
-<p>%puts(&lsquo;Тест вывода строки&rsquo;); # Линковка с нативной функцией во время компиляции и непосредственный вызов с оптимизацией передачи параметров
-puts2(&lsquo;Тест 2 вывода строки&rsquo;); # Линковка с нативной функцией во время компиляции
-puts3(&lsquo;Тест 3 вывода строки&rsquo;); # Линковка с нативной функцией во время выполнения при первом вызове puts3</p>
-<ul>
-<li>Парсинг исходного текста без раскрытия макросов и загрузки модулей</li>
-<li>Парсинг исходного текста с раскрытием макросов (требуется загрузка модулей для зависимых и переопределяемых макросов)</li>
-<li>Загружатся модули могут как в виде исходников (которые требуется парсить и компилировть/выполнять)
-или в виде бинарников (в них должны быть список макросов, типов и имена объектов)</li>
-<li>После парсинга получается список <strong>имен</strong> макросов, типов и объектов (TermPtr)</li>
-<li>После выполнения модуля - список <strong>имен</strong> заполняется реальными объектами (ObjPtr).</li>
-</ul>
-<h1 id="компиляция-файла">Компиляция файла<a class="td-heading-self-link" href="#%d0%ba%d0%be%d0%bc%d0%bf%d0%b8%d0%bb%d1%8f%d1%86%d0%b8%d1%8f-%d1%84%d0%b0%d0%b9%d0%bb%d0%b0" aria-label="Heading self-link"></a></h1>
-<ul>
-<li>Парсинг исходника для построения AST (без анализа имен, связей, загрузки модулей и пр. только исходые тексты с раскрытием макросов</li>
-<li></li>
-</ul>
-<h1 id="систематизация-реализации-макросов">Систематизация реализации макросов<a class="td-heading-self-link" href="#%d1%81%d0%b8%d1%81%d1%82%d0%b5%d0%bc%d0%b0%d1%82%d0%b8%d0%b7%d0%b0%d1%86%d0%b8%d1%8f-%d1%80%d0%b5%d0%b0%d0%bb%d0%b8%d0%b7%d0%b0%d1%86%d0%b8%d0%b8-%d0%bc%d0%b0%d0%ba%d1%80%d0%be%d1%81%d0%be%d0%b2" aria-label="Heading self-link"></a></h1>
-<p>последовательность лексем MACRO_SEQ мужду @@  @@ сохраняется в m_block, так как фрагменты блоков не могут быть идентификаторами</p>
-<p>Разбор макросов происходит в лексере. Определением макроса всегда является целая строка,
-которая заканчивается точкой с запятой, а идентификатором макроса всегда выступает последовательность лексем:</p>
-<div class="highlight"><pre tabindex="0" style="background-color:#f8f8f8;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>    @@ id @@ :<span style="color:#ce5c00;font-weight:bold">=</span> macro<span style="color:#000;font-weight:bold">;</span>
-</span></span><span style="display:flex;"><span>    @@ id @@ :<span style="color:#ce5c00;font-weight:bold">=</span> @@ @@<span style="color:#000;font-weight:bold">;</span>
-</span></span><span style="display:flex;"><span>    @@ id @@ :<span style="color:#ce5c00;font-weight:bold">=</span> @@@ @@@<span style="color:#000;font-weight:bold">;</span>
-</span></span></code></pre></div><p>Хранилищем текущих максросов является объект класса MacroBuffer.
-Последовательность лексем идентификатора (id) макроса должна сохраняется в отдельном поле термина и однозначно его идентифицирует.
-Первый термин в идентификаторе хранится как ключ hashmap, а дальше происходит поиск полным перебором.
-Этапы работы с макросами</p>
-<ul>
-<li>
-<p>Входные термины из лексера получаются вызовом GetNextToken, внутри которой и происходит раскрытие макросов.
-Внутренний буфер заполняется до окончания строки (выражения), т.е. до символа &lsquo;;&rsquo; или <END>, после чего производится
-поиск макросов в объекте MacroBuffer для текущей последовательности лексем в буфере.</p>
-</li>
-<li>
-<p>Если макрос найден, то соответствющая ему последоваетльность заменяется на тело макроса и происходит переход
-на повторный анализ входного буфера.</p>
-</li>
-<li>
-<p>Если макрос не найден, то данные передаются в парсер для дальнейшего синтаксическго анализа.</p>
-</li>
-<li>
-<p>Для этого во входном потоке лексем (parser.y) во время оператората создания/присвоения вызывается функция проверки на макрос.
-MacroBuffer::CheckMacroAndConvertDel($$), и после этого выходному значению присваивается результат выполнения driver.MacroEval($$),
-и в дальнейшем этот макрос никак не обработывается.</p>
-</li>
-<li>
-<p>Создание макросов, проверка на дубликаты и логические ошибки в определении происходит путем обращения к методам объекта MacroBuffer.</p>
-<p>/*</p>
-<ul>
-<li>Макросы хрянтся как фрагменты AST в виде объектов типа Term,</li>
-<li>так как создаются после обработки парсером по правилам стандратной грамматики.</li>
-<li></li>
-<li>Но анализ входных данных на предмет раскрытия макросов проиходит из потока (последовательности) лексем,</li>
-<li>т.е. <strong>ДО</strong> обработки парсером, так как при раскрытии макросов может меняться грамматика выражений.</li>
-<li></li>
-<li>Функция \ref CompareMacro сравнивает входной буфер (последовательность лексем)</li>
-<li>на предмет возможного соответствия одному конкретному макросу.</li>
-<li>Сравниваются только ключевые словам без учета аргументов в скобках,</li>
-<li>но само наличие аргументов проверяется ??????????????????</li>
-<li></li>
-<li>Проблема:</li>
-<li>К функции можно обратится с целью её вызова (указав после имени скобки),</li>
-<li>так и по имени без скобок (например для получения ссылки на объект).</li>
-<li>Так и к переменной можно обратиться только по имени,</li>
-<li>так и указав скобки после имени как к функции (при копировании объекта).</li>
-<li></li>
-<li>Сделать один макрос под оба сценария (со скобками и без скобок) не получится, так как непонятно,</li>
-<li>что делать с аргументами при раскрытии тела макроса, когда они не указаны.</li>
-<li></li>
-<li>Но может быть следует переименовывать только одно имя без учета скобок,</li>
-<li>например, оставив такую возможность только для одиночных макросов.</li>
-<li></li>
-<li>\name -&gt; name или name (&hellip;), hash: name</li>
-<li>но \name(&hellip;) -&gt; name(&hellip;), а name - ошибка !!!!  hash: name</li>
-<li></li>
-<li>Или все же следует различать макросы со скобками и без скобок как два разных объекта???</li>
-<li>\name := name2;  и \name(&hellip;) := name2(&hellip;); будут разными объектами</li>
-<li></li>
-<li>Или добавить макросы-алиасы без аргументов только для переименования отдельных терминов?</li>
-<li>\alias :- name2; но как их отличать от обычных макросов в операции удаления?</li>
-<li>Или вообще не нужно отличать и оставить только один варинат (либо макрос, либо алиас)</li>
-<li>Тода вопрос со скобками закрывается сам собой, алиасы всегда без скобок,</li>
-<li>макросы со скбками или без скобок, но должно быть полное соответствие.</li>
-<li></li>
-<li>@ name name2 @ -&gt; name name2, но name name2(&hellip;) - ошибка!!! (hash: name,name2)</li>
-<li>@ name name2(&hellip;) @ -&gt; name name2(&hellip;), но name name2 - ошибка !!!! (hash: name,name2)</li>
-<li>@ name name2<a href="...">&hellip;</a> @ -&gt; name name2<a href="...">&hellip;</a>, но name name2 - ошибка !!!!  ( hash: name,name2 )</li>
-<li>@ name $tmpl<a href="...">&hellip;</a> name3@ -&gt; name $tmpl<a href="...">&hellip;</a> name3, но name $tmpl name3 - ошибка !!!!  ( hash: name,$,name3 )</li>
-<li></li>
-<li>Но!</li>
-<li>@ name name2 @ ::-  -&gt; name name2 - ок, но name name2(&hellip;) - ок</li>
-<li>@ name $tmpl name3@ ::- -&gt; name $tmpl<a href="...">&hellip;</a> name3 - ок, name $tmpl(&hellip;) name3[&hellip;] - ок</li>
-<li></li>
-<li></li>
-<li></li>
-<li>Для последовательности лексем требуется полное соответствие с учетом скобок ???</li>
-<li>и может ли быть несколько скобок одного типа (несколько крыглях, или несколько квардратных????</li>
-<li>&lt;Может быть несколько скобок одного типа, например, при указании типа у аргументов или типа возвращаемого значения.&gt;</li>
-<li></li>
-<li>@ name name2 @ -&gt; name name2, но name name2(&hellip;) - ошибка!!! (hash: name,name2)</li>
-<li>@ name name2(&hellip;) @ -&gt; name name2(&hellip;), но name name2 - ошибка !!!! (hash: name,name2)</li>
-<li>@ name name2<a href="...">&hellip;</a> @ -&gt; name name2<a href="...">&hellip;</a>, но name name2 - ошибка !!!!  ( hash: name,name2 )</li>
-<li>@ name $tmpl<a href="...">&hellip;</a> name3@ -&gt; name $tmpl<a href="...">&hellip;</a> name3, но name $tmpl name3 - ошибка !!!!  ( hash: name,$,name3 )</li>
-<li></li>
-<li>Проблема скобок возникает из-за сценария замены одного термина на другой,</li>
-<li>который есть в препроцессоре С/С++, но отсутствует при реализации с использованием шаблонов.</li>
-<li></li>
-<li></li>
-</ul>
-<p>*/</p>
-</li>
-</ul>
-<p>Макросы используются и для превращеня исходного кода <em>NewLang</em> в более привычный синтаксис на основе <a href="https://newlang.net/syntax_dsl.html">ключевых слов</a>, так как такой тест гораздо легче воспринимается при последующем чтении исходного кода.</p>
-<p><a href="https://newlang.net/syntax_dsl.html">Например:</a>.</p>
-<pre tabindex="0"><code>    @@if(...)@@    ::= @@ [ \$* ]--&gt; @@;
-    @@while(...)@@ ::= @@ [\$*] &lt;-&gt; @@;
-    @@return $arg@@::=  @@ -- \$arg -- @@;
-    @@true@@ ::= 1;
-</code></pre><p>Тогда цикл до 5:</p>
-<pre tabindex="0"><code>count:=1;
-[ 1 ] &lt;-&gt; {
-    [count&gt;5] --&gt; {
-        -- 42 --;
-    };
-    count+=1;
-};
-</code></pre><p>будет выглядеть более привычно</p>
-<pre tabindex="0"><code>count:=1;
-while( true ) {
-    if(count&gt;5) {
-        return 42;
-    };
-    count+=1;
-};
-</code></pre><h2 id="идеи-на-будущее">Идеи на будущее<a class="td-heading-self-link" href="#%d0%b8%d0%b4%d0%b5%d0%b8-%d0%bd%d0%b0-%d0%b1%d1%83%d0%b4%d1%83%d1%89%d0%b5%d0%b5" aria-label="Heading self-link"></a></h2>
-<h3 id="символьное-программирование">Символьное программирование<a class="td-heading-self-link" href="#%d1%81%d0%b8%d0%bc%d0%b2%d0%be%d0%bb%d1%8c%d0%bd%d0%be%d0%b5-%d0%bf%d1%80%d0%be%d0%b3%d1%80%d0%b0%d0%bc%d0%bc%d0%b8%d1%80%d0%be%d0%b2%d0%b0%d0%bd%d0%b8%d0%b5" aria-label="Heading self-link"></a></h3>
-<blockquote>
-<p>Символьное программирование, часто называемое декларативным программированием, представляет собой парадигму программирования, которая использует математическую логику, отношения и символы для представления знаний и помощи в решении проблем. Вместо того, чтобы сосредотачиваться на описании последовательности операций, необходимых для выполнения вычислений, как в императивном программировании, символическое программирование делает упор на выражении отношений и ограничений между структурами данных, уделяя особое внимание «что», а не «как».</p>
-<p>В контексте парадигм программирования символическое программирование часто противопоставляется процедурному или императивному программированию, где программы определяют пошаговые процедуры для достижения своих целей. В то время как императивное программирование фокусируется на описании потока управления с использованием таких конструкций, как циклы и условные выражения, для управления выполнением, символическое программирование сосредоточено на выражении фактов о проблеме и позволяет выполнению естественным образом выводить последующие последствия из предоставленной информации.</p>
-<p>Одним из основных преимуществ символьного программирования является его способность обеспечивать более высокий уровень абстракции, что упрощает анализ кода и снижает вероятность ошибок. Непосредственно выражая отношения и ограничения, символическое программирование позволяет разработчикам сосредоточиться на моделировании и спецификации проблем, позволяя базовой системе управлять реализацией и выполнением алгоритмов.</p>
-<p>Существует несколько языков программирования и сред, использующих парадигму символьного программирования, например Prolog, Lisp и Haskell. Например, Пролог — это язык логического программирования, который позволяет разработчикам выражать взаимосвязи и факты о проблемных областях, в то время как выполнение автоматически обосновывает и извлекает новые факты на основе исходной информации. В том же духе Лисп, функциональный язык программирования, использует символьные вычисления для манипулирования структурами данных и выполнения сложных операций над ними, используя краткий и математически обоснованный синтаксис. Haskell, еще один функциональный язык программирования, использует строгую типизацию и ленивые вычисления, чтобы обеспечить символическое рассуждение и облегчить эффективное создание программ.</p>
-<p>Символьное программирование может быть полезным в широком спектре проблемных областей, включая искусственный интеллект, экспертные системы, программирование логики ограничений и символьную математику, среди других. Более высокий уровень абстракции, обеспечиваемый декларативными языками программирования, облегчает разработку сложных систем, сводя к минимуму вероятность ошибки и улучшая удобство обслуживания. В частности, использование символьного программирования в искусственном интеллекте позволяет разработчикам создавать системы представления знаний и механизмы рассуждения, которые можно применять для обработки естественного языка, машинного обучения и автоматического доказательства теорем.</p>
-</blockquote>
-<p>Различие между символьным программированием и препроцессором</p>
-<ul>
-<li>Задача препроцессора - раскрыть(расширить) макрос, тогда как при символьном программировании нужно сокращать (сворачивать) выражения</li>
-<li>Препроцессор обрабатывает последовательности лексем (плоские данные), тогда как символьное программирование оперирует выражениями (деревом лексем)</li>
-<li>Макрос у препроцессора идентифицируется первым термином, и если макрос не может быть раскрыт, то возникает ошибка. В символьном программировани требуется точное соответствие всего выражения и только в этом случае производится сокращение выражения.</li>
-</ul>
-<p>Предпосылки для реализации символьного программирования
-Компилятор - интерепретатор с REPL и обработка AST как во время компиляции, так и во время выполнения.
-Необходимо добавить конструкции для определения правил символьного программрования (чистые функции?)
-Необходимо добавить конструкцию для вычисления выражений в символьном программировании.</p>
-<p>Wolfram
-<a href="https://habr.com/articles/772984/">https://habr.com/articles/772984/</a></p>
-<pre tabindex="0"><code>diffRules = {
-  Sin[x] -&gt; Cos[x], 
-  Cos[x] -&gt; -Sin[x], 
-  x^2 -&gt; 2*x, 
-  x -&gt; 1, 
-  Log[x] -&gt; 1/x
-}; 
-</code></pre><pre tabindex="0"><code>diffRules := (
-  Sin(x) @-&gt; Cos(x), 
-  Cos(x) @-&gt; -Sin(x), 
-  x^2  @-&gt;  2*x,
-  x @-&gt; 1, 
-  Log(x) @-&gt; 1\x,
-); 
-
-expr @-&gt; Sin(x) - x^2 + Log(x);  
-
-# И применим к нему правила дифференцирования
-
-#expr /. diffRules
-#(* 1/x - 2 x + Cos[x] *)
-
-sym := SymEval(expr, diffRules);
-res := Eval(sym, x=0.123);
-</code></pre><pre tabindex="0"><code>expr = a^2 + 3 * b^3 - c^4 + 2 * x^2 - x + 4*c + 3
-
-И я хочу это выражение линеаризовать, т.е. отбросить все степени выше первой. Я могу сделать это напрямую, как в примерах выше:
-
-expr /. {
-  a^2 -&gt; 0, 
-  b^3 -&gt; 0, 
-  c^4 -&gt; 0, 
-  x^2 -&gt; 0
-}
-(* 3 + 4 c - x *)
-
-Но это слишком неудобно. Что если я не знаю ни точную степень, ни имя переменной? Как просто указать, что нужно заменить все места, где встречается возведение в степень на ноль? Это можно сделать при помощи шаблонов вот так:
-
-expr /. Power[_, _] -&gt; 0
-(* 3 + 4 c - x *)
-
-Либо вот так:
-
-expr /. _ ^ _ -&gt; 0
-(* 3 + 4 c - x *)
-</code></pre><pre tabindex="0"><code>:diffRules() := {
-  {@ Sin(x) @} ::- {@ Cos(x) @};
-  Cos(x) @-&gt; -Sin(x), 
-  x^2  @-&gt;  2*x,
-  x @-&gt; 1, 
-  Log(x) @-&gt; 1\x,
-}; 
-
-expr @-&gt; Sin(x) - x^2 + Log(x);  
-
-# И применим к нему правила дифференцирования
-
-#expr /. diffRules
-#(* 1/x - 2 x + Cos[x] *)
-
-sym := SymEval(expr, diffRules);
-res := Eval(sym, x=0.123);
-</code></pre>
+</span></span><span style="display:flex;"><span>    <span style="color:#8f5902;font-style:italic"># Writing a conditional statement using</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#8f5902;font-style:italic"># the macros defined above</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#5c35cc;font-weight:bold">@if</span><span style="color:#000;font-weight:bold">(</span> <span style="color:#000">condition</span> <span style="color:#000;font-weight:bold">){</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#ce5c00;font-weight:bold">...</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#000;font-weight:bold">}</span> <span style="color:#5c35cc;font-weight:bold">@elif</span><span style="color:#000;font-weight:bold">(</span> <span style="color:#000">condition2</span> <span style="color:#000;font-weight:bold">)</span> <span style="color:#000;font-weight:bold">{</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#ce5c00;font-weight:bold">...</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#000;font-weight:bold">}</span> <span style="color:#5c35cc;font-weight:bold">@else</span> <span style="color:#000;font-weight:bold">{</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#ce5c00;font-weight:bold">...</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#000;font-weight:bold">};</span>
+</span></span></code></pre></div><p>For example, a loop up to 5:</p>
+<div class="highlight"><pre tabindex="0" style="background-color:#f8f8f8;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-python" data-lang="python"><span style="display:flex;"><span>    <span style="color:#000">count</span> <span style="color:#ce5c00;font-weight:bold">:=</span> <span style="color:#0000cf;font-weight:bold">1</span><span style="color:#000;font-weight:bold">;</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#000;font-weight:bold">[</span> <span style="color:#0000cf;font-weight:bold">1</span> <span style="color:#000;font-weight:bold">]</span> <span style="color:#ce5c00;font-weight:bold">&lt;-&gt;</span> <span style="color:#000;font-weight:bold">{</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#000;font-weight:bold">[</span> <span style="color:#000">count</span> <span style="color:#ce5c00;font-weight:bold">&gt;</span> <span style="color:#0000cf;font-weight:bold">5</span> <span style="color:#000;font-weight:bold">]</span> <span style="color:#ce5c00;font-weight:bold">--&gt;</span> <span style="color:#000;font-weight:bold">{</span>
+</span></span><span style="display:flex;"><span>            <span style="color:#ce5c00;font-weight:bold">--</span> <span style="color:#0000cf;font-weight:bold">42</span> <span style="color:#ce5c00;font-weight:bold">--</span><span style="color:#000;font-weight:bold">;</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#000;font-weight:bold">};</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#000">count</span><span style="color:#ce5c00;font-weight:bold">+=</span><span style="color:#0000cf;font-weight:bold">1</span><span style="color:#000;font-weight:bold">;</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#000;font-weight:bold">};</span>
+</span></span></code></pre></div><p>This will look more familiar:</p>
+<div class="highlight"><pre tabindex="0" style="background-color:#f8f8f8;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-python" data-lang="python"><span style="display:flex;"><span>    <span style="color:#000">count</span> <span style="color:#ce5c00;font-weight:bold">:=</span> <span style="color:#0000cf;font-weight:bold">1</span><span style="color:#000;font-weight:bold">;</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#5c35cc;font-weight:bold">@while</span><span style="color:#000;font-weight:bold">(</span> <span style="color:#000">true</span> <span style="color:#000;font-weight:bold">)</span> <span style="color:#000;font-weight:bold">{</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#5c35cc;font-weight:bold">@if</span><span style="color:#000;font-weight:bold">(</span> <span style="color:#000">count</span> <span style="color:#ce5c00;font-weight:bold">&gt;</span> <span style="color:#0000cf;font-weight:bold">5</span> <span style="color:#000;font-weight:bold">)</span> <span style="color:#000;font-weight:bold">{</span>
+</span></span><span style="display:flex;"><span>            <span style="color:#5c35cc;font-weight:bold">@return</span> <span style="color:#0000cf;font-weight:bold">42</span><span style="color:#000;font-weight:bold">;</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#000;font-weight:bold">};</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#000">count</span> <span style="color:#ce5c00;font-weight:bold">+=</span> <span style="color:#0000cf;font-weight:bold">1</span><span style="color:#000;font-weight:bold">;</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#000;font-weight:bold">};</span>
+</span></span></code></pre></div>
 </div>
 
 
@@ -1841,235 +1516,145 @@ my_file.write(&lsquo;hello world&rsquo;)</p>
     
 	<h1 id="pg-8e386bb5b373d09fe8bcbec82c31b73f">9 - Keyword syntax (DSL)</h1>
     
-	<h2 id="dsl">DSL<a class="td-heading-self-link" href="#dsl" aria-label="Heading self-link"></a></h2>
-<h3 id="features-of-associative-memory">Features of associative memory<a class="td-heading-self-link" href="#features-of-associative-memory" aria-label="Heading self-link"></a></h3>
+	<h3 id="features-of-associative-memory">Features of associative memory<a class="td-heading-self-link" href="#features-of-associative-memory" aria-label="Heading self-link"></a></h3>
 <p>The syntax of the <em>NewLang</em> language is based on strict rules without the use of keywords,
 and no matter how logical it may seem, association by keywords is much easier to remember, for example, <strong>if</strong>,
 than the combination <em>minus minus right angle bracket</em> <strong>&ndash;&gt;</strong>.
 Because of this, it makes sense to use not a &ldquo;pure&rdquo; basic syntax, but a more familiar dialect with the use of keywords.</p>
-<h3 id="syntax-based-on-keywords">Syntax based on keywords<a class="td-heading-self-link" href="#syntax-based-on-keywords" aria-label="Heading self-link"></a></h3>
-<p>In the dsl.nlp file, there is a set of macros that expand the basic syntax of <em>NewLang</em>, based on rules,
-with a set of predefined keywords as in classical programming languages.
-And if necessary, they can be adapted or supplemented for your own domain.</p>
-<h2 id="константы">Константы<a class="td-heading-self-link" href="#%d0%ba%d0%be%d0%bd%d1%81%d1%82%d0%b0%d0%bd%d1%82%d1%8b" aria-label="Heading self-link"></a></h2>
-<h3 id="логические">Логические<a class="td-heading-self-link" href="#%d0%bb%d0%be%d0%b3%d0%b8%d1%87%d0%b5%d1%81%d0%ba%d0%b8%d0%b5" aria-label="Heading self-link"></a></h3>
-<ul>
-<li><strong>true</strong> - 1</li>
-<li><strong>yes</strong>  - 1</li>
-<li><strong>false</strong> - 0</li>
-<li><strong>no</strong> - 0</li>
-</ul>
-<h3 id="системные-имена">Системные имена<a class="td-heading-self-link" href="#%d1%81%d0%b8%d1%81%d1%82%d0%b5%d0%bc%d0%bd%d1%8b%d0%b5-%d0%b8%d0%bc%d0%b5%d0%bd%d0%b0" aria-label="Heading self-link"></a></h3>
-<ul>
-<li><strong>this</strong> - Текущий объект (<strong>$0</strong>)</li>
-<li><strong>parent</strong> - Родительский объект (<strong>$$</strong>)</li>
-<li><strong>last</strong> - Результат выполнения последнего оператора (<strong>$^</strong>)</li>
-</ul>
-<p>!!!!!!!!- <strong>args</strong> - Все аргументы функции (<strong>$*</strong>)</p>
-<p>!!!!!!!!- <strong>sys</strong> - Системный контекст запущенной программы (<strong>@@</strong>)
-!!!!!!!!- <strong>current</strong> - Текущий модуль (<strong>@$</strong>)
-!!!!!!!!- <strong>cmd</strong> - Все аргументы выполняющегося приложения из командной строки (<strong>@*</strong>)</p>
-<p>!!!!!!!!!!1### Типовые функции и проверки
-!!!!!!!!!!- <strong>run(&lsquo;filename&rsquo;)</strong> - Выполнить указанный файл (<strong>@@(&lsquo;filename&rsquo;)</strong>)
-!!!!!!!!!!- <strong>ifmain</strong> - Проверка, если текущий модуль основной (<strong>[@$.$0] &ndash;&gt;</strong> { &hellip; })
-!!!!!!!!!!- <strong>ifload</strong> - Проверка, если текущий модуль загружается впервые (<strong>[@$.<strong>load</strong>] &ndash;&gt;</strong> { &hellip; })</p>
-<h3 id="операторы">Операторы<a class="td-heading-self-link" href="#%d0%be%d0%bf%d0%b5%d1%80%d0%b0%d1%82%d0%be%d1%80%d1%8b" aria-label="Heading self-link"></a></h3>
+<p><em>NewLang</em> already contains a set of macros that extend the basic rule-based syntax of <em>NewLang</em>,
+a set of predefined keywords as in classical programming languages,
+which can be adapted or supplemented to suit your own subject area.</p>
+<h3 id="constants">Constants<a class="td-heading-self-link" href="#constants" aria-label="Heading self-link"></a></h3>
 <ul>
 <li>
-<p><strong>match(cond)</strong> - Оператор <a href="https://newlang.net/ops.html#%D0%BE%D1%86%D0%B5%D0%BD%D0%BA%D0%B0-%D0%B2%D1%8B%D1%80%D0%B0%D0%B6%D0%B5%D0%BD%D0%B8%D1%8F">оценки выражения</a></p>
+<p><em>@true</em> - 1</p>
 </li>
 <li>
-<p><strong>if(&hellip;)</strong> - Первый условный оператор (<strong>[$*]&ndash;&gt;</strong> { &hellip; })</p>
+<p><em>@yes</em>  - 1</p>
 </li>
 <li>
-<p><strong>elif(&hellip;)</strong> - Второй и все последующие (<strong>,[$*]&ndash;&gt;</strong> { &hellip; })</p>
+<p><em>@false</em> - 0</p>
 </li>
 <li>
-<p><strong>else</strong> - Оператор <em>иначе</em> (<strong>,[_]&ndash;&gt;</strong> { &hellip; })</p>
+<p><em>@no</em> - 0</p>
 </li>
 <li>
-<p><strong>while(cond)</strong> - Оператор цикла с предусловием (<strong>[@$cond] &lt;-&gt;</strong> { &hellip; } )</p>
+<p><em>@this</em> или <em>@self</em> - Current object</p>
 </li>
 <li>
-<p><strong>dowhile(cond)</strong> - Оператор цикла с постусловием ({ &hellip; } <strong>&lt;-&gt;[@$cond]</strong>)</p>
+<p><em>@super</em> - Parent object</p>
 </li>
 <li>
-<p><strong>iter(obj, &hellip; )</strong> - Создание итератора ( <strong>@$obj</strong> ? (@$*) )</p>
-</li>
-<li>
-<p><strong>next(obj, &hellip; )</strong> - Следующий элемент итератора ( <strong>@$obj</strong> ! ($*) )</p>
-</li>
-<li>
-<p><strong>curr(obj, &hellip; )</strong> - Текущий элемент итератора ( <strong>@$obj</strong> !? ($*) )</p>
-</li>
-<li>
-<p><strong>first(obj)</strong> - Перейти на первый элемент итератора ( <strong>@$obj</strong> !! )</p>
-</li>
-<li>
-<p><strong>all(obj)</strong> - Получить сразу все элементы итератора ( <strong>@$obj</strong> ??)</p>
+<p><em>@latter</em> or <em>@last</em>- Result of the last operation</p>
 </li>
 </ul>
-<h3 id="прерывания">Прерывания<a class="td-heading-self-link" href="#%d0%bf%d1%80%d0%b5%d1%80%d1%8b%d0%b2%d0%b0%d0%bd%d0%b8%d1%8f" aria-label="Heading self-link"></a></h3>
+<h3 id="logical-operators">Logical operators<a class="td-heading-self-link" href="#logical-operators" aria-label="Heading self-link"></a></h3>
+<ul>
+<li><em>@and</em> - Logical <strong>AND</strong></li>
+<li><em>@or</em> - Logical <strong>OR</strong></li>
+<li><em>@xor</em> - Logical <strong>Exclusive OR</strong></li>
+<li><em>@not(value)</em> - Logical negation</li>
+</ul>
+<h3 id="operators">Operators<a class="td-heading-self-link" href="#operators" aria-label="Heading self-link"></a></h3>
 <ul>
 <li>
-<p><strong>return</strong> - Положительное прерывание (<strong>++</strong>)</p>
+<p><em>@if(&hellip;)</em> - First conditional statement</p>
 </li>
 <li>
-<p><strong>return(&hellip;)</strong>- Положительное прерывание с возвратом значения (<strong>++</strong> @$value <strong>++</strong>)</p>
+<p><em>@elif(&hellip;)</em> - Second and all subsequent conditional statements</p>
 </li>
 <li>
-<p><strong>error</strong> - Отрицательное прерывание (<strong>--</strong>)</p>
+<p><em>@else</em> - Operator <em>otherwise</em></p>
 </li>
 <li>
-<p><strong>error(&hellip;)</strong> - Отрицательное прерывание с возвратом значения (<strong>--</strong> @$value <strong>--</strong>)</p>
+<p><em>@while(&hellip;)</em> - Loop operator with precondition</p>
 </li>
 <li>
-<p><strong>break+</strong> и <strong>break-</strong> - Выход из цикла:</p>
+<p><em>@dowhile(&hellip;)</em> - Loop operator with postcondition</p>
+</li>
+<li>
+<p><em>@loop</em> - Infinite loop operator</p>
+</li>
+<li>
+<p><em>@break $label</em> - Operator to break out of a named named block of code</p>
+</li>
+<li>
+<p><em>@continue $label</em> - Jump operator to the beginning of a named block of code</p>
+</li>
+<li>
+<p><em>@return( result )</em> - Operator for returning a value and exiting a function</p>
+</li>
+<li>
+<p><em>@throw( error )</em> - Operator for creating an exception and returning an error</p>
+</li>
+<li>
+<p><em>@match( &hellip; )</em> - Expression evaluation operator</p>
+</li>
+<li>
+<p><em>@case( &hellip; )</em> - Pattern comparison operator</p>
+</li>
+<li>
+<p><em>@default</em> - Selection operator</p>
+</li>
+<li>
+<p><em>@iter(obj, &hellip; )</em> - Creating an iterator</p>
+</li>
+<li>
+<p><em>@next(obj, &hellip; )</em> - Get the next element of the iterator</p>
+</li>
+<li>
+<p><em>@curr(obj, &hellip; )</em> - Get the current iterator element</p>
+</li>
+<li>
+<p><em>@first(obj)</em> - Go to the first element of the iterator</p>
+</li>
+<li>
+<p><em>@all(obj)</em> - Get all elements of the iterator at once</p>
 </li>
 </ul>
-<pre tabindex="0"><code>    while(...) {+
-        ++ :Break ++   
-    +}
-    while(...) {-
-        -- :Break --
-    -}
-</code></pre><ul>
-<li><strong>continue+</strong> и <strong>continue-</strong> - В начало цикла:</li>
-</ul>
-<pre tabindex="0"><code>    while(...) {+
-        ++ :Continue ++   
-    +}
-    while(...) {-
-        -- :Continue --
-    -}
-</code></pre><p>obj {
-.field = 1;
-.prop();
-};</p>
-<p>#Python</p>
-<h1 id="1-without-using-with-statement">1) without using with statement<a class="td-heading-self-link" href="#1-without-using-with-statement" aria-label="Heading self-link"></a></h1>
-<p>file = open(&lsquo;file_path&rsquo;, &lsquo;w&rsquo;)
-file.write(&lsquo;hello world !&rsquo;)
-file.close()</p>
-<h1 id="2-without-using-with-statement">2) without using with statement<a class="td-heading-self-link" href="#2-without-using-with-statement" aria-label="Heading self-link"></a></h1>
-<p>file = open(&lsquo;file_path&rsquo;, &lsquo;w&rsquo;)
-try:
-file.write(&lsquo;hello world&rsquo;)
-finally:
-file.close()</p>
-<p>open(&lsquo;file_path&rsquo;, &lsquo;w&rsquo;) {
-.write(&lsquo;hello world !&rsquo;);
-.close();
-}</p>
-<p>Python3</p>
-<h1 id="using-with-statement">using with statement<a class="td-heading-self-link" href="#using-with-statement" aria-label="Heading self-link"></a></h1>
-<p>with open(&lsquo;file_path&rsquo;, &lsquo;w&rsquo;) as file:
-file.write(&lsquo;hello world !&rsquo;)</p>
-<h1 id="a-simple-file-writer-object">a simple file writer object<a class="td-heading-self-link" href="#a-simple-file-writer-object" aria-label="Heading self-link"></a></h1>
-<p>class MessageWriter(object):
-def <strong>init</strong>(self, file_name):
-self.file_name = file_name</p>
-<pre><code>def __enter__(self):
-    self.file = open(self.file_name, 'w')
-    return self.file
-
-def __exit__(self, *args):
-    self.file.close()
-</code></pre>
-<h1 id="using-with-statement-with-messagewriter">using with statement with MessageWriter<a class="td-heading-self-link" href="#using-with-statement-with-messagewriter" aria-label="Heading self-link"></a></h1>
-<p>with MessageWriter(&lsquo;my_file.txt&rsquo;) as xfile:
-xfile.write(&lsquo;hello world&rsquo;)</p>
-<h1 id="a-simple-file-writer-object-1">a simple file writer object<a class="td-heading-self-link" href="#a-simple-file-writer-object-1" aria-label="Heading self-link"></a></h1>
-<p>:MessageWriter {
-def <strong>init</strong>(self, file_name):
-self.file_name = file_name</p>
-<pre><code>def __enter__(self):
-    self.file = open(self.file_name, 'w')
-    return self.file
-
-def __exit__(self, *args):
-    self.file.close()
-</code></pre>
-<p>}</p>
-<h1 id="using-with-statement-with-messagewriter-1">using with statement with MessageWriter<a class="td-heading-self-link" href="#using-with-statement-with-messagewriter-1" aria-label="Heading self-link"></a></h1>
-<p>MessageWriter(&lsquo;my_file.txt&rsquo;) {
-.write(&lsquo;hello world&rsquo;);
-};</p>
-<p>from contextlib import contextmanager</p>
-<p>class MessageWriter(object):
-def <strong>init</strong>(self, filename):
-self.file_name = filename</p>
-<pre><code>@contextmanager
-def open_file(self):
-    try:
-        file = open(self.file_name, 'w')
-        yield file
-    finally:
-        file.close()
-</code></pre>
-<h1 id="usage">usage<a class="td-heading-self-link" href="#usage" aria-label="Heading self-link"></a></h1>
-<p>message_writer = MessageWriter(&lsquo;hello.txt&rsquo;)
-with message_writer.open_file() as my_file:
-my_file.write(&lsquo;hello world&rsquo;)</p>
-<p>:MessageWriter(object) {
-def <strong>init</strong>(self, filename):
-self.file_name = filename</p>
-<pre><code>@contextmanager
-def open_file(self):
-    try:
-        file = open(self.file_name, 'w')
-        yield file
-    finally:
-        file.close()
-</code></pre>
-<p>}</p>
-<h1 id="usage-1">usage<a class="td-heading-self-link" href="#usage-1" aria-label="Heading self-link"></a></h1>
-<p>message_writer = MessageWriter(&lsquo;hello.txt&rsquo;)
-with message_writer.open_file() as my_file:
-my_file.write(&lsquo;hello world&rsquo;)</p>
-<h1 id="приложения">Приложения<a class="td-heading-self-link" href="#%d0%bf%d1%80%d0%b8%d0%bb%d0%be%d0%b6%d0%b5%d0%bd%d0%b8%d1%8f" aria-label="Heading self-link"></a></h1>
-<h2 id="предопределенные-макросы">Предопределенные макросы<a class="td-heading-self-link" href="#%d0%bf%d1%80%d0%b5%d0%b4%d0%be%d0%bf%d1%80%d0%b5%d0%b4%d0%b5%d0%bb%d0%b5%d0%bd%d0%bd%d1%8b%d0%b5-%d0%bc%d0%b0%d0%ba%d1%80%d0%be%d1%81%d1%8b" aria-label="Heading self-link"></a></h2>
-<p>При работе парсера <em>NewLang</em> автоматически формируются несколько зарезервированных макросов, часть из которых соответствуют макросам препроцессора у С/С++.
-Данные предопределенные макросы можно использовать как обычные константы.</p>
+<h2 id="predefined-macros">Predefined macros<a class="td-heading-self-link" href="#predefined-macros" aria-label="Heading self-link"></a></h2>
+<p>When the <em>NewLang</em> parser is running, several reserved macros are automatically generated,
+some of which correspond to preprocessor macros in C/C++.
+These predefined macros can be used as regular constants.</p>
 <ul>
 <li>
-<p>__FILE__ или __FILE_NAME__ - имя и полный путь текущего файла</p>
+<p>__FILE__ or __FILE_NAME__ - name and full path of the current file</p>
 </li>
 <li>
-<p>__LINE__ или __FILE_LINE__ - содержит номер текущей строки в файле</p>
+<p>__LINE__ or __FILE_LINE__ - contains the number of the current line in the file</p>
 </li>
 <li>
-<p>__FILE_TIMESTAMP__ - дату и время последней модификации текущего файла в строковом представлении</p>
+<p>__FILE_TIMESTAMP__ - date and time of the last modification of the current file in string representation</p>
 </li>
 <li>
-<p>__FILE_MD5__ - md5 хеш текущего файла в строковом виде</p>
+<p>__FILE_MD5__ - md5 hash of the current file in string form</p>
 </li>
 <li>
-<p>__COUNTER__ - целочисленный счетчик, который увеличивает свое значение при каждом обращении</p>
+<p>__COUNTER__ - an integer counter that increases its value with each access</p>
 </li>
 <li>
-<p>__DATE__ - дата начала запуска компилятора (имеет одно и тоже значение для всех обрабатываемых файлов)</p>
+<p>__DATE__ - start date of the compiler launch (has the same value for all processed files)</p>
 </li>
 <li>
-<p>__TIME__ - время начала запуска компилятора (имеет одно и тоже значение для всех обрабатываемых файлов)</p>
+<p>__TIME__ - start time of the compiler launch (has the same value for all processed files)</p>
 </li>
 <li>
-<p>__TIMESTAMP__ - дату и время начала запуска компилятора (например: &ldquo;Fri 19 Aug 13:32:58 2016&rdquo;)</p>
+<p>__TIMESTAMP__ - date and time when the compiler started running (for example: &ldquo;Fri 19 Aug 13:32:58 2016&rdquo;)</p>
 </li>
 <li>
-<p>__TIMESTAMP_ISO__ - дату и время начала запуска компилятора в формате ISO (например: &ldquo;2013-07-06T00:50:06Z&rdquo;)</p>
+<p>__TIMESTAMP_ISO__ - date and time when the compiler started running in ISO format (for example: &ldquo;2013-07-06T00:50:06Z&rdquo;)</p>
 </li>
 <li>
-<p>__NLC_VER__ - Страшая и младшая версия компилятора NewLang (8 битное число, по 4 бита на цифру)</p>
+<p>__NLC_VER__ - Older and younger version of the NewLang compiler (8-bit number, 4 bits per digit)</p>
 </li>
 <li>
-<p>__NLC_DATE_BUILD__ - текстовая строка с датой сборки компилятора NewLang (например, &ldquo;23.06.04 20:51:39&rdquo;)</p>
+<p>__NLC_DATE_BUILD__ - text string with the build date of the NewLang compiler (for example, &ldquo;06/23/04 20:51:39&rdquo;)</p>
 </li>
 <li>
-<p>__NLC_SOURCE_GIT__ - текстовая строка с идентификатором исходных файлов NewLang git репозитория, использованных при сборке компилятора (например, &ldquo;v0.3.0-fef8c371&rdquo;)</p>
+<p>__NLC_SOURCE_GIT__ - text string with the identifier of the NewLang git repository source files used to build the compiler (for example, &ldquo;v0.3.0-fef8c371&rdquo;)</p>
 </li>
 <li>
-<p>__NLC_SOURCE_BUILD__ - дата сборки и git идентификатор исходных файлов NewLang одной текстовой строкой (например, &ldquo;v0.3.0-fef8c371 23.06.04 20:51:39&rdquo;)</p>
+<p>__NLC_SOURCE_BUILD__ - build date and git identifier of NewLang source files in one text line (for example, &ldquo;v0.3.0-fef8c371 06/23/04 20:51:39&rdquo;)</p>
 </li>
 </ul>
 

@@ -1,33 +1,44 @@
 ---
-title: Нативные типы
+title: Native Data Types
 # linkTitle: Docs
 # menu: {main: {weight: 20}}
 weight: 70
 tags: [типы данных, системые типы, коллекции]
 ---
 
+Native (machine) data can be variables or functions, and the names of native objects start with the percent symbol "**%**".
 
-## Нативные типы данных
-Нативными (машинные) данными могут быть как переменные, так и функции, а имя нативных объектов начинается на символ процента "**%**".
-В случае пемеенных, это двоичные данные, которые располагаются в одной неразрывной области машинной памяти по определенному адресу и имеют строго определнный формат.
+In the case of variables, these are binary data located in a single continuous area of machine memory at a specific address and have a strictly defined format.
 
-### :Pointer — указатель на системную область памяти или нативную функцию
+To use existing libraries, you need to import the native object, thereby creating an object NewLang, 
+but with an implementation in another language, for example, in C/C++.
+
+The syntax for importing native objects is the same as for [creating](/docs/ops/create/) regular language objects, 
+only the name of the native object needs to be specified as the right operand in the creation operator.
+
+When importing a native object, it is necessary to always specify the variable types, 
+as well as the types of arguments and return values for functions.
+
+If the data types of the created object and the native object match (i.e., no type conversion is required), 
+then the native object name can be specified with an ellipsis, 
+which means that the data types will replicate those specified at the left operand.
+
+```python
+:FILE ::= :Plain;
+
+fopen(filename:StrChar, modes:StrChar):FILE ::= %fopen...;
+fclose(f:FILE):Int32 ::= %fclose...;
+fflush(f:FILE):Int32 ::= %fflush...;
+fprintf(f:FILE, format:FmtChar, ...):Int32 ::= %fprintf...;
+
+fremove(filename:String):Int32 ::= %remove...;
+frename(old:String, new:String):Int32 ::= %rename...;
+```
 
 
+{{% pageinfo %}}
 
-Так как любой программе приходится взаимодействовать с внешним миром, т
-о по неволе приходится закладывать возможность использования других библиотек и системы типов данных, 
-и для этих целей служит тип *:Pointer*. Он создается при импорте функций из внешних библиотек и вручную его создать нельзя. 
-Но можно вывести его значение, например для отладки.
+The following description is under development.
 
-### :Plain — указатель на представление данных в бинарном виде
-
-Для взаимодействия с внешними библиотеками требуется еще и обмен данными. 
-И для этих целей служит тип данных *:Plain* — который также является указателем, но на двоичное представление данных в области памяти. 
-Конечно, если их можно представить в виде одного фрагмента.
-
-### Перечисление, структура и объединение
-
-*:Enum*, *:Struct* и *:Union* — это такие же [словари](http://localhost:1313/docs/types/dicts/#перечисление-структура-и-объединение), только на их элементы накладываются определённые ограничения. Каждый элемент должен иметь уникальное имя, а его тип данных должен быть простым, т.е. числом или строкой фиксированного размера. Эти типы данных так же относятся к группе *:Plain* и могут быть представлены в двоичном виде в одной области машинной памяти.
-
+{{% /pageinfo %}}
 

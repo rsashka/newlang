@@ -149,7 +149,44 @@
 
 
 <div class="content">
-      <h2 id="система-классов-реализации">Система классов реализации<a class="td-heading-self-link" href="#%d1%81%d0%b8%d1%81%d1%82%d0%b5%d0%bc%d0%b0-%d0%ba%d0%bb%d0%b0%d1%81%d1%81%d0%be%d0%b2-%d1%80%d0%b5%d0%b0%d0%bb%d0%b8%d0%b7%d0%b0%d1%86%d0%b8%d0%b8" aria-label="Heading self-link"></a></h2>
+      <h2 id="на-память">На память<a class="td-heading-self-link" href="#%d0%bd%d0%b0-%d0%bf%d0%b0%d0%bc%d1%8f%d1%82%d1%8c" aria-label="Heading self-link"></a></h2>
+<p>clang-17 не поддерживает:</p>
+<table>
+<thead>
+<tr>
+<th>Feature</th>
+<th>Proposal</th>
+<th>Available</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Coroutines</td>
+<td>P0912R5</td>
+<td><em>Partial</em>   Fully supported on all targets except Windows, which still has some stability and ABI issues.</td>
+</tr>
+<tr>
+<td>Extended floating-point types and standard names</td>
+<td>P1467R9</td>
+<td>No</td>
+</tr>
+<tr>
+<td>Concepts</td>
+<td>P0848R3</td>
+<td>Clang 16 (Partial)</td>
+</tr>
+<tr>
+<td>Modules</td>
+<td></td>
+<td>No</td>
+</tr>
+</tbody>
+</table>
+<h3 id="начиная-с-c-should-adopt-the-same-characters-for-c26">Начиная с C++ should adopt the same characters for C++26.<a class="td-heading-self-link" href="#%d0%bd%d0%b0%d1%87%d0%b8%d0%bd%d0%b0%d1%8f-%d1%81-c-should-adopt-the-same-characters-for-c26" aria-label="Heading self-link"></a></h3>
+<ul>
+<li>Add <strong>@</strong>, <strong>$</strong>, and ` to the basic character set          P2558R2 	Yes</li>
+</ul>
+<h2 id="система-классов-реализации">Система классов реализации<a class="td-heading-self-link" href="#%d1%81%d0%b8%d1%81%d1%82%d0%b5%d0%bc%d0%b0-%d0%ba%d0%bb%d0%b0%d1%81%d1%81%d0%be%d0%b2-%d1%80%d0%b5%d0%b0%d0%bb%d0%b8%d0%b7%d0%b0%d1%86%d0%b8%d0%b8" aria-label="Heading self-link"></a></h2>
 <p>RunTime - единственный класс для приложения (процесса) - интерфейс для взаимодействия с операционной системой</p>
 <ul>
 <li>Загружат и выгружает модули и является их владельцем (shared_ptr)</li>
