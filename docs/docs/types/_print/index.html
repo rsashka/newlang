@@ -539,7 +539,19 @@ dict3 := dict2(99, name=0); # Копия объекта dict2 (99, two=42, name=
 </span></span><span style="display:flex;"><span>    <span style="color:#ce5c00;font-weight:bold">.</span><span style="color:#000">field</span> <span style="color:#000;font-weight:bold">:</span><span style="color:#ce5c00;font-weight:bold">:=</span> <span style="color:#0000cf;font-weight:bold">2</span><span style="color:#000;font-weight:bold">;</span>    <span style="color:#8f5902;font-style:italic"># Будет ошибка, т.к. поле field уже есть в базовом классе</span>
 </span></span><span style="display:flex;"><span>    <span style="color:#000">method</span><span style="color:#000;font-weight:bold">()</span> <span style="color:#ce5c00;font-weight:bold">=</span> <span style="color:#000;font-weight:bold">{};</span>  <span style="color:#8f5902;font-style:italic"># Аналог override, т.к. method должен существовать в базовом классе</span>
 </span></span><span style="display:flex;"><span><span style="color:#000;font-weight:bold">};</span>
-</span></span></code></pre></div><h2 id="интерфейсы-именование-методов-классов-и-пространства-имен">Интерфейсы, именование методов классов и пространства имен<a class="td-heading-self-link" href="#%d0%b8%d0%bd%d1%82%d0%b5%d1%80%d1%84%d0%b5%d0%b9%d1%81%d1%8b-%d0%b8%d0%bc%d0%b5%d0%bd%d0%be%d0%b2%d0%b0%d0%bd%d0%b8%d0%b5-%d0%bc%d0%b5%d1%82%d0%be%d0%b4%d0%be%d0%b2-%d0%ba%d0%bb%d0%b0%d1%81%d1%81%d0%be%d0%b2-%d0%b8-%d0%bf%d1%80%d0%be%d1%81%d1%82%d1%80%d0%b0%d0%bd%d1%81%d1%82%d0%b2%d0%b0-%d0%b8%d0%bc%d0%b5%d0%bd" aria-label="Heading self-link"></a></h2>
+</span></span></code></pre></div><h3 id="scope">Scope<a class="td-heading-self-link" href="#scope" aria-label="Heading self-link"></a></h3>
+<p>The underscore symbol, as well as an underscore at the beginning of a name or double underscores at the beginning and end of a name, have special meanings.</p>
+<p>A single underscore corresponds to a protected, and two underscores to a private scope of an object within a module or class, in accordance with the conventions in the Python language.</p>
+<p>However, just like in Python, scopes are more of a &ldquo;gentleman&rsquo;s agreement,&rdquo; and with explicit naming, access to protected objects can be obtained by simply specifying the full object name.</p>
+<p>In addition, there are also system fields and objects that start and end with two underscores.</p>
+<ul>
+<li>&lsquo;<strong>$</strong>&rsquo; - The dollar sign at the beginning of a name denotes a system (local) name of a temporary variable,
+the memory space for which is allocated during execution, and the lifetime is limited by the language semantics.</li>
+<li>&lsquo;<strong>::</strong>&rsquo; - Double colons serve as a separator when specifying namespaces.
+Explicit namespace specification is a sign of a static object, the memory space for which is allocated during the compilation
+of the application or module.</li>
+</ul>
+<h2 id="интерфейсы-именование-методов-классов-и-пространства-имен">Интерфейсы, именование методов классов и пространства имен<a class="td-heading-self-link" href="#%d0%b8%d0%bd%d1%82%d0%b5%d1%80%d1%84%d0%b5%d0%b9%d1%81%d1%8b-%d0%b8%d0%bc%d0%b5%d0%bd%d0%be%d0%b2%d0%b0%d0%bd%d0%b8%d0%b5-%d0%bc%d0%b5%d1%82%d0%be%d0%b4%d0%be%d0%b2-%d0%ba%d0%bb%d0%b0%d1%81%d1%81%d0%be%d0%b2-%d0%b8-%d0%bf%d1%80%d0%be%d1%81%d1%82%d1%80%d0%b0%d0%bd%d1%81%d1%82%d0%b2%d0%b0-%d0%b8%d0%bc%d0%b5%d0%bd" aria-label="Heading self-link"></a></h2>
 <p>Для создания уникальных идентификаторов на основе имен методов классов, <em>NewLang</em> использует подход, похожий на применяемый в языке Python.
 При создании метода класса, создается глобальная функция с именем класса и именем метода, объединенные через разделитель области имен.
 Например, в классе <code>NewClass2</code> при создании метода <code>method</code> будет создана функция с именем <code>::NewClass2::method</code>.</p>

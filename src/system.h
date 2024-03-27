@@ -166,6 +166,8 @@ namespace newlang {
                     VERIFY(CreateMacro("@@ package $name @@ ::= @@  @$$ = @# @$name @@"));
                     VERIFY(CreateMacro("@@ declare( obj ) @@ ::= @@ @$obj ::= ... @@  ##< Forward declaration of the object"));
 
+                    VERIFY(CreateMacro("@@ using(...) @@ ::= @@ ... = @$... @@"));
+
                     VERIFY(CreateMacro("@@ typedef(cnt) @@ ::= @@ @__PRAGMA_TYPE_DEFINE__(@$cnt) @@ ##< Disable warning when defining a type inside a namespace"));
 
                     VERIFY(CreateMacro("@@ coroutine @@ ::= @@ __ANNOTATION_SET__(coroutine) @@"));

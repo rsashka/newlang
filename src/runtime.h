@@ -4,6 +4,10 @@
 
 #include "pch.h"
 
+//??????????????????????????
+#include "clang/Tooling/CommonOptionsParser.h"
+#include "clang/Tooling/Tooling.h"
+
 #include <sys/time.h>
 
 #include <compiler.h>
@@ -177,15 +181,15 @@ namespace newlang {
 
     public:
 
-        TermPtr NameRegister(bool new_only, const char *name, TermPtr proto, WeakItem obj = c10::monostate()); // = at::monostate);
-        //        bool NameRegister(const char * glob_name, TermPtr proto, WeakItem obj); // = at::monostate);
+        TermPtr NameRegister(bool new_only, const char *name, TermPtr proto, WeakItem obj = std::monostate()); // = std::monostate);
+        //        bool NameRegister(const char * glob_name, TermPtr proto, WeakItem obj); // = std::monostate);
         GlobItem * NameFind(const char *name);
         TermPtr GlobFindProto(const std::string_view name);
 
         ObjPtr NameGet(const char *name, bool is_raise = true);
 
         //        bool MakeFullNames(TermPtr ast);
-        std::string Dump();
+
 
         void GlobalNameBuildinRegister();
         bool RegisterSystemFunc(const char *source);
@@ -275,11 +279,14 @@ namespace newlang {
         static RuntimePtr Init(int argc = 0, const char** argv = nullptr);
         //        static RuntimePtr Init(std::vector<const char *> args, bool ignore_error = true);
 
-        inline static void * GetDirectAddressFromLibrary(void *handle, const char * name) {
+        static std::string NativeNameMangling(const Term *term, RunTime *rt);
+        static std::string NativeNameMangling(std::string_view name);
+
+        inline static void * GetDirectAddressFromLibrary(void *handle, std::string_view name) {
             if (isNativeName(name)) {
-                return LLVMSearchForAddressOfSymbol(&name[1]);
+                return LLVMSearchForAddressOfSymbol(NativeNameMangling(name).c_str());
             }
-            return LLVMSearchForAddressOfSymbol(name);
+            return LLVMSearchForAddressOfSymbol(name.begin());
         }
 
 
@@ -315,8 +322,8 @@ namespace newlang {
          */
         bool RegisterBuildinType(ObjType type, std::vector<std::string> parents);
 
-        static ObjType BaseTypeFromString(RunTime * rt, const std::string & type, bool *has_error = nullptr);
-        ObjPtr GetTypeFromString(const std::string & type, bool *has_error = nullptr);
+        static ObjType BaseTypeFromString(RunTime * rt, const std::string_view text, bool *has_error = nullptr);
+        ObjPtr GetTypeFromString(const std::string_view type, bool *has_error = nullptr);
 
         static bool pred_compare(const std::string &find, const std::string &str) {
             size_t pos = 0;

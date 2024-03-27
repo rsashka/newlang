@@ -28,7 +28,7 @@
 <meta itemprop="name" content="Naming Objects">
 <meta itemprop="description" content="Rules for naming variables, functions, and data types">
 <meta itemprop="dateModified" content="2024-03-22T23:57:08+03:00" />
-<meta itemprop="wordCount" content="1248">
+<meta itemprop="wordCount" content="1138">
 <meta itemprop="keywords" content="" /><meta name="twitter:card" content="summary"/><meta name="twitter:title" content="Naming Objects"/>
 <meta name="twitter:description" content="Rules for naming variables, functions, and data types"/>
 
@@ -145,8 +145,6 @@
   <a href="/docs/syntax/sysprop/" class="align-left ps-0 td-sidebar-link td-sidebar-link__page" id="m-docssyntaxsysprop"><span class="">Системные свойства</span></a>
 </li><li class="td-sidebar-nav__section-title td-sidebar-nav__section without-child" id="m-docssyntaxpragmas-li">
   <a href="/docs/syntax/pragmas/" class="align-left ps-0 td-sidebar-link td-sidebar-link__page" id="m-docssyntaxpragmas"><span class="">Опции и настройки компилятора</span></a>
-</li><li class="td-sidebar-nav__section-title td-sidebar-nav__section without-child" id="m-docssyntaxsysmacro-li">
-  <a href="/docs/syntax/sysmacro/" class="align-left ps-0 td-sidebar-link td-sidebar-link__page" id="m-docssyntaxsysmacro"><span class="">Системные макросы</span></a>
 </li><li class="td-sidebar-nav__section-title td-sidebar-nav__section without-child" id="m-docssyntaxdsl-li">
   <a href="/docs/syntax/dsl/" class="align-left ps-0 td-sidebar-link td-sidebar-link__page" id="m-docssyntaxdsl"><span class="">Keyword syntax (DSL)</span></a>
 </li>
@@ -229,9 +227,9 @@
       <ul>
         <li><a href="#sigil">Name Qualifiers:</a></li>
         <li><a href="#name-lookup">Name Lookup</a></li>
+        <li><a href="#using">Namespace Search Extension</a></li>
         <li><a href="#forward-declaration">Forward Declaration</a></li>
         <li><a href="#args">Argument Names, Special, System Names</a></li>
-        <li><a href="#scope">Scope</a></li>
       </ul>
     </li>
   </ul>
@@ -309,7 +307,12 @@ and for the name <code>arg</code>, only <code>@arg</code> is checked:</p>
 </span></span></code></pre></div><p>And at the same time, there will always be the possibility to specify a specific object regardless of the algorithm for resolving <em>simple</em> names. It is sufficient to explicitly specify the qualifier in the object name.</p>
 <p>For example, to access the global object <strong>name</strong> from the namespace <strong>ns</strong> in the above example, you need to use the full object name <code>::ns::name</code>, and the named argument <em>&rsquo;<strong>.</strong> arg&rsquo;</em> will not be replaced by the <code>@arg</code> macro if it is defined:</p>
 <div class="highlight"><pre tabindex="0" style="background-color:#f8f8f8;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-python" data-lang="python"><span style="display:flex;"><span>    <span style="color:#000;font-weight:bold">::</span><span style="color:#000">ns</span><span style="color:#000;font-weight:bold">::</span><span style="color:#000">name</span><span style="color:#000;font-weight:bold">(</span><span style="color:#ce5c00;font-weight:bold">.</span><span style="color:#000">arg</span><span style="color:#ce5c00;font-weight:bold">=</span><span style="color:#4e9a06">&#34;value&#34;</span><span style="color:#000;font-weight:bold">);</span>
-</span></span></code></pre></div><h3 id="forward-declaration">Forward Declaration<a class="td-heading-self-link" href="#forward-declaration" aria-label="Heading self-link"></a></h3>
+</span></span></code></pre></div><h3 id="using">Namespace Search Extension<a class="td-heading-self-link" href="#using" aria-label="Heading self-link"></a></h3>
+<p>To specify multiple namespaces for an extended search when resolving <em>simple</em> unqualified names,
+a syntactic construction <code>... = ns::name, ns::name2;</code> or <code>@using(ns::name, ns::name2);</code> is used with DSL.</p>
+<p>The search in the listed namespaces is performed in the order of their specification until the end of the current module
+or until the next extended search operator or until <code>... = _;</code>, which cancels the extended search in namespaces.</p>
+<h3 id="forward-declaration">Forward Declaration<a class="td-heading-self-link" href="#forward-declaration" aria-label="Heading self-link"></a></h3>
 <p>In the program text, you can only refer to actually existing (created) objects.
 But in cases where it is necessary to refer to an object that is created in another module or will be created later,
 you can make a preliminary declaration, in which the compiler registers the name and type of the object without its actual creation.</p>
@@ -353,19 +356,7 @@ you can make a preliminary declaration, in which the compiler registers the name
 </span></span><span style="display:flex;"><span>        mod_str :<span style="color:#ce5c00;font-weight:bold">=</span>  @#  @<span style="color:#4e9a06">\\</span><span style="color:#000;font-weight:bold">;</span> <span style="color:#8f5902;font-style:italic"># String with module name &#34;\\dir\filename&#34;</span>
 </span></span><span style="display:flex;"><span>    <span style="color:#ce5c00;font-weight:bold">}</span><span style="color:#000;font-weight:bold">;</span>
 </span></span><span style="display:flex;"><span><span style="color:#ce5c00;font-weight:bold">}</span><span style="color:#000;font-weight:bold">;</span>
-</span></span></code></pre></div><h3 id="scope">Scope<a class="td-heading-self-link" href="#scope" aria-label="Heading self-link"></a></h3>
-<p>The underscore symbol, as well as an underscore at the beginning of a name or double underscores at the beginning and end of a name, have special meanings.</p>
-<p>A single underscore corresponds to a protected, and two underscores to a private scope of an object within a module or class, in accordance with the conventions in the Python language.</p>
-<p>However, just like in Python, scopes are more of a &ldquo;gentleman&rsquo;s agreement,&rdquo; and with explicit naming, access to protected objects can be obtained by simply specifying the full object name.</p>
-<p>In addition, there are also system fields and objects that start and end with two underscores.</p>
-<ul>
-<li>&lsquo;<strong>$</strong>&rsquo; - The dollar sign at the beginning of a name denotes a system (local) name of a temporary variable,
-the memory space for which is allocated during execution, and the lifetime is limited by the language semantics.</li>
-<li>&lsquo;<strong>::</strong>&rsquo; - Double colons serve as a separator when specifying namespaces.
-Explicit namespace specification is a sign of a static object, the memory space for which is allocated during the compilation
-of the application or module.</li>
-</ul>
-
+</span></span></code></pre></div>
 	
 </div>
 

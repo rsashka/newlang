@@ -58,6 +58,23 @@ which can be adapted or supplemented to suit your own subject area.
 - *@first(obj)* - Go to the first element of the iterator
 - *@all(obj)* - Get all elements of the iterator at once
 
+- *@exit(code)* - Terminate program execution and return exit code
+- *@abort()* - Terminate program execution without flushing buffers to disk
+
+- *@using(...)* - Use the listed namespaces during [name lookup](/docs/syntax/naming/#using)
+
+## Built-in functions and checks
+
+- *print(format:FmtChar, ...):Int32* - Equivalent to the C/C++ printf function
+- *srand(init:Int32):None* - Set the initial value for the pseudo-random number generator
+- *rand():Int32* - Get a pseudo-random number
+
+- *@static_assert( ... )* - Evaluate the expression and check its truth during compilation
+- *@assert( ... )* - Evaluate the expression and check its truth during execution
+- *@verify( ... )* - Evaluate the expression and check its truth during execution
+
+*If the compiler is run with the `--nlc-no-assert` flag, then runtime checks `@assert` are removed from the program text,
+and computations inside `@verify` are executed, but their result is ignored.*
 
 ## Predefined macros
 

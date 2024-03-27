@@ -28,7 +28,7 @@
 <meta itemprop="name" content="Keyword syntax (DSL)">
 <meta itemprop="description" content="Features of associative memory The syntax of the NewLang language is based on strict rules without the use of keywords, and no matter how logical it may seem, association by keywords is much easier to remember, for example, if, than the combination minus minus right angle bracket &ndash;&gt;. Because of this, it makes sense to use not a &ldquo;pure&rdquo; basic syntax, but a more familiar dialect with the use of keywords.">
 <meta itemprop="dateModified" content="2024-03-23T22:03:23+03:00" />
-<meta itemprop="wordCount" content="548">
+<meta itemprop="wordCount" content="675">
 <meta itemprop="keywords" content="" /><meta name="twitter:card" content="summary"/><meta name="twitter:title" content="Keyword syntax (DSL)"/>
 <meta name="twitter:description" content="Features of associative memory The syntax of the NewLang language is based on strict rules without the use of keywords, and no matter how logical it may seem, association by keywords is much easier to remember, for example, if, than the combination minus minus right angle bracket &ndash;&gt;. Because of this, it makes sense to use not a &ldquo;pure&rdquo; basic syntax, but a more familiar dialect with the use of keywords."/>
 
@@ -145,8 +145,6 @@
   <a href="/docs/syntax/sysprop/" class="align-left ps-0 td-sidebar-link td-sidebar-link__page" id="m-docssyntaxsysprop"><span class="">Системные свойства</span></a>
 </li><li class="td-sidebar-nav__section-title td-sidebar-nav__section without-child" id="m-docssyntaxpragmas-li">
   <a href="/docs/syntax/pragmas/" class="align-left ps-0 td-sidebar-link td-sidebar-link__page" id="m-docssyntaxpragmas"><span class="">Опции и настройки компилятора</span></a>
-</li><li class="td-sidebar-nav__section-title td-sidebar-nav__section without-child" id="m-docssyntaxsysmacro-li">
-  <a href="/docs/syntax/sysmacro/" class="align-left ps-0 td-sidebar-link td-sidebar-link__page" id="m-docssyntaxsysmacro"><span class="">Системные макросы</span></a>
 </li><li class="td-sidebar-nav__section-title td-sidebar-nav__section without-child active-path" id="m-docssyntaxdsl-li">
   <a href="/docs/syntax/dsl/" class="align-left ps-0 active td-sidebar-link td-sidebar-link__page" id="m-docssyntaxdsl"><span class="td-sidebar-nav-active-item">Keyword syntax (DSL)</span></a>
 </li>
@@ -233,6 +231,7 @@
         <li><a href="#operators">Operators</a></li>
       </ul>
     </li>
+    <li><a href="#built-in-functions-and-checks">Built-in functions and checks</a></li>
     <li><a href="#predefined-macros">Predefined macros</a></li>
   </ul>
 </nav>
@@ -368,7 +367,39 @@ which can be adapted or supplemented to suit your own subject area.</p>
 <li>
 <p><em>@all(obj)</em> - Get all elements of the iterator at once</p>
 </li>
+<li>
+<p><em>@exit(code)</em> - Terminate program execution and return exit code</p>
+</li>
+<li>
+<p><em>@abort()</em> - Terminate program execution without flushing buffers to disk</p>
+</li>
+<li>
+<p><em>@using(&hellip;)</em> - Use the listed namespaces during <a href="/docs/syntax/naming/#using">name lookup</a></p>
+</li>
 </ul>
+<h2 id="built-in-functions-and-checks">Built-in functions and checks<a class="td-heading-self-link" href="#built-in-functions-and-checks" aria-label="Heading self-link"></a></h2>
+<ul>
+<li>
+<p><em>print(format:FmtChar, &hellip;):Int32</em> - Equivalent to the C/C++ printf function</p>
+</li>
+<li>
+<p><em>srand(init:Int32):None</em> - Set the initial value for the pseudo-random number generator</p>
+</li>
+<li>
+<p><em>rand():Int32</em> - Get a pseudo-random number</p>
+</li>
+<li>
+<p><em>@static_assert( &hellip; )</em> - Evaluate the expression and check its truth during compilation</p>
+</li>
+<li>
+<p><em>@assert( &hellip; )</em> - Evaluate the expression and check its truth during execution</p>
+</li>
+<li>
+<p><em>@verify( &hellip; )</em> - Evaluate the expression and check its truth during execution</p>
+</li>
+</ul>
+<p><em>If the compiler is run with the <code>--nlc-no-assert</code> flag, then runtime checks <code>@assert</code> are removed from the program text,
+and computations inside <code>@verify</code> are executed, but their result is ignored.</em></p>
 <h2 id="predefined-macros">Predefined macros<a class="td-heading-self-link" href="#predefined-macros" aria-label="Heading self-link"></a></h2>
 <p>When the <em>NewLang</em> parser is running, several reserved macros are automatically generated,
 some of which correspond to preprocessor macros in C/C++.

@@ -111,7 +111,7 @@ bool newlang::canCast(const TermPtr &from, const TermPtr &to) {
     return canCast(GetBaseTypeFromString(from->m_type->m_text), GetBaseTypeFromString(to->m_type->m_text));
 }
 
-ObjType newlang::GetBaseTypeFromString(const std::string type_arg, bool *has_error) {
+ObjType newlang::GetBaseTypeFromString(const std::string_view type_arg, bool *has_error) {
 
     std::string type(type_arg);
 

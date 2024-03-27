@@ -390,7 +390,7 @@ namespace newlang {
             m_var_type_fixed = fixed;
             m_var_is_init = init;
             m_is_const = false;
-            m_var = at::monostate();
+            m_var = std::monostate();
             ASSERT(!m_tensor.defined());
         }
 
@@ -940,7 +940,7 @@ namespace newlang {
             m_var_is_init = false;
             m_tensor.reset();
             m_rational.set_(0);
-            m_var = at::monostate();
+            m_var = std::monostate();
             //        m_value.reset(); //????????????????
             //        m_items.clear();
         }
@@ -1441,43 +1441,43 @@ namespace newlang {
 
             switch (m_var_type_current) {
                 case ObjType::Bool:
-                    if (at::holds_alternative<int64_t>(m_var)) {
-                        return at::get<int64_t>(m_var);
-                    } else if (at::holds_alternative<bool *>(m_var)) {
-                        return *at::get<bool *>(m_var);
+                    if (std::holds_alternative<int64_t>(m_var)) {
+                        return std::get<int64_t>(m_var);
+                    } else if (std::holds_alternative<bool *>(m_var)) {
+                        return *std::get<bool *>(m_var);
                     }
                 case ObjType::Int8:
                 case ObjType::Char:
                 case ObjType::Byte:
-                    if (at::holds_alternative<int64_t>(m_var)) {
-                        return at::get<int64_t>(m_var);
-                    } else if (at::holds_alternative<int8_t *>(m_var)) {
-                        return *at::get<int8_t *>(m_var);
+                    if (std::holds_alternative<int64_t>(m_var)) {
+                        return std::get<int64_t>(m_var);
+                    } else if (std::holds_alternative<int8_t *>(m_var)) {
+                        return *std::get<int8_t *>(m_var);
                     }
                 case ObjType::Int16:
                 case ObjType::Word:
-                    if (at::holds_alternative<int64_t>(m_var)) {
-                        return at::get<int64_t>(m_var);
-                    } else if (at::holds_alternative<int16_t *>(m_var)) {
-                        return *at::get<int16_t *>(m_var);
+                    if (std::holds_alternative<int64_t>(m_var)) {
+                        return std::get<int64_t>(m_var);
+                    } else if (std::holds_alternative<int16_t *>(m_var)) {
+                        return *std::get<int16_t *>(m_var);
                     }
                 case ObjType::Int32:
                 case ObjType::DWord:
-                    if (at::holds_alternative<int64_t>(m_var)) {
-                        return at::get<int64_t>(m_var);
-                    } else if (at::holds_alternative<int32_t *>(m_var)) {
-                        return *at::get<int32_t *>(m_var);
+                    if (std::holds_alternative<int64_t>(m_var)) {
+                        return std::get<int64_t>(m_var);
+                    } else if (std::holds_alternative<int32_t *>(m_var)) {
+                        return *std::get<int32_t *>(m_var);
                     }
                 case ObjType::Int64:
                 case ObjType::DWord64:
-                    if (at::holds_alternative<int64_t>(m_var)) {
-                        return at::get<int64_t>(m_var);
-                    } else if (at::holds_alternative<int64_t *>(m_var)) {
-                        return *at::get<int64_t *>(m_var);
+                    if (std::holds_alternative<int64_t>(m_var)) {
+                        return std::get<int64_t>(m_var);
+                    } else if (std::holds_alternative<int64_t *>(m_var)) {
+                        return *std::get<int64_t *>(m_var);
                     }
                 case ObjType::Integer:
-                    if (at::holds_alternative<int64_t>(m_var)) {
-                        return at::get<int64_t>(m_var);
+                    if (std::holds_alternative<int64_t>(m_var)) {
+                        return std::get<int64_t>(m_var);
                         //                    } else if (m_tensor.dim()==0) {
                         //                        return m_tensor.item<int64_t>();
                     }
@@ -1512,8 +1512,8 @@ namespace newlang {
 
                 default:
                     if (m_var_type_current == ObjType::Pointer || m_var_type_fixed == ObjType::Pointer) {
-                        ASSERT(at::holds_alternative<void *>(m_var));
-                        return reinterpret_cast<int64_t> (at::get<void *>(m_var));
+                        ASSERT(std::holds_alternative<void *>(m_var));
+                        return reinterpret_cast<int64_t> (std::get<void *>(m_var));
                     }
             }
             LOG_RUNTIME("Data type incompatible %s", toString().c_str());
@@ -1527,21 +1527,21 @@ namespace newlang {
                 case ObjType::Single:
                 case ObjType::Float16:
                 case ObjType::Float32:
-                    if (at::holds_alternative<double>(m_var)) {
-                        return at::get<double>(m_var);
-                    } else if (at::holds_alternative<float *>(m_var)) {
-                        return *at::get<float *>(m_var);
+                    if (std::holds_alternative<double>(m_var)) {
+                        return std::get<double>(m_var);
+                    } else if (std::holds_alternative<float *>(m_var)) {
+                        return *std::get<float *>(m_var);
                     }
                 case ObjType::Double:
                 case ObjType::Float64:
-                    if (at::holds_alternative<double>(m_var)) {
-                        return at::get<double>(m_var);
-                    } else if (at::holds_alternative<double *>(m_var)) {
-                        return *at::get<double *>(m_var);
+                    if (std::holds_alternative<double>(m_var)) {
+                        return std::get<double>(m_var);
+                    } else if (std::holds_alternative<double *>(m_var)) {
+                        return *std::get<double *>(m_var);
                     }
                 case ObjType::Number:
-                    if (at::holds_alternative<double>(m_var)) {
-                        return at::get<double>(m_var);
+                    if (std::holds_alternative<double>(m_var)) {
+                        return std::get<double>(m_var);
                     }
                     if (is_scalar()) {
                         ASSERT(!is_scalar());
@@ -1628,8 +1628,8 @@ namespace newlang {
                 if (getType() == ObjType::StrChar || getType() == ObjType::FmtChar) {
                     return LLVMCreateGenericValueOfPointer((void *) m_value.c_str());
                 } else if (getType() == ObjType::Pointer) {
-                    ASSERT(at::holds_alternative<void *>(m_var));
-                    return LLVMCreateGenericValueOfPointer(at::get<void *>(m_var));
+                    ASSERT(std::holds_alternative<void *>(m_var));
+                    return LLVMCreateGenericValueOfPointer(std::get<void *>(m_var));
                 }
             } else if (type == LLVMPointerType(LLVMInt32Type(), 0)) {
                 if (getType() == ObjType::StrWide || getType() == ObjType::FmtWide) {
@@ -2270,7 +2270,7 @@ namespace newlang {
             } else if ((is_none_type() || is_tensor_type()) && value->is_tensor_type()) {
 
                 if (value->empty()) {
-                    m_var = at::monostate();
+                    m_var = std::monostate();
                     m_tensor.reset();
                     m_var_is_init = false;
                     return;
@@ -2283,7 +2283,7 @@ namespace newlang {
                 if (is_none_type()) {
 
                     // Присаеваем данные пустому значению
-                    ASSERT(at::holds_alternative<at::monostate>(m_var));
+                    ASSERT(std::holds_alternative<std::monostate>(m_var));
                     ASSERT(!m_tensor.defined());
 
                     if (value->is_scalar()) {
@@ -2307,66 +2307,66 @@ namespace newlang {
                         // Два скаляра
                         switch (m_var_type_current) {
                             case ObjType::Bool:
-                                if (at::holds_alternative<int64_t>(m_var)) {
+                                if (std::holds_alternative<int64_t>(m_var)) {
                                     m_var = value->GetValueAsInteger();
-                                } else if (at::holds_alternative<bool *>(m_var)) {
-                                    ASSERT(at::get<bool *>(m_var));
-                                    *at::get<bool *>(m_var) = value->GetValueAsInteger();
+                                } else if (std::holds_alternative<bool *>(m_var)) {
+                                    ASSERT(std::get<bool *>(m_var));
+                                    *std::get<bool *>(m_var) = value->GetValueAsInteger();
                                 }
                                 break;
                             case ObjType::Int8:
                             case ObjType::Char:
                             case ObjType::Byte:
-                                if (at::holds_alternative<int64_t>(m_var)) {
+                                if (std::holds_alternative<int64_t>(m_var)) {
                                     m_var = value->GetValueAsInteger();
-                                } else if (at::holds_alternative<int8_t *>(m_var)) {
-                                    ASSERT(at::get<int8_t *>(m_var));
-                                    *at::get<int8_t *>(m_var) = static_cast<int8_t> (value->GetValueAsInteger());
+                                } else if (std::holds_alternative<int8_t *>(m_var)) {
+                                    ASSERT(std::get<int8_t *>(m_var));
+                                    *std::get<int8_t *>(m_var) = static_cast<int8_t> (value->GetValueAsInteger());
                                 }
                                 break;
                             case ObjType::Int16:
                             case ObjType::Word:
-                                if (at::holds_alternative<int64_t>(m_var)) {
+                                if (std::holds_alternative<int64_t>(m_var)) {
                                     m_var = value->GetValueAsInteger();
-                                } else if (at::holds_alternative<int16_t *>(m_var)) {
-                                    ASSERT(at::get<int16_t *>(m_var));
-                                    *at::get<int16_t *>(m_var) = static_cast<int16_t> (value->GetValueAsInteger());
+                                } else if (std::holds_alternative<int16_t *>(m_var)) {
+                                    ASSERT(std::get<int16_t *>(m_var));
+                                    *std::get<int16_t *>(m_var) = static_cast<int16_t> (value->GetValueAsInteger());
                                 }
                                 break;
                             case ObjType::Int32:
                             case ObjType::DWord:
-                                if (at::holds_alternative<int64_t>(m_var)) {
+                                if (std::holds_alternative<int64_t>(m_var)) {
                                     m_var = value->GetValueAsInteger();
-                                } else if (at::holds_alternative<int32_t *>(m_var)) {
-                                    ASSERT(at::get<int32_t *>(m_var));
-                                    *at::get<int32_t *>(m_var) = static_cast<int32_t> (value->GetValueAsInteger());
+                                } else if (std::holds_alternative<int32_t *>(m_var)) {
+                                    ASSERT(std::get<int32_t *>(m_var));
+                                    *std::get<int32_t *>(m_var) = static_cast<int32_t> (value->GetValueAsInteger());
                                 }
                                 break;
                             case ObjType::Int64:
                             case ObjType::DWord64:
-                                if (at::holds_alternative<int64_t>(m_var)) {
+                                if (std::holds_alternative<int64_t>(m_var)) {
                                     m_var = value->GetValueAsInteger();
-                                } else if (at::holds_alternative<int64_t *>(m_var)) {
-                                    ASSERT(at::get<int64_t *>(m_var));
-                                    *at::get<int64_t *>(m_var) = value->GetValueAsInteger();
+                                } else if (std::holds_alternative<int64_t *>(m_var)) {
+                                    ASSERT(std::get<int64_t *>(m_var));
+                                    *std::get<int64_t *>(m_var) = value->GetValueAsInteger();
                                 }
                                 break;
                             case ObjType::Float32:
                             case ObjType::Single:
-                                if (at::holds_alternative<double>(m_var)) {
+                                if (std::holds_alternative<double>(m_var)) {
                                     m_var = value->GetValueAsNumber();
-                                } else if (at::holds_alternative<float *>(m_var)) {
-                                    ASSERT(at::get<float *>(m_var));
-                                    *at::get<float *>(m_var) = static_cast<float> (value->GetValueAsNumber());
+                                } else if (std::holds_alternative<float *>(m_var)) {
+                                    ASSERT(std::get<float *>(m_var));
+                                    *std::get<float *>(m_var) = static_cast<float> (value->GetValueAsNumber());
                                 }
                                 break;
                             case ObjType::Float64:
                             case ObjType::Double:
-                                if (at::holds_alternative<double>(m_var)) {
+                                if (std::holds_alternative<double>(m_var)) {
                                     m_var = value->GetValueAsNumber();
-                                } else if (at::holds_alternative<double *>(m_var)) {
-                                    ASSERT(at::get<double *>(m_var));
-                                    *at::get<double *>(m_var) = value->GetValueAsNumber();
+                                } else if (std::holds_alternative<double *>(m_var)) {
+                                    ASSERT(std::get<double *>(m_var));
+                                    *std::get<double *>(m_var) = value->GetValueAsNumber();
                                 }
                                 break;
                             default:
@@ -2375,7 +2375,7 @@ namespace newlang {
 
                     } else if (is_scalar() && !value->is_scalar()) {
 
-                        m_var = at::monostate();
+                        m_var = std::monostate();
                         ASSERT(!m_tensor.defined());
                         m_tensor = value->m_tensor.clone();
 
@@ -2454,7 +2454,7 @@ namespace newlang {
                 } else {
                     m_rational.set_(*value->GetValueAsRational());
                 }
-                m_var = at::monostate();
+                m_var = std::monostate();
                 m_var_type_current = ObjType::Rational;
                 return;
 
@@ -2478,8 +2478,8 @@ namespace newlang {
             } else if ((is_none_type() || m_var_type_current == ObjType::Pointer || m_var_type_current == ObjType::NativeFunc) && (value->m_var_type_current == ObjType::Pointer || value->m_var_type_fixed == ObjType::Pointer)) {
 
                 m_var_is_init = value->m_var_is_init;
-                ASSERT(at::holds_alternative<void *>(value->m_var));
-                m_var = at::get<void *>(value->m_var);
+                ASSERT(std::holds_alternative<void *>(value->m_var));
+                m_var = std::get<void *>(value->m_var);
                 return;
 
             }
@@ -2537,7 +2537,7 @@ namespace newlang {
             int64_t size;
         };
 
-        at::variant < at::monostate, int64_t, double, void *, // None, скаляры и ссылки на функции (нужно различать чистые, обычные и нативные???)
+        std::variant < std::monostate, int64_t, double, void *, // None, скаляры и ссылки на функции (нужно различать чистые, обычные и нативные???)
         bool *, int8_t *, int16_t *, int32_t *, int64_t *, float *, double *, NativeData, // Ссылки на нативные скаляры и данные
         torch::Tensor, std::string, TermPtr, ModulePtr, Iterator < Obj>> m_var; //Rational,
 

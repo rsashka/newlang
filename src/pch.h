@@ -62,6 +62,24 @@
 #include "llvm/Support/FileSystem.h"
 #include "llvm/Support/Path.h"
 
+#include "clang/Frontend/CompilerInstance.h"
+#include "clang/Basic/TargetInfo.h"
+#include "clang/Basic/FileManager.h"
+#include "clang/Basic/SourceManager.h"
+#include "clang/Basic/Builtins.h"
+#include "clang/AST/Mangle.h"
+#include "llvm/Support/raw_ostream.h"
+#include "clang/Frontend/FrontendActions.h"
+#include "clang/Frontend/CompilerInvocation.h"
+#include "clang/FrontendTool/Utils.h"
+#include "clang/Frontend/TextDiagnosticPrinter.h"
+#include "clang/CodeGen/CodeGenAction.h"
+#include "llvm/IR/LLVMContext.h"
+
+#include "clang/ASTMatchers/ASTMatchFinder.h"
+#include "clang/ASTMatchers/ASTMatchers.h"
+
+
 #include <torch/torch.h>
 #include <ATen/ATen.h>
 

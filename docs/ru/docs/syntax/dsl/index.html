@@ -31,7 +31,7 @@ NewLang уже содержит набор макросов, которые ра
 <meta itemprop="description" content="Особенности ассоциативной памяти Синтаксис языка NewLang основан на строгих правилах без использования ключевых слов, и как бы он не выглядел логичным, ассоциация по ключевым словам вспоминается гораздо легче, например if, чем комбинация минус минус правая угловая скобка &ndash;&gt;. Из-за этого имеет смысл использовать не &ldquo;чистый&rdquo; базовый синтаксис, а более привычный диалект с использованием ключевых слов.
 NewLang уже содержит набор макросов, которые расширяют базовый синтаксис NewLang, основанный на правилах, набором предопределенных ключевых слов как в классических языках программирования, которые можно адаптировать или дополнить под собственную предметную область.">
 <meta itemprop="dateModified" content="2024-03-23T22:03:23+03:00" />
-<meta itemprop="wordCount" content="471">
+<meta itemprop="wordCount" content="589">
 <meta itemprop="keywords" content="" /><meta name="twitter:card" content="summary"/><meta name="twitter:title" content="Keyword syntax (DSL)"/>
 <meta name="twitter:description" content="Особенности ассоциативной памяти Синтаксис языка NewLang основан на строгих правилах без использования ключевых слов, и как бы он не выглядел логичным, ассоциация по ключевым словам вспоминается гораздо легче, например if, чем комбинация минус минус правая угловая скобка &ndash;&gt;. Из-за этого имеет смысл использовать не &ldquo;чистый&rdquo; базовый синтаксис, а более привычный диалект с использованием ключевых слов.
 NewLang уже содержит набор макросов, которые расширяют базовый синтаксис NewLang, основанный на правилах, набором предопределенных ключевых слов как в классических языках программирования, которые можно адаптировать или дополнить под собственную предметную область."/>
@@ -149,8 +149,6 @@ NewLang уже содержит набор макросов, которые ра
   <a href="/ru/docs/syntax/sysprop/" class="align-left ps-0 td-sidebar-link td-sidebar-link__page" id="m-rudocssyntaxsysprop"><span class="">Системные свойства</span></a>
 </li><li class="td-sidebar-nav__section-title td-sidebar-nav__section without-child" id="m-rudocssyntaxpragmas-li">
   <a href="/ru/docs/syntax/pragmas/" class="align-left ps-0 td-sidebar-link td-sidebar-link__page" id="m-rudocssyntaxpragmas"><span class="">Опции и настройки компилятора</span></a>
-</li><li class="td-sidebar-nav__section-title td-sidebar-nav__section without-child" id="m-rudocssyntaxsysmacro-li">
-  <a href="/ru/docs/syntax/sysmacro/" class="align-left ps-0 td-sidebar-link td-sidebar-link__page" id="m-rudocssyntaxsysmacro"><span class="">Системные макросы</span></a>
 </li><li class="td-sidebar-nav__section-title td-sidebar-nav__section without-child active-path" id="m-rudocssyntaxdsl-li">
   <a href="/ru/docs/syntax/dsl/" class="align-left ps-0 active td-sidebar-link td-sidebar-link__page" id="m-rudocssyntaxdsl"><span class="td-sidebar-nav-active-item">Keyword syntax (DSL)</span></a>
 </li>
@@ -237,6 +235,7 @@ NewLang уже содержит набор макросов, которые ра
         <li><a href="#операторы">Операторы</a></li>
       </ul>
     </li>
+    <li><a href="#встроенные-функции-и-проверки">Встроенные функции и проверки</a></li>
     <li><a href="#предопределенные-макросы">Предопределенные макросы</a></li>
   </ul>
 </nav>
@@ -373,7 +372,39 @@ NewLang уже содержит набор макросов, которые ра
 <li>
 <p><em>@all(obj)</em> - Получить сразу все элементы итератора</p>
 </li>
+<li>
+<p><em>@exit(code)</em> - Завершить выполнение программы и вернуть код завершения</p>
+</li>
+<li>
+<p><em>@abort()</em> - Прервать выполнение программы без сброса буферов на диск</p>
+</li>
+<li>
+<p><em>@using(&hellip;)</em> - Использовать перечисленные пространства имен при <a href="/ru/docs/syntax/naming/#using">name lookup</a></p>
+</li>
 </ul>
+<h2 id="встроенные-функции-и-проверки">Встроенные функции и проверки<a class="td-heading-self-link" href="#%d0%b2%d1%81%d1%82%d1%80%d0%be%d0%b5%d0%bd%d0%bd%d1%8b%d0%b5-%d1%84%d1%83%d0%bd%d0%ba%d1%86%d0%b8%d0%b8-%d0%b8-%d0%bf%d1%80%d0%be%d0%b2%d0%b5%d1%80%d0%ba%d0%b8" aria-label="Heading self-link"></a></h2>
+<ul>
+<li>
+<p><em>print(format:FmtChar, &hellip;):Int32</em> - Аналог С/С++ функции printf</p>
+</li>
+<li>
+<p><em>srand(init:Int32):None</em> - Задать начальное значение для генератору псевдослучайных чисел</p>
+</li>
+<li>
+<p><em>rand():Int32</em> - Получить псевдослучайное число</p>
+</li>
+<li>
+<p><em>@static_assert( &hellip; )</em> - Вычислить выражение и проверить его на истинность во время компиляции</p>
+</li>
+<li>
+<p><em>@assert( &hellip; )</em> - Вычислить выражение и проверить его на истинность во время выполенения</p>
+</li>
+<li>
+<p><em>@verify( &hellip; )</em> - Вычислить выражение и проверить его на истинность во время выполенения</p>
+</li>
+</ul>
+<p><em>Если запустить компилятор с флагом <code>--nlc-no-assert</code>, тогда рантайм проверки <code>@assert</code> удаляются из текста программы,
+а вычисления внутри <code>@verify</code> выполняются, но их результат игнорируется.</em></p>
 <h2 id="предопределенные-макросы">Предопределенные макросы<a class="td-heading-self-link" href="#%d0%bf%d1%80%d0%b5%d0%b4%d0%be%d0%bf%d1%80%d0%b5%d0%b4%d0%b5%d0%bb%d0%b5%d0%bd%d0%bd%d1%8b%d0%b5-%d0%bc%d0%b0%d0%ba%d1%80%d0%be%d1%81%d1%8b" aria-label="Heading self-link"></a></h2>
 <p>При работе парсера <em>NewLang</em> автоматически формируются несколько зарезервированных макросов,
 часть из которых соответствуют макросам препроцессора у С/С++.

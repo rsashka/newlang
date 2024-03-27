@@ -36,7 +36,6 @@
             <itemPath>../site/content/en/docs/syntax/namespace.md</itemPath>
             <itemPath>../site/content/en/docs/syntax/naming.md</itemPath>
             <itemPath>../site/content/en/docs/syntax/pragmas.md</itemPath>
-            <itemPath>../site/content/en/docs/syntax/sysmacro.md</itemPath>
             <itemPath>../site/content/en/docs/syntax/sysprop.md</itemPath>
           </logicalFolder>
           <logicalFolder name="types" displayName="types" projectFiles="true">
@@ -133,7 +132,6 @@
             <itemPath>../site/content/ru/docs/syntax/namespace.md</itemPath>
             <itemPath>../site/content/ru/docs/syntax/naming.md</itemPath>
             <itemPath>../site/content/ru/docs/syntax/pragmas.md</itemPath>
-            <itemPath>../site/content/ru/docs/syntax/sysmacro.md</itemPath>
             <itemPath>../site/content/ru/docs/syntax/sysprop.md</itemPath>
           </logicalFolder>
           <logicalFolder name="types" displayName="types" projectFiles="true">
@@ -193,6 +191,7 @@
       <logicalFolder name="f1" displayName="test" projectFiles="true">
         <itemPath>test/alg_test.cpp</itemPath>
         <itemPath>test/ast_test.cpp</itemPath>
+        <itemPath>test/class_test.cpp</itemPath>
         <itemPath>test/compiler_test.cpp</itemPath>
         <itemPath>test/diag_test.cpp</itemPath>
         <itemPath>test/example_test.cpp</itemPath>
@@ -307,8 +306,6 @@
         <cTool>
           <stripSymbols>true</stripSymbols>
           <incDir>
-            <pElem>/usr/local/include</pElem>
-            <pElem>/usr/include/x86_64-linux-gnu/c++/10</pElem>
             <pElem>../contrib/googletest/googletest</pElem>
             <pElem>../contrib/googletest/googletest/include</pElem>
             <pElem>../contrib/fmt/include</pElem>
@@ -323,21 +320,13 @@
           <incDir>
             <pElem>.</pElem>
             <pElem>..</pElem>
-            <pElem>/usr/lib/clang/16/include</pElem>
-            <pElem>/usr/include/llvm</pElem>
-            <pElem>/usr/include/llvm-c</pElem>
-            <pElem>/usr/include/x86_64-linux-gnu/c++/10</pElem>
-            <pElem>/usr/include/c++/10</pElem>
-            <pElem>/usr/local/include</pElem>
-            <pElem>/usr/include</pElem>
             <pElem>../contrib/googletest/googletest</pElem>
             <pElem>../contrib/googletest/googletest/include</pElem>
-            <pElem>../contrib/Lyra/include</pElem>
             <pElem>../contrib/libtorch/include/torch/csrc/api/include</pElem>
             <pElem>../contrib/libtorch/include</pElem>
             <pElem>../contrib/fmt/include</pElem>
           </incDir>
-          <commandLine>`llvm-config --cxxflags` -std=c++20 -fexceptions -fcxx-exceptions -Wall -Wextra -Werror -Wfloat-equal -Wundef -Wcast-align -Wwrite-strings -Wmissing-declarations -Wredundant-decls -Wshadow -Woverloaded-virtual -Wno-trigraphs -Wno-invalid-source-encoding -stdlib=libstdc++ -Wno-error=unused-variable -Wno-error=unused-parameter -Wno-error=switch -fsanitize=undefined -fsanitize-trap=undefined   -gdwarf-4               -Wno-undefined-var-template -Wno-switch  -fvisibility=default  -ggdb -O0</commandLine>
+          <commandLine>`llvm-config-18 --cppflags` -std=c++20 -fexceptions -fcxx-exceptions -Wall -Wextra -Werror -Wfloat-equal -Wundef -Wcast-align -Wwrite-strings -stdlib=libstdc++ -Wmissing-declarations -Wredundant-decls -Wshadow -Woverloaded-virtual -Wno-trigraphs -Wno-invalid-source-encoding -Wno-error=unused-variable -Wno-error=unused-parameter -Wno-error=switch -fsanitize=undefined -fsanitize-trap=undefined -gdwarf-4 -Wno-undefined-var-template -Wno-switch -fvisibility=default -ggdb -O0</commandLine>
           <preprocessorList>
             <Elem>BUILD_DEBUG</Elem>
             <Elem>LOG_LEVEL_NORMAL=LOG_LEVEL_DEBUG</Elem>
@@ -367,7 +356,7 @@
             <linkerLibLibItem>curl</linkerLibLibItem>
             <linkerLibStdlibItem>DynamicLinking</linkerLibStdlibItem>
           </linkerLibItems>
-          <commandLine>`llvm-config --libs --ldflags` -fuse-ld=lld -g -lclangTooling -lclangFrontendTool -lclangFrontend -lclangDriver -lclangSerialization -lclangCodeGen -lclangParse -lclangSema -lclangStaticAnalyzerFrontend -lclangStaticAnalyzerCheckers -lclangStaticAnalyzerCore -lclangAnalysis -lclangARCMigrate -lclangRewrite -lclangRewriteFrontend -lclangEdit -lclangAST -lclangLex -lclangBasic  -lclangASTMatchers -lclangSupport -fvisibility=default -Wl,--export-dynamic</commandLine>
+          <commandLine>`llvm-config-18 --libs --ldflags` -fuse-ld=lld -g -lclangTooling -lclangFrontendTool -lclangFrontend -lclangDriver -lclangSerialization -lclangCodeGen -lclangParse -lclangSema -lclangStaticAnalyzerFrontend -lclangStaticAnalyzerCheckers -lclangStaticAnalyzerCore -lclangAnalysis -lclangARCMigrate -lclangRewrite -lclangRewriteFrontend -lclangEdit -lclangAST -lclangLex -lclangBasic  -lclangASTMatchers -lclangSupport -fvisibility=default -Wl,--export-dynamic</commandLine>
         </linkerTool>
       </compileType>
       <item path="../CHANGELOG.md" ex="false" tool="3" flavor2="0">
@@ -377,7 +366,7 @@
       <item path="../contrib/fmt/src/format.cc" ex="false" tool="1" flavor2="0">
       </item>
       <item path="../contrib/googletest/googletest/src/gtest-all.cc"
-            ex="false"
+            ex="true"
             tool="1"
             flavor2="11">
         <ccTool>
@@ -532,11 +521,6 @@
             flavor2="0">
       </item>
       <item path="../site/content/en/docs/syntax/pragmas.md"
-            ex="false"
-            tool="3"
-            flavor2="0">
-      </item>
-      <item path="../site/content/en/docs/syntax/sysmacro.md"
             ex="false"
             tool="3"
             flavor2="0">
@@ -880,11 +864,6 @@
             flavor2="0">
       </item>
       <item path="../site/content/ru/docs/syntax/pragmas.md"
-            ex="false"
-            tool="3"
-            flavor2="0">
-      </item>
-      <item path="../site/content/ru/docs/syntax/sysmacro.md"
             ex="false"
             tool="3"
             flavor2="0">
@@ -1144,7 +1123,7 @@
       </item>
       <item path="pch.h" ex="false" tool="3" flavor2="0">
         <customTool>
-          <customToolCommandline>clang++ `llvm-config --cxxflags` -std=c++20 -fexceptions -fcxx-exceptions -Wall -Wextra -Werror -Wfloat-equal -Wundef -Wcast-align -Wwrite-strings -Wmissing-declarations -Wredundant-decls -Wshadow -Woverloaded-virtual -Wno-trigraphs -Wno-invalid-source-encoding -stdlib=libstdc++ -Wno-error=unused-variable -Wno-error=unused-parameter -Wno-error=switch -fsanitize=undefined-trap -fsanitize-undefined-trap-on-error                                         -Wno-undefined-var-template -Wno-switch   -fvisibility=default              -g -DBUILD_DEBUG -DLOG_LEVEL_NORMAL=LOG_LEVEL_DEBUG -DPDC_WIDE -I. -I.. -I/usr/include/llvm-c-16 -I/usr/include/x86_64-linux-gnu/c++/10 -I/usr/include/c++/10 -I/usr/local/include -I/usr/include -I../contrib/googletest/googletest -I../contrib/googletest/googletest/include -I../contrib/Tensorflow/bazel-bin/tensorflow/include -I../contrib/Lyra/include -I../contrib/libtorch/include/torch/csrc/api/include -I../contrib/libtorch/include                 -x c++-header -o pch.h.pch pch.h -verify-pch -fpch-validate-input-files-content</customToolCommandline>
+          <customToolCommandline>clang++ `llvm-config --cppflags` -std=c++20 -fexceptions -fcxx-exceptions -Wall -Wextra -Werror -Wfloat-equal -Wundef -Wcast-align -Wwrite-strings -Wmissing-declarations -Wredundant-decls -Wshadow -Woverloaded-virtual -Wno-trigraphs -Wno-invalid-source-encoding -stdlib=libstdc++ -Wno-error=unused-variable -Wno-error=unused-parameter -Wno-error=switch -fsanitize=undefined-trap -fsanitize-undefined-trap-on-error                                         -Wno-undefined-var-template -Wno-switch   -fvisibility=default              -g -DBUILD_DEBUG -DLOG_LEVEL_NORMAL=LOG_LEVEL_DEBUG -DPDC_WIDE -I. -I.. -I/usr/include/llvm-c-16 -I/usr/include/x86_64-linux-gnu/c++/10 -I/usr/include/c++/10 -I/usr/local/include -I/usr/include -I../contrib/googletest/googletest -I../contrib/googletest/googletest/include -I../contrib/Tensorflow/bazel-bin/tensorflow/include -I../contrib/Lyra/include -I../contrib/libtorch/include/torch/csrc/api/include -I../contrib/libtorch/include                 -x c++-header -o pch.h.pch pch.h -verify-pch -fpch-validate-input-files-content</customToolCommandline>
           <customToolOutputs>pch.h.pch</customToolOutputs>
         </customTool>
       </item>
@@ -1188,6 +1167,12 @@
         </ccTool>
       </item>
       <item path="test/ast_test.cpp" ex="false" tool="1" flavor2="9">
+        <ccTool>
+          <commandLine>-include-pch pch.h.pch</commandLine>
+          <additionalDep>pch.h.pch</additionalDep>
+        </ccTool>
+      </item>
+      <item path="test/class_test.cpp" ex="false" tool="1" flavor2="9">
         <ccTool>
           <commandLine>-include-pch pch.h.pch</commandLine>
           <additionalDep>pch.h.pch</additionalDep>
@@ -1307,7 +1292,7 @@
       <compileType>
         <cTool>
           <stripSymbols>true</stripSymbols>
-          <commandlineTool>clang-16</commandlineTool>
+          <commandlineTool>clang-18</commandlineTool>
           <incDir>
             <pElem>/usr/local/include</pElem>
             <pElem>/usr/include/x86_64-linux-gnu/c++/10</pElem>
@@ -1323,27 +1308,21 @@
           </preprocessorList>
         </cTool>
         <ccTool>
-          <commandlineTool>clang++-16</commandlineTool>
+          <commandlineTool>clang++-18</commandlineTool>
           <incDir>
             <pElem>.</pElem>
             <pElem>..</pElem>
-            <pElem>/usr/lib/clang/16/include</pElem>
-            <pElem>/usr/include/llvm</pElem>
-            <pElem>/usr/include/llvm-c</pElem>
-            <pElem>/usr/include/x86_64-linux-gnu/c++/10</pElem>
-            <pElem>/usr/include/c++/10</pElem>
-            <pElem>/usr/local/include</pElem>
-            <pElem>/usr/include</pElem>
             <pElem>../contrib/googletest/googletest</pElem>
             <pElem>../contrib/googletest/googletest/include</pElem>
             <pElem>../contrib/libtorch/include/torch/csrc/api/include</pElem>
             <pElem>../contrib/libtorch/include</pElem>
             <pElem>../contrib/fmt/include</pElem>
           </incDir>
-          <commandLine>`llvm-config --cxxflags` -std=c++20 -fexceptions -fcxx-exceptions -Wall -Wextra -Werror -Wfloat-equal -Wundef -Wcast-align -Wwrite-strings -Wmissing-declarations -Wredundant-decls -Wshadow -Woverloaded-virtual -Wno-trigraphs -Wno-invalid-source-encoding -stdlib=libstdc++ -Wno-error=unused-variable -Wno-error=unused-parameter -Wno-error=switch -fsanitize=undefined -fsanitize-trap=undefined   -gdwarf-4               -Wno-undefined-var-template -Wno-switch  -fvisibility=default  -ggdb -O0</commandLine>
+          <commandLine>`llvm-config-18 --cxxflags` -fexceptions -fcxx-exceptions -std=c++20 -Wall -Wextra -Werror -Wfloat-equal -Wundef -Wcast-align -Wwrite-strings -Wmissing-declarations -Wredundant-decls -Wshadow -Woverloaded-virtual -Wno-trigraphs -Wno-invalid-source-encoding -stdlib=libstdc++ -Wno-error=unused-variable -Wno-error=unused-parameter -Wno-error=switch -fsanitize=undefined -fsanitize-trap=undefined   -gdwarf-4               -Wno-undefined-var-template -Wno-switch  -fvisibility=default  -ggdb -O0 -DGTEST_HAS_CXXABI_H_=0</commandLine>
           <preprocessorList>
             <Elem>BUILD_DEBUG</Elem>
             <Elem>BUILD_UNITTEST</Elem>
+            <Elem>GTEST_HAS_CXXABI_H_=0</Elem>
             <Elem>LOG_LEVEL_NORMAL=LOG_LEVEL_DEBUG</Elem>
             <Elem>PDC_WIDE</Elem>
           </preprocessorList>
@@ -1362,7 +1341,7 @@
             <pElem>../contrib/libtorch/lib</pElem>
             <pElem>/usr/lib/x86_64-linux-gnu</pElem>
           </linkerDynSerch>
-          <commandlineTool>clang++-16</commandlineTool>
+          <commandlineTool>clang++-18</commandlineTool>
           <linkerLibItems>
             <linkerLibStdlibItem>PosixThreads</linkerLibStdlibItem>
             <linkerLibLibItem>c10</linkerLibLibItem>
@@ -1371,7 +1350,7 @@
             <linkerLibLibItem>crypto</linkerLibLibItem>
             <linkerLibStdlibItem>DynamicLinking</linkerLibStdlibItem>
           </linkerLibItems>
-          <commandLine>`llvm-config --libs --ldflags` -fuse-ld=lld -g -lclangTooling -lclangFrontendTool -lclangFrontend -lclangDriver -lclangSerialization -lclangCodeGen -lclangParse -lclangSema -lclangStaticAnalyzerFrontend -lclangStaticAnalyzerCheckers -lclangStaticAnalyzerCore -lclangAnalysis -lclangARCMigrate -lclangRewrite -lclangRewriteFrontend -lclangEdit -lclangAST -lclangLex -lclangBasic  -lclangASTMatchers -lclangSupport -fvisibility=default -Wl,--export-dynamic</commandLine>
+          <commandLine>`llvm-config-18 --libs --ldflags` -fuse-ld=lld -g -lclangTooling -lclangFrontendTool -lclangFrontend -lclangDriver -lclangSerialization -lclangCodeGen -lclangParse -lclangSema -lclangStaticAnalyzerFrontend -lclangStaticAnalyzerCheckers -lclangStaticAnalyzerCore -lclangAnalysis -lclangARCMigrate -lclangRewrite -lclang-cpp -lclangRewriteFrontend -lclangEdit -lclangAST -lclangLex -lclangBasic  -lclangASTMatchers -lclangSupport -fvisibility=default -Wl,--export-dynamic</commandLine>
         </linkerTool>
       </compileType>
       <item path="../CHANGELOG.md" ex="false" tool="3" flavor2="0">
@@ -1536,11 +1515,6 @@
             flavor2="0">
       </item>
       <item path="../site/content/en/docs/syntax/pragmas.md"
-            ex="false"
-            tool="3"
-            flavor2="0">
-      </item>
-      <item path="../site/content/en/docs/syntax/sysmacro.md"
             ex="false"
             tool="3"
             flavor2="0">
@@ -1888,11 +1862,6 @@
             tool="3"
             flavor2="0">
       </item>
-      <item path="../site/content/ru/docs/syntax/sysmacro.md"
-            ex="false"
-            tool="3"
-            flavor2="0">
-      </item>
       <item path="../site/content/ru/docs/syntax/sysprop.md"
             ex="false"
             tool="3"
@@ -2148,7 +2117,7 @@
       </item>
       <item path="pch.h" ex="false" tool="3" flavor2="0">
         <customTool>
-          <customToolCommandline>clang++ `llvm-config --cxxflags` -std=c++20 -fexceptions -fcxx-exceptions -Wall -Wextra -Werror -Wfloat-equal -Wundef -Wcast-align -Wwrite-strings -Wmissing-declarations -Wredundant-decls -Wshadow -Woverloaded-virtual -Wno-trigraphs -Wno-invalid-source-encoding -stdlib=libstdc++ -Wno-error=unused-variable -Wno-error=unused-parameter -Wno-error=switch -fsanitize=undefined-trap -fsanitize-undefined-trap-on-error                                         -Wno-undefined-var-template -Wno-switch   -fvisibility=default              -g -DBUILD_DEBUG -DLOG_LEVEL_NORMAL=LOG_LEVEL_DEBUG -DPDC_WIDE -DBUILD_UNITTEST -I. -I.. -I/usr/include/llvm-c-16 -I/usr/include/x86_64-linux-gnu/c++/10 -I/usr/include/c++/10 -I/usr/local/include -I/usr/include -I../contrib/googletest/googletest -I../contrib/googletest/googletest/include -I../contrib/Tensorflow/bazel-bin/tensorflow/include -I../contrib/Lyra/include -I../contrib/libtorch/include/torch/csrc/api/include -I../contrib/libtorch/include                 -x c++-header -o pch.h.pch pch.h -verify-pch -fpch-validate-input-files-content</customToolCommandline>
+          <customToolCommandline>clang++-18 `llvm-config-18 --cxxflags` -fexceptions -fcxx-exceptions -std=c++20 -Wall -Wextra -Werror -Wfloat-equal -Wundef -Wcast-align -Wwrite-strings -Wmissing-declarations -Wredundant-decls -Wshadow -Woverloaded-virtual -Wno-trigraphs -Wno-invalid-source-encoding -stdlib=libstdc++ -Wno-error=unused-variable -Wno-error=unused-parameter -Wno-error=switch -fsanitize=undefined-trap -fsanitize-undefined-trap-on-error                                         -Wno-undefined-var-template -Wno-switch   -fvisibility=default              -g -DBUILD_DEBUG -DLOG_LEVEL_NORMAL=LOG_LEVEL_DEBUG -DPDC_WIDE -DBUILD_UNITTEST -I. -I.. -I/usr/include/llvm-c-18 -I/usr/include/x86_64-linux-gnu/c++/10 -I/usr/include/c++/10 -I/usr/local/include -I/usr/include -I../contrib/googletest/googletest -I../contrib/googletest/googletest/include -I../contrib/Tensorflow/bazel-bin/tensorflow/include -I../contrib/Lyra/include -I../contrib/libtorch/include/torch/csrc/api/include -I../contrib/libtorch/include                 -x c++-header -o pch.h.pch pch.h -verify-pch -fpch-validate-input-files-content  -DGTEST_HAS_CXXABI_H_=0</customToolCommandline>
           <customToolOutputs>pch.h.pch</customToolOutputs>
         </customTool>
       </item>
@@ -2192,6 +2161,12 @@
         </ccTool>
       </item>
       <item path="test/ast_test.cpp" ex="false" tool="1" flavor2="0">
+        <ccTool>
+          <commandLine>-include-pch pch.h.pch</commandLine>
+          <additionalDep>pch.h.pch</additionalDep>
+        </ccTool>
+      </item>
+      <item path="test/class_test.cpp" ex="false" tool="1" flavor2="0">
         <ccTool>
           <commandLine>-include-pch pch.h.pch</commandLine>
           <additionalDep>pch.h.pch</additionalDep>
@@ -2518,11 +2493,6 @@
             tool="3"
             flavor2="0">
       </item>
-      <item path="../site/content/en/docs/syntax/sysmacro.md"
-            ex="false"
-            tool="3"
-            flavor2="0">
-      </item>
       <item path="../site/content/en/docs/syntax/sysprop.md"
             ex="false"
             tool="3"
@@ -2866,11 +2836,6 @@
             tool="3"
             flavor2="0">
       </item>
-      <item path="../site/content/ru/docs/syntax/sysmacro.md"
-            ex="false"
-            tool="3"
-            flavor2="0">
-      </item>
       <item path="../site/content/ru/docs/syntax/sysprop.md"
             ex="false"
             tool="3"
@@ -3118,6 +3083,8 @@
       <item path="test/alg_test.cpp" ex="false" tool="1" flavor2="9">
       </item>
       <item path="test/ast_test.cpp" ex="false" tool="1" flavor2="9">
+      </item>
+      <item path="test/class_test.cpp" ex="false" tool="1" flavor2="9">
       </item>
       <item path="test/compiler_test.cpp" ex="false" tool="1" flavor2="9">
       </item>
@@ -3400,11 +3367,6 @@
             tool="3"
             flavor2="0">
       </item>
-      <item path="../site/content/en/docs/syntax/sysmacro.md"
-            ex="false"
-            tool="3"
-            flavor2="0">
-      </item>
       <item path="../site/content/en/docs/syntax/sysprop.md"
             ex="false"
             tool="3"
@@ -3744,11 +3706,6 @@
             flavor2="0">
       </item>
       <item path="../site/content/ru/docs/syntax/pragmas.md"
-            ex="false"
-            tool="3"
-            flavor2="0">
-      </item>
-      <item path="../site/content/ru/docs/syntax/sysmacro.md"
             ex="false"
             tool="3"
             flavor2="0">
@@ -4079,6 +4036,11 @@
           <additionalDep>pch.h.gch</additionalDep>
         </ccTool>
       </item>
+      <item path="test/class_test.cpp" ex="false" tool="1" flavor2="9">
+        <ccTool>
+          <additionalDep>pch.h.gch</additionalDep>
+        </ccTool>
+      </item>
       <item path="test/compiler_test.cpp" ex="false" tool="1" flavor2="9">
         <ccTool>
           <additionalDep>pch.h.gch</additionalDep>
@@ -4397,11 +4359,6 @@
             flavor2="0">
       </item>
       <item path="../site/content/en/docs/syntax/pragmas.md"
-            ex="false"
-            tool="3"
-            flavor2="0">
-      </item>
-      <item path="../site/content/en/docs/syntax/sysmacro.md"
             ex="false"
             tool="3"
             flavor2="0">
@@ -4749,11 +4706,6 @@
             tool="3"
             flavor2="0">
       </item>
-      <item path="../site/content/ru/docs/syntax/sysmacro.md"
-            ex="false"
-            tool="3"
-            flavor2="0">
-      </item>
       <item path="../site/content/ru/docs/syntax/sysprop.md"
             ex="false"
             tool="3"
@@ -5076,6 +5028,11 @@
         </ccTool>
       </item>
       <item path="test/ast_test.cpp" ex="false" tool="1" flavor2="9">
+        <ccTool>
+          <additionalDep>pch.h.gch</additionalDep>
+        </ccTool>
+      </item>
+      <item path="test/class_test.cpp" ex="false" tool="1" flavor2="9">
         <ccTool>
           <additionalDep>pch.h.gch</additionalDep>
         </ccTool>

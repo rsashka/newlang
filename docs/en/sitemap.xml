@@ -405,19 +405,6 @@
                 href="http://localhost:1313/docs/syntax/pragmas/"
                 />
   </url><url>
-    <loc>http://localhost:1313/docs/syntax/sysmacro/</loc>
-    <lastmod>2024-03-22T23:57:08+03:00</lastmod>
-    <xhtml:link
-                rel="alternate"
-                hreflang="ru"
-                href="http://localhost:1313/ru/docs/syntax/sysmacro/"
-                />
-    <xhtml:link
-                rel="alternate"
-                hreflang="en"
-                href="http://localhost:1313/docs/syntax/sysmacro/"
-                />
-  </url><url>
     <loc>http://localhost:1313/docs/syntax/dsl/</loc>
     <lastmod>2024-03-23T22:03:23+03:00</lastmod>
     <xhtml:link
@@ -484,7 +471,7 @@
                 />
   </url><url>
     <loc>http://localhost:1313/blog/release-v0.4/</loc>
-    <lastmod>2024-03-22T23:57:08+03:00</lastmod>
+    <lastmod>2024-03-23T22:03:23+03:00</lastmod>
     <xhtml:link
                 rel="alternate"
                 hreflang="ru"
@@ -497,7 +484,7 @@
                 />
   </url><url>
     <loc>http://localhost:1313/blog/dsl-domain-specific-language-implementation-with-macros/</loc>
-    <lastmod>2024-03-22T23:57:08+03:00</lastmod>
+    <lastmod>2024-03-23T22:03:23+03:00</lastmod>
     <xhtml:link
                 rel="alternate"
                 hreflang="ru"

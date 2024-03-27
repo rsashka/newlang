@@ -356,15 +356,9 @@ name:   ns_part
                 
                 $$->Last()->Append($3);
             }
-        |  NATIVE
+        |  native
             {
                 $$ = $1;
-                $$->TestConst();
-            }
-        |  '%'
-            {
-                $$ = $1;
-                $$->SetTermID(TermID::NATIVE);
                 $$->TestConst();
             }
         |  PARENT  /* $$ - rval */
@@ -541,17 +535,17 @@ digits_literal: INTEGER
                 $$ = $1;
                 $$->SetType(nullptr);
             }
-         | NUMBER
+        | NUMBER
             {
                 $$ = $1;
                 $$->SetType(nullptr);
             }
-         | COMPLEX
+        | COMPLEX
             {
                 $$ = $1;
                 $$->SetType(nullptr);
             }
-         | RATIONAL
+        | RATIONAL
             {
                 $$ = $1;
                 $$->SetType(nullptr);
@@ -770,7 +764,30 @@ field:  '.'  NAME
                 $$->Last()->Append($NAME);
                 $$->SetType($type_list);
             }
-       
+
+        
+native:  '%'  ns_part
+            {
+                $$ = $2;
+                $$->m_text.insert(0, $1->m_text);
+                $$->SetTermID(TermID::NATIVE);
+            }
+
+        | '%'  ns_start  ns_part 
+            {
+                $$ = $3;
+                $$->m_text.insert(0, $2->m_text);
+                $$->m_text.insert(0, $1->m_text);
+                $$->SetTermID(TermID::NATIVE);
+            }
+        | '%'  '.'  NAME
+            {
+                $$ = $NAME; 
+                $$->m_text.insert(0, $2->m_text);
+                $$->m_text.insert(0, $1->m_text);
+                $$->SetTermID(TermID::NATIVE);
+            }
+        
 lval_obj: assign_name
             {
                 $$ = $1;
@@ -1294,11 +1311,11 @@ coro: '(' ')'
         {
             $$ = $1;
         }
-/*    | '(' args ')'
+    | '%'  '(' args ')'
         {
             $$ = $1;
             $$->SetArgs($args);
-        } */
+        }
         
 assign_expr:  body_all
                 {
@@ -1326,7 +1343,7 @@ assign_expr:  body_all
                 {
                     $$ = $1;
                 }
-            |  NATIVE  ELLIPSIS
+            |  native  ELLIPSIS
                 {
                     $$ = $1;
                     $$->Last()->Append($2);
@@ -1364,10 +1381,6 @@ assign_item:  lval
                     $$ = $3;  
                     $$->MakeRef($ptr);
                 }   
-            |  ELLIPSIS
-                {
-                    $$ = $1;
-                }
             |  MACRO_SEQ
                 {
                     $$ = $1;
@@ -2118,6 +2131,22 @@ with: with_op  '('  rval_name  ')'   body
                 $$->AppendFollow($body_else); 
         }
 
+using_list: exit_prefix
+            {
+                $$ = $1;
+            }
+        | using_list  ','  exit_prefix
+            {
+                $$ = $1;
+                $$->AppendList($3);
+            }
+    
+ns_using:  ELLIPSIS  '='  using_list
+        {
+            $$ = $2;
+            $$->Append($1, Term::LEFT); 
+            $$->Append($3, Term::RIGHT); 
+        }
     
 /*  expression - одна операция или результат <ОДНОГО выражения без завершающей точки с запятой !!!!!> */
 seq_item: assign_seq
@@ -2154,6 +2183,10 @@ seq_item: assign_seq
                 $$ = $1;
             }
         |  symbolyc
+            {            
+                $$ = $1;
+            }
+        | ns_using
             {            
                 $$ = $1;
             }

@@ -102,8 +102,6 @@ number  ({number1}|{number2})
 module_name  \\({ualpha}|[_]|{digit})+
 module  \\?{module_name}+
 
-native  %({ualpha}|[_])+({name}|{digit})?
-
 %x state_STRWIDE
 %x state_STRCHAR
 %x state_STRWIDE_RAW
@@ -519,7 +517,6 @@ native  %({ualpha}|[_])+({name}|{digit})?
 @{name}     YY_TOKEN(MACRO);
 ${name}     YY_TOKEN(LOCAL);
 {module}    YY_TOKEN(MODULE);
-{native}    YY_TOKEN(NATIVE);
 "..."       YY_TOKEN(ELLIPSIS);
 ".."        YY_TOKEN(RANGE);
 "<->"       YY_TOKEN_ONLY(REPEAT);

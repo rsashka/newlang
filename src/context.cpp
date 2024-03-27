@@ -1312,10 +1312,10 @@ ObjPtr Context::Run(TermPtr term, Context *runner) {
         }
         runner->m_latter = runner->EvalBlock_(term, runner->m_static);
     } else {
-        LOG_TEST("eval: %s", RunTime::Escape(term->toString()).c_str());
+//        LOG_TEST("eval: %s", RunTime::Escape(term->toString()).c_str());
         ObjPtr result = EvalTerm(term, runner);
         ASSERT(result);
-        LOG_TEST("result: %s", result->toString().c_str());
+//        LOG_TEST("result: %s", result->toString().c_str());
         if (runner) {
             runner->m_latter = result;
         } else {
@@ -1726,8 +1726,8 @@ ObjPtr Context::Call(Context *runner, Obj &obj, Obj & args) {
 
             //            LOG_TEST("Args: %s", args.toString().c_str());
 
-            ASSERT(at::holds_alternative<void *>(obj.m_var));
-            FunctionType * func_ptr = (FunctionType *) at::get<void *>(obj.m_var);
+            ASSERT(std::holds_alternative<void *>(obj.m_var));
+            FunctionType * func_ptr = (FunctionType *) std::get<void *>(obj.m_var);
             ASSERT(func_ptr);
             return (*func_ptr)(runner, args);
         }
@@ -1761,8 +1761,8 @@ ObjPtr Context::CallNative_(Context *runner, Obj &obj, Obj * args) {
     ASSERT(obj.m_var_type_current == ObjType::NativeFunc);
     ASSERT(obj.m_prototype);
 
-    ASSERT(at::holds_alternative<void *>(obj.m_var));
-    void * func_ptr = at::get<void *>(obj.m_var);
+    ASSERT(std::holds_alternative<void *>(obj.m_var));
+    void * func_ptr = std::get<void *>(obj.m_var);
 
     if (!func_ptr) {
         LOG_RUNTIME("Dymanic load native address '%s'!", "NOT IMPLEMENTED");
@@ -1922,8 +1922,8 @@ ObjPtr Context::CallNative_(Context *runner, Obj &obj, Obj * args) {
                 //                }
                 m_args_type.push_back(RunTime::m_ffi_type_pointer);
 
-                if (at::holds_alternative<void *>((*args)[i].second->m_var)) {
-                    temp.ptr = at::get<void *>((*args)[i].second->m_var);
+                if (std::holds_alternative<void *>((*args)[i].second->m_var)) {
+                    temp.ptr = std::get<void *>((*args)[i].second->m_var);
                     //                } else if (args[i].second->m_var_type_fixed == ObjType::None || args[i].second->m_var_type_current == ObjType::None ) {
                     //                    temp.ptr = nullptr;
                 } else {

@@ -116,9 +116,9 @@ TEST(Run, Vars) {
     ASSERT_EQ(0, rt->m_main_runner->size());
     ASSERT_EQ(4, rt->m_main_ast->m_int_vars.size()) << rt->m_main_ast->m_int_vars.Dump();
 
-    ASSERT_ANY_THROW(rt->Run("var_mod ::= 0")) << rt->Dump() << rt->m_main_ast->m_int_vars.Dump();
-    ASSERT_ANY_THROW(rt->Run("var_mod2 = 0")) << rt->Dump() << rt->m_main_ast->m_int_vars.Dump();
-    ASSERT_NO_THROW(res = rt->Run("var_mod2 ::= var_mod")) << rt->Dump() << rt->m_main_ast->m_int_vars.Dump();
+    ASSERT_ANY_THROW(rt->Run("var_mod ::= 0")) << Dump(*rt) << rt->m_main_ast->m_int_vars.Dump();
+    ASSERT_ANY_THROW(rt->Run("var_mod2 = 0")) << Dump(*rt) << rt->m_main_ast->m_int_vars.Dump();
+    ASSERT_NO_THROW(res = rt->Run("var_mod2 ::= var_mod")) << Dump(*rt) << rt->m_main_ast->m_int_vars.Dump();
     ASSERT_TRUE(res);
     ASSERT_STREQ("456", res->toString().c_str());
     ASSERT_EQ(2, rt->size() - glob_count);
@@ -126,7 +126,7 @@ TEST(Run, Vars) {
     ASSERT_EQ(0, rt->m_main_runner->size());
     ASSERT_EQ(5, rt->m_main_ast->m_int_vars.size()) << rt->m_main_ast->m_int_vars.Dump();
 
-    ASSERT_NO_THROW(res = rt->Run("$var_loc2 := $var_loc")) << rt->Dump() << rt->m_main_ast->m_int_vars.Dump();
+    ASSERT_NO_THROW(res = rt->Run("$var_loc2 := $var_loc")) << Dump(*rt) << rt->m_main_ast->m_int_vars.Dump();
     ASSERT_TRUE(res);
     ASSERT_STREQ("789", res->toString().c_str());
     ASSERT_EQ(2, rt->size() - glob_count);
@@ -146,7 +146,7 @@ TEST(Run, Vars) {
     ASSERT_EQ(6, rt->m_main_ast->m_int_vars.size());
 
 
-    ASSERT_NO_THROW(res = rt->Run("var_mod2 = -2")) << rt->Dump() << rt->m_main_ast->m_int_vars.Dump();
+    ASSERT_NO_THROW(res = rt->Run("var_mod2 = -2")) << Dump(*rt) << rt->m_main_ast->m_int_vars.Dump();
     ASSERT_TRUE(res);
     ASSERT_STREQ("-2", res->toString().c_str());
     ASSERT_EQ(2, rt->size() - glob_count);
@@ -183,7 +183,7 @@ TEST(Run, Call) {
 
     ObjPtr res = rt->Run("::func_glob() := { 123 }");
     ASSERT_TRUE(res);
-    ASSERT_EQ(1, rt->size() - glob_count) << rt->Dump();
+    ASSERT_EQ(1, rt->size() - glob_count) << Dump(*rt);
     ASSERT_EQ(1, rt->m_main_ast->m_block.size());
     ASSERT_EQ(0, rt->m_main_runner->size());
     ASSERT_EQ(1, rt->m_main_ast->m_int_vars.size()) << rt->m_main_ast->m_int_vars.Dump();
@@ -193,8 +193,8 @@ TEST(Run, Call) {
     ASSERT_TRUE(res);
     ASSERT_STREQ("123", res->toString().c_str());
 
-    ASSERT_ANY_THROW(rt->Run("::func_glob ::= {}")) << rt->Dump() << rt->m_main_ast->m_int_vars.Dump();
-    ASSERT_ANY_THROW(rt->Run("::func_glob = {}")) << rt->Dump() << rt->m_main_ast->m_int_vars.Dump();
+    ASSERT_ANY_THROW(rt->Run("::func_glob ::= {}")) << Dump(*rt) << rt->m_main_ast->m_int_vars.Dump();
+    ASSERT_ANY_THROW(rt->Run("::func_glob = {}")) << Dump(*rt) << rt->m_main_ast->m_int_vars.Dump();
 
 
     res = rt->Run("func_loc() := { 456 }");
@@ -205,12 +205,12 @@ TEST(Run, Call) {
     ASSERT_EQ(2, rt->m_main_ast->m_int_vars.size());
     ASSERT_STREQ("func_loc::(){ }", res->toString().c_str());
 
-    ASSERT_NO_THROW(res = rt->Run("func_loc()")) << rt->Dump() << rt->m_main_ast->m_int_vars.Dump();
+    ASSERT_NO_THROW(res = rt->Run("func_loc()")) << Dump(*rt) << rt->m_main_ast->m_int_vars.Dump();
 
     ASSERT_TRUE(res);
     ASSERT_STREQ("456", res->toString().c_str());
 
-    ASSERT_NO_THROW(res = rt->Run("$func_loc()")) << rt->Dump() << rt->m_main_ast->m_int_vars.Dump();
+    ASSERT_NO_THROW(res = rt->Run("$func_loc()")) << Dump(*rt) << rt->m_main_ast->m_int_vars.Dump();
 
     ASSERT_TRUE(res);
     ASSERT_STREQ("456", res->toString().c_str());
@@ -223,11 +223,11 @@ TEST(Run, Call) {
     ASSERT_EQ(3, rt->m_main_ast->m_int_vars.size());
     ASSERT_STREQ("@::func::(){ }", res->toString().c_str());
 
-    ASSERT_NO_THROW(res = rt->Run("@::func()")) << rt->Dump() << rt->m_main_ast->m_int_vars.Dump();
+    ASSERT_NO_THROW(res = rt->Run("@::func()")) << Dump(*rt) << rt->m_main_ast->m_int_vars.Dump();
     ASSERT_TRUE(res);
     ASSERT_STREQ("789", res->toString().c_str());
 
-    ASSERT_NO_THROW(res = rt->Run("func()")) << rt->Dump() << rt->m_main_ast->m_int_vars.Dump();
+    ASSERT_NO_THROW(res = rt->Run("func()")) << Dump(*rt) << rt->m_main_ast->m_int_vars.Dump();
     ASSERT_TRUE(res);
     ASSERT_STREQ("789", res->toString().c_str());
 }
@@ -313,7 +313,7 @@ TEST(Eval, Assign) {
     ASSERT_TRUE(var1);
     ASSERT_TRUE(var1->is_arithmetic_type());
     ASSERT_TRUE(var1->is_integer());
-    ASSERT_TRUE(at::holds_alternative<int64_t>(var1->m_var));
+    ASSERT_TRUE(std::holds_alternative<int64_t>(var1->m_var));
     ASSERT_EQ(var1->m_var_type_current, ObjType::Int8) << newlang::toString(var1->m_var_type_current);
     ASSERT_EQ(var1->m_var_type_fixed, ObjType::None) << newlang::toString(var1->m_var_type_fixed);
     ASSERT_STREQ("123", var1->toString().c_str());
@@ -531,7 +531,7 @@ TEST(Run, Tensor) {
     ASSERT_TRUE(ddd);
     ASSERT_STREQ("(1, 2, 3,)", ddd->GetValueAsString().c_str()) << ddd->GetValueAsString().c_str();
 
-    ASSERT_NO_THROW(ddd = rt->Run(":Tensor[...]( (1,2,3,) )")); // << rt->Dump();
+    ASSERT_NO_THROW(ddd = rt->Run(":Tensor[...]( (1,2,3,) )")); // << Dump(*rt);
     ASSERT_TRUE(ddd);
     ASSERT_STREQ("[1, 2, 3,]:Int8", ddd->GetValueAsString().c_str()) << ddd->GetValueAsString().c_str();
 
@@ -763,14 +763,14 @@ TEST(Run, Comprehensions) {
 ////
 ////    ObjPtr fopen = rt->CreateNative(&ctx, "fopen(filename:StrChar, modes:StrChar):File");
 ////    ASSERT_TRUE(fopen);
-////    ASSERT_TRUE(at::holds_alternative<void *>(fopen->m_var));
-////    ASSERT_TRUE(at::get<void *>(fopen->m_var));
+////    ASSERT_TRUE(std::holds_alternative<void *>(fopen->m_var));
+////    ASSERT_TRUE(std::get<void *>(fopen->m_var));
 ////
 ////    ObjPtr fopen2 = ctx.ExecStr("fopen2 ::= :Pointer('fopen(filename:StrChar, modes:StrChar):File')");
 ////    ASSERT_TRUE(fopen2);
-////    ASSERT_TRUE(at::holds_alternative<void *>(fopen2->m_var));
-////    ASSERT_TRUE(at::get<void *>(fopen2->m_var));
-////    ASSERT_EQ(at::get<void *>(fopen->m_var), at::get<void *>(fopen2->m_var));
+////    ASSERT_TRUE(std::holds_alternative<void *>(fopen2->m_var));
+////    ASSERT_TRUE(std::get<void *>(fopen2->m_var));
+////    ASSERT_EQ(std::get<void *>(fopen->m_var), std::get<void *>(fopen2->m_var));
 ////    ASSERT_TRUE(ctx.FindTerm("fopen2"));
 ////    //    auto iter = ctx.m_terms->find("fopen2");
 ////    //    ASSERT_NE(iter, ctx.m_terms->end());
@@ -778,25 +778,25 @@ TEST(Run, Comprehensions) {
 ////    ObjPtr fopen3 = ctx.ExecStr("fopen3(filename:String, modes:String):File ::= "
 ////            ":Pointer('fopen(filename:StrChar, modes:StrChar):File')");
 ////    ASSERT_TRUE(fopen3);
-////    ASSERT_TRUE(at::holds_alternative<void *>(fopen3->m_var));
-////    ASSERT_TRUE(at::get<void *>(fopen3->m_var));
-////    ASSERT_EQ(at::get<void *>(fopen->m_var), at::get<void *>(fopen3->m_var));
+////    ASSERT_TRUE(std::holds_alternative<void *>(fopen3->m_var));
+////    ASSERT_TRUE(std::get<void *>(fopen3->m_var));
+////    ASSERT_EQ(std::get<void *>(fopen->m_var), std::get<void *>(fopen3->m_var));
 ////
 ////    ObjPtr fclose = ctx.ExecStr("fclose(stream:File):Int32 ::= :Pointer(\"fclose(stream:File):Int32\")");
-////    ASSERT_TRUE(at::holds_alternative<void *>(fclose->m_var));
-////    ASSERT_TRUE(at::get<void *>(fclose->m_var));
+////    ASSERT_TRUE(std::holds_alternative<void *>(fclose->m_var));
+////    ASSERT_TRUE(std::get<void *>(fclose->m_var));
 ////
 ////    ObjPtr fremove = ctx.ExecStr("fremove(filename:String):Int32 ::= "
 ////            ":Pointer(\"remove(filename:StrChar):Int32\")");
 ////    ASSERT_TRUE(fremove);
-////    ASSERT_TRUE(at::holds_alternative<void *>(fremove->m_var));
-////    ASSERT_TRUE(at::get<void *>(fremove->m_var));
+////    ASSERT_TRUE(std::holds_alternative<void *>(fremove->m_var));
+////    ASSERT_TRUE(std::get<void *>(fremove->m_var));
 ////
 ////    ObjPtr frename = ctx.ExecStr("rename(old:String, new:String):Int32 ::= "
 ////            ":Pointer('rename(old:StrChar, new:StrChar):Int32')");
 ////    ASSERT_TRUE(frename);
-////    ASSERT_TRUE(at::holds_alternative<void *>(frename->m_var));
-////    ASSERT_TRUE(at::get<void *>(frename->m_var));
+////    ASSERT_TRUE(std::holds_alternative<void *>(frename->m_var));
+////    ASSERT_TRUE(std::get<void *>(frename->m_var));
 ////
 ////    ObjPtr fprintf = ctx.ExecStr("fprintf(stream:File, format:FmtChar, ...):Int32 ::= "
 ////            ":Pointer('fprintf(stream:File, format:FmtChar, ...):Int32')");
@@ -961,13 +961,13 @@ TEST(Run, Comprehensions) {
 ////
 ////    ObjPtr p = ctx.ExecStr("printf := :Pointer('printf(format:FmtChar, ...):Int32');");
 ////    ASSERT_TRUE(p);
-////    ASSERT_TRUE(at::holds_alternative<void *>(p->m_var));
-////    ASSERT_TRUE(at::get<void *>(p->m_var));
+////    ASSERT_TRUE(std::holds_alternative<void *>(p->m_var));
+////    ASSERT_TRUE(std::get<void *>(p->m_var));
 ////    ASSERT_STREQ("printf=printf(format:FmtChar, ...):Int32{ }", p->toString().c_str());
 ////
 ////    typedef int (* printf_type)(const char *, ...);
 ////
-////    printf_type ttt = (printf_type) at::get<void *>(p->m_var);
+////    printf_type ttt = (printf_type) std::get<void *>(p->m_var);
 ////    ASSERT_EQ(7, (*ttt)("Test 1 "));
 ////    ASSERT_EQ(18, (*ttt)("%s", "Test Variadic call"));
 ////

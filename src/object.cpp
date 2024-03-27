@@ -230,7 +230,7 @@ const ObjPtr Obj::index_get(const std::vector<Index> &index) const {
         if (index.size() != 1 || !index[0].is_integer()) {
             LOG_RUNTIME("The index must be an integer value '%s'!", IndexToString(index).c_str());
         }
-        int64_t pos = index[0].integer();
+        int64_t pos = index[0].integer().expect_int();
         if (pos < 0) {
             pos = m_value.size() + pos; // Позиция с конца строки
         }
@@ -242,7 +242,7 @@ const ObjPtr Obj::index_get(const std::vector<Index> &index) const {
         if (index.size() != 1 || !index[0].is_integer()) {
             LOG_RUNTIME("The index must be an integer value '%s'!", IndexToString(index).c_str());
         }
-        int64_t pos = index[0].integer();
+        int64_t pos = index[0].integer().expect_int();
         if (pos < 0) {
             pos = m_string.size() + pos; // Позиция с конца строки
         }
@@ -261,7 +261,7 @@ const ObjPtr Obj::index_get(const std::vector<Index> &index) const {
     if (index.size() != 1 || !index[0].is_integer()) {
         LOG_RUNTIME("The index must be an integer value '%s'!", IndexToString(index).c_str());
     }
-    return Variable::at(index[0].integer()).second;
+    return Variable::at(index[0].integer().expect_int()).second;
 }
 
 ObjPtr Obj::index_set_(const std::vector<Index> &index, const ObjPtr value) {
@@ -269,7 +269,7 @@ ObjPtr Obj::index_set_(const std::vector<Index> &index, const ObjPtr value) {
         if (index.size() != 1 || !index[0].is_integer()) {
             LOG_RUNTIME("The index must be an integer value '%s'!", IndexToString(index).c_str());
         }
-        int64_t pos = index[0].integer();
+        int64_t pos = index[0].integer().expect_int();
         if (pos < 0) {
             pos = m_value.size() + pos; // Позиция с конца строки
         }
@@ -284,7 +284,7 @@ ObjPtr Obj::index_set_(const std::vector<Index> &index, const ObjPtr value) {
         if (index.size() != 1 || !index[0].is_integer()) {
             LOG_RUNTIME("The index must be an integer value '%s'!", IndexToString(index).c_str());
         }
-        int64_t pos = index[0].integer();
+        int64_t pos = index[0].integer().expect_int();
         if (pos < 0) {
             pos = m_value.size() + pos; // Позиция с конца строки
         }
@@ -319,7 +319,7 @@ ObjPtr Obj::index_set_(const std::vector<Index> &index, const ObjPtr value) {
         if (index.size() != 1 || !index[0].is_integer()) {
             LOG_RUNTIME("The index must be an integer value '%s'!", IndexToString(index).c_str());
         }
-        (*at(index[0].integer()).second) = value;
+        (*at(index[0].integer().expect_int()).second) = value;
         return shared();
         LOG_RUNTIME("Index '%s' not exists in object '%s'!", IndexToString(index).c_str(), toString().c_str());
     }
@@ -393,11 +393,11 @@ ObjPtr Obj::operator+=(Obj value) {
             testResultIntegralType(value.m_var_type_current, true);
             if (is_scalar() && value.is_scalar()) {
                 if (is_floating()) {
-                    ASSERT(at::holds_alternative<double>(m_var));
+                    ASSERT(std::holds_alternative<double>(m_var));
                     m_var = GetValueAsNumber() + value.GetValueAsNumber();
                     m_var_type_current = ObjType::Float64;
                 } else if (is_integral() && value.is_integral()) {
-                    ASSERT(at::holds_alternative<int64_t>(m_var));
+                    ASSERT(std::holds_alternative<int64_t>(m_var));
                     m_var = GetValueAsInteger() + value.GetValueAsInteger();
                     m_var_type_current = typeFromLimit(GetValueAsInteger());
                 } else {
@@ -464,11 +464,11 @@ ObjPtr Obj::operator-=(Obj value) {
         testResultIntegralType(value.m_var_type_current, true);
         if (is_scalar() && value.is_scalar()) {
             if (is_floating()) {
-                ASSERT(at::holds_alternative<double>(m_var));
+                ASSERT(std::holds_alternative<double>(m_var));
                 m_var = GetValueAsNumber() - value.GetValueAsNumber();
                 m_var_type_current = ObjType::Float64;
             } else if (is_integral() && value.is_integral()) {
-                ASSERT(at::holds_alternative<int64_t>(m_var));
+                ASSERT(std::holds_alternative<int64_t>(m_var));
                 m_var = GetValueAsInteger() - value.GetValueAsInteger();
                 m_var_type_current = typeFromLimit(GetValueAsInteger());
             } else {
@@ -521,11 +521,11 @@ ObjPtr Obj::operator*=(Obj value) {
         testResultIntegralType(value.m_var_type_current, true);
         if (is_scalar() && value.is_scalar()) {
             if (is_floating()) {
-                ASSERT(at::holds_alternative<double>(m_var));
+                ASSERT(std::holds_alternative<double>(m_var));
                 m_var = GetValueAsNumber() * value.GetValueAsNumber();
                 m_var_type_current = ObjType::Float64;
             } else if (is_integral() && value.is_integral()) {
-                ASSERT(at::holds_alternative<int64_t>(m_var));
+                ASSERT(std::holds_alternative<int64_t>(m_var));
                 m_var = GetValueAsInteger() * value.GetValueAsInteger();
                 m_var_type_current = typeFromLimit(GetValueAsInteger());
             } else {
@@ -593,11 +593,11 @@ ObjPtr Obj::operator/=(Obj value) {
         testResultIntegralType(ObjType::Float64, true);
         if (is_scalar() && value.is_scalar()) {
             if (is_floating()) {
-                ASSERT(at::holds_alternative<double>(m_var));
+                ASSERT(std::holds_alternative<double>(m_var));
                 m_var = GetValueAsNumber() / value.GetValueAsNumber();
                 m_var_type_current = ObjType::Float64;
             } else if (is_integral() && value.is_integral()) {
-                ASSERT(at::holds_alternative<int64_t>(m_var));
+                ASSERT(std::holds_alternative<int64_t>(m_var));
                 m_var = GetValueAsInteger() / value.GetValueAsInteger();
                 m_var_type_current = typeFromLimit(GetValueAsInteger());
             } else {
@@ -633,11 +633,11 @@ ObjPtr Obj::op_div_ceil_(Obj & value) {
         //        testResultIntegralType(ObjType::Float32, false);
         if (is_scalar() && value.is_scalar()) {
             if (is_floating()) {
-                ASSERT(at::holds_alternative<double>(m_var));
+                ASSERT(std::holds_alternative<double>(m_var));
                 m_var = floor(GetValueAsNumber() / value.GetValueAsNumber());
                 m_var_type_current = ObjType::Float64;
             } else if (is_integral() && value.is_integral()) {
-                ASSERT(at::holds_alternative<int64_t>(m_var));
+                ASSERT(std::holds_alternative<int64_t>(m_var));
 
                 int64_t num = GetValueAsInteger();
                 int64_t den = value.GetValueAsInteger();
@@ -686,10 +686,10 @@ ObjPtr Obj::operator%=(Obj value) {
         testResultIntegralType(value.m_var_type_current, true);
         if (is_scalar() && value.is_scalar()) {
             if (is_floating()) {
-                ASSERT(at::holds_alternative<double>(m_var));
+                ASSERT(std::holds_alternative<double>(m_var));
                 m_var = fmod(GetValueAsNumber(), value.GetValueAsNumber());
             } else if (is_integral() && value.is_integral()) {
-                ASSERT(at::holds_alternative<int64_t>(m_var));
+                ASSERT(std::holds_alternative<int64_t>(m_var));
                 m_var = GetValueAsInteger() % value.GetValueAsInteger();
             } else {
                 LOG_RUNTIME("Fail convert '%s' to type %s!", value.toString().c_str(), newlang::toString(m_var_type_current));
@@ -906,8 +906,8 @@ std::string Obj::toString(bool deep) const {
                 return result;
 
             case ObjType::Pointer:
-                if (at::holds_alternative<void *>(m_var)) {
-                    ss << at::get<void *>(m_var);
+                if (std::holds_alternative<void *>(m_var)) {
+                    ss << std::get<void *>(m_var);
                     //                } else if (m_var_type_fixed == ObjType::None || m_var_type_current == ObjType::None) {
                     //                    ss << "nullptr";
                 } else {
@@ -1185,8 +1185,8 @@ std::string Obj::GetValueAsString() const {
             return result;
 
         case ObjType::Pointer:
-            ASSERT(at::holds_alternative<void *>(m_var));
-            ss << at::get<void *>(m_var);
+            ASSERT(std::holds_alternative<void *>(m_var));
+            ss << std::get<void *>(m_var);
             result += ss.str();
             if (m_class_name.empty()) {
                 result += ":Pointer";
@@ -1667,8 +1667,8 @@ ObjPtr Obj::CallNative(Context *ctx, Obj args) {
     //    ASSERT(m_var_type_current == ObjType::NativeFunc);
     //    ASSERT(m_prototype);
     //
-    //    ASSERT(at::holds_alternative<void *>(m_var));
-    //    void * func_ptr = at::get<void *>(m_var);
+    //    ASSERT(std::holds_alternative<void *>(m_var));
+    //    void * func_ptr = std::get<void *>(m_var);
     //
     //    if (!func_ptr) {
     //        NL_CHECK(m_module_name.empty() || ctx, "You cannot load a module without access to the runtime context!");
@@ -1807,8 +1807,8 @@ ObjPtr Obj::CallNative(Context *ctx, Obj args) {
     //                }
     //                m_args_type.push_back(RunTime::m_ffi_type_pointer);
     //
-    //                if (at::holds_alternative<void *>(args[i].second->m_var)) {
-    //                    temp.ptr = at::get<void *>(args[i].second->m_var);
+    //                if (std::holds_alternative<void *>(args[i].second->m_var)) {
+    //                    temp.ptr = std::get<void *>(args[i].second->m_var);
     //                    //                } else if (args[i].second->m_var_type_fixed == ObjType::None || args[i].second->m_var_type_current == ObjType::None ) {
     //                    //                    temp.ptr = nullptr;
     //                } else {
@@ -2072,8 +2072,8 @@ ObjPtr Obj::CallNative(Context *ctx, Obj args) {
     //
     //
     //    // Map the global function in the external C++ code to the IR code, only the declaration in the IR code
-    //    ASSERT(at::holds_alternative<void *>(m_var));
-    //    LLVMAddGlobalMapping(engine, func_call, at::get<void *>(m_var));
+    //    ASSERT(std::holds_alternative<void *>(m_var));
+    //    LLVMAddGlobalMapping(engine, func_call, std::get<void *>(m_var));
     //
     //
     //    ObjPtr result = nullptr;
@@ -2487,7 +2487,7 @@ void Obj::toType_(ObjType type) {
                 // Но часто про это забывают и забивают
                 m_value.assign(1, static_cast<uint8_t> (char_val));
             }
-            m_var = at::monostate();
+            m_var = std::monostate();
         } else {
             ASSERT(!is_scalar());
             if (static_cast<uint8_t> (m_var_type_current) > static_cast<uint8_t> (ObjType::Int8)) {
@@ -2508,7 +2508,7 @@ void Obj::toType_(ObjType type) {
                 LOG_ERROR("Single wchar_t overflow! %ld", char_val);
             }
             m_string.assign(1, static_cast<wchar_t> (char_val));
-            m_var = at::monostate();
+            m_var = std::monostate();
         } else {
             ASSERT(!is_scalar());
             ASSERT(sizeof (wchar_t) == 2 || sizeof (wchar_t) == 4);
@@ -2529,7 +2529,7 @@ void Obj::toType_(ObjType type) {
         }
         if (is_integral()) {
             m_rational = GetValueAsInteger();
-            m_var = at::monostate();
+            m_var = std::monostate();
         } else {
             LOG_RUNTIME("Convert value '%s' to rational not implemented!", toString().c_str());
         }
@@ -2539,13 +2539,13 @@ void Obj::toType_(ObjType type) {
     } else if (is_tensor_type() && isDictionary(type)) {
 
         if (is_scalar() && is_integral()) {
-            ASSERT(at::holds_alternative<int64_t>(m_var));
-            push_back(Obj::CreateValue(at::get<int64_t>(m_var)));
-            m_var = at::monostate();
+            ASSERT(std::holds_alternative<int64_t>(m_var));
+            push_back(Obj::CreateValue(std::get<int64_t>(m_var)));
+            m_var = std::monostate();
         } else if (is_scalar() && is_floating()) {
-            ASSERT(at::holds_alternative<double>(m_var));
-            push_back(Obj::CreateValue(at::get<double>(m_var)));
-            m_var = at::monostate();
+            ASSERT(std::holds_alternative<double>(m_var));
+            push_back(Obj::CreateValue(std::get<double>(m_var)));
+            m_var = std::monostate();
         } else {
             ASSERT(!is_scalar());
             if (!m_tensor.defined()) {
@@ -2903,7 +2903,7 @@ ObjPtr Obj::ConstructorSimpleType_(Context *ctx, Obj & args) {
                 for (int i = 0; i < result->m_dimensions->size(); i++) {
                     Index ind = (*result->m_dimensions)[i].second->toIndex();
                     if (ind.is_integer()) {
-                        dims.push_back(ind.integer());
+                        dims.push_back(ind.integer().expect_int());
                     } else if (ind.is_boolean()) {
                         dims.push_back(ind.boolean());
                     } else {
@@ -3515,16 +3515,16 @@ ObjPtr Obj::op_call(Obj & args) {
     //
     //        ObjPtr result;
     //        if (m_var_type_current == ObjType::Function) {
-    //            ASSERT(at::holds_alternative<void *>(m_var));
-    //            ASSERT(at::get<void *>(m_var));
-    //            result = (*reinterpret_cast<FunctionType *> (at::get<void *>(m_var)))(ctx, *param.get()); // Непосредственно вызов функции
+    //            ASSERT(std::holds_alternative<void *>(m_var));
+    //            ASSERT(std::get<void *>(m_var));
+    //            result = (*reinterpret_cast<FunctionType *> (std::get<void *>(m_var)))(ctx, *param.get()); // Непосредственно вызов функции
     //        } else if (m_var_type_current == ObjType::PureFunc || (m_var_type_current == ObjType::Type)) {
-    //            //            if(!at::holds_alternative<void *>(m_var)) {
+    //            //            if(!std::holds_alternative<void *>(m_var)) {
     //            //                LOG_DEBUG("%s", toString().c_str());
-    //            ASSERT(at::holds_alternative<void *>(m_var));
-    //            ASSERT(at::get<void *>(m_var));
+    //            ASSERT(std::holds_alternative<void *>(m_var));
+    //            ASSERT(std::get<void *>(m_var));
     //            //            }
-    //            result = (*reinterpret_cast<TransparentType *> (at::get<void *>(m_var)))(ctx, *param.get()); // Непосредственно вызов функции
+    //            result = (*reinterpret_cast<TransparentType *> (std::get<void *>(m_var)))(ctx, *param.get()); // Непосредственно вызов функции
     //        } else if (m_var_type_current == ObjType::NativeFunc) {
     //            result = CallNative(ctx, *param.get());
     //        } else if (m_var_type_current == ObjType::EVAL_FUNCTION || m_var_type_current == ObjType::BLOCK || m_var_type_current == ObjType::BLOCK_TRY || m_var_type_current == ObjType::BLOCK_PLUS || m_var_type_current == ObjType::BLOCK_MINUS) {

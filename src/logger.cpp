@@ -261,74 +261,74 @@ size_t BinToHexBuffer(const uint8_t * buf, const size_t size, char * str, const 
     return max_size;
 }
 
-#include <execinfo.h>
-#include <cxxabi.h>
-
-inline const char * get_basename(const char * str) {
-    if (str) {
-        size_t pos = strlen(str);
-        while (pos) {
-            if (str[pos] == '@' || str[pos] == '/') {
-                return &str[pos + 1];
-            }
-            pos--;
-        }
-    }
-    return str;
-}
-
-void log_print_callstack() {
-    const size_t max_depth = 5;
-    size_t stack_depth;
-    void *stack_addrs[max_depth];
-    char **stack_strings;
-
-    stack_depth = backtrace(stack_addrs, max_depth);
-    stack_strings = backtrace_symbols(stack_addrs, stack_depth);
-
-    newlang::Logger::LogLevelType save_level = newlang::Logger::Instance()->GetLogLevel();
-    newlang::Logger::Instance()->SetLogLevel(LOG_LEVEL_INFO);
-    LOG_INFO("Call stack:");
-
-    for (size_t i = 1; i < stack_depth; i++) {
-        size_t sz = 200; // just a guess, template names will go much wider
-        char *function = static_cast<char *> (malloc(sz));
-        char *begin = 0, *end = 0;
-
-        // find the parentheses and address offset surrounding the mangled name
-        for (char *j = stack_strings[i]; *j; ++j) {
-            if (*j == '(') {
-                begin = j;
-            } else if (*j == '+') {
-                end = j;
-            }
-        }
-        if (begin && end) {
-            *begin++ = '\0';
-            *end = '\0';
-            // found our mangled name, now in [begin, end)
-
-            int status;
-            char *ret = abi::__cxa_demangle(begin, function, &sz, &status);
-            if (ret) {
-                // return value may be a realloc() of the input
-                function = ret;
-            } else {
-                // demangling failed, just pretend it's a C function with no args
-                strncpy(function, begin, sz);
-                strncat(function, "()", sz);
-                function[sz - 1] = '\0';
-            }
-            LOG_INFO("    %s:%s", get_basename(stack_strings[i]), get_basename(function));
-        } else {
-            // didn't find the mangled name, just print the whole line
-            LOG_INFO("    %s", get_basename(stack_strings[i]));
-        }
-        free(function);
-    }
-
-    free(stack_strings);
-
-    newlang::Logger::Instance()->SetLogLevel(save_level);
-}
+//#include <execinfo.h>
+////#include <cxxabi.h>
+//
+//inline const char * get_basename(const char * str) {
+//    if (str) {
+//        size_t pos = strlen(str);
+//        while (pos) {
+//            if (str[pos] == '@' || str[pos] == '/') {
+//                return &str[pos + 1];
+//            }
+//            pos--;
+//        }
+//    }
+//    return str;
+//}
+//
+//void log_print_callstack() {
+//    const size_t max_depth = 5;
+//    size_t stack_depth;
+//    void *stack_addrs[max_depth];
+//    char **stack_strings;
+//
+//    stack_depth = backtrace(stack_addrs, max_depth);
+//    stack_strings = backtrace_symbols(stack_addrs, stack_depth);
+//
+//    newlang::Logger::LogLevelType save_level = newlang::Logger::Instance()->GetLogLevel();
+//    newlang::Logger::Instance()->SetLogLevel(LOG_LEVEL_INFO);
+//    LOG_INFO("Call stack:");
+//
+//    for (size_t i = 1; i < stack_depth; i++) {
+//        size_t sz = 200; // just a guess, template names will go much wider
+//        char *function = static_cast<char *> (malloc(sz));
+//        char *begin = 0, *end = 0;
+//
+//        // find the parentheses and address offset surrounding the mangled name
+//        for (char *j = stack_strings[i]; *j; ++j) {
+//            if (*j == '(') {
+//                begin = j;
+//            } else if (*j == '+') {
+//                end = j;
+//            }
+//        }
+//        if (begin && end) {
+//            *begin++ = '\0';
+//            *end = '\0';
+//            // found our mangled name, now in [begin, end)
+//
+//            int status;
+//            char *ret = abi::__cxa_demangle(begin, function, &sz, &status);
+//            if (ret) {
+//                // return value may be a realloc() of the input
+//                function = ret;
+//            } else {
+//                // demangling failed, just pretend it's a C function with no args
+//                strncpy(function, begin, sz);
+//                strncat(function, "()", sz);
+//                function[sz - 1] = '\0';
+//            }
+//            LOG_INFO("    %s:%s", get_basename(stack_strings[i]), get_basename(function));
+//        } else {
+//            // didn't find the mangled name, just print the whole line
+//            LOG_INFO("    %s", get_basename(stack_strings[i]));
+//        }
+//        free(function);
+//    }
+//
+//    free(stack_strings);
+//
+//    newlang::Logger::Instance()->SetLogLevel(save_level);
+//}
 

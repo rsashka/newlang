@@ -81,7 +81,7 @@ fi
 #done
 
 VERSION_MAJOR=0
-VERSION_MINOR=4
+VERSION_MINOR=5
 VERSION_PATCH=0
 VERSION_HEADER="$root/src/version.h"
 VERSION_FILE="$root/src/version.cpp"

@@ -85,7 +85,7 @@ typedef std::shared_ptr<Context> RunnerPtr;
 
 typedef ObjPtr FunctionType(Context *ctx, Obj &in);
 
-typedef at::variant<at::monostate, ObjWeak, std::vector < ObjWeak> > WeakItem;
+typedef std::variant<std::monostate, ObjWeak, std::vector < ObjWeak> > WeakItem;
 
 typedef ObjPtr(*EvalFunction)(Context *ctx, const TermPtr & term, Obj * args, bool eval_block);
 
@@ -271,7 +271,11 @@ void ParserException(const char *msg, std::string &buffer, int row, int col);
     _(FmtWide, 51)           \
     _(ViewChar, 52)         \
     _(ViewWide, 53)         \
-    _(String, 55)           \
+    _(StdChar, 54)         \
+    _(StdWide, 55)         \
+    _(PtrChar, 56)         \
+    _(PtrWide, 57)         \
+    _(String, 59)           \
     \
     _(Iterator, 62)         \
     _(IteratorEnd, 63)      \
@@ -284,6 +288,7 @@ void ParserException(const char *msg, std::string &buffer, int row, int col);
     _(Thread, 80)        \
     _(Base, 84)        \
     _(Sys, 85)        \
+    _(TorchTensor, 86)        \
     \
     _(Range, 104)           \
     _(Dictionary, 105)      \
@@ -453,7 +458,7 @@ void ParserException(const char *msg, std::string &buffer, int row, int col);
         LOG_RUNTIME("NewLang type '%s'(%d) can't be represented by C++ type!", toString(type), static_cast<int> (type));
     }
 
-    ObjType GetBaseTypeFromString(const std::string type_arg, bool *has_error = nullptr);
+    ObjType GetBaseTypeFromString(const std::string_view type_arg, bool *has_error = nullptr);
 
 #define NL_REFS(_)      \
     _(RefNone, 0)       \
@@ -489,15 +494,37 @@ void ParserException(const char *msg, std::string &buffer, int row, int col);
 #undef DEFINE_CASE
     }
 
-    inline const char *toCXXRef(std::string &ref) {
-        if (ref.compare("&") == 0) {
+    /*
+     *    C++     NewLang
+     *      *       &*
+     *      &       &
+     *      &&      &&
+     *  const *     &*^
+     *  const &     &^
+     *  const &&    &&^
+     *      **      &?      ????????????????????????
+     *  const **    &?^     ????????????????????????
+     */
+    inline const char *toCXXRef(const std::string_view ref) {
+        if (ref.compare("&*") == 0) {
             return "*";
-        } else if (ref.compare("&&") == 0) {
+        } else if (ref.compare("&") == 0) {
             return "&";
-        } else if (ref.compare("&&&") == 0) {
+        } else if (ref.compare("&&") == 0) {
             return "&&";
+        } else if (ref.compare("&?") == 0) {
+            return "**";
+            
+        } else if (ref.compare("&*^") == 0) {
+            return "const *";
+        } else if (ref.compare("&^") == 0) {
+            return "const &";
+        } else if (ref.compare("&&^") == 0) {
+            return "const &&";
+        } else if (ref.compare("&?^") == 0) {
+            return "const **";
         }
-        LOG_RUNTIME("Unknown reference type '%s'!", ref.c_str());
+        LOG_RUNTIME("Unknown reference type '%s'!", ref.begin());
     }
     // Обобщенные типы данных
 
@@ -1026,6 +1053,10 @@ void ParserException(const char *msg, std::string &buffer, int row, int col);
 
     inline bool isStaticName(const std::string_view name) {
         return name.find("::") != std::string::npos; // && name.find("&&") != std::string::npos;
+    }
+
+    inline bool isFieldName(const std::string_view name) {
+        return name.find(".") != std::string::npos;
     }
 
     inline bool isTrivialName(const std::string_view name) {

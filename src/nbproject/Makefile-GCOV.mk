@@ -56,6 +56,7 @@ OBJECTFILES= \
 	${OBJECTDIR}/term.o \
 	${OBJECTDIR}/test/alg_test.o \
 	${OBJECTDIR}/test/ast_test.o \
+	${OBJECTDIR}/test/class_test.o \
 	${OBJECTDIR}/test/compiler_test.o \
 	${OBJECTDIR}/test/diag_test.o \
 	${OBJECTDIR}/test/example_test.o \
@@ -226,6 +227,11 @@ ${OBJECTDIR}/test/ast_test.o: test/ast_test.cpp
 	${MKDIR} -p ${OBJECTDIR}/test
 	${RM} "$@.d"
 	$(COMPILE.cc) -g -DDEBUG -DLOG_LEVEL_NORMAL=LOG_LEVEL_DEBUG -DPDC_WIDE -DUNITTEST -I.. -I../contrib/googletest/googletest -I../contrib/googletest/googletest/include -I../contrib/Tensorflow/bazel-bin/tensorflow/include -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/test/ast_test.o test/ast_test.cpp
+
+${OBJECTDIR}/test/class_test.o: test/class_test.cpp
+	${MKDIR} -p ${OBJECTDIR}/test
+	${RM} "$@.d"
+	$(COMPILE.cc) -g -DDEBUG -DLOG_LEVEL_NORMAL=LOG_LEVEL_DEBUG -DPDC_WIDE -DUNITTEST -I.. -I../contrib/googletest/googletest -I../contrib/googletest/googletest/include -I../contrib/Tensorflow/bazel-bin/tensorflow/include -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/test/class_test.o test/class_test.cpp
 
 ${OBJECTDIR}/test/compiler_test.o: test/compiler_test.cpp
 	${MKDIR} -p ${OBJECTDIR}/test

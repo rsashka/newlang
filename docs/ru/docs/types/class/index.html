@@ -18,27 +18,23 @@
 <link rel="icon" type="image/png" href="/favicons/android-192x192.png" sizes="192x192">
 
 <title>Классы | NewLang</title>
-<meta name="description" content="Ответ прост: классы не строго необходимы для ООП. Знаю, это может шокировать.
-Разумеется, нам нужна возможность создания новых объектов, и языки на основе классов, очевидно, распространены сильнее. Однако это не единственный способ достижения цели.
-В языках наподобие JavaScript (хотя ES6 добавил в язык классы6, 7) и Lua используется концепция ООП на основе прототипов или прототипного ООП. Вместо создания схемы для конструирования новых объектов мы используем существующий объект в качестве прототипа.">
+<meta name="description" content="Тип данных :Class аналогичен словарю, но все его поля обязаны иметь имена (хотя доступ к свойствам класса по индексу так же возможен). При создании экземпляра класса, создается новый тип, для которого копируются свойства и методы всех родителей.
+Создание нового сложного типа (класса), происходит согласно правилам синтаксиса как создание нового типа как функции в пользовательском пространстве имен. Имя типа является именем нового класса, а его вызов как функции будет вызовом конструктора.">
 <meta property="og:title" content="Классы" />
-<meta property="og:description" content="Ответ прост: классы не строго необходимы для ООП. Знаю, это может шокировать.
-Разумеется, нам нужна возможность создания новых объектов, и языки на основе классов, очевидно, распространены сильнее. Однако это не единственный способ достижения цели.
-В языках наподобие JavaScript (хотя ES6 добавил в язык классы6, 7) и Lua используется концепция ООП на основе прототипов или прототипного ООП. Вместо создания схемы для конструирования новых объектов мы используем существующий объект в качестве прототипа." />
+<meta property="og:description" content="Тип данных :Class аналогичен словарю, но все его поля обязаны иметь имена (хотя доступ к свойствам класса по индексу так же возможен). При создании экземпляра класса, создается новый тип, для которого копируются свойства и методы всех родителей.
+Создание нового сложного типа (класса), происходит согласно правилам синтаксиса как создание нового типа как функции в пользовательском пространстве имен. Имя типа является именем нового класса, а его вызов как функции будет вызовом конструктора." />
 <meta property="og:type" content="article" />
 <meta property="og:url" content="http://localhost:1313/ru/docs/types/class/" /><meta property="article:section" content="docs" />
 
 <meta property="article:modified_time" content="2024-03-22T23:57:08+03:00" /><meta property="og:site_name" content="NewLang" />
 <meta itemprop="name" content="Классы">
-<meta itemprop="description" content="Ответ прост: классы не строго необходимы для ООП. Знаю, это может шокировать.
-Разумеется, нам нужна возможность создания новых объектов, и языки на основе классов, очевидно, распространены сильнее. Однако это не единственный способ достижения цели.
-В языках наподобие JavaScript (хотя ES6 добавил в язык классы6, 7) и Lua используется концепция ООП на основе прототипов или прототипного ООП. Вместо создания схемы для конструирования новых объектов мы используем существующий объект в качестве прототипа.">
+<meta itemprop="description" content="Тип данных :Class аналогичен словарю, но все его поля обязаны иметь имена (хотя доступ к свойствам класса по индексу так же возможен). При создании экземпляра класса, создается новый тип, для которого копируются свойства и методы всех родителей.
+Создание нового сложного типа (класса), происходит согласно правилам синтаксиса как создание нового типа как функции в пользовательском пространстве имен. Имя типа является именем нового класса, а его вызов как функции будет вызовом конструктора.">
 <meta itemprop="dateModified" content="2024-03-22T23:57:08+03:00" />
-<meta itemprop="wordCount" content="1026">
+<meta itemprop="wordCount" content="1393">
 <meta itemprop="keywords" content="типы данных,ООП,коллекции," /><meta name="twitter:card" content="summary"/><meta name="twitter:title" content="Классы"/>
-<meta name="twitter:description" content="Ответ прост: классы не строго необходимы для ООП. Знаю, это может шокировать.
-Разумеется, нам нужна возможность создания новых объектов, и языки на основе классов, очевидно, распространены сильнее. Однако это не единственный способ достижения цели.
-В языках наподобие JavaScript (хотя ES6 добавил в язык классы6, 7) и Lua используется концепция ООП на основе прототипов или прототипного ООП. Вместо создания схемы для конструирования новых объектов мы используем существующий объект в качестве прототипа."/>
+<meta name="twitter:description" content="Тип данных :Class аналогичен словарю, но все его поля обязаны иметь имена (хотя доступ к свойствам класса по индексу так же возможен). При создании экземпляра класса, создается новый тип, для которого копируются свойства и методы всех родителей.
+Создание нового сложного типа (класса), происходит согласно правилам синтаксиса как создание нового типа как функции в пользовательском пространстве имен. Имя типа является именем нового класса, а его вызов как функции будет вызовом конструктора."/>
 
 
 
@@ -153,8 +149,6 @@
   <a href="/ru/docs/syntax/sysprop/" class="align-left ps-0 td-sidebar-link td-sidebar-link__page" id="m-rudocssyntaxsysprop"><span class="">Системные свойства</span></a>
 </li><li class="td-sidebar-nav__section-title td-sidebar-nav__section without-child" id="m-rudocssyntaxpragmas-li">
   <a href="/ru/docs/syntax/pragmas/" class="align-left ps-0 td-sidebar-link td-sidebar-link__page" id="m-rudocssyntaxpragmas"><span class="">Опции и настройки компилятора</span></a>
-</li><li class="td-sidebar-nav__section-title td-sidebar-nav__section without-child" id="m-rudocssyntaxsysmacro-li">
-  <a href="/ru/docs/syntax/sysmacro/" class="align-left ps-0 td-sidebar-link td-sidebar-link__page" id="m-rudocssyntaxsysmacro"><span class="">Системные макросы</span></a>
 </li><li class="td-sidebar-nav__section-title td-sidebar-nav__section without-child" id="m-rudocssyntaxdsl-li">
   <a href="/ru/docs/syntax/dsl/" class="align-left ps-0 td-sidebar-link td-sidebar-link__page" id="m-rudocssyntaxdsl"><span class="">Keyword syntax (DSL)</span></a>
 </li>
@@ -233,6 +227,12 @@
             <div class="td-toc">
         <nav id="TableOfContents">
   <ul>
+    <li>
+      <ul>
+        <li><a href="#области-видимости">Области видимости</a></li>
+      </ul>
+    </li>
+    <li><a href="#импорт-нативных-классов">Импорт нативных классов</a></li>
     <li><a href="#интерфейсы-именование-методов-классов-и-пространства-имен">Интерфейсы, именование методов классов и пространства имен</a></li>
     <li><a href="#конструкторы-деструкторы-и-финализаторы-у-объектов">Конструкторы, деструкторы и финализаторы у объектов</a></li>
   </ul>
@@ -283,20 +283,11 @@
 </div>
 
   </header>
-	<blockquote>
-<p>Ответ прост: классы не строго необходимы для ООП. Знаю, это может шокировать.</p>
-<p>Разумеется, нам нужна возможность создания новых объектов,
-и языки на основе классов, очевидно, распространены сильнее. Однако это не единственный способ достижения цели.</p>
-<p>В языках наподобие JavaScript (хотя ES6 добавил в язык классы6, 7)
-и Lua используется концепция ООП на основе прототипов или прототипного ООП.
-Вместо создания схемы для конструирования новых объектов мы используем существующий объект в качестве прототипа.
-Такой подход даже может иметь реальные преимущества, поскольку снижает сложность языка8.</p>
-</blockquote>
-<p>Тип данных <em>:Class</em> аналогичен словарю, но все его поля обязаны иметь имена (хотя доступ к свойствам класса по индексу так же возможен).
-При создании экземпляра класса, создается новая переменная, для которой копируются свойства и методы всех родителей.</p>
-<p>Создание нового сложного типа (класса), происходит согласно <a href="/ru/docs/ops/create/">правилам синтаксиса</a> как создание функции
-в пользовательском <a href="/ru/docs/syntax/namespace/">пространстве имен</a>.
-Имя функции является именем нового класса, а сама функция будет выступает в роли конструктора экземпляров класса.</p>
+	<p>Тип данных <em>:Class</em> аналогичен словарю, но все его поля обязаны иметь имена (хотя доступ к свойствам класса по индексу так же возможен).
+При создании экземпляра класса, создается новый тип, для которого копируются свойства и методы всех родителей.</p>
+<p>Создание нового сложного типа (класса), происходит согласно <a href="/ru/docs/ops/create/">правилам синтаксиса</a> как создание нового типа
+как функции в пользовательском <a href="/ru/docs/syntax/namespace/">пространстве имен</a>.
+Имя типа является именем нового класса, а его вызов как функции будет вызовом конструктора.</p>
 <p>Синтаксис создание класса выглядит следующим образом:</p>
 <div class="highlight"><pre tabindex="0" style="background-color:#f8f8f8;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-python" data-lang="python"><span style="display:flex;"><span><span style="color:#8f5902;font-style:italic"># Новый тип (класс) :NewClass</span>
 </span></span><span style="display:flex;"><span><span style="color:#000">ns</span><span style="color:#000;font-weight:bold">::</span><span style="color:#000">NewClass</span><span style="color:#000;font-weight:bold">()</span> <span style="color:#ce5c00;font-weight:bold">:=</span> <span style="color:#000;font-weight:bold">:</span><span style="color:#000">Class</span><span style="color:#000;font-weight:bold">()</span> <span style="color:#000;font-weight:bold">{</span> <span style="color:#8f5902;font-style:italic"># Родительские класс или несколько классов через запятую</span>
@@ -307,7 +298,7 @@
 </span></span><span style="display:flex;"><span>    <span style="color:#000">static</span> <span style="color:#ce5c00;font-weight:bold">:=</span> <span style="color:#0000cf;font-weight:bold">1</span><span style="color:#000;font-weight:bold">;</span> <span style="color:#8f5902;font-style:italic"># Поле класса (у всех объектов одно значение)</span>
 </span></span><span style="display:flex;"><span>    <span style="color:#ce5c00;font-weight:bold">.</span><span style="color:#000">field</span> <span style="color:#ce5c00;font-weight:bold">:=</span> <span style="color:#0000cf;font-weight:bold">1</span><span style="color:#000;font-weight:bold">;</span> <span style="color:#8f5902;font-style:italic"># Поле объекта</span>
 </span></span><span style="display:flex;"><span>    <span style="color:#000">func</span><span style="color:#000;font-weight:bold">()</span> <span style="color:#ce5c00;font-weight:bold">:=</span> <span style="color:#000;font-weight:bold">{};</span> <span style="color:#8f5902;font-style:italic"># Метод класса всегда статический</span>
-</span></span><span style="display:flex;"><span>    <span style="color:#8f5902;font-style:italic">#.method() := {}; # Метод объекта (у каждого объекта свой)</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#ce5c00;font-weight:bold">.</span><span style="color:#000">method</span><span style="color:#000;font-weight:bold">()</span> <span style="color:#ce5c00;font-weight:bold">:=</span> <span style="color:#000;font-weight:bold">{};</span> <span style="color:#8f5902;font-style:italic"># Метод объекта (у каждого объекта свой)</span>
 </span></span><span style="display:flex;"><span>
 </span></span><span style="display:flex;"><span>    <span style="color:#ce5c00;font-weight:bold">~</span><span style="color:#000">NewClass</span><span style="color:#000;font-weight:bold">()</span> <span style="color:#000;font-weight:bold">:</span><span style="color:#ce5c00;font-weight:bold">:=</span> <span style="color:#000;font-weight:bold">{</span> <span style="color:#8f5902;font-style:italic"># Деструктор класса</span>
 </span></span><span style="display:flex;"><span>
@@ -316,10 +307,87 @@
 </span></span><span style="display:flex;"><span><span style="color:#000">obj</span> <span style="color:#ce5c00;font-weight:bold">:=</span> <span style="color:#000">ns</span><span style="color:#000;font-weight:bold">::</span><span style="color:#000">NewClass</span><span style="color:#000;font-weight:bold">();</span> <span style="color:#8f5902;font-style:italic"># Экземпляр класса</span>
 </span></span></code></pre></div><p>Так как <em>NewLang</em> реализует полный набор вариантов проверок при создании объектов,
 то переопределения наследуемых функций не требует никаких ключевых слов:</p>
-<div class="highlight"><pre tabindex="0" style="background-color:#f8f8f8;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-python" data-lang="python"><span style="display:flex;"><span><span style="color:#000">NewClass2</span><span style="color:#000;font-weight:bold">()</span> <span style="color:#ce5c00;font-weight:bold">:=</span> <span style="color:#000">NewClass</span><span style="color:#000;font-weight:bold">()</span> <span style="color:#000;font-weight:bold">{</span> <span style="color:#8f5902;font-style:italic"># Новый класс на базе существующего</span>
+<div class="highlight"><pre tabindex="0" style="background-color:#f8f8f8;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-python" data-lang="python"><span style="display:flex;"><span><span style="color:#000">NewClass2</span><span style="color:#000;font-weight:bold">()</span> <span style="color:#ce5c00;font-weight:bold">:=</span> <span style="color:#000">NewClass</span> <span style="color:#000;font-weight:bold">{</span> <span style="color:#8f5902;font-style:italic"># Новый класс на базе существующего</span>
 </span></span><span style="display:flex;"><span>    <span style="color:#ce5c00;font-weight:bold">.</span><span style="color:#000">field</span> <span style="color:#000;font-weight:bold">:</span><span style="color:#ce5c00;font-weight:bold">:=</span> <span style="color:#0000cf;font-weight:bold">2</span><span style="color:#000;font-weight:bold">;</span>    <span style="color:#8f5902;font-style:italic"># Будет ошибка, т.к. поле field уже есть в базовом классе</span>
 </span></span><span style="display:flex;"><span>    <span style="color:#000">method</span><span style="color:#000;font-weight:bold">()</span> <span style="color:#ce5c00;font-weight:bold">=</span> <span style="color:#000;font-weight:bold">{};</span>  <span style="color:#8f5902;font-style:italic"># Аналог override, т.к. method должен существовать в базовом классе</span>
 </span></span><span style="display:flex;"><span><span style="color:#000;font-weight:bold">};</span>
+</span></span></code></pre></div><h3 id="области-видимости">Области видимости<a class="td-heading-self-link" href="#%d0%be%d0%b1%d0%bb%d0%b0%d1%81%d1%82%d0%b8-%d0%b2%d0%b8%d0%b4%d0%b8%d0%bc%d0%be%d1%81%d1%82%d0%b8" aria-label="Heading self-link"></a></h3>
+<p>Символ подчерка, а так же подчерк в начале имени или двойные подчерки в начале и в конце имени имеют специальное значение.</p>
+<p>Один подчерк соответствует защищенной, а два подчерка - приватной области видимости объекта в модуле или классе,
+что соответствует принятым соглашениям в языке Python.</p>
+<p>Но так же, как и в языке Python, области видимости больше соответствуют &ldquo;джентльменской&rdquo; договоренности и при явном указании имени,
+доступ к защищенным объектам можно получить, просто указав полное имя объекта.</p>
+<p>В дополнении к этому, существуют еще системные поля и объекты, которые начинаются и заканчиваются на два подчерка.</p>
+<ul>
+<li>&lsquo;<strong>$</strong>&rsquo; — знак доллара в начале имени обозначает системное (локальное) имя временной переменной,
+область памяти для которой выделяется во время выполнения, а время <a href="/ru/docs/syntax/memory/">жизни ограничено семантикой яызка</a></li>
+<li>&lsquo;<strong>::</strong>&rsquo; — двойное двоеточие являются разделителем при указании <a href="/ru/docs/syntax/namespace/">пространства имен</a>.
+Явное указание пространства имен является признаком статического объекта, область памяти для которого выделяется во время компиляции приложения или модуля.</li>
+</ul>
+<h2 id="импорт-нативных-классов">Импорт нативных классов<a class="td-heading-self-link" href="#%d0%b8%d0%bc%d0%bf%d0%be%d1%80%d1%82-%d0%bd%d0%b0%d1%82%d0%b8%d0%b2%d0%bd%d1%8b%d1%85-%d0%ba%d0%bb%d0%b0%d1%81%d1%81%d0%be%d0%b2" aria-label="Heading self-link"></a></h2>
+<p>Так же новый класс можно создать на базе нативного класса C++ с определенными ограничениями:</p>
+<ul>
+<li>У нативных классов можно импортировть только <em>публичные не статические методы</em> (не виртуальные???)</li>
+<li>Импорт перегруженных методы пока под вопросом?</li>
+<li>Импортировать и использовать поля нельзя из-за их определения как смещения в объекте, а не адресом в памяти, как тело функции.</li>
+<li>Статические поля класса и статические методы использовать нельзя из-за отсутсвия на них ссылки в глобальной таблице имен.</li>
+<li>У виртуальных функций есть адрес в глобальной таблице имен, но как их вызывать, пока не понятно.</li>
+<li>Импортируемые методы могут удаляться из приложения линкером, если на них нет ссылки (если они не используются).</li>
+<li>Используется только один нативный констурктор, который указывается при определении функции контруктора класса перед фигурными скобками.</li>
+</ul>
+<p>При импорте нативного класса, он указывается в качестве родителя с указанием полного пространства имен.
+Вызов нативного конструктора происходит автоматически перед выполенением конструктора объекта.
+Вызов нативнного деструктора происходит автоматически при удалении объекта.</p>
+<p>Определение нативного класса С++:</p>
+<div class="highlight"><pre tabindex="0" style="background-color:#f8f8f8;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-cpp" data-lang="cpp"><span style="display:flex;"><span><span style="color:#204a87;font-weight:bold">namespace</span> <span style="color:#000">ns</span> <span style="color:#000;font-weight:bold">{</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#204a87;font-weight:bold">class</span> <span style="color:#000">NativeClassCPP</span> <span style="color:#000;font-weight:bold">{</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#204a87;font-weight:bold">int</span> <span style="color:#000">day</span><span style="color:#000;font-weight:bold">;</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#204a87;font-weight:bold">int</span> <span style="color:#000">month</span><span style="color:#000;font-weight:bold">;</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#204a87;font-weight:bold">int</span> <span style="color:#000">year</span><span style="color:#000;font-weight:bold">;</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#204a87;font-weight:bold">public</span><span style="color:#ce5c00;font-weight:bold">:</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>        <span style="color:#000">NativeClassCPP</span><span style="color:#000;font-weight:bold">()</span><span style="color:#ce5c00;font-weight:bold">:</span> <span style="color:#000">NativeClassCPP</span><span style="color:#000;font-weight:bold">(</span><span style="color:#0000cf;font-weight:bold">0</span><span style="color:#000;font-weight:bold">,</span> <span style="color:#0000cf;font-weight:bold">0</span><span style="color:#000;font-weight:bold">,</span> <span style="color:#0000cf;font-weight:bold">0</span><span style="color:#000;font-weight:bold">)</span> <span style="color:#000;font-weight:bold">{</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#000;font-weight:bold">}</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>        <span style="color:#000">NativeClassCPP</span><span style="color:#000;font-weight:bold">(</span><span style="color:#204a87;font-weight:bold">int</span> <span style="color:#000">day</span><span style="color:#000;font-weight:bold">,</span> <span style="color:#204a87;font-weight:bold">int</span> <span style="color:#000">month</span><span style="color:#000;font-weight:bold">,</span> <span style="color:#204a87;font-weight:bold">int</span> <span style="color:#000">year</span> <span style="color:#000;font-weight:bold">)</span> <span style="color:#000;font-weight:bold">{</span>
+</span></span><span style="display:flex;"><span>            <span style="color:#000">setDate</span><span style="color:#000;font-weight:bold">(</span><span style="color:#000">day</span><span style="color:#000;font-weight:bold">,</span> <span style="color:#000">month</span><span style="color:#000;font-weight:bold">,</span> <span style="color:#000">year</span><span style="color:#000;font-weight:bold">);</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#000;font-weight:bold">}</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>        <span style="color:#000">std</span><span style="color:#ce5c00;font-weight:bold">::</span><span style="color:#000">string</span> <span style="color:#000">message</span><span style="color:#000;font-weight:bold">()</span>  <span style="color:#000;font-weight:bold">{</span>
+</span></span><span style="display:flex;"><span>            <span style="color:#204a87;font-weight:bold">return</span> <span style="color:#000">std</span><span style="color:#ce5c00;font-weight:bold">::</span><span style="color:#000">string</span><span style="color:#000;font-weight:bold">(</span><span style="color:#4e9a06">&#34;</span><span style="color:#4e9a06">\n</span><span style="color:#4e9a06">NativeClass C++ message</span><span style="color:#4e9a06">\n</span><span style="color:#4e9a06">&#34;</span><span style="color:#000;font-weight:bold">);</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#000;font-weight:bold">}</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>        <span style="color:#204a87;font-weight:bold">void</span> <span style="color:#000">setDate</span><span style="color:#000;font-weight:bold">(</span><span style="color:#204a87;font-weight:bold">int</span> <span style="color:#000">date_day</span><span style="color:#000;font-weight:bold">,</span> <span style="color:#204a87;font-weight:bold">int</span> <span style="color:#000">date_month</span><span style="color:#000;font-weight:bold">,</span> <span style="color:#204a87;font-weight:bold">int</span> <span style="color:#000">date_year</span><span style="color:#000;font-weight:bold">)</span> <span style="color:#000;font-weight:bold">{</span>
+</span></span><span style="display:flex;"><span>            <span style="color:#000">day</span>   <span style="color:#ce5c00;font-weight:bold">=</span> <span style="color:#000">date_day</span><span style="color:#000;font-weight:bold">;</span>
+</span></span><span style="display:flex;"><span>            <span style="color:#000">month</span> <span style="color:#ce5c00;font-weight:bold">=</span> <span style="color:#000">date_month</span><span style="color:#000;font-weight:bold">;</span>
+</span></span><span style="display:flex;"><span>            <span style="color:#000">year</span>  <span style="color:#ce5c00;font-weight:bold">=</span> <span style="color:#000">date_year</span><span style="color:#000;font-weight:bold">;</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#000;font-weight:bold">}</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>        <span style="color:#204a87;font-weight:bold">void</span> <span style="color:#000">getDate</span><span style="color:#000;font-weight:bold">()</span> <span style="color:#000;font-weight:bold">{</span>
+</span></span><span style="display:flex;"><span>            <span style="color:#000">cout</span> <span style="color:#ce5c00;font-weight:bold">&lt;&lt;</span> <span style="color:#4e9a06">&#34;date: &#34;</span> <span style="color:#ce5c00;font-weight:bold">&lt;&lt;</span> <span style="color:#000">day</span> <span style="color:#ce5c00;font-weight:bold">&lt;&lt;</span> <span style="color:#4e9a06">&#34;.&#34;</span> <span style="color:#ce5c00;font-weight:bold">&lt;&lt;</span> <span style="color:#000">month</span> <span style="color:#ce5c00;font-weight:bold">&lt;&lt;</span> <span style="color:#4e9a06">&#34;.&#34;</span> <span style="color:#ce5c00;font-weight:bold">&lt;&lt;</span> <span style="color:#000">year</span> <span style="color:#ce5c00;font-weight:bold">&lt;&lt;</span> <span style="color:#000">endl</span><span style="color:#000;font-weight:bold">;</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#000;font-weight:bold">}</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#000;font-weight:bold">};</span>
+</span></span><span style="display:flex;"><span><span style="color:#000;font-weight:bold">};</span>
+</span></span></code></pre></div><p>Импорт нативного класса:</p>
+<div class="highlight"><pre tabindex="0" style="background-color:#f8f8f8;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-python" data-lang="python"><span style="display:flex;"><span><span style="color:#000;font-weight:bold">:</span><span style="color:#000">NativeClass</span> <span style="color:#ce5c00;font-weight:bold">:=</span> <span style="color:#ce5c00;font-weight:bold">%</span><span style="color:#000">ns</span><span style="color:#000;font-weight:bold">::</span><span style="color:#000">NativeClassCPP</span> <span style="color:#000;font-weight:bold">{</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    <span style="color:#8f5902;font-style:italic"># Конструктор класса</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#000">NativeClass</span><span style="color:#000;font-weight:bold">(</span><span style="color:#000">day</span><span style="color:#000;font-weight:bold">:</span><span style="color:#000">Int32</span><span style="color:#ce5c00;font-weight:bold">=</span><span style="color:#0000cf;font-weight:bold">0</span><span style="color:#000;font-weight:bold">,</span> <span style="color:#000">month</span><span style="color:#000;font-weight:bold">:</span><span style="color:#000">Int32</span><span style="color:#ce5c00;font-weight:bold">=</span><span style="color:#0000cf;font-weight:bold">0</span><span style="color:#000;font-weight:bold">,</span> <span style="color:#000">year</span><span style="color:#000;font-weight:bold">:</span><span style="color:#000">Int32</span><span style="color:#ce5c00;font-weight:bold">=</span><span style="color:#0000cf;font-weight:bold">0</span><span style="color:#000;font-weight:bold">)</span> <span style="color:#000;font-weight:bold">:</span><span style="color:#ce5c00;font-weight:bold">:=</span> <span style="color:#ce5c00;font-weight:bold">%</span><span style="color:#000;font-weight:bold">(</span><span style="color:#000">day</span><span style="color:#000;font-weight:bold">,</span> <span style="color:#000">month</span><span style="color:#000;font-weight:bold">,</span> <span style="color:#000">year</span><span style="color:#000;font-weight:bold">)</span> <span style="color:#000;font-weight:bold">{</span> 
+</span></span><span style="display:flex;"><span>    <span style="color:#8f5902;font-style:italic"># Будет вызываться  NativeClassCPP(int day, int month, int year )</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    <span style="color:#000;font-weight:bold">}</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    <span style="color:#000">getDate</span><span style="color:#000;font-weight:bold">():</span><span style="color:#204a87;font-weight:bold">None</span> <span style="color:#000;font-weight:bold">:</span><span style="color:#ce5c00;font-weight:bold">:=</span> <span style="color:#ce5c00;font-weight:bold">%</span><span style="color:#000">getDate</span> <span style="color:#ce5c00;font-weight:bold">...</span><span style="color:#000;font-weight:bold">;</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#000">Message</span><span style="color:#000;font-weight:bold">():</span><span style="color:#000">StdString</span>  <span style="color:#000;font-weight:bold">:</span><span style="color:#ce5c00;font-weight:bold">:=</span> <span style="color:#ce5c00;font-weight:bold">%</span><span style="color:#000">message</span> <span style="color:#ce5c00;font-weight:bold">...</span><span style="color:#000;font-weight:bold">;</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#000">setDate</span><span style="color:#000;font-weight:bold">(</span><span style="color:#000">day</span><span style="color:#000;font-weight:bold">:</span><span style="color:#000">Int32</span><span style="color:#000;font-weight:bold">,</span> <span style="color:#000">month</span><span style="color:#000;font-weight:bold">:</span><span style="color:#000">Int32</span><span style="color:#000;font-weight:bold">,</span> <span style="color:#204a87">int</span> <span style="color:#000">year</span><span style="color:#000;font-weight:bold">:</span><span style="color:#000">Int32</span><span style="color:#000;font-weight:bold">):</span><span style="color:#204a87;font-weight:bold">None</span> <span style="color:#000;font-weight:bold">:</span><span style="color:#ce5c00;font-weight:bold">:=</span> <span style="color:#ce5c00;font-weight:bold">%</span><span style="color:#000">setDate</span><span style="color:#ce5c00;font-weight:bold">...</span><span style="color:#000;font-weight:bold">;</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    <span style="color:#ce5c00;font-weight:bold">~</span><span style="color:#000">NativeClass</span><span style="color:#000;font-weight:bold">()</span> <span style="color:#000;font-weight:bold">:</span><span style="color:#ce5c00;font-weight:bold">:=</span> <span style="color:#000;font-weight:bold">{</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#8f5902;font-style:italic"># Деструктор для нативного объекта вызывается автоматически</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#000;font-weight:bold">};</span>
+</span></span><span style="display:flex;"><span><span style="color:#000;font-weight:bold">};</span>
+</span></span><span style="display:flex;"><span><span style="color:#000">obj</span> <span style="color:#ce5c00;font-weight:bold">:=</span> <span style="color:#000;font-weight:bold">:</span><span style="color:#000">NativeClass</span><span style="color:#000;font-weight:bold">();</span> <span style="color:#8f5902;font-style:italic"># Экземпляр класса</span>
+</span></span><span style="display:flex;"><span><span style="color:#000">obj</span><span style="color:#ce5c00;font-weight:bold">.</span><span style="color:#000">setDate</span><span style="color:#000;font-weight:bold">(</span><span style="color:#0000cf;font-weight:bold">26</span><span style="color:#000;font-weight:bold">,</span> <span style="color:#0000cf;font-weight:bold">03</span><span style="color:#000;font-weight:bold">,</span> <span style="color:#0000cf;font-weight:bold">2024</span><span style="color:#000;font-weight:bold">);</span>
+</span></span><span style="display:flex;"><span><span style="color:#000">obj</span><span style="color:#ce5c00;font-weight:bold">.</span><span style="color:#000">Message</span><span style="color:#000;font-weight:bold">();</span>
 </span></span></code></pre></div><h2 id="интерфейсы-именование-методов-классов-и-пространства-имен">Интерфейсы, именование методов классов и пространства имен<a class="td-heading-self-link" href="#%d0%b8%d0%bd%d1%82%d0%b5%d1%80%d1%84%d0%b5%d0%b9%d1%81%d1%8b-%d0%b8%d0%bc%d0%b5%d0%bd%d0%be%d0%b2%d0%b0%d0%bd%d0%b8%d0%b5-%d0%bc%d0%b5%d1%82%d0%be%d0%b4%d0%be%d0%b2-%d0%ba%d0%bb%d0%b0%d1%81%d1%81%d0%be%d0%b2-%d0%b8-%d0%bf%d1%80%d0%be%d1%81%d1%82%d1%80%d0%b0%d0%bd%d1%81%d1%82%d0%b2%d0%b0-%d0%b8%d0%bc%d0%b5%d0%bd" aria-label="Heading self-link"></a></h2>
 <p>Для создания уникальных идентификаторов на основе имен методов классов, <em>NewLang</em> использует подход, похожий на применяемый в языке Python.
 При создании метода класса, создается глобальная функция с именем класса и именем метода, объединенные через разделитель области имен.

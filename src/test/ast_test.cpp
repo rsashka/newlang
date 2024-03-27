@@ -155,9 +155,7 @@ using namespace newlang;
 
  *  
  */
-
-TEST(Ast, ScopeStack) {
-
+TEST(Ast, Mangling) {
     ASSERT_STREQ("name", ExtractName("name").c_str());
     ASSERT_STREQ("name", ExtractName("::name").c_str());
     ASSERT_STREQ("name", ExtractName("ns::name").c_str());
@@ -179,6 +177,9 @@ TEST(Ast, ScopeStack) {
     ASSERT_STREQ("\\\\file\\dir", ExtractModuleName("_$file_dir$_var$").c_str());
     ASSERT_STREQ("\\\\file\\dir", ExtractModuleName("_$file_dir$_var$$").c_str());
     ASSERT_STREQ("\\\\file\\dir", ExtractModuleName("_$file_dir$_var$$$").c_str());
+}
+
+TEST(Ast, ScopeStack) {
 
     StorageTerm storage;
     ScopeStack ns_stack(storage);

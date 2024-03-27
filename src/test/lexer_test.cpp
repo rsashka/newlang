@@ -295,17 +295,15 @@ TEST_F(Lexer, Function) {
     EXPECT_EQ(1, Count(TermID::MODULE)) << toString(tokens[0]->getTermID());
     EXPECT_STREQ("\\\\name", tokens[0]->getText().c_str()) << tokens[0]->getText().c_str();
 
-    ASSERT_EQ(1, TokenParse("$"));
-    EXPECT_EQ(1, Count(TermID::SYMBOL)) << toString(tokens[0]->getTermID());
-    EXPECT_STREQ("$", tokens[0]->getText().c_str()) << tokens[0]->getText().c_str();
-
     ASSERT_EQ(1, TokenParse("$name"));
     EXPECT_EQ(1, Count(TermID::LOCAL)) << toString(tokens[0]->getTermID());
     EXPECT_STREQ("$name", tokens[0]->getText().c_str()) << tokens[0]->getText().c_str();
 
-    ASSERT_EQ(1, TokenParse("%native"));
-    EXPECT_EQ(1, Count(TermID::NATIVE)) << toString(tokens[0]->getTermID());
-    EXPECT_STREQ("%native", tokens[0]->getText().c_str()) << tokens[0]->getText().c_str();
+    ASSERT_EQ(2, TokenParse("%native"));
+    EXPECT_EQ(1, Count(TermID::SYMBOL)) << toString(tokens[0]->getTermID());
+    EXPECT_EQ(1, Count(TermID::NAME)) << toString(tokens[1]->getTermID());
+    EXPECT_STREQ("%", tokens[0]->getText().c_str()) << tokens[0]->getText().c_str();
+    EXPECT_STREQ("native", tokens[1]->getText().c_str()) << tokens[1]->getText().c_str();
 
     ASSERT_EQ(1, TokenParse("@name"));
     EXPECT_EQ(1, Count(TermID::MACRO));
@@ -363,9 +361,9 @@ TEST_F(Lexer, Paren) {
     EXPECT_EQ(2, Count(TermID::SYMBOL));
 
 
-    ASSERT_EQ(3, TokenParse("%функция_alpha_ёЁ ()"));
-    EXPECT_EQ(1, Count(TermID::NATIVE));
-    EXPECT_EQ(2, Count(TermID::SYMBOL));
+    ASSERT_EQ(4, TokenParse("%функция_alpha_ёЁ ()"));
+    EXPECT_EQ(1, Count(TermID::NAME));
+    EXPECT_EQ(3, Count(TermID::SYMBOL));
 
 }
 

@@ -9,6 +9,7 @@
 #include <limits.h>
 #include <iostream>
 #include <string>
+//#include <cxxabi.h>
 
 #ifndef _MSC_VER
 #include <stdint.h>
@@ -17,7 +18,7 @@
 
 #define LOG_EXCEPT_LEVEL(EXCEPT, LEVEL, PREFIX, ...)  throw EXCEPT(std::string(LOG_MAKE(LEVEL, PREFIX, ##__VA_ARGS__)))
 #define LOG_EXCEPT(EXCEPT, ...)  LOG_EXCEPT_LEVEL(EXCEPT, LOG_LEVEL_ERROR, "E:", ##__VA_ARGS__)
-#define LOG_CALLSTACK(EXCEPT_TYPE, ...)  LOG_PRINT_CALLSTACK(); LOG_EXCEPT(EXCEPT_TYPE, ##__VA_ARGS__)
+//#define LOG_CALLSTACK(EXCEPT_TYPE, ...)  LOG_PRINT_CALLSTACK(); LOG_EXCEPT(EXCEPT_TYPE, ##__VA_ARGS__)
 #define LOG_COREDUMP(...)  LOG_CALLSTACK(std::runtime_error, ##__VA_ARGS__)
 
 #define LOG_RUNTIME(format, ...)  LOG_EXCEPT(newlang::Error, format, ##__VA_ARGS__)
@@ -101,12 +102,12 @@ int HexToBinEq(const char * str, const uint8_t * buffer, const size_t size);
 size_t BinToHexBuffer(const uint8_t * buffer, const size_t size, char * str, const size_t str_size);
 
 
-#if defined(_WIN32)
+//#if defined(_WIN32)
 #define LOG_PRINT_CALLSTACK()
-#else
-void log_print_callstack();
-#define LOG_PRINT_CALLSTACK() if(newlang::Logger::Instance()->GetLogLevel()>=LOG_LEVEL_DEBUG && newlang::Logger::Instance()->GetPrintCallstack()){ log_print_callstack(); }
-#endif
+//#else
+//void log_print_callstack();
+//#define LOG_PRINT_CALLSTACK() if(newlang::Logger::Instance()->GetLogLevel()>=LOG_LEVEL_DEBUG && newlang::Logger::Instance()->GetPrintCallstack()){ log_print_callstack(); }
+//#endif
 
 
 
@@ -185,6 +186,29 @@ void log_print_callstack();
 
 
 namespace newlang {
+
+    template <typename T>
+    typename std::enable_if < std::is_same<T, std::string>::value, std::string>::type
+    inline DumpToString(const T &obj) {
+        return obj;
+    }
+    template <typename T>
+    typename std::enable_if < !std::is_same<T, std::string>::value, std::string>::type
+    inline DumpToString(const T &obj) {
+        return obj.first;
+    }
+
+    template<typename T>
+    std::string Dump(const T &iterable) {
+        std::string result;
+        for (auto &elem : iterable) {
+            if (!result.empty()) {
+                result += '\n';
+            }
+            result += DumpToString(elem);
+        }
+        return result;
+    }
 
     class Logger {
     public:

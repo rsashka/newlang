@@ -242,7 +242,7 @@ TEST(Example, Rational) {
     ASSERT_STREQ("ABCDEF\n", str->GetValueAsString().c_str());
 
     ObjPtr test_printf;
-    ASSERT_NO_THROW(test_printf = rt->Run("test_printf(format:FmtChar, ...):Int32 := %printf...")) << rt->Dump() << "\n" << rt->m_main_ast->m_int_vars.Dump();
+    ASSERT_NO_THROW(test_printf = rt->Run("test_printf(format:FmtChar, ...):Int32 := %printf...")) << Dump(*rt) << "\n" << rt->m_main_ast->m_int_vars.Dump();
     ASSERT_TRUE(test_printf);
     ASSERT_STREQ("test_printf::(format:FmtChar, ...):Int32{ }", test_printf->toString().c_str());
 

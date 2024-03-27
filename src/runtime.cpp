@@ -122,15 +122,15 @@ GlobItem * RunTime::NameFind(const char* name) {
 
     ASSERT(found != end());
 
-    //    if (!at::holds_alternative<ObjWeak>(found->second.obj)) {
+    //    if (!std::holds_alternative<ObjWeak>(found->second.obj)) {
 
-    //        if (at::holds_alternative<ObjWeak>(found->second.obj)) {
-    //            return at::get<ObjWeak>(found->second.obj).lock();
+    //        if (std::holds_alternative<ObjWeak>(found->second.obj)) {
+    //            return std::get<ObjWeak>(found->second.obj).lock();
     //        }
-    //        ASSERT(at::holds_alternative<std::vector < ObjWeak >> (found->second.obj));
-    //        return at::get<std::vector < ObjWeak >> (found->second.obj)[0].lock();
+    //        ASSERT(std::holds_alternative<std::vector < ObjWeak >> (found->second.obj));
+    //        return std::get<std::vector < ObjWeak >> (found->second.obj)[0].lock();
 
-    //        return at::get<std::vector < ObjWeak >> (found->second.obj)[0];
+    //        return std::get<std::vector < ObjWeak >> (found->second.obj)[0];
 
     //    } else {
     //        NL_PARSER(found->second.proto, "Global name not implemented! '%s'", found->first.c_str());
@@ -174,10 +174,10 @@ ObjPtr RunTime::NameGet(const char *name, bool is_raise) {
     GlobItem * ret = NameFind(name);
 
     if (ret) {
-        if (at::holds_alternative<ObjWeak>(ret->obj)) {
-            return at::get<ObjWeak>(ret->obj).lock();
-        } else if (at::holds_alternative<std::vector < ObjWeak >> (ret->obj)) {
-            return at::get<std::vector < ObjWeak >> (ret->obj)[0].lock();
+        if (std::holds_alternative<ObjWeak>(ret->obj)) {
+            return std::get<ObjWeak>(ret->obj).lock();
+        } else if (std::holds_alternative<std::vector < ObjWeak >> (ret->obj)) {
+            return std::get<std::vector < ObjWeak >> (ret->obj)[0].lock();
         }
         if (is_raise) {
             NL_PARSER(ret->proto, "Global name not implemented! '%s'", name);
@@ -188,17 +188,6 @@ ObjPtr RunTime::NameGet(const char *name, bool is_raise) {
         }
     }
     return nullptr;
-}
-
-std::string RunTime::Dump() {
-    std::string result;
-
-    for (auto &elem : * this) {
-        result += '\n';
-        result += elem.first;
-    }
-
-    return result;
 }
 
 //    
@@ -1338,6 +1327,9 @@ RuntimePtr RunTime::Init(StringArray args) {
     //    LLVMAddSymbol("nlc_prinft_sub_", (void *) &nlc_prinft_sub_);
     VERIFY(rt->RegisterSystemFunc("::print(format:FmtChar, ... ):Int32 ::= %nlc_prinft_sub_ ..."));
 
+    VERIFY(rt->RegisterSystemFunc("::srand(init:Int32):None ::= %srand ..."));
+    VERIFY(rt->RegisterSystemFunc("::rand():Int32 ::= %rand ..."));
+
 
     if (!rt->ParseArgs(args)) {
         LOG_RUNTIME("Fail parse args!");
@@ -1635,8 +1627,8 @@ bool RunTime::RegisterBuildinType(ObjType type, std::vector<std::string> parents
     ASSERT(!type_name.empty() && result->m_class_name.compare(type_name) == 0);
     ASSERT(result->m_class_parents.empty());
 
-    ASSERT(at::holds_alternative<void *>(result->m_var));
-    ASSERT(at::get<void *>(result->m_var));
+    ASSERT(std::holds_alternative<void *>(result->m_var));
+    ASSERT(std::get<void *>(result->m_var));
 
     //    result->m_var = (void *) &Context::__make_type__;
 
@@ -1670,13 +1662,13 @@ bool RunTime::RegisterBuildinType(ObjType type, std::vector<std::string> parents
     return NameRegister(true, type_name.c_str(), type_term, result) && NameRegister(true, type_name.insert(0, "::").c_str(), type_term, result);
 }
 
-ObjPtr RunTime::GetTypeFromString(const std::string & type, bool *has_error) {
+ObjPtr RunTime::GetTypeFromString(const std::string_view type, bool *has_error) {
     if (type.empty()) {
         if (has_error) {
             *has_error = true;
             return Obj::CreateNone();
         }
-        LOG_RUNTIME("Type name '%s' not found!", type.c_str());
+        LOG_RUNTIME("Type name '%s' not found!", type.begin());
     }
 
     auto result_types = m_buildin_obj.find(NormalizeName(type));
@@ -1684,7 +1676,7 @@ ObjPtr RunTime::GetTypeFromString(const std::string & type, bool *has_error) {
         return result_types->second;
     }
 
-    ObjPtr found = NameGet(type.c_str(), false);
+    ObjPtr found = NameGet(type.begin(), false);
     if (found) {
         return found;
     }
@@ -1698,10 +1690,10 @@ ObjPtr RunTime::GetTypeFromString(const std::string & type, bool *has_error) {
         *has_error = true;
         return nullptr;
     }
-    LOG_RUNTIME("Type name '%s' not found!", type.c_str());
+    LOG_RUNTIME("Type name '%s' not found!", type.begin());
 }
 
-ObjType RunTime::BaseTypeFromString(RunTime * rt, const std::string & type_name, bool *has_error) {
+ObjType RunTime::BaseTypeFromString(RunTime * rt, const std::string_view type_name, bool *has_error) {
 
     bool local_has_error = false;
 
@@ -1716,7 +1708,7 @@ ObjType RunTime::BaseTypeFromString(RunTime * rt, const std::string & type_name,
     }
 
     if (local_has_error && !rt) {
-        LOG_RUNTIME("Type name '%s' is not calculated statically!", type_name.c_str());
+        LOG_RUNTIME("Type name '%s' is not calculated statically!", type_name.begin());
     }
 
     ObjPtr obj_type = rt->GetTypeFromString(type_name, has_error);
@@ -1726,7 +1718,7 @@ ObjType RunTime::BaseTypeFromString(RunTime * rt, const std::string & type_name,
             *has_error = true;
             return ObjType::None;
         }
-        LOG_RUNTIME("Type name '%s' not found!", type_name.c_str());
+        LOG_RUNTIME("Type name '%s' not found!", type_name.begin());
     }
     return obj_type->m_var_type_fixed;
 }
@@ -2025,7 +2017,7 @@ ObjPtr RunTime::CreateNative(TermPtr proto, void *addr) {
     //    if (lazzy) {
     //        result->m_var = static_cast<void *> (nullptr);
     //    } else {
-    ASSERT(at::holds_alternative<at::monostate>(result->m_var));
+    ASSERT(std::holds_alternative<std::monostate>(result->m_var));
 
     ptr = addr; //GetNativeAddr(result->m_func_mangle_name.empty() ? proto->m_text.c_str() : result->m_func_mangle_name.c_str(), module);
 
@@ -2074,9 +2066,9 @@ ObjPtr RunTime::CreateNative(TermPtr proto, void *addr) {
             //                result->m_func_mangle_name.empty() ? proto->m_text.c_str() : result->m_func_mangle_name.c_str(), module);
 
             if (result->is_function_type() || type == ObjType::Pointer) {
-                NL_CHECK(at::get<void *>(result->m_var), "Error getting address '%s'!", proto->toString().c_str());
+                NL_CHECK(std::get<void *>(result->m_var), "Error getting address '%s'!", proto->toString().c_str());
             } else if (ptr && result->is_tensor_type()) {
-                //            result->m_tensor = torch::from_blob(at::get<void *>(result->m_var),{
+                //            result->m_tensor = torch::from_blob(std::get<void *>(result->m_var),{
                 //            }, toTorchType(type));
                 result->m_var_is_init = true;
             } else {
@@ -2243,6 +2235,40 @@ std::string RunTime::Escape(const std::string_view str) {
         }
     }
     return result;
+}
+
+std::string RunTime::NativeNameMangling(const Term *term, RunTime *rt) {
+    ASSERT(term);
+//    ASSERT(isNativeName(term->m_text));
+//    if (!isStaticName(term->m_text)) {
+//        // extern "C"
+//        return term->m_text.substr(1);
+//    } else {
+//        // C++ mangling
+//        ObjType type_var = typeFromString(term->m_type, rt);
+//        if (!isNativeType(type_var)) {
+//            NL_PARSER(term->m_type, "Type name '%s' not native type!", term->m_type->m_text.c_str());
+//        }
+//        if (term->isCall()) {
+//            // Function
+//            for (auto &arg : *term) {
+//                ObjType type_arg = typeFromString(arg->m_type, rt);
+//                if (!isNativeType(type_arg)) {
+//                    NL_PARSER(arg->m_type, "Type name '%s' not native type!", arg->m_type->m_text.c_str());
+//                }
+//
+//            }
+//
+//        } else {
+//            // Variable, Struct, Union, Enum
+//        }
+//    }
+    return "";
+}
+
+std::string RunTime::NativeNameMangling(std::string_view name) {
+    ASSERT(isNativeName(name));
+    return std::string(name.begin() + 1);
 }
 
 #if defined(__x86_64__) || defined(_M_X64) || defined(__amd64__) || defined(__amd64)

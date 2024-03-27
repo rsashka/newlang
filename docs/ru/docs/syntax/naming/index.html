@@ -28,7 +28,7 @@
 <meta itemprop="name" content="Именование объектов">
 <meta itemprop="description" content="Правила именования переменных, функций и типов данных">
 <meta itemprop="dateModified" content="2024-03-22T23:57:08+03:00" />
-<meta itemprop="wordCount" content="1008">
+<meta itemprop="wordCount" content="1290">
 <meta itemprop="keywords" content="" /><meta name="twitter:card" content="summary"/><meta name="twitter:title" content="Именование объектов"/>
 <meta name="twitter:description" content="Правила именования переменных, функций и типов данных"/>
 
@@ -145,8 +145,6 @@
   <a href="/ru/docs/syntax/sysprop/" class="align-left ps-0 td-sidebar-link td-sidebar-link__page" id="m-rudocssyntaxsysprop"><span class="">Системные свойства</span></a>
 </li><li class="td-sidebar-nav__section-title td-sidebar-nav__section without-child" id="m-rudocssyntaxpragmas-li">
   <a href="/ru/docs/syntax/pragmas/" class="align-left ps-0 td-sidebar-link td-sidebar-link__page" id="m-rudocssyntaxpragmas"><span class="">Опции и настройки компилятора</span></a>
-</li><li class="td-sidebar-nav__section-title td-sidebar-nav__section without-child" id="m-rudocssyntaxsysmacro-li">
-  <a href="/ru/docs/syntax/sysmacro/" class="align-left ps-0 td-sidebar-link td-sidebar-link__page" id="m-rudocssyntaxsysmacro"><span class="">Системные макросы</span></a>
 </li><li class="td-sidebar-nav__section-title td-sidebar-nav__section without-child" id="m-rudocssyntaxdsl-li">
   <a href="/ru/docs/syntax/dsl/" class="align-left ps-0 td-sidebar-link td-sidebar-link__page" id="m-rudocssyntaxdsl"><span class="">Keyword syntax (DSL)</span></a>
 </li>
@@ -229,9 +227,10 @@
       <ul>
         <li><a href="#sigil">Квалификаторы имен:</a></li>
         <li><a href="#name-lookup">Разрешение имен (name lookup)</a></li>
+        <li><a href="#using">Расширение поиска простанства имен</a></li>
         <li><a href="#forward-declaration">Предварительное объявление</a></li>
         <li><a href="#args">Имена аргументов, специальные, системные имена</a></li>
-        <li><a href="#области-видимости">Области видимости</a></li>
+        <li><a href="#константы-неизменяемые-объекты">Константы (неизменяемые объекты)</a></li>
       </ul>
     </li>
   </ul>
@@ -327,7 +326,12 @@
 <p>Например, обратиться к глобальному объекту <strong>name</strong> из пространства имен <strong>ns</strong> из примера выше, нужно по полному имени объекта <code>::ns::name</code>,
 а именованнй аргумент <em>&rsquo;<strong>.</strong> arg&rsquo;</em> не будет заменен макросом <code>@arg</code>, если такой будет определен:</p>
 <div class="highlight"><pre tabindex="0" style="background-color:#f8f8f8;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-python" data-lang="python"><span style="display:flex;"><span>    <span style="color:#000;font-weight:bold">::</span><span style="color:#000">ns</span><span style="color:#000;font-weight:bold">::</span><span style="color:#000">name</span><span style="color:#000;font-weight:bold">(</span><span style="color:#ce5c00;font-weight:bold">.</span><span style="color:#000">arg</span><span style="color:#ce5c00;font-weight:bold">=</span><span style="color:#4e9a06">&#34;value&#34;</span><span style="color:#000;font-weight:bold">);</span>
-</span></span></code></pre></div><h3 id="forward-declaration">Предварительное объявление<a class="td-heading-self-link" href="#forward-declaration" aria-label="Heading self-link"></a></h3>
+</span></span></code></pre></div><h3 id="using">Расширение поиска простанства имен<a class="td-heading-self-link" href="#using" aria-label="Heading self-link"></a></h3>
+<p>Для указания нескольких областей имен для расширенного поиска при разрешение <em>простых</em> имен <em>без квалификатора</em>,
+используется синтаксическая конструкция <code>... = ns::name, ns::name2;</code> или <code>@using(ns::name, ns::name2);</code> с использованием DSL.</p>
+<p>Поиск в перечисленных областях имен произволится в порядке их указания до конца текущего модуля или до следущего
+оператора расширенного поиска или до <code>... = _;</code>, который расширенный поиск в пространствах имен отменяет.</p>
+<h3 id="forward-declaration">Предварительное объявление<a class="td-heading-self-link" href="#forward-declaration" aria-label="Heading self-link"></a></h3>
 <p>В тексте программы можно ссылаться только на реально существующие (созданные) объекты.
 Но для тех случаев, когда требуется сослаться на объект, который создан в другом модуле или будет создан позже,
 можно сделать предварительное объявление, при котором компилятор регистриурет имя и тип объекта без его реального создания.</p>
@@ -376,20 +380,52 @@
 </span></span><span style="display:flex;"><span>        mod_str :<span style="color:#ce5c00;font-weight:bold">=</span>  @#  @<span style="color:#4e9a06">\\</span><span style="color:#000;font-weight:bold">;</span> <span style="color:#8f5902;font-style:italic"># Строка с именем модуля &#34;\\dir\filename&#34;</span>
 </span></span><span style="display:flex;"><span>    <span style="color:#ce5c00;font-weight:bold">}</span><span style="color:#000;font-weight:bold">;</span>
 </span></span><span style="display:flex;"><span><span style="color:#ce5c00;font-weight:bold">}</span><span style="color:#000;font-weight:bold">;</span>
-</span></span></code></pre></div><h3 id="области-видимости">Области видимости<a class="td-heading-self-link" href="#%d0%be%d0%b1%d0%bb%d0%b0%d1%81%d1%82%d0%b8-%d0%b2%d0%b8%d0%b4%d0%b8%d0%bc%d0%be%d1%81%d1%82%d0%b8" aria-label="Heading self-link"></a></h3>
-<p>Символ подчерка, а так же подчерк в начале имени или двойные подчерки в начале и в конце имени имеют специальное значение.</p>
-<p>Один подчерк соответствует защищенной, а два подчерка - приватной области видимости объекта в модуле или классе,
-что соответствует принятым соглашениям в языке Python.</p>
-<p>Но так же, как и в языке Python, области видимости больше соответствуют &ldquo;джентльменской&rdquo; договоренности и при явном указании имени,
-доступ к защищенным объектам можно получить, просто указав полное имя объекта.</p>
-<p>В дополнении к этому, существуют еще системные поля и объекты, которые начинаются и заканчиваются на два подчерка.</p>
-<ul>
-<li>&lsquo;<strong>$</strong>&rsquo; — знак доллара в начале имени обозначает системное (локальное) имя временной переменной,
-область памяти для которой выделяется во время выполнения, а время <a href="/ru/docs/syntax/memory/">жизни ограничено семантикой яызка</a></li>
-<li>&lsquo;<strong>::</strong>&rsquo; — двойное двоеточие являются разделителем при указании <a href="/ru/docs/syntax/namespace/">пространства имен</a>.
-Явное указание пространства имен является признаком статического объекта, область памяти для которого выделяется во время компиляции приложения или модуля.</li>
-</ul>
-
+</span></span></code></pre></div><h3 id="константы-неизменяемые-объекты">Константы (неизменяемые объекты)<a class="td-heading-self-link" href="#%d0%ba%d0%be%d0%bd%d1%81%d1%82%d0%b0%d0%bd%d1%82%d1%8b-%d0%bd%d0%b5%d0%b8%d0%b7%d0%bc%d0%b5%d0%bd%d1%8f%d0%b5%d0%bc%d1%8b%d0%b5-%d0%be%d0%b1%d1%8a%d0%b5%d0%ba%d1%82%d1%8b" aria-label="Heading self-link"></a></h3>
+<h4 id="constexpr">constexpr<a class="td-heading-self-link" href="#constexpr" aria-label="Heading self-link"></a></h4>
+<blockquote>
+<p>constexpr позволяет определить переменные или функции таким образом, что их значение или результат может быть вычислен на этапе компиляции.
+Т.е можно проводить вычисления до того, как код будет исполнен, и тем самым сэкономить драгоценные циклы процессора в рантайме.</p>
+<p>Но не все так радужно. constexpr имеет свои ограничения. Например, нельзя использовать его с динамическим выделением памяти.
+Так что если нужно создать constexpr вектор, который динамически изменяется во время компиляции - не выйдет.</p>
+</blockquote>
+<div class="highlight"><pre tabindex="0" style="background-color:#f8f8f8;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-python" data-lang="python"><span style="display:flex;"><span>    <span style="color:#000">square</span><span style="color:#ce5c00;font-weight:bold">^</span><span style="color:#000;font-weight:bold">(</span><span style="color:#000">arg</span><span style="color:#000;font-weight:bold">)</span> <span style="color:#ce5c00;font-weight:bold">:=</span> <span style="color:#000;font-weight:bold">{</span><span style="color:#a40000">$</span><span style="color:#000">arg</span> <span style="color:#ce5c00;font-weight:bold">*</span> <span style="color:#a40000">$</span><span style="color:#000">arg</span><span style="color:#000;font-weight:bold">};</span> <span style="color:#8f5902;font-style:italic"># Во время компиляции</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#000">cube</span><span style="color:#000;font-weight:bold">(</span><span style="color:#000">arg</span><span style="color:#000;font-weight:bold">)</span> <span style="color:#000;font-weight:bold">:</span><span style="color:#ce5c00;font-weight:bold">-</span> <span style="color:#000;font-weight:bold">{</span><span style="color:#a40000">$</span><span style="color:#000">arg</span> <span style="color:#ce5c00;font-weight:bold">*</span> <span style="color:#a40000">$</span><span style="color:#000">arg</span> <span style="color:#ce5c00;font-weight:bold">*</span> <span style="color:#a40000">$</span><span style="color:#000">arg</span><span style="color:#000;font-weight:bold">};</span>  <span style="color:#8f5902;font-style:italic"># Чистая функция</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#000">func</span><span style="color:#000;font-weight:bold">(</span><span style="color:#000">arg</span><span style="color:#000;font-weight:bold">)</span> <span style="color:#ce5c00;font-weight:bold">:=</span> <span style="color:#000;font-weight:bold">{</span><span style="color:#000">cube</span><span style="color:#000;font-weight:bold">(</span><span style="color:#000">arg</span><span style="color:#000;font-weight:bold">)</span> <span style="color:#ce5c00;font-weight:bold">+</span> <span style="color:#000">square</span><span style="color:#000;font-weight:bold">(</span><span style="color:#a40000">$</span><span style="color:#000">arg</span><span style="color:#000;font-weight:bold">)};</span>  <span style="color:#8f5902;font-style:italic"># Обычная функция</span>
+</span></span></code></pre></div><h4 id="consteval">consteval<a class="td-heading-self-link" href="#consteval" aria-label="Heading self-link"></a></h4>
+<blockquote>
+<p>Отличие consteval от его братца constexpr в том, что constexpr дает выбор: если что-то можно вычислить на этапе компиляции,
+отлично, но если нет — ну что ж, попробуем в рантайме. consteval же стоит на своем: если мы не можем вычислить это здесь и сейчас
+(на этапе компиляции), то и в программе это выражение быть не должно.</p>
+<p>Это мастхев, когда нужно гарантировать, что определенные вычисления будут выполнены на этапе компиляции,
+исключая любую неопределенность и потенциальные накладные расходы в рантайме. consteval приходит на помощь,
+когда нужна стопроцентная уверенность в том, что код не будет тратить лишнее время на вычисления в момент выполнения.</p>
+</blockquote>
+<div class="highlight"><pre tabindex="0" style="background-color:#f8f8f8;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-python" data-lang="python"><span style="display:flex;"><span>    <span style="color:#000">consteval</span><span style="color:#ce5c00;font-weight:bold">^</span> <span style="color:#ce5c00;font-weight:bold">:=</span> <span style="color:#4e9a06">&#34;literal&#34;</span><span style="color:#000;font-weight:bold">;</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#000">pi</span><span style="color:#ce5c00;font-weight:bold">^</span> <span style="color:#ce5c00;font-weight:bold">:=</span> <span style="color:#0000cf;font-weight:bold">3.141592653589793238462643</span><span style="color:#000;font-weight:bold">;</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#000">consteval</span><span style="color:#ce5c00;font-weight:bold">^</span> <span style="color:#ce5c00;font-weight:bold">:=</span> <span style="color:#000">square</span><span style="color:#000;font-weight:bold">(</span><span style="color:#0000cf;font-weight:bold">123</span><span style="color:#000;font-weight:bold">);</span> <span style="color:#8f5902;font-style:italic"># Ок</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#000">consteval1</span><span style="color:#ce5c00;font-weight:bold">^</span> <span style="color:#ce5c00;font-weight:bold">:=</span> <span style="color:#000">square</span><span style="color:#ce5c00;font-weight:bold">^</span><span style="color:#000;font-weight:bold">(</span><span style="color:#0000cf;font-weight:bold">123</span><span style="color:#000;font-weight:bold">);</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#000">consteval2</span><span style="color:#ce5c00;font-weight:bold">^</span> <span style="color:#ce5c00;font-weight:bold">:=</span> <span style="color:#000">cube</span><span style="color:#ce5c00;font-weight:bold">^</span><span style="color:#000;font-weight:bold">(</span><span style="color:#0000cf;font-weight:bold">123</span><span style="color:#000;font-weight:bold">);</span> <span style="color:#8f5902;font-style:italic"># Ok для чистых и constexpr функций</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#000">consteval3</span><span style="color:#ce5c00;font-weight:bold">^</span> <span style="color:#ce5c00;font-weight:bold">:=</span> <span style="color:#000">func</span><span style="color:#ce5c00;font-weight:bold">^</span><span style="color:#000;font-weight:bold">(</span><span style="color:#0000cf;font-weight:bold">123</span><span style="color:#000;font-weight:bold">);</span> <span style="color:#8f5902;font-style:italic"># Ошибка !!!!</span>
+</span></span></code></pre></div><h4 id="constinit">constinit<a class="td-heading-self-link" href="#constinit" aria-label="Heading self-link"></a></h4>
+<blockquote>
+<p>В отличие от constexpr, который является своего рода всегда вычисляемым выражением,
+и consteval, которое требует вычисления на этапе компиляции без исключений, constinit подходит к делу более гибко.</p>
+<p>constinit указывает, что переменная должна быть инициализирована во время старта программы,
+до входа в main(). constinit обеспечивает инициализацию статического или потокового хранилища без динамической инициализации.
+Говоря простым языком, constinit гарантирует, что переменная будет инициализирована на этапе загрузки программы,
+ещё до того, как программа начнет своё выполнение. Отсюда вытекает то, в отличие от constexpr, constinit не требует,
+чтобы переменная оставалась неизменной после инициализации.</p>
+</blockquote>
+<p>Аналог <code>constinit</code>. Присовить незменяемое значение обычной переменой. Но сама переменная в последствии может быть изменена.</p>
+<div class="highlight"><pre tabindex="0" style="background-color:#f8f8f8;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-python" data-lang="python"><span style="display:flex;"><span>    <span style="color:#000">literal1</span> <span style="color:#ce5c00;font-weight:bold">:=</span> <span style="color:#4e9a06">&#34;literal&#34;</span><span style="color:#000;font-weight:bold">;</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#000">literal2</span> <span style="color:#ce5c00;font-weight:bold">:=</span> <span style="color:#0000cf;font-weight:bold">123</span><span style="color:#000;font-weight:bold">;</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#000">value</span> <span style="color:#ce5c00;font-weight:bold">:=</span> <span style="color:#000">square</span><span style="color:#000;font-weight:bold">(</span><span style="color:#0000cf;font-weight:bold">123</span><span style="color:#000;font-weight:bold">);</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#000">value</span> <span style="color:#ce5c00;font-weight:bold">:=</span> <span style="color:#000">square</span><span style="color:#ce5c00;font-weight:bold">^</span><span style="color:#000;font-weight:bold">(</span><span style="color:#0000cf;font-weight:bold">123</span><span style="color:#000;font-weight:bold">);</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#000">value</span> <span style="color:#ce5c00;font-weight:bold">:=</span> <span style="color:#000">cube</span><span style="color:#000;font-weight:bold">(</span><span style="color:#0000cf;font-weight:bold">123</span><span style="color:#000;font-weight:bold">);</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#000">value</span> <span style="color:#ce5c00;font-weight:bold">:=</span> <span style="color:#000">cube</span><span style="color:#ce5c00;font-weight:bold">^</span><span style="color:#000;font-weight:bold">(</span><span style="color:#0000cf;font-weight:bold">123</span><span style="color:#000;font-weight:bold">);</span> <span style="color:#8f5902;font-style:italic"># Ок - вычисляется в рантайме</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#000">value</span> <span style="color:#ce5c00;font-weight:bold">:=</span> <span style="color:#000">pi</span><span style="color:#000;font-weight:bold">;</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#000">value</span> <span style="color:#ce5c00;font-weight:bold">:=</span> <span style="color:#000">pi</span><span style="color:#ce5c00;font-weight:bold">^</span><span style="color:#000;font-weight:bold">;</span>
+</span></span></code></pre></div>
 	
 </div>
 

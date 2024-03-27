@@ -117,7 +117,12 @@ and for the name &lt;code&gt;arg&lt;/code&gt;, only &lt;code&gt;@arg&lt;/code&gt
 &lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;And at the same time, there will always be the possibility to specify a specific object regardless of the algorithm for resolving &lt;em&gt;simple&lt;/em&gt; names. It is sufficient to explicitly specify the qualifier in the object name.&lt;/p&gt;
 &lt;p&gt;For example, to access the global object &lt;strong&gt;name&lt;/strong&gt; from the namespace &lt;strong&gt;ns&lt;/strong&gt; in the above example, you need to use the full object name &lt;code&gt;::ns::name&lt;/code&gt;, and the named argument &lt;em&gt;&amp;rsquo;&lt;strong&gt;.&lt;/strong&gt; arg&amp;rsquo;&lt;/em&gt; will not be replaced by the &lt;code&gt;@arg&lt;/code&gt; macro if it is defined:&lt;/p&gt;
 &lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;background-color:#f8f8f8;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;&lt;code class=&#34;language-python&#34; data-lang=&#34;python&#34;&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    &lt;span style=&#34;color:#000;font-weight:bold&#34;&gt;::&lt;/span&gt;&lt;span style=&#34;color:#000&#34;&gt;ns&lt;/span&gt;&lt;span style=&#34;color:#000;font-weight:bold&#34;&gt;::&lt;/span&gt;&lt;span style=&#34;color:#000&#34;&gt;name&lt;/span&gt;&lt;span style=&#34;color:#000;font-weight:bold&#34;&gt;(&lt;/span&gt;&lt;span style=&#34;color:#ce5c00;font-weight:bold&#34;&gt;.&lt;/span&gt;&lt;span style=&#34;color:#000&#34;&gt;arg&lt;/span&gt;&lt;span style=&#34;color:#ce5c00;font-weight:bold&#34;&gt;=&lt;/span&gt;&lt;span style=&#34;color:#4e9a06&#34;&gt;&amp;#34;value&amp;#34;&lt;/span&gt;&lt;span style=&#34;color:#000;font-weight:bold&#34;&gt;);&lt;/span&gt;
-&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;h3 id=&#34;forward-declaration&#34;&gt;Forward Declaration&lt;a class=&#34;td-heading-self-link&#34; href=&#34;#forward-declaration&#34; aria-label=&#34;Heading self-link&#34;&gt;&lt;/a&gt;&lt;/h3&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;h3 id=&#34;using&#34;&gt;Namespace Search Extension&lt;a class=&#34;td-heading-self-link&#34; href=&#34;#using&#34; aria-label=&#34;Heading self-link&#34;&gt;&lt;/a&gt;&lt;/h3&gt;
+&lt;p&gt;To specify multiple namespaces for an extended search when resolving &lt;em&gt;simple&lt;/em&gt; unqualified names,
+a syntactic construction &lt;code&gt;... = ns::name, ns::name2;&lt;/code&gt; or &lt;code&gt;@using(ns::name, ns::name2);&lt;/code&gt; is used with DSL.&lt;/p&gt;
+&lt;p&gt;The search in the listed namespaces is performed in the order of their specification until the end of the current module
+or until the next extended search operator or until &lt;code&gt;... = _;&lt;/code&gt;, which cancels the extended search in namespaces.&lt;/p&gt;
+&lt;h3 id=&#34;forward-declaration&#34;&gt;Forward Declaration&lt;a class=&#34;td-heading-self-link&#34; href=&#34;#forward-declaration&#34; aria-label=&#34;Heading self-link&#34;&gt;&lt;/a&gt;&lt;/h3&gt;
 &lt;p&gt;In the program text, you can only refer to actually existing (created) objects.
 But in cases where it is necessary to refer to an object that is created in another module or will be created later,
 you can make a preliminary declaration, in which the compiler registers the name and type of the object without its actual creation.&lt;/p&gt;
@@ -161,19 +166,7 @@ you can make a preliminary declaration, in which the compiler registers the name
 &lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;        mod_str :&lt;span style=&#34;color:#ce5c00;font-weight:bold&#34;&gt;=&lt;/span&gt;  @#  @&lt;span style=&#34;color:#4e9a06&#34;&gt;\\&lt;/span&gt;&lt;span style=&#34;color:#000;font-weight:bold&#34;&gt;;&lt;/span&gt; &lt;span style=&#34;color:#8f5902;font-style:italic&#34;&gt;# String with module name &amp;#34;\\dir\filename&amp;#34;&lt;/span&gt;
 &lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    &lt;span style=&#34;color:#ce5c00;font-weight:bold&#34;&gt;}&lt;/span&gt;&lt;span style=&#34;color:#000;font-weight:bold&#34;&gt;;&lt;/span&gt;
 &lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#ce5c00;font-weight:bold&#34;&gt;}&lt;/span&gt;&lt;span style=&#34;color:#000;font-weight:bold&#34;&gt;;&lt;/span&gt;
-&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;h3 id=&#34;scope&#34;&gt;Scope&lt;a class=&#34;td-heading-self-link&#34; href=&#34;#scope&#34; aria-label=&#34;Heading self-link&#34;&gt;&lt;/a&gt;&lt;/h3&gt;
-&lt;p&gt;The underscore symbol, as well as an underscore at the beginning of a name or double underscores at the beginning and end of a name, have special meanings.&lt;/p&gt;
-&lt;p&gt;A single underscore corresponds to a protected, and two underscores to a private scope of an object within a module or class, in accordance with the conventions in the Python language.&lt;/p&gt;
-&lt;p&gt;However, just like in Python, scopes are more of a &amp;ldquo;gentleman&amp;rsquo;s agreement,&amp;rdquo; and with explicit naming, access to protected objects can be obtained by simply specifying the full object name.&lt;/p&gt;
-&lt;p&gt;In addition, there are also system fields and objects that start and end with two underscores.&lt;/p&gt;
-&lt;ul&gt;
-&lt;li&gt;&amp;lsquo;&lt;strong&gt;$&lt;/strong&gt;&amp;rsquo; - The dollar sign at the beginning of a name denotes a system (local) name of a temporary variable,
-the memory space for which is allocated during execution, and the lifetime is limited by the language semantics.&lt;/li&gt;
-&lt;li&gt;&amp;lsquo;&lt;strong&gt;::&lt;/strong&gt;&amp;rsquo; - Double colons serve as a separator when specifying namespaces.
-Explicit namespace specification is a sign of a static object, the memory space for which is allocated during the compilation
-of the application or module.&lt;/li&gt;
-&lt;/ul&gt;
-
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
       </description>
     </item>
     
@@ -1171,7 +1164,19 @@ dict3 := dict2(99, name=0); # Копия объекта dict2 (99, two=42, name=
 &lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    &lt;span style=&#34;color:#ce5c00;font-weight:bold&#34;&gt;.&lt;/span&gt;&lt;span style=&#34;color:#000&#34;&gt;field&lt;/span&gt; &lt;span style=&#34;color:#000;font-weight:bold&#34;&gt;:&lt;/span&gt;&lt;span style=&#34;color:#ce5c00;font-weight:bold&#34;&gt;:=&lt;/span&gt; &lt;span style=&#34;color:#0000cf;font-weight:bold&#34;&gt;2&lt;/span&gt;&lt;span style=&#34;color:#000;font-weight:bold&#34;&gt;;&lt;/span&gt;    &lt;span style=&#34;color:#8f5902;font-style:italic&#34;&gt;# Будет ошибка, т.к. поле field уже есть в базовом классе&lt;/span&gt;
 &lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    &lt;span style=&#34;color:#000&#34;&gt;method&lt;/span&gt;&lt;span style=&#34;color:#000;font-weight:bold&#34;&gt;()&lt;/span&gt; &lt;span style=&#34;color:#ce5c00;font-weight:bold&#34;&gt;=&lt;/span&gt; &lt;span style=&#34;color:#000;font-weight:bold&#34;&gt;{};&lt;/span&gt;  &lt;span style=&#34;color:#8f5902;font-style:italic&#34;&gt;# Аналог override, т.к. method должен существовать в базовом классе&lt;/span&gt;
 &lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#000;font-weight:bold&#34;&gt;};&lt;/span&gt;
-&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;h2 id=&#34;интерфейсы-именование-методов-классов-и-пространства-имен&#34;&gt;Интерфейсы, именование методов классов и пространства имен&lt;a class=&#34;td-heading-self-link&#34; href=&#34;#%d0%b8%d0%bd%d1%82%d0%b5%d1%80%d1%84%d0%b5%d0%b9%d1%81%d1%8b-%d0%b8%d0%bc%d0%b5%d0%bd%d0%be%d0%b2%d0%b0%d0%bd%d0%b8%d0%b5-%d0%bc%d0%b5%d1%82%d0%be%d0%b4%d0%be%d0%b2-%d0%ba%d0%bb%d0%b0%d1%81%d1%81%d0%be%d0%b2-%d0%b8-%d0%bf%d1%80%d0%be%d1%81%d1%82%d1%80%d0%b0%d0%bd%d1%81%d1%82%d0%b2%d0%b0-%d0%b8%d0%bc%d0%b5%d0%bd&#34; aria-label=&#34;Heading self-link&#34;&gt;&lt;/a&gt;&lt;/h2&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;h3 id=&#34;scope&#34;&gt;Scope&lt;a class=&#34;td-heading-self-link&#34; href=&#34;#scope&#34; aria-label=&#34;Heading self-link&#34;&gt;&lt;/a&gt;&lt;/h3&gt;
+&lt;p&gt;The underscore symbol, as well as an underscore at the beginning of a name or double underscores at the beginning and end of a name, have special meanings.&lt;/p&gt;
+&lt;p&gt;A single underscore corresponds to a protected, and two underscores to a private scope of an object within a module or class, in accordance with the conventions in the Python language.&lt;/p&gt;
+&lt;p&gt;However, just like in Python, scopes are more of a &amp;ldquo;gentleman&amp;rsquo;s agreement,&amp;rdquo; and with explicit naming, access to protected objects can be obtained by simply specifying the full object name.&lt;/p&gt;
+&lt;p&gt;In addition, there are also system fields and objects that start and end with two underscores.&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;&amp;lsquo;&lt;strong&gt;$&lt;/strong&gt;&amp;rsquo; - The dollar sign at the beginning of a name denotes a system (local) name of a temporary variable,
+the memory space for which is allocated during execution, and the lifetime is limited by the language semantics.&lt;/li&gt;
+&lt;li&gt;&amp;lsquo;&lt;strong&gt;::&lt;/strong&gt;&amp;rsquo; - Double colons serve as a separator when specifying namespaces.
+Explicit namespace specification is a sign of a static object, the memory space for which is allocated during the compilation
+of the application or module.&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h2 id=&#34;интерфейсы-именование-методов-классов-и-пространства-имен&#34;&gt;Интерфейсы, именование методов классов и пространства имен&lt;a class=&#34;td-heading-self-link&#34; href=&#34;#%d0%b8%d0%bd%d1%82%d0%b5%d1%80%d1%84%d0%b5%d0%b9%d1%81%d1%8b-%d0%b8%d0%bc%d0%b5%d0%bd%d0%be%d0%b2%d0%b0%d0%bd%d0%b8%d0%b5-%d0%bc%d0%b5%d1%82%d0%be%d0%b4%d0%be%d0%b2-%d0%ba%d0%bb%d0%b0%d1%81%d1%81%d0%be%d0%b2-%d0%b8-%d0%bf%d1%80%d0%be%d1%81%d1%82%d1%80%d0%b0%d0%bd%d1%81%d1%82%d0%b2%d0%b0-%d0%b8%d0%bc%d0%b5%d0%bd&#34; aria-label=&#34;Heading self-link&#34;&gt;&lt;/a&gt;&lt;/h2&gt;
 &lt;p&gt;Для создания уникальных идентификаторов на основе имен методов классов, &lt;em&gt;NewLang&lt;/em&gt; использует подход, похожий на применяемый в языке Python.
 При создании метода класса, создается глобальная функция с именем класса и именем метода, объединенные через разделитель области имен.
 Например, в классе &lt;code&gt;NewClass2&lt;/code&gt; при создании метода &lt;code&gt;method&lt;/code&gt; будет создана функция с именем &lt;code&gt;::NewClass2::method&lt;/code&gt;.&lt;/p&gt;
@@ -2420,250 +2425,6 @@ my_file.write(&amp;lsquo;hello world&amp;rsquo;)&lt;/p&gt;
     </item>
     
     <item>
-      <title>Docs: Системные макросы</title>
-      <link>http://localhost:1313/docs/syntax/sysmacro/</link>
-      <pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate>
-      
-      <guid>http://localhost:1313/docs/syntax/sysmacro/</guid>
-      <description>
-        
-        
-        &lt;h2 id=&#34;dsl&#34;&gt;DSL&lt;a class=&#34;td-heading-self-link&#34; href=&#34;#dsl&#34; aria-label=&#34;Heading self-link&#34;&gt;&lt;/a&gt;&lt;/h2&gt;
-&lt;h3 id=&#34;особенности-ассоциативной-памяти&#34;&gt;Особенности ассоциативной памяти&lt;a class=&#34;td-heading-self-link&#34; href=&#34;#%d0%be%d1%81%d0%be%d0%b1%d0%b5%d0%bd%d0%bd%d0%be%d1%81%d1%82%d0%b8-%d0%b0%d1%81%d1%81%d0%be%d1%86%d0%b8%d0%b0%d1%82%d0%b8%d0%b2%d0%bd%d0%be%d0%b9-%d0%bf%d0%b0%d0%bc%d1%8f%d1%82%d0%b8&#34; aria-label=&#34;Heading self-link&#34;&gt;&lt;/a&gt;&lt;/h3&gt;
-&lt;p&gt;Синтаксис языка &lt;em&gt;NewLang&lt;/em&gt; основан на строгих правилах без использования ключевых слов,
-и как бы он не выглядел логичным, ассоциация по ключевым словам вспоминается гораздо легче, например &lt;strong&gt;if&lt;/strong&gt;,
-чем комбинация &lt;em&gt;минус минус правая угловая скобка&lt;/em&gt; &lt;strong&gt;&amp;ndash;&amp;gt;&lt;/strong&gt;.
-Из-за этого имеет смысл использовать не &amp;ldquo;чистый&amp;rdquo; базовый синтаксис, а более привычный диалект с использованием ключевых слов.&lt;/p&gt;
-&lt;h3 id=&#34;синтаксис-на-ключевых-словах&#34;&gt;Синтаксис на ключевых словах&lt;a class=&#34;td-heading-self-link&#34; href=&#34;#%d1%81%d0%b8%d0%bd%d1%82%d0%b0%d0%ba%d1%81%d0%b8%d1%81-%d0%bd%d0%b0-%d0%ba%d0%bb%d1%8e%d1%87%d0%b5%d0%b2%d1%8b%d1%85-%d1%81%d0%bb%d0%be%d0%b2%d0%b0%d1%85&#34; aria-label=&#34;Heading self-link&#34;&gt;&lt;/a&gt;&lt;/h3&gt;
-&lt;p&gt;В файле dsl.nlp находится набор макросов, которые расширяют базовый синтаксис &lt;em&gt;NewLang&lt;/em&gt;, основанный на правилах,
-набором предопределенных ключевых слов как в классических языках программирования.
-А при необходимости, их можно адаптировать или дополнить под собственную предметную область.&lt;/p&gt;
-&lt;h2 id=&#34;константы&#34;&gt;Константы&lt;a class=&#34;td-heading-self-link&#34; href=&#34;#%d0%ba%d0%be%d0%bd%d1%81%d1%82%d0%b0%d0%bd%d1%82%d1%8b&#34; aria-label=&#34;Heading self-link&#34;&gt;&lt;/a&gt;&lt;/h2&gt;
-&lt;h3 id=&#34;логические&#34;&gt;Логические&lt;a class=&#34;td-heading-self-link&#34; href=&#34;#%d0%bb%d0%be%d0%b3%d0%b8%d1%87%d0%b5%d1%81%d0%ba%d0%b8%d0%b5&#34; aria-label=&#34;Heading self-link&#34;&gt;&lt;/a&gt;&lt;/h3&gt;
-&lt;ul&gt;
-&lt;li&gt;&lt;strong&gt;true&lt;/strong&gt; - 1&lt;/li&gt;
-&lt;li&gt;&lt;strong&gt;yes&lt;/strong&gt;  - 1&lt;/li&gt;
-&lt;li&gt;&lt;strong&gt;false&lt;/strong&gt; - 0&lt;/li&gt;
-&lt;li&gt;&lt;strong&gt;no&lt;/strong&gt; - 0&lt;/li&gt;
-&lt;/ul&gt;
-&lt;h3 id=&#34;системные-имена&#34;&gt;Системные имена&lt;a class=&#34;td-heading-self-link&#34; href=&#34;#%d1%81%d0%b8%d1%81%d1%82%d0%b5%d0%bc%d0%bd%d1%8b%d0%b5-%d0%b8%d0%bc%d0%b5%d0%bd%d0%b0&#34; aria-label=&#34;Heading self-link&#34;&gt;&lt;/a&gt;&lt;/h3&gt;
-&lt;ul&gt;
-&lt;li&gt;&lt;strong&gt;this&lt;/strong&gt; - Текущий объект (&lt;strong&gt;$0&lt;/strong&gt;)&lt;/li&gt;
-&lt;li&gt;&lt;strong&gt;parent&lt;/strong&gt; - Родительский объект (&lt;strong&gt;$$&lt;/strong&gt;)&lt;/li&gt;
-&lt;li&gt;&lt;strong&gt;last&lt;/strong&gt; - Результат выполнения последнего оператора (&lt;strong&gt;$^&lt;/strong&gt;)&lt;/li&gt;
-&lt;/ul&gt;
-&lt;p&gt;!!!!!!!!- &lt;strong&gt;args&lt;/strong&gt; - Все аргументы функции (&lt;strong&gt;$*&lt;/strong&gt;)&lt;/p&gt;
-&lt;p&gt;!!!!!!!!- &lt;strong&gt;sys&lt;/strong&gt; - Системный контекст запущенной программы (&lt;strong&gt;@@&lt;/strong&gt;)
-!!!!!!!!- &lt;strong&gt;current&lt;/strong&gt; - Текущий модуль (&lt;strong&gt;@$&lt;/strong&gt;)
-!!!!!!!!- &lt;strong&gt;cmd&lt;/strong&gt; - Все аргументы выполняющегося приложения из командной строки (&lt;strong&gt;@*&lt;/strong&gt;)&lt;/p&gt;
-&lt;p&gt;!!!!!!!!!!1### Типовые функции и проверки
-!!!!!!!!!!- &lt;strong&gt;run(&amp;lsquo;filename&amp;rsquo;)&lt;/strong&gt; - Выполнить указанный файл (&lt;strong&gt;@@(&amp;lsquo;filename&amp;rsquo;)&lt;/strong&gt;)
-!!!!!!!!!!- &lt;strong&gt;ifmain&lt;/strong&gt; - Проверка, если текущий модуль основной (&lt;strong&gt;[@$.$0] &amp;ndash;&amp;gt;&lt;/strong&gt; { &amp;hellip; })
-!!!!!!!!!!- &lt;strong&gt;ifload&lt;/strong&gt; - Проверка, если текущий модуль загружается впервые (&lt;strong&gt;[@$.&lt;strong&gt;load&lt;/strong&gt;] &amp;ndash;&amp;gt;&lt;/strong&gt; { &amp;hellip; })&lt;/p&gt;
-&lt;h3 id=&#34;операторы&#34;&gt;Операторы&lt;a class=&#34;td-heading-self-link&#34; href=&#34;#%d0%be%d0%bf%d0%b5%d1%80%d0%b0%d1%82%d0%be%d1%80%d1%8b&#34; aria-label=&#34;Heading self-link&#34;&gt;&lt;/a&gt;&lt;/h3&gt;
-&lt;ul&gt;
-&lt;li&gt;
-&lt;p&gt;&lt;strong&gt;match(cond)&lt;/strong&gt; - Оператор &lt;a href=&#34;https://newlang.net/ops.html#%D0%BE%D1%86%D0%B5%D0%BD%D0%BA%D0%B0-%D0%B2%D1%8B%D1%80%D0%B0%D0%B6%D0%B5%D0%BD%D0%B8%D1%8F&#34;&gt;оценки выражения&lt;/a&gt;&lt;/p&gt;
-&lt;/li&gt;
-&lt;li&gt;
-&lt;p&gt;&lt;strong&gt;if(&amp;hellip;)&lt;/strong&gt; - Первый условный оператор (&lt;strong&gt;[$*]&amp;ndash;&amp;gt;&lt;/strong&gt; { &amp;hellip; })&lt;/p&gt;
-&lt;/li&gt;
-&lt;li&gt;
-&lt;p&gt;&lt;strong&gt;elif(&amp;hellip;)&lt;/strong&gt; - Второй и все последующие (&lt;strong&gt;,[$*]&amp;ndash;&amp;gt;&lt;/strong&gt; { &amp;hellip; })&lt;/p&gt;
-&lt;/li&gt;
-&lt;li&gt;
-&lt;p&gt;&lt;strong&gt;else&lt;/strong&gt; - Оператор &lt;em&gt;иначе&lt;/em&gt; (&lt;strong&gt;,[_]&amp;ndash;&amp;gt;&lt;/strong&gt; { &amp;hellip; })&lt;/p&gt;
-&lt;/li&gt;
-&lt;li&gt;
-&lt;p&gt;&lt;strong&gt;while(cond)&lt;/strong&gt; - Оператор цикла с предусловием (&lt;strong&gt;[@$cond] &amp;lt;-&amp;gt;&lt;/strong&gt; { &amp;hellip; } )&lt;/p&gt;
-&lt;/li&gt;
-&lt;li&gt;
-&lt;p&gt;&lt;strong&gt;dowhile(cond)&lt;/strong&gt; - Оператор цикла с постусловием ({ &amp;hellip; } &lt;strong&gt;&amp;lt;-&amp;gt;[@$cond]&lt;/strong&gt;)&lt;/p&gt;
-&lt;/li&gt;
-&lt;li&gt;
-&lt;p&gt;&lt;strong&gt;iter(obj, &amp;hellip; )&lt;/strong&gt; - Создание итератора ( &lt;strong&gt;@$obj&lt;/strong&gt; ? (@$*) )&lt;/p&gt;
-&lt;/li&gt;
-&lt;li&gt;
-&lt;p&gt;&lt;strong&gt;next(obj, &amp;hellip; )&lt;/strong&gt; - Следующий элемент итератора ( &lt;strong&gt;@$obj&lt;/strong&gt; ! ($*) )&lt;/p&gt;
-&lt;/li&gt;
-&lt;li&gt;
-&lt;p&gt;&lt;strong&gt;curr(obj, &amp;hellip; )&lt;/strong&gt; - Текущий элемент итератора ( &lt;strong&gt;@$obj&lt;/strong&gt; !? ($*) )&lt;/p&gt;
-&lt;/li&gt;
-&lt;li&gt;
-&lt;p&gt;&lt;strong&gt;first(obj)&lt;/strong&gt; - Перейти на первый элемент итератора ( &lt;strong&gt;@$obj&lt;/strong&gt; !! )&lt;/p&gt;
-&lt;/li&gt;
-&lt;li&gt;
-&lt;p&gt;&lt;strong&gt;all(obj)&lt;/strong&gt; - Получить сразу все элементы итератора ( &lt;strong&gt;@$obj&lt;/strong&gt; ??)&lt;/p&gt;
-&lt;/li&gt;
-&lt;/ul&gt;
-&lt;h3 id=&#34;прерывания&#34;&gt;Прерывания&lt;a class=&#34;td-heading-self-link&#34; href=&#34;#%d0%bf%d1%80%d0%b5%d1%80%d1%8b%d0%b2%d0%b0%d0%bd%d0%b8%d1%8f&#34; aria-label=&#34;Heading self-link&#34;&gt;&lt;/a&gt;&lt;/h3&gt;
-&lt;ul&gt;
-&lt;li&gt;
-&lt;p&gt;&lt;strong&gt;return&lt;/strong&gt; - Положительное прерывание (&lt;strong&gt;++&lt;/strong&gt;)&lt;/p&gt;
-&lt;/li&gt;
-&lt;li&gt;
-&lt;p&gt;&lt;strong&gt;return(&amp;hellip;)&lt;/strong&gt;- Положительное прерывание с возвратом значения (&lt;strong&gt;++&lt;/strong&gt; @$value &lt;strong&gt;++&lt;/strong&gt;)&lt;/p&gt;
-&lt;/li&gt;
-&lt;li&gt;
-&lt;p&gt;&lt;strong&gt;error&lt;/strong&gt; - Отрицательное прерывание (&lt;strong&gt;--&lt;/strong&gt;)&lt;/p&gt;
-&lt;/li&gt;
-&lt;li&gt;
-&lt;p&gt;&lt;strong&gt;error(&amp;hellip;)&lt;/strong&gt; - Отрицательное прерывание с возвратом значения (&lt;strong&gt;--&lt;/strong&gt; @$value &lt;strong&gt;--&lt;/strong&gt;)&lt;/p&gt;
-&lt;/li&gt;
-&lt;li&gt;
-&lt;p&gt;&lt;strong&gt;break+&lt;/strong&gt; и &lt;strong&gt;break-&lt;/strong&gt; - Выход из цикла:&lt;/p&gt;
-&lt;/li&gt;
-&lt;/ul&gt;
-&lt;pre tabindex=&#34;0&#34;&gt;&lt;code&gt;    while(...) {+
-        ++ :Break ++   
-    +}
-    while(...) {-
-        -- :Break --
-    -}
-&lt;/code&gt;&lt;/pre&gt;&lt;ul&gt;
-&lt;li&gt;&lt;strong&gt;continue+&lt;/strong&gt; и &lt;strong&gt;continue-&lt;/strong&gt; - В начало цикла:&lt;/li&gt;
-&lt;/ul&gt;
-&lt;pre tabindex=&#34;0&#34;&gt;&lt;code&gt;    while(...) {+
-        ++ :Continue ++   
-    +}
-    while(...) {-
-        -- :Continue --
-    -}
-&lt;/code&gt;&lt;/pre&gt;&lt;p&gt;obj {
-.field = 1;
-.prop();
-};&lt;/p&gt;
-&lt;p&gt;#Python&lt;/p&gt;
-&lt;h1 id=&#34;1-without-using-with-statement&#34;&gt;1) without using with statement&lt;a class=&#34;td-heading-self-link&#34; href=&#34;#1-without-using-with-statement&#34; aria-label=&#34;Heading self-link&#34;&gt;&lt;/a&gt;&lt;/h1&gt;
-&lt;p&gt;file = open(&amp;lsquo;file_path&amp;rsquo;, &amp;lsquo;w&amp;rsquo;)
-file.write(&amp;lsquo;hello world !&amp;rsquo;)
-file.close()&lt;/p&gt;
-&lt;h1 id=&#34;2-without-using-with-statement&#34;&gt;2) without using with statement&lt;a class=&#34;td-heading-self-link&#34; href=&#34;#2-without-using-with-statement&#34; aria-label=&#34;Heading self-link&#34;&gt;&lt;/a&gt;&lt;/h1&gt;
-&lt;p&gt;file = open(&amp;lsquo;file_path&amp;rsquo;, &amp;lsquo;w&amp;rsquo;)
-try:
-file.write(&amp;lsquo;hello world&amp;rsquo;)
-finally:
-file.close()&lt;/p&gt;
-&lt;p&gt;open(&amp;lsquo;file_path&amp;rsquo;, &amp;lsquo;w&amp;rsquo;) {
-.write(&amp;lsquo;hello world !&amp;rsquo;);
-.close();
-}&lt;/p&gt;
-&lt;p&gt;Python3&lt;/p&gt;
-&lt;h1 id=&#34;using-with-statement&#34;&gt;using with statement&lt;a class=&#34;td-heading-self-link&#34; href=&#34;#using-with-statement&#34; aria-label=&#34;Heading self-link&#34;&gt;&lt;/a&gt;&lt;/h1&gt;
-&lt;p&gt;with open(&amp;lsquo;file_path&amp;rsquo;, &amp;lsquo;w&amp;rsquo;) as file:
-file.write(&amp;lsquo;hello world !&amp;rsquo;)&lt;/p&gt;
-&lt;h1 id=&#34;a-simple-file-writer-object&#34;&gt;a simple file writer object&lt;a class=&#34;td-heading-self-link&#34; href=&#34;#a-simple-file-writer-object&#34; aria-label=&#34;Heading self-link&#34;&gt;&lt;/a&gt;&lt;/h1&gt;
-&lt;p&gt;class MessageWriter(object):
-def &lt;strong&gt;init&lt;/strong&gt;(self, file_name):
-self.file_name = file_name&lt;/p&gt;
-&lt;pre&gt;&lt;code&gt;def __enter__(self):
-    self.file = open(self.file_name, &#39;w&#39;)
-    return self.file
-
-def __exit__(self, *args):
-    self.file.close()
-&lt;/code&gt;&lt;/pre&gt;
-&lt;h1 id=&#34;using-with-statement-with-messagewriter&#34;&gt;using with statement with MessageWriter&lt;a class=&#34;td-heading-self-link&#34; href=&#34;#using-with-statement-with-messagewriter&#34; aria-label=&#34;Heading self-link&#34;&gt;&lt;/a&gt;&lt;/h1&gt;
-&lt;p&gt;with MessageWriter(&amp;lsquo;my_file.txt&amp;rsquo;) as xfile:
-xfile.write(&amp;lsquo;hello world&amp;rsquo;)&lt;/p&gt;
-&lt;h1 id=&#34;a-simple-file-writer-object-1&#34;&gt;a simple file writer object&lt;a class=&#34;td-heading-self-link&#34; href=&#34;#a-simple-file-writer-object-1&#34; aria-label=&#34;Heading self-link&#34;&gt;&lt;/a&gt;&lt;/h1&gt;
-&lt;p&gt;:MessageWriter {
-def &lt;strong&gt;init&lt;/strong&gt;(self, file_name):
-self.file_name = file_name&lt;/p&gt;
-&lt;pre&gt;&lt;code&gt;def __enter__(self):
-    self.file = open(self.file_name, &#39;w&#39;)
-    return self.file
-
-def __exit__(self, *args):
-    self.file.close()
-&lt;/code&gt;&lt;/pre&gt;
-&lt;p&gt;}&lt;/p&gt;
-&lt;h1 id=&#34;using-with-statement-with-messagewriter-1&#34;&gt;using with statement with MessageWriter&lt;a class=&#34;td-heading-self-link&#34; href=&#34;#using-with-statement-with-messagewriter-1&#34; aria-label=&#34;Heading self-link&#34;&gt;&lt;/a&gt;&lt;/h1&gt;
-&lt;p&gt;MessageWriter(&amp;lsquo;my_file.txt&amp;rsquo;) {
-.write(&amp;lsquo;hello world&amp;rsquo;);
-};&lt;/p&gt;
-&lt;p&gt;from contextlib import contextmanager&lt;/p&gt;
-&lt;p&gt;class MessageWriter(object):
-def &lt;strong&gt;init&lt;/strong&gt;(self, filename):
-self.file_name = filename&lt;/p&gt;
-&lt;pre&gt;&lt;code&gt;@contextmanager
-def open_file(self):
-    try:
-        file = open(self.file_name, &#39;w&#39;)
-        yield file
-    finally:
-        file.close()
-&lt;/code&gt;&lt;/pre&gt;
-&lt;h1 id=&#34;usage&#34;&gt;usage&lt;a class=&#34;td-heading-self-link&#34; href=&#34;#usage&#34; aria-label=&#34;Heading self-link&#34;&gt;&lt;/a&gt;&lt;/h1&gt;
-&lt;p&gt;message_writer = MessageWriter(&amp;lsquo;hello.txt&amp;rsquo;)
-with message_writer.open_file() as my_file:
-my_file.write(&amp;lsquo;hello world&amp;rsquo;)&lt;/p&gt;
-&lt;p&gt;:MessageWriter(object) {
-def &lt;strong&gt;init&lt;/strong&gt;(self, filename):
-self.file_name = filename&lt;/p&gt;
-&lt;pre&gt;&lt;code&gt;@contextmanager
-def open_file(self):
-    try:
-        file = open(self.file_name, &#39;w&#39;)
-        yield file
-    finally:
-        file.close()
-&lt;/code&gt;&lt;/pre&gt;
-&lt;p&gt;}&lt;/p&gt;
-&lt;h1 id=&#34;usage-1&#34;&gt;usage&lt;a class=&#34;td-heading-self-link&#34; href=&#34;#usage-1&#34; aria-label=&#34;Heading self-link&#34;&gt;&lt;/a&gt;&lt;/h1&gt;
-&lt;p&gt;message_writer = MessageWriter(&amp;lsquo;hello.txt&amp;rsquo;)
-with message_writer.open_file() as my_file:
-my_file.write(&amp;lsquo;hello world&amp;rsquo;)&lt;/p&gt;
-&lt;h1 id=&#34;приложения&#34;&gt;Приложения&lt;a class=&#34;td-heading-self-link&#34; href=&#34;#%d0%bf%d1%80%d0%b8%d0%bb%d0%be%d0%b6%d0%b5%d0%bd%d0%b8%d1%8f&#34; aria-label=&#34;Heading self-link&#34;&gt;&lt;/a&gt;&lt;/h1&gt;
-&lt;h2 id=&#34;предопределенные-макросы&#34;&gt;Предопределенные макросы&lt;a class=&#34;td-heading-self-link&#34; href=&#34;#%d0%bf%d1%80%d0%b5%d0%b4%d0%be%d0%bf%d1%80%d0%b5%d0%b4%d0%b5%d0%bb%d0%b5%d0%bd%d0%bd%d1%8b%d0%b5-%d0%bc%d0%b0%d0%ba%d1%80%d0%be%d1%81%d1%8b&#34; aria-label=&#34;Heading self-link&#34;&gt;&lt;/a&gt;&lt;/h2&gt;
-&lt;p&gt;При работе парсера &lt;em&gt;NewLang&lt;/em&gt; автоматически формируются несколько зарезервированных макросов, часть из которых соответствуют макросам препроцессора у С/С++.
-Данные предопределенные макросы можно использовать как обычные константы.&lt;/p&gt;
-&lt;ul&gt;
-&lt;li&gt;
-&lt;p&gt;__FILE__ или __FILE_NAME__ - имя и полный путь текущего файла&lt;/p&gt;
-&lt;/li&gt;
-&lt;li&gt;
-&lt;p&gt;__LINE__ или __FILE_LINE__ - содержит номер текущей строки в файле&lt;/p&gt;
-&lt;/li&gt;
-&lt;li&gt;
-&lt;p&gt;__FILE_TIMESTAMP__ - дату и время последней модификации текущего файла в строковом представлении&lt;/p&gt;
-&lt;/li&gt;
-&lt;li&gt;
-&lt;p&gt;__FILE_MD5__ - md5 хеш текущего файла в строковом виде&lt;/p&gt;
-&lt;/li&gt;
-&lt;li&gt;
-&lt;p&gt;__COUNTER__ - целочисленный счетчик, который увеличивает свое значение при каждом обращении&lt;/p&gt;
-&lt;/li&gt;
-&lt;li&gt;
-&lt;p&gt;__DATE__ - дата начала запуска компилятора (имеет одно и тоже значение для всех обрабатываемых файлов)&lt;/p&gt;
-&lt;/li&gt;
-&lt;li&gt;
-&lt;p&gt;__TIME__ - время начала запуска компилятора (имеет одно и тоже значение для всех обрабатываемых файлов)&lt;/p&gt;
-&lt;/li&gt;
-&lt;li&gt;
-&lt;p&gt;__TIMESTAMP__ - дату и время начала запуска компилятора (например: &amp;ldquo;Fri 19 Aug 13:32:58 2016&amp;rdquo;)&lt;/p&gt;
-&lt;/li&gt;
-&lt;li&gt;
-&lt;p&gt;__TIMESTAMP_ISO__ - дату и время начала запуска компилятора в формате ISO (например: &amp;ldquo;2013-07-06T00:50:06Z&amp;rdquo;)&lt;/p&gt;
-&lt;/li&gt;
-&lt;li&gt;
-&lt;p&gt;__NLC_VER__ - Страшая и младшая версия компилятора NewLang (8 битное число, по 4 бита на цифру)&lt;/p&gt;
-&lt;/li&gt;
-&lt;li&gt;
-&lt;p&gt;__NLC_DATE_BUILD__ - текстовая строка с датой сборки компилятора NewLang (например, &amp;ldquo;23.06.04 20:51:39&amp;rdquo;)&lt;/p&gt;
-&lt;/li&gt;
-&lt;li&gt;
-&lt;p&gt;__NLC_SOURCE_GIT__ - текстовая строка с идентификатором исходных файлов NewLang git репозитория, использованных при сборке компилятора (например, &amp;ldquo;v0.3.0-fef8c371&amp;rdquo;)&lt;/p&gt;
-&lt;/li&gt;
-&lt;li&gt;
-&lt;p&gt;__NLC_SOURCE_BUILD__ - дата сборки и git идентификатор исходных файлов NewLang одной текстовой строкой (например, &amp;ldquo;v0.3.0-fef8c371 23.06.04 20:51:39&amp;rdquo;)&lt;/p&gt;
-&lt;/li&gt;
-&lt;/ul&gt;
-
-      </description>
-    </item>
-    
-    <item>
       <title>Docs: Keyword syntax (DSL)</title>
       <link>http://localhost:1313/docs/syntax/dsl/</link>
       <pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate>
@@ -2767,7 +2528,39 @@ which can be adapted or supplemented to suit your own subject area.&lt;/p&gt;
 &lt;li&gt;
 &lt;p&gt;&lt;em&gt;@all(obj)&lt;/em&gt; - Get all elements of the iterator at once&lt;/p&gt;
 &lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;&lt;em&gt;@exit(code)&lt;/em&gt; - Terminate program execution and return exit code&lt;/p&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;&lt;em&gt;@abort()&lt;/em&gt; - Terminate program execution without flushing buffers to disk&lt;/p&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;&lt;em&gt;@using(&amp;hellip;)&lt;/em&gt; - Use the listed namespaces during &lt;a href=&#34;http://localhost:1313/docs/syntax/naming/#using&#34;&gt;name lookup&lt;/a&gt;&lt;/p&gt;
+&lt;/li&gt;
 &lt;/ul&gt;
+&lt;h2 id=&#34;built-in-functions-and-checks&#34;&gt;Built-in functions and checks&lt;a class=&#34;td-heading-self-link&#34; href=&#34;#built-in-functions-and-checks&#34; aria-label=&#34;Heading self-link&#34;&gt;&lt;/a&gt;&lt;/h2&gt;
+&lt;ul&gt;
+&lt;li&gt;
+&lt;p&gt;&lt;em&gt;print(format:FmtChar, &amp;hellip;):Int32&lt;/em&gt; - Equivalent to the C/C++ printf function&lt;/p&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;&lt;em&gt;srand(init:Int32):None&lt;/em&gt; - Set the initial value for the pseudo-random number generator&lt;/p&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;&lt;em&gt;rand():Int32&lt;/em&gt; - Get a pseudo-random number&lt;/p&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;&lt;em&gt;@static_assert( &amp;hellip; )&lt;/em&gt; - Evaluate the expression and check its truth during compilation&lt;/p&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;&lt;em&gt;@assert( &amp;hellip; )&lt;/em&gt; - Evaluate the expression and check its truth during execution&lt;/p&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;&lt;em&gt;@verify( &amp;hellip; )&lt;/em&gt; - Evaluate the expression and check its truth during execution&lt;/p&gt;
+&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;&lt;em&gt;If the compiler is run with the &lt;code&gt;--nlc-no-assert&lt;/code&gt; flag, then runtime checks &lt;code&gt;@assert&lt;/code&gt; are removed from the program text,
+and computations inside &lt;code&gt;@verify&lt;/code&gt; are executed, but their result is ignored.&lt;/em&gt;&lt;/p&gt;
 &lt;h2 id=&#34;predefined-macros&#34;&gt;Predefined macros&lt;a class=&#34;td-heading-self-link&#34; href=&#34;#predefined-macros&#34; aria-label=&#34;Heading self-link&#34;&gt;&lt;/a&gt;&lt;/h2&gt;
 &lt;p&gt;When the &lt;em&gt;NewLang&lt;/em&gt; parser is running, several reserved macros are automatically generated,
 some of which correspond to preprocessor macros in C/C++.

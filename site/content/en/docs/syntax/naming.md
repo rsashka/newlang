@@ -51,6 +51,12 @@ For example, to access the global object **name** from the namespace **ns** in t
 ```python
     ::ns::name(.arg="value");
 ```
+### Namespace Search Extension {#using}
+To specify multiple namespaces for an extended search when resolving *simple* unqualified names, 
+a syntactic construction `... = ns::name, ns::name2;` or `@using(ns::name, ns::name2);` is used with DSL.
+
+The search in the listed namespaces is performed in the order of their specification until the end of the current module 
+or until the next extended search operator or until `... = _;`, which cancels the extended search in namespaces.
 
 ### Forward Declaration {#forward-declaration}
 In the program text, you can only refer to actually existing (created) objects. 
@@ -112,18 +118,3 @@ ns:: { # Use namespace ns
 };
 ```
 
-### Scope
-
-The underscore symbol, as well as an underscore at the beginning of a name or double underscores at the beginning and end of a name, have special meanings.
-
-A single underscore corresponds to a protected, and two underscores to a private scope of an object within a module or class, in accordance with the conventions in the Python language.
-
-However, just like in Python, scopes are more of a "gentleman's agreement," and with explicit naming, access to protected objects can be obtained by simply specifying the full object name.
-
-In addition, there are also system fields and objects that start and end with two underscores.
-
-- '**$**' - The dollar sign at the beginning of a name denotes a system (local) name of a temporary variable, 
-the memory space for which is allocated during execution, and the lifetime is limited by the language semantics.
-- '**::**' - Double colons serve as a separator when specifying namespaces. 
-Explicit namespace specification is a sign of a static object, the memory space for which is allocated during the compilation 
-of the application or module. 

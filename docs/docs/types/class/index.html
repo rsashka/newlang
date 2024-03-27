@@ -34,7 +34,7 @@
 Разумеется, нам нужна возможность создания новых объектов, и языки на основе классов, очевидно, распространены сильнее. Однако это не единственный способ достижения цели.
 В языках наподобие JavaScript (хотя ES6 добавил в язык классы6, 7) и Lua используется концепция ООП на основе прототипов или прототипного ООП. Вместо создания схемы для конструирования новых объектов мы используем существующий объект в качестве прототипа.">
 <meta itemprop="dateModified" content="2024-03-22T23:57:08+03:00" />
-<meta itemprop="wordCount" content="1026">
+<meta itemprop="wordCount" content="1206">
 <meta itemprop="keywords" content="типы данных,ООП,коллекции," /><meta name="twitter:card" content="summary"/><meta name="twitter:title" content="Классы"/>
 <meta name="twitter:description" content="Ответ прост: классы не строго необходимы для ООП. Знаю, это может шокировать.
 Разумеется, нам нужна возможность создания новых объектов, и языки на основе классов, очевидно, распространены сильнее. Однако это не единственный способ достижения цели.
@@ -153,8 +153,6 @@
   <a href="/docs/syntax/sysprop/" class="align-left ps-0 td-sidebar-link td-sidebar-link__page" id="m-docssyntaxsysprop"><span class="">Системные свойства</span></a>
 </li><li class="td-sidebar-nav__section-title td-sidebar-nav__section without-child" id="m-docssyntaxpragmas-li">
   <a href="/docs/syntax/pragmas/" class="align-left ps-0 td-sidebar-link td-sidebar-link__page" id="m-docssyntaxpragmas"><span class="">Опции и настройки компилятора</span></a>
-</li><li class="td-sidebar-nav__section-title td-sidebar-nav__section without-child" id="m-docssyntaxsysmacro-li">
-  <a href="/docs/syntax/sysmacro/" class="align-left ps-0 td-sidebar-link td-sidebar-link__page" id="m-docssyntaxsysmacro"><span class="">Системные макросы</span></a>
 </li><li class="td-sidebar-nav__section-title td-sidebar-nav__section without-child" id="m-docssyntaxdsl-li">
   <a href="/docs/syntax/dsl/" class="align-left ps-0 td-sidebar-link td-sidebar-link__page" id="m-docssyntaxdsl"><span class="">Keyword syntax (DSL)</span></a>
 </li>
@@ -233,6 +231,11 @@
             <div class="td-toc">
         <nav id="TableOfContents">
   <ul>
+    <li>
+      <ul>
+        <li><a href="#scope">Scope</a></li>
+      </ul>
+    </li>
     <li><a href="#интерфейсы-именование-методов-классов-и-пространства-имен">Интерфейсы, именование методов классов и пространства имен</a></li>
     <li><a href="#конструкторы-деструкторы-и-финализаторы-у-объектов">Конструкторы, деструкторы и финализаторы у объектов</a></li>
   </ul>
@@ -319,7 +322,19 @@
 </span></span><span style="display:flex;"><span>    <span style="color:#ce5c00;font-weight:bold">.</span><span style="color:#000">field</span> <span style="color:#000;font-weight:bold">:</span><span style="color:#ce5c00;font-weight:bold">:=</span> <span style="color:#0000cf;font-weight:bold">2</span><span style="color:#000;font-weight:bold">;</span>    <span style="color:#8f5902;font-style:italic"># Будет ошибка, т.к. поле field уже есть в базовом классе</span>
 </span></span><span style="display:flex;"><span>    <span style="color:#000">method</span><span style="color:#000;font-weight:bold">()</span> <span style="color:#ce5c00;font-weight:bold">=</span> <span style="color:#000;font-weight:bold">{};</span>  <span style="color:#8f5902;font-style:italic"># Аналог override, т.к. method должен существовать в базовом классе</span>
 </span></span><span style="display:flex;"><span><span style="color:#000;font-weight:bold">};</span>
-</span></span></code></pre></div><h2 id="интерфейсы-именование-методов-классов-и-пространства-имен">Интерфейсы, именование методов классов и пространства имен<a class="td-heading-self-link" href="#%d0%b8%d0%bd%d1%82%d0%b5%d1%80%d1%84%d0%b5%d0%b9%d1%81%d1%8b-%d0%b8%d0%bc%d0%b5%d0%bd%d0%be%d0%b2%d0%b0%d0%bd%d0%b8%d0%b5-%d0%bc%d0%b5%d1%82%d0%be%d0%b4%d0%be%d0%b2-%d0%ba%d0%bb%d0%b0%d1%81%d1%81%d0%be%d0%b2-%d0%b8-%d0%bf%d1%80%d0%be%d1%81%d1%82%d1%80%d0%b0%d0%bd%d1%81%d1%82%d0%b2%d0%b0-%d0%b8%d0%bc%d0%b5%d0%bd" aria-label="Heading self-link"></a></h2>
+</span></span></code></pre></div><h3 id="scope">Scope<a class="td-heading-self-link" href="#scope" aria-label="Heading self-link"></a></h3>
+<p>The underscore symbol, as well as an underscore at the beginning of a name or double underscores at the beginning and end of a name, have special meanings.</p>
+<p>A single underscore corresponds to a protected, and two underscores to a private scope of an object within a module or class, in accordance with the conventions in the Python language.</p>
+<p>However, just like in Python, scopes are more of a &ldquo;gentleman&rsquo;s agreement,&rdquo; and with explicit naming, access to protected objects can be obtained by simply specifying the full object name.</p>
+<p>In addition, there are also system fields and objects that start and end with two underscores.</p>
+<ul>
+<li>&lsquo;<strong>$</strong>&rsquo; - The dollar sign at the beginning of a name denotes a system (local) name of a temporary variable,
+the memory space for which is allocated during execution, and the lifetime is limited by the language semantics.</li>
+<li>&lsquo;<strong>::</strong>&rsquo; - Double colons serve as a separator when specifying namespaces.
+Explicit namespace specification is a sign of a static object, the memory space for which is allocated during the compilation
+of the application or module.</li>
+</ul>
+<h2 id="интерфейсы-именование-методов-классов-и-пространства-имен">Интерфейсы, именование методов классов и пространства имен<a class="td-heading-self-link" href="#%d0%b8%d0%bd%d1%82%d0%b5%d1%80%d1%84%d0%b5%d0%b9%d1%81%d1%8b-%d0%b8%d0%bc%d0%b5%d0%bd%d0%be%d0%b2%d0%b0%d0%bd%d0%b8%d0%b5-%d0%bc%d0%b5%d1%82%d0%be%d0%b4%d0%be%d0%b2-%d0%ba%d0%bb%d0%b0%d1%81%d1%81%d0%be%d0%b2-%d0%b8-%d0%bf%d1%80%d0%be%d1%81%d1%82%d1%80%d0%b0%d0%bd%d1%81%d1%82%d0%b2%d0%b0-%d0%b8%d0%bc%d0%b5%d0%bd" aria-label="Heading self-link"></a></h2>
 <p>Для создания уникальных идентификаторов на основе имен методов классов, <em>NewLang</em> использует подход, похожий на применяемый в языке Python.
 При создании метода класса, создается глобальная функция с именем класса и именем метода, объединенные через разделитель области имен.
 Например, в классе <code>NewClass2</code> при создании метода <code>method</code> будет создана функция с именем <code>::NewClass2::method</code>.</p>
