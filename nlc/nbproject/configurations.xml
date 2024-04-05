@@ -1,0 +1,449 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<configurationDescriptor version="100">
+  <logicalFolder name="root" displayName="root" projectFiles="true" kind="ROOT">
+    <logicalFolder name="SourceFiles"
+                   displayName="Исходные файлы"
+                   projectFiles="true">
+      <logicalFolder name="f1" displayName="test-jit" projectFiles="true">
+        <itemPath>test/alg_test.cpp</itemPath>
+        <itemPath>test/ast_test.cpp</itemPath>
+        <itemPath>test/class_test.cpp</itemPath>
+        <itemPath>test/diag_test.cpp</itemPath>
+        <itemPath>test/example_test.cpp</itemPath>
+        <itemPath>test/include_test.cpp</itemPath>
+        <itemPath>test/lexer_test.cpp</itemPath>
+        <itemPath>test/llvm_test.cpp</itemPath>
+        <itemPath>test/macro_test.cpp</itemPath>
+        <itemPath>test/module_test.cpp</itemPath>
+        <itemPath>test/nlc_test.cpp</itemPath>
+        <itemPath>test/parser_analysis_test.cpp</itemPath>
+        <itemPath>test/parser_test.cpp</itemPath>
+        <itemPath>test/run_test.cpp</itemPath>
+        <itemPath>test/system_test.cpp</itemPath>
+        <itemPath>test/transpiler_test.cpp</itemPath>
+      </logicalFolder>
+      <logicalFolder name="f1" displayName="test-runtime" projectFiles="true">
+        <itemPath>test/logger_test.cpp</itemPath>
+        <itemPath>test/object_test.cpp</itemPath>
+        <itemPath>test/rational_test.cpp</itemPath>
+      </logicalFolder>
+      <itemPath>autocomplete.h</itemPath>
+      <itemPath>build_options.txt</itemPath>
+      <itemPath>nlc.cpp</itemPath>
+      <itemPath>nlc.h</itemPath>
+      <itemPath>unittest.cpp</itemPath>
+    </logicalFolder>
+    <logicalFolder name="HeaderFiles"
+                   displayName="Файлы заголовков"
+                   projectFiles="true">
+    </logicalFolder>
+    <logicalFolder name="ResourceFiles"
+                   displayName="Файлы ресурсов"
+                   projectFiles="true">
+      <itemPath>../contrib/googletest/googletest/src/gtest-all.cc</itemPath>
+    </logicalFolder>
+    <logicalFolder name="TestFiles"
+                   displayName="Файлы тестов"
+                   projectFiles="false"
+                   kind="TEST_LOGICAL_FOLDER">
+    </logicalFolder>
+    <logicalFolder name="ExternalFiles"
+                   displayName="Важные файлы"
+                   projectFiles="false"
+                   kind="IMPORTANT_FILES_FOLDER">
+      <itemPath>Makefile</itemPath>
+    </logicalFolder>
+  </logicalFolder>
+  <projectmakefile>Makefile</projectmakefile>
+  <confs>
+    <conf name="nlc-Debug" type="1">
+      <toolsSet>
+        <compilerSet>CLang|CLang</compilerSet>
+        <dependencyChecking>true</dependencyChecking>
+        <rebuildPropChanged>false</rebuildPropChanged>
+      </toolsSet>
+      <compileType>
+        <ccTool>
+          <incDir>
+            <pElem>../lib</pElem>
+            <pElem>../contrib/libtorch/include</pElem>
+            <pElem>../contrib/libtorch/include/torch/csrc/api/include</pElem>
+            <pElem>../contrib/fmt/include</pElem>
+            <pElem>../contrib/googletest/googletest</pElem>
+            <pElem>../contrib/googletest/googletest/include</pElem>
+            <pElem></pElem>
+          </incDir>
+          <commandLine>`llvm-config-18 --cxxflags` `cat build_options.txt | tr -d '\r\n'`  -fsanitize=undefined -fsanitize-trap=undefined    -gdwarf-4  -ggdb</commandLine>
+          <preprocessorList>
+            <Elem>BUILD_DEBUG</Elem>
+          </preprocessorList>
+        </ccTool>
+        <linkerTool>
+          <output>../output/nlc</output>
+          <linkerAddLib>
+            <pElem>../contrib/libtorch/lib</pElem>
+            <pElem>../output</pElem>
+          </linkerAddLib>
+          <linkerDynSerch>
+            <pElem>.</pElem>
+          </linkerDynSerch>
+          <linkerLibItems>
+            <linkerLibStdlibItem>PosixThreads</linkerLibStdlibItem>
+            <linkerLibLibItem>c10</linkerLibLibItem>
+            <linkerLibLibItem>torch</linkerLibLibItem>
+            <linkerLibLibItem>torch_cpu</linkerLibLibItem>
+            <linkerLibLibItem>nlc-rt</linkerLibLibItem>
+            <linkerLibLibItem>nlc-jit</linkerLibLibItem>
+            <linkerLibLibItem>crypt</linkerLibLibItem>
+            <linkerLibLibItem>zip</linkerLibLibItem>
+            <linkerLibLibItem>curl</linkerLibLibItem>
+            <linkerLibStdlibItem>DynamicLinking</linkerLibStdlibItem>
+          </linkerLibItems>
+          <commandLine>`llvm-config-18 --link-static --system-libs --libs all` -g -fvisibility=default -Wl,--export-dynamic -Wl,--exclude-libs,ALL -lclang-cpp</commandLine>
+        </linkerTool>
+        <requiredProjects>
+          <makeArtifact PL="/home/rsashka/SOURCE/NewLang/newlang/lib"
+                        CT="2"
+                        CN="nlc-rt-Debug"
+                        AC="false"
+                        BL="true"
+                        WD="/home/rsashka/SOURCE/NewLang/newlang/lib"
+                        BC="${MAKE}  -f Makefile CONF=nlc-rt-Debug"
+                        CC="${MAKE}  -f Makefile CONF=nlc-rt-Debug clean"
+                        OP="../output/libnlc-rt.${CND_DLIB_EXT}">
+          </makeArtifact>
+          <makeArtifact PL="/home/rsashka/SOURCE/NewLang/newlang/lib"
+                        CT="2"
+                        CN="nlc-jit-Debug"
+                        AC="false"
+                        BL="true"
+                        WD="/home/rsashka/SOURCE/NewLang/newlang/lib"
+                        BC="${MAKE}  -f Makefile CONF=nlc-jit-Debug"
+                        CC="${MAKE}  -f Makefile CONF=nlc-jit-Debug clean"
+                        OP="../output/libnlc-jit.${CND_DLIB_EXT}">
+          </makeArtifact>
+        </requiredProjects>
+      </compileType>
+      <item path="../contrib/googletest/googletest/src/gtest-all.cc"
+            ex="true"
+            tool="1"
+            flavor2="9">
+      </item>
+      <item path="autocomplete.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="build_options.txt" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="nlc.cpp" ex="false" tool="1" flavor2="9">
+      </item>
+      <item path="nlc.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="test/alg_test.cpp" ex="true" tool="1" flavor2="9">
+      </item>
+      <item path="test/ast_test.cpp" ex="true" tool="1" flavor2="9">
+      </item>
+      <item path="test/class_test.cpp" ex="true" tool="1" flavor2="9">
+      </item>
+      <item path="test/diag_test.cpp" ex="true" tool="1" flavor2="9">
+      </item>
+      <item path="test/example_test.cpp" ex="true" tool="1" flavor2="9">
+      </item>
+      <item path="test/include_test.cpp" ex="true" tool="1" flavor2="9">
+      </item>
+      <item path="test/lexer_test.cpp" ex="true" tool="1" flavor2="9">
+      </item>
+      <item path="test/llvm_test.cpp" ex="true" tool="1" flavor2="9">
+      </item>
+      <item path="test/logger_test.cpp" ex="true" tool="1" flavor2="9">
+      </item>
+      <item path="test/macro_test.cpp" ex="true" tool="1" flavor2="9">
+      </item>
+      <item path="test/module_test.cpp" ex="true" tool="1" flavor2="9">
+      </item>
+      <item path="test/nlc_test.cpp" ex="true" tool="1" flavor2="9">
+      </item>
+      <item path="test/object_test.cpp" ex="true" tool="1" flavor2="9">
+      </item>
+      <item path="test/parser_analysis_test.cpp" ex="true" tool="1" flavor2="9">
+      </item>
+      <item path="test/parser_test.cpp" ex="true" tool="1" flavor2="9">
+      </item>
+      <item path="test/rational_test.cpp" ex="true" tool="1" flavor2="9">
+      </item>
+      <item path="test/run_test.cpp" ex="true" tool="1" flavor2="9">
+      </item>
+      <item path="test/system_test.cpp" ex="true" tool="1" flavor2="9">
+      </item>
+      <item path="test/transpiler_test.cpp" ex="true" tool="1" flavor2="9">
+      </item>
+      <item path="unittest.cpp" ex="true" tool="1" flavor2="9">
+      </item>
+    </conf>
+    <conf name="UnitTest-JIT-Debug" type="1">
+      <toolsSet>
+        <compilerSet>CLang|CLang</compilerSet>
+        <dependencyChecking>true</dependencyChecking>
+        <rebuildPropChanged>false</rebuildPropChanged>
+      </toolsSet>
+      <compileType>
+        <ccTool>
+          <incDir>
+            <pElem>../lib</pElem>
+            <pElem>../contrib/libtorch/include</pElem>
+            <pElem>../contrib/libtorch/include/torch/csrc/api/include</pElem>
+            <pElem>../contrib/fmt/include</pElem>
+            <pElem>../contrib/googletest/googletest</pElem>
+            <pElem>../contrib/googletest/googletest/include</pElem>
+            <pElem></pElem>
+          </incDir>
+          <commandLine>`llvm-config-18 --cxxflags` `cat build_options.txt | tr -d '\r\n'`  -fsanitize=undefined -fsanitize-trap=undefined    -gdwarf-4  -ggdb</commandLine>
+          <preprocessorList>
+            <Elem>BUILD_DEBUG</Elem>
+            <Elem>BUILD_UNITTEST</Elem>
+            <Elem>GTEST_HAS_CXXABI_H_=0</Elem>
+          </preprocessorList>
+        </ccTool>
+        <linkerTool>
+          <output>../output/nlc-jit-unttest</output>
+          <linkerAddLib>
+            <pElem>../contrib/libtorch/lib</pElem>
+            <pElem>../output</pElem>
+          </linkerAddLib>
+          <linkerDynSerch>
+            <pElem>.</pElem>
+          </linkerDynSerch>
+          <linkerLibItems>
+            <linkerLibStdlibItem>PosixThreads</linkerLibStdlibItem>
+            <linkerLibLibItem>c10</linkerLibLibItem>
+            <linkerLibLibItem>torch</linkerLibLibItem>
+            <linkerLibLibItem>torch_cpu</linkerLibLibItem>
+            <linkerLibLibItem>nlc-rt</linkerLibLibItem>
+            <linkerLibLibItem>nlc-jit</linkerLibLibItem>
+            <linkerLibLibItem>crypt</linkerLibLibItem>
+            <linkerLibLibItem>zip</linkerLibLibItem>
+            <linkerLibStdlibItem>DynamicLinking</linkerLibStdlibItem>
+          </linkerLibItems>
+          <commandLine>`llvm-config-18 --link-static --system-libs --libs all` -g -fvisibility=default -Wl,--export-dynamic -Wl,--exclude-libs,ALL -lclang-cpp</commandLine>
+        </linkerTool>
+        <requiredProjects>
+          <makeArtifact PL="/home/rsashka/SOURCE/NewLang/newlang/lib"
+                        CT="2"
+                        CN="nlc-rt-Debug"
+                        AC="false"
+                        BL="true"
+                        WD="/home/rsashka/SOURCE/NewLang/newlang/lib"
+                        BC="${MAKE}  -f Makefile CONF=nlc-rt-Debug"
+                        CC="${MAKE}  -f Makefile CONF=nlc-rt-Debug clean"
+                        OP="../output/libnlc-rt.${CND_DLIB_EXT}">
+          </makeArtifact>
+          <makeArtifact PL="/home/rsashka/SOURCE/NewLang/newlang/lib"
+                        CT="2"
+                        CN="nlc-jit-Debug"
+                        AC="false"
+                        BL="true"
+                        WD="/home/rsashka/SOURCE/NewLang/newlang/lib"
+                        BC="${MAKE}  -f Makefile CONF=nlc-jit-Debug"
+                        CC="${MAKE}  -f Makefile CONF=nlc-jit-Debug clean"
+                        OP="../output/libnlc-jit.${CND_DLIB_EXT}">
+          </makeArtifact>
+        </requiredProjects>
+      </compileType>
+      <item path="../contrib/googletest/googletest/src/gtest-all.cc"
+            ex="false"
+            tool="1"
+            flavor2="0">
+      </item>
+      <item path="autocomplete.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="build_options.txt" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="nlc.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="test/alg_test.cpp" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="test/ast_test.cpp" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="test/class_test.cpp" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="test/diag_test.cpp" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="test/example_test.cpp" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="test/include_test.cpp" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="test/lexer_test.cpp" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="test/llvm_test.cpp" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="test/logger_test.cpp" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="test/macro_test.cpp" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="test/module_test.cpp" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="test/nlc_test.cpp" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="test/object_test.cpp" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="test/parser_analysis_test.cpp" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="test/parser_test.cpp" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="test/rational_test.cpp" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="test/run_test.cpp" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="test/system_test.cpp" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="test/transpiler_test.cpp" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="unittest.cpp" ex="false" tool="1" flavor2="0">
+      </item>
+    </conf>
+    <conf name="UnitTest-RT-Debug" type="1">
+      <toolsSet>
+        <compilerSet>CLang|CLang</compilerSet>
+        <dependencyChecking>true</dependencyChecking>
+        <rebuildPropChanged>false</rebuildPropChanged>
+      </toolsSet>
+      <compileType>
+        <ccTool>
+          <incDir>
+            <pElem>../lib</pElem>
+            <pElem>../contrib/libtorch/include</pElem>
+            <pElem>../contrib/libtorch/include/torch/csrc/api/include</pElem>
+            <pElem>../contrib/googletest/googletest</pElem>
+            <pElem>../contrib/googletest/googletest/include</pElem>
+            <pElem></pElem>
+          </incDir>
+          <commandLine>`llvm-config-18 --cxxflags` `cat build_options.txt | tr -d '\r\n'`  -fsanitize=undefined -fsanitize-trap=undefined    -gdwarf-4  -ggdb</commandLine>
+          <preprocessorList>
+            <Elem>BUILD_DEBUG</Elem>
+            <Elem>BUILD_UNITTEST</Elem>
+            <Elem>GTEST_HAS_CXXABI_H_=0</Elem>
+          </preprocessorList>
+        </ccTool>
+        <linkerTool>
+          <output>../output/nlc-rt-unttest</output>
+          <linkerAddLib>
+            <pElem>../contrib/libtorch/lib</pElem>
+            <pElem>../output</pElem>
+          </linkerAddLib>
+          <linkerDynSerch>
+            <pElem>.</pElem>
+          </linkerDynSerch>
+          <linkerLibItems>
+            <linkerLibStdlibItem>PosixThreads</linkerLibStdlibItem>
+            <linkerLibLibItem>c10</linkerLibLibItem>
+            <linkerLibLibItem>torch</linkerLibLibItem>
+            <linkerLibLibItem>torch_cpu</linkerLibLibItem>
+            <linkerLibLibItem>nlc-rt</linkerLibLibItem>
+            <linkerLibLibItem>crypt</linkerLibLibItem>
+            <linkerLibLibItem>zip</linkerLibLibItem>
+            <linkerLibStdlibItem>DynamicLinking</linkerLibStdlibItem>
+          </linkerLibItems>
+        </linkerTool>
+        <requiredProjects>
+          <makeArtifact PL="/home/rsashka/SOURCE/NewLang/newlang/lib"
+                        CT="2"
+                        CN="nlc-rt-Debug"
+                        AC="false"
+                        BL="true"
+                        WD="/home/rsashka/SOURCE/NewLang/newlang/lib"
+                        BC="${MAKE}  -f Makefile CONF=nlc-rt-Debug"
+                        CC="${MAKE}  -f Makefile CONF=nlc-rt-Debug clean"
+                        OP="../output/libnlc-rt.${CND_DLIB_EXT}">
+          </makeArtifact>
+        </requiredProjects>
+      </compileType>
+      <item path="../contrib/googletest/googletest/src/gtest-all.cc"
+            ex="false"
+            tool="1"
+            flavor2="9">
+      </item>
+      <item path="build_options.txt" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="nlc.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="test/logger_test.cpp" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="test/rational_test.cpp" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="unittest.cpp" ex="false" tool="1" flavor2="0">
+      </item>
+    </conf>
+    <conf name="Release" type="2">
+      <toolsSet>
+        <compilerSet>CLang|CLang</compilerSet>
+        <dependencyChecking>true</dependencyChecking>
+        <rebuildPropChanged>false</rebuildPropChanged>
+      </toolsSet>
+      <compileType>
+        <cTool>
+          <developmentMode>5</developmentMode>
+        </cTool>
+        <ccTool>
+          <developmentMode>5</developmentMode>
+        </ccTool>
+        <fortranCompilerTool>
+          <developmentMode>5</developmentMode>
+        </fortranCompilerTool>
+        <asmTool>
+          <developmentMode>5</developmentMode>
+        </asmTool>
+      </compileType>
+      <item path="../contrib/googletest/googletest/src/gtest-all.cc"
+            ex="false"
+            tool="1"
+            flavor2="0">
+      </item>
+      <item path="autocomplete.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="build_options.txt" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="nlc.cpp" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="nlc.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="test/alg_test.cpp" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="test/ast_test.cpp" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="test/class_test.cpp" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="test/diag_test.cpp" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="test/example_test.cpp" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="test/include_test.cpp" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="test/lexer_test.cpp" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="test/llvm_test.cpp" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="test/logger_test.cpp" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="test/macro_test.cpp" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="test/module_test.cpp" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="test/nlc_test.cpp" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="test/object_test.cpp" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="test/parser_analysis_test.cpp" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="test/parser_test.cpp" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="test/rational_test.cpp" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="test/run_test.cpp" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="test/system_test.cpp" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="test/transpiler_test.cpp" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="unittest.cpp" ex="false" tool="1" flavor2="0">
+      </item>
+    </conf>
+  </confs>
+</configurationDescriptor>

@@ -1,5 +1,6 @@
 TEMP
 doxygen/*
+output/*
 **/*.pt
 contrib/*
 **/.obsidian
@@ -8,7 +9,6 @@ contrib/*
 **/*.cmake
 **/newlang-unit-tests
 **/newlang-unit-tests.exe
-**/nlc
 **/nlc.exe
 **/**tar.xz
 **/DartConfiguration.tcl
@@ -221,12 +221,10 @@ __pycache__/
 # Distribution / packaging
 .Python
 build/
-develop-eggs/
 dist/
 downloads/
 eggs/
 .eggs/
-lib/
 lib64/
 parts/
 sdist/

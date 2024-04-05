@@ -21,28 +21,28 @@ fi
 #    types
 #    "
 #
-#
-#function check_new_file() {
-#    if [ ! -f $1.temp ]; then
-#         echo File name $1.temp not found!
-#         exit 1
-#    fi
-#
-#    if [ ! -f $1 ]; then
-#        mv $1.temp $1
-#    else
-#
-#       if cmp -s $1 $1.temp; then
-#           rm $1.temp
-#           echo Use file $1 for current build
-#       else
-#           rm $1
-#           mv $1.temp $1
-#           echo Use new file $1
-#       fi
-#    fi
-#}
-#
+
+function check_new_file() {
+    if [ ! -f $1.temp ]; then
+         echo File name $1.temp not found!
+         exit 1
+    fi
+
+    if [ ! -f $1 ]; then
+        mv $1.temp $1
+    else
+
+       if cmp -s $1 $1.temp; then
+           rm $1.temp
+           echo Use file $1 for current build
+       else
+           rm $1
+           mv $1.temp $1
+           echo Use new file $1
+       fi
+    fi
+}
+
 #mkdir $root/output/site
 #
 #for flang in $lang; do
@@ -72,21 +72,21 @@ fi
 #
 #    pandoc -f gfm -t plain $fdir/$alldoc.md > $fdir/$alldoc.txt
 #
-#    $root/contrib/text2cpp/output/bin/text2cpp $fdir/$alldoc.md  $root/src/syntax_help_$flang.cpp.temp  newlang_syntax_help_$flang c
+#    $root/contrib/text2cpp/output/bin/text2cpp $fdir/$alldoc.md  $root/lib/syntax_help_$flang.cpp.temp  newlang_syntax_help_$flang c
 #
 #    rm $fdir/$alldoc.md
 #
-#    check_new_file   $root/src/syntax_help_$flang.cpp
+#    check_new_file   $root/lib/syntax_help_$flang.cpp
 #
 #done
 
 VERSION_MAJOR=0
 VERSION_MINOR=5
 VERSION_PATCH=0
-VERSION_HEADER="$root/src/version.h"
-VERSION_FILE="$root/src/version.cpp"
-VERSION_HEADER_TEMP="$root/src/version.h.temp"
-VERSION_FILE_TEMP="$root/src/version.cpp.temp"
+VERSION_HEADER="$root/lib/version.h"
+VERSION_FILE="$root/lib/version.cpp"
+VERSION_HEADER_TEMP="$root/lib/version.h.temp"
+VERSION_FILE_TEMP="$root/lib/version.cpp.temp"
 
 
 GIT_TAG_VERSION=`git describe --abbrev=0 --tags`
@@ -174,3 +174,8 @@ else
     echo Make file $VERSION_FILE for version $GIT_SOURCE_ID at date $DATE_BUILD
 fi
 
+$root/contrib/text2cpp/output/bin/text2cpp $root/lib/build_options.txt  $root/lib/build_options.data.temp  newlang_build_options c
+check_new_file $root/lib/build_options.data
+
+$root/contrib/text2cpp/output/bin/text2cpp $root/lib/include_h.i        $root/lib/include_h_i.data.temp    newlang_include_h_i c
+check_new_file $root/lib/include_h_i.data

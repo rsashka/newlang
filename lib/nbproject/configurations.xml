@@ -1,0 +1,244 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<configurationDescriptor version="100">
+  <logicalFolder name="root" displayName="root" projectFiles="true" kind="ROOT">
+    <logicalFolder name="SourceFiles"
+                   displayName="Исходные файлы"
+                   projectFiles="true">
+      <logicalFolder name="f2" displayName="jit" projectFiles="true">
+        <itemPath>analysis.cpp</itemPath>
+        <itemPath>builtin.cpp</itemPath>
+        <itemPath>context.cpp</itemPath>
+        <itemPath>diag.cpp</itemPath>
+        <itemPath>lexer.cpp</itemPath>
+        <itemPath>lexer.yy.cpp</itemPath>
+        <itemPath>macro.cpp</itemPath>
+        <itemPath>module.cpp</itemPath>
+        <itemPath>parser.cpp</itemPath>
+        <itemPath>parser.yy.cpp</itemPath>
+        <itemPath>runtime.cpp</itemPath>
+        <itemPath>system.cpp</itemPath>
+        <itemPath>term.cpp</itemPath>
+        <itemPath>transpiler.cpp</itemPath>
+      </logicalFolder>
+      <logicalFolder name="f1" displayName="runtime" projectFiles="true">
+        <itemPath>logger.cpp</itemPath>
+        <itemPath>object.cpp</itemPath>
+        <itemPath>rational.cpp</itemPath>
+        <itemPath>version.cpp</itemPath>
+      </logicalFolder>
+    </logicalFolder>
+    <logicalFolder name="HeaderFiles"
+                   displayName="Файлы заголовков"
+                   projectFiles="true">
+      <itemPath>../lib/../../newlang/lib/include.h</itemPath>
+      <itemPath>lexer.h</itemPath>
+      <itemPath>nlc-rt.h</itemPath>
+      <itemPath>parser.h</itemPath>
+      <itemPath>term.h</itemPath>
+      <itemPath>warning_pop.h</itemPath>
+      <itemPath>warning_push.h</itemPath>
+    </logicalFolder>
+    <logicalFolder name="ResourceFiles"
+                   displayName="Файлы ресурсов"
+                   projectFiles="true">
+      <logicalFolder name="f1" displayName="fmt" projectFiles="true">
+        <itemPath>../contrib/fmt/src/format.cc</itemPath>
+      </logicalFolder>
+      <itemPath>include_h.i</itemPath>
+      <itemPath>include_h_i.data</itemPath>
+      <itemPath>lexer.yy.h</itemPath>
+      <itemPath>location.hh</itemPath>
+      <itemPath>parser.yy.h</itemPath>
+    </logicalFolder>
+    <logicalFolder name="TestFiles"
+                   displayName="Файлы тестов"
+                   projectFiles="false"
+                   kind="TEST_LOGICAL_FOLDER">
+    </logicalFolder>
+    <logicalFolder name="ExternalFiles"
+                   displayName="Важные файлы"
+                   projectFiles="false"
+                   kind="IMPORTANT_FILES_FOLDER">
+      <itemPath>Makefile</itemPath>
+      <itemPath>../make_version.sh</itemPath>
+    </logicalFolder>
+    <itemPath>lexer.l</itemPath>
+    <itemPath>../make_version.sh</itemPath>
+    <itemPath>parser.y</itemPath>
+  </logicalFolder>
+  <projectmakefile>Makefile</projectmakefile>
+  <confs>
+    <conf name="nlc-rt-Debug" type="2">
+      <toolsSet>
+        <compilerSet>CLang|CLang</compilerSet>
+        <dependencyChecking>true</dependencyChecking>
+        <rebuildPropChanged>false</rebuildPropChanged>
+      </toolsSet>
+      <compileType>
+        <ccTool>
+          <incDir>
+            <pElem>../contrib/libtorch/include</pElem>
+            <pElem>../contrib/libtorch/include/torch/csrc/api/include</pElem>
+            <pElem>../contrib/fmt/include</pElem>
+          </incDir>
+          <commandLine>`llvm-config-18 --cxxflags` `cat build_options.txt | tr -d '\r\n'`  -fsanitize=undefined -fsanitize-trap=undefined    -gdwarf-4  -ggdb</commandLine>
+          <preprocessorList>
+            <Elem>BUILD_DEBUG</Elem>
+          </preprocessorList>
+        </ccTool>
+        <linkerTool>
+          <output>../output/libnlc-rt.${CND_DLIB_EXT}</output>
+        </linkerTool>
+      </compileType>
+      <item path="../contrib/fmt/src/format.cc" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="../lib/../../newlang/lib/include.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../make_version.sh" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="include_h_i.data" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="lexer.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="lexer.l" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="lexer.yy.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="location.hh" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="logger.cpp" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="nlc-rt.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="object.cpp" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="parser.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="parser.y" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="parser.yy.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="rational.cpp" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="term.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="version.cpp" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="warning_pop.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="warning_push.h" ex="false" tool="3" flavor2="0">
+      </item>
+    </conf>
+    <conf name="nlc-jit-Debug" type="2">
+      <toolsSet>
+        <compilerSet>CLang|CLang</compilerSet>
+        <dependencyChecking>true</dependencyChecking>
+        <rebuildPropChanged>false</rebuildPropChanged>
+      </toolsSet>
+      <compileType>
+        <ccTool>
+          <incDir>
+            <pElem>../contrib/libtorch/include</pElem>
+            <pElem>../contrib/libtorch/include/torch/csrc/api/include</pElem>
+            <pElem>../contrib/fmt/include</pElem>
+          </incDir>
+          <commandLine>`llvm-config-18 --cxxflags` `cat build_options.txt | tr -d '\r\n'`  -fsanitize=undefined -fsanitize-trap=undefined    -gdwarf-4  -ggdb</commandLine>
+          <preprocessorList>
+            <Elem>BUILD_DEBUG</Elem>
+          </preprocessorList>
+        </ccTool>
+        <linkerTool>
+          <output>../output/libnlc-jit.${CND_DLIB_EXT}</output>
+        </linkerTool>
+      </compileType>
+      <item path="../contrib/fmt/src/format.cc" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="../lib/../../newlang/lib/include.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../make_version.sh" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="analysis.cpp" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="builtin.cpp" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="context.cpp" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="diag.cpp" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="lexer.cpp" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="lexer.h" ex="false" tool="3" flavor2="0">
+        <customTool>
+          <customToolAdditionalDep>lexer.l parser.yy.h parser.yy.cpp location.hh</customToolAdditionalDep>
+        </customTool>
+      </item>
+      <item path="lexer.l" ex="false" tool="3" flavor2="0">
+        <customTool>
+          <customToolCommandline>flex  --outfile=lexer.yy.cpp --header-file=lexer.yy.h --noline  lexer.l</customToolCommandline>
+          <customToolOutputs>lexer.yy.cpp lexer.yy.h</customToolOutputs>
+          <customToolAdditionalDep>parser.y parser.yy.h parser.yy.cpp location.hh term.h</customToolAdditionalDep>
+        </customTool>
+      </item>
+      <item path="lexer.yy.cpp" ex="false" tool="1" flavor2="0">
+        <ccTool>
+          <additionalDep>lexer.l parser.y parser.yy.h parser.yy.cpp location.hh</additionalDep>
+        </ccTool>
+      </item>
+      <item path="lexer.yy.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="location.hh" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="logger.cpp" ex="false" tool="1" flavor2="9">
+      </item>
+      <item path="macro.cpp" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="module.cpp" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="nlc-rt.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="object.cpp" ex="false" tool="1" flavor2="9">
+      </item>
+      <item path="parser.cpp" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="parser.h" ex="false" tool="3" flavor2="0">
+        <customTool>
+          <customToolAdditionalDep>parser.y</customToolAdditionalDep>
+        </customTool>
+      </item>
+      <item path="parser.y" ex="false" tool="3" flavor2="0">
+        <customTool>
+          <customToolCommandline>bison --output-file=parser.yy.cpp --defines=parser.yy.h --warnings=all parser.y</customToolCommandline>
+          <customToolOutputs>parser.yy.h parser.yy.cpp location.hh</customToolOutputs>
+        </customTool>
+      </item>
+      <item path="parser.yy.cpp" ex="false" tool="1" flavor2="0">
+        <ccTool>
+          <additionalDep>parser.y</additionalDep>
+        </ccTool>
+      </item>
+      <item path="parser.yy.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="rational.cpp" ex="false" tool="1" flavor2="9">
+      </item>
+      <item path="runtime.cpp" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="system.cpp" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="term.cpp" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="term.h" ex="false" tool="3" flavor2="0">
+        <customTool>
+          <customToolAdditionalDep>parser.yy.cpp location.hh</customToolAdditionalDep>
+        </customTool>
+      </item>
+      <item path="transpiler.cpp" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="version.cpp" ex="false" tool="1" flavor2="9">
+      </item>
+      <item path="warning_pop.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="warning_push.h" ex="false" tool="3" flavor2="0">
+      </item>
+    </conf>
+  </confs>
+</configurationDescriptor>
