@@ -3,4 +3,8 @@ cd text2cpp
 ./configure --prefix=`pwd`/output
 make
 make install
+
+cd ../googletest
+cmake .
+make
 cd ..
