@@ -2,14 +2,7 @@
 #ifndef INCLUDED_NEWLANG_CONTEXT_
 #define INCLUDED_NEWLANG_CONTEXT_
 
-//#include "pch.h"
-
-#include <ffi.h>
-
-#include "nlc-rt.h"
-
 #include "term.h"
-//#include <object.h>
 
 namespace newlang {
 
@@ -39,8 +32,8 @@ namespace newlang {
         virtual ~Context() {
         }
 
-        static ObjPtr Run(TermPtr ast, Context *runner);
-
+//        static ObjPtr Run(TermPtr ast, Context *runner);
+//
         static ObjPtr EvalTerm(TermPtr term, Context *runner, bool rvalue = true);
         TermPtr GetObject(const std::string_view int_name);
 
@@ -72,7 +65,7 @@ namespace newlang {
         }
 
         ObjPtr CreateNative_(TermPtr &proto, const char *module, bool lazzy, const char *mangle_name);
-        static ObjPtr CallNative_(Context *runner, Obj & obj, Obj *args = nullptr);
+        ObjPtr CallNative_(Context *runner, Obj & obj, Obj *args = nullptr);
 
         /**
          * Выполняет одну операцию
@@ -92,19 +85,19 @@ namespace newlang {
         static ObjPtr CreateRange(TermPtr &term, Context * runner);
         static ObjPtr CreateTensor(TermPtr &term, Context * runner);
 
-        static ObjPtr SetIndexValue(TermPtr &term, ObjPtr &value, Context * runner);
-        static ObjPtr SetFieldValue(TermPtr &term, ObjPtr &value, Context * runner);
-        static ObjPtr GetIndexValue(TermPtr &term, ObjPtr &value, Context * runner);
-        static ObjPtr GetFieldValue(TermPtr &term, ObjPtr &value, Context * runner);
-
-
-        ObjPtr EvalCreate_(TermPtr & op);
-        ObjPtr AssignVars_(ArrayTermType &vars, const TermPtr &r_term, bool is_pure);
-
-        ObjPtr EvalIterator_(TermPtr & term);
-        ObjPtr EvalInterrupt_(TermPtr & term);
-
-        ObjPtr EvalOp_(TermPtr & op);
+//        static ObjPtr SetIndexValue(TermPtr &term, ObjPtr &value, Context * runner);
+//        static ObjPtr SetFieldValue(TermPtr &term, ObjPtr &value, Context * runner);
+//        static ObjPtr GetIndexValue(TermPtr &term, ObjPtr &value, Context * runner);
+//        static ObjPtr GetFieldValue(TermPtr &term, ObjPtr &value, Context * runner);
+//
+//
+//        ObjPtr EvalCreate_(TermPtr & op);
+//        ObjPtr AssignVars_(ArrayTermType &vars, const TermPtr &r_term, bool is_pure);
+//
+//        ObjPtr EvalIterator_(TermPtr & term);
+//        ObjPtr EvalInterrupt_(TermPtr & term);
+//
+//        ObjPtr EvalOp_(TermPtr & op);
 
         static ObjPtr EvalOpMath_(TermPtr &op, Context * runner);
         static ObjPtr EvalOpLogical_(TermPtr &op, Context * runner);
@@ -112,18 +105,18 @@ namespace newlang {
         static ObjPtr EvalOpBitwise_(TermPtr &op, Context * runner);
         static ObjPtr EvalRange_(TermPtr &op, Context * runner);
 
-        ObjPtr EvalTake_(TermPtr & op);
-        ObjPtr EvalWhile_(TermPtr & op);
-        ObjPtr EvalDoWhile_(TermPtr & op);
+//        ObjPtr EvalTake_(TermPtr & op);
+//        ObjPtr EvalWhile_(TermPtr & op);
+//        ObjPtr EvalDoWhile_(TermPtr & op);
         static ObjPtr EvalFollow_(TermPtr & op, Context * runner);
 
-        /**
-         * Выполняет группу операций, которые записаны в стек
-         * @param op
-         * @param run
-         * @return 
-         */
-        ObjPtr EvalBlock_(TermPtr &block, StorageTerm &storage);
+//        /**
+//         * Выполняет группу операций, которые записаны в стек
+//         * @param op
+//         * @param run
+//         * @return 
+//         */
+//        ObjPtr EvalBlock_(TermPtr &block, StorageTerm &storage);
         ObjPtr EvalEval_(TermPtr & op);
 
     };

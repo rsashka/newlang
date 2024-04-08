@@ -4,15 +4,15 @@
 #include <torch/torch.h>
 #include <ATen/ATen.h>
 
-#include <llvm-c/Types.h>
-#include <llvm-c/ExecutionEngine.h>
+//#include <llvm-c/Types.h>
+//#include <llvm-c/ExecutionEngine.h>
 #include "warning_pop.h"
 
 #include <codecvt>
 
 #include "object.h"
-//#include "context.h"
-//#include "runtime.h"
+#include "context.h"
+#include "runtime.h"
 
 using namespace newlang;
 
@@ -3779,34 +3779,33 @@ ObjType newlang::typeFromLimit(int64_t value, ObjType type_default) {
 #pragma message "Переделать сравение"
 bool Obj::op_class_test(const char *name, Context * ctx) const {
 
-    ASSERT(0);
-//    ASSERT(name || *name);
-//
-//    if (!m_class_name.empty() && m_class_name.compare(name) == 0) {
-//        return true;
-//    }
-//    for (auto &elem : m_class_parents) {
-//        if (elem->op_class_test(name, ctx)) {
-//            return true;
-//        }
-//    }
-//
-//    bool has_error = false;
-//    ObjType type = RunTime::BaseTypeFromString(m_ctx ? m_ctx->m_runtime.get() : nullptr, name, &has_error);
-//    if (has_error) {
-//        LOG_DEBUG("Type name %s not found!", name);
-//        return false;
-//    }
-//
-//    ObjType check_type = m_var_type_current;
-//    if (m_var_type_current == ObjType::Type || (!m_var_is_init && m_var_type_current == ObjType::None)) {
-//        check_type = m_var_type_fixed;
-//    }
-//
-//    if (isContainsType(type, check_type)) {
-//        return true;
-//    }
-//
-    std::string class_name;// = newlang::toString(check_type);
+    ASSERT(name || *name);
+
+    if (!m_class_name.empty() && m_class_name.compare(name) == 0) {
+        return true;
+    }
+    for (auto &elem : m_class_parents) {
+        if (elem->op_class_test(name, ctx)) {
+            return true;
+        }
+    }
+
+    bool has_error = false;
+    ObjType type = RunTime::BaseTypeFromString(m_ctx ? m_ctx->m_runtime.get() : nullptr, name, &has_error);
+    if (has_error) {
+        LOG_DEBUG("Type name %s not found!", name);
+        return false;
+    }
+
+    ObjType check_type = m_var_type_current;
+    if (m_var_type_current == ObjType::Type || (!m_var_is_init && m_var_type_current == ObjType::None)) {
+        check_type = m_var_type_fixed;
+    }
+
+    if (isContainsType(type, check_type)) {
+        return true;
+    }
+
+    std::string class_name = newlang::toString(check_type);
     return !class_name.empty() && class_name.compare(name) == 0;
 }

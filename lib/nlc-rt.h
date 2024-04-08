@@ -7,5 +7,10 @@
 #include "object.h"
 #include "version.h"
 
+#include "term.h"
+#include "context.h"
+#include "diag.h"
+#include "runtime.h"
+
 #endif /* NLC_RT_H */
 

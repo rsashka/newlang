@@ -36,32 +36,17 @@ OBJECTDIR=${CND_BUILDDIR}/${CND_CONF}/${CND_PLATFORM}
 # Object Files
 OBJECTFILES= \
 	${OBJECTDIR}/_ext/b0ad39d/format.o \
-	${OBJECTDIR}/analysis.o \
-	${OBJECTDIR}/builtin.o \
-	${OBJECTDIR}/context.o \
-	${OBJECTDIR}/diag.o \
-	${OBJECTDIR}/lexer.o \
-	${OBJECTDIR}/lexer.yy.o \
-	${OBJECTDIR}/logger.o \
+	${OBJECTDIR}/jit.o \
 	${OBJECTDIR}/macro.o \
-	${OBJECTDIR}/module.o \
-	${OBJECTDIR}/object.o \
-	${OBJECTDIR}/parser.o \
-	${OBJECTDIR}/parser.yy.o \
-	${OBJECTDIR}/rational.o \
-	${OBJECTDIR}/runtime.o \
-	${OBJECTDIR}/system.o \
-	${OBJECTDIR}/term.o \
-	${OBJECTDIR}/transpiler.o \
-	${OBJECTDIR}/version.o
+	${OBJECTDIR}/module.o
 
 
 # C Compiler Flags
 CFLAGS=
 
 # CC Compiler Flags
-CCFLAGS=`llvm-config-18 --cxxflags` `cat build_options.txt | tr -d '\r\n'`  -fsanitize=undefined -fsanitize-trap=undefined    -gdwarf-4  -ggdb 
-CXXFLAGS=`llvm-config-18 --cxxflags` `cat build_options.txt | tr -d '\r\n'`  -fsanitize=undefined -fsanitize-trap=undefined    -gdwarf-4  -ggdb 
+CCFLAGS=`llvm-config-18 --cxxflags` `cat ../build_options.txt | tr -d '\r\n'`  -fsanitize=undefined -fsanitize-trap=undefined    -gdwarf-4  -ggdb 
+CXXFLAGS=`llvm-config-18 --cxxflags` `cat ../build_options.txt | tr -d '\r\n'`  -fsanitize=undefined -fsanitize-trap=undefined    -gdwarf-4  -ggdb 
 
 # Fortran Compiler Flags
 FFLAGS=
@@ -83,32 +68,12 @@ LDLIBSOPTIONS=
 ${OBJECTDIR}/_ext/b0ad39d/format.o: ../contrib/fmt/src/format.cc
 	${MKDIR} -p ${OBJECTDIR}/_ext/b0ad39d
 	${RM} "$@.d"
-	$(COMPILE.cc) -g -DBUILD_DEBUG -I../contrib/libtorch/include -I../contrib/libtorch/include/torch/csrc/api/include -I../contrib/fmt/include -fPIC  -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/_ext/b0ad39d/format.o ../contrib/fmt/src/format.cc
+	$(COMPILE.cc) -g -DBUILD_DEBUG -DLOG_LEVEL_NORMAL=LOG_LEVEL_DEBUG -I../contrib/libtorch/include -I../contrib/libtorch/include/torch/csrc/api/include -I../contrib/fmt/include -fPIC  -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/_ext/b0ad39d/format.o ../contrib/fmt/src/format.cc
 
-${OBJECTDIR}/analysis.o: analysis.cpp
+${OBJECTDIR}/jit.o: jit.cpp
 	${MKDIR} -p ${OBJECTDIR}
 	${RM} "$@.d"
-	$(COMPILE.cc) -g -DBUILD_DEBUG -I../contrib/libtorch/include -I../contrib/libtorch/include/torch/csrc/api/include -I../contrib/fmt/include -fPIC  -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/analysis.o analysis.cpp
-
-${OBJECTDIR}/builtin.o: builtin.cpp
-	${MKDIR} -p ${OBJECTDIR}
-	${RM} "$@.d"
-	$(COMPILE.cc) -g -DBUILD_DEBUG -I../contrib/libtorch/include -I../contrib/libtorch/include/torch/csrc/api/include -I../contrib/fmt/include -fPIC  -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/builtin.o builtin.cpp
-
-${OBJECTDIR}/context.o: context.cpp
-	${MKDIR} -p ${OBJECTDIR}
-	${RM} "$@.d"
-	$(COMPILE.cc) -g -DBUILD_DEBUG -I../contrib/libtorch/include -I../contrib/libtorch/include/torch/csrc/api/include -I../contrib/fmt/include -fPIC  -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/context.o context.cpp
-
-${OBJECTDIR}/diag.o: diag.cpp
-	${MKDIR} -p ${OBJECTDIR}
-	${RM} "$@.d"
-	$(COMPILE.cc) -g -DBUILD_DEBUG -I../contrib/libtorch/include -I../contrib/libtorch/include/torch/csrc/api/include -I../contrib/fmt/include -fPIC  -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/diag.o diag.cpp
-
-${OBJECTDIR}/lexer.o: lexer.cpp
-	${MKDIR} -p ${OBJECTDIR}
-	${RM} "$@.d"
-	$(COMPILE.cc) -g -DBUILD_DEBUG -I../contrib/libtorch/include -I../contrib/libtorch/include/torch/csrc/api/include -I../contrib/fmt/include -fPIC  -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/lexer.o lexer.cpp
+	$(COMPILE.cc) -g -DBUILD_DEBUG -DLOG_LEVEL_NORMAL=LOG_LEVEL_DEBUG -I../contrib/libtorch/include -I../contrib/libtorch/include/torch/csrc/api/include -I../contrib/fmt/include -fPIC  -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/jit.o jit.cpp
 
 : lexer.h lexer.l parser.yy.h parser.yy.cpp location.hh
 	@echo Выполнение шага пользовательского сборки
@@ -119,35 +84,15 @@ lexer.yy.cpp lexer.yy.h: lexer.l parser.y parser.yy.h parser.yy.cpp location.hh 
 	@echo Выполнение шага пользовательского сборки
 	flex  --outfile=lexer.yy.cpp --header-file=lexer.yy.h --noline  lexer.l
 
-${OBJECTDIR}/lexer.yy.o: lexer.yy.cpp lexer.l parser.y parser.yy.h parser.yy.cpp location.hh
-	${MKDIR} -p ${OBJECTDIR}
-	${RM} "$@.d"
-	$(COMPILE.cc) -g -DBUILD_DEBUG -I../contrib/libtorch/include -I../contrib/libtorch/include/torch/csrc/api/include -I../contrib/fmt/include -fPIC  -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/lexer.yy.o lexer.yy.cpp
-
-${OBJECTDIR}/logger.o: logger.cpp
-	${MKDIR} -p ${OBJECTDIR}
-	${RM} "$@.d"
-	$(COMPILE.cc) -g -DBUILD_DEBUG -I../contrib/libtorch/include -I../contrib/libtorch/include/torch/csrc/api/include -I../contrib/fmt/include -fPIC  -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/logger.o logger.cpp
-
 ${OBJECTDIR}/macro.o: macro.cpp
 	${MKDIR} -p ${OBJECTDIR}
 	${RM} "$@.d"
-	$(COMPILE.cc) -g -DBUILD_DEBUG -I../contrib/libtorch/include -I../contrib/libtorch/include/torch/csrc/api/include -I../contrib/fmt/include -fPIC  -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/macro.o macro.cpp
+	$(COMPILE.cc) -g -DBUILD_DEBUG -DLOG_LEVEL_NORMAL=LOG_LEVEL_DEBUG -I../contrib/libtorch/include -I../contrib/libtorch/include/torch/csrc/api/include -I../contrib/fmt/include -fPIC  -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/macro.o macro.cpp
 
 ${OBJECTDIR}/module.o: module.cpp
 	${MKDIR} -p ${OBJECTDIR}
 	${RM} "$@.d"
-	$(COMPILE.cc) -g -DBUILD_DEBUG -I../contrib/libtorch/include -I../contrib/libtorch/include/torch/csrc/api/include -I../contrib/fmt/include -fPIC  -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/module.o module.cpp
-
-${OBJECTDIR}/object.o: object.cpp
-	${MKDIR} -p ${OBJECTDIR}
-	${RM} "$@.d"
-	$(COMPILE.cc) -g -DBUILD_DEBUG -I../contrib/libtorch/include -I../contrib/libtorch/include/torch/csrc/api/include -I../contrib/fmt/include -fPIC  -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/object.o object.cpp
-
-${OBJECTDIR}/parser.o: parser.cpp
-	${MKDIR} -p ${OBJECTDIR}
-	${RM} "$@.d"
-	$(COMPILE.cc) -g -DBUILD_DEBUG -I../contrib/libtorch/include -I../contrib/libtorch/include/torch/csrc/api/include -I../contrib/fmt/include -fPIC  -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/parser.o parser.cpp
+	$(COMPILE.cc) -g -DBUILD_DEBUG -DLOG_LEVEL_NORMAL=LOG_LEVEL_DEBUG -I../contrib/libtorch/include -I../contrib/libtorch/include/torch/csrc/api/include -I../contrib/fmt/include -fPIC  -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/module.o module.cpp
 
 : parser.h parser.y
 	@echo Выполнение шага пользовательского сборки
@@ -158,44 +103,9 @@ parser.yy.h parser.yy.cpp location.hh: parser.y
 	@echo Выполнение шага пользовательского сборки
 	bison --output-file=parser.yy.cpp --defines=parser.yy.h --warnings=all parser.y
 
-${OBJECTDIR}/parser.yy.o: parser.yy.cpp parser.y
-	${MKDIR} -p ${OBJECTDIR}
-	${RM} "$@.d"
-	$(COMPILE.cc) -g -DBUILD_DEBUG -I../contrib/libtorch/include -I../contrib/libtorch/include/torch/csrc/api/include -I../contrib/fmt/include -fPIC  -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/parser.yy.o parser.yy.cpp
-
-${OBJECTDIR}/rational.o: rational.cpp
-	${MKDIR} -p ${OBJECTDIR}
-	${RM} "$@.d"
-	$(COMPILE.cc) -g -DBUILD_DEBUG -I../contrib/libtorch/include -I../contrib/libtorch/include/torch/csrc/api/include -I../contrib/fmt/include -fPIC  -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/rational.o rational.cpp
-
-${OBJECTDIR}/runtime.o: runtime.cpp
-	${MKDIR} -p ${OBJECTDIR}
-	${RM} "$@.d"
-	$(COMPILE.cc) -g -DBUILD_DEBUG -I../contrib/libtorch/include -I../contrib/libtorch/include/torch/csrc/api/include -I../contrib/fmt/include -fPIC  -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/runtime.o runtime.cpp
-
-${OBJECTDIR}/system.o: system.cpp
-	${MKDIR} -p ${OBJECTDIR}
-	${RM} "$@.d"
-	$(COMPILE.cc) -g -DBUILD_DEBUG -I../contrib/libtorch/include -I../contrib/libtorch/include/torch/csrc/api/include -I../contrib/fmt/include -fPIC  -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/system.o system.cpp
-
-${OBJECTDIR}/term.o: term.cpp
-	${MKDIR} -p ${OBJECTDIR}
-	${RM} "$@.d"
-	$(COMPILE.cc) -g -DBUILD_DEBUG -I../contrib/libtorch/include -I../contrib/libtorch/include/torch/csrc/api/include -I../contrib/fmt/include -fPIC  -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/term.o term.cpp
-
 : term.h parser.yy.cpp location.hh
 	@echo Выполнение шага пользовательского сборки
 	
-
-${OBJECTDIR}/transpiler.o: transpiler.cpp
-	${MKDIR} -p ${OBJECTDIR}
-	${RM} "$@.d"
-	$(COMPILE.cc) -g -DBUILD_DEBUG -I../contrib/libtorch/include -I../contrib/libtorch/include/torch/csrc/api/include -I../contrib/fmt/include -fPIC  -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/transpiler.o transpiler.cpp
-
-${OBJECTDIR}/version.o: version.cpp
-	${MKDIR} -p ${OBJECTDIR}
-	${RM} "$@.d"
-	$(COMPILE.cc) -g -DBUILD_DEBUG -I../contrib/libtorch/include -I../contrib/libtorch/include/torch/csrc/api/include -I../contrib/fmt/include -fPIC  -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/version.o version.cpp
 
 # Subprojects
 .build-subprojects:

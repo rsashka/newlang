@@ -19,22 +19,22 @@
 
 <title>Классы | NewLang</title>
 <meta name="description" content="Тип данных :Class аналогичен словарю, но все его поля обязаны иметь имена (хотя доступ к свойствам класса по индексу так же возможен). При создании экземпляра класса, создается новый тип, для которого копируются свойства и методы всех родителей.
-Создание нового сложного типа (класса), происходит согласно правилам синтаксиса как создание нового типа как функции в пользовательском пространстве имен. Имя типа является именем нового класса, а его вызов как функции будет вызовом конструктора.">
+Создание нового сложного типа (класса), происходит согласно правилам синтаксиса как создание нового типа как функции в пользовательском пространстве имен. Имя типа является именем нового класса, а его вызов как функции будет вызовом конструктора. Области видимости тут">
 <meta property="og:title" content="Классы" />
 <meta property="og:description" content="Тип данных :Class аналогичен словарю, но все его поля обязаны иметь имена (хотя доступ к свойствам класса по индексу так же возможен). При создании экземпляра класса, создается новый тип, для которого копируются свойства и методы всех родителей.
-Создание нового сложного типа (класса), происходит согласно правилам синтаксиса как создание нового типа как функции в пользовательском пространстве имен. Имя типа является именем нового класса, а его вызов как функции будет вызовом конструктора." />
+Создание нового сложного типа (класса), происходит согласно правилам синтаксиса как создание нового типа как функции в пользовательском пространстве имен. Имя типа является именем нового класса, а его вызов как функции будет вызовом конструктора. Области видимости тут" />
 <meta property="og:type" content="article" />
 <meta property="og:url" content="http://localhost:1313/ru/docs/types/class/" /><meta property="article:section" content="docs" />
 
-<meta property="article:modified_time" content="2024-03-22T23:57:08+03:00" /><meta property="og:site_name" content="NewLang" />
+<meta property="article:modified_time" content="2024-03-27T14:52:38+03:00" /><meta property="og:site_name" content="NewLang" />
 <meta itemprop="name" content="Классы">
 <meta itemprop="description" content="Тип данных :Class аналогичен словарю, но все его поля обязаны иметь имена (хотя доступ к свойствам класса по индексу так же возможен). При создании экземпляра класса, создается новый тип, для которого копируются свойства и методы всех родителей.
-Создание нового сложного типа (класса), происходит согласно правилам синтаксиса как создание нового типа как функции в пользовательском пространстве имен. Имя типа является именем нового класса, а его вызов как функции будет вызовом конструктора.">
-<meta itemprop="dateModified" content="2024-03-22T23:57:08+03:00" />
-<meta itemprop="wordCount" content="1393">
+Создание нового сложного типа (класса), происходит согласно правилам синтаксиса как создание нового типа как функции в пользовательском пространстве имен. Имя типа является именем нового класса, а его вызов как функции будет вызовом конструктора. Области видимости тут">
+<meta itemprop="dateModified" content="2024-03-27T14:52:38+03:00" />
+<meta itemprop="wordCount" content="1248">
 <meta itemprop="keywords" content="типы данных,ООП,коллекции," /><meta name="twitter:card" content="summary"/><meta name="twitter:title" content="Классы"/>
 <meta name="twitter:description" content="Тип данных :Class аналогичен словарю, но все его поля обязаны иметь имена (хотя доступ к свойствам класса по индексу так же возможен). При создании экземпляра класса, создается новый тип, для которого копируются свойства и методы всех родителей.
-Создание нового сложного типа (класса), происходит согласно правилам синтаксиса как создание нового типа как функции в пользовательском пространстве имен. Имя типа является именем нового класса, а его вызов как функции будет вызовом конструктора."/>
+Создание нового сложного типа (класса), происходит согласно правилам синтаксиса как создание нового типа как функции в пользовательском пространстве имен. Имя типа является именем нового класса, а его вызов как функции будет вызовом конструктора. Области видимости тут"/>
 
 
 
@@ -208,6 +208,10 @@
   <a href="/ru/docs/arch/mangling/" class="align-left ps-0 td-sidebar-link td-sidebar-link__page" id="m-rudocsarchmangling"><span class="">Внутреннее имя и манглинг имен</span></a>
 </li><li class="td-sidebar-nav__section-title td-sidebar-nav__section without-child" id="m-rudocsarcherrors-li">
   <a href="/ru/docs/arch/errors/" class="align-left ps-0 td-sidebar-link td-sidebar-link__page" id="m-rudocsarcherrors"><span class="">Реализация прерываний и обработки ошибок</span></a>
+</li><li class="td-sidebar-nav__section-title td-sidebar-nav__section without-child" id="m-rudocsarchjit-li">
+  <a href="/ru/docs/arch/jit/" class="align-left ps-0 td-sidebar-link td-sidebar-link__page" id="m-rudocsarchjit"><span class="">Реализация JIT</span></a>
+</li><li class="td-sidebar-nav__section-title td-sidebar-nav__section without-child" id="m-rudocsarchvisibility-li">
+  <a href="/ru/docs/arch/visibility/" class="align-left ps-0 td-sidebar-link td-sidebar-link__page" id="m-rudocsarchvisibility"><span class="">Области видимости</span></a>
 </li>
   </ul>
 </li>
@@ -227,12 +231,7 @@
             <div class="td-toc">
         <nav id="TableOfContents">
   <ul>
-    <li>
-      <ul>
-        <li><a href="#области-видимости">Области видимости</a></li>
-      </ul>
-    </li>
-    <li><a href="#импорт-нативных-классов">Импорт нативных классов</a></li>
+    <li><a href="#импорт-нативных-классов--косяки">Импорт нативных классов  &lt;КОСЯКИ!!!!!&gt;</a></li>
     <li><a href="#интерфейсы-именование-методов-классов-и-пространства-имен">Интерфейсы, именование методов классов и пространства имен</a></li>
     <li><a href="#конструкторы-деструкторы-и-финализаторы-у-объектов">Конструкторы, деструкторы и финализаторы у объектов</a></li>
   </ul>
@@ -287,7 +286,8 @@
 При создании экземпляра класса, создается новый тип, для которого копируются свойства и методы всех родителей.</p>
 <p>Создание нового сложного типа (класса), происходит согласно <a href="/ru/docs/ops/create/">правилам синтаксиса</a> как создание нового типа
 как функции в пользовательском <a href="/ru/docs/syntax/namespace/">пространстве имен</a>.
-Имя типа является именем нового класса, а его вызов как функции будет вызовом конструктора.</p>
+Имя типа является именем нового класса, а его вызов как функции будет вызовом конструктора.
+Области видимости <a href="/ru/docs/arch/visibility.">тут</a></p>
 <p>Синтаксис создание класса выглядит следующим образом:</p>
 <div class="highlight"><pre tabindex="0" style="background-color:#f8f8f8;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-python" data-lang="python"><span style="display:flex;"><span><span style="color:#8f5902;font-style:italic"># Новый тип (класс) :NewClass</span>
 </span></span><span style="display:flex;"><span><span style="color:#000">ns</span><span style="color:#000;font-weight:bold">::</span><span style="color:#000">NewClass</span><span style="color:#000;font-weight:bold">()</span> <span style="color:#ce5c00;font-weight:bold">:=</span> <span style="color:#000;font-weight:bold">:</span><span style="color:#000">Class</span><span style="color:#000;font-weight:bold">()</span> <span style="color:#000;font-weight:bold">{</span> <span style="color:#8f5902;font-style:italic"># Родительские класс или несколько классов через запятую</span>
@@ -311,20 +311,7 @@
 </span></span><span style="display:flex;"><span>    <span style="color:#ce5c00;font-weight:bold">.</span><span style="color:#000">field</span> <span style="color:#000;font-weight:bold">:</span><span style="color:#ce5c00;font-weight:bold">:=</span> <span style="color:#0000cf;font-weight:bold">2</span><span style="color:#000;font-weight:bold">;</span>    <span style="color:#8f5902;font-style:italic"># Будет ошибка, т.к. поле field уже есть в базовом классе</span>
 </span></span><span style="display:flex;"><span>    <span style="color:#000">method</span><span style="color:#000;font-weight:bold">()</span> <span style="color:#ce5c00;font-weight:bold">=</span> <span style="color:#000;font-weight:bold">{};</span>  <span style="color:#8f5902;font-style:italic"># Аналог override, т.к. method должен существовать в базовом классе</span>
 </span></span><span style="display:flex;"><span><span style="color:#000;font-weight:bold">};</span>
-</span></span></code></pre></div><h3 id="области-видимости">Области видимости<a class="td-heading-self-link" href="#%d0%be%d0%b1%d0%bb%d0%b0%d1%81%d1%82%d0%b8-%d0%b2%d0%b8%d0%b4%d0%b8%d0%bc%d0%be%d1%81%d1%82%d0%b8" aria-label="Heading self-link"></a></h3>
-<p>Символ подчерка, а так же подчерк в начале имени или двойные подчерки в начале и в конце имени имеют специальное значение.</p>
-<p>Один подчерк соответствует защищенной, а два подчерка - приватной области видимости объекта в модуле или классе,
-что соответствует принятым соглашениям в языке Python.</p>
-<p>Но так же, как и в языке Python, области видимости больше соответствуют &ldquo;джентльменской&rdquo; договоренности и при явном указании имени,
-доступ к защищенным объектам можно получить, просто указав полное имя объекта.</p>
-<p>В дополнении к этому, существуют еще системные поля и объекты, которые начинаются и заканчиваются на два подчерка.</p>
-<ul>
-<li>&lsquo;<strong>$</strong>&rsquo; — знак доллара в начале имени обозначает системное (локальное) имя временной переменной,
-область памяти для которой выделяется во время выполнения, а время <a href="/ru/docs/syntax/memory/">жизни ограничено семантикой яызка</a></li>
-<li>&lsquo;<strong>::</strong>&rsquo; — двойное двоеточие являются разделителем при указании <a href="/ru/docs/syntax/namespace/">пространства имен</a>.
-Явное указание пространства имен является признаком статического объекта, область памяти для которого выделяется во время компиляции приложения или модуля.</li>
-</ul>
-<h2 id="импорт-нативных-классов">Импорт нативных классов<a class="td-heading-self-link" href="#%d0%b8%d0%bc%d0%bf%d0%be%d1%80%d1%82-%d0%bd%d0%b0%d1%82%d0%b8%d0%b2%d0%bd%d1%8b%d1%85-%d0%ba%d0%bb%d0%b0%d1%81%d1%81%d0%be%d0%b2" aria-label="Heading self-link"></a></h2>
+</span></span></code></pre></div><h2 id="импорт-нативных-классов--косяки">Импорт нативных классов  &lt;КОСЯКИ!!!!!&gt;<a class="td-heading-self-link" href="#%d0%b8%d0%bc%d0%bf%d0%be%d1%80%d1%82-%d0%bd%d0%b0%d1%82%d0%b8%d0%b2%d0%bd%d1%8b%d1%85-%d0%ba%d0%bb%d0%b0%d1%81%d1%81%d0%be%d0%b2--%d0%ba%d0%be%d1%81%d1%8f%d0%ba%d0%b8" aria-label="Heading self-link"></a></h2>
 <p>Так же новый класс можно создать на базе нативного класса C++ с определенными ограничениями:</p>
 <ul>
 <li>У нативных классов можно импортировть только <em>публичные не статические методы</em> (не виртуальные???)</li>

@@ -9,6 +9,7 @@
 #include "module.h"
 #include "runtime.h"
 #include "analysis.h"
+#include "jit.h"
 
 using namespace newlang;
 
@@ -529,10 +530,11 @@ TEST(Ast, AstAnalyze) {
 
     RuntimePtr rt = RunTime::Init();
     ASSERT_TRUE(rt);
+    JitPtr jit = JIT::Init(*rt);
 
     AstAnalysis analysis(*rt, rt->m_diag.get());
 
-    TermPtr ast = rt->GetParser()->Parse("var1 ::= '1';");
+    TermPtr ast = jit->GetParser()->Parse("var1 ::= '1';");
 
     ASSERT_TRUE(ast);
     ASSERT_TRUE(analysis.Analyze(ast, ast)) << ast->m_int_vars.Dump();
@@ -541,7 +543,7 @@ TEST(Ast, AstAnalyze) {
     ASSERT_STREQ("var1", ast->m_int_vars.find("var1$")->second->m_text.c_str());
     ASSERT_STREQ("var1$", ast->m_int_vars.find("var1$")->second->m_int_name.c_str());
 
-    ast = rt->GetParser()->Parse("$var2 ::= '1';$var3 ::= '1';");
+    ast = jit->GetParser()->Parse("$var2 ::= '1';$var3 ::= '1';");
 
     ASSERT_TRUE(ast);
     ASSERT_TRUE(analysis.Analyze(ast, ast));
@@ -553,7 +555,7 @@ TEST(Ast, AstAnalyze) {
     ASSERT_STREQ("1::var2$", ast->m_int_vars.find("1::var2$")->second->m_int_name.c_str());
     ASSERT_STREQ("1::var3$", ast->m_int_vars.find("1::var3$")->second->m_int_name.c_str());
 
-    ast = rt->GetParser()->Parse("$var ::= '1'; $var := '2';");
+    ast = jit->GetParser()->Parse("$var ::= '1'; $var := '2';");
 
     ASSERT_TRUE(ast);
     ASSERT_TRUE(analysis.Analyze(ast, ast));
@@ -562,7 +564,7 @@ TEST(Ast, AstAnalyze) {
     ASSERT_STREQ("$var", ast->m_int_vars.find("1::var$")->second->m_text.c_str());
     ASSERT_STREQ("1::var$", ast->m_int_vars.find("1::var$")->second->m_int_name.c_str());
 
-    ast = rt->GetParser()->Parse("$var := '1'; $var = '2';");
+    ast = jit->GetParser()->Parse("$var := '1'; $var = '2';");
 
     ASSERT_TRUE(ast);
     ASSERT_TRUE(analysis.Analyze(ast, ast));
@@ -572,15 +574,15 @@ TEST(Ast, AstAnalyze) {
     ASSERT_STREQ("1::var$", ast->m_int_vars.find("1::var$")->second->m_int_name.c_str());
 
 
-    ast = rt->GetParser()->Parse("$var = '1'; $var := '2';");
+    ast = jit->GetParser()->Parse("$var = '1'; $var := '2';");
     ASSERT_TRUE(ast);
     ASSERT_FALSE(analysis.Analyze(ast, ast));
 
-    ast = rt->GetParser()->Parse("$var ::= '1'; $var ::= '2';");
+    ast = jit->GetParser()->Parse("$var ::= '1'; $var ::= '2';");
     ASSERT_TRUE(ast);
     ASSERT_FALSE(analysis.Analyze(ast, ast));
 
-    ast = rt->GetParser()->Parse("$var := 'строка'; $var = 2;");
+    ast = jit->GetParser()->Parse("$var := 'строка'; $var = 2;");
     ASSERT_TRUE(ast);
     ASSERT_EQ(2, ast->m_block.size());
     ASSERT_STREQ(":=", ast->m_block[0]->m_text.c_str());
@@ -603,39 +605,39 @@ TEST(Ast, AstAnalyze) {
 
     ASSERT_FALSE(analysis.Analyze(ast, ast));
 
-    ast = rt->GetParser()->Parse("$var := 2; $var = '';");
+    ast = jit->GetParser()->Parse("$var := 2; $var = '';");
     ASSERT_TRUE(ast);
     ASSERT_FALSE(analysis.Analyze(ast, ast));
 
-    //    ast = rt->GetParser()->Parse("$var := 2; $var = _;");
+    //    ast = jit->GetParser()->Parse("$var := 2; $var = _;");
     //    ASSERT_TRUE(ast);
     //    ASSERT_TRUE(analysis.Analyze(ast));
     //    ASSERT_STREQ(":None", ast->m_int_vars["$var"].proto->GetType()->asTypeString().c_str());
 
-    ast = rt->GetParser()->Parse("$var := 2; $var = 2222;");
+    ast = jit->GetParser()->Parse("$var := 2; $var = 2222;");
     ASSERT_TRUE(ast);
     ASSERT_TRUE(analysis.Analyze(ast, ast));
     ASSERT_TRUE(ast->m_int_vars.find("1::var$") != ast->m_int_vars.end()) << ast->m_int_vars.Dump();
     ASSERT_STREQ(":Int16", ast->m_int_vars.find("1::var$")->second->GetType()->asTypeString().c_str());
 
-    ast = rt->GetParser()->Parse("$var:Int8 := 2; $var = 2222;");
+    ast = jit->GetParser()->Parse("$var:Int8 := 2; $var = 2222;");
     ASSERT_TRUE(ast);
     ASSERT_FALSE(analysis.Analyze(ast, ast));
 
 
-    ast = rt->GetParser()->Parse("$var := 2; $var = 22222222;");
+    ast = jit->GetParser()->Parse("$var := 2; $var = 22222222;");
     ASSERT_TRUE(ast);
     ASSERT_TRUE(analysis.Analyze(ast, ast));
     ASSERT_TRUE(ast->m_int_vars.find("1::var$") != ast->m_int_vars.end()) << ast->m_int_vars.Dump();
     ASSERT_STREQ(":Int32", ast->m_int_vars.find("1::var$")->second->GetType()->asTypeString().c_str());
 
-    ast = rt->GetParser()->Parse("$var := 2; $var = 2222222222222;");
+    ast = jit->GetParser()->Parse("$var := 2; $var = 2222222222222;");
     ASSERT_TRUE(ast);
     ASSERT_TRUE(analysis.Analyze(ast, ast));
     ASSERT_TRUE(ast->m_int_vars.find("1::var$") != ast->m_int_vars.end()) << ast->m_int_vars.Dump();
     ASSERT_STREQ(":Int64", ast->m_int_vars.find("1::var$")->second->GetType()->asTypeString().c_str());
 
-    ast = rt->GetParser()->Parse("$var := 2; $var = 2.0;");
+    ast = jit->GetParser()->Parse("$var := 2; $var = 2.0;");
     ASSERT_TRUE(ast);
     ASSERT_TRUE(analysis.Analyze(ast, ast));
     ASSERT_TRUE(ast->m_int_vars.find("1::var$") != ast->m_int_vars.end()) << ast->m_int_vars.Dump();
@@ -651,9 +653,10 @@ TEST(Ast, Namespace) {
 
     RuntimePtr rt = RunTime::Init();
     ASSERT_TRUE(rt);
+    JitPtr jit = JIT::Init(*rt);
     AstAnalysis analysis(*rt, rt->m_diag.get());
 
-    TermPtr ast = rt->GetParser()->Parse("$var := 1;");
+    TermPtr ast = jit->GetParser()->Parse("$var := 1;");
     ASSERT_TRUE(ast);
     ASSERT_EQ(0, ast->m_int_vars.size());
     ASSERT_TRUE(analysis.Analyze(ast, ast));
@@ -662,7 +665,7 @@ TEST(Ast, Namespace) {
     ASSERT_STREQ("$var", ast->m_int_vars.find("var$")->second->m_text.c_str());
     ASSERT_STREQ("var$", ast->m_int_vars.find("var$")->second->m_int_name.c_str());
 
-    ast = rt->GetParser()->Parse("var := 1;");
+    ast = jit->GetParser()->Parse("var := 1;");
     ASSERT_TRUE(ast);
     ASSERT_EQ(0, ast->m_int_vars.size());
     ASSERT_TRUE(analysis.Analyze(ast, ast));
@@ -671,7 +674,7 @@ TEST(Ast, Namespace) {
     ASSERT_STREQ("var$", ast->m_int_vars.find("var$")->second->m_int_name.c_str());
 
 
-    ast = rt->GetParser()->Parse("::ns::var := 1;");
+    ast = jit->GetParser()->Parse("::ns::var := 1;");
     ASSERT_TRUE(ast);
     ASSERT_EQ(0, ast->m_int_vars.size());
     ASSERT_TRUE(analysis.Analyze(ast, ast));
@@ -679,7 +682,7 @@ TEST(Ast, Namespace) {
     ASSERT_STREQ("::ns::var", ast->m_int_vars.find("::ns::var::")->second->m_text.c_str());
     ASSERT_STREQ("::ns::var::", ast->m_int_vars.find("::ns::var::")->second->m_int_name.c_str());
 
-    ast = rt->GetParser()->Parse("ns::var := 1;");
+    ast = jit->GetParser()->Parse("ns::var := 1;");
     ASSERT_TRUE(ast);
     ASSERT_EQ(0, ast->m_int_vars.size());
     ASSERT_TRUE(analysis.Analyze(ast, ast));
@@ -688,7 +691,7 @@ TEST(Ast, Namespace) {
     ASSERT_STREQ("ns::var::", ast->m_int_vars.find("ns::var::")->second->m_int_name.c_str());
 
 
-    ast = rt->GetParser()->Parse("name { var := 1; }");
+    ast = jit->GetParser()->Parse("name { var := 1; }");
     ASSERT_TRUE(ast);
     ASSERT_EQ(0, ast->m_int_vars.size());
     ASSERT_TRUE(analysis.Analyze(ast, ast));
@@ -704,7 +707,7 @@ TEST(Ast, Namespace) {
     ASSERT_TRUE(ast->m_block[0]->m_right);
     ASSERT_STREQ("1", ast->m_block[0]->m_right->m_text.c_str());
 
-    ast = rt->GetParser()->Parse("name:: { var := 1; }");
+    ast = jit->GetParser()->Parse("name:: { var := 1; }");
     ASSERT_TRUE(ast);
     ASSERT_EQ(0, ast->m_int_vars.size());
     ASSERT_TRUE(analysis.Analyze(ast, ast));
@@ -712,7 +715,7 @@ TEST(Ast, Namespace) {
     ASSERT_STREQ("var", ast->m_int_vars.find("1::name::var$")->second->m_text.c_str());
     ASSERT_STREQ("1::name::var$", ast->m_int_vars.find("1::name::var$")->second->m_int_name.c_str());
 
-    ast = rt->GetParser()->Parse("ns::name:: { var := 1; }");
+    ast = jit->GetParser()->Parse("ns::name:: { var := 1; }");
     ASSERT_TRUE(ast);
     ASSERT_EQ(0, ast->m_int_vars.size());
     ASSERT_TRUE(analysis.Analyze(ast, ast));
@@ -720,7 +723,7 @@ TEST(Ast, Namespace) {
     ASSERT_STREQ("var", ast->m_int_vars.find("1::ns::name::var$")->second->m_text.c_str());
     ASSERT_STREQ("1::ns::name::var$", ast->m_int_vars.find("1::ns::name::var$")->second->m_int_name.c_str());
 
-    ast = rt->GetParser()->Parse("name:: { ::var := 1; }");
+    ast = jit->GetParser()->Parse("name:: { ::var := 1; }");
     ASSERT_TRUE(ast);
     ASSERT_EQ(0, ast->m_int_vars.size());
     ASSERT_TRUE(analysis.Analyze(ast, ast));
@@ -728,7 +731,7 @@ TEST(Ast, Namespace) {
     ASSERT_STREQ("::var", ast->m_int_vars.find("::var::")->second->m_text.c_str());
     ASSERT_STREQ("::var::", ast->m_int_vars.find("::var::")->second->m_int_name.c_str());
 
-    ast = rt->GetParser()->Parse("::name:: { ::ns2::var := 1; }");
+    ast = jit->GetParser()->Parse("::name:: { ::ns2::var := 1; }");
     ASSERT_TRUE(ast);
     ASSERT_EQ(0, ast->m_int_vars.size());
     ASSERT_TRUE(analysis.Analyze(ast, ast));
@@ -736,7 +739,7 @@ TEST(Ast, Namespace) {
     ASSERT_STREQ("::ns2::var", ast->m_int_vars.find("::ns2::var::")->second->m_text.c_str());
     ASSERT_STREQ("::ns2::var::", ast->m_int_vars.find("::ns2::var::")->second->m_int_name.c_str());
 
-    ast = rt->GetParser()->Parse("name { $var := 1; }");
+    ast = jit->GetParser()->Parse("name { $var := 1; }");
     ASSERT_TRUE(ast);
     ASSERT_EQ(0, ast->m_int_vars.size());
     ASSERT_TRUE(analysis.Analyze(ast, ast));
@@ -744,7 +747,7 @@ TEST(Ast, Namespace) {
     ASSERT_STREQ("$var", ast->m_int_vars.find("1::name::var$")->second->m_text.c_str());
     ASSERT_STREQ("1::name::var$", ast->m_int_vars.find("1::name::var$")->second->m_int_name.c_str());
 
-    ast = rt->GetParser()->Parse("name { { $var := 1; } }");
+    ast = jit->GetParser()->Parse("name { { $var := 1; } }");
     ASSERT_TRUE(ast);
     ASSERT_EQ(0, ast->m_int_vars.size());
     ASSERT_TRUE(analysis.Analyze(ast, ast));
@@ -752,7 +755,7 @@ TEST(Ast, Namespace) {
     ASSERT_STREQ("$var", ast->m_int_vars.find("1::name::2::var$")->second->m_text.c_str());
     ASSERT_STREQ("1::name::2::var$", ast->m_int_vars.find("1::name::2::var$")->second->m_int_name.c_str());
 
-    ast = rt->GetParser()->Parse("ns{ name { { $var := 1; } } }");
+    ast = jit->GetParser()->Parse("ns{ name { { $var := 1; } } }");
     ASSERT_TRUE(ast);
     ASSERT_EQ(0, ast->m_int_vars.size());
     ASSERT_TRUE(analysis.Analyze(ast, ast));
@@ -766,17 +769,18 @@ TEST(Ast, Interruption) {
 
     RuntimePtr rt = RunTime::Init();
     ASSERT_TRUE(rt);
+    JitPtr jit = JIT::Init(*rt);
 
     AstAnalysis analysis(*rt, rt->m_diag.get());
 
-    TermPtr ast = rt->GetParser()->Parse(":: --;");
+    TermPtr ast = jit->GetParser()->Parse(":: --;");
     ASSERT_TRUE(ast);
     ASSERT_STREQ("::", ast->m_namespace->m_text.c_str());
     ASSERT_TRUE(analysis.Analyze(ast, ast));
     ASSERT_TRUE(ast->m_namespace);
     ASSERT_STREQ("::", ast->m_namespace->m_text.c_str());
 
-    ASSERT_NO_THROW(ast = rt->GetParser()->Parse("name {  name -- };"));
+    ASSERT_NO_THROW(ast = jit->GetParser()->Parse("name {  name -- };"));
     ASSERT_TRUE(ast);
     ASSERT_EQ(1, ast->m_block.size());
     ASSERT_STREQ("--", ast->m_block[0]->m_text.c_str());
@@ -787,65 +791,65 @@ TEST(Ast, Interruption) {
     ASSERT_TRUE(analysis.Analyze(ast, ast));
     ASSERT_STREQ("name", ast->m_block[0]->m_block[0]->m_namespace->m_text.c_str());
 
-    ASSERT_NO_THROW(ast = rt->GetParser()->Parse("ns::name {  ns::name -+ };"));
+    ASSERT_NO_THROW(ast = jit->GetParser()->Parse("ns::name {  ns::name -+ };"));
     ASSERT_TRUE(analysis.Analyze(ast, ast));
     ASSERT_TRUE(ast);
 
-    ASSERT_NO_THROW(ast = rt->GetParser()->Parse("ns { name {  ns::name +- } };"));
+    ASSERT_NO_THROW(ast = jit->GetParser()->Parse("ns { name {  ns::name +- } };"));
     ASSERT_TRUE(analysis.Analyze(ast, ast));
     ASSERT_TRUE(ast);
 
-    ASSERT_NO_THROW(ast = rt->GetParser()->Parse("ns { { name {  { ns::name ++ } } } };"));
+    ASSERT_NO_THROW(ast = jit->GetParser()->Parse("ns { { name {  { ns::name ++ } } } };"));
     ASSERT_TRUE(analysis.Analyze(ast, ast));
     ASSERT_TRUE(ast);
 
-    ASSERT_NO_THROW(ast = rt->GetParser()->Parse("{ ns { name {  ns::name +- } } };"));
+    ASSERT_NO_THROW(ast = jit->GetParser()->Parse("{ ns { name {  ns::name +- } } };"));
     ASSERT_TRUE(analysis.Analyze(ast, ast));
     ASSERT_TRUE(ast);
 
-    ASSERT_NO_THROW(ast = rt->GetParser()->Parse("ns { { name {  local:: { ns::name ++ } } } };"));
+    ASSERT_NO_THROW(ast = jit->GetParser()->Parse("ns { { name {  local:: { ns::name ++ } } } };"));
     ASSERT_TRUE(analysis.Analyze(ast, ast));
     ASSERT_TRUE(ast);
 
-    ASSERT_NO_THROW(ast = rt->GetParser()->Parse("ns { { name {  local:: { local:: ++ } } } };"));
+    ASSERT_NO_THROW(ast = jit->GetParser()->Parse("ns { { name {  local:: { local:: ++ } } } };"));
     ASSERT_TRUE(analysis.Analyze(ast, ast));
     ASSERT_TRUE(ast);
 
-    ASSERT_NO_THROW(ast = rt->GetParser()->Parse("ns { { name {  local:: { ns ++ } } } };"));
+    ASSERT_NO_THROW(ast = jit->GetParser()->Parse("ns { { name {  local:: { ns ++ } } } };"));
     ASSERT_TRUE(analysis.Analyze(ast, ast));
     ASSERT_TRUE(ast);
 
 
-    ASSERT_NO_THROW(ast = rt->GetParser()->Parse("ns { { name {  local:: { bad_name ++ } } } };"));
+    ASSERT_NO_THROW(ast = jit->GetParser()->Parse("ns { { name {  local:: { bad_name ++ } } } };"));
     ASSERT_FALSE(analysis.Analyze(ast, ast));
 
-    //    ast = rt->GetParser()->Parse("name {  bad_name -- };");
+    //    ast = jit->GetParser()->Parse("name {  bad_name -- };");
     //    ASSERT_TRUE(ast);
     //    ASSERT_FALSE(analysis.Analyze(ast));
     //
-    //    ast = rt->GetParser()->Parse("name {  bad_name:: -- };");
+    //    ast = jit->GetParser()->Parse("name {  bad_name:: -- };");
     //    ASSERT_TRUE(ast);
     //    ASSERT_FALSE(analysis.Analyze(ast));
     //
-    //    ast = rt->GetParser()->Parse("name1 { name2 { name3 {  ::bad_name -- }}};");
+    //    ast = jit->GetParser()->Parse("name1 { name2 { name3 {  ::bad_name -- }}};");
     //    ASSERT_TRUE(ast);
     //    ASSERT_FALSE(analysis.Analyze(ast));
     //
-    //    ast = rt->GetParser()->Parse("name { name2::name3 {  ::bad_name::name -- }};");
+    //    ast = jit->GetParser()->Parse("name { name2::name3 {  ::bad_name::name -- }};");
     //    ASSERT_TRUE(ast);
     //    ASSERT_FALSE(analysis.Analyze(ast));
     //
-    //    ast = rt->GetParser()->Parse("name {  name::bad -- };");
+    //    ast = jit->GetParser()->Parse("name {  name::bad -- };");
     //    ASSERT_TRUE(ast);
     //    ASSERT_FALSE(analysis.Analyze(ast));
     //
-    //    //    ast = rt->GetParser()->Parse("@$$ --;");
+    //    //    ast = jit->GetParser()->Parse("@$$ --;");
     //    //    ASSERT_TRUE(ast);
     //    //    ASSERT_STREQ("@$$", ast->m_namespace->m_text.c_str());
     //    //    ASSERT_TRUE(analysis.Analyze(ast));
     //    //    ASSERT_STREQ("", ast->m_namespace->m_text.c_str());
     //
-    //    //    ast = rt->GetParser()->Parse("name {  @$$ -- };");
+    //    //    ast = jit->GetParser()->Parse("name {  @$$ -- };");
     //    //    ASSERT_TRUE(ast);
     //    //    ASSERT_EQ(1, ast->m_block.size());
     //    //    ASSERT_STREQ("--", ast->m_block[0]->m_text.c_str());
@@ -854,7 +858,7 @@ TEST(Ast, Interruption) {
     //    //    ASSERT_TRUE(analysis.Analyze(ast));
     //    //    ASSERT_STREQ("name", ast->m_block[0]->m_namespace->m_text.c_str());
     //
-    //    ast = rt->GetParser()->Parse("@::var := 1");
+    //    ast = jit->GetParser()->Parse("@::var := 1");
     //    ASSERT_TRUE(ast);
     //    ASSERT_EQ(0, ast->m_variables.size());
     //    ASSERT_EQ(3, rt->size() - buildin_count);
@@ -863,7 +867,7 @@ TEST(Ast, Interruption) {
     //    ASSERT_EQ(1, ast->m_variables.size());
     //    ASSERT_STREQ("$$var", ast->m_variables.begin()->second.proto->m_text.c_str());
     //
-    //    ast = rt->GetParser()->Parse("@::var ::= 1");
+    //    ast = jit->GetParser()->Parse("@::var ::= 1");
     //    ASSERT_TRUE(ast);
     //    ASSERT_EQ(0, ast->m_variables.size());
     //    ASSERT_EQ(3, rt->size() - buildin_count);
@@ -872,7 +876,7 @@ TEST(Ast, Interruption) {
     //    ASSERT_EQ(1, ast->m_variables.size());
     //    ASSERT_STREQ("$$var", ast->m_variables.begin()->second.proto->m_text.c_str());
     //
-    //    ast = rt->GetParser()->Parse("ns { name { @::var := 1 } };");
+    //    ast = jit->GetParser()->Parse("ns { name { @::var := 1 } };");
     //    ASSERT_TRUE(ast);
     //    ASSERT_EQ(0, ast->m_variables.size());
     //    ASSERT_EQ(3, rt->size() - buildin_count);
@@ -882,7 +886,7 @@ TEST(Ast, Interruption) {
     //    ASSERT_STREQ("ns::name::var", ast->m_variables.begin()->second.proto->m_text.c_str());
     //
     //
-    //    //    ast = rt->GetParser()->Parse("ns { name { { var7 := @:: } } };");
+    //    //    ast = jit->GetParser()->Parse("ns { name { { var7 := @:: } } };");
     //    //    ASSERT_TRUE(ast);
     //    //    ASSERT_EQ(0, ast->m_variables.size());
     //    //    ASSERT_EQ(3, rt->size() - buildin_count);
@@ -892,7 +896,7 @@ TEST(Ast, Interruption) {
     //    //    ASSERT_STREQ("ns::name$var7", ast->m_variables.begin()->second.proto->m_text.c_str());
     //
     //    //    // В каком модуле ::$var_glob ???
-    //    //    ast = rt->GetParser()->Parse(":: { var_glob := 1 };");
+    //    //    ast = jit->GetParser()->Parse(":: { var_glob := 1 };");
     //    //    ASSERT_TRUE(ast);
     //    //    ASSERT_EQ(0, ast->m_variables.size());
     //    //    ASSERT_EQ(3, rt->size() - buildin_count);
@@ -907,7 +911,7 @@ TEST(Ast, Interruption) {
     //     */
     //
     //    buildin_count = rt->size();
-    //    ast = rt->GetParser()->Parse("func() ::= {};");
+    //    ast = jit->GetParser()->Parse("func() ::= {};");
     //    ASSERT_TRUE(ast);
     //    ASSERT_EQ(0, rt->size() - buildin_count);
     //    ASSERT_EQ(0, ast->m_variables.size());
@@ -916,7 +920,7 @@ TEST(Ast, Interruption) {
     //    ASSERT_EQ(1, ast->m_variables.size());
     //    ASSERT_STREQ("$$func", ast->m_variables.begin()->second.proto->m_text.c_str());
     //
-    //    ast = rt->GetParser()->Parse("@::func() ::= {};");
+    //    ast = jit->GetParser()->Parse("@::func() ::= {};");
     //    ASSERT_TRUE(ast);
     //
     //    ASSERT_TRUE(ast->m_left);
@@ -932,7 +936,7 @@ TEST(Ast, Interruption) {
     //    ASSERT_STREQ("$$func", ast->m_variables.begin()->second.proto->m_text.c_str());
     //
     //
-    //    ast = rt->GetParser()->Parse("name { func() ::= {}  };");
+    //    ast = jit->GetParser()->Parse("name { func() ::= {}  };");
     //    ASSERT_TRUE(ast);
     //
     //    ASSERT_EQ(1, ast->m_block.size());
@@ -949,7 +953,7 @@ TEST(Ast, Interruption) {
     //    ASSERT_STREQ("name$$func", ast->m_variables.begin()->second.proto->m_text.c_str());
     //    ASSERT_STREQ("name$$func", ast->m_block[0]->m_left->m_text.c_str());
     //
-    //    ast = rt->GetParser()->Parse("ns { name { func() ::= {}  } };");
+    //    ast = jit->GetParser()->Parse("ns { name { func() ::= {}  } };");
     //    ASSERT_TRUE(ast);
     //
     //    ASSERT_EQ(1, ast->m_block.size());
@@ -966,7 +970,7 @@ TEST(Ast, Interruption) {
     //    ASSERT_STREQ("ns::name$$func", ast->m_variables.begin()->second.proto->m_text.c_str());
     //    ASSERT_STREQ("ns::name$$func", ast->m_block[0]->m_left->m_text.c_str());
     //
-    //    //    ast = rt->GetParser()->Parse("var := 1;");
+    //    //    ast = jit->GetParser()->Parse("var := 1;");
     //    //    ASSERT_TRUE(ast);
     //    //    ASSERT_EQ(0, ast->m_variables.size());
     //    //    ASSERT_EQ(0, rt->size() - buildin_count);
@@ -976,7 +980,7 @@ TEST(Ast, Interruption) {
     //    //    ASSERT_STREQ("$var", ast->m_variables.begin()->second.proto->m_text.c_str());
     //    //
     //    //
-    //    //    ast = rt->GetParser()->Parse("ns::var := 1;");
+    //    //    ast = jit->GetParser()->Parse("ns::var := 1;");
     //    //    ASSERT_TRUE(ast);
     //    //    ASSERT_EQ(0, ast->m_variables.size());
     //    //    ASSERT_EQ(0, rt->size() - buildin_count);
@@ -986,7 +990,7 @@ TEST(Ast, Interruption) {
     //    //    ASSERT_STREQ("ns::var", ast->m_variables.begin()->second.proto->m_text.c_str());
     //    //
     //    //
-    //    //    ast = rt->GetParser()->Parse("::ns::var := 1;");
+    //    //    ast = jit->GetParser()->Parse("::ns::var := 1;");
     //    //    ASSERT_TRUE(ast);
     //    //    ASSERT_EQ(0, ast->m_variables.size());
     //    //    ASSERT_EQ(0, rt->size() - buildin_count);
@@ -996,7 +1000,7 @@ TEST(Ast, Interruption) {
     //    //    ASSERT_STREQ("::ns::var", (*rt)["::ns::var"].proto->m_text.c_str());
     //    //
     //    //
-    //    //    ast = rt->GetParser()->Parse("name { var := 1 };");
+    //    //    ast = jit->GetParser()->Parse("name { var := 1 };");
     //    //    ASSERT_TRUE(ast);
     //    //    ASSERT_EQ(0, ast->m_variables.size());
     //    //    ASSERT_EQ(1, rt->size() - buildin_count);
@@ -1013,7 +1017,7 @@ TEST(Ast, Interruption) {
     //    //
     //    //    ASSERT_STREQ("name$var", ast->m_variables.begin()->second.proto->m_text.c_str());
     //    //
-    //    //    ast = rt->GetParser()->Parse("name:: { var := 1 };");
+    //    //    ast = jit->GetParser()->Parse("name:: { var := 1 };");
     //    //    ASSERT_TRUE(ast);
     //    //    ASSERT_EQ(0, ast->m_variables.size());
     //    //    ASSERT_EQ(1, rt->size() - buildin_count);
@@ -1023,7 +1027,7 @@ TEST(Ast, Interruption) {
     //    //    ASSERT_STREQ("name$var", ast->m_variables.begin()->second.proto->m_text.c_str());
     //    //
     //    //
-    //    //    ast = rt->GetParser()->Parse("ns::name:: { var := 1 };");
+    //    //    ast = jit->GetParser()->Parse("ns::name:: { var := 1 };");
     //    //    ASSERT_TRUE(ast);
     //    //    ASSERT_EQ(0, ast->m_variables.size());
     //    //    ASSERT_EQ(1, rt->size() - buildin_count);
@@ -1032,7 +1036,7 @@ TEST(Ast, Interruption) {
     //    //    ASSERT_EQ(1, ast->m_variables.size());
     //    //    ASSERT_STREQ("ns::name$var", ast->m_variables.begin()->second.proto->m_text.c_str());
     //    //
-    //    //    ast = rt->GetParser()->Parse("name:: { ::var := 1 };");
+    //    //    ast = jit->GetParser()->Parse("name:: { ::var := 1 };");
     //    //    ASSERT_TRUE(ast);
     //    //    ASSERT_EQ(0, ast->m_variables.size());
     //    //    ASSERT_EQ(1, rt->size() - buildin_count);
@@ -1041,7 +1045,7 @@ TEST(Ast, Interruption) {
     //    //    ASSERT_EQ(0, ast->m_variables.size());
     //    //    ASSERT_STREQ("::var", (*rt)["::var"].proto->m_text.c_str());
     //    //
-    //    //    ast = rt->GetParser()->Parse("::name:: { ::ns2::var := 1 };");
+    //    //    ast = jit->GetParser()->Parse("::name:: { ::ns2::var := 1 };");
     //    //    ASSERT_TRUE(ast);
     //    //    ASSERT_EQ(0, ast->m_variables.size());
     //    //    ASSERT_EQ(2, rt->size() - buildin_count);
@@ -1051,7 +1055,7 @@ TEST(Ast, Interruption) {
     //    //    ASSERT_STREQ("::ns2::var", (*rt)["::ns2::var"].proto->m_text.c_str());
     //    //
     //    //
-    //    //    ast = rt->GetParser()->Parse("name { $var := 1 };");
+    //    //    ast = jit->GetParser()->Parse("name { $var := 1 };");
     //    //    ASSERT_TRUE(ast);
     //    //    ASSERT_EQ(0, ast->m_variables.size());
     //    //    ASSERT_EQ(3, rt->size() - buildin_count);
@@ -1060,7 +1064,7 @@ TEST(Ast, Interruption) {
     //    //    ASSERT_EQ(1, ast->m_variables.size());
     //    //    ASSERT_STREQ("name$var", ast->m_variables.begin()->second.proto->m_text.c_str());
     //    //
-    //    //    ast = rt->GetParser()->Parse("name { { $var := 1 } };");
+    //    //    ast = jit->GetParser()->Parse("name { { $var := 1 } };");
     //    //    ASSERT_TRUE(ast);
     //    //    ASSERT_EQ(0, ast->m_variables.size());
     //    //    ASSERT_EQ(3, rt->size() - buildin_count);
@@ -1078,36 +1082,37 @@ TEST(Ast, Dims) {
 
     RuntimePtr rt = RunTime::Init();
     ASSERT_TRUE(rt);
+    JitPtr jit = JIT::Init(*rt);
     AstAnalysis analysis(*rt, rt->m_diag.get());
 
     TermPtr ast;
-    ast = rt->GetParser()->Parse(":Bool(1)");
+    ast = jit->GetParser()->Parse(":Bool(1)");
     ASSERT_TRUE(analysis.Analyze(ast, ast));
 
-    ASSERT_ANY_THROW(ast = rt->GetParser()->Parse(":Bool[](1)"));
+    ASSERT_ANY_THROW(ast = jit->GetParser()->Parse(":Bool[](1)"));
 
     AstAnalysis analysis2(*rt, rt->m_diag.get());
-    ast = rt->GetParser()->Parse(":Bool[...](1)");
+    ast = jit->GetParser()->Parse(":Bool[...](1)");
     ASSERT_TRUE(analysis2.Analyze(ast, ast));
 
     AstAnalysis analysis3(*rt, rt->m_diag.get());
-    ast = rt->GetParser()->Parse(":Bool[ ..., ...](1)");
+    ast = jit->GetParser()->Parse(":Bool[ ..., ...](1)");
     ASSERT_FALSE(analysis3.Analyze(ast, ast));
 
     AstAnalysis analysis4(*rt, rt->m_diag.get());
-    ast = rt->GetParser()->Parse(":Bool[0](1)");
+    ast = jit->GetParser()->Parse(":Bool[0](1)");
     ASSERT_TRUE(analysis4.Analyze(ast, ast));
 
     AstAnalysis analysis5(*rt, rt->m_diag.get());
-    ast = rt->GetParser()->Parse(":Bool[_](1)");
+    ast = jit->GetParser()->Parse(":Bool[_](1)");
     ASSERT_TRUE(analysis5.Analyze(ast, ast));
 
     AstAnalysis analysis6(*rt, rt->m_diag.get());
-    ast = rt->GetParser()->Parse(":Bool[0..1..2](1)");
+    ast = jit->GetParser()->Parse(":Bool[0..1..2](1)");
     ASSERT_TRUE(analysis6.Analyze(ast, ast));
 
     AstAnalysis analysis7(*rt, rt->m_diag.get());
-    ast = rt->GetParser()->Parse("0.._..2");
+    ast = jit->GetParser()->Parse("0.._..2");
     ASSERT_TRUE(analysis7.Analyze(ast, ast));
 }
 
@@ -1612,6 +1617,7 @@ TEST(Ast, CheckStrPrintf) {
 
 
     RuntimePtr rt = RunTime::Init();
+    JitPtr jit = JIT::Init(*rt);
     ASSERT_TRUE(rt);
 
     ASSERT_ANY_THROW(rt->MakeAst("print()"));
@@ -1627,8 +1633,8 @@ TEST(Ast, CheckStrPrintf) {
     ASSERT_ANY_THROW(rt->MakeAst("print(format='%d', __sys__=1)"));
 
     ObjPtr print;
-    ASSERT_NO_THROW(print = rt->Run("print(format='\\n')"));
-    ASSERT_NO_THROW(print = rt->Run("print('%d - %s\\n', 1, 'test')"));
+    ASSERT_NO_THROW(print = jit->Run("print(format='\\n')"));
+    ASSERT_NO_THROW(print = jit->Run("print('%d - %s\\n', 1, 'test')"));
 }
 
 TEST(Ast, CheckStrFormat) {

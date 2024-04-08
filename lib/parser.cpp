@@ -1,4 +1,3 @@
-//#include "pch.h"
 
 #include "parser.h"
 #include "lexer.h"
@@ -11,7 +10,7 @@ using namespace newlang;
 
 int Parser::m_counter = 0;
 
-Parser::Parser(MacroPtr macro, PostLexerType *postlex, DiagPtr diag, bool pragma_enable, RuntimePtr rt) {
+Parser::Parser(MacroPtr macro, PostLexerType *postlex, DiagPtr diag, bool pragma_enable, RunTime *rt) {
     char *source_date_epoch = std::getenv("SOURCE_DATE_EPOCH");
     if (source_date_epoch) {
         std::istringstream iss(source_date_epoch);
@@ -41,48 +40,6 @@ Parser::Parser(MacroPtr macro, PostLexerType *postlex, DiagPtr diag, bool pragma
     m_ast = nullptr;
 }
 
-TermPtr Parser::ParseFile(const std::string filename) {
-
-    llvm::SmallVector<char> path;
-    if (!llvm::sys::fs::real_path(filename, path)) {
-        m_filename = llvm::StringRef(path.data(), path.size());
-    } else {
-        m_filename = filename;
-    }
-
-    llvm::sys::fs::file_status fs;
-    std::error_code ec = llvm::sys::fs::status(filename, fs);
-    if (!ec) {
-        time_t temp = llvm::sys::toTimeT(fs.getLastModificationTime());
-        struct tm * timeinfo;
-        timeinfo = localtime(&temp);
-        m_file_time = asctime(timeinfo);
-        m_file_time = m_file_time.substr(0, 24); // Remove \n on the end line
-    }
-
-    auto md5 = llvm::sys::fs::md5_contents(filename);
-    if (md5) {
-        llvm::SmallString<32> hash;
-        llvm::MD5::stringifyResult(*md5, hash);
-        m_file_md5 = hash.c_str();
-    }
-
-    int fd = open(filename.c_str(), O_RDONLY);
-    if (fd < 0) {
-        LOG_RUNTIME("Error open file '%s'", filename.c_str());
-    }
-
-    struct stat sb;
-    fstat(fd, &sb);
-
-    std::string data;
-    data.resize(sb.st_size);
-
-    read(fd, const_cast<char*> (data.data()), sb.st_size);
-    close(fd);
-
-    return Parse(data);
-}
 
 TermPtr Parser::Parse(const std::string input) {
 
@@ -107,7 +64,7 @@ TermPtr Parser::Parse(const std::string input) {
 }
 
 TermPtr Parser::ParseString(const std::string str, MacroPtr macro, PostLexerType *postlex, DiagPtr diag, RuntimePtr rt) {
-    Parser p(macro, postlex, diag, true, rt);
+    Parser p(macro, postlex, diag, true, rt.get());
     return p.Parse(str);
 }
 
@@ -146,22 +103,32 @@ void Parser::AstAddTerm(TermPtr &term) {
     }
 }
 
-TermPtr Parser::MacroEval(const TermPtr &term) {
+// stub
 
-    if (!m_macro && m_diag) {
-        m_diag->Emit(Diag::DIAG_MACRO_NOT_FOUND, term);
-        return term;
-    }
-
-    if (term->m_bracket_depth) {
-        NL_PARSER(term, "Macro definitions allowed at the top level only, not inside conditions, namespace or any brackets!");
-    }
-
-    if (m_macro) {
-        return m_macro->EvalOpMacros(term);
-    }
+__attribute__ ((weak)) TermPtr newlang::ProcessMacro(Parser &, TermPtr &term) {
     return term;
 }
+
+__attribute__ ((weak)) ExpandMacroResult newlang::ExpandTermMacro(Parser &parser) {
+    return ExpandMacroResult::Break;
+}
+
+//TermPtr Parser::MacroEval(const TermPtr &term) {
+//
+//    if (!m_macro && m_diag) {
+//        m_diag->Emit(Diag::DIAG_MACRO_NOT_FOUND, term);
+//        return term;
+//    }
+//
+//    if (term->m_bracket_depth) {
+//        NL_PARSER(term, "Macro definitions allowed at the top level only, not inside conditions, namespace or any brackets!");
+//    }
+//
+//    if (m_macro) {
+//        return m_macro->EvalOpMacros(term);
+//    }
+//    return term;
+//}
 
 bool Parser::PragmaCheck(const TermPtr& term) {
     if (term && term->m_text.size() > 5
@@ -499,10 +466,6 @@ bool Parser::PragmaStaticAssert(const TermPtr &term) {
         NL_PARSER(term, "Agruments '%s' not recognized! See @__PRAGMA_STATIC_ASSERT__ for usage and syntax help.", term->toString().c_str());
     }
 
-    if (!m_rt) {
-        NL_PARSER(term, "Runtime environment for eval static assert is not available!");
-    }
-
     bool done;
     try {
         done = Context::EvalTerm(term->at(0).second, nullptr)->GetValueAsBoolean();
@@ -641,13 +604,13 @@ bool Parser::CheckPredefMacro(const TermPtr & term) {
 }
 
 std::string Parser::GetCurrentDate(time_t ts) {
-    std::string buf(sizeof "Jul 27 2012", '\0');
+    std::string buf("Jul 27 2012");
     strftime(buf.data(), buf.size(), "%b %e %Y", localtime(&ts));
     return buf;
 }
 
 std::string Parser::GetCurrentTime(time_t ts) {
-    std::string buf(sizeof "07:07:09", '\0');
+    std::string buf("07:07:09");
     strftime(buf.data(), buf.size(), "%T", localtime(&ts));
     return buf;
 }
@@ -659,7 +622,7 @@ std::string Parser::GetCurrentTimeStamp(time_t ts) {
 }
 
 std::string Parser::GetCurrentTimeStampISO(time_t ts) {
-    std::string buf(sizeof "2011-10-08T07:07:09Z", '\0');
+    std::string buf("2011-10-08T07:07:09Z");
     strftime(buf.data(), buf.size(), "%FT%TZ", localtime(&ts));
     return buf;
 }
@@ -955,22 +918,16 @@ size_t Parser::ParseTerm(TermPtr &result, const BlockType &buffer, size_t offset
     return offset;
 }
 
-bool Parser::CheckLoadModule(TermPtr & term) {
+TermPtr Parser::LoadIfModule(const TermPtr & term) {
+    return term;
+}
+
+TermPtr Parser::CheckLoadModule(const TermPtr & term) {
     if (!CheckCharModuleName(term->m_text.c_str())) {
         NL_PARSER(term, "Module name - backslash, underscore, lowercase English letters or number!");
     }
-    if (m_rt && !m_rt->CheckLoadModule(term)) {
-        NL_PARSER(term, "Fail load module '%s'!", term->toString().c_str());
-    }
-    return true;
+    return term;
 }
-
-
-
-
-
-
-
 
 
 
@@ -1112,3 +1069,483 @@ ObjType newlang::GetBaseTypeFromString(const std::string_view type_arg, bool *ha
     LOG_RUNTIME("Undefined type name '%s'!", type.c_str());
 }
 
+parser::token_type Parser::GetNextToken(TermPtr * yylval, parser::location_type * yylloc) {
+
+    parser::token_type result;
+
+    ASSERT(yylval);
+    ASSERT(yylloc);
+
+    /*
+     * Новая логика работы парсера.
+     * 
+     * Термины считываются из лексера до символа ';' или до конца файла.
+     * Каждый термин буфера проверяется на макрос и если находится - заменяется.
+     * Для обычного макроса просто заменяются токены и тела макроса,
+     * а для текстового макроса используется отдельный буфер до завершения работы лексичсекского анализатора,
+     * после чего этот буфер вставляется на место макроса в основонм бефере данных.
+     * После обработки всего буфера его элеменеты передаются в парсер для обработки.
+     */
+
+    parser::token_type type;
+    bool lexer_complete;
+
+
+go_parse_string:
+
+    m_is_runing = true;
+
+    TermPtr term;
+    bool is_escape = false;
+
+    if (m_macro_analisys_buff.empty() || lexer->m_macro_iss) {
+
+        lexer_complete = false;
+
+        while (!m_is_lexer_complete) {
+
+next_escape_token:
+
+            term = Term::Create(parser::token_type::END, TermID::END, "", 0);
+            type = lexer->lex(&term, &m_location);
+            term->m_lexer_loc = m_location;
+
+            ASSERT(type == term->m_lexer_type);
+
+            if (is_escape) {
+
+                if (type == parser::token_type::END) {
+                    NL_PARSER(term, "Unexpected end of file '%s'", term->toString().c_str());
+                }
+                is_escape = false;
+                term->m_id = TermID::ESCAPE;
+                term->m_lexer_type = parser::token_type::ESCAPE;
+                type = parser::token_type::ESCAPE;
+
+            } else if (type == parser::token_type::ESCAPE) {
+
+                is_escape = true;
+                goto next_escape_token;
+            }
+
+
+            //            if (type == parser::token_type::MACRO && term->m_text.compare("@::") == 0) {
+            //                
+            //                type = parser::token_type::NAMESPACE;
+            //                term->m_lexer_type = type;
+            //                term->m_id = TermID::NAMESPACE;
+            //                term->m_text = m_ns_stack.NamespaceCurrent();
+            //                        
+            //            } else 
+
+            //            if (type == MACRO_MODULE) {
+            //
+            //                type = parser::token_type::MODULE;
+            //                term->m_lexer_type = type;
+            //                term->m_id = TermID::MODULE;
+            //                term->m_text = GetCurrentModule();
+            //
+            //            }
+
+
+            //            if (m_next_string != static_cast<uint8_t> (TermID::NONE)) {
+            //
+            //                if (m_next_string == static_cast<uint8_t> (TermID::STRCHAR)) {
+            //                    type = parser::token_type::STRCHAR;
+            //                } else {
+            //                    ASSERT(m_next_string == static_cast<uint8_t> (TermID::STRWIDE));
+            //                    type = parser::token_type::STRWIDE;
+            //                }
+            //
+            //                term->m_lexer_type = type;
+            //                term->m_id = static_cast<TermID> (m_next_string);
+            //
+            //                m_next_string = static_cast<uint8_t> (TermID::NONE);
+            //
+            //            } else if (type == parser::token_type::MACRO_TOSTR && lexer->m_macro_count == 0) {
+            //
+            //                if (term->m_text.compare("@#\"") == 0) {
+            //                    m_next_string = static_cast<uint8_t> (TermID::STRWIDE);
+            //                } else if (term->m_text.compare("@#'") == 0) {
+            //                    m_next_string = static_cast<uint8_t> (TermID::STRCHAR);
+            //                } else {
+            //                    ASSERT(term->m_text.compare("@#") == 0);
+            //                    //@todo Set string type default by global settings
+            //                    m_next_string = static_cast<uint8_t> (TermID::STRWIDE);
+            //                }
+            //
+            //                goto next_escape_token;
+            //            }
+
+
+
+            if (type == parser::token_type::END) {
+
+                if (lexer->m_macro_iss == nullptr) {
+                    m_is_lexer_complete = true;
+                } else {
+                    lexer->yypop_buffer_state();
+                    *lexer->m_loc = lexer->m_macro_loc; // restore
+
+                    delete lexer->m_macro_iss;
+                    lexer->m_macro_iss = nullptr;
+
+                    lexer->source_string = lexer->source_base;
+
+                    continue;
+                }
+                //                if(lexer->m_data.empty()) {
+                //                    m_is_lexer_complete = true;
+                //                } else {
+                //                    lexer->yypop_buffer_state();
+                //                    *lexer->m_loc = lexer->m_data[lexer->m_data.size() - 1].loc;
+                //
+                //                    delete lexer->m_data[lexer->m_data.size() - 1].iss;
+                //                    lexer->m_data.pop_back();
+                //
+                //                    if(lexer->m_data.empty()) {
+                //                        lexer->source_string = lexer->source_base;
+                //                    } else {
+                //                        lexer->source_string = lexer->m_data[lexer->m_data.size() - 1].data;
+                //                    }
+                //                    continue;
+                //                }
+            } else if (lexer->m_macro_count == 1) {
+
+                ASSERT(type == parser::token_type::MACRO_SEQ);
+
+                if (lexer->m_macro_del) {
+                    NL_PARSER(term, "Invalid token '%s' at given position!", term->m_text.c_str());
+                }
+
+                lexer->m_macro_count = 2;
+                lexer->m_macro_body = term;
+                continue;
+
+            } else if (lexer->m_macro_count == 3) {
+
+                ASSERT(lexer->m_macro_body);
+                ASSERT(type == parser::token_type::MACRO_SEQ);
+
+                lexer->m_macro_count = 0;
+                term.swap(lexer->m_macro_body);
+                lexer->m_macro_body = nullptr;
+
+            } else if (lexer->m_macro_count == 2 || lexer->m_macro_del == 2) {
+
+                ASSERT(lexer->m_macro_body);
+
+                if (lexer->m_macro_del && !(type == parser::token_type::NAME || type == parser::token_type::LOCAL)) {
+                    NL_PARSER(term, "Invalid token '%s' at given position!", term->m_text.c_str());
+                }
+
+                lexer->m_macro_body->m_macro_seq.push_back(term);
+                continue;
+
+            } else if (lexer->m_macro_del == 1) {
+
+                ASSERT(type == parser::token_type::MACRO_DEL);
+
+                if (lexer->m_macro_count) {
+                    NL_PARSER(term, "Invalid token '%s' at given position!", term->m_text.c_str());
+                }
+
+                lexer->m_macro_del = 2;
+                lexer->m_macro_body = term;
+                continue;
+
+            } else if (lexer->m_macro_del == 3) {
+
+                ASSERT(type == parser::token_type::MACRO_DEL);
+                if (!lexer->m_macro_body) {
+                    ASSERT(lexer->m_macro_body);
+                }
+
+                if (lexer->m_macro_body->m_macro_seq.empty()) {
+                    NL_PARSER(term, "Empty sequence not allowed!");
+                }
+
+                lexer->m_macro_del = 0;
+
+                if (lexer->m_macro_body) {
+                    term.swap(lexer->m_macro_body);
+                }
+                lexer->m_macro_body = nullptr;
+            }
+
+            m_macro_analisys_buff.push_back(term);
+            if (term->m_text.compare(";") == 0) {
+                lexer_complete = true;
+                break;
+            }
+
+            //            if(lexer_complete && lexer->m_macro_iss == nullptr) {
+            //                break;
+            //            }
+        }
+
+        if (lexer->m_macro_del || lexer->m_macro_count) {
+            TermPtr bag_position;
+
+            bag_position = (m_macro_analisys_buff.size() > 1) ? m_macro_analisys_buff[m_macro_analisys_buff.size() - 2] : term;
+            if (!bag_position) {
+                ASSERT(bag_position);
+            }
+
+            if (term->m_lexer_loc.begin.filename) {
+                NL_PARSER(bag_position, "Incomplete syntax near '%s' in file %s!", bag_position->m_text.c_str(), term->m_lexer_loc.begin.filename->c_str());
+            } else {
+                NL_PARSER(bag_position, "Incomplete syntax near '%s'!", bag_position->m_text.c_str());
+            }
+        }
+    }
+
+
+    TermPtr pragma;
+    while (lexer->m_macro_count == 0 && !m_macro_analisys_buff.empty()) {
+
+        if (m_enable_pragma) {
+
+            ExpandPredefMacro(m_macro_analisys_buff[0]);
+
+            // Обработка команд парсера @__PRAGMA ... __
+            if (PragmaCheck(m_macro_analisys_buff[0])) {
+
+                size_t size;
+                size = Parser::ParseTerm(pragma, m_macro_analisys_buff, 0, false);
+
+                ASSERT(size);
+                ASSERT(pragma);
+
+                //                LOG_DEBUG("Pragma '%s' size %d", pragma->toString().c_str(), (int) size);
+
+                BlockType temp(m_macro_analisys_buff.begin(), m_macro_analisys_buff.begin() + size);
+
+                m_macro_analisys_buff.erase(m_macro_analisys_buff.begin(), m_macro_analisys_buff.begin() + size);
+
+                //                while (!m_macro_analisys_buff.empty() && m_macro_analisys_buff[0]->m_text.compare(";") == 0) {
+                //                    LOG_DEBUG("Erase '%s' !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!", m_macro_analisys_buff[0]->toString().c_str());
+                //                    m_macro_analisys_buff.erase(m_macro_analisys_buff.begin());
+                //                }
+
+
+                PragmaEval(pragma, m_macro_analisys_buff, temp);
+                continue;
+            }
+        }
+
+
+        // Обработка команды проверка следующего термина @__PRAGMA_EXPECTED__
+        if (m_expected) {
+            for (int i = 0; i < m_expected->size(); i++) {
+                if (m_macro_analisys_buff[0]->m_text.compare(m_expected->at(i).second->m_text) == 0) {
+                    m_expected.reset();
+                    break;
+                }
+            }
+            if (m_expected) {
+                std::string msg;
+                for (int i = 0; i < m_expected->size(); i++) {
+                    if (!msg.empty()) {
+                        msg += ", ";
+                    }
+                    msg += "'";
+                    msg += m_expected->at(i).second->m_text;
+                    msg += "'";
+                }
+                NL_PARSER(m_macro_analisys_buff[0], "Term %s expected!", msg.c_str());
+            }
+        }
+
+        // Обработка команды проверка следующего термина @__PRAGMA_UNEXPECTED__
+        if (m_unexpected) {
+            for (int i = 0; i < m_unexpected->size(); i++) {
+                if (m_macro_analisys_buff[0]->m_text.compare(m_unexpected->at(i).second->m_text) == 0) {
+                    NL_PARSER(m_macro_analisys_buff[0], "Term '%s' unexpected!", m_macro_analisys_buff[0]->m_text.c_str());
+                }
+            }
+            m_unexpected.reset();
+        }
+
+        if (m_no_macro) {
+            m_no_macro = false;
+            break;
+        }
+
+        switch (ExpandTermMacro(*this)) {
+            case ExpandMacroResult::Continue:;
+                continue;
+            case ExpandMacroResult::Goto:;
+                goto go_parse_string;
+            default:
+                break;
+        };
+        //        if (m_macro) {
+        //
+        //            // Макрос должне начинаться всегда с термина
+        //            if (!(m_macro_analisys_buff[0]->getTermID() == TermID::MACRO || m_macro_analisys_buff[0]->getTermID() == TermID::NAME)) {
+        //                break;
+        //            }
+        //
+        //            TermPtr macro_done = nullptr;
+        //
+        //            // Итератор для списка макросов, один из которых может соответствовать текущему буферу (по первому термину буфера)
+        //            Macro::iterator found = m_macro->map::find(Macro::toMacroHash(m_macro_analisys_buff[0]));
+        //
+        //            if (found == m_macro->end()) {
+        //
+        //                //                // Если макрос не найден - ошибка 
+        //                //                if(isMacro(m_macro_analisys_buff[0]->m_text)) {
+        //                //                    LOG_RUNTIME("Macro '%s' not found!", m_macro_analisys_buff[0]->toString().c_str());
+        //                //                }
+        //
+        //                break;
+        //            }
+        //
+        //            macro_done.reset();
+        //            // Перебрать все макросы и сравнить с буфером
+        //            for (auto iter = found->second.begin(); iter != found->second.end(); ++iter) {
+        //
+        //                if (Macro::IdentityMacro(m_macro_analisys_buff, *iter)) {
+        //
+        //                    if (macro_done) {
+        //                        LOG_RUNTIME("Macro duplication %s and '%s'!", macro_done->toString().c_str(), (*iter)->toString().c_str());
+        //                    }
+        //                    macro_done = *iter;
+        //                }
+        //            }
+        //
+        //            ASSERT(found != m_macro->end());
+        //
+        //            if (macro_done) {
+        //
+        //                counter++;
+        //                if (counter > 100) {
+        //                    LOG_RUNTIME("Macro expansion '%s' stack overflow?", macro_done->toString().c_str());
+        //                }
+        //
+        //                //                compare_macro = true; // Раскрывать макросы в теле раскрытого макроса
+        //
+        //                ASSERT(m_macro_analisys_buff.size() >= macro_done->m_macro_seq.size());
+        //                ASSERT(macro_done->Right());
+        //
+        //                Macro::MacroArgsType macro_args;
+        //                size_t size_remove = Macro::ExtractArgs(m_macro_analisys_buff, macro_done, macro_args);
+        //
+        //                //                LOG_TEST_DUMP("buffer '%s' DumpArgs: %s", Macro::Dump(m_macro_analisys_buff).c_str(), Macro::Dump(macro_args).c_str());
+        //
+        //
+        //                ASSERT(size_remove);
+        //                ASSERT(size_remove <= m_macro_analisys_buff.size());
+        //
+        //                std::string temp = "";
+        //                for (auto &elem : m_macro_analisys_buff) {
+        //                    if (!temp.empty()) {
+        //                        temp += " ";
+        //                    }
+        //                    temp += elem->m_text;
+        //                    temp += ":";
+        //                    temp += toString(elem->m_id);
+        //                }
+        //                //                LOG_TEST("From: %s (remove %d)", temp.c_str(), (int) size_remove);
+        //
+        //                m_macro_analisys_buff.erase(m_macro_analisys_buff.begin(), m_macro_analisys_buff.begin() + size_remove);
+        //
+        //                if (macro_done->Right()->getTermID() == TermID::MACRO_STR) {
+        //
+        //                    std::string macro_str = Macro::ExpandString(macro_done, macro_args);
+        //                    lexer->source_string = std::make_shared<std::string>(Macro::ExpandString(macro_done, macro_args));
+        //                    lexer->m_macro_iss = new std::istringstream(*lexer->source_string);
+        //                    lexer->m_macro_loc = *lexer->m_loc; // save
+        //                    lexer->m_loc->initialize();
+        //                    lexer->yypush_buffer_state(lexer->yy_create_buffer(lexer->m_macro_iss, lexer->source_string->size()));
+        //
+        //                    //                    if(lexer->m_data.size() > 100) {
+        //                    //                        LOG_RUNTIME("Macro expansion '%s' stack overflow?", macro_done->toString().c_str());
+        //                    //                    }
+        //                    //
+        //                    //                    std::string macro_str = MacroBuffer::ExpandString(macro_done, macro_args);
+        //                    //                    lexer->source_string = std::make_shared<std::string>(MacroBuffer::ExpandString(macro_done, macro_args));
+        //                    //                    lexer->m_data.push_back({lexer->source_string, new std::istringstream(*lexer->source_string), *lexer->m_loc});
+        //                    //                    lexer->m_loc->initialize();
+        //                    //                    lexer->yypush_buffer_state(lexer->yy_create_buffer(lexer->m_data[lexer->m_data.size() - 1].iss, lexer->source_string->size()));
+        //
+        //                    m_is_lexer_complete = false;
+        //                    goto go_parse_string;
+        //
+        //                } else {
+        //
+        //                    ASSERT(macro_done->Right());
+        //                    BlockType macro_block = Macro::ExpandMacros(macro_done, macro_args);
+        //                    m_macro_analisys_buff.insert(m_macro_analisys_buff.begin(), macro_block.begin(), macro_block.end());
+        //
+        //                    std::string temp = "";
+        //                    for (auto &elem : m_macro_analisys_buff) {
+        //                        if (!temp.empty()) {
+        //                            temp += " ";
+        //                        }
+        //                        temp += elem->m_text;
+        //                        temp += ":";
+        //                        temp += toString(elem->m_id);
+        //                    }
+        //                    //                    LOG_TEST("To: %s", temp.c_str());
+        //                }
+        //
+        //                continue;
+        //
+        //            } else {
+        //                //                if(m_macro_analisys_buff[0]->getTermID() == TermID::MACRO) { // || found != m_macro->end()
+        //
+        //                LOG_RUNTIME("Macro mapping '%s' not found!\nThe following macro mapping are available:\n%s",
+        //                        m_macro_analisys_buff[0]->toString().c_str(),
+        //                        m_macro->GetMacroMaping(Macro::toMacroHash(m_macro_analisys_buff[0]), "\n").c_str());
+        //
+        //                //                }
+        //            }
+        //        }
+
+        break;
+
+    }
+
+    //LOG_DEBUG("LexerToken count %d", (int) m_prep_buff.size());
+
+    if (!m_macro_analisys_buff.empty()) {
+
+        //        if (m_macro_analisys_buff[0]->m_id == TermID::END) {
+        //            *yylval = nullptr;
+        //            return parser::token_type::END;
+        //        }
+
+        //        if (m_macro_analisys_buff.at(0)->m_id) {
+        //        LOG_DEBUG("%d  %s", (int)m_prep_buff.at(0)->m_lexer_type, m_prep_buff.at(0)->m_text.c_str());
+
+        *yylval = m_macro_analisys_buff.at(0);
+        *yylloc = m_macro_analisys_buff.at(0)->m_lexer_loc;
+        result = m_macro_analisys_buff.at(0)->m_lexer_type;
+
+        //        LOG_TEST("Token (%d=%s): '%s'", result, toString((*yylval)->m_id), (*yylval)->m_text.c_str());
+
+        if (m_postlex) {
+
+            m_postlex->push_back((*yylval)->m_text);
+
+            // Раскрыть последовательность токенов, т.к. они собираются в термин в лексере, а не парсере
+            if ((*yylval)->getTermID() == TermID::MACRO_SEQ || (*yylval)->getTermID() == TermID::MACRO_DEL) {
+                for (int i = 0; i < (*yylval)->m_macro_seq.size(); i++) {
+                    m_postlex->push_back((*yylval)->m_macro_seq[i]->m_text);
+                }
+                m_postlex->push_back((*yylval)->m_text);
+            }
+
+        }
+        //        }
+
+        m_macro_analisys_buff.erase(m_macro_analisys_buff.begin());
+        return result;
+    }
+
+    *yylval = nullptr;
+
+    return parser::token_type::END;
+}

@@ -8,10 +8,14 @@
 #include "llvm/IR/LegacyPassManager.h"
 #include "llvm/MC/TargetRegistry.h"
 #include "llvm/Support/CodeGen.h"
+
+#include <llvm/Support/Signals.h>
 #include "warning_pop.h"
 
-#include "transpiler.h"
+#include "jit.h"
 #include "runtime.h"
+#include "term.h"
+#include "analysis.h"
 
 #include "build_options.data"
 #include "include_h_i.data"
@@ -24,6 +28,8 @@
 
 
 using namespace newlang;
+
+JIT * JIT::m_instance = nullptr;
 
 //LLVMBuilderRef RunTime::m_llvm_builder = nullptr;
 //LLVMModuleRef RunTime::m_llvm_module = nullptr;
@@ -223,42 +229,167 @@ std::string newlang::MangleName(const char * name) {
  * 
  * 
  */
-std::unique_ptr<llvm::Module> Transpiler::MakeLLVMModule(std::string_view source, const std::vector<std::string> extra_opts, std::string *asm_code) {
+//std::unique_ptr<llvm::Module> JIT::MakeLLVMModule(std::string_view source, const std::vector<std::string> extra_opts, std::string *asm_code) {
+//
+//    //        std::unique_ptr<llvm::Module> CompileCpp(std::string source, std::vector<std::string> opts, std::string *asm_code = nullptr) {
+//    clang::CompilerInstance compilerInstance;
+//    auto& compilerInvocation = compilerInstance.getInvocation();
+//
+//
+////    // Диагностика работы Clang
+////    clang::IntrusiveRefCntPtr<clang::DiagnosticOptions> DiagOpts = new clang::DiagnosticOptions;
+////    clang::TextDiagnosticPrinter *textDiagPrinter =
+////            new clang::TextDiagnosticPrinter(llvm::outs(), &*DiagOpts);
+////
+////    clang::IntrusiveRefCntPtr<clang::DiagnosticIDs> pDiagIDs;
+////
+////    clang::DiagnosticsEngine *pDiagnosticsEngine =
+////            new clang::DiagnosticsEngine(pDiagIDs, &*DiagOpts, textDiagPrinter);
+//
+//
+//    // Целевая платформа
+//    std::string triple = LLVMGetDefaultTargetTriple();
+//
+//    std::vector<std::string> run_opts;
+//    run_opts.push_back(triple.insert(0, "-triple="));
+//
+//    run_opts.push_back("-xc++");
+//
+//    run_opts.push_back("-DBUILD_UNITTEST");
+//    run_opts.push_back("-DBUILD_DEBUG ");
+//    run_opts.push_back("-DLOG_LEVEL_NORMAL=LOG_LEVEL_DEBUG");
+//
+//    std::string build_options_string;
+//    for (size_t i = 0; i < newlang_build_options_size; i++) {
+//        build_options_string += newlang_build_options_arr[i];
+//        build_options_string += " ";
+//    }
+//    std::vector<std::string> build_opts = RunTime::SplitChar(build_options_string, " \t\r\n");
+//    build_options_string.clear();
+//
+//    run_opts.insert(run_opts.end(), build_opts.begin(), build_opts.end());
+//    run_opts.insert(run_opts.end(), extra_opts.begin(), extra_opts.end());
+//
+//    for (auto &elem : run_opts) {
+//        if (elem.find("-D") == 0) {
+//            elem += " ";
+//        }
+//        //        std::cout << elem << "\n";
+//    }
+//
+//    std::vector<const char*> itemcstrs;
+//    for (unsigned idx = 0; idx < run_opts.size(); idx++) {
+//        // note: if itemstrs is modified after this, itemcstrs will be full
+//        // of invalid pointers! Could make copies, but would have to clean up then...
+//        itemcstrs.push_back(run_opts[idx].c_str());
+//        //        std::cout << itemcstrs.back() << "\n";
+//    }
+//
+//    // Компиляция из памяти
+//    // Send code through a pipe to stdin
+//    int codeInPipe[2];
+//    pipe2(codeInPipe, O_NONBLOCK);
+//    write(codeInPipe[1], source.begin(), source.size());
+//    close(codeInPipe[1]); // We need to close the pipe to send an EOF
+//    dup2(codeInPipe[0], STDIN_FILENO);
+//
+//    itemcstrs.push_back("-"); // Read code from stdin
+//
+//    clang::CompilerInvocation::CreateFromArgs(compilerInvocation,
+//            llvm::ArrayRef<const char *>(itemcstrs.data(),
+//            itemcstrs.size()), *pDiagnosticsEngine);
+//
+//    auto& languageOptions = compilerInvocation.getLangOpts();
+//    auto& preprocessorOptions = compilerInvocation.getPreprocessorOpts();
+//    auto& targetOptions = compilerInvocation.getTargetOpts();
+//
+//    auto& frontEndOptions = compilerInvocation.getFrontendOpts();
+//    //    frontEndOptions.ShowStats = true;
+//
+//    auto& headerSearchOptions = compilerInvocation.getHeaderSearchOpts();
+//    //    headerSearchOptions.Verbose = true;
+//
+//    auto& codeGenOptions = compilerInvocation.getCodeGenOpts();
+//
+//
+//    targetOptions.Triple = LLVMGetDefaultTargetTriple();
+//    compilerInstance.createDiagnostics(textDiagPrinter, false);
+//
+//    //    DEBUG_MSG("Using target triple: " << triple);
+//
+//    LLVMContextRef ctx = LLVMContextCreate();
+//    std::unique_ptr<clang::CodeGenAction> action = std::make_unique<clang::EmitLLVMOnlyAction>((llvm::LLVMContext *)ctx);
+//
+//    assert(compilerInstance.ExecuteAction(*action));
+//
+//    // Runtime LLVM Module
+//    std::unique_ptr<llvm::Module> module = action->takeModule();
+//
+//    assert(module);
+//
+//
+//    if (asm_code) {
+//        llvm::raw_string_ostream asm_stream(*asm_code);
+//        module->print(asm_stream, 0, false);
+//    }
+//    //AssemblyWriter
+//
+//    // Оптимизация IR
+//    //    llvm::PassBuilder passBuilder;
+//    //    llvm::LoopAnalysisManager loopAnalysisManager;
+//    //    llvm::FunctionAnalysisManager functionAnalysisManager;
+//    //    llvm::CGSCCAnalysisManager cGSCCAnalysisManager;
+//    //    llvm::ModuleAnalysisManager moduleAnalysisManager;
+//    //
+//    //    passBuilder.registerModuleAnalyses(moduleAnalysisManager);
+//    //    passBuilder.registerCGSCCAnalyses(cGSCCAnalysisManager);
+//    //    passBuilder.registerFunctionAnalyses(functionAnalysisManager);
+//    //    passBuilder.registerLoopAnalyses(loopAnalysisManager);
+//    //    passBuilder.crossRegisterProxies(loopAnalysisManager, functionAnalysisManager, cGSCCAnalysisManager, moduleAnalysisManager);
+//    //
+//    //    llvm::ModulePassManager modulePassManager = passBuilder.buildPerModuleDefaultPipeline(llvm::OptimizationLevel::O0);
+//    //    modulePassManager.run(*module, moduleAnalysisManager);
+//
+//    return module;
+//}
 
-    //        std::unique_ptr<llvm::Module> CompileCpp(std::string source, std::vector<std::string> opts, std::string *asm_code = nullptr) {
+std::unique_ptr<llvm::Module> JIT::MakeLLVMModule(const std::string_view source, std::vector<std::string> extra_opts) {
+
     clang::CompilerInstance compilerInstance;
     auto& compilerInvocation = compilerInstance.getInvocation();
 
 
-    // Диагностика работы Clang
-    clang::IntrusiveRefCntPtr<clang::DiagnosticOptions> DiagOpts = new clang::DiagnosticOptions;
-    clang::TextDiagnosticPrinter *textDiagPrinter =
-            new clang::TextDiagnosticPrinter(llvm::outs(), &*DiagOpts);
-
-    clang::IntrusiveRefCntPtr<clang::DiagnosticIDs> pDiagIDs;
-
-    clang::DiagnosticsEngine *pDiagnosticsEngine =
-            new clang::DiagnosticsEngine(pDiagIDs, &*DiagOpts, textDiagPrinter);
+    //    // Диагностика работы Clang
+    //    clang::IntrusiveRefCntPtr<clang::DiagnosticOptions> DiagOpts = new clang::DiagnosticOptions;
+    //    clang::TextDiagnosticPrinter *textDiagPrinter =
+    //            new clang::TextDiagnosticPrinter(llvm::outs(), &*DiagOpts);
+    //
+    //    clang::IntrusiveRefCntPtr<clang::DiagnosticIDs> pDiagIDs;
+    //
+    //    clang::DiagnosticsEngine *pDiagnosticsEngine =
+    //            new clang::DiagnosticsEngine(pDiagIDs, &*DiagOpts, textDiagPrinter);
 
 
     // Целевая платформа
     std::string triple = LLVMGetDefaultTargetTriple();
 
     std::vector<std::string> run_opts;
-    run_opts.push_back(triple.insert(0, "-triple="));
+    run_opts.push_back(triple);
+    run_opts.back().insert(0, "-triple=");
 
     run_opts.push_back("-xc++");
 
     run_opts.push_back("-DBUILD_UNITTEST");
-    run_opts.push_back("-DBUILD_DEBUG ");
+    run_opts.push_back("-DBUILD_DEBUG");
     run_opts.push_back("-DLOG_LEVEL_NORMAL=LOG_LEVEL_DEBUG");
+
 
     std::string build_options_string;
     for (size_t i = 0; i < newlang_build_options_size; i++) {
         build_options_string += newlang_build_options_arr[i];
         build_options_string += " ";
     }
-    std::vector<std::string> build_opts = Macro::SplitChar(build_options_string, " \t\r\n");
+    std::vector<std::string> build_opts = RunTime::SplitChar(build_options_string, " \t\r\n");
     build_options_string.clear();
 
     run_opts.insert(run_opts.end(), build_opts.begin(), build_opts.end());
@@ -268,7 +399,69 @@ std::unique_ptr<llvm::Module> Transpiler::MakeLLVMModule(std::string_view source
         if (elem.find("-D") == 0) {
             elem += " ";
         }
-        //        std::cout << elem << "\n";
+//        std::cout << elem << "\n";
+    }
+
+
+    //    std::vector<std::string> itemstrs;
+    //    itemstrs.push_back(triple.insert(0, "-triple="));
+    //    itemstrs.push_back("-xc++");
+    //    itemstrs.push_back("-std=c++23");
+    //
+    //    itemstrs.insert(itemstrs.end(), opts.begin(), opts.end());
+
+
+    // Компиляция из памяти
+    // Send code through a pipe to stdin
+    int codeInPipe[2];
+    pipe2(codeInPipe, O_NONBLOCK);
+
+    int writen;
+    int pipe_sz_save = fcntl(codeInPipe[1], F_GETPIPE_SZ, 0);
+
+    std::string temp_file;
+    std::string obj_file;
+    int fd_temp = 0;
+    if (pipe_sz_save / 2 < source.size()) {
+
+        close(codeInPipe[1]);
+
+//        temp_file = std::filesystem::temp_directory_path();
+        temp_file = "temp";
+        temp_file += "/module_XXXXXX";
+        fd_temp = mkstemp(temp_file.data());
+        if (fd_temp < 0) {
+            LOG_RUNTIME("Fail create temp file %s!", temp_file.c_str());
+        }
+
+        writen = write(fd_temp, source.begin(), source.size());
+        close(fd_temp);
+        if (writen != source.size()) {
+            LOG_RUNTIME("Write error to temp file %s!", temp_file.c_str());
+        }
+
+        obj_file = temp_file;
+        obj_file += ".o";
+
+        run_opts.push_back("-o");
+        run_opts.push_back(obj_file);
+        run_opts.push_back(temp_file.c_str());
+
+    } else {
+
+        //    int pipe_sz = fcntl(codeInPipe[1], F_SETPIPE_SZ, 65536 * 4);
+
+        int writen = write(codeInPipe[1], source.begin(), source.size());
+
+        if (writen != source.size()) {
+            LOG_RUNTIME("Write PIPE error: only %d of required %d bytes were written!", writen, (int) source.size());
+        }
+
+        close(codeInPipe[1]); // We need to close the pipe to send an EOF
+        dup2(codeInPipe[0], STDIN_FILENO);
+
+        run_opts.push_back("-"); // Read code from stdin
+
     }
 
     std::vector<const char*> itemcstrs;
@@ -276,18 +469,9 @@ std::unique_ptr<llvm::Module> Transpiler::MakeLLVMModule(std::string_view source
         // note: if itemstrs is modified after this, itemcstrs will be full
         // of invalid pointers! Could make copies, but would have to clean up then...
         itemcstrs.push_back(run_opts[idx].c_str());
-        //        std::cout << itemcstrs.back() << "\n";
+//        std::cout << itemcstrs.back() << "\n";
     }
 
-    // Компиляция из памяти
-    // Send code through a pipe to stdin
-    int codeInPipe[2];
-    pipe2(codeInPipe, O_NONBLOCK);
-    write(codeInPipe[1], source.begin(), source.size());
-    close(codeInPipe[1]); // We need to close the pipe to send an EOF
-    dup2(codeInPipe[0], STDIN_FILENO);
-
-    itemcstrs.push_back("-"); // Read code from stdin
 
     clang::CompilerInvocation::CreateFromArgs(compilerInvocation,
             llvm::ArrayRef<const char *>(itemcstrs.data(),
@@ -309,116 +493,152 @@ std::unique_ptr<llvm::Module> Transpiler::MakeLLVMModule(std::string_view source
     targetOptions.Triple = LLVMGetDefaultTargetTriple();
     compilerInstance.createDiagnostics(textDiagPrinter, false);
 
-    //    DEBUG_MSG("Using target triple: " << triple);
+//    std::cout << "Using target triple: " << triple;
 
     LLVMContextRef ctx = LLVMContextCreate();
     std::unique_ptr<clang::CodeGenAction> action = std::make_unique<clang::EmitLLVMOnlyAction>((llvm::LLVMContext *)ctx);
 
-    assert(compilerInstance.ExecuteAction(*action));
+    if (!compilerInstance.ExecuteAction(*action)) {
+        LOG_RUNTIME("Compile error!");
+    }
 
     // Runtime LLVM Module
     std::unique_ptr<llvm::Module> module = action->takeModule();
 
-    assert(module);
-
-
-    if (asm_code) {
-        llvm::raw_string_ostream asm_stream(*asm_code);
-        module->print(asm_stream, 0, false);
+    if (!module) {
+        LOG_RUNTIME("Fail create module!");
     }
-    //AssemblyWriter
+    
+    std::filesystem::remove(temp_file);
+    
 
-    // Оптимизация IR
-    //    llvm::PassBuilder passBuilder;
-    //    llvm::LoopAnalysisManager loopAnalysisManager;
-    //    llvm::FunctionAnalysisManager functionAnalysisManager;
-    //    llvm::CGSCCAnalysisManager cGSCCAnalysisManager;
-    //    llvm::ModuleAnalysisManager moduleAnalysisManager;
-    //
-    //    passBuilder.registerModuleAnalyses(moduleAnalysisManager);
-    //    passBuilder.registerCGSCCAnalyses(cGSCCAnalysisManager);
-    //    passBuilder.registerFunctionAnalyses(functionAnalysisManager);
-    //    passBuilder.registerLoopAnalyses(loopAnalysisManager);
-    //    passBuilder.crossRegisterProxies(loopAnalysisManager, functionAnalysisManager, cGSCCAnalysisManager, moduleAnalysisManager);
-    //
-    //    llvm::ModulePassManager modulePassManager = passBuilder.buildPerModuleDefaultPipeline(llvm::OptimizationLevel::O0);
-    //    modulePassManager.run(*module, moduleAnalysisManager);
-
-    return module;
-}
-
-bool Transpiler::MakeCppExec(const std::string_view source, const std::string_view execname, std::vector<std::string> opts) {
-
-    std::vector<std::string> argsX{
-        ////        "-std=c++23",
-        "-stdlib=libc++",
-        //        //        "--print-supported-cpus",
-        "-Xclang",
-        "-I", "/usr/include/x86_64-linux-gnu/",
-        "-I", "/usr/lib/gcc/x86_64-linux-gnu/11/include",
-        "-I", "/usr/include",
-        "-I", "/usr/include/linux",
-        //        "-I", "/usr/local/include",
-        ////        "-o", "hello_embeddddddddddddddddddddd",
-        ////        "-x", "c++"
-    };
-
-    opts.insert(opts.end(), argsX.begin(), argsX.end());
-
-    std::unique_ptr<llvm::Module> module = MakeLLVMModule(source, opts);
-
-    assert(module);
-
-    // Add the current debug info version into the module.
-    //    module->addModuleFlag(llvm::Module::Warning, "Debug Info Version", llvm::LLVMConstants::DEBUG_METADATA_VERSION);
-
-    //    // Darwin only supports dwarf2.
-    //    if (llvm::Triple(sys::getProcessTriple()).isOSDarwin()) {
-    //        module->addModuleFlag(llvm::Module::Warning, "Dwarf Version", 2);
+    //    if (asm_code) {
+    //        llvm::raw_string_ostream asm_stream(*asm_code);
+    //        module->print(asm_stream, 0, false);
     //    }
 
-    auto TargetTriple = LLVMGetDefaultTargetTriple();
-    LLVMInitializeAllTargetInfos();
-    //    InitializeAllTargets();
-    //    InitializeAllTargetMCs();
-    //    InitializeAllAsmParsers();
-    //    InitializeAllAsmPrinters();
+    return module;
+    //
+    //    triple = LLVMGetDefaultTargetTriple();
+    //    LLVMInitializeAllTargetInfos();
+    //    LLVMInitializeAllTargets();
+    //    LLVMInitializeAllTargetMCs();
+    //    LLVMInitializeAllAsmParsers();
+    //    LLVMInitializeAllAsmPrinters();
+    //
+    //    std::string Error;
+    //    auto Target = llvm::TargetRegistry::lookupTarget(triple, Error);
+    //
+    //    if (!Target) {
+    //        LOG_ERROR("\n%s\n", Error.c_str());
+    //        return false;
+    //    }
+    //
+    //    auto CPU = "generic";
+    //    auto Features = "";
+    //
+    //    llvm::TargetOptions opt;
+    //    auto RM = std::optional<llvm::Reloc::Model>();
+    //    auto TargetMachine = Target->createTargetMachine(triple, CPU, Features, opt, RM);
+    //
+    //    module->setDataLayout(TargetMachine->createDataLayout());
+    //    module->setTargetTriple(triple);
+    //
+    //    auto Filename = obj_file.empty() ? "output.o" : obj_file;
+    //    std::error_code EC;
+    //    llvm::raw_fd_ostream dest(Filename, EC, llvm::sys::fs::OF_None);
+    //
+    //    llvm::legacy::PassManager pass;
+    //    auto FileType = llvm::CodeGenFileType::ObjectFile;
+    //
+    //    if (TargetMachine->addPassesToEmitFile(pass, dest, nullptr, FileType)) {
+    //        llvm::errs() << "TargetMachine can't emit a file of this type";
+    //        return false;
+    //    }
+    //    pass.run(*module);
+    //    dest.flush();
+    //
+    //    //    //    llvm::IntrusiveRefCntPtr<clang::DiagnosticOptions> DiagOpts2 = new clang::DiagnosticOptions;
+    //    //    //    clang::TextDiagnosticPrinter *DiagClient = new clang::TextDiagnosticPrinter(llvm::errs(), &*DiagOpts2);
+    //    //    //    llvm::IntrusiveRefCntPtr<clang::DiagnosticIDs> DiagID(new clang::DiagnosticIDs());
+    //    //    //    clang::DiagnosticsEngine Diags(DiagID, &*DiagOpts, DiagClient);
+    //    //    clang::driver::Driver TheDriver("", triple, *pDiagnosticsEngine);
+    //    //
+    //    //    auto args = llvm::ArrayRef<const char *>{"-g", Filename.c_str(), "-o", execname.begin()};
+    //    //
+    //    //    std::unique_ptr<clang::driver::Compilation> C(TheDriver.BuildCompilation(args));
+    //    //
+    //    //    if (C && !C->containsError()) {
+    //    //        llvm::SmallVector<std::pair<int, const clang::driver::Command *>, 4> FailingCommands;
+    //    //        TheDriver.ExecuteCompilation(*C, FailingCommands);
+    //    //    }
+    //
+    //    return true;
+}
+
+bool JIT::MakeObjFile(const std::string_view filename, llvm::Module &module, const std::vector<std::string> opts) {
+
+    LLVMInitializeJIT();
+
+    std::string triple = LLVMGetDefaultTargetTriple();
 
     std::string Error;
-    auto Target = llvm::TargetRegistry::lookupTarget(TargetTriple, Error);
+    auto Target = llvm::TargetRegistry::lookupTarget(triple, Error);
+
+    if (!Target) {
+        LOG_ERROR("\n%s\n", Error.c_str());
+        return false;
+    }
+
     auto CPU = "generic";
     auto Features = "";
 
     llvm::TargetOptions opt;
     auto RM = std::optional<llvm::Reloc::Model>();
-    auto TargetMachine = Target->createTargetMachine(TargetTriple, CPU, Features, opt, RM);
+    auto TargetMachine = Target->createTargetMachine(triple, CPU, Features, opt, RM);
 
-    module->setDataLayout(TargetMachine->createDataLayout());
-    module->setTargetTriple(TargetTriple);
+    module.setDataLayout(TargetMachine->createDataLayout());
+    module.setTargetTriple(triple);
 
-    std::string objname(execname);
-    objname += ".o";
-
+    //    auto Filename = obj_file.empty() ? "output.o" : obj_file;
     std::error_code EC;
-    llvm::raw_fd_ostream dest(objname, EC, llvm::sys::fs::OF_None);
+    llvm::raw_fd_ostream dest(filename.begin(), EC, llvm::sys::fs::OF_None);
 
     llvm::legacy::PassManager pass;
     auto FileType = llvm::CodeGenFileType::ObjectFile;
 
     if (TargetMachine->addPassesToEmitFile(pass, dest, nullptr, FileType)) {
-        std::cout << "TargetMachine can't emit a file of this type";
+        llvm::errs() << "TargetMachine can't emit a file of this type";
         return false;
     }
-    pass.run(*module);
+    pass.run(module);
     dest.flush();
+    return true;
+}
 
-    llvm::IntrusiveRefCntPtr<clang::DiagnosticOptions> DiagOpts = new clang::DiagnosticOptions;
-    clang::TextDiagnosticPrinter *DiagClient = new clang::TextDiagnosticPrinter(llvm::errs(), &*DiagOpts);
-    llvm::IntrusiveRefCntPtr<clang::DiagnosticIDs> DiagID(new clang::DiagnosticIDs());
-    clang::DiagnosticsEngine Diags(DiagID, &*DiagOpts, DiagClient);
-    clang::driver::Driver TheDriver("", TargetTriple, Diags);
+bool JIT::LinkObjToExec(const std::string_view execname, std::vector<std::string> objs, std::vector<std::string> opts) {
 
-    auto args = llvm::ArrayRef<const char *>{"-g", objname.c_str(), "-o", execname.begin()};
+    clang::driver::Driver TheDriver("", LLVMGetDefaultTargetTriple(), *pDiagnosticsEngine);
+
+    
+    objs.insert(objs.begin(), opts.begin(), opts.end());
+    
+    objs.insert(objs.begin(), "-g");
+    objs.push_back("-o");
+    objs.push_back(execname.begin());
+    
+    
+
+    std::vector<const char*> args;
+    for (unsigned idx = 0; idx < objs.size(); idx++) {
+        // note: if itemstrs is modified after this, itemcstrs will be full
+        // of invalid pointers! Could make copies, but would have to clean up then...
+        args.push_back(objs[idx].c_str());
+//        std::cout << args.back() << "\n";
+    }
+
+    //    auto args = llvm::ArrayRef<const char *>{"-g", Filename.c_str(), "-o", execname.begin()};
+    //    auto args = llvm::ArrayRef<const char *>(objs.begin(), objs.end());
 
     std::unique_ptr<clang::driver::Compilation> C(TheDriver.BuildCompilation(args));
 
@@ -426,15 +646,6 @@ bool Transpiler::MakeCppExec(const std::string_view source, const std::string_vi
         llvm::SmallVector<std::pair<int, const clang::driver::Command *>, 4> FailingCommands;
         TheDriver.ExecuteCompilation(*C, FailingCommands);
     }
-
-    //    remove(Filename);
-
-
-
-    //    std::string bytecode;
-    //    llvm::raw_ostream bc(bytecode);
-    //    llvm::WriteBitcodeToFile(*module, bc);
-
 
     return true;
 }
@@ -446,7 +657,7 @@ bool Transpiler::MakeCppExec(const std::string_view source, const std::string_vi
  */
 
 
-std::string Transpiler::ExtractFunctionDecls(const TermPtr &term, const std::string_view module) {
+std::string JIT::ExtractFunctionDecls(const TermPtr &term, const std::string_view module) {
     std::string result;
     if (term->isBlock()) {
         for (auto &elem : term->m_block) {
@@ -464,7 +675,7 @@ std::string Transpiler::ExtractFunctionDecls(const TermPtr &term, const std::str
     return result;
 }
 
-std::string Transpiler::MakeFunctionPrototype(const TermPtr &func, const std::string_view module) {
+std::string JIT::MakeFunctionPrototype(const TermPtr &func, const std::string_view module) {
     ASSERT(func->isCall());
     if (func->m_int_name.empty()) {
         NL_PARSER(func, "Has no internal name! AST analysis required!");
@@ -475,7 +686,7 @@ std::string Transpiler::MakeFunctionPrototype(const TermPtr &func, const std::st
     return result;
 }
 
-std::string Transpiler::MakeCommentPlace(const TermPtr &term) {
+std::string JIT::MakeCommentPlace(const TermPtr &term) {
     std::string comment = term->toString();
     if (term->m_line) {
         comment += " at line: ";
@@ -486,7 +697,7 @@ std::string Transpiler::MakeCommentPlace(const TermPtr &term) {
     return "// " + comment + "\n";
 }
 
-TermPtr Transpiler::MainArgs() {
+TermPtr JIT::MainArgs() {
     TermPtr result = Term::CreateDict();
     result->push_back(Term::CreateName("argc"));
     result->back().second->m_type = Term::CreateName(":Int32", TermID::TYPE);
@@ -497,31 +708,42 @@ TermPtr Transpiler::MainArgs() {
     return result;
 }
 
-std::string Transpiler::MakeApplicationSource(const TermPtr &ast) {
+std::string JIT::MakeApplicationSource(const TermPtr &ast) {
     std::string result;
     if (!ast->isBlock() && ast->m_id == TermID::EMBED) {
         std::string source = ReplaceObjectInEmbedSource(ast->m_text, m_includes, MainArgs());
         if (source.compare(ast->m_text) == 0) {
-            // Simpe embedded
+            // Simple embedded (no libnlc-rt)
             result = MakeMainEmbed(source, m_includes);
         } else {
+            // Need link libnlc-rt
+            if (!m_rt->m_link_rt) {
+                LOG_RUNTIME("Options '--nlc-no-link-rt' not allowed!");
+            }
             result = MakeMain(m_includes);
         }
     } else {
+        if (!m_rt->m_link_rt) {
+            LOG_RUNTIME("Options '--nlc-no-link-rt' not allowed!");
+        }
+        //        if (!m_rt->m_link_rt || !m_rt->m_link_jit) {
+        //            LOG_RUNTIME("Options '--nlc-no-link-rt' or '--nlc-no-link-jit' not allowed!");
+        //        }
+        // Need link libnlc-rt   and   libnlc-jit
+        LOG_RUNTIME("Not implemented!!!");
     }
     return result;
 }
 
-std::string Transpiler::MakeMain(const std::vector<std::string> &include) {
+std::string JIT::MakeMain(const std::vector<std::string> &include) {
     std::string result;
-    result += NEWLANG_INDENT_OP NEWLANG_INDENT_OP NEWLANG_NS"::RuntimePtr rt = " NEWLANG_NS "::RunTime::Init(argc, argv, envp);\n";
-    result += NEWLANG_INDENT_OP NEWLANG_INDENT_OP "return rt->RunMain();";
+    result += NEWLANG_INDENT_OP NEWLANG_INDENT_OP "return newlang::RunMain(argc, argv, penv);";
     return MakeMainEmbed(result, include);
 }
 
-std::string Transpiler::MakeMainEmbed(const std::string_view embed_source, const std::vector<std::string> &include) {
+std::string JIT::MakeMainEmbed(const std::string_view embed_source, const std::vector<std::string> &include) {
     std::string result;
-    result += "/*\n* Generate NewLang Transpiler::MakeMainEmbed";
+    result += "/*\n* Generate NewLang JIT::MakeMainEmbed";
     result += "\n* " VERSION_SOURCE_FULL_ID;
     result += "\n* at: ";
     result += Parser::GetCurrentTimeStamp();
@@ -541,10 +763,12 @@ std::string Transpiler::MakeMainEmbed(const std::string_view embed_source, const
         std::replace(filename.begin(), filename.end(), '\\', '/');
         result = result.insert(result.size() - 2, filename);
     }
-
-    result += "\n\nint main(int argc, char* argv[], char* envp[]) {\n\n";
+    result += "\n\nnamespace newlang {\n";
+    result += NEWLANG_INDENT_OP "int RunMain(const int argc, const char** argv, const char** penv);\n";
+    result += "}\n\n";
+    result += "int main(const int argc, const char* argv[], const char* penv[]) {\n\n";
     result += NEWLANG_INDENT_OP NEWLANG_INDENT_OP "// disable unused warning\n";
-    result += NEWLANG_INDENT_OP NEWLANG_INDENT_OP "((void)(argc)); ((void)(argv)); ((void)(envp));\n\n";
+    result += NEWLANG_INDENT_OP NEWLANG_INDENT_OP "((void)(argc)); ((void)(argv)); ((void)(penv));\n\n";
     result += embed_source;
     result += NEWLANG_INDENT_OP NEWLANG_INDENT_OP "\n" NEWLANG_INDENT_OP NEWLANG_INDENT_OP "return 0;\n};\n\n";
     return result;
@@ -554,7 +778,7 @@ std::string Transpiler::MakeMainEmbed(const std::string_view embed_source, const
  *  @\\stdio.h     -->  #include <stdio.h>
  *  @\sys\time.h   -->  #include "sys/time.h"
  */
-std::string Transpiler::ReplaceObjectInEmbedSource(const std::string_view embed, std::vector<std::string> &include, const TermPtr args) {
+std::string JIT::ReplaceObjectInEmbedSource(const std::string_view embed, std::vector<std::string> &include, const TermPtr args) {
     std::string result(embed);
 
     size_t pos = result.find("@\\");
@@ -584,46 +808,69 @@ std::string Transpiler::ReplaceObjectInEmbedSource(const std::string_view embed,
     return result;
 }
 
-std::string Transpiler::MakeCPPCode(const TermPtr &term, const std::string_view module) {
+std::string JIT::MakeCodeModule(const TermPtr &term, const std::string_view module, bool is_main) {
     std::string result;
     for (size_t i = 0; i < newlang_include_h_i_size; i++) {
         result += newlang_include_h_i_arr[i];
         result += "\n";
     }
 
-    result += "\n\n// Start NewLang Transpiler::MakeCPPCode ";
-    result += VERSION_SOURCE_FULL_ID;
-    result += "\n\n";
+    result += "/*\n* Generate NewLang JIT::MakeCodeModule";
+    result += "\n* " VERSION_SOURCE_FULL_ID;
+    result += "\n* at: ";
+    result += Parser::GetCurrentTimeStamp();
+    result += "\n*/\n\n";
+
+    //    result += "#include <memory>\n";
+    //    result += "\n";
+    //    
+    //    result += "namespace newlang {\n";
+    //    result += "  class Obj;\n";
+    //    result += "  class Context;\n";
+    //    result += "  typedef std::shared_ptr<Obj> ObjPtr;\n";
+    //    result += "};\n\n";
 
     result += ExtractFunctionDecls(term, module);
 
     result += ExtractStaticVars(term, module);
 
-    TermPtr func_module = Term::CreateName("__init__");
+    TermPtr func_module = Term::CreateName("__module__");
     func_module->m_is_call = true;
-    func_module->m_int_name = NormalizeName(func_module->m_name);
+    func_module->m_int_name = NormalizeName(func_module->m_text);
 
     result += MakeFunctionPrototype(func_module, module);
     result += " {\n";
     result += MakeBodyFunction(term);
+    result += "  return nullptr;\n";
     result += "}\n";
 
     MakeFunctionRecursive_(term, result, module);
 
-    result += "\n\n// End NewLang Transpiler::MakeCPPCode ";
-    result += VERSION_SOURCE_FULL_ID;
+    result += "/*\n* End generate JIT::MakeCodeModule";
+    result += "\n* " VERSION_SOURCE_FULL_ID;
+    result += "\n* at: ";
+    result += Parser::GetCurrentTimeStamp();
+    result += "\n*/\n\n";
     return result;
 }
 
-std::string Transpiler::ExtractStaticVars(const TermPtr &ast, const std::string_view module) {
+std::string JIT::ExtractStaticVars(const TermPtr &ast, const std::string_view module) {
     return "";
 }
 
-std::string Transpiler::MakeBodyFunction(const TermPtr &ast) {
+std::string JIT::MakeCodeFunction(const TermPtr &term) {
     return "";
 }
 
-void Transpiler::MakeFunctionRecursive_(const TermPtr &term, std::string &output, const std::string_view module) {
+std::string JIT::MakeFuncDeclarations_(const TermPtr &term) {
+    return "";
+}
+
+std::string JIT::MakeBodyFunction(const TermPtr &ast) {
+    return "";
+}
+
+void JIT::MakeFunctionRecursive_(const TermPtr &term, std::string &output, const std::string_view module) {
     //    std::string result;
     if (term->isBlock()) {
         for (auto &elem : term->m_block) {
@@ -2126,21 +2373,6 @@ std::string CompileInfo::GetIndent(int64_t offset) {
 //    return summary;
 //}
 
-
-
-#include "warning_push.h"
-#include <llvm/Support/Signals.h>
-#include <llvm/Support/raw_ostream.h>
-#include "warning_pop.h"
-
-std::string Logger::GetStackTrace() {
-    std::string result("\n");
-    llvm::raw_string_ostream stack(result);
-    llvm::sys::PrintStackTrace(stack, 1);
-    return result;
-}
-
-
 LLVMGenericValueRef GetGenericValueRef(Obj &obj, LLVMTypeRef type) {
     if (type == LLVMInt1Type() || type == LLVMInt8Type() || type == LLVMInt16Type() || type == LLVMInt32Type() || type == LLVMInt64Type()) {
         return LLVMCreateGenericValueOfInt(type, obj.GetValueAsInteger(), true);
@@ -2243,3 +2475,283 @@ LLVMTypeRef toLLVMType(ObjType t, bool none_if_error) {
     LOG_RUNTIME("Can`t convert type '%s' to LLVM type!", toString(t));
 }
 
+ParserPtr JIT::GetParser() {
+    // @todo Сделать корректныую очистку состояния парсера???
+    return std::make_shared<JitParser>(m_macro, nullptr, m_rt->m_diag, true, m_rt.get());
+}
+
+ObjPtr JIT::RunFile(std::string file, Obj* args) {
+    if (!RunTime::ExpandFileName(file)) {
+        LOG_RUNTIME("File or module '%s' not found!", file.c_str());
+    }
+    std::string source = ReadFile(file.c_str());
+    //    TermPtr ast = MakeAst(source);
+    //    if (args) {
+    //        args->insert(args->begin(), {
+    //            "", Obj::CreateString(file)
+    //        });
+    //    }
+    return Run(source, args);
+}
+
+/*
+ * Построчное выполнение не изменяет AST, а только добавляет к нему новые строки.
+ * Констекст выполнения (m_main_runner) тоже остается не изменным.
+ */
+ObjPtr JIT::Run(const std::string_view str, Obj* args) {
+    //    if (!m_main_ast || m_main_ast->m_id != TermID::BLOCK) {
+    //        m_main_ast = Term::Create(parser::token_type::END, TermID::BLOCK, "");
+    //        m_main_runner.reset();
+    //    }
+    //
+    //    TermPtr ast = GetParser()->Parse(str.begin());
+    //
+    //    m_main_ast->m_block.push_back(ast);
+    //
+    //    if (!m_main_runner) {
+    //        m_main_runner = std::make_shared<Context>(m_main_ast->m_int_vars, shared_from_this());
+    //    }
+    //    try {
+    //        m_diag->m_error_count = 0;
+    //
+    //        AstAnalysis analysis(*this, m_diag.get());
+    //
+    //        analysis.CheckError(analysis.Analyze(ast, m_main_ast));
+    //        //        AstCheckError(AstAnalyze(ast, m_main_ast));
+    //        if (m_diag->m_error_count) {
+    //            LOG_PARSER("fatal error: %d generated. ", m_diag->m_error_count);
+    //        }
+    //
+    //        return Context::Run(m_main_ast->m_block.back(), m_main_runner.get());
+    //    } catch (...) {
+    //        m_main_ast->m_block.pop_back();
+    //        throw;
+    //    }
+    return Obj::CreateNone();
+}
+
+/*
+ * Выполенение целого AST создает полностью новый контекст выполнения.
+ */
+ObjPtr JIT::Run(TermPtr ast, Obj* args) {
+    //    m_main_ast = ast;
+    //    m_main_runner = std::make_shared<Context>(m_main_ast->m_int_vars, shared_from_this());
+    //    return Context::Run(m_main_ast, m_main_runner.get());
+    return Obj::CreateNone();
+}
+
+TermPtr JIT::MakeAst(const std::string_view src, bool skip_analize) {
+    TermPtr ast = Parser::ParseString(src.begin());
+    if (skip_analize) {
+        return ast;
+    }
+
+    AstAnalysis analysis(*m_rt, m_rt->m_diag.get());
+
+    if (!analysis.Analyze(ast, ast)) {
+        LOG_RUNTIME("Make AST fail!");
+    }
+    return ast;
+}
+
+bool JIT::ModuleCreate(FileModule &data, const std::string_view source) {
+
+    TermPtr ast = MakeAst(source, false);
+    return true;
+}
+
+bool JIT::ModuleCreate(FileModule &data, const std::string_view module_name, const TermPtr &include, const std::string_view source, llvm::Module *bc) {
+
+    data.name.assign(module_name);
+    data.include = AstAnalysis::MakeInclude(include);
+    data.source = source;
+    if (bc) {
+        llvm::raw_string_ostream code(data.bytecode);
+        llvm::WriteBitcodeToFile(*bc, code);
+    }
+    return !data.name.empty() && !data.include.empty() && (data.source.empty() || data.bytecode.empty());
+}
+
+JIT::JIT(RuntimePtr rt) : m_rt(rt), m_macro(std::make_shared<Macro>()) {
+
+
+    // Диагностика работы Clang
+    DiagOpts = new clang::DiagnosticOptions;
+    textDiagPrinter = new clang::TextDiagnosticPrinter(llvm::outs(), &*DiagOpts);
+    pDiagnosticsEngine = new clang::DiagnosticsEngine(pDiagIDs, &*DiagOpts, textDiagPrinter);
+
+
+    if (m_rt->m_load_dsl) {
+
+        VERIFY(CreateMacro("@@ true @@ ::= 1"));
+        VERIFY(CreateMacro("@@ yes @@ ::= 1"));
+        VERIFY(CreateMacro("@@ false @@ ::= 0"));
+        VERIFY(CreateMacro("@@ no @@ ::= 0"));
+
+        VERIFY(CreateMacro("@@ if( ... ) @@ ::= @@ [ @$... ] --> @@"));
+        VERIFY(CreateMacro("@@ elif( ... ) @@ ::= @@ ,[ @$... ] --> @@"));
+        VERIFY(CreateMacro("@@ else @@ ::= @@ ,[...] --> @@"));
+
+        VERIFY(CreateMacro("@@ while( ... ) @@ ::= @@ [ @$... ] <-> @@"));
+        VERIFY(CreateMacro("@@ dowhile( ... ) @@ ::= @@ <-> [ @$... ] @@"));
+        VERIFY(CreateMacro("@@ loop @@ ::= @@ [ 1 ] <-> @@"));
+
+
+        VERIFY(CreateMacro("@@ break $label @@ ::= @@ @$label :: ++ @@"));
+        VERIFY(CreateMacro("@@ continue $label @@ ::= @@ @$label :: -- @@"));
+        VERIFY(CreateMacro("@@ return( result ) @@ ::= @@ @__FUNC_BLOCK__ ++ @$result ++ @@"));
+        VERIFY(CreateMacro("@@ throw( result ) @@ ::= @@ -- @$result -- @@"));
+
+        VERIFY(CreateMacro("@@ match( ... ) @@ ::= @@ [ @$... ] @__PRAGMA_EXPECTED__( @\\ =>, @\\ ==>, @\\ ===>, @\\ ~>, @\\ ~~>, @\\ ~~~> ) @@"));
+        VERIFY(CreateMacro("@@ case( ... ) @@ ::= @@ [ @$... ] --> @@"));
+        VERIFY(CreateMacro("@@ default @@ ::= @@ [...] --> @@"));
+
+
+        VERIFY(CreateMacro("@@ this @@ ::= @@ $0 @@ ##< This object (self)"));
+        VERIFY(CreateMacro("@@ self @@ ::= @@ $0 @@ ##< This object (self)"));
+        VERIFY(CreateMacro("@@ super @@ ::= @@ $$ @@ ##< Super (parent) class or function"));
+        VERIFY(CreateMacro("@@ latter @@ ::= @@ $^ @@  ##< Result of the last operation"));
+
+
+        VERIFY(CreateMacro("@@ try @@ ::= @@ [ {*  @__PRAGMA_EXPECTED__( @\\ { ) @@"));
+        VERIFY(CreateMacro("@@ catch(...) @@ ::= @@ *} ] : < @$... > ~> @@"));
+        VERIFY(CreateMacro("@@ forward @@ ::= @@ +- $^ -+ @@  ##< Forward latter result or exception"));
+
+
+        VERIFY(CreateMacro("@@ iter( obj, ... ) @@ ::= @@ @$obj ? (@$...) @@"));
+        VERIFY(CreateMacro("@@ next( obj, ... ) @@ ::= @@ @$obj ! (@$...) @@"));
+        VERIFY(CreateMacro("@@ curr( obj ) @@ ::= @@ @$obj !? @@"));
+        VERIFY(CreateMacro("@@ first( obj ) @@ ::= @@ @$obj !! @@"));
+        VERIFY(CreateMacro("@@ all( obj ) @@ ::= @@ @$obj ?? @@"));
+
+        VERIFY(CreateMacro("@@ and @@ ::= @@ && @@"));
+        VERIFY(CreateMacro("@@ or @@ ::= @@ || @@"));
+        VERIFY(CreateMacro("@@ xor @@ ::= @@ ^^ @@"));
+        VERIFY(CreateMacro("@@ not(value) @@ ::= @@ (:Bool(@$value)==0) @@"));
+
+        //                    VERIFY(CreateMacro("@@ root() @@ ::= @@ @# @\\\\ @@"));
+        //                    VERIFY(CreateMacro("@@ module() @@ ::= @@ @# $\\\\ @@"));
+
+        //                    VERIFY(CreateMacro("@@ namespace() @@ ::= @@ @# @:: @@"));
+        VERIFY(CreateMacro("@@ module() @@ ::= @@ @$$ @@"));
+        VERIFY(CreateMacro("@@ static @@ ::= @@ @:: @@"));
+        VERIFY(CreateMacro("@@ package $name @@ ::= @@  @$$ = @# @$name @@"));
+        VERIFY(CreateMacro("@@ declare( obj ) @@ ::= @@ @$obj ::= ... @@  ##< Forward declaration of the object"));
+
+        VERIFY(CreateMacro("@@ using(...) @@ ::= @@ ... = @$... @@"));
+
+        VERIFY(CreateMacro("@@ typedef(cnt) @@ ::= @@ @__PRAGMA_TYPE_DEFINE__(@$cnt) @@ ##< Disable warning when defining a type inside a namespace"));
+
+        VERIFY(CreateMacro("@@ coroutine @@ ::= @@ __ANNOTATION_SET__(coroutine) @@"));
+        VERIFY(CreateMacro("@@ co_yield  $val  @@ ::= @@ __ANNOTATION_CHECK__(coroutine) @__FUNC_BLOCK__ :: -- @$val -- @@"));
+        VERIFY(CreateMacro("@@ co_await        @@ ::= @@ __ANNOTATION_CHECK__(coroutine) @__FUNC_BLOCK__ :: +- @@"));
+        VERIFY(CreateMacro("@@ co_return $val  @@ ::= @@ __ANNOTATION_CHECK__(coroutine) @__FUNC_BLOCK__ :: ++ @$val ++ @@"));
+
+        VERIFY(CreateMacro("@@ exit(code) @@ ::= @@ :: ++ @$code ++ @@"));
+        VERIFY(CreateMacro("@@ abort() @@ ::= @@ :: -- @@"));
+    }
+
+
+    // @assert(value, ...)
+    // @static_assert(value, ...)
+    // @verify(value, ...)
+    //
+    // @__PRAGMA_ASSERT__( is_runtime, is_always, value, val_string, ... )
+    //
+    // @@ static_assert(value, ...) @@ ::= @@ @__PRAGMA_ASSERT__(0, 0, value, @# value, @$... ) @@;
+    // @@ assert(value, ...) @@ ::= @@ @__PRAGMA_ASSERT__(1, 0, value, @# value, @$... ) @@;
+    // @@ verify(value, ...) @@ ::= @@ @__PRAGMA_ASSERT__(1, 1, value, @# value, @$... ) @@;
+
+    //    // @__PRAGMA_ASSERT__ replase to __pragma_assert__ in @ref Parser::PragmaEval
+    //    // @__PRAGMA_STATIC_ASSERT__
+    //    CALSS_METHOD(Base, __assert_abort__);
+    //    VERIFY(CreateMethod("__assert_abort__(...):None", __assert_abort__));
+
+    VERIFY(CreateMacro("@@ static_assert(...) @@ ::= @@ @__PRAGMA_STATIC_ASSERT__(@$... ) @@"));
+
+    if (m_rt->m_assert_enable) {
+        VERIFY(CreateMacro("@@ assert(value, ...) @@ ::= @@ [:Bool(@$value)==0]-->{ ::Base::__assert_abort__(@# @$value, @$value, @$... ) } @@"));
+        VERIFY(CreateMacro("@@ verify(value, ...) @@ ::= @@ [:Bool(@$value)==0]-->{ ::Base::__assert_abort__(@# @$value, @$value, @$... ) } @@"));
+    } else {
+        VERIFY(CreateMacro("@@ assert(value, ...) @@ ::= @@ (_) @@"));
+        VERIFY(CreateMacro("@@ verify(value, ...) @@ ::= @@ (@$value) @@"));
+    }
+}
+
+bool JIT::CreateMacro(const std::string_view text) {
+    TermPtr m = Parser::ParseTerm(text.begin(), m_macro, false);
+    return true;
+}
+
+/* Override *weak* Logger method for print call stack by PrintStackTrace */
+std::string Logger::GetStackTrace() {
+    std::string result("\n");
+    llvm::raw_string_ostream stack(result);
+    llvm::sys::PrintStackTrace(stack, 1);
+    return result;
+}
+
+TermPtr JitParser::ParseFile(const std::string_view filename) {
+
+    llvm::SmallVector<char> path;
+    if (!llvm::sys::fs::real_path(filename, path)) {
+        m_filename = llvm::StringRef(path.data(), path.size());
+    } else {
+        m_filename = filename;
+    }
+
+    llvm::sys::fs::file_status fs;
+    std::error_code ec = llvm::sys::fs::status(filename, fs);
+    if (!ec) {
+        time_t temp = llvm::sys::toTimeT(fs.getLastModificationTime());
+        struct tm * timeinfo;
+        timeinfo = localtime(&temp);
+        m_file_time = asctime(timeinfo);
+        m_file_time = m_file_time.substr(0, 24); // Remove \n on the end line
+    }
+
+    auto md5 = llvm::sys::fs::md5_contents(filename);
+    if (md5) {
+        llvm::SmallString<32> hash;
+        llvm::MD5::stringifyResult(*md5, hash);
+        m_file_md5 = hash.c_str();
+    }
+
+    int fd = open(filename.begin(), O_RDONLY);
+    if (fd < 0) {
+        LOG_RUNTIME("Error open file '%s'", filename.begin());
+    }
+
+    struct stat sb;
+    fstat(fd, &sb);
+
+    std::string data;
+    data.resize(sb.st_size);
+
+    read(fd, const_cast<char*> (data.data()), sb.st_size);
+    close(fd);
+
+    return Parse(data);
+}
+
+TermPtr JitParser::LoadIfModule(const TermPtr & term) {
+    if (term->m_id == TermID::MODULE) {
+        NL_PARSER(term, "Fail load module '%s'!", term->toString().c_str());
+    }
+    return term;
+}
+
+TermPtr JitParser::CheckLoadModule(const TermPtr & term) {
+    if (!CheckCharModuleName(term->m_text.c_str())) {
+        NL_PARSER(term, "Module name - backslash, underscore, lowercase English letters or number!");
+    }
+    //    if (m_rt && !m_rt->CheckLoadModule(term)) {
+    NL_PARSER(term, "Fail load module '%s'!", term->toString().c_str());
+    //    }
+    return term;
+}
+
+void * RunTime::GetNativeAddress(void * handle, const std::string_view name) {
+    LLVMLoadLibraryPermanently(nullptr);
+    return LLVMSearchForAddressOfSymbol(name.begin());
+}

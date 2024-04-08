@@ -1,18 +1,13 @@
 #ifndef NEWLANG_MACRO_H_
 #define NEWLANG_MACRO_H_
 
-//#include "pch.h"
-
-#include "transpiler.h"
+#include "term.h"
 
 #include "warning_push.h"
 #include "parser.yy.h"
 #include "warning_pop.h"
 
 namespace newlang {
-
-    typedef std::shared_ptr<std::string> SourceType;
-    typedef std::vector<std::string> PostLexerType;
 
     class Macro : SCOPE(public) std::map<std::string, BlockType>, public std::enable_shared_from_this<Macro> {
     public:
@@ -113,7 +108,7 @@ namespace newlang {
 
         static const std::string deny_chars_from_macro;
 
-        static std::string toMacroHash(const TermPtr &term);
+        static std::string toMacroHash(TermPtr &term);
 
         inline static std::string toMacroHashName(const std::string str) {
             if (isLocalName(str)) {
@@ -125,6 +120,12 @@ namespace newlang {
         }
 
         std::string GetMacroMaping(const std::string str, const char *separator = ", ");
+
+        static BlockType GetMacroId(TermPtr &term);
+
+        //    SCOPE(protected) :
+        static BlockType MakeMacroId(const BlockType &seq);
+        
 
         //        void Push(const TermPtr term);
         //        void Pop(const TermPtr term);
@@ -152,9 +153,9 @@ namespace newlang {
          * Выполнить (применить) макрос
          * @param term - Термин макрос
          */
-        TermPtr EvalOpMacros(const TermPtr &term);
+        TermPtr EvalOpMacros(TermPtr &term);
         bool CheckMacro(const TermPtr & term);
-        bool RemoveMacro(const TermPtr & term);
+        bool RemoveMacro(TermPtr & term);
 
         size_t GetCount() {
             size_t count = 0;
@@ -182,7 +183,7 @@ namespace newlang {
          * Контроль аргументов макроса выполняется в функции \ref ExtractArgs
          */
         //        static bool IdentityAlias(BlockType &buffer, const TermPtr & term);
-        static bool IdentityMacro(const BlockType &buffer, const TermPtr & term);
+        static bool IdentityMacro(const BlockType &buffer, TermPtr & term);
         static bool CompareMacroName(const std::string & term_name, const std::string & macro_name);
 
         /**
@@ -197,7 +198,7 @@ namespace newlang {
          * @param args Коллекция аргументов макроса
          * @return Кол-во символов входного буфера, которые нужно будет заменить телом макросом
          */
-        static size_t ExtractArgs(BlockType &buffer, const TermPtr &term, MacroArgsType & args);
+        static size_t ExtractArgs(BlockType &buffer, TermPtr &term, MacroArgsType & args);
         static void InsertArg_(MacroArgsType & args, std::string name, BlockType &buffer, size_t pos = static_cast<size_t> (-1));
         static BlockType SymbolSeparateArg_(const BlockType &buffer, size_t pos, std::vector<std::string> name, std::string & error);
 
@@ -215,50 +216,6 @@ namespace newlang {
         static std::string Dump(const MacroArgsType & var);
         static std::string Dump(const BlockType & arr);
         static std::string DumpText(const BlockType & arr);
-
-        static std::vector<std::string> SplitChar(std::string_view str, const std::string_view delimiter) {
-            std::vector<std::string> result;
-            while (!str.empty()) {
-                size_t pos = str.find_first_of(delimiter.begin());
-                if (pos == 0) {
-                    pos = str.find_first_not_of(delimiter.begin());
-                    if (pos == std::string::npos) {
-                        break;
-                    }
-                    str.remove_prefix(pos);
-                } else {
-                    if (pos == std::string::npos) {
-                        result.push_back(std::string(str.begin(), str.end()));
-                        break;
-                    }
-                    result.push_back(std::string(str.begin(), str.begin() + pos));
-                    str.remove_prefix(pos);
-                }
-            }
-            return result;
-        }
-
-        static std::vector<std::string> SplitString(const std::string_view str, const std::string_view delim) {
-
-            std::vector<std::string> result;
-            std::string s(str);
-
-            size_t pos;
-            s.erase(0, s.find_first_not_of(delim.begin()));
-            while (!s.empty()) {
-                pos = s.find(delim.begin());
-                if (pos == std::string::npos) {
-                    result.push_back(s);
-                    break;
-                } else {
-                    result.push_back(s.substr(0, pos));
-                    s.erase(0, pos);
-                }
-                s.erase(0, s.find_first_not_of(delim.begin()));
-            }
-            return result;
-        }
-
 
 
         bool TestName(std::string_view name);

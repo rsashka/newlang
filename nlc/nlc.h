@@ -7,6 +7,7 @@
 
 //#include <autocomplete.h>
 #include "runtime.h"
+#include "jit.h"
 
 
 // * 30.04.2021
@@ -484,6 +485,7 @@ namespace newlang {
 
 
             RuntimePtr rt = RunTime::Init(rt_args);
+            JIT *jit = JIT::Init(rt);
             ObjPtr result;
 
             if (is_playground) {
@@ -518,7 +520,7 @@ namespace newlang {
                 }
 
                 try {
-                    result = rt->Run(url_decode(command), main_args.get());
+                    result = jit->Run(url_decode(command), main_args.get());
                     ret_code = 0;
                 } catch (IntAny &any) {
                     result = any.shared();
@@ -546,15 +548,15 @@ namespace newlang {
 
             } else if (!file_name.empty()) {
                 ASSERT(command.empty());
-                result = rt->RunFile(file_name, main_args.get());
+                result = jit->RunFile(file_name, main_args.get());
             } else if (!command.empty()) {
                 ASSERT(file_name.empty());
-                result = rt->Run(command, main_args.get());
+                result = jit->Run(command, main_args.get());
             } else {
                 ret_code = RunREPL(rt, main_args);
             }
 
-            
+
             if (m_log_file) {
                 fwrite(m_output.c_str(), m_output.size(), 1, m_log_file);
                 fclose(m_log_file);

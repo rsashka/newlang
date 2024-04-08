@@ -22,52 +22,52 @@ TEST(Run, Simple) {
     RuntimePtr rt = RunTime::Init();
     ASSERT_TRUE(rt);
 
-    ObjPtr res = rt->Run("123");
+    ObjPtr res = jit->Run("123");
     ASSERT_TRUE(res);
     ASSERT_STREQ("123", res->toString().c_str());
     ASSERT_EQ(1, rt->m_main_ast->m_block.size());
 
-    res = rt->Run("123.456");
+    res = jit->Run("123.456");
     ASSERT_TRUE(res);
     ASSERT_STREQ("123.456", res->toString().c_str());
     ASSERT_EQ(2, rt->m_main_ast->m_block.size());
 
-    res = rt->Run("'123.456'");
+    res = jit->Run("'123.456'");
     ASSERT_TRUE(res);
     ASSERT_STREQ("'123.456'", res->toString().c_str());
     ASSERT_EQ(3, rt->m_main_ast->m_block.size());
 
-    res = rt->Run("\"123.456\"");
+    res = jit->Run("\"123.456\"");
     ASSERT_TRUE(res);
     ASSERT_STREQ("\"123.456\"", res->toString().c_str());
     ASSERT_EQ(4, rt->m_main_ast->m_block.size());
 
-    res = rt->Run("(,)");
+    res = jit->Run("(,)");
     ASSERT_TRUE(res);
     ASSERT_STREQ("(,)", res->toString().c_str());
     ASSERT_EQ(5, rt->m_main_ast->m_block.size());
 
-    res = rt->Run("(123,)");
+    res = jit->Run("(123,)");
     ASSERT_TRUE(res);
     ASSERT_STREQ("(123,)", res->toString().c_str());
     ASSERT_EQ(6, rt->m_main_ast->m_block.size());
 
-    res = rt->Run("(name=123,)");
+    res = jit->Run("(name=123,)");
     ASSERT_TRUE(res);
     ASSERT_STREQ("(name=123,)", res->toString().c_str());
     ASSERT_EQ(7, rt->m_main_ast->m_block.size());
 
-    res = rt->Run("(name=123,):ClassName");
+    res = jit->Run("(name=123,):ClassName");
     ASSERT_TRUE(res);
     ASSERT_STREQ("(name=123,):ClassName", res->toString().c_str());
     ASSERT_EQ(8, rt->m_main_ast->m_block.size());
 
-    res = rt->Run("[123,]");
+    res = jit->Run("[123,]");
     ASSERT_TRUE(res);
     ASSERT_STREQ("[123,]:Int8", res->toString().c_str());
     ASSERT_EQ(9, rt->m_main_ast->m_block.size());
 
-    res = rt->Run("[123,456,]:Float32");
+    res = jit->Run("[123,456,]:Float32");
     ASSERT_TRUE(res);
     ASSERT_STREQ("[123, 456,]:Float32", res->toString().c_str());
     ASSERT_EQ(10, rt->m_main_ast->m_block.size());
@@ -86,7 +86,7 @@ TEST(Run, Vars) {
     ASSERT_TRUE(rt);
     size_t glob_count = rt->size();
 
-    ObjPtr res = rt->Run("::var_glob := 123");
+    ObjPtr res = jit->Run("::var_glob := 123");
     ASSERT_TRUE(res);
     ASSERT_EQ(1, rt->size() - glob_count);
     ASSERT_EQ(1, rt->m_main_ast->m_block.size());
@@ -94,7 +94,7 @@ TEST(Run, Vars) {
     ASSERT_EQ(1, rt->m_main_ast->m_int_vars.size()) << rt->m_main_ast->m_int_vars.Dump();
     ASSERT_STREQ("123", res->toString().c_str());
 
-    res = rt->Run("var_mod := 456");
+    res = jit->Run("var_mod := 456");
     ASSERT_TRUE(res);
     ASSERT_STREQ("456", res->toString().c_str());
     ASSERT_EQ(1, rt->size() - glob_count);
@@ -103,7 +103,7 @@ TEST(Run, Vars) {
     ASSERT_EQ(2, rt->m_main_ast->m_int_vars.size()) << rt->m_main_ast->m_int_vars.Dump();
 
 
-    res = rt->Run("$var_loc := 789");
+    res = jit->Run("$var_loc := 789");
     ASSERT_TRUE(res);
     ASSERT_STREQ("789", res->toString().c_str());
     ASSERT_EQ(1, rt->size() - glob_count);
@@ -112,7 +112,7 @@ TEST(Run, Vars) {
     ASSERT_EQ(3, rt->m_main_ast->m_int_vars.size()) << rt->m_main_ast->m_int_vars.Dump();
 
 
-    res = rt->Run("::var_glob2 := var_glob");
+    res = jit->Run("::var_glob2 := var_glob");
     ASSERT_TRUE(res);
     ASSERT_STREQ("123", res->toString().c_str());
     ASSERT_EQ(2, rt->size() - glob_count);
@@ -120,9 +120,9 @@ TEST(Run, Vars) {
     ASSERT_EQ(0, rt->m_main_runner->size());
     ASSERT_EQ(4, rt->m_main_ast->m_int_vars.size()) << rt->m_main_ast->m_int_vars.Dump();
 
-    ASSERT_ANY_THROW(rt->Run("var_mod ::= 0")) << Dump(*rt) << rt->m_main_ast->m_int_vars.Dump();
-    ASSERT_ANY_THROW(rt->Run("var_mod2 = 0")) << Dump(*rt) << rt->m_main_ast->m_int_vars.Dump();
-    ASSERT_NO_THROW(res = rt->Run("var_mod2 ::= var_mod")) << Dump(*rt) << rt->m_main_ast->m_int_vars.Dump();
+    ASSERT_ANY_THROW(jit->Run("var_mod ::= 0")) << Dump(*rt) << rt->m_main_ast->m_int_vars.Dump();
+    ASSERT_ANY_THROW(jit->Run("var_mod2 = 0")) << Dump(*rt) << rt->m_main_ast->m_int_vars.Dump();
+    ASSERT_NO_THROW(res = jit->Run("var_mod2 ::= var_mod")) << Dump(*rt) << rt->m_main_ast->m_int_vars.Dump();
     ASSERT_TRUE(res);
     ASSERT_STREQ("456", res->toString().c_str());
     ASSERT_EQ(2, rt->size() - glob_count);
@@ -130,7 +130,7 @@ TEST(Run, Vars) {
     ASSERT_EQ(0, rt->m_main_runner->size());
     ASSERT_EQ(5, rt->m_main_ast->m_int_vars.size()) << rt->m_main_ast->m_int_vars.Dump();
 
-    ASSERT_NO_THROW(res = rt->Run("$var_loc2 := $var_loc")) << Dump(*rt) << rt->m_main_ast->m_int_vars.Dump();
+    ASSERT_NO_THROW(res = jit->Run("$var_loc2 := $var_loc")) << Dump(*rt) << rt->m_main_ast->m_int_vars.Dump();
     ASSERT_TRUE(res);
     ASSERT_STREQ("789", res->toString().c_str());
     ASSERT_EQ(2, rt->size() - glob_count);
@@ -140,8 +140,8 @@ TEST(Run, Vars) {
 
 
 
-    ASSERT_ANY_THROW(rt->Run("::var_glob2 ::= -1"));
-    res = rt->Run("::var_glob2 = -1");
+    ASSERT_ANY_THROW(jit->Run("::var_glob2 ::= -1"));
+    res = jit->Run("::var_glob2 = -1");
     ASSERT_TRUE(res);
     ASSERT_STREQ("-1", res->toString().c_str());
     ASSERT_EQ(2, rt->size() - glob_count);
@@ -150,7 +150,7 @@ TEST(Run, Vars) {
     ASSERT_EQ(6, rt->m_main_ast->m_int_vars.size());
 
 
-    ASSERT_NO_THROW(res = rt->Run("var_mod2 = -2")) << Dump(*rt) << rt->m_main_ast->m_int_vars.Dump();
+    ASSERT_NO_THROW(res = jit->Run("var_mod2 = -2")) << Dump(*rt) << rt->m_main_ast->m_int_vars.Dump();
     ASSERT_TRUE(res);
     ASSERT_STREQ("-2", res->toString().c_str());
     ASSERT_EQ(2, rt->size() - glob_count);
@@ -158,8 +158,8 @@ TEST(Run, Vars) {
     ASSERT_EQ(0, rt->m_main_runner->size());
     ASSERT_EQ(6, rt->m_main_ast->m_int_vars.size());
 
-    ASSERT_ANY_THROW(rt->Run("$var_loc2 ::= -3"));
-    res = rt->Run("$var_loc2 = -3");
+    ASSERT_ANY_THROW(jit->Run("$var_loc2 ::= -3"));
+    res = jit->Run("$var_loc2 = -3");
     ASSERT_TRUE(res);
     ASSERT_STREQ("-3", res->toString().c_str());
     ASSERT_EQ(2, rt->size() - glob_count);
@@ -167,7 +167,7 @@ TEST(Run, Vars) {
     ASSERT_EQ(0, rt->m_main_runner->size());
     ASSERT_EQ(6, rt->m_main_ast->m_int_vars.size());
 
-    res = rt->Run("@::glob := -5");
+    res = jit->Run("@::glob := -5");
     ASSERT_TRUE(res);
     ASSERT_STREQ("-5", res->toString().c_str());
     ASSERT_EQ(2, rt->size() - glob_count);
@@ -185,7 +185,7 @@ TEST(Run, Call) {
     ASSERT_FALSE(rt->m_main_ast);
     ASSERT_FALSE(rt->m_main_runner);
 
-    ObjPtr res = rt->Run("::func_glob() := { 123 }");
+    ObjPtr res = jit->Run("::func_glob() := { 123 }");
     ASSERT_TRUE(res);
     ASSERT_EQ(1, rt->size() - glob_count) << Dump(*rt);
     ASSERT_EQ(1, rt->m_main_ast->m_block.size());
@@ -193,15 +193,15 @@ TEST(Run, Call) {
     ASSERT_EQ(1, rt->m_main_ast->m_int_vars.size()) << rt->m_main_ast->m_int_vars.Dump();
     ASSERT_STREQ("::func_glob::(){ }", res->toString().c_str());
 
-    res = rt->Run("::func_glob()");
+    res = jit->Run("::func_glob()");
     ASSERT_TRUE(res);
     ASSERT_STREQ("123", res->toString().c_str());
 
-    ASSERT_ANY_THROW(rt->Run("::func_glob ::= {}")) << Dump(*rt) << rt->m_main_ast->m_int_vars.Dump();
-    ASSERT_ANY_THROW(rt->Run("::func_glob = {}")) << Dump(*rt) << rt->m_main_ast->m_int_vars.Dump();
+    ASSERT_ANY_THROW(jit->Run("::func_glob ::= {}")) << Dump(*rt) << rt->m_main_ast->m_int_vars.Dump();
+    ASSERT_ANY_THROW(jit->Run("::func_glob = {}")) << Dump(*rt) << rt->m_main_ast->m_int_vars.Dump();
 
 
-    res = rt->Run("func_loc() := { 456 }");
+    res = jit->Run("func_loc() := { 456 }");
     ASSERT_TRUE(res);
     ASSERT_EQ(1, rt->size() - glob_count);
     ASSERT_EQ(3, rt->m_main_ast->m_block.size());
@@ -209,17 +209,17 @@ TEST(Run, Call) {
     ASSERT_EQ(2, rt->m_main_ast->m_int_vars.size());
     ASSERT_STREQ("func_loc::(){ }", res->toString().c_str());
 
-    ASSERT_NO_THROW(res = rt->Run("func_loc()")) << Dump(*rt) << rt->m_main_ast->m_int_vars.Dump();
+    ASSERT_NO_THROW(res = jit->Run("func_loc()")) << Dump(*rt) << rt->m_main_ast->m_int_vars.Dump();
 
     ASSERT_TRUE(res);
     ASSERT_STREQ("456", res->toString().c_str());
 
-    ASSERT_NO_THROW(res = rt->Run("$func_loc()")) << Dump(*rt) << rt->m_main_ast->m_int_vars.Dump();
+    ASSERT_NO_THROW(res = jit->Run("$func_loc()")) << Dump(*rt) << rt->m_main_ast->m_int_vars.Dump();
 
     ASSERT_TRUE(res);
     ASSERT_STREQ("456", res->toString().c_str());
 
-    res = rt->Run("@::func() := { 789 }");
+    res = jit->Run("@::func() := { 789 }");
     ASSERT_TRUE(res);
     ASSERT_EQ(1, rt->size() - glob_count);
     ASSERT_EQ(6, rt->m_main_ast->m_block.size());
@@ -227,11 +227,11 @@ TEST(Run, Call) {
     ASSERT_EQ(3, rt->m_main_ast->m_int_vars.size());
     ASSERT_STREQ("@::func::(){ }", res->toString().c_str());
 
-    ASSERT_NO_THROW(res = rt->Run("@::func()")) << Dump(*rt) << rt->m_main_ast->m_int_vars.Dump();
+    ASSERT_NO_THROW(res = jit->Run("@::func()")) << Dump(*rt) << rt->m_main_ast->m_int_vars.Dump();
     ASSERT_TRUE(res);
     ASSERT_STREQ("789", res->toString().c_str());
 
-    ASSERT_NO_THROW(res = rt->Run("func()")) << Dump(*rt) << rt->m_main_ast->m_int_vars.Dump();
+    ASSERT_NO_THROW(res = jit->Run("func()")) << Dump(*rt) << rt->m_main_ast->m_int_vars.Dump();
     ASSERT_TRUE(res);
     ASSERT_STREQ("789", res->toString().c_str());
 }
@@ -245,7 +245,7 @@ TEST(Run, Call) {
 //    ASSERT_FALSE(rt->m_main_runner);
 //
 //    ObjPtr res;
-//    ASSERT_NO_THROW(res = rt->Run("::func_glob(arg) := { $arg }"));
+//    ASSERT_NO_THROW(res = jit->Run("::func_glob(arg) := { $arg }"));
 //    ASSERT_TRUE(res);
 //    ASSERT_EQ(1, rt->size() - glob_count);
 //    ASSERT_EQ(1, rt->m_main_ast->m_block.size());
@@ -253,15 +253,15 @@ TEST(Run, Call) {
 //    ASSERT_EQ(1, rt->m_main_ast->m_variables.size());
 //    ASSERT_STREQ("::func_glob(arg){ }", res->toString().c_str());
 //
-//    res = rt->Run("::func_glob(123)");
+//    res = jit->Run("::func_glob(123)");
 //    ASSERT_TRUE(res);
 //    ASSERT_STREQ("123", res->toString().c_str());
 //
-//    ASSERT_ANY_THROW(rt->Run("::func_glob() := {}")) << rt->m_main_runner->Dump() << rt->m_main_ast->m_variables.Dump();
-//    ASSERT_ANY_THROW(rt->Run("::func_glob(arg) := {}")) << rt->m_main_runner->Dump() << rt->m_main_ast->m_variables.Dump();
+//    ASSERT_ANY_THROW(jit->Run("::func_glob() := {}")) << rt->m_main_runner->Dump() << rt->m_main_ast->m_variables.Dump();
+//    ASSERT_ANY_THROW(jit->Run("::func_glob(arg) := {}")) << rt->m_main_runner->Dump() << rt->m_main_ast->m_variables.Dump();
 //
 //
-//    res = rt->Run("func_loc(arg=123) := { $arg }");
+//    res = jit->Run("func_loc(arg=123) := { $arg }");
 //    ASSERT_TRUE(res);
 //    ASSERT_EQ(1, rt->size() - glob_count);
 //    ASSERT_EQ(3, rt->m_main_ast->m_block.size());
@@ -269,16 +269,16 @@ TEST(Run, Call) {
 //    ASSERT_EQ(2, rt->m_main_ast->m_variables.size());
 //    ASSERT_STREQ("$func_loc(){ }", res->toString().c_str());
 //
-//    ASSERT_NO_THROW(res = rt->Run("$func_loc()")) << rt->m_main_runner->Dump() << rt->m_main_ast->m_variables.Dump();
+//    ASSERT_NO_THROW(res = jit->Run("$func_loc()")) << rt->m_main_runner->Dump() << rt->m_main_ast->m_variables.Dump();
 //    ASSERT_TRUE(res);
 //    ASSERT_STREQ("123", res->toString().c_str());
 //
-//    ASSERT_NO_THROW(res = rt->Run("$func_loc(456)")) << rt->m_main_runner->Dump() << rt->m_main_ast->m_variables.Dump();
+//    ASSERT_NO_THROW(res = jit->Run("$func_loc(456)")) << rt->m_main_runner->Dump() << rt->m_main_ast->m_variables.Dump();
 //    ASSERT_TRUE(res);
 //    ASSERT_STREQ("456", res->toString().c_str());
 //
 //
-//    res = rt->Run("@::func(...) := { $* }");
+//    res = jit->Run("@::func(...) := { $* }");
 //    ASSERT_TRUE(res);
 //    ASSERT_EQ(1, rt->size() - glob_count);
 //    ASSERT_EQ(5, rt->m_main_ast->m_block.size());
@@ -286,15 +286,15 @@ TEST(Run, Call) {
 //    ASSERT_EQ(3, rt->m_main_ast->m_variables.size());
 //    ASSERT_STREQ("$func(){ }", res->toString().c_str());
 //
-//    ASSERT_NO_THROW(res = rt->Run("$func()")) << rt->m_main_runner->Dump() << rt->m_main_ast->m_variables.Dump();
+//    ASSERT_NO_THROW(res = jit->Run("$func()")) << rt->m_main_runner->Dump() << rt->m_main_ast->m_variables.Dump();
 //    ASSERT_TRUE(res);
 //    ASSERT_STREQ("(,)", res->toString().c_str());
 //
-//    ASSERT_NO_THROW(res = rt->Run("$func(123)")) << rt->m_main_runner->Dump() << rt->m_main_ast->m_variables.Dump();
+//    ASSERT_NO_THROW(res = jit->Run("$func(123)")) << rt->m_main_runner->Dump() << rt->m_main_ast->m_variables.Dump();
 //    ASSERT_TRUE(res);
 //    ASSERT_STREQ("(123,)", res->toString().c_str());
 //
-//    ASSERT_NO_THROW(res = rt->Run("$func(123, 456)")) << rt->m_main_runner->Dump() << rt->m_main_ast->m_variables.Dump();
+//    ASSERT_NO_THROW(res = jit->Run("$func(123, 456)")) << rt->m_main_runner->Dump() << rt->m_main_ast->m_variables.Dump();
 //    ASSERT_TRUE(res);
 //    ASSERT_STREQ("(123, 456,)", res->toString().c_str());
 //}
@@ -310,10 +310,10 @@ TEST(Eval, Assign) {
 
     RuntimePtr rt = RunTime::Init();
 
-    ObjPtr list = rt->Run("$?!");
+    ObjPtr list = jit->Run("$?!");
     ASSERT_STREQ("(,)", list->toString().c_str());
 
-    ObjPtr var1 = rt->Run("var1 ::= 123");
+    ObjPtr var1 = jit->Run("var1 ::= 123");
     ASSERT_TRUE(var1);
     ASSERT_TRUE(var1->is_arithmetic_type());
     ASSERT_TRUE(var1->is_integer());
@@ -322,46 +322,46 @@ TEST(Eval, Assign) {
     ASSERT_EQ(var1->m_var_type_fixed, ObjType::None) << newlang::toString(var1->m_var_type_fixed);
     ASSERT_STREQ("123", var1->toString().c_str());
 
-    list = rt->Run("$?!");
+    list = jit->Run("$?!");
     ASSERT_STREQ("('var1',)", list->toString().c_str());
 
-    ASSERT_ANY_THROW(rt->Run("var1 ::= 123"));
+    ASSERT_ANY_THROW(jit->Run("var1 ::= 123"));
 
-    ASSERT_NO_THROW(var1 = rt->Run("var1 = 100:Int8"));
+    ASSERT_NO_THROW(var1 = jit->Run("var1 = 100:Int8"));
     ASSERT_EQ(var1->m_var_type_current, ObjType::Int8) << newlang::toString(var1->m_var_type_current);
     ASSERT_EQ(var1->m_var_type_fixed, ObjType::Int8) << newlang::toString(var1->m_var_type_fixed);
     ASSERT_STREQ("100", var1->toString().c_str());
 
-    ASSERT_NO_THROW(var1 = rt->Run("var1 = 999"));
+    ASSERT_NO_THROW(var1 = jit->Run("var1 = 999"));
     ASSERT_STREQ("999", var1->toString().c_str());
 
-    ASSERT_NO_THROW(var1 = rt->Run("var1 = _"));
+    ASSERT_NO_THROW(var1 = jit->Run("var1 = _"));
     ASSERT_EQ(var1->getType(), ObjType::None);
     ASSERT_STREQ("_", var1->toString().c_str());
 
-    list = rt->Run("$?!");
+    list = jit->Run("$?!");
     ASSERT_STREQ("('var1',)", list->toString().c_str());
 
     //    ASSERT_TRUE(ctx.ExecStr("var1 = "));
     //    ASSERT_TRUE(ctx.select("var1").complete());
     rt->Clear();
 
-    list = rt->Run("$?!");
+    list = jit->Run("$?!");
     ASSERT_STREQ("(,)", list->toString().c_str());
 
     ObjPtr var_str;
-    ASSERT_NO_THROW(var_str = rt->Run("var_str := 'Строка'"));
+    ASSERT_NO_THROW(var_str = jit->Run("var_str := 'Строка'"));
     ASSERT_TRUE(var_str);
     ASSERT_TRUE(var_str->is_string_type());
     ASSERT_EQ(var_str->m_var_type_current, ObjType::StrChar) << newlang::toString(var_str->m_var_type_current);
     ASSERT_EQ(var_str->m_var_type_fixed, ObjType::String) << newlang::toString(var_str->m_var_type_fixed);
     ASSERT_STREQ("'Строка'", var_str->toString().c_str());
 
-    list = rt->Run("$?!");
+    list = jit->Run("$?!");
     ASSERT_STREQ("('var_str',)", list->toString().c_str());
 
     ObjPtr var_num;
-    ASSERT_NO_THROW(var_num = rt->Run("$var_num := 123.456: Single"));
+    ASSERT_NO_THROW(var_num = jit->Run("$var_num := 123.456: Single"));
     ASSERT_TRUE(var_num);
     ASSERT_TRUE(var_num->is_arithmetic_type());
     ASSERT_TRUE(var_num->is_tensor_type());
@@ -369,23 +369,23 @@ TEST(Eval, Assign) {
     ASSERT_EQ(var_num->m_var_type_fixed, ObjType::Single) << newlang::toString(var_num->m_var_type_fixed);
     ASSERT_STREQ("123.456", var_num->toString().c_str());
 
-    list = rt->Run("$?!");
+    list = jit->Run("$?!");
     ASSERT_STREQ("('$var_num', 'var_str',)", list->toString().c_str());
 
 
     var_long = 987654321;
     ObjPtr var_export;
 
-    ASSERT_ANY_THROW(rt->Run("var_export:= %var_long"));
-    ASSERT_ANY_THROW(rt->Run("var_export:= %var_long..."));
-    ASSERT_ANY_THROW(rt->Run("var_export:Int64 := %var_long:Int32 "));
-    ASSERT_ANY_THROW(rt->Run("var_export := %var_long:Int64 "));
+    ASSERT_ANY_THROW(jit->Run("var_export:= %var_long"));
+    ASSERT_ANY_THROW(jit->Run("var_export:= %var_long..."));
+    ASSERT_ANY_THROW(jit->Run("var_export:Int64 := %var_long:Int32 "));
+    ASSERT_ANY_THROW(jit->Run("var_export := %var_long:Int64 "));
 
-    ASSERT_ANY_THROW(var_export = rt->Run("var_export:Int64 := %var_long..."));
+    ASSERT_ANY_THROW(var_export = jit->Run("var_export:Int64 := %var_long..."));
 
     LLVMAddSymbol("var_long", &var_long);
 
-    ASSERT_NO_THROW(var_export = rt->Run("var_export:Int64 := %var_long..."));
+    ASSERT_NO_THROW(var_export = jit->Run("var_export:Int64 := %var_long..."));
 
     ASSERT_TRUE(var_export);
     ASSERT_TRUE(var_export->is_tensor_type()) << var_export->toString();
@@ -396,7 +396,7 @@ TEST(Eval, Assign) {
     var_export->SetValue_(Obj::CreateValue(59875, ObjType::None));
     ASSERT_EQ(59875, var_long);
 
-    list = rt->Run("$?!");
+    list = jit->Run("$?!");
     ASSERT_STREQ("('var_export', '$var_num', 'var_str',)", list->toString().c_str());
 
 
@@ -411,12 +411,12 @@ TEST(Eval, Assign) {
      * $func_export заменяется на _$$_func_export$_$ и компилятор будет счстлив проверкой аргументов :-)
      */
     ObjPtr func;
-    ASSERT_ANY_THROW(rt->Run("$func_export(arg1:Int64, arg2:Int8):Int64 := %func_export"));
-    ASSERT_ANY_THROW(rt->Run("$func_export(arg1:Int64, arg2:Int8):Int64 := %func_export..."));
+    ASSERT_ANY_THROW(jit->Run("$func_export(arg1:Int64, arg2:Int8):Int64 := %func_export"));
+    ASSERT_ANY_THROW(jit->Run("$func_export(arg1:Int64, arg2:Int8):Int64 := %func_export..."));
 
     LLVMAddSymbol("func_export", (void *) &func_export);
 
-    ASSERT_NO_THROW(func = rt->Run("$func_export(arg1:Int64, arg2:Int8):Int64 := %func_export..."));
+    ASSERT_NO_THROW(func = jit->Run("$func_export(arg1:Int64, arg2:Int8):Int64 := %func_export..."));
 
     ASSERT_TRUE(func);
     ASSERT_TRUE(func->is_function_type()) << func;
@@ -531,25 +531,25 @@ TEST(Run, Tensor) {
 
     ObjPtr ddd;
 
-    ASSERT_NO_THROW(ddd = rt->Run("(1,2,3,)"));
+    ASSERT_NO_THROW(ddd = jit->Run("(1,2,3,)"));
     ASSERT_TRUE(ddd);
     ASSERT_STREQ("(1, 2, 3,)", ddd->GetValueAsString().c_str()) << ddd->GetValueAsString().c_str();
 
-    ASSERT_NO_THROW(ddd = rt->Run(":Tensor[...]( (1,2,3,) )")); // << Dump(*rt);
+    ASSERT_NO_THROW(ddd = jit->Run(":Tensor[...]( (1,2,3,) )")); // << Dump(*rt);
     ASSERT_TRUE(ddd);
     ASSERT_STREQ("[1, 2, 3,]:Int8", ddd->GetValueAsString().c_str()) << ddd->GetValueAsString().c_str();
 
 
-    ASSERT_NO_THROW(ddd = rt->Run(":Dictionary(1,2,3)"));
+    ASSERT_NO_THROW(ddd = jit->Run(":Dictionary(1,2,3)"));
     ASSERT_TRUE(ddd);
     ASSERT_STREQ("(1, 2, 3,)", ddd->GetValueAsString().c_str()) << ddd->GetValueAsString().c_str();
 
-    ASSERT_NO_THROW(ddd = rt->Run(":Dictionary( (1,2,3,) )"));
+    ASSERT_NO_THROW(ddd = jit->Run(":Dictionary( (1,2,3,) )"));
     ASSERT_TRUE(ddd);
     ASSERT_STREQ("((1, 2, 3,),)", ddd->GetValueAsString().c_str()) << ddd->GetValueAsString().c_str();
 
     ObjPtr tensor;
-    ASSERT_NO_THROW(tensor = rt->Run(":Tensor(1)"));
+    ASSERT_NO_THROW(tensor = jit->Run(":Tensor(1)"));
     ASSERT_TRUE(tensor);
     ASSERT_EQ(ObjType::Tensor, tensor->m_var_type_fixed) << toString(tensor->m_var_type_fixed);
     ASSERT_EQ(ObjType::Bool, tensor->getType()) << toString(tensor->m_var_type_current);
@@ -557,32 +557,32 @@ TEST(Run, Tensor) {
 
     ASSERT_STREQ("1", tensor->GetValueAsString().c_str()) << tensor->GetValueAsString().c_str();
 
-    ASSERT_NO_THROW(tensor = rt->Run("(1,2,3,)"));
+    ASSERT_NO_THROW(tensor = jit->Run("(1,2,3,)"));
     ASSERT_TRUE(tensor);
     ASSERT_STREQ("(1, 2, 3,)", tensor->GetValueAsString().c_str()) << tensor->GetValueAsString().c_str();
 
-    ASSERT_NO_THROW(tensor = rt->Run(":Tensor[...]([1,2,3,])"));
+    ASSERT_NO_THROW(tensor = jit->Run(":Tensor[...]([1,2,3,])"));
     ASSERT_TRUE(tensor);
     ASSERT_STREQ("[1, 2, 3,]:Int8", tensor->GetValueAsString().c_str()) << tensor->GetValueAsString().c_str();
 
-    ASSERT_NO_THROW(tensor = rt->Run(":Int32[_]([1,])"));
+    ASSERT_NO_THROW(tensor = jit->Run(":Int32[_]([1,])"));
     ASSERT_TRUE(tensor);
     ASSERT_STREQ("[1,]:Int32", tensor->GetValueAsString().c_str()) << tensor->GetValueAsString().c_str();
 
-    ASSERT_NO_THROW(tensor = rt->Run(":Int32([1,])"));
+    ASSERT_NO_THROW(tensor = jit->Run(":Int32([1,])"));
     ASSERT_TRUE(tensor);
     ASSERT_STREQ("1", tensor->GetValueAsString().c_str()) << tensor->GetValueAsString().c_str();
 
     ObjPtr tt;
-    ASSERT_NO_THROW(tt = rt->Run(":Tensor[3]( (1,2,3,) )"));
+    ASSERT_NO_THROW(tt = jit->Run(":Tensor[3]( (1,2,3,) )"));
     ASSERT_TRUE(tt);
     ASSERT_STREQ("[1, 2, 3,]:Int8", tt->GetValueAsString().c_str()) << tt->GetValueAsString().c_str();
 
-    ASSERT_NO_THROW(tensor = rt->Run(":Int32[...]((1,2,3,))"));
+    ASSERT_NO_THROW(tensor = jit->Run(":Int32[...]((1,2,3,))"));
     ASSERT_TRUE(tensor);
     ASSERT_STREQ("[1, 2, 3,]:Int32", tensor->GetValueAsString().c_str()) << tensor->GetValueAsString().c_str();
 
-    ASSERT_NO_THROW(tensor = rt->Run(":Int32[2,3]((1,2,3,4,5,6,))"));
+    ASSERT_NO_THROW(tensor = jit->Run(":Int32[2,3]((1,2,3,4,5,6,))"));
     ASSERT_TRUE(tensor);
 
     EXPECT_EQ(2, tensor->m_tensor->dim());
@@ -592,27 +592,27 @@ TEST(Run, Tensor) {
     ASSERT_STREQ("[\n  [1, 2, 3,], [4, 5, 6,],\n]:Int32", tensor->GetValueAsString().c_str());
 
     ObjPtr str;
-    ASSERT_NO_THROW(str = rt->Run(":Tensor[_]('first second')"));
+    ASSERT_NO_THROW(str = jit->Run(":Tensor[_]('first second')"));
     ASSERT_TRUE(str);
     ASSERT_STREQ("[102, 105, 114, 115, 116, 32, 115, 101, 99, 111, 110, 100,]:Int8", str->GetValueAsString().c_str());
 
-    ASSERT_NO_THROW(tt = rt->Run(":Tensor[...]((item1='first', space=32, item3='second',))"));
+    ASSERT_NO_THROW(tt = jit->Run(":Tensor[...]((item1='first', space=32, item3='second',))"));
     ASSERT_TRUE(tt);
     ASSERT_STREQ("[102, 105, 114, 115, 116, 32, 115, 101, 99, 111, 110, 100,]:Int8", tt->GetValueAsString().c_str());
 
     ASSERT_TRUE(str->op_equal(tt));
 
-    ASSERT_NO_THROW(tt = rt->Run(":Int32[7,2](\"Тензор Int32  \")"));
+    ASSERT_NO_THROW(tt = jit->Run(":Int32[7,2](\"Тензор Int32  \")"));
     ASSERT_TRUE(tt);
     ASSERT_STREQ("[\n  [1058, 1077,], [1085, 1079,], [1086, 1088,], [32, 73,], "
             "[110, 116,], [51, 50,], [32, 32,],\n]:Int32",
             tt->GetValueAsString().c_str());
 
-    ASSERT_NO_THROW(tt = rt->Run(":Tensor(99)"));
+    ASSERT_NO_THROW(tt = jit->Run(":Tensor(99)"));
     ASSERT_TRUE(tt);
     ASSERT_STREQ("99", tt->GetValueAsString().c_str());
 
-    ASSERT_NO_THROW(tt = rt->Run(":Float64[10,2](0, ... )"));
+    ASSERT_NO_THROW(tt = jit->Run(":Float64[10,2](0, ... )"));
     ASSERT_TRUE(tt);
     ASSERT_STREQ("[\n  [0, 0,], [0, 0,], [0, 0,], [0, 0,], [0, 0,], [0, 0,], [0, "
             "0,], [0, 0,], [0, 0,], [0, 0,],\n]:Float64",
@@ -626,21 +626,21 @@ TEST(Run, Comprehensions) {
     ASSERT_TRUE(rt);
 
     ObjPtr srand;
-    ASSERT_NO_THROW(srand = rt->Run("srand(seed:Int32):None ::= %srand..."));
+    ASSERT_NO_THROW(srand = jit->Run("srand(seed:Int32):None ::= %srand..."));
 
     ObjPtr ret = (*srand)(100);
     ASSERT_TRUE(ret);
     ASSERT_TRUE(ret->is_none_type());
 
     ObjPtr rand;
-    ASSERT_NO_THROW(rand = rt->Run("rand():Int32 ::= %rand ... "));
+    ASSERT_NO_THROW(rand = jit->Run("rand():Int32 ::= %rand ... "));
 
     ObjPtr tt;
     // Может быть раскрытие словаря, который возвращает вызов функции
     // и может быть многократный вызов одной и той функции
     // :Int32[3,2]( ... rand() ... )
     Logger::LogLevelType save = Logger::Instance()->SetLogLevel(LOG_LEVEL_INFO);
-    ASSERT_NO_THROW(tt = rt->Run(":Int32[3,2]( 42, ... rand() ... )"));
+    ASSERT_NO_THROW(tt = jit->Run(":Int32[3,2]( 42, ... rand() ... )"));
     Logger::Instance()->SetLogLevel(save);
 
     ASSERT_TRUE(tt);
@@ -649,65 +649,65 @@ TEST(Run, Comprehensions) {
     //ASSERT_STREQ("[\n  [42, 677741240,], [611911301, 516687479,], [1039653884, 807009856,],\n]:Int32", tt->GetValueAsString().c_str()) << rand_str;
 
 
-    ASSERT_NO_THROW(tt = rt->Run(":Int32[5,2]( ... 0..10 )"));
+    ASSERT_NO_THROW(tt = jit->Run(":Int32[5,2]( ... 0..10 )"));
     ASSERT_TRUE(tt);
     ASSERT_STREQ("[\n  [0, 1,], [2, 3,], [4, 5,], [6, 7,], [8, 9,],\n]:Int32", tt->GetValueAsString().c_str());
 
-    ASSERT_NO_THROW(tt = rt->Run(":Float64[5,2]( 0..10 )"));
+    ASSERT_NO_THROW(tt = jit->Run(":Float64[5,2]( 0..10 )"));
     ASSERT_TRUE(tt);
     ASSERT_STREQ("[\n  [0, 1,], [2, 3,], [4, 5,], [6, 7,], [8, 9,],\n]:Float64", tt->GetValueAsString().c_str());
 
-    ASSERT_NO_THROW(tt = rt->Run("0..1..0.1"));
+    ASSERT_NO_THROW(tt = jit->Run("0..1..0.1"));
     ASSERT_TRUE(tt);
     ASSERT_STREQ("0..1..0.1", tt->toString().c_str());
 
-    ASSERT_NO_THROW(tt = rt->Run(":Tensor[_]( ... 0..0.99..0.1 )"));
+    ASSERT_NO_THROW(tt = jit->Run(":Tensor[_]( ... 0..0.99..0.1 )"));
     ASSERT_TRUE(tt);
     ASSERT_STREQ("[0, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9,]:Float64", tt->GetValueAsString().c_str());
 
-    //    ASSERT_NO_THROW(tt = rt->Run(":Tensor( ... 0..0.99..0.1:Float32 )"));
+    //    ASSERT_NO_THROW(tt = jit->Run(":Tensor( ... 0..0.99..0.1:Float32 )"));
     //    ASSERT_TRUE(tt);
     //    ASSERT_STREQ("[0, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9,]:Float32", tt->GetValueAsString().c_str());
 
-    ASSERT_NO_THROW(tt = rt->Run(":Tensor[10]( 1, 2, ... )"));
+    ASSERT_NO_THROW(tt = jit->Run(":Tensor[10]( 1, 2, ... )"));
     ASSERT_TRUE(tt);
     ASSERT_STREQ("[1, 2, 1, 2, 1, 2, 1, 2, 1, 2,]:Int8", tt->GetValueAsString().c_str());
 
-    ASSERT_NO_THROW(tt = rt->Run(":Tensor[10]( 1, 2, ... 0 ...)"));
+    ASSERT_NO_THROW(tt = jit->Run(":Tensor[10]( 1, 2, ... 0 ...)"));
     ASSERT_TRUE(tt);
     ASSERT_STREQ("[1, 2, 0, 0, 0, 0, 0, 0, 0, 0,]:Int8", tt->GetValueAsString().c_str());
 
-    ASSERT_NO_THROW(tt = rt->Run(":Tensor[14]( 99, 100, ... 0..5, ... )"));
+    ASSERT_NO_THROW(tt = jit->Run(":Tensor[14]( 99, 100, ... 0..5, ... )"));
     ASSERT_TRUE(tt);
     ASSERT_STREQ("[99, 100, 0, 1, 2, 3, 4, 99, 100, 0, 1, 2, 3, 4,]:Int8", tt->GetValueAsString().c_str());
 
     ObjPtr dict;
-    ASSERT_NO_THROW(dict = rt->Run(":Dictionary( ... 0..0.99..0.1 )"));
+    ASSERT_NO_THROW(dict = jit->Run(":Dictionary( ... 0..0.99..0.1 )"));
     ASSERT_TRUE(dict);
     ASSERT_STREQ("(0, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9,)", dict->GetValueAsString().c_str());
 
-    ASSERT_NO_THROW(dict = rt->Run(":Dictionary( ... 10..0..-1\\1 )"));
+    ASSERT_NO_THROW(dict = jit->Run(":Dictionary( ... 10..0..-1\\1 )"));
     ASSERT_TRUE(dict);
     ASSERT_STREQ("(10\\1, 9\\1, 8\\1, 7\\1, 6\\1, 5\\1, 4\\1, 3\\1, 2\\1, 1\\1,)", dict->GetValueAsString().c_str());
 
-    ASSERT_NO_THROW(dict = rt->Run("dict ::= ( 1, two=2, .three=3,)"));
+    ASSERT_NO_THROW(dict = jit->Run("dict ::= ( 1, two=2, .three=3,)"));
     ASSERT_TRUE(dict);
     ASSERT_STREQ("(1, two=2, three=3,)", dict->GetValueAsString().c_str());
 
     ObjPtr dd;
-    ASSERT_NO_THROW(dd = rt->Run(":Dictionary( 0, ... dict)"));
+    ASSERT_NO_THROW(dd = jit->Run(":Dictionary( 0, ... dict)"));
     ASSERT_TRUE(dd);
     ASSERT_STREQ("(0, 1, 2, 3,)", dd->GetValueAsString().c_str());
 
-    ASSERT_NO_THROW(dd = rt->Run(":Dictionary( 0, ... ... dict, end=42)"));
+    ASSERT_NO_THROW(dd = jit->Run(":Dictionary( 0, ... ... dict, end=42)"));
     ASSERT_TRUE(dd);
     ASSERT_STREQ("(0, 1, two=2, three=3, end=42,)", dd->GetValueAsString().c_str());
 
 
     ASSERT_TRUE(rt->m_diag->m_fill_remainder);
-    ASSERT_ANY_THROW(tt = rt->Run(":Tensor[16]( 99, 100, ... 0..5, ... )"));
+    ASSERT_ANY_THROW(tt = jit->Run(":Tensor[16]( 99, 100, ... 0..5, ... )"));
     rt->m_diag->m_fill_remainder = false;
-    ASSERT_NO_THROW(tt = rt->Run(":Tensor[16]( 99, 100, ... 0..5, ... )"));
+    ASSERT_NO_THROW(tt = jit->Run(":Tensor[16]( 99, 100, ... 0..5, ... )"));
     ASSERT_TRUE(tt);
     ASSERT_STREQ("[99, 100, 0, 1, 2, 3, 4, 99, 100, 0, 1, 2, 3, 4, 99, 100,]:Int8", tt->GetValueAsString().c_str());
 
@@ -1364,7 +1364,7 @@ TEST(Run, Iterator) {
     RuntimePtr rt = RunTime::Init();
 
     ObjPtr dict;
-    ASSERT_NO_THROW(dict = rt->Run("dict := ('1'=1, \"22\"=2, '333'=3, 4, \"555\"=5,)"));
+    ASSERT_NO_THROW(dict = jit->Run("dict := ('1'=1, \"22\"=2, '333'=3, 4, \"555\"=5,)"));
     ASSERT_TRUE(dict);
     ASSERT_EQ(5, dict->size());
     ASSERT_EQ(1, dict->at(0).second->GetValueAsInteger());
@@ -1379,7 +1379,7 @@ TEST(Run, Iterator) {
     ASSERT_STREQ("555", dict->at(4).first.c_str());
 
     ObjPtr dict1;
-    ASSERT_NO_THROW(dict1 = rt->Run("dict??"));
+    ASSERT_NO_THROW(dict1 = jit->Run("dict??"));
     ASSERT_TRUE(dict1);
     ASSERT_EQ(5, dict1->size());
     ASSERT_EQ(1, dict1->at(0).second->GetValueAsInteger());
@@ -1429,7 +1429,7 @@ TEST(Run, Iterator) {
 
 
     ObjPtr iter;
-    ASSERT_NO_THROW(iter = rt->Run("it := dict?"));
+    ASSERT_NO_THROW(iter = jit->Run("it := dict?"));
 
     ASSERT_TRUE(iter);
     ASSERT_EQ(ObjType::Iterator, iter->getType()) << toString(iter->getType());
@@ -1439,31 +1439,31 @@ TEST(Run, Iterator) {
     ASSERT_TRUE(*(iter->m_iterator) == iter->m_iterator->begin());
 
     ObjPtr one;
-    ASSERT_NO_THROW(one = rt->Run("it!"));
+    ASSERT_NO_THROW(one = jit->Run("it!"));
     ASSERT_TRUE(one);
     ASSERT_EQ(1, dict->at(0).second->GetValueAsInteger());
 
-    ASSERT_NO_THROW(one = rt->Run("it!"));
+    ASSERT_NO_THROW(one = jit->Run("it!"));
     ASSERT_TRUE(one);
     ASSERT_EQ(2, one->GetValueAsInteger());
 
-    ASSERT_NO_THROW(one = rt->Run("@next(it)"));
+    ASSERT_NO_THROW(one = jit->Run("@next(it)"));
     ASSERT_TRUE(one);
     ASSERT_EQ(3, one->GetValueAsInteger());
 
-    ASSERT_NO_THROW(one = rt->Run("it!"));
+    ASSERT_NO_THROW(one = jit->Run("it!"));
     ASSERT_TRUE(one);
     ASSERT_EQ(4, one->GetValueAsInteger());
 
-    ASSERT_NO_THROW(one = rt->Run("it!"));
+    ASSERT_NO_THROW(one = jit->Run("it!"));
     ASSERT_TRUE(one);
     ASSERT_EQ(5, one->GetValueAsInteger());
 
-    ASSERT_NO_THROW(one = rt->Run("it!"));
+    ASSERT_NO_THROW(one = jit->Run("it!"));
     ASSERT_TRUE(one);
     ASSERT_EQ(ObjType::IteratorEnd, one->getType()) << one << " " << toString(one->getType());
 
-    ASSERT_NO_THROW(one = rt->Run("it!"));
+    ASSERT_NO_THROW(one = jit->Run("it!"));
     ASSERT_TRUE(one);
     ASSERT_EQ(ObjType::IteratorEnd, one->getType()) << one << " " << toString(one->getType());
 
@@ -1475,10 +1475,10 @@ TEST(Run, Iterator) {
 
 
     ASSERT_TRUE(*(iter->m_iterator) == iter->m_iterator->end());
-    ASSERT_NO_THROW(one = rt->Run("it!!"));
+    ASSERT_NO_THROW(one = jit->Run("it!!"));
     ASSERT_TRUE(*(iter->m_iterator) != iter->m_iterator->end());
 
-    ASSERT_NO_THROW(dict1 = rt->Run("it??(-3)"));
+    ASSERT_NO_THROW(dict1 = jit->Run("it??(-3)"));
     ASSERT_TRUE(dict1);
     ASSERT_EQ(3, dict1->size());
     ASSERT_EQ(1, dict1->at(0).second->GetValueAsInteger());
@@ -1486,7 +1486,7 @@ TEST(Run, Iterator) {
     ASSERT_EQ(3, dict1->at(2).second->GetValueAsInteger());
 
     ObjPtr dict2;
-    ASSERT_NO_THROW(dict2 = rt->Run("it??(-3)"));
+    ASSERT_NO_THROW(dict2 = jit->Run("it??(-3)"));
     ASSERT_TRUE(dict2);
     ASSERT_EQ(3, dict2->size());
     ASSERT_EQ(4, dict2->at(0).second->GetValueAsInteger());
@@ -1494,7 +1494,7 @@ TEST(Run, Iterator) {
     ASSERT_EQ(ObjType::IteratorEnd, dict2->at(2).second->getType());
 
     ObjPtr dict3;
-    ASSERT_NO_THROW(dict3 = rt->Run("it??(-3)"));
+    ASSERT_NO_THROW(dict3 = jit->Run("it??(-3)"));
     ASSERT_TRUE(dict3);
     ASSERT_EQ(3, dict1->size());
     ASSERT_EQ(ObjType::IteratorEnd, dict3->at(0).second->getType());
@@ -1504,54 +1504,54 @@ TEST(Run, Iterator) {
 
 
     ASSERT_TRUE(*(iter->m_iterator) == iter->m_iterator->end());
-    ASSERT_NO_THROW(rt->Run("it!!"));
+    ASSERT_NO_THROW(jit->Run("it!!"));
     ASSERT_TRUE(*(iter->m_iterator) != iter->m_iterator->end());
 
-    ASSERT_NO_THROW(dict1 = rt->Run("it??(3)"));
+    ASSERT_NO_THROW(dict1 = jit->Run("it??(3)"));
     ASSERT_TRUE(dict1);
     ASSERT_EQ(3, dict1->size());
     ASSERT_EQ(1, dict1->at(0).second->GetValueAsInteger());
     ASSERT_EQ(2, dict1->at(1).second->GetValueAsInteger());
     ASSERT_EQ(3, dict1->at(2).second->GetValueAsInteger());
 
-    ASSERT_NO_THROW(dict2 = rt->Run("it??(3)"));
+    ASSERT_NO_THROW(dict2 = jit->Run("it??(3)"));
     ASSERT_TRUE(dict2);
     ASSERT_EQ(2, dict2->size());
     ASSERT_EQ(4, dict2->at(0).second->GetValueAsInteger());
     ASSERT_EQ(5, dict2->at(1).second->GetValueAsInteger());
 
-    ASSERT_NO_THROW(dict3 = rt->Run("it??(3)"));
+    ASSERT_NO_THROW(dict3 = jit->Run("it??(3)"));
     ASSERT_TRUE(dict3);
     ASSERT_EQ(0, dict3->size());
 
 
 
     ASSERT_TRUE(*(iter->m_iterator) == iter->m_iterator->end());
-    ASSERT_NO_THROW(rt->Run("it!!"));
+    ASSERT_NO_THROW(jit->Run("it!!"));
     ASSERT_TRUE(*(iter->m_iterator) != iter->m_iterator->end());
 
     ObjPtr flt_res;
-    ASSERT_NO_THROW(flt_res = rt->Run("dict??('')"));
+    ASSERT_NO_THROW(flt_res = jit->Run("dict??('')"));
     ASSERT_TRUE(flt_res);
     ASSERT_EQ(1, flt_res->size());
     ASSERT_EQ(4, flt_res->at(0).second->GetValueAsInteger());
 
 
     ObjPtr flt1_res;
-    ASSERT_NO_THROW(flt1_res = rt->Run("dict??('.',100)"));
+    ASSERT_NO_THROW(flt1_res = jit->Run("dict??('.',100)"));
     ASSERT_TRUE(flt1_res);
     ASSERT_EQ(1, flt1_res->size());
     ASSERT_EQ(1, flt1_res->at(0).second->GetValueAsInteger());
 
 
     ObjPtr flt2_res;
-    ASSERT_NO_THROW(flt2_res = rt->Run("dict??('..',100)"));
+    ASSERT_NO_THROW(flt2_res = jit->Run("dict??('..',100)"));
     ASSERT_TRUE(flt2_res);
     ASSERT_EQ(1, flt2_res->size());
     ASSERT_EQ(2, flt2_res->at(0).second->GetValueAsInteger());
 
     ObjPtr flt3_res;
-    ASSERT_NO_THROW(flt3_res = rt->Run("dict??('...',100)"));
+    ASSERT_NO_THROW(flt3_res = jit->Run("dict??('...',100)"));
     ASSERT_TRUE(flt3_res);
     ASSERT_EQ(2, flt3_res->size());
     ASSERT_EQ(3, flt3_res->at(0).second->GetValueAsInteger());
@@ -1560,7 +1560,7 @@ TEST(Run, Iterator) {
 
 
     ObjPtr range_test;
-    ASSERT_NO_THROW(range_test = rt->Run("1\\1..1..-1"));
+    ASSERT_NO_THROW(range_test = jit->Run("1\\1..1..-1"));
     ASSERT_TRUE(range_test);
     ASSERT_EQ(3, range_test->size());
     ASSERT_STREQ("1\\1", range_test->at(0).second->GetValueAsString().c_str());
@@ -1573,24 +1573,24 @@ TEST(Run, Iterator) {
     //    ASSERT_STREQ("(1, 'sss', (,), 2, 3,)", iter_test->GetValueAsString().c_str());
 
     ObjPtr iter_dict;
-    ASSERT_NO_THROW(iter_dict = rt->Run("1..1..-1??"));
+    ASSERT_NO_THROW(iter_dict = jit->Run("1..1..-1??"));
     ASSERT_TRUE(iter_dict);
     ASSERT_STREQ("(,)", iter_dict->GetValueAsString().c_str());
 
-    ASSERT_NO_THROW(iter_dict = rt->Run("2..1..-1??"));
+    ASSERT_NO_THROW(iter_dict = jit->Run("2..1..-1??"));
     ASSERT_TRUE(iter_dict);
     ASSERT_STREQ("(2,)", iter_dict->GetValueAsString().c_str());
 
-    ASSERT_NO_THROW(iter_dict = rt->Run("3..1..-1??"));
+    ASSERT_NO_THROW(iter_dict = jit->Run("3..1..-1??"));
     ASSERT_TRUE(iter_dict);
     ASSERT_STREQ("(3, 2,)", iter_dict->GetValueAsString().c_str());
 
-    ASSERT_NO_THROW(iter_dict = rt->Run("3\\1..1..-1??"));
+    ASSERT_NO_THROW(iter_dict = jit->Run("3\\1..1..-1??"));
     ASSERT_TRUE(iter_dict);
     ASSERT_STREQ("(3\\1, 2\\1,)", iter_dict->GetValueAsString().c_str());
 
     ObjPtr iter_test;
-    ASSERT_NO_THROW(iter_test = rt->Run("iter_test := 3\\1..1..-1?"));
+    ASSERT_NO_THROW(iter_test = jit->Run("iter_test := 3\\1..1..-1?"));
     ASSERT_TRUE(iter_test);
     ASSERT_TRUE(iter_test->m_iterator);
     ASSERT_TRUE(iter_test->m_iterator->m_iter_obj);
@@ -1600,76 +1600,76 @@ TEST(Run, Iterator) {
 
     ObjPtr while_test;
 
-    ASSERT_NO_THROW(while_test = rt->Run("[@next(iter_test)]<->{- --'EXIT'-- -}"));
+    ASSERT_NO_THROW(while_test = jit->Run("[@next(iter_test)]<->{- --'EXIT'-- -}"));
     ASSERT_TRUE(while_test);
     ASSERT_TRUE(while_test->is_return()) << while_test->toString();
     ASSERT_STREQ(":RetMinus('EXIT')", while_test->toString().c_str()) << while_test->toString();
     
-    ASSERT_NO_THROW(while_test = rt->Run("$^"));
+    ASSERT_NO_THROW(while_test = jit->Run("$^"));
     ASSERT_TRUE(while_test);
     ASSERT_TRUE(while_test->is_return()) << while_test->toString();
     ASSERT_STREQ(":RetMinus('EXIT')", while_test->toString().c_str()) << while_test->toString();
 
-    ASSERT_NO_THROW(while_test = rt->Run("@latter"));
+    ASSERT_NO_THROW(while_test = jit->Run("@latter"));
     ASSERT_TRUE(while_test);
     ASSERT_TRUE(while_test->is_return()) << while_test->toString();
     ASSERT_STREQ(":RetMinus('EXIT')", while_test->toString().c_str()) << while_test->toString();
 
-    ASSERT_NO_THROW(while_test = rt->Run("* $^"));
+    ASSERT_NO_THROW(while_test = jit->Run("* $^"));
     ASSERT_TRUE(while_test);
     ASSERT_TRUE(while_test->is_string_type()) << while_test->toString();
     ASSERT_STREQ("'EXIT'", while_test->toString().c_str()) << while_test->toString();
     
 
-    ASSERT_NO_THROW(while_test = rt->Run("[iter_test!]<->{+ ++'PLUS'++ +}"));
+    ASSERT_NO_THROW(while_test = jit->Run("[iter_test!]<->{+ ++'PLUS'++ +}"));
     ASSERT_TRUE(while_test);
     ASSERT_TRUE(while_test->is_return()) << while_test->toString();
     ASSERT_STREQ(":RetPlus('PLUS')", while_test->toString().c_str()) << while_test->toString();
 
 
-    ASSERT_NO_THROW(iter_dict = rt->Run("iter_dict := (1,2,3,)?"));
+    ASSERT_NO_THROW(iter_dict = jit->Run("iter_dict := (1,2,3,)?"));
     ASSERT_TRUE(iter_dict);
     //    ASSERT_TRUE(iter_dict->m_iterator->m_iter_obj->m_iter_range_value);
     //    ASSERT_STREQ("3\\1", iter_dict->m_iterator->m_iter_obj->m_iter_range_value->GetValueAsString().c_str()) << iter_test->m_iterator->m_iter_obj->m_iter_range_value->GetValueAsString().c_str();
     ASSERT_EQ(iter_dict->getType(), ObjType::Iterator);
 
-    ASSERT_NO_THROW(while_test = rt->Run("[iter_dict!]<->{+ ++'EXIT'++ +}"));
+    ASSERT_NO_THROW(while_test = jit->Run("[iter_dict!]<->{+ ++'EXIT'++ +}"));
     ASSERT_TRUE(while_test);
     ASSERT_TRUE(while_test->is_return()) << while_test->toString();
     ASSERT_STREQ(":RetPlus('EXIT')", while_test->toString().c_str()) << while_test->toString();
     
-    ASSERT_NO_THROW(while_test = rt->Run("$^"));
+    ASSERT_NO_THROW(while_test = jit->Run("$^"));
     ASSERT_TRUE(while_test);
     ASSERT_TRUE(while_test->is_return()) << while_test->toString();
     ASSERT_STREQ(":RetPlus('EXIT')", while_test->toString().c_str()) << while_test->toString();
 
-    ASSERT_NO_THROW(while_test = rt->Run("@latter"));
+    ASSERT_NO_THROW(while_test = jit->Run("@latter"));
     ASSERT_TRUE(while_test);
     ASSERT_TRUE(while_test->is_return()) << while_test->toString();
     ASSERT_STREQ(":RetPlus('EXIT')", while_test->toString().c_str()) << while_test->toString();
 
-    ASSERT_NO_THROW(while_test = rt->Run("*@latter"));
+    ASSERT_NO_THROW(while_test = jit->Run("*@latter"));
     ASSERT_TRUE(while_test);
     ASSERT_TRUE(while_test->is_string_type()) << while_test->toString();
     ASSERT_STREQ("'EXIT'", while_test->toString().c_str()) << while_test->toString();
 
     
-    ASSERT_NO_THROW(iter_test = rt->Run("iter_test := @iter(3\\1..1..-1)"));
+    ASSERT_NO_THROW(iter_test = jit->Run("iter_test := @iter(3\\1..1..-1)"));
 
     ObjPtr item_val;
-    ASSERT_NO_THROW(item_val = rt->Run("@curr(iter_test)"));
+    ASSERT_NO_THROW(item_val = jit->Run("@curr(iter_test)"));
     ASSERT_TRUE(item_val);
     ASSERT_STREQ("3\\1", item_val->GetValueAsString().c_str());
 
-    ASSERT_NO_THROW(item_val = rt->Run("@next(iter_test)"));
+    ASSERT_NO_THROW(item_val = jit->Run("@next(iter_test)"));
     ASSERT_TRUE(item_val);
     ASSERT_STREQ("3\\1", item_val->GetValueAsString().c_str());
 
-    ASSERT_NO_THROW(item_val = rt->Run("iter_test!?"));
+    ASSERT_NO_THROW(item_val = jit->Run("iter_test!?"));
     ASSERT_TRUE(item_val);
     ASSERT_STREQ("2\\1", item_val->GetValueAsString().c_str());
 
-    ASSERT_NO_THROW(item_val = rt->Run("iter_test?!"));
+    ASSERT_NO_THROW(item_val = jit->Run("iter_test?!"));
     ASSERT_TRUE(item_val);
     ASSERT_STREQ("2\\1", item_val->GetValueAsString().c_str());
 
@@ -1679,7 +1679,7 @@ TEST(Run, Iterator) {
     ASSERT_STREQ("2\\1", iter_test->m_iterator->m_iter_obj->m_iter_range_value->GetValueAsString().c_str());
     ASSERT_STREQ("3\\1..1\\1..-1\\1", iter_test->m_iterator->m_iter_obj->GetValueAsString().c_str());
 
-    ASSERT_NO_THROW(item_val = rt->Run("@next(iter_test)"));
+    ASSERT_NO_THROW(item_val = jit->Run("@next(iter_test)"));
     ASSERT_TRUE(item_val);
     ASSERT_STREQ("2\\1", item_val->GetValueAsString().c_str());
     ASSERT_TRUE(item_val->GetValueAsBoolean());
@@ -1690,7 +1690,7 @@ TEST(Run, Iterator) {
     ASSERT_STREQ("1\\1", iter_test->m_iterator->m_iter_obj->m_iter_range_value->GetValueAsString().c_str());
     ASSERT_STREQ("3\\1..1\\1..-1\\1", iter_test->m_iterator->m_iter_obj->GetValueAsString().c_str());
 
-    ASSERT_NO_THROW(item_val = rt->Run("@next(iter_test)"));
+    ASSERT_NO_THROW(item_val = jit->Run("@next(iter_test)"));
     ASSERT_TRUE(item_val);
 
     ASSERT_STREQ(":Iterator", iter_test->GetValueAsString().c_str());
@@ -1707,19 +1707,19 @@ TEST(Run, Iterator) {
     ASSERT_STREQ(":IteratorEnd", item_val->GetValueAsString().c_str());
     ASSERT_FALSE(item_val->GetValueAsBoolean());
 
-    ASSERT_NO_THROW(item_val = rt->Run("iter_test"));
+    ASSERT_NO_THROW(item_val = jit->Run("iter_test"));
     ASSERT_TRUE(item_val);
     ASSERT_STREQ(":Iterator", item_val->GetValueAsString().c_str());
 
     ASSERT_STREQ(":IteratorEnd", item_val->IteratorData()->GetValueAsString().c_str());
     ASSERT_FALSE(item_val->IteratorNext(0)->GetValueAsBoolean());
 
-    ASSERT_NO_THROW(while_test = rt->Run("[iter_test?!]<->{ --'EXIT'-- }"));
+    ASSERT_NO_THROW(while_test = jit->Run("[iter_test?!]<->{ --'EXIT'-- }"));
     ASSERT_TRUE(while_test);
     ASSERT_STRNE("EXIT", while_test->GetValueAsString().c_str()) << while_test->GetValueAsString().c_str();
     
     
-    ASSERT_NO_THROW(item_val = rt->Run("@first(iter_test)"));
+    ASSERT_NO_THROW(item_val = jit->Run("@first(iter_test)"));
     ASSERT_TRUE(item_val);
     ASSERT_STREQ("3\\1", item_val->GetValueAsString().c_str());
     
@@ -1846,7 +1846,7 @@ protected:
 
     const char *Test(std::string eval, Obj *vars) {
         eval += ";";
-        m_result = m_rt->Run(eval, vars);
+        m_result = m_jit->Run(eval, vars);
         if (m_result) {
             m_string = m_result->GetValueAsString();
             return m_string.c_str();
@@ -2357,7 +2357,7 @@ TEST(RunTest, Dict) {
 
     ASSERT_EQ(0, var.size());
     ObjPtr var2;
-    ASSERT_NO_THROW(var2 = rt->Run("(,)"));
+    ASSERT_NO_THROW(var2 = jit->Run("(,)"));
 
     var.push_back(Obj::CreateString("Test1"));
     ASSERT_EQ(1, var.size());
@@ -2372,7 +2372,7 @@ TEST(RunTest, Dict) {
     ASSERT_TRUE(var[2].second->op_accurate(Obj::CreateValue(2, ObjType::None)));
     ASSERT_TRUE(var[3].second->op_accurate(Obj::CreateString(L"Test3")));
 
-    ASSERT_NO_THROW(var2 = rt->Run("(0, \"Test1\", 2, 'Test3',)"));
+    ASSERT_NO_THROW(var2 = jit->Run("(0, \"Test1\", 2, 'Test3',)"));
 
     ASSERT_TRUE((*var2)[0].second->op_accurate(Obj::CreateValue(0, ObjType::None)));
     ASSERT_TRUE((*var2)[1].second->op_accurate(Obj::CreateString("Test1")));
@@ -2381,7 +2381,7 @@ TEST(RunTest, Dict) {
 
     ObjPtr var3;
 
-    ASSERT_NO_THROW(var3 = rt->Run("(0, \"Test1\", 2, 'Test3',)"));
+    ASSERT_NO_THROW(var3 = jit->Run("(0, \"Test1\", 2, 'Test3',)"));
 
     ASSERT_TRUE((*var3)[0].second->op_accurate(Obj::CreateValue(0, ObjType::None)));
     ASSERT_TRUE((*var3)[1].second->op_accurate(Obj::CreateString("Test1")));
@@ -2655,22 +2655,22 @@ TEST(RunTest, CreateFromInteger) {
 
     RuntimePtr rt = RunTime::Init();
 
-    ObjPtr var = rt->Run("123");
+    ObjPtr var = jit->Run("123");
     ASSERT_TRUE(var);
     ASSERT_EQ(ObjType::Int8, var->getType()) << toString(var->getType());
     ASSERT_EQ(123, var->GetValueAsInteger());
 
-    ObjPtr var2 = rt->Run("123");
+    ObjPtr var2 = jit->Run("123");
     ASSERT_TRUE(var2);
     ASSERT_EQ(ObjType::Int8, var2->getType()) << toString(var2->getType());
     ASSERT_EQ(123, var2->GetValueAsInteger());
 
-    var = rt->Run("-123");
+    var = jit->Run("-123");
     ASSERT_TRUE(var);
     ASSERT_EQ(ObjType::Int8, var->getType()) << toString(var->getType());
     ASSERT_EQ(-123, var->GetValueAsInteger());
 
-    var2 = rt->Run("-123");
+    var2 = jit->Run("-123");
     ASSERT_TRUE(var2);
     ASSERT_EQ(ObjType::Int8, var2->getType()) << toString(var2->getType());
     ASSERT_EQ(-123, var2->GetValueAsInteger());
@@ -2680,22 +2680,22 @@ TEST(RunTest, CreateFromNumber) {
 
     RuntimePtr rt = RunTime::Init();
 
-    ObjPtr var = rt->Run("123.123");
+    ObjPtr var = jit->Run("123.123");
     ASSERT_TRUE(var);
     ASSERT_EQ(ObjType::Float32, var->getType());
     ASSERT_DOUBLE_EQ(123.123, var->GetValueAsNumber());
 
-    ObjPtr var2 = rt->Run("123.123");
+    ObjPtr var2 = jit->Run("123.123");
     ASSERT_TRUE(var2);
     ASSERT_EQ(ObjType::Float32, var2->getType());
     ASSERT_DOUBLE_EQ(123.123, var2->GetValueAsNumber());
 
-    var = rt->Run("-123.123");
+    var = jit->Run("-123.123");
     ASSERT_TRUE(var);
     ASSERT_EQ(ObjType::Float64, var->getType());
     ASSERT_DOUBLE_EQ(-123.123, var->GetValueAsNumber());
 
-    var2 = rt->Run("-123.123E+40");
+    var2 = jit->Run("-123.123E+40");
     ASSERT_TRUE(var2);
     ASSERT_EQ(ObjType::Float64, var2->getType());
     ASSERT_DOUBLE_EQ(-123.123E+40, var2->GetValueAsNumber());
@@ -2705,22 +2705,22 @@ TEST(RunTest, CreateFromString) {
 
     RuntimePtr rt = RunTime::Init();
 
-    ObjPtr var = rt->Run("\"123.123\"");
+    ObjPtr var = jit->Run("\"123.123\"");
     ASSERT_TRUE(var);
     ASSERT_EQ(ObjType::StrWide, var->getType());
     ASSERT_STREQ("123.123", var->GetValueAsString().c_str());
 
-    ObjPtr var2 = rt->Run("\"123.123\"");
+    ObjPtr var2 = jit->Run("\"123.123\"");
     ASSERT_TRUE(var2);
     ASSERT_EQ(ObjType::StrWide, var2->getType());
     ASSERT_STREQ("123.123", var2->GetValueAsString().c_str());
 
-    var = rt->Run("'строка'");
+    var = jit->Run("'строка'");
     ASSERT_TRUE(var);
     ASSERT_EQ(ObjType::StrChar, var->getType());
     ASSERT_STREQ("строка", var->GetValueAsString().c_str());
 
-    var2 = rt->Run("'строка'");
+    var2 = jit->Run("'строка'");
     ASSERT_TRUE(var2);
     ASSERT_EQ(ObjType::StrChar, var2->getType());
     ASSERT_STREQ("строка", var2->GetValueAsString().c_str());
@@ -2730,25 +2730,25 @@ TEST(RunTest, CreateFromRational) {
 
     RuntimePtr rt = RunTime::Init();
 
-    ObjPtr var = rt->Run("123\\1");
+    ObjPtr var = jit->Run("123\\1");
     ASSERT_TRUE(var);
     ASSERT_EQ(ObjType::Rational, var->getType()) << toString(var->getType());
     ASSERT_EQ(123, var->GetValueAsInteger());
     ASSERT_DOUBLE_EQ(123.0, var->GetValueAsNumber());
 
-    ObjPtr var2 = rt->Run("123\\1");
+    ObjPtr var2 = jit->Run("123\\1");
     ASSERT_TRUE(var2);
     ASSERT_EQ(ObjType::Rational, var2->getType()) << toString(var2->getType());
     ASSERT_EQ(123, var2->GetValueAsInteger());
     ASSERT_DOUBLE_EQ(123, var2->GetValueAsNumber());
 
-    var = rt->Run("-123\\1");
+    var = jit->Run("-123\\1");
     ASSERT_TRUE(var);
     ASSERT_EQ(ObjType::Rational, var->getType()) << toString(var->getType());
     ASSERT_EQ(-123, var->GetValueAsInteger());
     ASSERT_DOUBLE_EQ(-123.0, var->GetValueAsNumber());
 
-    var2 = rt->Run("-123\\1");
+    var2 = jit->Run("-123\\1");
     ASSERT_TRUE(var2);
     ASSERT_EQ(ObjType::Rational, var2->getType()) << toString(var2->getType());
     ASSERT_EQ(-123, var2->GetValueAsInteger());

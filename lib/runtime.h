@@ -2,17 +2,13 @@
 #ifndef INCLUDED_RUNTIME_CPP_
 #define INCLUDED_RUNTIME_CPP_
 
-//#include "pch.h"
-
-////??????????????????????????
-
 #include <sys/time.h>
 #include <ffi.h>
+#include <dlfcn.h>
 
 #include "nlc-rt.h"
 
-#include "term.h"
-//#include "module.h"
+#include "diag.h"
 //#include "system.h"
 
 
@@ -29,6 +25,8 @@ namespace newlang {
     EXTERN_C int nlc_prinft_sub_(char const *format, ...);
 #endif    
 
+    int RunMain(const int arg, const char** argv, const char** penv);
+    
     std::string GetFileExt(const char * str);
     std::string AddDefaultFileExt(const char * str, const char *ext_default);
     std::string ReplaceFileExt(const char * str, const char *ext_old, const char *ext_new);
@@ -166,17 +164,12 @@ namespace newlang {
 
         void GlobalNameBuildinRegister();
         bool RegisterSystemFunc(const char *source);
-        bool RegisterBuildin(BuildinPtr module);
-        bool RegisterModule(ModulePtr module);
+        //        bool RegisterBuildin(BuildinPtr module);
+        //        bool RegisterModule(ModulePtr module);
 
         void Clear();
 
-        bool RegisterNativeObj(TermPtr term) {
-            ASSERT(term);
-            ASSERT(term->getTermID() == TermID::NATIVE);
-
-            return RegisterSystemObj(CreateNative(term));
-        }
+        bool RegisterNativeObj(TermPtr term);
 
         bool RegisterSystemBuildin(const char *text);
         bool RegisterSystemObj(ObjPtr obj);
@@ -213,50 +206,37 @@ namespace newlang {
          */
         RunTime();
 
-        virtual ~RunTime() {
-
-            //            LLVMDisposeBuilder(m_llvm_builder);
-            //            m_llvm_builder = nullptr;
-            //LLVMShutdown();
-        }
-
-        static bool LLVMInitialize() {
-            if (LLVMInitializeNativeTarget() || LLVMInitializeNativeAsmParser() || LLVMInitializeNativeAsmPrinter()) {
-                LOG_RUNTIME("Fail LLVM initialize!");
-            }
-            return true;
-        }
+        virtual ~RunTime();
 
 
 
-
-
-        std::string ffi_file;
 
         typedef ffi_status ffi_prep_cif_type(ffi_cif *cif, ffi_abi abi, unsigned int nargs, ffi_type *rtype, ffi_type **atypes);
         typedef ffi_status ffi_prep_cif_var_type(ffi_cif *cif, ffi_abi abi, unsigned int nfixedargs, unsigned int ntotalargs, ffi_type *rtype, ffi_type **atypes);
         typedef void ffi_call_type(ffi_cif *cif, void (*fn)(void), void *rvalue, void **avalue);
 
-        static ffi_type * m_ffi_type_void;
-        static ffi_type * m_ffi_type_uint8;
-        static ffi_type * m_ffi_type_sint8;
-        static ffi_type * m_ffi_type_uint16;
-        static ffi_type * m_ffi_type_sint16;
-        static ffi_type * m_ffi_type_uint32;
-        static ffi_type * m_ffi_type_sint32;
-        static ffi_type * m_ffi_type_uint64;
-        static ffi_type * m_ffi_type_sint64;
-        static ffi_type * m_ffi_type_float;
-        static ffi_type * m_ffi_type_double;
-        static ffi_type * m_ffi_type_pointer;
+        std::string ffi_file;
+        void * m_ffi_handle;
+        ffi_type * m_ffi_type_void;
+        ffi_type * m_ffi_type_uint8;
+        ffi_type * m_ffi_type_sint8;
+        ffi_type * m_ffi_type_uint16;
+        ffi_type * m_ffi_type_sint16;
+        ffi_type * m_ffi_type_uint32;
+        ffi_type * m_ffi_type_sint32;
+        ffi_type * m_ffi_type_uint64;
+        ffi_type * m_ffi_type_sint64;
+        ffi_type * m_ffi_type_float;
+        ffi_type * m_ffi_type_double;
+        ffi_type * m_ffi_type_pointer;
 
-        static ffi_prep_cif_type *m_ffi_prep_cif;
-        static ffi_prep_cif_var_type * m_ffi_prep_cif_var;
-        static ffi_call_type * m_ffi_call;
+        ffi_prep_cif_type *m_ffi_prep_cif;
+        ffi_prep_cif_var_type * m_ffi_prep_cif_var;
+        ffi_call_type * m_ffi_call;
 
-        static ObjType m_wide_char_type;
-        static ffi_type * m_wide_char_type_ffi;
-        static ObjType m_integer_type;
+        ObjType m_wide_char_type;
+        ffi_type * m_wide_char_type_ffi;
+        ObjType m_integer_type;
 
         static RuntimePtr Init(StringArray args);
         static RuntimePtr Init(int argc = 0, const char** argv = nullptr, const char** penv = nullptr);
@@ -265,15 +245,10 @@ namespace newlang {
         static std::string NativeNameMangling(const Term *term, RunTime *rt);
         static std::string NativeNameMangling(std::string_view name);
 
-        static void * GetDirectAddressFromLibrary(void *handle, std::string_view name) {
-            if (isNativeName(name)) {
-                return LLVMSearchForAddressOfSymbol(NativeNameMangling(name).c_str());
-            }
-            return LLVMSearchForAddressOfSymbol(name.begin());
-        }
+        //        static void * GetDirectAddressFromLibrary(void *handle, std::string_view name);
 
 
-        ModulePtr CheckLoadModule(TermPtr &term);
+        //        ModulePtr CheckLoadModule(TermPtr &term);
         bool LoadModuleFromFile(const char *name_str, bool init);
 
         ObjPtr OpLoadModule(TermPtr term);
@@ -284,13 +259,11 @@ namespace newlang {
 
         //        bool CreateModule(const TermPtr &ast, const std::string_view source, const std::string_view module_name, const std::string_view filename, llvm::Module *bc = nullptr);
 
-        bool ModuleCreate(FileModule &data, const std::string_view source);
-        static bool ModuleCreate(FileModule &data, const std::string_view module_name, const TermPtr &include, const std::string_view source, llvm::Module *bc = nullptr);
-        static bool ModuleSave(const FileModule &data, const std::string_view filename, const std::string_view module_name="");
+        static bool ModuleSave(const FileModule &data, const std::string_view filename, const std::string_view module_name = "");
         static bool ModuleRead(FileModule &data, const std::string_view filename, const std::string_view modulename = "");
 
 
-        static void * GetNativeAddr(const char * name, void *module = nullptr);
+        //        static void * GetNativeAddr(const char * name, void *module = nullptr);
 
         static std::string GetLastErrorMessage();
 
@@ -301,7 +274,7 @@ namespace newlang {
          * @param rt - Объект для хранения глобальных переменных
          * @return Семантический корректный модуль с иерархией глобальных и локальных объектов
          */
-        static ModulePtr CreateNameHierarchy(Term ast, RuntimePtr rt);
+        //        static ModulePtr CreateNameHierarchy(Term ast, RuntimePtr rt);
 
         /**
          * Функция для организации встроенных типов в иерархию наследования.
@@ -346,10 +319,10 @@ namespace newlang {
         //        LLVMBuilderRef m_llvm_builder;
 
         //        ModulePtr m_buildin_obj;
-        ModulePtr m_main_module;
+        //        ModulePtr m_main_module;
 
         TermPtr m_main;
-        std::map<std::string, ModulePtr> m_modules;
+        //        std::map<std::string, ModulePtr> m_modules;
         StringArray m_module_loader;
 
         std::map<std::string, ObjPtr> m_buildin_obj;
@@ -364,34 +337,28 @@ namespace newlang {
         bool m_import_native;
         bool m_eval_enable;
         bool m_load_runtime;
+        bool m_link_rt;
+        bool m_link_jit;
         int m_typedef_limit;
         //        ObjPtr m_cmd_args;
         //        ObjPtr m_main_args;
-        MacroPtr m_macro;
+        //        MacroPtr m_macro;
     public:
         DiagPtr m_diag;
 
         TermPtr m_main_ast;
         RunnerPtr m_main_runner;
 
-        // Выполняет одну строку в контексте главного модуля программы
-        // При первом вызове в m_main_ast создается AST как BLOCK
-        // При повторнвых вызовах в m_main_ast->m_block добавляется новая строка
-        ObjPtr Run(const std::string_view str, Obj* args = nullptr);
-
-        // Выполняет скопилированное AST как главный модуль программы
-        // При повторном вызове m_main_ast заменяется на новый AST
-        ObjPtr Run(TermPtr ast, Obj* args = nullptr);
-        ObjPtr RunFile(std::string file, Obj* args = nullptr);
-        bool ExpandFileName(std::string &filename);
+        static bool ExpandFileName(std::string &filename);
 
         int RunMain();
         bool CompileCppSource(const std::string_view source, std::string &out, std::vector<std::string> opts = {});
 
 
-        TermPtr MakeAst(const std::string_view src, bool skip_analize = false);
+        TermPtr ParseBuildin(const std::string_view src);
+        //        ParserPtr GetParser();
 
-        ParserPtr GetParser();
+        static void * GetNativeAddress(void * handle, const std::string_view name);
 
         static StringArray MakeMainArgs(int argc, const char** argv, const char** penv) {
             StringArray result;
@@ -409,6 +376,49 @@ namespace newlang {
             return result;
         }
 
+        static std::vector<std::string> SplitChar(std::string_view str, const std::string_view delimiter) {
+            std::vector<std::string> result;
+            while (!str.empty()) {
+                size_t pos = str.find_first_of(delimiter.begin());
+                if (pos == 0) {
+                    pos = str.find_first_not_of(delimiter.begin());
+                    if (pos == std::string::npos) {
+                        break;
+                    }
+                    str.remove_prefix(pos);
+                } else {
+                    if (pos == std::string::npos) {
+                        result.push_back(std::string(str.begin(), str.end()));
+                        break;
+                    }
+                    result.push_back(std::string(str.begin(), str.begin() + pos));
+                    str.remove_prefix(pos);
+                }
+            }
+            return result;
+        }
+
+        static std::vector<std::string> SplitString(const std::string_view str, const std::string_view delim) {
+
+            std::vector<std::string> result;
+            std::string s(str);
+
+            size_t pos;
+            s.erase(0, s.find_first_not_of(delim.begin()));
+            while (!s.empty()) {
+                pos = s.find(delim.begin());
+                if (pos == std::string::npos) {
+                    result.push_back(s);
+                    break;
+                } else {
+                    result.push_back(s.substr(0, pos));
+                    s.erase(0, pos);
+                }
+                s.erase(0, s.find_first_not_of(delim.begin()));
+            }
+            return result;
+        }
+
     protected:
 
         bool ParseArgs(StringArray args) {
@@ -422,8 +432,12 @@ namespace newlang {
                 if (args[i].find("--nlc-search=") == 0) {
                     std::string list;
                     list = args[i].substr(strlen("--nlc-search="));
-                    m_search_dir = Macro::SplitString(list.c_str(), ";");
-                } else if (args[i].compare("--nlc-search=") == 0) {
+                    m_search_dir = SplitString(list.c_str(), ";");
+                } else if (args[i].compare("--nlc-no-link-rt") == 0) {
+                    m_link_rt = false;
+                    m_link_jit = false;
+                } else if (args[i].compare("--nlc-no-link-jit") == 0) {
+                    m_link_jit = false;
                 } else if (args[i].compare("--nlc-no-runtime") == 0) {
                     m_load_runtime = false;
                 } else if (args[i].compare("--nlc-no-dsl") == 0) {
@@ -461,20 +475,20 @@ namespace newlang {
             }
 
 
-            llvm::SmallString<1024> path;
-            auto error = llvm::sys::fs::current_path(path);
-            if (error) {
-                LOG_RUNTIME("%s", error.message().c_str());
-            }
-            m_work_dir = path.c_str();
-            // LOG_DEBUG("work_dir: %s", m_work_dir.c_str());
-
-            path = llvm::sys::fs::getMainExecutable(nullptr, nullptr);
-            // LOG_DEBUG("%s", path.c_str());
-
-            llvm::sys::path::remove_filename(path);
-            m_exec_dir = path.c_str();
-            // LOG_DEBUG("exec_dir: %s", m_exec_dir.c_str());
+            //            llvm::SmallString<1024> path;
+            //            auto error = llvm::sys::fs::current_path(path);
+            //            if (error) {
+            //                LOG_RUNTIME("%s", error.message().c_str());
+            //            }
+            //            m_work_dir = path.c_str();
+            //            // LOG_DEBUG("work_dir: %s", m_work_dir.c_str());
+            //
+            //            path = llvm::sys::fs::getMainExecutable(nullptr, nullptr);
+            //            // LOG_DEBUG("%s", path.c_str());
+            //
+            //            llvm::sys::path::remove_filename(path);
+            //            m_exec_dir = path.c_str();
+            //            // LOG_DEBUG("exec_dir: %s", m_exec_dir.c_str());
 
             m_search_dir.push_back(m_work_dir);
             m_search_dir.push_back(m_exec_dir);

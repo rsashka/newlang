@@ -1,6 +1,6 @@
 #ifndef __LIST2CPP_newlang_build_options
 #define __LIST2CPP_newlang_build_options
-inline constexpr unsigned long newlang_build_options_size = 31;
+inline constexpr unsigned long newlang_build_options_size = 30;
 
 inline const char *newlang_build_options_arr[newlang_build_options_size] = {
 "-D_GNU_SOURCE ",
@@ -12,7 +12,6 @@ inline const char *newlang_build_options_arr[newlang_build_options_size] = {
 "-std=c++23 ",
 "-Wall ",
 "-Wextra ",
-"-Werror ",
 "-Wfloat-equal ",
 "-Wundef ",
 "-Wcast-align ",

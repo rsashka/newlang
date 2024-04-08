@@ -13,6 +13,7 @@ contrib/*
 **/**tar.xz
 **/DartConfiguration.tcl
 Makefile
+TAG
 
 **/*.i
 **/*.vcxproj.filters

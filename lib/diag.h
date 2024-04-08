@@ -1,10 +1,7 @@
 #ifndef NEWLANG_DIAG_H_
 #define NEWLANG_DIAG_H_
 
-//#include "pch.h"
-
-#include "nlc-rt.h"
-//#include <variable.h>
+#include "types.h"
 
 #include "warning_push.h"
 #include "parser.yy.h"

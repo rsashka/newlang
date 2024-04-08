@@ -31,7 +31,7 @@ DEFAULTCONF=nlc-rt-Debug
 CONF=${DEFAULTCONF}
 
 # All Configurations
-ALLCONFS=nlc-rt-Debug nlc-jit-Debug 
+ALLCONFS=nlc-rt-Debug nlc-jit-Debug UnitTest 
 
 
 # build

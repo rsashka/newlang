@@ -1,0 +1,10 @@
+# For compile run: ./nlc --compile --no-nlc-rt --embed-source -o hello  hello_embed.src
+
+# int main(int argc, char* argv[], char* envp[]);
+{%
+    /*
+    *  @\\stdio.h     -->  #include <stdio.h>
+    *  @\sys\time.h   -->  #include "sys/time.h"
+    */
+    printf("Hello, world!\n");
+%}

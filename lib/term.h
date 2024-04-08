@@ -2,8 +2,6 @@
 #ifndef INCLUDED_NEWLANG_TERM_
 #define INCLUDED_NEWLANG_TERM_
 
-//#include "pch.h"
-
 #include "warning_push.h"
 #include "location.hh"
 #include "parser.h"
@@ -1543,10 +1541,10 @@ namespace newlang {
             return m_is_const;
         }
 
-        BlockType GetMacroId();
-
-        //    SCOPE(protected) :
-        static BlockType MakeMacroId(const BlockType &seq);
+//        BlockType GetMacroId();
+//
+//        //    SCOPE(protected) :
+//        static BlockType MakeMacroId(const BlockType &seq);
 
         /**
          * Проверяет аргументы термина на корректность, обрабатывает системные аргументы, проверяет наличие внешних функций

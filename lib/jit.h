@@ -1,11 +1,8 @@
 #pragma once
-#ifndef INCLUDED_TRANSPILER_H_
-#define INCLUDED_TRANSPILER_H_
+#ifndef INCLUDED_JIT_H_
+#define INCLUDED_JIT_H_
 
 //#include "pch.h"
-
-#include "nlc-rt.h"
-
 
 #include "warning_push.h"
 
@@ -44,8 +41,51 @@
 //#include <torch/torch.h>
 //#include <ATen/ATen.h>
 
+
+
+//
+//#include "warning_push.h"
+//
+//#include "llvm/IR/Metadata.h"
+//#include "llvm/IR/LegacyPassManager.h"
+//#include "llvm/MC/TargetRegistry.h"
+//
+//#include "clang/Driver/Driver.h"
+//#include "clang/Driver/Compilation.h"
+//#include "clang/Frontend/TextDiagnosticPrinter.h"
+//#include "llvm/IR/Module.h"
+//#include "llvm/Target/TargetOptions.h"
+//#include "llvm/ADT/STLExtras.h"
+//#include "llvm/Support/VirtualFileSystem.h"
+//#include "llvm/Support/TargetSelect.h"
+//
+//#include "llvm-c/Core.h"
+//#include "llvm-c/Target.h"
+//#include "llvm-c/TargetMachine.h"
+//
+//#include "llvm/IR/LegacyPassManager.h"
+//#include "llvm/MC/TargetRegistry.h"
+//#include "llvm/Support/CodeGen.h"
+//
+//#include "llvm/Support/InitLLVM.h"
+//
+//#include "llvm/Target/TargetMachine.h"
+//
+//#include "clang/Frontend/CompilerInstance.h"
+//#include "clang/CodeGen/CodeGenAction.h"
+//
+//#include "clang/Tooling/CommonOptionsParser.h"
+//#include "clang/Tooling/Tooling.h"
+//
+//
+//#include "warning_pop.h"
+
 #include "warning_pop.h"
 
+
+#include "nlc-rt.h"
+
+#include "macro.h"
 
 
 
@@ -61,21 +101,75 @@ namespace newlang {
     std::string MangaledFuncCPP(const char *name, const char *space = nullptr);
     std::string MangaledFunc(const std::string name);
 
-    
-LLVMGenericValueRef GetGenericValueRef(Obj &obj, LLVMTypeRef type);
-ObjPtr CreateFromGenericValue(ObjType type, LLVMGenericValueRef ref, LLVMTypeRef llvm_type);
-LLVMTypeRef toLLVMType(ObjType t, bool none_if_error = false);
 
+    LLVMGenericValueRef GetGenericValueRef(Obj &obj, LLVMTypeRef type);
+    ObjPtr CreateFromGenericValue(ObjType type, LLVMGenericValueRef ref, LLVMTypeRef llvm_type);
+    LLVMTypeRef toLLVMType(ObjType t, bool none_if_error = false);
 
-    class Transpiler {
+    class JitParser : public Parser {
     public:
 
-        Transpiler() {
+        JitParser(MacroPtr macro = nullptr, PostLexerType *postlex = nullptr, DiagPtr diag = nullptr,
+                bool pragma_enable = true, RunTime *rt = nullptr)
+        : Parser(macro, postlex, diag, pragma_enable, rt) {
+
         }
 
-        virtual ~Transpiler() {
+        TermPtr CheckLoadModule(const TermPtr & term) override;
+        TermPtr LoadIfModule(const TermPtr & term) override;
+        TermPtr ParseFile(const std::string_view filename);
+    };
 
+    class JIT {
+    public:
+
+        RuntimePtr m_rt;
+        MacroPtr m_macro;
+
+        clang::IntrusiveRefCntPtr<clang::DiagnosticOptions> DiagOpts;
+        clang::TextDiagnosticPrinter *textDiagPrinter;
+        clang::IntrusiveRefCntPtr<clang::DiagnosticIDs> pDiagIDs;
+        clang::DiagnosticsEngine *pDiagnosticsEngine;
+
+
+        JIT(RuntimePtr rt);
+
+        virtual ~JIT() {
+
+            delete pDiagnosticsEngine;
+            pDiagnosticsEngine = nullptr;
+            pDiagIDs.reset();
+
+            delete textDiagPrinter;
+            textDiagPrinter = nullptr;
+            DiagOpts.reset();
         }
+
+
+        static JIT * m_instance;
+
+        static JIT * Init(RuntimePtr rt) {
+            return Instance(rt);
+        }
+
+        static JIT * Instance(RuntimePtr rt) {
+            ASSERT(rt);
+            if (m_instance == nullptr){ // || (rt && &m_instance->m_rt != rt)) {
+//                ASSERT(rt);
+//                if (m_instance) {
+//                    delete m_instance;
+//                }
+                m_instance = new JIT(rt);
+            }
+            ASSERT(m_instance);
+            m_instance->m_rt = rt;
+            return m_instance;
+        }
+
+        JIT(const JIT&) = delete;
+        const JIT& operator=(const JIT&) = delete;
+
+        bool CreateMacro(const std::string_view text);
 
         /*
          * Корневая область имен C++ для генерации кода namespace nlc::gen { }, но все функции определяются как extern "C" 
@@ -93,14 +187,50 @@ LLVMTypeRef toLLVMType(ObjType t, bool none_if_error = false);
          * 
          * 
          */
+        static bool LLVMInitialize() {
+
+            if (LLVMInitializeNativeTarget() || LLVMInitializeNativeAsmParser() || LLVMInitializeNativeAsmPrinter()) {
+                LOG_RUNTIME("Fail LLVM initialize!");
+            }
+            return true;
+        }
+
+        static bool LLVMInitializeJIT() {
+            LLVMInitializeAllTargetInfos();
+            LLVMInitializeAllTargets();
+            LLVMInitializeAllTargetMCs();
+            LLVMInitializeAllAsmParsers();
+            LLVMInitializeAllAsmPrinters();
+            return true;
+        }
+
+        TermPtr MakeAst(const std::string_view src, bool skip_analize = false);
+        ParserPtr GetParser();
+
+
+        // Выполняет одну строку в контексте главного модуля программы
+        // При первом вызове в m_main_ast создается AST как BLOCK
+        // При повторнвых вызовах в m_main_ast->m_block добавляется новая строка
+        ObjPtr Run(const std::string_view str, Obj* args = nullptr);
+
+        // Выполняет скопилированное AST как главный модуль программы
+        // При повторном вызове m_main_ast заменяется на новый AST
+        ObjPtr Run(TermPtr ast, Obj* args = nullptr);
+        ObjPtr RunFile(std::string file, Obj* args = nullptr);
+
+
+        bool ModuleCreate(FileModule &data, const std::string_view source);
+        static bool ModuleCreate(FileModule &data, const std::string_view module_name, const TermPtr &include, const std::string_view source, llvm::Module *bc = nullptr);
+
         std::string MakeCodeModule(const TermPtr &term, std::string_view name, bool is_main);
         std::string MakeCodeFunction(const TermPtr &term);
         std::string MakeFuncDeclarations_(const TermPtr &term);
 
-        std::string MakeCPPCode(const TermPtr &term, const std::string_view module);
         void MakeFunctionRecursive_(const TermPtr &term, std::string &output, const std::string_view module);
 
-        std::unique_ptr<llvm::Module> MakeLLVMModule(std::string_view source, const std::vector<std::string> opts, std::string *asm_code = nullptr);
+        std::unique_ptr<llvm::Module> MakeLLVMModule(std::string_view source, const std::vector<std::string> opts);
+        bool MakeObjFile(const std::string_view filename, llvm::Module &module, const std::vector<std::string> opts);
+        bool LinkObjToExec(const std::string_view filename, std::vector<std::string> objs, std::vector<std::string> opts = {});
 
         static std::string ExtractFunctionDecls(const TermPtr &ast, const std::string_view module);
         static std::string ExtractStaticVars(const TermPtr &ast, const std::string_view module);
@@ -112,13 +242,14 @@ LLVMTypeRef toLLVMType(ObjType t, bool none_if_error = false);
 
         static std::string ReplaceObjectInEmbedSource(const std::string_view embed, std::vector<std::string> &include, const TermPtr args = nullptr);
         bool MakeCppExec(const std::string_view source, const std::string_view filename, std::vector<std::string> opts = {});
+
         std::string MakeApplicationSource(const TermPtr &ast);
 
         static std::string MakeMain(const std::vector<std::string> &include);
         static std::string MakeMainEmbed(const std::string_view embed_source, const std::vector<std::string> &include);
 
         static TermPtr MainArgs();
-        
+
         std::vector<std::string> m_includes;
 
 
@@ -379,4 +510,4 @@ LLVMTypeRef toLLVMType(ObjType t, bool none_if_error = false);
 }
 
 
-#endif //INCLUDED_TRANSPILER_H_
+#endif //INCLUDED_JIT_H_

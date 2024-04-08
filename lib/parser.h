@@ -1,18 +1,23 @@
 #ifndef NEWLANG_PARSER_H_
 #define NEWLANG_PARSER_H_
 
-//#include "pch.h"
-
-#include "nlc-rt.h"
 #include "variable.h"
 #include "diag.h"
-#include "macro.h"
 
 #include "warning_push.h"
 #include "parser.yy.h"
 #include "warning_pop.h"
 
 namespace newlang {
+
+    TermPtr ProcessMacro(Parser &parser, TermPtr &term);
+
+    enum class ExpandMacroResult : uint8_t {
+        Continue,
+        Break,
+        Goto,
+    };
+    ExpandMacroResult ExpandTermMacro(Parser &parser);
 
     /** The Driver class brings together all components. It creates an instance of
      * the Parser and Scanner classes and connects them. Then the input stream is
@@ -23,8 +28,10 @@ namespace newlang {
     class Parser {
     public:
 
-        Parser(MacroPtr macro = nullptr, PostLexerType *postlex = nullptr, DiagPtr diag = nullptr, bool pragma_enable = true, RuntimePtr rt = nullptr);
+        Parser(MacroPtr macro = nullptr, PostLexerType *postlex = nullptr, DiagPtr diag = nullptr, bool pragma_enable = true, RunTime *rt = nullptr);
 
+        virtual ~Parser() {
+        }
         /// enable debug output in the flex scanner
         bool trace_scanning;
 
@@ -89,7 +96,7 @@ namespace newlang {
 
 
         parser::token_type GetNextToken(TermPtr * yylval, parser::location_type* yylloc);
-        TermPtr MacroEval(const TermPtr &term);
+        //        TermPtr MacroEval(const TermPtr &term);
 
         // Проверяет термин на наличие команды препроцессора (прагмы)
         bool PragmaCheck(const TermPtr &term);
@@ -100,7 +107,7 @@ namespace newlang {
 
         TermPtr Parse(const std::string str);
         static TermPtr ParseString(const std::string str, MacroPtr macro = nullptr, PostLexerType *postlex = nullptr, DiagPtr diag = nullptr, RuntimePtr rt = nullptr);
-        TermPtr ParseFile(const std::string str);
+//        TermPtr ParseFile(const std::string str);
 
         // Собирает термин из последовательности лексем и удаялет их из входного буфера
         static size_t ParseTerm(TermPtr &term, const BlockType &buffer, const size_t skip = 0, bool pragma_enable = true);
@@ -116,7 +123,8 @@ namespace newlang {
         static std::string GetCurrentTimeStamp(time_t ts = std::time(NULL));
         static std::string GetCurrentTimeStampISO(time_t ts = std::time(NULL));
 
-        bool CheckLoadModule(TermPtr &term);
+        virtual TermPtr CheckLoadModule(const TermPtr & term);
+        virtual TermPtr LoadIfModule(const TermPtr & term);
 
         std::string GetCurrentModule() {
             return m_name_module;
@@ -130,14 +138,14 @@ namespace newlang {
         std::string m_file_time;
         std::string m_file_md5;
 
+        DiagPtr m_diag;
+        MacroPtr m_macro;
+        bool m_is_lexer_complete;
     private:
         TermPtr m_ast;
         bool m_is_runing;
-        bool m_is_lexer_complete;
-        MacroPtr m_macro;
         PostLexerType *m_postlex;
-        DiagPtr m_diag;
-        RuntimePtr m_rt;
+        RunTime *m_rt;
     };
 
 } // namespace example

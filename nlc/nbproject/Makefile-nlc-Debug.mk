@@ -42,8 +42,8 @@ OBJECTFILES= \
 CFLAGS=
 
 # CC Compiler Flags
-CCFLAGS=`llvm-config-18 --cxxflags` `cat build_options.txt | tr -d '\r\n'`  -fsanitize=undefined -fsanitize-trap=undefined    -gdwarf-4  -ggdb 
-CXXFLAGS=`llvm-config-18 --cxxflags` `cat build_options.txt | tr -d '\r\n'`  -fsanitize=undefined -fsanitize-trap=undefined    -gdwarf-4  -ggdb 
+CCFLAGS=`llvm-config-18 --cxxflags` `cat ../build_options.txt | tr -d '\r\n'`  -fsanitize=undefined -fsanitize-trap=undefined -Werror    -gdwarf-4  -ggdb 
+CXXFLAGS=`llvm-config-18 --cxxflags` `cat ../build_options.txt | tr -d '\r\n'`  -fsanitize=undefined -fsanitize-trap=undefined -Werror    -gdwarf-4  -ggdb 
 
 # Fortran Compiler Flags
 FFLAGS=
@@ -62,10 +62,10 @@ LDLIBSOPTIONS=-L../contrib/libtorch/lib -L../output -Wl,-rpath,'.' -lpthread -lc
 	${MKDIR} -p ../output
 	${LINK.cc} -o ../output/nlc ${OBJECTFILES} ${LDLIBSOPTIONS} `llvm-config-18 --link-static --system-libs --libs all` -g -fvisibility=default -Wl,--export-dynamic -Wl,--exclude-libs,ALL -lclang-cpp
 
-${OBJECTDIR}/nlc.o: nlc.cpp
+${OBJECTDIR}/nlc.o: nlc.cpp nbproject/Makefile-${CND_CONF}.mk
 	${MKDIR} -p ${OBJECTDIR}
 	${RM} "$@.d"
-	$(COMPILE.cc) -g -DBUILD_DEBUG -I../lib -I../contrib/libtorch/include -I../contrib/libtorch/include/torch/csrc/api/include -I../contrib/fmt/include -I../contrib/googletest/googletest -I../contrib/googletest/googletest/include -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/nlc.o nlc.cpp
+	$(COMPILE.cc) -g -DBUILD_DEBUG -DLOG_LEVEL_NORMAL=LOG_LEVEL_DEBUG -I../lib -I../contrib/libtorch/include -I../contrib/libtorch/include/torch/csrc/api/include -I../contrib/fmt/include -I../contrib/googletest/googletest -I../contrib/googletest/googletest/include -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/nlc.o nlc.cpp
 
 # Subprojects
 .build-subprojects:

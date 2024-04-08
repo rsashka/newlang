@@ -99,6 +99,11 @@ if [ ! "$GIT_TAG_VERSION" = "v$VERSION_MAJOR.$VERSION_MINOR.$VERSION_PATCH" ]; t
     echo "Git TAG $GIT_TAG_VERSION differ version v$VERSION_MAJOR.$VERSION_MINOR.$VERSION_PATCH"
     exit 1
 fi
+
+echo "$VERSION_MAJOR.$VERSION_MINOR.$VERSION_PATCH" > $root/TAG.temp
+check_new_file $root/TAG
+
+
 if [ -z "$GIT_SHORT_HASH" ]; then
     echo Undefined version for build
     exit 1
@@ -174,7 +179,7 @@ else
     echo Make file $VERSION_FILE for version $GIT_SOURCE_ID at date $DATE_BUILD
 fi
 
-$root/contrib/text2cpp/output/bin/text2cpp $root/lib/build_options.txt  $root/lib/build_options.data.temp  newlang_build_options c
+$root/contrib/text2cpp/output/bin/text2cpp $root/build_options.txt  $root/lib/build_options.data.temp  newlang_build_options c
 check_new_file $root/lib/build_options.data
 
 $root/contrib/text2cpp/output/bin/text2cpp $root/lib/include_h.i        $root/lib/include_h_i.data.temp    newlang_include_h_i c

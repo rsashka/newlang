@@ -334,27 +334,23 @@ name:   ns_part
             }
         |  MODULE
             {
-                driver.CheckLoadModule($1);
-                $$ = $1;
-                $$->TestConst();
+                $1->TestConst();
+                $$ = driver.CheckLoadModule($1);
             }
         |  '\\'
             {
-                driver.CheckLoadModule($1);
-                $$ = $1;
-                $$->SetTermID(TermID::MODULE);
-                $$->TestConst();
+                $1->TestConst();
+                $1->SetTermID(TermID::MODULE);
+                $$ = driver.CheckLoadModule($1);
             }
         |  MODULE  ns_start   ns_part
             {
-                driver.CheckLoadModule($1);
-                $$ = $1;
-
                 $3->m_namespace = $2;
                 $3->SetTermID(TermID::STATIC);
                 $3->TestConst();
-                
-                $$->Last()->Append($3);
+                $1->Last()->Append($3);
+                $$ = driver.CheckLoadModule($1);
+
             }
         |  native
             {
@@ -1420,7 +1416,7 @@ assign_seq:  assign_items  assign_op  assign_expr
                 $$->Append($3, Term::RIGHT); 
 
                 if($$->isMacro()){
-                    $$ = driver.MacroEval($$);
+                    $$ = ProcessMacro(driver, $$);
                 }
             }
         | assign_items  '='  assign_expr
@@ -1431,12 +1427,12 @@ assign_seq:  assign_items  assign_op  assign_expr
                 $$->Append($3, Term::RIGHT); 
 
                 if($$->isMacro()){
-                    $$ = driver.MacroEval($$);
+                    $$ = ProcessMacro(driver, $$);
                 }
             }
         | MACRO_DEL
             {
-                $$ = driver.MacroEval($1);
+                $$ = ProcessMacro(driver, $$);
             }
 
         
@@ -2172,7 +2168,7 @@ seq_item: assign_seq
             }
         | body_all
             {
-                $$ = $1;
+                $$ = driver.LoadIfModule($1);
             }
         |  with
             {            

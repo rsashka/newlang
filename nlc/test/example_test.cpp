@@ -79,32 +79,32 @@ TEST(Example, DISABLED_SpeedNewLang) {
 
     ObjPtr test;
 
-    ObjPtr str = rt->Run("str := 'ABCDEF\\n';", nullptr);
+    ObjPtr str = jit->Run("str := 'ABCDEF\\n';", nullptr);
     ASSERT_TRUE(str);
     ASSERT_STREQ("ABCDEF\n", str->GetValueAsString().c_str());
 
-    test = rt->Run("str := 'ABCDEF\\n'; print('%s', str)");
+    test = jit->Run("str := 'ABCDEF\\n'; print('%s', str)");
     ASSERT_TRUE(test);
     ASSERT_STREQ("7", test->GetValueAsString().c_str());
 
-    test = rt->Run("str[2] = 32; str", nullptr);
+    test = jit->Run("str[2] = 32; str", nullptr);
     ASSERT_TRUE(test);
     ASSERT_STREQ("AB DEF\n", test->GetValueAsString().c_str());
 
-    test = rt->Run("str[0]", nullptr);
+    test = jit->Run("str[0]", nullptr);
     ASSERT_TRUE(test);
     ASSERT_STREQ("A", test->GetValueAsString().c_str());
 
-    test = rt->Run("str[1]", nullptr);
+    test = jit->Run("str[1]", nullptr);
     ASSERT_TRUE(test);
     ASSERT_STREQ("B", test->GetValueAsString().c_str());
 
-    test = rt->Run("str[2]", nullptr);
+    test = jit->Run("str[2]", nullptr);
     ASSERT_TRUE(test);
     ASSERT_STREQ(" ", test->GetValueAsString().c_str());
 
     //    LLVMAddSymbol("convert", (void *) &convert);
-    ObjPtr test_convert = rt->Run("test_convert(sym:Int8):Int8 := %convert ...");
+    ObjPtr test_convert = jit->Run("test_convert(sym:Int8):Int8 := %convert ...");
     ASSERT_TRUE(test_convert);
 
     //    [c == 'A'] --> 'C',
@@ -113,48 +113,48 @@ TEST(Example, DISABLED_SpeedNewLang) {
     //    [c == 'T'] --> 'A',
     //    [_] --> ' ';    
 
-    test = rt->Run("test_convert(65)", nullptr);
+    test = jit->Run("test_convert(65)", nullptr);
     ASSERT_TRUE(test);
     ASSERT_STREQ("67", test->GetValueAsString().c_str());
-    test = rt->Run("test_convert(67)", nullptr);
+    test = jit->Run("test_convert(67)", nullptr);
     ASSERT_TRUE(test);
     ASSERT_STREQ("71", test->GetValueAsString().c_str());
 
-    test = rt->Run("test_convert(71)", nullptr);
+    test = jit->Run("test_convert(71)", nullptr);
     ASSERT_TRUE(test);
     ASSERT_STREQ("84", test->GetValueAsString().c_str());
 
-    test = rt->Run("test_convert(84)", nullptr);
+    test = jit->Run("test_convert(84)", nullptr);
     ASSERT_TRUE(test);
     ASSERT_STREQ("65", test->GetValueAsString().c_str());
 
-    ASSERT_NO_THROW(test = rt->Run("str"));
+    ASSERT_NO_THROW(test = jit->Run("str"));
     ASSERT_TRUE(test);
     ASSERT_STREQ("AB DEF\n", test->GetValueAsString().c_str());
 
-    ASSERT_NO_THROW(test = rt->Run("str[0]"));
+    ASSERT_NO_THROW(test = jit->Run("str[0]"));
     ASSERT_TRUE(test);
     ASSERT_STREQ("A", test->GetValueAsString().c_str());
 
-    ASSERT_NO_THROW(test = rt->Run(":Int8('A')"));
+    ASSERT_NO_THROW(test = jit->Run(":Int8('A')"));
     ASSERT_TRUE(test);
     ASSERT_STREQ("65", test->GetValueAsString().c_str());
 
-    //    ASSERT_NO_THROW(test = rt->Run("test_convert('A')"));
+    //    ASSERT_NO_THROW(test = jit->Run("test_convert('A')"));
     //    ASSERT_TRUE(test);
     //    ASSERT_STREQ("C", test->GetValueAsString().c_str());
 
-    ASSERT_NO_THROW(test = rt->Run("test_convert(:Int8(str[0]))"));
+    ASSERT_NO_THROW(test = jit->Run("test_convert(:Int8(str[0]))"));
     ASSERT_TRUE(test);
     ASSERT_STREQ("67", test->GetValueAsString().c_str());
 
-    ASSERT_NO_THROW(test = rt->Run("str[0] = test_convert(:Int8(str[0])); str"));
+    ASSERT_NO_THROW(test = jit->Run("str[0] = test_convert(:Int8(str[0])); str"));
     ASSERT_TRUE(test);
     ASSERT_STREQ("CB DEF\n", test->GetValueAsString().c_str());
 
     Logger::LogLevelType save = Logger::Instance()->SetLogLevel(LOG_LEVEL_INFO);
     std::chrono::steady_clock::time_point begin = std::chrono::steady_clock::now();
-    ObjPtr result = rt->RunFile("../examples/speed_test.src");
+    ObjPtr result = jit->RunFile("../examples/speed_test.src");
     std::chrono::steady_clock::time_point end = std::chrono::steady_clock::now();
     Logger::Instance()->SetLogLevel(save);
 
@@ -237,39 +237,39 @@ TEST(Example, Rational) {
     //};
 
     ObjPtr str;
-    ASSERT_NO_THROW(str = rt->Run("str := 'ABCDEF\\n';"));
+    ASSERT_NO_THROW(str = jit->Run("str := 'ABCDEF\\n';"));
     ASSERT_TRUE(str);
     ASSERT_STREQ("ABCDEF\n", str->GetValueAsString().c_str());
 
     ObjPtr test_printf;
-    ASSERT_NO_THROW(test_printf = rt->Run("test_printf(format:FmtChar, ...):Int32 := %printf...")) << Dump(*rt) << "\n" << rt->m_main_ast->m_int_vars.Dump();
+    ASSERT_NO_THROW(test_printf = jit->Run("test_printf(format:FmtChar, ...):Int32 := %printf...")) << Dump(*rt) << "\n" << rt->m_main_ast->m_int_vars.Dump();
     ASSERT_TRUE(test_printf);
     ASSERT_STREQ("test_printf::(format:FmtChar, ...):Int32{ }", test_printf->toString().c_str());
 
     ObjPtr iter;
-    ASSERT_NO_THROW(iter = rt->Run("iterator := (1, 5, 9999,)?"));
+    ASSERT_NO_THROW(iter = jit->Run("iterator := (1, 5, 9999,)?"));
     ASSERT_TRUE(iter);
     ASSERT_TRUE(iter->getType() == ObjType::Iterator);
     ASSERT_TRUE(iter->m_iterator);
     ASSERT_TRUE(*iter->m_iterator.get() == iter->m_iterator->begin());
     ASSERT_TRUE(*iter->m_iterator.get() != iter->m_iterator->end());
 
-    ObjPtr test_frac = rt->Run("test_frac := 999\\123");
+    ObjPtr test_frac = jit->Run("test_frac := 999\\123");
     ASSERT_TRUE(test_frac);
     ASSERT_TRUE(test_frac->getType() == ObjType::Rational);
     ASSERT_STREQ("999\\123", test_frac->GetValueAsString().c_str());
 
-    ObjPtr str_frac = rt->Run(":StrChar(test_frac)");
+    ObjPtr str_frac = jit->Run(":StrChar(test_frac)");
     ASSERT_TRUE(str_frac);
     ASSERT_TRUE(str_frac->getType() == ObjType::StrChar) << newlang::toString(str_frac->getType());
     ASSERT_STREQ("999\\123", str_frac->GetValueAsString().c_str()) << str_frac->GetValueAsString();
 
-    ObjPtr test_prn = rt->Run("test_printf('%s\\n', :StrChar(test_frac))");
+    ObjPtr test_prn = jit->Run("test_printf('%s\\n', :StrChar(test_frac))");
     ASSERT_TRUE(test_prn);
     ASSERT_STREQ("8", test_prn->GetValueAsString().c_str());
 
     ObjPtr test_arg;
-    ASSERT_NO_THROW(test_arg = rt->Run("test_arg(arg:Rational) := {$arg*$arg}"));
+    ASSERT_NO_THROW(test_arg = jit->Run("test_arg(arg:Rational) := {$arg*$arg}"));
     ASSERT_TRUE(test_arg);
     ASSERT_TRUE(test_arg->is_function_type());
     ASSERT_FALSE(test_arg->is_none_type());
@@ -278,10 +278,10 @@ TEST(Example, Rational) {
 
 
     ObjPtr frac_test;
-    ASSERT_ANY_THROW(frac_test = rt->Run("test_arg()"));
-    ASSERT_ANY_THROW(frac_test = rt->Run("test_arg('')"));
+    ASSERT_ANY_THROW(frac_test = jit->Run("test_arg()"));
+    ASSERT_ANY_THROW(frac_test = jit->Run("test_arg('')"));
 
-    ASSERT_NO_THROW(frac_test = rt->Run("test_arg(1)"))
+    ASSERT_NO_THROW(frac_test = jit->Run("test_arg(1)"))
             << rt->m_main_ast->m_int_vars.Dump() << "\n"
             << rt->m_main_ast->m_int_vars.find("test_arg$")->second->m_int_vars.Dump();
 
@@ -289,17 +289,17 @@ TEST(Example, Rational) {
     ASSERT_EQ(ObjType::Rational, frac_test->getType()) << newlang::toString(frac_test->getType());
     ASSERT_STREQ("1\\1", frac_test->GetValueAsString().c_str());
 
-    ASSERT_NO_THROW(frac_test = rt->Run("test_arg(2\\1)"));
+    ASSERT_NO_THROW(frac_test = jit->Run("test_arg(2\\1)"));
     ASSERT_TRUE(frac_test);
     ASSERT_STREQ("4\\1", frac_test->GetValueAsString().c_str());
 
     ObjPtr iter_test;
-    ASSERT_NO_THROW(iter_test = rt->Run("iter_test := :Int64(5+1)..1..-1?"));
+    ASSERT_NO_THROW(iter_test = jit->Run("iter_test := :Int64(5+1)..1..-1?"));
     ASSERT_TRUE(iter_test);
     ASSERT_STREQ(":Iterator", iter_test->toString().c_str());
 
     ObjPtr fact_range_test;
-    ASSERT_NO_THROW(fact_range_test = rt->Run(""
+    ASSERT_NO_THROW(fact_range_test = jit->Run(""
             "n:=1\\1;"
             "iter_cnt := @iter(6..1..-1);"
             "[ @curr(iter_cnt) ] <-> {"
@@ -314,18 +314,18 @@ TEST(Example, Rational) {
 
     ObjPtr result;
 
-    ASSERT_NO_THROW(result = rt->RunFile("../examples/fact_40.src"));
+    ASSERT_NO_THROW(result = jit->RunFile("../examples/fact_40.src"));
     ASSERT_TRUE(result);
     ASSERT_STREQ("815915283247897734345611269596115894272000000000\\1", result->GetValueAsString().c_str());
     
-    ASSERT_NO_THROW(result = rt->RunFile("../examples/fact_40_dsl.src"));
+    ASSERT_NO_THROW(result = jit->RunFile("../examples/fact_40_dsl.src"));
     ASSERT_TRUE(result);
     ASSERT_STREQ("815915283247897734345611269596115894272000000000\\1", result->GetValueAsString().c_str());
     
 
     Logger::LogLevelType save = Logger::Instance()->SetLogLevel(LOG_LEVEL_INFO);
     std::chrono::steady_clock::time_point begin = std::chrono::steady_clock::now();
-    ASSERT_NO_THROW(result = rt->RunFile("../examples/rational.src"));
+    ASSERT_NO_THROW(result = jit->RunFile("../examples/rational.src"));
     std::chrono::steady_clock::time_point end = std::chrono::steady_clock::now();
     Logger::Instance()->SetLogLevel(save);
 
@@ -339,7 +339,7 @@ TEST(Example, Rational) {
 
 //    save = Logger::Instance()->SetLogLevel(LOG_LEVEL_INFO);
 //    begin = std::chrono::steady_clock::now();
-//    result = rt->RunFile("\\\\('../examples/rational.src')");
+//    result = jit->RunFile("\\\\('../examples/rational.src')");
 //    end = std::chrono::steady_clock::now();
 //    Logger::Instance()->SetLogLevel(save);
 //
@@ -427,7 +427,7 @@ TEST(Example, Tensor) {
 
     Logger::LogLevelType save = Logger::Instance()->SetLogLevel(LOG_LEVEL_INFO);
     std::chrono::steady_clock::time_point begin = std::chrono::steady_clock::now();
-    ObjPtr result = rt->RunFile("../examples/tensor.src");
+    ObjPtr result = jit->RunFile("../examples/tensor.src");
     std::chrono::steady_clock::time_point end = std::chrono::steady_clock::now();
     Logger::Instance()->SetLogLevel(save);
 
@@ -439,7 +439,7 @@ TEST(Example, Tensor) {
 
     //    save = Logger::Instance()->SetLogLevel(LOG_LEVEL_INFO);
     //    begin = std::chrono::steady_clock::now();
-    //    result = rt->RunFile("\\\\('../examples/tensor.src')");
+    //    result = jit->RunFile("\\\\('../examples/tensor.src')");
     //    end = std::chrono::steady_clock::now();
     //    Logger::Instance()->SetLogLevel(save);
     //
@@ -455,7 +455,7 @@ TEST(Example, Hello) {
     ASSERT_TRUE(rt);
 
     ObjPtr prn;
-    ASSERT_NO_THROW(prn = rt->Run("prn(format:FmtChar, ...):Int32 ::= %printf ..."));
+    ASSERT_NO_THROW(prn = jit->Run("prn(format:FmtChar, ...):Int32 ::= %printf ..."));
     ASSERT_TRUE(prn);
 
     ObjPtr res = (*prn)("Привет, мир!\n");
@@ -463,7 +463,7 @@ TEST(Example, Hello) {
     ASSERT_TRUE(res->is_integer()) << res->toString();
     ASSERT_STREQ("22", res->GetValueAsString().c_str());
 
-    //    ObjPtr func = rt->Run("func(arg) := {$arg}");
+    //    ObjPtr func = jit->Run("func(arg) := {$arg}");
     //    ASSERT_TRUE(func);
     //
     //    res = (*func)("TEST");
@@ -484,7 +484,7 @@ TEST(Example, Hello) {
 
     Logger::LogLevelType save = Logger::Instance()->SetLogLevel(LOG_LEVEL_INFO);
     std::chrono::steady_clock::time_point begin = std::chrono::steady_clock::now();
-    ObjPtr result = rt->RunFile("../examples/hello.src");
+    ObjPtr result = jit->RunFile("../examples/hello.src");
     std::chrono::steady_clock::time_point end = std::chrono::steady_clock::now();
     Logger::Instance()->SetLogLevel(save);
 
@@ -496,7 +496,7 @@ TEST(Example, Hello) {
 
     //    save = Logger::Instance()->SetLogLevel(LOG_LEVEL_INFO);
     //    begin = std::chrono::steady_clock::now();
-    //    ASSERT_NO_THROW(result = rt->Run("\\\\('../examples/hello.src')"));
+    //    ASSERT_NO_THROW(result = jit->Run("\\\\('../examples/hello.src')"));
     //    end = std::chrono::steady_clock::now();
     //    Logger::Instance()->SetLogLevel(save);
     //
@@ -510,11 +510,11 @@ TEST(Example, Exec) {
     RuntimePtr rt = RunTime::Init({"--nlc-no-eval-enable"});
 
     ASSERT_FALSE(rt->m_eval_enable);
-    ASSERT_ANY_THROW(rt->Run("`ls`"));
+    ASSERT_ANY_THROW(jit->Run("`ls`"));
     rt->m_eval_enable = true;
 
     ObjPtr exec;
-    ASSERT_NO_THROW(exec = rt->Run("`ls`"));
+    ASSERT_NO_THROW(exec = jit->Run("`ls`"));
     ASSERT_TRUE(exec);
     ASSERT_TRUE(exec->is_string_char_type()) << exec->toString();
     ASSERT_TRUE(exec->GetValueAsString().find("nlc_test\n") != std::string::npos);

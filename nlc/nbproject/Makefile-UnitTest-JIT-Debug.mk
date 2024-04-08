@@ -36,25 +36,10 @@ OBJECTDIR=${CND_BUILDDIR}/${CND_CONF}/${CND_PLATFORM}
 # Object Files
 OBJECTFILES= \
 	${OBJECTDIR}/_ext/1e501df/gtest-all.o \
-	${OBJECTDIR}/test/alg_test.o \
-	${OBJECTDIR}/test/ast_test.o \
-	${OBJECTDIR}/test/class_test.o \
 	${OBJECTDIR}/test/diag_test.o \
-	${OBJECTDIR}/test/example_test.o \
-	${OBJECTDIR}/test/include_test.o \
-	${OBJECTDIR}/test/lexer_test.o \
-	${OBJECTDIR}/test/llvm_test.o \
 	${OBJECTDIR}/test/logger_test.o \
-	${OBJECTDIR}/test/macro_test.o \
-	${OBJECTDIR}/test/module_test.o \
-	${OBJECTDIR}/test/nlc_test.o \
 	${OBJECTDIR}/test/object_test.o \
-	${OBJECTDIR}/test/parser_analysis_test.o \
-	${OBJECTDIR}/test/parser_test.o \
 	${OBJECTDIR}/test/rational_test.o \
-	${OBJECTDIR}/test/run_test.o \
-	${OBJECTDIR}/test/system_test.o \
-	${OBJECTDIR}/test/transpiler_test.o \
 	${OBJECTDIR}/unittest.o
 
 
@@ -62,8 +47,8 @@ OBJECTFILES= \
 CFLAGS=
 
 # CC Compiler Flags
-CCFLAGS=`llvm-config-18 --cxxflags` `cat build_options.txt | tr -d '\r\n'`  -fsanitize=undefined -fsanitize-trap=undefined    -gdwarf-4  -ggdb 
-CXXFLAGS=`llvm-config-18 --cxxflags` `cat build_options.txt | tr -d '\r\n'`  -fsanitize=undefined -fsanitize-trap=undefined    -gdwarf-4  -ggdb 
+CCFLAGS=`llvm-config-18 --cxxflags` `cat ../build_options.txt | tr -d '\r\n'`  -fsanitize=undefined -fsanitize-trap=undefined    -gdwarf-4  -ggdb 
+CXXFLAGS=`llvm-config-18 --cxxflags` `cat ../build_options.txt | tr -d '\r\n'`  -fsanitize=undefined -fsanitize-trap=undefined    -gdwarf-4  -ggdb 
 
 # Fortran Compiler Flags
 FFLAGS=
@@ -87,100 +72,25 @@ ${OBJECTDIR}/_ext/1e501df/gtest-all.o: ../contrib/googletest/googletest/src/gtes
 	${RM} "$@.d"
 	$(COMPILE.cc) -g -DBUILD_DEBUG -DBUILD_UNITTEST -DGTEST_HAS_CXXABI_H_=0 -I../lib -I../contrib/libtorch/include -I../contrib/libtorch/include/torch/csrc/api/include -I../contrib/fmt/include -I../contrib/googletest/googletest -I../contrib/googletest/googletest/include -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/_ext/1e501df/gtest-all.o ../contrib/googletest/googletest/src/gtest-all.cc
 
-${OBJECTDIR}/test/alg_test.o: test/alg_test.cpp
-	${MKDIR} -p ${OBJECTDIR}/test
-	${RM} "$@.d"
-	$(COMPILE.cc) -g -DBUILD_DEBUG -DBUILD_UNITTEST -DGTEST_HAS_CXXABI_H_=0 -I../lib -I../contrib/libtorch/include -I../contrib/libtorch/include/torch/csrc/api/include -I../contrib/fmt/include -I../contrib/googletest/googletest -I../contrib/googletest/googletest/include -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/test/alg_test.o test/alg_test.cpp
-
-${OBJECTDIR}/test/ast_test.o: test/ast_test.cpp
-	${MKDIR} -p ${OBJECTDIR}/test
-	${RM} "$@.d"
-	$(COMPILE.cc) -g -DBUILD_DEBUG -DBUILD_UNITTEST -DGTEST_HAS_CXXABI_H_=0 -I../lib -I../contrib/libtorch/include -I../contrib/libtorch/include/torch/csrc/api/include -I../contrib/fmt/include -I../contrib/googletest/googletest -I../contrib/googletest/googletest/include -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/test/ast_test.o test/ast_test.cpp
-
-${OBJECTDIR}/test/class_test.o: test/class_test.cpp
-	${MKDIR} -p ${OBJECTDIR}/test
-	${RM} "$@.d"
-	$(COMPILE.cc) -g -DBUILD_DEBUG -DBUILD_UNITTEST -DGTEST_HAS_CXXABI_H_=0 -I../lib -I../contrib/libtorch/include -I../contrib/libtorch/include/torch/csrc/api/include -I../contrib/fmt/include -I../contrib/googletest/googletest -I../contrib/googletest/googletest/include -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/test/class_test.o test/class_test.cpp
-
 ${OBJECTDIR}/test/diag_test.o: test/diag_test.cpp
 	${MKDIR} -p ${OBJECTDIR}/test
 	${RM} "$@.d"
 	$(COMPILE.cc) -g -DBUILD_DEBUG -DBUILD_UNITTEST -DGTEST_HAS_CXXABI_H_=0 -I../lib -I../contrib/libtorch/include -I../contrib/libtorch/include/torch/csrc/api/include -I../contrib/fmt/include -I../contrib/googletest/googletest -I../contrib/googletest/googletest/include -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/test/diag_test.o test/diag_test.cpp
-
-${OBJECTDIR}/test/example_test.o: test/example_test.cpp
-	${MKDIR} -p ${OBJECTDIR}/test
-	${RM} "$@.d"
-	$(COMPILE.cc) -g -DBUILD_DEBUG -DBUILD_UNITTEST -DGTEST_HAS_CXXABI_H_=0 -I../lib -I../contrib/libtorch/include -I../contrib/libtorch/include/torch/csrc/api/include -I../contrib/fmt/include -I../contrib/googletest/googletest -I../contrib/googletest/googletest/include -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/test/example_test.o test/example_test.cpp
-
-${OBJECTDIR}/test/include_test.o: test/include_test.cpp
-	${MKDIR} -p ${OBJECTDIR}/test
-	${RM} "$@.d"
-	$(COMPILE.cc) -g -DBUILD_DEBUG -DBUILD_UNITTEST -DGTEST_HAS_CXXABI_H_=0 -I../lib -I../contrib/libtorch/include -I../contrib/libtorch/include/torch/csrc/api/include -I../contrib/fmt/include -I../contrib/googletest/googletest -I../contrib/googletest/googletest/include -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/test/include_test.o test/include_test.cpp
-
-${OBJECTDIR}/test/lexer_test.o: test/lexer_test.cpp
-	${MKDIR} -p ${OBJECTDIR}/test
-	${RM} "$@.d"
-	$(COMPILE.cc) -g -DBUILD_DEBUG -DBUILD_UNITTEST -DGTEST_HAS_CXXABI_H_=0 -I../lib -I../contrib/libtorch/include -I../contrib/libtorch/include/torch/csrc/api/include -I../contrib/fmt/include -I../contrib/googletest/googletest -I../contrib/googletest/googletest/include -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/test/lexer_test.o test/lexer_test.cpp
-
-${OBJECTDIR}/test/llvm_test.o: test/llvm_test.cpp
-	${MKDIR} -p ${OBJECTDIR}/test
-	${RM} "$@.d"
-	$(COMPILE.cc) -g -DBUILD_DEBUG -DBUILD_UNITTEST -DGTEST_HAS_CXXABI_H_=0 -I../lib -I../contrib/libtorch/include -I../contrib/libtorch/include/torch/csrc/api/include -I../contrib/fmt/include -I../contrib/googletest/googletest -I../contrib/googletest/googletest/include -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/test/llvm_test.o test/llvm_test.cpp
 
 ${OBJECTDIR}/test/logger_test.o: test/logger_test.cpp
 	${MKDIR} -p ${OBJECTDIR}/test
 	${RM} "$@.d"
 	$(COMPILE.cc) -g -DBUILD_DEBUG -DBUILD_UNITTEST -DGTEST_HAS_CXXABI_H_=0 -I../lib -I../contrib/libtorch/include -I../contrib/libtorch/include/torch/csrc/api/include -I../contrib/fmt/include -I../contrib/googletest/googletest -I../contrib/googletest/googletest/include -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/test/logger_test.o test/logger_test.cpp
 
-${OBJECTDIR}/test/macro_test.o: test/macro_test.cpp
-	${MKDIR} -p ${OBJECTDIR}/test
-	${RM} "$@.d"
-	$(COMPILE.cc) -g -DBUILD_DEBUG -DBUILD_UNITTEST -DGTEST_HAS_CXXABI_H_=0 -I../lib -I../contrib/libtorch/include -I../contrib/libtorch/include/torch/csrc/api/include -I../contrib/fmt/include -I../contrib/googletest/googletest -I../contrib/googletest/googletest/include -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/test/macro_test.o test/macro_test.cpp
-
-${OBJECTDIR}/test/module_test.o: test/module_test.cpp
-	${MKDIR} -p ${OBJECTDIR}/test
-	${RM} "$@.d"
-	$(COMPILE.cc) -g -DBUILD_DEBUG -DBUILD_UNITTEST -DGTEST_HAS_CXXABI_H_=0 -I../lib -I../contrib/libtorch/include -I../contrib/libtorch/include/torch/csrc/api/include -I../contrib/fmt/include -I../contrib/googletest/googletest -I../contrib/googletest/googletest/include -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/test/module_test.o test/module_test.cpp
-
-${OBJECTDIR}/test/nlc_test.o: test/nlc_test.cpp
-	${MKDIR} -p ${OBJECTDIR}/test
-	${RM} "$@.d"
-	$(COMPILE.cc) -g -DBUILD_DEBUG -DBUILD_UNITTEST -DGTEST_HAS_CXXABI_H_=0 -I../lib -I../contrib/libtorch/include -I../contrib/libtorch/include/torch/csrc/api/include -I../contrib/fmt/include -I../contrib/googletest/googletest -I../contrib/googletest/googletest/include -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/test/nlc_test.o test/nlc_test.cpp
-
 ${OBJECTDIR}/test/object_test.o: test/object_test.cpp
 	${MKDIR} -p ${OBJECTDIR}/test
 	${RM} "$@.d"
 	$(COMPILE.cc) -g -DBUILD_DEBUG -DBUILD_UNITTEST -DGTEST_HAS_CXXABI_H_=0 -I../lib -I../contrib/libtorch/include -I../contrib/libtorch/include/torch/csrc/api/include -I../contrib/fmt/include -I../contrib/googletest/googletest -I../contrib/googletest/googletest/include -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/test/object_test.o test/object_test.cpp
 
-${OBJECTDIR}/test/parser_analysis_test.o: test/parser_analysis_test.cpp
-	${MKDIR} -p ${OBJECTDIR}/test
-	${RM} "$@.d"
-	$(COMPILE.cc) -g -DBUILD_DEBUG -DBUILD_UNITTEST -DGTEST_HAS_CXXABI_H_=0 -I../lib -I../contrib/libtorch/include -I../contrib/libtorch/include/torch/csrc/api/include -I../contrib/fmt/include -I../contrib/googletest/googletest -I../contrib/googletest/googletest/include -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/test/parser_analysis_test.o test/parser_analysis_test.cpp
-
-${OBJECTDIR}/test/parser_test.o: test/parser_test.cpp
-	${MKDIR} -p ${OBJECTDIR}/test
-	${RM} "$@.d"
-	$(COMPILE.cc) -g -DBUILD_DEBUG -DBUILD_UNITTEST -DGTEST_HAS_CXXABI_H_=0 -I../lib -I../contrib/libtorch/include -I../contrib/libtorch/include/torch/csrc/api/include -I../contrib/fmt/include -I../contrib/googletest/googletest -I../contrib/googletest/googletest/include -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/test/parser_test.o test/parser_test.cpp
-
 ${OBJECTDIR}/test/rational_test.o: test/rational_test.cpp
 	${MKDIR} -p ${OBJECTDIR}/test
 	${RM} "$@.d"
 	$(COMPILE.cc) -g -DBUILD_DEBUG -DBUILD_UNITTEST -DGTEST_HAS_CXXABI_H_=0 -I../lib -I../contrib/libtorch/include -I../contrib/libtorch/include/torch/csrc/api/include -I../contrib/fmt/include -I../contrib/googletest/googletest -I../contrib/googletest/googletest/include -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/test/rational_test.o test/rational_test.cpp
-
-${OBJECTDIR}/test/run_test.o: test/run_test.cpp
-	${MKDIR} -p ${OBJECTDIR}/test
-	${RM} "$@.d"
-	$(COMPILE.cc) -g -DBUILD_DEBUG -DBUILD_UNITTEST -DGTEST_HAS_CXXABI_H_=0 -I../lib -I../contrib/libtorch/include -I../contrib/libtorch/include/torch/csrc/api/include -I../contrib/fmt/include -I../contrib/googletest/googletest -I../contrib/googletest/googletest/include -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/test/run_test.o test/run_test.cpp
-
-${OBJECTDIR}/test/system_test.o: test/system_test.cpp
-	${MKDIR} -p ${OBJECTDIR}/test
-	${RM} "$@.d"
-	$(COMPILE.cc) -g -DBUILD_DEBUG -DBUILD_UNITTEST -DGTEST_HAS_CXXABI_H_=0 -I../lib -I../contrib/libtorch/include -I../contrib/libtorch/include/torch/csrc/api/include -I../contrib/fmt/include -I../contrib/googletest/googletest -I../contrib/googletest/googletest/include -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/test/system_test.o test/system_test.cpp
-
-${OBJECTDIR}/test/transpiler_test.o: test/transpiler_test.cpp
-	${MKDIR} -p ${OBJECTDIR}/test
-	${RM} "$@.d"
-	$(COMPILE.cc) -g -DBUILD_DEBUG -DBUILD_UNITTEST -DGTEST_HAS_CXXABI_H_=0 -I../lib -I../contrib/libtorch/include -I../contrib/libtorch/include/torch/csrc/api/include -I../contrib/fmt/include -I../contrib/googletest/googletest -I../contrib/googletest/googletest/include -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/test/transpiler_test.o test/transpiler_test.cpp
 
 ${OBJECTDIR}/unittest.o: unittest.cpp
 	${MKDIR} -p ${OBJECTDIR}

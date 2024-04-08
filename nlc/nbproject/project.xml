@@ -11,7 +11,9 @@
             <make-dep-projects>
                 <make-dep-project>/home/rsashka/SOURCE/NewLang/newlang/lib</make-dep-project>
             </make-dep-projects>
-            <sourceRootList/>
+            <sourceRootList>
+                <sourceRootElem>../site/content</sourceRootElem>
+            </sourceRootList>
             <confList>
                 <confElem>
                     <name>nlc-Debug</name>

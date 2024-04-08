@@ -5,26 +5,64 @@
                    displayName="Исходные файлы"
                    projectFiles="true">
       <logicalFolder name="f2" displayName="jit" projectFiles="true">
-        <itemPath>analysis.cpp</itemPath>
-        <itemPath>builtin.cpp</itemPath>
-        <itemPath>context.cpp</itemPath>
-        <itemPath>diag.cpp</itemPath>
-        <itemPath>lexer.cpp</itemPath>
-        <itemPath>lexer.yy.cpp</itemPath>
+        <itemPath>include.h</itemPath>
+        <itemPath>jit.cpp</itemPath>
+        <itemPath>jit.h</itemPath>
         <itemPath>macro.cpp</itemPath>
+        <itemPath>macro.h</itemPath>
         <itemPath>module.cpp</itemPath>
-        <itemPath>parser.cpp</itemPath>
-        <itemPath>parser.yy.cpp</itemPath>
-        <itemPath>runtime.cpp</itemPath>
-        <itemPath>system.cpp</itemPath>
-        <itemPath>term.cpp</itemPath>
-        <itemPath>transpiler.cpp</itemPath>
+        <itemPath>module.h</itemPath>
       </logicalFolder>
       <logicalFolder name="f1" displayName="runtime" projectFiles="true">
+        <itemPath>analysis.cpp</itemPath>
+        <itemPath>analysis.h</itemPath>
+        <itemPath>builtin.cpp</itemPath>
+        <itemPath>builtin.h</itemPath>
+        <itemPath>context.cpp</itemPath>
+        <itemPath>context.h</itemPath>
+        <itemPath>diag.cpp</itemPath>
+        <itemPath>diag.h</itemPath>
+        <itemPath>lexer.cpp</itemPath>
+        <itemPath>lexer.yy.cpp</itemPath>
         <itemPath>logger.cpp</itemPath>
+        <itemPath>logger.h</itemPath>
         <itemPath>object.cpp</itemPath>
+        <itemPath>object.h</itemPath>
+        <itemPath>parser.cpp</itemPath>
+        <itemPath>parser.yy.cpp</itemPath>
         <itemPath>rational.cpp</itemPath>
+        <itemPath>rational.h</itemPath>
+        <itemPath>runtime.cpp</itemPath>
+        <itemPath>runtime.h</itemPath>
+        <itemPath>system.cpp</itemPath>
+        <itemPath>system.h</itemPath>
+        <itemPath>term.cpp</itemPath>
+        <itemPath>types.h</itemPath>
+        <itemPath>variable.h</itemPath>
         <itemPath>version.cpp</itemPath>
+      </logicalFolder>
+      <logicalFolder name="f3" displayName="test" projectFiles="true">
+        <itemPath>test/alg_test.cpp</itemPath>
+        <itemPath>test/ast_test.cpp</itemPath>
+        <itemPath>test/class_test.cpp</itemPath>
+        <itemPath>test/diag_test.cpp</itemPath>
+        <itemPath>test/example_test.cpp</itemPath>
+        <itemPath>../contrib/googletest/googletest/src/gtest-all.cc</itemPath>
+        <itemPath>test/include_test.cpp</itemPath>
+        <itemPath>test/jit_test.cpp</itemPath>
+        <itemPath>test/lexer_test.cpp</itemPath>
+        <itemPath>test/llvm_test.cpp</itemPath>
+        <itemPath>test/logger_test.cpp</itemPath>
+        <itemPath>test/macro_test.cpp</itemPath>
+        <itemPath>test/module_test.cpp</itemPath>
+        <itemPath>test/nlc_test.cpp</itemPath>
+        <itemPath>test/object_test.cpp</itemPath>
+        <itemPath>test/parser_analysis_test.cpp</itemPath>
+        <itemPath>test/parser_test.cpp</itemPath>
+        <itemPath>test/rational_test.cpp</itemPath>
+        <itemPath>test/run_test.cpp</itemPath>
+        <itemPath>test/system_test.cpp</itemPath>
+        <itemPath>../nlc/unittest.cpp</itemPath>
       </logicalFolder>
     </logicalFolder>
     <logicalFolder name="HeaderFiles"
@@ -81,9 +119,10 @@
             <pElem>../contrib/libtorch/include/torch/csrc/api/include</pElem>
             <pElem>../contrib/fmt/include</pElem>
           </incDir>
-          <commandLine>`llvm-config-18 --cxxflags` `cat build_options.txt | tr -d '\r\n'`  -fsanitize=undefined -fsanitize-trap=undefined    -gdwarf-4  -ggdb</commandLine>
+          <commandLine>`llvm-config-18 --cxxflags` `cat ../build_options.txt | tr -d '\r\n'`  -fsanitize=undefined -fsanitize-trap=undefined    -gdwarf-4  -ggdb</commandLine>
           <preprocessorList>
             <Elem>BUILD_DEBUG</Elem>
+            <Elem>LOG_LEVEL_NORMAL=LOG_LEVEL_DEBUG</Elem>
           </preprocessorList>
         </ccTool>
         <linkerTool>
@@ -96,11 +135,39 @@
       </item>
       <item path="../make_version.sh" ex="false" tool="3" flavor2="0">
       </item>
+      <item path="analysis.cpp" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="analysis.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="builtin.cpp" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="builtin.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="context.cpp" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="context.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="diag.cpp" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="diag.h" ex="false" tool="3" flavor2="0">
+      </item>
       <item path="include_h_i.data" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="lexer.cpp" ex="false" tool="1" flavor2="0">
       </item>
       <item path="lexer.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="lexer.l" ex="false" tool="3" flavor2="0">
+        <customTool>
+          <customToolCommandline>flex  --outfile=lexer.yy.cpp --header-file=lexer.yy.h --noline  lexer.l</customToolCommandline>
+          <customToolOutputs>lexer.yy.cpp lexer.yy.h</customToolOutputs>
+          <customToolAdditionalDep>parser.y parser.yy.h parser.yy.cpp location.hh term.h</customToolAdditionalDep>
+        </customTool>
+      </item>
+      <item path="lexer.yy.cpp" ex="false" tool="1" flavor2="0">
+        <ccTool>
+          <additionalDep>lexer.l parser.y parser.yy.h parser.yy.cpp location.hh</additionalDep>
+        </ccTool>
       </item>
       <item path="lexer.yy.h" ex="false" tool="3" flavor2="0">
       </item>
@@ -108,19 +175,50 @@
       </item>
       <item path="logger.cpp" ex="false" tool="1" flavor2="0">
       </item>
+      <item path="logger.h" ex="false" tool="3" flavor2="0">
+      </item>
       <item path="nlc-rt.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="object.cpp" ex="false" tool="1" flavor2="0">
       </item>
+      <item path="object.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="parser.cpp" ex="false" tool="1" flavor2="0">
+      </item>
       <item path="parser.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="parser.y" ex="false" tool="3" flavor2="0">
+        <customTool>
+          <customToolCommandline>bison --output-file=parser.yy.cpp --defines=parser.yy.h --warnings=all parser.y</customToolCommandline>
+          <customToolOutputs>parser.yy.h parser.yy.cpp location.hh</customToolOutputs>
+        </customTool>
+      </item>
+      <item path="parser.yy.cpp" ex="false" tool="1" flavor2="0">
       </item>
       <item path="parser.yy.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="rational.cpp" ex="false" tool="1" flavor2="0">
       </item>
+      <item path="rational.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="runtime.cpp" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="runtime.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="system.cpp" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="system.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="term.cpp" ex="false" tool="1" flavor2="0">
+      </item>
       <item path="term.h" ex="false" tool="3" flavor2="0">
+        <customTool>
+          <customToolAdditionalDep>parser.yy.cpp location.hh</customToolAdditionalDep>
+        </customTool>
+      </item>
+      <item path="types.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="variable.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="version.cpp" ex="false" tool="1" flavor2="0">
       </item>
@@ -142,9 +240,10 @@
             <pElem>../contrib/libtorch/include/torch/csrc/api/include</pElem>
             <pElem>../contrib/fmt/include</pElem>
           </incDir>
-          <commandLine>`llvm-config-18 --cxxflags` `cat build_options.txt | tr -d '\r\n'`  -fsanitize=undefined -fsanitize-trap=undefined    -gdwarf-4  -ggdb</commandLine>
+          <commandLine>`llvm-config-18 --cxxflags` `cat ../build_options.txt | tr -d '\r\n'`  -fsanitize=undefined -fsanitize-trap=undefined    -gdwarf-4  -ggdb</commandLine>
           <preprocessorList>
             <Elem>BUILD_DEBUG</Elem>
+            <Elem>LOG_LEVEL_NORMAL=LOG_LEVEL_DEBUG</Elem>
           </preprocessorList>
         </ccTool>
         <linkerTool>
@@ -157,15 +256,11 @@
       </item>
       <item path="../make_version.sh" ex="false" tool="3" flavor2="0">
       </item>
-      <item path="analysis.cpp" ex="false" tool="1" flavor2="0">
+      <item path="include.h" ex="false" tool="3" flavor2="0">
       </item>
-      <item path="builtin.cpp" ex="false" tool="1" flavor2="0">
+      <item path="jit.cpp" ex="false" tool="1" flavor2="0">
       </item>
-      <item path="context.cpp" ex="false" tool="1" flavor2="0">
-      </item>
-      <item path="diag.cpp" ex="false" tool="1" flavor2="0">
-      </item>
-      <item path="lexer.cpp" ex="false" tool="1" flavor2="0">
+      <item path="jit.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="lexer.h" ex="false" tool="3" flavor2="0">
         <customTool>
@@ -179,7 +274,7 @@
           <customToolAdditionalDep>parser.y parser.yy.h parser.yy.cpp location.hh term.h</customToolAdditionalDep>
         </customTool>
       </item>
-      <item path="lexer.yy.cpp" ex="false" tool="1" flavor2="0">
+      <item path="lexer.yy.cpp" ex="true" tool="1" flavor2="0">
         <ccTool>
           <additionalDep>lexer.l parser.y parser.yy.h parser.yy.cpp location.hh</additionalDep>
         </ccTool>
@@ -188,17 +283,19 @@
       </item>
       <item path="location.hh" ex="false" tool="3" flavor2="0">
       </item>
-      <item path="logger.cpp" ex="false" tool="1" flavor2="9">
+      <item path="logger.cpp" ex="true" tool="1" flavor2="9">
       </item>
       <item path="macro.cpp" ex="false" tool="1" flavor2="0">
       </item>
+      <item path="macro.h" ex="false" tool="3" flavor2="0">
+      </item>
       <item path="module.cpp" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="module.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="nlc-rt.h" ex="false" tool="3" flavor2="0">
       </item>
-      <item path="object.cpp" ex="false" tool="1" flavor2="9">
-      </item>
-      <item path="parser.cpp" ex="false" tool="1" flavor2="0">
+      <item path="object.cpp" ex="true" tool="1" flavor2="9">
       </item>
       <item path="parser.h" ex="false" tool="3" flavor2="0">
         <customTool>
@@ -211,7 +308,163 @@
           <customToolOutputs>parser.yy.h parser.yy.cpp location.hh</customToolOutputs>
         </customTool>
       </item>
-      <item path="parser.yy.cpp" ex="false" tool="1" flavor2="0">
+      <item path="parser.yy.cpp" ex="true" tool="1" flavor2="0">
+        <ccTool>
+          <additionalDep>parser.y</additionalDep>
+        </ccTool>
+      </item>
+      <item path="parser.yy.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="rational.cpp" ex="true" tool="1" flavor2="9">
+      </item>
+      <item path="term.h" ex="false" tool="3" flavor2="0">
+        <customTool>
+          <customToolAdditionalDep>parser.yy.cpp location.hh</customToolAdditionalDep>
+        </customTool>
+      </item>
+      <item path="version.cpp" ex="true" tool="1" flavor2="9">
+      </item>
+      <item path="warning_pop.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="warning_push.h" ex="false" tool="3" flavor2="0">
+      </item>
+    </conf>
+    <conf name="UnitTest" type="1">
+      <toolsSet>
+        <compilerSet>CLang|CLang</compilerSet>
+        <dependencyChecking>true</dependencyChecking>
+        <rebuildPropChanged>false</rebuildPropChanged>
+      </toolsSet>
+      <compileType>
+        <ccTool>
+          <incDir>
+            <pElem>../contrib/libtorch/include</pElem>
+            <pElem>../contrib/libtorch/include/torch/csrc/api/include</pElem>
+            <pElem>../contrib/fmt/include</pElem>
+            <pElem>../lib</pElem>
+            <pElem>../../lib</pElem>
+            <pElem>../contrib/googletest/googletest</pElem>
+            <pElem>../contrib/googletest/googletest/include</pElem>
+          </incDir>
+          <commandLine>`llvm-config-18 --cxxflags` `cat ../build_options.txt | tr -d '\r\n'`  -fsanitize=undefined -fsanitize-trap=undefined -Werror   -gdwarf-4  -ggdb</commandLine>
+          <preprocessorList>
+            <Elem>BUILD_DEBUG</Elem>
+            <Elem>BUILD_UNITTEST</Elem>
+            <Elem>GTEST_HAS_CXXABI_H_=0</Elem>
+            <Elem>LOG_LEVEL_NORMAL=LOG_LEVEL_DEBUG</Elem>
+          </preprocessorList>
+        </ccTool>
+        <linkerTool>
+          <output>../output/nlc-unittest</output>
+          <linkerAddLib>
+            <pElem>../contrib/libtorch/lib</pElem>
+          </linkerAddLib>
+          <linkerDynSerch>
+            <pElem>.</pElem>
+          </linkerDynSerch>
+          <linkerLibItems>
+            <linkerLibStdlibItem>PosixThreads</linkerLibStdlibItem>
+            <linkerLibLibItem>c10</linkerLibLibItem>
+            <linkerLibLibItem>torch</linkerLibLibItem>
+            <linkerLibLibItem>torch_cpu</linkerLibLibItem>
+            <linkerLibLibItem>zip</linkerLibLibItem>
+            <linkerLibStdlibItem>DynamicLinking</linkerLibStdlibItem>
+          </linkerLibItems>
+          <commandLine>`llvm-config-18 --link-static --system-libs --libs all` -g -fvisibility=default -Wl,--export-dynamic -Wl,--exclude-libs,ALL -lclang-cpp -lcrypto -lssl</commandLine>
+        </linkerTool>
+      </compileType>
+      <item path="../contrib/fmt/src/format.cc" ex="false" tool="1" flavor2="9">
+      </item>
+      <item path="../contrib/googletest/googletest/src/gtest-all.cc"
+            ex="false"
+            tool="1"
+            flavor2="0">
+      </item>
+      <item path="../lib/../../newlang/lib/include.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../make_version.sh" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../nlc/unittest.cpp" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="analysis.cpp" ex="false" tool="1" flavor2="9">
+      </item>
+      <item path="analysis.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="builtin.cpp" ex="false" tool="1" flavor2="9">
+      </item>
+      <item path="builtin.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="context.cpp" ex="false" tool="1" flavor2="9">
+      </item>
+      <item path="context.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="diag.cpp" ex="false" tool="1" flavor2="9">
+      </item>
+      <item path="diag.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="include.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="include_h.i" ex="true" tool="0" flavor2="9">
+      </item>
+      <item path="jit.cpp" ex="false" tool="1" flavor2="9">
+      </item>
+      <item path="jit.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="lexer.cpp" ex="false" tool="1" flavor2="9">
+      </item>
+      <item path="lexer.h" ex="false" tool="3" flavor2="0">
+        <customTool>
+          <customToolAdditionalDep>lexer.l parser.yy.h parser.yy.cpp location.hh</customToolAdditionalDep>
+        </customTool>
+      </item>
+      <item path="lexer.l" ex="false" tool="3" flavor2="0">
+        <customTool>
+          <customToolCommandline>flex  --outfile=lexer.yy.cpp --header-file=lexer.yy.h --noline  lexer.l</customToolCommandline>
+          <customToolOutputs>lexer.yy.cpp lexer.yy.h</customToolOutputs>
+          <customToolAdditionalDep>parser.y parser.yy.h parser.yy.cpp location.hh term.h</customToolAdditionalDep>
+        </customTool>
+      </item>
+      <item path="lexer.yy.cpp" ex="false" tool="1" flavor2="9">
+        <ccTool>
+          <additionalDep>lexer.l parser.y parser.yy.h parser.yy.cpp location.hh</additionalDep>
+        </ccTool>
+      </item>
+      <item path="lexer.yy.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="location.hh" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="logger.cpp" ex="false" tool="1" flavor2="9">
+      </item>
+      <item path="logger.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="macro.cpp" ex="false" tool="1" flavor2="9">
+      </item>
+      <item path="macro.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="module.cpp" ex="false" tool="1" flavor2="9">
+      </item>
+      <item path="module.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="nlc-rt.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="object.cpp" ex="false" tool="1" flavor2="9">
+      </item>
+      <item path="object.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="parser.cpp" ex="false" tool="1" flavor2="9">
+      </item>
+      <item path="parser.h" ex="false" tool="3" flavor2="0">
+        <customTool>
+          <customToolAdditionalDep>parser.y</customToolAdditionalDep>
+        </customTool>
+      </item>
+      <item path="parser.y" ex="false" tool="3" flavor2="0">
+        <customTool>
+          <customToolCommandline>bison --output-file=parser.yy.cpp --defines=parser.yy.h --warnings=all parser.y</customToolCommandline>
+          <customToolOutputs>parser.yy.h parser.yy.cpp location.hh</customToolOutputs>
+        </customTool>
+      </item>
+      <item path="parser.yy.cpp" ex="false" tool="1" flavor2="9">
         <ccTool>
           <additionalDep>parser.y</additionalDep>
         </ccTool>
@@ -220,18 +473,62 @@
       </item>
       <item path="rational.cpp" ex="false" tool="1" flavor2="9">
       </item>
-      <item path="runtime.cpp" ex="false" tool="1" flavor2="0">
+      <item path="rational.h" ex="false" tool="3" flavor2="0">
       </item>
-      <item path="system.cpp" ex="false" tool="1" flavor2="0">
+      <item path="runtime.cpp" ex="false" tool="1" flavor2="9">
       </item>
-      <item path="term.cpp" ex="false" tool="1" flavor2="0">
+      <item path="runtime.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="system.cpp" ex="false" tool="1" flavor2="9">
+      </item>
+      <item path="system.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="term.cpp" ex="false" tool="1" flavor2="9">
       </item>
       <item path="term.h" ex="false" tool="3" flavor2="0">
         <customTool>
           <customToolAdditionalDep>parser.yy.cpp location.hh</customToolAdditionalDep>
         </customTool>
       </item>
-      <item path="transpiler.cpp" ex="false" tool="1" flavor2="0">
+      <item path="test/alg_test.cpp" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="test/ast_test.cpp" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="test/class_test.cpp" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="test/diag_test.cpp" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="test/example_test.cpp" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="test/include_test.cpp" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="test/jit_test.cpp" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="test/lexer_test.cpp" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="test/llvm_test.cpp" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="test/logger_test.cpp" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="test/macro_test.cpp" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="test/module_test.cpp" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="test/object_test.cpp" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="test/parser_analysis_test.cpp" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="test/parser_test.cpp" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="test/rational_test.cpp" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="test/run_test.cpp" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="test/system_test.cpp" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="types.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="variable.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="version.cpp" ex="false" tool="1" flavor2="9">
       </item>

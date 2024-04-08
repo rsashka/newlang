@@ -42,7 +42,9 @@
 
 #endif
 
-#ifndef BUILD_UNITTEST
+#ifdef BUILD_UNITTEST
+#error Fail build type
+#else
 
 int main(int argc, char** argv) {
     newlang::NLC nlc;
@@ -51,6 +53,4 @@ int main(int argc, char** argv) {
     _exit(res);
 }
 
-#else
-#error Fail build type
 #endif

@@ -417,7 +417,7 @@ bool AstAnalysis::CheckNative_(TermPtr &proto, TermPtr &native) {
     proto->m_name = native->m_text.substr(1).c_str();
     //    proto->m_obj = CreateNative(proto, nullptr, false, proto->m_name.c_str());
 
-    if (!m_rt.GetNativeAddr(proto->m_name.c_str(), nullptr)) {
+    if (!m_rt.GetNativeAddress(nullptr, proto->m_name.c_str())) {
         NL_MESSAGE(LOG_LEVEL_INFO, native, "Error getting address native '%s'!", proto->toString().c_str());
 
         return false;
@@ -544,7 +544,7 @@ bool AstAnalysis::CheckIndex_(TermPtr &term, TermPtr &index, TermPtr &value, Sco
         if (!RecursiveAnalyzer(index->at(i).second, stack)) {
             return false;
         }
-        if (index->at(i).second && canCast(index->at(i).second, RunTime::m_integer_type)) {
+        if (index->at(i).second && canCast(index->at(i).second, m_rt.m_integer_type)) {
             continue;
         } else if (index->at(i).second->m_type) {
             NL_MESSAGE(LOG_LEVEL_INFO, index->at(i).second, "Index type '%s' not implemented!", index->at(i).second->m_type->m_text.c_str());
@@ -558,7 +558,7 @@ bool AstAnalysis::CheckIndex_(TermPtr &term, TermPtr &index, TermPtr &value, Sco
     ObjType type = typeFromString(term->m_type, &m_rt);
     if (isStringChar(type) && canCast(value, ObjType::Int8)) {
         return true;
-    } else if (isStringWide(type) && canCast(value, RunTime::m_wide_char_type)) {
+    } else if (isStringWide(type) && canCast(value, m_rt.m_wide_char_type)) {
         return true;
     }
     NL_MESSAGE(LOG_LEVEL_INFO, term, "Index type not checked!");
@@ -865,7 +865,7 @@ bool AstAnalysis::CheckCall(TermPtr &proto, TermPtr &call, ScopeStack & stack) {
                             if (isStringChar(value_type)) {
                                 value_type = ObjType::Int8;
                             } else if (isStringWide(value_type)) {
-                                value_type = RunTime::m_wide_char_type;
+                                value_type = m_rt.m_wide_char_type;
                             }
 
                         } else if (value_type == ObjType::Any) {

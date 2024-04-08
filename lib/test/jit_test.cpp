@@ -6,13 +6,13 @@
 
 
 
-#include "transpiler.h"
+#include "jit.h"
 #include "term.h"
 #include "runtime.h"
 
 using namespace newlang;
 
-TEST(Transpiler, Function) {
+TEST(JIT, Function) {
     //    std::filesystem::create_directories("temp");
     //    ASSERT_TRUE(std::filesystem::is_directory("temp"));
     //    //std::remove("temp/brother.sh.temp.nlm");
@@ -20,16 +20,16 @@ TEST(Transpiler, Function) {
     TermPtr term = Parser::ParseString("func():Int32");
     term->m_int_name = "func::";
     std::string src;
-    src = Transpiler::MakeFunctionPrototype(term, "");
+    src = JIT::MakeFunctionPrototype(term, "");
     ASSERT_STREQ("newlang::ObjPtr _$$_func$$(newlang::Context *ctx, newlang::Obj &args)", src.c_str()) << src;
-    src = Transpiler::MakeFunctionPrototype(term, "\\\\dir\\module");
+    src = JIT::MakeFunctionPrototype(term, "\\\\dir\\module");
     ASSERT_STREQ("newlang::ObjPtr _$dir$module$_func$$(newlang::Context *ctx, newlang::Obj &args)", src.c_str()) << src;
 
     term->push_back(Term::CreateName("arg"));
     term->push_back(Term::CreateName("arg2"));
-    src = Transpiler::MakeFunctionPrototype(term, "");
+    src = JIT::MakeFunctionPrototype(term, "");
     ASSERT_STREQ("newlang::ObjPtr _$$_func$$(newlang::Context *ctx, newlang::Obj &args)", src.c_str()) << src;
-    src = Transpiler::MakeFunctionPrototype(term, "\\\\dir\\module2");
+    src = JIT::MakeFunctionPrototype(term, "\\\\dir\\module2");
     ASSERT_STREQ("newlang::ObjPtr _$dir$module2$_func$$(newlang::Context *ctx, newlang::Obj &args)", src.c_str()) << src;
 }
 
@@ -117,7 +117,7 @@ void writeModuleToFile(llvm::Module *module) {
         TheDriver.ExecuteCompilation(*C, FailingCommands);
     }
 
-//    remove(Filename);
+    //    remove(Filename);
 }
 
 std::unique_ptr<llvm::Module> CompileCpp2(std::string source, std::vector<std::string> opts, std::string *asm_code = nullptr) {
@@ -289,66 +289,193 @@ const char * source = ""
         "   return 0;\n"
         "};";
 
-TEST(Transpiler, Embed) {
+TEST(JIT, Embed) {
 
     std::vector<std::string> argsX{
         //        "-std=c++23", "-stdlib=libc++",
         //        "--print-supported-cpus",
+        "-I", "/usr/include",
+        "-I", "/usr/local/include",
         "-I", "/usr/include/x86_64-linux-gnu/",
         "-I", "/usr/lib/gcc/x86_64-linux-gnu/11/include",
-        "-I", "/usr/include",
-        "-I", "/usr/include/linux",
-        "-I", "/usr/local/include",
-        "-o", "hello_embeddddddddddddddddddddd",
+        //        "-o", "hello_embeddddddddddddddddddddd",
         //        "-x", "c++",
-        "hello_embed.cpp"};
+        //        "hello_embed.cpp"
+    };
 
-    auto module = CompileCpp2(source,argsX);
+    auto module = CompileCpp2(source, argsX);
 
     writeModuleToFile(module.get());
 
 }
 
+TEST(JIT, MakeEmbed) {
 
 
-//TEST(Transpiler, Embed) {
-//
-//
-//    std::filesystem::path path = std::filesystem::path("../examples/hello_embed.src");
-//    ASSERT_TRUE(std::filesystem::exists(path));
-//
-//    std::ifstream file(path, std::ios::in | std::ios::binary);
-//
-//    const auto sz = std::filesystem::file_size(path);
-//    ASSERT_TRUE(sz);
-//
-//    std::string source(sz, '\0');
-//    file.read(source.data(), sz);
-//    ASSERT_TRUE(file) << "error: only " << file.gcount() << " could be read";
-//    file.close();
-//
-//    TermPtr ast = Parser::ParseString(source);
-//
-//    Transpiler trans;
-//    std::string hello_embed = trans.MakeApplicationSource(ast);
-//
-//    if (!std::filesystem::exists(std::filesystem::path("temp"))) {
-//        std::filesystem::create_directories(std::filesystem::path("temp"));
-//    }
-//    ASSERT_TRUE(std::filesystem::exists(std::filesystem::path("temp")));
-//    ASSERT_TRUE(std::filesystem::is_directory(std::filesystem::path("temp")));
-//
-//    std::ofstream ofile(std::filesystem::path("temp/hello_embed.cpp"), std::ios::out | std::ios::trunc);
-//    ofile << hello_embed;
-//    ofile.close();
-//
-//    std::string bin_out;
-//    ASSERT_TRUE(trans.MakeCppExec(hello_embed, "temp/hello_embed")) << hello_embed;
-//
-//    ASSERT_TRUE(std::filesystem::exists(std::filesystem::path("temp/hello_embed")));
-//    
-//
-//}
+    std::filesystem::path path = std::filesystem::path("../examples/hello_embed.src");
+    ASSERT_TRUE(std::filesystem::exists(path));
+
+    std::ifstream file(path, std::ios::in | std::ios::binary);
+
+    const auto sz = std::filesystem::file_size(path);
+    ASSERT_TRUE(sz);
+
+    std::string source(sz, '\0');
+    file.read(source.data(), sz);
+    ASSERT_TRUE(file) << "error: only " << file.gcount() << " could be read";
+    file.close();
+
+    TermPtr ast = Parser::ParseString(source);
+
+    RuntimePtr rt = RunTime::Init();
+    JIT *jit = JIT::Init(rt);
+    ASSERT(jit);
+
+    std::string hello_embed = jit->MakeApplicationSource(ast);
+
+    if (!std::filesystem::exists(std::filesystem::path("temp"))) {
+        std::filesystem::create_directories(std::filesystem::path("temp"));
+    }
+    ASSERT_TRUE(std::filesystem::exists(std::filesystem::path("temp")));
+    ASSERT_TRUE(std::filesystem::is_directory(std::filesystem::path("temp")));
+
+    std::ofstream ofile(std::filesystem::path("temp/hello_embed.cpp"), std::ios::out | std::ios::trunc);
+    ofile << hello_embed;
+    ofile.close();
+
+    std::string bin_out;
+
+    std::vector<std::string> argsX{
+        "-I", "/usr/include",
+        "-I", "/usr/local/include",
+        "-I", "/usr/include/x86_64-linux-gnu/",
+        "-I", "/usr/lib/gcc/x86_64-linux-gnu/11/include",};
+
+    //    auto module = CompileCpp2(source, argsX);
+
+
+    //    ASSERT_TRUE(jit->MakeCppExec(hello_embed, "temp/hello_embed", argsX)) << hello_embed;
+
+    std::unique_ptr<llvm::Module> module = jit->MakeLLVMModule(hello_embed, argsX);
+    ASSERT_TRUE(module);
+    ASSERT_TRUE(jit->MakeObjFile("temp/hello_embed.o", *module,{}));
+
+    ASSERT_TRUE(jit->LinkObjToExec("temp/hello_embed",{"temp/hello_embed.o"}));
+
+    ASSERT_TRUE(std::filesystem::exists(std::filesystem::path("temp/hello_embed")));
+
+
+}
+
+TEST(JIT, MakeModule) {
+
+
+
+
+    std::filesystem::path path = std::filesystem::path("../examples/hello.src");
+    ASSERT_TRUE(std::filesystem::exists(path));
+
+    std::ifstream file(path, std::ios::in | std::ios::binary);
+
+    const auto sz = std::filesystem::file_size(path);
+    ASSERT_TRUE(sz);
+
+    std::string source(sz, '\0');
+    file.read(source.data(), sz);
+    ASSERT_TRUE(file) << "error: only " << file.gcount() << " could be read";
+    file.close();
+
+    TermPtr ast = Parser::ParseString(source);
+
+    RuntimePtr rt = RunTime::Init();
+    JIT *jit = JIT::Init(rt);
+    ASSERT(jit);
+
+    std::string hello = jit->MakeCodeModule(ast, "hello", true);
+
+    if (!std::filesystem::exists(std::filesystem::path("temp"))) {
+        std::filesystem::create_directories(std::filesystem::path("temp"));
+    }
+    ASSERT_TRUE(std::filesystem::exists(std::filesystem::path("temp")));
+    ASSERT_TRUE(std::filesystem::is_directory(std::filesystem::path("temp")));
+
+    std::ofstream ofile(std::filesystem::path("temp/hello.cpp"), std::ios::out | std::ios::trunc);
+    ofile << hello;
+    ofile.close();
+
+    std::string bin_out;
+
+
+    std::string opt_str = ReadFile("../build_options.txt");
+    ASSERT_TRUE(opt_str.size() > 100);
+
+
+
+    std::vector<std::string> opts = RunTime::SplitChar(opt_str, " \t\r\n");
+
+    opts.push_back("-I../lib");
+    opts.push_back("-DBUILD_UNITTEST");
+    opts.push_back("-DBUILD_DEBUG ");
+    opts.push_back("-DLOG_LEVEL_NORMAL=LOG_LEVEL_DEBUG");
+
+    for (auto &elem : opts) {
+        if (elem.find("-D") == 0) {
+            elem += " ";
+        }
+        std::cout << elem << "\n";
+    }
+
+    ASSERT_TRUE(opts.size() > 20);
+
+    std::vector<std::string> argsX{
+        //        "-I", "/usr/include",
+        //        "-I", "/usr/local/include",
+        //        "-I", "/usr/include/c++/11",
+        //        "-I", "/usr/include/x86_64-linux-gnu/c++/11",
+        //        "-I", "/usr/include/x86_64-linux-gnu/",
+        //        "-I", "/usr/lib/gcc/x86_64-linux-gnu/11/include",
+    };
+
+    argsX.insert(argsX.end(), opts.begin(), opts.end());
+    //    auto module = CompileCpp2(source, argsX);
+
+
+    std::string main_src = jit->MakeMain({});
+    std::ofstream omain(std::filesystem::path("temp/main.cpp"), std::ios::out | std::ios::trunc);
+    omain << main_src;
+    omain.close();
+
+    std::unique_ptr<llvm::Module> main = jit->MakeLLVMModule(main_src,{});
+    ASSERT_TRUE(main);
+    ASSERT_TRUE(jit->MakeObjFile("temp/main.o", *main,{}));
+
+    std::unique_ptr<llvm::Module> module = jit->MakeLLVMModule(hello,{});
+    ASSERT_TRUE(module);
+    ASSERT_TRUE(jit->MakeObjFile("temp/hello.o", *module,{}));
+
+    std::vector<std::string> libs{
+        //        "-L."
+        //        "-L~/SOURCE/NewLang/newlang/output",
+        "libnlc-rt.so",
+        "libc10.so",
+        "libtorch.so",
+        "libtorch_cpu.so",
+        "-lcrypt",
+        "-lzip",
+        "-lcurl",
+        "-Wl,-rpath,./",
+        ""};
+    ASSERT_TRUE(jit->LinkObjToExec("hello_rt",{"temp/main.o", "temp/hello.o"}, libs));
+
+    //    MakeLLVMModule
+    //    ASSERT_NO_THROW(
+    //            ASSERT_TRUE(jit->MakeCppExec(hello, "temp/hello", argsX));
+    //            ) << hello;
+
+    ASSERT_TRUE(std::filesystem::exists(std::filesystem::path("hello_rt")));
+
+
+}
 
 
 

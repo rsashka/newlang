@@ -7,7 +7,7 @@
 #include "module.h"
 #include "runtime.h"
 #include "builtin.h"
-#include "module.h"
+//#include "module.h"
 
 namespace newlang {
 
@@ -46,16 +46,16 @@ namespace newlang {
         //    os.utime(path, times=None, *, ns=None, dir_fd=None, follow_symlinks=True) - модификация времени последнего доступа и изменения файла. Либо times - кортеж (время доступа в секундах, время изменения в секундах), либо ns - кортеж (время доступа в наносекундах, время изменения в наносекундах).
         //    os.walk(top, topdown=True, onerror=None, followlinks=False) - генерация имён файлов в дереве каталогов, сверху вниз (если topdown равен True), либо снизу вверх (если False). Для каждого каталога функция walk возвращает кортеж (путь к каталогу, список каталогов, список файлов).
 
-        class Buildin : public Module {
+        class Buildin {//: public Module {
         public:
 
-            bool RegisterMacros(MacroPtr macro) {
-                return true;
-            }
+//            bool RegisterMacros(MacroPtr macro) {
+//                return true;
+//            }
 
         protected:
 
-            Buildin(RuntimePtr rt, ObjType type, const char * name = nullptr) : Module(rt) {
+            Buildin(RuntimePtr rt, ObjType type, const char * name = nullptr) {// : Module(rt) {
                 if (!name) {
                     name = newlang::toString(type);
                     ASSERT(name);
@@ -67,11 +67,11 @@ namespace newlang {
                     LOG_RUNTIME("Fail name '%s'!", name);
                 }
 
-                m_file = name;
-//                m_source = "__buildin__";
-                m_md5 = "";
-                m_timestamp = __TIMESTAMP__;
-                m_version = VERSION;
+//                m_file = name;
+////                m_source = "__buildin__";
+//                m_md5 = "";
+//                m_timestamp = __TIMESTAMP__;
+//                m_version = VERSION;
             }
 
 
@@ -82,7 +82,7 @@ namespace newlang {
 
             bool CreateProperty(const char * proto, ObjPtr obj);
 
-            bool CreateMacro(const char * text);
+//            bool CreateMacro(const char * text);
 
             //            std::vector<std::string> m_macro_list;
 

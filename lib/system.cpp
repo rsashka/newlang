@@ -18,23 +18,23 @@ ObjType getSummaryTensorType(Obj *obj, ObjType start);
 ObjPtr CreateTensor(torch::Tensor tensor);
 
 bool Buildin::AddMethod(const char * name, ObjPtr obj) {
-    if (find(name) != end()) {
-        LOG_ERROR("Name '%s' already exist!", name);
-        return false;
-    }
-    std::string fullname(m_file);
-    fullname += "::";
-    fullname += name;
+//    if (find(name) != end()) {
+//        LOG_ERROR("Name '%s' already exist!", name);
+//        return false;
+//    }
+//    std::string fullname(m_file);
+//    fullname += "::";
+//    fullname += name;
+//
+//    TermPtr proto = *const_cast<TermPtr *> (&obj->m_prototype);
+//    proto->m_text = fullname;
+//    proto->m_int_name = NormalizeName(fullname);
+//    //    proto->m_obj = obj;
+//
+//    insert({fullname,
+//        {proto, obj}});
 
-    TermPtr proto = *const_cast<TermPtr *> (&obj->m_prototype);
-    proto->m_text = fullname;
-    proto->m_int_name = NormalizeName(fullname);
-    //    proto->m_obj = obj;
-
-    insert({fullname,
-        {proto, obj}});
-
-    //    LOG_DEBUG("New method '%s'!", fullname.c_str());
+    LOG_RUNTIME("New method '%s'!", name);//fullname.c_str());
     return true;
 }
 
@@ -45,8 +45,8 @@ bool Buildin::CreateMethodNative(const char * proto, void * addr) {
         LOG_ERROR("Fail parse '%s'!", proto);
         return false;
     }
-
-    return AddMethod(term->getText().c_str(), m_runtime->CreateNative(term, addr));
+    ASSERT(0);
+//    return AddMethod(term->getText().c_str(), m_runtime->CreateNative(term, addr));
 
 }
 
@@ -59,7 +59,8 @@ bool Buildin::CreateMethod(const char * proto, FunctionType & func, ObjType type
         LOG_ERROR("Fail parse '%s'!", proto);
         return false;
     }
-    return AddMethod(term->getText().c_str(), m_runtime->CreateFunction(term, (void *) &func)); //, type
+    ASSERT(0);
+//    return AddMethod(term->getText().c_str(), m_runtime->CreateFunction(term, (void *) &func)); //, type
 }
 
 bool Buildin::CreateProperty(const char * proto, ObjPtr obj) {
@@ -236,7 +237,7 @@ CALSS_METHOD(System, getenviron) {
     std::vector<std::string> split;
     ObjPtr result = Obj::CreateDict();
     for (; env && *env; ++env) {
-        split = Macro::SplitString(*env, "=");
+        split = RunTime::SplitString(*env, "=");
         result->push_back(Obj::CreateString(&(*env)[split[0].size() + 1]), split[0]);
     }
     return result;
@@ -267,20 +268,20 @@ CALSS_METHOD(System, system) {
     return Obj::CreateString(result);
 }
 
-bool Buildin::CreateMacro(const char * text) {
-
-    //                try {
-    //                    MacroPtr macro;
-    //                                    TermPtr m = Parser::ParseTerm(text, nulltr, false);
-    //                } catch (...) {
-    //                    return false;
-    //                }
-    //                m_macro_list.push_back(text);
-    if (m_runtime) {
-        TermPtr m = Parser::ParseTerm(text, m_runtime->m_macro, false);
-    }
-    return true;
-}
+//bool Buildin::CreateMacro(const char * text) {
+//
+//    //                try {
+//    //                    MacroPtr macro;
+//    //                                    TermPtr m = Parser::ParseTerm(text, nulltr, false);
+//    //                } catch (...) {
+//    //                    return false;
+//    //                }
+//    //                m_macro_list.push_back(text);
+//    if (m_runtime) {
+//        TermPtr m = Parser::ParseTerm(text, m_runtime->m_macro, false);
+//    }
+//    return true;
+//}
 
 Base::Base(RuntimePtr rt) : Buildin(rt, ObjType::Base, "::Base") {
 
@@ -289,78 +290,78 @@ Base::Base(RuntimePtr rt) : Buildin(rt, ObjType::Base, "::Base") {
         dsl_enable = rt->m_load_dsl;
     }
 
-    if (dsl_enable) {
-
-        VERIFY(CreateMacro("@@ true @@ ::= 1"));
-        VERIFY(CreateMacro("@@ yes @@ ::= 1"));
-        VERIFY(CreateMacro("@@ false @@ ::= 0"));
-        VERIFY(CreateMacro("@@ no @@ ::= 0"));
-
-        VERIFY(CreateMacro("@@ if( ... ) @@ ::= @@ [ @$... ] --> @@"));
-        VERIFY(CreateMacro("@@ elif( ... ) @@ ::= @@ ,[ @$... ] --> @@"));
-        VERIFY(CreateMacro("@@ else @@ ::= @@ ,[...] --> @@"));
-
-        VERIFY(CreateMacro("@@ while( ... ) @@ ::= @@ [ @$... ] <-> @@"));
-        VERIFY(CreateMacro("@@ dowhile( ... ) @@ ::= @@ <-> [ @$... ] @@"));
-        VERIFY(CreateMacro("@@ loop @@ ::= @@ [ 1 ] <-> @@"));
-
-
-        VERIFY(CreateMacro("@@ break $label @@ ::= @@ @$label :: ++ @@"));
-        VERIFY(CreateMacro("@@ continue $label @@ ::= @@ @$label :: -- @@"));
-        VERIFY(CreateMacro("@@ return( result ) @@ ::= @@ @__FUNC_BLOCK__ ++ @$result ++ @@"));
-        VERIFY(CreateMacro("@@ throw( result ) @@ ::= @@ -- @$result -- @@"));
-
-        VERIFY(CreateMacro("@@ match( ... ) @@ ::= @@ [ @$... ] @__PRAGMA_EXPECTED__( @\\ =>, @\\ ==>, @\\ ===>, @\\ ~>, @\\ ~~>, @\\ ~~~> ) @@"));
-        VERIFY(CreateMacro("@@ case( ... ) @@ ::= @@ [ @$... ] --> @@"));
-        VERIFY(CreateMacro("@@ default @@ ::= @@ [...] --> @@"));
-
-
-        VERIFY(CreateMacro("@@ this @@ ::= @@ $0 @@ ##< This object (self)"));
-        VERIFY(CreateMacro("@@ self @@ ::= @@ $0 @@ ##< This object (self)"));
-        VERIFY(CreateMacro("@@ super @@ ::= @@ $$ @@ ##< Super (parent) class or function"));
-        VERIFY(CreateMacro("@@ latter @@ ::= @@ $^ @@  ##< Result of the last operation"));
-
-
-        VERIFY(CreateMacro("@@ try @@ ::= @@ [ {*  @__PRAGMA_EXPECTED__( @\\ { ) @@"));
-        VERIFY(CreateMacro("@@ catch(...) @@ ::= @@ *} ] : < @$... > ~> @@"));
-        VERIFY(CreateMacro("@@ forward @@ ::= @@ +- $^ -+ @@  ##< Forward latter result or exception"));
-
-
-        VERIFY(CreateMacro("@@ iter( obj, ... ) @@ ::= @@ @$obj ? (@$...) @@"));
-        VERIFY(CreateMacro("@@ next( obj, ... ) @@ ::= @@ @$obj ! (@$...) @@"));
-        VERIFY(CreateMacro("@@ curr( obj ) @@ ::= @@ @$obj !? @@"));
-        VERIFY(CreateMacro("@@ first( obj ) @@ ::= @@ @$obj !! @@"));
-        VERIFY(CreateMacro("@@ all( obj ) @@ ::= @@ @$obj ?? @@"));
-
-        VERIFY(CreateMacro("@@ and @@ ::= @@ && @@"));
-        VERIFY(CreateMacro("@@ or @@ ::= @@ || @@"));
-        VERIFY(CreateMacro("@@ xor @@ ::= @@ ^^ @@"));
-        VERIFY(CreateMacro("@@ not(value) @@ ::= @@ (:Bool(@$value)==0) @@"));
-
-        //                    VERIFY(CreateMacro("@@ root() @@ ::= @@ @# @\\\\ @@"));
-        //                    VERIFY(CreateMacro("@@ module() @@ ::= @@ @# $\\\\ @@"));
-
-        //                    VERIFY(CreateMacro("@@ namespace() @@ ::= @@ @# @:: @@"));
-        VERIFY(CreateMacro("@@ module() @@ ::= @@ @$$ @@"));
-        VERIFY(CreateMacro("@@ static @@ ::= @@ @:: @@"));
-        VERIFY(CreateMacro("@@ package $name @@ ::= @@  @$$ = @# @$name @@"));
-        VERIFY(CreateMacro("@@ declare( obj ) @@ ::= @@ @$obj ::= ... @@  ##< Forward declaration of the object"));
-
-        VERIFY(CreateMacro("@@ using(...) @@ ::= @@ ... = @$... @@"));
-
-        VERIFY(CreateMacro("@@ typedef(cnt) @@ ::= @@ @__PRAGMA_TYPE_DEFINE__(@$cnt) @@ ##< Disable warning when defining a type inside a namespace"));
-
-        VERIFY(CreateMacro("@@ coroutine @@ ::= @@ __ANNOTATION_SET__(coroutine) @@"));
-        VERIFY(CreateMacro("@@ co_yield  $val  @@ ::= @@ __ANNOTATION_CHECK__(coroutine) @__FUNC_BLOCK__ :: -- @$val -- @@"));
-        VERIFY(CreateMacro("@@ co_await        @@ ::= @@ __ANNOTATION_CHECK__(coroutine) @__FUNC_BLOCK__ :: +- @@"));
-        VERIFY(CreateMacro("@@ co_return $val  @@ ::= @@ __ANNOTATION_CHECK__(coroutine) @__FUNC_BLOCK__ :: ++ @$val ++ @@"));
-
-        VERIFY(CreateMacro("@@ exit(code) @@ ::= @@ :: ++ @$code ++ @@"));
-        VERIFY(CreateMacro("@@ abort() @@ ::= @@ :: -- @@"));
-
-
-
-    }
+//    if (dsl_enable) {
+//
+//        VERIFY(CreateMacro("@@ true @@ ::= 1"));
+//        VERIFY(CreateMacro("@@ yes @@ ::= 1"));
+//        VERIFY(CreateMacro("@@ false @@ ::= 0"));
+//        VERIFY(CreateMacro("@@ no @@ ::= 0"));
+//
+//        VERIFY(CreateMacro("@@ if( ... ) @@ ::= @@ [ @$... ] --> @@"));
+//        VERIFY(CreateMacro("@@ elif( ... ) @@ ::= @@ ,[ @$... ] --> @@"));
+//        VERIFY(CreateMacro("@@ else @@ ::= @@ ,[...] --> @@"));
+//
+//        VERIFY(CreateMacro("@@ while( ... ) @@ ::= @@ [ @$... ] <-> @@"));
+//        VERIFY(CreateMacro("@@ dowhile( ... ) @@ ::= @@ <-> [ @$... ] @@"));
+//        VERIFY(CreateMacro("@@ loop @@ ::= @@ [ 1 ] <-> @@"));
+//
+//
+//        VERIFY(CreateMacro("@@ break $label @@ ::= @@ @$label :: ++ @@"));
+//        VERIFY(CreateMacro("@@ continue $label @@ ::= @@ @$label :: -- @@"));
+//        VERIFY(CreateMacro("@@ return( result ) @@ ::= @@ @__FUNC_BLOCK__ ++ @$result ++ @@"));
+//        VERIFY(CreateMacro("@@ throw( result ) @@ ::= @@ -- @$result -- @@"));
+//
+//        VERIFY(CreateMacro("@@ match( ... ) @@ ::= @@ [ @$... ] @__PRAGMA_EXPECTED__( @\\ =>, @\\ ==>, @\\ ===>, @\\ ~>, @\\ ~~>, @\\ ~~~> ) @@"));
+//        VERIFY(CreateMacro("@@ case( ... ) @@ ::= @@ [ @$... ] --> @@"));
+//        VERIFY(CreateMacro("@@ default @@ ::= @@ [...] --> @@"));
+//
+//
+//        VERIFY(CreateMacro("@@ this @@ ::= @@ $0 @@ ##< This object (self)"));
+//        VERIFY(CreateMacro("@@ self @@ ::= @@ $0 @@ ##< This object (self)"));
+//        VERIFY(CreateMacro("@@ super @@ ::= @@ $$ @@ ##< Super (parent) class or function"));
+//        VERIFY(CreateMacro("@@ latter @@ ::= @@ $^ @@  ##< Result of the last operation"));
+//
+//
+//        VERIFY(CreateMacro("@@ try @@ ::= @@ [ {*  @__PRAGMA_EXPECTED__( @\\ { ) @@"));
+//        VERIFY(CreateMacro("@@ catch(...) @@ ::= @@ *} ] : < @$... > ~> @@"));
+//        VERIFY(CreateMacro("@@ forward @@ ::= @@ +- $^ -+ @@  ##< Forward latter result or exception"));
+//
+//
+//        VERIFY(CreateMacro("@@ iter( obj, ... ) @@ ::= @@ @$obj ? (@$...) @@"));
+//        VERIFY(CreateMacro("@@ next( obj, ... ) @@ ::= @@ @$obj ! (@$...) @@"));
+//        VERIFY(CreateMacro("@@ curr( obj ) @@ ::= @@ @$obj !? @@"));
+//        VERIFY(CreateMacro("@@ first( obj ) @@ ::= @@ @$obj !! @@"));
+//        VERIFY(CreateMacro("@@ all( obj ) @@ ::= @@ @$obj ?? @@"));
+//
+//        VERIFY(CreateMacro("@@ and @@ ::= @@ && @@"));
+//        VERIFY(CreateMacro("@@ or @@ ::= @@ || @@"));
+//        VERIFY(CreateMacro("@@ xor @@ ::= @@ ^^ @@"));
+//        VERIFY(CreateMacro("@@ not(value) @@ ::= @@ (:Bool(@$value)==0) @@"));
+//
+//        //                    VERIFY(CreateMacro("@@ root() @@ ::= @@ @# @\\\\ @@"));
+//        //                    VERIFY(CreateMacro("@@ module() @@ ::= @@ @# $\\\\ @@"));
+//
+//        //                    VERIFY(CreateMacro("@@ namespace() @@ ::= @@ @# @:: @@"));
+//        VERIFY(CreateMacro("@@ module() @@ ::= @@ @$$ @@"));
+//        VERIFY(CreateMacro("@@ static @@ ::= @@ @:: @@"));
+//        VERIFY(CreateMacro("@@ package $name @@ ::= @@  @$$ = @# @$name @@"));
+//        VERIFY(CreateMacro("@@ declare( obj ) @@ ::= @@ @$obj ::= ... @@  ##< Forward declaration of the object"));
+//
+//        VERIFY(CreateMacro("@@ using(...) @@ ::= @@ ... = @$... @@"));
+//
+//        VERIFY(CreateMacro("@@ typedef(cnt) @@ ::= @@ @__PRAGMA_TYPE_DEFINE__(@$cnt) @@ ##< Disable warning when defining a type inside a namespace"));
+//
+//        VERIFY(CreateMacro("@@ coroutine @@ ::= @@ __ANNOTATION_SET__(coroutine) @@"));
+//        VERIFY(CreateMacro("@@ co_yield  $val  @@ ::= @@ __ANNOTATION_CHECK__(coroutine) @__FUNC_BLOCK__ :: -- @$val -- @@"));
+//        VERIFY(CreateMacro("@@ co_await        @@ ::= @@ __ANNOTATION_CHECK__(coroutine) @__FUNC_BLOCK__ :: +- @@"));
+//        VERIFY(CreateMacro("@@ co_return $val  @@ ::= @@ __ANNOTATION_CHECK__(coroutine) @__FUNC_BLOCK__ :: ++ @$val ++ @@"));
+//
+//        VERIFY(CreateMacro("@@ exit(code) @@ ::= @@ :: ++ @$code ++ @@"));
+//        VERIFY(CreateMacro("@@ abort() @@ ::= @@ :: -- @@"));
+//
+//
+//
+//    }
 
 
     bool assert_enable = true;
@@ -381,15 +382,15 @@ Base::Base(RuntimePtr rt) : Buildin(rt, ObjType::Base, "::Base") {
     // @__PRAGMA_STATIC_ASSERT__
     VERIFY(CreateMethod("__assert_abort__(...):None", __assert_abort__));
 
-    VERIFY(CreateMacro("@@ static_assert(...) @@ ::= @@ @__PRAGMA_STATIC_ASSERT__(@$... ) @@"));
-
-    if (assert_enable) {
-        VERIFY(CreateMacro("@@ assert(value, ...) @@ ::= @@ [:Bool(@$value)==0]-->{ ::Base::__assert_abort__(@# @$value, @$value, @$... ) } @@"));
-        VERIFY(CreateMacro("@@ verify(value, ...) @@ ::= @@ [:Bool(@$value)==0]-->{ ::Base::__assert_abort__(@# @$value, @$value, @$... ) } @@"));
-    } else {
-        VERIFY(CreateMacro("@@ assert(value, ...) @@ ::= @@ (_) @@"));
-        VERIFY(CreateMacro("@@ verify(value, ...) @@ ::= @@ (@$value) @@"));
-    }
+//    VERIFY(CreateMacro("@@ static_assert(...) @@ ::= @@ @__PRAGMA_STATIC_ASSERT__(@$... ) @@"));
+//
+//    if (assert_enable) {
+//        VERIFY(CreateMacro("@@ assert(value, ...) @@ ::= @@ [:Bool(@$value)==0]-->{ ::Base::__assert_abort__(@# @$value, @$value, @$... ) } @@"));
+//        VERIFY(CreateMacro("@@ verify(value, ...) @@ ::= @@ [:Bool(@$value)==0]-->{ ::Base::__assert_abort__(@# @$value, @$value, @$... ) } @@"));
+//    } else {
+//        VERIFY(CreateMacro("@@ assert(value, ...) @@ ::= @@ (_) @@"));
+//        VERIFY(CreateMacro("@@ verify(value, ...) @@ ::= @@ (@$value) @@"));
+//    }
 
 
 }

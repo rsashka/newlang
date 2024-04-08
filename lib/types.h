@@ -120,6 +120,7 @@ class Obj;
 class Context;
 class Context;
 class Module;
+class JIT;
 
 class IntAny;
 class IntPlus;
@@ -177,6 +178,8 @@ typedef std::variant<std::monostate, ObjWeak, std::vector < ObjWeak> > WeakItem;
 
 typedef ObjPtr(*EvalFunction)(Context *ctx, const TermPtr & term, Obj * args, bool eval_block);
 
+    typedef std::shared_ptr<std::string> SourceType;
+    typedef std::vector<std::string> PostLexerType;
 
 
 void NewLangSignalHandler(int signal);

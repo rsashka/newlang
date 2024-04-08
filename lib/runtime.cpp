@@ -1,85 +1,17 @@
-//#include "pch.h"
 
-//#include <zlib.h>
 #include <zip.h>
 
-
-#include "warning_push.h"
-
-#include "llvm/IR/Metadata.h"
-#include "llvm/IR/LegacyPassManager.h"
-#include "llvm/MC/TargetRegistry.h"
-
-#include "clang/Driver/Driver.h"
-#include "clang/Driver/Compilation.h"
-#include "clang/Frontend/TextDiagnosticPrinter.h"
-#include "llvm/IR/Module.h"
-#include "llvm/Target/TargetOptions.h"
-#include "llvm/ADT/STLExtras.h"
-#include "llvm/Support/VirtualFileSystem.h"
-#include "llvm/Support/TargetSelect.h"
-
-#include "llvm-c/Core.h"
-#include "llvm-c/Target.h"
-#include "llvm-c/TargetMachine.h"
-
-#include "llvm/IR/LegacyPassManager.h"
-#include "llvm/MC/TargetRegistry.h"
-#include "llvm/Support/CodeGen.h"
-
-#include "llvm/Support/InitLLVM.h"
-
-#include "llvm/Target/TargetMachine.h"
-
-#include "clang/Frontend/CompilerInstance.h"
-#include "clang/CodeGen/CodeGenAction.h"
-
-#include "clang/Tooling/CommonOptionsParser.h"
-#include "clang/Tooling/Tooling.h"
-
-
-#include "warning_pop.h"
-
-
+#include "runtime.h"
 
 #include "context.h"
 #include "parser.h"
 #include "analysis.h"
 
 #include "system.h"
-
-#include "term.h"
-#include "runtime.h"
 #include "builtin.h"
 
 using namespace newlang;
 
-
-#ifdef _MSC_VER
-ObjType RunTime::m_wide_char_type = ObjType::Int16;
-STATIC_ASSERT(sizeof (wchar_t) == 2);
-#else
-ObjType RunTime::m_wide_char_type = ObjType::Int32;
-STATIC_ASSERT(sizeof (wchar_t) == 4);
-#endif
-ffi_type * RunTime::m_wide_char_type_ffi = nullptr;
-
-ffi_type * RunTime::m_ffi_type_void = nullptr;
-ffi_type * RunTime::m_ffi_type_uint8 = nullptr;
-ffi_type * RunTime::m_ffi_type_sint8 = nullptr;
-ffi_type * RunTime::m_ffi_type_uint16 = nullptr;
-ffi_type * RunTime::m_ffi_type_sint16 = nullptr;
-ffi_type * RunTime::m_ffi_type_uint32 = nullptr;
-ffi_type * RunTime::m_ffi_type_sint32 = nullptr;
-ffi_type * RunTime::m_ffi_type_uint64 = nullptr;
-ffi_type * RunTime::m_ffi_type_sint64 = nullptr;
-ffi_type * RunTime::m_ffi_type_float = nullptr;
-ffi_type * RunTime::m_ffi_type_double = nullptr;
-ffi_type * RunTime::m_ffi_type_pointer = nullptr;
-
-RunTime::ffi_prep_cif_type *RunTime::m_ffi_prep_cif = nullptr;
-RunTime::ffi_prep_cif_var_type * RunTime::m_ffi_prep_cif_var = nullptr;
-RunTime::ffi_call_type * RunTime::m_ffi_call = nullptr;
 
 //const char * RunTime::default_argv[RunTime::default_argc] = {"", "--nlc-no-runtime", "--nlc-no-dsl", "--nlc-no-embed-source"};
 //const TermPtr VarScope::NonameBlock = Term::Create(parser::token_type::END, TermID::NAMESPACE, "_");
@@ -112,10 +44,15 @@ extern "C" int nlc_prinft_sub_(char const *format, ...) {
     return result;
 }
 
+int newlang::RunMain(const int arg, const char** argv, const char** penv) {
+    printf("CALL: RunMain(const int arg, const char** argv, const char** penv)");
+    return 0;
+}
+
 void RunTime::Clear() {
     m_main_ast.reset();
     m_main_runner.reset();
-    m_main_module.reset();
+    //    m_main_module.reset();
 }
 
 TermPtr RunTime::GlobFindProto(const std::string_view name) {
@@ -182,6 +119,21 @@ GlobItem * RunTime::NameFind(const char* name) {
     //        NL_PARSER(found->second.proto, "Global name not implemented! '%s'", found->first.c_str());
     //    }
     return &found->second;
+}
+
+//void * RunTime::GetDirectAddressFromLibrary(void *handle, std::string_view name) {
+//    ASSERT(0);
+//    //            if (isNativeName(name)) {
+//    //                return LLVMSearchForAddressOfSymbol(NativeNameMangling(name).c_str());
+//    //            }
+//    //            return LLVMSearchForAddressOfSymbol(name.begin());
+//}
+
+bool RunTime::RegisterNativeObj(TermPtr term) {
+    ASSERT(term);
+    ASSERT(term->getTermID() == TermID::NATIVE);
+
+    return RegisterSystemObj(CreateNative(term));
 }
 
 TermPtr RunTime::NameRegister(bool new_only, const char *name, TermPtr proto, WeakItem obj) {
@@ -1380,23 +1332,15 @@ RuntimePtr RunTime::Init(StringArray args) {
     if (!rt->ParseArgs(args)) {
         LOG_RUNTIME("Fail parse args!");
     }
-    if (rt->m_load_runtime) {
-        VERIFY(rt->RegisterBuildin(std::make_shared<newlang::runtime::Base>(rt)));
-        VERIFY(rt->RegisterBuildin(std::make_shared<newlang::runtime::System>(rt)));
-    }
+    //    if (rt->m_load_runtime) {
+    //        VERIFY(rt->RegisterBuildin(std::make_shared<newlang::runtime::Base>(rt)));
+    //        VERIFY(rt->RegisterBuildin(std::make_shared<newlang::runtime::System>(rt)));
+    //    }
     return rt;
 }
 
-ParserPtr RunTime::GetParser() {
-    // @todo Сделать корректныую очистку состояния парсера???
-    return std::make_shared<Parser>(m_macro, nullptr, m_diag, true, shared_from_this());
-}
-
-TermPtr RunTime::MakeAst(const std::string_view src, bool skip_analize) {
-    TermPtr ast = GetParser()->Parse(src.begin());
-    if (skip_analize) {
-        return ast;
-    }
+TermPtr RunTime::ParseBuildin(const std::string_view src) {
+    TermPtr ast = Parser::ParseString(src.begin());
 
     AstAnalysis analysis(*this, m_diag.get());
 
@@ -1414,20 +1358,6 @@ bool RunTime::ExpandFileName(std::string &filename) {
     return false;
 }
 
-ObjPtr RunTime::RunFile(std::string file, Obj* args) {
-    if (!ExpandFileName(file)) {
-        LOG_RUNTIME("File or module '%s' not found!", file.c_str());
-    }
-    std::string source = ReadFile(file.c_str());
-    //    TermPtr ast = MakeAst(source);
-    //    if (args) {
-    //        args->insert(args->begin(), {
-    //            "", Obj::CreateString(file)
-    //        });
-    //    }
-    return Run(source, args);
-}
-
 // Для теста 
 
 extern "C" char convert(char c) {
@@ -1436,125 +1366,6 @@ extern "C" char convert(char c) {
     if (c == 'G') return 'T';
     if (c == 'T') return 'A';
     return ' ';
-}
-
-RunTime::RunTime() :
-//m_llvm_builder(LLVMCreateBuilder()),
-m_macro(std::make_shared<Macro>()),
-m_diag(std::make_shared<Diag>()) {
-
-    m_assert_enable = true;
-    m_load_dsl = true;
-    m_embed_source = false;
-    m_import_module = true;
-    m_import_native = true;
-    m_eval_enable = true;
-    m_load_runtime = true;
-    //    m_error_limit = 10;
-    m_typedef_limit = 0;
-
-    //    m_cmd_args = Obj::CreateType(ObjType::Dictionary, ObjType::Dictionary, true);
-    //    m_main_args = Obj::CreateType(ObjType::Dictionary, ObjType::Dictionary, true);
-
-    m_main_module = std::make_shared<Module>();
-
-    LLVMLoadLibraryPermanently(nullptr);
-    LLVMAddSymbol("convert", (void *) &convert); // Для теста 
-
-
-#ifdef _MSC_VER
-
-    std::wstring sys_file;
-    std::string sys_init;
-
-    //#define CYGWIN
-#ifdef CYGWIN
-    sys_file = L"cygwin1.dll";
-    sys_init = "cygwin_dll_init";
-    ffi_file = "cygffi-6.dll";
-#else
-    //sys_file = L"msys-2.0.dll";
-    //sys_init = "msys_dll_init";
-    ffi_file = "libffi-6.dll";
-#endif
-
-    //m_msys = LoadLibrary(sys_file.c_str());
-    //if(!m_msys) {
-    //    LOG_RUNTIME("Fail LoadLibrary %s: %s", sys_file.c_str(), RunTime::GetLastErrorMessage().c_str());
-    //}
-
-    //    typedef void init_type();
-    //    init_type *init = (init_type *) GetProcAddress((HMODULE) m_msys, sys_init.c_str());
-    //    if(m_msys && !init) {
-    //        FreeLibrary((HMODULE) m_msys);
-    //        LOG_RUNTIME("Func %s not found! %s", sys_init.c_str(), RunTime::GetLastErrorMessage().c_str());
-    //        (*init)();
-    //    }
-
-    static void * m_ffi_handle = nullptr;
-
-    if (!m_ffi_handle) {
-        m_ffi_handle = LoadLibrary(utf8_decode(ffi_file).c_str());
-    }
-    if (!m_ffi_handle) {
-        LOG_RUNTIME("Fail load %s!", ffi_file.c_str());
-    }
-
-    m_ffi_type_void = reinterpret_cast<ffi_type *> (GetProcAddress((HMODULE) m_ffi_handle, "ffi_type_void"));
-    m_ffi_type_uint8 = reinterpret_cast<ffi_type *> (GetProcAddress((HMODULE) m_ffi_handle, "ffi_type_uint8"));
-    m_ffi_type_sint8 = reinterpret_cast<ffi_type *> (GetProcAddress((HMODULE) m_ffi_handle, "ffi_type_sint8"));
-    m_ffi_type_uint16 = reinterpret_cast<ffi_type *> (GetProcAddress((HMODULE) m_ffi_handle, "ffi_type_uint16"));
-    m_ffi_type_sint16 = reinterpret_cast<ffi_type *> (GetProcAddress((HMODULE) m_ffi_handle, "ffi_type_sint16"));
-    m_ffi_type_uint32 = reinterpret_cast<ffi_type *> (GetProcAddress((HMODULE) m_ffi_handle, "ffi_type_uint32"));
-    m_ffi_type_sint32 = reinterpret_cast<ffi_type *> (GetProcAddress((HMODULE) m_ffi_handle, "ffi_type_sint32"));
-    m_ffi_type_uint64 = reinterpret_cast<ffi_type *> (GetProcAddress((HMODULE) m_ffi_handle, "ffi_type_uint64"));
-    m_ffi_type_sint64 = reinterpret_cast<ffi_type *> (GetProcAddress((HMODULE) m_ffi_handle, "ffi_type_sint64"));
-    m_ffi_type_float = reinterpret_cast<ffi_type *> (GetProcAddress((HMODULE) m_ffi_handle, "ffi_type_float"));
-    m_ffi_type_double = reinterpret_cast<ffi_type *> (GetProcAddress((HMODULE) m_ffi_handle, "ffi_type_double"));
-    m_ffi_type_pointer = reinterpret_cast<ffi_type *> (GetProcAddress((HMODULE) m_ffi_handle, "ffi_type_pointer"));
-
-    m_ffi_prep_cif = reinterpret_cast<ffi_prep_cif_type *> (GetProcAddress((HMODULE) m_ffi_handle, "ffi_prep_cif"));
-    m_ffi_prep_cif_var = reinterpret_cast<ffi_prep_cif_var_type *> (GetProcAddress((HMODULE) m_ffi_handle, "ffi_prep_cif_var"));
-    m_ffi_call = reinterpret_cast<ffi_call_type *> (GetProcAddress((HMODULE) m_ffi_handle, "ffi_call"));
-
-    m_wide_char_type_ffi = m_ffi_type_uint16;
-    STATIC_ASSERT(sizeof (wchar_t) == 2);
-
-#else
-    //    std::string error;
-    if (LLVMLoadLibraryPermanently("libffi") == 0) {
-        LOG_RUNTIME("Fail load library libffi!");
-    }
-
-    m_ffi_type_void = static_cast<ffi_type *> (LLVMSearchForAddressOfSymbol("ffi_type_void"));
-    m_ffi_type_uint8 = static_cast<ffi_type *> (LLVMSearchForAddressOfSymbol("ffi_type_uint8"));
-    m_ffi_type_sint8 = static_cast<ffi_type *> (LLVMSearchForAddressOfSymbol("ffi_type_sint8"));
-    m_ffi_type_uint16 = static_cast<ffi_type *> (LLVMSearchForAddressOfSymbol("ffi_type_uint16"));
-    m_ffi_type_sint16 = static_cast<ffi_type *> (LLVMSearchForAddressOfSymbol("ffi_type_sint16"));
-    m_ffi_type_uint32 = static_cast<ffi_type *> (LLVMSearchForAddressOfSymbol("ffi_type_uint32"));
-    m_ffi_type_sint32 = static_cast<ffi_type *> (LLVMSearchForAddressOfSymbol("ffi_type_sint32"));
-    m_ffi_type_uint64 = static_cast<ffi_type *> (LLVMSearchForAddressOfSymbol("ffi_type_uint64"));
-    m_ffi_type_sint64 = static_cast<ffi_type *> (LLVMSearchForAddressOfSymbol("ffi_type_sint64"));
-    m_ffi_type_float = static_cast<ffi_type *> (LLVMSearchForAddressOfSymbol("ffi_type_float"));
-    m_ffi_type_double = static_cast<ffi_type *> (LLVMSearchForAddressOfSymbol("ffi_type_double"));
-    m_ffi_type_pointer = static_cast<ffi_type *> (LLVMSearchForAddressOfSymbol("ffi_type_pointer"));
-
-    m_ffi_prep_cif = reinterpret_cast<ffi_prep_cif_type *> (LLVMSearchForAddressOfSymbol("ffi_prep_cif"));
-    m_ffi_prep_cif_var = reinterpret_cast<ffi_prep_cif_var_type *> (LLVMSearchForAddressOfSymbol("ffi_prep_cif_var"));
-    m_ffi_call = reinterpret_cast<ffi_call_type *> (LLVMSearchForAddressOfSymbol("ffi_call"));
-
-    m_wide_char_type_ffi = m_ffi_type_uint32;
-    STATIC_ASSERT(sizeof (wchar_t) == 4);
-
-#endif
-
-    if (!(m_ffi_type_uint8 && m_ffi_type_sint8 && m_ffi_type_uint16 && m_ffi_type_sint16 &&
-            m_ffi_type_uint32 && m_ffi_type_sint32 && m_ffi_type_uint64 && m_ffi_type_sint64 &&
-            m_ffi_type_float && m_ffi_type_double && m_ffi_type_pointer && m_ffi_type_void &&
-            m_ffi_prep_cif && m_ffi_prep_cif_var && m_ffi_call)) {
-        LOG_RUNTIME("Fail init data from libffi!");
-    }
-
 }
 
 void RunTime::GlobalNameBuildinRegister() {
@@ -1635,7 +1446,7 @@ void RunTime::GlobalNameBuildinRegister() {
 
 bool RunTime::RegisterSystemFunc(const char *source) {
 
-    TermPtr ast = MakeAst(source, false);
+    TermPtr ast = ParseBuildin(source);
     TermPtr term = ast->Left();
     ASSERT(term);
     ASSERT(!term->m_int_name.empty());
@@ -1769,45 +1580,45 @@ ObjType RunTime::BaseTypeFromString(RunTime * rt, const std::string_view type_na
     return obj_type->m_var_type_fixed;
 }
 
-bool RunTime::RegisterBuildin(BuildinPtr module) {
+//bool RunTime::RegisterBuildin(BuildinPtr module) {
+//
+//    ASSERT(module);
+//    if (RegisterModule(module)) {
+////        return module->RegisterMacros(m_macro);
+//    }
+//    return false;
+//}
 
-    ASSERT(module);
-    if (RegisterModule(module)) {
-        return module->RegisterMacros(m_macro);
-    }
-    return false;
-}
-
-bool RunTime::RegisterModule(ModulePtr module) {
-    ASSERT(module);
-
-    //    if (module->m_var_type_current != ObjType::Module) {
-    //        LOG_RUNTIME("Object not a module '%s'!", module->toString().c_str());
-    //        return false;
-    //    }
-
-    std::string name(module->m_file);
-    //    LOG_DEBUG("Load '%s'", name.c_str());
-    //    name.append(module->m_class_name);
-
-    if (m_modules.find(name) != m_modules.end()) {
-        LOG_ERROR("Module name '%s' already register!", name.c_str());
-        return false;
-    }
-
-    for (auto &obj : *module) {
-        if (isStaticName(obj.first)) {
-            if (!NameRegister(true, obj.first.c_str(), obj.second.item, obj.second.obj)) {
-                LOG_ERROR("Fail register object '%s'!", obj.first.c_str());
-                return false;
-            }
-        }
-    }
-
-    m_modules[name] = module;
-
-    return true;
-}
+//bool RunTime::RegisterModule(ModulePtr module) {
+//    ASSERT(module);
+//
+//    //    if (module->m_var_type_current != ObjType::Module) {
+//    //        LOG_RUNTIME("Object not a module '%s'!", module->toString().c_str());
+//    //        return false;
+//    //    }
+//
+//    std::string name(module->m_file);
+//    //    LOG_DEBUG("Load '%s'", name.c_str());
+//    //    name.append(module->m_class_name);
+//
+//    if (m_modules.find(name) != m_modules.end()) {
+//        LOG_ERROR("Module name '%s' already register!", name.c_str());
+//        return false;
+//    }
+//
+//    for (auto &obj : *module) {
+//        if (isStaticName(obj.first)) {
+//            if (!NameRegister(true, obj.first.c_str(), obj.second.item, obj.second.obj)) {
+//                LOG_ERROR("Fail register object '%s'!", obj.first.c_str());
+//                return false;
+//            }
+//        }
+//    }
+//
+//    m_modules[name] = module;
+//
+//    return true;
+//}
 
 std::vector<std::wstring> RunTime::SelectPredict(std::string start, size_t overage_count) {
 
@@ -1989,7 +1800,7 @@ ObjPtr RunTime::CreateNative(const char *proto, const char *module, bool lazzy, 
 ObjPtr RunTime::CreateNative(TermPtr proto, const char *module, bool lazzy, const char *mangle_name) {
     ASSERT(!lazzy);
 
-    void *addr = GetNativeAddr(mangle_name ? mangle_name : proto->m_text.c_str());
+    void *addr = GetNativeAddress(nullptr, mangle_name ? mangle_name : proto->m_text.c_str());
     if (!addr) {
         NL_CHECK(addr, "Error getting address '%s' from '%s'!", proto->toString().c_str(), module);
     }
@@ -2211,35 +2022,17 @@ ObjPtr RunTime::OpLoadModule(TermPtr term) {
     return nullptr;
 }
 
-ModulePtr RunTime::CheckLoadModule(TermPtr &term) {
-    ASSERT(isModuleName(term->m_text));
-    std::string name = ExtractModuleName(term->m_text.c_str());
-
-    if (m_modules.find(name) == m_modules.end()) {
-        if (!LoadModuleFromFile(name.c_str(), true)) {
-            NL_PARSER(term, "Load module '%s' fail!", term->m_text.c_str());
-        }
-    }
-    return m_modules[name];
-}
-
-bool RunTime::ModuleCreate(FileModule &data, const std::string_view source) {
-
-    TermPtr ast = MakeAst(source);
-    return true;
-}
-
-bool RunTime::ModuleCreate(FileModule &data, const std::string_view module_name, const TermPtr &include, const std::string_view source, llvm::Module *bc) {
-
-    data.name.assign(module_name);
-    data.include = AstAnalysis::MakeInclude(include);
-    data.source = source;
-    if (bc) {
-        llvm::raw_string_ostream code(data.bytecode);
-        llvm::WriteBitcodeToFile(*bc, code);
-    }
-    return !data.name.empty() && !data.include.empty() && (data.source.empty() || data.bytecode.empty());
-}
+//ModulePtr RunTime::CheckLoadModule(TermPtr &term) {
+//    ASSERT(isModuleName(term->m_text));
+//    std::string name = ExtractModuleName(term->m_text.c_str());
+//
+//    if (m_modules.find(name) == m_modules.end()) {
+//        if (!LoadModuleFromFile(name.c_str(), true)) {
+//            NL_PARSER(term, "Load module '%s' fail!", term->m_text.c_str());
+//        }
+//    }
+//    return m_modules[name];
+//}
 
 static void zip_save(zip_t *zipper, const std::string_view file, const std::string &data) {
     zip_error_t error;
@@ -2366,49 +2159,49 @@ bool RunTime::ModuleRead(FileModule &data, const std::string_view filepath, cons
     return true;
 }
 
-/*
- * Построчное выполнение не изменяет AST, а только добавляет к нему новые строки.
- * Констекст выполнения (m_main_runner) тоже остается не изменным.
- */
-ObjPtr RunTime::Run(const std::string_view str, Obj* args) {
-    if (!m_main_ast || m_main_ast->m_id != TermID::BLOCK) {
-        m_main_ast = Term::Create(parser::token_type::END, TermID::BLOCK, "");
-        m_main_runner.reset();
-    }
-
-    TermPtr ast = GetParser()->Parse(str.begin());
-
-    m_main_ast->m_block.push_back(ast);
-
-    if (!m_main_runner) {
-        m_main_runner = std::make_shared<Context>(m_main_ast->m_int_vars, shared_from_this());
-    }
-    try {
-        m_diag->m_error_count = 0;
-
-        AstAnalysis analysis(*this, m_diag.get());
-
-        analysis.CheckError(analysis.Analyze(ast, m_main_ast));
-        //        AstCheckError(AstAnalyze(ast, m_main_ast));
-        if (m_diag->m_error_count) {
-            LOG_PARSER("fatal error: %d generated. ", m_diag->m_error_count);
-        }
-
-        return Context::Run(m_main_ast->m_block.back(), m_main_runner.get());
-    } catch (...) {
-        m_main_ast->m_block.pop_back();
-        throw;
-    }
-}
-
-/*
- * Выполенение целого AST создает полностью новый контекст выполнения.
- */
-ObjPtr RunTime::Run(TermPtr ast, Obj* args) {
-    m_main_ast = ast;
-    m_main_runner = std::make_shared<Context>(m_main_ast->m_int_vars, shared_from_this());
-    return Context::Run(m_main_ast, m_main_runner.get());
-}
+///*
+// * Построчное выполнение не изменяет AST, а только добавляет к нему новые строки.
+// * Констекст выполнения (m_main_runner) тоже остается не изменным.
+// */
+//ObjPtr RunTime::Run(const std::string_view str, Obj* args) {
+//    if (!m_main_ast || m_main_ast->m_id != TermID::BLOCK) {
+//        m_main_ast = Term::Create(parser::token_type::END, TermID::BLOCK, "");
+//        m_main_runner.reset();
+//    }
+//
+//    TermPtr ast = GetParser()->Parse(str.begin());
+//
+//    m_main_ast->m_block.push_back(ast);
+//
+//    if (!m_main_runner) {
+//        m_main_runner = std::make_shared<Context>(m_main_ast->m_int_vars, shared_from_this());
+//    }
+//    try {
+//        m_diag->m_error_count = 0;
+//
+//        AstAnalysis analysis(*this, m_diag.get());
+//
+//        analysis.CheckError(analysis.Analyze(ast, m_main_ast));
+//        //        AstCheckError(AstAnalyze(ast, m_main_ast));
+//        if (m_diag->m_error_count) {
+//            LOG_PARSER("fatal error: %d generated. ", m_diag->m_error_count);
+//        }
+//
+//        return Context::Run(m_main_ast->m_block.back(), m_main_runner.get());
+//    } catch (...) {
+//        m_main_ast->m_block.pop_back();
+//        throw;
+//    }
+//}
+//
+///*
+// * Выполенение целого AST создает полностью новый контекст выполнения.
+// */
+//ObjPtr RunTime::Run(TermPtr ast, Obj* args) {
+//    m_main_ast = ast;
+//    m_main_runner = std::make_shared<Context>(m_main_ast->m_int_vars, shared_from_this());
+//    return Context::Run(m_main_ast, m_main_runner.get());
+//}
 
 std::string RunTime::Escape(const std::string_view str) {
     std::string result;
@@ -2426,33 +2219,37 @@ std::string RunTime::Escape(const std::string_view str) {
     return result;
 }
 
-std::string RunTime::NativeNameMangling(const Term *term, RunTime *rt) {
-    ASSERT(term);
-    //    ASSERT(isNativeName(term->m_text));
-    //    if (!isStaticName(term->m_text)) {
-    //        // extern "C"
-    //        return term->m_text.substr(1);
-    //    } else {
-    //        // C++ mangling
-    //        ObjType type_var = typeFromString(term->m_type, rt);
-    //        if (!isNativeType(type_var)) {
-    //            NL_PARSER(term->m_type, "Type name '%s' not native type!", term->m_type->m_text.c_str());
-    //        }
-    //        if (term->isCall()) {
-    //            // Function
-    //            for (auto &arg : *term) {
-    //                ObjType type_arg = typeFromString(arg->m_type, rt);
-    //                if (!isNativeType(type_arg)) {
-    //                    NL_PARSER(arg->m_type, "Type name '%s' not native type!", arg->m_type->m_text.c_str());
-    //                }
-    //
-    //            }
-    //
-    //        } else {
-    //            // Variable, Struct, Union, Enum
-    //        }
-    //    }
-    return "";
+//std::string RunTime::NativeNameMangling(const Term *term, RunTime *rt) {
+//    ASSERT(term);
+//    //    ASSERT(isNativeName(term->m_text));
+//    //    if (!isStaticName(term->m_text)) {
+//    //        // extern "C"
+//    //        return term->m_text.substr(1);
+//    //    } else {
+//    //        // C++ mangling
+//    //        ObjType type_var = typeFromString(term->m_type, rt);
+//    //        if (!isNativeType(type_var)) {
+//    //            NL_PARSER(term->m_type, "Type name '%s' not native type!", term->m_type->m_text.c_str());
+//    //        }
+//    //        if (term->isCall()) {
+//    //            // Function
+//    //            for (auto &arg : *term) {
+//    //                ObjType type_arg = typeFromString(arg->m_type, rt);
+//    //                if (!isNativeType(type_arg)) {
+//    //                    NL_PARSER(arg->m_type, "Type name '%s' not native type!", arg->m_type->m_text.c_str());
+//    //                }
+//    //
+//    //            }
+//    //
+//    //        } else {
+//    //            // Variable, Struct, Union, Enum
+//    //        }
+//    //    }
+//    return "";
+//}
+
+__attribute__ ((weak)) void * RunTime::GetNativeAddress(void * handle, const std::string_view name) {
+    return dlsym(handle, name.begin());
 }
 
 std::string RunTime::NativeNameMangling(std::string_view name) {
@@ -2479,17 +2276,167 @@ std::string newlang::MakeConstructorName(std::string name) {
     return result;
 }
 
-std::string newlang::MakeLocalName(std::string name) {
-    return MangleName(MakeName(name).c_str());
+//std::string newlang::MakeLocalName(std::string name) {
+//    return MangleName(MakeName(name).c_str());
+//}
+
+std::string RunTime::GetLastErrorMessage() {
+#ifndef _MSC_VER
+    return std::string(strerror(errno));
+#else
+    wchar_t buffer[256];
+    FormatMessage(FORMAT_MESSAGE_FROM_SYSTEM, NULL, GetLastError(),
+            MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT), buffer, sizeof (buffer), NULL);
+
+    return utf8_encode(buffer);
+#endif        
 }
 
+//void * RunTime::GetNativeAddr(const char *name, void * handle) {
+//    return GetDirectAddressFromLibrary(handle, name);
+//}
+
+RunTime::~RunTime() {
+    if (m_ffi_handle) {
+        dlclose(m_ffi_handle);
+    }
+    m_ffi_handle = nullptr;
+}
+
+RunTime::RunTime() :
+//m_llvm_builder(LLVMCreateBuilder()),
+m_diag(std::make_shared<Diag>()) {
+
+    m_assert_enable = true;
+    m_load_dsl = true;
+    m_embed_source = false;
+    m_import_module = true;
+    m_import_native = true;
+    m_eval_enable = true;
+    m_load_runtime = true;
+    m_link_rt = true;
+    m_link_jit = true;
+    //    m_error_limit = 10;
+    m_typedef_limit = 0;
+    m_ffi_handle = nullptr;
+
+    //    m_cmd_args = Obj::CreateType(ObjType::Dictionary, ObjType::Dictionary, true);
+    //    m_main_args = Obj::CreateType(ObjType::Dictionary, ObjType::Dictionary, true);
+
+    //    m_main_module = std::make_shared<Module>();
+
+    //    LLVMLoadLibraryPermanently(nullptr);
+    //    LLVMAddSymbol("convert", (void *) &convert); // Для теста 
+
+
+#ifdef _MSC_VER
+
+    std::wstring sys_file;
+    std::string sys_init;
+
+    //#define CYGWIN
+#ifdef CYGWIN
+    sys_file = L"cygwin1.dll";
+    sys_init = "cygwin_dll_init";
+    ffi_file = "cygffi-6.dll";
+#else
+    //sys_file = L"msys-2.0.dll";
+    //sys_init = "msys_dll_init";
+    ffi_file = "libffi-6.dll";
+#endif
+
+    //m_msys = LoadLibrary(sys_file.c_str());
+    //if(!m_msys) {
+    //    LOG_RUNTIME("Fail LoadLibrary %s: %s", sys_file.c_str(), RunTime::GetLastErrorMessage().c_str());
+    //}
+
+    //    typedef void init_type();
+    //    init_type *init = (init_type *) GetProcAddress((HMODULE) m_msys, sys_init.c_str());
+    //    if(m_msys && !init) {
+    //        FreeLibrary((HMODULE) m_msys);
+    //        LOG_RUNTIME("Func %s not found! %s", sys_init.c_str(), RunTime::GetLastErrorMessage().c_str());
+    //        (*init)();
+    //    }
+
+
+    if (!m_ffi_handle) {
+        m_ffi_handle = LoadLibrary(utf8_decode(ffi_file).c_str());
+    }
+    if (!m_ffi_handle) {
+        LOG_RUNTIME("Fail load %s!", ffi_file.c_str());
+    }
+
+    m_ffi_type_void = reinterpret_cast<ffi_type *> (GetProcAddress((HMODULE) m_ffi_handle, "ffi_type_void"));
+    m_ffi_type_uint8 = reinterpret_cast<ffi_type *> (GetProcAddress((HMODULE) m_ffi_handle, "ffi_type_uint8"));
+    m_ffi_type_sint8 = reinterpret_cast<ffi_type *> (GetProcAddress((HMODULE) m_ffi_handle, "ffi_type_sint8"));
+    m_ffi_type_uint16 = reinterpret_cast<ffi_type *> (GetProcAddress((HMODULE) m_ffi_handle, "ffi_type_uint16"));
+    m_ffi_type_sint16 = reinterpret_cast<ffi_type *> (GetProcAddress((HMODULE) m_ffi_handle, "ffi_type_sint16"));
+    m_ffi_type_uint32 = reinterpret_cast<ffi_type *> (GetProcAddress((HMODULE) m_ffi_handle, "ffi_type_uint32"));
+    m_ffi_type_sint32 = reinterpret_cast<ffi_type *> (GetProcAddress((HMODULE) m_ffi_handle, "ffi_type_sint32"));
+    m_ffi_type_uint64 = reinterpret_cast<ffi_type *> (GetProcAddress((HMODULE) m_ffi_handle, "ffi_type_uint64"));
+    m_ffi_type_sint64 = reinterpret_cast<ffi_type *> (GetProcAddress((HMODULE) m_ffi_handle, "ffi_type_sint64"));
+    m_ffi_type_float = reinterpret_cast<ffi_type *> (GetProcAddress((HMODULE) m_ffi_handle, "ffi_type_float"));
+    m_ffi_type_double = reinterpret_cast<ffi_type *> (GetProcAddress((HMODULE) m_ffi_handle, "ffi_type_double"));
+    m_ffi_type_pointer = reinterpret_cast<ffi_type *> (GetProcAddress((HMODULE) m_ffi_handle, "ffi_type_pointer"));
+
+    m_ffi_prep_cif = reinterpret_cast<ffi_prep_cif_type *> (GetProcAddress((HMODULE) m_ffi_handle, "ffi_prep_cif"));
+    m_ffi_prep_cif_var = reinterpret_cast<ffi_prep_cif_var_type *> (GetProcAddress((HMODULE) m_ffi_handle, "ffi_prep_cif_var"));
+    m_ffi_call = reinterpret_cast<ffi_call_type *> (GetProcAddress((HMODULE) m_ffi_handle, "ffi_call"));
+
+    m_wide_char_type_ffi = m_ffi_type_uint16;
+    STATIC_ASSERT(sizeof (wchar_t) == 2);
+
+#else
+
+
+    //    if ((m_ffi_handle = dlopen("ffi", RTLD_NOW)) == nullptr) {
+    //        LOG_RUNTIME("Fail load library libffi!");
+    //    }
+
+    m_ffi_type_void = static_cast<ffi_type *> (GetNativeAddress(m_ffi_handle, "ffi_type_void"));
+    m_ffi_type_uint8 = static_cast<ffi_type *> (GetNativeAddress(m_ffi_handle, "ffi_type_uint8"));
+    m_ffi_type_sint8 = static_cast<ffi_type *> (GetNativeAddress(m_ffi_handle, "ffi_type_sint8"));
+    m_ffi_type_uint16 = static_cast<ffi_type *> (GetNativeAddress(m_ffi_handle, "ffi_type_uint16"));
+    m_ffi_type_sint16 = static_cast<ffi_type *> (GetNativeAddress(m_ffi_handle, "ffi_type_sint16"));
+    m_ffi_type_uint32 = static_cast<ffi_type *> (GetNativeAddress(m_ffi_handle, "ffi_type_uint32"));
+    m_ffi_type_sint32 = static_cast<ffi_type *> (GetNativeAddress(m_ffi_handle, "ffi_type_sint32"));
+    m_ffi_type_uint64 = static_cast<ffi_type *> (GetNativeAddress(m_ffi_handle, "ffi_type_uint64"));
+    m_ffi_type_sint64 = static_cast<ffi_type *> (GetNativeAddress(m_ffi_handle, "ffi_type_sint64"));
+    m_ffi_type_float = static_cast<ffi_type *> (GetNativeAddress(m_ffi_handle, "ffi_type_float"));
+    m_ffi_type_double = static_cast<ffi_type *> (GetNativeAddress(m_ffi_handle, "ffi_type_double"));
+    m_ffi_type_pointer = static_cast<ffi_type *> (GetNativeAddress(m_ffi_handle, "ffi_type_pointer"));
+
+    m_ffi_prep_cif = reinterpret_cast<ffi_prep_cif_type *> (GetNativeAddress(m_ffi_handle, "ffi_prep_cif"));
+    m_ffi_prep_cif_var = reinterpret_cast<ffi_prep_cif_var_type *> (GetNativeAddress(m_ffi_handle, "ffi_prep_cif_var"));
+    m_ffi_call = reinterpret_cast<ffi_call_type *> (GetNativeAddress(m_ffi_handle, "ffi_call"));
+
+    m_wide_char_type_ffi = m_ffi_type_uint32;
+    STATIC_ASSERT(sizeof (wchar_t) == 4);
+
+#endif
+
+    if (!(m_ffi_type_uint8 && m_ffi_type_sint8 && m_ffi_type_uint16 && m_ffi_type_sint16 &&
+            m_ffi_type_uint32 && m_ffi_type_sint32 && m_ffi_type_uint64 && m_ffi_type_sint64 &&
+            m_ffi_type_float && m_ffi_type_double && m_ffi_type_pointer && m_ffi_type_void &&
+            m_ffi_prep_cif && m_ffi_prep_cif_var && m_ffi_call)) {
+        LOG_RUNTIME("Fail init data from libffi!");
+    }
+
+#ifdef _MSC_VER
+    m_wide_char_type = ObjType::Int16;
+    STATIC_ASSERT(sizeof (wchar_t) == 2);
+#else
+    m_wide_char_type = ObjType::Int32;
+    STATIC_ASSERT(sizeof (wchar_t) == 4);
+#endif
 
 #if defined(__x86_64__) || defined(_M_X64) || defined(__amd64__) || defined(__amd64)
-ObjType RunTime::m_integer_type = ObjType::Int64;
-STATIC_ASSERT(sizeof (size_t) == 8);
+    m_integer_type = ObjType::Int64;
+    STATIC_ASSERT(sizeof (size_t) == 8);
 #elif defined(i386) || defined(__i386__) || defined(__i386) || defined(_M_IX86)
-ObjType RunTime::m_integer_type = ObjType::Int32;
-STATIC_ASSERT(sizeof (size_t) == 4);
+    m_integer_type = ObjType::Int32;
+    STATIC_ASSERT(sizeof (size_t) == 4);
 #else
 #error Target architecture not defined!
 #endif
+}

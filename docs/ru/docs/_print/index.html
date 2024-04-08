@@ -428,6 +428,22 @@
 
     
   
+    
+    
+	
+<li>4.3: <a href="#pg-89138bfdfd307537b9369eef3039a6ea">Реализация JIT</a></li>
+
+
+    
+  
+    
+    
+	
+<li>4.4: <a href="#pg-3a4d642619eb08f47874dbcc8c207079">Области видимости</a></li>
+
+
+    
+  
 
     </ul>
     
@@ -2167,7 +2183,8 @@ dict3 := dict2(99, name=0); # Копия объекта dict2 (99, two=42, name=
 При создании экземпляра класса, создается новый тип, для которого копируются свойства и методы всех родителей.</p>
 <p>Создание нового сложного типа (класса), происходит согласно <a href="/ru/docs/ops/create/">правилам синтаксиса</a> как создание нового типа
 как функции в пользовательском <a href="/ru/docs/syntax/namespace/">пространстве имен</a>.
-Имя типа является именем нового класса, а его вызов как функции будет вызовом конструктора.</p>
+Имя типа является именем нового класса, а его вызов как функции будет вызовом конструктора.
+Области видимости <a href="/ru/docs/arch/visibility.">тут</a></p>
 <p>Синтаксис создание класса выглядит следующим образом:</p>
 <div class="highlight"><pre tabindex="0" style="background-color:#f8f8f8;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-python" data-lang="python"><span style="display:flex;"><span><span style="color:#8f5902;font-style:italic"># Новый тип (класс) :NewClass</span>
 </span></span><span style="display:flex;"><span><span style="color:#000">ns</span><span style="color:#000;font-weight:bold">::</span><span style="color:#000">NewClass</span><span style="color:#000;font-weight:bold">()</span> <span style="color:#ce5c00;font-weight:bold">:=</span> <span style="color:#000;font-weight:bold">:</span><span style="color:#000">Class</span><span style="color:#000;font-weight:bold">()</span> <span style="color:#000;font-weight:bold">{</span> <span style="color:#8f5902;font-style:italic"># Родительские класс или несколько классов через запятую</span>
@@ -2191,20 +2208,7 @@ dict3 := dict2(99, name=0); # Копия объекта dict2 (99, two=42, name=
 </span></span><span style="display:flex;"><span>    <span style="color:#ce5c00;font-weight:bold">.</span><span style="color:#000">field</span> <span style="color:#000;font-weight:bold">:</span><span style="color:#ce5c00;font-weight:bold">:=</span> <span style="color:#0000cf;font-weight:bold">2</span><span style="color:#000;font-weight:bold">;</span>    <span style="color:#8f5902;font-style:italic"># Будет ошибка, т.к. поле field уже есть в базовом классе</span>
 </span></span><span style="display:flex;"><span>    <span style="color:#000">method</span><span style="color:#000;font-weight:bold">()</span> <span style="color:#ce5c00;font-weight:bold">=</span> <span style="color:#000;font-weight:bold">{};</span>  <span style="color:#8f5902;font-style:italic"># Аналог override, т.к. method должен существовать в базовом классе</span>
 </span></span><span style="display:flex;"><span><span style="color:#000;font-weight:bold">};</span>
-</span></span></code></pre></div><h3 id="области-видимости">Области видимости<a class="td-heading-self-link" href="#%d0%be%d0%b1%d0%bb%d0%b0%d1%81%d1%82%d0%b8-%d0%b2%d0%b8%d0%b4%d0%b8%d0%bc%d0%be%d1%81%d1%82%d0%b8" aria-label="Heading self-link"></a></h3>
-<p>Символ подчерка, а так же подчерк в начале имени или двойные подчерки в начале и в конце имени имеют специальное значение.</p>
-<p>Один подчерк соответствует защищенной, а два подчерка - приватной области видимости объекта в модуле или классе,
-что соответствует принятым соглашениям в языке Python.</p>
-<p>Но так же, как и в языке Python, области видимости больше соответствуют &ldquo;джентльменской&rdquo; договоренности и при явном указании имени,
-доступ к защищенным объектам можно получить, просто указав полное имя объекта.</p>
-<p>В дополнении к этому, существуют еще системные поля и объекты, которые начинаются и заканчиваются на два подчерка.</p>
-<ul>
-<li>&lsquo;<strong>$</strong>&rsquo; — знак доллара в начале имени обозначает системное (локальное) имя временной переменной,
-область памяти для которой выделяется во время выполнения, а время <a href="/ru/docs/syntax/memory/">жизни ограничено семантикой яызка</a></li>
-<li>&lsquo;<strong>::</strong>&rsquo; — двойное двоеточие являются разделителем при указании <a href="/ru/docs/syntax/namespace/">пространства имен</a>.
-Явное указание пространства имен является признаком статического объекта, область памяти для которого выделяется во время компиляции приложения или модуля.</li>
-</ul>
-<h2 id="импорт-нативных-классов">Импорт нативных классов<a class="td-heading-self-link" href="#%d0%b8%d0%bc%d0%bf%d0%be%d1%80%d1%82-%d0%bd%d0%b0%d1%82%d0%b8%d0%b2%d0%bd%d1%8b%d1%85-%d0%ba%d0%bb%d0%b0%d1%81%d1%81%d0%be%d0%b2" aria-label="Heading self-link"></a></h2>
+</span></span></code></pre></div><h2 id="импорт-нативных-классов--косяки">Импорт нативных классов  &lt;КОСЯКИ!!!!!&gt;<a class="td-heading-self-link" href="#%d0%b8%d0%bc%d0%bf%d0%be%d1%80%d1%82-%d0%bd%d0%b0%d1%82%d0%b8%d0%b2%d0%bd%d1%8b%d1%85-%d0%ba%d0%bb%d0%b0%d1%81%d1%81%d0%be%d0%b2--%d0%ba%d0%be%d1%81%d1%8f%d0%ba%d0%b8" aria-label="Heading self-link"></a></h2>
 <p>Так же новый класс можно создать на базе нативного класса C++ с определенными ограничениями:</p>
 <ul>
 <li>У нативных классов можно импортировть только <em>публичные не статические методы</em> (не виртуальные???)</li>
@@ -2218,39 +2222,41 @@ dict3 := dict2(99, name=0); # Копия объекта dict2 (99, two=42, name=
 <p>При импорте нативного класса, он указывается в качестве родителя с указанием полного пространства имен.
 Вызов нативного конструктора происходит автоматически перед выполенением конструктора объекта.
 Вызов нативнного деструктора происходит автоматически при удалении объекта.</p>
-<div class="highlight"><pre tabindex="0" style="background-color:#f8f8f8;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-python" data-lang="python"><span style="display:flex;"><span><span style="color:#8f5902;font-style:italic"># Импорт нативного класса С++</span>
+<p>Определение нативного класса С++:</p>
+<div class="highlight"><pre tabindex="0" style="background-color:#f8f8f8;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-cpp" data-lang="cpp"><span style="display:flex;"><span><span style="color:#204a87;font-weight:bold">namespace</span> <span style="color:#000">ns</span> <span style="color:#000;font-weight:bold">{</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#204a87;font-weight:bold">class</span> <span style="color:#000">NativeClassCPP</span> <span style="color:#000;font-weight:bold">{</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#204a87;font-weight:bold">int</span> <span style="color:#000">day</span><span style="color:#000;font-weight:bold">;</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#204a87;font-weight:bold">int</span> <span style="color:#000">month</span><span style="color:#000;font-weight:bold">;</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#204a87;font-weight:bold">int</span> <span style="color:#000">year</span><span style="color:#000;font-weight:bold">;</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#204a87;font-weight:bold">public</span><span style="color:#ce5c00;font-weight:bold">:</span>
 </span></span><span style="display:flex;"><span>
-</span></span><span style="display:flex;"><span><span style="color:#204a87;font-weight:bold">class</span> <span style="color:#000">NativeClassCPP</span>
-</span></span><span style="display:flex;"><span><span style="color:#000;font-weight:bold">{</span>
-</span></span><span style="display:flex;"><span><span style="color:#000">public</span><span style="color:#000;font-weight:bold">:</span>
-</span></span><span style="display:flex;"><span>    <span style="color:#204a87">int</span> <span style="color:#000">day</span><span style="color:#000;font-weight:bold">;</span>
-</span></span><span style="display:flex;"><span>    <span style="color:#204a87">int</span> <span style="color:#000">month</span><span style="color:#000;font-weight:bold">;</span>
-</span></span><span style="display:flex;"><span>    <span style="color:#204a87">int</span> <span style="color:#000">year</span><span style="color:#000;font-weight:bold">;</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#000">NativeClassCPP</span><span style="color:#000;font-weight:bold">()</span><span style="color:#ce5c00;font-weight:bold">:</span> <span style="color:#000">NativeClassCPP</span><span style="color:#000;font-weight:bold">(</span><span style="color:#0000cf;font-weight:bold">0</span><span style="color:#000;font-weight:bold">,</span> <span style="color:#0000cf;font-weight:bold">0</span><span style="color:#000;font-weight:bold">,</span> <span style="color:#0000cf;font-weight:bold">0</span><span style="color:#000;font-weight:bold">)</span> <span style="color:#000;font-weight:bold">{</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#000;font-weight:bold">}</span>
 </span></span><span style="display:flex;"><span>
-</span></span><span style="display:flex;"><span>    <span style="color:#000">NativeClassCPP</span><span style="color:#000;font-weight:bold">():</span> <span style="color:#000">NativeClassCPP</span><span style="color:#000;font-weight:bold">(</span><span style="color:#0000cf;font-weight:bold">0</span><span style="color:#000;font-weight:bold">,</span> <span style="color:#0000cf;font-weight:bold">0</span><span style="color:#000;font-weight:bold">,</span> <span style="color:#0000cf;font-weight:bold">0</span><span style="color:#000;font-weight:bold">)</span> <span style="color:#000;font-weight:bold">{</span>
-</span></span><span style="display:flex;"><span>    <span style="color:#000;font-weight:bold">}</span>
-</span></span><span style="display:flex;"><span>    <span style="color:#000">NativeClassCPP</span><span style="color:#000;font-weight:bold">(</span><span style="color:#204a87">int</span> <span style="color:#000">day</span><span style="color:#000;font-weight:bold">,</span> <span style="color:#204a87">int</span> <span style="color:#000">month</span><span style="color:#000;font-weight:bold">,</span> <span style="color:#204a87">int</span> <span style="color:#000">year</span> <span style="color:#000;font-weight:bold">)</span> <span style="color:#000;font-weight:bold">{</span>
-</span></span><span style="display:flex;"><span>        <span style="color:#000">setDate</span><span style="color:#000;font-weight:bold">(</span><span style="color:#000">day</span><span style="color:#000;font-weight:bold">,</span> <span style="color:#000">month</span><span style="color:#000;font-weight:bold">,</span> <span style="color:#000">year</span><span style="color:#000;font-weight:bold">);</span>
-</span></span><span style="display:flex;"><span>    <span style="color:#000;font-weight:bold">}</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#000">NativeClassCPP</span><span style="color:#000;font-weight:bold">(</span><span style="color:#204a87;font-weight:bold">int</span> <span style="color:#000">day</span><span style="color:#000;font-weight:bold">,</span> <span style="color:#204a87;font-weight:bold">int</span> <span style="color:#000">month</span><span style="color:#000;font-weight:bold">,</span> <span style="color:#204a87;font-weight:bold">int</span> <span style="color:#000">year</span> <span style="color:#000;font-weight:bold">)</span> <span style="color:#000;font-weight:bold">{</span>
+</span></span><span style="display:flex;"><span>            <span style="color:#000">setDate</span><span style="color:#000;font-weight:bold">(</span><span style="color:#000">day</span><span style="color:#000;font-weight:bold">,</span> <span style="color:#000">month</span><span style="color:#000;font-weight:bold">,</span> <span style="color:#000">year</span><span style="color:#000;font-weight:bold">);</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#000;font-weight:bold">}</span>
 </span></span><span style="display:flex;"><span>
-</span></span><span style="display:flex;"><span>    <span style="color:#000">std</span><span style="color:#000;font-weight:bold">::</span><span style="color:#000">string</span> <span style="color:#000">message</span><span style="color:#000;font-weight:bold">()</span>  <span style="color:#000;font-weight:bold">{</span>
-</span></span><span style="display:flex;"><span>        <span style="color:#204a87;font-weight:bold">return</span> <span style="color:#000">std</span><span style="color:#000;font-weight:bold">::</span><span style="color:#000">string</span><span style="color:#000;font-weight:bold">(</span><span style="color:#4e9a06">&#34;</span><span style="color:#4e9a06">\n</span><span style="color:#4e9a06">NativeClass C++ message</span><span style="color:#4e9a06">\n</span><span style="color:#4e9a06">&#34;</span><span style="color:#000;font-weight:bold">);</span>
-</span></span><span style="display:flex;"><span>    <span style="color:#000;font-weight:bold">}</span>
-</span></span><span style="display:flex;"><span>    <span style="color:#000">void</span> <span style="color:#000">setDate</span><span style="color:#000;font-weight:bold">(</span><span style="color:#204a87">int</span> <span style="color:#000">date_day</span><span style="color:#000;font-weight:bold">,</span> <span style="color:#204a87">int</span> <span style="color:#000">date_month</span><span style="color:#000;font-weight:bold">,</span> <span style="color:#204a87">int</span> <span style="color:#000">date_year</span><span style="color:#000;font-weight:bold">)</span> <span style="color:#000;font-weight:bold">{</span>
-</span></span><span style="display:flex;"><span>        <span style="color:#000">day</span>   <span style="color:#ce5c00;font-weight:bold">=</span> <span style="color:#000">date_day</span><span style="color:#000;font-weight:bold">;</span>
-</span></span><span style="display:flex;"><span>        <span style="color:#000">month</span> <span style="color:#ce5c00;font-weight:bold">=</span> <span style="color:#000">date_month</span><span style="color:#000;font-weight:bold">;</span>
-</span></span><span style="display:flex;"><span>        <span style="color:#000">year</span>  <span style="color:#ce5c00;font-weight:bold">=</span> <span style="color:#000">date_year</span><span style="color:#000;font-weight:bold">;</span>
-</span></span><span style="display:flex;"><span>    <span style="color:#000;font-weight:bold">}</span>
-</span></span><span style="display:flex;"><span>    <span style="color:#000">void</span> <span style="color:#000">getDate</span><span style="color:#000;font-weight:bold">()</span> <span style="color:#000;font-weight:bold">{</span>
-</span></span><span style="display:flex;"><span>        <span style="color:#000">cout</span> <span style="color:#ce5c00;font-weight:bold">&lt;&lt;</span> <span style="color:#4e9a06">&#34;date: &#34;</span> <span style="color:#ce5c00;font-weight:bold">&lt;&lt;</span> <span style="color:#000">day</span> <span style="color:#ce5c00;font-weight:bold">&lt;&lt;</span> <span style="color:#4e9a06">&#34;.&#34;</span> <span style="color:#ce5c00;font-weight:bold">&lt;&lt;</span> <span style="color:#000">month</span> <span style="color:#ce5c00;font-weight:bold">&lt;&lt;</span> <span style="color:#4e9a06">&#34;.&#34;</span> <span style="color:#ce5c00;font-weight:bold">&lt;&lt;</span> <span style="color:#000">year</span> <span style="color:#ce5c00;font-weight:bold">&lt;&lt;</span> <span style="color:#000">endl</span><span style="color:#000;font-weight:bold">;</span>
-</span></span><span style="display:flex;"><span>    <span style="color:#000;font-weight:bold">}</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#000">std</span><span style="color:#ce5c00;font-weight:bold">::</span><span style="color:#000">string</span> <span style="color:#000">message</span><span style="color:#000;font-weight:bold">()</span>  <span style="color:#000;font-weight:bold">{</span>
+</span></span><span style="display:flex;"><span>            <span style="color:#204a87;font-weight:bold">return</span> <span style="color:#000">std</span><span style="color:#ce5c00;font-weight:bold">::</span><span style="color:#000">string</span><span style="color:#000;font-weight:bold">(</span><span style="color:#4e9a06">&#34;</span><span style="color:#4e9a06">\n</span><span style="color:#4e9a06">NativeClass C++ message</span><span style="color:#4e9a06">\n</span><span style="color:#4e9a06">&#34;</span><span style="color:#000;font-weight:bold">);</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#000;font-weight:bold">}</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>        <span style="color:#204a87;font-weight:bold">void</span> <span style="color:#000">setDate</span><span style="color:#000;font-weight:bold">(</span><span style="color:#204a87;font-weight:bold">int</span> <span style="color:#000">date_day</span><span style="color:#000;font-weight:bold">,</span> <span style="color:#204a87;font-weight:bold">int</span> <span style="color:#000">date_month</span><span style="color:#000;font-weight:bold">,</span> <span style="color:#204a87;font-weight:bold">int</span> <span style="color:#000">date_year</span><span style="color:#000;font-weight:bold">)</span> <span style="color:#000;font-weight:bold">{</span>
+</span></span><span style="display:flex;"><span>            <span style="color:#000">day</span>   <span style="color:#ce5c00;font-weight:bold">=</span> <span style="color:#000">date_day</span><span style="color:#000;font-weight:bold">;</span>
+</span></span><span style="display:flex;"><span>            <span style="color:#000">month</span> <span style="color:#ce5c00;font-weight:bold">=</span> <span style="color:#000">date_month</span><span style="color:#000;font-weight:bold">;</span>
+</span></span><span style="display:flex;"><span>            <span style="color:#000">year</span>  <span style="color:#ce5c00;font-weight:bold">=</span> <span style="color:#000">date_year</span><span style="color:#000;font-weight:bold">;</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#000;font-weight:bold">}</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>        <span style="color:#204a87;font-weight:bold">void</span> <span style="color:#000">getDate</span><span style="color:#000;font-weight:bold">()</span> <span style="color:#000;font-weight:bold">{</span>
+</span></span><span style="display:flex;"><span>            <span style="color:#000">cout</span> <span style="color:#ce5c00;font-weight:bold">&lt;&lt;</span> <span style="color:#4e9a06">&#34;date: &#34;</span> <span style="color:#ce5c00;font-weight:bold">&lt;&lt;</span> <span style="color:#000">day</span> <span style="color:#ce5c00;font-weight:bold">&lt;&lt;</span> <span style="color:#4e9a06">&#34;.&#34;</span> <span style="color:#ce5c00;font-weight:bold">&lt;&lt;</span> <span style="color:#000">month</span> <span style="color:#ce5c00;font-weight:bold">&lt;&lt;</span> <span style="color:#4e9a06">&#34;.&#34;</span> <span style="color:#ce5c00;font-weight:bold">&lt;&lt;</span> <span style="color:#000">year</span> <span style="color:#ce5c00;font-weight:bold">&lt;&lt;</span> <span style="color:#000">endl</span><span style="color:#000;font-weight:bold">;</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#000;font-weight:bold">}</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#000;font-weight:bold">};</span>
 </span></span><span style="display:flex;"><span><span style="color:#000;font-weight:bold">};</span>
-</span></span><span style="display:flex;"><span>
-</span></span><span style="display:flex;"><span>
-</span></span><span style="display:flex;"><span><span style="color:#000;font-weight:bold">:</span><span style="color:#000">NativeClass</span> <span style="color:#ce5c00;font-weight:bold">:=</span> <span style="color:#ce5c00;font-weight:bold">%</span><span style="color:#000">NativeClassCPP</span> <span style="color:#000;font-weight:bold">{</span>
+</span></span></code></pre></div><p>Импорт нативного класса:</p>
+<div class="highlight"><pre tabindex="0" style="background-color:#f8f8f8;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-python" data-lang="python"><span style="display:flex;"><span><span style="color:#000;font-weight:bold">:</span><span style="color:#000">NativeClass</span> <span style="color:#ce5c00;font-weight:bold">:=</span> <span style="color:#ce5c00;font-weight:bold">%</span><span style="color:#000">ns</span><span style="color:#000;font-weight:bold">::</span><span style="color:#000">NativeClassCPP</span> <span style="color:#000;font-weight:bold">{</span>
 </span></span><span style="display:flex;"><span>
 </span></span><span style="display:flex;"><span>    <span style="color:#8f5902;font-style:italic"># Конструктор класса</span>
-</span></span><span style="display:flex;"><span>    <span style="color:#000">NativeClass</span><span style="color:#000;font-weight:bold">(</span><span style="color:#000">day</span><span style="color:#000;font-weight:bold">:</span><span style="color:#000">Int32</span><span style="color:#000;font-weight:bold">,</span> <span style="color:#000">month</span><span style="color:#000;font-weight:bold">:</span><span style="color:#000">Int32</span><span style="color:#000;font-weight:bold">,</span> <span style="color:#000">year</span><span style="color:#000;font-weight:bold">:</span><span style="color:#000">Int32</span><span style="color:#000;font-weight:bold">)</span> <span style="color:#000;font-weight:bold">:</span><span style="color:#ce5c00;font-weight:bold">:=</span> <span style="color:#ce5c00;font-weight:bold">%</span><span style="color:#000;font-weight:bold">(</span><span style="color:#000">day</span><span style="color:#000;font-weight:bold">,</span> <span style="color:#000">month</span><span style="color:#000;font-weight:bold">,</span> <span style="color:#000">year</span><span style="color:#000;font-weight:bold">)</span> <span style="color:#000;font-weight:bold">{</span> 
+</span></span><span style="display:flex;"><span>    <span style="color:#000">NativeClass</span><span style="color:#000;font-weight:bold">(</span><span style="color:#000">day</span><span style="color:#000;font-weight:bold">:</span><span style="color:#000">Int32</span><span style="color:#ce5c00;font-weight:bold">=</span><span style="color:#0000cf;font-weight:bold">0</span><span style="color:#000;font-weight:bold">,</span> <span style="color:#000">month</span><span style="color:#000;font-weight:bold">:</span><span style="color:#000">Int32</span><span style="color:#ce5c00;font-weight:bold">=</span><span style="color:#0000cf;font-weight:bold">0</span><span style="color:#000;font-weight:bold">,</span> <span style="color:#000">year</span><span style="color:#000;font-weight:bold">:</span><span style="color:#000">Int32</span><span style="color:#ce5c00;font-weight:bold">=</span><span style="color:#0000cf;font-weight:bold">0</span><span style="color:#000;font-weight:bold">)</span> <span style="color:#000;font-weight:bold">:</span><span style="color:#ce5c00;font-weight:bold">:=</span> <span style="color:#ce5c00;font-weight:bold">%</span><span style="color:#000;font-weight:bold">(</span><span style="color:#000">day</span><span style="color:#000;font-weight:bold">,</span> <span style="color:#000">month</span><span style="color:#000;font-weight:bold">,</span> <span style="color:#000">year</span><span style="color:#000;font-weight:bold">)</span> <span style="color:#000;font-weight:bold">{</span> 
 </span></span><span style="display:flex;"><span>    <span style="color:#8f5902;font-style:italic"># Будет вызываться  NativeClassCPP(int day, int month, int year )</span>
 </span></span><span style="display:flex;"><span>
 </span></span><span style="display:flex;"><span>    <span style="color:#000;font-weight:bold">}</span>
@@ -2263,7 +2269,9 @@ dict3 := dict2(99, name=0); # Копия объекта dict2 (99, two=42, name=
 </span></span><span style="display:flex;"><span>        <span style="color:#8f5902;font-style:italic"># Деструктор для нативного объекта вызывается автоматически</span>
 </span></span><span style="display:flex;"><span>    <span style="color:#000;font-weight:bold">};</span>
 </span></span><span style="display:flex;"><span><span style="color:#000;font-weight:bold">};</span>
-</span></span><span style="display:flex;"><span><span style="color:#000">obj</span> <span style="color:#ce5c00;font-weight:bold">:=</span> <span style="color:#000">ns</span><span style="color:#000;font-weight:bold">::</span><span style="color:#000">NewClass</span><span style="color:#000;font-weight:bold">(</span><span style="color:#0000cf;font-weight:bold">26</span><span style="color:#000;font-weight:bold">,</span> <span style="color:#0000cf;font-weight:bold">03</span><span style="color:#000;font-weight:bold">,</span> <span style="color:#0000cf;font-weight:bold">2024</span><span style="color:#000;font-weight:bold">);</span> <span style="color:#8f5902;font-style:italic"># Экземпляр класса</span>
+</span></span><span style="display:flex;"><span><span style="color:#000">obj</span> <span style="color:#ce5c00;font-weight:bold">:=</span> <span style="color:#000;font-weight:bold">:</span><span style="color:#000">NativeClass</span><span style="color:#000;font-weight:bold">();</span> <span style="color:#8f5902;font-style:italic"># Экземпляр класса</span>
+</span></span><span style="display:flex;"><span><span style="color:#000">obj</span><span style="color:#ce5c00;font-weight:bold">.</span><span style="color:#000">setDate</span><span style="color:#000;font-weight:bold">(</span><span style="color:#0000cf;font-weight:bold">26</span><span style="color:#000;font-weight:bold">,</span> <span style="color:#0000cf;font-weight:bold">03</span><span style="color:#000;font-weight:bold">,</span> <span style="color:#0000cf;font-weight:bold">2024</span><span style="color:#000;font-weight:bold">);</span>
+</span></span><span style="display:flex;"><span><span style="color:#000">obj</span><span style="color:#ce5c00;font-weight:bold">.</span><span style="color:#000">Message</span><span style="color:#000;font-weight:bold">();</span>
 </span></span></code></pre></div><h2 id="интерфейсы-именование-методов-классов-и-пространства-имен">Интерфейсы, именование методов классов и пространства имен<a class="td-heading-self-link" href="#%d0%b8%d0%bd%d1%82%d0%b5%d1%80%d1%84%d0%b5%d0%b9%d1%81%d1%8b-%d0%b8%d0%bc%d0%b5%d0%bd%d0%be%d0%b2%d0%b0%d0%bd%d0%b8%d0%b5-%d0%bc%d0%b5%d1%82%d0%be%d0%b4%d0%be%d0%b2-%d0%ba%d0%bb%d0%b0%d1%81%d1%81%d0%be%d0%b2-%d0%b8-%d0%bf%d1%80%d0%be%d1%81%d1%82%d1%80%d0%b0%d0%bd%d1%81%d1%82%d0%b2%d0%b0-%d0%b8%d0%bc%d0%b5%d0%bd" aria-label="Heading self-link"></a></h2>
 <p>Для создания уникальных идентификаторов на основе имен методов классов, <em>NewLang</em> использует подход, похожий на применяемый в языке Python.
 При создании метода класса, создается глобальная функция с именем класса и именем метода, объединенные через разделитель области имен.
@@ -4210,6 +4218,263 @@ test/object_test.cpp:131:21: note: in instantiation of function template special
               +-&gt; :IntMinus
                 
 </code></pre>
+</div>
+
+
+
+    
+	
+  
+    
+    
+	
+    
+
+<div class="td-content" style="page-break-before: always">
+    
+	<h1 id="pg-89138bfdfd307537b9369eef3039a6ea">4.3 - Реализация JIT</h1>
+    
+	<p>В состав языка взодят следующие компоненты:</p>
+<ol>
+<li>Приложение компилятор и REPL одновременнно <strong>nlc</strong>.</li>
+<li>Библиотека nlc-rt - минимально необходимые компоненты для работы с обощенными типами данных.</li>
+<li>Рантайм компоненты проекта libtorch - для тензорных вычислений.</li>
+<li>Библиотека nlc-jit - реализация REPL и компилятора</li>
+<li>Рантайм библиотека LLVM как зависимость для nlc-jit.</li>
+</ol>
+<p>Варианты сборки приложения и необходимые для его работы библиотеки зависят от следующих факторов:</p>
+<ol>
+<li>Если приложение использует <strong>только нативные</strong> объекты и типы данных, тогда для его работы
+не требуется компоненты языка, а само приложение представляет собой обычныую C/C++ программу.</li>
+</ol>
+<p>Приложение нужно собирать с ключами &ndash;no-nlc-rt и &mdash;embed-source</p>
+<p>Созадется один чистый исполняемый файл без связи с библиотеками nlc-jit и nlc-rt и без прочих зависимостей.
+Программа должна состоять из одного единственного встроенного кода C/C++ и внутри него
+не должно быть обращения к объектам языка или аргументам.</p>
+<ol start="2">
+<li>Если приложение кроме нативных объектов использует другие типы данных,
+например тензоры или рациональные числа неограниченной точности и/или создаются функции,
+тогда для работы приложения требуется библиотека <em>nlc-rt</em> и компоненты проекта <em>torch</em>.</li>
+</ol>
+<p>Созадется один исполняемый файл без связи с библиотеками nlc-jit.
+Допускается обработка любых объектов языка, но без возможности динамической загрузки модулей
+или любой другой рантайм компиляции (REPL, динамической отладки и т.д.).</p>
+<p>Во всех остальных случаях используются обе библиотеки (плюс LLVM) и имеется возможность динамиечкой загрузки модулей,
+REPL и прочие возможностями JIT компиляции, такими, как вставки нативного кода и интерпретация кода в рантайме.</p>
+<p>Пример чистого нативного приложения из-за использования одного единственного блока нативного кода
+и отсутствию отбращения к объектам языка.</p>
+<p><code>./nlc --compile --no-nlc-rt --nlc-embed-source -o hello  hello_embed.src</code></p>
+<p>&ndash;ofile-cpp
+&ndash;ofile-include
+&ndash;ofile-bytecode
+&ndash;ofile-pre</p>
+<p>Пример чистого нативного приложения из-за использования одного единственного блока нативного кода
+и отсутствию отбращения к объектам языка (в том числе и аргументам).
+Тело программы (одинственный фрагмент) вставляется в main непосредственно.</p>
+<div class="highlight"><pre tabindex="0" style="background-color:#f8f8f8;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-cpp" data-lang="cpp"><span style="display:flex;"><span>    <span style="color:#8f5902;font-style:italic"># For compile run: ./nlc --compile --no-nlc-rt --embed-source -o hello 
+</span></span></span><span style="display:flex;"><span><span style="color:#8f5902;font-style:italic"></span>
+</span></span><span style="display:flex;"><span>    <span style="color:#8f5902;font-style:italic"># int main(int argc, char* argv[], char* envp[]);
+</span></span></span><span style="display:flex;"><span><span style="color:#8f5902;font-style:italic"></span>    <span style="color:#000;font-weight:bold">{</span><span style="color:#ce5c00;font-weight:bold">%</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#8f5902;font-style:italic">/*
+</span></span></span><span style="display:flex;"><span><span style="color:#8f5902;font-style:italic">        *  @\\stdio.h     --&gt;  #include &lt;stdio.h&gt;
+</span></span></span><span style="display:flex;"><span><span style="color:#8f5902;font-style:italic">        *  @\sys\time.h   --&gt;  #include &#34;sys/time.h&#34;
+</span></span></span><span style="display:flex;"><span><span style="color:#8f5902;font-style:italic">        */</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#000">printf</span><span style="color:#000;font-weight:bold">(</span><span style="color:#4e9a06">&#34;Hello, world!</span><span style="color:#4e9a06">\n</span><span style="color:#4e9a06">&#34;</span><span style="color:#000;font-weight:bold">);</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#ce5c00;font-weight:bold">%</span><span style="color:#000;font-weight:bold">}</span>
+</span></span></code></pre></div><p>Пример простого приложения с использованием только одой библиотеки nlc-rt:</p>
+<div class="highlight"><pre tabindex="0" style="background-color:#f8f8f8;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-python" data-lang="python"><span style="display:flex;"><span>    <span style="color:#204a87">print</span><span style="color:#000;font-weight:bold">(</span><span style="color:#4e9a06">&#34;Hello, world!</span><span style="color:#4e9a06">\n</span><span style="color:#4e9a06">&#34;</span><span style="color:#000;font-weight:bold">);</span>
+</span></span></code></pre></div><p>Пример простого приложения с использованием только одой библиотеки nlc_runtime и
+интеграцией объектов языка в нативнй код. Тело программы (блок кода) оформляется в виде
+функции и вызывается из main с передачей агрументов, переданных программе.
+<code>./nlc --compile -o factorial</code></p>
+<div class="highlight"><pre tabindex="0" style="background-color:#f8f8f8;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-python" data-lang="python"><span style="display:flex;"><span>    <span style="color:#a40000">$</span><span style="color:#000">top</span> <span style="color:#ce5c00;font-weight:bold">:=</span> <span style="color:#000">_</span><span style="color:#000;font-weight:bold">;</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#5c35cc;font-weight:bold">@try</span> <span style="color:#000;font-weight:bold">{</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#a40000">$</span><span style="color:#000">top</span> <span style="color:#ce5c00;font-weight:bold">=</span> <span style="color:#000;font-weight:bold">:</span><span style="color:#000">Int32</span><span style="color:#000;font-weight:bold">(</span><span style="color:#a40000">$</span><span style="color:#0000cf;font-weight:bold">1</span><span style="color:#000;font-weight:bold">);</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#000;font-weight:bold">}</span> <span style="color:#5c35cc;font-weight:bold">@catch</span><span style="color:#000;font-weight:bold">(</span><span style="color:#ce5c00;font-weight:bold">...</span><span style="color:#000;font-weight:bold">){</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#000;font-weight:bold">}</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    <span style="color:#204a87;font-weight:bold">if</span><span style="color:#000;font-weight:bold">(</span><span style="color:#5c35cc;font-weight:bold">@latter</span> <span style="color:#ce5c00;font-weight:bold">~</span> <span style="color:#000;font-weight:bold">:</span><span style="color:#000">Error</span> <span style="color:#ce5c00;font-weight:bold">||</span> <span style="color:#a40000">$</span><span style="color:#000">top</span> <span style="color:#ce5c00;font-weight:bold">&lt;</span> <span style="color:#0000cf;font-weight:bold">1</span><span style="color:#000;font-weight:bold">){</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#204a87">print</span><span style="color:#000;font-weight:bold">(</span><span style="color:#4e9a06">&#34;Use: factorial &lt;int&gt;</span><span style="color:#4e9a06">\n</span><span style="color:#4e9a06">&#34;</span><span style="color:#000;font-weight:bold">);</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#5c35cc;font-weight:bold">@exit</span><span style="color:#000;font-weight:bold">(</span><span style="color:#0000cf;font-weight:bold">1</span><span style="color:#000;font-weight:bold">);</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#000;font-weight:bold">}</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    <span style="color:#a40000">$</span><span style="color:#000">fact</span> <span style="color:#ce5c00;font-weight:bold">:=</span> <span style="color:#0000cf;font-weight:bold">1</span>\<span style="color:#0000cf;font-weight:bold">1</span><span style="color:#000;font-weight:bold">;</span> <span style="color:#8f5902;font-style:italic"># Rational number 1 (no precision limit)</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    <span style="color:#8f5902;font-style:italic"># Example build programm for factorial calculate</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#000;font-weight:bold">{</span><span style="color:#ce5c00;font-weight:bold">%</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#204a87;font-weight:bold">for</span><span style="color:#000;font-weight:bold">(</span><span style="color:#204a87">int</span> <span style="color:#000">i</span><span style="color:#ce5c00;font-weight:bold">=</span><span style="color:#0000cf;font-weight:bold">2</span><span style="color:#000;font-weight:bold">;</span> <span style="color:#000">i</span> <span style="color:#ce5c00;font-weight:bold">&lt;=</span> <span style="color:#000">static_cast</span><span style="color:#ce5c00;font-weight:bold">&lt;</span><span style="color:#204a87">int</span><span style="color:#ce5c00;font-weight:bold">&gt;</span><span style="color:#000;font-weight:bold">(</span><span style="color:#a40000">$</span><span style="color:#000">top</span><span style="color:#000;font-weight:bold">);</span> <span style="color:#000">i</span><span style="color:#ce5c00;font-weight:bold">++</span><span style="color:#000;font-weight:bold">){</span>
+</span></span><span style="display:flex;"><span>            <span style="color:#a40000">$</span><span style="color:#000">fact</span> <span style="color:#ce5c00;font-weight:bold">*=</span> <span style="color:#000">i</span><span style="color:#000;font-weight:bold">;</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#000;font-weight:bold">}</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#ce5c00;font-weight:bold">%</span><span style="color:#000;font-weight:bold">}</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#204a87">print</span><span style="color:#000;font-weight:bold">(</span><span style="color:#4e9a06">&#34;Factorial </span><span style="color:#4e9a06">%d</span><span style="color:#4e9a06"> - </span><span style="color:#4e9a06">%s</span><span style="color:#4e9a06">\n</span><span style="color:#4e9a06">&#34;</span><span style="color:#000;font-weight:bold">,</span> <span style="color:#a40000">$</span><span style="color:#000">top</span><span style="color:#000;font-weight:bold">,</span> <span style="color:#000;font-weight:bold">:</span><span style="color:#000">StrChar</span><span style="color:#000;font-weight:bold">(</span><span style="color:#000">fact</span><span style="color:#000;font-weight:bold">));</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#5c35cc;font-weight:bold">@exit</span><span style="color:#000;font-weight:bold">(</span><span style="color:#0000cf;font-weight:bold">0</span><span style="color:#000;font-weight:bold">);</span>
+</span></span></code></pre></div><div class="highlight"><pre tabindex="0" style="background-color:#f8f8f8;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-cpp" data-lang="cpp"><span style="display:flex;"><span>    <span style="color:#204a87;font-weight:bold">try</span> <span style="color:#000;font-weight:bold">{</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#000;font-weight:bold">}</span> <span style="color:#204a87;font-weight:bold">catch</span> <span style="color:#000;font-weight:bold">(</span><span style="color:#000">IntAny</span> <span style="color:#000">ret</span><span style="color:#000;font-weight:bold">)</span> <span style="color:#000;font-weight:bold">{</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#000">m_latter</span> <span style="color:#ce5c00;font-weight:bold">=</span> <span style="color:#000">ret</span><span style="color:#000;font-weight:bold">.</span><span style="color:#000">m_ret_value</span><span style="color:#000;font-weight:bold">;</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#000;font-weight:bold">}</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#204a87;font-weight:bold">if</span><span style="color:#000;font-weight:bold">(</span><span style="color:#000">m_latter</span><span style="color:#ce5c00;font-weight:bold">-&gt;</span><span style="color:#000">op_class_test</span><span style="color:#000;font-weight:bold">(</span><span style="color:#ce5c00;font-weight:bold">:</span><span style="color:#000">Error</span><span style="color:#000;font-weight:bold">)</span> <span style="color:#ce5c00;font-weight:bold">||</span> <span style="color:#000;font-weight:bold">(</span><span style="color:#ce5c00;font-weight:bold">*</span><span style="color:#000">top</span><span style="color:#000;font-weight:bold">)</span> <span style="color:#ce5c00;font-weight:bold">&lt;</span> <span style="color:#0000cf;font-weight:bold">1</span> <span style="color:#000;font-weight:bold">){</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#000">print</span><span style="color:#000;font-weight:bold">(</span><span style="color:#4e9a06">&#34;Use: factorial &lt;int&gt;</span><span style="color:#4e9a06">\n</span><span style="color:#4e9a06">&#34;</span><span style="color:#000;font-weight:bold">);</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#204a87;font-weight:bold">throw</span> <span style="color:#000">IntMinus</span><span style="color:#000;font-weight:bold">(</span><span style="color:#000">Obj</span><span style="color:#ce5c00;font-weight:bold">::</span><span style="color:#000">CreateValue</span><span style="color:#000;font-weight:bold">(</span><span style="color:#0000cf;font-weight:bold">1</span><span style="color:#000;font-weight:bold">));</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#000;font-weight:bold">}</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#8f5902;font-style:italic">//    {%
+</span></span></span><span style="display:flex;"><span><span style="color:#8f5902;font-style:italic"></span>        <span style="color:#204a87;font-weight:bold">for</span><span style="color:#000;font-weight:bold">(</span><span style="color:#204a87;font-weight:bold">int</span> <span style="color:#000">i</span><span style="color:#ce5c00;font-weight:bold">=</span><span style="color:#0000cf;font-weight:bold">2</span><span style="color:#000;font-weight:bold">;</span> <span style="color:#000">i</span> <span style="color:#ce5c00;font-weight:bold">&lt;=</span> <span style="color:#204a87;font-weight:bold">static_cast</span><span style="color:#ce5c00;font-weight:bold">&lt;</span><span style="color:#204a87;font-weight:bold">int</span><span style="color:#ce5c00;font-weight:bold">&gt;</span><span style="color:#000;font-weight:bold">((</span><span style="color:#ce5c00;font-weight:bold">*</span><span style="color:#000">top</span><span style="color:#000;font-weight:bold">));</span> <span style="color:#000">i</span><span style="color:#ce5c00;font-weight:bold">++</span><span style="color:#000;font-weight:bold">){</span>
+</span></span><span style="display:flex;"><span>            <span style="color:#000;font-weight:bold">(</span><span style="color:#ce5c00;font-weight:bold">*</span><span style="color:#000">fact</span><span style="color:#000;font-weight:bold">)</span> <span style="color:#ce5c00;font-weight:bold">*=</span> <span style="color:#000">i</span><span style="color:#000;font-weight:bold">;</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#000;font-weight:bold">}</span>
+</span></span><span style="display:flex;"><span><span style="color:#8f5902;font-style:italic">//    %}
+</span></span></span></code></pre></div><p><code>nlc -target ??? -compile</code></p>
+<blockquote>
+<p>compile(source, filename, mode, flag, dont_inherit, optimize)</p>
+<p>Параметры:</p>
+<pre tabindex="0"><code>   source - обязательный параметр. Может быть обычной строкой, байтовой строкой, 
+      либо объектом абстрактного синтаксического дерева.
+   filename - обязательный параметр. Имя файла, из которого будет читается код. 
+      Если код не будет считан из файла, вы можете написать в качестве параметра любую строку &lt;string&gt;.
+   mode - обязательный параметр. Может принимать 3 значения:
+       eval, если источником является одно выражение;
+       exec,если источником является блок операторов;
+       single, если код состоит из одного оператора;
+   flag - необязательный параметр. По умолчанию flags=0 и определяет, 
+      будет ли скомпилированный код содержать асинхронные операции 
+      или какие инструкции из __future__ следует использовать. Указывается битами. 
+      Если нужно задать несколько инструкций, то их можно указывать через or;
+   dont_inherit - необязательный параметр. По умолчанию dont_inherit=False. 
+      Указывает, следует ли использовать future определенные в коде, в дополнение в тем, что указаны во flags;
+   optimize - необязательный параметр. По умолчанию optimize=-1.
+   Задаёт уровень оптимизации компилятора:
+       -1 — использовать настройки интерпретатора (регулируются опцией -O);
+       0 — не оптимизировать, включить debug;
+       1 — убрать инструкции asserts, выключить debug;
+       2 — то, что делает 1 + убрать строки документации.
+</code></pre></blockquote>
+
+
+<div class="pageinfo pageinfo-primary">
+
+</div>
+
+
+</div>
+
+
+
+    
+	
+  
+    
+    
+	
+    
+
+<div class="td-content" style="page-break-before: always">
+    
+	<h1 id="pg-3a4d642619eb08f47874dbcc8c207079">4.4 - Области видимости</h1>
+    
+	<p>Управление областью видимости объектов возможно в рамках модуля, пакета и класса.
+На область видимости так же влияет и тип объекта (локальный, статический или глобальный).</p>
+<p>Явное определение области видимости опредяется по соглашению из языкя Python -
+одним или двумя символами подчерка в начале имени объекта.</p>
+<p>Один подчерк в начале имени соответствует защищенной области видимости,
+а два подчерка - приватной области видимости объекта в модуле, пакете или классе.
+Двойные подчерки в начале и в конце имени определяют системное имя.</p>
+<p>Объекты модуля:</p>
+<table>
+<thead>
+<tr>
+<th style="text-align:left">Определение объекта</th>
+<th style="text-align:left">Аналог определения на C++ (или модификатор)</th>
+<th style="text-align:center">Общее объявление</th>
+<th style="text-align:center">Объявление для пакета</th>
+<th style="text-align:center">Доступ по полному имени <em>(из дргуих модулей)</em></th>
+<th style="text-align:center">Доступ из других потоков <em>(можно взять ссылку)</em></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:left">::obj_glob</td>
+<td style="text-align:left">ObjPtr obj_glob</td>
+<td style="text-align:center">да</td>
+<td style="text-align:center">да</td>
+<td style="text-align:center">да</td>
+<td style="text-align:center">да</td>
+</tr>
+<tr>
+<td style="text-align:left">@::obj_static</td>
+<td style="text-align:left">ObjPtr obj_static</td>
+<td style="text-align:center"><em>нет</em></td>
+<td style="text-align:center">да</td>
+<td style="text-align:center">да</td>
+<td style="text-align:center">да</td>
+</tr>
+<tr>
+<td style="text-align:left">obj_package</td>
+<td style="text-align:left">ObjPtr obj_package</td>
+<td style="text-align:center"><em>нет</em></td>
+<td style="text-align:center">да</td>
+<td style="text-align:center">да</td>
+<td style="text-align:center"><em>нет</em></td>
+</tr>
+<tr>
+<td style="text-align:left">$obj_local</td>
+<td style="text-align:left"><strong>thread_local</strong> ObjPtr obj_local</td>
+<td style="text-align:center"><em>нет</em></td>
+<td style="text-align:center">да</td>
+<td style="text-align:center"><em>нет</em></td>
+<td style="text-align:center"><em>нет</em></td>
+</tr>
+<tr>
+<td style="text-align:left"><td colspan="5"><br><strong>Явное ограничение области видимости</strong> <em>(применяется к любому типу объекта)</em></td></td>
+<td style="text-align:left"></td>
+<td style="text-align:center"></td>
+<td style="text-align:center"></td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td style="text-align:left">int_pub:Int32</td>
+<td style="text-align:left"><em>int</em> int_pub</td>
+<td style="text-align:center">-</td>
+<td style="text-align:center">-</td>
+<td style="text-align:center">-</td>
+<td style="text-align:center">-</td>
+</tr>
+<tr>
+<td style="text-align:left">_int_prot:Int32</td>
+<td style="text-align:left"><em>int</em> _int_prot</td>
+<td style="text-align:center"><em>нет</em></td>
+<td style="text-align:center"><em>нет</em></td>
+<td style="text-align:center">-</td>
+<td style="text-align:center">-</td>
+</tr>
+<tr>
+<td style="text-align:left">__int_priv:Int32</td>
+<td style="text-align:left"><strong>static</strong> <em>int</em> __int_priv</td>
+<td style="text-align:center"><em>нет</em></td>
+<td style="text-align:center"><em>нет</em></td>
+<td style="text-align:center"><em>нет</em></td>
+<td style="text-align:center">-</td>
+</tr>
+</tbody>
+</table>
+<p>Объекты класса:</p>
+<p>Глобальный объект всегда статический, определяется и инициализируется в файле модуля, где он создается.
+Время жизни такого объекта ограничено временем жизни модуля.
+Достепен по умолчанию во всех областях программы. (есть объявление в include)
+Достепен из всех областей программы по полному имени объекта. (нет объявления в include)</p>
+<h3 id="области-видимости">Области видимости<a class="td-heading-self-link" href="#%d0%be%d0%b1%d0%bb%d0%b0%d1%81%d1%82%d0%b8-%d0%b2%d0%b8%d0%b4%d0%b8%d0%bc%d0%be%d1%81%d1%82%d0%b8" aria-label="Heading self-link"></a></h3>
+<p>Символ подчерка, а так же подчерк в начале имени или двойные подчерки в начале и в конце имени имеют специальное значение.</p>
+<p>Один подчерк соответствует защищенной, а два подчерка - приватной области видимости объекта в модуле или классе,
+что соответствует принятым соглашениям в языке Python.</p>
+<p>Но так же, как и в языке Python, области видимости больше соответствуют &ldquo;джентльменской&rdquo; договоренности и при явном указании имени,
+доступ к защищенным объектам можно получить, просто указав полное имя объекта.</p>
+<p>В дополнении к этому, существуют еще системные поля и объекты, которые начинаются и заканчиваются на два подчерка.</p>
+<ul>
+<li>&lsquo;<strong>$</strong>&rsquo; — знак доллара в начале имени обозначает системное (локальное) имя временной переменной,
+область памяти для которой выделяется во время выполнения, а время <a href="/ru/docs/syntax/memory/">жизни ограничено семантикой яызка</a></li>
+<li>&lsquo;<strong>::</strong>&rsquo; — двойное двоеточие являются разделителем при указании <a href="/ru/docs/syntax/namespace/">пространства имен</a>.
+Явное указание пространства имен является признаком статического объекта, область памяти для которого выделяется во время компиляции приложения или модуля.</li>
+</ul>
+
 </div>
 
 

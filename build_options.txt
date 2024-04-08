@@ -7,7 +7,6 @@
 -std=c++23 
 -Wall 
 -Wextra 
--Werror 
 -Wfloat-equal 
 -Wundef 
 -Wcast-align 
