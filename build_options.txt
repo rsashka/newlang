@@ -25,6 +25,7 @@
 -Wno-error=switch 
 -Wno-undefined-var-template 
 -Wno-switch 
+-Wno-undef 
 -fvisibility=default 
 -O0 
 
