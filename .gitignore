@@ -12,7 +12,6 @@ contrib/*
 **/nlc.exe
 **/**tar.xz
 **/DartConfiguration.tcl
-Makefile
 TAG
 
 **/*.i
