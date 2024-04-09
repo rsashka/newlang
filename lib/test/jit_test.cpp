@@ -463,6 +463,10 @@ TEST(JIT, MakeModule) {
         "-lcrypt",
         "-lzip",
         "-lcurl",
+
+//        "-fPIE",
+//        "-lc++",
+
         "-Wl,-rpath,./",
         ""};
     ASSERT_TRUE(jit->LinkObjToExec("hello_rt",{"temp/main.o", "temp/hello.o"}, libs));

@@ -2,7 +2,7 @@
 #ifndef INCLUDED_JIT_H_
 #define INCLUDED_JIT_H_
 
-//#include "pch.h"
+#include "nlc-rt.h"
 
 #include "warning_push.h"
 
@@ -12,9 +12,9 @@
 #include <llvm-c/ExecutionEngine.h>
 #include <llvm-c/Analysis.h>
 
-#include <clang/Frontend/CompilerInstance.h>
 #include <clang/Frontend/TextDiagnosticPrinter.h>
 #include <clang/CodeGen/CodeGenAction.h>
+#include <clang/Frontend/CompilerInstance.h>
 
 #include <clang/AST/Mangle.h>
 #include <clang/ASTMatchers/ASTMatchFinder.h>

@@ -100,6 +100,7 @@
       <itemPath>Makefile</itemPath>
       <itemPath>../make_version.sh</itemPath>
     </logicalFolder>
+    <itemPath>../build_options.txt</itemPath>
     <itemPath>lexer.l</itemPath>
     <itemPath>../make_version.sh</itemPath>
     <itemPath>parser.y</itemPath>
@@ -129,6 +130,8 @@
           <output>../output/libnlc-rt.${CND_DLIB_EXT}</output>
         </linkerTool>
       </compileType>
+      <item path="../build_options.txt" ex="false" tool="3" flavor2="0">
+      </item>
       <item path="../contrib/fmt/src/format.cc" ex="false" tool="1" flavor2="0">
       </item>
       <item path="../lib/../../newlang/lib/include.h" ex="false" tool="3" flavor2="0">
@@ -250,6 +253,8 @@
           <output>../output/libnlc-jit.${CND_DLIB_EXT}</output>
         </linkerTool>
       </compileType>
+      <item path="../build_options.txt" ex="false" tool="3" flavor2="0">
+      </item>
       <item path="../contrib/fmt/src/format.cc" ex="false" tool="1" flavor2="0">
       </item>
       <item path="../lib/../../newlang/lib/include.h" ex="false" tool="3" flavor2="0">
@@ -370,9 +375,11 @@
             <linkerLibLibItem>zip</linkerLibLibItem>
             <linkerLibStdlibItem>DynamicLinking</linkerLibStdlibItem>
           </linkerLibItems>
-          <commandLine>`llvm-config-18 --link-static --system-libs --libs all` -g -fvisibility=default -Wl,--export-dynamic -Wl,--exclude-libs,ALL -lclang-cpp -lcrypto -lssl</commandLine>
+          <commandLine>`llvm-config-18 --link-static --system-libs --libs all` -g -fvisibility=default -Wl,--export-dynamic -Wl,--exclude-libs,ALL -lclang-cpp -lcrypto</commandLine>
         </linkerTool>
       </compileType>
+      <item path="../build_options.txt" ex="false" tool="3" flavor2="0">
+      </item>
       <item path="../contrib/fmt/src/format.cc" ex="false" tool="1" flavor2="9">
       </item>
       <item path="../contrib/googletest/googletest/src/gtest-all.cc"

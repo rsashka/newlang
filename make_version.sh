@@ -182,6 +182,6 @@ fi
 $root/contrib/text2cpp/output/bin/text2cpp $root/build_options.txt  $root/lib/build_options.data.temp  newlang_build_options c
 check_new_file $root/lib/build_options.data
 
-clang -xc++  -E $root/lib/include.h -o $root/lib/include_h.i
+clang++ `llvm-config-18 --cxxflags` `cat build_options.txt | tr -d "\r\n"` -x c++-header -E $root/lib/include.h -o $root/lib/include_h.i
 $root/contrib/text2cpp/output/bin/text2cpp $root/lib/include_h.i        $root/lib/include_h_i.data.temp    newlang_include_h_i c
 check_new_file $root/lib/include_h_i.data

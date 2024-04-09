@@ -1,5 +1,3 @@
-#pragma once
-
 #ifndef INCLUDED_INCLUDE_H_
 #define INCLUDED_INCLUDE_H_
 

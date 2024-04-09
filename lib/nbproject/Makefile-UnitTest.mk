@@ -98,7 +98,7 @@ LDLIBSOPTIONS=-L../contrib/libtorch/lib -Wl,-rpath,'.' -lpthread -lc10 -ltorch -
 
 ../output/nlc-unittest: ${OBJECTFILES}
 	${MKDIR} -p ../output
-	${LINK.cc} -o ../output/nlc-unittest ${OBJECTFILES} ${LDLIBSOPTIONS} `llvm-config-18 --link-static --system-libs --libs all` -g -fvisibility=default -Wl,--export-dynamic -Wl,--exclude-libs,ALL -lclang-cpp -lcrypto -lssl
+	${LINK.cc} -o ../output/nlc-unittest ${OBJECTFILES} ${LDLIBSOPTIONS} `llvm-config-18 --link-static --system-libs --libs all` -g -fvisibility=default -Wl,--export-dynamic -Wl,--exclude-libs,ALL -lclang-cpp -lcrypto
 
 ${OBJECTDIR}/_ext/b0ad39d/format.o: ../contrib/fmt/src/format.cc
 	${MKDIR} -p ${OBJECTDIR}/_ext/b0ad39d

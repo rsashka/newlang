@@ -2,9 +2,13 @@
 -D__STDC_CONSTANT_MACROS 
 -D__STDC_FORMAT_MACROS 
 -D__STDC_LIMIT_MACROS 
+
+-std=c++23 
 -fexceptions 
 -fcxx-exceptions 
--std=c++23 
+
+-stdlib=libc++ 
+
 -Wall 
 -Wextra 
 -Wfloat-equal 
@@ -18,7 +22,6 @@
 -Wno-trigraphs 
 -Wno-invalid-source-encoding 
 
--stdlib=libstdc++ 
 
 -Wno-error=unused-variable 
 -Wno-error=unused-parameter 
@@ -26,6 +29,11 @@
 -Wno-undefined-var-template 
 -Wno-switch 
 -Wno-undef 
+-Wno-null-character 
+-Wno-deprecated-declarations 
+
+
 -fvisibility=default 
+
 -O0 
 

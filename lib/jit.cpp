@@ -1,15 +1,16 @@
-//#include "pch.h"
 
 #include "warning_push.h"
-#include "clang/Driver/Driver.h"
-#include "clang/Driver/Compilation.h"
-#include "clang/Frontend/TextDiagnosticPrinter.h"
 
-#include "llvm/IR/LegacyPassManager.h"
-#include "llvm/MC/TargetRegistry.h"
-#include "llvm/Support/CodeGen.h"
+#include <clang/Frontend/TextDiagnosticPrinter.h>
+#include <clang/Driver/Driver.h>
+#include <clang/Driver/Compilation.h>
+
+#include <llvm/IR/LegacyPassManager.h>
+#include <llvm/MC/TargetRegistry.h>
+#include <llvm/Support/CodeGen.h>
 
 #include <llvm/Support/Signals.h>
+
 #include "warning_pop.h"
 
 #include "jit.h"

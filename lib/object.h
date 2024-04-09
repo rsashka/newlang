@@ -912,7 +912,11 @@ namespace newlang {
         }
 
         explicit inline operator uint64_t() const {
-            return GetValueAsInteger();
+            int64_t result = GetValueAsInteger();
+            if (result < 0) {
+                LOG_RUNTIME("Value '%s' is out of range of the casting type %s!", GetValueAsString().c_str(), "uint64_t");
+            }
+            return result;
         }
 
 
