@@ -418,6 +418,46 @@ TEST(JIT, MakeModule) {
     opts.push_back("-DBUILD_DEBUG ");
     opts.push_back("-DLOG_LEVEL_NORMAL=LOG_LEVEL_DEBUG");
 
+//    opts.push_back("-triple");
+//    opts.push_back("x86_64-pc-linux-gnu");
+//    opts.push_back("-emit-obj");
+//
+//    opts.push_back("-mrelocation-model");
+//    opts.push_back("pic");
+//    opts.push_back("-pic-level");
+//    opts.push_back("2");
+//    opts.push_back("-pic-is-pie");
+//
+//    opts.push_back("-discard-value-names");
+//    opts.push_back("-disable-llvm-verifier");
+//
+//    opts.push_back("-mrelax-all");
+//    opts.push_back("-disable-free");
+//    opts.push_back("-clear-ast-before-backend");
+//
+//    opts.push_back("-mframe-pointer=all");
+//    opts.push_back("-fmath-errno");
+//    opts.push_back("-ffp-contract=on");
+//    opts.push_back("-fno-rounding-math");
+//    opts.push_back("-mconstructor-aliases");
+//
+//    opts.push_back("-fcolor-diagnostics");
+//    opts.push_back("-faddrsig");
+//
+//    opts.push_back("-fskip-odr-check-in-gmf");
+//
+//    opts.push_back("-tune-cpu");
+//    opts.push_back("generic");
+//    opts.push_back("-target-cpu");
+//    opts.push_back("x86-64");
+//
+//    opts.push_back("-cc1");
+//    
+//    opts.push_back("-funwind-tables=2");
+//    opts.push_back("-fdeprecated-macro");
+//    opts.push_back("-fgnuc-version=4.2.1");
+//    opts.push_back("-D__GCC_HAVE_DWARF2_CFI_ASM=1");
+       
     for (auto &elem : opts) {
         if (elem.find("-D") == 0) {
             elem += " ";
@@ -447,11 +487,11 @@ TEST(JIT, MakeModule) {
 
     std::unique_ptr<llvm::Module> main = jit->MakeLLVMModule(main_src, argsX);
     ASSERT_TRUE(main);
-    ASSERT_TRUE(jit->MakeObjFile("temp/main.o", *main,{"-fPIE"}));
+    ASSERT_TRUE(jit->MakeObjFile("temp/main.o", *main, argsX));
 
     std::unique_ptr<llvm::Module> module = jit->MakeLLVMModule(hello, argsX);
     ASSERT_TRUE(module);
-    ASSERT_TRUE(jit->MakeObjFile("temp/hello.o", *module,{"-fPIE"}));
+    ASSERT_TRUE(jit->MakeObjFile("temp/hello.o", *module, argsX));
 
     std::vector<std::string> libs{
         //        "-L."
@@ -465,9 +505,16 @@ TEST(JIT, MakeModule) {
         "-lcurl",
         "-lstdc++",
 
-//        "-Wl,-pie",
-//        "-melf_x86_64",
-//        "-Wl,-dynamic-linker",
+//        "-lm",
+//        "-lgcc_s",
+//        "-lgcc",
+//        "-lc",
+//        "-lgcc_s",
+//        "-lgcc",
+                
+        "-no-pie",
+//        "-dynamic-linker",
+        //        "-Wl,-dynamic-linker",
         //                "-pie --eh-frame-hdr -m elf_x86_64 -dynamic-linker"
         "-Wl,-rpath,./",
         "-Wl,-rpath,/usr/lib/x86_64-linux-gnu",

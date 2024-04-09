@@ -384,10 +384,10 @@ std::unique_ptr<llvm::Module> JIT::MakeLLVMModule(const std::string_view source,
 
     run_opts.push_back("-xc++");
 
-    run_opts.push_back("-DBUILD_UNITTEST");
-    run_opts.push_back("-DBUILD_DEBUG");
-    run_opts.push_back("-DLOG_LEVEL_NORMAL=LOG_LEVEL_DEBUG");
-
+//    run_opts.push_back("-DBUILD_UNITTEST");
+//    run_opts.push_back("-DBUILD_DEBUG");
+//    run_opts.push_back("-DLOG_LEVEL_NORMAL=LOG_LEVEL_DEBUG");
+//
 
     std::string build_options_string;
     for (size_t i = 0; i < newlang_build_options_size; i++) {
