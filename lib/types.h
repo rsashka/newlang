@@ -1,10 +1,5 @@
-#pragma once
-
 #ifndef INCLUDED_TYPES_H_
 #define INCLUDED_TYPES_H_
-
-#include <memory>
-#include <complex>
 
 #include <map>
 #include <set>
@@ -18,8 +13,6 @@
 #include <algorithm>
 #include <stdexcept>
 #include <type_traits>
-#include <map>
-#include <string>
 #include <string_view>
 #include <cmath>
 #include <random>
@@ -32,6 +25,7 @@
 #include <utility>
 #include <cstdlib>
 #include <ctime>
+#include <complex>
 
 #include <sstream>
 #include <iostream>
@@ -59,7 +53,6 @@
 #endif
 
 
-//#include "pch.h"
 #include "logger.h"
 
 namespace newlang {
@@ -117,7 +110,6 @@ typedef std::vector<std::string> StringArray;
 
 class Term;
 class Obj;
-class Context;
 class Context;
 class Module;
 class JIT;

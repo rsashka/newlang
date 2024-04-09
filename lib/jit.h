@@ -1,17 +1,10 @@
-#pragma once
 #ifndef INCLUDED_JIT_H_
 #define INCLUDED_JIT_H_
 
-#include "nlc-rt.h"
-
 #include "warning_push.h"
 
-#include <llvm-c/Core.h>
-#include <llvm-c/Support.h>
-#include <llvm-c/TargetMachine.h>
-#include <llvm-c/ExecutionEngine.h>
-#include <llvm-c/Analysis.h>
-
+#include <clang/AST/ASTConcept.h>
+#include <clang/Sema/SemaConcept.h>
 #include <clang/Frontend/TextDiagnosticPrinter.h>
 #include <clang/CodeGen/CodeGenAction.h>
 #include <clang/Frontend/CompilerInstance.h>
@@ -19,6 +12,12 @@
 #include <clang/AST/Mangle.h>
 #include <clang/ASTMatchers/ASTMatchFinder.h>
 #include <clang/ASTMatchers/ASTMatchers.h>
+
+#include <llvm-c/Core.h>
+#include <llvm-c/Support.h>
+#include <llvm-c/TargetMachine.h>
+#include <llvm-c/ExecutionEngine.h>
+#include <llvm-c/Analysis.h>
 
 #include "llvm/Support/Path.h"
 #include "llvm/Support/FileSystem.h"
@@ -82,10 +81,11 @@
 
 #include "warning_pop.h"
 
-
 #include "nlc-rt.h"
 
+#include "runtime.h"
 #include "macro.h"
+#include "analysis.h"
 
 
 

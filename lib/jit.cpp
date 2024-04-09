@@ -1,7 +1,8 @@
 
 #include "warning_push.h"
 
-#include <clang/Frontend/TextDiagnosticPrinter.h>
+#include <clang/AST/ASTConcept.h>
+#include <clang/Sema/SemaConcept.h>
 #include <clang/Driver/Driver.h>
 #include <clang/Driver/Compilation.h>
 
@@ -10,6 +11,9 @@
 #include <llvm/Support/CodeGen.h>
 
 #include <llvm/Support/Signals.h>
+
+#include <llvm/Analysis/AliasAnalysis.h>
+#include <clang/Frontend/TextDiagnosticPrinter.h>
 
 #include "warning_pop.h"
 

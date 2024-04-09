@@ -4,13 +4,10 @@
 #include <gtest/gtest.h>
 #include "warning_pop.h"
 
-#include "parser.h"
-
 #include <signal.h>
 
-#include "builtin.h"
-#include "runtime.h"
 #include "jit.h"
+#include "runtime.h"
 
 using namespace newlang;
 

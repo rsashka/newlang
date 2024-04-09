@@ -196,11 +196,12 @@
       <logicalFolder name="f1" displayName="test-runtime" projectFiles="true">
         <itemPath>test/diag_test.cpp</itemPath>
         <itemPath>test/logger_test.cpp</itemPath>
+        <itemPath>test/nlc_test.cpp</itemPath>
         <itemPath>test/object_test.cpp</itemPath>
         <itemPath>test/rational_test.cpp</itemPath>
+        <itemPath>test/unittest.cpp</itemPath>
       </logicalFolder>
       <itemPath>autocomplete.h</itemPath>
-      <itemPath>build_options.txt</itemPath>
       <itemPath>nlc.cpp</itemPath>
       <itemPath>nlc.h</itemPath>
       <itemPath>unittest.cpp</itemPath>
@@ -228,6 +229,7 @@
   </logicalFolder>
   <sourceRootList>
     <Elem>../site/content</Elem>
+    <Elem>/usr/lib/gcc/x86_64-linux-gnu/../contrib/libtorch/lib/..</Elem>
   </sourceRootList>
   <projectmakefile>Makefile</projectmakefile>
   <confs>
@@ -262,6 +264,7 @@
           </linkerAddLib>
           <linkerDynSerch>
             <pElem>.</pElem>
+            <pElem>../contrib/libtorch/lib</pElem>
           </linkerDynSerch>
           <linkerLibItems>
             <linkerLibStdlibItem>PosixThreads</linkerLibStdlibItem>
@@ -946,8 +949,6 @@
       </item>
       <item path="autocomplete.h" ex="false" tool="3" flavor2="0">
       </item>
-      <item path="build_options.txt" ex="false" tool="3" flavor2="0">
-      </item>
       <item path="nlc.cpp" ex="false" tool="1" flavor2="9">
       </item>
       <item path="nlc.h" ex="false" tool="3" flavor2="0">
@@ -955,6 +956,8 @@
       <item path="test/diag_test.cpp" ex="true" tool="1" flavor2="9">
       </item>
       <item path="test/logger_test.cpp" ex="true" tool="1" flavor2="9">
+      </item>
+      <item path="test/nlc_test.cpp" ex="false" tool="1" flavor2="0">
       </item>
       <item path="test/object_test.cpp" ex="true" tool="1" flavor2="9">
       </item>
@@ -1678,17 +1681,19 @@
       </item>
       <item path="autocomplete.h" ex="false" tool="3" flavor2="0">
       </item>
-      <item path="build_options.txt" ex="false" tool="3" flavor2="0">
-      </item>
       <item path="nlc.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="test/diag_test.cpp" ex="false" tool="1" flavor2="0">
       </item>
       <item path="test/logger_test.cpp" ex="false" tool="1" flavor2="0">
       </item>
+      <item path="test/nlc_test.cpp" ex="false" tool="1" flavor2="0">
+      </item>
       <item path="test/object_test.cpp" ex="false" tool="1" flavor2="0">
       </item>
       <item path="test/rational_test.cpp" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="test/unittest.cpp" ex="false" tool="1" flavor2="0">
       </item>
       <item path="unittest.cpp" ex="false" tool="1" flavor2="0">
       </item>
@@ -1697,7 +1702,7 @@
       <toolsSet>
         <compilerSet>CLang|CLang</compilerSet>
         <dependencyChecking>true</dependencyChecking>
-        <rebuildPropChanged>false</rebuildPropChanged>
+        <rebuildPropChanged>true</rebuildPropChanged>
       </toolsSet>
       <compileType>
         <ccTool>
@@ -1725,6 +1730,7 @@
           </linkerAddLib>
           <linkerDynSerch>
             <pElem>.</pElem>
+            <pElem>../contrib/libtorch/lib</pElem>
           </linkerDynSerch>
           <linkerLibItems>
             <linkerLibStdlibItem>PosixThreads</linkerLibStdlibItem>
@@ -1736,6 +1742,7 @@
             <linkerLibLibItem>zip</linkerLibLibItem>
             <linkerLibStdlibItem>DynamicLinking</linkerLibStdlibItem>
           </linkerLibItems>
+          <commandLine>`llvm-config-18 --link-static --system-libs --libs all` -g -fvisibility=default -Wl,--export-dynamic -Wl,--exclude-libs,ALL -lclang-cpp</commandLine>
         </linkerTool>
         <requiredProjects>
           <makeArtifact PL="/home/rsashka/SOURCE/NewLang/newlang/lib"
@@ -2394,17 +2401,19 @@
       </item>
       <item path="../site/content/ru/search.html" ex="false" tool="3" flavor2="0">
       </item>
-      <item path="build_options.txt" ex="false" tool="3" flavor2="0">
-      </item>
       <item path="nlc.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="test/diag_test.cpp" ex="false" tool="1" flavor2="0">
       </item>
       <item path="test/logger_test.cpp" ex="false" tool="1" flavor2="0">
       </item>
+      <item path="test/nlc_test.cpp" ex="false" tool="1" flavor2="0">
+      </item>
       <item path="test/object_test.cpp" ex="false" tool="1" flavor2="0">
       </item>
       <item path="test/rational_test.cpp" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="test/unittest.cpp" ex="false" tool="1" flavor2="0">
       </item>
       <item path="unittest.cpp" ex="false" tool="1" flavor2="0">
       </item>
@@ -3075,8 +3084,6 @@
       </item>
       <item path="autocomplete.h" ex="false" tool="3" flavor2="0">
       </item>
-      <item path="build_options.txt" ex="false" tool="3" flavor2="0">
-      </item>
       <item path="nlc.cpp" ex="false" tool="1" flavor2="0">
       </item>
       <item path="nlc.h" ex="false" tool="3" flavor2="0">
@@ -3085,9 +3092,13 @@
       </item>
       <item path="test/logger_test.cpp" ex="false" tool="1" flavor2="0">
       </item>
+      <item path="test/nlc_test.cpp" ex="false" tool="1" flavor2="0">
+      </item>
       <item path="test/object_test.cpp" ex="false" tool="1" flavor2="0">
       </item>
       <item path="test/rational_test.cpp" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="test/unittest.cpp" ex="false" tool="1" flavor2="0">
       </item>
       <item path="unittest.cpp" ex="false" tool="1" flavor2="0">
       </item>

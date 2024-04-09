@@ -55,7 +55,7 @@ FFLAGS=
 ASFLAGS=
 
 # Link Libraries and Options
-LDLIBSOPTIONS=
+LDLIBSOPTIONS=-Wl,-rpath,'../contrib/libtorch/lib'
 
 # Build Targets
 .build-conf: ${BUILD_SUBPROJECTS}
@@ -65,47 +65,39 @@ LDLIBSOPTIONS=
 	${MKDIR} -p ../output
 	${LINK.cc} -o ../output/libnlc-jit.${CND_DLIB_EXT} ${OBJECTFILES} ${LDLIBSOPTIONS} -shared -fPIC
 
-${OBJECTDIR}/_ext/b0ad39d/format.o: ../contrib/fmt/src/format.cc
+${OBJECTDIR}/_ext/b0ad39d/format.o: ../contrib/fmt/src/format.cc nbproject/Makefile-${CND_CONF}.mk
 	${MKDIR} -p ${OBJECTDIR}/_ext/b0ad39d
 	${RM} "$@.d"
 	$(COMPILE.cc) -g -DBUILD_DEBUG -DLOG_LEVEL_NORMAL=LOG_LEVEL_DEBUG -I../contrib/libtorch/include -I../contrib/libtorch/include/torch/csrc/api/include -I../contrib/fmt/include -fPIC  -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/_ext/b0ad39d/format.o ../contrib/fmt/src/format.cc
 
-${OBJECTDIR}/jit.o: jit.cpp
+${OBJECTDIR}/jit.o: jit.cpp nbproject/Makefile-${CND_CONF}.mk
 	${MKDIR} -p ${OBJECTDIR}
 	${RM} "$@.d"
 	$(COMPILE.cc) -g -DBUILD_DEBUG -DLOG_LEVEL_NORMAL=LOG_LEVEL_DEBUG -I../contrib/libtorch/include -I../contrib/libtorch/include/torch/csrc/api/include -I../contrib/fmt/include -fPIC  -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/jit.o jit.cpp
 
-: lexer.h lexer.l parser.yy.h parser.yy.cpp location.hh
+: lexer.h lexer.l parser.yy.h parser.yy.cpp location.hh nbproject/Makefile-${CND_CONF}.mk
 	@echo Выполнение шага пользовательского сборки
 	
 
 .NO_PARALLEL:lexer.yy.cpp lexer.yy.h
-lexer.yy.cpp lexer.yy.h: lexer.l parser.y parser.yy.h parser.yy.cpp location.hh term.h
+lexer.yy.cpp lexer.yy.h: lexer.l parser.y parser.yy.h parser.yy.cpp location.hh term.h nbproject/Makefile-${CND_CONF}.mk
 	@echo Выполнение шага пользовательского сборки
 	flex  --outfile=lexer.yy.cpp --header-file=lexer.yy.h --noline  lexer.l
 
-${OBJECTDIR}/macro.o: macro.cpp
+${OBJECTDIR}/macro.o: macro.cpp nbproject/Makefile-${CND_CONF}.mk
 	${MKDIR} -p ${OBJECTDIR}
 	${RM} "$@.d"
 	$(COMPILE.cc) -g -DBUILD_DEBUG -DLOG_LEVEL_NORMAL=LOG_LEVEL_DEBUG -I../contrib/libtorch/include -I../contrib/libtorch/include/torch/csrc/api/include -I../contrib/fmt/include -fPIC  -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/macro.o macro.cpp
 
-${OBJECTDIR}/module.o: module.cpp
+${OBJECTDIR}/module.o: module.cpp nbproject/Makefile-${CND_CONF}.mk
 	${MKDIR} -p ${OBJECTDIR}
 	${RM} "$@.d"
 	$(COMPILE.cc) -g -DBUILD_DEBUG -DLOG_LEVEL_NORMAL=LOG_LEVEL_DEBUG -I../contrib/libtorch/include -I../contrib/libtorch/include/torch/csrc/api/include -I../contrib/fmt/include -fPIC  -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/module.o module.cpp
 
-: parser.h parser.y
-	@echo Выполнение шага пользовательского сборки
-	
-
 .NO_PARALLEL:parser.yy.h parser.yy.cpp location.hh
-parser.yy.h parser.yy.cpp location.hh: parser.y
+parser.yy.h parser.yy.cpp location.hh: parser.y nbproject/Makefile-${CND_CONF}.mk
 	@echo Выполнение шага пользовательского сборки
 	bison --output-file=parser.yy.cpp --defines=parser.yy.h --warnings=all parser.y
-
-: term.h parser.yy.cpp location.hh
-	@echo Выполнение шага пользовательского сборки
-	
 
 # Subprojects
 .build-subprojects:
@@ -115,9 +107,7 @@ parser.yy.h parser.yy.cpp location.hh: parser.y
 	${RM} -r ${CND_BUILDDIR}/${CND_CONF}
 	${RM} 
 	${RM} lexer.yy.cpp lexer.yy.h
-	${RM} 
 	${RM} parser.yy.h parser.yy.cpp location.hh
-	${RM} 
 
 # Subprojects
 .clean-subprojects:

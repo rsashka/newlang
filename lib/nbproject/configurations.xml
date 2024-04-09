@@ -5,7 +5,6 @@
                    displayName="Исходные файлы"
                    projectFiles="true">
       <logicalFolder name="f2" displayName="jit" projectFiles="true">
-        <itemPath>include.h</itemPath>
         <itemPath>jit.cpp</itemPath>
         <itemPath>jit.h</itemPath>
         <itemPath>macro.cpp</itemPath>
@@ -22,6 +21,7 @@
         <itemPath>context.h</itemPath>
         <itemPath>diag.cpp</itemPath>
         <itemPath>diag.h</itemPath>
+        <itemPath>include.h</itemPath>
         <itemPath>lexer.cpp</itemPath>
         <itemPath>lexer.yy.cpp</itemPath>
         <itemPath>logger.cpp</itemPath>
@@ -29,6 +29,7 @@
         <itemPath>object.cpp</itemPath>
         <itemPath>object.h</itemPath>
         <itemPath>parser.cpp</itemPath>
+        <itemPath>parser.h</itemPath>
         <itemPath>parser.yy.cpp</itemPath>
         <itemPath>rational.cpp</itemPath>
         <itemPath>rational.h</itemPath>
@@ -37,6 +38,7 @@
         <itemPath>system.cpp</itemPath>
         <itemPath>system.h</itemPath>
         <itemPath>term.cpp</itemPath>
+        <itemPath>term.h</itemPath>
         <itemPath>types.h</itemPath>
         <itemPath>variable.h</itemPath>
         <itemPath>version.cpp</itemPath>
@@ -47,7 +49,6 @@
         <itemPath>test/class_test.cpp</itemPath>
         <itemPath>test/diag_test.cpp</itemPath>
         <itemPath>test/example_test.cpp</itemPath>
-        <itemPath>../contrib/googletest/googletest/src/gtest-all.cc</itemPath>
         <itemPath>test/include_test.cpp</itemPath>
         <itemPath>test/jit_test.cpp</itemPath>
         <itemPath>test/lexer_test.cpp</itemPath>
@@ -55,14 +56,13 @@
         <itemPath>test/logger_test.cpp</itemPath>
         <itemPath>test/macro_test.cpp</itemPath>
         <itemPath>test/module_test.cpp</itemPath>
-        <itemPath>test/nlc_test.cpp</itemPath>
         <itemPath>test/object_test.cpp</itemPath>
         <itemPath>test/parser_analysis_test.cpp</itemPath>
         <itemPath>test/parser_test.cpp</itemPath>
         <itemPath>test/rational_test.cpp</itemPath>
         <itemPath>test/run_test.cpp</itemPath>
         <itemPath>test/system_test.cpp</itemPath>
-        <itemPath>../nlc/unittest.cpp</itemPath>
+        <itemPath>test/unittest.cpp</itemPath>
       </logicalFolder>
     </logicalFolder>
     <logicalFolder name="HeaderFiles"
@@ -71,8 +71,6 @@
       <itemPath>../lib/../../newlang/lib/include.h</itemPath>
       <itemPath>lexer.h</itemPath>
       <itemPath>nlc-rt.h</itemPath>
-      <itemPath>parser.h</itemPath>
-      <itemPath>term.h</itemPath>
       <itemPath>warning_pop.h</itemPath>
       <itemPath>warning_push.h</itemPath>
     </logicalFolder>
@@ -82,6 +80,7 @@
       <logicalFolder name="f1" displayName="fmt" projectFiles="true">
         <itemPath>../contrib/fmt/src/format.cc</itemPath>
       </logicalFolder>
+      <itemPath>../contrib/googletest/googletest/src/gtest-all.cc</itemPath>
       <itemPath>include_h.i</itemPath>
       <itemPath>include_h_i.data</itemPath>
       <itemPath>lexer.yy.h</itemPath>
@@ -153,6 +152,8 @@
       <item path="diag.cpp" ex="false" tool="1" flavor2="0">
       </item>
       <item path="diag.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="include.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="include_h_i.data" ex="false" tool="3" flavor2="0">
       </item>
@@ -234,7 +235,7 @@
       <toolsSet>
         <compilerSet>CLang|CLang</compilerSet>
         <dependencyChecking>true</dependencyChecking>
-        <rebuildPropChanged>false</rebuildPropChanged>
+        <rebuildPropChanged>true</rebuildPropChanged>
       </toolsSet>
       <compileType>
         <ccTool>
@@ -251,6 +252,9 @@
         </ccTool>
         <linkerTool>
           <output>../output/libnlc-jit.${CND_DLIB_EXT}</output>
+          <linkerDynSerch>
+            <pElem>../contrib/libtorch/lib</pElem>
+          </linkerDynSerch>
         </linkerTool>
       </compileType>
       <item path="../build_options.txt" ex="false" tool="3" flavor2="0">
@@ -260,8 +264,6 @@
       <item path="../lib/../../newlang/lib/include.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="../make_version.sh" ex="false" tool="3" flavor2="0">
-      </item>
-      <item path="include.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="jit.cpp" ex="false" tool="1" flavor2="0">
       </item>
@@ -302,7 +304,7 @@
       </item>
       <item path="object.cpp" ex="true" tool="1" flavor2="9">
       </item>
-      <item path="parser.h" ex="false" tool="3" flavor2="0">
+      <item path="parser.h" ex="true" tool="3" flavor2="0">
         <customTool>
           <customToolAdditionalDep>parser.y</customToolAdditionalDep>
         </customTool>
@@ -322,7 +324,7 @@
       </item>
       <item path="rational.cpp" ex="true" tool="1" flavor2="9">
       </item>
-      <item path="term.h" ex="false" tool="3" flavor2="0">
+      <item path="term.h" ex="true" tool="3" flavor2="0">
         <customTool>
           <customToolAdditionalDep>parser.yy.cpp location.hh</customToolAdditionalDep>
         </customTool>
@@ -350,6 +352,9 @@
             <pElem>../../lib</pElem>
             <pElem>../contrib/googletest/googletest</pElem>
             <pElem>../contrib/googletest/googletest/include</pElem>
+            <pElem>/usr/lib/gcc/x86_64-linux-gnu</pElem>
+            <pElem>/usr/include/x86_64-linux-gnu/c++/11</pElem>
+            <pElem>/usr/lib/gcc/x86_64-linux-gnu/11/include</pElem>
           </incDir>
           <commandLine>`llvm-config-18 --cxxflags` `cat ../build_options.txt | tr -d '\r\n'`  -fsanitize=undefined -fsanitize-trap=undefined -Werror   -gdwarf-4  -ggdb</commandLine>
           <preprocessorList>
@@ -362,10 +367,12 @@
         <linkerTool>
           <output>../output/nlc-unittest</output>
           <linkerAddLib>
+            <pElem>.</pElem>
             <pElem>../contrib/libtorch/lib</pElem>
           </linkerAddLib>
           <linkerDynSerch>
             <pElem>.</pElem>
+            <pElem>../contrib/libtorch/lib</pElem>
           </linkerDynSerch>
           <linkerLibItems>
             <linkerLibStdlibItem>PosixThreads</linkerLibStdlibItem>
@@ -375,7 +382,7 @@
             <linkerLibLibItem>zip</linkerLibLibItem>
             <linkerLibStdlibItem>DynamicLinking</linkerLibStdlibItem>
           </linkerLibItems>
-          <commandLine>`llvm-config-18 --link-static --system-libs --libs all` -g -fvisibility=default -Wl,--export-dynamic -Wl,--exclude-libs,ALL -lclang-cpp -lcrypto</commandLine>
+          <commandLine>`llvm-config-18 --link-static --system-libs --libs all` -g -fvisibility=default -Wl,--export-dynamic -Wl,--exclude-libs,ALL -lclang-cpp -lcrypto -lstdc++</commandLine>
         </linkerTool>
       </compileType>
       <item path="../build_options.txt" ex="false" tool="3" flavor2="0">
@@ -390,8 +397,6 @@
       <item path="../lib/../../newlang/lib/include.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="../make_version.sh" ex="false" tool="3" flavor2="0">
-      </item>
-      <item path="../nlc/unittest.cpp" ex="false" tool="1" flavor2="0">
       </item>
       <item path="analysis.cpp" ex="false" tool="1" flavor2="9">
       </item>
@@ -532,6 +537,8 @@
       <item path="test/run_test.cpp" ex="false" tool="1" flavor2="0">
       </item>
       <item path="test/system_test.cpp" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="test/unittest.cpp" ex="false" tool="1" flavor2="0">
       </item>
       <item path="types.h" ex="false" tool="3" flavor2="0">
       </item>

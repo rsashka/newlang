@@ -7,7 +7,7 @@
 -fexceptions 
 -fcxx-exceptions 
 
--stdlib=libc++ 
+-stdlib=libstdc++ 
 
 -Wall 
 -Wextra 

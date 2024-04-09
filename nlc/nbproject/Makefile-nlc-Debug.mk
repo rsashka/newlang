@@ -35,7 +35,8 @@ OBJECTDIR=${CND_BUILDDIR}/${CND_CONF}/${CND_PLATFORM}
 
 # Object Files
 OBJECTFILES= \
-	${OBJECTDIR}/nlc.o
+	${OBJECTDIR}/nlc.o \
+	${OBJECTDIR}/test/nlc_test.o
 
 
 # C Compiler Flags
@@ -52,7 +53,7 @@ FFLAGS=
 ASFLAGS=
 
 # Link Libraries and Options
-LDLIBSOPTIONS=-L../contrib/libtorch/lib -L../output -Wl,-rpath,'.' -lpthread -lc10 -ltorch -ltorch_cpu -lnlc-rt -lnlc-jit -lcrypt -lzip -lcurl -ldl
+LDLIBSOPTIONS=-L../contrib/libtorch/lib -L../output -Wl,-rpath,'.' -Wl,-rpath,'../contrib/libtorch/lib' -lpthread -lc10 -ltorch -ltorch_cpu -lnlc-rt -lnlc-jit -lcrypt -lzip -lcurl -ldl
 
 # Build Targets
 .build-conf: ${BUILD_SUBPROJECTS}
@@ -66,6 +67,11 @@ ${OBJECTDIR}/nlc.o: nlc.cpp nbproject/Makefile-${CND_CONF}.mk
 	${MKDIR} -p ${OBJECTDIR}
 	${RM} "$@.d"
 	$(COMPILE.cc) -g -DBUILD_DEBUG -DLOG_LEVEL_NORMAL=LOG_LEVEL_DEBUG -I../lib -I../contrib/libtorch/include -I../contrib/libtorch/include/torch/csrc/api/include -I../contrib/fmt/include -I../contrib/googletest/googletest -I../contrib/googletest/googletest/include -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/nlc.o nlc.cpp
+
+${OBJECTDIR}/test/nlc_test.o: test/nlc_test.cpp nbproject/Makefile-${CND_CONF}.mk
+	${MKDIR} -p ${OBJECTDIR}/test
+	${RM} "$@.d"
+	$(COMPILE.cc) -g -DBUILD_DEBUG -DLOG_LEVEL_NORMAL=LOG_LEVEL_DEBUG -I../lib -I../contrib/libtorch/include -I../contrib/libtorch/include/torch/csrc/api/include -I../contrib/fmt/include -I../contrib/googletest/googletest -I../contrib/googletest/googletest/include -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/test/nlc_test.o test/nlc_test.cpp
 
 # Subprojects
 .build-subprojects:

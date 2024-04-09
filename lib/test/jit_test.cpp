@@ -445,17 +445,17 @@ TEST(JIT, MakeModule) {
     omain << main_src;
     omain.close();
 
-    std::unique_ptr<llvm::Module> main = jit->MakeLLVMModule(main_src,{});
+    std::unique_ptr<llvm::Module> main = jit->MakeLLVMModule(main_src, argsX);
     ASSERT_TRUE(main);
-    ASSERT_TRUE(jit->MakeObjFile("temp/main.o", *main,{}));
+    ASSERT_TRUE(jit->MakeObjFile("temp/main.o", *main,{"-fPIE"}));
 
-    std::unique_ptr<llvm::Module> module = jit->MakeLLVMModule(hello,{});
+    std::unique_ptr<llvm::Module> module = jit->MakeLLVMModule(hello, argsX);
     ASSERT_TRUE(module);
-    ASSERT_TRUE(jit->MakeObjFile("temp/hello.o", *module,{}));
+    ASSERT_TRUE(jit->MakeObjFile("temp/hello.o", *module,{"-fPIE"}));
 
     std::vector<std::string> libs{
         //        "-L."
-        //        "-L~/SOURCE/NewLang/newlang/output",
+        "-L/usr/lib/x86_64-linux-gnu",
         "libnlc-rt.so",
         "libc10.so",
         "libtorch.so",
@@ -463,11 +463,14 @@ TEST(JIT, MakeModule) {
         "-lcrypt",
         "-lzip",
         "-lcurl",
+        "-lstdc++",
 
-//        "-fPIE",
-//        "-lc++",
-
+//        "-Wl,-pie",
+//        "-melf_x86_64",
+//        "-Wl,-dynamic-linker",
+        //                "-pie --eh-frame-hdr -m elf_x86_64 -dynamic-linker"
         "-Wl,-rpath,./",
+        "-Wl,-rpath,/usr/lib/x86_64-linux-gnu",
         ""};
     ASSERT_TRUE(jit->LinkObjToExec("hello_rt",{"temp/main.o", "temp/hello.o"}, libs));
 

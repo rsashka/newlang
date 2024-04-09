@@ -13,6 +13,7 @@
             </make-dep-projects>
             <sourceRootList>
                 <sourceRootElem>../site/content</sourceRootElem>
+                <sourceRootElem>/usr/lib/gcc/x86_64-linux-gnu/../contrib/libtorch/lib/..</sourceRootElem>
             </sourceRootList>
             <confList>
                 <confElem>

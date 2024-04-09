@@ -8,6 +8,10 @@
 
 #include "nlc-rt.h"
 
+#include "term.h"
+#include "context.h"
+#include "diag.h"
+#include "runtime.h"
 #include "diag.h"
 //#include "system.h"
 

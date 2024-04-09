@@ -39,8 +39,10 @@ OBJECTFILES= \
 	${OBJECTDIR}/nlc.o \
 	${OBJECTDIR}/test/diag_test.o \
 	${OBJECTDIR}/test/logger_test.o \
+	${OBJECTDIR}/test/nlc_test.o \
 	${OBJECTDIR}/test/object_test.o \
 	${OBJECTDIR}/test/rational_test.o \
+	${OBJECTDIR}/test/unittest.o \
 	${OBJECTDIR}/unittest.o
 
 
@@ -88,6 +90,11 @@ ${OBJECTDIR}/test/logger_test.o: test/logger_test.cpp
 	${RM} "$@.d"
 	$(COMPILE.cc) -O2 -fPIC  -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/test/logger_test.o test/logger_test.cpp
 
+${OBJECTDIR}/test/nlc_test.o: test/nlc_test.cpp
+	${MKDIR} -p ${OBJECTDIR}/test
+	${RM} "$@.d"
+	$(COMPILE.cc) -O2 -fPIC  -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/test/nlc_test.o test/nlc_test.cpp
+
 ${OBJECTDIR}/test/object_test.o: test/object_test.cpp
 	${MKDIR} -p ${OBJECTDIR}/test
 	${RM} "$@.d"
@@ -97,6 +104,11 @@ ${OBJECTDIR}/test/rational_test.o: test/rational_test.cpp
 	${MKDIR} -p ${OBJECTDIR}/test
 	${RM} "$@.d"
 	$(COMPILE.cc) -O2 -fPIC  -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/test/rational_test.o test/rational_test.cpp
+
+${OBJECTDIR}/test/unittest.o: test/unittest.cpp
+	${MKDIR} -p ${OBJECTDIR}/test
+	${RM} "$@.d"
+	$(COMPILE.cc) -O2 -fPIC  -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/test/unittest.o test/unittest.cpp
 
 ${OBJECTDIR}/unittest.o: unittest.cpp
 	${MKDIR} -p ${OBJECTDIR}
