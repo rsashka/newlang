@@ -30,6 +30,8 @@ for i in $(find $root/site/content/en/ -name \*.md -or -name \*.html); do # Not 
 done
 
 
+doxygen 
+
 cd  $root/site
 
 hugo server -d ../docs
