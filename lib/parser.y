@@ -146,6 +146,7 @@
 %token			MODULE
 %token			NATIVE
 %token			SYMBOL
+%token			MANGLED
 
 %token			UNKNOWN		"Token ONLY UNKNOWN"
 %token			OPERATOR_DIV
@@ -388,7 +389,10 @@ name:   ns_part
             {
                 $$ = $1;
             }
-        
+        | MANGLED
+            {
+                $$ = $1;
+            }
         
 
 /* Фиксированная размерность тензоров для использования в типах данных */

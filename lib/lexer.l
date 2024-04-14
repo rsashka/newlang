@@ -99,8 +99,11 @@ number  ({number1}|{number2})
 /* The module name uses only lowercase letters of the Latin alphabet.
    The first character cannot be an underscore, but this check occurs at the level 
    of parsing the syntax tree and checking for the presence of the file. */
-module_name  \\({ualpha}|[_]|{digit})+
-module  \\?{module_name}+
+module_name \\({ualpha}|[_]|{digit})+
+module      \\?{module_name}+
+
+mangled_name    ({alpha}|[_$]|{digit})+
+mangled _${mangled_name}?$_{mangled_name}+
 
 %x state_STRWIDE
 %x state_STRCHAR
@@ -513,6 +516,7 @@ module  \\?{module_name}+
 
 "$"[0-9]+   YY_TOKEN(ARGUMENT);
 
+{mangled}   YY_TOKEN(MANGLED);
 {name}      YY_TOKEN(NAME);
 @{name}     YY_TOKEN(MACRO);
 ${name}     YY_TOKEN(LOCAL);

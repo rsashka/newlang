@@ -38,6 +38,7 @@ namespace newlang {
         _(MACRO) \
         _(MODULE) \
         _(NATIVE) \
+        _(MANGLED) \
         \
         _(TYPE) \
         _(INTEGER) \
@@ -572,9 +573,10 @@ namespace newlang {
             }
         }
 
-        inline  static bool isExportName(const TermPtr &term) {
+        inline static bool isExportName(const TermPtr &term) {
             return term->m_is_call || isStaticName(term->m_text);
         }
+
         inline bool isExport() {
             return m_id == TermID::MACRO_DEL || (isCreate() && (isExportName(m_left) || m_left->m_id == TermID::MACRO_SEQ));
         }
@@ -688,6 +690,7 @@ namespace newlang {
                 case TermID::MODULE:
                 case TermID::NEWLANG:
                 case TermID::NATIVE:
+                case TermID::MANGLED:
                 case TermID::MACRO:
                 case TermID::LOCAL:
                 case TermID::STATIC:
@@ -1541,10 +1544,10 @@ namespace newlang {
             return m_is_const;
         }
 
-//        BlockType GetMacroId();
-//
-//        //    SCOPE(protected) :
-//        static BlockType MakeMacroId(const BlockType &seq);
+        //        BlockType GetMacroId();
+        //
+        //        //    SCOPE(protected) :
+        //        static BlockType MakeMacroId(const BlockType &seq);
 
         /**
          * Проверяет аргументы термина на корректность, обрабатывает системные аргументы, проверяет наличие внешних функций

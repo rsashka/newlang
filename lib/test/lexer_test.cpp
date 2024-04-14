@@ -560,6 +560,20 @@ TEST_F(Lexer, Ignore) {
 
 }
 
+TEST_F(Lexer, Mangled) {
+    ASSERT_EQ(1, TokenParse("_$$_123$")) << Dump();
+    ASSERT_EQ(1, Count(TermID::MANGLED)) << Dump();
+
+    ASSERT_EQ(1, TokenParse("_$name_$_123$")) << Dump();
+    ASSERT_EQ(1, Count(TermID::MANGLED)) << Dump();
+
+    ASSERT_EQ(1, TokenParse("_$na12me_$_name$$$")) << Dump();
+    ASSERT_EQ(1, Count(TermID::MANGLED)) << Dump();
+
+    ASSERT_EQ(1, TokenParse("_$na$_12me_$_name$$$")) << Dump();
+    ASSERT_EQ(1, Count(TermID::MANGLED)) << Dump();
+}
+
 TEST_F(Lexer, ParseLexem) {
 
     BlockType arr = Scanner::ParseLexem("1 2 3 4 5");

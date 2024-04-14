@@ -37,47 +37,23 @@
 #include <llvm/LinkAllIR.h>
 #include <llvm/LinkAllPasses.h>
 
-//#include <torch/torch.h>
-//#include <ATen/ATen.h>
+#include "clang/Driver/Driver.h"
+#include "clang/Driver/Compilation.h"
 
+#include "llvm-c/Core.h"
+#include "llvm-c/Target.h"
+#include "llvm-c/TargetMachine.h"
 
+#include "llvm/IR/LegacyPassManager.h"
+#include "llvm/MC/TargetRegistry.h"
+#include "llvm/Support/CodeGen.h"
 
-//
-//#include "warning_push.h"
-//
-//#include "llvm/IR/Metadata.h"
-//#include "llvm/IR/LegacyPassManager.h"
-//#include "llvm/MC/TargetRegistry.h"
-//
-//#include "clang/Driver/Driver.h"
-//#include "clang/Driver/Compilation.h"
-//#include "clang/Frontend/TextDiagnosticPrinter.h"
-//#include "llvm/IR/Module.h"
-//#include "llvm/Target/TargetOptions.h"
-//#include "llvm/ADT/STLExtras.h"
-//#include "llvm/Support/VirtualFileSystem.h"
-//#include "llvm/Support/TargetSelect.h"
-//
-//#include "llvm-c/Core.h"
-//#include "llvm-c/Target.h"
-//#include "llvm-c/TargetMachine.h"
-//
-//#include "llvm/IR/LegacyPassManager.h"
-//#include "llvm/MC/TargetRegistry.h"
-//#include "llvm/Support/CodeGen.h"
-//
-//#include "llvm/Support/InitLLVM.h"
-//
-//#include "llvm/Target/TargetMachine.h"
-//
-//#include "clang/Frontend/CompilerInstance.h"
-//#include "clang/CodeGen/CodeGenAction.h"
-//
-//#include "clang/Tooling/CommonOptionsParser.h"
-//#include "clang/Tooling/Tooling.h"
-//
-//
-//#include "warning_pop.h"
+#include "llvm/Support/InitLLVM.h"
+
+#include "llvm/Target/TargetMachine.h"
+
+#include "clang/Frontend/CompilerInstance.h"
+#include "clang/CodeGen/CodeGenAction.h"
 
 #include "warning_pop.h"
 

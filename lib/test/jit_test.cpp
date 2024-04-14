@@ -38,51 +38,21 @@ TEST(JIT, Function) {
 
 
 
-#include "clang/Driver/Driver.h"
-#include "clang/Driver/Compilation.h"
-#include "clang/Frontend/TextDiagnosticPrinter.h"
-#include "llvm/IR/Module.h"
-#include "llvm/Target/TargetOptions.h"
-#include "llvm/ADT/STLExtras.h"
-#include "llvm/Support/VirtualFileSystem.h"
-#include "llvm/Support/TargetSelect.h"
-
-#include "llvm-c/Core.h"
-#include "llvm-c/Target.h"
-#include "llvm-c/TargetMachine.h"
-
-#include "llvm/IR/LegacyPassManager.h"
-#include "llvm/MC/TargetRegistry.h"
-#include "llvm/Support/CodeGen.h"
-
-#include "llvm/Support/InitLLVM.h"
-
-#include "llvm/Target/TargetMachine.h"
-
-#include "clang/Frontend/CompilerInstance.h"
-#include "clang/CodeGen/CodeGenAction.h"
-
-#include  <iostream>
-#include <fcntl.h>
-
-using namespace llvm;
-using namespace llvm::sys;
-
 void writeModuleToFile(llvm::Module *module) {
     auto TargetTriple = LLVMGetDefaultTargetTriple();
-    InitializeAllTargetInfos();
-    InitializeAllTargets();
-    InitializeAllTargetMCs();
-    InitializeAllAsmParsers();
-    InitializeAllAsmPrinters();
+    llvm::InitializeAllTargetInfos();
+    llvm::InitializeAllTargets();
+    llvm::InitializeAllTargetMCs();
+    llvm::InitializeAllAsmParsers();
+    llvm::InitializeAllAsmPrinters();
 
     std::string Error;
-    auto Target = TargetRegistry::lookupTarget(TargetTriple, Error);
+    auto Target = llvm::TargetRegistry::lookupTarget(TargetTriple, Error);
     auto CPU = "generic";
     auto Features = "";
 
-    TargetOptions opt;
-    auto RM = std::optional<Reloc::Model>();
+    llvm::TargetOptions opt;
+    auto RM = std::optional<llvm::Reloc::Model>();
     auto TargetMachine = Target->createTargetMachine(TargetTriple, CPU, Features, opt, RM);
 
     module->setDataLayout(TargetMachine->createDataLayout());
@@ -90,30 +60,30 @@ void writeModuleToFile(llvm::Module *module) {
 
     auto Filename = "output.o";
     std::error_code EC;
-    raw_fd_ostream dest(Filename, EC, sys::fs::OF_None);
+    llvm::raw_fd_ostream dest(Filename, EC, llvm::sys::fs::OF_None);
 
-    legacy::PassManager pass;
-    auto FileType = CodeGenFileType::ObjectFile;
+    llvm::legacy::PassManager pass;
+    auto FileType = llvm::CodeGenFileType::ObjectFile;
 
     if (TargetMachine->addPassesToEmitFile(pass, dest, nullptr, FileType)) {
-        errs() << "TargetMachine can't emit a file of this type";
+        llvm::errs() << "TargetMachine can't emit a file of this type";
         return;
     }
     pass.run(*module);
     dest.flush();
 
-    IntrusiveRefCntPtr<clang::DiagnosticOptions> DiagOpts = new clang::DiagnosticOptions;
-    clang::TextDiagnosticPrinter *DiagClient = new clang::TextDiagnosticPrinter(errs(), &*DiagOpts);
-    IntrusiveRefCntPtr<clang::DiagnosticIDs> DiagID(new clang::DiagnosticIDs());
+    llvm::IntrusiveRefCntPtr<clang::DiagnosticOptions> DiagOpts = new clang::DiagnosticOptions;
+    clang::TextDiagnosticPrinter *DiagClient = new clang::TextDiagnosticPrinter(llvm::errs(), &*DiagOpts);
+    llvm::IntrusiveRefCntPtr<clang::DiagnosticIDs> DiagID(new clang::DiagnosticIDs());
     clang::DiagnosticsEngine Diags(DiagID, &*DiagOpts, DiagClient);
     clang::driver::Driver TheDriver("/uslkjhklhjkr/bin/clang++-12ssss", TargetTriple, Diags);
 
-    auto args = ArrayRef<const char *>{"-g", "output.o", "-o", "xxxxxxxxxxxxxxxxxxxxx"};
+    auto args = llvm::ArrayRef<const char *>{"-g", "output.o", "-o", "xxxxxxxxxxxxxxxxxxxxx"};
 
     std::unique_ptr<clang::driver::Compilation> C(TheDriver.BuildCompilation(args));
 
     if (C && !C->containsError()) {
-        SmallVector<std::pair<int, const clang::driver::Command *>, 4> FailingCommands;
+        llvm::SmallVector<std::pair<int, const clang::driver::Command *>, 4> FailingCommands;
         TheDriver.ExecuteCompilation(*C, FailingCommands);
     }
 

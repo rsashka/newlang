@@ -95,8 +95,10 @@
           <runcommandpicklistitem>"${OUTPUT_PATH}" --gtest_shuffle --gtest_filter=LLVM.Include_h_i_GTF</runcommandpicklistitem>
           <runcommandpicklistitem>"${OUTPUT_PATH}" --gtest_shuffle --gtest_filter=JIT.MakeModule</runcommandpicklistitem>
           <runcommandpicklistitem>"${OUTPUT_PATH}" --gtest_shuffle --gtest_filter=*</runcommandpicklistitem>
+          <runcommandpicklistitem>"${OUTPUT_PATH}" --gtest_shuffle --gtest_filter=Lexer.Module:Lexer.Mangled:ParserTest.Module
+</runcommandpicklistitem>
         </runcommandpicklist>
-        <runcommand>"${OUTPUT_PATH}" --gtest_shuffle --gtest_filter=*</runcommand>
+        <runcommand>"${OUTPUT_PATH}" --gtest_shuffle --gtest_filter=Lexer.Module:Lexer.Mangled:ParserTest.Module</runcommand>
         <rundir>../output</rundir>
         <buildfirst>true</buildfirst>
         <terminal-type>0</terminal-type>
