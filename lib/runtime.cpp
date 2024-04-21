@@ -2320,6 +2320,11 @@ m_diag(std::make_shared<Diag>()) {
     m_typedef_limit = 0;
     m_ffi_handle = nullptr;
 
+    m_cache_dir = ".";
+    m_work_dir = std::filesystem::current_path();
+    m_temp_dir = std::filesystem::temp_directory_path();
+    m_user_dir = getenv("HOME");
+
     //    m_cmd_args = Obj::CreateType(ObjType::Dictionary, ObjType::Dictionary, true);
     //    m_main_args = Obj::CreateType(ObjType::Dictionary, ObjType::Dictionary, true);
 

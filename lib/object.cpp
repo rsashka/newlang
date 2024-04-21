@@ -201,7 +201,7 @@ std::wstring newlang::utf8_decode(const std::string str) {
     return wide_line;
 }
 
-Obj::Obj(ObjType type, const char *var_name, TermPtr func_proto, ObjType fixed, bool init) :
+Obj::Obj(ObjType type, const char *var_name, TermPtr func_proto, ObjType fixed, bool init, Sync *sync) :
 m_var_type_current(type), m_var_name(var_name ? var_name : ""), m_prototype(func_proto) {
     m_is_const = false;
     m_check_args = false;
@@ -212,6 +212,7 @@ m_var_type_current(type), m_var_name(var_name ? var_name : ""), m_prototype(func
     m_is_const = false;
     m_var = std::monostate();
     m_tensor = std::make_shared<torch::Tensor>();
+    m_sync = sync;
 }
 
 bool Obj::empty() const {
@@ -1041,6 +1042,8 @@ void Obj::CloneDataTo(Obj & clone) const {
         if (m_tensor->defined()) {
             *clone.m_tensor = m_tensor->clone();
         }
+        clone.m_sync = m_sync;
+        clone.m_reference = m_reference;
     }
 }
 
@@ -1078,11 +1081,11 @@ std::string Obj::toString(bool deep) const {
     std::stringstream ss;
 
     if (m_var_type_current == ObjType::None) {
-//        if (m_prototype && m_prototype->GetType()) {
-//            result += m_prototype->GetType()->toString();
-//        } else if (m_var_type_fixed != ObjType::None) {
-//            result += newlang::toString(m_var_type_fixed);
-//        }
+        //        if (m_prototype && m_prototype->GetType()) {
+        //            result += m_prototype->GetType()->toString();
+        //        } else if (m_var_type_fixed != ObjType::None) {
+        //            result += newlang::toString(m_var_type_fixed);
+        //        }
         result += "_";
         return result;
     } else if (is_tensor_type()) {
@@ -1202,17 +1205,30 @@ std::string Obj::toString(bool deep) const {
                 }
                 return result;
 
+            case ObjType::Reference:
+
+            {
+                result = ":Reference to ";
+                ObjPtr ref = m_reference.lock();
+                if (ref) {
+                    result = ref->toString();
+                } else {
+                    result = "nullptr";
+                }
+                return result;
+            }
+
             case ObjType::NativeFunc:
             case ObjType::Function: // name:={function code}
             case ObjType::PureFunc: // name=>{function code}
-//                ASSERT(m_prototype);
-//                result += m_prototype->m_text;
-//                result += "(";
-//                m_prototype->dump_items_(result);
-//                result += ")";
-//                if (m_prototype->m_type) {
-//                    result += m_prototype->m_type->asTypeString();
-//                }
+                //                ASSERT(m_prototype);
+                //                result += m_prototype->m_text;
+                //                result += "(";
+                //                m_prototype->dump_items_(result);
+                //                result += ")";
+                //                if (m_prototype->m_type) {
+                //                    result += m_prototype->m_type->asTypeString();
+                //                }
 
             case ObjType::BLOCK:
                 result += "{ }";
@@ -1231,35 +1247,35 @@ std::string Obj::toString(bool deep) const {
                 return result;
 
             case ObjType::EVAL_FUNCTION: // name=>{function code}
-//                ASSERT(m_prototype);
-//                result += m_prototype->m_text;
-//                result += "(";
-//                m_prototype->dump_items_(result);
-//                result += ")";
-//                if (m_prototype->m_type) {
-//                    result += m_prototype->m_type->asTypeString();
-//                }
-//
-//                if (m_var_type_current == ObjType::EVAL_FUNCTION) {
-//                    result += ":=";
-//                } else if (m_var_type_current == ObjType::PureFunc) {
-//                    result += ":-";
-//                } else {
-//                    LOG_RUNTIME("Fail function type");
-//                }
-//
-//                if (m_sequence->getTermID() != TermID::BLOCK) {
-//                    result += "{";
-//                }
-//                if (m_sequence) {
-//                    result += m_sequence->toString();
-//                    if (m_sequence->getTermID() != TermID::BLOCK) {
-//                        result += ";";
-//                    }
-//                }
-//                if (m_sequence->getTermID() != TermID::BLOCK) {
-//                    result.append("}");
-//                }
+                //                ASSERT(m_prototype);
+                //                result += m_prototype->m_text;
+                //                result += "(";
+                //                m_prototype->dump_items_(result);
+                //                result += ")";
+                //                if (m_prototype->m_type) {
+                //                    result += m_prototype->m_type->asTypeString();
+                //                }
+                //
+                //                if (m_var_type_current == ObjType::EVAL_FUNCTION) {
+                //                    result += ":=";
+                //                } else if (m_var_type_current == ObjType::PureFunc) {
+                //                    result += ":-";
+                //                } else {
+                //                    LOG_RUNTIME("Fail function type");
+                //                }
+                //
+                //                if (m_sequence->getTermID() != TermID::BLOCK) {
+                //                    result += "{";
+                //                }
+                //                if (m_sequence) {
+                //                    result += m_sequence->toString();
+                //                    if (m_sequence->getTermID() != TermID::BLOCK) {
+                //                        result += ";";
+                //                    }
+                //                }
+                //                if (m_sequence->getTermID() != TermID::BLOCK) {
+                //                    result.append("}");
+                //                }
                 return result;
 
             case ObjType::Class: // name:=@term(id=123, ...) name=base(id=123, ... )
@@ -2536,9 +2552,9 @@ ObjPtr Obj::CreateBaseType(ObjType type) {
     func_proto += ":-{ }";
     result->m_class_name = newlang::NormalizeName(newlang::toString(type));
 
-//    TermPtr proto = Parser::ParseString(func_proto, nullptr);
-//    ASSERT(proto->Left());
-//    * const_cast<TermPtr *> (&result->m_prototype) = proto->Left();
+    //    TermPtr proto = Parser::ParseString(func_proto, nullptr);
+    //    ASSERT(proto->Left());
+    //    * const_cast<TermPtr *> (&result->m_prototype) = proto->Left();
 
     result->m_var = (void *) BaseTypeConstructor;
     result->m_is_const = true;
@@ -3325,8 +3341,8 @@ ObjPtr newlang::CheckSystemField(const Obj *obj, std::string name) {
         return Obj::CreateString(obj->m_var_name);
     } else if (name.compare(SYS__SIZE__) == 0) {
         return Obj::CreateValue(obj->size());
-//    } else if (name.compare(SYS__DOC__) == 0) {
-//        return Obj::CreateString(GetDoc(obj->m_var_name));
+        //    } else if (name.compare(SYS__DOC__) == 0) {
+        //        return Obj::CreateString(GetDoc(obj->m_var_name));
     } else if (name.compare(SYS__STR__) == 0) {
         return Obj::CreateString(obj->toString());
     } else if (name.compare(SYS__SOURCE__) == 0 && obj->m_var_type_current != ObjType::Module) {
@@ -3362,7 +3378,7 @@ ObjPtr newlang::CheckSystemField(const Obj *obj, std::string name) {
 
 ObjPtr Obj::op_call(Obj & args) {
 
-//    return Context::Call(m_ctx, *this, args);
+    //    return Context::Call(m_ctx, *this, args);
     return nullptr;
 }
 
@@ -3748,8 +3764,6 @@ IntAny::IntAny(const ObjPtr obj, ObjType type) : Obj(type, nullptr, nullptr, typ
     m_return_obj = obj;
 }
 
-
-
 ObjType newlang::typeFromLimit(double value, ObjType type_default) {
     if (value >= std::numeric_limits<float>::min() && value < std::numeric_limits<float>::max()) {
         return ObjType::Float32;
@@ -3777,6 +3791,7 @@ ObjType newlang::typeFromLimit(int64_t value, ObjType type_default) {
 
 
 #pragma message "Переделать сравение"
+
 bool Obj::op_class_test(const char *name, Context * ctx) const {
 
     ASSERT(name || *name);

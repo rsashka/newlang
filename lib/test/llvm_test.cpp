@@ -532,8 +532,8 @@ extern "C" bool include_h_i_function_test();
 using namespace newlang;
 
 TEST(LLVM, Include_h_i_GTF) {
-
-    ObjPtr obj = Obj::None();
+    
+    ObjPtr obj = Obj::CreateNone();
 
     ASSERT_STREQ("_", obj->toString().c_str());
     ASSERT_ANY_THROW(auto _ = static_cast<bool> (*obj));

@@ -10,31 +10,31 @@ using namespace newlang;
 
 namespace newlang {
 
-    NEWLANG_TRANSPARENT(min) {
-        if(in.size() < 2) {
-            LOG_RUNTIME("Empty argument list parameter!");
-        }
-        ObjPtr out = in.at(1).second;
-        for (int i = 2; i < in.size(); i++) {
-            if(*in.at(i).second < out) {
-                out = in.at(i).second;
-            }
-        }
-        return out;
-    }
-
-    NEWLANG_TRANSPARENT(max) {
-        if(in.size() < 2) {
-            LOG_RUNTIME("Empty argument list parameter!");
-        }
-        ObjPtr out = in.at(1).second;
-        for (int i = 2; i < in.size(); i++) {
-            if(*in.at(i).second > out) {
-                out = in.at(i).second;
-            }
-        }
-        return out;
-    }
+//    NEWLANG_TRANSPARENT(min) {
+//        if(in.size() < 2) {
+//            LOG_RUNTIME("Empty argument list parameter!");
+//        }
+//        ObjPtr out = in.at(1).second;
+//        for (int i = 2; i < in.size(); i++) {
+//            if(*in.at(i).second < out) {
+//                out = in.at(i).second;
+//            }
+//        }
+//        return out;
+//    }
+//
+//    NEWLANG_TRANSPARENT(max) {
+//        if(in.size() < 2) {
+//            LOG_RUNTIME("Empty argument list parameter!");
+//        }
+//        ObjPtr out = in.at(1).second;
+//        for (int i = 2; i < in.size(); i++) {
+//            if(*in.at(i).second > out) {
+//                out = in.at(i).second;
+//            }
+//        }
+//        return out;
+//    }
 
     NEWLANG_FUNCTION(clone) {
         if(in.size() != 2) {

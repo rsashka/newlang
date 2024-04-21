@@ -358,7 +358,7 @@ std::string newlang::MangleName(const char * name) {
 //    return module;
 //}
 
-std::unique_ptr<llvm::Module> JIT::MakeLLVMModule(const std::string_view source, std::vector<std::string> extra_opts) {
+std::unique_ptr<llvm::Module> JIT::MakeLLVMModule(const std::string_view source, std::vector<std::string> extra_opts, std::string temp_dir) {
 
     clang::CompilerInstance compilerInstance;
     auto& compilerInvocation = compilerInstance.getInvocation();
@@ -384,10 +384,10 @@ std::unique_ptr<llvm::Module> JIT::MakeLLVMModule(const std::string_view source,
 
     run_opts.push_back("-xc++");
 
-//    run_opts.push_back("-DBUILD_UNITTEST");
-//    run_opts.push_back("-DBUILD_DEBUG");
-//    run_opts.push_back("-DLOG_LEVEL_NORMAL=LOG_LEVEL_DEBUG");
-//
+    //    run_opts.push_back("-DBUILD_UNITTEST");
+    //    run_opts.push_back("-DBUILD_DEBUG");
+    //    run_opts.push_back("-DLOG_LEVEL_NORMAL=LOG_LEVEL_DEBUG");
+    //
 
     std::string build_options_string;
     for (size_t i = 0; i < newlang_build_options_size; i++) {
@@ -404,7 +404,7 @@ std::unique_ptr<llvm::Module> JIT::MakeLLVMModule(const std::string_view source,
         if (elem.find("-D") == 0) {
             elem += " ";
         }
-//        std::cout << elem << "\n";
+        //        std::cout << elem << "\n";
     }
 
 
@@ -431,8 +431,7 @@ std::unique_ptr<llvm::Module> JIT::MakeLLVMModule(const std::string_view source,
 
         close(codeInPipe[1]);
 
-//        temp_file = std::filesystem::temp_directory_path();
-        temp_file = "temp";
+        temp_file = temp_dir.empty() ? m_rt->m_temp_dir : temp_dir;
         temp_file += "/module_XXXXXX";
         fd_temp = mkstemp(temp_file.data());
         if (fd_temp < 0) {
@@ -474,7 +473,7 @@ std::unique_ptr<llvm::Module> JIT::MakeLLVMModule(const std::string_view source,
         // note: if itemstrs is modified after this, itemcstrs will be full
         // of invalid pointers! Could make copies, but would have to clean up then...
         itemcstrs.push_back(run_opts[idx].c_str());
-//        std::cout << itemcstrs.back() << "\n";
+        //        std::cout << itemcstrs.back() << "\n";
     }
 
 
@@ -498,7 +497,7 @@ std::unique_ptr<llvm::Module> JIT::MakeLLVMModule(const std::string_view source,
     targetOptions.Triple = LLVMGetDefaultTargetTriple();
     compilerInstance.createDiagnostics(textDiagPrinter, false);
 
-//    std::cout << "Using target triple: " << triple;
+    //    std::cout << "Using target triple: " << triple;
 
     LLVMContextRef ctx = LLVMContextCreate();
     std::unique_ptr<clang::CodeGenAction> action = std::make_unique<clang::EmitLLVMOnlyAction>((llvm::LLVMContext *)ctx);
@@ -513,9 +512,9 @@ std::unique_ptr<llvm::Module> JIT::MakeLLVMModule(const std::string_view source,
     if (!module) {
         LOG_RUNTIME("Fail create module!");
     }
-    
+
     std::filesystem::remove(temp_file);
-    
+
 
     //    if (asm_code) {
     //        llvm::raw_string_ostream asm_stream(*asm_code);
@@ -625,21 +624,21 @@ bool JIT::LinkObjToExec(const std::string_view execname, std::vector<std::string
 
     clang::driver::Driver TheDriver("", LLVMGetDefaultTargetTriple(), *pDiagnosticsEngine);
 
-    
+
     objs.insert(objs.begin(), opts.begin(), opts.end());
-    
+
     objs.insert(objs.begin(), "-g");
     objs.push_back("-o");
     objs.push_back(execname.begin());
-    
-    
+
+
 
     std::vector<const char*> args;
     for (unsigned idx = 0; idx < objs.size(); idx++) {
         // note: if itemstrs is modified after this, itemcstrs will be full
         // of invalid pointers! Could make copies, but would have to clean up then...
         args.push_back(objs[idx].c_str());
-//        std::cout << args.back() << "\n";
+        //        std::cout << args.back() << "\n";
     }
 
     //    auto args = llvm::ArrayRef<const char *>{"-g", Filename.c_str(), "-o", execname.begin()};
@@ -670,6 +669,7 @@ std::string JIT::ExtractFunctionDecls(const TermPtr &term, const std::string_vie
         }
     } else {
         if (term->isCreate() && term->m_left->isCall()) {
+            result += "// ";
             result += MakeCommentPlace(term->m_left);
             result += "\n";
             result += "extern \"C\" ";
@@ -697,9 +697,14 @@ std::string JIT::MakeCommentPlace(const TermPtr &term) {
         comment += " at line: ";
         comment += std::to_string(term->m_line);
     }
+    return RegExpInlineComment(comment);
+}
+
+std::string JIT::RegExpInlineComment(const std::string_view src) {
+    std::string comment(src);
     comment = std::regex_replace(comment, std::regex("\n"), "\\n");
     comment = std::regex_replace(comment, std::regex("\""), "@\"");
-    return "// " + comment + "\n";
+    return comment;
 }
 
 TermPtr JIT::MainArgs() {
@@ -813,7 +818,7 @@ std::string JIT::ReplaceObjectInEmbedSource(const std::string_view embed, std::v
     return result;
 }
 
-std::string JIT::MakeCodeModule(const TermPtr &term, const std::string_view module, bool is_main) {
+std::string JIT::MakeCodeModule(const TermPtr &ast, const std::string_view module, bool is_main) {
     std::string result;
     for (size_t i = 0; i < newlang_include_h_i_size; i++) {
         result += newlang_include_h_i_arr[i];
@@ -835,9 +840,9 @@ std::string JIT::MakeCodeModule(const TermPtr &term, const std::string_view modu
     //    result += "  typedef std::shared_ptr<Obj> ObjPtr;\n";
     //    result += "};\n\n";
 
-    result += ExtractFunctionDecls(term, module);
+    result += ExtractFunctionDecls(ast, module);
 
-    result += ExtractStaticVars(term, module);
+    result += ExtractStaticVars(ast, module);
 
     TermPtr func_module = Term::CreateName("__module__");
     func_module->m_is_call = true;
@@ -845,17 +850,62 @@ std::string JIT::MakeCodeModule(const TermPtr &term, const std::string_view modu
 
     result += MakeFunctionPrototype(func_module, module);
     result += " {\n";
-    result += MakeBodyFunction(term);
+    result += MakeBodyFunction(ast);
     result += "  return nullptr;\n";
     result += "}\n";
 
-    MakeFunctionRecursive_(term, result, module);
+    MakeFunctionRecursive_(ast, result, module);
 
     result += "/*\n* End generate JIT::MakeCodeModule";
     result += "\n* " VERSION_SOURCE_FULL_ID;
     result += "\n* at: ";
     result += Parser::GetCurrentTimeStamp();
     result += "\n*/\n\n";
+    return result;
+}
+
+std::string JIT::MakeCodeRepl(const std::string_view source, const std::string_view func_name) {
+
+    TermPtr ast = MakeAst(source);
+
+    std::string result;
+    for (size_t i = 0; i < newlang_include_h_i_size; i++) {
+        result += newlang_include_h_i_arr[i];
+        result += "\n";
+    }
+
+    result += "/*\n* Generate NewLang JIT::MakeCodeRepl";
+    result += "\n* " VERSION_SOURCE_FULL_ID;
+    result += "\n* at: ";
+    result += Parser::GetCurrentTimeStamp();
+    result += "\n* from source:\n*  ";
+    result += RegExpInlineComment(source);
+    result += "\n*/\n\n";
+
+    result += "using namespace newlang;\n\n";
+
+//    //    result += ExtractFunctionDecls(ast, module);
+//    //    result += ExtractStaticVars(ast, module);
+//
+//    TermPtr func_module = Term::CreateName(func_name);
+//    func_module->m_is_call = true;
+//    func_module->m_int_name = NormalizeName(func_module->m_text);
+//
+//    result += MakeFunctionPrototype(func_module, module);
+//    result += " {\n";
+//    result += MakeBodyFunction(ast);
+//    result += "  return JitLastResult(nullptr);\n";
+//    result += "}\n";
+//
+//    MakeFunctionRecursive_(ast, result, module);
+//
+//    result += "/*\n* End generate NewLang JIT::MakeCodeRepl";
+//    result += "\n* " VERSION_SOURCE_FULL_ID;
+//    result += "\n* at: ";
+//    result += Parser::GetCurrentTimeStamp();
+//    result += "\n* from source:\n*  ";
+//    result += RegExpInlineComment(source);
+//    result += "\n*/\n\n";
     return result;
 }
 
@@ -884,8 +934,9 @@ void JIT::MakeFunctionRecursive_(const TermPtr &term, std::string &output, const
     } else {
         if (term->isCreate()) {
             if (term->m_left->isCall()) { // Function
+                output += "// ";
                 output += MakeCommentPlace(term);
-                output += "\n";
+                output += "\n\n";
                 output += "extern \"C\" ";
                 output += MakeFunctionPrototype(term->m_left, module);
                 output += " {\n";
@@ -2579,7 +2630,7 @@ bool JIT::ModuleCreate(FileModule &data, const std::string_view module_name, con
 
 JIT::JIT(RuntimePtr rt) : m_rt(rt), m_macro(std::make_shared<Macro>()) {
 
-
+    m_repl_count = 0;
     // Диагностика работы Clang
     DiagOpts = new clang::DiagnosticOptions;
     textDiagPrinter = new clang::TextDiagnosticPrinter(llvm::outs(), &*DiagOpts);
@@ -2681,6 +2732,22 @@ JIT::JIT(RuntimePtr rt) : m_rt(rt), m_macro(std::make_shared<Macro>()) {
         VERIFY(CreateMacro("@@ assert(value, ...) @@ ::= @@ (_) @@"));
         VERIFY(CreateMacro("@@ verify(value, ...) @@ ::= @@ (@$value) @@"));
     }
+}
+
+ObjPtr JIT::REPL(const std::string_view source) {
+    //    std::string call_name = std::to_string(m_repl_count++);
+    //    call_name.insert(call_name.begin(), "_$$___REPL__");
+
+    return Obj::None();
+
+}
+
+ObjPtr newlang::JitLastResult(ObjPtr val) {
+    JIT * jit = JIT::Instance(nullptr);
+    if (val) {
+        jit->m_last_result = val;
+    }
+    return jit->m_last_result;
 }
 
 bool JIT::CreateMacro(const std::string_view text) {

@@ -81,6 +81,7 @@ namespace newlang {
     LLVMGenericValueRef GetGenericValueRef(Obj &obj, LLVMTypeRef type);
     ObjPtr CreateFromGenericValue(ObjType type, LLVMGenericValueRef ref, LLVMTypeRef llvm_type);
     LLVMTypeRef toLLVMType(ObjType t, bool none_if_error = false);
+    ObjPtr JitLastResult(ObjPtr val);
 
     class JitParser : public Parser {
     public:
@@ -101,6 +102,8 @@ namespace newlang {
 
         RuntimePtr m_rt;
         MacroPtr m_macro;
+        size_t m_repl_count;
+        ObjPtr m_last_result;
 
         clang::IntrusiveRefCntPtr<clang::DiagnosticOptions> DiagOpts;
         clang::TextDiagnosticPrinter *textDiagPrinter;
@@ -130,11 +133,11 @@ namespace newlang {
 
         static JIT * Instance(RuntimePtr rt) {
             ASSERT(rt);
-            if (m_instance == nullptr){ // || (rt && &m_instance->m_rt != rt)) {
-//                ASSERT(rt);
-//                if (m_instance) {
-//                    delete m_instance;
-//                }
+            if (m_instance == nullptr) { // || (rt && &m_instance->m_rt != rt)) {
+                //                ASSERT(rt);
+                //                if (m_instance) {
+                //                    delete m_instance;
+                //                }
                 m_instance = new JIT(rt);
             }
             ASSERT(m_instance);
@@ -194,6 +197,7 @@ namespace newlang {
         ObjPtr Run(TermPtr ast, Obj* args = nullptr);
         ObjPtr RunFile(std::string file, Obj* args = nullptr);
 
+        ObjPtr REPL(const std::string_view source);
 
         bool ModuleCreate(FileModule &data, const std::string_view source);
         static bool ModuleCreate(FileModule &data, const std::string_view module_name, const TermPtr &include, const std::string_view source, llvm::Module *bc = nullptr);
@@ -201,10 +205,11 @@ namespace newlang {
         std::string MakeCodeModule(const TermPtr &term, std::string_view name, bool is_main);
         std::string MakeCodeFunction(const TermPtr &term);
         std::string MakeFuncDeclarations_(const TermPtr &term);
+        std::string MakeCodeRepl(const std::string_view source, const std::string_view name);
 
         void MakeFunctionRecursive_(const TermPtr &term, std::string &output, const std::string_view module);
 
-        std::unique_ptr<llvm::Module> MakeLLVMModule(std::string_view source, const std::vector<std::string> opts);
+        std::unique_ptr<llvm::Module> MakeLLVMModule(std::string_view source, const std::vector<std::string> opts, std::string temp_dir = "");
         bool MakeObjFile(const std::string_view filename, llvm::Module &module, const std::vector<std::string> opts);
         bool LinkObjToExec(const std::string_view filename, std::vector<std::string> objs, std::vector<std::string> opts = {});
 
@@ -213,6 +218,7 @@ namespace newlang {
         static std::string MakeBodyFunction(const TermPtr &ast);
         static std::string MakeFunctionPrototype(const TermPtr &func, const std::string_view module);
         //        static std::string MakeFunctionArgs(const TermPtr &args);
+        static std::string RegExpInlineComment(const std::string_view src);
         static std::string MakeCommentPlace(const TermPtr &term);
 
 

@@ -34,5 +34,5 @@ doxygen
 
 cd  $root/site
 
-hugo server -d ../docs
+hugo server --watch --disableFastRender -d ../docs
 

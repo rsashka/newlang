@@ -389,7 +389,7 @@ namespace newlang {
 
         typedef Variable::PairType PairType;
 
-        Obj(ObjType type = ObjType::None, const char *var_name = nullptr, TermPtr func_proto = nullptr, ObjType fixed = ObjType::None, bool init = false);
+        Obj(ObjType type = ObjType::None, const char *var_name = nullptr, TermPtr func_proto = nullptr, ObjType fixed = ObjType::None, bool init = false, Sync *sync = nullptr);
         //        Obj(Context *ctx, const TermPtr term, bool as_value, Obj *local_vars);
 
 
@@ -1390,9 +1390,65 @@ namespace newlang {
 
         bool GetValueAsBoolean() const;
 
-        static ObjPtr CreateType(ObjType type, ObjType fixed = ObjType::None, bool is_init = false) {
+        static ObjPtr CreateType(ObjType type, ObjType fixed = ObjType::None, bool is_init = false, Sync *sync = nullptr) {
+            return std::make_shared<Obj>(type, nullptr, nullptr, fixed, is_init, sync);
+        }
 
-            return std::make_shared<Obj>(type, nullptr, nullptr, fixed, is_init);
+        static ObjPtr CreateReference(ObjPtr obj, RefType ref_type) {
+
+            ASSERT(obj);
+
+            if (ref_type == RefType::None) {
+                LOG_RUNTIME("Invalid reference type!");
+            }
+            if (!obj->m_sync) {
+                LOG_RUNTIME("The object does not allow creating reference!");
+            }
+
+            switch (obj->m_sync->GetRefType()) {
+                case RefType::LiteSingle:
+                case RefType::LiteSingleConst:
+                    if (!(ref_type == RefType::LiteSingle || ref_type == RefType::LiteSingleConst)) {
+                        LOG_RUNTIME("Reference type error!");
+                    }
+                    break;
+                case RefType::LiteThread:
+                case RefType::LiteThreadConst:
+                    if (!(ref_type == RefType::LiteThread || ref_type == RefType::LiteThreadConst)) {
+                        LOG_RUNTIME("Reference type error!");
+                    }
+                    break;
+                case RefType::SyncMono:
+                case RefType::SyncMonoConst:
+                    if (!(ref_type == RefType::SyncMono || ref_type == RefType::SyncMonoConst)) {
+                        LOG_RUNTIME("Reference type error!");
+                    }
+                    break;
+                case RefType::SyncMulti:
+                case RefType::SyncMultiConst:
+                    if (!(ref_type == RefType::SyncMulti || ref_type == RefType::SyncMultiConst)) {
+                        LOG_RUNTIME("Reference type error!");
+                    }
+                    break;
+                default:
+                    LOG_RUNTIME("Invalid reference type!");
+            }
+
+            if (isEditableRef(ref_type) && isConstRef(obj->m_sync->GetRefType())) {
+                LOG_RUNTIME("Read-only reference are allowed!");
+            }
+
+            ObjPtr result = Obj::CreateType(ObjType::Reference, obj->m_var_type_fixed, true, obj->m_sync);
+            result->m_reference = obj;
+            return result;
+        }
+
+        inline Taken Take(bool edit_mode = true, const std::chrono::milliseconds & timeout_duration = Sync::SyncTimeoutDeedlock) {
+            if (m_var_type_current == ObjType::Reference) {
+                return Taken(m_reference, m_sync, edit_mode, timeout_duration);
+            } else {
+                return Taken(shared(), m_sync, edit_mode, timeout_duration);
+            }
         }
 
         static ObjPtr CreateRational(const std::string val) {
@@ -1433,7 +1489,7 @@ namespace newlang {
 
 
         // чистая функция
-        static ObjPtr BaseTypeConstructor(Context *ctx, Obj &in);
+        static ObjPtr BaseTypeConstructor(Context *ctx, Obj & in);
         static ObjPtr ConstructorSimpleType_(Context *ctx, Obj & args);
         static ObjPtr ConstructorDictionary_(Context *ctx, Obj & args);
         static ObjPtr ConstructorNative_(Context *ctx, Obj & args);
@@ -1450,48 +1506,6 @@ namespace newlang {
 
         static ObjPtr CreateBaseType(ObjType type);
 
-        static ObjPtr CreateNone() {
-            return CreateType(ObjType::None, ObjType::None, true);
-        }
-
-        static ObjPtr CreateNil() {
-            ObjPtr obj = CreateType(ObjType::Pointer, ObjType::Pointer, true);
-            obj->m_var = (void *) nullptr;
-            return obj;
-        }
-
-        static ObjPtr CreateBool(bool value) {
-            ObjPtr result = Obj::CreateType(ObjType::Bool, ObjType::None, true);
-            result->SetValue_(value);
-
-            return result;
-        }
-
-        template <typename T1, typename T2, typename T3>
-        static ObjPtr CreateRange(T1 start, T2 stop, T3 step) {
-            ObjPtr obj = CreateType(ObjType::Dictionary, ObjType::Range, true);
-            obj->push_back(CreateValue(start, ObjType::None), "start");
-            obj->push_back(CreateValue(stop, ObjType::None), "stop");
-            obj->push_back(CreateValue(step, ObjType::None), "step");
-            obj->m_var_type_current = ObjType::Range;
-            return obj;
-        }
-
-        template <typename T1, typename T2>
-        static ObjPtr CreateRange(T1 start, T2 stop) {
-            ObjPtr obj = CreateType(ObjType::Dictionary, ObjType::Range, true);
-            obj->push_back(CreateValue(start, ObjType::None), "start");
-            obj->push_back(CreateValue(stop, ObjType::None), "stop");
-            if (start < stop) {
-                obj->push_back(CreateValue(1, ObjType::None), "step");
-            } else {
-                obj->push_back(CreateValue(-1, ObjType::None), "step");
-            }
-            obj->m_var_type_current = ObjType::Range;
-
-            return obj;
-        }
-
         std::vector<int64_t> toIntVector(bool raise = true) const {
             std::vector<int64_t> result;
             for (int i = 0; i < size(); i++) {
@@ -1504,86 +1518,114 @@ namespace newlang {
             return result;
         }
 
-        template <typename T>
-        typename std::enable_if<std::is_same<T, std::string>::value || std::is_same<T, const char *>::value, ObjPtr>::type
-        static CreateValue(T value) {
-            return Obj::CreateString(value);
+        static ObjPtr CreateNone(Sync *sync = nullptr) {
+            return CreateType(ObjType::None, ObjType::None, false, sync);
+        }
+
+        static ObjPtr CreateNil(Sync *sync = nullptr) {
+            ObjPtr obj = CreateType(ObjType::Pointer, ObjType::Pointer, false, sync);
+            obj->m_var = (void *) nullptr;
+            return obj;
+        }
+
+        static ObjPtr CreateBool(bool value, Sync *sync = nullptr) {
+            ObjPtr result = Obj::CreateType(ObjType::Bool, ObjType::None, true, sync);
+            result->SetValue_(value);
+
+            return result;
+        }
+
+        template <typename T1, typename T2, typename T3>
+        static ObjPtr CreateRange(T1 start, T2 stop, T3 step, Sync *sync = nullptr) {
+            ObjPtr obj = CreateType(ObjType::Dictionary, ObjType::Range, true, sync);
+            obj->push_back(CreateValue(start, ObjType::None), "start");
+            obj->push_back(CreateValue(stop, ObjType::None), "stop");
+            obj->push_back(CreateValue(step, ObjType::None), "step");
+            obj->m_var_type_current = ObjType::Range;
+            return obj;
+        }
+
+        template <typename T1, typename T2>
+        static ObjPtr CreateRange(T1 start, T2 stop, Sync *sync = nullptr) {
+            ObjPtr obj = CreateType(ObjType::Dictionary, ObjType::Range, true, sync);
+            obj->push_back(CreateValue(start, ObjType::None), "start");
+            obj->push_back(CreateValue(stop, ObjType::None), "stop");
+            if (start < stop) {
+                obj->push_back(CreateValue(1, ObjType::None), "step");
+            } else {
+                obj->push_back(CreateValue(-1, ObjType::None), "step");
+            }
+            obj->m_var_type_current = ObjType::Range;
+
+            return obj;
         }
 
         template <typename T>
-        typename std::enable_if<std::is_same<T, std::wstring>::value || std::is_same<T, const wchar_t *>::value, ObjPtr>::type
-        static CreateValue(T value) {
-            return Obj::CreateString(value);
+        typename std::enable_if < std::is_same<T, std::string>::value || std::is_same<T, const char *>::value, ObjPtr>::type
+        static CreateValue(T value, Sync *sync = nullptr) {
+            return Obj::CreateString(value, sync);
+        }
+
+        template <typename T>
+        typename std::enable_if < std::is_same<T, std::wstring>::value || std::is_same<T, const wchar_t *>::value, ObjPtr>::type
+        static CreateValue(T value, Sync *sync = nullptr) {
+            return Obj::CreateString(value, sync);
         }
 
         template <typename T>
         typename std::enable_if<std::is_integral<T>::value, ObjPtr>::type
-        static CreateValue(T value, ObjType fix_type = ObjType::None) {
-            ObjPtr result = CreateType(fix_type);
-            result->m_var_type_fixed = fix_type;
-            result->m_var_type_current = typeFromLimit((int64_t) value);
+        static CreateValue(T value, ObjType fix_type = ObjType::None, Sync *sync = nullptr) {
+            ObjPtr result = CreateType(typeFromLimit((int64_t) value), fix_type, true, sync);
             if (fix_type != ObjType::None) {
                 NL_CHECK(canCast(result->m_var_type_current, fix_type),
                         "Fail cast type from '%s' to '%s'!", newlang::toString(result->m_var_type_current), newlang::toString(fix_type));
             }
             result->m_var = static_cast<int64_t> (value);
-            // result->m_tensor = torch::scalar_tensor(value, toTorchType(result->m_var_type_current));
-            result->m_var_is_init = true;
-
             return result;
         }
 
         template <typename T>
         typename std::enable_if<std::is_floating_point<T>::value, ObjPtr>::type
-        static CreateValue(T value, ObjType fix_type = ObjType::None) {
-            ObjPtr result = CreateType(fix_type);
-            result->m_var_type_fixed = fix_type;
-            result->m_var_type_current = typeFromLimit((double) value);
+        static CreateValue(T value, ObjType fix_type = ObjType::None, Sync *sync = nullptr) {
+            ObjPtr result = CreateType(typeFromLimit((double) value), fix_type, true, sync);
             if (fix_type != ObjType::None) {
                 NL_CHECK(canCast(result->m_var_type_current, fix_type),
                         "Fail cast type from '%s' to '%s'!", newlang::toString(result->m_var_type_current), newlang::toString(fix_type));
             }
             result->m_var = static_cast<double> (value);
-            //result->m_tensor = torch::scalar_tensor(value, toTorchType(result->m_var_type_current));
-            result->m_var_is_init = true;
-
             return result;
         }
 
-        static ObjPtr CreateString(const std::string str) {
-            ObjPtr result = CreateType(ObjType::StrChar, ObjType::String, true);
+        static ObjPtr CreateString(const std::string str, Sync *sync = nullptr) {
+            ObjPtr result = CreateType(ObjType::StrChar, ObjType::String, true, sync);
             result->m_value = str;
             return result;
         }
 
-        static ObjPtr CreateString(const std::wstring str) {
-            ObjPtr result = CreateType(ObjType::StrWide, ObjType::String, true);
+        static ObjPtr CreateString(const std::wstring str, Sync *sync = nullptr) {
+            ObjPtr result = CreateType(ObjType::StrWide, ObjType::String, true, sync);
             result->m_string = str;
             return result;
         }
 
-        static ObjPtr Yes() {
-            ObjPtr result = std::make_shared<Obj>(ObjType::Bool);
+        static ObjPtr Yes(Sync *sync = nullptr) {
+            ObjPtr result = CreateType(ObjType::Bool, ObjType::Bool, true, sync);
             result->m_var = static_cast<int64_t> (1);
-            result->m_var_is_init = true;
-
             return result->MakeConst();
         }
 
-        static ObjPtr No() {
-            ObjPtr result = std::make_shared<Obj>(ObjType::Bool);
+        static ObjPtr No(Sync *sync = nullptr) {
+            ObjPtr result = CreateType(ObjType::Bool, ObjType::Bool, true, sync);
             result->m_var = static_cast<int64_t> (0);
-            result->m_var_is_init = true;
-
             return result->MakeConst();
         }
 
-        static ObjPtr None() {
-            return Obj::CreateType(ObjType::None);
-        }
+//        static ObjPtr None(Sync *sync = nullptr) {
+//            return Obj::CreateType(ObjType::None, ObjType::None, true, sync);
+//        }
 
-        static ObjPtr CreateDict() {
-            return Obj::CreateType(ObjType::Dictionary, ObjType::Dictionary, true);
+        static ObjPtr CreateDict(Sync *sync = nullptr) {
+            return Obj::CreateType(ObjType::Dictionary, ObjType::Dictionary, true, sync);
         }
 
         template <typename... T>
@@ -1599,8 +1641,8 @@ namespace newlang {
             return result;
         }
 
-        static ObjPtr CreateDict(const std::vector<ObjPtr> & arr) {
-            ObjPtr result = Obj::CreateType(ObjType::Dictionary, ObjType::None, true);
+        static ObjPtr CreateDict(const std::vector<ObjPtr> & arr, Sync *sync = nullptr) {
+            ObjPtr result = Obj::CreateType(ObjType::Dictionary, ObjType::None, true, sync);
             for (size_t i = 0; i < arr.size(); i++) {
                 result->push_back(arr[i]);
             }
@@ -1715,7 +1757,7 @@ namespace newlang {
         ObjPtr op_set_index(int64_t index, std::string value);
 
         template < typename T>
-        typename std::enable_if<std::is_same<T, bool>::value, void>::type
+        typename std::enable_if < std::is_same<T, bool>::value, void>::type
         SetValue_(bool value) {
 
             SetValue_(static_cast<int64_t> (value));
@@ -1754,7 +1796,7 @@ namespace newlang {
         }
 
         template < typename T>
-        typename std::enable_if<std::is_same<wchar_t *, T>::value, void>::type
+        typename std::enable_if < std::is_same<wchar_t *, T>::value, void>::type
         SetValue_(T text) {
 
             std::wstring str(text);
@@ -1863,6 +1905,9 @@ namespace newlang {
         mutable ObjPtr m_iter_range_value;
         TermPtr m_sequence; ///< Последовательно распарсенных команд для выполнения
         ObjPtr m_return_obj;
+
+        ObjWeak m_reference;
+        Sync *m_sync;
 
         bool m_check_args; //< Проверять аргументы на корректность (для всех видов функций) @ref MakeArgs
 

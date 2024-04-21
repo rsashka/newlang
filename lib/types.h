@@ -5,6 +5,10 @@
 #include <set>
 #include <iosfwd>
 #include <memory>
+#include <mutex>
+#include <shared_mutex>
+#include <thread>
+#include <future>
 #include <vector>
 #include <deque>
 #include <iterator>
@@ -127,6 +131,11 @@ class Parser;
 class RunTime;
 class Diag;
 
+typedef std::shared_ptr<Obj> ObjPtr;
+typedef std::shared_ptr<const Obj> ObjPtrConst;
+typedef std::weak_ptr<Obj> ObjWeak;
+typedef std::weak_ptr<const Obj> ObjWeakConst;
+
 /*
  * RunTime - класс синглетон для процесса. В нем происходит загрузка модулей, взаимодействие 
  * со средой выполнения. В нем находится таблица имен для всего приложения Named (weak_ptr)
@@ -143,21 +152,160 @@ class Diag;
  * 
  */
 
+/**
+ * Типы ссылочных объектов
+ */
+    enum class RefType : uint8_t {
+        None = 0, // Без ссылок
+        LiteSingle = 1, // Легкая ссылка для одного потока (без синхронизации)  &
+        LiteThread = 2, // Легкая многопоточная ссылка (внешняя синхронизация with) &? 
+        SyncMono = 3, // Объект синхронизации с монопольным мьютексом &&
+        SyncMulti = 4, // Объект синхронизации с рекурсивным мьютексом &*
+
+        LiteSingleConst = 5,
+        LiteThreadConst = 6,
+        SyncMonoConst = 7,
+        SyncMultiConst = 8,
+    };
+
+    inline bool isLiteRef(RefType type){
+        return  type == RefType::LiteSingle || type == RefType::LiteSingleConst || type == RefType::LiteThread || type == RefType::LiteThreadConst;
+    }
+    inline bool isHeavyRef(RefType type){
+        return  type == RefType::SyncMono || type == RefType::SyncMonoConst || type == RefType::SyncMulti || type == RefType::SyncMultiConst;
+    }
+    inline bool isConstRef(RefType type){
+        return  type == RefType::LiteSingleConst || type == RefType::LiteThreadConst || type == RefType::SyncMonoConst || type == RefType::SyncMultiConst;
+    }
+    inline bool isEditableRef(RefType type){
+        return  type == RefType::LiteSingle || type == RefType::LiteThread || type == RefType::SyncMono || type == RefType::SyncMulti;
+    }
+
+/**
+ * Интерфейс класса захвата/освобождения объекта межпотоковой синхронизации
+ * Сильная ссылка только одна - остальные могут быть слабыми или сильными в локальных переменных,
+ * но с захватом и последующим освобождением объекта синхронизации.
+ */
+class Sync  {
+protected:
+    friend class Reference;
+    friend class Taken;
+    const RefType m_type;
+    const std::thread::id m_thread_id;
+    const std::chrono::milliseconds & m_timeout;
+    mutable std::variant<std::monostate, std::unique_ptr<std::shared_timed_mutex>, std::unique_ptr<std::recursive_timed_mutex>> m_sync;
+public:
+    
+    static constexpr std::chrono::milliseconds SyncTimeoutDeedlock = std::chrono::milliseconds(5000);
+    
+    Sync(RefType type, const std::chrono::milliseconds & timeout_duration=SyncTimeoutDeedlock): 
+    m_type(type), m_thread_id(std::this_thread::get_id()), m_timeout(timeout_duration), m_sync(std::monostate()) {
+        ASSERT(m_type != RefType::None);
+        if(type == RefType::LiteSingle || type == RefType::LiteSingleConst || type == RefType::LiteThread || type == RefType::LiteThreadConst){
+            ASSERT(std::holds_alternative<std::monostate>(m_sync));
+        } else if(type == RefType::SyncMono || type == RefType::SyncMonoConst){
+            m_sync = std::unique_ptr<std::shared_timed_mutex>(new std::shared_timed_mutex());
+        } else if(type == RefType::SyncMulti || type == RefType::SyncMultiConst){
+            m_sync = std::unique_ptr<std::recursive_timed_mutex>(new std::recursive_timed_mutex());
+        } else {
+            LOG_RUNTIME("Unknown synchronization type! (%d)", static_cast<int>(type));
+        }
+    }
+    
+    inline RefType GetRefType() const { 
+        return m_type;
+    }
+    
+    inline std::thread::id GetThreadId() const { 
+        return m_thread_id;
+    }
+    
+    inline bool SyncLock(bool edit_mode=true, const std::chrono::milliseconds & timeout_duration=Sync::SyncTimeoutDeedlock){
+        if(m_type == RefType::LiteSingle || m_type == RefType::LiteSingleConst){
+            if(m_thread_id != std::this_thread::get_id()){
+                LOG_RUNTIME("Calling a function on another thread!");
+            }
+        } else if(m_type == RefType::SyncMono || m_type == RefType::SyncMonoConst){
+            ASSERT(std::holds_alternative<std::unique_ptr<std::shared_timed_mutex>>(m_sync));
+            if(edit_mode){
+                return std::get<std::unique_ptr<std::shared_timed_mutex>>(m_sync)->try_lock_for(&timeout_duration == &Sync::SyncTimeoutDeedlock ? m_timeout:timeout_duration);
+            } else {
+                return std::get<std::unique_ptr<std::shared_timed_mutex>>(m_sync)->try_lock_shared_for(&timeout_duration == &Sync::SyncTimeoutDeedlock ? m_timeout:timeout_duration);
+            }
+        } else if(m_type == RefType::SyncMulti || m_type == RefType::SyncMultiConst){
+            ASSERT(std::holds_alternative<std::unique_ptr<std::recursive_timed_mutex>>(m_sync));
+            return std::get<std::unique_ptr<std::recursive_timed_mutex>>(m_sync)->try_lock_for(&timeout_duration == &Sync::SyncTimeoutDeedlock ? m_timeout:timeout_duration);
+        }
+        return true;
+    }
+    
+    inline bool SyncUnLock(){
+        ASSERT(m_type != RefType::None);
+        if(m_type == RefType::LiteSingle || m_type == RefType::LiteSingleConst){
+            ASSERT(m_thread_id == std::this_thread::get_id());
+        } else if(m_type == RefType::SyncMono || m_type == RefType::SyncMonoConst){
+            ASSERT(std::holds_alternative<std::unique_ptr<std::shared_timed_mutex>>(m_sync));
+            std::get<std::unique_ptr<std::shared_timed_mutex>>(m_sync)->unlock();
+        } else if(m_type == RefType::SyncMulti || m_type == RefType::SyncMultiConst){
+            ASSERT(std::holds_alternative<std::unique_ptr<std::recursive_timed_mutex>>(m_sync));
+            std::get<std::unique_ptr<std::recursive_timed_mutex>>(m_sync)->unlock();;
+        }
+        return true;
+    }
+    virtual ~Sync(){
+    }
+};    
+
+
+class Taken  {
+SCOPE(protected):
+    ObjPtr m_obj;
+    Sync *m_sync;
+    bool m_is_locked;
+public:
+    
+    Taken(ObjWeak obj, Sync *sync, bool edit_mode=false, const std::chrono::milliseconds & timeout_duration=Sync::SyncTimeoutDeedlock):
+        m_obj(nullptr), m_sync(sync), m_is_locked(false){
+        if(!m_sync || (m_is_locked = m_sync->SyncLock(edit_mode, timeout_duration))){
+           m_obj =  obj.lock();
+        }
+    }
+    
+    inline operator bool() const {
+        return !!m_obj;
+    }
+
+    inline Obj & operator *(){
+        ASSERT(m_obj);
+        return *m_obj;
+    }
+    
+    ~Taken(){
+        if(m_sync && m_is_locked){
+           m_sync->SyncUnLock();
+        }
+    }
+};
+
+    
 typedef std::shared_ptr<Term> TermPtr;
 typedef std::shared_ptr<Module> ModulePtr;
 typedef std::shared_ptr<runtime::Buildin> BuildinPtr;
 
 
-typedef std::shared_ptr<Obj> ObjPtr;
-typedef std::shared_ptr<const Obj> ObjPtrConst;
+//typedef std::shared_ptr<Obj> ObjPtr;
+//typedef std::shared_ptr<const Obj> ObjPtrConst;
+//
+//void SyncUnLock(ObjPtr &obj);
+//typedef std::unique_ptr<ObjPtr, decltype(&SyncUnLock)> LocalObj;
+//inline LocalPtr MakeLocalPtr(ObjPtr &obj){
+//    return std::move(LocalPtr(obj, &SyncUnLock));
+//}
 
 typedef std::vector<TermPtr> BlockType;
 typedef std::vector<TermPtr> ArrayTermType;
 typedef std::vector<ObjPtr> ArrayObjType;
 
-typedef std::weak_ptr<Obj> ObjWeak;
-typedef std::weak_ptr<const Obj> ObjWeakConst;
- 
 typedef std::shared_ptr<RunTime> RuntimePtr;
 typedef std::shared_ptr<Diag> DiagPtr;
 typedef std::shared_ptr<Macro> MacroPtr;
@@ -346,8 +494,9 @@ void ParserException(const char *msg, std::string &buffer, int row, int col);
     _(BLOCK_MINUS, 114)       \
     _(Macro, 115)       \
     \
-    _(Virtual, 119)            \
-    _(Eval, 118)            \
+    _(Reference, 117)          \
+    _(Virtual, 118)            \
+    _(Eval, 119)            \
     _(Other, 120)           \
     _(Plain, 121)           \
     _(Object, 122)          \
@@ -502,40 +651,6 @@ void ParserException(const char *msg, std::string &buffer, int row, int col);
     }
 
     ObjType GetBaseTypeFromString(const std::string_view type_arg, bool *has_error = nullptr);
-
-#define NL_REFS(_)      \
-    _(RefNone, 0)       \
-    _(RefNoMt, 1)       \
-    _(RefMtMono, 2)     \
-    _(RefMtMulti, 3)    \
-    _(RefNoMtReadOnly, 4)   \
-    _(RefMtMonoReadOnly, 5) \
-    _(RefMtMultiReadOnly, 6)\
-    _(RefCustom7, 7)    \
-    _(RefCustom8, 8)    \
-    _(RefCustom9, 9)  
-
-    enum class RefType : uint8_t {
-#define DEFINE_ENUM(name, value) name = static_cast<uint8_t>(value),
-        NL_REFS(DEFINE_ENUM)
-#undef DEFINE_ENUM
-        _NumOptions
-    };
-
-    constexpr uint16_t RefTypesNum = static_cast<uint16_t> (RefType::_NumOptions);
-
-    inline const char *toString(RefType type) {
-#define DEFINE_CASE(name, _)                                                                                           \
-    case RefType::name:                                                                                                \
-        return TO_STR(#name);
-
-        switch (type) {
-                NL_REFS(DEFINE_CASE)
-            default:
-                LOG_RUNTIME("UNKNOWN ref type code %d", static_cast<int> (type));
-        }
-#undef DEFINE_CASE
-    }
 
     /*
      *    C++     NewLang
@@ -1182,8 +1297,8 @@ void ParserException(const char *msg, std::string &buffer, int row, int col);
             std::replace(result.begin(), result.end(), ':', '$');
             result.insert(0, "$_");
             if (module.size() > 2) {
-                result.insert(result.begin(), module.begin() + 2, module.end());
-                std::replace(result.begin(), result.begin()+(module.end() - module.begin() - 2), '\\', '$');
+                result.insert(result.begin(), module.begin(), module.end());
+                std::replace(result.begin(), result.begin() + module.size(), '\\', '$');
             }
             result.insert(0, "_$");
             return result;

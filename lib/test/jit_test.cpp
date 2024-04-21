@@ -23,20 +23,15 @@ TEST(JIT, Function) {
     src = JIT::MakeFunctionPrototype(term, "");
     ASSERT_STREQ("newlang::ObjPtr _$$_func$$(newlang::Context *ctx, newlang::Obj &args)", src.c_str()) << src;
     src = JIT::MakeFunctionPrototype(term, "\\\\dir\\module");
-    ASSERT_STREQ("newlang::ObjPtr _$dir$module$_func$$(newlang::Context *ctx, newlang::Obj &args)", src.c_str()) << src;
+    ASSERT_STREQ("newlang::ObjPtr _$$$dir$module$_func$$(newlang::Context *ctx, newlang::Obj &args)", src.c_str()) << src;
 
     term->push_back(Term::CreateName("arg"));
     term->push_back(Term::CreateName("arg2"));
     src = JIT::MakeFunctionPrototype(term, "");
     ASSERT_STREQ("newlang::ObjPtr _$$_func$$(newlang::Context *ctx, newlang::Obj &args)", src.c_str()) << src;
     src = JIT::MakeFunctionPrototype(term, "\\\\dir\\module2");
-    ASSERT_STREQ("newlang::ObjPtr _$dir$module2$_func$$(newlang::Context *ctx, newlang::Obj &args)", src.c_str()) << src;
+    ASSERT_STREQ("newlang::ObjPtr _$$$dir$module2$_func$$(newlang::Context *ctx, newlang::Obj &args)", src.c_str()) << src;
 }
-
-
-
-
-
 
 void writeModuleToFile(llvm::Module *module) {
     auto TargetTriple = LLVMGetDefaultTargetTriple();
@@ -326,7 +321,7 @@ TEST(JIT, MakeEmbed) {
 
     //    ASSERT_TRUE(jit->MakeCppExec(hello_embed, "temp/hello_embed", argsX)) << hello_embed;
 
-    std::unique_ptr<llvm::Module> module = jit->MakeLLVMModule(hello_embed, argsX);
+    std::unique_ptr<llvm::Module> module = jit->MakeLLVMModule(hello_embed, argsX, "temp");
     ASSERT_TRUE(module);
     ASSERT_TRUE(jit->MakeObjFile("temp/hello_embed.o", *module,{}));
 
@@ -388,46 +383,46 @@ TEST(JIT, MakeModule) {
     opts.push_back("-DBUILD_DEBUG ");
     opts.push_back("-DLOG_LEVEL_NORMAL=LOG_LEVEL_DEBUG");
 
-//    opts.push_back("-triple");
-//    opts.push_back("x86_64-pc-linux-gnu");
-//    opts.push_back("-emit-obj");
-//
-//    opts.push_back("-mrelocation-model");
-//    opts.push_back("pic");
-//    opts.push_back("-pic-level");
-//    opts.push_back("2");
-//    opts.push_back("-pic-is-pie");
-//
-//    opts.push_back("-discard-value-names");
-//    opts.push_back("-disable-llvm-verifier");
-//
-//    opts.push_back("-mrelax-all");
-//    opts.push_back("-disable-free");
-//    opts.push_back("-clear-ast-before-backend");
-//
-//    opts.push_back("-mframe-pointer=all");
-//    opts.push_back("-fmath-errno");
-//    opts.push_back("-ffp-contract=on");
-//    opts.push_back("-fno-rounding-math");
-//    opts.push_back("-mconstructor-aliases");
-//
-//    opts.push_back("-fcolor-diagnostics");
-//    opts.push_back("-faddrsig");
-//
-//    opts.push_back("-fskip-odr-check-in-gmf");
-//
-//    opts.push_back("-tune-cpu");
-//    opts.push_back("generic");
-//    opts.push_back("-target-cpu");
-//    opts.push_back("x86-64");
-//
-//    opts.push_back("-cc1");
-//    
-//    opts.push_back("-funwind-tables=2");
-//    opts.push_back("-fdeprecated-macro");
-//    opts.push_back("-fgnuc-version=4.2.1");
-//    opts.push_back("-D__GCC_HAVE_DWARF2_CFI_ASM=1");
-       
+    //    opts.push_back("-triple");
+    //    opts.push_back("x86_64-pc-linux-gnu");
+    //    opts.push_back("-emit-obj");
+    //
+    //    opts.push_back("-mrelocation-model");
+    //    opts.push_back("pic");
+    //    opts.push_back("-pic-level");
+    //    opts.push_back("2");
+    //    opts.push_back("-pic-is-pie");
+    //
+    //    opts.push_back("-discard-value-names");
+    //    opts.push_back("-disable-llvm-verifier");
+    //
+    //    opts.push_back("-mrelax-all");
+    //    opts.push_back("-disable-free");
+    //    opts.push_back("-clear-ast-before-backend");
+    //
+    //    opts.push_back("-mframe-pointer=all");
+    //    opts.push_back("-fmath-errno");
+    //    opts.push_back("-ffp-contract=on");
+    //    opts.push_back("-fno-rounding-math");
+    //    opts.push_back("-mconstructor-aliases");
+    //
+    //    opts.push_back("-fcolor-diagnostics");
+    //    opts.push_back("-faddrsig");
+    //
+    //    opts.push_back("-fskip-odr-check-in-gmf");
+    //
+    //    opts.push_back("-tune-cpu");
+    //    opts.push_back("generic");
+    //    opts.push_back("-target-cpu");
+    //    opts.push_back("x86-64");
+    //
+    //    opts.push_back("-cc1");
+    //    
+    //    opts.push_back("-funwind-tables=2");
+    //    opts.push_back("-fdeprecated-macro");
+    //    opts.push_back("-fgnuc-version=4.2.1");
+    //    opts.push_back("-D__GCC_HAVE_DWARF2_CFI_ASM=1");
+
     for (auto &elem : opts) {
         if (elem.find("-D") == 0) {
             elem += " ";
@@ -455,11 +450,11 @@ TEST(JIT, MakeModule) {
     omain << main_src;
     omain.close();
 
-    std::unique_ptr<llvm::Module> main = jit->MakeLLVMModule(main_src, argsX);
+    std::unique_ptr<llvm::Module> main = jit->MakeLLVMModule(main_src, argsX, "temp");
     ASSERT_TRUE(main);
     ASSERT_TRUE(jit->MakeObjFile("temp/main.o", *main, argsX));
 
-    std::unique_ptr<llvm::Module> module = jit->MakeLLVMModule(hello, argsX);
+    std::unique_ptr<llvm::Module> module = jit->MakeLLVMModule(hello, argsX, "temp");
     ASSERT_TRUE(module);
     ASSERT_TRUE(jit->MakeObjFile("temp/hello.o", *module, argsX));
 
@@ -475,15 +470,15 @@ TEST(JIT, MakeModule) {
         "-lcurl",
         "-lstdc++",
 
-//        "-lm",
-//        "-lgcc_s",
-//        "-lgcc",
-//        "-lc",
-//        "-lgcc_s",
-//        "-lgcc",
-                
+        //        "-lm",
+        //        "-lgcc_s",
+        //        "-lgcc",
+        //        "-lc",
+        //        "-lgcc_s",
+        //        "-lgcc",
+
         "-no-pie",
-//        "-dynamic-linker",
+        //        "-dynamic-linker",
         //        "-Wl,-dynamic-linker",
         //                "-pie --eh-frame-hdr -m elf_x86_64 -dynamic-linker"
         "-Wl,-rpath,./",
@@ -501,6 +496,167 @@ TEST(JIT, MakeModule) {
 
 }
 
+TEST(JIT, REPL) {
+
+
+    std::filesystem::path path = std::filesystem::path("../examples/hello.src");
+    ASSERT_TRUE(std::filesystem::exists(path));
+
+    std::ifstream file(path, std::ios::in | std::ios::binary);
+
+    const auto sz = std::filesystem::file_size(path);
+    ASSERT_TRUE(sz);
+
+    std::string source(sz, '\0');
+    file.read(source.data(), sz);
+    ASSERT_TRUE(file) << "error: only " << file.gcount() << " could be read";
+    file.close();
+
+    TermPtr ast = Parser::ParseString(source);
+
+    RuntimePtr rt = RunTime::Init();
+    JIT *jit = JIT::Init(rt);
+    ASSERT(jit);
+
+    std::string hello = jit->MakeCodeModule(ast, "hello", true);
+
+    if (!std::filesystem::exists(std::filesystem::path("temp"))) {
+        std::filesystem::create_directories(std::filesystem::path("temp"));
+    }
+    ASSERT_TRUE(std::filesystem::exists(std::filesystem::path("temp")));
+    ASSERT_TRUE(std::filesystem::is_directory(std::filesystem::path("temp")));
+
+    std::ofstream ofile(std::filesystem::path("temp/hello.cpp"), std::ios::out | std::ios::trunc);
+    ofile << hello;
+    ofile.close();
+
+    std::string bin_out;
+
+
+    std::string opt_str = ReadFile("../build_options.txt");
+    ASSERT_TRUE(opt_str.size() > 100);
+
+
+
+    std::vector<std::string> opts = RunTime::SplitChar(opt_str, " \t\r\n");
+
+    opts.push_back("-I../lib");
+    opts.push_back("-DBUILD_UNITTEST");
+    opts.push_back("-DBUILD_DEBUG ");
+    opts.push_back("-DLOG_LEVEL_NORMAL=LOG_LEVEL_DEBUG");
+
+    //    opts.push_back("-triple");
+    //    opts.push_back("x86_64-pc-linux-gnu");
+    //    opts.push_back("-emit-obj");
+    //
+    //    opts.push_back("-mrelocation-model");
+    //    opts.push_back("pic");
+    //    opts.push_back("-pic-level");
+    //    opts.push_back("2");
+    //    opts.push_back("-pic-is-pie");
+    //
+    //    opts.push_back("-discard-value-names");
+    //    opts.push_back("-disable-llvm-verifier");
+    //
+    //    opts.push_back("-mrelax-all");
+    //    opts.push_back("-disable-free");
+    //    opts.push_back("-clear-ast-before-backend");
+    //
+    //    opts.push_back("-mframe-pointer=all");
+    //    opts.push_back("-fmath-errno");
+    //    opts.push_back("-ffp-contract=on");
+    //    opts.push_back("-fno-rounding-math");
+    //    opts.push_back("-mconstructor-aliases");
+    //
+    //    opts.push_back("-fcolor-diagnostics");
+    //    opts.push_back("-faddrsig");
+    //
+    //    opts.push_back("-fskip-odr-check-in-gmf");
+    //
+    //    opts.push_back("-tune-cpu");
+    //    opts.push_back("generic");
+    //    opts.push_back("-target-cpu");
+    //    opts.push_back("x86-64");
+    //
+    //    opts.push_back("-cc1");
+    //    
+    //    opts.push_back("-funwind-tables=2");
+    //    opts.push_back("-fdeprecated-macro");
+    //    opts.push_back("-fgnuc-version=4.2.1");
+    //    opts.push_back("-D__GCC_HAVE_DWARF2_CFI_ASM=1");
+
+    for (auto &elem : opts) {
+        if (elem.find("-D") == 0) {
+            elem += " ";
+        }
+        std::cout << elem << "\n";
+    }
+
+    ASSERT_TRUE(opts.size() > 20);
+
+    std::vector<std::string> argsX{
+        //        "-I", "/usr/include",
+        //        "-I", "/usr/local/include",
+        //        "-I", "/usr/include/c++/11",
+        //        "-I", "/usr/include/x86_64-linux-gnu/c++/11",
+        //        "-I", "/usr/include/x86_64-linux-gnu/",
+        //        "-I", "/usr/lib/gcc/x86_64-linux-gnu/11/include",
+    };
+
+    argsX.insert(argsX.end(), opts.begin(), opts.end());
+    //    auto module = CompileCpp2(source, argsX);
+
+
+    std::string main_src = jit->MakeMain({});
+    std::ofstream omain(std::filesystem::path("temp/main.cpp"), std::ios::out | std::ios::trunc);
+    omain << main_src;
+    omain.close();
+
+    std::unique_ptr<llvm::Module> main = jit->MakeLLVMModule(main_src, argsX, "temp");
+    ASSERT_TRUE(main);
+    ASSERT_TRUE(jit->MakeObjFile("temp/main.o", *main, argsX));
+
+    std::unique_ptr<llvm::Module> module = jit->MakeLLVMModule(hello, argsX, "temp");
+    ASSERT_TRUE(module);
+    ASSERT_TRUE(jit->MakeObjFile("temp/hello.o", *module, argsX));
+
+    std::vector<std::string> libs{
+        //        "-L."
+        "-L/usr/lib/x86_64-linux-gnu",
+        "libnlc-rt.so",
+        "libc10.so",
+        "libtorch.so",
+        "libtorch_cpu.so",
+        "-lcrypt",
+        "-lzip",
+        "-lcurl",
+        "-lstdc++",
+
+        //        "-lm",
+        //        "-lgcc_s",
+        //        "-lgcc",
+        //        "-lc",
+        //        "-lgcc_s",
+        //        "-lgcc",
+
+        "-no-pie",
+        //        "-dynamic-linker",
+        //        "-Wl,-dynamic-linker",
+        //                "-pie --eh-frame-hdr -m elf_x86_64 -dynamic-linker"
+        "-Wl,-rpath,./",
+        "-Wl,-rpath,/usr/lib/x86_64-linux-gnu",
+        ""};
+    ASSERT_TRUE(jit->LinkObjToExec("hello_rt",{"temp/main.o", "temp/hello.o"}, libs));
+
+    //    MakeLLVMModule
+    //    ASSERT_NO_THROW(
+    //            ASSERT_TRUE(jit->MakeCppExec(hello, "temp/hello", argsX));
+    //            ) << hello;
+
+    ASSERT_TRUE(std::filesystem::exists(std::filesystem::path("hello_rt")));
+
+
+}
 
 
 

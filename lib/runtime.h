@@ -30,7 +30,7 @@ namespace newlang {
 #endif    
 
     int RunMain(const int arg, const char** argv, const char** penv);
-    
+
     std::string GetFileExt(const char * str);
     std::string AddDefaultFileExt(const char * str, const char *ext_default);
     std::string ReplaceFileExt(const char * str, const char *ext_old, const char *ext_new);
@@ -333,6 +333,9 @@ namespace newlang {
 
         std::string m_work_dir;
         std::string m_exec_dir;
+        std::string m_cache_dir;
+        std::string m_temp_dir;
+        std::string m_user_dir;
         std::vector<std::string> m_search_dir;
         bool m_assert_enable;
         bool m_load_dsl;
@@ -437,6 +440,12 @@ namespace newlang {
                     std::string list;
                     list = args[i].substr(strlen("--nlc-search="));
                     m_search_dir = SplitString(list.c_str(), ";");
+                } else if (args[i].find("--nlc-cache-dir=") == 0) {
+                    m_cache_dir = args[i].substr(strlen("--nlc-cache-dir="));
+                } else if (args[i].find("--nlc-temp-dir=") == 0) {
+                    m_temp_dir = args[i].substr(strlen("--nlc-temp-dir="));
+                } else if (args[i].find("--nlc-user-dir=") == 0) {
+                    m_user_dir = args[i].substr(strlen("--nlc-user-dir="));
                 } else if (args[i].compare("--nlc-no-link-rt") == 0) {
                     m_link_rt = false;
                     m_link_jit = false;

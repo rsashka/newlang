@@ -1112,4 +1112,334 @@ TEST(ObjTest, String) {
 //    ASSERT_STREQ("::ns::name=class(filed=0..10..3)", cls->at("__str__").second->GetValueAsString().c_str());
 //}
 
+
+/* 
+ * Реализация ссылочной модели состоит из следующих компонентов:
+ * - Obj - статический объект (даннные), на которые можно получить ссылку (Reference)
+ * - ObjPtr - динамический объект (shared_ptr), на которые можно получить ссылку (Reference)
+ * - Sync - статический объект синхронизации доступа к данным (всегда привязан к какому либо объекту с тяжелой ссылкой && или &*, 
+ *      тогда как легкие ссылки (& или &?) не имеют собственого объекта Sync).
+ * - Reference - Слабая ссылка (weak_ptr) на объект. Является одним из типов ObjType
+ * - Taken - Легкий объект с захваченной ссылкой (shared_ptr или nullptr если захват weak_ptr или объекта синхронизации неудался). 
+ *      Ссылка живая, пока валиден объект Taken, полученный при захвате ссылки (Reference).
+ * - Захват (класс Taken с shared_ptr) можно получить из любого объекта Obj (хоть из объекта, хоть из ссылки на объект).
+ */
+
+
+void call_thread_throw() {
+    try {
+        LOG_RUNTIME("Call from thread!");
+    } catch (...) {
+    }
+}
+
+bool call_start = false;
+bool call_done = false;
+std::mutex call_m;
+std::condition_variable cv;
+
+void call_thread(ObjPtr obj) {
+    std::unique_lock lk(call_m);
+    cv.wait(lk, [] {
+        return call_start; });
+
+    try {
+        std::vector<Taken> t;
+        for (int i = 1; i < 5; ++i) {
+            t.push_back(obj->Take(true, std::chrono::milliseconds(5)));
+            std::cout << "Thread step " << i;
+            if (t.back()) {
+                std::cout << " value: " << (*t.back()).toString();
+                *t.back() += Obj::CreateValue(i);
+            }
+            std::cout << "\n";
+            std::this_thread::sleep_for(std::chrono::milliseconds(10));
+        }
+        call_done = true;
+    } catch (...) {
+    }
+
+    lk.unlock();
+    cv.notify_one();
+}
+
+TEST(ObjTest, Reference) {
+
+    Obj obj = *Obj::CreateValue(1);
+    Obj obj2 = *Obj::CreateValue(2);
+
+    ASSERT_STREQ("1", obj.toString().c_str());
+    ASSERT_STREQ("2", obj2.toString().c_str());
+
+    Obj &obj_ref = obj;
+    ASSERT_STREQ("1", obj_ref.toString().c_str());
+
+    obj_ref = obj2;
+    ASSERT_STREQ("2", obj_ref.toString().c_str());
+
+    ASSERT_STREQ("2", obj.toString().c_str());
+    ASSERT_STREQ("2", obj2.toString().c_str());
+
+
+    Sync sync_single(RefType::LiteSingle);
+    ASSERT_EQ(sync_single.GetThreadId(), std::this_thread::get_id());
+
+    Sync sync_thread(RefType::LiteThread);
+    ASSERT_EQ(sync_thread.GetThreadId(), std::this_thread::get_id());
+
+    Sync sync_mono(RefType::SyncMono);
+    Sync sync_mono_ro(RefType::SyncMonoConst);
+
+    Sync sync_multi(RefType::SyncMulti);
+    Sync sync_multi_ro(RefType::SyncMultiConst);
+
+    ObjPtr obj_none = Obj::CreateValue(1, ObjType::Integer);
+    ObjPtr val_single = Obj::CreateValue(1, ObjType::Integer, &sync_single);
+    ObjPtr val_thread = Obj::CreateValue(2, ObjType::Integer, &sync_thread);
+
+    ObjPtr val_mono = Obj::CreateValue(3, ObjType::Integer, &sync_mono);
+    ObjPtr val_mono_ro = Obj::CreateValue(4, ObjType::Integer, &sync_mono_ro);
+
+    ObjPtr val_multi = Obj::CreateValue(5, ObjType::Integer, &sync_multi);
+    ObjPtr val_multi_ro = Obj::CreateValue(6, ObjType::Integer, &sync_multi_ro);
+
+    ASSERT_ANY_THROW(Obj::CreateReference(obj.shared(), RefType::None));
+    ASSERT_ANY_THROW(Obj::CreateReference(obj.shared(), RefType::LiteSingle));
+    ASSERT_ANY_THROW(Obj::CreateReference(obj.shared(), RefType::LiteSingleConst));
+    ASSERT_ANY_THROW(Obj::CreateReference(obj.shared(), RefType::LiteThread));
+    ASSERT_ANY_THROW(Obj::CreateReference(obj.shared(), RefType::LiteThreadConst));
+    ASSERT_ANY_THROW(Obj::CreateReference(obj.shared(), RefType::SyncMono));
+    ASSERT_ANY_THROW(Obj::CreateReference(obj.shared(), RefType::SyncMonoConst));
+    ASSERT_ANY_THROW(Obj::CreateReference(obj.shared(), RefType::SyncMulti));
+    ASSERT_ANY_THROW(Obj::CreateReference(obj.shared(), RefType::SyncMultiConst));
+
+    ASSERT_ANY_THROW(Obj::CreateReference(obj_none, RefType::None));
+    ASSERT_ANY_THROW(Obj::CreateReference(obj_none, RefType::LiteSingle));
+    ASSERT_ANY_THROW(Obj::CreateReference(obj_none, RefType::LiteSingleConst));
+    ASSERT_ANY_THROW(Obj::CreateReference(obj_none, RefType::LiteThread));
+    ASSERT_ANY_THROW(Obj::CreateReference(obj_none, RefType::LiteThreadConst));
+    ASSERT_ANY_THROW(Obj::CreateReference(obj_none, RefType::SyncMono));
+    ASSERT_ANY_THROW(Obj::CreateReference(obj_none, RefType::SyncMonoConst));
+    ASSERT_ANY_THROW(Obj::CreateReference(obj_none, RefType::SyncMulti));
+    ASSERT_ANY_THROW(Obj::CreateReference(obj_none, RefType::SyncMultiConst));
+
+    ASSERT_ANY_THROW(Obj::CreateReference(val_single, RefType::None));
+    ASSERT_NO_THROW(Obj::CreateReference(val_single, RefType::LiteSingle));
+    ASSERT_NO_THROW(Obj::CreateReference(val_single, RefType::LiteSingleConst));
+    ASSERT_ANY_THROW(Obj::CreateReference(val_single, RefType::LiteThread));
+    ASSERT_ANY_THROW(Obj::CreateReference(val_single, RefType::LiteThreadConst));
+    ASSERT_ANY_THROW(Obj::CreateReference(val_single, RefType::SyncMono));
+    ASSERT_ANY_THROW(Obj::CreateReference(val_single, RefType::SyncMonoConst));
+    ASSERT_ANY_THROW(Obj::CreateReference(val_single, RefType::SyncMulti));
+    ASSERT_ANY_THROW(Obj::CreateReference(val_single, RefType::SyncMultiConst));
+
+    ASSERT_ANY_THROW(Obj::CreateReference(val_thread, RefType::None));
+    ASSERT_ANY_THROW(Obj::CreateReference(val_thread, RefType::LiteSingle));
+    ASSERT_ANY_THROW(Obj::CreateReference(val_thread, RefType::LiteSingleConst));
+    ASSERT_NO_THROW(Obj::CreateReference(val_thread, RefType::LiteThread));
+    ASSERT_NO_THROW(Obj::CreateReference(val_thread, RefType::LiteThreadConst));
+    ASSERT_ANY_THROW(Obj::CreateReference(val_thread, RefType::SyncMono));
+    ASSERT_ANY_THROW(Obj::CreateReference(val_thread, RefType::SyncMonoConst));
+    ASSERT_ANY_THROW(Obj::CreateReference(val_thread, RefType::SyncMulti));
+    ASSERT_ANY_THROW(Obj::CreateReference(val_thread, RefType::SyncMultiConst));
+
+
+    ASSERT_ANY_THROW(Obj::CreateReference(val_mono, RefType::None));
+    ASSERT_ANY_THROW(Obj::CreateReference(val_mono, RefType::LiteSingle));
+    ASSERT_ANY_THROW(Obj::CreateReference(val_mono, RefType::LiteSingleConst));
+    ASSERT_ANY_THROW(Obj::CreateReference(val_mono, RefType::LiteThread));
+    ASSERT_ANY_THROW(Obj::CreateReference(val_mono, RefType::LiteThreadConst));
+    ASSERT_NO_THROW(Obj::CreateReference(val_mono, RefType::SyncMono));
+    ASSERT_NO_THROW(Obj::CreateReference(val_mono, RefType::SyncMonoConst));
+    ASSERT_ANY_THROW(Obj::CreateReference(val_mono_ro, RefType::SyncMono));
+    ASSERT_NO_THROW(Obj::CreateReference(val_mono_ro, RefType::SyncMonoConst));
+    ASSERT_ANY_THROW(Obj::CreateReference(val_mono, RefType::SyncMulti));
+    ASSERT_ANY_THROW(Obj::CreateReference(val_mono, RefType::SyncMultiConst));
+
+    ASSERT_ANY_THROW(Obj::CreateReference(val_multi, RefType::None));
+    ASSERT_ANY_THROW(Obj::CreateReference(val_multi, RefType::LiteSingle));
+    ASSERT_ANY_THROW(Obj::CreateReference(val_multi, RefType::LiteSingleConst));
+    ASSERT_ANY_THROW(Obj::CreateReference(val_multi, RefType::LiteThread));
+    ASSERT_ANY_THROW(Obj::CreateReference(val_multi, RefType::LiteThreadConst));
+    ASSERT_ANY_THROW(Obj::CreateReference(val_multi, RefType::SyncMono));
+    ASSERT_ANY_THROW(Obj::CreateReference(val_multi, RefType::SyncMonoConst));
+    ASSERT_NO_THROW(Obj::CreateReference(val_multi, RefType::SyncMulti));
+    ASSERT_NO_THROW(Obj::CreateReference(val_multi, RefType::SyncMultiConst));
+    ASSERT_ANY_THROW(Obj::CreateReference(val_multi_ro, RefType::SyncMulti));
+    ASSERT_NO_THROW(Obj::CreateReference(val_multi_ro, RefType::SyncMultiConst));
+
+
+
+    ObjPtr ref_single = Obj::CreateReference(val_single, RefType::LiteSingle);
+    ObjPtr ref_single_ro = Obj::CreateReference(val_single, RefType::LiteSingleConst);
+    ObjPtr ref_thread = Obj::CreateReference(val_thread, RefType::LiteThread);
+    ObjPtr ref_thread_ro = Obj::CreateReference(val_thread, RefType::LiteThreadConst);
+    ASSERT_TRUE(ref_single);
+    ASSERT_TRUE(ref_single_ro);
+    ASSERT_TRUE(ref_thread);
+    ASSERT_TRUE(ref_thread_ro);
+
+    ASSERT_EQ(1, val_single.use_count());
+    {
+        auto take_single1 = val_single->Take();
+        ASSERT_TRUE(take_single1.m_obj);
+        ASSERT_TRUE(take_single1.m_sync);
+        ASSERT_TRUE(take_single1.m_is_locked);
+        ASSERT_EQ(2, val_single.use_count());
+
+        ASSERT_TRUE(take_single1);
+        ASSERT_EQ(take_single1.m_obj.get(), val_single.get());
+        ASSERT_EQ(&*take_single1, val_single.get());
+        ASSERT_STREQ("1", val_single->toString().c_str());
+        *take_single1 += Obj::CreateValue(10);
+        ASSERT_STREQ("11", val_single->toString().c_str());
+    }
+    ASSERT_EQ(1, val_single.use_count());
+
+    std::cout << std::thread::hardware_concurrency() << "\n";
+
+    ASSERT_NO_THROW(
+            std::thread thread_throw(call_thread_throw);
+            thread_throw.join();
+            );
+
+    ASSERT_FALSE(call_done);
+    ASSERT_STREQ("11", val_single->toString().c_str());
+    std::thread thread_fail(call_thread, ref_single);
+    {
+        std::lock_guard lk(call_m);
+        call_start = true;
+    }
+    cv.notify_one();
+    // running
+    thread_fail.join();
+    ASSERT_STREQ("11", val_single->toString().c_str());
+    ASSERT_FALSE(call_done);
+    {
+        std::lock_guard lk(call_m);
+        call_start = false;
+    }
+
+    ASSERT_STREQ("2", val_thread->toString().c_str());
+    ASSERT_FALSE(call_done);
+    std::thread thread_done(call_thread, ref_thread);
+    {
+        std::lock_guard lk(call_m);
+        call_start = true;
+    }
+    cv.notify_one();
+    thread_done.join();
+    ASSERT_STREQ("12", val_thread->toString().c_str());
+    {
+        std::unique_lock lk(call_m);
+        cv.wait(lk, [] {
+            return call_done; });
+    }
+    ASSERT_TRUE(call_done);
+
+
+
+    ObjPtr ref_mono = Obj::CreateReference(val_mono, RefType::SyncMono);
+    ObjPtr ref_mono_ro = Obj::CreateReference(val_mono, RefType::SyncMonoConst);
+    ObjPtr ref_mono_ro2 = Obj::CreateReference(val_mono_ro, RefType::SyncMonoConst);
+    ASSERT_TRUE(ref_mono);
+    ASSERT_TRUE(ref_mono_ro);
+    ASSERT_TRUE(ref_mono_ro2);
+
+
+    {
+        std::lock_guard lk(call_m);
+        call_start = false;
+        call_done = false;
+    }
+
+    {
+        auto t = ref_mono->Take();
+        ASSERT_STREQ("3", val_mono->toString().c_str());
+        ASSERT_FALSE(call_done);
+        std::thread thread_mono(call_thread, ref_mono);
+        {
+            std::lock_guard lk(call_m);
+            call_start = true;
+        }
+        cv.notify_one();
+        thread_mono.join();
+        ASSERT_STREQ("3", val_mono->toString().c_str());
+        ASSERT_TRUE(call_done);
+    }
+
+
+    {
+        std::lock_guard lk(call_m);
+        call_start = false;
+        call_done = false;
+    }
+
+    {
+        ASSERT_STREQ("3", val_mono->toString().c_str());
+        ASSERT_FALSE(call_done);
+        std::thread thread_mono(call_thread, ref_mono);
+        {
+            std::lock_guard lk(call_m);
+            call_start = true;
+        }
+        cv.notify_one();
+        thread_mono.join();
+        ASSERT_STREQ("9", val_mono->toString().c_str());
+        ASSERT_TRUE(call_done);
+    }
+
+
+    ObjPtr ref_multi = Obj::CreateReference(val_multi, RefType::SyncMulti);
+    ObjPtr ref_multi_ro = Obj::CreateReference(val_multi, RefType::SyncMultiConst);
+    ObjPtr ref_multi_ro2 = Obj::CreateReference(val_multi_ro, RefType::SyncMultiConst);
+    ASSERT_TRUE(ref_multi);
+    ASSERT_TRUE(ref_multi_ro);
+    ASSERT_TRUE(ref_multi_ro2);
+
+
+
+    {
+        std::lock_guard lk(call_m);
+        call_start = false;
+        call_done = false;
+    }
+
+    {
+        auto t = ref_multi->Take();
+        ASSERT_STREQ("5", val_multi->toString().c_str());
+        ASSERT_FALSE(call_done);
+        std::thread thread_multi(call_thread, ref_multi);
+        {
+            std::lock_guard lk(call_m);
+            call_start = true;
+        }
+        cv.notify_one();
+        thread_multi.join();
+        ASSERT_STREQ("5", val_multi->toString().c_str());
+        ASSERT_TRUE(call_done);
+    }
+    
+    {
+        std::lock_guard lk(call_m);
+        call_start = false;
+        call_done = false;
+    }
+
+    {
+        ASSERT_STREQ("5", val_multi->toString().c_str());
+        ASSERT_FALSE(call_done);
+        std::thread thread_multi(call_thread, ref_multi);
+        {
+            std::lock_guard lk(call_m);
+            call_start = true;
+        }
+        cv.notify_one();
+        thread_multi.join();
+        ASSERT_STREQ("15", val_multi->toString().c_str());
+        ASSERT_TRUE(call_done);
+    }
+    
+}
+
 #endif // UNITTEST
