@@ -15,7 +15,6 @@
 #include "builtin.h"
 //#include <types.h>
 //#include <object.h>
-#include "context.h"
 #include "parser.h"
 
 
@@ -34,7 +33,7 @@ namespace newlang {
         AstAnalysis(RunTime &rt, Diag* diag) : m_rt(rt), m_diag(diag) {
 
         }
-        
+
         static std::string MakeInclude(const TermPtr &ast);
 
         /*
@@ -78,6 +77,8 @@ namespace newlang {
         bool CalcType(TermPtr &term);
         bool UpcastOpType(TermPtr &op);
         bool CheckOpType(TermPtr &op, TermPtr &left, const TermPtr right);
+        bool CheckReference(TermPtr &term, const TermPtr &test_ref);
+        bool CheckAssignRef(TermPtr &left, TermPtr &right, ScopeStack & stack);
         bool CheckCall(TermPtr &proto, TermPtr &call, ScopeStack & stack);
         bool CheckCallArg(TermPtr &call, size_t arg_pos, ScopeStack & stack);
         void CheckDims(TermPtr &dims, ScopeStack & stack, bool allow_none, bool allow_ellipsis);

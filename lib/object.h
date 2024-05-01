@@ -1519,6 +1519,10 @@ namespace newlang {
         }
 
         static ObjPtr CreateNone(Sync *sync = nullptr) {
+            return CreateType(ObjType::None, ObjType::None, true, sync);
+        }
+
+        static ObjPtr CreateEmpty(Sync *sync = nullptr) {
             return CreateType(ObjType::None, ObjType::None, false, sync);
         }
 

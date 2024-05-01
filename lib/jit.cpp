@@ -21,6 +21,7 @@
 #include "runtime.h"
 #include "term.h"
 #include "analysis.h"
+#include "module.h"
 
 #include "build_options.data"
 #include "include_h_i.data"
@@ -431,7 +432,7 @@ std::unique_ptr<llvm::Module> JIT::MakeLLVMModule(const std::string_view source,
 
         close(codeInPipe[1]);
 
-        temp_file = temp_dir.empty() ? m_rt->m_temp_dir : temp_dir;
+        temp_file = temp_dir.empty() ? m_temp_dir : temp_dir;
         temp_file += "/module_XXXXXX";
         fd_temp = mkstemp(temp_file.data());
         if (fd_temp < 0) {
@@ -727,13 +728,13 @@ std::string JIT::MakeApplicationSource(const TermPtr &ast) {
             result = MakeMainEmbed(source, m_includes);
         } else {
             // Need link libnlc-rt
-            if (!m_rt->m_link_rt) {
+            if (!m_link_rt) {
                 LOG_RUNTIME("Options '--nlc-no-link-rt' not allowed!");
             }
             result = MakeMain(m_includes);
         }
     } else {
-        if (!m_rt->m_link_rt) {
+        if (!m_link_rt) {
             LOG_RUNTIME("Options '--nlc-no-link-rt' not allowed!");
         }
         //        if (!m_rt->m_link_rt || !m_rt->m_link_jit) {
@@ -884,28 +885,28 @@ std::string JIT::MakeCodeRepl(const std::string_view source, const std::string_v
 
     result += "using namespace newlang;\n\n";
 
-//    //    result += ExtractFunctionDecls(ast, module);
-//    //    result += ExtractStaticVars(ast, module);
-//
-//    TermPtr func_module = Term::CreateName(func_name);
-//    func_module->m_is_call = true;
-//    func_module->m_int_name = NormalizeName(func_module->m_text);
-//
-//    result += MakeFunctionPrototype(func_module, module);
-//    result += " {\n";
-//    result += MakeBodyFunction(ast);
-//    result += "  return JitLastResult(nullptr);\n";
-//    result += "}\n";
-//
-//    MakeFunctionRecursive_(ast, result, module);
-//
-//    result += "/*\n* End generate NewLang JIT::MakeCodeRepl";
-//    result += "\n* " VERSION_SOURCE_FULL_ID;
-//    result += "\n* at: ";
-//    result += Parser::GetCurrentTimeStamp();
-//    result += "\n* from source:\n*  ";
-//    result += RegExpInlineComment(source);
-//    result += "\n*/\n\n";
+    //    //    result += ExtractFunctionDecls(ast, module);
+    //    //    result += ExtractStaticVars(ast, module);
+    //
+    //    TermPtr func_module = Term::CreateName(func_name);
+    //    func_module->m_is_call = true;
+    //    func_module->m_int_name = NormalizeName(func_module->m_text);
+    //
+    //    result += MakeFunctionPrototype(func_module, module);
+    //    result += " {\n";
+    //    result += MakeBodyFunction(ast);
+    //    result += "  return JitLastResult(nullptr);\n";
+    //    result += "}\n";
+    //
+    //    MakeFunctionRecursive_(ast, result, module);
+    //
+    //    result += "/*\n* End generate NewLang JIT::MakeCodeRepl";
+    //    result += "\n* " VERSION_SOURCE_FULL_ID;
+    //    result += "\n* at: ";
+    //    result += Parser::GetCurrentTimeStamp();
+    //    result += "\n* from source:\n*  ";
+    //    result += RegExpInlineComment(source);
+    //    result += "\n*/\n\n";
     return result;
 }
 
@@ -1790,9 +1791,9 @@ std::string CompileInfo::GetIndent(int64_t offset) {
 //    return false;
 //}
 //
-//Compiler::Compiler(RuntimePtr rt) : m_runtime(rt) {
-//    if (!m_runtime) {
-//        m_runtime = RunTime::Init();
+//Compiler::Compiler(RuntimePtr rt) : m_rt(rt) {
+//    if (!m_rt) {
+//        m_rt = RunTime::Init();
 //    }
 //
 //    //    m_jit = cppjit::CppJIT::Instance();
@@ -2533,7 +2534,7 @@ LLVMTypeRef toLLVMType(ObjType t, bool none_if_error) {
 
 ParserPtr JIT::GetParser() {
     // @todo Сделать корректныую очистку состояния парсера???
-    return std::make_shared<JitParser>(m_macro, nullptr, m_rt->m_diag, true, m_rt.get());
+    return std::make_shared<JitParser>(m_macro, nullptr, m_diag, true, this);
 }
 
 ObjPtr JIT::RunFile(std::string file, Obj* args) {
@@ -2555,45 +2556,45 @@ ObjPtr JIT::RunFile(std::string file, Obj* args) {
  * Констекст выполнения (m_main_runner) тоже остается не изменным.
  */
 ObjPtr JIT::Run(const std::string_view str, Obj* args) {
-    //    if (!m_main_ast || m_main_ast->m_id != TermID::BLOCK) {
-    //        m_main_ast = Term::Create(parser::token_type::END, TermID::BLOCK, "");
-    //        m_main_runner.reset();
-    //    }
-    //
-    //    TermPtr ast = GetParser()->Parse(str.begin());
-    //
-    //    m_main_ast->m_block.push_back(ast);
-    //
-    //    if (!m_main_runner) {
-    //        m_main_runner = std::make_shared<Context>(m_main_ast->m_int_vars, shared_from_this());
-    //    }
-    //    try {
-    //        m_diag->m_error_count = 0;
-    //
-    //        AstAnalysis analysis(*this, m_diag.get());
-    //
-    //        analysis.CheckError(analysis.Analyze(ast, m_main_ast));
-    //        //        AstCheckError(AstAnalyze(ast, m_main_ast));
-    //        if (m_diag->m_error_count) {
-    //            LOG_PARSER("fatal error: %d generated. ", m_diag->m_error_count);
-    //        }
-    //
-    //        return Context::Run(m_main_ast->m_block.back(), m_main_runner.get());
-    //    } catch (...) {
-    //        m_main_ast->m_block.pop_back();
-    //        throw;
-    //    }
-    return Obj::CreateNone();
+
+    if (m_module.empty()) {
+        m_main_ast = Term::Create(TermID::SEQUENCE, "");
+        m_module.push_back(std::make_shared<Module>(this, m_main_ast));
+    }
+    if (m_ctx.empty()) {
+        m_ctx.push_back(std::make_shared<Context>(*m_module.begin()->get(), this));
+    }
+
+    TermPtr temp = GetParser()->Parse(str.begin());
+    ASSERT((*m_module.begin())->m_ast);
+    (*m_module.begin())->m_ast->m_block.push_back(temp);
+
+
+    try {
+        m_diag->m_error_count = 0;
+
+        AstAnalysis analysis(*this, m_diag.get());
+
+        analysis.Analyze((*m_module.begin())->m_ast->m_block.back(), GetAst());
+
+        if (m_diag->m_error_count) {
+            LOG_PARSER("fatal error: %d generated. ", m_diag->m_error_count);
+        }
+
+        Module::RegisterStaticObject(GetCtx().m_static, (*m_module.begin())->m_ast->m_block.back(), false);
+        return Context::Run((*m_module.begin())->m_ast->m_block.back(), &GetCtx());
+
+    } catch (...) {
+        (*m_module.begin())->m_ast->m_block.pop_back();
+
+        throw;
+    }
+    return m_latter;
 }
 
-/*
- * Выполенение целого AST создает полностью новый контекст выполнения.
- */
-ObjPtr JIT::Run(TermPtr ast, Obj* args) {
-    //    m_main_ast = ast;
-    //    m_main_runner = std::make_shared<Context>(m_main_ast->m_int_vars, shared_from_this());
-    //    return Context::Run(m_main_ast, m_main_runner.get());
-    return Obj::CreateNone();
+ObjPtr JIT::Run(Module *module, Obj* args) {
+    LOG_RUNTIME("Run module not implemented!");
+    return nullptr;
 }
 
 TermPtr JIT::MakeAst(const std::string_view src, bool skip_analize) {
@@ -2602,7 +2603,7 @@ TermPtr JIT::MakeAst(const std::string_view src, bool skip_analize) {
         return ast;
     }
 
-    AstAnalysis analysis(*m_rt, m_rt->m_diag.get());
+    AstAnalysis analysis(*this, m_diag.get());
 
     if (!analysis.Analyze(ast, ast)) {
         LOG_RUNTIME("Make AST fail!");
@@ -2628,7 +2629,9 @@ bool JIT::ModuleCreate(FileModule &data, const std::string_view module_name, con
     return !data.name.empty() && !data.include.empty() && (data.source.empty() || data.bytecode.empty());
 }
 
-JIT::JIT(RuntimePtr rt) : m_rt(rt), m_macro(std::make_shared<Macro>()) {
+JIT::JIT(const StringArray &args) : RunTime(args), m_macro(std::make_shared<Macro>()) { //m_rt(rt), 
+
+    LLVMInitialize();
 
     m_repl_count = 0;
     // Диагностика работы Clang
@@ -2637,7 +2640,7 @@ JIT::JIT(RuntimePtr rt) : m_rt(rt), m_macro(std::make_shared<Macro>()) {
     pDiagnosticsEngine = new clang::DiagnosticsEngine(pDiagIDs, &*DiagOpts, textDiagPrinter);
 
 
-    if (m_rt->m_load_dsl) {
+    if (m_load_dsl) {
 
         VERIFY(CreateMacro("@@ true @@ ::= 1"));
         VERIFY(CreateMacro("@@ yes @@ ::= 1"));
@@ -2725,7 +2728,7 @@ JIT::JIT(RuntimePtr rt) : m_rt(rt), m_macro(std::make_shared<Macro>()) {
 
     VERIFY(CreateMacro("@@ static_assert(...) @@ ::= @@ @__PRAGMA_STATIC_ASSERT__(@$... ) @@"));
 
-    if (m_rt->m_assert_enable) {
+    if (m_assert_enable) {
         VERIFY(CreateMacro("@@ assert(value, ...) @@ ::= @@ [:Bool(@$value)==0]-->{ ::Base::__assert_abort__(@# @$value, @$value, @$... ) } @@"));
         VERIFY(CreateMacro("@@ verify(value, ...) @@ ::= @@ [:Bool(@$value)==0]-->{ ::Base::__assert_abort__(@# @$value, @$value, @$... ) } @@"));
     } else {
@@ -2734,20 +2737,12 @@ JIT::JIT(RuntimePtr rt) : m_rt(rt), m_macro(std::make_shared<Macro>()) {
     }
 }
 
-ObjPtr JIT::REPL(const std::string_view source) {
-    //    std::string call_name = std::to_string(m_repl_count++);
-    //    call_name.insert(call_name.begin(), "_$$___REPL__");
-
-    return Obj::None();
-
-}
-
 ObjPtr newlang::JitLastResult(ObjPtr val) {
-    JIT * jit = JIT::Instance(nullptr);
+    JIT * jit = JIT::Instance();
     if (val) {
-        jit->m_last_result = val;
+        jit->m_latter = val;
     }
-    return jit->m_last_result;
+    return jit->m_latter;
 }
 
 bool JIT::CreateMacro(const std::string_view text) {
@@ -2827,3 +2822,380 @@ void * RunTime::GetNativeAddress(void * handle, const std::string_view name) {
     LLVMLoadLibraryPermanently(nullptr);
     return LLVMSearchForAddressOfSymbol(name.begin());
 }
+
+/*
+ * 
+ * 
+ * 
+ * 
+ *  
+ */
+
+//TermPtr JIT::GetObject(const std::string_view int_name) {
+//
+//    //    std::string int_name;
+//    //    if (isInternalName(int_name)) {
+//    //    }
+//    //    int_name = NormalizeName(int_name);
+//    //    ASSERT();
+//    //
+//    //    std::string int_name;
+//    //    
+//    //    if (term->isNone()) {
+//    //        term->m_int_name = "_";
+//    //    }
+//    if (int_name.empty()) {
+//        LOG_RUNTIME("Has no internal name! AST analysis required!");
+//    }
+//
+//    TermPtr result;
+//    if (int_name.compare("_") == 0) {
+//        result = Term::CreateNone();
+//    } else if (int_name.compare("$^") == 0) {
+//        result = Term::CreateNone();
+//        result->m_obj = m_latter;
+//    } else {
+//        auto found = find(int_name.begin());
+//        if(found != end()){
+//            result = found->second.item;
+//        }
+////        result = FindInternalName(int_name, m_rt.get());
+//        if (!result && m_rt && (isGlobalScope(int_name) || isTypeName(int_name))) {
+//            result = m_rt->GlobFindProto(int_name);
+//        }
+//    }
+//    if (!result) {
+//        //#ifdef BUILD_UNITTEST
+//        //            if (term->m_text.compare("__STAT_RUNTIME_UNITTEST__") == 0) {
+//        //                ASSERT(term->isCall());
+//        //                ASSERT(term->size() == 2);
+//        //                return Obj::CreateValue(m_rt->__STAT_RUNTIME_UNITTEST__(
+//        //                        parseInteger(term->at(0).second->m_text.c_str()),
+//        //                        parseInteger(term->at(1).second->m_text.c_str())));
+//        //            }
+//        //#endif
+//        LOG_RUNTIME("Object with internal name '%s' not found!", int_name.begin());
+//    }
+//
+//    return result;
+//}
+//
+//ObjPtr JIT::EvalCreate_(TermPtr & op) {
+//    ASSERT(op);
+//    ASSERT(op->isCreate());
+//    ASSERT(op->m_left);
+//
+//    ArrayTermType l_vars = op->m_left->CreateArrayFromList();
+//
+//    bool is_ellipsis = false;
+//    TermPtr var_found;
+//    for (auto &elem : l_vars) {
+//
+//        if (elem->getTermID() == TermID::ELLIPSIS) {
+//
+//            //@todo добавить поддержку многоточия с левой стороный оператора присвоения
+//            // NL_PARSER(elem, "Ellipsis on the left side in assignment not implemented!");
+//
+//            //  Игнорировать несколько объектов
+//            elem->m_obj = getEllipsysObj();
+//            if (is_ellipsis) {
+//                NL_PARSER(elem, "Multiple ellipsis on the left side of the assignment!");
+//            }
+//            is_ellipsis = true;
+//
+//        } else if (elem->isNone()) {
+//
+//            //  Игнорировать один объект
+//            elem->m_obj = getNoneObj();
+//
+//        } else {
+//
+//            var_found = GetObject(elem->m_int_name);
+//
+//            if (op->isCreateOnce() && var_found && var_found->m_obj) {
+//                NL_PARSER(elem, "Object '%s' already exist", elem->m_text.c_str());
+//            } else if (op->getTermID() == TermID::ASSIGN && !(var_found && var_found->m_obj)) {
+//                NL_PARSER(elem, "Object '%s' not exist!", elem->m_text.c_str());
+//            }
+//
+//            if (var_found) {
+//                if (var_found->isCall() && var_found->m_obj) {
+//                    NL_PARSER(elem, "The function cannot be overridden! '%s'", var_found->toString().c_str());
+//                }
+//                elem = var_found;
+//                //                elem->m_int_name = var_found->m_int_name;
+//                //                elem->m_obj = var_found->m_obj;
+//                //                LOG_TEST("0: %s = %s (%p)", elem->m_text.c_str(), elem->m_obj ? elem->m_obj->toString().c_str() : "nullptr", elem->m_obj.get());
+//            }
+//        }
+//    }
+//
+//    m_latter = AssignVars_(l_vars, op->m_right, op->isPure());
+//    for (auto &elem : l_vars) {
+//
+//        //        LOG_TEST("4: %s = %s (%p)", elem->m_text.c_str(), elem->m_obj ? elem->m_obj->toString().c_str() : "nullptr", elem->m_obj.get());
+//
+//        if (isGlobalScope(elem->m_int_name)) {
+//            m_rt->NameRegister(op->isCreateOnce(), elem->m_int_name.c_str(), elem, elem->m_obj);
+//        }
+//    }
+//    return m_latter;
+//}
+//
+//ObjPtr JIT::AssignVars_(ArrayTermType &l_vars, const TermPtr &r_term, bool is_pure) {
+//
+//    ASSERT(l_vars.size());
+//    if (r_term->getTermID() == TermID::NATIVE) {
+//
+//        ASSERT(l_vars.size() == 1);
+//        //        ASSERT(vars[0]->m_obj);
+//        //        ASSERT(r_term->m_obj);
+//
+//        l_vars[0]->m_obj = m_rt->CreateNative(l_vars[0], nullptr, false, r_term->m_text.substr(1).c_str());
+//        //        vars[0]->m_obj = r_term->m_obj;
+//        m_latter = l_vars[0]->m_obj;
+//
+//    } else if (r_term->getTermID() == TermID::ELLIPSIS) {
+//        // При раскрытии словаря присвоить значение можно как одному, так и сразу нескольким терминам: 
+//        // var1, var2, _ = ... func(); Первый и второй элементы записывается в var1 и var2, 
+//        // а все остальные игнорируются (если они есть)
+//        // var1, var2 = ... func(); Если функция вернула словарь с двумя элементами, 
+//        // то их значения записываются в var1 и var2. Если в словаре было больше двух элементов, 
+//        // то первый записывается в var1, а все оставшиеся элементы в var2. !!!!!!!!!!!!!
+//        // item, dict = ... dict; Первый элементы записывается в item и удаялется из dict 
+//
+//        // _, var1, ..., var2 = ... func(); 
+//        // Первый элемент словаря игнорируется, второй записывается в var1, а последний в var2.
+//
+//        //@todo добавить поддержку многоточия с левой стороный оператора присвоения
+//
+//        bool is_named = !!r_term->m_left;
+//        if (is_named) {
+//            NL_PARSER(r_term, "Named ELLIPSIS NOT implemented!");
+//            ASSERT(r_term->m_left->getTermID() == TermID::ELLIPSIS);
+//        }
+//
+//        bool is_last = false;
+//        ObjPtr right_obj = CheckObjTerm_(r_term->m_right, this);
+//        for (size_t i = 0; i < l_vars.size(); i++) {
+//            if (l_vars[i]->isNone()) {
+//                // Ignore position
+//                continue;
+//            }
+//            if (i + 1 == l_vars.size()) {
+//                is_last = true;
+//            }
+//
+//            //            LOG_TEST("1: %s = %s (%p)", l_vars[i]->m_text.c_str(), l_vars[i]->m_obj ? l_vars[i]->m_obj->toString().c_str() : "nullptr", l_vars[i]->m_obj.get());
+//
+//            if (i < right_obj->size()) {
+//                if (is_last) {
+//                    if (l_vars[i]->m_int_name.compare(r_term->m_right->m_int_name) == 0) {
+//                        // Остаток элементов присваивается тому же словарю
+//                        l_vars[i]->m_obj = right_obj;
+//                    } else {
+//                        l_vars[i]->m_obj = right_obj->Clone();
+//                    }
+//                    l_vars[i]->m_obj->erase(0, l_vars.size() - 1);
+//                } else {
+//                    l_vars[i]->m_obj = (*right_obj)[i].second;
+//                }
+//            } else {
+//                if (is_last) {
+//                    if (l_vars[i]->m_int_name.compare(r_term->m_right->m_int_name) == 0) {
+//                        // Остаток элементов присваивается тому же словарю
+//                        l_vars[i]->m_obj = right_obj;
+//                    } else {
+//                        l_vars[i]->m_obj = right_obj->Clone();
+//                    }
+//                    l_vars[i]->m_obj->erase(0, 0);
+//                } else {
+//                    l_vars[i]->m_obj = Obj::CreateNone();
+//                }
+//            }
+//            //            LOG_TEST("2: %s = %s (%p)", l_vars[i]->m_text.c_str(), l_vars[i]->m_obj ? l_vars[i]->m_obj->toString().c_str() : "nullptr", l_vars[i]->m_obj.get());
+//        }
+//        m_latter = l_vars[l_vars.size() - 1]->m_obj;
+//
+//    } else if (r_term->getTermID() == TermID::FILLING) {
+//        // Заполнение переменных значениями последовательным вызовом фукнции?
+//
+//        //@todo добавить поддержку многоточия с левой стороный оператора присвоения
+//        NL_PARSER(r_term, "FILLING NOT implemented!");
+//
+//    } else if (r_term->isBlock()) {
+//
+//        if (l_vars.size() > 1) {
+//            //@todo добавить поддержку присвоения сразу нескольким функциям
+//            NL_PARSER(r_term, "Multiple function assignment not implemented!");
+//        }
+//        ASSERT(l_vars.size() == 1);
+//
+//        if (!l_vars[0]->isCall()) {
+//            NL_PARSER(l_vars[0], "Function name expected!");
+//        }
+//
+//        ASSERT(!l_vars[0]->m_right);
+//
+//        l_vars[0]->m_obj = m_rt->CreateFunction(l_vars[0], r_term);
+//        m_latter = l_vars[0]->m_obj;
+//
+//    } else {
+//
+//        ArrayTermType r_vars = r_term->CreateArrayFromList();
+//        if (r_vars.empty()) {
+//            // Delete vars
+//            NL_PARSER(r_term, "NOT implemented!");
+//            //            m_latter = getNoneObj();
+//
+//        } else if (r_vars.size() == 1) {
+//
+//            m_latter = Run(r_vars[0], this);
+//            for (auto &elem : l_vars) {
+//                if (elem->getTermID() == TermID::ELLIPSIS) {
+//                    NL_PARSER(elem, "Ellipses unexpected!");
+//                } else if (elem->isNone()) {
+//                    NL_PARSER(elem, "None var unexpected!");
+//                } else if (elem->m_right) {
+//
+//                    if (elem->m_right->m_id == TermID::INDEX) {
+//                        SetIndexValue(elem, m_latter, this);
+//                    } else if (elem->m_right->m_id == TermID::FIELD) {
+//                        SetFieldValue(elem, m_latter, this);
+//                    } else {
+//                        NL_PARSER(elem, "Eval type '%s' not implemented!", toString(elem->m_right->m_id));
+//                    }
+//
+//                } else {
+//                    elem->m_obj = m_latter;
+//                }
+//            }
+//
+//        } else {
+//            // Что присваиваем (правая часть выражения)
+//            // @todo В будущем можно будет сделать сахар для обмена значениями при одинаковом кол-ве объектов у оператора присваивания
+//            // a, b = b, a;   a, b, c = c, b, a; и т.д.
+//
+//            if (l_vars.size() != r_vars.size()) {
+//                NL_PARSER(r_term, "Fail count right values! Expected one or %d.", (int) l_vars.size());
+//            }
+//            for (size_t i = 0; i < l_vars.size(); i++) {
+//                if (l_vars[i]->getTermID() == TermID::ELLIPSIS) {
+//                    NL_PARSER(l_vars[i], "Ellipses unexpected!");
+//                } else if (l_vars[i]->isNone()) {
+//                    NL_PARSER(l_vars[i], "None var unexpected!");
+//                } else {
+//
+//                    m_latter = Run(r_vars[i], this);
+//                    l_vars[i]->m_obj = m_latter;
+//                }
+//            }
+//        }
+//    }
+//
+//    return m_latter;
+//
+//
+//
+//}
+//
+//ObjPtr JIT::SetIndexValue(TermPtr &term, ObjPtr &value, Context * runner) {
+//
+//    ASSERT(term->m_right);
+//
+//    TermPtr index = term->m_right;
+//    ASSERT(index->size());
+//
+//    switch (term->m_id) {
+//        case TermID::DICT:
+//        case TermID::STRCHAR:
+//        case TermID::STRWIDE:
+//            if (index->size() > 1) {
+//                NL_PARSER(index, "Strings and dictionaries do not support multiple dimensions!");
+//            }
+//        case TermID::TENSOR:
+//            break;
+//
+//        case TermID::NAME:
+//        case TermID::LOCAL:
+//        case TermID::TYPE:
+//        case TermID::ARGS:
+//        case TermID::ARGUMENT:
+//        case TermID::STATIC:
+//            break;
+//
+//        default:
+//            NL_PARSER(term, "Term type '%s' not indexable!", toString(term->m_id));
+//    }
+//
+//    ObjPtr obj = CheckObjTerm_(term, runner, false);
+//    ASSERT(obj);
+//    ObjPtr ind = CheckObjTerm_(index->at(0).second, runner);
+//    ASSERT(ind);
+//
+//    if (isStringChar(obj->getType())) {
+//
+//        if (canCast(value->getType(), ObjType::Int8)) {
+//            obj->index_set_({ind->GetValueAsInteger()}, value);
+//        } else {
+//            NL_PARSER(term, "Fail cast from '%s' to ':Int8'", toString(value->getType()));
+//        }
+//        return value;
+//
+//    } else if (isStringWide(obj->getType())) {
+//
+//        if (canCast(value->getType(), m_rt->m_wide_char_type)) {
+//            obj->index_set_({ind->GetValueAsInteger()}, value);
+//        } else {
+//            NL_PARSER(term, "Fail cast from '%s' to '%s'", toString(value->getType()), newlang::toString(m_rt->m_wide_char_type));
+//        }
+//        return value;
+//    }
+//    NL_PARSER(term, "Index type '%s' not implemented!", toString(obj->getType()));
+//}
+//
+//ObjPtr JIT::GetIndexValue(TermPtr &term, ObjPtr &obj, Context * runner) {
+//    ASSERT(term->m_right);
+//
+//    TermPtr index = term->m_right;
+//    ASSERT(index->size());
+//
+//    switch (term->m_id) {
+//        case TermID::DICT:
+//        case TermID::STRCHAR:
+//        case TermID::STRWIDE:
+//            if (index->size() > 1) {
+//                NL_PARSER(index, "Strings and dictionaries do not support multiple dimensions!");
+//            }
+//        case TermID::TENSOR:
+//            break;
+//
+//        case TermID::NAME:
+//        case TermID::LOCAL:
+//        case TermID::TYPE:
+//        case TermID::ARGS:
+//        case TermID::ARGUMENT:
+//        case TermID::STATIC:
+//            break;
+//
+//        default:
+//            NL_PARSER(term, "Term type '%s' not indexable!", toString(term->m_id));
+//    }
+//
+//    ObjPtr ind = CheckObjTerm_(index->at(0).second, runner);
+//    ASSERT(ind);
+//
+//    if (isStringChar(obj->getType())) {
+//        return obj->index_get({ind->GetValueAsInteger()});
+//    }
+//
+//    NL_PARSER(term, "Index type '%s' not implemented!", toString(obj->getType()));
+//}
+//
+//ObjPtr JIT::GetFieldValue(TermPtr &term, ObjPtr &value, Context * runner) {
+//    NL_PARSER(term, "GetFieldValue not implemented!");
+//}
+//
+//ObjPtr JIT::SetFieldValue(TermPtr &term, ObjPtr &value, Context * runner) {
+//    NL_PARSER(term, "SetFieldValue not implemented!");
+//}

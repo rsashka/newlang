@@ -533,7 +533,7 @@ using namespace newlang;
 
 TEST(LLVM, Include_h_i_GTF) {
     
-    ObjPtr obj = Obj::CreateNone();
+    ObjPtr obj = Obj::CreateEmpty();
 
     ASSERT_STREQ("_", obj->toString().c_str());
     ASSERT_ANY_THROW(auto _ = static_cast<bool> (*obj));

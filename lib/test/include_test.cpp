@@ -77,7 +77,7 @@ extern "C" bool include_h_i_function_test() {
 
     Obj val;
 
-    ObjPtr obj = Obj::CreateNone();
+    ObjPtr obj = Obj::CreateEmpty();
     val = (*obj);
 
     ASSERT_STREQ("_", obj->toString().c_str());

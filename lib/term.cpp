@@ -77,24 +77,24 @@ size_t newlang::IndexArg(TermPtr term) {
  */
 
 TermPtr Term::CreateNone() {
-    TermPtr result = Term::Create(parser::token_type::END, TermID::NONE, "_");
+    TermPtr result = Term::Create(TermID::NONE, "_");
     result->m_obj = Obj::CreateNone();
     return result;
 }
 
 TermPtr Term::CreateNil() {
-    TermPtr result = Term::Create(parser::token_type::END, TermID::NONE, "_");
+    TermPtr result = Term::Create(TermID::NONE, "_");
     result->m_obj = nullptr;
     return result;
 }
 
 TermPtr Term::CreateDict() {
-    TermPtr result = Term::Create(parser::token_type::END, TermID::DICT, "");
+    TermPtr result = Term::Create(TermID::DICT, "");
     return result;
 }
 
 TermPtr Term::CreateName(std::string name, TermID id) {
-    TermPtr result = Term::Create(parser::token_type::NAME, id, name.c_str());
+    TermPtr result = Term::Create(id, name.c_str(), parser::token_type::NAME);
     return result;
 }
 
@@ -140,7 +140,7 @@ void Term::SetType(TermPtr type) {
             m_type = getDefaultType(typeFromLimit(parseDouble(m_text.c_str()), ObjType::Float64));
         } else if (m_id == TermID::COMPLEX) {
             NL_PARSER(type, "Error cast '%s' to complex type '%s'", m_text.c_str(), m_type->m_text.c_str());
-//            m_type = getDefaultType(typeFromLimit(parseComplex(m_text.c_str()), ObjType::Complex64));
+            //            m_type = getDefaultType(typeFromLimit(parseComplex(m_text.c_str()), ObjType::Complex64));
         } else if (m_id == TermID::STRCHAR) {
             m_type = getDefaultType(ObjType::StrChar);
         } else if (m_id == TermID::STRWIDE) {
@@ -322,9 +322,9 @@ void ScopeStack::RemoveName_(const std::string_view int_name) {
     if (m_static.find(int_name.begin()) != m_static.end()) {
         m_static.erase(m_static.find(int_name.begin()));
     }
-    if (isGlobalScope(int_name)) {
-        LOG_RUNTIME("Remove global name in transaction not implemented!");
-    }
+//    if (isGlobalScope(int_name)) {
+//        LOG_RUNTIME("Remove global name in transaction not implemented!");
+//    }
 }
 
 void ScopeStack::RollbackNames_() {
@@ -356,6 +356,11 @@ bool ScopeStack::AddName(const TermPtr var, const char * alt_name) {
     }
     if (name.empty()) {
         LOG_RUNTIME("Internal name of '%s' not exist!", var->toString().c_str());
+    }
+    if (isGlobalScope(name)) {
+        var->m_level = 0;
+    } else {
+        var->m_level = size();
     }
     if (!empty()) {
         if (back().vars.find(name) != back().vars.end()) {

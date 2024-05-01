@@ -967,7 +967,7 @@ size_t Macro::ExtractArgs(BlockType &buffer, TermPtr &term, MacroArgsType & args
 
 
 
-    BlockType cnt{Term::Create(parser::token_type::INTEGER, TermID::INTEGER, std::to_string(arg_count).c_str())};
+    BlockType cnt{Term::Create(TermID::INTEGER, std::to_string(arg_count).c_str(), parser::token_type::INTEGER)};
     arg_name = "@$#";
     InsertArg_(args, arg_name, cnt);
 

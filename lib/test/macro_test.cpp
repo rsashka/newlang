@@ -234,7 +234,7 @@ TEST_F(MacroTest, PredefMacro) {
     ASSERT_TRUE(p.m_predef_macro.empty());
     ASSERT_EQ(0, p.m_predef_macro.size());
 
-    TermPtr term = Term::Create(parser::token_type::MACRO, TermID::MACRO, "@__NLC_VER__");
+    TermPtr term = Term::Create(TermID::MACRO, "@__NLC_VER__", parser::token_type::MACRO);
     ASSERT_EQ(parser::token_type::INTEGER, p.ExpandPredefMacro(term));
 
     ASSERT_FALSE(p.m_predef_macro.empty());
@@ -388,7 +388,7 @@ TEST_F(MacroTest, ParseTerm) {
     size_t size;
 
 
-    buff.push_back(Term::Create(parser::token_type::NAME, TermID::NAME, "alias")); // alias 
+    buff.push_back(Term::Create(TermID::NAME, "alias", parser::token_type::NAME)); // alias 
 
     ASSERT_NO_THROW(size = Parser::ParseTerm(term, buff, 0));
     ASSERT_EQ(1, size);
@@ -397,7 +397,7 @@ TEST_F(MacroTest, ParseTerm) {
     ASSERT_STREQ("alias", term->toString().c_str());
 
 
-    buff.push_back(Term::Create(parser::token_type::NAME, TermID::NAME, "alias")); // alias alias 
+    buff.push_back(Term::Create(TermID::NAME, "alias", parser::token_type::NAME)); // alias alias 
 
     ASSERT_NO_THROW(size = Parser::ParseTerm(term, buff, 0));
     ASSERT_EQ(1, size);
@@ -405,7 +405,7 @@ TEST_F(MacroTest, ParseTerm) {
     ASSERT_FALSE(term->isCall());
     ASSERT_STREQ("alias", term->toString().c_str());
 
-    buff.push_back(Term::Create(parser::token_type::NAME, TermID::NAME, "second")); // alias alias second 
+    buff.push_back(Term::Create(TermID::NAME, "second", parser::token_type::NAME)); // alias alias second 
 
     ASSERT_NO_THROW(size = Parser::ParseTerm(term, buff, 0));
     ASSERT_EQ(1, size);
@@ -414,11 +414,11 @@ TEST_F(MacroTest, ParseTerm) {
     ASSERT_STREQ("alias", term->toString().c_str());
 
     buff.erase(buff.begin(), buff.begin() + 2);
-    buff.push_back(Term::Create(parser::token_type::SYMBOL, TermID::SYMBOL, "(")); // second (
+    buff.push_back(Term::Create(TermID::SYMBOL, "(", parser::token_type::SYMBOL)); // second (
 
     ASSERT_ANY_THROW(Parser::ParseTerm(term, buff, 0));
 
-    buff.push_back(Term::Create(parser::token_type::SYMBOL, TermID::SYMBOL, ")")); // second ( )
+    buff.push_back(Term::Create(TermID::SYMBOL, ")", parser::token_type::SYMBOL)); // second ( )
 
     ASSERT_NO_THROW(size = Parser::ParseTerm(term, buff, 0));
     ASSERT_EQ(3, size);
@@ -428,10 +428,10 @@ TEST_F(MacroTest, ParseTerm) {
 
     buff.erase(buff.end()); // second ( 
 
-    buff.push_back(Term::Create(parser::token_type::NAME, TermID::NAME, "name")); // second ( name
+    buff.push_back(Term::Create(TermID::NAME, "name", parser::token_type::NAME)); // second ( name
     ASSERT_ANY_THROW(Parser::ParseTerm(term, buff, 0));
 
-    buff.push_back(Term::Create(parser::token_type::SYMBOL, TermID::SYMBOL, ")")); // second ( name )
+    buff.push_back(Term::Create(TermID::SYMBOL, ")", parser::token_type::SYMBOL)); // second ( name )
 
     ASSERT_NO_THROW(size = Parser::ParseTerm(term, buff, 0));
     ASSERT_EQ(4, size);
@@ -441,13 +441,13 @@ TEST_F(MacroTest, ParseTerm) {
 
 
     buff.erase(buff.end()); // second ( name
-    buff.push_back(Term::Create(parser::token_type::SYMBOL, TermID::SYMBOL, "=")); // second ( name =
+    buff.push_back(Term::Create(TermID::SYMBOL, "=", parser::token_type::SYMBOL)); // second ( name =
     ASSERT_ANY_THROW(Parser::ParseTerm(term, buff, 0));
 
-    buff.push_back(Term::Create(parser::token_type::NAME, TermID::NAME, "value")); // second ( name = value
+    buff.push_back(Term::Create(TermID::NAME, "value", parser::token_type::NAME)); // second ( name = value
     ASSERT_ANY_THROW(Parser::ParseTerm(term, buff, 0));
 
-    buff.push_back(Term::Create(parser::token_type::SYMBOL, TermID::SYMBOL, ")")); // second ( name = value )
+    buff.push_back(Term::Create(TermID::SYMBOL, ")", parser::token_type::SYMBOL)); // second ( name = value )
 
     ASSERT_NO_THROW(size = Parser::ParseTerm(term, buff, 0));
     ASSERT_EQ(6, size);
@@ -680,7 +680,7 @@ TEST_F(MacroTest, Buffer) {
 
     ASSERT_FALSE(Macro::IdentityMacro(buffer, term));
 
-#define CREATE_TERM(type, text)  Term::Create(parser::token_type:: type, TermID:: type, text)
+#define CREATE_TERM(type, text)  Term::Create(TermID:: type, text, parser::token_type:: type)
 
     term = Parse("@@ macro @@ := @@ name @@", macro_buf);
     ASSERT_TRUE(term);
@@ -856,7 +856,7 @@ TEST_F(MacroTest, MacroMacro) {
     TermPtr macro_dsl = macro->GetMacro({"dsl"});
 
 
-    TermPtr term = Term::Create(parser::token_type::NAME, TermID::NAME, "alias");
+    TermPtr term = Term::Create(TermID::NAME, "alias", parser::token_type::NAME);
 
     ASSERT_TRUE(macro->GetMacro({"alias", "replace"}));
     ASSERT_TRUE(macro->GetMacro({"alias", "second"}));
@@ -883,21 +883,21 @@ TEST_F(MacroTest, MacroMacro) {
     ASSERT_FALSE(Macro::IdentityMacro(buff, macro_text)); // text
     ASSERT_FALSE(Macro::IdentityMacro(buff, macro_dsl)); // dsl
 
-    buff.push_back(Term::Create(parser::token_type::NAME, TermID::NAME, "second")); // alias alias second 
+    buff.push_back(Term::Create(TermID::NAME, "second", parser::token_type::NAME)); // alias alias second 
 
     ASSERT_FALSE(Macro::IdentityMacro(buff, macro_replace)); // alias replace
     ASSERT_FALSE(Macro::IdentityMacro(buff, macro_second)); // alias second
     ASSERT_FALSE(Macro::IdentityMacro(buff, macro_text)); // text
     ASSERT_FALSE(Macro::IdentityMacro(buff, macro_dsl)); // dsl
 
-    buff.push_back(Term::Create(parser::token_type::SYMBOL, TermID::SYMBOL, "(")); // alias alias second (
+    buff.push_back(Term::Create(TermID::SYMBOL, "(", parser::token_type::SYMBOL)); // alias alias second (
 
     ASSERT_FALSE(Macro::IdentityMacro(buff, macro_replace)); // alias replace
     ASSERT_FALSE(Macro::IdentityMacro(buff, macro_second)); // alias second
     ASSERT_FALSE(Macro::IdentityMacro(buff, macro_text)); // text
     ASSERT_FALSE(Macro::IdentityMacro(buff, macro_dsl)); // dsl
 
-    buff.push_back(Term::Create(parser::token_type::SYMBOL, TermID::SYMBOL, ")")); // alias alias second ( )
+    buff.push_back(Term::Create(TermID::SYMBOL, ")", parser::token_type::SYMBOL)); // alias alias second ( )
 
     ASSERT_FALSE(Macro::IdentityMacro(buff, macro_replace)); // alias replace
     ASSERT_FALSE(Macro::IdentityMacro(buff, macro_second)); // alias second
@@ -973,7 +973,7 @@ TEST_F(MacroTest, Simple) {
     TermPtr macro_dsl = macro->GetMacro({"dsl"});
 
 
-    TermPtr term = Term::Create(parser::token_type::NAME, TermID::NAME, "alias");
+    TermPtr term = Term::Create(TermID::NAME, "alias", parser::token_type::NAME);
 
     ASSERT_TRUE(macro->GetMacro({"alias"}));
     ASSERT_TRUE(macro->GetMacro({"second"}));
@@ -1000,28 +1000,28 @@ TEST_F(MacroTest, Simple) {
     ASSERT_FALSE(Macro::IdentityMacro(buff, macro_text)); // text(...)
     ASSERT_FALSE(Macro::IdentityMacro(buff, macro_dsl)); // dsl
 
-    buff.push_back(Term::Create(parser::token_type::NAME, TermID::NAME, "second")); // alias alias second 
+    buff.push_back(Term::Create(TermID::NAME, "second", parser::token_type::NAME)); // alias alias second 
 
     ASSERT_TRUE(Macro::IdentityMacro(buff, macro_alias)); // alias
     ASSERT_FALSE(Macro::IdentityMacro(buff, macro_second)); // second(...)
     ASSERT_FALSE(Macro::IdentityMacro(buff, macro_text)); // text(...)
     ASSERT_FALSE(Macro::IdentityMacro(buff, macro_dsl)); // dsl
 
-    buff.push_back(Term::Create(parser::token_type::SYMBOL, TermID::SYMBOL, "(")); // alias alias second (
+    buff.push_back(Term::Create(TermID::SYMBOL, "(", parser::token_type::SYMBOL)); // alias alias second (
 
     ASSERT_TRUE(Macro::IdentityMacro(buff, macro_alias)); // alias
     ASSERT_FALSE(Macro::IdentityMacro(buff, macro_second)); // second(...)
     ASSERT_FALSE(Macro::IdentityMacro(buff, macro_text)); // text(...)
     ASSERT_FALSE(Macro::IdentityMacro(buff, macro_dsl)); // dsl
 
-    buff.push_back(Term::Create(parser::token_type::NAME, TermID::NAME, "arg")); // alias alias second ( arg
+    buff.push_back(Term::Create(TermID::NAME, "arg", parser::token_type::NAME)); // alias alias second ( arg
 
     ASSERT_TRUE(Macro::IdentityMacro(buff, macro_alias)); // alias
     ASSERT_FALSE(Macro::IdentityMacro(buff, macro_second)); // second(...)
     ASSERT_FALSE(Macro::IdentityMacro(buff, macro_text)); // text(...)
     ASSERT_FALSE(Macro::IdentityMacro(buff, macro_dsl)); // dsl()
 
-    buff.push_back(Term::Create(parser::token_type::SYMBOL, TermID::SYMBOL, ")")); // alias alias second ( arg )
+    buff.push_back(Term::Create(TermID::SYMBOL, ")", parser::token_type::SYMBOL)); // alias alias second ( arg )
 
     ASSERT_TRUE(Macro::IdentityMacro(buff, macro_alias)); // alias
     ASSERT_FALSE(Macro::IdentityMacro(buff, macro_second)); // second(...)
@@ -1263,7 +1263,7 @@ TEST_F(MacroTest, MacroAlias) {
 
 
 
-    TermPtr term = Term::Create(parser::token_type::NAME, TermID::NAME, "alias");
+    TermPtr term = Term::Create(TermID::NAME, "alias", parser::token_type::NAME);
 
     ASSERT_TRUE(macro->map::find(term->m_text) != macro->end());
 
@@ -1283,7 +1283,7 @@ TEST_F(MacroTest, MacroAlias) {
     ASSERT_FALSE(Macro::IdentityMacro(buff, macro_fail));
 
 
-    term = Term::Create(parser::token_type::NAME, TermID::NAME, "alias");
+    term = Term::Create(TermID::NAME, "alias", parser::token_type::NAME);
     buff.push_back(term);
 
 
@@ -1473,7 +1473,7 @@ TEST_F(MacroTest, MacroArgs) {
     //    ASSERT_ANY_THROW(MacroBuffer::ExtractArgs(buff, macro_alias3, macro_args));
     ASSERT_ANY_THROW(Macro::ExtractArgs(buff, macro_macro1, macro_args));
 
-    buff.push_back(Term::Create(parser::token_type::NAME, TermID::NAME, "alias"));
+    buff.push_back(Term::Create(TermID::NAME, "alias", parser::token_type::NAME));
 
     ASSERT_ANY_THROW(Macro::ExtractArgs(buff, macro_alias1, macro_args)) << macro_alias1->toString().c_str();
 
@@ -1482,11 +1482,11 @@ TEST_F(MacroTest, MacroArgs) {
     ASSERT_ANY_THROW(Macro::ExtractArgs(buff, macro_macro1, macro_args)) << macro_macro1->toString().c_str();
 
 
-    buff.push_back(Term::Create(parser::token_type::SYMBOL, TermID::SYMBOL, "("));
+    buff.push_back(Term::Create(TermID::SYMBOL, "(", parser::token_type::SYMBOL));
 
     ASSERT_ANY_THROW(Macro::ExtractArgs(buff, macro_alias1, macro_args));
 
-    buff.push_back(Term::Create(parser::token_type::SYMBOL, TermID::SYMBOL, ")"));
+    buff.push_back(Term::Create(TermID::SYMBOL, ")", parser::token_type::SYMBOL));
 
     size_t count;
     ASSERT_NO_THROW(count = Macro::ExtractArgs(buff, macro_alias1, macro_args));
@@ -1498,11 +1498,11 @@ TEST_F(MacroTest, MacroArgs) {
     //    ASSERT_ANY_THROW(MacroBuffer::ExtractArgs(buff, macro_alias3, macro_args));
     ASSERT_ANY_THROW(Macro::ExtractArgs(buff, macro_macro1, macro_args));
 
-    buff.push_back(Term::Create(parser::token_type::NAME, TermID::NAME, "value"));
+    buff.push_back(Term::Create(TermID::NAME, "value", parser::token_type::NAME));
 
     ASSERT_ANY_THROW(Macro::ExtractArgs(buff, macro_alias1, macro_args));
 
-    buff.push_back(Term::Create(parser::token_type::SYMBOL, TermID::SYMBOL, ")"));
+    buff.push_back(Term::Create(TermID::SYMBOL, ")", parser::token_type::SYMBOL));
 
     ASSERT_EQ(4, buff.size());
     ASSERT_NO_THROW(count = Macro::ExtractArgs(buff, macro_alias1, macro_args)) << Macro::Dump(buff);
@@ -1514,7 +1514,7 @@ TEST_F(MacroTest, MacroArgs) {
     ASSERT_ANY_THROW(Macro::ExtractArgs(buff, macro_macro1, macro_args));
 
 
-    buff.push_back(Term::Create(parser::token_type::SYMBOL, TermID::SYMBOL, ","));
+    buff.push_back(Term::Create(TermID::SYMBOL, ",", parser::token_type::SYMBOL));
 
 
     //    ASSERT_ANY_THROW(MacroBuffer::ExtractArgs(buff, macro_alias2, macro_args));
@@ -1522,14 +1522,14 @@ TEST_F(MacroTest, MacroArgs) {
     ASSERT_ANY_THROW(Macro::ExtractArgs(buff, macro_macro1, macro_args));
 
 
-    buff.push_back(Term::Create(parser::token_type::NAME, TermID::NAME, "value2"));
+    buff.push_back(Term::Create(TermID::NAME, "value2", parser::token_type::NAME));
 
-    buff.push_back(Term::Create(parser::token_type::NAME, TermID::NAME, "value3"));
+    buff.push_back(Term::Create(TermID::NAME, "value3", parser::token_type::NAME));
 
     ASSERT_ANY_THROW(Macro::ExtractArgs(buff, macro_macro1, macro_args));
 
 
-    buff.push_back(Term::Create(parser::token_type::SYMBOL, TermID::SYMBOL, ")"));
+    buff.push_back(Term::Create(TermID::SYMBOL, ")", parser::token_type::SYMBOL));
 
 
     ASSERT_NO_THROW(
@@ -1550,7 +1550,7 @@ TEST_F(MacroTest, MacroArgs) {
 
 
 
-    buff.push_back(Term::Create(parser::token_type::SYMBOL, TermID::SYMBOL, ";"));
+    buff.push_back(Term::Create(TermID::SYMBOL, ";", parser::token_type::SYMBOL));
 
 
     ASSERT_NO_THROW(
@@ -1602,11 +1602,11 @@ TEST_F(MacroTest, MacroArgs) {
 
 
     buff.clear();
-    buff.push_back(Term::Create(parser::token_type::NAME, TermID::NAME, "macro"));
-    buff.push_back(Term::Create(parser::token_type::SYMBOL, TermID::SYMBOL, "("));
-    buff.push_back(Term::Create(parser::token_type::NUMBER, TermID::NUMBER, "5"));
-    buff.push_back(Term::Create(parser::token_type::SYMBOL, TermID::SYMBOL, ")"));
-    buff.push_back(Term::Create(parser::token_type::SYMBOL, TermID::SYMBOL, ";"));
+    buff.push_back(Term::Create(TermID::NAME, "macro", parser::token_type::NAME));
+    buff.push_back(Term::Create(TermID::SYMBOL, "(", parser::token_type::SYMBOL));
+    buff.push_back(Term::Create(TermID::NUMBER, "5", parser::token_type::NUMBER));
+    buff.push_back(Term::Create(TermID::SYMBOL, ")", parser::token_type::SYMBOL));
+    buff.push_back(Term::Create(TermID::SYMBOL, ";", parser::token_type::SYMBOL));
 
     TermPtr macro_macro = macro->GetMacro({"macro"});
     ASSERT_TRUE(macro_macro);
@@ -1621,11 +1621,11 @@ TEST_F(MacroTest, MacroArgs) {
 
 
     buff.clear();
-    buff.push_back(Term::Create(parser::token_type::NAME, TermID::NAME, "alias3"));
-    buff.push_back(Term::Create(parser::token_type::SYMBOL, TermID::SYMBOL, "("));
-    buff.push_back(Term::Create(parser::token_type::NUMBER, TermID::NUMBER, "5"));
-    buff.push_back(Term::Create(parser::token_type::SYMBOL, TermID::SYMBOL, ")"));
-    buff.push_back(Term::Create(parser::token_type::SYMBOL, TermID::SYMBOL, ";"));
+    buff.push_back(Term::Create(TermID::NAME, "alias3", parser::token_type::NAME));
+    buff.push_back(Term::Create(TermID::SYMBOL, "(", parser::token_type::SYMBOL));
+    buff.push_back(Term::Create(TermID::NUMBER, "5", parser::token_type::NUMBER));
+    buff.push_back(Term::Create(TermID::SYMBOL, ")", parser::token_type::SYMBOL));
+    buff.push_back(Term::Create(TermID::SYMBOL, ";", parser::token_type::SYMBOL));
 
     TermPtr macro_alias3 = macro->GetMacro({"alias3"});
     ASSERT_TRUE(macro_alias3);
@@ -1755,11 +1755,11 @@ TEST_F(MacroTest, MacroCheck) {
     ASSERT_ANY_THROW(Parse("@@testargs(arg)@@ ::= @@ @$bad_arg @@", macro)) << macro->Dump();
     ASSERT_ANY_THROW(Parse("@@testargs(arg)@@ ::= @@ @$... @@", macro)) << macro->Dump();
     ASSERT_ANY_THROW(Parse("@@testargs(arg, ...)@@ ::= @@ @$2 @@", macro)) << macro->Dump();
-    
+
     ASSERT_NO_THROW(Parse("@@ macro2(...) @@ ::= @@ replace2( @$#, @$... ,@$* ) @@", macro)) << macro->Dump();
     ASSERT_NO_THROW(Parse("macro2(1,9)", macro)) << macro->Dump() << LexOut().c_str();
     ASSERT_STREQ("replace2 ( 2 , 1 , 9 , ( 1 , 9 , ) )", LexOut().c_str());
-    
+
 }
 //TEST_F(NamedTest, MacroExpand) {
 //

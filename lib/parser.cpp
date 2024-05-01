@@ -5,6 +5,7 @@
 #include "system.h"
 
 #include "term.h"
+#include "context.h"
 
 using namespace newlang;
 
@@ -32,7 +33,7 @@ Parser::Parser(MacroPtr macro, PostLexerType *postlex, DiagPtr diag, bool pragma
     m_macro = macro;
     m_postlex = postlex;
     m_diag = diag; // ? diag : Diag::Init();
-    m_annotation = Term::Create(parser::token_type::ARGS, TermID::ARGS, "");
+    m_annotation = Term::Create(TermID::ARGS, "", parser::token_type::ARGS);
     m_no_macro = false;
     m_enable_pragma = pragma_enable;
     m_name_module = "\\\\__main__";
@@ -43,7 +44,7 @@ Parser::Parser(MacroPtr macro, PostLexerType *postlex, DiagPtr diag, bool pragma
 
 TermPtr Parser::Parse(const std::string input) {
 
-    m_ast = Term::Create(parser::token_type::END, TermID::END, "");
+    m_ast = Term::Create(TermID::END, "");
     //    m_ast->SetSource(std::make_shared<std::string>(input));
     m_stream.str(input);
     m_stream.clear();
@@ -93,9 +94,9 @@ void Parser::AstAddTerm(TermPtr &term) {
     term->m_source = lexer->source_string;
     if (m_ast->m_id == TermID::END) {
         m_ast = term;
-        m_ast->ConvertSequenceToBlock(TermID::BLOCK, false);
+        m_ast->ConvertSequenceToBlock(TermID::SEQUENCE, false);
     } else if (!m_ast->isBlock()) {
-        m_ast->ConvertSequenceToBlock(TermID::BLOCK, true);
+        m_ast->ConvertSequenceToBlock(TermID::SEQUENCE, true);
         m_ast->m_namespace = nullptr;
     } else {
         ASSERT(m_ast->isBlock());
@@ -398,10 +399,10 @@ bool Parser::PragmaEval(const TermPtr &term, BlockType &buffer, BlockType &seq) 
 
             auto iter = m_annotation->find(term->at(0).second->m_text);
             if (iter == m_annotation->end()) {
-                m_annotation->push_back(Term::Create(parser::token_type::INTEGER, TermID::INTEGER, "1", 1, &term->m_lexer_loc, term->m_source), name);
+                m_annotation->push_back(Term::Create(TermID::INTEGER, "1", parser::token_type::INTEGER, 1, &term->m_lexer_loc, term->m_source), name);
             } else {
                 //                iter->second =
-                m_annotation->push_back(Term::Create(parser::token_type::INTEGER, TermID::INTEGER, "1", 1, &term->m_lexer_loc, term->m_source), name);
+                m_annotation->push_back(Term::Create(TermID::INTEGER, "1", parser::token_type::INTEGER, 1, &term->m_lexer_loc, term->m_source), name);
             }
 
 
@@ -936,7 +937,7 @@ TermPtr Parser::CheckLoadModule(const TermPtr & term) {
 using namespace newlang;
 
 
-#define MAKE_TYPE(type_name) {type_name, Term::Create(parser::token_type::END, TermID::TYPE, type_name)}
+#define MAKE_TYPE(type_name) {type_name, Term::Create(TermID::TYPE, type_name)}
 
 static const std::map<const std::string, const TermPtr> default_types{
     MAKE_TYPE(":None"),
@@ -972,9 +973,9 @@ static const std::map<const std::string, const TermPtr> default_types{
 static const TermPtr type_default_none = default_types.find(":None")->second;
 static const TermPtr type_default_any = default_types.find(":Any")->second;
 //static const TermPtr type_default_dict = default_types.find(":Dict")->second;
-static const TermPtr term_none = Term::Create(parser::token_type::NAME, TermID::NAME, "_");
-static const TermPtr term_ellipsys = Term::Create(parser::token_type::ELLIPSIS, TermID::ELLIPSIS, "...");
-static const TermPtr term_required = Term::Create(parser::token_type::END, TermID::NONE, "_");
+static const TermPtr term_none = Term::Create(TermID::NAME, "_", parser::token_type::NAME);
+static const TermPtr term_ellipsys = Term::Create(TermID::ELLIPSIS, "...", parser::token_type::ELLIPSIS);
+static const TermPtr term_required = Term::Create(TermID::NONE, "_", parser::token_type::END);
 static const ObjPtr obj_none = Obj::CreateNone();
 static const ObjPtr obj_ellipsys = Obj::CreateType(ObjType::Ellipsis, ObjType::Ellipsis, true);
 
@@ -1106,7 +1107,7 @@ go_parse_string:
 
 next_escape_token:
 
-            term = Term::Create(parser::token_type::END, TermID::END, "", 0);
+            term = Term::Create(TermID::END, "", parser::token_type::END, 0);
             type = lexer->lex(&term, &m_location);
             term->m_lexer_loc = m_location;
 

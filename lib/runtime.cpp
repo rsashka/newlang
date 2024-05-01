@@ -3,7 +3,6 @@
 
 #include "runtime.h"
 
-#include "context.h"
 #include "parser.h"
 #include "analysis.h"
 
@@ -50,8 +49,8 @@ int newlang::RunMain(const int arg, const char** argv, const char** penv) {
 }
 
 void RunTime::Clear() {
-    m_main_ast.reset();
-    m_main_runner.reset();
+    //    m_main_ast.reset();
+    //    m_main_runner.reset();
     //    m_main_module.reset();
 }
 
@@ -63,47 +62,47 @@ TermPtr RunTime::GlobFindProto(const std::string_view name) {
     return nullptr;
 }
 
-GlobItem * RunTime::NameFind(const char* name) {
+GlobItem * RunTime::NameFind(const std::string_view name) {
 
     RunTime::iterator found;
 
-    if (!name) {
+    if (name.empty()) {
         return nullptr;
     }
 
-    if (isMacroName(name)) {
-        LOG_RUNTIME("Macro name not allowed! '%s'", name);
-    }
+    //    if (isMacroName(name)) {
+    //        LOG_RUNTIME("Macro name not allowed! '%s'", name.begin());
+    //    }
     //    if (isLocalName(name)) {
     //        LOG_RUNTIME("Local name not allowed! '%s'", name);
     //    }
 
-    if (isGlobalScope(name) || isTypeName(name)) {
-
-        found = find(name);
-        if (found == end()) {
-            return nullptr;
-        }
-
-    } else {
-
-        found = find(name);
-        if (found != end()) {
-            //@todo  Check typename ????
-            return &found->second;
-            //            LOG_RUNTIME("Fail logical for name '%s' as '%s'", name, found->first.c_str());
-        }
-
-        std::string glob_name("::");
-
-        glob_name.append(name);
-        found = find(glob_name);
-        if (found == end()) {
-            return nullptr;
-        }
+    //    if (isGlobalScope(name) || isTypeName(name)) {
+    //
+    //        found = find(name.begin());
+    //        if (found == end()) {
+    //            return nullptr;
+    //        }
+    //
+    //    } else {
+    //
+    found = find(name.begin());
+    if (found != end()) {
+        //@todo  Check typename ????
+        return &found->second;
+        //            LOG_RUNTIME("Fail logical for name '%s' as '%s'", name, found->first.c_str());
     }
 
-    ASSERT(found != end());
+    std::string glob_name("::");
+
+    glob_name.append(name.begin());
+    found = find(glob_name);
+    if (found == end()) {
+        return nullptr;
+    }
+    //    }
+
+//    ASSERT(found != end());
 
     //    if (!std::holds_alternative<ObjWeak>(found->second.obj)) {
 
@@ -129,33 +128,47 @@ GlobItem * RunTime::NameFind(const char* name) {
 //    //            return LLVMSearchForAddressOfSymbol(name.begin());
 //}
 
-bool RunTime::RegisterNativeObj(TermPtr term) {
-    ASSERT(term);
-    ASSERT(term->getTermID() == TermID::NATIVE);
+//bool RunTime::RegisterNativeObj(TermPtr term) {
+//    ASSERT(term);
+//    ASSERT(term->getTermID() == TermID::NATIVE);
+//
+//    return RegisterSystemObj(CreateNative(term));
+//}
 
-    return RegisterSystemObj(CreateNative(term));
-}
-
-TermPtr RunTime::NameRegister(bool new_only, const char *name, TermPtr proto, WeakItem obj) {
+TermPtr RunTime::NameRegister(bool new_only, const std::string_view name, TermWeak proto) {//, ObjItem obj) {
 
     GlobItem *item = NameFind(name);
+    TermPtr result = proto.lock();
+    ASSERT(result);
 
     if (new_only && item) {
-        NL_MESSAGE(LOG_LEVEL_INFO, proto, "Name '%s' already exist!", name);
+        NL_MESSAGE(LOG_LEVEL_INFO, result, "Name '%s' already exist!", name.begin());
         return nullptr;
     } else {
         if (item) {
-            if (!Term::CheckTermEq(item->proto, proto)) {
+            if (!Term::CheckTermEq(item->proto, result)) {
                 ASSERT(item->proto);
-                NL_MESSAGE(LOG_LEVEL_INFO, proto, "The prototype '%s' differs from the first definition '%s'!",
-                        name, item->proto->asTypeString().c_str());
+                NL_MESSAGE(LOG_LEVEL_INFO, result, "The prototype '%s' differs from the first definition '%s'!",
+                        name.begin(), item->proto->asTypeString().c_str());
                 return nullptr;
             }
+            TermPtr exist;
+            if (std::holds_alternative<TermWeak>(item->term)) {
+                exist = std::get<TermWeak>(item->term).lock();
+            } else {
+                ASSERT(std::holds_alternative<std::vector < TermWeak >> (item->term));
+                exist = std::get<std::vector < TermWeak >> (item->term)[0].lock();
+            }
+            if (exist) {
+                exist->m_obj = result->m_obj;
+            } else {
+                item->term = proto;
+            }
         } else {
-            insert(std::pair(name, GlobItem({proto, obj})));
+            insert(std::pair(name, GlobItem({result, proto})));
         }
     }
-    return at(name).proto;
+    return result;
 }
 
 /*
@@ -167,15 +180,20 @@ TermPtr RunTime::NameRegister(bool new_only, const char *name, TermPtr proto, We
  * 
  */
 
-ObjPtr RunTime::NameGet(const char *name, bool is_raise) {
+TermPtr RunTime::NameGet(const char *name, bool is_raise) {
 
     GlobItem * ret = NameFind(name);
 
     if (ret) {
-        if (std::holds_alternative<ObjWeak>(ret->obj)) {
-            return std::get<ObjWeak>(ret->obj).lock();
-        } else if (std::holds_alternative<std::vector < ObjWeak >> (ret->obj)) {
-            return std::get<std::vector < ObjWeak >> (ret->obj)[0].lock();
+        //        if (std::holds_alternative<ObjWeak>(ret->obj)) {
+        //            return std::get<ObjWeak>(ret->obj).lock();
+        //        } else if (std::holds_alternative<std::vector < ObjWeak >> (ret->obj)) {
+        //            return std::get<std::vector < ObjWeak >> (ret->obj)[0].lock();
+        //        }
+        if (std::holds_alternative<TermWeak>(ret->term)) {
+            return std::get<TermWeak>(ret->term).lock();
+        } else if (std::holds_alternative<std::vector < TermWeak >> (ret->term)) {
+            return std::get<std::vector < TermWeak >> (ret->term)[0].lock();
         }
         if (is_raise) {
             NL_PARSER(ret->proto, "Global name not implemented! '%s'", name);
@@ -1295,7 +1313,10 @@ RuntimePtr RunTime::Init(int argc, const char** argv, const char** penv) {
 }
 
 RuntimePtr RunTime::Init(StringArray args) {
-    RuntimePtr rt = std::make_shared<RunTime>();
+    return std::make_shared<RunTime>(args);
+}
+
+void RunTime::InitInternal(StringArray args) {
 
 
     //__STAT_RUNTIME_UNITTEST__()
@@ -1319,24 +1340,38 @@ RuntimePtr RunTime::Init(StringArray args) {
     // __getitem__(), __setitem__(), __delitem__(), 
     // __contains__
 
-    rt->GlobalNameBuildinRegister();
-
-    //    nlc_prinft_sub_
-    //    LLVMAddSymbol("nlc_prinft_sub_", (void *) &nlc_prinft_sub_);
-    VERIFY(rt->RegisterSystemFunc("::print(format:FmtChar, ... ):Int32 ::= %nlc_prinft_sub_ ..."));
-
-    VERIFY(rt->RegisterSystemFunc("::srand(init:Int32):None ::= %srand ..."));
-    VERIFY(rt->RegisterSystemFunc("::rand():Int32 ::= %rand ..."));
+    GlobalNameBuildinRegister();
 
 
-    if (!rt->ParseArgs(args)) {
+    if (!ParseArgs(args)) {
         LOG_RUNTIME("Fail parse args!");
     }
-    //    if (rt->m_load_runtime) {
-    //        VERIFY(rt->RegisterBuildin(std::make_shared<newlang::runtime::Base>(rt)));
-    //        VERIFY(rt->RegisterBuildin(std::make_shared<newlang::runtime::System>(rt)));
-    //    }
-    return rt;
+    if (m_load_runtime) {
+
+        //    nlc_prinft_sub_
+        //    LLVMAddSymbol("nlc_prinft_sub_", (void *) &nlc_prinft_sub_);
+        VERIFY(RegisterSystemFunc("::print(format:FmtChar, ... ):Int32 ::= %nlc_prinft_sub_ ..."));
+
+        VERIFY(RegisterSystemFunc("::srand(init:Int32):None ::= %srand ..."));
+        VERIFY(RegisterSystemFunc("::rand():Int32 ::= %rand ..."));
+
+        //#define REGISTER_BUILDIN(proto, function)        
+
+        VERIFY(RegisterBuildinFunc("::Base::__assert_abort__(...):None", (void *) &runtime::Base::__assert_abort__));
+
+        //        VERIFY(RegisterSystemBuildin("::rand():Int32 ::= %rand ..."));
+        //        VERIFY(rt->RegisterBuildin(std::make_shared<newlang::runtime::Base>(rt)));
+        //        VERIFY(rt->RegisterBuildin(std::make_shared<newlang::runtime::System>(rt)));
+    }
+    //    return rt;
+}
+
+bool RunTime::RegisterBuildinFunc(std::string text, void * func) {
+    text += " := {}";
+    TermPtr proto = ParseBuildin(text)->m_left;
+    proto->m_obj = CreateFunction(proto, func);
+    m_buildin[proto->m_int_name] = proto;
+    return !!NameRegister(true, proto->m_int_name.c_str(), proto);
 }
 
 TermPtr RunTime::ParseBuildin(const std::string_view src) {
@@ -1462,7 +1497,7 @@ bool RunTime::RegisterSystemFunc(const char *source) {
         LOG_ERROR("Fail register buildin name '%s'", term->m_int_name.c_str());
         return false;
     }
-    return !!NameRegister(true, term->m_int_name.c_str(), term, term->m_obj);
+    return !!NameRegister(true, term->m_int_name.c_str(), term); //, term->m_obj);
 }
 
 bool RunTime::RegisterBuildinType(ObjType type, std::vector<std::string> parents) {
@@ -1509,14 +1544,14 @@ bool RunTime::RegisterBuildinType(ObjType type, std::vector<std::string> parents
 
     m_buildin_obj[type_name] = result;
 
-    TermPtr type_term = Term::Create(parser::token_type::NAME, TermID::FUNCTION, type_name.c_str());
+    TermPtr type_term = Term::Create(TermID::FUNCTION, type_name.c_str(), parser::token_type::NAME);
     type_term->m_int_name = type_name;
     type_term->m_obj = result;
 
     if (type_name.compare("None:::") == 0) {
-        VERIFY(NameRegister(true, "_", type_term, result));
+        VERIFY(NameRegister(true, "_", type_term)); //, result
     }
-    return NameRegister(true, type_name.c_str(), type_term, result) && NameRegister(true, type_name.insert(0, "::").c_str(), type_term, result);
+    return NameRegister(true, type_name.c_str(), type_term) && NameRegister(true, type_name.insert(0, "::").c_str(), type_term); //result
 }
 
 ObjPtr RunTime::GetTypeFromString(const std::string_view type, bool *has_error) {
@@ -1533,9 +1568,9 @@ ObjPtr RunTime::GetTypeFromString(const std::string_view type, bool *has_error) 
         return result_types->second;
     }
 
-    ObjPtr found = NameGet(type.begin(), false);
+    TermPtr found = NameGet(type.begin(), false);
     if (found) {
-        return found;
+        return found->m_obj;
     }
 
     //    auto result_find = find(type);
@@ -1717,53 +1752,53 @@ std::vector<std::wstring> RunTime::SelectPredict(std::string start, size_t overa
 
 }
 
-bool RunTime::RegisterSystemObj(ObjPtr obj) {
-
-    ASSERT(obj);
-
-    //    if (IsModule(obj)) {
-    //
-    //        //    11111111111111
-    //        //    
-    //    }
-
-    LOG_RUNTIME("RegisterSystemObj '%s' !!!!!!!!!!!!!!!!!!!!!!!!!!!!!", obj->toString().c_str());
-
-    //    ASSERT(obj->m_prototype);
-
-    //    std::string obj_name = obj->m_prototype->getText();
-    std::string obj_name = obj->m_class_name; //m_prototype->getText();
-    auto found = find(obj_name);
-    if (found != end()) {
-        LOG_ERROR("Object name '%s' already exist!", obj_name.c_str());
-        return false;
-    }
-
-    m_sys_obj.push_back(obj);
-    //    push_back(std::make_shared<GlobNameInfo>(obj->m_prototype, obj), obj_name);
-
-    //    std::string name;
-    //    for (auto &elem : *obj) {
-    //        name = obj_name;
-    //        name.append("::");
-    //        name.append(elem.second->m_prototype->getText());
-    //
-    //        //        LOG_DEBUG("%s    ->    %s", name.c_str(), elem.second->m_prototype->toString().c_str());
-    //
-    //        auto found = find(name);
-    //        if (found != end()) {
-    //            LOG_ERROR("Object name '%s' already exist!", name.c_str());
-    //            return false;
-    //        }
-    //
-    //        push_back(std::make_shared<GlobNameInfo>(elem.second->m_prototype, elem.second), name);
-    //
-    //
-    //    }
-
-
-    return true;
-}
+//bool RunTime::RegisterSystemObj(ObjPtr obj) {
+//
+//    ASSERT(obj);
+//
+//    //    if (IsModule(obj)) {
+//    //
+//    //        //    11111111111111
+//    //        //    
+//    //    }
+//
+//    LOG_RUNTIME("RegisterSystemObj '%s' !!!!!!!!!!!!!!!!!!!!!!!!!!!!!", obj->toString().c_str());
+//
+//    //    ASSERT(obj->m_prototype);
+//
+//    //    std::string obj_name = obj->m_prototype->getText();
+//    std::string obj_name = obj->m_class_name; //m_prototype->getText();
+//    auto found = find(obj_name);
+//    if (found != end()) {
+//        LOG_ERROR("Object name '%s' already exist!", obj_name.c_str());
+//        return false;
+//    }
+//
+//    m_sys_obj.push_back(obj);
+//    //    push_back(std::make_shared<GlobNameInfo>(obj->m_prototype, obj), obj_name);
+//
+//    //    std::string name;
+//    //    for (auto &elem : *obj) {
+//    //        name = obj_name;
+//    //        name.append("::");
+//    //        name.append(elem.second->m_prototype->getText());
+//    //
+//    //        //        LOG_DEBUG("%s    ->    %s", name.c_str(), elem.second->m_prototype->toString().c_str());
+//    //
+//    //        auto found = find(name);
+//    //        if (found != end()) {
+//    //            LOG_ERROR("Object name '%s' already exist!", name.c_str());
+//    //            return false;
+//    //        }
+//    //
+//    //        push_back(std::make_shared<GlobNameInfo>(elem.second->m_prototype, elem.second), name);
+//    //
+//    //
+//    //    }
+//
+//
+//    return true;
+//}
 
 ObjPtr RunTime::CreateFunction(TermPtr proto, TermPtr block) {
     ObjPtr result = Obj::CreateType(ObjType::Function, ObjType::Function, true);
@@ -1822,6 +1857,7 @@ ObjPtr RunTime::CreateNative(TermPtr proto, void *addr) {
         ObjType type_test;
         for (int i = 0; i < proto->size(); i++) {
 
+            TermPtr proto_arg = (*proto)[i].second;
             //            if (!proto->name(i).empty()) {
             //                NL_PARSER((*proto)[i].second, "Default values '%s' are not supported!", proto->name(i).c_str());
             //            }
@@ -1830,18 +1866,18 @@ ObjPtr RunTime::CreateNative(TermPtr proto, void *addr) {
             //                NL_PARSER((*proto)[i].second, "Argument name expected '%s'!", (*proto)[i].second->m_text.c_str());
             //            }
 
-            if ((*proto)[i].second->getTermID() == TermID::ELLIPSIS) {
+            if (proto_arg->getTermID() == TermID::ELLIPSIS) {
                 if (i + 1 != proto->size()) {
-                    NL_PARSER((*proto)[i].second, "Ellipsys must end of argument!");
+                    NL_PARSER(proto_arg, "Ellipsys must end of argument!");
                 }
             } else {
-                if (!(*proto)[i].second->m_type) {
-                    NL_PARSER((*proto)[i].second, "Argument type must be specified!");
+                if (!proto_arg->m_type) {
+                    NL_PARSER(proto_arg, "Argument type must be specified!");
                 }
 
-                type_test = GetBaseTypeFromString((*proto)[i].second->m_type->m_text.c_str());
+                type_test = GetBaseTypeFromString(proto_arg->m_type->m_text.c_str());
                 if (!isNativeType(type_test)) {
-                    NL_PARSER((*proto)[i].second->GetType(), "Argument must be machine type! Creating a variable with type '%s' is not supported!", (*proto)[i].second->m_type->m_text.c_str());
+                    NL_PARSER(proto_arg->GetType(), "Argument must be machine type! Creating a variable with type '%s' is not supported!", proto_arg->m_type->m_text.c_str());
                 }
             }
         }
@@ -2303,7 +2339,7 @@ RunTime::~RunTime() {
     m_ffi_handle = nullptr;
 }
 
-RunTime::RunTime() :
+RunTime::RunTime(const StringArray & args) :
 //m_llvm_builder(LLVMCreateBuilder()),
 m_diag(std::make_shared<Diag>()) {
 
@@ -2444,4 +2480,6 @@ m_diag(std::make_shared<Diag>()) {
 #else
 #error Target architecture not defined!
 #endif
+
+    InitInternal(args);
 }

@@ -23,6 +23,7 @@ namespace newlang {
         _(DOC_BEFORE) \
         _(DOC_AFTER) \
         \
+        _(SEQUENCE) \
         _(BLOCK) \
         _(BLOCK_TRY) \
         _(BLOCK_PLUS) \
@@ -328,12 +329,12 @@ namespace newlang {
             return nullptr;
         }
 
-        static TermPtr Create(parser::token_type lex_type, TermID id, const char *text, size_t len = std::string::npos, location *loc = nullptr, std::shared_ptr<std::string> source = nullptr) {
-            return std::make_shared<Term>(lex_type, id, text, (len == std::string::npos ? strlen(text) : len), loc, source);
+        static TermPtr Create(TermID id, const char *text, parser::token_type lex_type = parser::token_type::END, size_t len = std::string::npos, location *loc = nullptr, std::shared_ptr<std::string> source = nullptr) {
+            return std::make_shared<Term>(id, text, lex_type, (len == std::string::npos ? strlen(text) : len), loc, source);
         }
 
         static TermPtr CreateSymbol(char sym) {
-            return Create(static_cast<parser::token_type> (sym), TermID::SYMBOL, std::string(1, sym).c_str());
+            return Create(TermID::SYMBOL, std::string(1, sym).c_str(), static_cast<parser::token_type> (sym));
         }
 
 
@@ -343,7 +344,7 @@ namespace newlang {
         static TermPtr CreateName(std::string name, TermID id = TermID::NAME);
 
         TermPtr Clone() {
-            TermPtr result = Term::Create(m_lexer_type, m_id, m_text.c_str());
+            TermPtr result = Term::Create(m_id, m_text.c_str(), m_lexer_type);
             *result.get() = *this;
             return result;
         }
@@ -353,7 +354,7 @@ namespace newlang {
             *this = *term;
         }
 
-        Term(parser::token_type lex_type, TermID id, const char *text, size_t len, location *loc, std::shared_ptr<std::string> source = nullptr) {
+        Term(TermID id, const char *text, parser::token_type lex_type, size_t len, location *loc, std::shared_ptr<std::string> source = nullptr) {
             m_lexer_type = lex_type;
             m_ref.reset();
             if (text && len) {
@@ -370,6 +371,10 @@ namespace newlang {
             m_is_call = false;
             m_is_const = false;
             m_bracket_depth = 0;
+            m_is_owner = false;
+            m_is_take = false;
+            m_is_reference = false;
+            m_level = 0;
 
             //            m_ref_restrict = RefType::RefNone;
             //            m_ref_type = RefType::RefNone;
@@ -390,7 +395,7 @@ namespace newlang {
 
         inline void SetTermID(TermID id) {
             m_id = id;
-            if (m_id == TermID::BLOCK || m_id == TermID::BLOCK_TRY ||
+            if (m_id == TermID::SEQUENCE || m_id == TermID::BLOCK || m_id == TermID::BLOCK_TRY ||
                     m_id == TermID::BLOCK_PLUS || m_id == TermID::BLOCK_MINUS) {
                 m_is_call = true;
             }
@@ -547,6 +552,7 @@ namespace newlang {
                 case TermID::RATIONAL:
                 case TermID::DICT:
                 case TermID::TENSOR:
+                case TermID::RANGE:
                 case TermID::END:
                     return true;
             }
@@ -583,6 +589,7 @@ namespace newlang {
 
         inline bool isBlock() {
             switch (m_id) {
+                case TermID::SEQUENCE:
                 case TermID::BLOCK:
                 case TermID::BLOCK_TRY:
                 case TermID::BLOCK_PLUS:
@@ -982,6 +989,7 @@ namespace newlang {
                     }
 
                     return result;
+                case TermID::SEQUENCE:
                 case TermID::BLOCK:
                 case TermID::BLOCK_TRY:
                 case TermID::BLOCK_PLUS:
@@ -996,7 +1004,8 @@ namespace newlang {
                     //                        dump_items_(result);
                     //                        result += ")";
                     //                    }
-                    if (m_id == TermID::BLOCK) {
+                    if (m_id == TermID::SEQUENCE) {
+                    } else if (m_id == TermID::BLOCK) {
                         result += "{";
                     } else if (m_id == TermID::BLOCK_TRY) {
                         result += "{*";
@@ -1021,7 +1030,8 @@ namespace newlang {
                         result += ";";
                     }
 
-                    if (m_id == TermID::BLOCK) {
+                    if (m_id == TermID::SEQUENCE) {
+                    } else if (m_id == TermID::BLOCK) {
                         result += "}";
                     } else if (m_id == TermID::BLOCK_TRY) {
                         result += "*}";
@@ -1284,7 +1294,7 @@ namespace newlang {
 
                     if (isSystemName(next->getName())) {
                         if (!m_sys_prop) {
-                            m_sys_prop = Term::Create(parser::token_type::UNKNOWN, TermID::DICT, "");
+                            m_sys_prop = Term::Create(TermID::DICT, "");
                         }
                         m_sys_prop->push_back(next, next->getName());
                     } else {
@@ -1544,11 +1554,6 @@ namespace newlang {
             return m_is_const;
         }
 
-        //        BlockType GetMacroId();
-        //
-        //        //    SCOPE(protected) :
-        //        static BlockType MakeMacroId(const BlockType &seq);
-
         /**
          * Проверяет аргументы термина на корректность, обрабатывает системные аргументы, проверяет наличие внешних функций
          * 
@@ -1586,6 +1591,14 @@ namespace newlang {
         TermPtr m_dims;
         BlockType m_docs;
 
+        size_t m_level; ///< Уровень вложенности переменной (если применимо)
+        bool m_is_owner; ///< Признак переменной-владельца объекта (если применимо)
+        bool m_is_take; ///< Признак захвата данных объекта
+        bool m_is_const; ///< Признак иммутабельности
+        bool m_is_call; ///< Признак вызова как функции (скобки)
+        bool m_is_reference; ///< Признак ссылки
+        TermPtr m_ref; ///< Тип ссылки перед переменной (допустимые сыслки или оператор её создания)
+
         TermPtr m_sys_prop;
         int m_bracket_depth;
 
@@ -1593,10 +1606,6 @@ namespace newlang {
         BlockType m_follow;
         BlockType m_macro_id;
         BlockType m_macro_seq;
-
-        TermPtr m_ref;
-        bool m_is_call;
-        bool m_is_const;
 
         ObjPtr m_obj; // Бинарное значение объекта (испольузется при интерпретации) ???????????????????
         InternalName m_int_name; // Внутренее имя объекта после анализа AST

@@ -12,6 +12,16 @@
 
 using namespace newlang;
 
+TEST(JIT, ReCreate) {
+    JIT *jit = JIT::ReCreate();
+    ASSERT_TRUE(jit);
+    ASSERT_TRUE(jit->m_assert_enable);
+
+    JIT *jit2 = JIT::ReCreate({"--nlc-no-assert"});
+    ASSERT_TRUE(jit2);
+    ASSERT_FALSE(jit2->m_assert_enable);
+}
+
 TEST(JIT, Function) {
     //    std::filesystem::create_directories("temp");
     //    ASSERT_TRUE(std::filesystem::is_directory("temp"));
@@ -292,8 +302,7 @@ TEST(JIT, MakeEmbed) {
 
     TermPtr ast = Parser::ParseString(source);
 
-    RuntimePtr rt = RunTime::Init();
-    JIT *jit = JIT::Init(rt);
+    JIT *jit = JIT::ReCreate();
     ASSERT(jit);
 
     std::string hello_embed = jit->MakeApplicationSource(ast);
@@ -352,8 +361,7 @@ TEST(JIT, MakeModule) {
 
     TermPtr ast = Parser::ParseString(source);
 
-    RuntimePtr rt = RunTime::Init();
-    JIT *jit = JIT::Init(rt);
+    JIT *jit = JIT::ReCreate();
     ASSERT(jit);
 
     std::string hello = jit->MakeCodeModule(ast, "hello", true);
@@ -514,8 +522,7 @@ TEST(JIT, REPL) {
 
     TermPtr ast = Parser::ParseString(source);
 
-    RuntimePtr rt = RunTime::Init();
-    JIT *jit = JIT::Init(rt);
+    JIT *jit = JIT::ReCreate();
     ASSERT(jit);
 
     std::string hello = jit->MakeCodeModule(ast, "hello", true);

@@ -344,7 +344,7 @@ bool AstAnalysis::CheckTake_(TermPtr &term, ScopeStack & stack) {
 
 bool AstAnalysis::CkeckRange_(TermPtr &term, ScopeStack & stack) {
     if (term->find("step") == term->end()) {
-        term->push_back(Term::Create(parser::token_type::INTEGER, TermID::INTEGER, "1"), "step");
+        term->push_back(Term::Create(TermID::INTEGER, "1"), "step");
     }
     if (!RecursiveAnalyzer(term->at("start").second, stack)
             || !RecursiveAnalyzer(term->at("stop").second, stack)
@@ -571,24 +571,119 @@ bool AstAnalysis::CreateOp_(TermPtr &op, ScopeStack & stack) {
     ASSERT(op->m_left);
     ASSERT(op->m_right);
 
-    if (!op->m_left->isCall()) {
+    if (op->m_left->isCall()) {
+        // Создание функции
+        if (op->m_left->m_left) {
+            NL_MESSAGE(LOG_LEVEL_INFO, op->m_left->m_left, "Multiple function creation is not supported!");
+            return false;
+        }
+
+        if (!(op->m_right->isBlock() || op->m_right->m_id == TermID::NATIVE)) {
+            NL_MESSAGE(LOG_LEVEL_INFO, op->m_left->m_left, "Create type '%s' is not implemented!", toString(op->m_right->m_id));
+            return false;
+        }
+
+        TermPtr proto = op->m_left;
+
+        proto->m_id = TermID::FUNCTION;
+        proto->m_int_name = stack.CreateVarName(proto->m_text);
+        proto->m_is_owner = true;
+
+        ScopePush block_func(stack, proto, nullptr, true);
+
+        if (!stack.AddName(proto)) {
+            return false;
+        }
+
+        ScopePush block_args(stack, proto, &proto->m_int_vars, true);
+
+        //  Add default args self and all args as dict
+        TermPtr all = Term::CreateDict();
+        TermPtr arg;
+        std::string name;
+        for (size_t i = 0; i < proto->size(); i++) {
+
+            ASSERT(proto->at(i).second);
+            if (proto->at(i).second->getTermID() == TermID::ELLIPSIS) {
+                if (i + 1 != proto->size()) {
+                    NL_MESSAGE(LOG_LEVEL_INFO, proto->at(i).second, "The ellipsis must be the last argument!");
+                    return false;
+                }
+                break;
+            }
+
+            // Named arguments
+            if (proto->at(i).first.empty()) {
+                if (proto->at(i).second->getTermID() != TermID::NAME) {
+                    NL_MESSAGE(LOG_LEVEL_INFO, proto->at(i).second, "Argument name expected!");
+                    return false;
+                }
+                name = proto->at(i).second->m_text;
+                proto->at(i).first = name;
+                all->push_back({name, proto->at(i).second});
+
+                TermPtr none = Term::CreateNil();
+                none->m_int_name = NormalizeName(name);
+                if (!stack.AddName(none)) {
+                    return false;
+                }
+            } else {
+                proto->at(i).second->m_int_name = NormalizeName(proto->at(i).first);
+                all->push_back({proto->at(i).first, proto->at(i).second});
+                if (!stack.AddName(proto->at(i).second)) {
+                    return false;
+                }
+            }
+
+            name = "$";
+            name += std::to_string(i + 1);
+            // Positional arguments
+            if (!stack.AddName(proto->at(i).second, name.c_str())) {
+                return false;
+            }
+            
+            if(isDefaultType(proto->at(i).second->m_type)){
+                proto->at(i).second->m_type = getDefaultType(ObjType::Any);
+            }
+
+        }
+
+        //        ScopePush block(stack, proto, &proto->m_int_vars, true);
+
+        TermPtr none = Term::CreateName("$0");
+        none->m_int_name = NormalizeName(none->m_text);
+
+        if (!stack.AddName(all, "$*") || !stack.AddName(none, "$0")) {
+            return false;
+        }
+
+
+        ASSERT(op->m_right);
+        if (op->m_right->getTermID() == TermID::NATIVE) {
+            return CheckNative_(proto, op->m_right) && stack.FixTransaction();
+        } else {
+            return RecursiveAnalyzer(op->m_right, stack) && stack.FixTransaction();
+        }
+
+    } else {
+
         // Создание переменной
         TermPtr term = op->m_left;
-        TermPtr var;
+        TermPtr left_var;
         std::string int_name;
         bool name_exist;
         while (term) {
 
             int_name = stack.CreateVarName(term->m_text);
-            var = LookupName(term, stack);
+            left_var = LookupName(term, stack);
 
             if (op->isCreateOnce()) {
-                if (var) {
-                    NL_MESSAGE(LOG_LEVEL_INFO, term, "Name '%s' already exist!", var->m_text.c_str());
+                if (left_var) {
+                    NL_MESSAGE(LOG_LEVEL_INFO, term, "Name '%s' already exist!", left_var->m_text.c_str());
                     return false;
                 }
             } else if (op->getTermID() == TermID::ASSIGN) {
-                if (!var) {
+                if (!left_var) {
                     NL_MESSAGE(LOG_LEVEL_INFO, term, "Name '%s' not exist!", term->m_text.c_str());
                     return false;
                 }
@@ -596,16 +691,17 @@ bool AstAnalysis::CreateOp_(TermPtr &op, ScopeStack & stack) {
                 ASSERT(op->isCreateOverlap());
             }
 
-            if (!var) {
+            if (!left_var) {
                 term->m_int_name = int_name;
                 if (!stack.AddName(term)) {
                     return false;
                 }
+                //                left_var = term;
             } else {
                 if (!term->m_type) {
-                    term->m_type = var->m_type;
+                    term->m_type = left_var->m_type;
                 } else {
-                    if (!canCast(var, term)) {
+                    if (!canCast(left_var, term)) {
                         return false;
                     }
                 }
@@ -670,7 +766,7 @@ bool AstAnalysis::CreateOp_(TermPtr &op, ScopeStack & stack) {
                     if (canCast(term, op->m_right) && isDefaultType(term->m_type)) {
                         // UpCast default type
                         term->m_type = op->m_right->m_type;
-                        var->m_type = op->m_right->m_type; // // UpCast default type for variable
+                        left_var->m_type = op->m_right->m_type; // // UpCast default type for variable
                     } else {
                         return false;
                     }
@@ -679,99 +775,102 @@ bool AstAnalysis::CreateOp_(TermPtr &op, ScopeStack & stack) {
                 op->m_right->m_type = term->m_type;
             }
 
-            term = term->m_list;
-        }
-        return true;
-
-    } else {
-        // Создание функции
-        if (op->m_left->m_left) {
-            NL_MESSAGE(LOG_LEVEL_INFO, op->m_left->m_left, "Multiple function creation is not supported!");
-            return false;
-        }
-
-        if (!(op->m_right->isBlock() || op->m_right->m_id == TermID::NATIVE)) {
-            NL_MESSAGE(LOG_LEVEL_INFO, op->m_left->m_left, "Create type '%s' is not implemented!", toString(op->m_right->m_id));
-            return false;
-        }
-
-        TermPtr proto = op->m_left;
-
-        proto->m_id = TermID::FUNCTION;
-        proto->m_int_name = stack.CreateVarName(proto->m_text);
-
-        ScopePush block_func(stack, proto, nullptr, true);
-
-        if (!stack.AddName(proto)) {
-            return false;
-        }
-
-        ScopePush block_args(stack, proto, &proto->m_int_vars, true);
-
-        //  Add default args self and all args as dict
-        TermPtr all = Term::CreateDict();
-        TermPtr arg;
-        std::string name;
-        for (size_t i = 0; i < proto->size(); i++) {
-
-            ASSERT(proto->at(i).second);
-            if (proto->at(i).second->getTermID() == TermID::ELLIPSIS) {
-                if (i + 1 != proto->size()) {
-                    NL_MESSAGE(LOG_LEVEL_INFO, proto->at(i).second, "The ellipsis must be the last argument!");
-                    return false;
-                }
-                break;
-            }
-
-            // Named arguments
-            if (proto->at(i).first.empty()) {
-                if (proto->at(i).second->getTermID() != TermID::NAME) {
-                    NL_MESSAGE(LOG_LEVEL_INFO, proto->at(i).second, "Argument name expected!");
-                    return false;
-                }
-                name = proto->at(i).second->m_text;
-                proto->at(i).first = name;
-                all->push_back({name, proto->at(i).second});
-
-                TermPtr none = Term::CreateNil();
-                none->m_int_name = NormalizeName(name);
-                if (!stack.AddName(none)) {
-                    return false;
-                }
-            } else {
-                proto->at(i).second->m_int_name = NormalizeName(proto->at(i).first);
-                all->push_back({proto->at(i).first, proto->at(i).second});
-                if (!stack.AddName(proto->at(i).second)) {
-                    return false;
-                }
-            }
-
-            name = "$";
-            name += std::to_string(i + 1);
-            // Positional arguments
-            if (!stack.AddName(proto->at(i).second, name.c_str())) {
+            if (!CheckAssignRef(term, op->m_right, stack)) {
                 return false;
             }
 
-        }
-
-        //        ScopePush block(stack, proto, &proto->m_int_vars, true);
-
-        TermPtr none = Term::CreateName("$0");
-        none->m_int_name = NormalizeName(none->m_text);
-
-        if (!stack.AddName(all, "$*") || !stack.AddName(none, "$0")) {
-            return false;
-        }
-
-
-        ASSERT(op->m_right);
-        if (op->m_right->getTermID() == TermID::NATIVE) {
-            return CheckNative_(proto, op->m_right) && stack.FixTransaction();
-        } else {
-            return RecursiveAnalyzer(op->m_right, stack) && stack.FixTransaction();
+            term = term->m_list;
         }
     }
+    return true;
+}
+
+bool AstAnalysis::CheckAssignRef(TermPtr &left, TermPtr &right, ScopeStack & stack) {
+    ASSERT(left);
+    ASSERT(right);
+    TermPtr l_found = LookupName(left, stack);
+    TermPtr r_found = LookupName(right, stack);
+
+    if (right->isLiteral()) {
+        if (left->m_is_reference || (l_found && (l_found->m_is_reference && !left->m_is_take))) {
+            NL_MESSAGE(LOG_LEVEL_INFO, left, "You can't assign a literal to a reference variable!");
+            return CheckError(false);
+        }
+
+        left->m_is_owner = true; // owner := any literal
+    } else if (right->isNamed()) {
+        if (right->m_ref) {
+            if (left->m_is_owner || (l_found && l_found->m_is_owner)) {
+                NL_MESSAGE(LOG_LEVEL_INFO, left, "The variable is not a reference!");
+                return CheckError(false);
+            }
+            left->m_is_reference = true;
+            left->m_ref = right->m_ref;
+            left->m_is_const = isConstRef(RefTypeFromString(right->m_ref->m_text));
+            if (l_found) {
+                l_found->m_is_reference = true;
+                l_found->m_ref = right->m_ref;
+            }
+        } else {
+            if (!left->m_is_take) {
+                if (l_found && l_found->m_is_reference) {
+                    NL_MESSAGE(LOG_LEVEL_INFO, left, "Required access operator by reference '*'!");
+                    return CheckError(false);
+                } else if (r_found && !right->m_is_take) {
+                    if (left->m_level <= r_found->m_level) {
+                        NL_MESSAGE(LOG_LEVEL_INFO, left, "You can assign owner to a lower level variable only!");
+                        return CheckError(false);
+                    }
+                    left->m_is_owner = true;
+                }
+            }
+        }
+    }
+
+    if (left->m_is_take) {
+        if (left->m_is_const || (l_found && l_found->m_is_const)) {
+            NL_MESSAGE(LOG_LEVEL_INFO, left, "You can assign a value to an immutable variable or reference!");
+            return CheckError(false);
+        }
+
+        if (l_found && l_found->m_ref && isLiteSyncRef(RefTypeFromString(l_found->m_ref->m_text))) {
+            NL_MESSAGE(LOG_LEVEL_INFO, left, "For assign value to a lite reference, you need to use operator with!");
+            return CheckError(false);
+        }
+
+        if (!right->m_is_take && r_found && r_found->m_is_owner) {
+            // Auto take // *ref := owner -> *ref := *owner
+            right->m_is_take = true;
+        }
+    }
+
+
+    if (right->m_ref) {
+        if (right->isLiteral()) {
+            NL_MESSAGE(LOG_LEVEL_INFO, right, "You can't get a reference to a literal!");
+            return CheckError(false);
+        }
+        ASSERT(r_found);
+        return CheckReference(r_found, right->m_ref);
+    }
+    return true;
+}
+
+bool AstAnalysis::CheckReference(TermPtr &term, const TermPtr & test_ref) {
+    ASSERT(term);
+    if (!term->m_ref) {
+        NL_MESSAGE(LOG_LEVEL_INFO, test_ref, "Object does not allow reference create!");
+        return CheckError(false);
+    }
+    if (!isValidReference(RefTypeFromString(term->m_ref->m_text), RefTypeFromString(test_ref->m_text))) {
+        NL_MESSAGE(LOG_LEVEL_INFO, test_ref, "The reference created is not allowed for type '%s'!", term->m_ref->m_text.c_str());
+        return CheckError(false);
+    }
+    if (!isValidReference(RefTypeFromString(term->m_ref->m_text), RefTypeFromString(test_ref->m_text))) {
+        NL_MESSAGE(LOG_LEVEL_INFO, test_ref, "The reference created is not allowed for type '%s'!", term->m_ref->m_text.c_str());
+        return CheckError(false);
+    }
+    return true;
 }
 
 bool AstAnalysis::CheckCall(TermPtr &proto, TermPtr &call, ScopeStack & stack) {
@@ -1402,9 +1501,9 @@ bool AstAnalysis::CheckError(bool result) {
     return result;
 }
 
-bool AstAnalysis::Analyze(TermPtr &term, TermPtr & module) {
+bool AstAnalysis::Analyze(TermPtr &term, TermPtr & root) {
     m_diag->m_error_count = 0;
-    ScopeStack stack(module->m_int_vars);
+    ScopeStack stack(root->m_int_vars);
 
     //    if (is_main) {
     //        // Main module name - empty string
@@ -1430,9 +1529,9 @@ TermPtr AstAnalysis::LookupName(TermPtr &term, ScopeStack & stack) {
 
     TermPtr result = stack.LookupName(term->m_text, &m_rt);
     if (!result) {
-        if (isGlobalScope(term->m_text)) {
+//        if (isGlobalScope(term->m_text)) {
             result = m_rt.GlobFindProto(term->m_text.c_str());
-        }
+//        }
     }
 
     if (result) {
@@ -1450,6 +1549,7 @@ bool AstAnalysis::RecursiveAnalyzer(TermPtr term, ScopeStack & stack) {
     TermPtr found;
 
     switch (term->getTermID()) {
+        case TermID::SEQUENCE:
         case TermID::BLOCK:
         case TermID::BLOCK_PLUS:
         case TermID::BLOCK_MINUS:
@@ -1579,7 +1679,7 @@ bool AstAnalysis::RecursiveAnalyzer(TermPtr term, ScopeStack & stack) {
     return false;
 }
 
-std::string AstAnalysis::MakeInclude(const TermPtr &ast) {
+std::string AstAnalysis::MakeInclude(const TermPtr & ast) {
     std::string result;
     if (ast->isExport()) {
         if (ast->m_id == TermID::MACRO_DEL || ast->m_left->m_id == TermID::MACRO_SEQ) {

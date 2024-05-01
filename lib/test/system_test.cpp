@@ -177,11 +177,9 @@ TEST_F(SystemTest, MethodExist) {
 
 TEST_F(SystemTest, StaticAssert) {
 
-    RuntimePtr rt = RunTime::Init();
-    JIT * jit = JIT::Init(rt);
+    JIT * jit = JIT::ReCreate();
     ASSERT_TRUE(jit);
 
-    ASSERT_TRUE(rt);
     ASSERT_TRUE(jit->m_macro);
     ASSERT_FALSE(jit->m_macro->empty());
     ASSERT_FALSE(jit->m_macro->find("static_assert") == jit->m_macro->end()) << jit->m_macro->Dump();
@@ -226,12 +224,11 @@ TEST_F(SystemTest, StaticAssert) {
 
 TEST_F(SystemTest, Assert) {
 
-    RuntimePtr rt = RunTime::Init();
-    JIT * jit = JIT::Init(rt);
-    
+    JIT * jit = JIT::ReCreate();
+
 
     ASSERT_TRUE(jit);
-    ASSERT_TRUE(jit->m_rt->m_assert_enable);
+    ASSERT_TRUE(jit->m_assert_enable);
 
     ASSERT_TRUE(jit->m_macro);
     ASSERT_FALSE(jit->m_macro->empty());
@@ -257,48 +254,48 @@ TEST_F(SystemTest, Assert) {
     ASSERT_STREQ("1", result->toString().c_str());
 
     TermPtr term;
-    ASSERT_NO_THROW(term = jit->GetParser()->Parse("  :Bool(1)")) << Dump(*rt);
+    ASSERT_NO_THROW(term = jit->GetParser()->Parse("  :Bool(1)")) << Dump(*jit);
     ASSERT_TRUE(term);
     ASSERT_STREQ(":Bool(1)", term->toString().c_str());
 
-    ASSERT_NO_THROW(term = jit->GetParser()->Parse(":Bool(1+1)")) << Dump(*rt);
+    ASSERT_NO_THROW(term = jit->GetParser()->Parse(":Bool(1+1)")) << Dump(*jit);
     ASSERT_TRUE(term);
 
-    
+
+    const char * assert1 = "@assert(1+1, 2, 'str')";
     ASSERT_NO_THROW(
-            term = jit->GetParser()->Parse("@assert(1+1, 2, 'str')");
-            ) << Dump(*rt);
+            term = jit->GetParser()->Parse(assert1);
+            ) << Dump(*jit);
     ASSERT_TRUE(term);
     ASSERT_TRUE(term->getTermID() == TermID::FOLLOW) << term->toString();
     ASSERT_STREQ("[:Bool(1 + 1) == 0]-->{::Base::__assert_abort__(\"1+1\", 1 + 1, 2, 'str');};", term->toString().c_str());
     //[:Bool(@$value)==0]-->{ ::Base::__assert_abort__(@# @$value, @$... ) }
-    AstAnalysis analisys(*rt, rt->m_diag.get());
-    ASSERT_TRUE(analisys.Analyze(term, term)) << Dump(*rt);
+    AstAnalysis analisys(*jit, jit->m_diag.get());
+    ASSERT_TRUE(analisys.Analyze(term, term)) << Dump(*jit);
 
     Obj args;
-    ASSERT_NO_THROW(result = jit->Run(term)) << Dump(*rt);
+    ASSERT_NO_THROW(result = jit->Run(assert1)) << Dump(*jit);
 
     ASSERT_NO_THROW(
             term = jit->GetParser()->Parse("@verify(1)");
-            ) << Dump(*rt);
+            ) << Dump(*jit);
     ASSERT_TRUE(term);
     ASSERT_TRUE(term->getTermID() == TermID::FOLLOW) << term->toString();
     ASSERT_STREQ("[:Bool(1) == 0]-->{::Base::__assert_abort__(\"1\", 1);};", term->toString().c_str());
 
-    ASSERT_NO_THROW(result = jit->Run(term->toString())) << Dump(*rt);
+    ASSERT_NO_THROW(result = jit->Run(term->toString())) << Dump(*jit);
 
-    term = jit->GetParser()->Parse("@verify(0, 3+4, '555')");
+    const char * assert2 = "@verify(0, 3+4, '555')";
+    term = jit->GetParser()->Parse(assert2);
     ASSERT_TRUE(term);
     ASSERT_TRUE(term->getTermID() == TermID::FOLLOW) << term->toString();
     ASSERT_STREQ("[:Bool(0) == 0]-->{::Base::__assert_abort__(\"0\", 0, 3 + 4, '555');};", term->toString().c_str());
 
-    ASSERT_ANY_THROW(result = jit->Run(term)) << Dump(*rt);
+    ASSERT_ANY_THROW(result = jit->Run(assert2)) << Dump(*jit);
 
 
-
-    rt = RunTime::Init({"--nlc-no-assert"});
-    ASSERT_FALSE(rt->m_assert_enable);
-    jit = JIT::Init(rt);
+    jit = JIT::ReCreate({"--nlc-no-assert"});
+    ASSERT_FALSE(jit->m_assert_enable);
 
     ASSERT_TRUE(jit->m_macro);
     ASSERT_FALSE(jit->m_macro->empty());
@@ -307,21 +304,22 @@ TEST_F(SystemTest, Assert) {
 
 
 
+    const char * assert3 = "@assert(1+1, 2, 'str'); 33+44; 55";
     ASSERT_NO_THROW(
-            term = jit->GetParser()->Parse("@assert(1+1, 2, 'str'); 33+44; 55");
-            ) << Dump(*rt);
+            term = jit->GetParser()->Parse(assert3);
+            ) << Dump(*jit);
     ASSERT_TRUE(term);
-    ASSERT_TRUE(term->getTermID() == TermID::BLOCK) << toString(term->getTermID()) << " " << term->toString();
-    ASSERT_STREQ("{_; 33 + 44; 55;}", term->toString().c_str());
+    ASSERT_TRUE(term->getTermID() == TermID::SEQUENCE) << toString(term->getTermID()) << " " << term->toString();
+    ASSERT_STREQ("_; 33 + 44; 55;", term->toString().c_str());
 
-    ASSERT_NO_THROW(result = jit->Run(term->toString())) << Dump(*rt);
+    ASSERT_NO_THROW(result = jit->Run(assert3)) << Dump(*jit);
 
     ASSERT_NO_THROW(
             term = jit->GetParser()->Parse("@verify(1+1, 'message'); 33+44");
             );
     ASSERT_TRUE(term);
-    ASSERT_TRUE(term->getTermID() == TermID::BLOCK) << term->toString();
-    ASSERT_STREQ("{1 + 1; 33 + 44;}", term->toString().c_str());
+    ASSERT_TRUE(term->getTermID() == TermID::SEQUENCE) << term->toString();
+    ASSERT_STREQ("1 + 1; 33 + 44;", term->toString().c_str());
 
     ASSERT_NO_THROW(result = jit->Run(term->toString()));
     ASSERT_NO_THROW(

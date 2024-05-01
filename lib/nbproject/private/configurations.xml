@@ -92,20 +92,19 @@
       </nativedebugger>
       <runprofile version="9">
         <runcommandpicklist>
-          <runcommandpicklistitem>"${OUTPUT_PATH}" --gtest_shuffle --gtest_filter=LLVM.Include_h_i_GTF</runcommandpicklistitem>
-          <runcommandpicklistitem>"${OUTPUT_PATH}" --gtest_shuffle --gtest_filter=JIT.MakeModule</runcommandpicklistitem>
-          <runcommandpicklistitem>"${OUTPUT_PATH}" --gtest_shuffle --gtest_filter=Lexer.Module:Lexer.Mangled:ParserTest.Module
+          <runcommandpicklistitem>"${OUTPUT_PATH}" --gtest_shuffle --gtest_filter=*:-*Follow</runcommandpicklistitem>
+          <runcommandpicklistitem>"${OUTPUT_PATH}" --gtest_shuffle --gtest_filter=Ast.Dims:Ast.CheckStrPrintf</runcommandpicklistitem>
+          <runcommandpicklistitem>"${OUTPUT_PATH}" --gtest_shuffle --gtest_filter=ParserTest.FunctionTrans4:ParserTest.FunctionTrans5</runcommandpicklistitem>
+          <runcommandpicklistitem>"${OUTPUT_PATH}" --gtest_shuffle --gtest_filter=SystemTest.Assert
 </runcommandpicklistitem>
-          <runcommandpicklistitem>"${OUTPUT_PATH}" --gtest_shuffle --gtest_filter=Lexer.Module:Lexer.Mangled:ParserTest.Module</runcommandpicklistitem>
-          <runcommandpicklistitem>"${OUTPUT_PATH}" --gtest_shuffle --gtest_filter=Ast.CheckStrFormat:MacroTest*</runcommandpicklistitem>
-          <runcommandpicklistitem>"${OUTPUT_PATH}" --gtest_shuffle --gtest_filter=ObjTest.Reference</runcommandpicklistitem>
-          <runcommandpicklistitem>"${OUTPUT_PATH}" --gtest_shuffle --gtest_filter=JIT*:LLVM*</runcommandpicklistitem>
-          <runcommandpicklistitem>"${OUTPUT_PATH}" --gtest_shuffle --gtest_filter=JIT.Function:LLVM.Include_h_i_GTF
-</runcommandpicklistitem>
+          <runcommandpicklistitem>"${OUTPUT_PATH}" --gtest_shuffle --gtest_filter=Alg.Return:Run.Vars:Run.Simple</runcommandpicklistitem>
+          <runcommandpicklistitem>"${OUTPUT_PATH}" --gtest_shuffle --gtest_filter=Run.Iterator:Run.Comprehensions:Run.Call</runcommandpicklistitem>
+          <runcommandpicklistitem>"${OUTPUT_PATH}" --gtest_shuffle --gtest_filter=JIT.ReCreate</runcommandpicklistitem>
+          <runcommandpicklistitem>"${OUTPUT_PATH}" --gtest_shuffle --gtest_filter=Run.Call</runcommandpicklistitem>
+          <runcommandpicklistitem>"${OUTPUT_PATH}" --gtest_shuffle --gtest_filter=Run.CallArgs</runcommandpicklistitem>
           <runcommandpicklistitem>"${OUTPUT_PATH}" --gtest_shuffle --gtest_filter=*</runcommandpicklistitem>
-          <runcommandpicklistitem>"${OUTPUT_PATH}" --gtest_shuffle --gtest_filter=Ast.CheckStrFormat</runcommandpicklistitem>
         </runcommandpicklist>
-        <runcommand>"${OUTPUT_PATH}" --gtest_shuffle --gtest_filter=Ast.CheckStrFormat</runcommand>
+        <runcommand>"${OUTPUT_PATH}" --gtest_shuffle --gtest_filter=*</runcommand>
         <rundir>../output</rundir>
         <buildfirst>true</buildfirst>
         <terminal-type>0</terminal-type>

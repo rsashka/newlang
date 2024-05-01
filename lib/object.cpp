@@ -1221,14 +1221,14 @@ std::string Obj::toString(bool deep) const {
             case ObjType::NativeFunc:
             case ObjType::Function: // name:={function code}
             case ObjType::PureFunc: // name=>{function code}
-                //                ASSERT(m_prototype);
-                //                result += m_prototype->m_text;
-                //                result += "(";
-                //                m_prototype->dump_items_(result);
-                //                result += ")";
-                //                if (m_prototype->m_type) {
-                //                    result += m_prototype->m_type->asTypeString();
-                //                }
+                ASSERT(m_prototype);
+                result += m_prototype->m_text;
+                result += "(";
+                m_prototype->dump_items_(result);
+                result += ")";
+                if (m_prototype->m_type) {
+                    result += m_prototype->m_type->asTypeString();
+                }
 
             case ObjType::BLOCK:
                 result += "{ }";
@@ -3806,7 +3806,7 @@ bool Obj::op_class_test(const char *name, Context * ctx) const {
     }
 
     bool has_error = false;
-    ObjType type = RunTime::BaseTypeFromString(m_ctx ? m_ctx->m_runtime.get() : nullptr, name, &has_error);
+    ObjType type = RunTime::BaseTypeFromString(m_ctx ? m_ctx->m_runtime : nullptr, name, &has_error);
     if (has_error) {
         LOG_DEBUG("Type name %s not found!", name);
         return false;

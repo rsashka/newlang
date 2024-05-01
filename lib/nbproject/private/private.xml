@@ -8,21 +8,25 @@
     <open-files xmlns="http://www.netbeans.org/ns/projectui-open-files/2">
         <group>
             <file>file:/home/rsashka/SOURCE/NewLang/newlang/lib/term.h</file>
+            <file>file:/home/rsashka/SOURCE/NewLang/newlang/lib/analysis.cpp</file>
             <file>file:/home/rsashka/SOURCE/NewLang/newlang/lib/object.cpp</file>
-            <file>file:/home/rsashka/SOURCE/NewLang/newlang/lib/lexer.l</file>
+            <file>file:/home/rsashka/SOURCE/NewLang/newlang/lib/test/unittest.cpp</file>
+            <file>file:/home/rsashka/SOURCE/NewLang/newlang/lib/term.cpp</file>
             <file>file:/home/rsashka/SOURCE/NewLang/newlang/lib/runtime.cpp</file>
-            <file>file:/home/rsashka/SOURCE/NewLang/newlang/lib/builtin.h</file>
             <file>file:/home/rsashka/SOURCE/NewLang/newlang/lib/builtin.cpp</file>
             <file>file:/home/rsashka/SOURCE/NewLang/newlang/lib/jit.h</file>
+            <file>file:/home/rsashka/SOURCE/NewLang/newlang/lib/logger.cpp</file>
             <file>file:/home/rsashka/SOURCE/NewLang/newlang/lib/test/lexer_test.cpp</file>
             <file>file:/home/rsashka/SOURCE/NewLang/newlang/lib/test/include_test.cpp</file>
+            <file>file:/home/rsashka/SOURCE/NewLang/newlang/lib/logger.h</file>
             <file>file:/home/rsashka/SOURCE/NewLang/newlang/lib/jit.cpp</file>
+            <file>file:/home/rsashka/SOURCE/NewLang/newlang/lib/analysis.h</file>
             <file>file:/home/rsashka/SOURCE/NewLang/newlang/lib/test/llvm_test.cpp</file>
             <file>file:/home/rsashka/SOURCE/NewLang/newlang/lib/parser.y</file>
             <file>file:/home/rsashka/SOURCE/NewLang/newlang/lib/runtime.h</file>
             <file>file:/home/rsashka/SOURCE/NewLang/newlang/lib/include_h_i.data</file>
             <file>file:/home/rsashka/SOURCE/NewLang/newlang/lib/test/jit_test.cpp</file>
-            <file>file:/home/rsashka/SOURCE/NewLang/newlang/lib/warning_push.h</file>
+            <file>file:/home/rsashka/SOURCE/NewLang/newlang/lib/test/ast_test.cpp</file>
             <file>file:/home/rsashka/SOURCE/NewLang/newlang/lib/object.h</file>
             <file>file:/home/rsashka/SOURCE/NewLang/newlang/lib/types.h</file>
             <file>file:/home/rsashka/SOURCE/NewLang/newlang/lib/nlc-rt.h</file>

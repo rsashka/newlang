@@ -13,9 +13,7 @@ using namespace newlang;
 
 TEST(Alg, Follow) {
 
-    RuntimePtr rt = RunTime::Init();
-    ASSERT_TRUE(rt);
-    JIT * jit = JIT::Init(rt);
+    JIT * jit = JIT::ReCreate();
     ASSERT_TRUE(jit);
 
     ObjPtr result = nullptr;
@@ -86,9 +84,7 @@ TEST(Alg, Follow) {
 
 TEST(Alg, Repeat) {
 
-    RuntimePtr rt = RunTime::Init();
-    ASSERT_TRUE(rt);
-    JIT * jit = JIT::Init(rt);
+    JIT * jit = JIT::ReCreate();
     ASSERT_TRUE(jit);
 
     ObjPtr result = nullptr;
@@ -152,9 +148,7 @@ TEST(Alg, Repeat) {
 
 TEST(Alg, Foreach) {
 
-    RuntimePtr rt = RunTime::Init();
-    ASSERT_TRUE(rt);
-    JIT * jit = JIT::Init(rt);
+    JIT * jit = JIT::ReCreate();
     ASSERT_TRUE(jit);
 
     ObjPtr test = Obj::CreateDict();
@@ -493,9 +487,7 @@ TEST(Alg, Foreach) {
 }
 
 TEST(Alg, DISABLED_BreakContinue) {
-    RuntimePtr rt = RunTime::Init();
-    ASSERT_TRUE(rt);
-    JIT * jit = JIT::Init(rt);
+    JIT * jit = JIT::ReCreate();
     ASSERT_TRUE(jit);
 
     const char * run_raw = ""
@@ -537,9 +529,7 @@ TEST(Alg, DISABLED_BreakContinue) {
 
 TEST(Alg, Else) {
 
-    RuntimePtr rt = RunTime::Init();
-    ASSERT_TRUE(rt);
-    JIT * jit = JIT::Init(rt);
+    JIT * jit = JIT::ReCreate();
     ASSERT_TRUE(jit);
 
     ObjPtr result = nullptr;
@@ -616,9 +606,7 @@ TEST(Alg, Else) {
 
 TEST(Alg, Return) {
 
-    RuntimePtr rt = RunTime::Init();
-    ASSERT_TRUE(rt);
-    JIT * jit = JIT::Init(rt);
+    JIT * jit = JIT::ReCreate();
     ASSERT_TRUE(jit);
 
     ObjPtr result = nullptr;

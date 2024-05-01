@@ -4,8 +4,6 @@
 //#include "pch.h"
 
 #include "term.h"
-#include "context.h"    
-
 #include "parser.h"
 #include "lexer.h"
 
@@ -304,6 +302,7 @@ name:   ns_part
                 $$ = $2;
                 $$->m_text.insert(0, $1->m_text);
                 $$->SetTermID(TermID::STATIC);
+                $$->TestConst();
                 // У переменных m_namespace заполняется в AstExpandNamespace
             }
         | ns_part  NAMESPACE  type_class
@@ -312,6 +311,7 @@ name:   ns_part
                 $$->m_text.insert(0, $2->m_text);
                 $$->m_text.insert(0, $1->m_text);
                 $$->SetTermID(TermID::STATIC);
+                $$->TestConst();
                 // У переменных m_namespace заполняется в AstExpandNamespace
             }
         | ns_start  ns_part  NAMESPACE  type_class
@@ -321,26 +321,25 @@ name:   ns_part
                 $$->m_text.insert(0, $2->m_text);
                 $$->m_text.insert(0, $1->m_text);
                 $$->SetTermID(TermID::STATIC);
+                $$->TestConst();
                 // У переменных m_namespace заполняется в AstExpandNamespace
             } 
         |  LOCAL
             {
                 $$ = $1;
+                $$->TestConst();
             }
         | '$'
             {
                 $$ = $1;
                 $$->SetTermID(TermID::LOCAL);
-                $$->TestConst();
             }
         |  MODULE
             {
-                $1->TestConst();
                 $$ = driver.CheckLoadModule($1);
             }
         |  '\\'
             {
-                $1->TestConst();
                 $1->SetTermID(TermID::MODULE);
                 $$ = driver.CheckLoadModule($1);
             }
@@ -351,7 +350,6 @@ name:   ns_part
                 $3->TestConst();
                 $1->Last()->Append($3);
                 $$ = driver.CheckLoadModule($1);
-
             }
         |  native
             {
@@ -362,6 +360,7 @@ name:   ns_part
             {
                 $$ = $1;
                 $$->SetTermID(TermID::NAME);
+                $$->TestConst();
             }
         |  NEWLANG  /* \\ - rval */
             {
@@ -371,6 +370,7 @@ name:   ns_part
         | MACRO
             {
                 $$ = $1;
+                $$->TestConst();
             }
         | '@'
             {
@@ -380,14 +380,17 @@ name:   ns_part
         | MACRO_ARGUMENT
             {
                 $$ = $1;
+                $$->TestConst();
             }
         | MACRO_ARGPOS
             {
                 $$ = $1;
+                $$->TestConst();
             }
         | MACRO_ARGNAME
             {
                 $$ = $1;
+                $$->TestConst();
             }
         | MANGLED
             {
@@ -426,18 +429,21 @@ type_class:  ':'  name
                 $$ = $2;
                 $$->m_text.insert(0, ":");
                 $$->SetTermID(TermID::TYPE);
+                $$->TestConst();
             }
         | ':'  '~'  name
             {
                 $$ = $3;
                 $$->m_text.insert(0, ":");
                 $$->SetTermID(TermID::TYPE);
+                $$->TestConst();
             }
         | ':'  OPERATOR_DUCK  name
             {
                 $$ = $3;
                 $$->m_text.insert(0, ":");
                 $$->SetTermID(TermID::TYPE);
+                $$->TestConst();
             }
 
 ptr: '&' 
@@ -470,6 +476,7 @@ type_name:  type_class
                 $$ = $3;
                 $$->m_text.insert(0, ":");
                 $$->MakeRef($ptr);
+                $$->TestConst();
             }
         | ':'  ptr  NAME   '['  type_dims   ']'
             {
@@ -479,6 +486,7 @@ type_name:  type_class
                 $$->m_dims = $type_dims;
                 $$->m_dims->SetArgs($type_dims);
                 $$->MakeRef($ptr);
+                $$->TestConst();
             }
 
 
@@ -693,6 +701,7 @@ arg_name: name
     | '.'  NAME
         {
             $$ = $2; 
+            $$->TestConst();
         }
         
 /* Допустимые <имена> объеков */
@@ -726,45 +735,58 @@ assign_name:  name
            | ARGUMENT  /* $123 */
                 {
                     $$ = $1;
+                    $$->TestConst();
                 }
             
-field:  '.'  NAME
+field_name:  NAME
             {
                 $$ = $1; 
-                $NAME->SetTermID(TermID::FIELD);
-                $$->Last()->Append($NAME);
+                $$->TestConst();
             }
-        |  '.'  NAME  call
+        |  NAME  call
             {
                 $$ = $1; 
-                $NAME->SetTermID(TermID::FIELD);
-                $NAME->SetArgs($call);
-                $$->Last()->Append($NAME);
+                $$->SetArgs($call);
+                $$->TestConst();
             }
-        |  '.'  NAME  type_item
+        |  NAME  type_item
             {
                 $$ = $1; 
-                $NAME->SetTermID(TermID::FIELD);
-                $NAME->SetType($type_item);
-                $$->Last()->Append($NAME);
+                $$->SetType($type_item);
+                $$->TestConst();
             }
-        |  '.'  NAME  call  type_item
+        |  NAME  call  type_item
             {
                 $$ = $1; 
-                $NAME->SetTermID(TermID::FIELD);
-                $NAME->SetArgs($call);
-                $NAME->SetType($type_item);
-                $$->Last()->Append($NAME);
+                $$->SetArgs($call);
+                $$->SetType($type_item);
+                $$->TestConst();
             }
-        |  '.'  NAME  call  type_list
+        |  NAME  call  type_list
             {
                 $$ = $1; 
-                $NAME->SetTermID(TermID::FIELD);
-                $NAME->SetArgs($call);
-                $$->Last()->Append($NAME);
+                $$->SetArgs($call);
                 $$->SetType($type_list);
+                $$->TestConst();
             }
 
+field:  '.'  field_name
+            {
+                $field_name->SetTermID(TermID::FIELD);
+
+                $$ = $1; 
+                $$->Last()->Append($field_name);
+            }
+        | '.'  take  field_name
+            {
+                $field_name->SetTermID(TermID::FIELD);
+                $field_name->m_is_take = true;
+                $field_name->m_is_const = $take->m_is_const;
+
+                $$ = $1; 
+                $$->Last()->Append($field_name);
+            }
+        
         
 native:  '%'  ns_part
             {
@@ -814,11 +836,13 @@ take:   TAKE  /*  *^  */
         {
             $$ = $1;
             $$->SetTermID(TermID::TAKE);
+            $$->m_is_const = true;
         }
     | '*' 
         {
             $$ = $1;
             $$->SetTermID(TermID::TAKE);
+            $$->m_is_const = false;
         }  
     
 /* Допустимые lvalue объекты */
@@ -828,13 +852,15 @@ lval:  lval_obj
             }
         |  take  rval_name
             {
-                $$ = $1;
-                $$->SetArgs($2);
+                $$ = $2;
+                $$->m_is_take = true;
+                $$->m_is_const = $take->m_is_const;
             } 
         |  take  call
             {
-                $$ = $1;
-                $$->SetArgs($call);
+                $$ = $2;
+                $$->m_is_take = true;
+                $$->m_is_const = $take->m_is_const;
             } 
         |  type_item
             {   
@@ -880,6 +906,7 @@ rval_name: lval
         | ARGS /* $* и @* - rval */
             {
                 $$ = $1;
+                $$->TestConst();
             }
 
         
@@ -1717,7 +1744,7 @@ arithmetic:  arithmetic '+' addition
                         NL_PARSER($digits, "Missing operator between '%s' and '%s'", $addition->m_text.c_str(), $digits->m_text.c_str());
                     }
                     //@todo location
-                    $$ = Term::Create(token::OP_MATH, TermID::OP_MATH, $2->m_text.c_str(), 1, & @$);
+                    $$ = Term::Create(TermID::OP_MATH, $2->m_text.c_str(), token::OP_MATH, 1, & @$);
                     $$->Append($1, Term::LEFT); 
                     $2->m_text = $2->m_text.substr(1);
                     $$->Append($2, Term::RIGHT); 
@@ -1769,7 +1796,7 @@ factor:   rval_var
             }
         | '-'  factor
             { 
-                $$ = Term::Create(token::OP_MATH, TermID::OP_MATH, "-", 1,  & @$);
+                $$ = Term::Create(TermID::OP_MATH, "-", token::OP_MATH, 1,  & @$);
                 $$->Append($2, Term::RIGHT); 
             }
         | '('  logical  ')'
@@ -1872,7 +1899,7 @@ if_then:  match_cond  FOLLOW  body_all
 
 if_list: if_then
             {
-                $$ = $1; 
+                $$ = Term::Create($1.get()); 
                 $$->AppendFollow($1);
             }
         | if_list  ','  if_then

@@ -63,9 +63,9 @@ bool Buildin::CreateMethod(const char * proto, FunctionType & func, ObjType type
 //    return AddMethod(term->getText().c_str(), m_runtime->CreateFunction(term, (void *) &func)); //, type
 }
 
-bool Buildin::CreateProperty(const char * proto, ObjPtr obj) {
-    return true;
-}
+//bool Buildin::CreateProperty(const char * proto, ObjPtr obj) {
+//    return true;
+//}
 
 /*
  * 

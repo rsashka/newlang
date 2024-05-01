@@ -7,39 +7,52 @@
 namespace newlang {
 
     /*
-     * Класс контекст предназначен для хранения контекста среды выполнения при вызове функций.
-     * С его помощью передаются переменные среды окружения, параметры и аргументы приложения, входные и выходные параметры функций, 
-     * текущие локальные и глобальные переменныеи, создание и доступ к итераторам и т.д.
-     * 
-     * 
-     * 
+     * Context - место хранения локальных (автоматических) переменных
+     * Module - место хранения статических переменных модуля
+     * RunTime - место хранения глобальных статических переменных
      */
 
     /* 
      * Выполняет модуль (файл/ast)
      */
+    struct VarItem {
+        TermPtr item;
+        ObjPtr obj;
+        std::unique_ptr<Sync> sync;
+    };
 
-    class Context : SCOPE(public) ScopeStack, public std::enable_shared_from_this<Context> {
-        //        SCOPE(private) :
+    struct VarScope {
+        TermID id;
+        std::string ns;
+        std::map<std::string, VarItem> vars;
+    };
+
+    class Context : public std::vector<VarScope>, public std::enable_shared_from_this<Context> {
+        friend class CtxPush;
 
     public:
-        RuntimePtr m_runtime;
+        RunTime *m_runtime;
         ObjPtr m_latter;
+        Module &m_static;
 
-        Context(StorageTerm &module, RuntimePtr rt) : ScopeStack(module), m_runtime(rt) {
-        }
+        Context(Module &module, RunTime *rt);
 
         virtual ~Context() {
         }
 
-//        static ObjPtr Run(TermPtr ast, Context *runner);
-//
+        static ObjPtr Run(TermPtr ast, Context * runner);
+
         static ObjPtr EvalTerm(TermPtr term, Context *runner, bool rvalue = true);
+
+        static std::unique_ptr<Sync> CreateSync(const TermPtr &term);
+
+
         TermPtr GetObject(const std::string_view int_name);
+        TermPtr FindInternalName(const std::string_view int_name);
 
 
-        static ObjPtr StringFormat(std::string_view format, Obj &args);
-        static ObjPtr StringPrintf(std::string_view format, Obj &args);
+        static ObjPtr StringFormat(std::string_view format, Obj & args);
+        static ObjPtr StringPrintf(std::string_view format, Obj & args);
 
         /**
          * Метод вызывается только из NewLnag кода
@@ -48,7 +61,7 @@ namespace newlang {
          * @param term
          * @return 
          */
-        static ObjPtr Call(Context *runner, Obj &obj, TermPtr &term);
+        static ObjPtr Call(Context *runner, Obj &obj, TermPtr & term);
         /**
          * Метод может быть вызван как из NewLnag кода, так и из кода на C/C++ (в реализации Obj::operator())
          * @param runner
@@ -56,12 +69,70 @@ namespace newlang {
          * @param term
          * @return 
          */
-        static ObjPtr Call(Context *runner, Obj &obj, Obj &args);
+        static ObjPtr Call(Context *runner, Obj &obj, Obj & args);
+        
+        static VarItem CreateItem(TermPtr term, ObjPtr obj);
 
+        std::string Dump();
+        
     protected:
 
+        void PushScope(const TermID id, const std::string_view &name) {
+            std::string ns;
+            if (!name.empty()) {
+                ns = name;
+                if (ns.rfind("::") != ns.size() - 2) {
+                    ns += "::";
+                }
+            }
+            push_back({id, ns,
+                {}});
+        }
+
+        void PopScope() {
+            ASSERT(size());
+            pop_back();
+        }
+
+        bool FindScope(const std::string_view &name) {
+            auto iter = rbegin();
+            while (iter != rend()) {
+                if (iter->ns.compare(name.begin()) == 0) {
+                    return iter == rbegin();
+                }
+                iter++;
+            }
+            LOG_RUNTIME("Named block '%s' not found!", name.begin());
+        }
+
+        static bool HasReThrow(TermPtr &block, Context &stack, Obj &obj);
+
+        std::string MakeNamespace(int skip, bool is_global) {
+            std::string result;
+            auto iter = rbegin();
+            if (skip > 0) {
+                iter += skip;
+            }
+            int count = 0;
+            while (iter != rend()) {
+                if (result.find("::") == 0) {
+                    break;
+                }
+                if (skip < 0 && count == -skip) {
+                    break;
+                }
+                if (!iter->ns.empty() && (!is_global || !isdigit(iter->ns[0]))) {
+                    // The namespace is always padded with ::
+                    result.insert(0, iter->ns);
+                }
+                iter++;
+                count++;
+            }
+            return result;
+        }
+
         static RunTime * GetRT_(Context * runner) {
-            return runner ? runner->m_runtime.get() : nullptr;
+            return runner ? runner->m_runtime : nullptr;
         }
 
         ObjPtr CreateNative_(TermPtr &proto, const char *module, bool lazzy, const char *mangle_name);
@@ -85,19 +156,39 @@ namespace newlang {
         static ObjPtr CreateRange(TermPtr &term, Context * runner);
         static ObjPtr CreateTensor(TermPtr &term, Context * runner);
 
-//        static ObjPtr SetIndexValue(TermPtr &term, ObjPtr &value, Context * runner);
-//        static ObjPtr SetFieldValue(TermPtr &term, ObjPtr &value, Context * runner);
-//        static ObjPtr GetIndexValue(TermPtr &term, ObjPtr &value, Context * runner);
-//        static ObjPtr GetFieldValue(TermPtr &term, ObjPtr &value, Context * runner);
-//
-//
-//        ObjPtr EvalCreate_(TermPtr & op);
-//        ObjPtr AssignVars_(ArrayTermType &vars, const TermPtr &r_term, bool is_pure);
-//
-//        ObjPtr EvalIterator_(TermPtr & term);
-//        ObjPtr EvalInterrupt_(TermPtr & term);
-//
-//        ObjPtr EvalOp_(TermPtr & op);
+        static ObjPtr SetIndexValue(TermPtr &term, ObjPtr &value, Context * runner);
+        static ObjPtr SetFieldValue(TermPtr &term, ObjPtr &value, Context * runner);
+        static ObjPtr GetIndexValue(TermPtr &term, ObjPtr &value, Context * runner);
+        static ObjPtr GetFieldValue(TermPtr &term, ObjPtr &value, Context * runner);
+
+
+        /* 
+         * a, b, c :=  value
+         * a() :=  {  }     func
+         * 
+         * a, b, c :=  ... dict     
+         * a, b :=  b, a    swap
+         * 
+         * a() :=  {  }     func
+         * && a() :=  {  }  async func     val :=  *a();  **( val := *a()){   },[...] {  };   -> val :=  await  a() ??????????????????????
+         * a() :=  %() {  } coro  co_yeld, co_return,  co_wait  ????????????????
+         */
+        ObjPtr EvalCreate_(TermPtr & op);
+
+        ObjPtr EvalCreateAsValue_(TermPtr & op);
+        ObjPtr EvalCreateAsFunc_(TermPtr & op);
+        ObjPtr EvalCreateAsEllipsis_(TermPtr & op);
+        ObjPtr EvalCreateAsFilling_(TermPtr & op);
+
+        void EvalLeftVars_(ArrayTermType &vars, const TermPtr &op);
+        //        ObjPtr AssignVars_(ArrayTermType &vars, const TermPtr &r_term, bool is_pure);
+
+
+
+        ObjPtr EvalIterator_(TermPtr & term);
+        ObjPtr EvalInterrupt_(TermPtr & term);
+
+        ObjPtr EvalOp_(TermPtr & op);
 
         static ObjPtr EvalOpMath_(TermPtr &op, Context * runner);
         static ObjPtr EvalOpLogical_(TermPtr &op, Context * runner);
@@ -105,20 +196,29 @@ namespace newlang {
         static ObjPtr EvalOpBitwise_(TermPtr &op, Context * runner);
         static ObjPtr EvalRange_(TermPtr &op, Context * runner);
 
-//        ObjPtr EvalTake_(TermPtr & op);
-//        ObjPtr EvalWhile_(TermPtr & op);
-//        ObjPtr EvalDoWhile_(TermPtr & op);
+        ObjPtr EvalTake_(TermPtr & op);
+        ObjPtr EvalWhile_(TermPtr & op);
+        ObjPtr EvalDoWhile_(TermPtr & op);
+
         static ObjPtr EvalFollow_(TermPtr & op, Context * runner);
 
-//        /**
-//         * Выполняет группу операций, которые записаны в стек
-//         * @param op
-//         * @param run
-//         * @return 
-//         */
-//        ObjPtr EvalBlock_(TermPtr &block, StorageTerm &storage);
+
+        ObjPtr EvalTryBlock_(TermPtr &block, StorageTerm & storage);
         ObjPtr EvalEval_(TermPtr & op);
 
+    };
+
+    class CtxPush {
+    public:
+        Context &m_ctx;
+
+        CtxPush(Context &ctx, const TermID id, const std::string_view &name) : m_ctx(ctx) {
+            m_ctx.PushScope(id, name);
+        }
+
+        ~CtxPush() {
+            m_ctx.PopScope();
+        }
     };
 
 }

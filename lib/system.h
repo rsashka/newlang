@@ -4,7 +4,6 @@
 //#include "pch.h"
 #include "nlc-rt.h"
 
-#include "module.h"
 #include "runtime.h"
 #include "builtin.h"
 //#include "module.h"
@@ -80,7 +79,7 @@ namespace newlang {
             bool AddMethod(const char * name, ObjPtr obj);
 
 
-            bool CreateProperty(const char * proto, ObjPtr obj);
+//            bool CreateProperty(const char * proto, ObjPtr obj);
 
 //            bool CreateMacro(const char * text);
 
@@ -222,8 +221,8 @@ namespace newlang {
                 //                m_class_name = "System";
 
 
-                Obj arg;
-                VERIFY(CreateProperty("name^:StrChar", getname(nullptr, arg)));
+//                Obj arg;
+//                VERIFY(CreateProperty("name^:StrChar", getname(nullptr, arg)));
                 VERIFY(CreateMethod("getname():StrChar", getname));
 
                 VERIFY(CreateMethod("getlogin():StrChar", getlogin));

@@ -6,7 +6,6 @@
 
 
 #include "builtin.h"
-#include "module.h"
 #include "runtime.h"
 #include "analysis.h"
 #include "jit.h"
@@ -201,11 +200,11 @@ TEST(Ast, ScopeStack) {
     ASSERT_STREQ("1::name1$", ns_stack.CreateVarName("$name1").c_str());
     ASSERT_STREQ("name1:::", ns_stack.CreateVarName(":name1").c_str());
 
-    ns_stack.back().vars.insert({"name1", Term::Create(parser::token_type::NAME, TermID::NAME, "term_name1")});
-    ns_stack.back().vars.insert({"name2", Term::Create(parser::token_type::NAME, TermID::NAME, "term_name2")});
+    ns_stack.back().vars.insert({"name1", Term::Create(TermID::NAME, "term_name1", parser::token_type::NAME)});
+    ns_stack.back().vars.insert({"name2", Term::Create(TermID::NAME, "term_name2", parser::token_type::NAME)});
 
-    ns_stack.PushScope(Term::Create(parser::token_type::NAME, TermID::NAME, "ns"));
-    ns_stack.back().vars.insert({"name3", Term::Create(parser::token_type::NAME, TermID::NAME, "term_name3")});
+    ns_stack.PushScope(Term::Create(TermID::NAME, "ns", parser::token_type::NAME));
+    ns_stack.back().vars.insert({"name3", Term::Create(TermID::NAME, "term_name3", parser::token_type::NAME)});
 
     ASSERT_STREQ("::name1::", ns_stack.CreateVarName("::name1").c_str());
     ASSERT_STREQ("1::ns::name1$", ns_stack.CreateVarName("name1").c_str());
@@ -213,8 +212,8 @@ TEST(Ast, ScopeStack) {
     ASSERT_STREQ("ns::name1:::", ns_stack.CreateVarName(":name1").c_str());
 
 
-    storage.insert({"name4", Term::Create(parser::token_type::NAME, TermID::NAME, "term_name4")});
-    storage.insert({"name5", Term::Create(parser::token_type::NAME, TermID::NAME, "term_name5")});
+    storage.insert({"name4", Term::Create(TermID::NAME, "term_name4", parser::token_type::NAME)});
+    storage.insert({"name5", Term::Create(TermID::NAME, "term_name5", parser::token_type::NAME)});
 
     ASSERT_STREQ("Storage: name4, name5\nStack [1::]: name1, name2\nStack [ns::]: name3\n", ns_stack.Dump().c_str());
     storage.clear();
@@ -228,7 +227,7 @@ TEST(Ast, ScopeStack) {
     ASSERT_FALSE(ns_stack.LookupName("$name1"));
     ASSERT_FALSE(ns_stack.LookupName("::name1"));
 
-    TermPtr name1 = Term::Create(parser::token_type::NAME, TermID::NAME, "name1");
+    TermPtr name1 = Term::Create(TermID::NAME, "name1", parser::token_type::NAME);
     ASSERT_EQ(0, storage.size()) << ns_stack.Dump();
     ASSERT_TRUE(storage.find("$name1") == storage.end()) << ns_stack.Dump();
 
@@ -248,7 +247,7 @@ TEST(Ast, ScopeStack) {
     ASSERT_FALSE(ns_stack.LookupName("::name1")) << ns_stack.Dump();
 
     //  name { ... }
-    ns_stack.PushScope(Term::Create(parser::token_type::NAMESPACE, TermID::NAMESPACE, "name"));
+    ns_stack.PushScope(Term::Create(TermID::NAMESPACE, "name", parser::token_type::NAMESPACE));
     ASSERT_EQ(1, ns_stack.size());
     ASSERT_STREQ("name::", ns_stack.GetNamespace().c_str());
 
@@ -259,7 +258,7 @@ TEST(Ast, ScopeStack) {
     ASSERT_STREQ("name::name1:::", ns_stack.CreateVarName(":name1").c_str());
 
 
-    TermPtr name2 = Term::Create(parser::token_type::NAME, TermID::NAME, "name2");
+    TermPtr name2 = Term::Create(TermID::NAME, "name2", parser::token_type::NAME);
     ASSERT_EQ(1, ns_stack.size()) << ns_stack.Dump();
     ASSERT_EQ(1, storage.size()) << ns_stack.Dump();
     ASSERT_TRUE(storage.find("$name2") == storage.end()) << ns_stack.Dump();
@@ -293,7 +292,7 @@ TEST(Ast, ScopeStack) {
     ASSERT_STREQ("name::name1:::", ns_stack.CreateVarName(":name1").c_str());
 
 
-    TermPtr name3 = Term::Create(parser::token_type::NAME, TermID::NAME, "$name3");
+    TermPtr name3 = Term::Create(TermID::NAME, "$name3", parser::token_type::NAME);
     ASSERT_EQ(2, ns_stack.size()) << ns_stack.Dump();
     ASSERT_EQ(2, storage.size()) << ns_stack.Dump();
     ASSERT_TRUE(ns_stack[1].vars.find("$name3") == ns_stack[1].vars.end()) << ns_stack.Dump();
@@ -321,7 +320,7 @@ TEST(Ast, ScopeStack) {
 
 
     //  name {  {  name2 {...}  }  }
-    ns_stack.PushScope(Term::Create(parser::token_type::NAMESPACE, TermID::NAMESPACE, "name2"));
+    ns_stack.PushScope(Term::Create(TermID::NAMESPACE, "name2", parser::token_type::NAMESPACE));
     ASSERT_EQ(3, ns_stack.size());
     ASSERT_STREQ("name::2::name2::", ns_stack.GetNamespace(false).c_str());
     ASSERT_STREQ("name::name2::", ns_stack.GetNamespace(true).c_str());
@@ -331,7 +330,7 @@ TEST(Ast, ScopeStack) {
     ASSERT_STREQ("name::2::name2::name1$", ns_stack.CreateVarName("$name1").c_str());
     ASSERT_STREQ("name::name2::name1:::", ns_stack.CreateVarName(":name1").c_str());
 
-    TermPtr name4 = Term::Create(parser::token_type::NAME, TermID::NAME, "name4");
+    TermPtr name4 = Term::Create(TermID::NAME, "name4", parser::token_type::NAME);
     ASSERT_EQ(3, ns_stack.size()) << ns_stack.Dump();
     ASSERT_EQ(3, storage.size()) << ns_stack.Dump();
     ASSERT_TRUE(ns_stack[2].vars.find("$name4") == ns_stack[2].vars.end()) << ns_stack.Dump();
@@ -362,7 +361,7 @@ TEST(Ast, ScopeStack) {
 
 
     //  name {  {  name2 {  name3::name4 {...}  }  }  }
-    ns_stack.PushScope(Term::Create(parser::token_type::NAMESPACE, TermID::NAMESPACE, "name3::name4"));
+    ns_stack.PushScope(Term::Create(TermID::NAMESPACE, "name3::name4", parser::token_type::NAMESPACE));
     ASSERT_EQ(4, ns_stack.size());
     ASSERT_STREQ("name::2::name2::name3::name4::", ns_stack.GetNamespace().c_str());
 
@@ -372,7 +371,7 @@ TEST(Ast, ScopeStack) {
     ASSERT_STREQ("name::name2::name3::name4::name1:::", ns_stack.CreateVarName(":name1").c_str());
 
     //  name {  {  name2 {  name3::name4 {   ::{...}  }  }  }  }
-    ns_stack.PushScope(Term::Create(parser::token_type::NAMESPACE, TermID::NAMESPACE, "::"));
+    ns_stack.PushScope(Term::Create(TermID::NAMESPACE, "::", parser::token_type::NAMESPACE));
     ASSERT_EQ(5, ns_stack.size());
     ASSERT_STREQ("::", ns_stack.GetNamespace(false).c_str());
     ASSERT_STREQ("::", ns_stack.GetNamespace(true).c_str());
@@ -396,7 +395,7 @@ TEST(Ast, ScopeStack) {
     ASSERT_STREQ("::name1:::", ns_stack.CreateVarName(":name1").c_str());
 
 
-    TermPtr name_g = Term::Create(parser::token_type::NAME, TermID::NAME, "@::name_g");
+    TermPtr name_g = Term::Create(TermID::NAME, "@::name_g", parser::token_type::NAME);
     ASSERT_EQ(6, ns_stack.size()) << ns_stack.Dump();
     ASSERT_EQ(4, storage.size()) << ns_stack.Dump();
     ASSERT_TRUE(storage.find("::name_g") == storage.end()) << ns_stack.Dump();
@@ -445,16 +444,16 @@ TEST(Ast, ScopeStack) {
 
 
     //  name {  {  name2 {  name3::name4 {   ::{  {  ::name5::name6 {...}  }  }  }  }  }  }
-    ns_stack.PushScope(Term::Create(parser::token_type::NAMESPACE, TermID::NAMESPACE, "::name5::name6"));
+    ns_stack.PushScope(Term::Create(TermID::NAMESPACE, "::name5::name6", parser::token_type::NAMESPACE));
     ASSERT_EQ(7, ns_stack.size());
     ASSERT_STREQ("::name5::name6::", ns_stack.GetNamespace().c_str());
 
     //  name {  {  name2 {  name3::name4 {   ::{  {  ::name5::name6 {  ::{ ... }  }  }  }  }  }  }  }
-    ns_stack.PushScope(Term::Create(parser::token_type::NAMESPACE, TermID::NAMESPACE, "::"));
+    ns_stack.PushScope(Term::Create(TermID::NAMESPACE, "::", parser::token_type::NAMESPACE));
     ASSERT_STREQ("::", ns_stack.GetNamespace().c_str());
 
     //  name {  {  name2 {  name3::name4 {   ::{  {  ::name5::name6 { ::{ name7 {...}  }  }  }  }  }  }  }  }
-    ns_stack.PushScope(Term::Create(parser::token_type::NAMESPACE, TermID::NAMESPACE, "name7"));
+    ns_stack.PushScope(Term::Create(TermID::NAMESPACE, "name7", parser::token_type::NAMESPACE));
     ASSERT_EQ(9, ns_stack.size());
     ASSERT_STREQ("::name7::", ns_stack.GetNamespace().c_str());
 
@@ -508,13 +507,13 @@ TEST(Ast, ScopeStack) {
     ASSERT_STREQ("", ns_stack.GetNamespace(false).c_str());
 
     //  ns::name {  ...  }
-    ns_stack.PushScope(Term::Create(parser::token_type::NAMESPACE, TermID::NAMESPACE, "ns::name"));
+    ns_stack.PushScope(Term::Create(TermID::NAMESPACE, "ns::name", parser::token_type::NAMESPACE));
     ASSERT_EQ(1, ns_stack.size());
     ASSERT_STREQ("ns::name::", ns_stack.GetNamespace().c_str());
 
 
     //  ns::name {  ::{ ... } }
-    ns_stack.PushScope(Term::Create(parser::token_type::NAMESPACE, TermID::NAMESPACE, "::"));
+    ns_stack.PushScope(Term::Create(TermID::NAMESPACE, "::", parser::token_type::NAMESPACE));
     ASSERT_EQ(2, ns_stack.size());
     ASSERT_STREQ("::", ns_stack.GetNamespace().c_str());
 
@@ -528,11 +527,9 @@ TEST(Ast, ScopeStack) {
 
 TEST(Ast, AstAnalyze) {
 
-    RuntimePtr rt = RunTime::Init();
-    ASSERT_TRUE(rt);
-    JIT * jit = JIT::Init(rt);
+    JIT * jit = JIT::ReCreate();
 
-    AstAnalysis analysis(*rt, rt->m_diag.get());
+    AstAnalysis analysis(*jit, jit->m_diag.get());
 
     TermPtr ast = jit->GetParser()->Parse("var1 ::= '1';");
 
@@ -645,16 +642,250 @@ TEST(Ast, AstAnalyze) {
 
 }
 
+TEST(Ast, Reference) {
+
+    JIT * jit = JIT::ReCreate();
+
+    AstAnalysis analysis(*jit, jit->m_diag.get());
+
+    TermPtr ast = jit->GetParser()->Parse("noref ::= 1;");
+
+    ASSERT_TRUE(ast);
+    ASSERT_TRUE(analysis.Analyze(ast, ast)) << ast->m_int_vars.Dump();
+    ASSERT_EQ(1, ast->m_int_vars.size());
+    ASSERT_TRUE(ast->m_int_vars.find("noref$") != ast->m_int_vars.end()) << ast->m_int_vars.Dump();
+
+
+    // Нельзя создавать ссылки
+    ast = jit->GetParser()->Parse("noref ::= 1; ref := &noref;");
+    ASSERT_TRUE(ast);
+    ASSERT_FALSE(analysis.Analyze(ast, ast)) << ast->m_int_vars.Dump();
+
+    ast = jit->GetParser()->Parse("noref ::= 1; ref := &&noref;");
+    ASSERT_TRUE(ast);
+    ASSERT_FALSE(analysis.Analyze(ast, ast)) << ast->m_int_vars.Dump();
+
+    ast = jit->GetParser()->Parse("noref ::= 1; ref := &*noref;");
+    ASSERT_TRUE(ast);
+    ASSERT_FALSE(analysis.Analyze(ast, ast)) << ast->m_int_vars.Dump();
+
+
+    // Нельзя копировать владельцев на одном уровне
+    ast = jit->GetParser()->Parse(" { val ::= 1; $local := val; } ");
+    ASSERT_TRUE(ast);
+    ASSERT_FALSE(analysis.Analyze(ast, ast)) << ast->m_int_vars.Dump();
+
+
+    // Можно копировать в локальные на уровень ниже
+    ast = jit->GetParser()->Parse("::val ::= 1; { $local := val; }");
+    ASSERT_TRUE(ast);
+    ASSERT_TRUE(analysis.Analyze(ast, ast)) << ast->m_int_vars.Dump();
+    
+    ast = jit->GetParser()->Parse("$val ::= 1; { $local := val; }");
+    ASSERT_TRUE(ast);
+    ASSERT_TRUE(analysis.Analyze(ast, ast)) << ast->m_int_vars.Dump();
+    
+    // Нельзя копировать владельцев в статические переменные
+    ast = jit->GetParser()->Parse("val ::= 1; { ::local := val; }");
+    ASSERT_TRUE(ast);
+    ASSERT_FALSE(analysis.Analyze(ast, ast)) << ast->m_int_vars.Dump();
+
+    // Можно скопировать значение
+    ast = jit->GetParser()->Parse("val ::= 1; ::val2 := *val;");
+    ASSERT_TRUE(ast);
+    ASSERT_TRUE(analysis.Analyze(ast, ast)) << ast->m_int_vars.Dump();
+    
+    
+    // Можно создавать только правильные ссылки
+    ast = jit->GetParser()->Parse("&ref ::= 1; test := &ref;");
+    ASSERT_TRUE(ast);
+    ASSERT_TRUE(analysis.Analyze(ast, ast)) << ast->m_int_vars.Dump();
+    
+    ast = jit->GetParser()->Parse("&^ref ::= 1; test := &^ref;");
+    ASSERT_TRUE(ast);
+    ASSERT_TRUE(analysis.Analyze(ast, ast)) << ast->m_int_vars.Dump();
+    
+    ast = jit->GetParser()->Parse("&^ref ::= 1; test := &ref;");
+    ASSERT_TRUE(ast);
+    ASSERT_FALSE(analysis.Analyze(ast, ast)) << ast->m_int_vars.Dump();
+
+    ast = jit->GetParser()->Parse("&?ref ::= 1; test := &?ref;");
+    ASSERT_TRUE(ast);
+    ASSERT_TRUE(analysis.Analyze(ast, ast)) << ast->m_int_vars.Dump();
+    ast = jit->GetParser()->Parse("&&ref ::= 1; test := &&ref;");
+    ASSERT_TRUE(ast);
+    ASSERT_TRUE(analysis.Analyze(ast, ast)) << ast->m_int_vars.Dump();
+    ast = jit->GetParser()->Parse("&*ref ::= 1; test := &*ref;");
+    ASSERT_TRUE(ast);
+    ASSERT_TRUE(analysis.Analyze(ast, ast)) << ast->m_int_vars.Dump();
+
+
+    // Контроль типа
+    ast = jit->GetParser()->Parse("&ref ::= 1; test := &ref; test := 1");
+    ASSERT_TRUE(ast);
+    ASSERT_FALSE(analysis.Analyze(ast, ast)) << ast->m_int_vars.Dump();
+    
+    ast = jit->GetParser()->Parse("&ref ::= 1; test := &ref; *test := 1");
+    ASSERT_TRUE(ast);
+    ASSERT_TRUE(analysis.Analyze(ast, ast)) << ast->m_int_vars.Dump();
+
+    ast = jit->GetParser()->Parse("&^ref ::= 1; test := &^ref; test := 1");
+    ASSERT_TRUE(ast);
+    ASSERT_FALSE(analysis.Analyze(ast, ast)) << ast->m_int_vars.Dump();
+    
+    // Const ref
+    ast = jit->GetParser()->Parse("&^ref ::= 1; test := &^ref; *test := 1");
+    ASSERT_TRUE(ast);
+    ASSERT_FALSE(analysis.Analyze(ast, ast)) << ast->m_int_vars.Dump();
+
+    
+    ast = jit->GetParser()->Parse("&?ref ::= 1; test := &?ref; test := 1");
+    ASSERT_TRUE(ast);
+    ASSERT_FALSE(analysis.Analyze(ast, ast)) << ast->m_int_vars.Dump();
+
+    //with requered!
+    ast = jit->GetParser()->Parse("&?ref ::= 1; test := &?ref; *test := 1");
+    ASSERT_TRUE(ast);
+    ASSERT_FALSE(analysis.Analyze(ast, ast)) << ast->m_int_vars.Dump();
+
+    ast = jit->GetParser()->Parse("&&ref ::= 1; test := &&ref; test := 1");
+    ASSERT_TRUE(ast);
+    ASSERT_FALSE(analysis.Analyze(ast, ast)) << ast->m_int_vars.Dump();
+
+    // Cost ref
+    ast = jit->GetParser()->Parse("&^ref ::= 1; test := &^ref; *test := 1");
+    ASSERT_TRUE(ast);
+    ASSERT_FALSE(analysis.Analyze(ast, ast)) << ast->m_int_vars.Dump();
+
+    ast = jit->GetParser()->Parse("&*ref ::= 1; test := &*ref; test := 1");
+    ASSERT_TRUE(ast);
+    ASSERT_FALSE(analysis.Analyze(ast, ast)) << ast->m_int_vars.Dump();
+
+    ast = jit->GetParser()->Parse("&*ref ::= 1; test := &*ref; *test := 1");
+    ASSERT_TRUE(ast);
+    ASSERT_TRUE(analysis.Analyze(ast, ast)) << ast->m_int_vars.Dump();
+    
+    
+
+    // Контроль типа 2
+    ast = jit->GetParser()->Parse("&ref ::= 1; test := &ref; test := ref");
+    ASSERT_TRUE(ast);
+    ASSERT_FALSE(analysis.Analyze(ast, ast)) << ast->m_int_vars.Dump();
+    
+    ast = jit->GetParser()->Parse("&ref ::= 1; test := &ref; *test := ref");
+    ASSERT_TRUE(ast);
+    ASSERT_TRUE(analysis.Analyze(ast, ast)) << ast->m_int_vars.Dump();
+    
+    ast = jit->GetParser()->Parse("&^ref ::= 1; test := &^ref; test := ref");
+    ASSERT_TRUE(ast);
+    ASSERT_FALSE(analysis.Analyze(ast, ast)) << ast->m_int_vars.Dump();
+    
+    ast = jit->GetParser()->Parse("&^ref ::= 1; test := &^ref; *test := ref");
+    ASSERT_TRUE(ast);
+    ASSERT_FALSE(analysis.Analyze(ast, ast)) << ast->m_int_vars.Dump();
+
+
+    ast = jit->GetParser()->Parse("&?ref ::= 1; test := &?ref; test := ref");
+    ASSERT_TRUE(ast);
+    ASSERT_FALSE(analysis.Analyze(ast, ast)) << ast->m_int_vars.Dump();
+
+    ast = jit->GetParser()->Parse("&?ref ::= 1; test := &?ref; *test := ref");
+    ASSERT_TRUE(ast);
+    ASSERT_FALSE(analysis.Analyze(ast, ast)) << ast->m_int_vars.Dump();
+    
+    ast = jit->GetParser()->Parse("&&ref ::= 1; test := &&ref; test := ref");
+    ASSERT_TRUE(ast);
+    ASSERT_FALSE(analysis.Analyze(ast, ast)) << ast->m_int_vars.Dump();
+
+    ast = jit->GetParser()->Parse("&&ref ::= 1; test := &&ref; *test := ref");
+    ASSERT_TRUE(ast);
+    ASSERT_TRUE(analysis.Analyze(ast, ast)) << ast->m_int_vars.Dump();
+
+    
+    ast = jit->GetParser()->Parse("&*ref ::= 1; test := &*ref; test := ref");
+    ASSERT_TRUE(ast);
+    ASSERT_FALSE(analysis.Analyze(ast, ast)) << ast->m_int_vars.Dump();
+    
+    ast = jit->GetParser()->Parse("&*ref ::= 1; test := &*ref; *test := ref");
+    ASSERT_TRUE(ast);
+    ASSERT_TRUE(analysis.Analyze(ast, ast)) << ast->m_int_vars.Dump();
+
+    
+    // Контроль типа 3
+    ast = jit->GetParser()->Parse("&val ::= 1; ref := &val; ref := *val");
+    ASSERT_TRUE(ast);
+    ASSERT_FALSE(analysis.Analyze(ast, ast)) << ast->m_int_vars.Dump();
+
+    ast = jit->GetParser()->Parse("&val ::= 1; ref := &val; *ref := *val");
+    ASSERT_TRUE(ast);
+    ASSERT_TRUE(analysis.Analyze(ast, ast)) << ast->m_int_vars.Dump();
+
+    ast = jit->GetParser()->Parse("&^val ::= 1; ref := &^val; ref := *val");
+    ASSERT_TRUE(ast);
+    ASSERT_FALSE(analysis.Analyze(ast, ast)) << ast->m_int_vars.Dump();
+    
+    // Read only
+    ast = jit->GetParser()->Parse("&^val ::= 1; ref := &^val; *ref := *val");
+    ASSERT_TRUE(ast);
+    ASSERT_FALSE(analysis.Analyze(ast, ast)) << ast->m_int_vars.Dump();
+    
+    
+    ast = jit->GetParser()->Parse("&?val ::= 1; ref := &?val; ref := *val");
+    ASSERT_TRUE(ast);
+    ASSERT_FALSE(analysis.Analyze(ast, ast)) << ast->m_int_vars.Dump();
+
+
+    ast = jit->GetParser()->Parse("&?val ::= 1; ref := &?val; *ref := *val");
+    ASSERT_TRUE(ast);
+    ASSERT_FALSE(analysis.Analyze(ast, ast)) << ast->m_int_vars.Dump();
+
+    ast = jit->GetParser()->Parse("&&val ::= 1; ref := &&val; ref := *val");
+    ASSERT_TRUE(ast);
+    ASSERT_FALSE(analysis.Analyze(ast, ast)) << ast->m_int_vars.Dump();
+
+    ast = jit->GetParser()->Parse("&&val ::= 1; ref := &&val; *ref := *val");
+    ASSERT_TRUE(ast);
+    ASSERT_TRUE(analysis.Analyze(ast, ast)) << ast->m_int_vars.Dump();
+
+
+    ast = jit->GetParser()->Parse("&*val ::= 1; ref := &*val; ref := *val");
+    ASSERT_TRUE(ast);
+    ASSERT_FALSE(analysis.Analyze(ast, ast)) << ast->m_int_vars.Dump();
+    
+    ast = jit->GetParser()->Parse("&*val ::= 1; ref := &*val; *ref := *val");
+    ASSERT_TRUE(ast);
+    ASSERT_TRUE(analysis.Analyze(ast, ast)) << ast->m_int_vars.Dump();
+
+
+    ast = jit->GetParser()->Parse("& lite ::= 2; &^ lite_ro ::= 22; ");
+    ASSERT_TRUE(ast);
+    ASSERT_TRUE(analysis.Analyze(ast, ast)) << ast->m_int_vars.Dump();
+    ASSERT_EQ(2, ast->m_int_vars.size()) << ast->m_int_vars.Dump();
+
+    ast = jit->GetParser()->Parse("&? thread ::= 3; &?^ thread_ro ::= 33; ");
+    ASSERT_TRUE(ast);
+    ASSERT_TRUE(analysis.Analyze(ast, ast)) << ast->m_int_vars.Dump();
+    ASSERT_EQ(2, ast->m_int_vars.size()) << ast->m_int_vars.Dump();
+
+    ast = jit->GetParser()->Parse("&& mono ::= 4; &&^ mono_ro ::= 44; &?(mono) thread := 123; &?^(mono_ro, __timeout__=1000) thread2 := 123;");
+    ASSERT_TRUE(ast);
+    ASSERT_TRUE(analysis.Analyze(ast, ast)) << ast->m_int_vars.Dump();
+    ASSERT_EQ(4, ast->m_int_vars.size()) << ast->m_int_vars.Dump();
+
+    ast = jit->GetParser()->Parse("&* multi ::= 5; &*^ multi_ro ::= 55; &?(multi) other := 123; &?^(multi_ro, __timeout__=1000) other2 := 123;");
+    ASSERT_TRUE(ast);
+    ASSERT_TRUE(analysis.Analyze(ast, ast)) << ast->m_int_vars.Dump();
+    ASSERT_EQ(4, ast->m_int_vars.size()) << ast->m_int_vars.Dump();
+}
+
 /*
  * 
  */
 
 TEST(Ast, Namespace) {
 
-    RuntimePtr rt = RunTime::Init();
-    ASSERT_TRUE(rt);
-    JIT * jit = JIT::Init(rt);
-    AstAnalysis analysis(*rt, rt->m_diag.get());
+    JIT * jit = JIT::ReCreate();
+    AstAnalysis analysis(*jit, jit->m_diag.get());
 
     TermPtr ast = jit->GetParser()->Parse("$var := 1;");
     ASSERT_TRUE(ast);
@@ -767,11 +998,9 @@ TEST(Ast, Namespace) {
 
 TEST(Ast, Interruption) {
 
-    RuntimePtr rt = RunTime::Init();
-    ASSERT_TRUE(rt);
-    JIT * jit = JIT::Init(rt);
+    JIT * jit = JIT::ReCreate();
 
-    AstAnalysis analysis(*rt, rt->m_diag.get());
+    AstAnalysis analysis(*jit, jit->m_diag.get());
 
     TermPtr ast = jit->GetParser()->Parse(":: --;");
     ASSERT_TRUE(ast);
@@ -1080,38 +1309,36 @@ TEST(Ast, Dims) {
     // :Bool() - Ok
     // :Bool[..., ...]() - Error !!!!!!!!!!!!!!!!!
 
-    RuntimePtr rt = RunTime::Init();
-    ASSERT_TRUE(rt);
-    JIT * jit = JIT::Init(rt);
-    AstAnalysis analysis(*rt, rt->m_diag.get());
+    JIT * jit = JIT::ReCreate();
+    AstAnalysis analysis(*jit, jit->m_diag.get());
 
     TermPtr ast;
     ast = jit->GetParser()->Parse(":Bool(1)");
-    ASSERT_TRUE(analysis.Analyze(ast, ast));
+    ASSERT_TRUE(analysis.Analyze(ast, ast)) << Dump(*jit);
 
     ASSERT_ANY_THROW(ast = jit->GetParser()->Parse(":Bool[](1)"));
 
-    AstAnalysis analysis2(*rt, rt->m_diag.get());
+    AstAnalysis analysis2(*jit, jit->m_diag.get());
     ast = jit->GetParser()->Parse(":Bool[...](1)");
     ASSERT_TRUE(analysis2.Analyze(ast, ast));
 
-    AstAnalysis analysis3(*rt, rt->m_diag.get());
+    AstAnalysis analysis3(*jit, jit->m_diag.get());
     ast = jit->GetParser()->Parse(":Bool[ ..., ...](1)");
     ASSERT_FALSE(analysis3.Analyze(ast, ast));
 
-    AstAnalysis analysis4(*rt, rt->m_diag.get());
+    AstAnalysis analysis4(*jit, jit->m_diag.get());
     ast = jit->GetParser()->Parse(":Bool[0](1)");
     ASSERT_TRUE(analysis4.Analyze(ast, ast));
 
-    AstAnalysis analysis5(*rt, rt->m_diag.get());
+    AstAnalysis analysis5(*jit, jit->m_diag.get());
     ast = jit->GetParser()->Parse(":Bool[_](1)");
     ASSERT_TRUE(analysis5.Analyze(ast, ast));
 
-    AstAnalysis analysis6(*rt, rt->m_diag.get());
+    AstAnalysis analysis6(*jit, jit->m_diag.get());
     ast = jit->GetParser()->Parse(":Bool[0..1..2](1)");
     ASSERT_TRUE(analysis6.Analyze(ast, ast));
 
-    AstAnalysis analysis7(*rt, rt->m_diag.get());
+    AstAnalysis analysis7(*jit, jit->m_diag.get());
     ast = jit->GetParser()->Parse("0.._..2");
     ASSERT_TRUE(analysis7.Analyze(ast, ast));
 }
@@ -1616,9 +1843,8 @@ TEST(Ast, CheckStrPrintf) {
     ASSERT_FALSE(AstAnalysis::CheckStrPrintf("%s%d%ld%f%s", args, 2));
 
 
-    RuntimePtr rt = RunTime::Init();
-    JIT * jit = JIT::Init(rt);
-    ASSERT_TRUE(rt);
+    JIT * jit = JIT::ReCreate();
+    ASSERT_TRUE(jit);
 
     ASSERT_ANY_THROW(jit->MakeAst("print()"));
     ASSERT_ANY_THROW(jit->MakeAst("print(123)"));
@@ -1722,18 +1948,18 @@ TEST(Ast, MakeInclude) {
     std::string str;
     str = AstAnalysis::MakeInclude(Term::CreateName("name"));
     ASSERT_STREQ("", str.c_str());
-    
+
     str = AstAnalysis::MakeInclude(Parser::ParseString("::val := 1;"));
     ASSERT_STREQ("::val := ...;\n", str.c_str());
 
     str = AstAnalysis::MakeInclude(Parser::ParseString("::val := 1; val2 := 1; @::val3 := 1"));
     ASSERT_STREQ("::val := ...;\n@::val3 := ...;\n", str.c_str());
-    
+
     str = AstAnalysis::MakeInclude(Parser::ParseString("::val, val2, @::val3 := 1"));
     ASSERT_STREQ("::val := ...;\n@::val3 := ...;\n", str.c_str());
 
     str = AstAnalysis::MakeInclude(Parser::ParseString("@@ macro @@ := 1; @@ macro2 @@ := @@ 2 @@; @@@@ macro @@@@;"));
     ASSERT_STREQ("@@ macro @@ := 1;\n@@ macro2 @@ := @@ 2 @@;\n@@@@ macro @@@@;\n", str.c_str());
-    
+
 }
 #endif // UNITTEST

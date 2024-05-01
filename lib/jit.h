@@ -62,6 +62,7 @@
 #include "runtime.h"
 #include "macro.h"
 #include "analysis.h"
+#include "module.h"
 
 
 
@@ -97,13 +98,25 @@ namespace newlang {
         TermPtr ParseFile(const std::string_view filename);
     };
 
-    class JIT {
+    class JIT : public RunTime {
     public:
 
-        RuntimePtr m_rt;
+        //        RuntimePtr m_rt;
         MacroPtr m_macro;
         size_t m_repl_count;
-        ObjPtr m_last_result;
+        ObjPtr m_latter;
+
+        std::vector<ModulePtr> m_module;
+        std::vector<std::shared_ptr<Context>> m_ctx;
+
+        inline TermPtr & GetAst() {
+            return (*m_module.begin())->m_ast;
+        }
+
+        inline Context & GetCtx() {
+            ASSERT(m_ctx.size());
+            return *(*m_ctx.begin());
+        }
 
         clang::IntrusiveRefCntPtr<clang::DiagnosticOptions> DiagOpts;
         clang::TextDiagnosticPrinter *textDiagPrinter;
@@ -111,7 +124,7 @@ namespace newlang {
         clang::DiagnosticsEngine *pDiagnosticsEngine;
 
 
-        JIT(RuntimePtr rt);
+        JIT(const StringArray &args = {});
 
         virtual ~JIT() {
 
@@ -119,29 +132,40 @@ namespace newlang {
             pDiagnosticsEngine = nullptr;
             pDiagIDs.reset();
 
-            delete textDiagPrinter;
-            textDiagPrinter = nullptr;
+            //            delete textDiagPrinter;
+            //            textDiagPrinter = nullptr;
             DiagOpts.reset();
+            LLVMShutdown();
         }
 
 
         static JIT * m_instance;
 
-        static JIT * Init(RuntimePtr rt) {
-            return Instance(rt);
+        void Clear() {
+            if (m_instance) {
+                delete m_instance;
+            }
+            m_instance = nullptr;
+            //void LLVMGetVersion(unsigned *Major, unsigned *Minor, unsigned *Patch);
+
         }
 
-        static JIT * Instance(RuntimePtr rt) {
-            ASSERT(rt);
+        static JIT * ReCreate(const StringArray &args = {}) {
+            Instance()->Clear();
+            return Instance(args);
+        }
+
+        static JIT * Instance(const StringArray &args = {}) { //RuntimePtr rt
+            //            ASSERT(rt);
             if (m_instance == nullptr) { // || (rt && &m_instance->m_rt != rt)) {
                 //                ASSERT(rt);
                 //                if (m_instance) {
                 //                    delete m_instance;
                 //                }
-                m_instance = new JIT(rt);
+                m_instance = new JIT(args);
             }
             ASSERT(m_instance);
-            m_instance->m_rt = rt;
+            //            m_instance->m_rt = rt;
             return m_instance;
         }
 
@@ -194,10 +218,9 @@ namespace newlang {
 
         // Выполняет скопилированное AST как главный модуль программы
         // При повторном вызове m_main_ast заменяется на новый AST
-        ObjPtr Run(TermPtr ast, Obj* args = nullptr);
+        //        ObjPtr Run(TermPtr ast, Obj* args = nullptr);
+        ObjPtr Run(Module *module, Obj* args = nullptr);
         ObjPtr RunFile(std::string file, Obj* args = nullptr);
-
-        ObjPtr REPL(const std::string_view source);
 
         bool ModuleCreate(FileModule &data, const std::string_view source);
         static bool ModuleCreate(FileModule &data, const std::string_view module_name, const TermPtr &include, const std::string_view source, llvm::Module *bc = nullptr);
@@ -231,6 +254,16 @@ namespace newlang {
         static std::string MakeMainEmbed(const std::string_view embed_source, const std::vector<std::string> &include);
 
         static TermPtr MainArgs();
+
+        //
+        //
+        //        ObjPtr EvalCreate_(TermPtr & op);
+        //        ObjPtr AssignVars_(ArrayTermType &l_vars, const TermPtr &r_term, bool is_pure);
+        //
+        //        ObjPtr GetIndexValue(TermPtr &term, ObjPtr &obj, Context * runner);
+        //        ObjPtr GetFieldValue(TermPtr &term, ObjPtr &value, Context * runner);
+        //        ObjPtr SetIndexValue(TermPtr &term, ObjPtr &value, Context * runner);
+        //        ObjPtr SetFieldValue(TermPtr &term, ObjPtr &value, Context * runner);
 
         std::vector<std::string> m_includes;
 

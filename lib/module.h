@@ -10,39 +10,27 @@
 //#include <object.h>
 #include "runtime.h"
 #include "context.h"
-#include "parser.h"
 
 namespace newlang {
 
-    /*
-     * Загрузка модуля, например:
-     * \runtime\os(args);
-     * 
-     * Раскрывается в описание класса??? __name__="os" или __name__="__main__" для приложения
-     * :Module(args, __module__="\\\\runtime\\os", __file__="runtime\\os.src", __md5__="..." ... ) { @__PRAGMA_LOCATION__( push, 'runtime\\os.src', 0)
-     * ..... текст модуля ..... начинается с 1 строки т.к. @__PRAGMA_LOCATION__( push устанавливает номер строки **0**
-     * @__PRAGMA_LOCATION__( pop) };
-     */
 
-
-    struct ModuleItem {
-        TermPtr item;
-        ObjPtr obj;
-    };
-
-    class Module : public std::map<std::string, ModuleItem> {
+    class Module : public std::map<std::string, VarItem> {
     public:
+        RunTime *m_rt;
+        
         std::string m_file;
         std::string m_md5;
         std::string m_timestamp;
         std::string m_version;
+//        std::vector<llvm::orc::ThreadModule> m_llvm_module;
         //        std::string m_source;
         //        bool m_is_main;
-        RuntimePtr m_runtime;
 
+        TermPtr m_ast;
     public:
 
-        Module(RuntimePtr rt = nullptr, TermPtr ast = nullptr);
+        Module(RunTime *rt = nullptr, TermPtr ast = nullptr);
+        static void RegisterStaticObject(Module &module, TermPtr term, bool init);
 
         //        bool Load(Context & ctx, const char * path, bool is_main) {
         //            m_is_main = is_main;

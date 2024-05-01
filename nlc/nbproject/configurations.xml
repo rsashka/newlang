@@ -7,6 +7,7 @@
           <itemPath>../site/content/en/blog/_index.md</itemPath>
           <itemPath>../site/content/en/blog/dsl-with-macros.en.md</itemPath>
           <itemPath>../site/content/en/blog/dsl.jpeg</itemPath>
+          <itemPath>../site/content/en/blog/reference-solution.md</itemPath>
           <itemPath>../site/content/en/blog/release-0.4.md</itemPath>
         </logicalFolder>
         <logicalFolder name="docs" displayName="docs" projectFiles="true">
@@ -100,6 +101,7 @@
           <itemPath>../site/content/ru/blog/newlang.md</itemPath>
           <itemPath>../site/content/ru/blog/parser-nuances.md</itemPath>
           <itemPath>../site/content/ru/blog/prog-styles-same-time.md</itemPath>
+          <itemPath>../site/content/ru/blog/reference-solution.md</itemPath>
           <itemPath>../site/content/ru/blog/release-0.1.md</itemPath>
           <itemPath>../site/content/ru/blog/release-0.2.md</itemPath>
           <itemPath>../site/content/ru/blog/release-0.3.md</itemPath>
@@ -352,6 +354,11 @@
             flavor2="0">
       </item>
       <item path="../site/content/en/blog/dsl.jpeg" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../site/content/en/blog/reference-solution.md"
+            ex="false"
+            tool="3"
+            flavor2="0">
       </item>
       <item path="../site/content/en/blog/release-0.4.md"
             ex="false"
@@ -677,6 +684,11 @@
             flavor2="0">
       </item>
       <item path="../site/content/ru/blog/prog-styles-same-time.md"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
+      <item path="../site/content/ru/blog/reference-solution.md"
             ex="false"
             tool="3"
             flavor2="0">
@@ -1085,6 +1097,11 @@
       </item>
       <item path="../site/content/en/blog/dsl.jpeg" ex="false" tool="3" flavor2="0">
       </item>
+      <item path="../site/content/en/blog/reference-solution.md"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
       <item path="../site/content/en/blog/release-0.4.md"
             ex="false"
             tool="3"
@@ -1409,6 +1426,11 @@
             flavor2="0">
       </item>
       <item path="../site/content/ru/blog/prog-styles-same-time.md"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
+      <item path="../site/content/ru/blog/reference-solution.md"
             ex="false"
             tool="3"
             flavor2="0">
@@ -1807,6 +1829,11 @@
       </item>
       <item path="../site/content/en/blog/dsl.jpeg" ex="false" tool="3" flavor2="0">
       </item>
+      <item path="../site/content/en/blog/reference-solution.md"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
       <item path="../site/content/en/blog/release-0.4.md"
             ex="false"
             tool="3"
@@ -2131,6 +2158,11 @@
             flavor2="0">
       </item>
       <item path="../site/content/ru/blog/prog-styles-same-time.md"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
+      <item path="../site/content/ru/blog/reference-solution.md"
             ex="false"
             tool="3"
             flavor2="0">
@@ -2488,6 +2520,11 @@
       </item>
       <item path="../site/content/en/blog/dsl.jpeg" ex="false" tool="3" flavor2="0">
       </item>
+      <item path="../site/content/en/blog/reference-solution.md"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
       <item path="../site/content/en/blog/release-0.4.md"
             ex="false"
             tool="3"
@@ -2812,6 +2849,11 @@
             flavor2="0">
       </item>
       <item path="../site/content/ru/blog/prog-styles-same-time.md"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
+      <item path="../site/content/ru/blog/reference-solution.md"
             ex="false"
             tool="3"
             flavor2="0">

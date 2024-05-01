@@ -9,7 +9,6 @@
 #include "nlc-rt.h"
 
 #include "term.h"
-#include "context.h"
 #include "diag.h"
 #include "runtime.h"
 #include "diag.h"
@@ -141,7 +140,8 @@ namespace newlang {
 
     struct GlobItem {
         TermPtr proto;
-        WeakItem obj;
+        //        WeakItem obj;
+        TermWeakItem term;
     };
 
     class RunTime : public std::map<std::string, GlobItem>, public std::enable_shared_from_this<RunTime> {
@@ -156,12 +156,12 @@ namespace newlang {
 
     public:
 
-        TermPtr NameRegister(bool new_only, const char *name, TermPtr proto, WeakItem obj = std::monostate()); // = std::monostate);
+        TermPtr NameRegister(bool new_only, const std::string_view name, TermWeak proto); //, WeakItem obj = std::monostate()); // = std::monostate);
         //        bool NameRegister(const char * glob_name, TermPtr proto, WeakItem obj); // = std::monostate);
-        GlobItem * NameFind(const char *name);
+        GlobItem * NameFind(const std::string_view name);
         TermPtr GlobFindProto(const std::string_view name);
 
-        ObjPtr NameGet(const char *name, bool is_raise = true);
+        TermPtr NameGet(const char *name, bool is_raise = true);
 
         //        bool MakeFullNames(TermPtr ast);
 
@@ -173,11 +173,12 @@ namespace newlang {
 
         void Clear();
 
-        bool RegisterNativeObj(TermPtr term);
+//        bool RegisterNativeObj(TermPtr term);
 
-        bool RegisterSystemBuildin(const char *text);
-        bool RegisterSystemObj(ObjPtr obj);
-        std::vector<ObjPtr> m_sys_obj;
+        bool RegisterBuildinFunc(std::string proto, void * func);
+//        bool RegisterSystemBuildin(const char *text);
+//        bool RegisterSystemObj(ObjPtr obj);
+//        std::vector<ObjPtr> m_sys_obj;
 
         ObjPtr CreateNative(const char *proto, const char *module = nullptr, bool lazzy = false, const char *mangle_name = nullptr);
         ObjPtr CreateNative(TermPtr proto, const char *module = nullptr, bool lazzy = false, const char *mangle_name = nullptr);
@@ -208,7 +209,7 @@ namespace newlang {
         }
 
          */
-        RunTime();
+        RunTime(const StringArray &args = {});
 
         virtual ~RunTime();
 
@@ -242,6 +243,7 @@ namespace newlang {
         ffi_type * m_wide_char_type_ffi;
         ObjType m_integer_type;
 
+        void InitInternal(const StringArray args);
         static RuntimePtr Init(StringArray args);
         static RuntimePtr Init(int argc = 0, const char** argv = nullptr, const char** penv = nullptr);
         //        static RuntimePtr Init(std::vector<const char *> args, bool ignore_error = true);
@@ -330,6 +332,7 @@ namespace newlang {
         StringArray m_module_loader;
 
         std::map<std::string, ObjPtr> m_buildin_obj;
+        std::map<std::string, TermPtr> m_buildin;
 
         std::string m_work_dir;
         std::string m_exec_dir;
@@ -354,7 +357,7 @@ namespace newlang {
         DiagPtr m_diag;
 
         TermPtr m_main_ast;
-        RunnerPtr m_main_runner;
+        //        RunnerPtr m_main_runner;
 
         static bool ExpandFileName(std::string &filename);
 

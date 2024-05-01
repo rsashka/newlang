@@ -168,8 +168,34 @@ typedef std::weak_ptr<const Obj> ObjWeakConst;
         SyncMultiConst = 8,
     };
 
+    inline RefType RefTypeFromString(const std::string_view text){
+        if(text.empty()){
+            return RefType::None;
+        } else if(text.compare("&")==0){
+            return RefType::LiteSingle;
+        } else if(text.compare("&^")==0){
+            return RefType::LiteSingleConst;
+        } else if(text.compare("&?")==0){
+            return RefType::LiteThread;
+        } else if(text.compare("&?^")==0){
+            return RefType::LiteThreadConst;
+        } else if(text.compare("&*")==0){
+            return RefType::SyncMulti;
+        } else if(text.compare("&*^")==0){
+            return RefType::SyncMultiConst;
+        } else if(text.compare("&&")==0){
+            return RefType::SyncMono;
+        } else if(text.compare("&&^")==0){
+            return RefType::SyncMonoConst;
+        }
+        LOG_RUNTIME("Unknown reference type '%s'!", text.begin());
+    }
+    
     inline bool isLiteRef(RefType type){
         return  type == RefType::LiteSingle || type == RefType::LiteSingleConst || type == RefType::LiteThread || type == RefType::LiteThreadConst;
+    }
+    inline bool isLiteSyncRef(RefType type){
+        return  type == RefType::LiteThread || type == RefType::LiteThreadConst;
     }
     inline bool isHeavyRef(RefType type){
         return  type == RefType::SyncMono || type == RefType::SyncMonoConst || type == RefType::SyncMulti || type == RefType::SyncMultiConst;
@@ -179,6 +205,29 @@ typedef std::weak_ptr<const Obj> ObjWeakConst;
     }
     inline bool isEditableRef(RefType type){
         return  type == RefType::LiteSingle || type == RefType::LiteThread || type == RefType::SyncMono || type == RefType::SyncMulti;
+    }
+    inline bool isValidReference(RefType type, RefType test){
+        switch(type){
+            case RefType::None:
+                return test == RefType::None;
+            case RefType::LiteSingle:
+                return test == RefType::LiteSingle || test == RefType::LiteSingleConst;
+            case RefType::LiteSingleConst:
+                return test == RefType::LiteSingleConst;
+            case RefType::LiteThread:
+                return test == RefType::LiteThread || test == RefType::LiteThreadConst;
+            case RefType::LiteThreadConst:
+                return test == RefType::LiteThreadConst;
+            case RefType::SyncMono:
+                return test == RefType::SyncMono || test == RefType::SyncMonoConst;
+            case RefType::SyncMonoConst:
+                return test == RefType::SyncMonoConst;
+            case RefType::SyncMulti:
+                return test == RefType::SyncMulti || test == RefType::SyncMultiConst;
+            case RefType::SyncMultiConst:
+                return test == RefType::SyncMultiConst;
+        }
+        LOG_RUNTIME("Unknown reference type code! (%d)", static_cast<int>(type));
     }
 
 /**
@@ -315,6 +364,9 @@ typedef std::shared_ptr<Context> RunnerPtr;
 typedef ObjPtr FunctionType(Context *ctx, Obj &in);
 
 typedef std::variant<std::monostate, ObjWeak, std::vector < ObjWeak> > WeakItem;
+
+typedef std::weak_ptr<Term> TermWeak;
+typedef std::variant<std::monostate, TermWeak, std::vector < TermWeak> > TermWeakItem;
 
 typedef ObjPtr(*EvalFunction)(Context *ctx, const TermPtr & term, Obj * args, bool eval_block);
 
@@ -1058,8 +1110,20 @@ void ParserException(const char *msg, std::string &buffer, int row, int col);
      *
      *
      */
+    inline bool isReservedName(const std::string_view name) {
+        if (name.empty()) {
+            return false;
+        }
+        if (name.size() > 3 || !(name[0] == '$' || name[0] == '@' || name[0] == '%')) {
+            return name.compare("_") == 0;
+        }
+        return name.compare("$") == 0 || name.compare("@") == 0 || name.compare("%") == 0
+                || name.compare("$$") == 0 || name.compare("@$") == 0 || name.compare("$^") == 0
+                || name.compare("@::") == 0 || name.compare("$*") == 0 || name.compare("$#") == 0;
+    }
+    
     inline bool isInternalName(const std::string_view name) {
-        return !name.empty() && (name.rbegin()[0] == ':' || name.rbegin()[0] == '$');
+        return !name.empty() && (name.rbegin()[0] == ':' || name.rbegin()[0] == '$' || isReservedName(name));
     }
 
     inline bool isMangledName(const std::string_view name) {
@@ -1124,18 +1188,6 @@ void ParserException(const char *msg, std::string &buffer, int row, int col);
         // Метод, который изменяет объект, должен заканчиваеться на ОДИН подчерк
 
         return name.size() > 1 && name[name.size() - 1] == '_' && name[name.size() - 2] != '_';
-    }
-
-    inline bool isReservedName(const std::string_view name) {
-        if (name.empty()) {
-            return false;
-        }
-        if (name.size() > 3 || !(name[0] == '$' || name[0] == '@' || name[0] == '%')) {
-            return name.compare("_") == 0;
-        }
-        return name.compare("$") == 0 || name.compare("@") == 0 || name.compare("%") == 0
-                || name.compare("$$") == 0 || name.compare("@$") == 0 || name.compare("$^") == 0
-                || name.compare("@::") == 0;
     }
 
     inline bool isSystemName(const std::string_view name) {
