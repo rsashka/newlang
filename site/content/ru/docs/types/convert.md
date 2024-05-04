@@ -1,6 +1,6 @@
 ---
 title: Преобразование типов
-# linkTitle: Docs
+slug: convert
 # menu: {main: {weight: 20}}
 weight: 100
 tags: [типы данных]

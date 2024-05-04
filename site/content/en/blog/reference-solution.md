@@ -29,7 +29,7 @@ Another equally important but often ignored problem with references is the langu
 In Python, it is very easy to confuse how a variable will be passed as an argument to a function, by value or by reference. This depends on the data contained in the variable. The fact that Python is a dynamically typed language adds a special twist, and in general, it is not known in advance what value is stored in the variable.
 
 ## Who is to blame and what to do?  
-It seems to me that the main reason, at least for the ambiguous semantics, is the constant [growth of complexity of development tools](https://habr.com/ru/companies/timeweb/articles/551754/), and as a result - the complication and refinement of the syntax of programming languages for new concepts and capabilities while maintaining backward compatibility with old legacy code.  
+It seems to me that the main reason, at least for the ambiguous semantics, is the constant [growth of complexity of development tools](https://habr.com/companies/timeweb/articles/551754/), and as a result - the complication and refinement of the syntax of programming languages for new concepts and capabilities while maintaining backward compatibility with old legacy code.  
   
 But what if we start from a clean slate? For example, a universal concept of object and object reference management that does not require manual memory management by the user (programmer), for which no garbage collector is needed, and errors when working with memory and object references become impossible due to full control of memory management even at the stage of compiling the application source code!  
   
@@ -103,5 +103,5 @@ A link := &owner;
 ```
 
 With this syntax, everything becomes simple, visual, and clear. 
-[But if I missed something somewhere, please write in the comments](https://habr.com/ru/articles/809877/) or a personal message.
+[But if I missed something somewhere, please write in the comments](https://habr.com/articles/809877/) or a personal message.
 

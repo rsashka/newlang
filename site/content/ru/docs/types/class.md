@@ -45,6 +45,133 @@ NewClass2() := NewClass { # Новый класс на базе существу
 };
 ```
 
+```python
+
+@@ self_required() @@ ::= @if( @not(@self) ) { @throw :ErrorRuntime( 'Fail function call without object!' ); };
+
+:File(filename: String, mode:String) ::= Class(){
+    :Handler ::= :Pointer;
+    _fopen(file:StrChar, mode:StrChar):Handler ::= %fopen64 ...;
+    _fclose(hfile:Handler):None ::= %fclose ...;
+    _ftmpfile():Handler ::= %ftmpfile ...;
+    
+    ._haldler:Handler ::= 0; # FILE handler
+
+    ~File() ::= { # Destructor
+        @self_required();
+        [ $0._haldler ] --> {
+            _fclose($0._haldler);
+            $0._haldler = 0;
+        };
+    };
+
+    # Constructor body
+    [$filename] --> {
+        ._haldler = _fopen($filename, $mode);
+    },[...] ={
+        ._haldler = _ftmpfile();
+    };
+    [ ._haldler == -1 ] --> {
+        @throw( "Fail open file $name"(name=$filename) );
+    }
+
+};
+
+File::remove(filename:String):Int32; ::= %remove ...;
+File::frename(old:String, new:String):Int32 ::= %rename...;
+File::_fflush(stream:FileHandler):Int32 ::= fflush...;
+File::flush(hfile:Handler = -1):Int32 ::= {
+    @self_required();
+    [ hfile != -1 ] --> {
+        @return _fflush(stream);
+    }, [ $0 ] {
+        @return _fflush($0._haldler);
+    },[...] ={
+        @throw( "Fail flush without file handler or object!" );
+    };
+};
+
+File::_fileno(handler:Handler) ::= fileno ...;
+File::fileno():Int32 ::= {
+    [ $0 ] {
+        @return _fileno($0._haldler);
+    },[...] ={
+        @throw( "Fail fileno without object!" );
+    };
+};
+
+File::_fputc(c:Int32, stream:Handler):Int32 ::= fputc ...;
+File::_fputs(string:String, stream:Handler):Int32 ::= fputs...;
+
+File::_fread(c:Int32, stream:Handler):Int32 ::= fputc ...;
+File::_fwrite(c:Int32, stream:Handler):Int32 ::= fputc ...;
+size_t fwrite(const void *buf, size_t size, size_t count, FILE *stream)
+
+File::_fread(buf:Pointer, size:Integer, count:Integer, stream:Handler):Integer ::= fread ...;
+File::read(&buf:Integer, size:Integer = -1):Integer ::= {
+    [ @not($0) ] {
+        @throw( "Fail read without object!" );
+    };
+
+    [ size == -1 ] {
+        size = tell();
+        buf = Tensor[size](buf);
+    };
+    
+    @return read(&buf, buf.size(), 1, $0._handler);
+};
+
+
+int flushall(void)
+int fcloseall(void)
+
+
+File::filelegth() ::= {
+    $size: Int64 ::= _;
+    @if( @.embed-enabled ){%
+        size_t save = ftell($0._handler); // get current file pointer
+        fseek($0._handler, 0, SEEK_END); // seek to end of file
+        $size = ftell($0._handler); // get current file pointer
+        fseek($0._handler, save, SEEK_SET); // seek back to beginning of file
+    %} @else {
+        save = _ftell($0._handler);
+        fseek(f, 0, SEEK_END); // seek to end of file
+        $size = ftell($0._handler); // get current file pointer
+        fseek(f, save, SEEK_SET); // seek back to beginning of file
+    }
+    @return $size;
+}
+
+
+
+```
+
+:FileHandler ::= :Pointer;
+
+fopen(filename:String, modes:String):FileHandler ::= :Pointer("fopen(filename:StrChar, modes:StrChar):FileHandler");;
+fopen64(filename:String, modes:String):FileHandler ::= :Pointer("fopen(filename:StrChar, modes:StrChar):FileHandler");;
+
+freopen(filename:String, modes:String):FileHandler ::= :Pointer("freopen(filename:StrChar, modes:StrChar, stream:FileHandler):FileHandler");;
+fclose(stream:FileHandler):Int32 ::= :Pointer("fclose(stream:FileHandler):Int32");;
+fflush(stream:FileHandler):Int32 ::= :Pointer("fflush(stream:FileHandler):Int32");;
+fremove(filename:String):Int32 ::= :Pointer("remove(filename:StrChar):Int32");;
+frename(old:String, new:String):Int32 ::= :Pointer("rename(old:StrChar, new:StrChar):Int32");;
+ftmpfile():FileHandler ::= :Pointer("tmpfile():FileHandler");;
+
+fprintf(stream:FileHandler, format:FmtChar, ...):Int32 ::= :Pointer("fprintf(stream:FileHandler, format:FmtChar, ...):Int32");;
+fscanf(stream:FileHandler, format:FmtChar, ...):Int32 ::= :Pointer("fscanf(stream:FileHandler, format:FmtChar, ...):Int32");;       
+fgetc(stream:FileHandler):Int32 ::= :Pointer("fgetc(stream:FileHandler):Int32");;
+fungetc(c:Int32, stream:FileHandler):Int32 ::= :Pointer("ungetc(c:Int32, stream:FileHandler):Int32");;
+fputc(c:Int32, stream:FileHandler):Int32 ::= :Pointer("fputc(c:Int32, stream:FileHandler):Int32");;
+fputs(string:String, stream:FileHandler):Int32 ::= :Pointer("fputs(c:StrChar, stream:FileHandler):Int32");;
+
+SEEK ::= :Enum(SET=0, CUR=1, END=2);
+fseek(stream:FileHandler, offset:Int64, whence:Int32):Int32 ::= :Pointer("fseek(stream:FileHandler, offset:Int64, whence:Int32):Int32");;
+
+
+
+
+
 ## Импорт нативных классов  <КОСЯКИ!!!!!>
 Так же новый класс можно создать на базе нативного класса C++ с определенными ограничениями:
 - У нативных классов можно импортировть только *публичные не статические методы* (не виртуальные???)
