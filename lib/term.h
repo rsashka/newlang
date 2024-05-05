@@ -342,6 +342,7 @@ namespace newlang {
         static TermPtr CreateNil();
         static TermPtr CreateDict();
         static TermPtr CreateName(std::string name, TermID id = TermID::NAME);
+        static TermPtr CreateIntName(const std::string_view name, const std::string_view int_name, TermID id = TermID::NAME);
 
         TermPtr Clone() {
             TermPtr result = Term::Create(m_id, m_text.c_str(), m_lexer_type);
@@ -1548,8 +1549,10 @@ namespace newlang {
 
         inline bool TestConst() {
             if (isConstName(m_text)) {
-                m_text.resize(m_text.size() - 1);
                 m_is_const = true;
+                if (!isReservedName(m_text)) {
+                    m_text.resize(m_text.size() - 1);
+                }
             }
             return m_is_const;
         }

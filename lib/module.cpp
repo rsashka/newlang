@@ -12,17 +12,21 @@ void Module::RegisterStaticObject(Module &module, TermPtr op, bool init) {
         auto found = module.find(op->m_left->m_int_name);
         if (found == module.end()) {
 
-            VarItem item;
-            item.item = op->m_left;
-            item.sync = Context::CreateSync(op->m_left);
+            ObjPtr obj;
+//            VarItem item;
+//            item.item = op->m_left;
+//            item.sync = Context::CreateSync(op->m_left);
             if (init) {
-                item.obj = Context::EvalTerm(op->m_right, nullptr, true);
+//                item.obj = Context::EvalTerm(op->m_right, nullptr, true);
+                obj = Context::EvalTerm(op->m_right, nullptr, true);
             } else {
-                item.obj = Obj::CreateEmpty();
+//                item.obj = Obj::CreateEmpty();
+                obj = Obj::CreateEmpty();
             }
-            item.obj->m_sync = item.sync.get();
-            item.item->m_obj = item.obj;
+//            item.obj->m_sync = item.sync.get();
+//            item.item->m_obj = item.obj;
 
+            VarItem item = Context::CreateItem(op->m_left, std::move(obj));
             if (isGlobalScope(op->m_left->m_text) && module.m_rt) {
                 module.m_rt->NameRegister(op->isCreateOnce(), op->m_left->m_int_name, item.item); //, item.obj);
             }

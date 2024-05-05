@@ -19,6 +19,10 @@ namespace newlang {
         TermPtr item;
         ObjPtr obj;
         std::unique_ptr<Sync> sync;
+#ifdef BUILD_DEBUG
+        void * term_check;
+        void * obj_check;
+#endif        
     };
 
     struct VarScope {
@@ -46,6 +50,16 @@ namespace newlang {
 
         static std::unique_ptr<Sync> CreateSync(const TermPtr &term);
 
+        static VarItem CreateItem(TermPtr term, ObjPtr obj);
+
+        VarItem * FindVarItem(const TermPtr &term) {
+            if (!isInternalName(term->m_int_name)) {
+                LOG_RUNTIME("'%s' is not an internal name!", term->m_text.c_str());
+            }
+            return FindVarItem(term->m_int_name);
+        }
+        VarItem * FindVarItem(const std::string_view name);
+
 
         TermPtr GetObject(const std::string_view int_name);
         TermPtr FindInternalName(const std::string_view int_name);
@@ -70,11 +84,9 @@ namespace newlang {
          * @return 
          */
         static ObjPtr Call(Context *runner, Obj &obj, Obj & args);
-        
-        static VarItem CreateItem(TermPtr term, ObjPtr obj);
 
         std::string Dump();
-        
+
     protected:
 
         void PushScope(const TermID id, const std::string_view &name) {
@@ -136,7 +148,7 @@ namespace newlang {
         }
 
         ObjPtr CreateNative_(TermPtr &proto, const char *module, bool lazzy, const char *mangle_name);
-        ObjPtr CallNative_(Context *runner, Obj & obj, Obj *args = nullptr);
+        static ObjPtr CallNative_(Context *runner, Obj & obj, Obj *args = nullptr);
 
         /**
          * Выполняет одну операцию
@@ -212,8 +224,8 @@ namespace newlang {
     public:
         Context &m_ctx;
 
-        CtxPush(Context &ctx, const TermID id, const std::string_view &name) : m_ctx(ctx) {
-            m_ctx.PushScope(id, name);
+        CtxPush(Context &ctx, const TermID id, const TermPtr & ns) : m_ctx(ctx) {
+            m_ctx.PushScope(id, ns ? ns->m_text : "");
         }
 
         ~CtxPush() {

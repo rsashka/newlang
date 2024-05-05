@@ -182,6 +182,10 @@ TEST(Alg, Foreach) {
     ASSERT_NO_THROW(counter = jit->Run("counter := 100"));
     ASSERT_EQ(100, counter->GetValueAsInteger());
 
+    ASSERT_NO_THROW(counter = jit->Run("counter"));
+    ASSERT_EQ(100, counter->GetValueAsInteger());
+    void *cnt_ptr = counter.get();
+
     ObjPtr dict;
     ASSERT_NO_THROW(dict = jit->Run("dict := (0,1,2,)"));
     ASSERT_TRUE(dict);
@@ -194,6 +198,7 @@ TEST(Alg, Foreach) {
 
     ASSERT_NO_THROW(counter = jit->Run("counter"));
     ASSERT_EQ(100, counter->GetValueAsInteger());
+    ASSERT_EQ(cnt_ptr, counter.get());
 
     ObjPtr temp;
     ASSERT_NO_THROW(temp = jit->Run("counter, dict := ... dict"));
@@ -202,6 +207,7 @@ TEST(Alg, Foreach) {
     ASSERT_EQ(2, temp->size());
 
     ASSERT_NO_THROW(counter = jit->Run("counter"));
+    ASSERT_EQ(cnt_ptr, counter.get());
     ASSERT_EQ(0, counter->GetValueAsInteger());
 
     ASSERT_TRUE(dict->is_dictionary_type());
@@ -251,7 +257,7 @@ TEST(Alg, Foreach) {
 
     ASSERT_NO_THROW(counter = jit->Run("counter"));
     ASSERT_TRUE(counter);
-    ASSERT_TRUE(counter->is_none_type());
+    ASSERT_TRUE(counter->is_none_type()) << counter->toString();
 
 
     dict->push_back(Obj::Arg(10));
@@ -267,6 +273,8 @@ TEST(Alg, Foreach) {
     ASSERT_FALSE(temp->is_scalar());
     ASSERT_TRUE(temp->GetValueAsBoolean());
     ASSERT_EQ(5, temp->size());
+
+    void *ptr_dict = temp.get();
 
     ASSERT_NO_THROW(temp = jit->Run(":Bool[...](dict)"));
     ASSERT_TRUE(temp);
@@ -303,6 +311,7 @@ TEST(Alg, Foreach) {
 
     ASSERT_NO_THROW(temp = jit->Run("dict"));
     ASSERT_TRUE(temp);
+    ASSERT_EQ(ptr_dict, temp.get());
     ASSERT_STREQ("(10, 20, 30, 40, 50,)", temp->toString().c_str());
 
     ObjPtr summa;
@@ -347,13 +356,31 @@ TEST(Alg, Foreach) {
 
 
     ASSERT_NO_THROW(dict = jit->Run("dict := (0,1,2,3,4,)"));
+    ASSERT_EQ(ptr_dict, dict.get());
+    ASSERT_STREQ("(0, 1, 2, 3, 4,)", dict->toString().c_str());
+
+
+    ASSERT_NO_THROW(temp = jit->Run("dict"));
+    ASSERT_EQ(ptr_dict, temp.get());
+    ASSERT_STREQ("(0, 1, 2, 3, 4,)", temp->toString().c_str());
+
     ObjPtr item;
     ASSERT_NO_THROW(item = jit->Run("item := 0"));
     ASSERT_EQ(0, item->GetValueAsInteger());
     ASSERT_NO_THROW(item = jit->Run("item, dict := ... dict; item"));
     ASSERT_EQ(0, item->GetValueAsInteger());
+    
+    ASSERT_NO_THROW(temp = jit->Run("dict"));
+    ASSERT_EQ(ptr_dict, temp.get());
+    ASSERT_STREQ("(1, 2, 3, 4,)", temp->toString().c_str());
+
     ASSERT_NO_THROW(item = jit->Run("item, dict := ... dict; item"));
     ASSERT_EQ(1, item->GetValueAsInteger());
+    
+    ASSERT_NO_THROW(temp = jit->Run("dict"));
+    ASSERT_EQ(ptr_dict, temp.get());
+    ASSERT_STREQ("(2, 3, 4,)", temp->toString().c_str());
+    
     ASSERT_NO_THROW(item = jit->Run("item, dict := ... dict; item"));
     ASSERT_EQ(2, item->GetValueAsInteger());
 
@@ -368,8 +395,15 @@ TEST(Alg, Foreach) {
     ASSERT_TRUE(summa);
     ASSERT_STREQ("3", summa->toString().c_str());
 
+    ASSERT_NO_THROW(temp = jit->Run("dict"));
+    ASSERT_EQ(ptr_dict, temp.get());
+    ASSERT_STREQ("(3, 4,)", temp->toString().c_str());
+
     ObjPtr cnt;
     ASSERT_NO_THROW(dict = jit->Run("dict := (0,1,2,3,4,)"));
+    ASSERT_NO_THROW(temp = jit->Run("dict"));
+    ASSERT_EQ(ptr_dict, temp.get());
+    ASSERT_STREQ("(0, 1, 2, 3, 4,)", temp->toString().c_str());
 
     LOG_DEBUG("\n\n\n");
 
@@ -715,7 +749,7 @@ TEST(Alg, Return) {
     try {
         ASSERT_NO_THROW(result = jit->Run("ns{ ns ++ }"));
         ASSERT_TRUE(result);
-        ASSERT_TRUE(result->is_none_type());
+        ASSERT_TRUE(result->is_none_type()) << result->toString();
     } catch (IntAny &except) {
         ASSERT_TRUE(0);
     }
@@ -724,7 +758,7 @@ TEST(Alg, Return) {
     try {
         ASSERT_NO_THROW(result = jit->Run("ns{ { ns ++ } }"));
         ASSERT_TRUE(result);
-        ASSERT_TRUE(result->is_none_type());
+        ASSERT_TRUE(result->is_none_type()) << result->toString();
     } catch (IntAny &except) {
         ASSERT_TRUE(0);
     }

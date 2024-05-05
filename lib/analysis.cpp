@@ -816,8 +816,8 @@ bool AstAnalysis::CheckAssignRef(TermPtr &left, TermPtr &right, ScopeStack & sta
                 if (l_found && l_found->m_is_reference) {
                     NL_MESSAGE(LOG_LEVEL_INFO, left, "Required access operator by reference '*'!");
                     return CheckError(false);
-                } else if (r_found && !right->m_is_take) {
-                    if (left->m_level <= r_found->m_level) {
+                } else if (r_found && !right->m_is_take ) {
+                    if (left->m_level <= r_found->m_level && !isReservedName(right->m_text)) {
                         NL_MESSAGE(LOG_LEVEL_INFO, left, "You can assign owner to a lower level variable only!");
                         return CheckError(false);
                     }

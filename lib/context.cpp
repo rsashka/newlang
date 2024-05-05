@@ -72,14 +72,22 @@ std::unique_ptr<Sync> Context::CreateSync(const TermPtr &term) {
 VarItem Context::CreateItem(TermPtr term, ObjPtr obj) {
     VarItem item;
 
+    if (term->m_int_name.empty() && !isReservedName(term->m_text)) {
+        LOG_RUNTIME("Empty internal name '%s'", term->m_text.c_str());
+    }
     item.item = term;
-    item.item->m_int_name = term->m_text;
+    //    item.item->m_int_name = term->m_text;
     item.sync = Context::CreateSync(term);
     if (obj) {
         obj->m_sync = item.sync.get();
     }
     item.obj = obj;
     item.item->m_obj = obj;
+
+#ifdef BUILD_DEBUG
+    item.term_check = item.item.get();
+    item.obj_check = item.item->m_obj.get();
+#endif        
 
     return item;
 }
@@ -1366,11 +1374,9 @@ VarItem Context::CreateItem(TermPtr term, ObjPtr obj) {
 ObjPtr Context::Run(TermPtr term, Context *runner) {
     //        LOG_TEST("run: %s", m_runtime->Escape(term->toString()).c_str());
     ObjPtr result = Obj::CreateNone();
-    if (term->m_id == TermID::SEQUENCE || term->m_id == TermID::BLOCK) {
-        size_t i = 0;
-        while (i < term->m_block.size()) {
-            result = Run(term->m_block[i], runner);
-            i++;
+    if ((term->m_id == TermID::SEQUENCE || term->m_id == TermID::BLOCK) && !runner) {
+        for (auto &elem : term->m_block) {
+            result = Run(elem, runner);
         }
     } else if (term->isBlock()) {
         if (!runner) {
@@ -1380,7 +1386,9 @@ ObjPtr Context::Run(TermPtr term, Context *runner) {
     } else {
         result = EvalTerm(term, runner);
     }
-    //        LOG_TEST("result: %s", result->toString().c_str());
+
+    LOG_TEST("result: %s (%p)", result->toString().c_str(), result.get());
+
     if (runner) {
         runner->m_latter = result;
     } else {
@@ -1389,7 +1397,7 @@ ObjPtr Context::Run(TermPtr term, Context *runner) {
     return runner->m_latter;
 }
 
-bool Context::HasReThrow(TermPtr &block, Context &stack, Obj &obj) {
+bool Context::HasReThrow(TermPtr &block, Context &stack, Obj & obj) {
     ASSERT(isInterrupt(obj.getType()));
     ASSERT(block->m_id == TermID::SEQUENCE || block->m_id == TermID::BLOCK || block->m_id == TermID::BLOCK_PLUS
             || block->m_id == TermID::BLOCK_MINUS || block->m_id == TermID::BLOCK_TRY);
@@ -1418,10 +1426,10 @@ bool Context::HasReThrow(TermPtr &block, Context &stack, Obj &obj) {
     return true;
 }
 
-ObjPtr Context::EvalTryBlock_(TermPtr &block, StorageTerm &storage) {
+ObjPtr Context::EvalTryBlock_(TermPtr &block, StorageTerm & storage) {
     ASSERT(block->isBlock());
     m_latter = getNoneObj();
-    CtxPush scope_block(*this, block->m_id, block->m_text);
+    CtxPush scope_block(*this, block->m_id, block->m_namespace);
 
     std::string str;
     for (auto &elem : storage) {
@@ -1434,7 +1442,7 @@ ObjPtr Context::EvalTryBlock_(TermPtr &block, StorageTerm &storage) {
         str += "'";
     }
 
-    LOG_TEST("Enter block: '%s' VARS: %s", block->m_text.c_str(), str.c_str());
+    LOG_TEST("Enter block: '%s' VARS: %s", block->m_namespace ? block->m_namespace->m_text.c_str() : "", str.c_str());
 
     try {
         size_t i = 0;
@@ -1511,7 +1519,7 @@ ObjPtr Context::EvalTryBlock_(TermPtr &block, StorageTerm &storage) {
 
 // Метод вызывается только из NewLnag кода
 
-ObjPtr Context::Call(Context *runner, Obj &obj, TermPtr &term) {
+ObjPtr Context::Call(Context *runner, Obj &obj, TermPtr & term) {
     ObjPtr args = Obj::CreateDict();
 
     if (!term->m_dims) {
@@ -1718,7 +1726,7 @@ ObjPtr Context::Call(Context *runner, Obj &obj, TermPtr &term) {
 ObjPtr Context::Call(Context *runner, Obj &obj, Obj & args) {
 
     if (obj.is_native()) {
-        return runner->CallNative_(runner, obj, &args);
+        return Context::CallNative_(runner, obj, &args);
     }
 
     args.insert(args.begin(), std::pair<std::string, ObjPtr>("", obj.shared()));
@@ -1758,7 +1766,7 @@ ObjPtr Context::Call(Context *runner, Obj &obj, Obj & args) {
             ASSERT(obj.m_prototype);
             StorageTerm storage(obj.m_prototype->m_int_vars);
             //(Context &ctx, const TermID id, const std::string_view &name) : m_ctx(ctx) {
-            CtxPush stack(*runner, obj.m_sequence->m_id, obj.m_sequence->m_text);
+            CtxPush stack(*runner, obj.m_sequence->m_id, obj.m_sequence->m_namespace);
 
             ObjPtr args_dict = Obj::CreateDict();
 
@@ -1769,7 +1777,7 @@ ObjPtr Context::Call(Context *runner, Obj &obj, Obj & args) {
             }
 
             ASSERT(args.size());
-            runner->back().vars.insert({"$0", CreateItem(Term::CreateName("$0"), args[0].second)});
+            runner->back().vars.insert({"$0", CreateItem(Term::CreateIntName("$0", "$0"), args[0].second)});
 
             for (int i = 0; i < std::max(ags_count, (int) args.size() - 1); i++) {
                 ObjPtr arg_value;
@@ -1803,17 +1811,24 @@ ObjPtr Context::Call(Context *runner, Obj &obj, Obj & args) {
                     if (runner->back().vars.find(arg_name) != runner->back().vars.end()) {
                         LOG_RUNTIME("Argname '%s' already exist!", arg_name.c_str());
                     }
-                    runner->back().vars.insert({arg_name, CreateItem(obj.m_prototype->at(i).second->Clone(), arg_value)});
+
+                    std::string int_name = obj.m_prototype->at(i).second->m_int_name;
+                    if (int_name.empty()) {
+                        int_name = obj.m_prototype->at(i).second->m_name.empty() ? obj.m_prototype->at(i).second->m_text : obj.m_prototype->at(i).second->m_name;
+                        int_name = NormalizeName(int_name);
+                    }
+
+                    runner->back().vars.insert({arg_name, CreateItem(Term::CreateIntName(arg_name, int_name), arg_value)});
                 }
                 std::string arg_num = "$";
                 arg_num += std::to_string(i + 1);
-                runner->back().vars.insert({arg_name, CreateItem(Term::CreateName(arg_num), arg_value)});
+                runner->back().vars.insert({arg_name, CreateItem(Term::CreateIntName(arg_num, arg_num), arg_value)});
 
                 args_dict->push_back(arg_value, arg_name);
             }
 
-            runner->back().vars.insert({"$*", CreateItem(Term::CreateName("$*", TermID::DICT), args_dict)});
-            runner->back().vars.insert({"$#", CreateItem(Term::CreateName("$#"), Obj::CreateValue(args_dict->size()))});
+            runner->back().vars.insert({"$*", CreateItem(Term::CreateIntName("$*", "$*", TermID::DICT), args_dict)});
+            runner->back().vars.insert({"$#", CreateItem(Term::CreateIntName("$#", "$#"), Obj::CreateValue(args_dict->size()))});
             //            if (i >= proto->size()) {
             //                NL_PARSER(proto, "Argument pos %ld not exist!", i);
             //            }
@@ -1845,8 +1860,8 @@ ObjPtr Context::Call(Context *runner, Obj &obj, Obj & args) {
 
 ObjPtr Context::CallNative_(Context *runner, Obj &obj, Obj * args) {
 
-    ASSERT(m_runtime->m_ffi_prep_cif);
-    ASSERT(m_runtime->m_ffi_prep_cif_var);
+    ASSERT(RunTime::m_ffi_prep_cif);
+    ASSERT(RunTime::m_ffi_prep_cif_var);
 
     ffi_cif m_cif;
     std::vector<ffi_type *> m_args_type;
@@ -1897,7 +1912,7 @@ ObjPtr Context::CallNative_(Context *runner, Obj &obj, Obj * args) {
                 //                    NL_CHECK(canCast(type, typeFromString((*obj.m_prototype)[pind].second->m_type, GetRT_(runner))), "Fail cast from '%s' to '%s'",
                 //                            (*obj.m_prototype)[pind].second->m_type->asTypeString().c_str(), newlang::toString(type));
                 //                }
-                m_args_type.push_back(m_runtime->m_ffi_type_uint8);
+                m_args_type.push_back(RunTime::m_ffi_type_uint8);
                 temp.boolean = (*args)[i].second->GetValueAsBoolean();
                 m_args_val.push_back(temp);
                 break;
@@ -1910,7 +1925,7 @@ ObjPtr Context::CallNative_(Context *runner, Obj &obj, Obj * args) {
                 //                    NL_CHECK(canCast(type, typeFromString((*obj.m_prototype)[pind].second->m_type, GetRT_(runner))), "Fail cast from '%s' to '%s'",
                 //                            (*obj.m_prototype)[pind].second->m_type->asTypeString().c_str(), newlang::toString(type));
                 //                }
-                m_args_type.push_back(m_runtime->m_ffi_type_sint8);
+                m_args_type.push_back(RunTime::m_ffi_type_sint8);
                 temp.integer = (*args)[i].second->GetValueAsInteger();
                 m_args_val.push_back(temp);
                 break;
@@ -1922,7 +1937,7 @@ ObjPtr Context::CallNative_(Context *runner, Obj &obj, Obj * args) {
                 //                    NL_CHECK(canCast(type, typeFromString((*obj.m_prototype)[pind].second->m_type, GetRT_(runner))), "Fail cast from '%s' to '%s'",
                 //                            (*obj.m_prototype)[pind].second->m_type->m_text.c_str(), newlang::toString(type));
                 //                }
-                m_args_type.push_back(m_runtime->m_ffi_type_sint16);
+                m_args_type.push_back(RunTime::m_ffi_type_sint16);
                 temp.integer = (*args)[i].second->GetValueAsInteger();
                 m_args_val.push_back(temp);
                 break;
@@ -1934,7 +1949,7 @@ ObjPtr Context::CallNative_(Context *runner, Obj &obj, Obj * args) {
                 //                    NL_CHECK(canCast(type, typeFromString((*obj.m_prototype)[pind].second->m_type, GetRT_(runner))), "Fail cast from '%s' to '%s'",
                 //                            (*obj.m_prototype)[pind].second->m_type->m_text.c_str(), newlang::toString(type));
                 //                }
-                m_args_type.push_back(m_runtime->m_ffi_type_sint32);
+                m_args_type.push_back(RunTime::m_ffi_type_sint32);
                 temp.integer = (*args)[i].second->GetValueAsInteger();
                 m_args_val.push_back(temp);
                 break;
@@ -1946,7 +1961,7 @@ ObjPtr Context::CallNative_(Context *runner, Obj &obj, Obj * args) {
                 //                    NL_CHECK(canCast(type, typeFromString((*obj.m_prototype)[pind].second->m_type, GetRT_(runner))), "Fail cast from '%s' to '%s'",
                 //                            (*obj.m_prototype)[pind].second->m_type->m_text.c_str(), newlang::toString(type));
                 //                }
-                m_args_type.push_back(m_runtime->m_ffi_type_sint64);
+                m_args_type.push_back(RunTime::m_ffi_type_sint64);
                 temp.integer = (*args)[i].second->GetValueAsInteger();
                 m_args_val.push_back(temp);
                 break;
@@ -1958,7 +1973,7 @@ ObjPtr Context::CallNative_(Context *runner, Obj &obj, Obj * args) {
                 //                    NL_CHECK(canCast(type, typeFromString((*obj.m_prototype)[pind].second->m_type, GetRT_(runner))), "Fail cast from '%s' to '%s'",
                 //                            (*obj.m_prototype)[pind].second->m_type->m_text.c_str(), newlang::toString(type));
                 //                }
-                m_args_type.push_back(m_runtime->m_ffi_type_float);
+                m_args_type.push_back(RunTime::m_ffi_type_float);
                 temp.number = (*args)[i].second->GetValueAsNumber();
                 m_args_val.push_back(temp);
                 break;
@@ -1970,7 +1985,7 @@ ObjPtr Context::CallNative_(Context *runner, Obj &obj, Obj * args) {
                 //                    NL_CHECK(canCast(type, typeFromString((*obj.m_prototype)[pind].second->m_type, GetRT_(runner))), "Fail cast from '%s' to '%s'",
                 //                            (*obj.m_prototype)[pind].second->m_type->m_text.c_str(), newlang::toString(type));
                 //                }
-                m_args_type.push_back(m_runtime->m_ffi_type_double);
+                m_args_type.push_back(RunTime::m_ffi_type_double);
                 temp.number = (*args)[i].second->GetValueAsNumber();
                 m_args_val.push_back(temp);
                 break;
@@ -1984,7 +1999,7 @@ ObjPtr Context::CallNative_(Context *runner, Obj &obj, Obj * args) {
                 //                        if ((target == ObjType::Int8 || target == ObjType::Char || target == ObjType::Byte)
                 //                                && isStringChar(type) && (*args)[i].second->size() == 1) {
                 //
-                //                            m_args_type.push_back(m_runtime->m_ffi_type_sint8);
+                //                            m_args_type.push_back(RunTime::m_ffi_type_sint8);
                 //                            temp.integer = (*args)[i].second->m_value[0];
                 //                            m_args_val.push_back(temp);
                 //                            break;
@@ -1993,7 +2008,7 @@ ObjPtr Context::CallNative_(Context *runner, Obj &obj, Obj * args) {
                 //                        LOG_RUNTIME("Fail cast from '%s' to '%s'", toString(type), toString(target));
                 //                    }
                 //                }
-                m_args_type.push_back(m_runtime->m_ffi_type_pointer);
+                m_args_type.push_back(RunTime::m_ffi_type_pointer);
                 temp.ptr = (*args)[i].second->m_value.c_str();
                 m_args_val.push_back(temp);
                 break;
@@ -2014,7 +2029,7 @@ ObjPtr Context::CallNative_(Context *runner, Obj &obj, Obj * args) {
                 //                        LOG_RUNTIME("Fail cast from '%s' to '%s'", toString(type), toString(target));
                 //                    }
                 //                }
-                m_args_type.push_back(m_runtime->m_ffi_type_pointer);
+                m_args_type.push_back(RunTime::m_ffi_type_pointer);
                 temp.ptr = (*args)[i].second->m_string.c_str();
                 m_args_val.push_back(temp);
                 break;
@@ -2025,7 +2040,7 @@ ObjPtr Context::CallNative_(Context *runner, Obj &obj, Obj * args) {
                 //                    NL_CHECK(canCast(type, typeFromString((*obj.m_prototype)[pind].second->m_type, GetRT_(runner))), "Fail cast from '%s' to '%s'",
                 //                            (*obj.m_prototype)[pind].second->m_type->m_text.c_str(), newlang::toString(type));
                 //                }
-                m_args_type.push_back(m_runtime->m_ffi_type_pointer);
+                m_args_type.push_back(RunTime::m_ffi_type_pointer);
 
                 if (std::holds_alternative<void *>((*args)[i].second->m_var)) {
                     temp.ptr = std::get<void *>((*args)[i].second->m_var);
@@ -2061,48 +2076,48 @@ ObjPtr Context::CallNative_(Context *runner, Obj &obj, Obj * args) {
 
     switch (return_type) {
         case ObjType::Bool:
-            result_ffi_type = m_runtime->m_ffi_type_uint8;
+            result_ffi_type = RunTime::m_ffi_type_uint8;
             break;
 
         case ObjType::Int8:
         case ObjType::Char:
         case ObjType::Byte:
-            result_ffi_type = m_runtime->m_ffi_type_sint8;
+            result_ffi_type = RunTime::m_ffi_type_sint8;
             break;
 
         case ObjType::Int16:
         case ObjType::Word:
-            result_ffi_type = m_runtime->m_ffi_type_sint16;
+            result_ffi_type = RunTime::m_ffi_type_sint16;
             break;
 
         case ObjType::Int32:
         case ObjType::DWord:
-            result_ffi_type = m_runtime->m_ffi_type_sint32;
+            result_ffi_type = RunTime::m_ffi_type_sint32;
             break;
 
         case ObjType::Int64:
         case ObjType::DWord64:
-            result_ffi_type = m_runtime->m_ffi_type_sint64;
+            result_ffi_type = RunTime::m_ffi_type_sint64;
             break;
 
         case ObjType::Float32:
         case ObjType::Single:
-            result_ffi_type = m_runtime->m_ffi_type_float;
+            result_ffi_type = RunTime::m_ffi_type_float;
             break;
 
         case ObjType::Float64:
         case ObjType::Double:
-            result_ffi_type = m_runtime->m_ffi_type_double;
+            result_ffi_type = RunTime::m_ffi_type_double;
             break;
 
         case ObjType::Pointer:
         case ObjType::StrChar:
         case ObjType::StrWide:
-            result_ffi_type = m_runtime->m_ffi_type_pointer;
+            result_ffi_type = RunTime::m_ffi_type_pointer;
             break;
 
         case ObjType::None:
-            result_ffi_type = m_runtime->m_ffi_type_void;
+            result_ffi_type = RunTime::m_ffi_type_void;
             break;
 
         default:
@@ -2110,30 +2125,30 @@ ObjPtr Context::CallNative_(Context *runner, Obj &obj, Obj * args) {
     }
 
     //    ASSERT(ctx->m_func_abi == FFI_DEFAULT_ABI); // Нужны другие типы вызовов ???
-    if (m_runtime->m_ffi_prep_cif(&m_cif, FFI_DEFAULT_ABI, static_cast<unsigned int> (m_args_type.size()), result_ffi_type, m_args_type.data()) == FFI_OK) {
+    if (RunTime::m_ffi_prep_cif(&m_cif, FFI_DEFAULT_ABI, static_cast<unsigned int> (m_args_type.size()), result_ffi_type, m_args_type.data()) == FFI_OK) {
 
         ASSERT(obj.m_prototype->m_type);
 
-        m_runtime->m_ffi_call(&m_cif, FFI_FN(func_ptr), &res_value, m_args_ptr.data());
+        RunTime::m_ffi_call(&m_cif, FFI_FN(func_ptr), &res_value, m_args_ptr.data());
 
-        if (result_ffi_type == m_runtime->m_ffi_type_void) {
+        if (result_ffi_type == RunTime::m_ffi_type_void) {
             return Obj::CreateNone();
-        } else if (result_ffi_type == m_runtime->m_ffi_type_uint8) {
+        } else if (result_ffi_type == RunTime::m_ffi_type_uint8) {
             // Возвращаемый тип может быть как Byte, так и Bool
             return Obj::CreateValue(static_cast<uint8_t> (res_value.integer), return_type);
-        } else if (result_ffi_type == m_runtime->m_ffi_type_sint8) {
+        } else if (result_ffi_type == RunTime::m_ffi_type_sint8) {
             return Obj::CreateValue(static_cast<int8_t> (res_value.integer), return_type);
-        } else if (result_ffi_type == m_runtime->m_ffi_type_sint16) {
+        } else if (result_ffi_type == RunTime::m_ffi_type_sint16) {
             return Obj::CreateValue(static_cast<int16_t> (res_value.integer), return_type);
-        } else if (result_ffi_type == m_runtime->m_ffi_type_sint32) {
+        } else if (result_ffi_type == RunTime::m_ffi_type_sint32) {
             return Obj::CreateValue(static_cast<int32_t> (res_value.integer), return_type);
-        } else if (result_ffi_type == m_runtime->m_ffi_type_sint64) {
+        } else if (result_ffi_type == RunTime::m_ffi_type_sint64) {
             return Obj::CreateValue(res_value.integer, return_type);
-        } else if (result_ffi_type == m_runtime->m_ffi_type_float) {
+        } else if (result_ffi_type == RunTime::m_ffi_type_float) {
             return Obj::CreateValue(res_value.number, return_type);
-        } else if (result_ffi_type == m_runtime->m_ffi_type_double) {
+        } else if (result_ffi_type == RunTime::m_ffi_type_double) {
             return Obj::CreateValue(res_value.number, return_type);
-        } else if (result_ffi_type == m_runtime->m_ffi_type_pointer) {
+        } else if (result_ffi_type == RunTime::m_ffi_type_pointer) {
             if (return_type == ObjType::StrChar) {
                 return Obj::CreateString(reinterpret_cast<const char *> (res_value.ptr));
             } else if (return_type == ObjType::StrWide) {
@@ -2319,7 +2334,7 @@ ObjPtr Context::EvalTerm(TermPtr term, Context * runner, bool rvalue) {
             case TermID::FOLLOW:
                 return EvalFollow_(term, runner);
             case TermID::NATIVE:
-                return Obj::CreateBool(RunTime::GetNativeAddress(nullptr, &term->m_text[1]));
+                return RunTime::CreateNative(term, RunTime::GetNativeAddress(nullptr, &term->m_text[1]));
             case TermID::ELLIPSIS:
                 return getEllipsysObj();
             case TermID::END:
@@ -2338,6 +2353,27 @@ ObjPtr Context::EvalTerm(TermPtr term, Context * runner, bool rvalue) {
             return runner->EvalCreate_(term);
         } else if (term->isNamed()) {
 
+#ifdef BUILD_DEBUG
+            VarItem * item = nullptr;
+            if (term->isNamed() && !isReservedName(term->m_text)) {
+                item = runner->FindVarItem(term);
+            }
+            if (item) {
+                if (item->term_check != item->item.get()) {
+                    LOG_RUNTIME("item term: %s (%p != %p)", term->m_text.c_str(), item->term_check, item->item.get());
+                }
+                if (item->obj_check != item->obj.get()) {
+                    if (item->obj_check) {
+                        LOG_RUNTIME("item obj: %s (%p != %p)", term->m_text.c_str(), item->obj_check, item->obj.get());
+                    } else {
+                        item->obj_check = item->obj.get();
+                    }
+                }
+            } else {
+                LOG_TEST("VarItem '%s' - not found!", term->m_text.c_str());
+            }
+#endif       
+
             //            if (isReservedName(term->m_text)) {
             //                return Obj::CreateNil();
             //            }
@@ -2346,11 +2382,42 @@ ObjPtr Context::EvalTerm(TermPtr term, Context * runner, bool rvalue) {
             if (!found || !found->m_obj) {
                 NL_PARSER(term, "Object '%s' not calculated!", term->m_text.c_str());
             }
+#ifdef BUILD_DEBUG
+            if (item) {
+                if (item->term_check != found.get()) {
+                    LOG_RUNTIME("found term: %s (%p != %p)", term->m_text.c_str(), item->term_check, found.get());
+                }
+                if (item->obj_check != found->m_obj.get()) {
+                    if (item->obj_check) {
+                        LOG_ERROR("found obj: %s (%p != %p)", term->m_text.c_str(), item->obj_check, found->m_obj.get());
+                    } else {
+                        if (item->item->m_obj) {
+                            if (!item->obj || !item->obj_check) {
+                                LOG_RUNTIME("found obj: %s (%p != %p)", term->m_text.c_str(), item->obj.get(), item->obj_check);
+                            }
+                            item->obj = item->item->m_obj;
+                            item->obj_check = item->item->m_obj.get();
+                        } else {
+                            item->obj = found->m_obj;
+                            item->obj->m_sync = item->sync.get();
+                            item->item->m_obj = item->obj;
+                            item->obj_check = item->obj.get();
+                        }
+                    }
+                }
+            } else {
+                LOG_TEST("VarItem '%s' - not found!", term->m_text.c_str());
+            }
+#endif       
 
             if (term->isCall()) {
                 // Вызов функции или клонирование объекта
                 ASSERT(found);
-                return Call(runner, *found->m_obj, term);
+                if (term->m_is_take) {
+                    return Obj::Take(*Call(runner, *found->m_obj, term));
+                } else {
+                    return Call(runner, *found->m_obj, term);
+                }
             } else if (rvalue && term->m_right) {
 
                 if (term->m_right->m_id == TermID::INDEX) {
@@ -2361,7 +2428,12 @@ ObjPtr Context::EvalTerm(TermPtr term, Context * runner, bool rvalue) {
                     NL_PARSER(term, "Eval type '%s' not implemented!", toString(term->m_right->m_id));
                 }
 
+            } else if (term->m_is_take) {
+                ASSERT(found);
+                ASSERT(found->m_obj);
+                return Obj::Take(*found->m_obj);
             } else {
+                ASSERT(found);
                 return found->m_obj;
             }
 
@@ -2448,7 +2520,10 @@ TermPtr Context::GetObject(const std::string_view int_name) {
         result = Term::CreateNone();
     } else if (int_name.compare("$^") == 0) {
         result = Term::CreateNone();
-        result->m_obj = m_latter;
+        result->m_obj = Obj::CreateNone();
+        if (m_latter) {
+            *result->m_obj = *m_latter;
+        }
     } else {
         //        auto found = find(int_name.begin());
         //        if(found != end()){
@@ -2475,30 +2550,47 @@ TermPtr Context::GetObject(const std::string_view int_name) {
     return result;
 }
 
+VarItem * Context::FindVarItem(const std::string_view name) {
+    auto iter = rbegin();
+    while (iter != rend()) {
+        if (iter->vars.find(name.begin()) != iter->vars.end()) {
+            return &iter->vars.find(name.begin())->second;
+        }
+        iter++;
+    }
+    auto found = m_static.find(name.begin());
+    if (found != m_static.end()) {
+        return &found->second;
+    }
+    return nullptr;
+}
+
 TermPtr Context::FindInternalName(const std::string_view int_name) {
 
+    VarItem * item = FindVarItem(int_name);
     //    int_name = NormalizeName(int_name);
-    if (!isInternalName(int_name)) {
-        LOG_RUNTIME("'%s' is not an internal name!", int_name.begin());
-    }
 
     //    StorageTerm & stor = getStorage_();
     //    if (&stor != &m_static && stor.find(int_name.begin()) != stor.end()) {
     //        return stor.find(int_name.begin())->second;
     //    }
 
-    auto iter = rbegin();
-    while (iter != rend()) {
-        auto found = iter->vars.find(int_name.begin());
-        if (found != iter->vars.end()) {
-            return found->second.item;
-        }
-        iter++;
-    }
+    //    auto iter = rbegin();
+    //    while (iter != rend()) {
+    //        auto found = iter->vars.find(int_name.begin());
+    //        if (found != iter->vars.end()) {
+    //            return found->second.item;
+    //        }
+    //        iter++;
+    //    }
+    //
+    //    auto found = m_static.find(int_name.begin());
+    //    if (found != m_static.end()) {
+    //        return found->second.item;
+    //    }
 
-    auto found = m_static.find(int_name.begin());
-    if (found != m_static.end()) {
-        return found->second.item;
+    if (item) {
+        return item->item;
     }
 
     if (m_runtime) {
@@ -2644,68 +2736,72 @@ ObjPtr Context::EvalCreateAsFunc_(TermPtr & op) {
 ObjPtr Context::EvalCreateAsEllipsis_(TermPtr & op) {
     // a, b, c :=  ... dict
 
-    NL_PARSER(op, "Create ellipsis not implemented!");
+    //    NL_PARSER(op, "Create ellipsis not implemented!");
 
-    //        // При раскрытии словаря присвоить значение можно как одному, так и сразу нескольким терминам: 
-    //        // var1, var2, _ = ... func(); Первый и второй элементы записывается в var1 и var2, 
-    //        // а все остальные игнорируются (если они есть)
-    //        // var1, var2 = ... func(); Если функция вернула словарь с двумя элементами, 
-    //        // то их значения записываются в var1 и var2. Если в словаре было больше двух элементов, 
-    //        // то первый записывается в var1, а все оставшиеся элементы в var2. !!!!!!!!!!!!!
-    //        // item, dict = ... dict; Первый элементы записывается в item и удаялется из dict 
-    //
-    //        // _, var1, ..., var2 = ... func(); 
-    //        // Первый элемент словаря игнорируется, второй записывается в var1, а последний в var2.
-    //
-    //        //@todo добавить поддержку многоточия с левой стороный оператора присвоения
-    //
-    //        bool is_named = !!r_term->m_left;
-    //        if (is_named) {
-    //            NL_PARSER(r_term, "Named ELLIPSIS NOT implemented!");
-    //            ASSERT(r_term->m_left->getTermID() == TermID::ELLIPSIS);
-    //        }
-    //
-    //        bool is_last = false;
-    //        ObjPtr right_obj = CheckObjTerm_(r_term->m_right, this);
-    //        for (size_t i = 0; i < l_vars.size(); i++) {
-    //            if (l_vars[i]->isNone()) {
-    //                // Ignore position
-    //                continue;
-    //            }
-    //            if (i + 1 == l_vars.size()) {
-    //                is_last = true;
-    //            }
-    //
-    //            //            LOG_TEST("1: %s = %s (%p)", l_vars[i]->m_text.c_str(), l_vars[i]->m_obj ? l_vars[i]->m_obj->toString().c_str() : "nullptr", l_vars[i]->m_obj.get());
-    //
-    //            if (i < right_obj->size()) {
-    //                if (is_last) {
-    //                    if (l_vars[i]->m_int_name.compare(r_term->m_right->m_int_name) == 0) {
-    //                        // Остаток элементов присваивается тому же словарю
-    //                        l_vars[i]->m_obj = right_obj;
-    //                    } else {
-    //                        l_vars[i]->m_obj = right_obj->Clone();
-    //                    }
-    //                    l_vars[i]->m_obj->erase(0, l_vars.size() - 1);
-    //                } else {
-    //                    l_vars[i]->m_obj = (*right_obj)[i].second;
-    //                }
-    //            } else {
-    //                if (is_last) {
-    //                    if (l_vars[i]->m_int_name.compare(r_term->m_right->m_int_name) == 0) {
-    //                        // Остаток элементов присваивается тому же словарю
-    //                        l_vars[i]->m_obj = right_obj;
-    //                    } else {
-    //                        l_vars[i]->m_obj = right_obj->Clone();
-    //                    }
-    //                    l_vars[i]->m_obj->erase(0, 0);
-    //                } else {
-    //                    l_vars[i]->m_obj = Obj::CreateNone();
-    //                }
-    //            }
-    //            //            LOG_TEST("2: %s = %s (%p)", l_vars[i]->m_text.c_str(), l_vars[i]->m_obj ? l_vars[i]->m_obj->toString().c_str() : "nullptr", l_vars[i]->m_obj.get());
-    //        }
-    //        m_latter = l_vars[l_vars.size() - 1]->m_obj;    
+    // При раскрытии словаря присвоить значение можно как одному, так и сразу нескольким терминам: 
+    // var1, var2, _ = ... func(); Первый и второй элементы записывается в var1 и var2, 
+    // а все остальные игнорируются (если они есть)
+    // var1, var2 = ... func(); Если функция вернула словарь с двумя элементами, 
+    // то их значения записываются в var1 и var2. Если в словаре было больше двух элементов, 
+    // то первый записывается в var1, а все оставшиеся элементы в var2. !!!!!!!!!!!!!
+    // item, dict = ... dict; Первый элементы записывается в item и удаялется из dict 
+
+    // _, var1, ..., var2 = ... func(); 
+    // Первый элемент словаря игнорируется, второй записывается в var1, а последний в var2.
+
+    //@todo добавить поддержку многоточия с левой стороный оператора присвоения
+
+    ArrayTermType l_vars;
+    EvalLeftVars_(l_vars, op);
+
+    bool is_named = !!op->m_right->m_left;
+    if (is_named) {
+        NL_PARSER(op->m_right, "Named ELLIPSIS NOT implemented!");
+        ASSERT(op->m_right->m_left->getTermID() == TermID::ELLIPSIS);
+    }
+
+    bool is_last = false;
+    ObjPtr right_obj = CheckObjTerm_(op->m_right->m_right, this);
+    for (size_t i = 0; i < l_vars.size(); i++) {
+        if (l_vars[i]->isNone()) {
+            // Ignore position
+            continue;
+        }
+        if (i + 1 == l_vars.size()) {
+            is_last = true;
+        }
+
+        LOG_TEST("1: %s = %s (%p)", l_vars[i]->m_text.c_str(), l_vars[i]->m_obj ? l_vars[i]->m_obj->toString().c_str() : "nullptr", l_vars[i]->m_obj.get());
+
+        if (i < right_obj->size()) {
+            if (is_last) {
+                if (l_vars[i]->m_int_name.compare(op->m_right->m_right->m_int_name) == 0) {
+                    // Остаток элементов присваивается тому же словарю
+                    l_vars[i]->m_obj = right_obj;
+                } else {
+                    l_vars[i]->m_obj = right_obj->Clone();
+                }
+                l_vars[i]->m_obj->erase(0, l_vars.size() - 1);
+            } else {
+                *l_vars[i]->m_obj = *(*right_obj)[i].second;
+            }
+        } else {
+            if (is_last) {
+                if (l_vars[i]->m_int_name.compare(op->m_right->m_right->m_int_name) == 0) {
+                    // Остаток элементов присваивается тому же словарю
+                    l_vars[i]->m_obj = right_obj;
+                } else {
+                    l_vars[i]->m_obj = right_obj->Clone();
+                }
+                l_vars[i]->m_obj->erase(0, 0);
+            } else {
+                *l_vars[i]->m_obj = *Obj::CreateNone();
+            }
+        }
+        LOG_TEST("2: %s = %s (%p)", l_vars[i]->m_text.c_str(), l_vars[i]->m_obj ? l_vars[i]->m_obj->toString().c_str() : "nullptr", l_vars[i]->m_obj.get());
+    }
+    m_latter = l_vars[l_vars.size() - 1]->m_obj;
+    return m_latter;
 }
 
 ObjPtr Context::EvalCreateAsFilling_(TermPtr & op) {
@@ -2728,7 +2824,10 @@ ObjPtr Context::EvalCreateAsValue_(TermPtr & op) {
 
     } else if (r_vars.size() == 1) {
 
-        m_latter = Run(r_vars[0], this);
+        ObjPtr temp = Run(r_vars[0], this);
+
+        LOG_TEST("temp: %s = %s (%p)", r_vars[0]->m_text.c_str(), r_vars[0]->m_obj ? r_vars[0]->m_obj->toString().c_str() : "nullptr", r_vars[0]->m_obj.get());
+
         for (auto &elem : l_vars) {
             if (elem->getTermID() == TermID::ELLIPSIS) {
                 NL_PARSER(elem, "Ellipses unexpected!");
@@ -2737,16 +2836,54 @@ ObjPtr Context::EvalCreateAsValue_(TermPtr & op) {
             } else if (elem->m_right) {
 
                 if (elem->m_right->m_id == TermID::INDEX) {
-                    SetIndexValue(elem, m_latter, this);
+                    SetIndexValue(elem, temp, this);
                 } else if (elem->m_right->m_id == TermID::FIELD) {
-                    SetFieldValue(elem, m_latter, this);
+                    SetFieldValue(elem, temp, this);
                 } else {
-                    elem->m_obj = m_latter;
+                    if (elem->m_obj) {
+                        *elem->m_obj = *temp;
+                    } else {
+                        elem->m_obj = temp;
+                    }
                     //                        NL_PARSER(elem, "Eval type '%s' not implemented!", toString(elem->m_right->m_id));
                 }
 
             } else {
-                elem->m_obj = m_latter;
+
+                if (elem->m_obj) {
+                    *elem->m_obj = *temp;
+                } else {
+                    elem->m_obj = temp;
+                }
+
+#ifdef BUILD_DEBUG
+                VarItem * item = nullptr;
+                if (elem->isNamed() && !isReservedName(elem->m_text)) {
+                    item = FindVarItem(elem);
+                }
+                if (item) {
+                    if (item->term_check != item->item.get()) {
+                        LOG_RUNTIME("elem term: %s (%p != %p)", elem->m_text.c_str(), item->term_check, item->item.get());
+                    }
+                    if (item->obj_check != item->obj.get()) {
+                        if (item->obj_check) {
+                            LOG_RUNTIME("elem obj: %s (%p != %p)", elem->m_text.c_str(), item->obj_check, item->obj.get());
+                        } else {
+                            item->obj = elem->m_obj;
+                            item->obj->m_sync = item->sync.get();
+                            item->item->m_obj = item->obj;
+                            item->obj_check = item->obj.get();
+                        }
+                    } else if (!item->obj_check) {
+                        item->obj = elem->m_obj;
+                        item->obj->m_sync = item->sync.get();
+                        item->item->m_obj = item->obj;
+                        item->obj_check = item->obj.get();
+                    }
+                } else {
+                    LOG_TEST("VarItem '%s' - not found!", elem->m_text.c_str());
+                }
+#endif       
             }
         }
 
@@ -2770,7 +2907,8 @@ ObjPtr Context::EvalCreateAsValue_(TermPtr & op) {
         //                l_vars[i]->m_obj = m_latter;
         //            }
     }
-    return m_latter;
+
+    return l_vars[l_vars.size() - 1]->m_obj;
 }
 
 void Context::EvalLeftVars_(ArrayTermType &vars, const TermPtr & op) {
@@ -2812,17 +2950,21 @@ void Context::EvalLeftVars_(ArrayTermType &vars, const TermPtr & op) {
                 //                if (elem->isCall() && elem->m_obj) {
                 //                    NL_PARSER(elem, "Recreate function not implemented!");
                 //                }
+                //                if (elem->m_obj) {
+                //                    *elem->m_obj = *var_found->m_obj;
+                //                } else {
                 elem->m_obj = var_found->m_obj;
+                //                }
+
             } else {
                 ASSERT(!empty());
                 ASSERT(back().vars.find(elem->m_int_name) == back().vars.end());
 
-                VarItem item;
-                item.item = op->m_left;
-                item.sync = Context::CreateSync(op->m_left);
-                item.obj = nullptr;
-
-                back().vars.insert({elem->m_int_name, std::move(item)});
+                //                VarItem item;
+                //                item.item = op->m_left;
+                //                item.sync = Context::CreateSync(op->m_left);
+                //                item.obj = nullptr;
+                back().vars.insert({elem->m_int_name, Context::CreateItem(op->m_left, nullptr)});
 
             }
 
@@ -3541,6 +3683,11 @@ ObjPtr Context::EvalInterrupt_(TermPtr & term) {
         }
     }
     result->m_value = term->m_namespace->m_text;
+
+    if (!result->m_value.empty() && result->m_value.rfind("::") != result->m_value.size() - 2) {
+        result->m_value += "::";
+    }
+
     return result;
 }
 

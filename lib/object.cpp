@@ -213,6 +213,7 @@ m_var_type_current(type), m_var_name(var_name ? var_name : ""), m_prototype(func
     m_var = std::monostate();
     m_tensor = std::make_shared<torch::Tensor>();
     m_sync = sync;
+    m_ctx = nullptr;
 }
 
 bool Obj::empty() const {
@@ -1297,6 +1298,14 @@ std::string Obj::toString(bool deep) const {
                 return result;
 
             case ObjType::Iterator:
+
+//                LOG_TEST("%s..%s..%s(%s)", 
+//                        this->at("start").second->toString().c_str(),
+//                        this->at("stop").second->toString().c_str(),
+//                        this->at("step").second->toString().c_str(),
+//                        m_iterator->m_iter_obj->m_iter_range_value->toString().c_str());
+
+
             case ObjType::IteratorEnd:
                 return newlang::toString(m_var_type_current);
 
@@ -1406,6 +1415,9 @@ bool Obj::GetValueAsBoolean() const {
                 return !m_value.empty();
             case ObjType::None:
                 return false;
+            case ObjType::Pointer:
+                ASSERT(std::holds_alternative<void *>(m_var));
+                return std::get<void *>(m_var);
 
             case ObjType::Rational:
                 return m_rational.GetAsBoolean();
@@ -3249,6 +3261,10 @@ ObjPtr Obj::IteratorData() {
         ASSERT(stop);
         ASSERT(step);
 
+        LOG_TEST("value: %s", value->toString().c_str());
+        LOG_TEST("stop: %s", stop->toString().c_str());
+        LOG_TEST("step: %s", step->toString().c_str());
+
         int up_direction = step->op_compare(*zero);
         ASSERT(up_direction);
 
@@ -3377,9 +3393,7 @@ ObjPtr newlang::CheckSystemField(const Obj *obj, std::string name) {
 }
 
 ObjPtr Obj::op_call(Obj & args) {
-
-    //    return Context::Call(m_ctx, *this, args);
-    return nullptr;
+    return Context::Call(m_ctx, *this, args);
 }
 
 void Obj::testResultIntegralType(ObjType type, bool upscalint) {
@@ -3790,7 +3804,7 @@ ObjType newlang::typeFromLimit(int64_t value, ObjType type_default) {
 }
 
 
-#pragma message "Переделать сравение"
+#pragma message "Переделать сравнение"
 
 bool Obj::op_class_test(const char *name, Context * ctx) const {
 

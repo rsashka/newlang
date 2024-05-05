@@ -93,6 +93,12 @@ TermPtr Term::CreateDict() {
     return result;
 }
 
+TermPtr Term::CreateIntName(const std::string_view name, std::string_view int_name, TermID id) {
+    TermPtr result = Term::Create(id, name.begin(), parser::token_type::NAME);
+    result->m_int_name = int_name.begin();
+    return result;
+}
+
 TermPtr Term::CreateName(std::string name, TermID id) {
     TermPtr result = Term::Create(id, name.c_str(), parser::token_type::NAME);
     return result;

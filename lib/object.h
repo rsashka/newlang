@@ -642,13 +642,15 @@ namespace newlang {
         }
 
         static ObjPtr Take(Obj &args) {
-            if (args.empty() || !args[0].second) {
-                LOG_RUNTIME("Take object not exist!");
-            }
-            if (args[0].second->is_return()) {
+            if (isInterrupt(args.m_var_type_current)) {
+                return args.m_return_obj;
+            } else if (args.size() && args[0].second->is_return()) {
+                ASSERT(args.size() == 1);
                 return args[0].second->m_return_obj;
+            } else {
+                return args.shared();
             }
-            LOG_RUNTIME("Take object for type %s not implemented!", newlang::toString(args[0].second->getType()));
+//            LOG_RUNTIME("Take object for type %s not implemented!", newlang::toString(args[0].second->getType()));
         }
 
         void SetTermProp(Term &term);
@@ -1207,13 +1209,16 @@ namespace newlang {
         }
 
         ObjPtr op_assign(Obj & obj) {
+            clear_();
             obj.CloneDataTo(*this);
             obj.ClonePropTo(*this);
             return shared();
         }
 
         bool operator=(Obj & obj) {
+            clear_();
             obj.CloneDataTo(*this);
+            obj.ClonePropTo(*this);
             return true;
         }
 
@@ -1624,9 +1629,9 @@ namespace newlang {
             return result->MakeConst();
         }
 
-//        static ObjPtr None(Sync *sync = nullptr) {
-//            return Obj::CreateType(ObjType::None, ObjType::None, true, sync);
-//        }
+        //        static ObjPtr None(Sync *sync = nullptr) {
+        //            return Obj::CreateType(ObjType::None, ObjType::None, true, sync);
+        //        }
 
         static ObjPtr CreateDict(Sync *sync = nullptr) {
             return Obj::CreateType(ObjType::Dictionary, ObjType::Dictionary, true, sync);

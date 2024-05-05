@@ -780,6 +780,8 @@ void ParserException(const char *msg, std::string &buffer, int row, int col);
             case ObjType::FmtChar:
             case ObjType::StrWide:
             case ObjType::FmtWide:
+
+            case ObjType::None:
                 return true;
             default:
                 return false;

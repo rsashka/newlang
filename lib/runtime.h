@@ -171,7 +171,7 @@ namespace newlang {
         //        bool RegisterBuildin(BuildinPtr module);
         //        bool RegisterModule(ModulePtr module);
 
-        void Clear();
+        virtual void Clear();
 
 //        bool RegisterNativeObj(TermPtr term);
 
@@ -180,9 +180,9 @@ namespace newlang {
 //        bool RegisterSystemObj(ObjPtr obj);
 //        std::vector<ObjPtr> m_sys_obj;
 
-        ObjPtr CreateNative(const char *proto, const char *module = nullptr, bool lazzy = false, const char *mangle_name = nullptr);
-        ObjPtr CreateNative(TermPtr proto, const char *module = nullptr, bool lazzy = false, const char *mangle_name = nullptr);
-        ObjPtr CreateNative(TermPtr proto, void *addr);
+        static ObjPtr CreateNative(const char *proto, const char *module = nullptr, bool lazzy = false, const char *mangle_name = nullptr);
+        static ObjPtr CreateNative(TermPtr proto, const char *module = nullptr, bool lazzy = false, const char *mangle_name = nullptr);
+        static ObjPtr CreateNative(TermPtr proto, void *addr);
         ObjPtr CreateFunction(TermPtr proto, TermPtr block);
         ObjPtr CreateFunction(TermPtr proto, void *addr);
 
@@ -220,28 +220,28 @@ namespace newlang {
         typedef ffi_status ffi_prep_cif_var_type(ffi_cif *cif, ffi_abi abi, unsigned int nfixedargs, unsigned int ntotalargs, ffi_type *rtype, ffi_type **atypes);
         typedef void ffi_call_type(ffi_cif *cif, void (*fn)(void), void *rvalue, void **avalue);
 
-        std::string ffi_file;
-        void * m_ffi_handle;
-        ffi_type * m_ffi_type_void;
-        ffi_type * m_ffi_type_uint8;
-        ffi_type * m_ffi_type_sint8;
-        ffi_type * m_ffi_type_uint16;
-        ffi_type * m_ffi_type_sint16;
-        ffi_type * m_ffi_type_uint32;
-        ffi_type * m_ffi_type_sint32;
-        ffi_type * m_ffi_type_uint64;
-        ffi_type * m_ffi_type_sint64;
-        ffi_type * m_ffi_type_float;
-        ffi_type * m_ffi_type_double;
-        ffi_type * m_ffi_type_pointer;
+        static std::string ffi_file;
+        static void * m_ffi_handle;
+        static ffi_type * m_ffi_type_void;
+        static ffi_type * m_ffi_type_uint8;
+        static ffi_type * m_ffi_type_sint8;
+        static ffi_type * m_ffi_type_uint16;
+        static ffi_type * m_ffi_type_sint16;
+        static ffi_type * m_ffi_type_uint32;
+        static ffi_type * m_ffi_type_sint32;
+        static ffi_type * m_ffi_type_uint64;
+        static ffi_type * m_ffi_type_sint64;
+        static ffi_type * m_ffi_type_float;
+        static ffi_type * m_ffi_type_double;
+        static ffi_type * m_ffi_type_pointer;
 
-        ffi_prep_cif_type *m_ffi_prep_cif;
-        ffi_prep_cif_var_type * m_ffi_prep_cif_var;
-        ffi_call_type * m_ffi_call;
+        static ffi_prep_cif_type *m_ffi_prep_cif;
+        static ffi_prep_cif_var_type * m_ffi_prep_cif_var;
+        static ffi_call_type * m_ffi_call;
 
-        ObjType m_wide_char_type;
-        ffi_type * m_wide_char_type_ffi;
-        ObjType m_integer_type;
+        static ObjType m_wide_char_type;
+        static ffi_type * m_wide_char_type_ffi;
+        static ObjType m_integer_type;
 
         void InitInternal(const StringArray args);
         static RuntimePtr Init(StringArray args);

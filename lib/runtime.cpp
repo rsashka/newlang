@@ -12,6 +12,29 @@
 using namespace newlang;
 
 
+std::string RunTime::ffi_file;
+void * RunTime::m_ffi_handle = nullptr;
+ffi_type * RunTime::m_ffi_type_void = nullptr;
+ffi_type * RunTime::m_ffi_type_uint8 = nullptr;
+ffi_type * RunTime::m_ffi_type_sint8 = nullptr;
+ffi_type * RunTime::m_ffi_type_uint16 = nullptr;
+ffi_type * RunTime::m_ffi_type_sint16 = nullptr;
+ffi_type * RunTime::m_ffi_type_uint32 = nullptr;
+ffi_type * RunTime::m_ffi_type_sint32 = nullptr;
+ffi_type * RunTime::m_ffi_type_uint64 = nullptr;
+ffi_type * RunTime::m_ffi_type_sint64 = nullptr;
+ffi_type * RunTime::m_ffi_type_float = nullptr;
+ffi_type * RunTime::m_ffi_type_double = nullptr;
+ffi_type * RunTime::m_ffi_type_pointer = nullptr;
+
+RunTime::ffi_prep_cif_type * RunTime::m_ffi_prep_cif = nullptr;
+RunTime::ffi_prep_cif_var_type * RunTime::m_ffi_prep_cif_var = nullptr;
+RunTime::ffi_call_type * RunTime::m_ffi_call = nullptr;
+
+ObjType RunTime::m_wide_char_type;
+ffi_type * RunTime::m_wide_char_type_ffi = nullptr;
+ObjType RunTime::m_integer_type;
+
 //const char * RunTime::default_argv[RunTime::default_argc] = {"", "--nlc-no-runtime", "--nlc-no-dsl", "--nlc-no-embed-source"};
 //const TermPtr VarScope::NonameBlock = Term::Create(parser::token_type::END, TermID::NAMESPACE, "_");
 
@@ -49,6 +72,7 @@ int newlang::RunMain(const int arg, const char** argv, const char** penv) {
 }
 
 void RunTime::Clear() {
+    clear();
     //    m_main_ast.reset();
     //    m_main_runner.reset();
     //    m_main_module.reset();
@@ -102,7 +126,7 @@ GlobItem * RunTime::NameFind(const std::string_view name) {
     }
     //    }
 
-//    ASSERT(found != end());
+    //    ASSERT(found != end());
 
     //    if (!std::holds_alternative<ObjWeak>(found->second.obj)) {
 
@@ -1885,12 +1909,13 @@ ObjPtr RunTime::CreateNative(TermPtr proto, void *addr) {
 
     } else {
         if (!proto->m_type) {
-            NL_PARSER(proto, "Cannot create native variable without specifying the type!");
-        }
-
-        type = GetBaseTypeFromString(proto->m_type->m_text); //, this);
-        if (!isNativeType(type)) {
-            NL_PARSER(proto, "Creating a variable with type '%s' is not supported!", proto->m_type->m_text.c_str());
+            //            NL_PARSER(proto, "Cannot create native variable without specifying the type!");
+            type = ObjType::Pointer;
+        } else {
+            type = GetBaseTypeFromString(proto->m_type->m_text); //, this);
+            if (!isNativeType(type)) {
+                NL_PARSER(proto, "Creating a variable with type '%s' is not supported!", proto->m_type->m_text.c_str());
+            }
         }
     }
 
@@ -1969,6 +1994,7 @@ ObjPtr RunTime::CreateNative(TermPtr proto, void *addr) {
             }
     }
     result->m_var_is_init = true;
+
     return result;
 }
 
@@ -2078,6 +2104,7 @@ static void zip_save(zip_t *zipper, const std::string_view file, const std::stri
     }
 
     if (zip_file_add(zipper, file.begin(), zip_data, ZIP_FL_ENC_UTF_8) < 0) {
+
         zip_source_free(zip_data);
         LOG_RUNTIME("Failed to add file '%s' to zip: %s", file.begin(), zip_strerror(zipper));
     }
@@ -2120,6 +2147,7 @@ bool RunTime::ModuleSave(const FileModule &data, const std::string_view filepath
     }
 
     zip_close(zipper);
+
     return true;
 }
 
@@ -2249,6 +2277,7 @@ std::string RunTime::Escape(const std::string_view str) {
         } else if (c == '\r') {
             result += "\\r";
         } else {
+
             result += c;
         }
     }
@@ -2285,22 +2314,26 @@ std::string RunTime::Escape(const std::string_view str) {
 //}
 
 __attribute__ ((weak)) void * RunTime::GetNativeAddress(void * handle, const std::string_view name) {
+
     return dlsym(handle, name.begin());
 }
 
 std::string RunTime::NativeNameMangling(std::string_view name) {
     ASSERT(isNativeName(name));
+
     return std::string(name.begin() + 1);
 }
 
 ObjType newlang::typeFromString(TermPtr &term, RunTime *rt, bool *has_error) {
     if (term) {
+
         return RunTime::BaseTypeFromString(rt, term->m_text, has_error);
     }
     return RunTime::BaseTypeFromString(rt, ":Any", has_error);
 }
 
 std::string newlang::GetDoc(std::string name) {
+
     return "Help system not implemented!!!!!";
 }
 
@@ -2309,6 +2342,7 @@ std::string newlang::MakeConstructorName(std::string name) {
     std::string result(name.substr(1));
     result += ":";
     result += name.substr(name.rfind(":"));
+
     return result;
 }
 
@@ -2334,6 +2368,7 @@ std::string RunTime::GetLastErrorMessage() {
 
 RunTime::~RunTime() {
     if (m_ffi_handle) {
+
         dlclose(m_ffi_handle);
     }
     m_ffi_handle = nullptr;

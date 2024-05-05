@@ -5,10 +5,12 @@
       <logicalFolder name="en" displayName="en" projectFiles="true">
         <logicalFolder name="blog" displayName="blog" projectFiles="true">
           <itemPath>../site/content/en/blog/_index.md</itemPath>
+          <itemPath>../site/content/en/blog/building-blocks.md</itemPath>
           <itemPath>../site/content/en/blog/dsl-with-macros.en.md</itemPath>
           <itemPath>../site/content/en/blog/dsl.jpeg</itemPath>
           <itemPath>../site/content/en/blog/reference-solution.md</itemPath>
           <itemPath>../site/content/en/blog/release-0.4.md</itemPath>
+          <itemPath>../site/content/en/blog/simple-complex-programming.md</itemPath>
         </logicalFolder>
         <logicalFolder name="docs" displayName="docs" projectFiles="true">
           <logicalFolder name="arch" displayName="arch" projectFiles="true">
@@ -91,6 +93,7 @@
             <itemPath>../site/content/ru/blog/lang-final/lang-final.jpeg</itemPath>
           </logicalFolder>
           <itemPath>../site/content/ru/blog/_index.md</itemPath>
+          <itemPath>../site/content/ru/blog/building-blocks.md</itemPath>
           <itemPath>../site/content/ru/blog/dsl-with-macros.en.md</itemPath>
           <itemPath>../site/content/ru/blog/dsl-with-macros.md</itemPath>
           <itemPath>../site/content/ru/blog/dsl.jpeg</itemPath>
@@ -106,6 +109,7 @@
           <itemPath>../site/content/ru/blog/release-0.2.md</itemPath>
           <itemPath>../site/content/ru/blog/release-0.3.md</itemPath>
           <itemPath>../site/content/ru/blog/release-0.4.md</itemPath>
+          <itemPath>../site/content/ru/blog/simple-complex-programming.md</itemPath>
           <itemPath>../site/content/ru/blog/unusual-prog.md</itemPath>
         </logicalFolder>
         <logicalFolder name="docs" displayName="docs" projectFiles="true">
@@ -348,6 +352,11 @@
       </item>
       <item path="../site/content/en/blog/_index.md" ex="false" tool="3" flavor2="0">
       </item>
+      <item path="../site/content/en/blog/building-blocks.md"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
       <item path="../site/content/en/blog/dsl-with-macros.en.md"
             ex="false"
             tool="3"
@@ -361,6 +370,11 @@
             flavor2="0">
       </item>
       <item path="../site/content/en/blog/release-0.4.md"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
+      <item path="../site/content/en/blog/simple-complex-programming.md"
             ex="false"
             tool="3"
             flavor2="0">
@@ -602,6 +616,11 @@
       </item>
       <item path="../site/content/ru/blog/_index.md" ex="false" tool="3" flavor2="0">
       </item>
+      <item path="../site/content/ru/blog/building-blocks.md"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
       <item path="../site/content/ru/blog/complex-prog/bag.jpeg"
             ex="false"
             tool="3"
@@ -709,6 +728,11 @@
             flavor2="0">
       </item>
       <item path="../site/content/ru/blog/release-0.4.md"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
+      <item path="../site/content/ru/blog/simple-complex-programming.md"
             ex="false"
             tool="3"
             flavor2="0">
@@ -1090,6 +1114,11 @@
       </item>
       <item path="../site/content/en/blog/_index.md" ex="false" tool="3" flavor2="0">
       </item>
+      <item path="../site/content/en/blog/building-blocks.md"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
       <item path="../site/content/en/blog/dsl-with-macros.en.md"
             ex="false"
             tool="3"
@@ -1103,6 +1132,11 @@
             flavor2="0">
       </item>
       <item path="../site/content/en/blog/release-0.4.md"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
+      <item path="../site/content/en/blog/simple-complex-programming.md"
             ex="false"
             tool="3"
             flavor2="0">
@@ -1344,6 +1378,11 @@
       </item>
       <item path="../site/content/ru/blog/_index.md" ex="false" tool="3" flavor2="0">
       </item>
+      <item path="../site/content/ru/blog/building-blocks.md"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
       <item path="../site/content/ru/blog/complex-prog/bag.jpeg"
             ex="false"
             tool="3"
@@ -1451,6 +1490,11 @@
             flavor2="0">
       </item>
       <item path="../site/content/ru/blog/release-0.4.md"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
+      <item path="../site/content/ru/blog/simple-complex-programming.md"
             ex="false"
             tool="3"
             flavor2="0">
@@ -1822,6 +1866,11 @@
       </item>
       <item path="../site/content/en/blog/_index.md" ex="false" tool="3" flavor2="0">
       </item>
+      <item path="../site/content/en/blog/building-blocks.md"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
       <item path="../site/content/en/blog/dsl-with-macros.en.md"
             ex="false"
             tool="3"
@@ -1835,6 +1884,11 @@
             flavor2="0">
       </item>
       <item path="../site/content/en/blog/release-0.4.md"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
+      <item path="../site/content/en/blog/simple-complex-programming.md"
             ex="false"
             tool="3"
             flavor2="0">
@@ -2076,6 +2130,11 @@
       </item>
       <item path="../site/content/ru/blog/_index.md" ex="false" tool="3" flavor2="0">
       </item>
+      <item path="../site/content/ru/blog/building-blocks.md"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
       <item path="../site/content/ru/blog/complex-prog/bag.jpeg"
             ex="false"
             tool="3"
@@ -2183,6 +2242,11 @@
             flavor2="0">
       </item>
       <item path="../site/content/ru/blog/release-0.4.md"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
+      <item path="../site/content/ru/blog/simple-complex-programming.md"
             ex="false"
             tool="3"
             flavor2="0">
@@ -2513,6 +2577,11 @@
       </item>
       <item path="../site/content/en/blog/_index.md" ex="false" tool="3" flavor2="0">
       </item>
+      <item path="../site/content/en/blog/building-blocks.md"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
       <item path="../site/content/en/blog/dsl-with-macros.en.md"
             ex="false"
             tool="3"
@@ -2526,6 +2595,11 @@
             flavor2="0">
       </item>
       <item path="../site/content/en/blog/release-0.4.md"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
+      <item path="../site/content/en/blog/simple-complex-programming.md"
             ex="false"
             tool="3"
             flavor2="0">
@@ -2767,6 +2841,11 @@
       </item>
       <item path="../site/content/ru/blog/_index.md" ex="false" tool="3" flavor2="0">
       </item>
+      <item path="../site/content/ru/blog/building-blocks.md"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
       <item path="../site/content/ru/blog/complex-prog/bag.jpeg"
             ex="false"
             tool="3"
@@ -2874,6 +2953,11 @@
             flavor2="0">
       </item>
       <item path="../site/content/ru/blog/release-0.4.md"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
+      <item path="../site/content/ru/blog/simple-complex-programming.md"
             ex="false"
             tool="3"
             flavor2="0">

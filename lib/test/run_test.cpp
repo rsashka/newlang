@@ -108,7 +108,7 @@ TEST(Run, Vars) {
     ASSERT_TRUE(res);
     ASSERT_STREQ("456", res->toString().c_str());
 
-    ASSERT_NO_THROW(res = jit->Run("*var_mod")) << Dump(*jit) << Dump(jit->GetCtx().m_static);
+    ASSERT_NO_THROW(res = jit->Run("*var_mod"));
     ASSERT_TRUE(res);
     ASSERT_STREQ("456", res->toString().c_str());
 
@@ -360,7 +360,8 @@ TEST(Eval, Assign) {
 
     //    ASSERT_TRUE(ctx.ExecStr("var1 = "));
     //    ASSERT_TRUE(ctx.select("var1").complete());
-    jit->Clear();
+    
+    jit = JIT::ReCreate();
 
     list = jit->Run("$?!");
     ASSERT_STREQ("(,)", list->toString().c_str());
@@ -405,7 +406,7 @@ TEST(Eval, Assign) {
 
     ASSERT_TRUE(var_export);
     ASSERT_TRUE(var_export->is_tensor_type()) << var_export->toString();
-    ASSERT_EQ(var_export->getType(), ObjType::Int64);
+    ASSERT_EQ(var_export->getType(), ObjType::Int64) << toString(var_export->getType());
     ASSERT_STREQ("987654321", var_export->toString().c_str());
     var_long = 123132132;
     ASSERT_STREQ("123132132", var_export->toString().c_str());
@@ -639,15 +640,7 @@ TEST(Run, Comprehensions) {
 
     JIT * jit = JIT::ReCreate();
 
-    ObjPtr srand;
-    ASSERT_NO_THROW(srand = jit->Run("srand(seed:Int32):None ::= %srand..."));
-
-    ObjPtr ret = (*srand)(100);
-    ASSERT_TRUE(ret);
-    ASSERT_TRUE(ret->is_none_type());
-
-    ObjPtr rand;
-    ASSERT_NO_THROW(rand = jit->Run("rand():Int32 ::= %rand ... "));
+    ASSERT_NO_THROW(jit->Run("srand(100)"));
 
     ObjPtr tt;
     // Может быть раскрытие словаря, который возвращает вызов функции
@@ -1673,7 +1666,7 @@ TEST(Run, Iterator) {
     ObjPtr item_val;
     ASSERT_NO_THROW(item_val = jit->Run("@curr(iter_test)"));
     ASSERT_TRUE(item_val);
-    ASSERT_STREQ("3\\1", item_val->GetValueAsString().c_str());
+    ASSERT_STREQ("3\\1", item_val->GetValueAsString().c_str()) << iter_test->toString();
 
     ASSERT_NO_THROW(item_val = jit->Run("@next(iter_test)"));
     ASSERT_TRUE(item_val);

@@ -141,7 +141,8 @@ namespace newlang {
 
         static JIT * m_instance;
 
-        void Clear() {
+        void Clear() override {
+            RunTime::Clear();
             if (m_instance) {
                 delete m_instance;
             }
