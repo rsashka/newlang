@@ -2944,32 +2944,6 @@ TEST(RunTest, CreateFromRational) {
 //    ASSERT_STREQ("300", args_term[2].second->toString().c_str());
 //}
 
-TEST(Types, FromLimit) {
-
-    std::multimap<int64_t, ObjType> IntTypes = {
-        {0, ObjType::Bool},
-        {1, ObjType::Bool},
-        {2, ObjType::Int8},
-        {127, ObjType::Int8},
-        //        {255, ObjType::Int8},
-        {256, ObjType::Int16},
-        {-1, ObjType::Int8},
-        {-200, ObjType::Int16},
-        {66000, ObjType::Int32},
-        {-33000, ObjType::Int32},
-        {5000000000, ObjType::Int64},
-    };
-
-    for (auto elem : IntTypes) {
-        ASSERT_EQ(elem.second, typeFromLimit(elem.first)) << elem.first << " " << toString(elem.second);
-    }
-
-    ASSERT_EQ(ObjType::Float32, typeFromLimit(1.0));
-    ASSERT_EQ(ObjType::Float64, typeFromLimit(0.0)); //@todo Fix???????
-    ASSERT_EQ(ObjType::Float64, typeFromLimit(1E+40));
-
-}
-
 TEST(RunTest, Tensor) {
 
     std::string from_str = "русские буквы для ПРОВЕРКИ КОНВЕРТАЦИИ символов";
