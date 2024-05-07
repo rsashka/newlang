@@ -208,6 +208,8 @@ namespace newlang {
             };
 
             CALSS_METHOD_DEF(__assert_abort__);
+            CALSS_METHOD_DEF(__timeit__);
+            CALSS_METHOD_DEF(__len__);
 
 
         };

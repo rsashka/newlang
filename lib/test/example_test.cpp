@@ -287,12 +287,12 @@ TEST(Example, Rational) {
             << jit->m_main_ast->m_int_vars.find("test_arg$")->second->m_int_vars.Dump();
 
     ASSERT_TRUE(frac_test);
-//    ASSERT_EQ(ObjType::Rational, frac_test->getType()) << newlang::toString(frac_test->getType());
-//    ASSERT_STREQ("1\\1", frac_test->GetValueAsString().c_str());
+    //    ASSERT_EQ(ObjType::Rational, frac_test->getType()) << newlang::toString(frac_test->getType());
+    //    ASSERT_STREQ("1\\1", frac_test->GetValueAsString().c_str());
 
     ASSERT_NO_THROW(frac_test = jit->Run("test_arg(2\\1)"));
     ASSERT_TRUE(frac_test);
-//    ASSERT_STREQ("4\\1", frac_test->GetValueAsString().c_str());
+    //    ASSERT_STREQ("4\\1", frac_test->GetValueAsString().c_str());
 
     ObjPtr iter_test;
     ASSERT_NO_THROW(iter_test = jit->Run("iter_test := :Int64(5+1)..1..-1?"));
@@ -318,11 +318,11 @@ TEST(Example, Rational) {
     ASSERT_NO_THROW(result = jit->RunFile("../examples/fact_40.src"));
     ASSERT_TRUE(result);
     ASSERT_STREQ("815915283247897734345611269596115894272000000000\\1", result->GetValueAsString().c_str());
-    
+
     ASSERT_NO_THROW(result = jit->RunFile("../examples/fact_40_dsl.src"));
     ASSERT_TRUE(result);
     ASSERT_STREQ("815915283247897734345611269596115894272000000000\\1", result->GetValueAsString().c_str());
-    
+
 
     Logger::LogLevelType save = Logger::Instance()->SetLogLevel(LOG_LEVEL_INFO);
     std::chrono::steady_clock::time_point begin = std::chrono::steady_clock::now();
@@ -336,18 +336,18 @@ TEST(Example, Rational) {
     int sec = (int) std::chrono::duration_cast<std::chrono::seconds>(end - begin).count();
     int ms = (int) std::chrono::duration_cast<std::chrono::microseconds>(end - begin).count() % 1000000;
     LOG_INFO("Test factorial 1000! complete at %d.%d sec", sec, ms);
-    
 
-//    save = Logger::Instance()->SetLogLevel(LOG_LEVEL_INFO);
-//    begin = std::chrono::steady_clock::now();
-//    result = jit->RunFile("\\\\('../examples/rational.src')");
-//    end = std::chrono::steady_clock::now();
-//    Logger::Instance()->SetLogLevel(save);
-//
-//
-//    ASSERT_TRUE(result);
-//    ASSERT_TRUE(result->is_string_type()) << result->toString();
-//    ASSERT_STREQ("OK", result->GetValueAsString().c_str());
+
+    //    save = Logger::Instance()->SetLogLevel(LOG_LEVEL_INFO);
+    //    begin = std::chrono::steady_clock::now();
+    //    result = jit->RunFile("\\\\('../examples/rational.src')");
+    //    end = std::chrono::steady_clock::now();
+    //    Logger::Instance()->SetLogLevel(save);
+    //
+    //
+    //    ASSERT_TRUE(result);
+    //    ASSERT_TRUE(result->is_string_type()) << result->toString();
+    //    ASSERT_STREQ("OK", result->GetValueAsString().c_str());
 
 }
 
@@ -522,5 +522,381 @@ TEST(Example, Exec) {
     ASSERT_TRUE(exec->GetValueAsString().find("nlc-unittest\n") != std::string::npos) << exec->GetValueAsString();
 }
 
+TEST(Example, Fibonacci) {
+
+    JIT *jit = JIT::ReCreate();
+    ASSERT_TRUE(jit);
+
+
+
+    //fib(n) ::= {
+    //    @if(n < 3){
+    //        @return (1\1, 1\1,);
+    //    }
+    //    p ::= fib(n-1);
+    //    (p[1] + p[2], p[1],);
+    //};
+    //
+    //calc(n) ::= {
+    //    $v ::= '{1}'(fib(n)[1]);
+    //    print('%d: %d\n%s\n', $n, len($v), $v);
+    //};
+    //
+    //@time( calc(55_000) );    
+
+    ObjPtr temp;
+
+    ASSERT_NO_THROW(temp = jit->Run("dict ::= (1+2, 5, 9,);\n"));
+    ASSERT_STREQ("(3, 5, 9,)", temp->toString().c_str()) << temp->toString();
+
+    ASSERT_NO_THROW(temp = jit->Run("dict[0]"));
+    ASSERT_STREQ("3", temp->toString().c_str()) << temp->toString();
+
+    ASSERT_NO_THROW(temp = jit->Run("dict[1]"));
+    ASSERT_STREQ("5", temp->toString().c_str()) << temp->toString();
+
+    ASSERT_NO_THROW(temp = jit->Run("dict[1+1]"));
+    ASSERT_STREQ("9", temp->toString().c_str()) << temp->toString();
+
+    ASSERT_NO_THROW(temp = jit->Run("( dict[1], dict[2], )"));
+    ASSERT_STREQ("(5, 9,)", temp->toString().c_str()) << temp->toString();
+
+
+    ASSERT_NO_THROW(temp = jit->Run("( dict[0]+dict[1], dict[2], )"));
+    ASSERT_STREQ("(8, 9,)", temp->toString().c_str()) << temp->toString();
+
+    ASSERT_NO_THROW(temp = jit->Run("{+ var := 1; {  var := 2;  ++ var ++; }  +}"));
+    ASSERT_STREQ("2", temp->toString().c_str()) << temp->toString();
+
+    ASSERT_NO_THROW(temp = jit->Run("{* varth := 1; {  varth := 2;  @throw varth; }  *}"));
+    ASSERT_STREQ("2", temp->toString().c_str()) << temp->toString();
+
+    ASSERT_NO_THROW(temp = jit->Run("var2 := 22; {  var2 := 33;  };  var2"));
+    ASSERT_STREQ("22", temp->toString().c_str()) << temp->toString();
+
+    ObjPtr fib;
+    ASSERT_NO_THROW(fib = jit->Run("fib_test(n) := {\n"
+            "   @if(n < 3){ \n"
+            "       @return (1\\1, 1\\1,);\n"
+            "   };\n"
+            "   p := fib_test(n-1);\n"
+            "   @return (p[0] + p[1], p[0],);\n"
+            "};\n"));
+    ASSERT_TRUE(fib);
+    // return и throw - без скобок как оператор
+    // запятые в аргументах макросов ?????????????????
+
+    std::cout << "\n1:\n\n";
+    ASSERT_NO_THROW(temp = jit->Run("fib_test(1)"));
+    ASSERT_TRUE(temp);
+    ASSERT_STREQ("(1\\1, 1\\1,)", temp->toString().c_str()) << temp->toString();
+
+    std::cout << "\n2:\n\n";
+    ASSERT_NO_THROW(temp = jit->Run("fib_test(2)"));
+    ASSERT_TRUE(temp);
+    ASSERT_STREQ("(1\\1, 1\\1,)", temp->toString().c_str()) << temp->toString();
+
+    std::cout << "\n3:\n\n";
+    ASSERT_NO_THROW(temp = jit->Run("fib_test(3)"));
+    ASSERT_TRUE(temp);
+    ASSERT_STREQ("(2\\1, 1\\1,)", temp->toString().c_str()) << temp->toString();
+
+    ASSERT_NO_THROW(temp = jit->Run("fib_test(4)"));
+    ASSERT_TRUE(temp);
+    ASSERT_STREQ("(3\\1, 2\\1,)", temp->toString().c_str()) << temp->toString();
+
+    ASSERT_NO_THROW(temp = jit->Run("fib_test(5)"));
+    ASSERT_TRUE(temp);
+    ASSERT_STREQ("(5\\1, 3\\1,)", temp->toString().c_str()) << temp->toString();
+
+    ASSERT_NO_THROW(temp = jit->Run("fib_test(6)"));
+    ASSERT_TRUE(temp);
+    ASSERT_STREQ("(8\\1, 5\\1,)", temp->toString().c_str()) << temp->toString();
+
+    //    ASSERT_NO_THROW(temp = jit->Run("fib_test(100)"));
+    //    ASSERT_TRUE(temp);
+    //    ASSERT_STREQ("(354224848179261915075\\1, 218922995834555169026\\1,)", temp->toString().c_str()) << temp->toString();
+    //
+    //    ASSERT_NO_THROW(temp = jit->Run("fib_test(250)"));
+    //    ASSERT_TRUE(temp);
+    //    ASSERT_STREQ("(7896325826131730509282738943634332893686268675876375\\1, 4880197746793002076754294951020699004973287771475874\\1,)", temp->toString().c_str()) << temp->toString();
+
+
+
+    ObjPtr calc;
+    ASSERT_NO_THROW(calc = jit->Run(""
+            "'{1}'(123456); \n"
+            ));
+    ASSERT_TRUE(calc);
+    ASSERT_STREQ("'123456'", calc->toString().c_str()) << calc->toString();
+
+
+    ObjPtr time;
+    ASSERT_NO_THROW(time = jit->Run(""
+            "@timeit( fib_test(5) ); \n"
+            ));
+    ASSERT_TRUE(time);
+    ASSERT_TRUE(time->toString().find("'Exec time 'fib_test(5)':") == 0) << time->toString();
+    
+    
+
+    ObjPtr fib_calc;
+    ASSERT_NO_THROW(fib_calc = jit->Run("fib_calc(n) := {\n"
+            "  res := fib_test(n);\n"
+            "  $value := '{1}'( res[1] );\n"
+            "  print('%d: %d\\n%s\\n', $n, len($value), $value);\n"
+            "};\n"));
+    ASSERT_TRUE(fib_calc);
+        
+    ASSERT_NO_THROW(fib_calc = jit->Run("fib_calc(5)")) << fib_calc->m_sequence->toString();
+    ASSERT_TRUE(fib_calc);
+
+    
+    
+
+    setvbuf(stdin, nullptr, _IONBF, 0);
+    setvbuf(stdout, nullptr, _IONBF, 0);
+    setvbuf(stderr, nullptr, _IONBF, 0);
+
+
+    Logger::LogLevelType save = Logger::Instance()->SetLogLevel(LOG_LEVEL_INFO);
+    std::chrono::steady_clock::time_point begin = std::chrono::steady_clock::now();
+    ObjPtr result = jit->RunFile("../examples/fibonacci.src");
+    std::chrono::steady_clock::time_point end = std::chrono::steady_clock::now();
+    Logger::Instance()->SetLogLevel(save);
+
+    ASSERT_TRUE(result);
+    ASSERT_TRUE(result->is_string_type()) << result->toString();
+    ASSERT_TRUE(result->toString().find("'Exec time 'calc(") == 0) << result->toString();
+    
+}
+
+TEST(Example, Thread) {
+
+    JIT *jit = JIT::ReCreate();
+    ASSERT_TRUE(jit);
+
+    //    ObjPtr prn;
+    //    ASSERT_NO_THROW(prn = jit->Run("prn(format:FmtChar, ...):Int32 := %printf ..."));
+    //    ASSERT_TRUE(prn);
+    //
+    //    ObjPtr res = (*prn)("Привет, мир!\n");
+    //    ASSERT_TRUE(res);
+    //    ASSERT_TRUE(res->is_integer()) << res->toString();
+    //    ASSERT_STREQ("22", res->GetValueAsString().c_str());
+    //
+    //    //    ObjPtr func = jit->Run("func(arg) := {$arg}");
+    //    //    ASSERT_TRUE(func);
+    //    //
+    //    //    res = (*func)("TEST");
+    //    //    ASSERT_TRUE(res);
+    //    //    ASSERT_TRUE(res->is_string_char_type()) << res->toString();
+    //    //    ASSERT_STREQ("TEST", res->GetValueAsString().c_str());
+    //    //    hello(str) := { 
+    //    //      printf := :Pointer('printf(format:FmtChar, ...):Int32');  # Импорт стандартной C функции
+    //    //      printf('%s\n', $str);  # Вызов C функции с проверкой типов аргументов по строке формата
+    //    //    };
+    //    //    hello('Привет, мир!'); # Вызвать функцию    
+    //
+    //
+    //    setvbuf(stdin, nullptr, _IONBF, 0);
+    //    setvbuf(stdout, nullptr, _IONBF, 0);
+    //    setvbuf(stderr, nullptr, _IONBF, 0);
+    //
+    //
+    //    Logger::LogLevelType save = Logger::Instance()->SetLogLevel(LOG_LEVEL_INFO);
+    //    std::chrono::steady_clock::time_point begin = std::chrono::steady_clock::now();
+    //    ObjPtr result = jit->RunFile("../examples/hello.src");
+    //    std::chrono::steady_clock::time_point end = std::chrono::steady_clock::now();
+    //    Logger::Instance()->SetLogLevel(save);
+    //
+    //
+    //    ASSERT_TRUE(result);
+    //    ASSERT_TRUE(result->is_integral()) << result->toString();
+    //    ASSERT_STREQ("14", result->GetValueAsString().c_str());
+    //
+    //
+    //    //    save = Logger::Instance()->SetLogLevel(LOG_LEVEL_INFO);
+    //    //    begin = std::chrono::steady_clock::now();
+    //    //    ASSERT_NO_THROW(result = jit->Run("\\\\('../examples/hello.src')"));
+    //    //    end = std::chrono::steady_clock::now();
+    //    //    Logger::Instance()->SetLogLevel(save);
+    //    //
+    //    //
+    //    //    ASSERT_TRUE(result);
+    //    //    ASSERT_TRUE(result->is_integral()) << result->toString();
+    //    //    ASSERT_STREQ("14", result->GetValueAsString().c_str());
+}
+
+TEST(Example, Thread_With) {
+
+    JIT *jit = JIT::ReCreate();
+    ASSERT_TRUE(jit);
+
+    //    ObjPtr prn;
+    //    ASSERT_NO_THROW(prn = jit->Run("prn(format:FmtChar, ...):Int32 := %printf ..."));
+    //    ASSERT_TRUE(prn);
+    //
+    //    ObjPtr res = (*prn)("Привет, мир!\n");
+    //    ASSERT_TRUE(res);
+    //    ASSERT_TRUE(res->is_integer()) << res->toString();
+    //    ASSERT_STREQ("22", res->GetValueAsString().c_str());
+    //
+    //    //    ObjPtr func = jit->Run("func(arg) := {$arg}");
+    //    //    ASSERT_TRUE(func);
+    //    //
+    //    //    res = (*func)("TEST");
+    //    //    ASSERT_TRUE(res);
+    //    //    ASSERT_TRUE(res->is_string_char_type()) << res->toString();
+    //    //    ASSERT_STREQ("TEST", res->GetValueAsString().c_str());
+    //    //    hello(str) := { 
+    //    //      printf := :Pointer('printf(format:FmtChar, ...):Int32');  # Импорт стандартной C функции
+    //    //      printf('%s\n', $str);  # Вызов C функции с проверкой типов аргументов по строке формата
+    //    //    };
+    //    //    hello('Привет, мир!'); # Вызвать функцию    
+    //
+    //
+    //    setvbuf(stdin, nullptr, _IONBF, 0);
+    //    setvbuf(stdout, nullptr, _IONBF, 0);
+    //    setvbuf(stderr, nullptr, _IONBF, 0);
+    //
+    //
+    //    Logger::LogLevelType save = Logger::Instance()->SetLogLevel(LOG_LEVEL_INFO);
+    //    std::chrono::steady_clock::time_point begin = std::chrono::steady_clock::now();
+    //    ObjPtr result = jit->RunFile("../examples/hello.src");
+    //    std::chrono::steady_clock::time_point end = std::chrono::steady_clock::now();
+    //    Logger::Instance()->SetLogLevel(save);
+    //
+    //
+    //    ASSERT_TRUE(result);
+    //    ASSERT_TRUE(result->is_integral()) << result->toString();
+    //    ASSERT_STREQ("14", result->GetValueAsString().c_str());
+    //
+    //
+    //    //    save = Logger::Instance()->SetLogLevel(LOG_LEVEL_INFO);
+    //    //    begin = std::chrono::steady_clock::now();
+    //    //    ASSERT_NO_THROW(result = jit->Run("\\\\('../examples/hello.src')"));
+    //    //    end = std::chrono::steady_clock::now();
+    //    //    Logger::Instance()->SetLogLevel(save);
+    //    //
+    //    //
+    //    //    ASSERT_TRUE(result);
+    //    //    ASSERT_TRUE(result->is_integral()) << result->toString();
+    //    //    ASSERT_STREQ("14", result->GetValueAsString().c_str());
+}
+
+TEST(Example, FileIO) {
+
+    JIT *jit = JIT::ReCreate();
+    ASSERT_TRUE(jit);
+
+    //    ObjPtr prn;
+    //    ASSERT_NO_THROW(prn = jit->Run("prn(format:FmtChar, ...):Int32 := %printf ..."));
+    //    ASSERT_TRUE(prn);
+    //
+    //    ObjPtr res = (*prn)("Привет, мир!\n");
+    //    ASSERT_TRUE(res);
+    //    ASSERT_TRUE(res->is_integer()) << res->toString();
+    //    ASSERT_STREQ("22", res->GetValueAsString().c_str());
+    //
+    //    //    ObjPtr func = jit->Run("func(arg) := {$arg}");
+    //    //    ASSERT_TRUE(func);
+    //    //
+    //    //    res = (*func)("TEST");
+    //    //    ASSERT_TRUE(res);
+    //    //    ASSERT_TRUE(res->is_string_char_type()) << res->toString();
+    //    //    ASSERT_STREQ("TEST", res->GetValueAsString().c_str());
+    //    //    hello(str) := { 
+    //    //      printf := :Pointer('printf(format:FmtChar, ...):Int32');  # Импорт стандартной C функции
+    //    //      printf('%s\n', $str);  # Вызов C функции с проверкой типов аргументов по строке формата
+    //    //    };
+    //    //    hello('Привет, мир!'); # Вызвать функцию    
+    //
+    //
+    //    setvbuf(stdin, nullptr, _IONBF, 0);
+    //    setvbuf(stdout, nullptr, _IONBF, 0);
+    //    setvbuf(stderr, nullptr, _IONBF, 0);
+    //
+    //
+    //    Logger::LogLevelType save = Logger::Instance()->SetLogLevel(LOG_LEVEL_INFO);
+    //    std::chrono::steady_clock::time_point begin = std::chrono::steady_clock::now();
+    //    ObjPtr result = jit->RunFile("../examples/hello.src");
+    //    std::chrono::steady_clock::time_point end = std::chrono::steady_clock::now();
+    //    Logger::Instance()->SetLogLevel(save);
+    //
+    //
+    //    ASSERT_TRUE(result);
+    //    ASSERT_TRUE(result->is_integral()) << result->toString();
+    //    ASSERT_STREQ("14", result->GetValueAsString().c_str());
+    //
+    //
+    //    //    save = Logger::Instance()->SetLogLevel(LOG_LEVEL_INFO);
+    //    //    begin = std::chrono::steady_clock::now();
+    //    //    ASSERT_NO_THROW(result = jit->Run("\\\\('../examples/hello.src')"));
+    //    //    end = std::chrono::steady_clock::now();
+    //    //    Logger::Instance()->SetLogLevel(save);
+    //    //
+    //    //
+    //    //    ASSERT_TRUE(result);
+    //    //    ASSERT_TRUE(result->is_integral()) << result->toString();
+    //    //    ASSERT_STREQ("14", result->GetValueAsString().c_str());
+}
+
+TEST(Example, MatchCase) {
+
+    JIT *jit = JIT::ReCreate();
+    ASSERT_TRUE(jit);
+
+    //    ObjPtr prn;
+    //    ASSERT_NO_THROW(prn = jit->Run("prn(format:FmtChar, ...):Int32 := %printf ..."));
+    //    ASSERT_TRUE(prn);
+    //
+    //    ObjPtr res = (*prn)("Привет, мир!\n");
+    //    ASSERT_TRUE(res);
+    //    ASSERT_TRUE(res->is_integer()) << res->toString();
+    //    ASSERT_STREQ("22", res->GetValueAsString().c_str());
+    //
+    //    //    ObjPtr func = jit->Run("func(arg) := {$arg}");
+    //    //    ASSERT_TRUE(func);
+    //    //
+    //    //    res = (*func)("TEST");
+    //    //    ASSERT_TRUE(res);
+    //    //    ASSERT_TRUE(res->is_string_char_type()) << res->toString();
+    //    //    ASSERT_STREQ("TEST", res->GetValueAsString().c_str());
+    //    //    hello(str) := { 
+    //    //      printf := :Pointer('printf(format:FmtChar, ...):Int32');  # Импорт стандартной C функции
+    //    //      printf('%s\n', $str);  # Вызов C функции с проверкой типов аргументов по строке формата
+    //    //    };
+    //    //    hello('Привет, мир!'); # Вызвать функцию    
+    //
+    //
+    //    setvbuf(stdin, nullptr, _IONBF, 0);
+    //    setvbuf(stdout, nullptr, _IONBF, 0);
+    //    setvbuf(stderr, nullptr, _IONBF, 0);
+    //
+    //
+    //    Logger::LogLevelType save = Logger::Instance()->SetLogLevel(LOG_LEVEL_INFO);
+    //    std::chrono::steady_clock::time_point begin = std::chrono::steady_clock::now();
+    //    ObjPtr result = jit->RunFile("../examples/hello.src");
+    //    std::chrono::steady_clock::time_point end = std::chrono::steady_clock::now();
+    //    Logger::Instance()->SetLogLevel(save);
+    //
+    //
+    //    ASSERT_TRUE(result);
+    //    ASSERT_TRUE(result->is_integral()) << result->toString();
+    //    ASSERT_STREQ("14", result->GetValueAsString().c_str());
+    //
+    //
+    //    //    save = Logger::Instance()->SetLogLevel(LOG_LEVEL_INFO);
+    //    //    begin = std::chrono::steady_clock::now();
+    //    //    ASSERT_NO_THROW(result = jit->Run("\\\\('../examples/hello.src')"));
+    //    //    end = std::chrono::steady_clock::now();
+    //    //    Logger::Instance()->SetLogLevel(save);
+    //    //
+    //    //
+    //    //    ASSERT_TRUE(result);
+    //    //    ASSERT_TRUE(result->is_integral()) << result->toString();
+    //    //    ASSERT_STREQ("14", result->GetValueAsString().c_str());
+}
 
 #endif // UNITTEST

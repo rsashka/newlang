@@ -210,7 +210,7 @@ bool Term::CheckTermEq(const TermPtr &term1, const TermPtr &term2, bool type, Ru
     return CheckTermEq(term1->m_type, term2->m_type, true, rt);
 }
 
-void ScopeStack::PushScope(TermPtr ns, StorageTerm * storage, bool transaction) {
+void ScopeStack::PushScope(TermPtr ns, StorageTerm * storage, bool transaction, bool is_function) {
 
     if (transaction != m_is_transaction) {
         if (!transaction) {
@@ -232,6 +232,7 @@ void ScopeStack::PushScope(TermPtr ns, StorageTerm * storage, bool transaction) 
     }
 
     block.storage = storage;
+    block.function_name = is_function;
     push_back(block);
 }
 
@@ -239,6 +240,10 @@ std::string ScopeStack::ExpandNamespace(std::string name) {
     size_t pos = name.find("@::");
     if (pos != std::string::npos) {
         name = name.replace(pos, 3, GetNamespace());
+    }
+    pos = name.find("$::");
+    if (pos != std::string::npos) {
+        name = name.replace(pos, 3, GetFuntionName());
     }
     return name;
 }
@@ -282,6 +287,18 @@ std::string ScopeStack::MakeNamespace(int skip, bool is_global) {
         count++;
     }
     return result;
+}
+
+std::string ScopeStack::GetFuntionName() {
+    auto iter = rbegin();
+    while (iter != rend()) {
+        if (iter->function_name) {
+            ASSERT(iter->scope_name);
+            return iter->scope_name->m_text;
+        }
+        iter++;
+    }
+    LOG_RUNTIME("Function name not found!");
 }
 
 std::string ScopeStack::GetNamespace(bool is_global) {
@@ -328,9 +345,9 @@ void ScopeStack::RemoveName_(const std::string_view int_name) {
     if (m_static.find(int_name.begin()) != m_static.end()) {
         m_static.erase(m_static.find(int_name.begin()));
     }
-//    if (isGlobalScope(int_name)) {
-//        LOG_RUNTIME("Remove global name in transaction not implemented!");
-//    }
+    //    if (isGlobalScope(int_name)) {
+    //        LOG_RUNTIME("Remove global name in transaction not implemented!");
+    //    }
 }
 
 void ScopeStack::RollbackNames_() {

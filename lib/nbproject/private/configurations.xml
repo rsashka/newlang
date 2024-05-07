@@ -92,19 +92,19 @@
       </nativedebugger>
       <runprofile version="9">
         <runcommandpicklist>
-          <runcommandpicklistitem>"${OUTPUT_PATH}" --gtest_shuffle --gtest_filter=Alg.Return</runcommandpicklistitem>
-          <runcommandpicklistitem>"${OUTPUT_PATH}" --gtest_shuffle --gtest_filter=Alg.Return:Run.Comprehensions</runcommandpicklistitem>
-          <runcommandpicklistitem>"${OUTPUT_PATH}" --gtest_shuffle --gtest_filter=Run.Comprehensions</runcommandpicklistitem>
-          <runcommandpicklistitem>"${OUTPUT_PATH}" --gtest_shuffle --gtest_filter=Alg.Foreach:Run.Iterator</runcommandpicklistitem>
-          <runcommandpicklistitem>"${OUTPUT_PATH}" --gtest_shuffle --gtest_filter=Alg.Foreach</runcommandpicklistitem>
           <runcommandpicklistitem>"${OUTPUT_PATH}" --gtest_shuffle --gtest_filter=Run.CallArgs:Run.Vars:Run.Call</runcommandpicklistitem>
           <runcommandpicklistitem>"${OUTPUT_PATH}" --gtest_shuffle --gtest_filter=Run.CallArgs:Run.Call</runcommandpicklistitem>
           <runcommandpicklistitem>"${OUTPUT_PATH}" --gtest_shuffle --gtest_filter=Run.CallArgs</runcommandpicklistitem>
           <runcommandpicklistitem>"${OUTPUT_PATH}" --gtest_shuffle --gtest_filter=Example.Exec:Example.Hello:Example.Rational
 </runcommandpicklistitem>
           <runcommandpicklistitem>"${OUTPUT_PATH}" --gtest_shuffle --gtest_filter=*</runcommandpicklistitem>
+          <runcommandpicklistitem>"${OUTPUT_PATH}" --gtest_shuffle --gtest_filter=Ast.AstArgs:-Example.Fibonacci</runcommandpicklistitem>
+          <runcommandpicklistitem>"${OUTPUT_PATH}" --gtest_shuffle --gtest_filter=RunTest.String:-Example.Fibonacci</runcommandpicklistitem>
+          <runcommandpicklistitem>"${OUTPUT_PATH}" --gtest_shuffle --gtest_filter=Example.Fibonacci:MacroTest.MacroCheck</runcommandpicklistitem>
+          <runcommandpicklistitem>"${OUTPUT_PATH}" --gtest_shuffle --gtest_filter=MacroTest.MacroCheck</runcommandpicklistitem>
+          <runcommandpicklistitem>"${OUTPUT_PATH}" --gtest_shuffle --gtest_filter=Example.Fibonacci</runcommandpicklistitem>
         </runcommandpicklist>
-        <runcommand>"${OUTPUT_PATH}" --gtest_shuffle --gtest_filter=*</runcommand>
+        <runcommand>"${OUTPUT_PATH}" --gtest_shuffle --gtest_filter=Example.Fibonacci</runcommand>
         <rundir>../output</rundir>
         <buildfirst>true</buildfirst>
         <terminal-type>0</terminal-type>

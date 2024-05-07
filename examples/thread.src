@@ -1,0 +1,41 @@
+#!../output/nlc 
+
+rand():Int32 ::= %rand...; # Создание объекта
+@( rand():Int32 ); # Предварительное объявление (объект должен быть создан в другом месте)
+rand():Int32 = ...;
+
+usleep(usec:DWord64):None := %usleep...;
+printf(format:FmtChar, ...):Int32 := %printf...;
+
+
+func(count:Integer, target:String) := {
+    $iter := @iter( 1..$count ); # Итератор для диапазона от 1 до $count
+    @while( @curr($iter) ) {   # Цикл, пока итератор валидный
+
+        $step := @next($iter);  # Получить текущий и перейти на следующий элемент итератора
+
+        printf('Number %d from %s!', $step, $target);
+
+        usleep( rand() % 1000 );    # Случайная задержка
+    }
+}
+
+thread = :Thread(func, 5, 'thread');
+
+thread.start();
+
+func(5, 'main');
+
+thread.join();
+
+Number 1 from the thread!
+Number 1 from the main!
+Number 2 from the thread!
+Number 2 from the main!
+Number 3 from the thread!
+Number 4 from the thread!
+Number 3 from the main!
+Number 4 from the main!
+Number 5 from the main!
+Number 5 from the thread!
+

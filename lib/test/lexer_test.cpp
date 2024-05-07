@@ -224,7 +224,7 @@ TEST_F(Lexer, AssignEq) {
 
     ASSERT_EQ(3, TokenParse("token:=\"ssssssss\""));
     EXPECT_EQ(1, Count(TermID::NAME));
-    EXPECT_EQ(1, Count(TermID::CREATE_OVERLAP));
+    EXPECT_EQ(1, Count(TermID::CREATE_FORCE));
     EXPECT_EQ(1, Count(TermID::STRWIDE));
 
     EXPECT_STREQ("token", tokens[0]->getText().c_str()) << tokens[0]->getText();
@@ -279,9 +279,9 @@ TEST_F(Lexer, CodeSource) {
 TEST_F(Lexer, Assign) {
     ASSERT_EQ(5, TokenParse(":= :- ::= ::- ="));
     EXPECT_EQ(1, Count(TermID::CREATE_ONCE));
-    EXPECT_EQ(1, Count(TermID::CREATE_OVERLAP));
+    EXPECT_EQ(1, Count(TermID::CREATE_FORCE));
     EXPECT_EQ(1, Count(TermID::PURE_ONCE));
-    EXPECT_EQ(1, Count(TermID::PURE_OVERLAP));
+    EXPECT_EQ(1, Count(TermID::PURE_FORCE));
 }
 
 TEST_F(Lexer, Function) {
@@ -507,7 +507,7 @@ TEST_F(Lexer, Macro) {
     ASSERT_EQ(11, TokenParse("@if($args) := @@ [@$args] --> @@")) << Dump();
     EXPECT_EQ(1, Count(TermID::MACRO));
     EXPECT_EQ(4, Count(TermID::SYMBOL));
-    EXPECT_EQ(1, Count(TermID::CREATE_OVERLAP));
+    EXPECT_EQ(1, Count(TermID::CREATE_FORCE));
     EXPECT_EQ(2, Count(TermID::MACRO_SEQ));
     EXPECT_EQ(1, Count(TermID::FOLLOW));
     EXPECT_EQ(1, Count(TermID::MACRO_ARGNAME)) << Dump();

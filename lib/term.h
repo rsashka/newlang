@@ -76,10 +76,10 @@ namespace newlang {
         _(MACRO_ARGCOUNT) \
         \
         _(CREATE_ONCE) \
-        _(CREATE_OVERLAP) \
+        _(CREATE_FORCE) \
         _(ASSIGN) \
         _(PURE_ONCE) \
-        _(PURE_OVERLAP) \
+        _(PURE_FORCE) \
         _(APPEND) \
         _(SWAP) \
         _(SYM_RULE) \
@@ -139,7 +139,7 @@ namespace newlang {
     std::string ParserMessage(std::string &buffer, int row, int col, const char *format, ...);
 
     inline static bool IsAnyCreate(TermID id) {
-        return id == TermID::CREATE_ONCE || id == TermID::CREATE_OVERLAP || id == TermID::ASSIGN || id == TermID::PURE_ONCE || id == TermID::PURE_OVERLAP;
+        return id == TermID::CREATE_ONCE || id == TermID::CREATE_FORCE || id == TermID::ASSIGN || id == TermID::PURE_ONCE || id == TermID::PURE_FORCE;
     }
 
     /*
@@ -197,6 +197,7 @@ namespace newlang {
         TermPtr scope_name; ///< Имя блока кода
         StorageTerm vars; ///< Список имен переменных определеных для текущего блока кода
         StorageTerm * storage; ///< Указатель на хранилище переменных
+        bool function_name;
     };
 
     class ScopeStack : SCOPE(protected) std::vector< ScopeVars > {
@@ -249,7 +250,7 @@ namespace newlang {
         /* 
          * 
          */
-        void PushScope(TermPtr ns, StorageTerm * storage = nullptr, bool transaction = false);
+        void PushScope(TermPtr ns, StorageTerm * storage = nullptr, bool transaction = false, bool is_function = false);
 
         void PopScope() {
             ASSERT(size() > 0);
@@ -296,6 +297,7 @@ namespace newlang {
 
 
         std::string GetNamespace(bool is_global = false);
+        std::string GetFuntionName();
         std::string MakeNamespace(int skip, bool is_global);
         bool CheckInterrupt(std::string_view name);
 
@@ -450,10 +452,10 @@ namespace newlang {
             return false;
         }
 
-        inline bool isCreateOverlap() {
+        inline bool isCreateForce() {
             switch (m_id) {
-                case TermID::CREATE_OVERLAP:
-                case TermID::PURE_OVERLAP:
+                case TermID::CREATE_FORCE:
+                case TermID::PURE_FORCE:
                     return true;
             }
             return false;
@@ -463,10 +465,10 @@ namespace newlang {
             switch (m_id) {
                 case TermID::APPEND:
                 case TermID::CREATE_ONCE:
-                case TermID::CREATE_OVERLAP:
+                case TermID::CREATE_FORCE:
                 case TermID::ASSIGN:
                 case TermID::PURE_ONCE:
-                case TermID::PURE_OVERLAP:
+                case TermID::PURE_FORCE:
                 case TermID::SWAP:
                     return true;
             }
@@ -476,7 +478,7 @@ namespace newlang {
         inline bool isPure() {
             switch (m_id) {
                 case TermID::PURE_ONCE:
-                case TermID::PURE_OVERLAP:
+                case TermID::PURE_FORCE:
                     return true;
             }
             return false;
@@ -567,7 +569,7 @@ namespace newlang {
                 case TermID::NAME:
                 case TermID::CREATE_ONCE:
                 case TermID::ASSIGN:
-                case TermID::CREATE_OVERLAP:
+                case TermID::CREATE_FORCE:
                 case TermID::RANGE:
                 case TermID::TENSOR:
                 case TermID::DICT:
@@ -725,6 +727,11 @@ namespace newlang {
                         temp = temp->Right();
                     }
 
+                    if (!m_int_name.empty()) {
+                        result.insert(0, "~");
+                        result.insert(0, m_int_name);
+                        result.insert(0, "~");
+                    }
                     result.insert(0, m_text);
                     //                    result.insert(0, m_namespace);
 
@@ -802,8 +809,8 @@ namespace newlang {
 
                 case TermID::ASSIGN:
                 case TermID::CREATE_ONCE:
-                case TermID::CREATE_OVERLAP:
-                case TermID::PURE_OVERLAP:
+                case TermID::CREATE_FORCE:
+                case TermID::PURE_FORCE:
                     //            case TermID::APPEND:
                     if (m_id == TermID::ASSIGN) {
                         result += m_text;
@@ -1638,8 +1645,8 @@ namespace newlang {
     public:
         ScopeStack &m_scope;
 
-        ScopePush(ScopeStack &scope, TermPtr ns, StorageTerm *ts = nullptr, bool transaction = false) : m_scope(scope) {
-            m_scope.PushScope(ns, ts, transaction);
+        ScopePush(ScopeStack &scope, TermPtr ns, StorageTerm *ts = nullptr, bool transaction = false, bool is_function = false) : m_scope(scope) {
+            m_scope.PushScope(ns, ts, transaction, is_function);
         }
 
         ~ScopePush() {

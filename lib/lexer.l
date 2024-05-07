@@ -521,6 +521,7 @@ mangled _${mangled_name}?$_{mangled_name}+
 @{name}"^"? YY_TOKEN(MACRO);
 ${name}"^"? YY_TOKEN(LOCAL);
 {module}    YY_TOKEN(MODULE);
+"$..."      YY_TOKEN(LOCAL);  /* For statement macros */
 "..."       YY_TOKEN(ELLIPSIS);
 ".."        YY_TOKEN(RANGE);
 "<->"       YY_TOKEN_ONLY(REPEAT);
@@ -532,9 +533,9 @@ ${name}"^"? YY_TOKEN(LOCAL);
 "===>"      YY_TOKEN(MATCHING);
 
 "::="       YY_TOKEN(CREATE_ONCE);
-":="        YY_TOKEN(CREATE_OVERLAP);
+":="        YY_TOKEN(CREATE_FORCE);
 "[]="       YY_TOKEN(APPEND);
-"::-"       YY_TOKEN(PURE_OVERLAP);
+"::-"       YY_TOKEN(PURE_FORCE);
 ":-"        YY_TOKEN(PURE_ONCE);
 ":=:"       YY_TOKEN(SWAP);
 
@@ -551,6 +552,8 @@ ${name}"^"? YY_TOKEN(LOCAL);
 
 "@::"       YY_TOKEN_ONLY(MACRO_NAMESPACE);
 "@$$"       YY_TOKEN_ONLY(MACRO_NAMESPACE);
+"$::"       YY_TOKEN_ONLY(MACRO_NAMESPACE);
+
     /* "@\\\\"     YY_TOKEN_ONLY(MACRO); */
 "$\\\\"     YY_TOKEN_ONLY(MACRO);
 

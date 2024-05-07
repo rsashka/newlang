@@ -1132,14 +1132,31 @@ std::string Obj::toString(bool deep) const {
             case ObjType::RetPlus:
             case ObjType::RetMinus:
             case ObjType::RetRepeat:
-                if (m_class_name.empty()) {
-                    result += newlang::toString(m_var_type_current);
-                } else {
-                    result += m_class_name;
+
+                if (!m_value.empty()) {
+                    result += m_value;
+                    result += " ";
                 }
-                result += "(";
-                result += m_return_obj->toString();
-                result += ")";
+                if (m_var_type_current == ObjType::RetPlus) {
+                    result += "++";
+                } else if (m_var_type_current == ObjType::RetMinus) {
+                    result += "--";
+                } else {
+                    ASSERT(m_var_type_current == ObjType::RetRepeat);
+                    result += "-+";
+                }
+
+                if (m_return_obj) {
+                    result += m_return_obj->toString();
+                    if (m_var_type_current == ObjType::RetPlus) {
+                        result += "++";
+                    } else if (m_var_type_current == ObjType::RetMinus) {
+                        result += "--";
+                    } else {
+                        ASSERT(m_var_type_current == ObjType::RetRepeat);
+                        result += "+-";
+                    }
+                }
                 return result;
 
 
@@ -1299,11 +1316,11 @@ std::string Obj::toString(bool deep) const {
 
             case ObjType::Iterator:
 
-//                LOG_TEST("%s..%s..%s(%s)", 
-//                        this->at("start").second->toString().c_str(),
-//                        this->at("stop").second->toString().c_str(),
-//                        this->at("step").second->toString().c_str(),
-//                        m_iterator->m_iter_obj->m_iter_range_value->toString().c_str());
+                //                LOG_TEST("%s..%s..%s(%s)", 
+                //                        this->at("start").second->toString().c_str(),
+                //                        this->at("stop").second->toString().c_str(),
+                //                        this->at("step").second->toString().c_str(),
+                //                        m_iterator->m_iter_obj->m_iter_range_value->toString().c_str());
 
 
             case ObjType::IteratorEnd:
@@ -2024,40 +2041,40 @@ bool Obj::op_duck_test(Obj *value, bool strong) {
     return m_var_type_current == value->m_var_type_current;
 }
 
-std::string Obj::format(std::string format, Obj * args) {
-    if (args && !args->empty()) {
-        std::string name;
-        std::string place;
-        std::wstring wname;
-        for (int i = 0; i < args->size(); i++) {
-
-            if (isSystemName(args->name(i))) {
-                continue;
-            }
-
-            // Заменить номер аргумента
-            name = "\\$" + std::to_string(i + 1);
-            place = (*args)[i].second->GetValueAsString();
-            format = std::regex_replace(format, std::regex(name), place);
-
-            if (!args->name(i).empty()) {
-
-                std::wstring wplace = utf8_decode(place);
-                std::wstring temp = utf8_decode(format);
-
-                wname = L"\\$\\{" + utf8_decode(args->name(i)) + L"\\}";
-                temp = std::regex_replace(temp, std::wregex(wname), wplace);
-
-                wname = L"\\$" + utf8_decode(args->name(i)); // + L"\\b"; // Иначе перестает работать UTF8
-                temp = std::regex_replace(temp, std::wregex(wname), wplace);
-
-                format = utf8_encode(temp);
-
-            }
-        }
-    }
-    return format;
-}
+//std::string Obj::format(std::string format, Obj * args) {
+//    if (args && !args->empty()) {
+//        std::string name;
+//        std::string place;
+//        std::wstring wname;
+//        for (int i = 0; i < args->size(); i++) {
+//
+//            if (isSystemName(args->name(i))) {
+//                continue;
+//            }
+//
+//            // Заменить номер аргумента
+//            name = "\\$" + std::to_string(i + 1);
+//            place = (*args)[i].second->GetValueAsString();
+//            format = std::regex_replace(format, std::regex(name), place);
+//
+//            if (!args->name(i).empty()) {
+//
+//                std::wstring wplace = utf8_decode(place);
+//                std::wstring temp = utf8_decode(format);
+//
+//                wname = L"\\$\\{" + utf8_decode(args->name(i)) + L"\\}";
+//                temp = std::regex_replace(temp, std::wregex(wname), wplace);
+//
+//                wname = L"\\$" + utf8_decode(args->name(i)); // + L"\\b"; // Иначе перестает работать UTF8
+//                temp = std::regex_replace(temp, std::wregex(wname), wplace);
+//
+//                format = utf8_encode(temp);
+//
+//            }
+//        }
+//    }
+//    return format;
+//}
 
 int64_t newlang::ConcatData(Obj *dest, Obj &src, ConcatMode mode) {
     int64_t size = 0;

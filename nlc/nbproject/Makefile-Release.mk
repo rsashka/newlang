@@ -42,8 +42,7 @@ OBJECTFILES= \
 	${OBJECTDIR}/test/nlc_test.o \
 	${OBJECTDIR}/test/object_test.o \
 	${OBJECTDIR}/test/rational_test.o \
-	${OBJECTDIR}/test/unittest.o \
-	${OBJECTDIR}/unittest.o
+	${OBJECTDIR}/test/unittest.o
 
 
 # C Compiler Flags
@@ -109,11 +108,6 @@ ${OBJECTDIR}/test/unittest.o: test/unittest.cpp
 	${MKDIR} -p ${OBJECTDIR}/test
 	${RM} "$@.d"
 	$(COMPILE.cc) -O2 -fPIC  -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/test/unittest.o test/unittest.cpp
-
-${OBJECTDIR}/unittest.o: unittest.cpp
-	${MKDIR} -p ${OBJECTDIR}
-	${RM} "$@.d"
-	$(COMPILE.cc) -O2 -fPIC  -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/unittest.o unittest.cpp
 
 # Subprojects
 .build-subprojects:

@@ -1249,7 +1249,7 @@ TEST_F(MacroTest, MacroAlias) {
     TermPtr macro_alias2 = macro->GetMacro({"alias2"});
     ASSERT_TRUE(macro_alias2);
     ASSERT_TRUE(macro_alias2->isMacro());
-    ASSERT_EQ(TermID::CREATE_OVERLAP, macro_alias2->getTermID()) << toString(macro_alias2->getTermID());
+    ASSERT_EQ(TermID::CREATE_FORCE, macro_alias2->getTermID()) << toString(macro_alias2->getTermID());
     ASSERT_TRUE(macro_alias2->Left());
     ASSERT_EQ(TermID::MACRO_SEQ, macro_alias2->Left()->getTermID()) << toString(macro_alias2->Left()->getTermID());
     ASSERT_STREQ("alias", macro_alias2->Right()->m_macro_seq[0]->m_text.c_str());
@@ -1759,6 +1759,13 @@ TEST_F(MacroTest, MacroCheck) {
     ASSERT_NO_THROW(Parse("@@ macro2(...) @@ ::= @@ replace2( @$#, @$... ,@$* ) @@", macro)) << macro->Dump();
     ASSERT_NO_THROW(Parse("macro2(1,9)", macro)) << macro->Dump() << LexOut().c_str();
     ASSERT_STREQ("replace2 ( 2 , 1 , 9 , ( 1 , 9 , ) )", LexOut().c_str());
+    
+    ASSERT_ANY_THROW(Parse("@@ return $... $... @@ ::= @@ @$... @@", macro)) << macro->Dump();
+    ASSERT_ANY_THROW(Parse("@@ return() $... @@ ::= @@ @$... @@", macro)) << macro->Dump();
+
+    ASSERT_NO_THROW(Parse("@@ return $... @@ ::= @@ :: ++ @$... ++ @@", macro)) << macro->Dump();
+    ASSERT_NO_THROW(Parse("return (1, 2, 3,)", macro)) << macro->Dump() << " ------  "<< LexOut().c_str();
+    ASSERT_STREQ(":: ++ ( 1 , 2 , 3 , ) ++", LexOut().c_str());
 
 }
 //TEST_F(NamedTest, MacroExpand) {

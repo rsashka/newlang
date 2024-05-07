@@ -1085,6 +1085,10 @@ namespace newlang {
         }
 
         bool operator<(Obj obj) {
+            // 1 < 3 --> -1
+            // 2 < 3 --> -1
+            // 3 < 3 --> 0
+            // 4 < 3 --> 1
             return op_compare(obj) < 0;
         }
 
@@ -1846,7 +1850,7 @@ namespace newlang {
 
         void SetValue_(ObjPtr value);
 
-        static std::string format(std::string format, Obj * args);
+//        static std::string format(std::string format, Obj * args);
 
 
         bool CallAll(const char *func_name, ObjPtr &arg_in, ObjPtr &result, ObjPtr object = nullptr, size_t limit = 0); // ?

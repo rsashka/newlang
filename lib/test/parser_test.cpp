@@ -965,11 +965,11 @@ TEST_F(ParserTest, TermArgMixed) {
 
 TEST_F(ParserTest, ArgsType) {
     ASSERT_TRUE(Parse("term(bool:Bool=term(100), int:Int32=100, long:Int64=@term()):Float64:={long;};"));
-    ASSERT_EQ(TermID::CREATE_OVERLAP, ast->getTermID()) << newlang::toString(ast->getTermID());
+    ASSERT_EQ(TermID::CREATE_FORCE, ast->getTermID()) << newlang::toString(ast->getTermID());
     ASSERT_STREQ("term(bool:Bool=term(100), int:Int32=100, long:Int64=@term()):Float64 := {long;};", ast->toString().c_str());
 
     ASSERT_TRUE(Parse("term(&bool:~Bool=term(100), &* int:~Int32=name::name, &? long:~~Int64=@term()):~~~Float64:={long;};"));
-    ASSERT_EQ(TermID::CREATE_OVERLAP, ast->getTermID()) << newlang::toString(ast->getTermID());
+    ASSERT_EQ(TermID::CREATE_FORCE, ast->getTermID()) << newlang::toString(ast->getTermID());
     //    ASSERT_STREQ("term(bool:Bool=&term(100), int:Int32=&*name::name, long:Int64=&?@term()):Float64 := {long;};;", ast->toString().c_str());
 }
 
@@ -1004,7 +1004,7 @@ TEST_F(ParserTest, Any) {
 
 TEST_F(ParserTest, TermCall) {
     ASSERT_TRUE(Parse("var2 := min(200, var, 400);"));
-    ASSERT_EQ(TermID::CREATE_OVERLAP, ast->getTermID()) << newlang::toString(ast->getTermID());
+    ASSERT_EQ(TermID::CREATE_FORCE, ast->getTermID()) << newlang::toString(ast->getTermID());
     ASSERT_STREQ(":=", ast->m_text.c_str());
 
 
@@ -1328,7 +1328,7 @@ TEST_F(ParserTest, AssignSimple) {
 
 TEST_F(ParserTest, AssignSimple2) {
     ASSERT_TRUE(Parse("\t term   :=   term2()  ;  \n"));
-    ASSERT_EQ(TermID::CREATE_OVERLAP, ast->getTermID()) << newlang::toString(ast->getTermID());
+    ASSERT_EQ(TermID::CREATE_FORCE, ast->getTermID()) << newlang::toString(ast->getTermID());
     ASSERT_TRUE(ast->Left());
     ASSERT_TRUE(ast->Right());
     ASSERT_STREQ("term", ast->Left()->m_text.c_str());
@@ -1377,7 +1377,7 @@ TEST_F(ParserTest, AssignFullName3) {
 
 //TEST_F(ParserTest, FiledAssign) {
 //    ASSERT_TRUE(Parse("$1.val :=  123;"));
-//    ASSERT_EQ(TermID::CREATE_OVERLAP, ast->getTermID()) << newlang::toString(ast->getTermID());
+//    ASSERT_EQ(TermID::CREATE_FORCE, ast->getTermID()) << newlang::toString(ast->getTermID());
 //    ASSERT_TRUE(ast->Left());
 //    ASSERT_TRUE(ast->Right());
 //
@@ -1394,7 +1394,7 @@ TEST_F(ParserTest, AssignFullName3) {
 
 //TEST_F(ParserTest, FiledAssign2) {
 //    ASSERT_TRUE(Parse("term.field1.field2 :=  123;"));
-//    ASSERT_EQ(TermID::CREATE_OVERLAP, ast->getTermID()) << newlang::toString(ast->getTermID());
+//    ASSERT_EQ(TermID::CREATE_FORCE, ast->getTermID()) << newlang::toString(ast->getTermID());
 //    ASSERT_TRUE(ast->Left());
 //    ASSERT_TRUE(ast->Right());
 //
@@ -1457,13 +1457,13 @@ TEST_F(ParserTest, DISABLED_ArrayAssign2) {
 
 TEST_F(ParserTest, DISABLED_FieldArray) {
     ASSERT_TRUE(Parse("term.val[1].field :=  value[-1..@count()..5].field;"));
-    ASSERT_EQ(TermID::CREATE_OVERLAP, ast->getTermID()) << newlang::toString(ast->getTermID());
+    ASSERT_EQ(TermID::CREATE_FORCE, ast->getTermID()) << newlang::toString(ast->getTermID());
     ASSERT_STREQ("term.val[1].field := value[-1..@count()..5].field;", ast->toString().c_str());
 }
 
 TEST_F(ParserTest, AssignSimple3) {
     ASSERT_TRUE(Parse("\t term   :=   term2(   )  ;  \n"));
-    ASSERT_EQ(TermID::CREATE_OVERLAP, ast->getTermID()) << newlang::toString(ast->getTermID());
+    ASSERT_EQ(TermID::CREATE_FORCE, ast->getTermID()) << newlang::toString(ast->getTermID());
     ASSERT_TRUE(ast->Left());
     ASSERT_TRUE(ast->Right());
     ASSERT_STREQ("term := term2();", ast->toString().c_str());
@@ -1600,37 +1600,37 @@ TEST_F(ParserTest, InstanceName) {
 
 TEST_F(ParserTest, FunctionSimple) {
     ASSERT_TRUE(Parse("func() := {{%%}};"));
-    ASSERT_EQ(TermID::CREATE_OVERLAP, ast->getTermID()) << newlang::toString(ast->getTermID());
+    ASSERT_EQ(TermID::CREATE_FORCE, ast->getTermID()) << newlang::toString(ast->getTermID());
     ASSERT_STREQ("func() := {{%%};};", ast->toString().c_str());
 }
 
 TEST_F(ParserTest, FunctionSimpleTwo) {
     ASSERT_TRUE(Parse("func() := {{% %};{% %}};"));
-    ASSERT_EQ(TermID::CREATE_OVERLAP, ast->getTermID()) << newlang::toString(ast->getTermID());
+    ASSERT_EQ(TermID::CREATE_FORCE, ast->getTermID()) << newlang::toString(ast->getTermID());
     ASSERT_STREQ("func() := {{% %}; {% %};};", ast->toString().c_str());
 }
 
 TEST_F(ParserTest, FunctionSimple2) {
     ASSERT_TRUE(Parse("func(arg)  :=  {$0:=0;};"));
-    ASSERT_EQ(TermID::CREATE_OVERLAP, ast->getTermID()) << newlang::toString(ast->getTermID());
+    ASSERT_EQ(TermID::CREATE_FORCE, ast->getTermID()) << newlang::toString(ast->getTermID());
     ASSERT_STREQ("func(arg) := {$0 := 0;};", ast->toString().c_str());
 }
 
 TEST_F(ParserTest, FunctionSimple3) {
     ASSERT_TRUE(Parse("func(arg)  :=  {{%  %};{% %};{%  %}; $99:=0;};"));
-    ASSERT_EQ(TermID::CREATE_OVERLAP, ast->getTermID()) << newlang::toString(ast->getTermID());
+    ASSERT_EQ(TermID::CREATE_FORCE, ast->getTermID()) << newlang::toString(ast->getTermID());
     ASSERT_STREQ("func(arg) := {{%  %}; {% %}; {%  %}; $99 := 0;};", ast->toString().c_str());
 }
 
 TEST_F(ParserTest, FunctionSimple4) {
     ASSERT_TRUE(Parse("func(arg) := {$33:=0;};"));
-    ASSERT_EQ(TermID::CREATE_OVERLAP, ast->getTermID()) << newlang::toString(ast->getTermID());
+    ASSERT_EQ(TermID::CREATE_FORCE, ast->getTermID()) << newlang::toString(ast->getTermID());
     ASSERT_STREQ("func(arg) := {$33 := 0;};", ast->toString().c_str());
 }
 
 TEST_F(ParserTest, FunctionSimple5) {
     ASSERT_TRUE(Parse("print(str=\"\") :={% printf(\"%s\", static_cast<char *>($str)); %};"));
-    ASSERT_EQ(TermID::CREATE_OVERLAP, ast->getTermID()) << newlang::toString(ast->getTermID());
+    ASSERT_EQ(TermID::CREATE_FORCE, ast->getTermID()) << newlang::toString(ast->getTermID());
     ASSERT_STREQ("print(str=\"\") := {% printf(\"%s\", static_cast<char *>($str)); %};", ast->toString().c_str());
 }
 
@@ -1657,13 +1657,13 @@ TEST_F(ParserTest, DISABLED_FunctionTrans5) {
 
 TEST_F(ParserTest, FunctionRussian1) {
     ASSERT_TRUE(Parse("мин(arg) := {$00:=0;};"));
-    ASSERT_EQ(TermID::CREATE_OVERLAP, ast->getTermID()) << newlang::toString(ast->getTermID());
+    ASSERT_EQ(TermID::CREATE_FORCE, ast->getTermID()) << newlang::toString(ast->getTermID());
     ASSERT_STREQ("мин(arg) := {$00 := 0;};", ast->toString().c_str());
 }
 
 TEST_F(ParserTest, FunctionRussian2) {
     ASSERT_TRUE(Parse("мин(арг) := {$1:=0;};"));
-    ASSERT_EQ(TermID::CREATE_OVERLAP, ast->getTermID()) << newlang::toString(ast->getTermID());
+    ASSERT_EQ(TermID::CREATE_FORCE, ast->getTermID()) << newlang::toString(ast->getTermID());
     ASSERT_STREQ("мин(арг) := {$1 := 0;};", ast->toString().c_str());
 }
 
@@ -1681,49 +1681,49 @@ TEST_F(ParserTest, FunctionRussian4) {
 
 TEST_F(ParserTest, FunctionArgs) {
     ASSERT_TRUE(Parse("мин(...) := {$1:=0;};"));
-    ASSERT_EQ(TermID::CREATE_OVERLAP, ast->getTermID()) << newlang::toString(ast->getTermID());
+    ASSERT_EQ(TermID::CREATE_FORCE, ast->getTermID()) << newlang::toString(ast->getTermID());
     ASSERT_STREQ("мин(...) := {$1 := 0;};", ast->toString().c_str());
 }
 
 TEST_F(ParserTest, FunctionArgs2) {
     ASSERT_TRUE(Parse("мин(arg, ...) := {$1:=0;};"));
-    ASSERT_EQ(TermID::CREATE_OVERLAP, ast->getTermID()) << newlang::toString(ast->getTermID());
+    ASSERT_EQ(TermID::CREATE_FORCE, ast->getTermID()) << newlang::toString(ast->getTermID());
     ASSERT_STREQ("мин(arg, ...) := {$1 := 0;};", ast->toString().c_str());
 }
 
 TEST_F(ParserTest, FunctionArgs3) {
     ASSERT_TRUE(Parse("мин(arg1, arg2, ...) := {$0:=0;};"));
-    ASSERT_EQ(TermID::CREATE_OVERLAP, ast->getTermID()) << newlang::toString(ast->getTermID());
+    ASSERT_EQ(TermID::CREATE_FORCE, ast->getTermID()) << newlang::toString(ast->getTermID());
     ASSERT_STREQ("мин(arg1, arg2, ...) := {$0 := 0;};", ast->toString().c_str());
 }
 
 TEST_F(ParserTest, FunctionKwArgs1) {
     ASSERT_TRUE(Parse("мин(...) := {$0:=0;func();var;};"));
-    ASSERT_EQ(TermID::CREATE_OVERLAP, ast->getTermID()) << newlang::toString(ast->getTermID());
+    ASSERT_EQ(TermID::CREATE_FORCE, ast->getTermID()) << newlang::toString(ast->getTermID());
     ASSERT_STREQ("мин(...) := {$0 := 0; func(); var;};", ast->toString().c_str());
 }
 
 TEST_F(ParserTest, FunctionKwArgs2) {
     ASSERT_TRUE(Parse("мин(arg=123 ,  ...) := {$0:=0;};"));
-    ASSERT_EQ(TermID::CREATE_OVERLAP, ast->getTermID()) << newlang::toString(ast->getTermID());
+    ASSERT_EQ(TermID::CREATE_FORCE, ast->getTermID()) << newlang::toString(ast->getTermID());
     ASSERT_STREQ("мин(arg=123, ...) := {$0 := 0;};", ast->toString().c_str());
 }
 
 TEST_F(ParserTest, FunctionKwArgs3) {
     ASSERT_TRUE(Parse("мин(arg1=1, arg2=2 ,...) := {$0:=0;};"));
-    ASSERT_EQ(TermID::CREATE_OVERLAP, ast->getTermID()) << newlang::toString(ast->getTermID());
+    ASSERT_EQ(TermID::CREATE_FORCE, ast->getTermID()) << newlang::toString(ast->getTermID());
     ASSERT_STREQ("мин(arg1=1, arg2=2, ...) := {$0 := 0;};", ast->toString().c_str());
 }
 
 TEST_F(ParserTest, FunctionArgsAll) {
     ASSERT_TRUE(Parse("мин(arg1=1, arg2=2 , ...) := {$0:=0;};"));
-    ASSERT_EQ(TermID::CREATE_OVERLAP, ast->getTermID()) << newlang::toString(ast->getTermID());
+    ASSERT_EQ(TermID::CREATE_FORCE, ast->getTermID()) << newlang::toString(ast->getTermID());
     ASSERT_STREQ("мин(arg1=1, arg2=2, ...) := {$0 := 0;};", ast->toString().c_str());
 }
 
 TEST_F(ParserTest, FunctionArgsAll2) {
     ASSERT_TRUE(Parse("мин(arg, arg1=1, arg2=2, ...) := {$0:=0;};"));
-    ASSERT_EQ(TermID::CREATE_OVERLAP, ast->getTermID()) << newlang::toString(ast->getTermID());
+    ASSERT_EQ(TermID::CREATE_FORCE, ast->getTermID()) << newlang::toString(ast->getTermID());
     ASSERT_STREQ("мин(arg, arg1=1, arg2=2, ...) := {$0 := 0;};", ast->toString().c_str());
 }
 
@@ -1747,13 +1747,13 @@ TEST_F(ParserTest, FunctionArgsFail) {
 
 TEST_F(ParserTest, ArrayAdd7) {
     ASSERT_TRUE(Parse("name()  :=  term2;")); // $[].name:=term2;
-    ASSERT_EQ(TermID::CREATE_OVERLAP, ast->getTermID()) << newlang::toString(ast->getTermID());
+    ASSERT_EQ(TermID::CREATE_FORCE, ast->getTermID()) << newlang::toString(ast->getTermID());
     ASSERT_STREQ("name() := term2;", ast->toString().c_str());
 }
 
 TEST_F(ParserTest, Ellipsis1) {
     ASSERT_TRUE(Parse("name  :=  term2(arg1  ,  ...    ...    dict);")); //
-    ASSERT_EQ(TermID::CREATE_OVERLAP, ast->getTermID()) << newlang::toString(ast->getTermID());
+    ASSERT_EQ(TermID::CREATE_FORCE, ast->getTermID()) << newlang::toString(ast->getTermID());
     ASSERT_STREQ("name := term2(arg1, ... ...dict);", ast->toString().c_str());
 }
 
@@ -1801,19 +1801,19 @@ TEST_F(ParserTest, Ellipsis1) {
 
 TEST_F(ParserTest, Ellipsis2) {
     ASSERT_TRUE(Parse("\\name  :=  term2(   ...   arg);"));
-    ASSERT_EQ(TermID::CREATE_OVERLAP, ast->getTermID()) << newlang::toString(ast->getTermID());
+    ASSERT_EQ(TermID::CREATE_FORCE, ast->getTermID()) << newlang::toString(ast->getTermID());
     ASSERT_STREQ("\\name := term2(...arg);", ast->toString().c_str());
 }
 
 TEST_F(ParserTest, Func1) {
     ASSERT_TRUE(Parse("func_arg(arg1 :Int8, arg2) :Int8 := { $arg1+$arg2; };"));
-    ASSERT_EQ(TermID::CREATE_OVERLAP, ast->getTermID()) << newlang::toString(ast->getTermID());
+    ASSERT_EQ(TermID::CREATE_FORCE, ast->getTermID()) << newlang::toString(ast->getTermID());
     ASSERT_STREQ("func_arg(arg1:Int8, arg2):Int8 := {$arg1 + $arg2;};", ast->toString().c_str());
 }
 
 TEST_F(ParserTest, Func2) {
     ASSERT_TRUE(Parse("func_arg(arg1:&Int8, &arg2) :&Int8 := { $arg1+$arg2; };"));
-    ASSERT_EQ(TermID::CREATE_OVERLAP, ast->getTermID()) << newlang::toString(ast->getTermID());
+    ASSERT_EQ(TermID::CREATE_FORCE, ast->getTermID()) << newlang::toString(ast->getTermID());
     ASSERT_STREQ("func_arg(arg1:&Int8, &arg2):&Int8 := {$arg1 + $arg2;};", ast->toString().c_str());
 }
 
@@ -1851,7 +1851,7 @@ TEST_F(ParserTest, Comment3) {
             "\n"
             "# @print(\"Привет, мир!\\n\");\n";
     ASSERT_TRUE(Parse(str));
-    ASSERT_EQ(TermID::CREATE_OVERLAP, ast->getTermID()) << newlang::toString(ast->getTermID());
+    ASSERT_EQ(TermID::CREATE_FORCE, ast->getTermID()) << newlang::toString(ast->getTermID());
     //    ASSERT_EQ(3, ast->m_block.size());
     //    ASSERT_EQ(TermID::FUNCTION, ast->m_block[0]->getTermID())<< EnumStr(ast->getTermID());
     //    ASSERT_EQ(TermID::COMMENT, ast->m_block[1]->getTermID())<< EnumStr(ast->getTermID());
@@ -1867,8 +1867,8 @@ TEST_F(ParserTest, Comment4) {
     ASSERT_EQ(TermID::SEQUENCE, ast->getTermID()) << newlang::toString(ast->getTermID());
     ASSERT_EQ(2, ast->m_block.size());
     //    ASSERT_EQ(TermID::COMMENT, ast->m_block[0]->getTermID()) << EnumStr(ast->getTermID());
-    ASSERT_EQ(TermID::CREATE_OVERLAP, ast->m_block[0]->getTermID()) << newlang::toString(ast->getTermID());
-    ASSERT_EQ(TermID::CREATE_OVERLAP, ast->m_block[1]->getTermID()) << newlang::toString(ast->getTermID());
+    ASSERT_EQ(TermID::CREATE_FORCE, ast->m_block[0]->getTermID()) << newlang::toString(ast->getTermID());
+    ASSERT_EQ(TermID::CREATE_FORCE, ast->m_block[1]->getTermID()) << newlang::toString(ast->getTermID());
     //    ASSERT_EQ(TermID::COMMENT, ast->m_block[2]->getTermID())<< EnumStr(ast->getTermID());
 }
 
@@ -1883,9 +1883,9 @@ TEST_F(ParserTest, Comment5) {
     ASSERT_EQ(4, ast->m_block.size());
     ASSERT_EQ(TermID::NAME, ast->m_block[0]->getTermID()) << newlang::toString(ast->getTermID());
 
-    ASSERT_EQ(TermID::CREATE_OVERLAP, ast->m_block[1]->getTermID()) << newlang::toString(ast->getTermID());
-    ASSERT_EQ(TermID::CREATE_OVERLAP, ast->m_block[2]->getTermID()) << newlang::toString(ast->getTermID());
-    ASSERT_EQ(TermID::CREATE_OVERLAP, ast->m_block[3]->getTermID()) << newlang::toString(ast->getTermID());
+    ASSERT_EQ(TermID::CREATE_FORCE, ast->m_block[1]->getTermID()) << newlang::toString(ast->getTermID());
+    ASSERT_EQ(TermID::CREATE_FORCE, ast->m_block[2]->getTermID()) << newlang::toString(ast->getTermID());
+    ASSERT_EQ(TermID::CREATE_FORCE, ast->m_block[3]->getTermID()) << newlang::toString(ast->getTermID());
 }
 
 TEST_F(ParserTest, Comment6) {
@@ -1953,7 +1953,7 @@ TEST_F(ParserTest, Const2) {
 
 TEST_F(ParserTest, Const3) {
     ASSERT_TRUE(Parse("const^  :=   123;"));
-    ASSERT_EQ(TermID::CREATE_OVERLAP, ast->getTermID()) << newlang::toString(ast->getTermID());
+    ASSERT_EQ(TermID::CREATE_FORCE, ast->getTermID()) << newlang::toString(ast->getTermID());
     ASSERT_STREQ("const^ := 123;", ast->toString().c_str());
 }
 
@@ -2003,13 +2003,13 @@ TEST_F(ParserTest, BlockTry) {
 
     ASSERT_TRUE(Parse("_():={- 1; 2; 3; --4--; 5; 6;-}; 100;"));
     ASSERT_EQ(2, ast->m_block.size());
-    ASSERT_EQ(TermID::CREATE_OVERLAP, ast->m_block[0]->getTermID()) << newlang::toString(ast->m_block[0]->getTermID());
+    ASSERT_EQ(TermID::CREATE_FORCE, ast->m_block[0]->getTermID()) << newlang::toString(ast->m_block[0]->getTermID());
     ASSERT_EQ(TermID::INTEGER, ast->m_block[1]->getTermID()) << newlang::toString(ast->m_block[1]->getTermID());
 
     ASSERT_TRUE(Parse("_()::-{+ 1; 2; 3; ++4++; 5; 6;+}; 100;"));
     ASSERT_EQ(2, ast->m_block.size());
     ASSERT_EQ(TermID::SEQUENCE, ast->getTermID()) << newlang::toString(ast->getTermID());
-    ASSERT_EQ(TermID::PURE_OVERLAP, ast->m_block[0]->getTermID()) << newlang::toString(ast->m_block[0]->getTermID());
+    ASSERT_EQ(TermID::PURE_FORCE, ast->m_block[0]->getTermID()) << newlang::toString(ast->m_block[0]->getTermID());
 
     ASSERT_TRUE(Parse("_():- {1; 2; 3; ++4++; 5; 6;};"));
     ASSERT_EQ(0, ast->m_block.size());

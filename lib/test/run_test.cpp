@@ -220,9 +220,9 @@ TEST(Run, Call) {
     ASSERT_STREQ("123", res->toString().c_str());
 
     ASSERT_ANY_THROW(jit->Run("::func_glob() ::= {}"));
-//    ASSERT_ANY_THROW(jit->Run("::func_glob() = {}"));
+    //    ASSERT_ANY_THROW(jit->Run("::func_glob() = {}"));
     ASSERT_ANY_THROW(jit->Run("::func_glob ::= {}"));
-//    ASSERT_ANY_THROW(jit->Run("::func_glob = {}"));
+    //    ASSERT_ANY_THROW(jit->Run("::func_glob = {}"));
 
 
     res = jit->Run("func_loc() := { 456 }");
@@ -230,7 +230,7 @@ TEST(Run, Call) {
     ASSERT_EQ(1, jit->size() - glob_count);
     ASSERT_EQ(3, jit->m_main_ast->m_block.size());
     //    ASSERT_EQ(0, jit->m_main_runner->size());
-//    ASSERT_EQ(2, jit->m_main_ast->m_int_vars.size());
+    //    ASSERT_EQ(2, jit->m_main_ast->m_int_vars.size());
     ASSERT_STREQ("func_loc::(){ }", res->toString().c_str());
 
     ASSERT_NO_THROW(res = jit->Run("func_loc()")) << Dump(*jit) << jit->m_main_ast->m_int_vars.Dump();
@@ -248,7 +248,7 @@ TEST(Run, Call) {
     ASSERT_EQ(1, jit->size() - glob_count);
     ASSERT_EQ(6, jit->m_main_ast->m_block.size());
     //    ASSERT_EQ(0, jit->m_main_runner->size());
-//    ASSERT_EQ(3, jit->m_main_ast->m_int_vars.size());
+    //    ASSERT_EQ(3, jit->m_main_ast->m_int_vars.size());
     ASSERT_STREQ("@::func::(){ }", res->toString().c_str());
 
     ASSERT_NO_THROW(res = jit->Run("@::func()")) << Dump(*jit) << jit->m_main_ast->m_int_vars.Dump();
@@ -360,7 +360,7 @@ TEST(Eval, Assign) {
 
     //    ASSERT_TRUE(ctx.ExecStr("var1 = "));
     //    ASSERT_TRUE(ctx.select("var1").complete());
-    
+
     jit = JIT::ReCreate();
 
     list = jit->Run("$?!");
@@ -2331,26 +2331,23 @@ TEST(RunTest, String) {
     ASSERT_STREQ("СТРОка", str_char->GetValueAsString().c_str());
 
 
-    //    ObjPtr format = Obj::CreateString("$1 $2 ${name}");
-    //    ObjPtr str11 = (*format)();
-    //    ASSERT_STREQ("$1 $2 ${name}", str11->GetValueAsString().c_str());
-    //
-    //    ObjPtr str22 = (*format)(Obj::Arg(100));
-    //    ASSERT_STREQ("100 $2 ${name}", str22->GetValueAsString().c_str());
-    //    str22 = (*format)(100);
-    //    ASSERT_STREQ("100 $2 ${name}", str22->GetValueAsString().c_str());
-    //
-    //    ObjPtr str3 = (*format)(Obj::Arg(-1), Obj::Arg("222"));
-    //    ASSERT_STREQ("-1 222 ${name}", str3->GetValueAsString().c_str());
-    ////    str3 = (*format)(-1, "222");
-    ////    ASSERT_STREQ("-1 222 ${name}", str3->GetValueAsString().c_str());
-    //
-    //    ObjPtr str4 = (*format)(Obj::Arg("value", "name"));
-    //    ASSERT_STREQ("value $2 value", str4->GetValueAsString().c_str());
-    //
-    //    format = Obj::CreateString("$nameno ${имя1} $name $имя");
-    //    ObjPtr str5 = (*format)(Obj::Arg("value", "name"), Obj::Arg("УТФ8-УТФ8", "имя"), Obj::Arg("УТФ8", "имя1"));
-    //    ASSERT_STREQ("valueno УТФ8 value УТФ8-УТФ8", str5->GetValueAsString().c_str());
+    ObjPtr format = Obj::CreateString("{1} {2} {name}");
+
+    ASSERT_ANY_THROW((*format)(););
+    ASSERT_ANY_THROW((*format)(100););
+
+    ObjPtr str3;
+    ASSERT_NO_THROW(str3 = (*format)(Obj::Arg(-1), Obj::Arg("222"), Obj::Arg("NAME", "name")));
+    ASSERT_STREQ("-1 222 NAME", str3->GetValueAsString().c_str());
+
+    ObjPtr str4;
+    ASSERT_NO_THROW(str4 = (*format)(Obj::Arg("value", "name"), Obj::Arg("VAL")););
+    ASSERT_STREQ("value VAL value", str4->GetValueAsString().c_str());
+
+    format = Obj::CreateString("{name}no {3} {name} {name2}");
+    ObjPtr str5;
+    ASSERT_NO_THROW(str5 = (*format)(Obj::Arg("value", "name"), Obj::Arg("УТФ8-УТФ8", "name2"), Obj::Arg("УТФ8", "name3")));
+    ASSERT_STREQ("valueno УТФ8 value УТФ8-УТФ8", str5->GetValueAsString().c_str());
 
 }
 

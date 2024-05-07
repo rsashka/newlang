@@ -178,7 +178,7 @@
 %token			MACRO_NAMESPACE
 
 %token			CREATE_ONCE              "::="
-%token			CREATE_OVERLAP             ":="
+%token			CREATE_FORCE             ":="
 %token			APPEND                  "[]="
 %token			SWAP
 
@@ -224,7 +224,7 @@
 %token			FUNCTION
 
 %token			PURE_ONCE
-%token			PURE_OVERLAP
+%token			PURE_FORCE
 %token			OP_LOGICAL
 %token			OP_MATH
 %token			OP_COMPARE
@@ -1312,7 +1312,7 @@ class_def:  class_base  '{'  '}'
         
         
         
-assign_op: CREATE_OVERLAP /* := */
+assign_op: CREATE_FORCE /* := */
             {
                 $$ = $1;
             }
@@ -1328,7 +1328,7 @@ assign_op: CREATE_OVERLAP /* := */
             {
                 $$ = $1;
             }
-        | PURE_OVERLAP /* ::- */
+        | PURE_FORCE /* ::- */
             {
                 $$ = $1;
             }
@@ -1805,30 +1805,30 @@ factor:   rval_var
             }
 
 
-symbolyc: SYM_BEGIN  arithmetic  SYM_END   PURE_OVERLAP   SYM_BEGIN  sequence  SYM_END
+symbolyc: SYM_BEGIN  arithmetic  SYM_END   PURE_FORCE   SYM_BEGIN  sequence  SYM_END
             {
-                $$ = $PURE_OVERLAP;
+                $$ = $PURE_FORCE;
                 $$->SetTermID(TermID::SYM_RULE);
                 $$->Append($arithmetic, Term::LEFT); 
                 $$->Append($sequence, Term::RIGHT); 
             }
-        | SYM_BEGIN  arithmetic  SYM_END   PURE_OVERLAP   SYM_BEGIN  sequence  separator  SYM_END
+        | SYM_BEGIN  arithmetic  SYM_END   PURE_FORCE   SYM_BEGIN  sequence  separator  SYM_END
             {
-                $$ = $PURE_OVERLAP;
+                $$ = $PURE_FORCE;
                 $$->SetTermID(TermID::SYM_RULE);
                 $$->Append($arithmetic, Term::LEFT); 
                 $$->Append($sequence, Term::RIGHT); 
             }
-        | SYM_BEGIN  arithmetic  separator SYM_END   PURE_OVERLAP   SYM_BEGIN  sequence  SYM_END
+        | SYM_BEGIN  arithmetic  separator SYM_END   PURE_FORCE   SYM_BEGIN  sequence  SYM_END
             {
-                $$ = $PURE_OVERLAP;
+                $$ = $PURE_FORCE;
                 $$->SetTermID(TermID::SYM_RULE);
                 $$->Append($arithmetic, Term::LEFT); 
                 $$->Append($sequence, Term::RIGHT); 
             }
-        | SYM_BEGIN  arithmetic  separator SYM_END   PURE_OVERLAP   SYM_BEGIN  sequence  separator  SYM_END
+        | SYM_BEGIN  arithmetic  separator SYM_END   PURE_FORCE   SYM_BEGIN  sequence  separator  SYM_END
             {
-                $$ = $PURE_OVERLAP;
+                $$ = $PURE_FORCE;
                 $$->SetTermID(TermID::SYM_RULE);
                 $$->Append($arithmetic, Term::LEFT); 
                 $$->Append($sequence, Term::RIGHT); 

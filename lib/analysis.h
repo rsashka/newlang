@@ -58,6 +58,7 @@ namespace newlang {
 
         TermPtr CheckField_(TermPtr &term, TermPtr &field, ScopeStack &stack);
         bool CheckIndex_(TermPtr &term, TermPtr &index, TermPtr &value, ScopeStack &stack);
+        bool CheckItems_(TermPtr &term, ScopeStack &stack);
 
         TermPtr CheckGetValue_(TermPtr &obj, ScopeStack &stack);
         bool CheckSetValue_(TermPtr &obj, TermPtr &value, ScopeStack &stack);
@@ -99,7 +100,75 @@ namespace newlang {
         static bool CheckStrPrintf(const std::string_view format, TermPtr args, int start);
         static std::string MakeFormat(const std::string_view format, TermPtr args, RunTime * rt);
         static fmt::dynamic_format_arg_store<fmt::format_context> MakeFormatArgs(TermPtr args, RunTime * rt);
-        static std::string ConvertToVFormat_(const std::string_view format, TermPtr args);
+        //        template <typename T> static std::string ConvertToVFormat_(const std::string_view format, T args);
+
+        /*
+         * $template := "{name} {0}"; # std::format equivalent "{1} {0}"
+         * $result := $template("шаблон", name = "Строка"); # result = "Строка шаблон"
+         */
+
+        template <typename T> 
+        static std::string ConvertToVFormat_(const std::string_view format, T & args) {
+//            if (args.m_id != TermID::DICT) {
+//                LOG_RUNTIME("ConvertToFormat requires arguments!");
+//            }
+            std::string result;
+            int pos = 0;
+            while (pos < format.size()) {
+                if (format[pos] == '{' && pos + 1 < format.size() && format[pos + 1] == '{') {
+                    // Escaped text in doubling {{
+                    result += "{{";
+                    pos += 1;
+                } else if (format[pos] == '}' && pos + 1 < format.size() && format[pos + 1] == '}') {
+                    // Escaped text in doubling }}
+                    result += "}}";
+                    pos += 1;
+                } else if (format[pos] == '{') {
+                    pos += 1;
+                    int name = pos;
+                    result += '{';
+                    while (pos < format.size()) {
+                        if (format[pos] == '{') {
+                            LOG_RUNTIME("Unexpected opening bracket '%s' at position %d!", format.begin(), pos);
+                        }
+                        if (format[pos] == '}') {
+                            result += '}';
+                            goto done;
+                        }
+                        if (isalpha(format[pos]) || format[pos] == '_') {
+                            while (name < format.size()) {
+                                if (isalnum(format[name]) || format[name] == '_') {
+                                    name++;
+                                } else {
+                                    name -= 1;
+                                    break;
+                                }
+                            }
+
+                            ASSERT(name > pos);
+                            std::string arg_name(&format[pos], name - pos + 1);
+
+                            auto found = args.find(arg_name);
+                            if (found == args.end()) {
+                                LOG_RUNTIME("Argument name '%s' not found!", arg_name.c_str());
+                            }
+                            result += std::to_string(std::distance(args.begin(), found));
+                            pos += (name - pos);
+                        } else {
+                            result += format[pos];
+                        }
+                        pos++;
+                    }
+                    LOG_RUNTIME("Closing bracket in '%s' for position %d not found!", format.begin(), name - 1);
+                } else {
+                    result += format[pos];
+                }
+done:
+                pos++;
+            }
+            return result;
+        }
+
         TermPtr CalcSummaryType(const TermPtr &term, ScopeStack & stack);
 
     protected:

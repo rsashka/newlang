@@ -2658,8 +2658,8 @@ JIT::JIT(const StringArray &args) : RunTime(args), m_macro(std::make_shared<Macr
 
         VERIFY(CreateMacro("@@ break $label @@ ::= @@ @$label :: ++ @@"));
         VERIFY(CreateMacro("@@ continue $label @@ ::= @@ @$label :: -- @@"));
-        VERIFY(CreateMacro("@@ return( result ) @@ ::= @@ @__FUNC_BLOCK__ ++ @$result ++ @@"));
-        VERIFY(CreateMacro("@@ throw( result ) @@ ::= @@ -- @$result -- @@"));
+        VERIFY(CreateMacro("@@ return $... @@ ::= @@ $:: ++ @$... ++ @@"));
+        VERIFY(CreateMacro("@@ throw $... @@ ::= @@ -- @$... -- @@"));
 
         VERIFY(CreateMacro("@@ match( ... ) @@ ::= @@ [ @$... ] @__PRAGMA_EXPECTED__( @\\ =>, @\\ ==>, @\\ ===>, @\\ ~>, @\\ ~~>, @\\ ~~~> ) @@"));
         VERIFY(CreateMacro("@@ case( ... ) @@ ::= @@ [ @$... ] --> @@"));
@@ -2702,12 +2702,23 @@ JIT::JIT(const StringArray &args) : RunTime(args), m_macro(std::make_shared<Macr
         VERIFY(CreateMacro("@@ typedef(cnt) @@ ::= @@ @__PRAGMA_TYPE_DEFINE__(@$cnt) @@ ##< Disable warning when defining a type inside a namespace"));
 
         VERIFY(CreateMacro("@@ coroutine @@ ::= @@ __ANNOTATION_SET__(coroutine) @@"));
-        VERIFY(CreateMacro("@@ co_yield  $val  @@ ::= @@ __ANNOTATION_CHECK__(coroutine) @__FUNC_BLOCK__ :: -- @$val -- @@"));
-        VERIFY(CreateMacro("@@ co_await        @@ ::= @@ __ANNOTATION_CHECK__(coroutine) @__FUNC_BLOCK__ :: +- @@"));
-        VERIFY(CreateMacro("@@ co_return $val  @@ ::= @@ __ANNOTATION_CHECK__(coroutine) @__FUNC_BLOCK__ :: ++ @$val ++ @@"));
+        VERIFY(CreateMacro("@@ co_yield  $val  @@ ::= @@ __ANNOTATION_CHECK__(coroutine) $:: :: -- @$val -- @@"));
+        VERIFY(CreateMacro("@@ co_await        @@ ::= @@ __ANNOTATION_CHECK__(coroutine) $:: :: +- @@"));
+        VERIFY(CreateMacro("@@ co_return $val  @@ ::= @@ __ANNOTATION_CHECK__(coroutine) $:: :: ++ @$val ++ @@"));
 
         VERIFY(CreateMacro("@@ exit(code) @@ ::= @@ :: ++ @$code ++ @@"));
         VERIFY(CreateMacro("@@ abort() @@ ::= @@ :: -- @@"));
+
+/*
+ * @time call(123);
+ *  {
+ *      __start_point__ := ::Base::microsec_point();
+ *      call(123);
+ *      ::Base::microsec_point( __start_point__ );
+ *  }
+ */
+        VERIFY(CreateMacro("@@ timeit( ... ) @@ ::= @@ { __start_point__ := ::Base::__timeit__();  @$... ;  ::Base::__timeit__( __start_point__, @# @$... ); } @@  ##< Measure execution time of function call"));
+        
     }
 
 

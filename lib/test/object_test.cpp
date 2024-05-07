@@ -114,28 +114,6 @@ TEST(ObjTest, String) {
     str_char->op_set_index(3, "О");
     ASSERT_STREQ("СТРОка", str_char->GetValueAsString().c_str());
 
-
-    //    ObjPtr format = Obj::CreateString("$1 $2 ${name}");
-    //    ObjPtr str11 = (*format)();
-    //    ASSERT_STREQ("$1 $2 ${name}", str11->GetValueAsString().c_str());
-    //
-    //    ObjPtr str22 = (*format)(Obj::Arg(100));
-    //    ASSERT_STREQ("100 $2 ${name}", str22->GetValueAsString().c_str());
-    //    str22 = (*format)(100);
-    //    ASSERT_STREQ("100 $2 ${name}", str22->GetValueAsString().c_str());
-    //
-    //    ObjPtr str3 = (*format)(Obj::Arg(-1), Obj::Arg("222"));
-    //    ASSERT_STREQ("-1 222 ${name}", str3->GetValueAsString().c_str());
-    ////    str3 = (*format)(-1, "222");
-    ////    ASSERT_STREQ("-1 222 ${name}", str3->GetValueAsString().c_str());
-    //
-    //    ObjPtr str4 = (*format)(Obj::Arg("value", "name"));
-    //    ASSERT_STREQ("value $2 value", str4->GetValueAsString().c_str());
-    //
-    //    format = Obj::CreateString("$nameno ${имя1} $name $имя");
-    //    ObjPtr str5 = (*format)(Obj::Arg("value", "name"), Obj::Arg("УТФ8-УТФ8", "имя"), Obj::Arg("УТФ8", "имя1"));
-    //    ASSERT_STREQ("valueno УТФ8 value УТФ8-УТФ8", str5->GetValueAsString().c_str());
-
 }
 
 TEST(ObjTest, Dict) {

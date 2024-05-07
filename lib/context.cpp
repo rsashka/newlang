@@ -15,6 +15,7 @@
 #include "runtime.h"
 #include "module.h"
 #include "types.h"
+#include "analysis.h"
 
 using namespace newlang;
 
@@ -24,16 +25,21 @@ Context::Context(Module &module, RunTime *rt) : m_runtime(rt), m_static(module) 
     push_back({});
 }
 
-std::string Context::Dump() {
+std::string Context::Dump(size_t num) {
     std::string result;
-    result = "Static: ";
-    //    if (m_module) {
-    result += m_static.Dump();
-    //    }
+    if (!num) {
+        result = "Static: ";
+        //    if (m_module) {
+        result += m_static.Dump();
+        //    }
+    }
 
-    auto iter = begin();
-    while (iter != end()) {
-        result += "Stack [";
+    size_t count = 0;
+    auto iter = rbegin();
+    while (iter != rend()) {
+        result += "Stack ";
+        result += std::to_string(std::distance(iter, rend()));
+        result += " [";
         result += iter->ns;
         result += "]: ";
 
@@ -47,6 +53,13 @@ std::string Context::Dump() {
             }
 
             list += iter_list->first;
+            list += "=(";
+            if (iter_list->second.obj) {
+                list += iter_list->second.obj->toString();
+            } else {
+                list += "nullptr";
+            }
+            list += ")";
             iter_list++;
         }
 
@@ -54,8 +67,23 @@ std::string Context::Dump() {
         result += list;
         result += "\n";
         iter++;
+
+        count++;
+        if (num && count >= num) {
+            break;
+        }
     }
     return result;
+}
+
+ObjPtr Context::CheckObjTerm_(TermPtr & term, Context * runner, bool rvalue) {
+    ObjPtr temp = EvalTerm(term, runner, rvalue);
+    if (term->m_obj) {
+        (*term->m_obj) = *temp;
+    } else {
+        term->m_obj = temp;
+    }
+    return term->m_obj;
 }
 
 std::unique_ptr<Sync> Context::CreateSync(const TermPtr &term) {
@@ -107,7 +135,7 @@ VarItem Context::CreateItem(TermPtr term, ObjPtr obj) {
 //
 //    ASSERT(term && (term->getTermID() == TermID::ASSIGN ||
 //            term->getTermID() == TermID::CREATE_ONCE ||
-//            term->getTermID() == TermID::CREATE_OVERLAP));
+//            term->getTermID() == TermID::CREATE_FORCE));
 //    ASSERT(term->Left());
 //
 //
@@ -1372,7 +1400,7 @@ VarItem Context::CreateItem(TermPtr term, ObjPtr obj) {
  * 
  */
 ObjPtr Context::Run(TermPtr term, Context *runner) {
-    //        LOG_TEST("run: %s", m_runtime->Escape(term->toString()).c_str());
+    LOG_TEST("run: %s", RunTime::Escape(term->toString()).c_str());
     ObjPtr result = Obj::CreateNone();
     if ((term->m_id == TermID::SEQUENCE || term->m_id == TermID::BLOCK) && !runner) {
         for (auto &elem : term->m_block) {
@@ -1459,7 +1487,7 @@ ObjPtr Context::EvalTryBlock_(TermPtr &block, StorageTerm & storage) {
                     // Не именованное прерывание -> выход из блока
                     break;
 
-                } else if (FindScope(m_latter->m_value)) {
+                } else if (CheckTargetScope(m_latter->m_value)) {
                     if (m_latter->getType() == ObjType::RetPlus) {
                         m_latter = m_latter->m_return_obj;
 
@@ -1476,6 +1504,9 @@ ObjPtr Context::EvalTryBlock_(TermPtr &block, StorageTerm & storage) {
                     } else {
                         LOG_RUNTIME("Interrupt type '%s' not implemented!", toString(m_latter->getType()));
                     }
+                } else {
+                    // Именованное прерывание, но блок более низкого уровня
+                    return m_latter;
                 }
             }
             i++;
@@ -1509,7 +1540,7 @@ ObjPtr Context::EvalTryBlock_(TermPtr &block, StorageTerm & storage) {
         }
 
         if (return_value && block->m_left) {
-            ASSERT(block->m_left->m_id == TermID::WITH);
+            //            ASSERT(block->m_left->m_id == TermID::WITH);
             m_latter = m_latter->m_return_obj;
         }
     }
@@ -1717,6 +1748,9 @@ ObjPtr Context::Call(Context *runner, Obj &obj, TermPtr & term) {
             args->push_back(EvalTerm((*term)[i].second, runner), term->name(i).c_str());
         }
     }
+
+    LOG_TEST("Call %s %s", obj.m_prototype ? obj.m_prototype->m_text.c_str() : "", args->toString().c_str());
+    LOG_TEST("Local vars: %s", runner->Dump(2).c_str());
 
     return Call(runner, obj, *args.get());
 }
@@ -2249,9 +2283,42 @@ ObjPtr Context::CreateTensor(TermPtr &term, Context * runner) {
 }
 
 ObjPtr Context::StringFormat(std::string_view format, Obj & args) {
-    ASSERT(0);
 
-    return nullptr;
+    std::string conv_format = AstAnalysis::ConvertToVFormat_(format, args);
+
+    fmt::dynamic_format_arg_store<fmt::format_context> store;
+    for (int i = 0; i < args.size(); i++) {
+
+        switch (args[i].second->getType()) {
+            case ObjType::Bool:
+            case ObjType::Int8:
+            case ObjType::Byte:
+            case ObjType::Char:
+            case ObjType::Int16:
+            case ObjType::Word:
+            case ObjType::Int32:
+            case ObjType::DWord:
+            case ObjType::Int64:
+            case ObjType::DWord64:
+                store.push_back(args[i].second->GetValueAsInteger());
+                break;
+
+            case ObjType::Float16:
+            case ObjType::Float32:
+            case ObjType::Single:
+            case ObjType::Float64:
+            case ObjType::Double:
+                store.push_back(args[i].second->GetValueAsNumber());
+                break;
+
+            default:
+                store.push_back(args[i].second->GetValueAsString());
+                break;
+                // LOG_RUNTIME("Support type '%s' not implemented!", toString(type));
+        }
+    }
+
+    return Obj::CreateString(fmt::vformat(conv_format, store));
 }
 
 ObjPtr Context::StringPrintf(std::string_view format, Obj & args) {
@@ -2392,8 +2459,8 @@ ObjPtr Context::EvalTerm(TermPtr term, Context * runner, bool rvalue) {
                         LOG_ERROR("found obj: %s (%p != %p)", term->m_text.c_str(), item->obj_check, found->m_obj.get());
                     } else {
                         if (item->item->m_obj) {
-                            if (!item->obj || !item->obj_check) {
-                                LOG_RUNTIME("found obj: %s (%p != %p)", term->m_text.c_str(), item->obj.get(), item->obj_check);
+                            if (item->obj || item->obj_check) {
+                                LOG_RUNTIME("found obj: %s %p (%p != %p)", term->m_text.c_str(), item->item->m_obj.get(), item->obj.get(), item->obj_check);
                             }
                             item->obj = item->item->m_obj;
                             item->obj_check = item->item->m_obj.get();
@@ -2946,7 +3013,7 @@ void Context::EvalLeftVars_(ArrayTermType &vars, const TermPtr & op) {
                 NL_PARSER(elem, "Object '%s' not exist!", elem->m_text.c_str());
             }
 
-            if (var_found) {
+            if (var_found && !op->isCreateForce()) {
                 //                if (elem->isCall() && elem->m_obj) {
                 //                    NL_PARSER(elem, "Recreate function not implemented!");
                 //                }
@@ -2958,7 +3025,9 @@ void Context::EvalLeftVars_(ArrayTermType &vars, const TermPtr & op) {
 
             } else {
                 ASSERT(!empty());
-                ASSERT(back().vars.find(elem->m_int_name) == back().vars.end());
+                if (back().vars.find(elem->m_int_name) != back().vars.end()) {
+                    NL_PARSER(elem, "Local object '%s' already exist", elem->m_text.c_str());
+                }
 
                 //                VarItem item;
                 //                item.item = op->m_left;
@@ -3218,8 +3287,7 @@ ObjPtr Context::GetIndexValue(TermPtr &term, ObjPtr &obj, Context * runner) {
     ObjPtr ind = CheckObjTerm_(index->at(0).second, runner);
     ASSERT(ind);
 
-    if (isStringChar(obj->getType())) {
-
+    if (isIndexingType(obj->m_var_type_current, obj->m_var_type_fixed)) {
         return obj->index_get({ind->GetValueAsInteger()});
     }
 
@@ -3346,7 +3414,7 @@ ObjPtr Context::EvalWhile_(TermPtr & term) {
                     // Не именованное прерывание -> выход из блока
                     break;
 
-                } else if (FindScope(m_latter->m_value)) {
+                } else if (CheckTargetScope(m_latter->m_value)) {
                     if (m_latter->getType() == ObjType::RetPlus) {
                         m_latter = m_latter->m_return_obj;
 
@@ -3395,7 +3463,7 @@ ObjPtr Context::EvalDoWhile_(TermPtr & term) {
                 // Не именованное прерывание -> выход из блока
                 break;
 
-            } else if (FindScope(m_latter->m_value)) {
+            } else if (CheckTargetScope(m_latter->m_value)) {
                 if (m_latter->getType() == ObjType::RetPlus) {
                     m_latter = m_latter->m_return_obj;
 

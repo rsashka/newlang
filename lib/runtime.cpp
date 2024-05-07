@@ -1379,6 +1379,15 @@ void RunTime::InitInternal(StringArray args) {
         VERIFY(RegisterSystemFunc("::srand(init:Int32):None ::= %srand ..."));
         VERIFY(RegisterSystemFunc("::rand():Int32 ::= %rand ..."));
 
+        VERIFY(RegisterSystemFunc("::sleep(init:DWord):DWord ::= %sleep ..."));
+        VERIFY(RegisterSystemFunc("::usleep(init:DWord64):Int32 ::= %usleep ..."));
+
+        //        VERIFY(RegisterSystemFunc("::microsec():Int64 ::= %microsec ..."));
+        VERIFY(RegisterBuildinFunc("::len(obj):Int64", (void *) &runtime::Base::__len__));
+        VERIFY(RegisterBuildinFunc("::size(obj):Int64", (void *) &runtime::Base::__len__));
+        
+        VERIFY(RegisterBuildinFunc("::Base::__timeit__(...):Int64", (void *) &runtime::Base::__timeit__));
+
         //#define REGISTER_BUILDIN(proto, function)        
 
         VERIFY(RegisterBuildinFunc("::Base::__assert_abort__(...):None", (void *) &runtime::Base::__assert_abort__));
@@ -1828,6 +1837,7 @@ ObjPtr RunTime::CreateFunction(TermPtr proto, TermPtr block) {
     ObjPtr result = Obj::CreateType(ObjType::Function, ObjType::Function, true);
     *const_cast<TermPtr *> (&result->m_prototype) = proto;
     result->m_sequence = block;
+    result->m_sequence->m_namespace = Term::CreateName(proto->m_text, TermID::NAMESPACE);
     return result;
 }
 

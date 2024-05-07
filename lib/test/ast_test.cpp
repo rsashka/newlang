@@ -642,6 +642,43 @@ TEST(Ast, AstAnalyze) {
 
 }
 
+TEST(Ast, AstArgs) {
+
+    JIT * jit = JIT::ReCreate();
+
+    AstAnalysis analysis(*jit, jit->m_diag.get());
+
+    TermPtr ast = jit->GetParser()->Parse("dict := (1,2,); dict[1];");
+
+    ASSERT_TRUE(ast);
+    ASSERT_TRUE(analysis.Analyze(ast, ast)) << ast->m_int_vars.Dump();
+    ASSERT_EQ(1, ast->m_int_vars.size());
+    ASSERT_TRUE(ast->m_int_vars.find("1::dict$") != ast->m_int_vars.end()) << ast->m_int_vars.Dump();
+    ASSERT_STREQ("dict", ast->m_int_vars.find("1::dict$")->second->m_text.c_str());
+    ASSERT_STREQ("1::dict$", ast->m_int_vars.find("1::dict$")->second->m_int_name.c_str());
+
+    ast = jit->GetParser()->Parse("dict := (1,2,); (dict[1], dict[2],);");
+
+    ASSERT_TRUE(ast);
+    ASSERT_TRUE(analysis.Analyze(ast, ast)) << ast->m_int_vars.Dump();
+    ASSERT_EQ(1, ast->m_int_vars.size());
+    ASSERT_TRUE(ast->m_int_vars.find("1::dict$") != ast->m_int_vars.end()) << ast->m_int_vars.Dump();
+    ASSERT_STREQ("dict", ast->m_int_vars.find("1::dict$")->second->m_text.c_str());
+    ASSERT_STREQ("1::dict$", ast->m_int_vars.find("1::dict$")->second->m_int_name.c_str());
+
+    
+    ast = jit->GetParser()->Parse("recursive(arg) ::= { recursive(arg) };");
+
+    ASSERT_TRUE(ast);
+    ASSERT_TRUE(analysis.Analyze(ast, ast)) << ast->m_int_vars.Dump();
+    ASSERT_EQ(1, ast->m_int_vars.size());
+    ASSERT_TRUE(ast->m_int_vars.find("recursive$") != ast->m_int_vars.end()) << ast->m_int_vars.Dump();
+    ASSERT_STREQ("recursive::", ast->m_int_vars.find("recursive$")->second->m_text.c_str());
+    ASSERT_STREQ("recursive$", ast->m_int_vars.find("recursive$")->second->m_int_name.c_str());
+    std::cout << ast->toString() << "\n";
+
+}
+
 TEST(Ast, Reference) {
 
     JIT * jit = JIT::ReCreate();
@@ -680,11 +717,11 @@ TEST(Ast, Reference) {
     ast = jit->GetParser()->Parse("::val ::= 1; { $local := val; }");
     ASSERT_TRUE(ast);
     ASSERT_TRUE(analysis.Analyze(ast, ast)) << ast->m_int_vars.Dump();
-    
+
     ast = jit->GetParser()->Parse("$val ::= 1; { $local := val; }");
     ASSERT_TRUE(ast);
     ASSERT_TRUE(analysis.Analyze(ast, ast)) << ast->m_int_vars.Dump();
-    
+
     // Нельзя копировать владельцев в статические переменные
     ast = jit->GetParser()->Parse("val ::= 1; { ::local := val; }");
     ASSERT_TRUE(ast);
@@ -694,17 +731,17 @@ TEST(Ast, Reference) {
     ast = jit->GetParser()->Parse("val ::= 1; ::val2 := *val;");
     ASSERT_TRUE(ast);
     ASSERT_TRUE(analysis.Analyze(ast, ast)) << ast->m_int_vars.Dump();
-    
-    
+
+
     // Можно создавать только правильные ссылки
     ast = jit->GetParser()->Parse("&ref ::= 1; test := &ref;");
     ASSERT_TRUE(ast);
     ASSERT_TRUE(analysis.Analyze(ast, ast)) << ast->m_int_vars.Dump();
-    
+
     ast = jit->GetParser()->Parse("&^ref ::= 1; test := &^ref;");
     ASSERT_TRUE(ast);
     ASSERT_TRUE(analysis.Analyze(ast, ast)) << ast->m_int_vars.Dump();
-    
+
     ast = jit->GetParser()->Parse("&^ref ::= 1; test := &ref;");
     ASSERT_TRUE(ast);
     ASSERT_FALSE(analysis.Analyze(ast, ast)) << ast->m_int_vars.Dump();
@@ -724,7 +761,7 @@ TEST(Ast, Reference) {
     ast = jit->GetParser()->Parse("&ref ::= 1; test := &ref; test := 1");
     ASSERT_TRUE(ast);
     ASSERT_FALSE(analysis.Analyze(ast, ast)) << ast->m_int_vars.Dump();
-    
+
     ast = jit->GetParser()->Parse("&ref ::= 1; test := &ref; *test := 1");
     ASSERT_TRUE(ast);
     ASSERT_TRUE(analysis.Analyze(ast, ast)) << ast->m_int_vars.Dump();
@@ -732,13 +769,13 @@ TEST(Ast, Reference) {
     ast = jit->GetParser()->Parse("&^ref ::= 1; test := &^ref; test := 1");
     ASSERT_TRUE(ast);
     ASSERT_FALSE(analysis.Analyze(ast, ast)) << ast->m_int_vars.Dump();
-    
+
     // Const ref
     ast = jit->GetParser()->Parse("&^ref ::= 1; test := &^ref; *test := 1");
     ASSERT_TRUE(ast);
     ASSERT_FALSE(analysis.Analyze(ast, ast)) << ast->m_int_vars.Dump();
 
-    
+
     ast = jit->GetParser()->Parse("&?ref ::= 1; test := &?ref; test := 1");
     ASSERT_TRUE(ast);
     ASSERT_FALSE(analysis.Analyze(ast, ast)) << ast->m_int_vars.Dump();
@@ -764,22 +801,22 @@ TEST(Ast, Reference) {
     ast = jit->GetParser()->Parse("&*ref ::= 1; test := &*ref; *test := 1");
     ASSERT_TRUE(ast);
     ASSERT_TRUE(analysis.Analyze(ast, ast)) << ast->m_int_vars.Dump();
-    
-    
+
+
 
     // Контроль типа 2
     ast = jit->GetParser()->Parse("&ref ::= 1; test := &ref; test := ref");
     ASSERT_TRUE(ast);
     ASSERT_FALSE(analysis.Analyze(ast, ast)) << ast->m_int_vars.Dump();
-    
+
     ast = jit->GetParser()->Parse("&ref ::= 1; test := &ref; *test := ref");
     ASSERT_TRUE(ast);
     ASSERT_TRUE(analysis.Analyze(ast, ast)) << ast->m_int_vars.Dump();
-    
+
     ast = jit->GetParser()->Parse("&^ref ::= 1; test := &^ref; test := ref");
     ASSERT_TRUE(ast);
     ASSERT_FALSE(analysis.Analyze(ast, ast)) << ast->m_int_vars.Dump();
-    
+
     ast = jit->GetParser()->Parse("&^ref ::= 1; test := &^ref; *test := ref");
     ASSERT_TRUE(ast);
     ASSERT_FALSE(analysis.Analyze(ast, ast)) << ast->m_int_vars.Dump();
@@ -792,7 +829,7 @@ TEST(Ast, Reference) {
     ast = jit->GetParser()->Parse("&?ref ::= 1; test := &?ref; *test := ref");
     ASSERT_TRUE(ast);
     ASSERT_FALSE(analysis.Analyze(ast, ast)) << ast->m_int_vars.Dump();
-    
+
     ast = jit->GetParser()->Parse("&&ref ::= 1; test := &&ref; test := ref");
     ASSERT_TRUE(ast);
     ASSERT_FALSE(analysis.Analyze(ast, ast)) << ast->m_int_vars.Dump();
@@ -801,16 +838,16 @@ TEST(Ast, Reference) {
     ASSERT_TRUE(ast);
     ASSERT_TRUE(analysis.Analyze(ast, ast)) << ast->m_int_vars.Dump();
 
-    
+
     ast = jit->GetParser()->Parse("&*ref ::= 1; test := &*ref; test := ref");
     ASSERT_TRUE(ast);
     ASSERT_FALSE(analysis.Analyze(ast, ast)) << ast->m_int_vars.Dump();
-    
+
     ast = jit->GetParser()->Parse("&*ref ::= 1; test := &*ref; *test := ref");
     ASSERT_TRUE(ast);
     ASSERT_TRUE(analysis.Analyze(ast, ast)) << ast->m_int_vars.Dump();
 
-    
+
     // Контроль типа 3
     ast = jit->GetParser()->Parse("&val ::= 1; ref := &val; ref := *val");
     ASSERT_TRUE(ast);
@@ -823,13 +860,13 @@ TEST(Ast, Reference) {
     ast = jit->GetParser()->Parse("&^val ::= 1; ref := &^val; ref := *val");
     ASSERT_TRUE(ast);
     ASSERT_FALSE(analysis.Analyze(ast, ast)) << ast->m_int_vars.Dump();
-    
+
     // Read only
     ast = jit->GetParser()->Parse("&^val ::= 1; ref := &^val; *ref := *val");
     ASSERT_TRUE(ast);
     ASSERT_FALSE(analysis.Analyze(ast, ast)) << ast->m_int_vars.Dump();
-    
-    
+
+
     ast = jit->GetParser()->Parse("&?val ::= 1; ref := &?val; ref := *val");
     ASSERT_TRUE(ast);
     ASSERT_FALSE(analysis.Analyze(ast, ast)) << ast->m_int_vars.Dump();
@@ -851,7 +888,7 @@ TEST(Ast, Reference) {
     ast = jit->GetParser()->Parse("&*val ::= 1; ref := &*val; ref := *val");
     ASSERT_TRUE(ast);
     ASSERT_FALSE(analysis.Analyze(ast, ast)) << ast->m_int_vars.Dump();
-    
+
     ast = jit->GetParser()->Parse("&*val ::= 1; ref := &*val; *ref := *val");
     ASSERT_TRUE(ast);
     ASSERT_TRUE(analysis.Analyze(ast, ast)) << ast->m_int_vars.Dump();
@@ -1867,47 +1904,47 @@ TEST(Ast, CheckStrFormat) {
 
     TermPtr args = Term::CreateDict();
 
-    ASSERT_ANY_THROW(AstAnalysis::ConvertToVFormat_("", nullptr));
-    ASSERT_ANY_THROW(AstAnalysis::ConvertToVFormat_("{", args));
+//    ASSERT_ANY_THROW(AstAnalysis::ConvertToVFormat_("", nullptr));
+    ASSERT_ANY_THROW(AstAnalysis::ConvertToVFormat_("{", *args));
 
-    ASSERT_STREQ("", AstAnalysis::ConvertToVFormat_("", args).c_str());
-    ASSERT_STREQ("{{", AstAnalysis::ConvertToVFormat_("{{", args).c_str());
-    ASSERT_STREQ("format", AstAnalysis::ConvertToVFormat_("format", args).c_str());
-    ASSERT_STREQ("{}", AstAnalysis::ConvertToVFormat_("{}", args).c_str());
-    ASSERT_STREQ("{1}", AstAnalysis::ConvertToVFormat_("{1}", args).c_str());
-    ASSERT_STREQ("{1:}", AstAnalysis::ConvertToVFormat_("{1:}", args).c_str());
-    ASSERT_STREQ("{:0}", AstAnalysis::ConvertToVFormat_("{:0}", args).c_str());
-    ASSERT_STREQ("{:0}{:0}", AstAnalysis::ConvertToVFormat_("{:0}{:0}", args).c_str());
-    ASSERT_STREQ("{1:1}{1:1}", AstAnalysis::ConvertToVFormat_("{1:1}{1:1}", args).c_str());
+    ASSERT_STREQ("", AstAnalysis::ConvertToVFormat_("", *args).c_str());
+    ASSERT_STREQ("{{", AstAnalysis::ConvertToVFormat_("{{", *args).c_str());
+    ASSERT_STREQ("format", AstAnalysis::ConvertToVFormat_("format", *args).c_str());
+    ASSERT_STREQ("{}", AstAnalysis::ConvertToVFormat_("{}", *args).c_str());
+    ASSERT_STREQ("{1}", AstAnalysis::ConvertToVFormat_("{1}", *args).c_str());
+    ASSERT_STREQ("{1:}", AstAnalysis::ConvertToVFormat_("{1:}", *args).c_str());
+    ASSERT_STREQ("{:0}", AstAnalysis::ConvertToVFormat_("{:0}", *args).c_str());
+    ASSERT_STREQ("{:0}{:0}", AstAnalysis::ConvertToVFormat_("{:0}{:0}", *args).c_str());
+    ASSERT_STREQ("{1:1}{1:1}", AstAnalysis::ConvertToVFormat_("{1:1}{1:1}", *args).c_str());
 
-    ASSERT_ANY_THROW(AstAnalysis::ConvertToVFormat_("{{{1:1}{1:1", args));
-    ASSERT_STREQ("{{{1:1}{1:1}", AstAnalysis::ConvertToVFormat_("{{{1:1}{1:1}", args).c_str());
-    ASSERT_STREQ("{{{1:1}{1:1}}}", AstAnalysis::ConvertToVFormat_("{{{1:1}{1:1}}}", args).c_str());
+    ASSERT_ANY_THROW(AstAnalysis::ConvertToVFormat_("{{{1:1}{1:1", *args));
+    ASSERT_STREQ("{{{1:1}{1:1}", AstAnalysis::ConvertToVFormat_("{{{1:1}{1:1}", *args).c_str());
+    ASSERT_STREQ("{{{1:1}{1:1}}}", AstAnalysis::ConvertToVFormat_("{{{1:1}{1:1}}}", *args).c_str());
 
     args->push_back(Term::CreateNone(), "name");
-    ASSERT_STREQ("{0}", AstAnalysis::ConvertToVFormat_("{name}", args).c_str());
-    ASSERT_STREQ("{0}{0}", AstAnalysis::ConvertToVFormat_("{name}{name}", args).c_str());
-    ASSERT_STREQ("{0:0}{0:123}{0:0.0}", AstAnalysis::ConvertToVFormat_("{name:0}{0:123}{name:0.0}", args).c_str());
-    ASSERT_STREQ("{0}{0}", AstAnalysis::ConvertToVFormat_("{0}{name}", args).c_str());
+    ASSERT_STREQ("{0}", AstAnalysis::ConvertToVFormat_("{name}", *args).c_str());
+    ASSERT_STREQ("{0}{0}", AstAnalysis::ConvertToVFormat_("{name}{name}", *args).c_str());
+    ASSERT_STREQ("{0:0}{0:123}{0:0.0}", AstAnalysis::ConvertToVFormat_("{name:0}{0:123}{name:0.0}", *args).c_str());
+    ASSERT_STREQ("{0}{0}", AstAnalysis::ConvertToVFormat_("{0}{name}", *args).c_str());
 
-    ASSERT_STREQ("{{{0}}}", AstAnalysis::ConvertToVFormat_("{{{0}}}", args).c_str());
-    ASSERT_STREQ("{{{0}}}", AstAnalysis::ConvertToVFormat_("{{{name}}}", args).c_str());
+    ASSERT_STREQ("{{{0}}}", AstAnalysis::ConvertToVFormat_("{{{0}}}", *args).c_str());
+    ASSERT_STREQ("{{{0}}}", AstAnalysis::ConvertToVFormat_("{{{name}}}", *args).c_str());
 
-    ASSERT_STREQ("{{0}{0}}", AstAnalysis::ConvertToVFormat_("{{0}{name}}", args).c_str());
-    ASSERT_STREQ("{{{0}{0}}", AstAnalysis::ConvertToVFormat_("{{{0}{name}}", args).c_str());
+    ASSERT_STREQ("{{0}{0}}", AstAnalysis::ConvertToVFormat_("{{0}{name}}", *args).c_str());
+    ASSERT_STREQ("{{{0}{0}}", AstAnalysis::ConvertToVFormat_("{{{0}{name}}", *args).c_str());
 
 
     args->push_back(Term::CreateNone(), "name2");
-    ASSERT_STREQ("{0}{1}", AstAnalysis::ConvertToVFormat_("{name}{name2}", args).c_str());
-    ASSERT_STREQ("{1}", AstAnalysis::ConvertToVFormat_("{name2}", args).c_str());
-    ASSERT_STREQ("{1:0}{1:.0}{0:0.0}", AstAnalysis::ConvertToVFormat_("{name2:0}{1:.0}{name:0.0}", args).c_str());
-    ASSERT_STREQ("{1}{0}", AstAnalysis::ConvertToVFormat_("{name2}{name}", args).c_str());
+    ASSERT_STREQ("{0}{1}", AstAnalysis::ConvertToVFormat_("{name}{name2}", *args).c_str());
+    ASSERT_STREQ("{1}", AstAnalysis::ConvertToVFormat_("{name2}", *args).c_str());
+    ASSERT_STREQ("{1:0}{1:.0}{0:0.0}", AstAnalysis::ConvertToVFormat_("{name2:0}{1:.0}{name:0.0}", *args).c_str());
+    ASSERT_STREQ("{1}{0}", AstAnalysis::ConvertToVFormat_("{name2}{name}", *args).c_str());
 
-    ASSERT_STREQ("{{name2}{0}}", AstAnalysis::ConvertToVFormat_("{{name2}{name}}", args).c_str());
-    ASSERT_STREQ("{{{1}{0}}", AstAnalysis::ConvertToVFormat_("{{{name2}{name}}", args).c_str());
-    ASSERT_STREQ("{{{1}}}", AstAnalysis::ConvertToVFormat_("{{{name2}}}", args).c_str());
+    ASSERT_STREQ("{{name2}{0}}", AstAnalysis::ConvertToVFormat_("{{name2}{name}}", *args).c_str());
+    ASSERT_STREQ("{{{1}{0}}", AstAnalysis::ConvertToVFormat_("{{{name2}{name}}", *args).c_str());
+    ASSERT_STREQ("{{{1}}}", AstAnalysis::ConvertToVFormat_("{{{name2}}}", *args).c_str());
 
-    ASSERT_STREQ("{{{0}}}", AstAnalysis::ConvertToVFormat_("{{{name}}}", args).c_str());
+    ASSERT_STREQ("{{{0}}}", AstAnalysis::ConvertToVFormat_("{{{name}}}", *args).c_str());
 
     args->clear();
     ASSERT_TRUE(!args->size());

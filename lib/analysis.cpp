@@ -589,13 +589,13 @@ bool AstAnalysis::CreateOp_(TermPtr &op, ScopeStack & stack) {
         proto->m_int_name = stack.CreateVarName(proto->m_text);
         proto->m_is_owner = true;
 
-        ScopePush block_func(stack, proto, nullptr, true);
+        ScopePush block_func(stack, proto, nullptr, true, true);
 
         if (!stack.AddName(proto)) {
             return false;
         }
 
-        ScopePush block_args(stack, proto, &proto->m_int_vars, true);
+        ScopePush block_args(stack, proto, &proto->m_int_vars, true, false);
 
         //  Add default args self and all args as dict
         TermPtr all = Term::CreateDict();
@@ -641,8 +641,8 @@ bool AstAnalysis::CreateOp_(TermPtr &op, ScopeStack & stack) {
             if (!stack.AddName(proto->at(i).second, name.c_str())) {
                 return false;
             }
-            
-            if(isDefaultType(proto->at(i).second->m_type)){
+
+            if (isDefaultType(proto->at(i).second->m_type)) {
                 proto->at(i).second->m_type = getDefaultType(ObjType::Any);
             }
 
@@ -688,10 +688,14 @@ bool AstAnalysis::CreateOp_(TermPtr &op, ScopeStack & stack) {
                     return false;
                 }
             } else {
-                ASSERT(op->isCreateOverlap());
+                ASSERT(op->isCreateForce());
+                if (stack.back().vars.find(int_name) != stack.back().vars.end()) {
+                    NL_MESSAGE(LOG_LEVEL_INFO, term, "Local name '%s' already exist!", left_var->m_text.c_str());
+                    return false;
+                }
             }
 
-            if (!left_var) {
+            if (!left_var || op->isCreateForce()) {
                 term->m_int_name = int_name;
                 if (!stack.AddName(term)) {
                     return false;
@@ -816,7 +820,7 @@ bool AstAnalysis::CheckAssignRef(TermPtr &left, TermPtr &right, ScopeStack & sta
                 if (l_found && l_found->m_is_reference) {
                     NL_MESSAGE(LOG_LEVEL_INFO, left, "Required access operator by reference '*'!");
                     return CheckError(false);
-                } else if (r_found && !right->m_is_take ) {
+                } else if (r_found && !right->m_is_take) {
                     if (left->m_level <= r_found->m_level && !isReservedName(right->m_text)) {
                         NL_MESSAGE(LOG_LEVEL_INFO, left, "You can assign owner to a lower level variable only!");
                         return CheckError(false);
@@ -949,52 +953,61 @@ bool AstAnalysis::CheckCall(TermPtr &proto, TermPtr &call, ScopeStack & stack) {
                 }
 
                 TermPtr value = call->at(pos).second;
-                ObjType value_type = typeFromString(value->m_type, &m_rt);
 
-                if (value->m_right) {
-
-                    if (value->m_right->m_id == TermID::INDEX) {
-                        if (isString(value_type) || isDictionary(value_type)) {
-
-                            if (value->m_right->size() != 1) {
-                                NL_MESSAGE(LOG_LEVEL_INFO, value->m_right, "Strings and dictionaries support single dimensions only!");
-                                return false;
-                            }
-
-                            if (isStringChar(value_type)) {
-                                value_type = ObjType::Int8;
-                            } else if (isStringWide(value_type)) {
-                                value_type = m_rt.m_wide_char_type;
-                            }
-
-                        } else if (value_type == ObjType::Any) {
-                            // Skip - not check
-                        } else {
-                            NL_MESSAGE(LOG_LEVEL_INFO, value->m_right, "Index for type '%s' not implemented!", toString(value_type));
-                            return false;
-                        }
-
-                    } else if (value->m_right->m_id == TermID::FIELD) {
-                        NL_MESSAGE(LOG_LEVEL_INFO, proto->at(pos).second, "System argument name expected!");
-                        return false;
-                    } else {
-                        NL_MESSAGE(LOG_LEVEL_INFO, proto->at(pos).second, "Index type '%s' not implemented!", toString(value->m_right->m_id));
-                        return false;
-                    }
-                }
-
-                if (value_type != ObjType::Any && !canCast(value_type, typeFromString(proto->at(pos).second->m_type, &m_rt))) {
-                    ASSERT(proto->at(pos).second->GetType());
-                    NL_MESSAGE(LOG_LEVEL_INFO, proto->at(pos).second, "Fail cast from '%s' to '%s'!",
-                            toString(value_type), proto->at(pos).second->GetType()->m_text.c_str());
+                if (!RecursiveAnalyzer(value, stack)) {
+                    NL_MESSAGE(LOG_LEVEL_INFO, proto->at(pos).second, "System argument name expected!");
                     return false;
                 }
 
+                if (value->isNamed()) {
 
-                if (proto->at(pos).second->GetType()) {
-                    if (proto->at(pos).second->GetType()->m_text.compare(":FmtChar") == 0 || proto->at(pos).second->GetType()->m_text.compare(":FmtWide") == 0) {
-                        if (!CheckStrPrintf(value->m_text, call, pos + 1)) {
+                    ObjType value_type = typeFromString(value->m_type, &m_rt);
+
+                    if (value->m_right) {
+
+                        if (value->m_right->m_id == TermID::INDEX) {
+                            if (isString(value_type) || isDictionary(value_type)) {
+
+                                if (value->m_right->size() != 1) {
+                                    NL_MESSAGE(LOG_LEVEL_INFO, value->m_right, "Strings and dictionaries support single dimensions only!");
+                                    return false;
+                                }
+
+                                if (isStringChar(value_type)) {
+                                    value_type = ObjType::Int8;
+                                } else if (isStringWide(value_type)) {
+                                    value_type = m_rt.m_wide_char_type;
+                                }
+
+                            } else if (value_type == ObjType::Any) {
+                                // Skip - not check
+                            } else {
+                                NL_MESSAGE(LOG_LEVEL_INFO, value->m_right, "Index for type '%s' not implemented!", toString(value_type));
+                                return false;
+                            }
+
+                        } else if (value->m_right->m_id == TermID::FIELD) {
+                            NL_MESSAGE(LOG_LEVEL_INFO, proto->at(pos).second, "System argument name expected!");
                             return false;
+                        } else {
+                            NL_MESSAGE(LOG_LEVEL_INFO, proto->at(pos).second, "Index type '%s' not implemented!", toString(value->m_right->m_id));
+                            return false;
+                        }
+                    }
+
+                    if (value_type != ObjType::Any && !canCast(value_type, typeFromString(proto->at(pos).second->m_type, &m_rt))) {
+                        ASSERT(proto->at(pos).second->GetType());
+                        NL_MESSAGE(LOG_LEVEL_INFO, proto->at(pos).second, "Fail cast from '%s' to '%s'!",
+                                toString(value_type), proto->at(pos).second->GetType()->m_text.c_str());
+                        return false;
+                    }
+
+
+                    if (proto->at(pos).second->GetType()) {
+                        if (proto->at(pos).second->GetType()->m_text.compare(":FmtChar") == 0 || proto->at(pos).second->GetType()->m_text.compare(":FmtWide") == 0) {
+                            if (!CheckStrPrintf(value->m_text, call, pos + 1)) {
+                                return false;
+                            }
                         }
                     }
                 }
@@ -1205,71 +1218,6 @@ bool AstAnalysis::CheckCallArg(TermPtr &call, size_t arg_pos, ScopeStack & stack
     }
 }
 
-/*
- * $template := "{name} {0}"; # std::format equivalent "{1} {0}"
- * $result := $template("шаблон", name = "Строка"); # result = "Строка шаблон"
- */
-std::string AstAnalysis::ConvertToVFormat_(const std::string_view format, TermPtr args) {
-    if (!args || args->m_id != TermID::DICT) {
-        LOG_RUNTIME("ConvertToFormat requires arguments!");
-    }
-    std::string result;
-    int pos = 0;
-    while (pos < format.size()) {
-        if (format[pos] == '{' && pos + 1 < format.size() && format[pos + 1] == '{') {
-            // Escaped text in doubling {{
-            result += "{{";
-            pos += 1;
-        } else if (format[pos] == '}' && pos + 1 < format.size() && format[pos + 1] == '}') {
-            // Escaped text in doubling }}
-            result += "}}";
-            pos += 1;
-        } else if (format[pos] == '{') {
-            pos += 1;
-            int name = pos;
-            result += '{';
-            while (pos < format.size()) {
-                if (format[pos] == '{') {
-                    LOG_RUNTIME("Unexpected opening bracket '%s' at position %d!", format.begin(), pos);
-                }
-                if (format[pos] == '}') {
-                    result += '}';
-                    goto done;
-                }
-                if (isalpha(format[pos]) || format[pos] == '_') {
-                    while (name < format.size()) {
-                        if (isalnum(format[name]) || format[name] == '_') {
-                            name++;
-                        } else {
-                            name -= 1;
-                            break;
-                        }
-                    }
-
-                    ASSERT(name > pos);
-                    std::string arg_name(&format[pos], name - pos + 1);
-
-                    auto found = args->find(arg_name);
-                    if (found == args->end()) {
-                        LOG_RUNTIME("Argument name '%s' not found!", arg_name.c_str());
-                    }
-                    result += std::to_string(std::distance(args->begin(), found));
-                    pos += (name - pos);
-                } else {
-                    result += format[pos];
-                }
-                pos++;
-            }
-            LOG_RUNTIME("Closing bracket in '%s' for position %d not found!", format.begin(), name - 1);
-        } else {
-            result += format[pos];
-        }
-done:
-        pos++;
-    }
-    return result;
-}
-
 fmt::dynamic_format_arg_store<fmt::format_context> AstAnalysis::MakeFormatArgs(TermPtr args, RunTime * rt) {
 
     fmt::dynamic_format_arg_store<fmt::format_context> store;
@@ -1326,7 +1274,7 @@ std::string AstAnalysis::MakeFormat(const std::string_view format, TermPtr args,
     std::string result;
     std::string conv_format;
     try {
-        conv_format = ConvertToVFormat_(format, args);
+        conv_format = ConvertToVFormat_(format, *args);
         fmt::dynamic_format_arg_store<fmt::format_context> store = MakeFormatArgs(args, rt);
         result = fmt::vformat(conv_format, store);
     } catch (const std::exception& ex) {
@@ -1529,9 +1477,9 @@ TermPtr AstAnalysis::LookupName(TermPtr &term, ScopeStack & stack) {
 
     TermPtr result = stack.LookupName(term->m_text, &m_rt);
     if (!result) {
-//        if (isGlobalScope(term->m_text)) {
-            result = m_rt.GlobFindProto(term->m_text.c_str());
-//        }
+        //        if (isGlobalScope(term->m_text)) {
+        result = m_rt.GlobFindProto(term->m_text.c_str());
+        //        }
     }
 
     if (result) {
@@ -1634,19 +1582,21 @@ bool AstAnalysis::RecursiveAnalyzer(TermPtr term, ScopeStack & stack) {
 
         case TermID::ASSIGN:
         case TermID::CREATE_ONCE:
-        case TermID::CREATE_OVERLAP:
-        case TermID::PURE_OVERLAP:
+        case TermID::CREATE_FORCE:
+        case TermID::PURE_FORCE:
             return CheckError(CreateOp_(term, stack));
 
-        case TermID::DICT:
-        case TermID::TENSOR:
-        case TermID::STRWIDE:
-        case TermID::STRCHAR:
         case TermID::INTEGER:
         case TermID::NUMBER:
         case TermID::RATIONAL:
         case TermID::END:
             return true;
+
+        case TermID::DICT:
+        case TermID::TENSOR:
+        case TermID::STRWIDE:
+        case TermID::STRCHAR:
+            return CheckError(CheckItems_(term, stack));
 
         case TermID::FOLLOW:
             return CheckError(CheckFollow_(term, stack));
@@ -1677,6 +1627,13 @@ bool AstAnalysis::RecursiveAnalyzer(TermPtr term, ScopeStack & stack) {
             NL_MESSAGE(LOG_LEVEL_INFO, term, "AstRecursiveAnalyzer for type '%s' not implemented!", toString(term->getTermID()));
     }
     return false;
+}
+
+bool AstAnalysis::CheckItems_(TermPtr &term, ScopeStack &stack) {
+    for (int i = 0; i < term->size(); i++) {
+        RecursiveAnalyzer(term->at(i).second, stack);
+    }
+    return true;
 }
 
 std::string AstAnalysis::MakeInclude(const TermPtr & ast) {

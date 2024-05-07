@@ -46,7 +46,7 @@ ExpandMacroResult newlang::ExpandTermMacro(Parser &parser) {
 
     size_t counter = 0;
     if (parser.m_macro) {
-        
+
         // Макрос должне начинаться всегда с термина
         if (!(parser.m_macro_analisys_buff[0]->getTermID() == TermID::MACRO || parser.m_macro_analisys_buff[0]->getTermID() == TermID::NAME)) {
             return ExpandMacroResult::Break;
@@ -112,7 +112,7 @@ ExpandMacroResult newlang::ExpandTermMacro(Parser &parser) {
                 temp += ":";
                 temp += toString(elem->m_id);
             }
-            //                LOG_TEST("From: %s (remove %d)", temp.c_str(), (int) size_remove);
+            LOG_TEST("From: %s (remove %d)", temp.c_str(), (int) size_remove);
 
             parser.m_macro_analisys_buff.erase(parser.m_macro_analisys_buff.begin(), parser.m_macro_analisys_buff.begin() + size_remove);
 
@@ -155,7 +155,7 @@ ExpandMacroResult newlang::ExpandTermMacro(Parser &parser) {
                     temp += ":";
                     temp += toString(elem->m_id);
                 }
-                //                    LOG_TEST("To: %s", temp.c_str());
+                LOG_TEST("To: %s", temp.c_str());
             }
 
             return ExpandMacroResult::Continue;
@@ -189,7 +189,7 @@ BlockType Macro::MakeMacroId(const BlockType &seq) {
         done = Parser::ParseTerm(term, seq, pos);
         if (done) {
             result.push_back(term);
-            pos += done;
+            pos = done;
         } else {
             LOG_RUNTIME("Fail convert %s", seq[pos]->toString().c_str());
         }
@@ -275,6 +275,8 @@ bool Macro::CheckMacro(const TermPtr & term) {
         NL_PARSER(term, "Hygienic macros are not implemented!");
     }
 
+    TermPtr op_term;
+    bool is_operator = false;
     TermPtr args; // Arguments @macro(name)
     std::set<std::string> tmpl; // Templates $name
 
@@ -289,6 +291,13 @@ bool Macro::CheckMacro(const TermPtr & term) {
             if (tmpl.find(elem->m_text) != tmpl.end()) {
                 NL_PARSER(elem, "Reuse of argument name!");
             }
+            if (elem->m_text.compare("$...") == 0) {
+                if (is_operator) {
+                    NL_PARSER(elem, "Statement pattern should be only one!");
+                }
+                op_term = elem;
+                is_operator = true;
+            }
             tmpl.insert(elem->m_text);
         } else if (elem->m_id == TermID::NAME) {
             if (isReservedName(elem->m_text)) {
@@ -297,6 +306,15 @@ bool Macro::CheckMacro(const TermPtr & term) {
             // OK
         } else {
             NL_PARSER(elem, "Unexpected term in macro!");
+        }
+    }
+
+    if (is_operator) {
+        if (term->Left()->m_macro_seq.back()->m_text.compare("$...") != 0) {
+            NL_PARSER(op_term, "Statement pattern must be the last term!");
+        }
+        if (args) {
+            NL_PARSER(args, "The statement macro cannot be a function call!");
         }
     }
 
@@ -345,7 +363,7 @@ bool Macro::CheckMacro(const TermPtr & term) {
 
         for (auto &elem : term->Right()->m_macro_seq) {
             if (elem->m_id == TermID::MACRO_ARGUMENT && elem->m_text.compare("@$...") == 0) {
-                if (!is_ellips) {
+                if (!is_ellips && !is_operator) {
                     NL_PARSER(elem, "The macro has a fixed number of arguments, ellipsis cannot be used!");
                 }
             } else if (elem->m_id == TermID::MACRO_ARGPOS) {
@@ -398,7 +416,7 @@ TermPtr Macro::EvalOpMacros(TermPtr & term) {
 
     if (macro) {
 
-        if (term->getTermID() == TermID::CREATE_ONCE || term->getTermID() == TermID::PURE_OVERLAP) {
+        if (term->getTermID() == TermID::CREATE_ONCE || term->getTermID() == TermID::PURE_FORCE) {
             NL_PARSER(term, "Macros '%s' already exists!", term->Left()->toString().c_str());
         }
 
@@ -407,7 +425,7 @@ TermPtr Macro::EvalOpMacros(TermPtr & term) {
         for (auto iter = found->second.begin(); found != end() && iter != found->second.end(); ++iter) {
             if (Macro::IdentityMacro(GetMacroId(term), *iter) || Macro::IdentityMacro(GetMacroId(*iter), term)) {
 
-                if (term->getTermID() == TermID::CREATE_ONCE || term->getTermID() == TermID::PURE_OVERLAP || (iter->get() != macro.get())) {
+                if (term->getTermID() == TermID::CREATE_ONCE || term->getTermID() == TermID::PURE_FORCE || (iter->get() != macro.get())) {
                     LOG_RUNTIME("Macro duplication '%s' and '%s'!", term->Left()->toString().c_str(), (*iter)->toString().c_str());
                 }
             }
@@ -867,9 +885,25 @@ size_t Macro::ExtractArgs(BlockType &buffer, TermPtr &term, MacroArgsType & args
     // Перебор идентификатора макроса
     while (pos_id < GetMacroId(term).size()) {
 
-        // Имя локальной переменной в идентификаторе макроса - это шаблон для замещения при его последующем раскрытии тела макроса
-        if (isLocalName(GetMacroId(term)[pos_id]->m_text)) {
 
+        if (GetMacroId(term)[pos_id]->m_text.compare("$...") == 0) {
+
+            size_t stmt_start = pos_buf;
+            for (int i = pos_buf; i < buffer.size(); i++) {
+                if (buffer[pos_buf]->getTermID() == TermID::END || buffer[pos_buf]->m_text.compare(";") == 0) {
+                    break;
+                }
+                pos_buf++;
+            }
+
+            // Шаблон оператора - все до конца входных данных
+            args_exta.insert(args_exta.end(), buffer.begin() + stmt_start, buffer.begin() + pos_buf);
+            pos_id = GetMacroId(term).size();
+            break;
+
+        } else if (isLocalName(GetMacroId(term)[pos_id]->m_text)) {
+
+            // Имя локальной переменной в идентификаторе макроса - это шаблон для замещения при его последующем раскрытии тела макроса
             InsertArg_(args, GetMacroId(term)[pos_id]->m_text, buffer, pos_buf);
 
             // Для термина с аргументами

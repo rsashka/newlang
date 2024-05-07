@@ -562,7 +562,7 @@ void Parser::InitPredefMacro() {
         VERIFY(RegisterPredefMacro("@__FUNCTION__", "Current function name"));
         VERIFY(RegisterPredefMacro("@__FUNCDNAME__", "Decorated of current function name"));
         VERIFY(RegisterPredefMacro("@__FUNCSIG__", "Signature of current function"));
-        VERIFY(RegisterPredefMacro("@__FUNC_BLOCK__", "Full namespace function name"));
+//        VERIFY(RegisterPredefMacro("@__FUNC_BLOCK__", "Full namespace function name"));
 
 
 
@@ -756,7 +756,7 @@ parser::token_type Parser::ExpandPredefMacro(TermPtr & term) {
         term->m_lexer_type = str_token;
         return term->m_lexer_type;
 
-    } else if (text.compare("@__CLASS__") == 0 || text.compare("@__NAMESPACE__") == 0 || text.compare("@__FUNC_BLOCK__") == 0 ||
+    } else if (text.compare("@__CLASS__") == 0 || text.compare("@__NAMESPACE__") == 0 || //text.compare("@__FUNC_BLOCK__") == 0 ||
             text.compare("@__FUNCTION__") == 0 || text.compare("@__FUNCDNAME__") == 0 || text.compare("@__FUNCSIG__") == 0) {
 
         term->m_id = TermID::NAMESPACE;
@@ -826,8 +826,8 @@ size_t Parser::SkipBrackets(const BlockType& buffer, const size_t offset) {
     std::string br_end;
     if (buffer[offset]->m_text.compare("(") == 0) {
         br_end = ")";
-    } else if (buffer[offset]->m_text.compare("<") == 0) {
-        br_end = ">";
+//    } else if (buffer[offset]->m_text.compare("<") == 0) {
+//        br_end = ">";
     } else if (buffer[offset]->m_text.compare("[") == 0) {
         br_end = "]";
     } else {

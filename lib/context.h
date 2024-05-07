@@ -85,7 +85,7 @@ namespace newlang {
          */
         static ObjPtr Call(Context *runner, Obj &obj, Obj & args);
 
-        std::string Dump();
+        std::string Dump(size_t num = 0);
 
     protected:
 
@@ -106,11 +106,11 @@ namespace newlang {
             pop_back();
         }
 
-        bool FindScope(const std::string_view &name) {
+        bool CheckTargetScope(const std::string_view &name) {
             auto iter = rbegin();
             while (iter != rend()) {
                 if (iter->ns.compare(name.begin()) == 0) {
-                    return iter == rbegin();
+                    return iter == rbegin(); // Выход из цикла только если блок текущий (поиск начат с него)
                 }
                 iter++;
             }
@@ -156,12 +156,7 @@ namespace newlang {
          * @param run
          * @return 
          */
-        static ObjPtr CheckObjTerm_(TermPtr & term, Context * runner, bool rvalue = true) {
-            if (!term->m_obj) {
-                term->m_obj = EvalTerm(term, runner, rvalue);
-            }
-            return term->m_obj;
-        }
+        static ObjPtr CheckObjTerm_(TermPtr & term, Context * runner, bool rvalue = true);
 
         static ObjPtr CreateArgs_(TermPtr &term, Context * runner);
         static ObjPtr CreateDict(TermPtr &term, Context * runner);
