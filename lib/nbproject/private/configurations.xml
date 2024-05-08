@@ -92,7 +92,6 @@
       </nativedebugger>
       <runprofile version="9">
         <runcommandpicklist>
-          <runcommandpicklistitem>"${OUTPUT_PATH}" --gtest_shuffle --gtest_filter=Run.CallArgs:Run.Vars:Run.Call</runcommandpicklistitem>
           <runcommandpicklistitem>"${OUTPUT_PATH}" --gtest_shuffle --gtest_filter=Run.CallArgs:Run.Call</runcommandpicklistitem>
           <runcommandpicklistitem>"${OUTPUT_PATH}" --gtest_shuffle --gtest_filter=Run.CallArgs</runcommandpicklistitem>
           <runcommandpicklistitem>"${OUTPUT_PATH}" --gtest_shuffle --gtest_filter=Example.Exec:Example.Hello:Example.Rational
@@ -103,8 +102,9 @@
           <runcommandpicklistitem>"${OUTPUT_PATH}" --gtest_shuffle --gtest_filter=Example.Fibonacci:MacroTest.MacroCheck</runcommandpicklistitem>
           <runcommandpicklistitem>"${OUTPUT_PATH}" --gtest_shuffle --gtest_filter=MacroTest.MacroCheck</runcommandpicklistitem>
           <runcommandpicklistitem>"${OUTPUT_PATH}" --gtest_shuffle --gtest_filter=Example.Fibonacci</runcommandpicklistitem>
+          <runcommandpicklistitem>"${OUTPUT_PATH}" --gtest_shuffle --gtest_filter=RunTest.StrFormat</runcommandpicklistitem>
         </runcommandpicklist>
-        <runcommand>"${OUTPUT_PATH}" --gtest_shuffle --gtest_filter=Example.Fibonacci</runcommand>
+        <runcommand>"${OUTPUT_PATH}" --gtest_shuffle --gtest_filter=RunTest.StrFormat</runcommand>
         <rundir>../output</rundir>
         <buildfirst>true</buildfirst>
         <terminal-type>0</terminal-type>

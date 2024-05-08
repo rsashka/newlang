@@ -98,6 +98,7 @@ namespace newlang {
 
 
         static bool CheckStrPrintf(const std::string_view format, TermPtr args, int start);
+        static bool CheckStrFormat(const std::string_view format, TermPtr args, RunTime * rt);
         static std::string MakeFormat(const std::string_view format, TermPtr args, RunTime * rt);
         static fmt::dynamic_format_arg_store<fmt::format_context> MakeFormatArgs(TermPtr args, RunTime * rt);
         //        template <typename T> static std::string ConvertToVFormat_(const std::string_view format, T args);

@@ -1068,9 +1068,16 @@ bool AstAnalysis::CheckCall(TermPtr &proto, TermPtr &call, ScopeStack & stack) {
 
     // Object clone
     if (!proto->isCall() && !isTypeName(proto->m_int_name)) {
-        if (call->size()) {
+        ObjType proto_type = typeFromString(proto->m_type, &m_rt);
+        if (isString(proto_type)) {
+            if (proto_type == ObjType::FmtChar || proto_type == ObjType::FmtWide) {
+                //todo //  NL_MESSAGE(LOG_LEVEL_INFO, call->at(0).second, "Argument type checking for printf is not implemented!");
+                //  return CheckStrPrintf(??????????????????????????, call, 0);
+            } else {
+                return CheckStrFormat(proto->m_text, call, &m_rt);
+            }
+        } else if (call->size()) {
             NL_MESSAGE(LOG_LEVEL_INFO, call->at(0).second, "Cloning objects with field overrides is not implemented!");
-
             return false;
         }
     }
@@ -1282,6 +1289,20 @@ std::string AstAnalysis::MakeFormat(const std::string_view format, TermPtr args,
         LOG_RUNTIME("%s", ex.what());
     }
     return result;
+}
+
+bool AstAnalysis::CheckStrFormat(const std::string_view format, TermPtr args, RunTime * rt) {
+    ASSERT(args);
+    std::string conv_format;
+    try {
+        conv_format = ConvertToVFormat_(format, *args);
+        fmt::dynamic_format_arg_store<fmt::format_context> store = MakeFormatArgs(args, rt);
+        fmt::vformat(conv_format, store);
+    } catch (const std::exception& ex) {
+        NL_MESSAGE(LOG_LEVEL_INFO, args, "Fail format %s (from '%s' to '%s')", ex.what(), format.begin(), conv_format.c_str());
+        return false;
+    }
+    return true;
 }
 
 bool AstAnalysis::CheckStrPrintf(const std::string_view format, TermPtr args, int start) {

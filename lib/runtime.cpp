@@ -1375,6 +1375,7 @@ void RunTime::InitInternal(StringArray args) {
         //    nlc_prinft_sub_
         //    LLVMAddSymbol("nlc_prinft_sub_", (void *) &nlc_prinft_sub_);
         VERIFY(RegisterSystemFunc("::print(format:FmtChar, ... ):Int32 ::= %nlc_prinft_sub_ ..."));
+//        VERIFY(RegisterSystemFunc("::__snprintf__(buffer:Pointer, size:Int32, format:FmtChar, ... ):Int32 ::= %snprintf ..."));
 
         VERIFY(RegisterSystemFunc("::srand(init:Int32):None ::= %srand ..."));
         VERIFY(RegisterSystemFunc("::rand():Int32 ::= %rand ..."));

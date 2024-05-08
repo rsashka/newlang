@@ -1905,7 +1905,8 @@ ObjPtr Context::CallNative_(Context *runner, Obj &obj, Obj * args) {
         const void *ptr;
         size_t size;
         int64_t integer;
-        double number;
+        float number_f;
+        double number_d;
         bool boolean;
     };
 
@@ -2008,7 +2009,7 @@ ObjPtr Context::CallNative_(Context *runner, Obj &obj, Obj * args) {
                 //                            (*obj.m_prototype)[pind].second->m_type->m_text.c_str(), newlang::toString(type));
                 //                }
                 m_args_type.push_back(RunTime::m_ffi_type_float);
-                temp.number = (*args)[i].second->GetValueAsNumber();
+                temp.number_f = (*args)[i].second->GetValueAsNumber();
                 m_args_val.push_back(temp);
                 break;
 
@@ -2020,11 +2021,12 @@ ObjPtr Context::CallNative_(Context *runner, Obj &obj, Obj * args) {
                 //                            (*obj.m_prototype)[pind].second->m_type->m_text.c_str(), newlang::toString(type));
                 //                }
                 m_args_type.push_back(RunTime::m_ffi_type_double);
-                temp.number = (*args)[i].second->GetValueAsNumber();
+                temp.number_d = (*args)[i].second->GetValueAsNumber();
                 m_args_val.push_back(temp);
                 break;
 
             case ObjType::StrChar:
+            case ObjType::FmtChar:
             {
                 //                if (pind < check_count) {
                 //                    NL_CHECK(!isDefaultType((*obj.m_prototype)[pind].second->m_type), "Undefined type arg '%s'", (*obj.m_prototype)[pind].second->toString().c_str());
@@ -2047,6 +2049,7 @@ ObjPtr Context::CallNative_(Context *runner, Obj &obj, Obj * args) {
                 m_args_val.push_back(temp);
                 break;
             }
+            case ObjType::FmtWide:
             case ObjType::StrWide:
                 //                if (pind < check_count) {
                 //                    NL_CHECK(!isDefaultType((*obj.m_prototype)[pind].second->m_type), "Undefined type arg '%s'", (*obj.m_prototype)[pind].second->toString().c_str());
@@ -2179,9 +2182,9 @@ ObjPtr Context::CallNative_(Context *runner, Obj &obj, Obj * args) {
         } else if (result_ffi_type == RunTime::m_ffi_type_sint64) {
             return Obj::CreateValue(res_value.integer, return_type);
         } else if (result_ffi_type == RunTime::m_ffi_type_float) {
-            return Obj::CreateValue(res_value.number, return_type);
+            return Obj::CreateValue(res_value.number_f, return_type);
         } else if (result_ffi_type == RunTime::m_ffi_type_double) {
-            return Obj::CreateValue(res_value.number, return_type);
+            return Obj::CreateValue(res_value.number_d, return_type);
         } else if (result_ffi_type == RunTime::m_ffi_type_pointer) {
             if (return_type == ObjType::StrChar) {
                 return Obj::CreateString(reinterpret_cast<const char *> (res_value.ptr));
@@ -2322,9 +2325,39 @@ ObjPtr Context::StringFormat(std::string_view format, Obj & args) {
 }
 
 ObjPtr Context::StringPrintf(std::string_view format, Obj & args) {
-    ASSERT(0);
+    static ObjPtr int_snprintf = RunTime::CreateNative("__snprintf__(buffer:Pointer, size:Int32, format:FmtChar, ... ):Int32", nullptr, false, "snprintf");
+    ASSERT(int_snprintf);
+    
+    printf("%d %f\n", 100, 1.123);
 
-    return nullptr;
+    ObjPtr int_args = Obj::CreateDict();
+    int_args->push_back(Obj::CreateNil());
+    int_args->push_back(Obj::CreateValue(0));
+    int_args->push_back(Obj::CreateString(format.begin()));
+    for (int i = 1; i < args.size(); i++) {
+        if ((int) args[i].second->m_var_type_current >= (int) ObjType::Bool && (int) args[i].second->m_var_type_current < (int) ObjType::Int32) {
+            int_args->push_back(args[i].second->toType(ObjType::Int32));
+        } else if (args[i].second->m_var_type_current == ObjType::Float16 || args[i].second->m_var_type_current == ObjType::Float32) {
+            int_args->push_back(args[i].second->toType(ObjType::Double));
+        } else {
+            int_args->push_back(args[i]);
+        }
+    }
+
+
+    ObjPtr str_size = int_snprintf->op_call(int_args);
+    ASSERT(str_size);
+
+    std::string buffer(str_size->GetValueAsInteger() + 1, '\0');
+
+    int_args->at(0).second = Obj::CreateType(ObjType::Pointer, ObjType::Pointer, true);
+    int_args->at(0).second->m_var = buffer.data();
+    int_args->at(1).second = Obj::CreateValue(buffer.size());
+
+    str_size = int_snprintf->op_call(int_args);
+    ASSERT(str_size->GetValueAsInteger() + 1 == buffer.size());
+
+    return Obj::CreateString(buffer);
 }
 
 ObjPtr Context::EvalTerm(TermPtr term, Context * runner, bool rvalue) {
@@ -2377,6 +2410,12 @@ ObjPtr Context::EvalTerm(TermPtr term, Context * runner, bool rvalue) {
             {
                 ObjPtr result = Obj::CreateString(term->getText());
                 ASSERT(result);
+
+                if (term->GetType()) {
+                    result->m_var_type_current = typeFromString(term->m_type, GetRT_(runner));
+                    result->m_var_type_fixed = result->m_var_type_current;
+                }
+
                 if (term->isCall()) {
                     // Format string
                     result = Call(runner, *result, term);
@@ -2477,9 +2516,15 @@ ObjPtr Context::EvalTerm(TermPtr term, Context * runner, bool rvalue) {
             }
 #endif       
 
+            //            ASSERT(found);
+            //            if (!term->m_type) {
+            //                term->m_type = found->m_type;
+            //            } else {
+            //                ASSERT(!"Check type?????");
+            //            }
+
             if (term->isCall()) {
                 // Вызов функции или клонирование объекта
-                ASSERT(found);
                 if (term->m_is_take) {
                     return Obj::Take(*Call(runner, *found->m_obj, term));
                 } else {
@@ -2921,6 +2966,18 @@ ObjPtr Context::EvalCreateAsValue_(TermPtr & op) {
                     *elem->m_obj = *temp;
                 } else {
                     elem->m_obj = temp;
+                    if (elem->m_type) {
+
+                        ObjType proto_type = typeFromString(elem->m_type, m_runtime);
+                        //                        if (!canCast(proto_type, temp->getType())) {
+                        //                            NL_MESSAGE(LOG_LEVEL_INFO, fill_obj, "Fail cast type '%s' to '%s' type!", fill_obj->m_type->m_text.c_str(), call->m_type->m_text.c_str());
+                        //                            return false;
+                        //                        }
+
+
+                        elem->m_obj->m_var_type_current = proto_type;
+                        elem->m_obj->m_var_type_fixed = proto_type;
+                    }
                 }
 
 #ifdef BUILD_DEBUG

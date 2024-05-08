@@ -2351,6 +2351,44 @@ TEST(RunTest, String) {
 
 }
 
+TEST(RunTest, StrFormat) {
+
+    JIT * jit = JIT::ReCreate();
+    ASSERT_TRUE(jit);
+
+    ObjPtr str;
+    ASSERT_NO_THROW(str = jit->Run("'{1}'('template')"));
+    ASSERT_STREQ("template", str->GetValueAsString().c_str());
+
+    ASSERT_NO_THROW(str = jit->Run("'{1} {2} {1}'('template', 'str')"));
+    ASSERT_STREQ("template str template", str->GetValueAsString().c_str());
+
+    ASSERT_NO_THROW(str = jit->Run("'{1} {2} {1} {name}'('template', name='str')"));
+    ASSERT_STREQ("template str template str", str->GetValueAsString().c_str());
+    
+    ASSERT_NO_THROW(str = jit->Run("'{1} {2} {1} {name}'(333, name=0.123)"));
+    ASSERT_STREQ("333 0.123 333 0.123", str->GetValueAsString().c_str());
+
+    ASSERT_ANY_THROW(str = jit->Run("'{1} {2} {1} {name}'(333)"));
+    ASSERT_ANY_THROW(str = jit->Run("'{1} {2} {1} {name}'(name=333)"));
+    ASSERT_ANY_THROW(str = jit->Run("'{1} {2} {1} {name}'(333, error=333)"));
+    
+
+    ASSERT_NO_THROW(str = jit->Run("tmpl1:FmtChar := '%s';  tmpl1('template')"));
+    ASSERT_STREQ("template", str->GetValueAsString().c_str());
+    
+    ASSERT_NO_THROW(str = jit->Run("tmpl2:FmtChar := '%s %s';  tmpl2('template', 'str')"));
+    ASSERT_STREQ("template str", str->GetValueAsString().c_str());
+
+#pragma message WARNING("Wrong float argument type!")
+    ASSERT_NO_THROW(str = jit->Run("tmpl3:FmtChar := '%d %f';  tmpl3(333, 1.123)"));
+    ASSERT_STREQ("333 0.000000", str->GetValueAsString().c_str());
+//    ASSERT_STREQ("333 1.123", str->GetValueAsString().c_str());
+
+//    ASSERT_ANY_THROW(jit->Run("tmpl4:FmtChar := '%d %f'; tmpl4('error type', 0.123)"));
+//    ASSERT_ANY_THROW(jit->Run("tmpl5:FmtChar := '%d %f'; tmpl5(333, 'error type')"));
+}
+
 TEST(RunTest, Dict) {
 
     JIT * jit = JIT::ReCreate();

@@ -1109,12 +1109,14 @@ std::string Obj::toString(bool deep) const {
                 return result;
 
             case ObjType::StrChar:
+            case ObjType::FmtChar:
                 result += "'";
                 result += m_value;
                 result.append("'");
                 return result;
 
             case ObjType::StrWide: // name:='string' or name:="string"
+            case ObjType::FmtWide:
                 result += "\"";
                 result += utf8_encode(m_string);
                 result.append("\"");

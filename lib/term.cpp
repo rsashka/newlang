@@ -135,10 +135,8 @@ void Term::SetType(TermPtr type) {
             NL_PARSER(type, "Error cast '%s' to complex type '%s'", m_text.c_str(), m_type->m_text.c_str());
             //            }
         }
-    } else {
-        //                if (m_type) {
-        //                    m_type.reset();
-        //                }
+    } else if (!m_type) {
+
         // Default type
         if (m_id == TermID::INTEGER) {
             m_type = getDefaultType(typeFromLimit(parseInteger(m_text.c_str()), ObjType::Bool));
