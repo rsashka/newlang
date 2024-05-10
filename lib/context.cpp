@@ -86,273 +86,30 @@ ObjPtr Context::CheckObjTerm_(TermPtr & term, Context * runner, bool rvalue) {
     return term->m_obj;
 }
 
-std::unique_ptr<Sync> Context::CreateSync(const TermPtr &term) {
-    ASSERT(term);
-    if (term->m_ref) {
-        RefType ref_type = RefTypeFromString(term->m_ref->m_text);
-        if (ref_type != RefType::None) {
-            return std::make_unique<Sync>(ref_type);
-        }
-    }
-    return std::unique_ptr<Sync>(nullptr);
-}
-
 VarItem Context::CreateItem(TermPtr term, ObjPtr obj) {
     VarItem item;
 
     if (term->m_int_name.empty() && !isReservedName(term->m_text)) {
         LOG_RUNTIME("Empty internal name '%s'", term->m_text.c_str());
     }
-    item.item = term;
+    item.term = term;
     //    item.item->m_int_name = term->m_text;
-    item.sync = Context::CreateSync(term);
+    item.sync = Sync::CreateSync(term);
     if (obj) {
         obj->m_sync = item.sync.get();
     }
     item.obj = obj;
-    item.item->m_obj = obj;
+    item.term->m_obj = obj;
 
 #ifdef BUILD_DEBUG
-    item.term_check = item.item.get();
-    item.obj_check = item.item->m_obj.get();
+    item.term_check = item.term.get();
+    item.obj_check = item.term->m_obj.get();
 #endif        
 
     return item;
 }
 
 //std::multimap<std::string, DocPtr> Docs::m_docs;
-
-//ObjPtr Context::CREATE_OR_ASSIGN(Context *ctx, const TermPtr &term, Obj *local_vars, CreateMode mode) {
-//    // Присвоить значение можно как одному термину, так и сразу нескольким при
-//    // раскрытии словаря: var1, var2, _ = ... func(); 
-//    // Первый и второй элементы словаря записывается в var1 и var2, а остальные элементы возвращаемого
-//    // словаря игнорируются (если они есть)
-//    // var1, var2 = ... func(); Если функция вернула словрь с двумя элементами, 
-//    // то их значения записываются в var1 и var2. Если в словаре было больше двух элементов, 
-//    // то первый записывается в var1, а оставшиеся в var2. !!!!!!!!!!!!!
-//    // var1, ..., var2 = ... func(); 
-//    // Первый элемент словаря записывается в var1, а последний в var2.
-//
-//    ASSERT(term && (term->getTermID() == TermID::ASSIGN ||
-//            term->getTermID() == TermID::CREATE_ONCE ||
-//            term->getTermID() == TermID::CREATE_FORCE));
-//    ASSERT(term->Left());
-//
-//
-//    std::vector<TermPtr> list_term; // Список терминов для создания/присвоения значения
-//    std::vector<ObjPtr> list_obj; // Список реальных переменных ассоциированных с терминами
-//
-//    bool is_eval_block = true;
-//
-//    TermPtr next = term->Left();
-//    while (next && next->getTermID() != TermID::END) {
-//        if (next->isCall()) {
-//            is_eval_block = false;
-//        }
-//        list_term.push_back(next);
-//        next = next->m_list;
-//    }
-//
-//    if (!is_eval_block && list_term.size() > 1) {
-//        //@todo добавить поддержку присвоения сразу нескольким функциям
-//        NL_PARSER(term, "Multiple function assignment not implemented!");
-//    }
-//
-//    ObjPtr result;
-//    bool is_ellipsis = false;
-//    for (auto & elem : list_term) {
-//
-//        if (elem->getTermID() == TermID::ELLIPSIS) {
-//
-//            //@todo добавить поддержку многоточия с левой стороный оператора присвоения
-//            NL_PARSER(elem, "Ellipsis on the left side in assignment not implemented!");
-//
-//            if (is_ellipsis) {
-//                NL_PARSER(elem, "Multiple ellipsis on the left side of the assignment!");
-//            }
-//            is_ellipsis = true;
-//            result = Obj::CreateType(ObjType::Ellipsis);
-//        } else if (elem->getTermID() == TermID::NONE) {
-//            result = Obj::CreateNone();
-//        } else {
-//            // LOG_DEBUG("find: %s", ctx->NamespaceFull(elem->GetFullName()).c_str());
-//            auto found = ctx->find(elem->GetFullName());
-//            if (found == ctx->end() && mode == CreateMode::ASSIGN_ONLY) {
-//                NL_PARSER(elem, "Object '%s' (%s) not found!", elem->m_text.c_str(), elem->GetFullName().c_str());
-//            }
-//
-//            if (found != ctx->end()) {
-//                result = (*found).second.lock(); // Но она может быть возвращена как локальная
-//            }
-//
-//            if (result && mode == CreateMode::CREATE_ONLY) {
-//                NL_PARSER(elem, "Object '%s' (%s) already exists!", elem->m_text.c_str(), elem->GetFullName().c_str());
-//            }
-//
-//            if (!term->Right()) { // Удаление глобальной переменной
-//                ctx->ListType::erase(found);
-//            } else {
-//                if (!result && (mode == CreateMode::ASSIGN_ONLY)) {
-//                    NL_PARSER(term->Left(), "Object '%s' (%s) not found!", term->Left()->m_text.c_str(), elem->GetFullName().c_str());
-//                }
-//                if (!result) {
-//                    result = CreateLVal(ctx, elem, local_vars);
-//                    if (!result) {
-//                        NL_PARSER(term->Left(), "Fail create lvalue object!");
-//                    }
-//                }
-//            }
-//        }
-//        list_obj.push_back(result);
-//    }
-//
-//    if (!term->Right()) {
-//        // Для удаления переменных все сделано
-//        return result;
-//    }
-//
-//    // Что присваиваем (правая часть выражения) - пока единичный объект
-//    // @todo В будущем можно будет сделать сахар для обмена значениями при одинаковом кол-ве объектов у оператора присваивания
-//    // a, b = b, a;   a, b, c = c, b, a; и т.д.
-//    if (term->Right() && term->Right()->getTermID() != TermID::ELLIPSIS && term->Right()->m_list) {
-//        NL_PARSER(term->Right()->Right(), "Multiple assignments not implemented!");
-//    }
-//
-//    ObjPtr rval;
-//    if (term->Right()->getTermID() == TermID::ELLIPSIS) {
-//        ASSERT(term->Right()->Right());
-//        rval = Eval(ctx, term->Right()->Right(), local_vars, is_eval_block, CatchType::CATCH_AUTO);
-//    } else if (term->Right()->getTermID() == TermID::CLASS) {
-//        ASSERT(list_obj.size() == 1);
-//        // Имя класса появляется только при операции присвоения в левой части оператора
-//        rval = ctx->CreateClass(term->Left()->GetFullName(), term->Right(), local_vars);
-//    } else if (term->Right()->getTermID() == TermID::NATIVE) {
-//        // Нативное имя допустимо только в правой части части оператора присвоения
-//        ASSERT(list_obj.size() == 1);
-//
-//        if (term->Left()->isCall() != term->Right()->isCall()) {
-//            // Нативная функция с частичным прототипом
-//            TermPtr from;
-//            TermPtr to;
-//            if (term->Left()->isCall()) {
-//                from = term->Left();
-//                to = term->Right();
-//            } else {
-//                ASSERT(term->Right()->isCall());
-//                from = term->Right();
-//                to = term->Left();
-//            }
-//            for (int i = 0; i < from->size(); i++) {
-//                to->push_back((*from)[i]);
-//            }
-//            to->m_is_call = from->m_is_call;
-//            to->m_type = from->m_type;
-//            //            to->m_type_name = from->m_type_name;
-//
-//        } else if (!term->Left()->isCall() && !term->Right()->isCall()) {
-//            // Нативная переменная
-//            if (!term->Right()->m_type) {
-//                term->Right()->m_type = term->Left()->m_type;
-//                //                term->Right()->m_type_name = term->Left()->m_type_name;
-//            }
-//
-//        } else if (term->Left()->isCall() && term->Right()->isCall()) {
-//            LOG_RUNTIME("Check args in native func not implemented!");
-//        }
-//        rval = ctx->m_runtime->CreateNative(term->Right(), nullptr, false, term->Right()->m_text.substr(1).c_str());
-//
-//    } else {
-//        rval = Eval(ctx, term->Right(), local_vars, is_eval_block, CatchType::CATCH_AUTO);
-//    }
-//    if (!rval) {
-//        NL_PARSER(term->Right(), "Object is missing or expression is not evaluated!");
-//    }
-//
-//    ASSERT(list_obj.size() == list_term.size());
-//
-//    if (term->Right()->getTermID() == TermID::ELLIPSIS) {
-//        if (rval->is_dictionary_type() || rval->is_tensor_type()) {
-//            if (!rval->empty() && rval->is_scalar()) {
-//                LOG_RUNTIME("Fail expand scalar!");
-//            }
-//            for (int i = 0; i < list_obj.size() - 1; i++) {
-//                if (list_term[i]->getTermID() != TermID::NONE) {
-//                    if (i < rval->size()) {
-//                        list_obj[i]->SetValue_((*rval)[i].second); //->Clone()
-//                    } else {
-//                        list_obj[i]->SetValue_(Obj::CreateNone());
-//                    }
-//                }
-//            }
-//            if (static_cast<int64_t> (list_obj.size()) - 1 < rval->size()) {
-//                // Удалить первые элементы
-//                rval->resize_(-(rval->size() - (static_cast<int64_t> (list_obj.size()) - 1)), nullptr);
-//            } else {
-//                rval->resize_(0, nullptr);
-//            }
-//            list_obj[list_obj.size() - 1]->SetValue_(rval->Clone());
-//
-//            result = list_obj[list_obj.size() - 1];
-//
-//        } else {
-//            LOG_RUNTIME("Fail expand type '%s'!", toString(rval->getType()));
-//        }
-//    } else {
-//        // Присвоеить единственное значение всем элементам с левой стороны оператора присовения
-//
-//        for (int i = 0; i < list_obj.size(); i++) {
-//            if (isTypeName(list_term[i]->m_text)) {
-//
-//                // Новый тип
-//                //                if (ctx->m_runtime->m_types.find(list_term[i]->m_text) != ctx->m_runtime->m_types.end()) {
-//                //                    LOG_RUNTIME("Type name '%s' already exists!", list_term[i]->m_text.c_str());
-//                //                }
-//                //
-//                //                result = rval->Clone();
-//                //                result->m_class_name = list_term[i]->m_text;
-//                //                result->m_class_parents.push_back(rval);
-//                //
-//                //                ctx->m_runtime->m_types[list_term[i]->m_text] = result;
-//
-//                if (ctx->m_runtime->NameFind(list_term[i]->m_text.c_str()) || ctx->m_runtime->NameFind(&list_term[i]->m_text[1])) {
-//                    LOG_RUNTIME("Type name '%s' already exists!", list_term[i]->m_text.c_str());
-//                }
-//
-//                result = rval->Clone();
-//
-//
-//                TermPtr term = *const_cast<TermPtr *> (&result->m_prototype);
-//                term->m_text = list_term[i]->m_text;
-//
-//                result->m_class_name = list_term[i]->m_text;
-//                result->m_class_parents.push_back(rval);
-//
-//                ctx->m_runtime->m_buildin_obj[list_term[i]->m_text] = result;
-//
-//                //                if (!ctx->m_runtime->NameRegister(result->m_prototype->m_text.c_str(), result->m_prototype, result)) {
-//                LOG_RUNTIME("Fail register prototype '%s'!", result->m_prototype->toString().c_str());
-//                //                }
-//
-//
-//            } else if (list_term[i]->getTermID() == TermID::NONE) {
-//                // Skip
-//            } else {
-//                if (list_term[i]->Right()) {
-//                    ASSERT(list_term[i]->Right()->getTermID() == TermID::INDEX);
-//                    list_obj[i]->index_set_(MakeIndex(ctx, list_term[i]->Right(), local_vars), rval);
-//                } else {
-//                    list_obj[i]->SetValue_(rval);
-//                }
-//                if (list_obj[i]->m_var_type_current == ObjType::Function && rval->is_block()) {
-//                    list_obj[i]->m_var_type_current = ObjType::EVAL_FUNCTION;
-//                }
-//                result = list_obj[i];
-//            }
-//        }
-//    }
-//    return result;
-//}
-
 //bool Context::MatchCompare(Obj &match, ObjPtr &value, MatchMode mode, Context *ctx) {
 //    switch (mode) {
 //        case MatchMode::MatchEqual:
@@ -656,68 +413,6 @@ VarItem Context::CreateItem(TermPtr term, ObjPtr obj) {
 //    std::vector<int64_t> sizes;
 //    at::Scalar torch_scalar;
 //    switch (term->getTermID()) {
-//        case TermID::OP_MATH:
-//        case TermID::OP_BITWISE:
-//        case TermID::OP_COMPARE:
-//        case TermID::OP_LOGICAL:
-//            return Context::Eval(ctx, term, local_vars, eval_block, int_catch);
-//
-//        case TermID::INTEGER:
-//
-//            val_int = parseInteger(term->getText().c_str());
-//            NL_TYPECHECK(term, typeFromLimit(val_int), typeFromString(term->m_type, ctx ? ctx->m_runtime.get() : nullptr)); // Соответстствует ли тип значению?
-//
-//            result = Obj::CreateValue(val_int);
-//            result->m_var_type_current = typeFromLimit(val_int);
-//            if (term->GetType()) {
-//                result->m_var_type_fixed = typeFromString(term->m_type, ctx ? ctx->m_runtime.get() : nullptr);
-//                result->m_var_type_current = result->m_var_type_fixed;
-//            }
-//            return result;
-//
-//        case TermID::NUMBER:
-//            val_dbl = parseDouble(term->getText().c_str());
-//            NL_TYPECHECK(term, typeFromLimit(val_dbl), typeFromString(term->m_type, ctx ? ctx->m_runtime.get() : nullptr)); // Соответстствует ли тип значению?
-//
-//            result = Obj::CreateValue(val_dbl);
-//            result->m_var_type_current = typeFromLimit(val_dbl);
-//            if (term->GetType()) {
-//                result->m_var_type_fixed = typeFromString(term->m_type, ctx ? ctx->m_runtime.get() : nullptr);
-//                result->m_var_type_current = result->m_var_type_fixed;
-//            }
-//            return result;
-//
-//        case TermID::STRWIDE:
-//            return Obj::CreateString(utf8_decode(term->getText()));
-//
-//
-//        case TermID::STRCHAR:
-//            return Obj::CreateString(term->getText());
-//
-//        case TermID::EVAL:
-//            /*
-//             * subprocess.run(args, *, stdin=None, input=None, stdout=None, stderr=None, 
-//             * capture_output=False, shell=False, cwd=None, timeout=None, check=False, 
-//             * encoding=None, errors=None, text=None, env=None, universal_newlines=None, **other_popen_kwargs)            
-//             */
-//            /* class subprocess.Popen(args, bufsize = -1, executable = None, 
-//             * stdin = None, stdout = None, stderr = None, 
-//             * preexec_fn = None, close_fds = True, shell = False, cwd = None, 
-//             * env = None, universal_newlines = None, startupinfo = None, 
-//             * creationflags = 0, restore_signals = True, start_new_session = False, 
-//             * pass_fds = (), *, group = None, extra_groups = None, user = None, umask = -1
-//             * , encoding = None, errors = None, text = None, 
-//             * pipesize = -1, process_group = None)¶
-//             */
-//
-//
-//
-//            //            result = Obj::CreateType(ObjType::Eval, ObjType::Eval, true);
-//            //            result->m_value = term->getText();
-//            //            if (term->isCall()) {
-//            LOG_RUNTIME("Not implemented!!!");
-//            //            }
-//            //            return Exec(ctx, term->getText().c_str(), nullptr);
 //
 //            /*        case TermID::FIELD:
 //                        if(module && module->HasFunc(term->GetFullName().c_str())) {
@@ -734,204 +429,6 @@ VarItem Context::CreateItem(TermPtr term, ObjPtr obj) {
 //                        }
 //                        return result;
 //             */
-//
-//            //@todo Что делать с пустыми значениями? Это None ???
-//        case TermID::EMPTY:
-//            result->m_var_type_current = ObjType::None;
-//            result->m_var_is_init = false;
-//            return result;
-//
-//
-//
-//        case TermID::NEWLANG:
-//        case TermID::MODULE:
-//            /* Prototype \\(file=_, filter='*', load=@true, source=_)
-//             * Required argument $file or $source can be only one
-//             * 
-//             * \\('name') - dynamic load module
-//             * \\dir\name() - load module and 
-//             * \\dir\name::func() - call function from module
-//             * module := \\('name', @false) - Check module is loaded and don't load it
-//             * 
-//             */
-//
-//            if (term->isCall() && ExtractName(term->getText()).empty()) {
-//                // Load module
-//
-//                return ctx->m_runtime->OpLoadModule(term);
-//            }
-//
-//
-//
-//        case TermID::LOCAL:
-//        case TermID::STATIC:
-//        case TermID::NAME:
-//        case TermID::ARGS:
-//        case TermID::PARENT:
-//        case TermID::INT_PLUS:
-//        case TermID::INT_MINUS:
-//
-//
-//            if (!isModuleName(term->GetFullName()) && (term->isCall() || term->isReturn())) {
-//                temp = ctx->GetTerm(term->GetFullName().c_str(), term->isRef());
-//
-//                if (!temp) {
-//                    NL_PARSER(term, "Term '%s' not found!", term->GetFullName().c_str());
-//                }
-//
-//                args = Obj::CreateDict();
-//                ctx->CreateArgs_(args, term, local_vars);
-//
-//                if (term->isReturn()) {
-//                    return result;
-//                }
-//
-//                result = temp->Call(ctx, args.get());
-//                return result;
-//            }
-//
-//
-//            if (term->GetType()) {
-//
-//                result->m_var_type_current = typeFromString(term->GetType()->m_text, ctx ? ctx->m_runtime.get() : nullptr);
-//                result->m_var_type_fixed = result->m_var_type_current;
-//                result->m_var_is_init = false; // Нельзя считать значение
-//
-//                // Check BuildInType
-//                has_error = false;
-//                typeFromString(term->GetType()->m_text, nullptr, &has_error);
-//                if (has_error) {
-//                    result->m_class_name = term->GetType()->m_text;
-//                }
-//
-//                return result;
-//            }
-//
-//            //- **\this** - Текущий объект (**$0**)
-//            //- **\sys** - Системный контекст запущенной программы (**\\**)
-//            //- **\current** - Текущий модуль (** \$ **)
-//            //- **\cmd** - Все аргументы выполняющегося приложения из командной строки (**@\***)
-//
-//            if (term->m_text.compare("_") == 0) {
-//
-//                result->m_var_type_current = ObjType::None;
-//                return result;
-//
-//            } else if (term->m_text.compare("$$") == 0) {
-//
-//                //- **\parent** - Родительский объект (**$$**)
-//
-//                result->m_var_type_current = ObjType::Dictionary;
-//                result->m_var_name = "$$";
-//
-//                ASSERT(ctx);
-//
-//                auto iter = ctx->begin();
-//                while (iter != ctx->end()) {
-//                    if (!iter->second.expired()) {
-//                        result->push_back(Obj::CreateString(iter->first));
-//                        iter++;
-//                    } else {
-//                        iter = ctx->ListType::erase(iter);
-//                    }
-//                }
-//
-//                result->m_var_is_init = true;
-//                return result;
-//
-//            } else if (term->m_text.compare("$*") == 0) {
-//
-//                //- **\args** - Все аргументы функции (**$\***)
-//
-//                result->m_var_type_current = ObjType::Dictionary;
-//                result->m_var_name = "$*";
-//                result->m_var_is_init = true;
-//
-//                for (int i = 0; i < term->size(); i++) {
-//                    if (term->name(i).empty()) {
-//                        result->push_back(Context::CreateRVal(ctx, (*term)[i].second, local_vars));
-//                    } else {
-//                        result->push_back(Context::CreateRVal(ctx, (*term)[i].second, local_vars), term->name(i));
-//                    }
-//                }
-//
-//                return result;
-//
-//            }
-//
-//
-//            if (isLocalName(term->m_text.c_str())) {
-//                full_name = MakeName(term->m_text);
-//                return local_vars->at(full_name).second;
-//            } else {
-//                result = ctx->GetTerm(term->GetFullName().c_str(), term->isRef());
-//
-//                // Типы данных обрабатываются тут, а не в вызовах функций (TermID::CALL)
-//                if (!result) {
-//                    NL_PARSER(term, "Object '%s' not exist!", term->toString().c_str());
-//                }
-//                if (term->size()) {
-//                    Obj args(ctx, term, true, local_vars);
-//                    result = result->Call(ctx, &args);
-//                }
-//
-//            }
-//            if (!result) {
-//                // Делать ислкючение или возвращать объект "ошибка" ?????
-//                ASSERT(term);
-//                LOG_RUNTIME("Term '%s' not found!", term->GetFullName().c_str());
-//            }
-//
-//            field = term->m_right;
-//            if (field && field->getTermID() == TermID::FIELD) {
-//                while (field) {
-//                    if (field->m_is_call) {
-//
-//                        if (result->m_class_name.empty()) {
-//                            NL_PARSER(term, "Object '%s' not a class! %s", term->GetFullName().c_str(), result->m_class_name.c_str());
-//                        }
-//
-//                        full_name = result->m_class_name;
-//                        if (isTypeName(full_name)) {
-//                            full_name = full_name.substr(1);
-//                        }
-//                        full_name += "::";
-//                        full_name += field->getText();
-//
-//                        temp = ctx->GetTerm(full_name, true);
-//                        if (!temp) {
-//                            LOG_RUNTIME("Function '%s' not found!", full_name.c_str());
-//                        }
-//
-//                        args = Obj::CreateDict();
-//                        for (size_t i = 0; i < field->size(); i++) {
-//                            if (field->name(i).empty()) {
-//                                args->push_back(CreateRVal(ctx, (*field)[i].second, local_vars));
-//                            } else {
-//                                args->push_back(CreateRVal(ctx, (*field)[i].second, local_vars), field->name(i).c_str());
-//                            }
-//                        }
-//
-//                        result = temp->Call(ctx, args.get(), true, result);
-//
-//                    } else {
-//                        result = result->at(field->getText()).second;
-//                    }
-//                    field = field->m_right;
-//                }
-//            } else if (field && field->getTermID() == TermID::INDEX) {
-//                while (field) {
-//                    result = result->index_get(MakeIndex(ctx, field, local_vars));
-//                    field = field->m_right;
-//                    ASSERT(!field); // Нужно выполнять, а не просто получать значение поля
-//                }
-//            } else if (field) {
-//                LOG_RUNTIME("Not implemented! %s", field->toString().c_str());
-//            }
-//
-//            return result;
-//
-//
 //
 //        case TermID::TYPE:
 //
@@ -1053,176 +550,7 @@ VarItem Context::CreateItem(TermPtr term, ObjPtr obj) {
 //            return result;
 //
 //
-//        case TermID::TENSOR:
-//        case TermID::DICT:
-//            result->m_var_type_current = ObjType::Dictionary;
-//            ctx->CreateArgs_(result, term, local_vars);
-//
-//            result->m_var_is_init = true;
-//            if (term->getTermID() == TermID::TENSOR) {
-//
-//                if (!term->m_type) {
-//                    result->m_var_type_fixed = ObjType::None;
-//                } else {
-//                    result->m_var_type_fixed = typeFromString(term->m_type->m_text, ctx ? ctx->m_runtime.get() : nullptr);
-//                }
-//                type = getSummaryTensorType(result.get(), result->m_var_type_fixed);
-//
-//                if (type != ObjType::None) {
-//
-//
-//                    sizes = TensorShapeFromDict(result.get());
-//                    result->toType_(type);
-//
-//                    if (!sizes.empty()) {
-//                        ASSERT(result->m_tensor->defined());
-//                        result->m_tensor = result->m_tensor->reshape(sizes);
-//                    }
-//
-//
-//                } else {
-//                    result->m_var_is_init = false;
-//                }
-//                //                result->resize(0, nullptr, "");
-//                result->m_var_type_current = type;
-//            } else {
-//                result->m_class_name = term->m_class;
-//            }
-//            return result;
-//
-//        case TermID::ARGUMENT:
-//
-//            val_int = IndexArg(term);
-//            if (val_int < local_vars->size()) {
-//                return local_vars->at(val_int).second;
-//            }
-//            LOG_RUNTIME("Argument '%s' not exist!", term->toString().c_str());
-//
-//        case TermID::BLOCK:
-//            return CallBlock(ctx, term, local_vars, eval_block, CatchType::CATCH_AUTO, nullptr);
-//
-//        case TermID::BLOCK_TRY:
-//        case TermID::BLOCK_PLUS:
-//        case TermID::BLOCK_MINUS:
-//            return CallBlock(ctx, term, local_vars, eval_block, int_catch, nullptr);
-//
-//            //        case TermID::BLOCK_PLUS:
-//            //            return CallBlock(ctx, term, local_vars, CatchType::CATCH_PLUS);
-//            //            
-//            //        case TermID::BLOCK_MINUS:
-//            //            return CallBlock(ctx, term, local_vars, CatchType::CATCH_MINUS);
-//
-//        case TermID::ELLIPSIS:
-//            result->m_var_type_current = ObjType::Ellipsis;
-//            result->m_var_type_fixed = ObjType::None;
-//            result->m_var_is_init = true;
-//            return result;
-//
-//        case TermID::RANGE:
-//
-//            result->m_var_type_current = ObjType::Dictionary;
-//            for (int i = 0; i < term->size(); i++) {
-//                ASSERT(!term->name(i).empty());
-//                result->push_back(Eval(ctx, (*term)[i].second, local_vars, eval_block), term->name(i).c_str());
-//            }
-//
-//            if (result->size() == 2) {
-//                result->push_back(Obj::CreateValue(1, ObjType::None), "step");
-//            }
-//
-//            result->m_var_type_current = ObjType::Range;
-//            result->m_var_type_fixed = ObjType::Range;
-//            result->m_var_is_init = true;
-//
-//            return result;
-//
-//        case TermID::RATIONAL:
-//            return Obj::CreateRational(term->m_text);
-//
-//        case TermID::ITERATOR:
-//
-//            ASSERT(term->Left());
-//
-//            temp = Eval(ctx, term->Left(), local_vars, eval_block, CatchType::CATCH_AUTO);
-//            if (!temp) {
-//                LOG_RUNTIME("Term '%s' not found!", term->Left()->GetFullName().c_str());
-//            }
-//
-//            args = Obj::CreateDict();
-//            ctx->CreateArgs_(args, term, local_vars);
-//
-//
-//            /*
-//             * Создание итератора
-//             * ?, ?(), ?("Фильтр"), ?(func), ?(func, args...)
-//             * 
-//             * Перебор элементов итератора
-//             * !, !(), !(0), !(3), !(-3)
-//             * 
-//             * dict! и dict!(0) эквивалентны
-//             * dict! -> 1,  dict! -> 2, dict! -> 3, dict! -> 4, dict! -> 5, dict! -> :IteratorEnd
-//             * 
-//             * Различия отрицательного размера возвращаемого словаря для итератора
-//             * dict!(-1) -> (1,),  ...  dict!(-1) -> (5,),  dict!(-1) -> (:IteratorEnd,),  
-//             * dict!(1) -> (1,),  ...  dict!(1) -> (5,),  dict!(1) -> (,),  
-//             * dict!(-3) -> (1, 2, 3,),  dict!(-3) -> (4, 5, :IteratorEnd,)
-//             * dict!(3) -> (1, 2, 3,), dict!(3) -> (4, 5,)
-//             * 
-//             * Операторы ?! и !? эквивалентны и возвращают текущие данные без перемещения указателя итератора.
-//             * 
-//             * Оператор ?? создает итератор и сразу его выполняет, возвращая все значения 
-//             * в виде элементов словаря, т.е. аналог последовательности ?(LINQ); !(:Int64.__max__);
-//             * 
-//             * Оператор !! - сбрасывает итератор в начальное состояние и возвращает первый элемент
-//             */
-//
-//            if (term->m_text.compare("?") == 0) {
-//                return temp->IteratorMake(args.get());
-//            } else if (term->m_text.compare("!") == 0) {
-//                ASSERT(!args->size() && "Argument processing not implemented");
-//                return temp->IteratorNext(0);
-//            } else if (term->m_text.compare("!!") == 0) {
-//                ASSERT(!args->size() && "Argument processing not implemented");
-//                temp->IteratorReset();
-//                return temp->IteratorData();
-//            } else if (term->m_text.compare("!?") == 0 || term->m_text.compare("?!") == 0) {
-//                return temp->IteratorData();
-//            } else if (term->m_text.compare("??") == 0) {
-//
-//                val_int = std::numeric_limits<int64_t>::max();
-//                if (args->empty() || (args->size() == 1 && args->at(0).second->is_integer())) {
-//                    result = temp->IteratorMake(nullptr, false);
-//                    if (args->size()) {
-//                        val_int = args->at(0).second->GetValueAsInteger();
-//                    }
-//                } else if (args->size() == 1 && args->at(0).second->is_string_type()) {
-//                    result = temp->IteratorMake(args->at(0).second->GetValueAsString().c_str(), false);
-//                } else if (args->size() == 2 && args->at(0).second->is_string_type() && args->at(1).second->is_integer()) {
-//                    result = temp->IteratorMake(args->at(0).second->GetValueAsString().c_str(), false);
-//                    val_int = args->at(1).second->GetValueAsInteger();
-//                } else {
-//                    LOG_RUNTIME("Iterator`s args '%s' not allowed!", args->toString().c_str());
-//                }
-//                return result->IteratorNext(val_int);
-//
-//            } else {
-//                LOG_RUNTIME("Iterator '%s' not recognized in '%s'!", term->m_text.c_str(), term->toString().c_str());
-//            }
-//    }
-//    LOG_RUNTIME("Fail create type %s from '%s'", newlang::toString(term->getTermID()), term->toString().c_str());
-//
 //    return nullptr;
-//}
-//
-//void Context::CreateArgs_(ObjPtr &args, TermPtr &term, Obj * local_vars) {
-//    for (int i = 0; i < term->size(); i++) {
-//        if (term->name(i).empty()) {
-//            args->push_back(Eval(this, (*term)[i].second, local_vars, true));
-//        } else {
-//
-//            args->push_back(Eval(this, (*term)[i].second, local_vars, true), term->name(i).c_str());
-//        }
-//    }
 //}
 //
 //ObjPtr Context::CreateClass(std::string class_name, TermPtr body, Obj * local_vars) {
@@ -1399,30 +727,35 @@ VarItem Context::CreateItem(TermPtr term, ObjPtr obj) {
  * 
  * 
  */
-ObjPtr Context::Run(TermPtr term, Context *runner) {
-    LOG_TEST("run: %s", RunTime::Escape(term->toString()).c_str());
+ObjPtr Context::Execute(TermPtr term, Context *ctx) {
+    Module::RegisterStaticObject(ctx->m_static, term, false);
+    return Eval(term, ctx);
+}
+
+ObjPtr Context::Eval(TermPtr term, Context *ctx) {
+    //    LOG_TEST("run: %s", RunTime::Escape(term->toString()).c_str());
     ObjPtr result = Obj::CreateNone();
-    if ((term->m_id == TermID::SEQUENCE || term->m_id == TermID::BLOCK) && !runner) {
+    if ((term->m_id == TermID::SEQUENCE || term->m_id == TermID::BLOCK) && !ctx) {
         for (auto &elem : term->m_block) {
-            result = Run(elem, runner);
+            result = Eval(elem, ctx);
         }
     } else if (term->isBlock()) {
-        if (!runner) {
+        if (!ctx) {
             LOG_RUNTIME("Can't calculate '%s' in static mode!", term->toString().c_str());
         }
-        result = runner->EvalTryBlock_(term, runner->m_static.m_ast->m_int_vars);
+        result = ctx->EvalTryBlock_(term, ctx->m_static.m_ast->m_int_vars);
     } else {
-        result = EvalTerm(term, runner);
+        result = EvalTerm(term, ctx);
     }
 
-    LOG_TEST("result: %s (%p)", result->toString().c_str(), result.get());
+    //    LOG_TEST("result: %s (%p)", result->toString().c_str(), result.get());
 
-    if (runner) {
-        runner->m_latter = result;
+    if (ctx) {
+        ctx->m_latter = result;
     } else {
         return result;
     }
-    return runner->m_latter;
+    return ctx->m_latter;
 }
 
 bool Context::HasReThrow(TermPtr &block, Context &stack, Obj & obj) {
@@ -1470,13 +803,13 @@ ObjPtr Context::EvalTryBlock_(TermPtr &block, StorageTerm & storage) {
         str += "'";
     }
 
-    LOG_TEST("Enter block: '%s' VARS: %s", block->m_namespace ? block->m_namespace->m_text.c_str() : "", str.c_str());
+    //    LOG_TEST("Enter block: '%s' VARS: %s", block->m_namespace ? block->m_namespace->m_text.c_str() : "", str.c_str());
 
     try {
         size_t i = 0;
         while (i < block->m_block.size()) {
 
-            m_latter = Run(block->m_block[i], this);
+            m_latter = Eval(block->m_block[i], this);
 
             //            LOG_TEST("step: %d, value: %s", (int) i, m_latter->toString().c_str());
 
@@ -1749,8 +1082,8 @@ ObjPtr Context::Call(Context *runner, Obj &obj, TermPtr & term) {
         }
     }
 
-    LOG_TEST("Call %s %s", obj.m_prototype ? obj.m_prototype->m_text.c_str() : "", args->toString().c_str());
-    LOG_TEST("Local vars: %s", runner->Dump(2).c_str());
+    //    LOG_TEST("Call %s %s", obj.m_prototype ? obj.m_prototype->m_text.c_str() : "", args->toString().c_str());
+    //    LOG_TEST("Local vars: %s", runner->Dump(2).c_str());
 
     return Call(runner, obj, *args.get());
 }
@@ -1826,7 +1159,7 @@ ObjPtr Context::Call(Context *runner, Obj &obj, Obj & args) {
                     arg_name = NormalizeName(arg_name);
                 } else {
                     if (!is_ellipsis && ags_count + 1 != args.size()) {
-                        LOG_RUNTIME("Неожиданный аргумент!");
+                        LOG_RUNTIME("Неожиданный аргумент! %s", args.toString().c_str());
                     }
                 }
 
@@ -1834,7 +1167,7 @@ ObjPtr Context::Call(Context *runner, Obj &obj, Obj & args) {
                     arg_value = args[i + 1].second;
                 } else {
                     if (i < obj.m_prototype->size()) {
-                        arg_value = Run(obj.m_prototype->at(i).second, runner);
+                        arg_value = Eval(obj.m_prototype->at(i).second, runner);
                     } else {
                         LOG_RUNTIME("Неожиданный аргумент по умолчанию!");
                     }
@@ -1874,7 +1207,7 @@ ObjPtr Context::Call(Context *runner, Obj &obj, Obj & args) {
             //                args->push_back(EvalTerm((*term)[i].second, runner), argument->m_name);
             //            }
 
-            return runner->Run(obj.m_sequence, runner);
+            return runner->Eval(obj.m_sequence, runner);
 
         } else {
 
@@ -2327,7 +1660,7 @@ ObjPtr Context::StringFormat(std::string_view format, Obj & args) {
 ObjPtr Context::StringPrintf(std::string_view format, Obj & args) {
     static ObjPtr int_snprintf = RunTime::CreateNative("__snprintf__(buffer:Pointer, size:Int32, format:FmtChar, ... ):Int32", nullptr, false, "snprintf");
     ASSERT(int_snprintf);
-    
+
     printf("%d %f\n", 100, 1.123);
 
     ObjPtr int_args = Obj::CreateDict();
@@ -2465,8 +1798,8 @@ ObjPtr Context::EvalTerm(TermPtr term, Context * runner, bool rvalue) {
                 item = runner->FindVarItem(term);
             }
             if (item) {
-                if (item->term_check != item->item.get()) {
-                    LOG_RUNTIME("item term: %s (%p != %p)", term->m_text.c_str(), item->term_check, item->item.get());
+                if (item->term_check != item->term.get()) {
+                    LOG_RUNTIME("item term: %s (%p != %p)", term->m_text.c_str(), item->term_check, item->term.get());
                 }
                 if (item->obj_check != item->obj.get()) {
                     if (item->obj_check) {
@@ -2476,7 +1809,7 @@ ObjPtr Context::EvalTerm(TermPtr term, Context * runner, bool rvalue) {
                     }
                 }
             } else {
-                LOG_TEST("VarItem '%s' - not found!", term->m_text.c_str());
+                //                LOG_TEST("VarItem '%s' - not found!", term->m_text.c_str());
             }
 #endif       
 
@@ -2497,22 +1830,22 @@ ObjPtr Context::EvalTerm(TermPtr term, Context * runner, bool rvalue) {
                     if (item->obj_check) {
                         LOG_ERROR("found obj: %s (%p != %p)", term->m_text.c_str(), item->obj_check, found->m_obj.get());
                     } else {
-                        if (item->item->m_obj) {
+                        if (item->term->m_obj) {
                             if (item->obj || item->obj_check) {
-                                LOG_RUNTIME("found obj: %s %p (%p != %p)", term->m_text.c_str(), item->item->m_obj.get(), item->obj.get(), item->obj_check);
+                                LOG_RUNTIME("found obj: %s %p (%p != %p)", term->m_text.c_str(), item->term->m_obj.get(), item->obj.get(), item->obj_check);
                             }
-                            item->obj = item->item->m_obj;
-                            item->obj_check = item->item->m_obj.get();
+                            item->obj = item->term->m_obj;
+                            item->obj_check = item->term->m_obj.get();
                         } else {
                             item->obj = found->m_obj;
                             item->obj->m_sync = item->sync.get();
-                            item->item->m_obj = item->obj;
+                            item->term->m_obj = item->obj;
                             item->obj_check = item->obj.get();
                         }
                     }
                 }
             } else {
-                LOG_TEST("VarItem '%s' - not found!", term->m_text.c_str());
+                //                LOG_TEST("VarItem '%s' - not found!", term->m_text.c_str());
             }
 #endif       
 
@@ -2702,7 +2035,7 @@ TermPtr Context::FindInternalName(const std::string_view int_name) {
     //    }
 
     if (item) {
-        return item->item;
+        return item->term;
     }
 
     if (m_runtime) {
@@ -2936,9 +2269,9 @@ ObjPtr Context::EvalCreateAsValue_(TermPtr & op) {
 
     } else if (r_vars.size() == 1) {
 
-        ObjPtr temp = Run(r_vars[0], this);
+        ObjPtr temp = Eval(r_vars[0], this);
 
-        LOG_TEST("temp: %s = %s (%p)", r_vars[0]->m_text.c_str(), r_vars[0]->m_obj ? r_vars[0]->m_obj->toString().c_str() : "nullptr", r_vars[0]->m_obj.get());
+        //        LOG_TEST("temp: %s = %s (%p)", r_vars[0]->m_text.c_str(), r_vars[0]->m_obj ? r_vars[0]->m_obj->toString().c_str() : "nullptr", r_vars[0]->m_obj.get());
 
         for (auto &elem : l_vars) {
             if (elem->getTermID() == TermID::ELLIPSIS) {
@@ -2986,8 +2319,8 @@ ObjPtr Context::EvalCreateAsValue_(TermPtr & op) {
                     item = FindVarItem(elem);
                 }
                 if (item) {
-                    if (item->term_check != item->item.get()) {
-                        LOG_RUNTIME("elem term: %s (%p != %p)", elem->m_text.c_str(), item->term_check, item->item.get());
+                    if (item->term_check != item->term.get()) {
+                        LOG_RUNTIME("elem term: %s (%p != %p)", elem->m_text.c_str(), item->term_check, item->term.get());
                     }
                     if (item->obj_check != item->obj.get()) {
                         if (item->obj_check) {
@@ -2995,13 +2328,13 @@ ObjPtr Context::EvalCreateAsValue_(TermPtr & op) {
                         } else {
                             item->obj = elem->m_obj;
                             item->obj->m_sync = item->sync.get();
-                            item->item->m_obj = item->obj;
+                            item->term->m_obj = item->obj;
                             item->obj_check = item->obj.get();
                         }
                     } else if (!item->obj_check) {
                         item->obj = elem->m_obj;
                         item->obj->m_sync = item->sync.get();
-                        item->item->m_obj = item->obj;
+                        item->term->m_obj = item->obj;
                         item->obj_check = item->obj.get();
                     }
                 } else {
@@ -3450,17 +2783,17 @@ ObjPtr Context::EvalWhile_(TermPtr & term) {
     ASSERT(term->Left());
     ASSERT(term->Right());
 
-    ObjPtr cond = Run(term->Left(), this);
+    ObjPtr cond = Eval(term->Left(), this);
     if (!cond->GetValueAsBoolean() && !term->m_follow.empty()) {
         // else
         ASSERT(term->m_follow.size() == 1);
         ASSERT(term->m_follow[0]->Left()->m_id == TermID::ELLIPSIS);
-        m_latter = Run(term->m_follow[0]->Right(), this);
+        m_latter = Eval(term->m_follow[0]->Right(), this);
     } else {
         size_t i = 0;
         while (cond->GetValueAsBoolean()) {
 
-            m_latter = Run(term->Right(), this);
+            m_latter = Eval(term->Right(), this);
 
             //            LOG_TEST("while: %d, value: %s", (int) i, m_latter->toString().c_str());
 
@@ -3494,7 +2827,7 @@ ObjPtr Context::EvalWhile_(TermPtr & term) {
             i++;
 
 while_continue:
-            cond = Run(term->Left(), this);
+            cond = Eval(term->Left(), this);
         }
     }
     return m_latter;
@@ -3509,7 +2842,7 @@ ObjPtr Context::EvalDoWhile_(TermPtr & term) {
     size_t i = 0;
     do {
 
-        m_latter = Run(term->Left(), this);
+        m_latter = Eval(term->Left(), this);
 
         LOG_TEST("dowhile: %d, value: %s", (int) i, m_latter->toString().c_str());
 
@@ -3543,7 +2876,7 @@ ObjPtr Context::EvalDoWhile_(TermPtr & term) {
 
 dowhile_continue:
 
-        cond = Run(term->Right(), this);
+        cond = Eval(term->Right(), this);
 
     } while (cond->GetValueAsBoolean());
 
@@ -3567,13 +2900,13 @@ ObjPtr Context::EvalFollow_(TermPtr & term, Context * runner) {
             ASSERT(i + 1 == term->m_follow.size());
             condition = true;
         } else {
-            ObjPtr cond = Run(term->m_follow[i]->Left(), runner);
+            ObjPtr cond = Eval(term->m_follow[i]->Left(), runner);
             condition = cond->GetValueAsBoolean();
         }
 
         if (condition) {
 
-            return Run(term->m_follow[i]->Right(), runner);
+            return Eval(term->m_follow[i]->Right(), runner);
         }
     }
     return Obj::CreateNone();
@@ -3656,8 +2989,8 @@ ObjPtr Context::EvalIterator_(TermPtr & op) {
             object = Obj::CreateDict();
             for (auto &scope : * this) {
                 for (auto &elem : scope.vars) {
-                    ASSERT(elem.second.item);
-                    object->push_back(Obj::CreateString(elem.second.item->m_text));
+                    ASSERT(elem.second.term);
+                    object->push_back(Obj::CreateString(elem.second.term->m_text));
                 }
             }
             return object;

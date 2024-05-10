@@ -1039,6 +1039,9 @@ void Obj::CloneDataTo(Obj & clone) const {
         if (m_prototype) {
             *const_cast<TermPtr *> (&clone.m_prototype) = m_prototype;
         }
+        if (m_sequence) {
+            clone.m_sequence = m_sequence->Clone();
+        }
         ASSERT(m_tensor);
         if (m_tensor->defined()) {
             *clone.m_tensor = m_tensor->clone();
@@ -3280,9 +3283,9 @@ ObjPtr Obj::IteratorData() {
         ASSERT(stop);
         ASSERT(step);
 
-        LOG_TEST("value: %s", value->toString().c_str());
-        LOG_TEST("stop: %s", stop->toString().c_str());
-        LOG_TEST("step: %s", step->toString().c_str());
+        //        LOG_TEST("value: %s", value->toString().c_str());
+        //        LOG_TEST("stop: %s", stop->toString().c_str());
+        //        LOG_TEST("step: %s", step->toString().c_str());
 
         int up_direction = step->op_compare(*zero);
         ASSERT(up_direction);

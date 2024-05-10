@@ -689,7 +689,7 @@ bool AstAnalysis::CreateOp_(TermPtr &op, ScopeStack & stack) {
                 }
             } else {
                 ASSERT(op->isCreateForce());
-                if (stack.back().vars.find(int_name) != stack.back().vars.end()) {
+                if (!stack.empty() && stack.back().vars.find(int_name) != stack.back().vars.end()) {
                     NL_MESSAGE(LOG_LEVEL_INFO, term, "Local name '%s' already exist!", left_var->m_text.c_str());
                     return false;
                 }

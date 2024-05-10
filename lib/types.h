@@ -59,6 +59,35 @@
 
 #include "logger.h"
 
+#ifndef DOXYGEN_SHOULD_SKIP_THIS
+
+namespace c10 {
+    template <typename T>
+    class ArrayRef;
+}
+
+namespace at {
+    namespace indexing {
+        struct TensorIndex;
+    }
+}
+
+namespace at {
+    class Tensor;
+    class ArrayRef;
+    using IntArrayRef = c10::ArrayRef<int64_t>;
+} // namespace at
+
+namespace torch {
+    using at::Tensor;
+    namespace serialize {
+        class OutputArchive;
+        class InputArchive;
+    } // namespace serialize
+} // namespace torch
+
+#endif
+
 namespace newlang {
 
     static constexpr const char* ws = " \t\n\r\f\v";
@@ -135,6 +164,10 @@ typedef std::shared_ptr<Obj> ObjPtr;
 typedef std::shared_ptr<const Obj> ObjPtrConst;
 typedef std::weak_ptr<Obj> ObjWeak;
 typedef std::weak_ptr<const Obj> ObjWeakConst;
+
+typedef std::shared_ptr<Term> TermPtr;
+typedef std::shared_ptr<Module> ModulePtr;
+typedef std::shared_ptr<runtime::Buildin> BuildinPtr;
 
 /*
  * RunTime - класс синглетон для процесса. В нем происходит загрузка модулей, взаимодействие 
@@ -239,6 +272,8 @@ class Sync  {
 protected:
     friend class Reference;
     friend class Taken;
+    friend class VarGuard;
+    friend class VarData;
     const RefType m_type;
     const std::thread::id m_thread_id;
     const std::chrono::milliseconds & m_timeout;
@@ -246,6 +281,7 @@ protected:
 public:
     
     static constexpr std::chrono::milliseconds SyncTimeoutDeedlock = std::chrono::milliseconds(5000);
+    static constexpr std::chrono::seconds SyncWithoutWait = std::chrono::seconds(0);
     
     Sync(RefType type, const std::chrono::milliseconds & timeout_duration=SyncTimeoutDeedlock): 
     m_type(type), m_thread_id(std::this_thread::get_id()), m_timeout(timeout_duration), m_sync(std::monostate()) {
@@ -260,6 +296,8 @@ public:
             LOG_RUNTIME("Unknown synchronization type! (%d)", static_cast<int>(type));
         }
     }
+    
+    static std::unique_ptr<Sync> CreateSync(const TermPtr &term);
     
     inline RefType GetRefType() const { 
         return m_type;
@@ -306,6 +344,8 @@ public:
 };    
 
 
+struct VarItem;
+
 class Taken  {
 SCOPE(protected):
     ObjPtr m_obj;
@@ -337,20 +377,206 @@ public:
 };
 
     
-typedef std::shared_ptr<Term> TermPtr;
-typedef std::shared_ptr<Module> ModulePtr;
-typedef std::shared_ptr<runtime::Buildin> BuildinPtr;
+    /**
+     * @ref VarItem - главная структура для хранения объектов языка во время выполнения приложения.
+     * Все операции с объектами выполняются для этой струкутры.
+     * 
+     * Может хранить @ref VarItem::var любое динамически типизированное значение как @ref ObjPtr, 
+     * либо строго типизированное, которое заданное во время компиляции.
+     * Универсальные типы данных (словари, функции, классы и перечисления) всегда хранятся как @ref ObjPtr.
+     */
+    struct VarItem {
+        TermPtr term; ///< Термин из AST как он был определен в коде первый раз. Обязателен для интерпретатора и при отладке
+        ObjPtr obj; ///< 
+        std::unique_ptr<Sync> sync; ///< Объект синхронизации доступа к объекту (отсуствует, если ссылки на объект запрещены)
+        std::variant<std::monostate, ObjPtr, int64_t, double, std::string, std::wstring, void *> var; ///< Переменная для хранения значения объекта. 
+#ifdef BUILD_DEBUG
+        void * term_check; ///< Переменная для отладки (контроль изменения сохраненного значения)
+        void * obj_check; ///< Переменная для отладки (контроль изменения сохраненного значения)
+#endif        
+    };
 
 
-//typedef std::shared_ptr<Obj> ObjPtr;
-//typedef std::shared_ptr<const Obj> ObjPtrConst;
-//
-//void SyncUnLock(ObjPtr &obj);
-//typedef std::unique_ptr<ObjPtr, decltype(&SyncUnLock)> LocalObj;
-//inline LocalPtr MakeLocalPtr(ObjPtr &obj){
-//    return std::move(LocalPtr(obj, &SyncUnLock));
-//}
+    /*
+     * Владаелец данных (корень иерархии владельцев ссылки на данные) - может быть только один. Хранит сами данные и объект синхронизации.
+     * Копия данных (сильная ссылка) - более низкий уровень иерархии. Ссылается на владельца и увеличивает счетчик ссылок.
+     * Ссылка на данные (слабая ссылка) - любой уровень иерархии. Ссылается на владельца, но <НЕ> увеличивает счетчик ссылок.
+     * Для работы с данными обязательно требуется захват данных! (захват объекта синхронизации, если он есть). 
+     * - Для владельца объекта не приводит к увличению счетчика ссылок (может быть на одном уровне с владельцем).
+     * - Для копии данных увеличивает счетчик ссылок (может быть только ниже уровнях владельца).
+     * - Для слабой ссылки требуется преобразования в сильнуый указатель, потом как с копией данных.
+     * 
+     * Для использования weak_ptr требуется shared_ptr, причем указатель должен дыть не только на данные, но и объект синхронизации.
+     */
 
+    class VarData;
+    typedef std::shared_ptr<VarData>  VarPtr;
+    typedef std::weak_ptr<VarData>  VarWeak;
+
+    
+    /** 
+     * Класс @ref VarGuard используется для захвата объекта синхронизации @ref Sync при работе с классом @ref VarData
+     */
+    class VarGuard  {
+        friend class VarData;
+    SCOPE(protected):
+        mutable VarData *m_var;
+        bool m_is_locked;
+        bool m_edit_mode;
+        
+        // Обычный конструктор копирования отсуствует
+        const VarGuard& operator=(const VarGuard&) = delete;
+
+        /**
+         * Конструктор повторного захвата блокировки.
+         * Используется только внутри объекта @ref VarData для дублирования уже захваченного объекта.
+         * 
+         * @param copy Ссылка на объект @ref VarGuard уже имеющий блокировку
+         * @param timeout_duration Время блокировки - по умолчанию блокировка без ожидания
+         */
+        VarGuard(const VarGuard *copy, const std::chrono::milliseconds & timeout_duration=Sync::SyncWithoutWait);
+        
+    public:
+
+        /**
+         * Конструктор захвата объекта синхронизации @ref Sync при работе с классом @ref VarData
+         * @param var Ссылка на объект @ref VarData.
+         * @param edit_mode Режим редактирования (по умолчанию только для чтения).
+         * @param timeout_duration Время ожидания захвата блокировки до возникнвоения исключения ошибки захвата.
+         */
+        VarGuard(const VarData *var, bool edit_mode=false, const std::chrono::milliseconds & timeout_duration=Sync::SyncTimeoutDeedlock);
+
+
+        inline operator bool() const {
+            return m_var && m_is_locked;
+        }
+
+        inline const VarData & operator *() const {
+            ASSERT(m_var);
+            return *m_var;
+        }
+
+        ~VarGuard();
+    };
+
+        /*
+     * 
+    x + y   __add__(self, other)        x += y      __iadd__(self, other)
+    x - y   __sub__(self, other)        x -= y      __isub__(self, other)
+    x * y   __mul__(self, other)        x *= y      __imul__(self, other)
+    x / y   __truediv__(self, other)    x /= y      __itruediv__(self, other)
+    x // y  __floordiv__(self, other)   x //= y     __ifloordiv__(self, other)
+    x % y   __mod__(self, other)        x %= y      __imod__(self, other) 
+     * 
+     */
+
+//    VarData __add__(VarData &self, VarData &other);
+    
+     /**
+     * @ref VarData - главная структура для хранения объектов во время выполнения приложения.
+     * Все операции с объектами выполняются для этой струкутры.
+     * 
+     * Может хранить в @ref VarData::data любое динамически типизированное значение как @ref ObjPtr, 
+     * либо строго типизированное, которое задано во время компиляции.
+     * Универсальные типы данных (словари, функции, классы и перечисления) всегда хранятся как @ref ObjPtr.
+     */
+    class VarData {
+    SCOPE(protected):
+        
+        typedef std::variant<std::monostate, 
+                std::shared_ptr<VarData>, std::weak_ptr<VarData>, 
+                std::unique_ptr<VarGuard>, 
+                ObjPtr, int64_t, double, std::string, std::wstring, void *> DataType;
+        
+        std::shared_ptr<VarData> owner; ///< shared_ptr - только у владельца объекта (чтобы можно было создавать копии и слабые ссылки)
+        DataType data; ///< Переменная для хранения всех возможных типов значений объекта.
+        std::unique_ptr<Sync> sync; ///< Объект синхронизации доступа к объекту (отсуствует, если ссылки на объект запрещены)
+
+
+        // Non copyable class
+//        VarData(const VarData&) = delete;
+//        const VarData& operator=(const VarData&) = delete;
+        
+        explicit VarData(const std::weak_ptr<VarData> &ref): owner(nullptr), data(ref), sync(nullptr) {
+        }
+        explicit VarData(const std::shared_ptr<VarData> &ptr): owner(nullptr), data(ptr), sync(nullptr) {
+        }
+        explicit VarData(std::unique_ptr<VarGuard> taken): owner(nullptr), data(std::move(taken)), sync(nullptr) {
+        }
+
+    public:
+        
+        template <typename T> VarData(T d, std::unique_ptr<Sync> s): owner(this, [](VarData *) { /*deleter ignore*/ }), data(d), sync(std::move(s)) {
+        }
+        template <typename T> VarData(T d, const TermPtr term=nullptr): VarData(d, term ? Sync::CreateSync(term) : nullptr) {
+        }
+        
+        inline bool is_taked() const {
+            return std::holds_alternative<std::unique_ptr<VarGuard>>(data);
+        }
+
+        VarData Copy(const std::chrono::milliseconds & timeout_duration=Sync::SyncWithoutWait) const;
+
+        VarData Ref() const;
+
+        std::unique_ptr<VarGuard> MakeTake(bool edit_mode=false, const std::chrono::milliseconds & timeout_duration=Sync::SyncTimeoutDeedlock) const;
+        
+        inline VarData Take(bool edit_mode=false, const std::chrono::milliseconds & timeout_duration=Sync::SyncTimeoutDeedlock) const {
+            return VarData(MakeTake(edit_mode, timeout_duration));
+        }
+        
+        inline const VarData &operator*() {
+            if(is_taked()){
+                return *this;
+            }
+            LOG_RUNTIME("VarData not taked!");
+        } 
+
+        template <typename T> 
+        typename std::enable_if<!std::is_same<T, ObjPtr>::value, const T>::type
+        get(bool edit_mode=false, const std::chrono::milliseconds & timeout_duration=Sync::SyncTimeoutDeedlock) const {
+            std::unique_ptr<VarGuard> self_taken;
+            VarGuard * var_tacken = is_taked() ? std::get<std::unique_ptr<VarGuard>>(data).get() : nullptr;
+            if(!var_tacken) {
+                self_taken = MakeTake(edit_mode,timeout_duration);
+                var_tacken = self_taken.get();
+            }
+            if (!var_tacken || !var_tacken->m_var) {
+                LOG_RUNTIME("No data borrowed!");
+            }
+            if (std::holds_alternative<T>(var_tacken->m_var->data)) {
+                return std::get<T>(var_tacken->m_var->data);
+            } else if (std::holds_alternative<ObjPtr>(var_tacken->m_var->data)) {
+                return static_cast<T> (*std::get<ObjPtr>(var_tacken->m_var->data));
+            } else if (std::holds_alternative<std::monostate>(var_tacken->m_var->data)) {
+                LOG_RUNTIME("Object not initialized!");
+            }
+            LOG_RUNTIME("Fail logic get object!");
+        }
+
+        const ObjPtr get(bool edit_mode=false, const std::chrono::milliseconds & timeout_duration=Sync::SyncTimeoutDeedlock) const;        
+        
+        void set(const ObjPtr & value, bool edit_mode=false, const std::chrono::milliseconds & timeout_duration=Sync::SyncTimeoutDeedlock);
+        
+        template <typename T> 
+        typename std::enable_if<!std::is_same<T, ObjPtr>::value, void>::type
+        set(const T & new_value, bool edit_mode=false, const std::chrono::milliseconds & timeout_duration=Sync::SyncTimeoutDeedlock);
+        
+
+        static VarData & __iadd__(VarData &self, const VarData &other);
+        inline VarData & operator+=(const VarData &other){
+            return __iadd__(*this, other);
+        }
+        
+        inline const VarData operator+(const VarData &other) {
+            VarData result(this->Copy());
+            result += other;
+            return result;
+        }
+    };
+
+            
+    
 typedef std::vector<TermPtr> BlockType;
 typedef std::vector<TermPtr> ArrayTermType;
 typedef std::vector<ObjPtr> ArrayObjType;
@@ -1123,7 +1349,7 @@ void ParserException(const char *msg, std::string &buffer, int row, int col);
                 || name.compare("$$") == 0 || name.compare("@$") == 0 || name.compare("$^") == 0
                 || name.compare("@::") == 0 || name.compare("$*") == 0 || name.compare("$#") == 0;
     }
-    
+
     inline bool isInternalName(const std::string_view name) {
         return !name.empty() && (name.rbegin()[0] == ':' || name.rbegin()[0] == '$' || isReservedName(name));
     }

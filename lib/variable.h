@@ -9,6 +9,8 @@
 
 namespace newlang {
 
+#ifndef DOXYGEN_SHOULD_SKIP_THIS
+    
     template<typename T, typename... Rest>
     struct is_all : std::false_type {
     };
@@ -45,7 +47,8 @@ namespace newlang {
                 || std::fabs(x - y) < std::numeric_limits<T>::min();
     }
 
-
+#endif
+    
     template <typename T> class Iter;
     /*
      * Аргумент по умолчанию может быть литерал или выражение.

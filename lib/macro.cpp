@@ -112,7 +112,7 @@ ExpandMacroResult newlang::ExpandTermMacro(Parser &parser) {
                 temp += ":";
                 temp += toString(elem->m_id);
             }
-            LOG_TEST("From: %s (remove %d)", temp.c_str(), (int) size_remove);
+            //            LOG_TEST("From: %s (remove %d)", temp.c_str(), (int) size_remove);
 
             parser.m_macro_analisys_buff.erase(parser.m_macro_analisys_buff.begin(), parser.m_macro_analisys_buff.begin() + size_remove);
 
@@ -155,7 +155,7 @@ ExpandMacroResult newlang::ExpandTermMacro(Parser &parser) {
                     temp += ":";
                     temp += toString(elem->m_id);
                 }
-                LOG_TEST("To: %s", temp.c_str());
+                //                LOG_TEST("To: %s", temp.c_str());
             }
 
             return ExpandMacroResult::Continue;

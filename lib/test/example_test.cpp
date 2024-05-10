@@ -528,24 +528,7 @@ TEST(Example, Fibonacci) {
     ASSERT_TRUE(jit);
 
 
-
-    //fib(n) ::= {
-    //    @if(n < 3){
-    //        @return (1\1, 1\1,);
-    //    }
-    //    p ::= fib(n-1);
-    //    (p[1] + p[2], p[1],);
-    //};
-    //
-    //calc(n) ::= {
-    //    $v ::= '{1}'(fib(n)[1]);
-    //    print('%d: %d\n%s\n', $n, len($v), $v);
-    //};
-    //
-    //@time( calc(55_000) );    
-
     ObjPtr temp;
-
     ASSERT_NO_THROW(temp = jit->Run("dict ::= (1+2, 5, 9,);\n"));
     ASSERT_STREQ("(3, 5, 9,)", temp->toString().c_str()) << temp->toString();
 
@@ -637,8 +620,8 @@ TEST(Example, Fibonacci) {
             ));
     ASSERT_TRUE(time);
     ASSERT_TRUE(time->toString().find("'Exec time 'fib_test(5)':") == 0) << time->toString();
-    
-    
+
+
 
     ObjPtr fib_calc;
     ASSERT_NO_THROW(fib_calc = jit->Run("fib_calc(n) := {\n"
@@ -647,12 +630,12 @@ TEST(Example, Fibonacci) {
             "  print('%d: %d\\n%s\\n', $n, len($value), $value);\n"
             "};\n"));
     ASSERT_TRUE(fib_calc);
-        
+
     ASSERT_NO_THROW(fib_calc = jit->Run("fib_calc(5)")) << fib_calc->m_sequence->toString();
     ASSERT_TRUE(fib_calc);
 
-    
-    
+
+
 
     setvbuf(stdin, nullptr, _IONBF, 0);
     setvbuf(stdout, nullptr, _IONBF, 0);
@@ -668,13 +651,157 @@ TEST(Example, Fibonacci) {
     ASSERT_TRUE(result);
     ASSERT_TRUE(result->is_string_type()) << result->toString();
     ASSERT_TRUE(result->toString().find("'Exec time 'calc(") == 0) << result->toString();
-    
+
+}
+
+void TestThread(RunTime *rt, Module &module, Obj &obj, Obj & args) {
+    Context ctx(module, rt);
+    Context::Call(&ctx, obj, args);
+}
+
+void TestThreadJIT(JIT *jit, const char *func, const char *call) {
+
+    std::string source(func);
+    source += call;
+
+    TermPtr ast = jit->MakeAstParser(source);
+
+    Module mod(jit, ast);
+    Context ctx(mod, jit);
+    Context::Execute(ast, &ctx);
 }
 
 TEST(Example, Thread) {
 
     JIT *jit = JIT::ReCreate();
     ASSERT_TRUE(jit);
+
+
+    /*
+
+    func(count:Integer, target:String) := {
+        $iter := @iter( 1..$count ); # Итератор для диапазона от 1 до $count
+        @while( @curr($iter) ) {   # Цикл, пока итератор валидный
+            $step := @next($iter);  # Получить текущий и перейти на следующий элемент итератора
+            printf('Number %d from %s!', $step, $target);
+            usleep( rand() % 1000 );    # Случайная задержка
+        }
+    }
+
+    thread = :Thread(func, 5, 'thread');
+    thread.start();
+    func(5, 'main');
+    thread.join();
+
+     */
+    //    ObjPtr func;
+    //    ASSERT_NO_THROW(func = jit->Run(""
+    //            "func(count:Integer, from:String) := {\n"
+    //            "   $iter := @iter( 1..$count );\n"
+    //            "   @while( @curr($iter) ) {\n"
+    //            "       $step := @next($iter);\n"
+    //            "       @timeit( usleep( rand() % 1000000 ), ' Step ', $step, ' from \"', $from, '\".');\n"
+    //            "   }\n"
+    //            "};\n"));
+    //
+    //    ASSERT_NO_THROW(jit->Run("func(2, 'test')")) << func->m_sequence->toString();
+
+
+    const char *func_str = ""
+            "func(count:Integer, from:String) := {\n"
+            "   $iter := @iter( 1..$count );\n"
+            "   @while( @curr($iter) ) {\n"
+            "       $step := @next($iter);\n"
+            "       @timeit( usleep( rand() % 1000000 ), ' Step ', $step, ' from \"', $from, '\".');\n"
+            "   }\n"
+            "};\n";
+
+    TermPtr func1;
+    ASSERT_NO_THROW(func1 = jit->MakeAstParser(func_str));
+
+    Module mod1(jit, func1);
+    Context ctx1(mod1, jit);
+    Context::Execute(func1, &ctx1);
+
+//    TestThreadJIT(jit, func_str, "func(3, 'TestThreadJIT')");
+
+    std::thread t1(TestThreadJIT, jit, func_str, "func(5, 'From thread 1')");
+    std::thread t2(TestThreadJIT, jit, func_str, "func(5, 'From thread 2')");
+    std::thread t3(TestThreadJIT, jit, func_str, "func(5, 'From thread 3')");
+    std::thread t4(TestThreadJIT, jit, func_str, "func(5, 'From thread 4')");
+
+    TestThreadJIT(jit, func_str, "func(5, 'Main')");
+
+    t1.join();
+    t2.join();
+    t3.join();
+    t4.join();
+
+
+    //    ObjPtr args = Obj::CreateDict();
+    //    args->push_back(Obj::CreateValue(2));
+    //    args->push_back(Obj::CreateString("test"));
+    ////    TestThread(jit, *(*jit->m_module.begin()), *func_test, *args);
+
+
+    //    TestThreadJIT();
+    //    TermPtr func2;
+    //    ASSERT_NO_THROW(func2 = jit->MakeAstParser(func_str));
+    //
+    //    Module mod2(jit, func2);
+    //    Context ctx2(mod2, jit);
+    //    Context::Execute(func2, &ctx2);
+
+
+    ObjPtr thread;
+    //    ASSERT_NO_THROW(thread = jit->Run(":Thread::this_id()"));
+    //    ASSERT_TRUE(thread);
+    //    ASSERT_EQ(thread->GetValueAsInteger(), std::thread::get_id()) << thread->GetValueAsInteger() << " != " << std::thread::get_id();
+
+    ASSERT_NO_THROW(thread = jit->Run(":Thread::hardware_concurrency()"));
+    ASSERT_TRUE(thread);
+    ASSERT_EQ(thread->GetValueAsInteger(), std::thread::hardware_concurrency()) << thread->GetValueAsInteger() << " != " << std::thread::hardware_concurrency();
+
+
+    //    ObjPtr func_test = func->Clone();
+    //    
+    //    ObjPtr args = Obj::CreateDict();
+    //    args->push_back(Obj::CreateValue(2));
+    //    args->push_back(Obj::CreateString("test"));
+    ////    TestThread(jit, *(*jit->m_module.begin()), *func_test, *args);
+    //
+    //    ObjPtr args2 = Obj::CreateDict();
+    //    args2->push_back(Obj::CreateValue(3));
+    //    args2->push_back(Obj::CreateString("test3"));
+    ////    TestThread(jit, *(*jit->m_module.begin()), *func_test, *args2);
+    //    
+    //    
+    //    
+    //    ObjPtr targs = Obj::CreateDict();
+    //    targs->push_back(Obj::CreateValue(5));
+    //    targs->push_back(Obj::CreateString("Call from thread!!!!!!!!!!!!!"));
+    //    std::thread t(TestThread, (newlang::RunTime *)jit, std::ref(*(*jit->m_module.begin())), std::ref(*func), std::ref(*targs));
+    //
+    //
+    //    args->at(0).second = Obj::CreateValue(5);
+    //    args->at(1).second = Obj::CreateString("Main");
+    //    TestThread(jit, *(*jit->m_module.begin()), *func_test, *args);
+    //    
+    //    t.join();
+
+
+    //    VERIFY(RegisterBuildinFunc(":Thread::this_id():Integer", (void *) &runtime::Base::__thread_this_id__));
+    //    VERIFY(RegisterBuildinFunc(":Thread::hardware_concurrency():Integer", (void *) &runtime::Base::__thread_hardware_concurrency__));
+    //
+    //    VERIFY(RegisterBuildinFunc(":Thread::get_id():Integer", (void *) &runtime::Base::__thread_get_id__));
+    //    VERIFY(RegisterBuildinFunc(":Thread::start():Integer", (void *) &runtime::Base::__thread_start__));
+    //    VERIFY(RegisterBuildinFunc(":Thread::join():None", (void *) &runtime::Base::__thread_join__));
+    //    VERIFY(RegisterBuildinFunc(":Thread::joinable():Boolean", (void *) &runtime::Base::__thread_joinable__));
+
+    //    thread.start();
+    //    thread.join();
+
+
 
     //    ObjPtr prn;
     //    ASSERT_NO_THROW(prn = jit->Run("prn(format:FmtChar, ...):Int32 := %printf ..."));

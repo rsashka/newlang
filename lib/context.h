@@ -12,19 +12,6 @@ namespace newlang {
      * RunTime - место хранения глобальных статических переменных
      */
 
-    /* 
-     * Выполняет модуль (файл/ast)
-     */
-    struct VarItem {
-        TermPtr item;
-        ObjPtr obj;
-        std::unique_ptr<Sync> sync;
-#ifdef BUILD_DEBUG
-        void * term_check;
-        void * obj_check;
-#endif        
-    };
-
     struct VarScope {
         TermID id;
         std::string ns;
@@ -44,9 +31,9 @@ namespace newlang {
         virtual ~Context() {
         }
 
-        static ObjPtr Run(TermPtr ast, Context * runner);
-
+        static ObjPtr Execute(TermPtr ast, Context * runner);
         static ObjPtr EvalTerm(TermPtr term, Context *runner, bool rvalue = true);
+        static ObjPtr Eval(TermPtr ast, Context * runner);
 
         static std::unique_ptr<Sync> CreateSync(const TermPtr &term);
 

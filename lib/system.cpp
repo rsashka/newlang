@@ -112,13 +112,42 @@ CALSS_METHOD(Base, __timeit__) {
             caller += in.at(2).second->GetValueAsString();
             caller += "'";
         }
-        
+
         std::string result = fmt::format("{}: {}.{} seconds.", caller, (int) (diff / 1000000), (int) (diff % 1000000));
-        
+
+        for (int i = 3; i < in.size(); i++) {
+            result += in.at(i).second->GetValueAsString();
+        }
+
         LOG_INFO("%s", result.c_str());
         return Obj::CreateString(result);
     }
     return Obj::CreateValue(us);
+}
+
+CALSS_METHOD(Base, __thread_this_id__) {
+    return Obj::CreateValue(0);//reinterpret_cast<int64_t>(std::this_thread::get_id()));
+}
+
+CALSS_METHOD(Base, __thread_hardware_concurrency__) {
+    return Obj::CreateValue(std::thread::hardware_concurrency());
+}
+
+CALSS_METHOD(Base, __thread_get_id__) {
+    //    return Obj::CreateValue(std::thread::us);
+    return Obj::CreateNone();
+}
+
+CALSS_METHOD(Base, __thread_start__) {
+    return Obj::CreateNone();
+}
+
+CALSS_METHOD(Base, __thread_join__) {
+    return Obj::CreateNone();
+}
+
+CALSS_METHOD(Base, __thread_joinable__) {
+    return Obj::CreateBool(false);
 }
 
 /*

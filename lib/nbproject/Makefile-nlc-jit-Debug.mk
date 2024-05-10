@@ -38,7 +38,8 @@ OBJECTFILES= \
 	${OBJECTDIR}/_ext/b0ad39d/format.o \
 	${OBJECTDIR}/jit.o \
 	${OBJECTDIR}/macro.o \
-	${OBJECTDIR}/module.o
+	${OBJECTDIR}/module.o \
+	${OBJECTDIR}/types.o
 
 
 # C Compiler Flags
@@ -98,6 +99,11 @@ ${OBJECTDIR}/module.o: module.cpp nbproject/Makefile-${CND_CONF}.mk
 parser.yy.h parser.yy.cpp location.hh: parser.y nbproject/Makefile-${CND_CONF}.mk
 	@echo Выполнение шага пользовательского сборки
 	bison --output-file=parser.yy.cpp --defines=parser.yy.h --warnings=all parser.y
+
+${OBJECTDIR}/types.o: types.cpp nbproject/Makefile-${CND_CONF}.mk
+	${MKDIR} -p ${OBJECTDIR}
+	${RM} "$@.d"
+	$(COMPILE.cc) -g -DBUILD_DEBUG -DLOG_LEVEL_NORMAL=LOG_LEVEL_DEBUG -I../contrib/libtorch/include -I../contrib/libtorch/include/torch/csrc/api/include -I../contrib/fmt/include -fPIC  -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/types.o types.cpp
 
 # Subprojects
 .build-subprojects:

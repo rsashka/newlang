@@ -109,6 +109,7 @@
           <itemPath>../site/content/ru/blog/release-0.2.md</itemPath>
           <itemPath>../site/content/ru/blog/release-0.3.md</itemPath>
           <itemPath>../site/content/ru/blog/release-0.4.md</itemPath>
+          <itemPath>../site/content/ru/blog/release-0.5.md</itemPath>
           <itemPath>../site/content/ru/blog/simple-complex-programming.md</itemPath>
           <itemPath>../site/content/ru/blog/unusual-prog.md</itemPath>
         </logicalFolder>
@@ -736,6 +737,11 @@
             flavor2="0">
       </item>
       <item path="../site/content/ru/blog/release-0.4.md"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
+      <item path="../site/content/ru/blog/release-0.5.md"
             ex="false"
             tool="3"
             flavor2="0">
@@ -1506,6 +1512,11 @@
             tool="3"
             flavor2="0">
       </item>
+      <item path="../site/content/ru/blog/release-0.5.md"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
       <item path="../site/content/ru/blog/simple-complex-programming.md"
             ex="false"
             tool="3"
@@ -2262,6 +2273,11 @@
             tool="3"
             flavor2="0">
       </item>
+      <item path="../site/content/ru/blog/release-0.5.md"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
       <item path="../site/content/ru/blog/simple-complex-programming.md"
             ex="false"
             tool="3"
@@ -2973,6 +2989,11 @@
             flavor2="0">
       </item>
       <item path="../site/content/ru/blog/release-0.4.md"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
+      <item path="../site/content/ru/blog/release-0.5.md"
             ex="false"
             tool="3"
             flavor2="0">

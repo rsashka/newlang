@@ -9,32 +9,6 @@
 #include "rational.h"
 
 
-namespace c10 {
-    template <typename T>
-    class ArrayRef;
-}
-
-namespace at {
-    namespace indexing {
-        struct TensorIndex;
-    }
-}
-
-namespace at {
-    class Tensor;
-    class ArrayRef;
-    using IntArrayRef = c10::ArrayRef<int64_t>;
-} // namespace at
-
-namespace torch {
-    using at::Tensor;
-    namespace serialize {
-        class OutputArchive;
-        class InputArchive;
-    } // namespace serialize
-} // namespace torch
-
-
 typedef at::indexing::TensorIndex Index;
 typedef at::IntArrayRef Dimension;
 
@@ -650,7 +624,7 @@ namespace newlang {
             } else {
                 return args.shared();
             }
-//            LOG_RUNTIME("Take object for type %s not implemented!", newlang::toString(args[0].second->getType()));
+            //            LOG_RUNTIME("Take object for type %s not implemented!", newlang::toString(args[0].second->getType()));
         }
 
         void SetTermProp(Term &term);
@@ -933,6 +907,10 @@ namespace newlang {
 
         explicit inline operator std::wstring() const {
             return GetValueAsStringWide();
+        }
+
+        explicit operator void *() const {
+            return std::get<void *>(m_var);
         }
 
         //унарный плюс ничего не делает.
@@ -1535,10 +1513,14 @@ namespace newlang {
             return CreateType(ObjType::None, ObjType::None, false, sync);
         }
 
-        static ObjPtr CreateNil(Sync *sync = nullptr) {
+        static ObjPtr CreatePointer(void * ptr = nullptr, Sync *sync = nullptr) {
             ObjPtr obj = CreateType(ObjType::Pointer, ObjType::Pointer, false, sync);
-            obj->m_var = (void *) nullptr;
+            obj->m_var = ptr;
             return obj;
+        }
+
+        static ObjPtr CreateNil(Sync *sync = nullptr) {
+            return CreatePointer(nullptr, sync);
         }
 
         static ObjPtr CreateBool(bool value, Sync *sync = nullptr) {
@@ -1850,7 +1832,7 @@ namespace newlang {
 
         void SetValue_(ObjPtr value);
 
-//        static std::string format(std::string format, Obj * args);
+        //        static std::string format(std::string format, Obj * args);
 
 
         bool CallAll(const char *func_name, ObjPtr &arg_in, ObjPtr &result, ObjPtr object = nullptr, size_t limit = 0); // ?

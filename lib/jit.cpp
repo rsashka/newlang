@@ -2581,8 +2581,7 @@ ObjPtr JIT::Run(const std::string_view str, Obj* args) {
             LOG_PARSER("fatal error: %d generated. ", m_diag->m_error_count);
         }
 
-        Module::RegisterStaticObject(GetCtx().m_static, (*m_module.begin())->m_ast->m_block.back(), false);
-        return Context::Run((*m_module.begin())->m_ast->m_block.back(), &GetCtx());
+        return Context::Execute((*m_module.begin())->m_ast->m_block.back(), &GetCtx());
 
     } catch (...) {
         (*m_module.begin())->m_ast->m_block.pop_back();
@@ -2595,6 +2594,20 @@ ObjPtr JIT::Run(const std::string_view str, Obj* args) {
 ObjPtr JIT::Run(Module *module, Obj* args) {
     LOG_RUNTIME("Run module not implemented!");
     return nullptr;
+}
+
+TermPtr JIT::MakeAstParser(const std::string_view src, bool skip_analize) {
+    TermPtr ast = GetParser()->Parse(src.begin());
+    if (skip_analize) {
+        return ast;
+    }
+
+    AstAnalysis analysis(*this, m_diag.get());
+
+    if (!analysis.Analyze(ast, ast)) {
+        LOG_RUNTIME("Make AST fail!");
+    }
+    return ast;
 }
 
 TermPtr JIT::MakeAst(const std::string_view src, bool skip_analize) {
@@ -2717,7 +2730,7 @@ JIT::JIT(const StringArray &args) : RunTime(args), m_macro(std::make_shared<Macr
  *      ::Base::microsec_point( __start_point__ );
  *  }
  */
-        VERIFY(CreateMacro("@@ timeit( ... ) @@ ::= @@ { __start_point__ := ::Base::__timeit__();  @$... ;  ::Base::__timeit__( __start_point__, @# @$... ); } @@  ##< Measure execution time of function call"));
+        VERIFY(CreateMacro("@@ timeit( call, ... ) @@ ::= @@ { __start_point__ := ::Base::__timeit__();  @$call ;  ::Base::__timeit__( __start_point__, @# @$call, @$... ); } @@  ##< Measure execution time of function call"));
         
     }
 

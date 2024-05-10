@@ -14,9 +14,7 @@ func(count:Integer, target:String) := {
 
         $step := @next($iter);  # Получить текущий и перейти на следующий элемент итератора
 
-        printf('Number %d from %s!', $step, $target);
-
-        usleep( rand() % 1000 );    # Случайная задержка
+        @timeit( usleep( rand() % 1000000 ), ' Step ', $step, ' target "', $target, '".'); # Случайная задержка
     }
 }
 
@@ -27,6 +25,12 @@ thread.start();
 func(5, 'main');
 
 thread.join();
+
+Exec time 'usleep(rand()%1000000)': 0.289700 seconds. Step 1 from "test".
+Exec time 'usleep(rand()%1000000)': 0.931346 seconds. Step 2 from "test".
+Exec time 'usleep(rand()%1000000)': 0.693064 seconds. Step 3 from "test".
+Exec time 'usleep(rand()%1000000)': 0.637365 seconds. Step 4 from "test".
+
 
 Number 1 from the thread!
 Number 1 from the main!

@@ -28,7 +28,7 @@ void Module::RegisterStaticObject(Module &module, TermPtr op, bool init) {
 
             VarItem item = Context::CreateItem(op->m_left, std::move(obj));
             if (isGlobalScope(op->m_left->m_text) && module.m_rt) {
-                module.m_rt->NameRegister(op->isCreateOnce(), op->m_left->m_int_name, item.item); //, item.obj);
+                module.m_rt->NameRegister(op->isCreateOnce(), op->m_left->m_int_name, item.term); //, item.obj);
             }
             module.insert(std::pair<std::string, VarItem>(op->m_left->m_int_name, std::move(item)));
 

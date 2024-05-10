@@ -1392,6 +1392,15 @@ void RunTime::InitInternal(StringArray args) {
         //#define REGISTER_BUILDIN(proto, function)        
 
         VERIFY(RegisterBuildinFunc("::Base::__assert_abort__(...):None", (void *) &runtime::Base::__assert_abort__));
+        
+        VERIFY(RegisterBuildinFunc(":Thread::this_id():Integer", (void *) &runtime::Base::__thread_this_id__));
+        VERIFY(RegisterBuildinFunc(":Thread::hardware_concurrency():Integer", (void *) &runtime::Base::__thread_hardware_concurrency__));
+
+        VERIFY(RegisterBuildinFunc(":Thread::get_id():Integer", (void *) &runtime::Base::__thread_get_id__));
+        VERIFY(RegisterBuildinFunc(":Thread::start():Integer", (void *) &runtime::Base::__thread_start__));
+        VERIFY(RegisterBuildinFunc(":Thread::join():None", (void *) &runtime::Base::__thread_join__));
+        VERIFY(RegisterBuildinFunc(":Thread::joinable():Boolean", (void *) &runtime::Base::__thread_joinable__));
+
 
         //        VERIFY(RegisterSystemBuildin("::rand():Int32 ::= %rand ..."));
         //        VERIFY(rt->RegisterBuildin(std::make_shared<newlang::runtime::Base>(rt)));

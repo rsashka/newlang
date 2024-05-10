@@ -39,6 +39,7 @@
         <itemPath>system.h</itemPath>
         <itemPath>term.cpp</itemPath>
         <itemPath>term.h</itemPath>
+        <itemPath>types.cpp</itemPath>
         <itemPath>types.h</itemPath>
         <itemPath>variable.h</itemPath>
         <itemPath>version.cpp</itemPath>
@@ -220,6 +221,8 @@
           <customToolAdditionalDep>parser.yy.cpp location.hh</customToolAdditionalDep>
         </customTool>
       </item>
+      <item path="types.cpp" ex="false" tool="1" flavor2="0">
+      </item>
       <item path="types.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="variable.h" ex="false" tool="3" flavor2="0">
@@ -328,6 +331,8 @@
         <customTool>
           <customToolAdditionalDep>parser.yy.cpp location.hh</customToolAdditionalDep>
         </customTool>
+      </item>
+      <item path="types.cpp" ex="false" tool="1" flavor2="0">
       </item>
       <item path="version.cpp" ex="true" tool="1" flavor2="9">
       </item>
@@ -539,6 +544,8 @@
       <item path="test/system_test.cpp" ex="false" tool="1" flavor2="0">
       </item>
       <item path="test/unittest.cpp" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="types.cpp" ex="false" tool="1" flavor2="0">
       </item>
       <item path="types.h" ex="false" tool="3" flavor2="0">
       </item>

@@ -211,6 +211,14 @@ namespace newlang {
             CALSS_METHOD_DEF(__timeit__);
             CALSS_METHOD_DEF(__len__);
 
+            CALSS_METHOD_DEF(__thread_this_id__);
+            CALSS_METHOD_DEF(__thread_hardware_concurrency__);
+
+            CALSS_METHOD_DEF(__thread_get_id__);
+            CALSS_METHOD_DEF(__thread_start__);
+            CALSS_METHOD_DEF(__thread_join__);
+            CALSS_METHOD_DEF(__thread_joinable__);
+            
 
         };
 

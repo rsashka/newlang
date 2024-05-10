@@ -92,19 +92,19 @@
       </nativedebugger>
       <runprofile version="9">
         <runcommandpicklist>
-          <runcommandpicklistitem>"${OUTPUT_PATH}" --gtest_shuffle --gtest_filter=Run.CallArgs:Run.Call</runcommandpicklistitem>
-          <runcommandpicklistitem>"${OUTPUT_PATH}" --gtest_shuffle --gtest_filter=Run.CallArgs</runcommandpicklistitem>
-          <runcommandpicklistitem>"${OUTPUT_PATH}" --gtest_shuffle --gtest_filter=Example.Exec:Example.Hello:Example.Rational
-</runcommandpicklistitem>
-          <runcommandpicklistitem>"${OUTPUT_PATH}" --gtest_shuffle --gtest_filter=*</runcommandpicklistitem>
           <runcommandpicklistitem>"${OUTPUT_PATH}" --gtest_shuffle --gtest_filter=Ast.AstArgs:-Example.Fibonacci</runcommandpicklistitem>
           <runcommandpicklistitem>"${OUTPUT_PATH}" --gtest_shuffle --gtest_filter=RunTest.String:-Example.Fibonacci</runcommandpicklistitem>
           <runcommandpicklistitem>"${OUTPUT_PATH}" --gtest_shuffle --gtest_filter=Example.Fibonacci:MacroTest.MacroCheck</runcommandpicklistitem>
           <runcommandpicklistitem>"${OUTPUT_PATH}" --gtest_shuffle --gtest_filter=MacroTest.MacroCheck</runcommandpicklistitem>
           <runcommandpicklistitem>"${OUTPUT_PATH}" --gtest_shuffle --gtest_filter=Example.Fibonacci</runcommandpicklistitem>
           <runcommandpicklistitem>"${OUTPUT_PATH}" --gtest_shuffle --gtest_filter=RunTest.StrFormat</runcommandpicklistitem>
+          <runcommandpicklistitem>"${OUTPUT_PATH}" --gtest_shuffle --gtest_filter=*</runcommandpicklistitem>
+          <runcommandpicklistitem>"${OUTPUT_PATH}" --gtest_shuffle --gtest_filter=Ast.Reference:Ast.AstAnalyze:Ast.ScopeStack:Ast.CheckStrPrintf
+</runcommandpicklistitem>
+          <runcommandpicklistitem>"${OUTPUT_PATH}" --gtest_shuffle --gtest_filter=Example.Thread</runcommandpicklistitem>
+          <runcommandpicklistitem>"${OUTPUT_PATH}" --gtest_shuffle --gtest_filter=ObjTest.VarData</runcommandpicklistitem>
         </runcommandpicklist>
-        <runcommand>"${OUTPUT_PATH}" --gtest_shuffle --gtest_filter=RunTest.StrFormat</runcommand>
+        <runcommand>"${OUTPUT_PATH}" --gtest_shuffle --gtest_filter=ObjTest.VarData</runcommand>
         <rundir>../output</rundir>
         <buildfirst>true</buildfirst>
         <terminal-type>0</terminal-type>

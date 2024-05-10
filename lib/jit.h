@@ -209,12 +209,14 @@ namespace newlang {
         }
 
         TermPtr MakeAst(const std::string_view src, bool skip_analize = false);
+        TermPtr MakeAstParser(const std::string_view src, bool skip_analize = false);
         ParserPtr GetParser();
 
 
         // Выполняет одну строку в контексте главного модуля программы
         // При первом вызове в m_main_ast создается AST как BLOCK
         // При повторнвых вызовах в m_main_ast->m_block добавляется новая строка
+        
         ObjPtr Run(const std::string_view str, Obj* args = nullptr);
 
         // Выполняет скопилированное AST как главный модуль программы

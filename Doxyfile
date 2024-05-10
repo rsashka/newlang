@@ -1054,7 +1054,8 @@ RECURSIVE              = YES
 EXCLUDE                = lib/build \
                          lib/nbproject \
 			 nlc/build \
-                         nlc/nbproject
+                         nlc/nbproject \
+			 examples \
 
 # The EXCLUDE_SYMLINKS tag can be used to select whether or not files or
 # directories that are symbolic links (a Unix file system feature) are excluded
@@ -1072,7 +1073,10 @@ EXCLUDE_SYMLINKS       = NO
 
 EXCLUDE_PATTERNS       = .* \
 			 *.temp \
-			 *.data
+			 *.data \
+			 *.yy.* \
+			 location.hh \
+
 
 # The EXCLUDE_SYMBOLS tag can be used to specify one or more symbol names
 # (namespaces, classes, functions, etc.) that should be excluded from the
@@ -2461,7 +2465,7 @@ INCLUDE_FILE_PATTERNS  =
 # recursively expanded use the := operator instead of the = operator.
 # This tag requires that the tag ENABLE_PREPROCESSING is set to YES.
 
-PREDEFINED             =
+PREDEFINED             = DOXYGEN_SHOULD_SKIP_THIS  BUILD_DEBUG
 
 # If the MACRO_EXPANSION and EXPAND_ONLY_PREDEF tags are set to YES then this
 # tag can be used to specify a list of macro names that should be expanded. The

@@ -73,6 +73,7 @@ OBJECTFILES= \
 	${OBJECTDIR}/test/run_test.o \
 	${OBJECTDIR}/test/system_test.o \
 	${OBJECTDIR}/test/unittest.o \
+	${OBJECTDIR}/types.o \
 	${OBJECTDIR}/version.o
 
 
@@ -311,6 +312,11 @@ ${OBJECTDIR}/test/unittest.o: test/unittest.cpp
 	${MKDIR} -p ${OBJECTDIR}/test
 	${RM} "$@.d"
 	$(COMPILE.cc) -g -DBUILD_DEBUG -DBUILD_UNITTEST -DGTEST_HAS_CXXABI_H_=0 -DLOG_LEVEL_NORMAL=LOG_LEVEL_DEBUG -I../contrib/libtorch/include -I../contrib/libtorch/include/torch/csrc/api/include -I../contrib/fmt/include -I../lib -I../../lib -I../contrib/googletest/googletest -I../contrib/googletest/googletest/include -I/usr/lib/gcc/x86_64-linux-gnu -I/usr/include/x86_64-linux-gnu/c++/11 -I/usr/lib/gcc/x86_64-linux-gnu/11/include -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/test/unittest.o test/unittest.cpp
+
+${OBJECTDIR}/types.o: types.cpp
+	${MKDIR} -p ${OBJECTDIR}
+	${RM} "$@.d"
+	$(COMPILE.cc) -g -DBUILD_DEBUG -DBUILD_UNITTEST -DGTEST_HAS_CXXABI_H_=0 -DLOG_LEVEL_NORMAL=LOG_LEVEL_DEBUG -I../contrib/libtorch/include -I../contrib/libtorch/include/torch/csrc/api/include -I../contrib/fmt/include -I../lib -I../../lib -I../contrib/googletest/googletest -I../contrib/googletest/googletest/include -I/usr/lib/gcc/x86_64-linux-gnu -I/usr/include/x86_64-linux-gnu/c++/11 -I/usr/lib/gcc/x86_64-linux-gnu/11/include -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/types.o types.cpp
 
 ${OBJECTDIR}/version.o: version.cpp
 	${MKDIR} -p ${OBJECTDIR}

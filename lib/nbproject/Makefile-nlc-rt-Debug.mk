@@ -50,6 +50,7 @@ OBJECTFILES= \
 	${OBJECTDIR}/runtime.o \
 	${OBJECTDIR}/system.o \
 	${OBJECTDIR}/term.o \
+	${OBJECTDIR}/types.o \
 	${OBJECTDIR}/version.o
 
 
@@ -165,6 +166,11 @@ ${OBJECTDIR}/term.o: term.cpp
 : term.h parser.yy.cpp location.hh
 	@echo Выполнение шага пользовательского сборки
 	
+
+${OBJECTDIR}/types.o: types.cpp
+	${MKDIR} -p ${OBJECTDIR}
+	${RM} "$@.d"
+	$(COMPILE.cc) -g -DBUILD_DEBUG -DLOG_LEVEL_NORMAL=LOG_LEVEL_DEBUG -I../contrib/libtorch/include -I../contrib/libtorch/include/torch/csrc/api/include -I../contrib/fmt/include -fPIC  -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/types.o types.cpp
 
 ${OBJECTDIR}/version.o: version.cpp
 	${MKDIR} -p ${OBJECTDIR}

@@ -1091,7 +1091,6 @@ TEST(ObjTest, Iterator) {
 //    ASSERT_STREQ("::ns::name=class(filed=0..10..3)", cls->at("__str__").second->GetValueAsString().c_str());
 //}
 
-
 /* 
  * Реализация ссылочной модели состоит из следующих компонентов:
  * - Obj - статический объект (даннные), на которые можно получить ссылку (Reference)
@@ -1398,7 +1397,7 @@ TEST(ObjTest, Reference) {
         ASSERT_STREQ("5", val_multi->toString().c_str());
         ASSERT_TRUE(call_done);
     }
-    
+
     {
         std::lock_guard lk(call_m);
         call_start = false;
@@ -1418,7 +1417,101 @@ TEST(ObjTest, Reference) {
         ASSERT_STREQ("15", val_multi->toString().c_str());
         ASSERT_TRUE(call_done);
     }
+
+}
+
+TEST(ObjTest, VarData) {
+
+
+    /*
+     * Владаелец данных (корень иерархии владельцев ссылки на данные) - может быть только один. Хранит сами данные и объект синхронизации.
+     * Копия данных (сильная ссылка) - более низкий уровень иерархии. Ссылается на владельца и увеличивает счетчик ссылок.
+     * Ссылка на данные (слабая ссылка) - любой уровень иерархии. Ссылается на владельца, но <НЕ> увеличивает счетчик ссылок.
+     * Для работы с данными обязательно требуется захват данных! (захват объекта синхронизации, если он есть). 
+     * - Для владельца объекта не приводит к увличению счетчика ссылок (может быть на одном уровне с владельцем).
+     * - Для копии данных увеличивает счетчик ссылок (может быть только ниже уровнях владельца).
+     * - Для слабой ссылки требуется преобразования в сильнуый указатель, потом как с копией данных.
+     * 
+     * Для использования weak_ptr требуется shared_ptr, причем указатель должен дыть не только на данные, но и объект синхронизации.
+     */
+
+    VarData var_int(123);
+
+    ASSERT_TRUE(var_int.owner);
+    ASSERT_EQ(1, var_int.owner.use_count());
+    ASSERT_TRUE(std::holds_alternative<int64_t>(var_int.data));
+    ASSERT_NO_THROW(ASSERT_EQ(var_int.get<int64_t>(), 123););
+
+    VarData var_int_take(var_int.Take());
+    ASSERT_FALSE(var_int_take.owner);
+    ASSERT_TRUE(std::holds_alternative<std::unique_ptr < VarGuard >> (var_int_take.data)) << var_int_take.data.index();
+    ASSERT_NO_THROW(ASSERT_EQ(var_int_take.get<int64_t>(), 123););
+
+    ASSERT_EQ(1, var_int.owner.use_count());
+    ASSERT_FALSE(std::get<std::unique_ptr < VarGuard >> (var_int_take.data)->m_is_locked);
+    ASSERT_FALSE(std::get<std::unique_ptr < VarGuard >> (var_int_take.data)->m_edit_mode);
+
+    VarData var_int_copy(var_int.Copy());
+    ASSERT_FALSE(var_int_copy.owner);
+    ASSERT_TRUE(std::holds_alternative<std::shared_ptr < VarData >> (var_int_copy.data)) << var_int_copy.data.index();
+    ASSERT_NO_THROW(ASSERT_EQ(var_int_copy.get<int64_t>(), 123););
+
+    ASSERT_EQ(2, var_int.owner.use_count()); // !!!!!!!!!!!!!!!!!!!!!!
+    ASSERT_EQ(2, std::get<std::shared_ptr < VarData >> (var_int_copy.data).use_count());
+
+    {
+        VarData var_int_copy2(var_int.Copy());
+        ASSERT_FALSE(var_int_copy2.owner);
+        ASSERT_TRUE(std::holds_alternative<std::shared_ptr < VarData >> (var_int_copy2.data)) << var_int_copy2.data.index();
+        ASSERT_NO_THROW(ASSERT_EQ(var_int_copy2.get<int64_t>(), 123););
+
+        ASSERT_EQ(3, var_int.owner.use_count()); // !!!!!!!!!!!!!!!!!!!!!!
+        ASSERT_EQ(3, std::get<std::shared_ptr < VarData >> (var_int_copy.data).use_count());
+        ASSERT_EQ(3, std::get<std::shared_ptr < VarData >> (var_int_copy2.data).use_count());
+
+        VarData var_int_copy3(var_int_copy2.Copy());
+        ASSERT_FALSE(var_int_copy3.owner);
+        ASSERT_TRUE(std::holds_alternative<std::shared_ptr < VarData >> (var_int_copy3.data)) << var_int_copy3.data.index();
+        ASSERT_NO_THROW(ASSERT_EQ(var_int_copy3.get<int64_t>(), 123););
+
+        ASSERT_EQ(4, var_int.owner.use_count()); // !!!!!!!!!!!!!!!!!!!!!!
+        ASSERT_EQ(4, std::get<std::shared_ptr < VarData >> (var_int_copy.data).use_count());
+        ASSERT_EQ(4, std::get<std::shared_ptr < VarData >> (var_int_copy2.data).use_count());
+        ASSERT_EQ(4, std::get<std::shared_ptr < VarData >> (var_int_copy3.data).use_count());
+    }
+
+    VarData var_int_ref(var_int.Ref());
+    ASSERT_FALSE(var_int_ref.owner);
+    ASSERT_TRUE(std::holds_alternative<std::weak_ptr < VarData >> (var_int_ref.data)) << var_int_ref.data.index();
+    ASSERT_NO_THROW(ASSERT_EQ(var_int_ref.get<int64_t>(), 123););
+
+    ASSERT_EQ(2, var_int.owner.use_count());
+    ASSERT_EQ(2, std::get<std::shared_ptr < VarData >> (var_int_copy.data).use_count());
+
+    var_int += var_int;
+    ASSERT_NO_THROW(ASSERT_EQ(var_int.get<int64_t>(), 246););
     
+
+    VarData var_num(0.123);
+    ASSERT_TRUE(var_num.owner);
+    ASSERT_TRUE(std::holds_alternative<double>(var_num.data));
+    ASSERT_NO_THROW(ASSERT_DOUBLE_EQ(var_num.get<double>(), 0.123););
+
+
+
+
+
+
+    VarData var_str("str");
+    ASSERT_TRUE(var_str.owner);
+    ASSERT_TRUE(std::holds_alternative<std::string>(var_str.data));
+    ASSERT_NO_THROW(ASSERT_STREQ("str", var_str.get<std::string>().c_str()););
+
+    VarData var_obj(Obj::CreateEmpty());
+    ASSERT_TRUE(var_obj.owner);
+    ASSERT_TRUE(std::holds_alternative<ObjPtr>(var_obj.data));
+    ASSERT_NO_THROW(ASSERT_TRUE(var_obj.get()););
+
 }
 
 #endif // UNITTEST
