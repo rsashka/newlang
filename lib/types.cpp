@@ -5,6 +5,30 @@
 
 using namespace newlang;
 
+ObjPtr newlang::ObjCreateInteger(int64_t value) {
+    return Obj::CreateValue(value);
+}
+
+ObjPtr newlang::ObjCreateNumber(double value) {
+    return Obj::CreateValue(value);
+}
+
+ObjPtr newlang::ObjCreateRational(const Rational &value) {
+    return Obj::CreateRational(value);
+}
+
+ObjPtr newlang::ObjCreateString(const std::string_view str) {
+    return Obj::CreateString(str);
+}
+
+ObjPtr newlang::ObjCreateWString(const std::wstring_view str) {
+    return Obj::CreateString(str);
+}
+
+ObjPtr newlang::ObjCreatePointer(void * ptr) {
+    return Obj::CreatePointer(ptr);
+}
+
 std::unique_ptr<Sync> Sync::CreateSync(const TermPtr &term) {
     ASSERT(term);
     if (term->m_ref) {
@@ -31,7 +55,7 @@ VarGuard::VarGuard(const VarGuard *copy, const std::chrono::milliseconds & timeo
 }
 
 VarGuard::VarGuard(const VarData *var, bool edit_mode, const std::chrono::milliseconds & timeout_duration)
-: m_var(const_cast<VarData *>(var)), m_edit_mode(edit_mode) {
+: m_var(const_cast<VarData *> (var)), m_edit_mode(edit_mode) {
     if (!m_var) {
         LOG_RUNTIME("Fail take!");
     }
@@ -73,6 +97,8 @@ VarData VarData::Copy(const std::chrono::milliseconds & timeout_duration) const 
         return VarData(std::get<std::wstring>(data));
     } else if (std::holds_alternative<void *>(data)) {
         return VarData(std::get<void *>(data));
+    } else if (std::holds_alternative<Rational>(data)) {
+        return VarData(std::get<Rational>(data));
     } else {
         LOG_RUNTIME("Fail copy index '%zu'!", data.index());
     }
@@ -128,6 +154,8 @@ void VarData::set(const ObjPtr & new_value, bool edit_mode, const std::chrono::m
         var_tacken->m_var->data = static_cast<std::wstring> (*new_value);
     } else if (std::holds_alternative<void *>(var_tacken->m_var->data)) {
         var_tacken->m_var->data = static_cast<void *> (*new_value);
+    } else if (std::holds_alternative<Rational>(var_tacken->m_var->data)) {
+        var_tacken->m_var->data = *new_value->GetValueAsRational();
     } else if (std::holds_alternative<std::monostate>(var_tacken->m_var->data)) {
         LOG_RUNTIME("Object not initialized!");
     } else {
@@ -158,24 +186,6 @@ VarData::set(const T & new_value, bool edit_mode, const std::chrono::millisecond
     }
 }
 
-const ObjPtr VarData::get(bool edit_mode, const std::chrono::milliseconds & timeout_duration) const {
-    std::unique_ptr<VarGuard> self_taken;
-    VarGuard * var_tacken = is_taked() ? std::get<std::unique_ptr < VarGuard >> (data).get() : nullptr;
-    if (!var_tacken) {
-        self_taken = MakeTake(edit_mode, timeout_duration);
-        var_tacken = self_taken.get();
-    }
-    if (!var_tacken || !var_tacken->m_var) {
-        LOG_RUNTIME("No data borrowed!");
-    }
-    if (std::holds_alternative<ObjPtr>(var_tacken->m_var->data)) {
-        return std::get<ObjPtr>(var_tacken->m_var->data);
-    } else if (std::holds_alternative<std::monostate>(var_tacken->m_var->data)) {
-        LOG_RUNTIME("Object not initialized!");
-    }
-    LOG_RUNTIME("Fail logic get object!");
-}
-
 VarData & VarData::__iadd__(VarData &self, const VarData &other) {
     std::unique_ptr<VarGuard> self_taken;
     VarGuard * var_tacken = self.is_taked() ? std::get<std::unique_ptr < VarGuard >> (self.data).get() : nullptr;
@@ -198,8 +208,10 @@ VarData & VarData::__iadd__(VarData &self, const VarData &other) {
         std::get<std::string>(var_tacken->m_var->data) += other.get<std::string>();
     } else if (std::holds_alternative<std::wstring>(var_tacken->m_var->data)) {
         std::get<std::wstring>(var_tacken->m_var->data) += other.get<std::wstring>();
+    } else if (std::holds_alternative<Rational>(var_tacken->m_var->data)) {
+        std::get<Rational>(var_tacken->m_var->data) += other.get<Rational>();
     } else if (std::holds_alternative<ObjPtr>(var_tacken->m_var->data)) {
-        *std::get<ObjPtr>(var_tacken->m_var->data) += other.get();
+        *std::get<ObjPtr>(var_tacken->m_var->data) += other.get<ObjPtr>();
     } else if (std::holds_alternative<std::monostate>(var_tacken->m_var->data)) {
         LOG_RUNTIME("Object not initialized!");
     } else {

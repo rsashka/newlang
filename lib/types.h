@@ -58,6 +58,7 @@
 
 
 #include "logger.h"
+#include "rational.h"
 
 #ifndef DOXYGEN_SHOULD_SKIP_THIS
 
@@ -459,6 +460,14 @@ public:
         ~VarGuard();
     };
 
+    
+ObjPtr ObjCreateInteger(int64_t value);
+ObjPtr ObjCreateNumber(double value);
+ObjPtr ObjCreateRational(const Rational &value);
+ObjPtr ObjCreateString(const std::string_view str);
+ObjPtr ObjCreateWString(const std::wstring_view str);
+ObjPtr ObjCreatePointer(void * ptr);
+    
         /*
      * 
     x + y   __add__(self, other)        x += y      __iadd__(self, other)
@@ -486,7 +495,7 @@ public:
         typedef std::variant<std::monostate, 
                 std::shared_ptr<VarData>, std::weak_ptr<VarData>, 
                 std::unique_ptr<VarGuard>, 
-                ObjPtr, int64_t, double, std::string, std::wstring, void *> DataType;
+                ObjPtr, int64_t, double, std::string, std::wstring, void *, Rational> DataType;
         
         std::shared_ptr<VarData> owner; ///< shared_ptr - только у владельца объекта (чтобы можно было создавать копии и слабые ссылки)
         DataType data; ///< Переменная для хранения всех возможных типов значений объекта.
@@ -533,8 +542,7 @@ public:
         } 
 
         template <typename T> 
-        typename std::enable_if<!std::is_same<T, ObjPtr>::value, const T>::type
-        get(bool edit_mode=false, const std::chrono::milliseconds & timeout_duration=Sync::SyncTimeoutDeedlock) const {
+        const T get(bool edit_mode=false, const std::chrono::milliseconds & timeout_duration=Sync::SyncTimeoutDeedlock) const {
             std::unique_ptr<VarGuard> self_taken;
             VarGuard * var_tacken = is_taked() ? std::get<std::unique_ptr<VarGuard>>(data).get() : nullptr;
             if(!var_tacken) {
@@ -546,16 +554,44 @@ public:
             }
             if (std::holds_alternative<T>(var_tacken->m_var->data)) {
                 return std::get<T>(var_tacken->m_var->data);
-            } else if (std::holds_alternative<ObjPtr>(var_tacken->m_var->data)) {
-                return static_cast<T> (*std::get<ObjPtr>(var_tacken->m_var->data));
             } else if (std::holds_alternative<std::monostate>(var_tacken->m_var->data)) {
                 LOG_RUNTIME("Object not initialized!");
+            } else if constexpr (!std::is_same<T, ObjPtr>::value) {
+                if (std::holds_alternative<ObjPtr>(var_tacken->m_var->data)) {
+                    return static_cast<T> (*std::get<ObjPtr>(var_tacken->m_var->data));
+                }
+            } else if constexpr (std::is_same<T, ObjPtr>::value) {
+                if (std::holds_alternative<ObjPtr>(var_tacken->m_var->data)) {
+                    return std::get<ObjPtr>(var_tacken->m_var->data);
+                } else if(std::holds_alternative<int64_t>(var_tacken->m_var->data)){
+                    return ObjCreateInteger(std::get<int64_t>(var_tacken->m_var->data));
+                } else if(std::holds_alternative<double>(var_tacken->m_var->data)){
+                    return ObjCreateNumber(std::get<double>(var_tacken->m_var->data));
+                } else if(std::holds_alternative<Rational>(var_tacken->m_var->data)){
+                    return ObjCreateRational(std::get<Rational>(var_tacken->m_var->data));
+                } else if(std::holds_alternative<std::string>(var_tacken->m_var->data)){
+                    return ObjCreateString(std::get<std::string>(var_tacken->m_var->data));
+                } else if(std::holds_alternative<std::wstring>(var_tacken->m_var->data)){
+                    return ObjCreateWString(std::get<std::wstring>(var_tacken->m_var->data));
+                } else if(std::holds_alternative<void *>(var_tacken->m_var->data)){
+                    return ObjCreatePointer(std::get<void *>(var_tacken->m_var->data));
+                }
+            }
+            
+            if constexpr (std::is_same<T, Rational>::value) {
+                if(std::holds_alternative<int64_t>(var_tacken->m_var->data)){
+                    return Rational(std::get<int64_t>(var_tacken->m_var->data));
+                }
+            } else if constexpr (std::is_same<T, double>::value) {
+                if(std::holds_alternative<int64_t>(var_tacken->m_var->data)){
+                    return std::get<int64_t>(var_tacken->m_var->data);
+                } else if(std::holds_alternative<Rational>(var_tacken->m_var->data)){
+                    return std::get<Rational>(var_tacken->m_var->data).GetAsNumber();
+                }
             }
             LOG_RUNTIME("Fail logic get object!");
         }
 
-        const ObjPtr get(bool edit_mode=false, const std::chrono::milliseconds & timeout_duration=Sync::SyncTimeoutDeedlock) const;        
-        
         void set(const ObjPtr & value, bool edit_mode=false, const std::chrono::milliseconds & timeout_duration=Sync::SyncTimeoutDeedlock);
         
         template <typename T> 
@@ -868,6 +904,7 @@ void ParserException(const char *msg, std::string &buffer, int row, int col);
 
     enum class ObjType : uint8_t {
 #define DEFINE_ENUM(name, value) name = static_cast<uint8_t>(value),
+
         NL_TYPES(DEFINE_ENUM)
 #undef DEFINE_ENUM
     };
@@ -881,6 +918,7 @@ void ParserException(const char *msg, std::string &buffer, int row, int col);
 
         switch (type) {
                 NL_TYPES(DEFINE_CASE)
+
             default:
                 LOG_RUNTIME("UNKNOWN type code %d", static_cast<int> (type));
         }
@@ -899,6 +937,7 @@ void ParserException(const char *msg, std::string &buffer, int row, int col);
 
             case ObjType::Bool:
                 return int_bool ? "int" : "bool";
+
             case ObjType::Int8:
                 return "char";
             case ObjType::Char:
@@ -958,6 +997,7 @@ void ParserException(const char *msg, std::string &buffer, int row, int col);
         } else if (ref.compare("&&^") == 0) {
             return "const &&";
         } else if (ref.compare("&?^") == 0) {
+
             return "const **";
         }
         LOG_RUNTIME("Unknown reference type '%s'!", ref.begin());
@@ -966,6 +1006,7 @@ void ParserException(const char *msg, std::string &buffer, int row, int col);
 
     inline bool isGenericType(ObjType t) {
         switch (t) {
+
             case ObjType::Integer: // Любое ЦЕЛОЕ число включая логический тип
             case ObjType::Number: // Любое число с ПЛАВАЮЩЕЙ ТОЧКОЙ
             case ObjType::Complex: // Любое КОМПЛЕКСНОЕ число
@@ -985,6 +1026,7 @@ void ParserException(const char *msg, std::string &buffer, int row, int col);
 
     inline bool isNativeType(ObjType t) {
         switch (t) {
+
             case ObjType::Bool:
             case ObjType::Int8:
             case ObjType::Char:
@@ -1015,6 +1057,7 @@ void ParserException(const char *msg, std::string &buffer, int row, int col);
     }
 
     inline bool isObjectType(ObjType t) {
+
         return t == ObjType::Dictionary || t == ObjType::Interface || t == ObjType::Class;
     }
 
@@ -1028,6 +1071,7 @@ void ParserException(const char *msg, std::string &buffer, int row, int col);
     const ObjPtr getEllipsysObj();
 
     inline bool isBaseType(ObjType t) {
+
         return t == ObjType::Bool || t == ObjType::Int8 || t == ObjType::Int16 || t == ObjType::Int32
                 || t == ObjType::Int64 || t == ObjType::Float32 || t == ObjType::Float64
                 || t == ObjType::Char || t == ObjType::Byte || t == ObjType::Word
@@ -1036,99 +1080,122 @@ void ParserException(const char *msg, std::string &buffer, int row, int col);
     }
 
     inline bool isFunction(ObjType t) {
+
         return t == ObjType::PureFunc || t == ObjType::Function || t == ObjType::NativeFunc ||
                 t == ObjType::EVAL_FUNCTION || t == ObjType::PureFunc || t == ObjType::Virtual;
     }
 
     inline bool isNative(ObjType t) {
+
         return t == ObjType::NativeFunc || t == ObjType::NativeFunc;
     }
 
     inline bool isEval(ObjType t) {
+
         return t == ObjType::BLOCK || t == ObjType::BLOCK_TRY;
     }
 
     inline bool isSimpleType(ObjType t) {
+
         return static_cast<uint8_t> (t) && static_cast<uint8_t> (t) <= static_cast<uint8_t> (ObjType::Tensor);
     }
 
     inline bool isIntegralType(ObjType t, bool includeBool) {
+
         return (static_cast<uint8_t> (t) > static_cast<uint8_t> (ObjType::Bool) &&
                 static_cast<uint8_t> (t) <= static_cast<uint8_t> (ObjType::Integer)) ||
                 (includeBool && t == ObjType::Bool);
     }
 
     inline bool isFloatingType(ObjType t) {
+
         return t == ObjType::Single || t == ObjType::Double || t == ObjType::Float16 || t == ObjType::Float32 || t == ObjType::Float64 || t == ObjType::Number;
     }
 
     inline bool isComplexType(ObjType t) {
+
         return t == ObjType::Complex16 || t == ObjType::Complex32 || t == ObjType::Complex64 || t == ObjType::Complex;
     }
 
     inline bool isTensor(ObjType t) {
+
         return static_cast<uint8_t> (t) && static_cast<uint8_t> (t) <= static_cast<uint8_t> (ObjType::Tensor);
     }
 
     inline bool isBooleanType(ObjType t) {
+
         return t == ObjType::Bool;
     }
 
     inline bool isArithmeticType(ObjType t) {
         // Арифметический тип данных - все числа, включая логический тип
+
         return static_cast<uint8_t> (t) >= static_cast<uint8_t> (ObjType::Bool) &&
                 static_cast<uint8_t> (t) <= static_cast<uint8_t> (ObjType::Arithmetic);
     }
 
     inline bool isStringChar(ObjType t) {
+
         return t == ObjType::StrChar || t == ObjType::FmtChar || t == ObjType::ViewChar;
     }
 
     inline bool isStringWide(ObjType t) {
+
         return t == ObjType::StrWide || t == ObjType::ViewWide || t == ObjType::FmtWide;
     }
 
     inline bool isString(ObjType t) {
+
         return isStringChar(t) || isStringWide(t) || t == ObjType::String;
     }
 
     inline bool isInterrupt(ObjType t) {
+
         return t == ObjType::RetPlus || t == ObjType::RetMinus || t == ObjType::RetRepeat;
     }
 
     inline bool isPlainDataType(ObjType t) {
+
         return isTensor(t) || isString(t) || t == ObjType::Struct || t == ObjType::Enum || t == ObjType::Union;
     }
 
     inline bool isDictionary(ObjType t) {
+
         return t == ObjType::Dictionary || t == ObjType::Class; // ObjType::Interface - не имеет полей данных, т.е. не словарь
     }
 
     inline bool isClass(ObjType t) {
+
         return t == ObjType::Class || t == ObjType::Interface;
     }
 
     inline bool isEllipsis(ObjType t) {
+
         return t == ObjType::Ellipsis;
     }
 
     inline bool isRange(ObjType t) {
+
         return t == ObjType::Range;
     }
 
     inline bool isTypeName(ObjType t) {
+
         return t == ObjType::Type;
     }
 
     inline bool isModule(ObjType t) {
+
         return t == ObjType::Module;
     }
 
     inline bool isIndexingType(ObjType curr, ObjType fix) {
+
         return isTensor(curr) || isString(curr) || isDictionary(curr) || isFunction(curr) || isModule(curr) || (isTypeName(curr) && isIndexingType(fix, fix));
     }
 
     inline bool isLocalType(ObjType) {
+
         return false;
     }
 
@@ -1265,6 +1332,7 @@ void ParserException(const char *msg, std::string &buffer, int row, int col);
         } else if (isDictionary(from) && isDictionary(to)) {
             return true;
         } else if (isFunction(from) && isFunction(to)) {
+
             return true;
         }
         return false;
@@ -1293,10 +1361,12 @@ void ParserException(const char *msg, std::string &buffer, int row, int col);
         //
         //        return at::canCast(toTorchType(from), toTorchType(to));
         //    }
+
         return canCastLimit(from, to);
     }
 
     inline bool canCast(const std::string from, const std::string to) {
+
         return canCast(GetBaseTypeFromString(from), GetBaseTypeFromString(to));
     }
 
@@ -1311,6 +1381,7 @@ void ParserException(const char *msg, std::string &buffer, int row, int col);
         }
         int64_t result = std::strtol(temp.c_str(), &ptr, 10);
         if (ptr == temp.c_str() || (ptr && *ptr != '\0')) {
+
             LOG_RUNTIME("Fail integer convert %s", str);
         }
         return result;
@@ -1324,12 +1395,14 @@ void ParserException(const char *msg, std::string &buffer, int row, int col);
         }
         double result = std::strtod(temp.c_str(), &ptr);
         if (ptr == temp.c_str() || (ptr && *ptr != '\0')) {
+
             LOG_RUNTIME("Fail double convert %s", str);
         }
         return result;
     }
 
     inline std::complex<double> parseComplex(const char *) {
+
         LOG_RUNTIME("Not implemented!");
     }
 
@@ -1343,6 +1416,7 @@ void ParserException(const char *msg, std::string &buffer, int row, int col);
             return false;
         }
         if (name.size() > 3 || !(name[0] == '$' || name[0] == '@' || name[0] == '%')) {
+
             return name.compare("_") == 0;
         }
         return name.compare("$") == 0 || name.compare("@") == 0 || name.compare("%") == 0
@@ -1351,44 +1425,54 @@ void ParserException(const char *msg, std::string &buffer, int row, int col);
     }
 
     inline bool isInternalName(const std::string_view name) {
+
         return !name.empty() && (name.rbegin()[0] == ':' || name.rbegin()[0] == '$' || isReservedName(name));
     }
 
     inline bool isMangledName(const std::string_view name) {
+
         return name.size() > 4 && name[0] == '_' && name[1] == '$';
     }
 
     inline bool isModuleName(const std::string_view name) {
+
         return !name.empty() && name[0] == '\\';
     }
 
     inline bool isStaticName(const std::string_view name) {
+
         return name.find("::") != std::string::npos; // && name.find("&&") != std::string::npos;
     }
 
     inline bool isFieldName(const std::string_view name) {
+
         return name.find(".") != std::string::npos;
     }
 
     inline bool isTrivialName(const std::string_view name) {
+
         return name.find("$") == std::string::npos && name.find(":") == std::string::npos && name.find("@") == std::string::npos;
     }
 
     inline bool isLocalName(const std::string_view name) {
+
         return !isStaticName(name) && name.find("$") != std::string::npos && name[0] != '@';
     }
 
     inline bool isGlobalScope(const std::string_view name) {
         ASSERT(!isMangledName(name));
+
         return name.size() > 1 && ((name[0] == ':' && name[1] == ':') || (name[0] == '$' && name[1] == '$'));
     }
 
     inline bool isModuleScope(const std::string_view name) {
         size_t pos = name.find("::");
+
         return pos && pos != std::string::npos && name[0] != '@';
     }
 
     inline bool isTypeName(const std::string_view name) {
+
         return name.find(":::") != std::string::npos || (name.size() > 1 && name[0] == ':' && name[1] != ':');
     }
 
@@ -1471,6 +1555,7 @@ void ParserException(const char *msg, std::string &buffer, int row, int col);
                 ASSERT(isStaticName(name));
             }
             if (result[0] == '@' && result.find("@::") == 0) {
+
                 result = result.substr(3);
             }
             result += "::";
@@ -1496,6 +1581,7 @@ void ParserException(const char *msg, std::string &buffer, int row, int col);
             if (isModuleName(name)) {
                 size_t pos = name.find("::");
                 if (pos != std::string::npos) {
+
                     return std::string(name.begin(), name.begin() + pos);
                 }
                 return std::string(name.begin(), name.end());
@@ -1512,6 +1598,7 @@ void ParserException(const char *msg, std::string &buffer, int row, int col);
         for (size_t i = 0; i < name.size(); i++) {
             // Module name - backslash, underscore, lowercase English letters or number
             if (!(name[i] == '\\' || name[i] == '_' || islower(name[i]) || isdigit(name[i]))) {
+
                 return false;
             }
         }
@@ -1524,6 +1611,7 @@ void ParserException(const char *msg, std::string &buffer, int row, int col);
             name = name.substr(pos + 2);
         }
         if (isModuleName(name)) {
+
             return std::string();
         }
         return name;
@@ -1566,6 +1654,7 @@ void ParserException(const char *msg, std::string &buffer, int row, int col);
          */
 
         inline bool isInternalName() {
+
             return newlang::isInternalName(*this);
         }
 
@@ -1581,10 +1670,12 @@ void ParserException(const char *msg, std::string &buffer, int row, int col);
                 std::replace(result.begin(), result.begin() + module.size(), '\\', '$');
             }
             result.insert(0, "_$");
+
             return result;
         }
 
         static std::string ExtractModuleName(const std::string_view name) {
+
             return newlang::ExtractModuleName(name);
         }
 
@@ -1650,6 +1741,7 @@ void ParserException(const char *msg, std::string &buffer, int row, int col);
         }
 
         inline bool isPrivateName() {
+
             return newlang::isPrivateName(this->c_str());
         }
 

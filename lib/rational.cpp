@@ -212,9 +212,9 @@ Rational::Rational(const int64_t value) {
     set_(value);
 }
 
-Rational::Rational(const Rational &copy) {
-    set_(copy);
-}
+//Rational::Rational(const Rational &copy) {
+//    set_(copy);
+//}
 
 Rational::Rational(const std::string_view numerator, const std::string_view denominator) {
     set_(numerator, denominator);

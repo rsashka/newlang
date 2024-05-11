@@ -62,7 +62,7 @@ namespace newlang {
 
         Rational();
         Rational(const int64_t value);
-        Rational(const Rational &copy);
+//        Rational(const Rational &copy);
         Rational(const std::string_view numerator, const std::string_view denominator);
 
         std::shared_ptr<Rational> clone() const;

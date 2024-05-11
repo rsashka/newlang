@@ -97,7 +97,13 @@
                    displayName="Важные файлы"
                    projectFiles="false"
                    kind="IMPORTANT_FILES_FOLDER">
+      <itemPath>../CHANGELOG.md</itemPath>
+      <itemPath>../CMakeLists.txt</itemPath>
+      <itemPath>../Doxyfile</itemPath>
+      <itemPath>../LICENSE</itemPath>
       <itemPath>Makefile</itemPath>
+      <itemPath>../README.md</itemPath>
+      <itemPath>../TAG</itemPath>
       <itemPath>../make_version.sh</itemPath>
     </logicalFolder>
     <itemPath>../build_options.txt</itemPath>

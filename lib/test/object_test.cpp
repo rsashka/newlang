@@ -1490,16 +1490,24 @@ TEST(ObjTest, VarData) {
 
     var_int += var_int;
     ASSERT_NO_THROW(ASSERT_EQ(var_int.get<int64_t>(), 246););
-    
+
+    VarData var_rat(Rational(1));
+    ASSERT_TRUE(var_rat.owner);
+    ASSERT_TRUE(std::holds_alternative<Rational> (var_rat.data)) << var_rat.data.index();
+    ASSERT_NO_THROW(ASSERT_STREQ("1\\1", var_rat.get<Rational>().GetAsString().c_str()););
+
+    var_rat += var_int;
+    ASSERT_TRUE(var_rat.owner);
+    ASSERT_TRUE(std::holds_alternative<Rational> (var_rat.data)) << var_rat.data.index();
+    ASSERT_NO_THROW(ASSERT_STREQ("247\\1", var_rat.get<Rational>().GetAsString().c_str()););
+    ASSERT_NO_THROW(ASSERT_STREQ("246\\1", var_int.get<Rational>().GetAsString().c_str()););
+
 
     VarData var_num(0.123);
     ASSERT_TRUE(var_num.owner);
     ASSERT_TRUE(std::holds_alternative<double>(var_num.data));
     ASSERT_NO_THROW(ASSERT_DOUBLE_EQ(var_num.get<double>(), 0.123););
-
-
-
-
+    ASSERT_NO_THROW(ASSERT_DOUBLE_EQ(var_rat.get<double>(), 247.0););
 
 
     VarData var_str("str");
@@ -1510,7 +1518,14 @@ TEST(ObjTest, VarData) {
     VarData var_obj(Obj::CreateEmpty());
     ASSERT_TRUE(var_obj.owner);
     ASSERT_TRUE(std::holds_alternative<ObjPtr>(var_obj.data));
-    ASSERT_NO_THROW(ASSERT_TRUE(var_obj.get()););
+    ASSERT_NO_THROW(ASSERT_TRUE(var_obj.get<ObjPtr>()););
+    ASSERT_NO_THROW(ASSERT_STREQ("_", var_obj.get<ObjPtr>()->toString().c_str()));
+    
+    // Convert simple type
+    ASSERT_NO_THROW(ASSERT_STREQ("'str'", var_str.get<ObjPtr>()->toString().c_str()));
+    ASSERT_NO_THROW(ASSERT_STREQ("246", var_int.get<ObjPtr>()->toString().c_str()));
+    ASSERT_NO_THROW(ASSERT_STREQ("247\\1", var_rat.get<ObjPtr>()->toString().c_str()));
+    ASSERT_NO_THROW(ASSERT_STREQ("0.123", var_num.get<ObjPtr>()->toString().c_str()));
 
 }
 

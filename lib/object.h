@@ -913,6 +913,10 @@ namespace newlang {
             return std::get<void *>(m_var);
         }
 
+        explicit inline operator Rational() const {
+            return *GetValueAsRational();
+        }
+
         //унарный плюс ничего не делает.
 
         ObjPtr operator+() {
@@ -1438,6 +1442,11 @@ namespace newlang {
             }
         }
 
+        static ObjPtr CreateRational(const Rational & val) {
+            ObjPtr obj = Obj::CreateType(ObjType::Rational, ObjType::Rational, true);
+            obj->m_rational = val;
+            return obj;
+        }
         static ObjPtr CreateRational(const std::string val) {
 
             std::string str;
@@ -1591,15 +1600,15 @@ namespace newlang {
             return result;
         }
 
-        static ObjPtr CreateString(const std::string str, Sync *sync = nullptr) {
+        static ObjPtr CreateString(const std::string_view str, Sync *sync = nullptr) {
             ObjPtr result = CreateType(ObjType::StrChar, ObjType::String, true, sync);
-            result->m_value = str;
+            result->m_value = std::string(str);
             return result;
         }
 
-        static ObjPtr CreateString(const std::wstring str, Sync *sync = nullptr) {
+        static ObjPtr CreateString(const std::wstring_view str, Sync *sync = nullptr) {
             ObjPtr result = CreateType(ObjType::StrWide, ObjType::String, true, sync);
-            result->m_string = str;
+            result->m_string = std::wstring(str);;
             return result;
         }
 

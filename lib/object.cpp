@@ -1587,19 +1587,19 @@ double Obj::GetValueAsNumber() const {
         case ObjType::Float16:
         case ObjType::Float32:
             if (std::holds_alternative<double>(m_var)) {
-                LOG_DEBUG("1std::get<double>(m_var) %.20f", std::get<double>(m_var));
+                //                LOG_DEBUG("1std::get<double>(m_var) %.20f", std::get<double>(m_var));
                 return std::get<double>(m_var);
             } else if (std::holds_alternative<float *>(m_var)) {
-                LOG_DEBUG("1std::get<float *>(m_var) %.20f", *std::get<float *>(m_var));
+                //                LOG_DEBUG("1std::get<float *>(m_var) %.20f", *std::get<float *>(m_var));
                 return *std::get<float *>(m_var);
             }
         case ObjType::Double:
         case ObjType::Float64:
             if (std::holds_alternative<double>(m_var)) {
-                LOG_DEBUG("2std::get<double>(m_var) %.20f", std::get<double>(m_var));
+                //                LOG_DEBUG("2std::get<double>(m_var) %.20f", std::get<double>(m_var));
                 return std::get<double>(m_var);
             } else if (std::holds_alternative<double *>(m_var)) {
-                LOG_DEBUG("2std::get<float *>(m_var) %.20f", *std::get<float *>(m_var));
+                //                LOG_DEBUG("2std::get<float *>(m_var) %.20f", *std::get<float *>(m_var));
                 return *std::get<double *>(m_var);
             }
         case ObjType::Number:
@@ -1620,7 +1620,7 @@ double Obj::GetValueAsNumber() const {
 
         default:
             if (is_simple_type() || is_string_type()) {
-                LOG_DEBUG("3is_simple_type() || is_string_type() %.20f", static_cast<double> (GetValueAsInteger()));
+                //                LOG_DEBUG("3is_simple_type() || is_string_type() %.20f", static_cast<double> (GetValueAsInteger()));
                 return static_cast<double> (GetValueAsInteger());
             }
     }

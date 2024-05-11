@@ -1,5 +1,11 @@
 # About *NewLang* project
 
+>    
+>    
+> #### Warning! The language is under development and is not intended for development use!
+>    
+>    
+
 *NewLang* is a universal high-level programming language. The main feature of the language is a simple, logical and consistent syntax, based on a strict system of grammar rules. With the help of macros the language syntax can be easily extended to a more familiar form based on keywords. Tensor calculations and rational numbers of unlimited precision are supported at the level of language syntax and basic data types without the use of additional libraries.
 
 Current version 0.4 of 23.03.2024 ([New in current version and release history](https://github.com/rsashka/newlang/releases/tag/v0.4.0))
