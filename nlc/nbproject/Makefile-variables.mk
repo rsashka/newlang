@@ -7,13 +7,13 @@ CND_BASEDIR=`pwd`
 CND_BUILDDIR=build
 CND_DISTDIR=dist
 # nlc-Debug configuration
-CND_PLATFORM_nlc-Debug=CLang-Linux
+CND_PLATFORM_nlc-Debug=CLang-20-Linux
 CND_ARTIFACT_DIR_nlc-Debug=../output
 CND_ARTIFACT_NAME_nlc-Debug=nlc
 CND_ARTIFACT_PATH_nlc-Debug=../output/nlc
-CND_PACKAGE_DIR_nlc-Debug=dist/nlc-Debug/CLang-Linux/package
+CND_PACKAGE_DIR_nlc-Debug=dist/nlc-Debug/CLang-20-Linux/package
 CND_PACKAGE_NAME_nlc-Debug=nlc.tar
-CND_PACKAGE_PATH_nlc-Debug=dist/nlc-Debug/CLang-Linux/package/nlc.tar
+CND_PACKAGE_PATH_nlc-Debug=dist/nlc-Debug/CLang-20-Linux/package/nlc.tar
 # UnitTest-JIT-Debug configuration
 CND_PLATFORM_UnitTest-JIT-Debug=CLang-Linux
 CND_ARTIFACT_DIR_UnitTest-JIT-Debug=../output

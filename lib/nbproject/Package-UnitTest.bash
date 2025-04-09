@@ -6,7 +6,7 @@
 
 # Macros
 TOP=`pwd`
-CND_PLATFORM=CLang-Linux
+CND_PLATFORM=CLang-19-Linux
 CND_CONF=UnitTest
 CND_DISTDIR=dist
 CND_BUILDDIR=build

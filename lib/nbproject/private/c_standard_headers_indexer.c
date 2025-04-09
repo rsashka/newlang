@@ -49,7 +49,7 @@
 #include <math.h> 	 // Common mathematics functions
 #include <setjmp.h> 	 // Nonlocal jumps
 #include <signal.h> 	 // Signal handling
-#include <stdarg.h> 	 // Variable arguments
+#include <stdarg.h> 	 // Dict arguments
 #include <stddef.h> 	 // Common macro definitions
 #include <stdio.h> 	 // Input/output
 #include <string.h> 	 // String handling

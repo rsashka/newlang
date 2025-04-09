@@ -21,6 +21,7 @@
         <itemPath>context.h</itemPath>
         <itemPath>diag.cpp</itemPath>
         <itemPath>diag.h</itemPath>
+        <itemPath>dict.h</itemPath>
         <itemPath>include.h</itemPath>
         <itemPath>lexer.cpp</itemPath>
         <itemPath>lexer.yy.cpp</itemPath>
@@ -41,15 +42,16 @@
         <itemPath>term.h</itemPath>
         <itemPath>types.cpp</itemPath>
         <itemPath>types.h</itemPath>
+        <itemPath>variable.cpp</itemPath>
         <itemPath>variable.h</itemPath>
         <itemPath>version.cpp</itemPath>
+        <itemPath>version.h</itemPath>
       </logicalFolder>
       <logicalFolder name="f3" displayName="test" projectFiles="true">
         <itemPath>test/alg_test.cpp</itemPath>
         <itemPath>test/ast_test.cpp</itemPath>
         <itemPath>test/class_test.cpp</itemPath>
         <itemPath>test/diag_test.cpp</itemPath>
-        <itemPath>test/example_test.cpp</itemPath>
         <itemPath>test/include_test.cpp</itemPath>
         <itemPath>test/jit_test.cpp</itemPath>
         <itemPath>test/lexer_test.cpp</itemPath>
@@ -63,6 +65,7 @@
         <itemPath>test/rational_test.cpp</itemPath>
         <itemPath>test/run_test.cpp</itemPath>
         <itemPath>test/system_test.cpp</itemPath>
+        <itemPath>test/thread_test.cpp</itemPath>
         <itemPath>test/unittest.cpp</itemPath>
       </logicalFolder>
     </logicalFolder>
@@ -86,6 +89,8 @@
       <itemPath>include_h_i.data</itemPath>
       <itemPath>lexer.yy.h</itemPath>
       <itemPath>location.hh</itemPath>
+      <itemPath>../contrib/memsafe/memsafe.h</itemPath>
+      <itemPath>../contrib/memsafe/memsafe_plugin.h</itemPath>
       <itemPath>parser.yy.h</itemPath>
     </logicalFolder>
     <logicalFolder name="TestFiles"
@@ -104,7 +109,8 @@
       <itemPath>Makefile</itemPath>
       <itemPath>../README.md</itemPath>
       <itemPath>../TAG</itemPath>
-      <itemPath>../make_version.sh</itemPath>
+      <itemPath>../contrib/build.cmd</itemPath>
+      <itemPath>../contrib/build.sh</itemPath>
     </logicalFolder>
     <itemPath>../build_options.txt</itemPath>
     <itemPath>lexer.l</itemPath>
@@ -140,6 +146,13 @@
       </item>
       <item path="../contrib/fmt/src/format.cc" ex="false" tool="1" flavor2="0">
       </item>
+      <item path="../contrib/memsafe/memsafe.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../contrib/memsafe/memsafe_plugin.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
       <item path="../lib/../../newlang/lib/include.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="../make_version.sh" ex="false" tool="3" flavor2="0">
@@ -159,6 +172,8 @@
       <item path="diag.cpp" ex="false" tool="1" flavor2="0">
       </item>
       <item path="diag.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="dict.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="include.h" ex="false" tool="3" flavor2="0">
       </item>
@@ -231,9 +246,13 @@
       </item>
       <item path="types.h" ex="false" tool="3" flavor2="0">
       </item>
+      <item path="variable.cpp" ex="false" tool="1" flavor2="0">
+      </item>
       <item path="variable.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="version.cpp" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="version.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="warning_pop.h" ex="false" tool="3" flavor2="0">
       </item>
@@ -269,6 +288,13 @@
       <item path="../build_options.txt" ex="false" tool="3" flavor2="0">
       </item>
       <item path="../contrib/fmt/src/format.cc" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="../contrib/memsafe/memsafe.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../contrib/memsafe/memsafe_plugin.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
       </item>
       <item path="../lib/../../newlang/lib/include.h" ex="false" tool="3" flavor2="0">
       </item>
@@ -340,7 +366,11 @@
       </item>
       <item path="types.cpp" ex="false" tool="1" flavor2="0">
       </item>
+      <item path="variable.cpp" ex="true" tool="1" flavor2="9">
+      </item>
       <item path="version.cpp" ex="true" tool="1" flavor2="9">
+      </item>
+      <item path="version.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="warning_pop.h" ex="false" tool="3" flavor2="0">
       </item>
@@ -349,7 +379,7 @@
     </conf>
     <conf name="UnitTest" type="1">
       <toolsSet>
-        <compilerSet>CLang|CLang</compilerSet>
+        <compilerSet>CLang-19|CLang</compilerSet>
         <dependencyChecking>true</dependencyChecking>
         <rebuildPropChanged>false</rebuildPropChanged>
       </toolsSet>
@@ -363,11 +393,12 @@
             <pElem>../../lib</pElem>
             <pElem>../contrib/googletest/googletest</pElem>
             <pElem>../contrib/googletest/googletest/include</pElem>
+            <pElem>/usr/local/lib</pElem>
             <pElem>/usr/lib/gcc/x86_64-linux-gnu</pElem>
             <pElem>/usr/include/x86_64-linux-gnu/c++/11</pElem>
             <pElem>/usr/lib/gcc/x86_64-linux-gnu/11/include</pElem>
           </incDir>
-          <commandLine>`llvm-config-18 --cxxflags` `cat ../build_options.txt | tr -d '\r\n'`  -fsanitize=undefined -fsanitize-trap=undefined -Werror   -gdwarf-4  -ggdb</commandLine>
+          <commandLine>`llvm-config-19 --cxxflags` `cat ../build_options.txt | tr -d '\r\n'`  -fsanitize=undefined -fsanitize-trap=undefined -Werror   -gdwarf-4  -ggdb</commandLine>
           <preprocessorList>
             <Elem>BUILD_DEBUG</Elem>
             <Elem>BUILD_UNITTEST</Elem>
@@ -391,9 +422,11 @@
             <linkerLibLibItem>torch</linkerLibLibItem>
             <linkerLibLibItem>torch_cpu</linkerLibLibItem>
             <linkerLibLibItem>zip</linkerLibLibItem>
+            <linkerLibLibItem>ffi</linkerLibLibItem>
+            <linkerLibLibItem>stdc++_libbacktrace</linkerLibLibItem>
             <linkerLibStdlibItem>DynamicLinking</linkerLibStdlibItem>
           </linkerLibItems>
-          <commandLine>`llvm-config-18 --link-static --system-libs --libs all` -g -fvisibility=default -Wl,--export-dynamic -Wl,--exclude-libs,ALL -lclang-cpp -lcrypto -lstdc++</commandLine>
+          <commandLine>`llvm-config-19 --link-static --system-libs --libs all` -g -fvisibility=default -Wl,--export-dynamic -Wl,--exclude-libs,ALL -lclang-cpp -lcrypto -lstdc++</commandLine>
         </linkerTool>
       </compileType>
       <item path="../build_options.txt" ex="false" tool="3" flavor2="0">
@@ -403,6 +436,13 @@
       <item path="../contrib/googletest/googletest/src/gtest-all.cc"
             ex="false"
             tool="1"
+            flavor2="0">
+      </item>
+      <item path="../contrib/memsafe/memsafe.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../contrib/memsafe/memsafe_plugin.h"
+            ex="false"
+            tool="3"
             flavor2="0">
       </item>
       <item path="../lib/../../newlang/lib/include.h" ex="false" tool="3" flavor2="0">
@@ -424,6 +464,8 @@
       <item path="diag.cpp" ex="false" tool="1" flavor2="9">
       </item>
       <item path="diag.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="dict.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="include.h" ex="false" tool="3" flavor2="0">
       </item>
@@ -521,10 +563,6 @@
       </item>
       <item path="test/diag_test.cpp" ex="false" tool="1" flavor2="0">
       </item>
-      <item path="test/example_test.cpp" ex="false" tool="1" flavor2="0">
-      </item>
-      <item path="test/include_test.cpp" ex="false" tool="1" flavor2="0">
-      </item>
       <item path="test/jit_test.cpp" ex="false" tool="1" flavor2="0">
       </item>
       <item path="test/lexer_test.cpp" ex="false" tool="1" flavor2="0">
@@ -549,15 +587,21 @@
       </item>
       <item path="test/system_test.cpp" ex="false" tool="1" flavor2="0">
       </item>
+      <item path="test/thread_test.cpp" ex="false" tool="1" flavor2="0">
+      </item>
       <item path="test/unittest.cpp" ex="false" tool="1" flavor2="0">
       </item>
       <item path="types.cpp" ex="false" tool="1" flavor2="0">
       </item>
       <item path="types.h" ex="false" tool="3" flavor2="0">
       </item>
+      <item path="variable.cpp" ex="false" tool="1" flavor2="9">
+      </item>
       <item path="variable.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="version.cpp" ex="false" tool="1" flavor2="9">
+      </item>
+      <item path="version.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="warning_pop.h" ex="false" tool="3" flavor2="0">
       </item>

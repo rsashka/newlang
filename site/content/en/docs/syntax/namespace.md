@@ -27,7 +27,7 @@ ns { # Equivalent to ns::
     name:: {
         var = 0; # Reference to variable ns::var
         var2 ::= 0; # Name of variable will be ns::name::var2
-        ::var = 1; # Variable from global namespace
+        ::var = 1; # Dict from global namespace
     };
 
     :: { # Global namespace

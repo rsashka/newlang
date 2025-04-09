@@ -36,6 +36,7 @@ OBJECTDIR=${CND_BUILDDIR}/${CND_CONF}/${CND_PLATFORM}
 # Object Files
 OBJECTFILES= \
 	${OBJECTDIR}/_ext/1e501df/gtest-all.o \
+	${OBJECTDIR}/_ext/d2a9c236/go.o \
 	${OBJECTDIR}/nlc.o \
 	${OBJECTDIR}/test/diag_test.o \
 	${OBJECTDIR}/test/logger_test.o \
@@ -73,6 +74,10 @@ ${OBJECTDIR}/_ext/1e501df/gtest-all.o: ../contrib/googletest/googletest/src/gtes
 	${MKDIR} -p ${OBJECTDIR}/_ext/1e501df
 	${RM} "$@.d"
 	$(COMPILE.cc) -O2 -fPIC  -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/_ext/1e501df/gtest-all.o ../contrib/googletest/googletest/src/gtest-all.cc
+
+${OBJECTDIR}/_ext/d2a9c236/go.o: ../site/go.mod
+	${MKDIR} -p ${OBJECTDIR}/_ext/d2a9c236
+	$(COMPILE.f) -O2 -fPIC  -o ${OBJECTDIR}/_ext/d2a9c236/go.o ../site/go.mod
 
 ${OBJECTDIR}/nlc.o: nlc.cpp
 	${MKDIR} -p ${OBJECTDIR}
@@ -115,6 +120,7 @@ ${OBJECTDIR}/test/unittest.o: test/unittest.cpp
 # Clean Targets
 .clean-conf: ${CLEAN_SUBPROJECTS}
 	${RM} -r ${CND_BUILDDIR}/${CND_CONF}
+	${RM} *.mod
 
 # Subprojects
 .clean-subprojects:

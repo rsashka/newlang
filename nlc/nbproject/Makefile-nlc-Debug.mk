@@ -14,14 +14,14 @@ GREP=grep
 NM=nm
 CCADMIN=CCadmin
 RANLIB=ranlib
-CC=clang-18
-CCC=clang++-18
-CXX=clang++-18
+CC=clang-20
+CCC=clang++-20
+CXX=clang++-20
 FC=gfortran
-AS=lld-18
+AS=lld-20
 
 # Macros
-CND_PLATFORM=CLang-Linux
+CND_PLATFORM=CLang-20-Linux
 CND_DLIB_EXT=so
 CND_CONF=nlc-Debug
 CND_DISTDIR=dist
@@ -35,6 +35,7 @@ OBJECTDIR=${CND_BUILDDIR}/${CND_CONF}/${CND_PLATFORM}
 
 # Object Files
 OBJECTFILES= \
+	${OBJECTDIR}/_ext/d2a9c236/go.o \
 	${OBJECTDIR}/nlc.o \
 	${OBJECTDIR}/test/nlc_test.o
 
@@ -43,8 +44,8 @@ OBJECTFILES= \
 CFLAGS=
 
 # CC Compiler Flags
-CCFLAGS=`llvm-config-18 --cxxflags` `cat ../build_options.txt | tr -d '\r\n'`  -fsanitize=undefined -fsanitize-trap=undefined -Werror    -gdwarf-4  -ggdb 
-CXXFLAGS=`llvm-config-18 --cxxflags` `cat ../build_options.txt | tr -d '\r\n'`  -fsanitize=undefined -fsanitize-trap=undefined -Werror    -gdwarf-4  -ggdb 
+CCFLAGS=`llvm-config-20 --cxxflags` `cat ../build_options.txt | tr -d '\r\n'`  -fsanitize=undefined -fsanitize-trap=undefined -Werror    -gdwarf-4  -ggdb 
+CXXFLAGS=`llvm-config-20 --cxxflags` `cat ../build_options.txt | tr -d '\r\n'`  -fsanitize=undefined -fsanitize-trap=undefined -Werror    -gdwarf-4  -ggdb 
 
 # Fortran Compiler Flags
 FFLAGS=
@@ -62,6 +63,10 @@ LDLIBSOPTIONS=-L../contrib/libtorch/lib -L../output -Wl,-rpath,'.' -Wl,-rpath,'.
 ../output/nlc: ${OBJECTFILES}
 	${MKDIR} -p ../output
 	${LINK.cc} -o ../output/nlc ${OBJECTFILES} ${LDLIBSOPTIONS} `llvm-config-18 --link-static --system-libs --libs all` -g -fvisibility=default -Wl,--export-dynamic -Wl,--exclude-libs,ALL -lclang-cpp
+
+${OBJECTDIR}/_ext/d2a9c236/go.o: ../site/go.mod nbproject/Makefile-${CND_CONF}.mk
+	${MKDIR} -p ${OBJECTDIR}/_ext/d2a9c236
+	$(COMPILE.f) -g -o ${OBJECTDIR}/_ext/d2a9c236/go.o ../site/go.mod
 
 ${OBJECTDIR}/nlc.o: nlc.cpp nbproject/Makefile-${CND_CONF}.mk
 	${MKDIR} -p ${OBJECTDIR}
@@ -81,6 +86,7 @@ ${OBJECTDIR}/test/nlc_test.o: test/nlc_test.cpp nbproject/Makefile-${CND_CONF}.m
 # Clean Targets
 .clean-conf: ${CLEAN_SUBPROJECTS}
 	${RM} -r ${CND_BUILDDIR}/${CND_CONF}
+	${RM} *.mod
 
 # Subprojects
 .clean-subprojects:

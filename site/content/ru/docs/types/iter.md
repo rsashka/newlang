@@ -78,4 +78,21 @@ dict !(-3); # -> (4,5, :IteratorEnd)
 dict !(-3); # -> (:IteratorEnd, :IteratorEnd, :IteratorEnd)
 ```
 
+## Генераторы и ленивые вычисления {generator}
+
+
+    he co_yield expression — to suspend execution returning a value 
+
+generator<unsigned int> iota(unsigned int n = 0)
+{
+    while (true)
+        co_yield n++;
+}
+
+    the co_return statement — to complete execution returning a value 
+
+lazy<int> f()
+{
+    co_return 7;
+}
 

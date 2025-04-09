@@ -11,6 +11,7 @@
           <itemPath>../site/content/en/blog/reference-solution.md</itemPath>
           <itemPath>../site/content/en/blog/release-0.4.md</itemPath>
           <itemPath>../site/content/en/blog/simple-complex-programming.md</itemPath>
+          <itemPath>/home/rsashka/SOURCE/NewLang/newlang/site/content/en/blog/wrong-term-ai.md</itemPath>
         </logicalFolder>
         <logicalFolder name="docs" displayName="docs" projectFiles="true">
           <logicalFolder name="arch" displayName="arch" projectFiles="true">
@@ -112,6 +113,7 @@
           <itemPath>../site/content/ru/blog/release-0.5.md</itemPath>
           <itemPath>../site/content/ru/blog/simple-complex-programming.md</itemPath>
           <itemPath>../site/content/ru/blog/unusual-prog.md</itemPath>
+          <itemPath>/home/rsashka/SOURCE/NewLang/newlang/site/content/ru/blog/wrong-term-ai.md</itemPath>
         </logicalFolder>
         <logicalFolder name="docs" displayName="docs" projectFiles="true">
           <logicalFolder name="arch" displayName="arch" projectFiles="true">
@@ -123,6 +125,7 @@
           </logicalFolder>
           <logicalFolder name="ops" displayName="ops" projectFiles="true">
             <itemPath>../site/content/ru/docs/ops/_index.md</itemPath>
+            <itemPath>../site/content/ru/docs/ops/async.md</itemPath>
             <itemPath>../site/content/ru/docs/ops/block.md</itemPath>
             <itemPath>../site/content/ru/docs/ops/compare.md</itemPath>
             <itemPath>../site/content/ru/docs/ops/create.md</itemPath>
@@ -165,10 +168,13 @@
           <itemPath>../site/content/ru/playground/fact_40.src</itemPath>
           <itemPath>../site/content/ru/playground/fact_40_dsl.src</itemPath>
           <itemPath>../site/content/ru/playground/fibonacci.src</itemPath>
+          <itemPath>../examples/fileio.nlm</itemPath>
           <itemPath>../site/content/ru/playground/fileio.src</itemPath>
           <itemPath>../site/content/ru/playground/foreach.src</itemPath>
           <itemPath>../site/content/ru/playground/hello.src</itemPath>
           <itemPath>../site/content/ru/playground/hello_embed.src</itemPath>
+          <itemPath>../site/content/ru/playground/hello_native.src</itemPath>
+          <itemPath>../site/content/ru/playground/hello_native_1.src</itemPath>
           <itemPath>../site/content/ru/playground/rational.src</itemPath>
           <itemPath>../site/content/ru/playground/speed_test.src</itemPath>
           <itemPath>../site/content/ru/playground/tensor.src</itemPath>
@@ -180,6 +186,27 @@
       </logicalFolder>
       <itemPath>../site/content/CNAME</itemPath>
       <itemPath>../site/content/README.txt</itemPath>
+    </logicalFolder>
+    <logicalFolder name="f1" displayName="site" projectFiles="true" kind="ROOT">
+      <itemPath>../site/.github</itemPath>
+      <itemPath>../site/.gitignore</itemPath>
+      <itemPath>../site/.vscode</itemPath>
+      <itemPath>../site/CONTRIBUTING.md</itemPath>
+      <itemPath>../site/Dockerfile</itemPath>
+      <itemPath>../site/LICENSE</itemPath>
+      <itemPath>../site/README.md</itemPath>
+      <itemPath>../site/assets</itemPath>
+      <itemPath>../site/config.yaml</itemPath>
+      <itemPath>../site/docker-compose.yaml</itemPath>
+      <itemPath>../site/docsy.work</itemPath>
+      <itemPath>../site/docsy.work.sum</itemPath>
+      <itemPath>../site/go.mod</itemPath>
+      <itemPath>../site/go.sum</itemPath>
+      <itemPath>../site/hugo.toml</itemPath>
+      <itemPath>../site/layouts</itemPath>
+      <itemPath>../site/netlify.toml</itemPath>
+      <itemPath>../site/package.json</itemPath>
+      <itemPath>../site/resources</itemPath>
     </logicalFolder>
     <logicalFolder name="SourceFiles"
                    displayName="Исходные файлы"
@@ -244,7 +271,7 @@
   <confs>
     <conf name="nlc-Debug" type="1">
       <toolsSet>
-        <compilerSet>CLang|CLang</compilerSet>
+        <compilerSet>CLang-20|CLang</compilerSet>
         <dependencyChecking>true</dependencyChecking>
         <rebuildPropChanged>true</rebuildPropChanged>
       </toolsSet>
@@ -259,7 +286,7 @@
             <pElem>../contrib/googletest/googletest/include</pElem>
             <pElem></pElem>
           </incDir>
-          <commandLine>`llvm-config-18 --cxxflags` `cat ../build_options.txt | tr -d '\r\n'`  -fsanitize=undefined -fsanitize-trap=undefined -Werror    -gdwarf-4  -ggdb</commandLine>
+          <commandLine>`llvm-config-20 --cxxflags` `cat ../build_options.txt | tr -d '\r\n'`  -fsanitize=undefined -fsanitize-trap=undefined -Werror    -gdwarf-4  -ggdb</commandLine>
           <preprocessorList>
             <Elem>BUILD_DEBUG</Elem>
             <Elem>LOG_LEVEL_NORMAL=LOG_LEVEL_DEBUG</Elem>
@@ -327,6 +354,8 @@
       </item>
       <item path="../examples/fibonacci.src" ex="false" tool="3" flavor2="0">
       </item>
+      <item path="../examples/fileio.nlm" ex="false" tool="3" flavor2="0">
+      </item>
       <item path="../examples/fileio.src" ex="false" tool="3" flavor2="0">
       </item>
       <item path="../examples/foreach.src" ex="false" tool="3" flavor2="0">
@@ -350,6 +379,24 @@
       <item path="../examples/thread.src" ex="false" tool="3" flavor2="0">
       </item>
       <item path="../examples/thread_with.src" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../site/.github" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../site/.gitignore" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../site/.vscode" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../site/CONTRIBUTING.md" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../site/Dockerfile" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../site/LICENSE" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../site/README.md" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../site/assets" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../site/config.yaml" ex="false" tool="3" flavor2="0">
       </item>
       <item path="../site/content/CNAME" ex="false" tool="3" flavor2="0">
       </item>
@@ -788,6 +835,11 @@
             tool="3"
             flavor2="0">
       </item>
+      <item path="../site/content/ru/docs/ops/async.md"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
       <item path="../site/content/ru/docs/ops/block.md"
             ex="false"
             tool="3"
@@ -975,6 +1027,16 @@
             tool="3"
             flavor2="0">
       </item>
+      <item path="../site/content/ru/playground/hello_native.src"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
+      <item path="../site/content/ru/playground/hello_native_1.src"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
       <item path="../site/content/ru/playground/rational.src"
             ex="false"
             tool="3"
@@ -996,6 +1058,36 @@
             flavor2="0">
       </item>
       <item path="../site/content/ru/search.html" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../site/docker-compose.yaml" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../site/docsy.work" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../site/docsy.work.sum" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../site/go.mod" ex="false" tool="2" flavor2="0">
+      </item>
+      <item path="../site/go.sum" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../site/hugo.toml" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../site/layouts" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../site/netlify.toml" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../site/package.json" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../site/resources" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="/home/rsashka/SOURCE/NewLang/newlang/site/content/en/blog/wrong-term-ai.md"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
+      <item path="/home/rsashka/SOURCE/NewLang/newlang/site/content/ru/blog/wrong-term-ai.md"
+            ex="false"
+            tool="3"
+            flavor2="0">
       </item>
       <item path="autocomplete.h" ex="false" tool="3" flavor2="0">
       </item>
@@ -1098,6 +1190,8 @@
       </item>
       <item path="../examples/fibonacci.src" ex="false" tool="3" flavor2="0">
       </item>
+      <item path="../examples/fileio.nlm" ex="false" tool="3" flavor2="0">
+      </item>
       <item path="../examples/fileio.src" ex="false" tool="3" flavor2="0">
       </item>
       <item path="../examples/foreach.src" ex="false" tool="3" flavor2="0">
@@ -1121,6 +1215,24 @@
       <item path="../examples/thread.src" ex="false" tool="3" flavor2="0">
       </item>
       <item path="../examples/thread_with.src" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../site/.github" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../site/.gitignore" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../site/.vscode" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../site/CONTRIBUTING.md" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../site/Dockerfile" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../site/LICENSE" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../site/README.md" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../site/assets" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../site/config.yaml" ex="false" tool="3" flavor2="0">
       </item>
       <item path="../site/content/CNAME" ex="false" tool="3" flavor2="0">
       </item>
@@ -1559,6 +1671,11 @@
             tool="3"
             flavor2="0">
       </item>
+      <item path="../site/content/ru/docs/ops/async.md"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
       <item path="../site/content/ru/docs/ops/block.md"
             ex="false"
             tool="3"
@@ -1746,6 +1863,16 @@
             tool="3"
             flavor2="0">
       </item>
+      <item path="../site/content/ru/playground/hello_native.src"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
+      <item path="../site/content/ru/playground/hello_native_1.src"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
       <item path="../site/content/ru/playground/rational.src"
             ex="false"
             tool="3"
@@ -1767,6 +1894,36 @@
             flavor2="0">
       </item>
       <item path="../site/content/ru/search.html" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../site/docker-compose.yaml" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../site/docsy.work" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../site/docsy.work.sum" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../site/go.mod" ex="false" tool="2" flavor2="0">
+      </item>
+      <item path="../site/go.sum" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../site/hugo.toml" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../site/layouts" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../site/netlify.toml" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../site/package.json" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../site/resources" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="/home/rsashka/SOURCE/NewLang/newlang/site/content/en/blog/wrong-term-ai.md"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
+      <item path="/home/rsashka/SOURCE/NewLang/newlang/site/content/ru/blog/wrong-term-ai.md"
+            ex="false"
+            tool="3"
+            flavor2="0">
       </item>
       <item path="autocomplete.h" ex="false" tool="3" flavor2="0">
       </item>
@@ -1859,6 +2016,8 @@
       </item>
       <item path="../examples/fibonacci.src" ex="false" tool="3" flavor2="0">
       </item>
+      <item path="../examples/fileio.nlm" ex="false" tool="3" flavor2="0">
+      </item>
       <item path="../examples/fileio.src" ex="false" tool="3" flavor2="0">
       </item>
       <item path="../examples/foreach.src" ex="false" tool="3" flavor2="0">
@@ -1882,6 +2041,24 @@
       <item path="../examples/thread.src" ex="false" tool="3" flavor2="0">
       </item>
       <item path="../examples/thread_with.src" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../site/.github" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../site/.gitignore" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../site/.vscode" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../site/CONTRIBUTING.md" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../site/Dockerfile" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../site/LICENSE" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../site/README.md" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../site/assets" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../site/config.yaml" ex="false" tool="3" flavor2="0">
       </item>
       <item path="../site/content/CNAME" ex="false" tool="3" flavor2="0">
       </item>
@@ -2320,6 +2497,11 @@
             tool="3"
             flavor2="0">
       </item>
+      <item path="../site/content/ru/docs/ops/async.md"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
       <item path="../site/content/ru/docs/ops/block.md"
             ex="false"
             tool="3"
@@ -2507,6 +2689,16 @@
             tool="3"
             flavor2="0">
       </item>
+      <item path="../site/content/ru/playground/hello_native.src"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
+      <item path="../site/content/ru/playground/hello_native_1.src"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
       <item path="../site/content/ru/playground/rational.src"
             ex="false"
             tool="3"
@@ -2528,6 +2720,36 @@
             flavor2="0">
       </item>
       <item path="../site/content/ru/search.html" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../site/docker-compose.yaml" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../site/docsy.work" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../site/docsy.work.sum" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../site/go.mod" ex="false" tool="2" flavor2="0">
+      </item>
+      <item path="../site/go.sum" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../site/hugo.toml" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../site/layouts" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../site/netlify.toml" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../site/package.json" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../site/resources" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="/home/rsashka/SOURCE/NewLang/newlang/site/content/en/blog/wrong-term-ai.md"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
+      <item path="/home/rsashka/SOURCE/NewLang/newlang/site/content/ru/blog/wrong-term-ai.md"
+            ex="false"
+            tool="3"
+            flavor2="0">
       </item>
       <item path="nlc.h" ex="false" tool="3" flavor2="0">
       </item>
@@ -2579,6 +2801,8 @@
       </item>
       <item path="../examples/fibonacci.src" ex="false" tool="3" flavor2="0">
       </item>
+      <item path="../examples/fileio.nlm" ex="false" tool="3" flavor2="0">
+      </item>
       <item path="../examples/fileio.src" ex="false" tool="3" flavor2="0">
       </item>
       <item path="../examples/foreach.src" ex="false" tool="3" flavor2="0">
@@ -2602,6 +2826,24 @@
       <item path="../examples/thread.src" ex="false" tool="3" flavor2="0">
       </item>
       <item path="../examples/thread_with.src" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../site/.github" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../site/.gitignore" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../site/.vscode" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../site/CONTRIBUTING.md" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../site/Dockerfile" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../site/LICENSE" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../site/README.md" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../site/assets" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../site/config.yaml" ex="false" tool="3" flavor2="0">
       </item>
       <item path="../site/content/CNAME" ex="false" tool="3" flavor2="0">
       </item>
@@ -3040,6 +3282,11 @@
             tool="3"
             flavor2="0">
       </item>
+      <item path="../site/content/ru/docs/ops/async.md"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
       <item path="../site/content/ru/docs/ops/block.md"
             ex="false"
             tool="3"
@@ -3227,6 +3474,16 @@
             tool="3"
             flavor2="0">
       </item>
+      <item path="../site/content/ru/playground/hello_native.src"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
+      <item path="../site/content/ru/playground/hello_native_1.src"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
       <item path="../site/content/ru/playground/rational.src"
             ex="false"
             tool="3"
@@ -3248,6 +3505,36 @@
             flavor2="0">
       </item>
       <item path="../site/content/ru/search.html" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../site/docker-compose.yaml" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../site/docsy.work" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../site/docsy.work.sum" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../site/go.mod" ex="false" tool="2" flavor2="0">
+      </item>
+      <item path="../site/go.sum" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../site/hugo.toml" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../site/layouts" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../site/netlify.toml" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../site/package.json" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../site/resources" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="/home/rsashka/SOURCE/NewLang/newlang/site/content/en/blog/wrong-term-ai.md"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
+      <item path="/home/rsashka/SOURCE/NewLang/newlang/site/content/ru/blog/wrong-term-ai.md"
+            ex="false"
+            tool="3"
+            flavor2="0">
       </item>
       <item path="autocomplete.h" ex="false" tool="3" flavor2="0">
       </item>

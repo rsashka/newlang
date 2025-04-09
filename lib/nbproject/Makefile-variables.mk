@@ -23,13 +23,13 @@ CND_PACKAGE_DIR_nlc-jit-Debug=dist/nlc-jit-Debug/CLang-Linux/package
 CND_PACKAGE_NAME_nlc-jit-Debug=liblib.so.tar
 CND_PACKAGE_PATH_nlc-jit-Debug=dist/nlc-jit-Debug/CLang-Linux/package/liblib.so.tar
 # UnitTest configuration
-CND_PLATFORM_UnitTest=CLang-Linux
+CND_PLATFORM_UnitTest=CLang-19-Linux
 CND_ARTIFACT_DIR_UnitTest=../output
 CND_ARTIFACT_NAME_UnitTest=nlc-unittest
 CND_ARTIFACT_PATH_UnitTest=../output/nlc-unittest
-CND_PACKAGE_DIR_UnitTest=dist/UnitTest/CLang-Linux/package
+CND_PACKAGE_DIR_UnitTest=dist/UnitTest/CLang-19-Linux/package
 CND_PACKAGE_NAME_UnitTest=lib.tar
-CND_PACKAGE_PATH_UnitTest=dist/UnitTest/CLang-Linux/package/lib.tar
+CND_PACKAGE_PATH_UnitTest=dist/UnitTest/CLang-19-Linux/package/lib.tar
 #
 # include compiler specific variables
 #

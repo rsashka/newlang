@@ -35,7 +35,7 @@ But what if we start from a clean slate? For example, a universal concept of obj
   
 #### Terms:  
 Object - data in the computer's memory in machine (binary) representation.  
-Variable - a human-readable identifier in the program body, which is uniquely determined by its name and identifies the object (the actual value of the object or a reference to it). Variables can be:  
+Dict - a human-readable identifier in the program body, which is uniquely determined by its name and identifies the object (the actual value of the object or a reference to it). Variables can be:  
 - Owner variable - the only constant reference to the object (shared_ptr).  
 - Reference variable - a temporary reference to the object (weak_ptr).
 

@@ -36,6 +36,7 @@ OBJECTDIR=${CND_BUILDDIR}/${CND_CONF}/${CND_PLATFORM}
 # Object Files
 OBJECTFILES= \
 	${OBJECTDIR}/_ext/1e501df/gtest-all.o \
+	${OBJECTDIR}/_ext/d2a9c236/go.o \
 	${OBJECTDIR}/test/diag_test.o \
 	${OBJECTDIR}/test/logger_test.o \
 	${OBJECTDIR}/test/nlc_test.o \
@@ -72,6 +73,10 @@ ${OBJECTDIR}/_ext/1e501df/gtest-all.o: ../contrib/googletest/googletest/src/gtes
 	${MKDIR} -p ${OBJECTDIR}/_ext/1e501df
 	${RM} "$@.d"
 	$(COMPILE.cc) -g -DBUILD_DEBUG -DBUILD_UNITTEST -DGTEST_HAS_CXXABI_H_=0 -I../lib -I../contrib/libtorch/include -I../contrib/libtorch/include/torch/csrc/api/include -I../contrib/googletest/googletest -I../contrib/googletest/googletest/include -I../contrib/fmt/include -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/_ext/1e501df/gtest-all.o ../contrib/googletest/googletest/src/gtest-all.cc
+
+${OBJECTDIR}/_ext/d2a9c236/go.o: ../site/go.mod nbproject/Makefile-${CND_CONF}.mk
+	${MKDIR} -p ${OBJECTDIR}/_ext/d2a9c236
+	$(COMPILE.f) -g -o ${OBJECTDIR}/_ext/d2a9c236/go.o ../site/go.mod
 
 ${OBJECTDIR}/test/diag_test.o: test/diag_test.cpp nbproject/Makefile-${CND_CONF}.mk
 	${MKDIR} -p ${OBJECTDIR}/test
@@ -110,6 +115,7 @@ ${OBJECTDIR}/test/unittest.o: test/unittest.cpp nbproject/Makefile-${CND_CONF}.m
 # Clean Targets
 .clean-conf: ${CLEAN_SUBPROJECTS}
 	${RM} -r ${CND_BUILDDIR}/${CND_CONF}
+	${RM} *.mod
 
 # Subprojects
 .clean-subprojects:
