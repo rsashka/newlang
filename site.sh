@@ -5,11 +5,11 @@ if [ ! -z $1 ]; then
     root="$1"
 fi
 
-rm -rf $root/docs/*
+rm -rf $root/site/public/*
 rm $root/site/content/ru/playground/*.src
 cp $root/examples/*.src  $root/site/content/ru/playground/
 cp -f $root/site/content/ru/playground/* $root/site/content/en/playground/
-cp -f $root/site/content/CNAME $root/docs/
+cp -f $root/site/content/CNAME $root/site/public/
 
 echo Rename link in dir $root/content/en:
 
@@ -34,5 +34,5 @@ doxygen
 
 cd  $root/site
 
-hugo server --watch --disableFastRender -d ../docs 
+hugo server --watch --disableFastRender -d public
 
