@@ -1,0 +1,51 @@
+<map id="Graphical Class Hierarchy" name="Graphical Class Hierarchy">
+<area shape="rect" id="Node000000" title=" " alt="" coords="143,130,288,170"/>
+<area shape="rect" id="Node000001" href="$classnewlang_1_1Context.html" title=" " alt="" coords="401,181,537,207"/>
+<area shape="poly" id="edge5_Node000000_Node000001" title=" " alt="" coords="302,162,401,180,400,185,301,168"/>
+<area shape="rect" id="Node000007" href="$classnewlang_1_1Macro.html" title=" " alt="" coords="406,375,531,400"/>
+<area shape="poly" id="edge6_Node000000_Node000007" title=" " alt="" coords="238,181,303,288,336,336,356,361,380,373,407,381,405,386,378,378,353,365,331,339,299,291,233,183"/>
+<area shape="rect" id="Node000015" href="$classnewlang_1_1Obj.html" title=" " alt="" coords="415,31,522,56"/>
+<area shape="poly" id="edge7_Node000000_Node000015" title=" " alt="" coords="293,122,305,114,319,102,328,90,338,77,353,65,384,53,415,45,416,51,385,58,356,70,341,81,332,93,323,106,308,119,296,126"/>
+<area shape="rect" id="Node000010" href="$classnewlang_1_1RunTime.html" title=" " alt="" coords="631,597,773,623"/>
+<area shape="poly" id="edge11_Node000000_Node000010" title=" " alt="" coords="301,126,369,117,443,116,481,121,518,131,553,146,584,167,610,199,632,249,651,311,667,378,690,509,702,597,697,597,685,510,662,379,646,312,627,251,605,202,581,171,550,150,516,136,480,127,443,122,369,122,302,131"/>
+<area shape="rect" id="Node000022" href="$classnewlang_1_1Term.html" title=" " alt="" coords="410,80,527,105"/>
+<area shape="poly" id="edge13_Node000000_Node000022" title=" " alt="" coords="301,128,411,103,412,108,302,133"/>
+<area shape="rect" id="Node000016" href="$classnewlang_1_1IntAny.html" title=" " alt="" coords="639,31,765,56"/>
+<area shape="poly" id="edge8_Node000015_Node000016" title=" " alt="" coords="536,41,638,41,638,46,536,46"/>
+<area shape="rect" id="Node000017" href="$classnewlang_1_1IntMinus.html" title=" " alt="" coords="821,55,963,80"/>
+<area shape="poly" id="edge9_Node000016_Node000017" title=" " alt="" coords="780,50,821,56,820,61,779,56"/>
+<area shape="rect" id="Node000018" href="$classnewlang_1_1IntPlus.html" title=" " alt="" coords="827,5,957,31"/>
+<area shape="poly" id="edge10_Node000016_Node000018" title=" " alt="" coords="779,30,827,24,828,29,779,36"/>
+<area shape="rect" id="Node000011" href="$classnewlang_1_1JIT.html" title=" " alt="" coords="841,597,943,623"/>
+<area shape="poly" id="edge12_Node000010_Node000011" title=" " alt="" coords="787,607,841,607,841,613,787,613"/>
+<area shape="rect" id="Node000020" title=" " alt="" coords="5,80,76,105"/>
+<area shape="rect" id="Node000019" href="$classnewlang_1_1Dict.html" title=" " alt="" coords="134,31,297,56"/>
+<area shape="poly" id="edge14_Node000020_Node000019" title=" " alt="" coords="88,75,123,65,164,53,166,59,125,70,90,80"/>
+<area shape="rect" id="Node000021" href="$classnewlang_1_1Dict.html" title=" " alt="" coords="129,80,302,105"/>
+<area shape="poly" id="edge16_Node000020_Node000021" title=" " alt="" coords="90,90,128,90,128,95,90,95"/>
+<area shape="rect" id="Node000023" href="$classnewlang_1_1Dict.html" title=" " alt="" coords="124,647,307,672"/>
+<area shape="poly" id="edge18_Node000020_Node000023" title=" " alt="" coords="45,119,49,231,60,385,71,464,85,535,103,594,126,634,140,644,136,649,122,637,98,596,80,537,65,464,55,385,43,231,40,120"/>
+<area shape="poly" id="edge15_Node000019_Node000015" title=" " alt="" coords="310,41,415,41,415,46,310,46"/>
+<area shape="poly" id="edge17_Node000021_Node000022" title=" " alt="" coords="316,90,410,90,410,95,316,95"/>
+<area shape="rect" id="Node000012" title=" " alt="" coords="443,696,495,721"/>
+<area shape="poly" id="edge19_Node000012_Node000010" title=" " alt="" coords="508,701,544,694,582,682,639,652,683,621,686,625,642,656,584,687,546,699,509,707"/>
+<area shape="rect" id="Node000008" title=" " alt="" coords="176,597,255,623"/>
+<area shape="poly" id="edge22_Node000008_Node000007" title=" " alt="" coords="225,583,244,544,271,497,308,450,353,410,378,398,405,390,406,395,380,403,356,415,312,454,276,500,248,547,230,585"/>
+<area shape="rect" id="Node000009" href="$classnewlang_1_1GlobalObjects.html" title=" " alt="" coords="381,597,557,623"/>
+<area shape="poly" id="edge20_Node000008_Node000009" title=" " alt="" coords="268,607,381,607,381,613,268,613"/>
+<area shape="rect" id="Node000013" href="$classnewlang_1_1Module.html" title=" " alt="" coords="402,647,535,672"/>
+<area shape="poly" id="edge23_Node000008_Node000013" title=" " alt="" coords="268,617,403,644,402,649,267,623"/>
+<area shape="rect" id="Node000014" href="$classnewlang_1_1StorageTerm.html" title=" " alt="" coords="385,745,552,771"/>
+<area shape="poly" id="edge24_Node000008_Node000014" title=" " alt="" coords="269,614,290,622,308,633,320,646,327,659,333,685,339,709,345,721,356,732,386,747,384,752,353,736,341,724,334,711,328,686,322,661,316,649,305,637,287,626,267,619"/>
+<area shape="poly" id="edge21_Node000009_Node000010" title=" " alt="" coords="571,607,631,607,631,613,571,613"/>
+<area shape="rect" id="Node000002" title=" " alt="" coords="170,311,261,336"/>
+<area shape="poly" id="edge28_Node000002_Node000001" title=" " alt="" coords="238,299,288,257,320,235,354,217,399,202,401,207,356,222,323,240,291,261,241,303"/>
+<area shape="rect" id="Node000003" href="$classnewlang_1_1VirtualFuncImpl.html" title=" " alt="" coords="371,296,567,351"/>
+<area shape="poly" id="edge25_Node000002_Node000003" title=" " alt="" coords="274,321,371,321,371,326,274,326"/>
+<area shape="rect" id="Node000004" href="$classnewlang_1_1VirtualFuncImpl.html" title=" " alt="" coords="355,424,583,479"/>
+<area shape="poly" id="edge26_Node000002_Node000004" title=" " alt="" coords="246,342,296,376,356,410,381,421,379,426,353,415,293,381,243,346"/>
+<area shape="rect" id="Node000005" href="$classnewlang_1_1VirtualFuncImpl.html" title=" " alt="" coords="373,503,564,573"/>
+<area shape="poly" id="edge27_Node000002_Node000005" title=" " alt="" coords="233,346,283,416,317,455,356,489,375,501,372,505,353,493,314,459,279,419,229,349"/>
+<area shape="rect" id="Node000006" href="$classnewlang_1_1VirtualFuncImpl.html" title=" " alt="" coords="375,231,562,271"/>
+<area shape="poly" id="edge29_Node000002_Node000006" title=" " alt="" coords="272,304,354,281,396,269,397,274,355,286,274,309"/>
+</map>

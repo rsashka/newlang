@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>Convert on NewLang</title>
+    <link>http://localhost:1313/tags/convert/</link>
+    <description>Recent content in Convert on NewLang</description>
+    <generator>Hugo</generator>
+    <language>en</language>
+    <atom:link href="http://localhost:1313/tags/convert/index.xml" rel="self" type="application/rss+xml" />
+    <item>
+      <title>Data type conversion</title>
+      <link>http://localhost:1313/docs/types/convert/</link>
+      <pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate>
+      <guid>http://localhost:1313/docs/types/convert/</guid>
+      <description>&lt;p&gt;Despite the dynamic typing of the language, if the type of a variable is specified explicitly, then automatic type casting is not performed.&#xA;and to assign a value of an incompatible type to a variable, an explicit conversion is required.&lt;/p&gt;&#xA;&lt;p&gt;Since symbolic type names are implementation details, an explicit conversion to a specific data type is performed&#xA;by calling a function with a type name, i.e. :Bool(), :StrWide(), :Int64(), etc.&lt;/p&gt;</description>
+    </item>
+  </channel>
+</rss>

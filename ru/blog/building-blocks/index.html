@@ -1,0 +1,378 @@
+<!doctype html>
+<html itemscope itemtype="http://schema.org/WebPage" lang="ru" class="no-js">
+  <head><script src="/livereload.js?mindelay=10&amp;v=2&amp;port=1313&amp;path=livereload" data-no-instant defer></script>
+    <meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+<meta name="robots" content="noindex, nofollow">
+
+
+<link rel="shortcut icon" href="/favicons/favicon.ico" >
+<link rel="apple-touch-icon" href="/favicons/apple-touch-icon-180x180.png" sizes="180x180">
+<link rel="icon" type="image/png" href="/favicons/favicon-16x16.png" sizes="16x16">
+<link rel="icon" type="image/png" href="/favicons/favicon-32x32.png" sizes="32x32">
+<link rel="icon" type="image/png" href="/favicons/android-36x36.png" sizes="36x36">
+<link rel="icon" type="image/png" href="/favicons/android-48x48.png" sizes="48x48">
+<link rel="icon" type="image/png" href="/favicons/android-72x72.png" sizes="72x72">
+<link rel="icon" type="image/png" href="/favicons/android-96x96.png" sizes="96x96">
+<link rel="icon" type="image/png" href="/favicons/android-144x144.png" sizes="144x144">
+<link rel="icon" type="image/png" href="/favicons/android-192x192.png" sizes="192x192">
+
+<title>Building blocks in programming languages | NewLang</title>
+<meta name="description" content="В результате обратной связи по статье с размышлениями о структурном программировании, было много отзывов и споров в комментариях, за которые я хочу сказать всем большое спасибо.
+И под впечатлениями от обсуждения предыдущей статьи я задался вопросом, а существует ли минимальный набор лексем, операторов или синтаксических конструкций, с помощью которых можно построить произвольную грамматику для современного языка программирования общего назначения?
+Ведение Практически все языки программирования строятся либо по принципу подобия (сделать как вот этот, только со своим блекждеком), либо для реализации какой-то новой концепции (модульность, чистота функциональных вычислений и т.д.). Либо и то и другое одновременно.">
+<meta property="og:url" content="http://localhost:1313/ru/blog/building-blocks/">
+  <meta property="og:site_name" content="NewLang">
+  <meta property="og:title" content="Building blocks in programming languages">
+  <meta property="og:description" content="В результате обратной связи по статье с размышлениями о структурном программировании, было много отзывов и споров в комментариях, за которые я хочу сказать всем большое спасибо.
+И под впечатлениями от обсуждения предыдущей статьи я задался вопросом, а существует ли минимальный набор лексем, операторов или синтаксических конструкций, с помощью которых можно построить произвольную грамматику для современного языка программирования общего назначения?
+Ведение Практически все языки программирования строятся либо по принципу подобия (сделать как вот этот, только со своим блекждеком), либо для реализации какой-то новой концепции (модульность, чистота функциональных вычислений и т.д.). Либо и то и другое одновременно.">
+  <meta property="og:locale" content="ru">
+  <meta property="og:type" content="article">
+    <meta property="article:section" content="blog">
+    <meta property="article:published_time" content="2024-05-03T00:00:00+00:00">
+    <meta property="article:modified_time" content="2024-05-04T12:11:38+03:00">
+
+  <meta itemprop="name" content="Building blocks in programming languages">
+  <meta itemprop="description" content="В результате обратной связи по статье с размышлениями о структурном программировании, было много отзывов и споров в комментариях, за которые я хочу сказать всем большое спасибо.
+И под впечатлениями от обсуждения предыдущей статьи я задался вопросом, а существует ли минимальный набор лексем, операторов или синтаксических конструкций, с помощью которых можно построить произвольную грамматику для современного языка программирования общего назначения?
+Ведение Практически все языки программирования строятся либо по принципу подобия (сделать как вот этот, только со своим блекждеком), либо для реализации какой-то новой концепции (модульность, чистота функциональных вычислений и т.д.). Либо и то и другое одновременно.">
+  <meta itemprop="datePublished" content="2024-05-03T00:00:00+00:00">
+  <meta itemprop="dateModified" content="2024-05-04T12:11:38+03:00">
+  <meta itemprop="wordCount" content="1245">
+  <meta name="twitter:card" content="summary">
+  <meta name="twitter:title" content="Building blocks in programming languages">
+  <meta name="twitter:description" content="В результате обратной связи по статье с размышлениями о структурном программировании, было много отзывов и споров в комментариях, за которые я хочу сказать всем большое спасибо.
+И под впечатлениями от обсуждения предыдущей статьи я задался вопросом, а существует ли минимальный набор лексем, операторов или синтаксических конструкций, с помощью которых можно построить произвольную грамматику для современного языка программирования общего назначения?
+Ведение Практически все языки программирования строятся либо по принципу подобия (сделать как вот этот, только со своим блекждеком), либо для реализации какой-то новой концепции (модульность, чистота функциональных вычислений и т.д.). Либо и то и другое одновременно.">
+<link href="/scss/main.css" rel="stylesheet">
+<script
+  src="https://code.jquery.com/jquery-3.7.1.min.js"
+  integrity="sha512-v2CJ7UaYy4JwqLDIrZUI/4hqeoQieOmAZNXBeQyjo21dadnwR+8ZaIJVT8EE2iyI61OV8e6M8PP2/4hpQINQ/g=="
+  crossorigin="anonymous"></script>
+<script defer
+  src="https://unpkg.com/lunr@2.3.9/lunr.min.js"
+  integrity="sha384-203J0SNzyqHby3iU6hzvzltrWi/M41wOP5Gu+BiJMz5nwKykbkUx8Kp7iti0Lpli"
+  crossorigin="anonymous"></script>
+
+  </head>
+  <body class="td-page td-blog">
+    <header>
+      <nav class="td-navbar js-navbar-scroll" data-bs-theme="dark">
+<div class="container-fluid flex-column flex-md-row">
+  <a class="navbar-brand" href="/ru/"><span class="navbar-brand__logo navbar-logo"><svg id="Layer_1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" viewBox="0 0 500 500" style="enable-background:new 0 0 500 500"><g><path style="fill:#fff" d="M116.8525 421.9722c-5.7041.0-10.3442-4.3127-10.3442-9.6129V88.183c0-5.3002 4.6401-9.6117 10.3442-9.6117H320.858c3.0347.0 9.3959.5498 11.7506 2.6302l.3545.3442 58.905 63.2912c2.3101 2.491 2.9202 8.4928 2.9202 11.3184v256.2039c0 5.3002-4.6407 9.6129-10.3436 9.6129H116.8525z"/><g><g><g><path style="fill:#767676" d="M384.4445 423.2066H116.852c-6.3839.0-11.5786-4.8658-11.5786-10.8474V88.1831c0-5.9804 5.1947-10.8461 11.5786-10.8461h204.0062c.377.0 9.2786.0329 12.568 2.9389l.3947.3833 58.9508 63.337c3.2135 3.4652 3.2514 11.7924 3.2514 12.1593v256.2036C396.0231 418.3408 390.8284 423.2066 384.4445 423.2066zM116.5079 411.9189c.0848.0278.1999.0531.3441.0531h267.5925c.1442.0.2581-.0253.3441-.0531V156.1556c-.0076-.9033-.3593-3.7347-.7034-5.0037l-57.6527-61.9416c-1.4651-.3176-4.4533-.6389-5.5742-.6389H116.852c-.143.0-.2594.024-.3441.0531V411.9189zm267.4533-261.149zM327.0321 89.371v.0013V89.371z"/></g></g></g><g><g><path style="fill:#5b7fc0" d="M189.0874 210.1754l.0012-.0012c7.7751.0012 15.0295 4.1862 18.932 10.9234 1.9177 3.3159 2.9305 7.1011 2.9293 10.9378.0 5.8394-2.2733 11.3304-6.4032 15.4604-4.1288 4.1288-9.6186 6.4032-15.458 6.4032s-11.328-2.2733-15.458-6.4032-6.4032-9.6186-6.4056-15.4628c.0012-6.025 2.454-11.4897 6.4116-15.4473C177.5953 212.627 183.0601 210.1742 189.0874 210.1754zm7.993 21.8576c.0012-1.4042-.3687-2.7868-1.063-3.9887-1.4293-2.4684-4.0833-3.9995-6.9299-4.0019-4.4077.0024-7.993 3.5877-7.993 7.993.0 2.1356.832 4.1431 2.3427 5.6539 1.5083 1.5083 3.5159 2.3403 5.6503 2.3415 2.1356.0 4.1443-.8308 5.6539-2.3403S197.0816 234.1722 197.0804 232.033z"/><path style="opacity:.3;fill:#fff" d="M189.0898 210.176c7.7763.0 15.0283 4.1826 18.926 10.9151 1.9201 3.3136 2.9377 7.0988 2.9353 10.9462.0024 12.0643-9.8065 21.8636-21.8613 21.8613-12.0547.0024-21.8636-9.8066-21.8612-21.8613.0-6.0285 2.4516-11.4921 6.4116-15.452C177.5977 212.6276 183.0612 210.176 189.0898 210.176zm7.9941 21.8612c0-1.4078-.3711-2.7892-1.0702-3.9959-1.4269-2.466-4.0797-3.9983-6.924-3.9983-4.4005-.0048-7.9918 3.5817-7.9942 7.9942.0024 4.4077 3.5865 7.9918 7.9942 7.9942 2.2027.0 4.2018-.8978 5.6479-2.3439C196.1861 236.239 197.0839 234.2399 197.0839 232.0372z"/><g><defs><path id="SVGID_1_" d="M194.7376 237.6875c-1.4461 1.4461-3.4452 2.3439-5.6479 2.3439-4.4077-.0024-7.9918-3.5865-7.9942-7.9942.0024-4.4125 3.5937-7.999 7.9942-7.9942 2.8443.0 5.497 1.5323 6.924 3.9983.6991 1.2067 1.0702 2.5881 1.0702 3.9959C197.0839 234.2399 196.1861 236.239 194.7376 237.6875z"/></defs><clipPath id="SVGID_2_"><use xlink:href="#SVGID_1_" style="overflow:visible"/></clipPath><path style="clip-path:url(#SVGID_2_);fill:#fff" d="M190.0704 225.0237c-4.4005-.0048-7.9918 3.5817-7.9942 7.9942.0011 1.9546.7088 3.7452 1.8782 5.1354-1.7447-1.4674-2.8575-3.663-2.8588-6.116.0024-4.4125 3.5936-7.999 7.9942-7.9942 2.3802-1e-4 4.616 1.0833 6.1218 2.8788C193.7885 225.7247 191.9774 225.0237 190.0704 225.0237z"/><path style="opacity:.13;clip-path:url(#SVGID_2_);fill:#020202" d="M190.0704 225.0237c-4.4005-.0048-7.9918 3.5817-7.9942 7.9942.0011 1.9546.7088 3.7452 1.8782 5.1354-1.7447-1.4674-2.8575-3.663-2.8588-6.116.0024-4.4125 3.5936-7.999 7.9942-7.9942 2.3802-1e-4 4.616 1.0833 6.1218 2.8788C193.7885 225.7247 191.9774 225.0237 190.0704 225.0237z"/></g><g><defs><path id="SVGID_3_" d="M189.0898 210.176c7.7763.0 15.0283 4.1826 18.926 10.9151 1.9201 3.3136 2.9377 7.0988 2.9353 10.9462.0024 12.0643-9.8065 21.8636-21.8613 21.8613-12.0547.0024-21.8636-9.8066-21.8612-21.8613.0-6.0285 2.4516-11.4921 6.4116-15.452C177.5977 212.6276 183.0612 210.176 189.0898 210.176zm7.9941 21.8612c0-1.4078-.3711-2.7892-1.0702-3.9959-1.4269-2.466-4.0797-3.9983-6.924-3.9983-4.4005-.0048-7.9918 3.5817-7.9942 7.9942.0024 4.4077 3.5865 7.9918 7.9942 7.9942 2.2027.0 4.2018-.8978 5.6479-2.3439C196.1861 236.239 197.0839 234.2399 197.0839 232.0372z"/></defs><clipPath id="SVGID_4_"><use xlink:href="#SVGID_3_" style="overflow:visible"/></clipPath><path style="clip-path:url(#SVGID_4_);fill:#5b7fc0" d="M172.6595 215.6045c-3.96 3.96-6.4116 9.4235-6.4116 15.452-.0024 12.0547 9.8066 21.8636 21.8613 21.8612 12.0547.0024 21.8636-9.797 21.8613-21.8612.0024-3.8475-1.0151-7.6326-2.9353-10.9462-3.8977-6.7324-11.1497-10.9151-18.926-10.9151C182.0806 209.1953 176.6171 211.647 172.6595 215.6045z"/></g></g><rect x="198.8952" y="225.1043" style="fill:#5b7fc0" width="122.6266" height="13.8671"/></g><g><path style="fill:#d95140" d="M189.0874 155.7611l.0012-.0012c7.7751.0012 15.0295 4.1862 18.932 10.9234 1.9177 3.3159 2.9305 7.1011 2.9293 10.9378.0 5.8394-2.2733 11.3304-6.4032 15.4604-4.1288 4.1288-9.6186 6.4032-15.458 6.4032s-11.328-2.2733-15.458-6.4032-6.4032-9.6186-6.4056-15.4628c.0012-6.0249 2.454-11.4897 6.4116-15.4473C177.5953 158.2128 183.0601 155.7599 189.0874 155.7611zm7.993 21.8577c.0012-1.4042-.3687-2.7868-1.063-3.9887-1.4293-2.4684-4.0833-3.9995-6.9299-4.0019-4.4077.0024-7.993 3.5877-7.993 7.993.0 2.1356.832 4.1431 2.3427 5.6539 1.5083 1.5083 3.5159 2.3403 5.6503 2.3415 2.1356.0 4.1443-.8308 5.6539-2.3403C196.2508 181.7667 197.0816 179.758 197.0804 177.6188z"/><path style="opacity:.3;fill:#fff" d="M189.0898 155.7617c7.7763.0 15.0283 4.1826 18.926 10.9151 1.9201 3.3135 2.9377 7.0987 2.9353 10.9462.0024 12.0643-9.8065 21.8636-21.8613 21.8613-12.0547.0024-21.8636-9.8066-21.8612-21.8613.0-6.0285 2.4516-11.4921 6.4116-15.452C177.5977 158.2134 183.0612 155.7617 189.0898 155.7617zm7.9941 21.8613c0-1.4078-.3711-2.7892-1.0702-3.9959-1.4269-2.466-4.0797-3.9983-6.924-3.9983-4.4005-.0048-7.9918 3.5817-7.9942 7.9942.0024 4.4077 3.5865 7.9918 7.9942 7.9942 2.2027.0 4.2018-.8978 5.6479-2.3439C196.1861 181.8248 197.0839 179.8256 197.0839 177.623z"/><g><defs><path id="SVGID_5_" d="M194.7376 183.2733c-1.4461 1.4461-3.4452 2.3439-5.6479 2.3439-4.4077-.0024-7.9918-3.5865-7.9942-7.9942.0024-4.4125 3.5937-7.9989 7.9942-7.9942 2.8443.0 5.497 1.5323 6.924 3.9983.6991 1.2067 1.0702 2.5881 1.0702 3.9959C197.0839 179.8256 196.1861 181.8248 194.7376 183.2733z"/></defs><clipPath id="SVGID_6_"><use xlink:href="#SVGID_5_" style="overflow:visible"/></clipPath><path style="clip-path:url(#SVGID_6_);fill:#fff" d="M190.0704 170.6095c-4.4005-.0048-7.9918 3.5817-7.9942 7.9942.0011 1.9546.7088 3.7452 1.8782 5.1354-1.7447-1.4674-2.8575-3.663-2.8588-6.116.0024-4.4125 3.5936-7.999 7.9942-7.9942 2.3802-1e-4 4.616 1.0833 6.1218 2.8788C193.7885 171.3104 191.9774 170.6095 190.0704 170.6095z"/><path style="opacity:.13;clip-path:url(#SVGID_6_);fill:#020202" d="M190.0704 170.6095c-4.4005-.0048-7.9918 3.5817-7.9942 7.9942.0011 1.9546.7088 3.7452 1.8782 5.1354-1.7447-1.4674-2.8575-3.663-2.8588-6.116.0024-4.4125 3.5936-7.999 7.9942-7.9942 2.3802-1e-4 4.616 1.0833 6.1218 2.8788C193.7885 171.3104 191.9774 170.6095 190.0704 170.6095z"/></g><g><defs><path id="SVGID_7_" d="M189.0898 155.7617c7.7763.0 15.0283 4.1826 18.926 10.9151 1.9201 3.3135 2.9377 7.0987 2.9353 10.9462.0024 12.0643-9.8065 21.8636-21.8613 21.8613-12.0547.0024-21.8636-9.8066-21.8612-21.8613.0-6.0285 2.4516-11.4921 6.4116-15.452C177.5977 158.2134 183.0612 155.7617 189.0898 155.7617zm7.9941 21.8613c0-1.4078-.3711-2.7892-1.0702-3.9959-1.4269-2.466-4.0797-3.9983-6.924-3.9983-4.4005-.0048-7.9918 3.5817-7.9942 7.9942.0024 4.4077 3.5865 7.9918 7.9942 7.9942 2.2027.0 4.2018-.8978 5.6479-2.3439C196.1861 181.8248 197.0839 179.8256 197.0839 177.623z"/></defs><clipPath id="SVGID_8_"><use xlink:href="#SVGID_7_" style="overflow:visible"/></clipPath><path style="clip-path:url(#SVGID_8_);fill:#d95140" d="M172.6595 161.1903c-3.96 3.96-6.4116 9.4235-6.4116 15.452-.0024 12.0547 9.8066 21.8636 21.8613 21.8613 12.0547.0024 21.8636-9.797 21.8613-21.8613.0024-3.8474-1.0151-7.6326-2.9353-10.9462-3.8977-6.7324-11.1497-10.9151-18.926-10.9151C182.0806 154.7811 176.6171 157.2327 172.6595 161.1903z"/></g><rect x="198.8952" y="170.69" style="fill:#d95140" width="122.6266" height="13.8671"/></g><g><g><path style="fill:#56a55c" d="M189.5379 264.6147l.0012-.0012c7.7751.0012 15.0294 4.1862 18.932 10.9235 1.9177 3.3159 2.9305 7.1011 2.9293 10.9378.0 5.8394-2.2733 11.3304-6.4032 15.4604-4.1288 4.1288-9.6186 6.4032-15.458 6.4032-5.8394.0-11.3281-2.2733-15.458-6.4032-4.13-4.13-6.4032-9.6186-6.4056-15.4628.0012-6.0249 2.454-11.4897 6.4116-15.4472C178.0458 267.0663 183.5105 264.6135 189.5379 264.6147zm7.993 21.8576c.0012-1.4042-.3687-2.7868-1.063-3.9887-1.4293-2.4684-4.0833-3.9995-6.9299-4.0019-4.4077.0024-7.993 3.5877-7.993 7.993.0 2.1356.832 4.1431 2.3427 5.6538 1.5083 1.5083 3.5159 2.3403 5.6503 2.3415 2.1356.0 4.1443-.8308 5.6539-2.3403C196.7013 290.6202 197.5321 288.6115 197.5309 286.4723z"/><path style="opacity:.3;fill:#fff" d="M189.5403 264.6153c7.7763.0 15.0283 4.1826 18.926 10.9151 1.9201 3.3135 2.9377 7.0987 2.9353 10.9462.0024 12.0643-9.8065 21.8636-21.8613 21.8613-12.0547.0024-21.8636-9.8065-21.8612-21.8613.0-6.0285 2.4516-11.492 6.4116-15.452C178.0482 267.0669 183.5117 264.6153 189.5403 264.6153zm7.9941 21.8612c0-1.4078-.3711-2.7892-1.0702-3.9959-1.4269-2.466-4.0797-3.9983-6.924-3.9983-4.4005-.0048-7.9918 3.5817-7.9942 7.9941.0024 4.4077 3.5865 7.9918 7.9942 7.9942 2.2027.0 4.2018-.8978 5.6479-2.3439C196.6366 290.6783 197.5344 288.6792 197.5344 286.4765z"/><g><defs><path id="SVGID_9_" d="M195.1881 292.1268c-1.4461 1.4461-3.4452 2.3439-5.6479 2.3439-4.4077-.0024-7.9918-3.5865-7.9942-7.9942.0024-4.4125 3.5937-7.9989 7.9942-7.9941 2.8443.0 5.497 1.5323 6.924 3.9983.6991 1.2067 1.0702 2.5881 1.0702 3.9959C197.5344 288.6792 196.6366 290.6783 195.1881 292.1268z"/></defs><clipPath id="SVGID_10_"><use xlink:href="#SVGID_9_" style="overflow:visible"/></clipPath><path style="clip-path:url(#SVGID_10_);fill:#fff" d="M190.5209 279.463c-4.4005-.0048-7.9918 3.5817-7.9942 7.9941.0011 1.9547.7088 3.7452 1.8782 5.1354-1.7446-1.4674-2.8575-3.6631-2.8588-6.1161.0024-4.4125 3.5936-7.999 7.9942-7.9941 2.3802-1e-4 4.616 1.0833 6.1218 2.8788C194.239 280.164 192.4279 279.463 190.5209 279.463z"/><path style="opacity:.13;clip-path:url(#SVGID_10_);fill:#020202" d="M190.5209 279.463c-4.4005-.0048-7.9918 3.5817-7.9942 7.9941.0011 1.9547.7088 3.7452 1.8782 5.1354-1.7446-1.4674-2.8575-3.6631-2.8588-6.1161.0024-4.4125 3.5936-7.999 7.9942-7.9941 2.3802-1e-4 4.616 1.0833 6.1218 2.8788C194.239 280.164 192.4279 279.463 190.5209 279.463z"/></g><g><defs><path id="SVGID_11_" d="M189.5403 264.6153c7.7763.0 15.0283 4.1826 18.926 10.9151 1.9201 3.3135 2.9377 7.0987 2.9353 10.9462.0024 12.0643-9.8065 21.8636-21.8613 21.8613-12.0547.0024-21.8636-9.8065-21.8612-21.8613.0-6.0285 2.4516-11.492 6.4116-15.452C178.0482 267.0669 183.5117 264.6153 189.5403 264.6153zm7.9941 21.8612c0-1.4078-.3711-2.7892-1.0702-3.9959-1.4269-2.466-4.0797-3.9983-6.924-3.9983-4.4005-.0048-7.9918 3.5817-7.9942 7.9941.0024 4.4077 3.5865 7.9918 7.9942 7.9942 2.2027.0 4.2018-.8978 5.6479-2.3439C196.6366 290.6783 197.5344 288.6792 197.5344 286.4765z"/></defs><clipPath id="SVGID_12_"><use xlink:href="#SVGID_11_" style="overflow:visible"/></clipPath><path style="clip-path:url(#SVGID_12_);fill:#56a55c" d="M173.11 270.0439c-3.96 3.96-6.4116 9.4235-6.4116 15.452-.0024 12.0547 9.8066 21.8636 21.8613 21.8613 12.0547.0024 21.8636-9.797 21.8613-21.8613.0024-3.8474-1.0151-7.6326-2.9353-10.9462-3.8977-6.7325-11.1497-10.9151-18.926-10.9151C182.5311 263.6346 177.0676 266.0863 173.11 270.0439z"/></g></g><rect x="199.3456" y="279.5436" style="fill:#56a55c" width="122.6266" height="13.8671"/></g><g><g><path style="fill:#f1bc42" d="M189.0874 318.7208l.0012-.0012c7.7751.0012 15.0295 4.1862 18.932 10.9234 1.9177 3.3159 2.9305 7.1011 2.9293 10.9378.0 5.8394-2.2733 11.3305-6.4032 15.4604-4.1288 4.1288-9.6186 6.4032-15.458 6.4032s-11.328-2.2733-15.458-6.4032-6.4032-9.6186-6.4056-15.4628c.0012-6.025 2.454-11.4897 6.4116-15.4472C177.5953 321.1724 183.0601 318.7196 189.0874 318.7208zm7.993 21.8576c.0012-1.4042-.3687-2.7868-1.063-3.9887-1.4293-2.4684-4.0833-3.9995-6.9299-4.0019-4.4077.0024-7.993 3.5877-7.993 7.993.0 2.1356.832 4.1431 2.3427 5.6539 1.5083 1.5083 3.5159 2.3403 5.6503 2.3415 2.1356.0 4.1443-.8308 5.6539-2.3403S197.0816 342.7176 197.0804 340.5784z"/><path style="opacity:.3;fill:#fff" d="M189.0898 318.7214c7.7763.0 15.0283 4.1826 18.926 10.915 1.9201 3.3136 2.9377 7.0988 2.9353 10.9462.0024 12.0643-9.8065 21.8636-21.8613 21.8612-12.0547.0024-21.8636-9.8065-21.8612-21.8612.0-6.0285 2.4516-11.4921 6.4116-15.452C177.5977 321.173 183.0612 318.7214 189.0898 318.7214zm7.9941 21.8612c0-1.4078-.3711-2.7892-1.0702-3.9959-1.4269-2.466-4.0797-3.9983-6.924-3.9983-4.4005-.0048-7.9918 3.5817-7.9942 7.9942.0024 4.4077 3.5865 7.9918 7.9942 7.9942 2.2027.0 4.2018-.8978 5.6479-2.3439C196.1861 344.7844 197.0839 342.7853 197.0839 340.5826z"/><g><defs><path id="SVGID_13_" d="M194.7376 346.2329c-1.4461 1.4461-3.4452 2.3439-5.6479 2.3439-4.4077-.0024-7.9918-3.5865-7.9942-7.9942.0024-4.4125 3.5937-7.999 7.9942-7.9942 2.8443.0 5.497 1.5323 6.924 3.9983.6991 1.2067 1.0702 2.5881 1.0702 3.9959C197.0839 342.7853 196.1861 344.7844 194.7376 346.2329z"/></defs><clipPath id="SVGID_14_"><use xlink:href="#SVGID_13_" style="overflow:visible"/></clipPath><path style="clip-path:url(#SVGID_14_);fill:#fff" d="M190.0704 333.5691c-4.4005-.0048-7.9918 3.5817-7.9942 7.9942.0011 1.9547.7088 3.7452 1.8782 5.1354-1.7447-1.4674-2.8575-3.6631-2.8588-6.1161.0024-4.4125 3.5936-7.999 7.9942-7.9942 2.3802-1e-4 4.616 1.0834 6.1218 2.8788C193.7885 334.2701 191.9774 333.5691 190.0704 333.5691z"/><path style="opacity:.13;clip-path:url(#SVGID_14_);fill:#020202" d="M190.0704 333.5691c-4.4005-.0048-7.9918 3.5817-7.9942 7.9942.0011 1.9547.7088 3.7452 1.8782 5.1354-1.7447-1.4674-2.8575-3.6631-2.8588-6.1161.0024-4.4125 3.5936-7.999 7.9942-7.9942 2.3802-1e-4 4.616 1.0834 6.1218 2.8788C193.7885 334.2701 191.9774 333.5691 190.0704 333.5691z"/></g><g><defs><path id="SVGID_15_" d="M189.0898 318.7214c7.7763.0 15.0283 4.1826 18.926 10.915 1.9201 3.3136 2.9377 7.0988 2.9353 10.9462.0024 12.0643-9.8065 21.8636-21.8613 21.8612-12.0547.0024-21.8636-9.8065-21.8612-21.8612.0-6.0285 2.4516-11.4921 6.4116-15.452C177.5977 321.173 183.0612 318.7214 189.0898 318.7214zm7.9941 21.8612c0-1.4078-.3711-2.7892-1.0702-3.9959-1.4269-2.466-4.0797-3.9983-6.924-3.9983-4.4005-.0048-7.9918 3.5817-7.9942 7.9942.0024 4.4077 3.5865 7.9918 7.9942 7.9942 2.2027.0 4.2018-.8978 5.6479-2.3439C196.1861 344.7844 197.0839 342.7853 197.0839 340.5826z"/></defs><clipPath id="SVGID_16_"><use xlink:href="#SVGID_15_" style="overflow:visible"/></clipPath><path style="clip-path:url(#SVGID_16_);fill:#f1bc42" d="M172.6595 324.15c-3.96 3.96-6.4116 9.4235-6.4116 15.452-.0024 12.0547 9.8066 21.8636 21.8613 21.8612 12.0547.0024 21.8636-9.797 21.8613-21.8612.0024-3.8474-1.0151-7.6327-2.9353-10.9462-3.8977-6.7324-11.1497-10.9151-18.926-10.9151C182.0806 317.7407 176.6171 320.1924 172.6595 324.15z"/></g></g><rect x="198.8952" y="333.6497" style="fill:#f1bc42" width="122.6266" height="13.8671"/></g></g></svg></span><span class="navbar-brand__name">NewLang</span></a>
+  <div class="td-navbar-nav-scroll ms-md-auto" id="main_navbar">
+    <ul class="navbar-nav">
+      <li class="nav-item">
+        <a class="nav-link" href="/ru/docs/"><span>Документация</span></a>
+      </li>
+      <li class="nav-item">
+        <a class="nav-link" href="/ru/playground/"><span>Playground</span></a>
+      </li>
+      <li class="nav-item">
+        <a class="nav-link active" href="/ru/blog/"><span>Статьи</span></a>
+      </li>
+      <li class="nav-item dropdown d-none d-lg-block">
+        <div class="dropdown">
+  <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false">Русский</a>
+  <ul class="dropdown-menu">
+    <li><a class="dropdown-item" href="/blog/building-blocks/">English</a></li>
+    </ul>
+</div></li>
+      </ul>
+  </div>
+  <div class="d-none d-lg-block">
+    <div class="td-search td-search--offline">
+  <div class="td-search__icon"></div>
+  <input
+    type="search"
+    class="td-search__input form-control"
+    placeholder="Поиск по сайту…"
+    aria-label="Поиск по сайту…"
+    autocomplete="off"
+    
+    data-offline-search-index-json-src="/offline-search-index.json"
+    data-offline-search-base-href="/"
+    data-offline-search-max-results="10"
+  >
+</div>
+  </div>
+</div>
+</nav>
+    </header>
+    <div class="container-fluid td-outer">
+      <div class="td-main">
+        <div class="row flex-xl-nowrap">
+          <aside class="col-12 col-md-3 col-xl-2 td-sidebar d-print-none">
+            <div id="td-sidebar-menu" class="td-sidebar__inner">
+  <form class="td-sidebar__search d-flex align-items-center">
+    <div class="td-search td-search--offline">
+  <div class="td-search__icon"></div>
+  <input
+    type="search"
+    class="td-search__input form-control"
+    placeholder="Поиск по сайту…"
+    aria-label="Поиск по сайту…"
+    autocomplete="off"
+    
+    data-offline-search-index-json-src="/offline-search-index.json"
+    data-offline-search-base-href="/"
+    data-offline-search-max-results="10"
+  >
+</div>
+    <button class="btn btn-link td-sidebar__toggle d-md-none p-0 ms-3 fas fa-bars" type="button" data-bs-toggle="collapse" data-bs-target="#td-section-nav" aria-controls="td-section-nav" aria-expanded="false" aria-label="Toggle section navigation">
+    </button>
+  </form>
+  <nav class="td-sidebar-nav collapse" id="td-section-nav">
+    <div class="td-sidebar-nav__section nav-item dropdown d-block d-lg-none">
+      <div class="dropdown">
+  <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false">Русский</a>
+  <ul class="dropdown-menu">
+    <li><a class="dropdown-item" href="/blog/building-blocks/">English</a></li>
+    </ul>
+</div>
+    </div>
+    <ul class="td-sidebar-nav__section pe-md-3 ul-0">
+      <li class="td-sidebar-nav__section-title td-sidebar-nav__section with-child active-path" id="m-rublog-li">
+  <a href="/ru/blog/" class="align-left ps-0 td-sidebar-link td-sidebar-link__section tree-root" id="m-rublog"><span class="">Статьи</span></a>
+  <ul class="ul-1">
+    <li class="td-sidebar-nav__section-title td-sidebar-nav__section without-child" id="m-rublogwrong-term-ai-li">
+  <a href="/ru/blog/wrong-term-ai/" class="align-left ps-0 td-sidebar-link td-sidebar-link__page" id="m-rublogwrong-term-ai"><span class="">Неоднозначный термин «искусственный интеллект»</span></a>
+</li><li class="td-sidebar-nav__section-title td-sidebar-nav__section without-child" id="m-rublogsimple-complex-programming-li">
+  <a href="/ru/blog/simple-complex-programming/" class="align-left ps-0 td-sidebar-link td-sidebar-link__page" id="m-rublogsimple-complex-programming"><span class="">Простое сложное программирование</span></a>
+</li><li class="td-sidebar-nav__section-title td-sidebar-nav__section without-child active-path" id="m-rublogbuilding-blocks-li">
+  <a href="/ru/blog/building-blocks/" class="align-left ps-0 active td-sidebar-link td-sidebar-link__page" id="m-rublogbuilding-blocks"><span class="td-sidebar-nav-active-item">Building blocks in programming languages</span></a>
+</li><li class="td-sidebar-nav__section-title td-sidebar-nav__section without-child" id="m-rublogreference-solution-li">
+  <a href="/ru/blog/reference-solution/" class="align-left ps-0 td-sidebar-link td-sidebar-link__page" id="m-rublogreference-solution"><span class="">Возможное решение проблемы ссылок в языках программирования</span></a>
+</li><li class="td-sidebar-nav__section-title td-sidebar-nav__section without-child" id="m-rublogrelease-v04-li">
+  <a href="/ru/blog/release-v0.4/" class="align-left ps-0 td-sidebar-link td-sidebar-link__page" id="m-rublogrelease-v04"><span class="">Релиз языка программирования NewLang 0.4</span></a>
+</li><li class="td-sidebar-nav__section-title td-sidebar-nav__section without-child" id="m-rublogparser-nuances-li">
+  <a href="/ru/blog/parser-nuances/" class="align-left ps-0 td-sidebar-link td-sidebar-link__page" id="m-rublogparser-nuances"><span class="">Нюансы разработки парсера для своего языка программирования</span></a>
+</li><li class="td-sidebar-nav__section-title td-sidebar-nav__section without-child" id="m-rublogdsl-with-macros-li">
+  <a href="/ru/blog/dsl-with-macros/" class="align-left ps-0 td-sidebar-link td-sidebar-link__page" id="m-rublogdsl-with-macros"><span class="">Вариант реализации DSL (domain-specific language) с помощью макросов</span></a>
+</li><li class="td-sidebar-nav__section-title td-sidebar-nav__section without-child" id="m-rublogrelease-v03-li">
+  <a href="/ru/blog/release-v0.3/" class="align-left ps-0 td-sidebar-link td-sidebar-link__page" id="m-rublogrelease-v03"><span class="">Релиз языка программрования NewLang 0.3</span></a>
+</li><li class="td-sidebar-nav__section-title td-sidebar-nav__section without-child" id="m-rublogrelease-v02-li">
+  <a href="/ru/blog/release-v0.2/" class="align-left ps-0 td-sidebar-link td-sidebar-link__page" id="m-rublogrelease-v02"><span class="">Релиз языка программрования NewLang 0.2</span></a>
+</li><li class="td-sidebar-nav__section-title td-sidebar-nav__section without-child" id="m-rublogrelease-v01-li">
+  <a href="/ru/blog/release-v0.1/" class="align-left ps-0 td-sidebar-link td-sidebar-link__page" id="m-rublogrelease-v01"><span class="">Релиз языка программрования NewLang</span></a>
+</li><li class="td-sidebar-nav__section-title td-sidebar-nav__section without-child" id="m-rublognewlang-li">
+  <a href="/ru/blog/newlang/" class="align-left ps-0 td-sidebar-link td-sidebar-link__page" id="m-rublognewlang"><span class="">Новый язык программирования</span></a>
+</li><li class="td-sidebar-nav__section-title td-sidebar-nav__section without-child" id="m-rublogprog-styles-same-time-li">
+  <a href="/ru/blog/prog-styles-same-time/" class="align-left ps-0 td-sidebar-link td-sidebar-link__page" id="m-rublogprog-styles-same-time"><span class="">Можно ли использовать декларативный и императивный стили написания программ одновременно?</span></a>
+</li><li class="td-sidebar-nav__section-title td-sidebar-nav__section without-child" id="m-rublogunusual-prog-li">
+  <a href="/ru/blog/unusual-prog/" class="align-left ps-0 td-sidebar-link td-sidebar-link__page" id="m-rublogunusual-prog"><span class="">Необычная концепция синтаксиса языка программирования</span></a>
+</li><li class="td-sidebar-nav__section-title td-sidebar-nav__section without-child" id="m-rublogcomplex-prog-li">
+  <a href="/ru/blog/complex-prog/" class="align-left ps-0 td-sidebar-link td-sidebar-link__page" id="m-rublogcomplex-prog"><span class="">Простое сложное программирование</span></a>
+</li><li class="td-sidebar-nav__section-title td-sidebar-nav__section without-child" id="m-rubloglang-final-li">
+  <a href="/ru/blog/lang-final/" class="align-left ps-0 td-sidebar-link td-sidebar-link__page" id="m-rubloglang-final"><span class="">Какая «идеальная» цель развития у языков программирования?</span></a>
+</li><li class="td-sidebar-nav__section-title td-sidebar-nav__section without-child" id="m-rubloglogic-prog-li">
+  <a href="/ru/blog/logic-prog/" class="align-left ps-0 td-sidebar-link td-sidebar-link__page" id="m-rubloglogic-prog"><span class="">Проблема логических языков программирования</span></a>
+</li><li class="td-sidebar-nav__section-title td-sidebar-nav__section without-child" id="m-rubloginter-prog-li">
+  <a href="/ru/blog/inter-prog/" class="align-left ps-0 td-sidebar-link td-sidebar-link__page" id="m-rubloginter-prog"><span class="">Интернациональное программирование на естественных языках</span></a>
+</li>
+  </ul>
+</li>
+    </ul>
+  </nav>
+</div>
+
+          </aside>
+          <aside class="d-none d-xl-block col-xl-2 td-sidebar-toc d-print-none">
+            <div class="td-page-meta ms-2 pb-1 pt-2 mb-0">
+<a id="print" href="/ru/blog/_print/"><i class="fa-solid fa-print fa-fw"></i> Печатать весь раздел</a>
+
+</div>
+
+            <div class="td-toc">
+        <nav id="TableOfContents">
+  <ul>
+    <li><a href="#ведение">Ведение</a>
+      <ul>
+        <li><a href="#странные-инкремент-и-декремент--и-">Странные инкремент и декремент (++ и &ndash;)</a></li>
+        <li><a href="#мало-операторов-присвоения-значения">Мало операторов присвоения значения</a></li>
+        <li><a href="#всегда-лишний-тип-данных">Всегда лишний тип данных</a></li>
+        <li><a href="#нулевой-указатель">Нулевой указатель</a></li>
+        <li><a href="#результат-выполнения-последней-операции">Результат выполнения последней операции</a></li>
+        <li><a href="#чистые-функции">Чистые функции</a></li>
+        <li><a href="#пустое-имя-переменной">Пустое имя переменной</a></li>
+        <li><a href="#итого">Итого</a></li>
+      </ul>
+    </li>
+  </ul>
+</nav>
+      </div>
+    
+            <div class="taxonomy taxonomy-terms-cloud taxo-tags">
+      <h5 class="taxonomy-title">Tag Cloud</h5>
+      <ul class="taxonomy-terms">
+        <li><a class="taxonomy-term" href="http://localhost:1313/ru/tags/dict/" data-taxonomy-term="dict"><span class="taxonomy-label">Dict</span><span class="taxonomy-count">1</span></a></li>
+        <li><a class="taxonomy-term" href="http://localhost:1313/ru/tags/set/" data-taxonomy-term="set"><span class="taxonomy-label">Set</span><span class="taxonomy-count">1</span></a></li>
+        <li><a class="taxonomy-term" href="http://localhost:1313/ru/tags/types/" data-taxonomy-term="types"><span class="taxonomy-label">Types</span><span class="taxonomy-count">1</span></a></li>
+        <li><a class="taxonomy-term" href="http://localhost:1313/ru/tags/%D0%B8%D1%82%D0%B5%D1%80%D0%B0%D1%82%D0%BE%D1%80%D1%8B/" data-taxonomy-term="%D0%B8%D1%82%D0%B5%D1%80%D0%B0%D1%82%D0%BE%D1%80%D1%8B"><span class="taxonomy-label">Итераторы</span><span class="taxonomy-count">1</span></a></li>
+        <li><a class="taxonomy-term" href="http://localhost:1313/ru/tags/%D0%BA%D0%BE%D0%BB%D0%BB%D0%B5%D0%BA%D1%86%D0%B8%D0%B8/" data-taxonomy-term="%D0%BA%D0%BE%D0%BB%D0%BB%D0%B5%D0%BA%D1%86%D0%B8%D0%B8"><span class="taxonomy-label">Коллекции</span><span class="taxonomy-count">4</span></a></li>
+        <li><a class="taxonomy-term" href="http://localhost:1313/ru/tags/%D0%BD%D0%B0%D0%B1%D0%BE%D1%80/" data-taxonomy-term="%D0%BD%D0%B0%D0%B1%D0%BE%D1%80"><span class="taxonomy-label">Набор</span><span class="taxonomy-count">1</span></a></li>
+        <li><a class="taxonomy-term" href="http://localhost:1313/ru/tags/%D0%BE%D0%BE%D0%BF/" data-taxonomy-term="%D0%BE%D0%BE%D0%BF"><span class="taxonomy-label">ООП</span><span class="taxonomy-count">3</span></a></li>
+        <li><a class="taxonomy-term" href="http://localhost:1313/ru/tags/%D1%81%D0%B8%D1%81%D1%82%D0%B5%D0%BC%D1%8B%D0%B5-%D1%82%D0%B8%D0%BF%D1%8B/" data-taxonomy-term="%D1%81%D0%B8%D1%81%D1%82%D0%B5%D0%BC%D1%8B%D0%B5-%D1%82%D0%B8%D0%BF%D1%8B"><span class="taxonomy-label">Системые Типы</span><span class="taxonomy-count">1</span></a></li>
+        <li><a class="taxonomy-term" href="http://localhost:1313/ru/tags/%D1%81%D0%BB%D0%BE%D0%B2%D0%B0%D1%80%D1%8C/" data-taxonomy-term="%D1%81%D0%BB%D0%BE%D0%B2%D0%B0%D1%80%D1%8C"><span class="taxonomy-label">Словарь</span><span class="taxonomy-count">1</span></a></li>
+        <li><a class="taxonomy-term" href="http://localhost:1313/ru/tags/%D1%81%D1%82%D1%80%D0%BE%D0%BA%D0%B8/" data-taxonomy-term="%D1%81%D1%82%D1%80%D0%BE%D0%BA%D0%B8"><span class="taxonomy-label">Строки</span><span class="taxonomy-count">1</span></a></li>
+        <li><a class="taxonomy-term" href="http://localhost:1313/ru/tags/%D1%82%D0%B8%D0%BF%D1%8B-%D0%B4%D0%B0%D0%BD%D0%BD%D1%8B%D1%85/" data-taxonomy-term="%D1%82%D0%B8%D0%BF%D1%8B-%D0%B4%D0%B0%D0%BD%D0%BD%D1%8B%D1%85"><span class="taxonomy-label">Типы Данных</span><span class="taxonomy-count">9</span></a></li>
+        <li><a class="taxonomy-term" href="http://localhost:1313/ru/tags/%D1%84%D1%83%D0%BD%D0%BA%D1%86%D0%B8%D0%B8/" data-taxonomy-term="%D1%84%D1%83%D0%BD%D0%BA%D1%86%D0%B8%D0%B8"><span class="taxonomy-label">Функции</span><span class="taxonomy-count">1</span></a></li>
+        </ul>
+    </div>
+  
+	
+          </aside>
+          <main class="col-12 col-md-9 col-xl-8 ps-md-5 pe-md-4" role="main">
+            <a class="td-rss-button" title="RSS" href="/ru/blog/index.xml" target="_blank" rel="noopener">
+              <i class="fa-solid fa-rss" aria-hidden="true"></i>
+            </a>
+            <nav aria-label="breadcrumb" class="td-breadcrumbs">
+  <ol class="breadcrumb">
+  <li class="breadcrumb-item">
+    <a href="/ru/blog/">Статьи</a></li>
+  <li class="breadcrumb-item active" aria-current="page">
+    Building blocks in programming languages</li>
+  </ol>
+</nav>
+<div class="td-content">
+	<h1>Building blocks in programming languages</h1>
+	
+	<div class="td-byline mb-4">
+		
+		<time datetime="2024-05-03" class="text-body-secondary">03.05.2024</time>
+	</div>
+	<header class="article-meta">
+		
+  </header>
+	<p>В результате обратной связи по статье с <a href="https://habr.com/ru/articles/784238/">размышлениями о структурном программировании</a>, было много отзывов и споров в комментариях, за которые я хочу сказать всем большое спасибо.</p>
+<p>И под впечатлениями от обсуждения предыдущей статьи я задался вопросом, а существует ли минимальный набор лексем, операторов или синтаксических конструкций, с помощью которых можно построить произвольную грамматику для современного языка программирования общего назначения?</p>
+<h2 id="ведение">Ведение<a class="td-heading-self-link" href="#%d0%b2%d0%b5%d0%b4%d0%b5%d0%bd%d0%b8%d0%b5" aria-label="Heading self-link"></a></h2>
+<p>Практически все языки программирования строятся либо по принципу подобия (сделать как вот этот, только со своим блекждеком), либо для реализации какой-то новой концепции (модульность, чистота функциональных вычислений и т.д.). Либо и то и другое одновременно.</p>
+<p>Но при любом раскладе, создатель нового языка программирования не берет свои идеи случайным образом из воздуха. Они все равно базируются на основе его предыдущего опыта, одержимости новой концепцией и прочими начальными установками и ограничениями.</p>
+<p>Сразу признаюсь, что не могу однозначно перечислить минимальный набор базовых операторов и конструкций, который будет достаточен для <em>современного</em> языка программирования. Более того, я не уверен, что такой набор вообще возможен, ведь многие конструкции можно представить с помощью других, более низкого уровня (например, условного/безусловного перехода).  Я помню про машину Тьюринга, но меня интересуют реальные языки программирования, а не машинные инструкции у абстрактного исполнителя.</p>
+<p>Поэтому, в качестве базовых кирпичиков языков программирования можно смело принять те возможности, которые были придуманы и реализованы разработчиками мейнстримовых языков. И начать наверно лучше с критики отдельных и всем хорошо известных фундаментальных концепций. И нет, это не оператор goto!</p>
+<h3 id="странные-инкремент-и-декремент--и-">Странные инкремент и декремент (++ и &ndash;)<a class="td-heading-self-link" href="#%d1%81%d1%82%d1%80%d0%b0%d0%bd%d0%bd%d1%8b%d0%b5-%d0%b8%d0%bd%d0%ba%d1%80%d0%b5%d0%bc%d0%b5%d0%bd%d1%82-%d0%b8-%d0%b4%d0%b5%d0%ba%d1%80%d0%b5%d0%bc%d0%b5%d0%bd%d1%82--%d0%b8-" aria-label="Heading self-link"></a></h3>
+<p>По моему мнению самые не однозначные операторы, это операторы для инкремента и декремента, т.е. арифметическое увеличение или уменьшение на единицу значения переменной. Они вносят серьезную путаницу в строгую  грамматику языка, которая, по моему мнению, просто обязана быть максимально прозрачной и <em>однозначной</em>.</p>
+<p>Основная проблема у этих операторов заключается в том, что являясь арифметическими операторами, они <em>модифицируют</em> значение переменной, тогда как все остальные арифметические операторы оперируют <em>копиями</em> значений без изменения самой переменной непосредственно.</p>
+<p>Мне могут возразить, что операторы +=, -=, *= или = тоже меняют значение переменной, но хочу заметить, что это только упрощенная запись комбинации двух операторов, один из которых как раз и предназначен для присваивания нового значения переменной, поэтому возражения не принимаются. :-)</p>
+<p>А если еще вспомнить, что операторы инкремента и декремента могут быть префиксными и постфиксными, то в комбинациях с адресной арифметикой (*val++ или не дай бог какой нибудь ++*val++), взрыв мозга с возможными ошибками просто гарантирован.</p>
+<h3 id="мало-операторов-присвоения-значения">Мало операторов присвоения значения<a class="td-heading-self-link" href="#%d0%bc%d0%b0%d0%bb%d0%be-%d0%be%d0%bf%d0%b5%d1%80%d0%b0%d1%82%d0%be%d1%80%d0%be%d0%b2-%d0%bf%d1%80%d0%b8%d1%81%d0%b2%d0%be%d0%b5%d0%bd%d0%b8%d1%8f-%d0%b7%d0%bd%d0%b0%d1%87%d0%b5%d0%bd%d0%b8%d1%8f" aria-label="Heading self-link"></a></h3>
+<p>Да, вы читаете все правильно! Я действительно критикую оператор присвоения значения из одного значка равно &ldquo;<strong>=</strong>&rdquo;, так как считаю, что он является не совсем полноценным. Но в отличие от инкремента и декремента, без которых лексика языка может легко обойтись, без оператора присвоения обойтись никак не получится!</p>
+<p>Но моя критика направлена не на сам оператор, а на его незавершенность и создание дополнительной путаницы в некоторых языках программирования. Например, в том же самом Python невозможно понять, происходит ли создание переменной (т.е. первое использование переменной) или же это присвоение значения переменной, которая уже существует (или программист допустил опечатку в имени переменной).</p>
+<p>Если вспомнить королевское &ldquo;критикуешь, предлагай&rdquo;, то мне кажется, что было бы правильным сделать два разных оператора: оператор <em>присвоения значения</em> и оператор <em>создания переменной</em> (в С/С++ логика создания переменной выполняется за счет указания типа переменой при ее первом использовании).</p>
+<p>Другими словами, вместо одного оператора &ldquo;создания и/или присвоения значения&rdquo; лучше использовать два или даже три оператора: создания новой переменной (<strong>::=</strong>), только присвоения значения уже существующей переменной (<strong>=</strong>) и создания/присвоения не зависимо от наличия переменной (<strong>:=</strong>) - т.е. аналога текущего оператора <strong>=</strong>.</p>
+<p>И в этом случае компилятор уже на уровне исходного синтаксиса мог бы контролировать создание или повторное использование ранее созданной перемененной согласно намерениям программиста.</p>
+<p>А еще, я бы добавил оператор &ldquo;обмен значений&rdquo;, какой нибудь <strong>:=:</strong>. По сути, это аналог std::swap() в С++, только на уровне синтаксиса языка.</p>
+<h3 id="всегда-лишний-тип-данных">Всегда лишний тип данных<a class="td-heading-self-link" href="#%d0%b2%d1%81%d0%b5%d0%b3%d0%b4%d0%b0-%d0%bb%d0%b8%d1%88%d0%bd%d0%b8%d0%b9-%d1%82%d0%b8%d0%bf-%d0%b4%d0%b0%d0%bd%d0%bd%d1%8b%d1%85" aria-label="Heading self-link"></a></h3>
+<p>Во всех массовых языках программирования как правило присутствуют числа с разной разрядностью. Эта вынужденная необходимость, так как разрядность вычислений определяется аппаратным уровнем и разработчики языков не могут это не учитывать.</p>
+<p>Другое дело, булевый (логический) тип данных. В описании одного языка я встретил даже вот такое:</p>
+<pre tabindex="0"><code>Bool        1 Byte truth value
+(Bool16)    2 Byte truth value
+(Bool32)    4 Byte truth value
+(Bool64)    8 Byte truth value
+</code></pre><p>А когда копаешь чуть глубже, все скатывается к одному единственному биту, которым можно представить два противоположных состояния ДА/НЕТ, true/false, 1/0&hellip;</p>
+<p>Но позвольте, если это 1 или 0, то почему бы сразу не определить, что логический тип, это число с одним разрядом? (передаю пламенный привет LLVM!).</p>
+<p>Ведь нет работы хуже, чем бессмысленная работа по преобразованию чисел в логические значения и наоборот:</p>
+<blockquote>
+<p>В Java существуют довольно строгие ограничения по отношению к типу boolean: значения типа boolean нельзя преобразовать ни в какой другой тип данных, и наоборот. В частности, boolean не является целым типом, а целые значения нельзя применять вместо булевых.</p></blockquote>
+<p>А еще, в некоторых языках программирования, которые поддерживают значение &ldquo;Пусто/None&rdquo;, булевый тип данных может вообще превращаться в трибул, например в случае параметров функций по умолчанию, когда у булевого аргумента добавляется состояние &ldquo;не установлен&rdquo;. Но с точки зрения использования не инициализированных переменных, это хотя бы понятно и логически объяснимо.</p>
+<h3 id="нулевой-указатель">Нулевой указатель<a class="td-heading-self-link" href="#%d0%bd%d1%83%d0%bb%d0%b5%d0%b2%d0%be%d0%b9-%d1%83%d0%ba%d0%b0%d0%b7%d0%b0%d1%82%d0%b5%d0%bb%d1%8c" aria-label="Heading self-link"></a></h3>
+<p>Во всех массовых языках программирования так или иначе присутствует тип данных под названием <em>ссылка</em>. А в некоторых языках типы ссылок могут быть сразу нескольких видов.</p>
+<p>Однако, наличие ссылочных типов данных добавляет сразу несколько неопределенностей, таких как управление памятью и разделяемыми ресурсами (подробнее в статье <a href="https://habr.com/ru/articles/784184/">Управление памятью и разделяемыми ресурсами без ошибок</a>). Кроме этого, при наличии адресной арифметики (явной или не явной), сразу становится необходимым использование специального зарезервированного значения под названием &ldquo;нулевой указатель&rdquo;, <strong>NULL</strong>, <strong>nil</strong>, <strong>nullptr</strong> и т.д. в зависимости от языка.</p>
+<p>Наличие подобного значения принуждает разработчиков языков идти на значительное усложнение синтаксиса и логики работы с указателями за счет контроля явной/не явной возможности хранить нулевой указатель в ссылочной переменной.</p>
+<p>Но в том случае, если компилятор языка будет сам управлять и контролировать ссылочные типы данных и разделяемые ресурсы, то само понятие как &ldquo;нулевой указатель&rdquo; становится не нужным и будет скрыто от программиста в деталях реализации.</p>
+<h3 id="результат-выполнения-последней-операции">Результат выполнения последней операции<a class="td-heading-self-link" href="#%d1%80%d0%b5%d0%b7%d1%83%d0%bb%d1%8c%d1%82%d0%b0%d1%82-%d0%b2%d1%8b%d0%bf%d0%be%d0%bb%d0%bd%d0%b5%d0%bd%d0%b8%d1%8f-%d0%bf%d0%be%d1%81%d0%bb%d0%b5%d0%b4%d0%bd%d0%b5%d0%b9-%d0%be%d0%bf%d0%b5%d1%80%d0%b0%d1%86%d0%b8%d0%b8" aria-label="Heading self-link"></a></h3>
+<p>Бывают ситуации, когда не хватает системной переменной со значением результата выполнения последней операции. Какой нибудь аналог  <code>$?</code> в bash скриптах, но на уровне исходного кода Python или C/C++.</p>
+<p>Но я имею ввиду не конкретную физическую переменную, а некий обобщенный идентификатор с результатом выполнения последней операции. Псевдо-переменную, которой управляет компилятор языка. Другими словами, чтобы тип этой псевдо-переменной менялся в зависимости от того, какая операция была последней.</p>
+<p>Это могло бы упростить решение часто возникающих задач, например, получить последнее значение после выхода из цикла.</p>
+<p>Или с помощью такой псевдо-переменной можно значительно упростить синтаксис обработки исключений, где перехват реализуется на основе типов. Но одновременно с типом перехватываемого исключения приходится определять и переменную, даже если она в дальнейшем никак не используется.</p>
+<h3 id="чистые-функции">Чистые функции<a class="td-heading-self-link" href="#%d1%87%d0%b8%d1%81%d1%82%d1%8b%d0%b5-%d1%84%d1%83%d0%bd%d0%ba%d1%86%d0%b8%d0%b8" aria-label="Heading self-link"></a></h3>
+<p>Еще, мне бы иногда хотелось иметь возможность создавать чистые функции на С/С++ или Python, чтобы сам компилятор контролировал запрет на обращение к глобальным переменным или не чистым функциям на уровне синтаксиса языка, и это бы проверялось во время компиляции.</p>
+<h3 id="пустое-имя-переменной">Пустое имя переменной<a class="td-heading-self-link" href="#%d0%bf%d1%83%d1%81%d1%82%d0%be%d0%b5-%d0%b8%d0%bc%d1%8f-%d0%bf%d0%b5%d1%80%d0%b5%d0%bc%d0%b5%d0%bd%d0%bd%d0%be%d0%b9" aria-label="Heading self-link"></a></h3>
+<p>И напоследок хочется сказать, что в С++ очень сильно не хватало пустой переменой &ldquo;<strong>_</strong>&rdquo; (как в Python). Но в последних предложениях стандарта ее кажется завезли, поэтому начиная с C++26 будет нам счастье :-)</p>
+<h3 id="итого">Итого<a class="td-heading-self-link" href="#%d0%b8%d1%82%d0%be%d0%b3%d0%be" aria-label="Heading self-link"></a></h3>
+<p>При написании данной статьи я постарался абстрагироваться и подойти не предвзято к своему более чем тридцатилетнему опыту разработки, но не уверен, что это у меня получилось, поэтому буду рад любым замечаниям и возражениям в комментариях.</p>
+<p>Если вам не сложно, <a href="https://habr.com/ru/articles/785856/">напишите в комментариях</a>, какие возможности в современных языках программирования по вашему мнению больше мешают, чем помогают, или наоборот, каких  операторов/синтаксических конструкций вам не хватает.</p>
+<p>Всегда интересно узнать, что же ты пропустил, забыл или не учел.</p>
+
+	<ul class="list-unstyled d-flex justify-content-between align-items-center mb-0 pt-5">
+  <li>
+    <a href="/ru/blog/reference-solution/" aria-label="Предыдущая - Возможное решение проблемы ссылок в языках программирования" class="btn btn-primary"><span class="me-1">←</span>Предыдущая</a>
+  </li>
+  <li>
+    <a href="/ru/blog/simple-complex-programming/" aria-label="Следующая - Простое сложное программирование" class="btn btn-primary">Следующая<span class="ms-1">→</span></a>
+  </li>
+</ul>
+
+	</div>
+
+
+          </main>
+        </div>
+      </div>
+      <footer class="td-footer row d-print-none">
+  <div class="container-fluid">
+    <div class="row mx-md-2">
+      <div class="td-footer__left col-6 col-sm-4 order-sm-1">
+        <ul class="td-footer__links-list">
+  
+  <li class="td-footer__links-item" data-bs-toggle="tooltip" title="User mailing list" aria-label="User mailing list">
+    <a target="_blank" rel="noopener" href="mailto:mail@newlang.net" aria-label="User mailing list">
+      <i class="fa fa-envelope"></i>
+    </a>
+  </li>
+  
+  <li class="td-footer__links-item" data-bs-toggle="tooltip" title="" aria-label="">
+    <a target="_blank" rel="noopener" href="" aria-label="">
+      <i class=""></i>
+    </a>
+  </li>
+  
+  <li class="td-footer__links-item" data-bs-toggle="tooltip" title="" aria-label="">
+    <a target="_blank" rel="noopener" href="" aria-label="">
+      <i class=""></i>
+    </a>
+  </li>
+  
+</ul>
+
+      </div><div class="td-footer__right col-6 col-sm-4 order-sm-3">
+        <ul class="td-footer__links-list">
+  
+  <li class="td-footer__links-item" data-bs-toggle="tooltip" title="GitHub" aria-label="GitHub">
+    <a target="_blank" rel="noopener" href="https://github.com/rsashka/newlang" aria-label="GitHub">
+      <i class="fab fa-github"></i>
+    </a>
+  </li>
+  
+  <li class="td-footer__links-item" data-bs-toggle="tooltip" title="" aria-label="">
+    <a target="_blank" rel="noopener" href="" aria-label="">
+      <i class=""></i>
+    </a>
+  </li>
+  
+  <li class="td-footer__links-item" data-bs-toggle="tooltip" title="" aria-label="">
+    <a target="_blank" rel="noopener" href="" aria-label="">
+      <i class=""></i>
+    </a>
+  </li>
+  
+</ul>
+
+      </div><div class="td-footer__center col-12 col-sm-4 py-2 order-sm-2">
+        <span class="td-footer__copyright">&copy;
+    2025
+    <span class="td-footer__authors">The NewLang Authors</span></span><span class="td-footer__all_rights_reserved">Все права защищены</span>
+      </div>
+    </div>
+  </div>
+</footer>
+
+    </div>
+    <script src="/js/main.js"></script>
+<script defer src="/js/click-to-copy.js" crossorigin="anonymous"></script>
+<script src='/js/tabpane-persist.js'></script>
+
+  </body>
+</html>

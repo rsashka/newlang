@@ -1,0 +1,13 @@
+<map id="newlang::Term" name="newlang::Term">
+<area shape="rect" id="Node000001" title=" " alt="" coords="757,85,875,111"/>
+<area shape="rect" id="Node000002" href="$classnewlang_1_1Dict.html" title=" " alt="" coords="535,44,708,69"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="696,70,757,83,756,88,694,75"/>
+<area shape="rect" id="Node000003" title=" " alt="" coords="237,5,420,60"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="434,39,535,47,534,52,433,44"/>
+<area shape="rect" id="Node000004" href="$classnewlang_1_1Dict.html" title=" " alt="" coords="237,84,420,109"/>
+<area shape="poly" id="edge3_Node000002_Node000004" title=" " alt="" coords="433,80,534,66,535,71,434,85"/>
+<area shape="rect" id="Node000005" title=" " alt="" coords="5,69,188,124"/>
+<area shape="poly" id="edge4_Node000004_Node000005" title=" " alt="" coords="202,94,237,94,237,99,202,99"/>
+<area shape="rect" id="Node000006" title=" " alt="" coords="545,94,698,134"/>
+<area shape="poly" id="edge5_Node000001_Node000006" title=" " alt="" coords="712,104,757,100,757,105,712,109"/>
+</map>
