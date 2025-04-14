@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>ООП on NewLang</title>
+    <link>http://localhost:1313/tags/%D0%BE%D0%BE%D0%BF/</link>
+    <description>Recent content in ООП on NewLang</description>
+    <generator>Hugo</generator>
+    <language>en</language>
+    <atom:link href="http://localhost:1313/tags/%D0%BE%D0%BE%D0%BF/index.xml" rel="self" type="application/rss+xml" />
+    <item>
+      <title>Иерархия типов и обобщения</title>
+      <link>http://localhost:1313/docs/types/generics/</link>
+      <pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate>
+      <guid>http://localhost:1313/docs/types/generics/</guid>
+      <description>&lt;p&gt;&lt;em&gt;NewLang&lt;/em&gt; имеет закрытую систему типов. т.е. любой новый тип данных, которые создает пользователь,&#xA;обязательно должен быть наследником одного из уже существующих, т.е. расширять один из них.&#xA;Такой поход напоминает создание классов в языке Java, в котором каждый новый класс имеет в своих родителях класс Object.&lt;/p&gt;&#xA;&lt;p&gt;С помощью обобщений (generics) можно писать код, который может работать с любым совместимым типом данных.&lt;/p&gt;&#xA;&lt;p&gt;Фрагмент иерархии типов данных (&lt;a href=&#34;http://localhost:1313/docs/types/strings/&#34;&gt;строки&lt;/a&gt; и &lt;a href=&#34;http://localhost:1313/docs/types/numbers/&#34;&gt;числа&lt;/a&gt;,&#xA;а в скобках указаны синонимы типов):&lt;/p&gt;</description>
+    </item>
+    <item>
+      <title>Словари</title>
+      <link>http://localhost:1313/docs/types/dicts/</link>
+      <pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate>
+      <guid>http://localhost:1313/docs/types/dicts/</guid>
+      <description>&lt;h2 id=&#34;объектно-ориентированное-программирование&#34;&gt;Объектно ориентированное программирование&lt;a class=&#34;td-heading-self-link&#34; href=&#34;#%d0%be%d0%b1%d1%8a%d0%b5%d0%ba%d1%82%d0%bd%d0%be-%d0%be%d1%80%d0%b8%d0%b5%d0%bd%d1%82%d0%b8%d1%80%d0%be%d0%b2%d0%b0%d0%bd%d0%bd%d0%be%d0%b5-%d0%bf%d1%80%d0%be%d0%b3%d1%80%d0%b0%d0%bc%d0%bc%d0%b8%d1%80%d0%be%d0%b2%d0%b0%d0%bd%d0%b8%d0%b5&#34; aria-label=&#34;Heading self-link&#34;&gt;&lt;/a&gt;&lt;/h2&gt;&#xA;&lt;p&gt;&lt;em&gt;NewLang&lt;/em&gt; поддерживает следующую концепцию объектно-ориентированного программирования:&lt;/p&gt;&#xA;&lt;p&gt;Каждый объект представляет собой отдельный тип данных, который наследуется от другого типа или от одного из его наследников (что очень похоже на концепцию объектов в языке Java), а экземпляр конкретного класса создается путем вызова его типа.&lt;/p&gt;&#xA;&lt;p&gt;Наследование поддерживается для типов словарь (&lt;em&gt;:Dictionary&lt;/em&gt;) и класс (&lt;em&gt;:Class&lt;/em&gt;) и всех их потомков.&lt;/p&gt;&#xA;&lt;h3 id=&#34;словарь&#34;&gt;Словарь&lt;a class=&#34;td-heading-self-link&#34; href=&#34;#%d1%81%d0%bb%d0%be%d0%b2%d0%b0%d1%80%d1%8c&#34; aria-label=&#34;Heading self-link&#34;&gt;&lt;/a&gt;&lt;/h3&gt;&#xA;&lt;p&gt;Словарь (&lt;em&gt;:Dictionary&lt;/em&gt;) — набор данных произвольного типа с доступом к отдельным элементам по целочисленному индексу или по имени элемента при его наличии (это похоже и на tuple и на структуру одновременно). Словари отличаются от &lt;a href=&#34;https://newlang.net/type_nor.html&#34;&gt;тензоров&lt;/a&gt; тем, что всегда имеют только одно измерение, но каждый элемент может содержать произвольное количество элементов любого типа, в том числе и другие словари.&lt;/p&gt;</description>
+    </item>
+    <item>
+      <title>Классы</title>
+      <link>http://localhost:1313/docs/types/class/</link>
+      <pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate>
+      <guid>http://localhost:1313/docs/types/class/</guid>
+      <description>&lt;blockquote&gt;&#xA;&lt;p&gt;Ответ прост: классы не строго необходимы для ООП. Знаю, это может шокировать.&lt;/p&gt;&#xA;&lt;p&gt;Разумеется, нам нужна возможность создания новых объектов,&#xA;и языки на основе классов, очевидно, распространены сильнее. Однако это не единственный способ достижения цели.&lt;/p&gt;&#xA;&lt;p&gt;В языках наподобие JavaScript (хотя ES6 добавил в язык классы6, 7)&#xA;и Lua используется концепция ООП на основе прототипов или прототипного ООП.&#xA;Вместо создания схемы для конструирования новых объектов мы используем существующий объект в качестве прототипа.&#xA;Такой подход даже может иметь реальные преимущества, поскольку снижает сложность языка8.&lt;/p&gt;</description>
+    </item>
+  </channel>
+</rss>

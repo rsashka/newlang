@@ -1,0 +1,95 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>Tags on NewLang</title>
+    <link>http://localhost:1313/ru/tags/</link>
+    <description>Recent content in Tags on NewLang</description>
+    <generator>Hugo</generator>
+    <language>ru</language>
+    <atom:link href="http://localhost:1313/ru/tags/index.xml" rel="self" type="application/rss+xml" />
+    <item>
+      <title>Dict</title>
+      <link>http://localhost:1313/ru/tags/dict/</link>
+      <pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate>
+      <guid>http://localhost:1313/ru/tags/dict/</guid>
+      <description></description>
+    </item>
+    <item>
+      <title>Set</title>
+      <link>http://localhost:1313/ru/tags/set/</link>
+      <pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate>
+      <guid>http://localhost:1313/ru/tags/set/</guid>
+      <description></description>
+    </item>
+    <item>
+      <title>Types</title>
+      <link>http://localhost:1313/ru/tags/types/</link>
+      <pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate>
+      <guid>http://localhost:1313/ru/tags/types/</guid>
+      <description></description>
+    </item>
+    <item>
+      <title>Итераторы</title>
+      <link>http://localhost:1313/ru/tags/%D0%B8%D1%82%D0%B5%D1%80%D0%B0%D1%82%D0%BE%D1%80%D1%8B/</link>
+      <pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate>
+      <guid>http://localhost:1313/ru/tags/%D0%B8%D1%82%D0%B5%D1%80%D0%B0%D1%82%D0%BE%D1%80%D1%8B/</guid>
+      <description></description>
+    </item>
+    <item>
+      <title>Коллекции</title>
+      <link>http://localhost:1313/ru/tags/%D0%BA%D0%BE%D0%BB%D0%BB%D0%B5%D0%BA%D1%86%D0%B8%D0%B8/</link>
+      <pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate>
+      <guid>http://localhost:1313/ru/tags/%D0%BA%D0%BE%D0%BB%D0%BB%D0%B5%D0%BA%D1%86%D0%B8%D0%B8/</guid>
+      <description></description>
+    </item>
+    <item>
+      <title>Набор</title>
+      <link>http://localhost:1313/ru/tags/%D0%BD%D0%B0%D0%B1%D0%BE%D1%80/</link>
+      <pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate>
+      <guid>http://localhost:1313/ru/tags/%D0%BD%D0%B0%D0%B1%D0%BE%D1%80/</guid>
+      <description></description>
+    </item>
+    <item>
+      <title>ООП</title>
+      <link>http://localhost:1313/ru/tags/%D0%BE%D0%BE%D0%BF/</link>
+      <pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate>
+      <guid>http://localhost:1313/ru/tags/%D0%BE%D0%BE%D0%BF/</guid>
+      <description></description>
+    </item>
+    <item>
+      <title>Системые Типы</title>
+      <link>http://localhost:1313/ru/tags/%D1%81%D0%B8%D1%81%D1%82%D0%B5%D0%BC%D1%8B%D0%B5-%D1%82%D0%B8%D0%BF%D1%8B/</link>
+      <pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate>
+      <guid>http://localhost:1313/ru/tags/%D1%81%D0%B8%D1%81%D1%82%D0%B5%D0%BC%D1%8B%D0%B5-%D1%82%D0%B8%D0%BF%D1%8B/</guid>
+      <description></description>
+    </item>
+    <item>
+      <title>Словарь</title>
+      <link>http://localhost:1313/ru/tags/%D1%81%D0%BB%D0%BE%D0%B2%D0%B0%D1%80%D1%8C/</link>
+      <pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate>
+      <guid>http://localhost:1313/ru/tags/%D1%81%D0%BB%D0%BE%D0%B2%D0%B0%D1%80%D1%8C/</guid>
+      <description></description>
+    </item>
+    <item>
+      <title>Строки</title>
+      <link>http://localhost:1313/ru/tags/%D1%81%D1%82%D1%80%D0%BE%D0%BA%D0%B8/</link>
+      <pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate>
+      <guid>http://localhost:1313/ru/tags/%D1%81%D1%82%D1%80%D0%BE%D0%BA%D0%B8/</guid>
+      <description></description>
+    </item>
+    <item>
+      <title>Типы Данных</title>
+      <link>http://localhost:1313/ru/tags/%D1%82%D0%B8%D0%BF%D1%8B-%D0%B4%D0%B0%D0%BD%D0%BD%D1%8B%D1%85/</link>
+      <pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate>
+      <guid>http://localhost:1313/ru/tags/%D1%82%D0%B8%D0%BF%D1%8B-%D0%B4%D0%B0%D0%BD%D0%BD%D1%8B%D1%85/</guid>
+      <description></description>
+    </item>
+    <item>
+      <title>Функции</title>
+      <link>http://localhost:1313/ru/tags/%D1%84%D1%83%D0%BD%D0%BA%D1%86%D0%B8%D0%B8/</link>
+      <pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate>
+      <guid>http://localhost:1313/ru/tags/%D1%84%D1%83%D0%BD%D0%BA%D1%86%D0%B8%D0%B8/</guid>
+      <description></description>
+    </item>
+  </channel>
+</rss>

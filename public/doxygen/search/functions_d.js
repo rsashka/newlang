@@ -1,0 +1,26 @@
+var searchData=
+[
+  ['name_0',['name',['../classnewlang_1_1Dict.html#a4670e838c8231c9519603dba790dc784',1,'newlang::Dict::name()'],['../classnewlang_1_1Obj.html#ac28a5b880ef0dce1647d4f5b24935c32',1,'newlang::Obj::name()']]],
+  ['namelookupstack_1',['NameLookupStack',['../classnewlang_1_1NameLookupStack.html#a0919adb79bbbfbe9d908431c569ad74d',1,'newlang::NameLookupStack']]],
+  ['nativenamemangling_2',['NativeNameMangling',['../classnewlang_1_1RunTime.html#ac0185c04824f94f5d70d2a6e7af60ae0',1,'newlang::RunTime::NativeNameMangling(const Term *term, RunTime *rt)'],['../classnewlang_1_1RunTime.html#a5fff6a436a46bc7d5db260e5aa3d6184',1,'newlang::RunTime::NativeNameMangling(std::string_view name)']]],
+  ['newindent_3',['NewIndent',['../structnewlang_1_1CompileInfo.html#af65dccd6787abedbad7207f9f6d78d10',1,'newlang::CompileInfo']]],
+  ['newlang_5fclone_4',['newlang_clone',['../namespacenewlang.html#afebc5080e2e924f665c4743166aa2242',1,'newlang']]],
+  ['newlang_5fconst_5f_5',['newlang_const_',['../namespacenewlang.html#a36e7bb1ae818d04dc9fcdad63d80c50d',1,'newlang']]],
+  ['newlang_5fhelp_6',['newlang_help',['../namespacenewlang.html#aa3005cbcfb1affd08eb92409100e05bf',1,'newlang']]],
+  ['newlang_5fmaks_7',['newlang_maks',['../namespacenewlang.html#a38e76ac69f8fa4537da10544dfdf17e1',1,'newlang']]],
+  ['newlang_5fmax_8',['newlang_max',['../namespacenewlang.html#aea77483919ee6205b3fefcb0715328eb',1,'newlang']]],
+  ['newlang_5fmin_9',['newlang_min',['../namespacenewlang.html#a3214b218474163e4b2279543b097770e',1,'newlang']]],
+  ['newlang_5fmutable_5f_10',['newlang_mutable_',['../namespacenewlang.html#a5f9e6228ed9dd731b97e455cc3f25c10',1,'newlang']]],
+  ['newlang_5fnewlang_5fclone_11',['newlang_newlang_clone',['../namespacenewlang.html#af9f1b868886b9688fed636d46706be2a',1,'newlang']]],
+  ['newlang_5fnewlang_5fconst_5f_12',['newlang_newlang_const_',['../namespacenewlang.html#a14696977a160746ccc789f54b8c89780',1,'newlang']]],
+  ['newlang_5fnewlang_5fhelp_13',['newlang_newlang_help',['../namespacenewlang.html#a1e5bd7d6214214bb6076063cdd39a9eb',1,'newlang']]],
+  ['newlang_5fnewlang_5fmaks_14',['newlang_newlang_maks',['../namespacenewlang.html#ad46550ed87892baf479a33b4c9949a58',1,'newlang']]],
+  ['newlang_5fnewlang_5fmax_15',['newlang_newlang_max',['../namespacenewlang.html#ad29ee09f09c147d569a92e06e34e8214',1,'newlang']]],
+  ['newlang_5fnewlang_5fmin_16',['newlang_newlang_min',['../namespacenewlang.html#acb9e2af126336bdba09050040e126615',1,'newlang']]],
+  ['newlang_5fnewlang_5fmutable_5f_17',['newlang_newlang_mutable_',['../namespacenewlang.html#aa8fbce099906d8e45e6ac21b9ecd6c78',1,'newlang']]],
+  ['newlangsignalhandler_18',['NewLangSignalHandler',['../namespacenewlang.html#a92765dafe82dd1b8f03f8b990661ddac',1,'newlang']]],
+  ['nlc_19',['NLC',['../classnewlang_1_1NLC.html#acee7d7becde33470e208a65af4de4503',1,'newlang::NLC']]],
+  ['nlc_5fprinft_5fsub_5f_20',['nlc_prinft_sub_',['../runtime_8cpp.html#af13d497b9096257ba75222c304eacb1d',1,'nlc_prinft_sub_():&#160;runtime.cpp'],['../namespacenewlang.html#a90568d227dd2952454607a56245111fd',1,'newlang::nlc_prinft_sub_()']]],
+  ['no_21',['No',['../classnewlang_1_1Obj.html#a0356121476720bfb1e022ed913cebd96',1,'newlang::Obj']]],
+  ['normalizename_22',['NormalizeName',['../namespacenewlang.html#acfb2e2b0e9345fb81370b5496dd9b150',1,'newlang']]]
+];
