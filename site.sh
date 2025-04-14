@@ -10,6 +10,7 @@ rm $root/site/content/ru/playground/*.src
 cp $root/examples/*.src  $root/site/content/ru/playground/
 cp -f $root/site/content/ru/playground/* $root/site/content/en/playground/
 cp -f $root/site/content/CNAME $root/site/public/
+cp -f $root/site/content/README.txt $root/site/public/
 
 echo Rename link in dir $root/content/en:
 

@@ -1,5 +1,7 @@
 TEMP
 doxygen/*
+# site/public
+# site/public/**
 output/*
 **/*.pt
 contrib/*
