@@ -1,0 +1,81 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>Типы данных on NewLang</title>
+    <link>http://localhost:1313/docs/types/</link>
+    <description>Recent content in Типы данных on NewLang</description>
+    <generator>Hugo</generator>
+    <language>en</language>
+    <atom:link href="http://localhost:1313/docs/types/index.xml" rel="self" type="application/rss+xml" />
+    <item>
+      <title>Иерархия типов и обобщения</title>
+      <link>http://localhost:1313/docs/types/generics/</link>
+      <pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate>
+      <guid>http://localhost:1313/docs/types/generics/</guid>
+      <description>&lt;p&gt;&lt;em&gt;NewLang&lt;/em&gt; имеет закрытую систему типов. т.е. любой новый тип данных, которые создает пользователь,&#xA;обязательно должен быть наследником одного из уже существующих, т.е. расширять один из них.&#xA;Такой поход напоминает создание классов в языке Java, в котором каждый новый класс имеет в своих родителях класс Object.&lt;/p&gt;&#xA;&lt;p&gt;С помощью обобщений (generics) можно писать код, который может работать с любым совместимым типом данных.&lt;/p&gt;&#xA;&lt;p&gt;Фрагмент иерархии типов данных (&lt;a href=&#34;http://localhost:1313/docs/types/strings/&#34;&gt;строки&lt;/a&gt; и &lt;a href=&#34;http://localhost:1313/docs/types/numbers/&#34;&gt;числа&lt;/a&gt;,&#xA;а в скобках указаны синонимы типов):&lt;/p&gt;</description>
+    </item>
+    <item>
+      <title>Numbers</title>
+      <link>http://localhost:1313/docs/types/numbers/</link>
+      <pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate>
+      <guid>http://localhost:1313/docs/types/numbers/</guid>
+      <description>&lt;p&gt;&lt;em&gt;NewLang&lt;/em&gt; is a language with dynamic typing, and explicit type declaration does not affect the memory size occupied by a variable.&#xA;Type information is used when checking their compatibility, when assigning a value of a different type to an existing object.&#xA;This operation is possible only when the types are compatible and allow for automatic conversion.&#xA;This is true both during parsing/compilation of the source text and during execution in interpreter and/or compiled file modes.&lt;/p&gt;</description>
+    </item>
+    <item>
+      <title>Character Strings</title>
+      <link>http://localhost:1313/docs/types/strings/</link>
+      <pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate>
+      <guid>http://localhost:1313/docs/types/strings/</guid>
+      <description>&lt;p&gt;&lt;em&gt;NewLang&lt;/em&gt; supports two types of strings:&lt;/p&gt;&#xA;&lt;ul&gt;&#xA;&lt;li&gt;&lt;em&gt;:StrChar&lt;/em&gt; - universal byte UTF-8 strings&lt;/li&gt;&#xA;&lt;li&gt;&lt;em&gt;:StrWide&lt;/em&gt; - system character (wide characters)&lt;/li&gt;&#xA;&lt;/ul&gt;&#xA;&lt;p&gt;The single element of a universal UTF-8 string is one byte,&#xA;while the single element of a system character string is a wide character &lt;em&gt;wchar_t&lt;/em&gt;.&#xA;And although the strings differ in the types of single string elements, the internal representation of both types of strings is the same.&#xA;All data of character strings is stored as a universal byte UTF-8 sequence.&lt;/p&gt;</description>
+    </item>
+    <item>
+      <title>Словари</title>
+      <link>http://localhost:1313/docs/types/dicts/</link>
+      <pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate>
+      <guid>http://localhost:1313/docs/types/dicts/</guid>
+      <description>&lt;h2 id=&#34;объектно-ориентированное-программирование&#34;&gt;Объектно ориентированное программирование&lt;a class=&#34;td-heading-self-link&#34; href=&#34;#%d0%be%d0%b1%d1%8a%d0%b5%d0%ba%d1%82%d0%bd%d0%be-%d0%be%d1%80%d0%b8%d0%b5%d0%bd%d1%82%d0%b8%d1%80%d0%be%d0%b2%d0%b0%d0%bd%d0%bd%d0%be%d0%b5-%d0%bf%d1%80%d0%be%d0%b3%d1%80%d0%b0%d0%bc%d0%bc%d0%b8%d1%80%d0%be%d0%b2%d0%b0%d0%bd%d0%b8%d0%b5&#34; aria-label=&#34;Heading self-link&#34;&gt;&lt;/a&gt;&lt;/h2&gt;&#xA;&lt;p&gt;&lt;em&gt;NewLang&lt;/em&gt; поддерживает следующую концепцию объектно-ориентированного программирования:&lt;/p&gt;&#xA;&lt;p&gt;Каждый объект представляет собой отдельный тип данных, который наследуется от другого типа или от одного из его наследников (что очень похоже на концепцию объектов в языке Java), а экземпляр конкретного класса создается путем вызова его типа.&lt;/p&gt;&#xA;&lt;p&gt;Наследование поддерживается для типов словарь (&lt;em&gt;:Dictionary&lt;/em&gt;) и класс (&lt;em&gt;:Class&lt;/em&gt;) и всех их потомков.&lt;/p&gt;&#xA;&lt;h3 id=&#34;словарь&#34;&gt;Словарь&lt;a class=&#34;td-heading-self-link&#34; href=&#34;#%d1%81%d0%bb%d0%be%d0%b2%d0%b0%d1%80%d1%8c&#34; aria-label=&#34;Heading self-link&#34;&gt;&lt;/a&gt;&lt;/h3&gt;&#xA;&lt;p&gt;Словарь (&lt;em&gt;:Dictionary&lt;/em&gt;) — набор данных произвольного типа с доступом к отдельным элементам по целочисленному индексу или по имени элемента при его наличии (это похоже и на tuple и на структуру одновременно). Словари отличаются от &lt;a href=&#34;https://newlang.net/type_nor.html&#34;&gt;тензоров&lt;/a&gt; тем, что всегда имеют только одно измерение, но каждый элемент может содержать произвольное количество элементов любого типа, в том числе и другие словари.&lt;/p&gt;</description>
+    </item>
+    <item>
+      <title>Классы</title>
+      <link>http://localhost:1313/docs/types/class/</link>
+      <pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate>
+      <guid>http://localhost:1313/docs/types/class/</guid>
+      <description>&lt;blockquote&gt;&#xA;&lt;p&gt;Ответ прост: классы не строго необходимы для ООП. Знаю, это может шокировать.&lt;/p&gt;&#xA;&lt;p&gt;Разумеется, нам нужна возможность создания новых объектов,&#xA;и языки на основе классов, очевидно, распространены сильнее. Однако это не единственный способ достижения цели.&lt;/p&gt;&#xA;&lt;p&gt;В языках наподобие JavaScript (хотя ES6 добавил в язык классы6, 7)&#xA;и Lua используется концепция ООП на основе прототипов или прототипного ООП.&#xA;Вместо создания схемы для конструирования новых объектов мы используем существующий объект в качестве прототипа.&#xA;Такой подход даже может иметь реальные преимущества, поскольку снижает сложность языка8.&lt;/p&gt;</description>
+    </item>
+    <item>
+      <title>Функции</title>
+      <link>http://localhost:1313/docs/types/funcs/</link>
+      <pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate>
+      <guid>http://localhost:1313/docs/types/funcs/</guid>
+      <description>&lt;p&gt;Определение функции происходит с помощью операторов &lt;a href=&#34;http://localhost:1313/docs/ops/create/&#34;&gt;создания объектов&lt;/a&gt;,&#xA;имя функции должно соответствовать &lt;a href=&#34;http://localhost:1313/docs/syntax/naming/&#34;&gt;правилам именования&lt;/a&gt;,&#xA;после которого указываются круглые скобки. &lt;em&gt;В настоящий момент поддерживается создание функций только в качестве статических объектов&#xA;с однократной инициализацией с помощью оператора &amp;lsquo;&lt;strong&gt;::=&lt;/strong&gt;&amp;rsquo;&lt;/em&gt;;&lt;/p&gt;&#xA;&lt;p&gt;Телом функции должен быть &lt;a href=&#34;http://localhost:1313/docs/ops/block/&#34;&gt;блок кода&lt;/a&gt;, который располагается в пространстве имен определения этой функции.&lt;/p&gt;&#xA;&lt;p&gt;Функции поддерживают аргументы по умолчанию, а сами аргументы указываются как в Python,&#xA;т.е. вначале идут обязательные, далее идут аргументы со значениями по умолчанию,&#xA;где его имя отделяется от дефолтного значения знаком равно &amp;ldquo;&lt;strong&gt;=&lt;/strong&gt;&amp;rdquo;.&lt;/p&gt;</description>
+    </item>
+    <item>
+      <title>Итераторы</title>
+      <link>http://localhost:1313/docs/types/iter/</link>
+      <pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate>
+      <guid>http://localhost:1313/docs/types/iter/</guid>
+      <description>&lt;p&gt;Итераторы в &lt;em&gt;NewLang&lt;/em&gt;, как и в остальных языках программирования, предназначены для перебора элементов. Но, в отличии от итераторов в С++, итераторы &lt;em&gt;NewLang&lt;/em&gt; являются самостоятельными объектами, а не указателями на отдельные элементы объекта-контейнера. Итераторы &lt;em&gt;NewLang&lt;/em&gt; поддерживают фильтрацию элементов по имени за счет использования функций обратного вызова.&lt;/p&gt;&#xA;&lt;p&gt;Для работы с итераторами используется следующий синтаксис:&lt;/p&gt;&#xA;&lt;ul&gt;&#xA;&lt;li&gt;&lt;strong&gt;?&lt;/strong&gt; или &lt;strong&gt;?(&lt;/strong&gt; текст &lt;strong&gt;)&lt;/strong&gt; - создание итератора без фильтра или с &lt;em&gt;regex&lt;/em&gt; фильтрацией по имени поля&lt;/li&gt;&#xA;&lt;li&gt;&lt;strong&gt;?(&lt;/strong&gt; func, args&amp;hellip; &lt;strong&gt;)&lt;/strong&gt; - создание итератора с использованием &lt;a href=&#34;http://localhost:1313/docs/types/funcs/&#34;&gt;лямбда функции или функции обратного вызова&lt;/a&gt;&lt;/li&gt;&#xA;&lt;li&gt;&lt;strong&gt;!&lt;/strong&gt; или &lt;strong&gt;!(&lt;/strong&gt; количество возвращаемых элементов &lt;strong&gt;)&lt;/strong&gt; - перебор элементов итератора&lt;/li&gt;&#xA;&lt;li&gt;&lt;strong&gt;?!&lt;/strong&gt; или &lt;strong&gt;!?&lt;/strong&gt; - получить текущий элемент без перемещение курсора&lt;/li&gt;&#xA;&lt;li&gt;&lt;strong&gt;!!&lt;/strong&gt; - сбросить указатель итератора в начальное состояние (на первый элемент)&lt;/li&gt;&#xA;&lt;li&gt;&lt;strong&gt;??&lt;/strong&gt; - создать итератор и сразу его выполнить, возвращая все значения в виде элементов словаря максимально возможного размера.&#xA;Это своего рода синтаксический сахар для краткой записи последовательности команд &lt;code&gt;?; !(9223372036854775807);&lt;/code&gt;,&#xA;что удобно использовать при отладке для вывода значений переменных.&lt;/li&gt;&#xA;&lt;/ul&gt;&#xA;&lt;p&gt;Для работы с итераторами можно использовании DSL операторы:&lt;/p&gt;</description>
+    </item>
+    <item>
+      <title>Другие типы данных</title>
+      <link>http://localhost:1313/docs/types/other/</link>
+      <pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate>
+      <guid>http://localhost:1313/docs/types/other/</guid>
+      <description>&lt;h3 id=&#34;пусто-none&#34;&gt;Пусто (:None)&lt;a class=&#34;td-heading-self-link&#34; href=&#34;#%d0%bf%d1%83%d1%81%d1%82%d0%be-none&#34; aria-label=&#34;Heading self-link&#34;&gt;&lt;/a&gt;&lt;/h3&gt;&#xA;&lt;p&gt;&lt;em&gt;:None&lt;/em&gt; (пусто) — не содержит значения (точнее имеет одно значение &lt;em&gt;:None&lt;/em&gt;). Указывается в тексте программы как один подчерк «_». Значение &lt;em&gt;None&lt;/em&gt; имеют не инициализированные переменные и при попытке чтения из такой переменной возникает ошибка.&lt;/p&gt;&#xA;&lt;p&gt;Тип переменной может быть явно указан или выведен автоматически из присваиваемого значения. Присвоить новое значение уже инициализированной переменной можно только для совместимого типа, так как неявное преобразование типов не допускаются.&lt;/p&gt;&#xA;&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;background-color:#f8f8f8;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;&lt;code class=&#34;language-bash&#34; data-lang=&#34;bash&#34;&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    &lt;span style=&#34;color:#000&#34;&gt;$var&lt;/span&gt; :&lt;span style=&#34;color:#ce5c00;font-weight:bold&#34;&gt;=&lt;/span&gt; _&lt;span style=&#34;color:#000;font-weight:bold&#34;&gt;;&lt;/span&gt; &lt;span style=&#34;color:#8f5902;font-style:italic&#34;&gt;# Создать не инициализированную переменную&lt;/span&gt;&#xA;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    &lt;span style=&#34;color:#000&#34;&gt;$var2&lt;/span&gt; :&lt;span style=&#34;color:#ce5c00;font-weight:bold&#34;&gt;=&lt;/span&gt; var&lt;span style=&#34;color:#000;font-weight:bold&#34;&gt;;&lt;/span&gt; &lt;span style=&#34;color:#8f5902;font-style:italic&#34;&gt;# Ошибка!!! Нельзя прочитать не инициализированную переменную var&lt;/span&gt;&#xA;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    &lt;span style=&#34;color:#000&#34;&gt;$var&lt;/span&gt; &lt;span style=&#34;color:#ce5c00;font-weight:bold&#34;&gt;=&lt;/span&gt; 1000&lt;span style=&#34;color:#000;font-weight:bold&#34;&gt;;&lt;/span&gt; &lt;span style=&#34;color:#8f5902;font-style:italic&#34;&gt;# У переменной будет тип Short (минимальный размер для хранения значения)&lt;/span&gt;&#xA;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    &lt;span style=&#34;color:#000&#34;&gt;$var&lt;/span&gt; &lt;span style=&#34;color:#ce5c00;font-weight:bold&#34;&gt;=&lt;/span&gt; 0,5&lt;span style=&#34;color:#000;font-weight:bold&#34;&gt;;&lt;/span&gt; &lt;span style=&#34;color:#8f5902;font-style:italic&#34;&gt;# Ошибка!!! Short ← Float не совместимы&lt;/span&gt;&#xA;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    &lt;span style=&#34;color:#000&#34;&gt;$var&lt;/span&gt; &lt;span style=&#34;color:#ce5c00;font-weight:bold&#34;&gt;=&lt;/span&gt; _&lt;span style=&#34;color:#000;font-weight:bold&#34;&gt;;&lt;/span&gt; &lt;span style=&#34;color:#8f5902;font-style:italic&#34;&gt;# Очистить значение переменной&lt;/span&gt;&#xA;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    &lt;span style=&#34;color:#000&#34;&gt;$var&lt;/span&gt; &lt;span style=&#34;color:#ce5c00;font-weight:bold&#34;&gt;=&lt;/span&gt; 0,5&lt;span style=&#34;color:#000;font-weight:bold&#34;&gt;;&lt;/span&gt; &lt;span style=&#34;color:#8f5902;font-style:italic&#34;&gt;# Теперь можно, т. к. None совместим с любым типом&lt;/span&gt;&#xA;&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;h3 id=&#34;диапазон-range&#34;&gt;Диапазон (:Range)&lt;a class=&#34;td-heading-self-link&#34; href=&#34;#%d0%b4%d0%b8%d0%b0%d0%bf%d0%b0%d0%b7%d0%be%d0%bd-range&#34; aria-label=&#34;Heading self-link&#34;&gt;&lt;/a&gt;&lt;/h3&gt;&#xA;&lt;p&gt;Диапазон — специальный тип данных, являющейся приблизительным аналогом типа «генератор» в Python. К диапазону можно обращаться как к итератору и он будет поочередно выдавать элементы в указанном интервале с заданным шагом. Диапазон в тексте программы указывается как два или три элемента через две точки, например 1..5 — диапазон от единицы до пяти с шагом по умолчанию 1. В качестве параметров диапазона можно указывать не только литералы, но и имена переменных и даже рациональные числа. Например, 0,1..$stop..0,1 — диапазон от 0,1 до значения, указанного в переменной $stop с шагом 0,1 или 0..1\10 - диапазон рациональных числе от 0 до 10.&lt;/p&gt;</description>
+    </item>
+    <item>
+      <title>Native Data Types</title>
+      <link>http://localhost:1313/docs/types/native/</link>
+      <pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate>
+      <guid>http://localhost:1313/docs/types/native/</guid>
+      <description>&lt;p&gt;Native (machine) data can be variables or functions, and the names of native objects start with the percent symbol &amp;ldquo;&lt;strong&gt;%&lt;/strong&gt;&amp;rdquo;.&lt;/p&gt;&#xA;&lt;p&gt;In the case of variables, these are binary data located in a single continuous area of machine memory at a specific address and have a strictly defined format.&lt;/p&gt;&#xA;&lt;p&gt;To use existing libraries, you need to import the native object, thereby creating an object NewLang,&#xA;but with an implementation in another language, for example, in C/C++.&lt;/p&gt;</description>
+    </item>
+    <item>
+      <title>Data type conversion</title>
+      <link>http://localhost:1313/docs/types/convert/</link>
+      <pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate>
+      <guid>http://localhost:1313/docs/types/convert/</guid>
+      <description>&lt;p&gt;Despite the dynamic typing of the language, if the type of a variable is specified explicitly, then automatic type casting is not performed.&#xA;and to assign a value of an incompatible type to a variable, an explicit conversion is required.&lt;/p&gt;&#xA;&lt;p&gt;Since symbolic type names are implementation details, an explicit conversion to a specific data type is performed&#xA;by calling a function with a type name, i.e. :Bool(), :StrWide(), :Int64(), etc.&lt;/p&gt;</description>
+    </item>
+  </channel>
+</rss>

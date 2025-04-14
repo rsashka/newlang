@@ -1,0 +1,28 @@
+var searchData=
+[
+  ['sequence_0',['SEQUENCE',['../namespacenewlang.html#a110e5412ce8d3afb2e2ead1eefddc2f1a2cb198a10d0a4c217ff4c15e98a97215',1,'newlang']]],
+  ['set_1',['SET',['../namespacenewlang.html#a110e5412ce8d3afb2e2ead1eefddc2f1a8c52684db8f49511e9b44471716bf164',1,'newlang']]],
+  ['shared_2',['SHARED',['../namespacenewlang.html#afa69f1661c3993c17fc38da3596af63ba049518eb4dc1859c7cebbe15876cfd63',1,'newlang']]],
+  ['shared_3',['Shared',['../namespacenewlang.html#a8b0ea9cc72c69840d9814804557b938aaa6156ea9d66fef24e87e841fbabf7cca',1,'newlang']]],
+  ['sharedconst_4',['SharedConst',['../namespacenewlang.html#a8b0ea9cc72c69840d9814804557b938aafc05cc14de01299f4fcb8eb574a110e2',1,'newlang']]],
+  ['single_5',['Single',['../namespacenewlang.html#ac206a3231d4a7e40b039ec9677acfc8da66ba162102bbf6ae31b522aec561735e',1,'newlang']]],
+  ['space_6',['SPACE',['../namespacenewlang.html#a110e5412ce8d3afb2e2ead1eefddc2f1a6506ae39fdca9845e3a6de3865183e57',1,'newlang']]],
+  ['static_7',['STATIC',['../namespacenewlang.html#a110e5412ce8d3afb2e2ead1eefddc2f1afe6f99ef1ec99efbdc19a9786cf1facc',1,'newlang']]],
+  ['stdchar_8',['StdChar',['../namespacenewlang.html#ac206a3231d4a7e40b039ec9677acfc8da5ae59b59b2815d2bcad4eacbb5ee3862',1,'newlang']]],
+  ['stdwide_9',['StdWide',['../namespacenewlang.html#ac206a3231d4a7e40b039ec9677acfc8da4192de9427966f31953986156844426b',1,'newlang']]],
+  ['strchar_10',['STRCHAR',['../namespacenewlang.html#a110e5412ce8d3afb2e2ead1eefddc2f1a6d05347726f3ab963d3dd0aa72e96703',1,'newlang']]],
+  ['strchar_11',['StrChar',['../namespacenewlang.html#ac206a3231d4a7e40b039ec9677acfc8dac4f5f468e3945b77dcb333e2c3b88df4',1,'newlang']]],
+  ['string_12',['STRING',['../namespacenewlang.html#afa69f1661c3993c17fc38da3596af63ba63b588d5559f64f89a416e656880b949',1,'newlang']]],
+  ['string_13',['String',['../namespacenewlang.html#ac206a3231d4a7e40b039ec9677acfc8da27118326006d3829667a400ad23d5d98',1,'newlang']]],
+  ['struct_14',['Struct',['../namespacenewlang.html#ac206a3231d4a7e40b039ec9677acfc8da886ef5dbd655a6c97726d7091c6b173e',1,'newlang']]],
+  ['strwide_15',['STRWIDE',['../namespacenewlang.html#a110e5412ce8d3afb2e2ead1eefddc2f1a793310b713c415555ac1d6cd7448ffe0',1,'newlang']]],
+  ['strwide_16',['StrWide',['../namespacenewlang.html#ac206a3231d4a7e40b039ec9677acfc8dabe4c84f00f06b23e1ad9a530180f2434',1,'newlang']]],
+  ['swap_17',['SWAP',['../namespacenewlang.html#a110e5412ce8d3afb2e2ead1eefddc2f1a46fc23bc4e4d57e5469a39658a6dd3e8',1,'newlang']]],
+  ['sym_5frule_18',['SYM_RULE',['../namespacenewlang.html#a110e5412ce8d3afb2e2ead1eefddc2f1ac881b37314e1c0889cd1360c145c8fe0',1,'newlang']]],
+  ['symbol_19',['SYMBOL',['../namespacenewlang.html#a110e5412ce8d3afb2e2ead1eefddc2f1a8fc5a0642a90632e8418ca52c3ec761d',1,'newlang']]],
+  ['syncmono_20',['SyncMono',['../namespacenewlang.html#a8b0ea9cc72c69840d9814804557b938aafcabcd7548a1ac3f2d53b94d43d494f7',1,'newlang']]],
+  ['syncmonoconst_21',['SyncMonoConst',['../namespacenewlang.html#a8b0ea9cc72c69840d9814804557b938aa8c6991433ce22bce720519629a342472',1,'newlang']]],
+  ['syncmulti_22',['SyncMulti',['../namespacenewlang.html#a8b0ea9cc72c69840d9814804557b938aa87aa73905b4a0a95983b031f76c251bf',1,'newlang']]],
+  ['syncmulticonst_23',['SyncMultiConst',['../namespacenewlang.html#a8b0ea9cc72c69840d9814804557b938aa068620d72738fa4739443d9b785ec9ef',1,'newlang']]],
+  ['sys_24',['Sys',['../namespacenewlang.html#ac206a3231d4a7e40b039ec9677acfc8da40085574ffe68d3214bf81845239eefc',1,'newlang']]]
+];

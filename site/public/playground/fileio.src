@@ -1,0 +1,59 @@
+#!../output/nlc 
+
+:FileHandler ::= :Pointer;
+
+fopen(filename:String, modes:String):FileHandler ::= :Pointer("fopen(filename:StrChar, modes:StrChar):FileHandler");;
+fopen64(filename:String, modes:String):FileHandler ::= :Pointer("fopen(filename:StrChar, modes:StrChar):FileHandler");;
+
+freopen(filename:String, modes:String):FileHandler ::= :Pointer("freopen(filename:StrChar, modes:StrChar, stream:FileHandler):FileHandler");;
+fclose(stream:FileHandler):Int32 ::= :Pointer("fclose(stream:FileHandler):Int32");;
+fflush(stream:FileHandler):Int32 ::= :Pointer("fflush(stream:FileHandler):Int32");;
+fremove(filename:String):Int32 ::= :Pointer("remove(filename:StrChar):Int32");;
+frename(old:String, new:String):Int32 ::= :Pointer("rename(old:StrChar, new:StrChar):Int32");;
+ftmpfile():FileHandler ::= :Pointer("tmpfile():FileHandler");;
+
+fprintf(stream:FileHandler, format:FmtChar, ...):Int32 ::= :Pointer("fprintf(stream:FileHandler, format:FmtChar, ...):Int32");;
+fscanf(stream:FileHandler, format:FmtChar, ...):Int32 ::= :Pointer("fscanf(stream:FileHandler, format:FmtChar, ...):Int32");;       
+fgetc(stream:FileHandler):Int32 ::= :Pointer("fgetc(stream:FileHandler):Int32");;
+fungetc(c:Int32, stream:FileHandler):Int32 ::= :Pointer("ungetc(c:Int32, stream:FileHandler):Int32");;
+fputc(c:Int32, stream:FileHandler):Int32 ::= :Pointer("fputc(c:Int32, stream:FileHandler):Int32");;
+fputs(string:String, stream:FileHandler):Int32 ::= :Pointer("fputs(c:StrChar, stream:FileHandler):Int32");;
+
+SEEK ::= :Enum(SET=0, CUR=1, END=2);
+fseek(stream:FileHandler, offset:Int64, whence:Int32):Int32 ::= :Pointer("fseek(stream:FileHandler, offset:Int64, whence:Int32):Int32");;
+
+:File ::= Class(){
+
+    _file_haldler ::= 0;
+
+    File(filename: String, modes:String) ::= {
+        [filename] -> {
+            _file_haldler = fopen64(filename, modes);
+        },[_] ={
+            _file_haldler = ftmpfile();
+        };
+        assert(_file_haldler);
+    };
+
+
+    ~File() ::= {
+        [_file_haldler] -> {
+            fclose(_file_haldler);
+            _file_haldler = 0;
+        };
+    };
+
+    Remove(filename:String){
+        [$$]->{
+            filename;???????????
+        }
+    }
+    Remove(filename:String){
+        
+    }
+fremove(filename:String):Int32 ::= :Pointer("remove(filename:StrChar):Int32");;
+frename(old:String, new:String):Int32 ::= :Pointer("rename(old:StrChar, new:StrChar):Int32");;
+
+};
+
+"OK";

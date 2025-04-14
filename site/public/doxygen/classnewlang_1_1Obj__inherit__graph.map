@@ -1,0 +1,19 @@
+<map id="newlang::Obj" name="newlang::Obj">
+<area shape="rect" id="Node000001" title=" " alt="" coords="737,85,844,111"/>
+<area shape="rect" id="Node000007" href="$classnewlang_1_1IntAny.html" title=" " alt="" coords="893,85,1020,111"/>
+<area shape="poly" id="edge6_Node000001_Node000007" title=" " alt="" coords="858,95,893,95,893,101,858,101"/>
+<area shape="rect" id="Node000002" href="$classnewlang_1_1Dict.html" title=" " alt="" coords="525,44,688,69"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="678,70,738,83,736,89,677,75"/>
+<area shape="rect" id="Node000003" title=" " alt="" coords="237,5,420,60"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="434,39,525,47,525,52,433,44"/>
+<area shape="rect" id="Node000004" href="$classnewlang_1_1Dict.html" title=" " alt="" coords="237,84,420,109"/>
+<area shape="poly" id="edge3_Node000002_Node000004" title=" " alt="" coords="431,79,525,66,525,71,431,85"/>
+<area shape="rect" id="Node000005" title=" " alt="" coords="5,69,188,124"/>
+<area shape="poly" id="edge4_Node000004_Node000005" title=" " alt="" coords="202,94,237,94,237,99,202,99"/>
+<area shape="rect" id="Node000006" title=" " alt="" coords="534,94,679,134"/>
+<area shape="poly" id="edge5_Node000001_Node000006" title=" " alt="" coords="693,104,737,100,737,105,694,109"/>
+<area shape="rect" id="Node000008" href="$classnewlang_1_1IntMinus.html" title=" " alt="" coords="1069,60,1211,85"/>
+<area shape="poly" id="edge7_Node000007_Node000008" title=" " alt="" coords="1033,85,1069,80,1069,85,1034,90"/>
+<area shape="rect" id="Node000009" href="$classnewlang_1_1IntPlus.html" title=" " alt="" coords="1075,109,1205,135"/>
+<area shape="poly" id="edge8_Node000007_Node000009" title=" " alt="" coords="1034,105,1076,111,1075,116,1033,111"/>
+</map>

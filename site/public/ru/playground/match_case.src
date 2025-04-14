@@ -1,0 +1,3 @@
+#!../output/nlc 
+
+print('Hello, world!\n');

@@ -1,0 +1,99 @@
+#!../output/nlc --eval
+
+@dsl {};
+
+:human() ::= :Class(sex=_, parent:human=(,)) {
+};
+brother(h1:human, h2:human):-{  #
+    $h1 != $h2 &&               #
+    $h1.sex == "male" &&        #
+    $h1.parent * $h2.parent;    #
+};
+
+
+\main {  # Macros expand to: [@$.__main__] --> {
+
+    printf := :Pointer('printf(format:FmtChar, ...):Int32');
+
+    $Tom ::= :human(sex="male");
+    $Janna ::= :human(sex="female");
+    $July ::= :human(sex="female", [&Tom, &Janna,]);
+    $Jake ::= :human(sex="male", [&Tom, &Janna,]);
+    $Tim ::= :human(sex="male", parent=[&Tom,]);
+
+
+    $first := $?;
+    \while($first){
+        $second := $?;
+        \while($second){
+            \if(brother($first?!, $second?!)){
+                printf("%s brother %s", $first?!, $second?!);
+            };
+            $second!;
+        }
+        $first!;
+    }
+  
+
+#////    out << "Tom := human(пол=м);\n";
+#////    out << "Janna := human(пол=ж);\n";
+#////    out << "Jake := @human(#м, [&Tom, &Janna,]);\n";
+#////    out << "Tim:=@human(пол=м, parent=[&Tom,]);\n";
+   
+}
+
+
+
+
+
+$test1 := "";
+%__NLC_VER__
+%__FILE__
+%__LINE__
+%__DATE__
+%__NAME__ (имя функции или класса)
+%__FULL_NAME__ (имя функции или класса включая namespace)
+%__COUNTER__  развертывается до целочисленного литерала, начинающегося с 0. 
+Значение увеличивается на 1 каждый раз, когда используется в файле исходного кода или во включенных заголовках файла исходного кода. 
+\__COUNTER__ запоминает свое состояние при использовании предкомпилированных заголовков.
+%__TIMESTAMP__ — определяется как строковый литерал, содержащий дату и время последнего изменения текущего исходного файла 
+в сокращенной форме с постоянной длиной, которые возвращаются функцией asctime библиотеки CRT, 
+например: Fri 19 Aug 13:32:58 2016. Этот макрос определяется всегда.
+
+#Определить макросы для тестов
+\\while(...) [\$*] --> \\\
+\\else ,[_] --> \\\
+\\try \() \\\
+\\error(msg) :StrWide($msg, " at line: ", %__LINE, " in file: ", %__FILE) \\\ 
+
+$result = "";
+{}():IntPlus("arg");
+
+# Тип класса
+:class(arg1, arg2="default", ...) := :Class() {
+    # Using $arg1, $arg2
+
+    # Код выполняется однократно при создании типа класса :class
+
+    $result += "Call CLASS constructor\n";
+    field ::= arg1;
+    counter ::= 0;
+
+    
+    __class(arg1=$arg1, arg2=$arg2, arg3="construcor default") ::= {
+        "Конструктор экземпляра класса\n\nКод выполняется многократно при создании каждого экземпляра класса :class";
+
+        $0->counter += 1;
+        $result += "Call OBJECT $1 constructor\n"($0->counter);
+    };
+
+    method() ::= {
+        $result += "Call method\n";
+    };
+
+    _ ::= {
+        # Код выполняется многократно при удалении каждого экземпляра класса :class
+        $0->counter -= 1;
+        $result += "Call OBJECT $1 destructor\n"($0->counter);
+    };
+};

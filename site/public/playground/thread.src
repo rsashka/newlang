@@ -1,0 +1,100 @@
+#!../output/nlc 
+
+rand():Int32 ::= %rand...; # Создание объекта
+@( rand():Int32 ); # Предварительное объявление (объект должен быть создан в другом месте)
+rand():Int32 = ...;
+
+usleep(usec:DWord64):None := %usleep...;
+printf(format:FmtChar, ...):Int32 := %printf...;
+
+
+func(count:Integer, target:String) := {
+    $iter := @iter( 1..$count ); # Итератор для диапазона от 1 до $count
+    @while( @curr($iter) ) {   # Цикл, пока итератор валидный
+
+        $step := @next($iter);  # Получить текущий и перейти на следующий элемент итератора
+
+        @timeit( usleep( rand() % 1000000 ), ' Step ', $step, ' target "', $target, '".'); # Случайная задержка
+    }
+}
+
+thread = :Thread(func, 5, 'thread');
+
+thread.start();
+
+func(5, 'main');
+
+thread.join();
+
+Exec time 'usleep(rand()%1000000)': 0.289700 seconds. Step 1 from "test".
+Exec time 'usleep(rand()%1000000)': 0.931346 seconds. Step 2 from "test".
+Exec time 'usleep(rand()%1000000)': 0.693064 seconds. Step 3 from "test".
+Exec time 'usleep(rand()%1000000)': 0.637365 seconds. Step 4 from "test".
+
+
+Number 1 from the thread!
+Number 1 from the main!
+Number 2 from the thread!
+Number 2 from the main!
+Number 3 from the thread!
+Number 4 from the thread!
+Number 3 from the main!
+Number 4 from the main!
+Number 5 from the main!
+Number 5 from the thread!
+
+
+/*
+
+#include <chrono>
+#include <iostream>
+#include <mutex>
+#include <sstream>
+#include <thread>
+#include <vector>
+ 
+using namespace std::chrono_literals;
+ 
+std::mutex cout_mutex; // control access to std::cout
+std::timed_mutex mutex;
+ 
+void job(int id)
+{
+    std::ostringstream stream;
+ 
+    for (int i = 0; i < 3; ++i)
+    {
+        if (mutex.try_lock_for(100ms))
+        {
+            stream << "success ";
+            std::this_thread::sleep_for(100ms);
+            mutex.unlock();
+        }
+        else
+            stream << "failed ";
+ 
+        std::this_thread::sleep_for(100ms);
+    }
+ 
+    std::lock_guard<std::mutex> lock{cout_mutex};
+    std::cout << '[' << id << "] " << stream.str() << '\n';
+}
+ 
+int main()
+{
+    std::vector<std::thread> threads;
+    for (int i{0}; i < 4; ++i)
+        threads.emplace_back(job, i);
+ 
+    for (auto& th : threads)
+        th.join();
+}
+
+Possible output:
+
+[0] failed failed failed 
+[3] failed failed success 
+[2] failed success failed 
+[1] success failed success
+
+*/

@@ -1,0 +1,47 @@
+#!../output/nlc 
+
+printf(format:FmtChar, ...):Int32 := %printf...;
+
+&& holder: Integer[] = [,]; # Empty tensor
+
+Runnable(cnt:Integer) := {
+    $i := 1;
+    @while( $i <= $cnt ) {
+        *holder []= $i;  # Lock and add new value
+        $i += 1;
+        @if( $i % ($cnt // 10) == 0) {
+            @with(*holder){ # Lock only
+                printf(".");
+            }
+        }
+    }
+}
+
+$count = 10000;
+
+thread1 = :Thread(Runnable, $count);
+thread2 = :Thread(Runnable, $count);
+thread3 = :Thread(Runnable, $count);
+thread4 = :Thread(Runnable, $count);
+thread5 = :Thread(Runnable, $count);
+
+thread1.start();
+thread2.start();
+thread3.start();
+thread4.start();
+thread5.start();
+
+thread1.join();
+thread2.join();
+thread3.join();
+thread4.join();
+thread5.join();
+
+@assert(*holder.size() == 5*$count);
+printf("Complete %d!\n", *holder.size());
+
+Вывод:
+
+>..................................................
+>Complete 50000!
+>_
