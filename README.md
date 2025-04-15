@@ -1,1 +1,1 @@
-Auto generated site by [hugo](https://github.com/gohugoio/hugo)
+Auto generated site [newlang.net](http://newlang.net) by [hugo](https://github.com/gohugoio/hugo)
